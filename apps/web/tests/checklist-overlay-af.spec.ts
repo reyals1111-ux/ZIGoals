@@ -124,9 +124,14 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
   await expect(cheer).toHaveCount(1);
   await expect(cheer.locator('.path-zigi-cheer i')).not.toHaveCount(0);
-  // Round 5, moved at equal strength: one held frame of the greeting clip (the open hand, a wink), never the celebrate art.
-  await expect(cheer.locator('img')).toHaveAttribute('src', /zigi-cheer-wave/);
+  // Round 6, moved at equal strength: ZIGi's delivered presenting still at its large size (the arm held out, the hand away
+  // from the face; never the celebrate art nor a greeting frame), with its star burst.
+  await expect(cheer.locator('img')).toHaveAttribute('src', /F006-presenting-large/);
   await expect(cheer.locator('.path-zigi-burst')).toHaveCount(1);
+  // (Where it cheers, for the glide below.)
+  // (Its laid-out place — never read through a glide or a hop.)
+  const stageOf = () => page.locator('.path-zigi').evaluate((z: HTMLElement) => { const s = z.closest('.path-stage')!.getBoundingClientRect(), r = z.parentElement!.getBoundingClientRect(); return {x: r.left + z.offsetLeft - s.left, y: r.top + z.offsetTop - s.top}; });
+  const cheered = await stageOf();
   await expect(done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-zigi[data-cheer]')).toHaveCount(1);
   await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
@@ -134,6 +139,11 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   // Then the burst is gone and the planet rests, done.
   await expect(done).not.toHaveAttribute('data-just', /.*/, {timeout: 3000});
   await expect(done.locator('.path-dot-burst')).toHaveCount(0);
+  // Round 6: from the cheer to its place beside the next planet ZIGi glides (a 300 ms move or longer), or stays where it is.
+  const glided = await page.waitForFunction(() => { const z = document.querySelector('.path-zigi'); if (!z || z.hasAttribute('data-cheer')) return null; return {glide: z.getAnimations().some(a => Number(a.effect?.getComputedTiming().duration) >= 300)}; }, null, {polling: 'raf', timeout: 5000}).then(h => h.jsonValue());
+  await page.waitForTimeout(1600);
+  const rested = await stageOf();
+  if (Math.hypot(rested.x - cheered.x, rested.y - cheered.y) > 3) expect(glided?.glide, 'ZIGi glides to its place, never jumps').toBe(true);
 });
 
 for (const mode of ['reduced motion', 'Motion Off'] as const) {
@@ -178,7 +188,7 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
   expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
   expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
-  expect(zigi.src).toMatch(/zigi-cheer-wave/);
+  expect(zigi.src).toMatch(/F006-presenting-large/);
   await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
@@ -213,10 +223,24 @@ const zigiClash = (page: Page) => page.evaluate(() => {
     .filter(({b}) => b.right - b.left > 2 && b.bottom - b.top > 2 && Math.min(r.right, b.right + C) - Math.max(r.left, b.left - C) > 0 && Math.min(r.bottom, b.bottom + C) - Math.max(r.top, b.top - C) > 0)
     .map(({o}) => `${o.className.toString().split(' ')[0]}: ${(o.textContent ?? '').slice(0, 24)}`);
 });
+/** ZIGi at rest beside the next planet: its drawn height, which way it faces, whether it points at the next planet and
+ *  never at one already done (round 6: the presenting arm's line, at 42 % of its height, meets the next planet's ring, or
+ *  else no done planet within 260 px; where none of its places allows that it stands idle, arms down), and the next
+ *  planet's name's distance from the ring and moon. */
+const restFacts = (page: Page) => page.evaluate(() => {
+  const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
+  const o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, e = ((o.offsetWidth - dot.offsetWidth) / 2 + 6) * (d.width / dot.offsetWidth), l = document.querySelector('[data-next] .path-label')!.getBoundingClientRect();
+  const left = (img.left + img.right) / 2 < (d.left + d.right) / 2, arm = img.top + img.height * .42, from = left ? img.right : img.left - 260, to = left ? img.right + 260 : img.left;
+  const atNext = arm >= d.top - e - 6 && arm <= d.bottom + e + 6;
+  const atDone = [...document.querySelectorAll<HTMLElement>('.path-dot[data-state="done"]')].some(p => { const b = p.getBoundingClientRect(); return b.top <= arm && b.bottom >= arm && b.right >= from && b.left <= to; });
+  const idle = /F001-idle-large/.test(z.querySelector('img')!.getAttribute('src') ?? '');
+  return {h: img.height, mirrored: z.getAttribute('data-side') === 'left', left, points: idle || atNext || !atDone, nameGap: l.left >= d.right ? l.left - (d.right + e) : (d.left - e) - l.right};
+});
 /** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */
 async function zigiAtRest(page: Page) {
   await expect(page.locator('.path-zigi[data-cheer]')).toHaveCount(0, {timeout: 5000});
-  await page.waitForTimeout(1600);
+  // (Its last measure is 1.3 s after it moves, and a move glides 480 ms.)
+  await page.waitForTimeout(2200);
 }
 const rect = (page: Page, selector: string) => page.locator(selector).first().evaluate(el => { const r = el.getBoundingClientRect(); return {top: r.top, bottom: r.bottom, left: r.left, right: r.right, vh: innerHeight, vw: innerWidth}; });
 
@@ -315,6 +339,14 @@ test('ZIGi at rest is 12 px clear of the path after a tick, after an orbit and u
       await zigiAtRest(page);
       expect(await zigiClash(page), `${size.width}px: after ticking star ${n}`).toEqual([]);
       await expect(page.locator('[data-next] .path-zigi img')).not.toHaveAttribute('src', /celebrate/);
+      // Round 6: on a computer ZIGi rests at 160 px or more; it faces the next planet (the presenting art holds its arm out
+      // to the left, so on the planet's left it is mirrored) and never points at a planet already done (`restFacts`); the
+      // next planet's name stands 12 px clear of its ring and moon.
+      const f = await restFacts(page);
+      if (size.width === 1440) expect(f.h, '1440px: ZIGi at rest 160 px or more').toBeGreaterThanOrEqual(160);
+      expect(f.mirrored, `${size.width}px: ZIGi faces the next planet`).toBe(f.left);
+      expect(f.points, `${size.width}px: ZIGi points at the next planet (or stands), never at one already done`).toBe(true);
+      expect(f.nameGap, `${size.width}px: the next planet's name 12 px clear of its ring`).toBeGreaterThanOrEqual(12);
     }
     // Under reduced motion: the pointing still, clear.
     await page.emulateMedia({reducedMotion: 'reduce'});
@@ -323,5 +355,45 @@ test('ZIGi at rest is 12 px clear of the path after a tick, after an orbit and u
     await zigiAtRest(page);
     await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /presenting/);
     expect(await zigiClash(page), `${size.width}px: reduced motion, after ticking star 4`).toEqual([]);
+    const still = await restFacts(page);
+    expect(still.mirrored, `${size.width}px: reduced motion, ZIGi faces the next planet`).toBe(still.left);
+    expect(still.points, `${size.width}px: reduced motion, ZIGi points at the next planet (or stands), never at one already done`).toBe(true);
+  }
+});
+
+test('a tick moves nothing but its own planet: every other name and every chest keeps its place; the new next name only steps out, gliding', async ({page}, info) => {
+  // Round 6 (L3b; the iteration-5 frames showed names swapping sides and chests jumping between two frames of a tick).
+  test.setTimeout(120_000);
+  const sizes = info.project.name === 'mobile' ? [{width: 390, height: 844}] : [{width: 1440, height: 900}, {width: 768, height: 1024}];
+  const boxes = () => page.evaluate(() => {
+    const st = document.querySelector('.path-stage')!.getBoundingClientRect(), out: Record<string, {x: number; y: number; w: number; h: number; side: string}> = {};
+    const box = (e: Element, side = '') => { const b = e.getBoundingClientRect(); return {x: b.left - st.left, y: b.top - st.top, w: b.width, h: b.height, side}; };
+    for (const step of document.querySelectorAll('.path-step')) { const id = step.querySelector('[data-path-point]')!.getAttribute('data-path-point')!, l = step.querySelector('.path-label')!; out[`name ${id}`] = box(l, l.getAttribute('data-side') ?? ''); }
+    for (const c of document.querySelectorAll('.path-chest[data-inline] .path-chest-art')) out[`chest ${c.closest('.path-chest')!.getAttribute('data-milestone')}`] = box(c);
+    return out;
+  });
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await open(page, {path: longDay()});
+    await zigiAtRest(page);
+    for (const n of [1, 2, 3]) {
+      const before = await boxes(), ticked = `name ck_fixture-${n}`, next = `name ck_fixture-${n + 1}`;
+      await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
+      // The new next planet's name glides out (translate, 300 ms or more) to clear its ring.
+      const glide = await page.locator('[data-next] .path-label').evaluate(l => { const cs = getComputedStyle(l); return {property: cs.transitionProperty, duration: parseFloat(cs.transitionDuration)}; });
+      expect(glide.property).toContain('translate');
+      expect(glide.duration).toBeGreaterThanOrEqual(.3);
+      await zigiAtRest(page);
+      const after = await boxes();
+      for (const [key, b] of Object.entries(before)) {
+        if (key === ticked) continue;
+        const a = after[key]!;
+        expect(a.side, `${size.width}px, star ${n}: ${key} keeps its side`).toBe(b.side);
+        expect(Math.abs(a.y - b.y), `${size.width}px, star ${n}: ${key} keeps its height on the path`).toBeLessThanOrEqual(1);
+        expect(Math.abs(a.h - b.h), `${size.width}px, star ${n}: ${key} keeps its lines`).toBeLessThanOrEqual(1);
+        if (key === next) expect(Math.abs(a.x - b.x), `${size.width}px, star ${n}: the next name steps out a little`).toBeLessThanOrEqual(40);
+        else { expect(Math.abs(a.x - b.x), `${size.width}px, star ${n}: ${key} stays`).toBeLessThanOrEqual(1); expect(Math.abs(a.w - b.w), `${size.width}px, star ${n}: ${key} keeps its width`).toBeLessThanOrEqual(1); }
+      }
+    }
   }
 });
