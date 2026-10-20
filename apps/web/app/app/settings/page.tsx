@@ -242,8 +242,10 @@ export default function Settings() {
           </dl>
           <p>
             Funding Wealth assumes 0% future investment return. Scenario
-            projections are illustrative. Testnet assets have no monetary value.
-            This alpha is unaudited and does not support mainnet.
+            projections are illustrative. Practice money (testnet ZIG) has no
+            monetary value; ZIG on the real network is real money. This alpha is
+            unaudited: staking and votes sign in your own wallet, on the practice
+            or the real network as you choose, and nothing else moves.
           </p>
           {/* Session AC (owner finding 3): the facts the footer used to carry, live, with the build environment. */}
           <AboutThisAlpha />
