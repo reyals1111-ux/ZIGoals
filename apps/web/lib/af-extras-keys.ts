@@ -23,7 +23,7 @@ export const AF_EXTRAS_EXPORT_KEYS = {universe: UNIVERSE_KEY, dayTimeline: DAY_T
 /** The data catalog (`DEVICE_LABELS`): [label, area], home "device". */
 export const AF_EXTRAS_CATALOG_LABELS = {
   universe: ['My universe: milestones already celebrated', 'Journey'],
-  dayTimeline: ['Day timeline: the times you moved', 'Today'],
+  dayTimeline: ['Day timeline: habit and meal times you set', 'Today'],
   stories: ['Stories you opened', 'Life review'],
 } as const;
 /** The account erase (`lib/aa-device-forget.ts`): all three. */

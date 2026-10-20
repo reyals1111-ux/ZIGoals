@@ -25,7 +25,7 @@ export function AfSigningSection() {
   };
   return <div className="af-signing-setting">
     <label className="af-signing-setting-row"><input type="checkbox" role="switch" checked={on} disabled={!usable} onChange={e => { try { alerts.update(r => withAlertsOff(r, !e.target.checked)); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } }}/>
-      <span><strong>Validator alerts on Staking — on this device</strong><small>Jailed, missing blocks, or a commission change for the validators you stake with, shown on the Staking page only. ZIGoals sends no notifications.</small></span>
+      <span><strong>Validator alerts on Staking — on this device</strong><small>Jailed (paused by the network after a fault), missing blocks, or a commission change for the validators you stake with, shown on the Staking page only. ZIGoals sends no notifications.</small></span>
     </label>
     <div className="af-signing-setting-row">
       <span><strong>Your staking choices</strong><small>The network you last chose, your real-network confirm, the last validator per network and whether practice badges are on.</small></span>

@@ -233,11 +233,11 @@ export default function Settings() {
             </div>
             <div>
               <dt>Goal metadata</dt>
-              <dd>Device-local · version 1 JSON</dd>
+              <dd>Device-local · kept in this browser</dd>
             </div>
             <div>
               <dt>Investment strategy</dt>
-              <dd>Idle. External integrations pending verification.</dd>
+              <dd>Idle: nothing is invested, and no outside service is switched on.</dd>
             </div>
           </dl>
           <p>
