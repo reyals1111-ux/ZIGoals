@@ -296,3 +296,85 @@ test.describe('Today', () => {
     expect(await list.locator('li[data-now] span').evaluate(s => getComputedStyle(s).backgroundImage)).toContain('gradient');
   });
 });
+
+/** Session AF Gate C design review (helper B): the layout findings, each measured where the review saw it. */
+test.describe('Gate C design review', () => {
+  test.skip(({isMobile}) => isMobile, 'Widths are set on the desktop project.');
+  const showcase = async (page: Page, width: number) => {
+    await page.setViewportSize({width, height: 900});
+    await page.clock.setFixedTime(new Date('2026-10-16T09:30:00Z'));
+    await page.goto('/app/settings');
+    await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+    await page.waitForURL('**/app');
+  };
+  const box = (l: Locator) => l.evaluate(e => { const r = e.getBoundingClientRect(); return {left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height}; });
+
+  test('the Checklist card follows its own width: at 1024 px Continue stays in its panel beside "Next"; at 1440 px two columns', async ({page}) => {
+    await showcase(page, 1024);
+    const card = page.locator('.today-checklist-card');
+    await expect(card.locator('.today-checklist-continue')).toBeVisible();
+    const [panel, line, go, bar] = await Promise.all([box(card.locator('.today-checklist-next')), box(card.locator('.today-checklist-next .today-checklist-line')), box(card.locator('.today-checklist-continue')), box(card.locator('.today-checklist-bar'))]);
+    expect(go.right, 'Continue inside its panel').toBeLessThanOrEqual(panel.right + 0.5);
+    expect(go.left, 'Continue clear of "Next" and its name').toBeGreaterThanOrEqual(line.right);
+    expect(panel.top, 'the panel under the progress row').toBeGreaterThanOrEqual(bar.bottom);
+    await page.setViewportSize({width: 1440, height: 900});
+    const [panel2, bar2] = await Promise.all([box(card.locator('.today-checklist-next')), box(card.locator('.today-checklist-bar'))]);
+    expect(panel2.left, 'at 1440 px the next planet sits beside the bar').toBeGreaterThan(bar2.right);
+  });
+
+  for (const width of [768, 1440]) test(`My universe at ${width} px: each picture is the row's own height, the names below it`, async ({page}) => {
+    await showcase(page, width);
+    const card = page.locator('.today-universe-card');
+    await openForYou(page, card);
+    await expect(card.locator('.universe-row svg')).toHaveCount(4);
+    const row = await box(card.locator('.universe-row'));
+    for (const svg of await card.locator('.universe-row svg').all()) { const b = await box(svg); expect(b.height).toBeCloseTo(row.height, 0); expect(b.bottom).toBeLessThanOrEqual(row.bottom + 0.5); }
+    expect((await box(card.locator('.today-universe-names'))).top, 'names at least 8 px under the row').toBeGreaterThanOrEqual(row.bottom + 7.5);
+  });
+
+  test('the Day timeline keeps clear of the right-edge launchers at 1024 px, and stays centred at 1440 px', async ({page}) => {
+    await showcase(page, 1024);
+    await page.goto('/app/timeline');
+    const timeline = page.locator('.timeline-page'), launcher = page.locator('.ai-launcher').first();
+    await expect(timeline).toHaveAttribute('data-timeline', 'ready');
+    await expect(launcher).toBeVisible();
+    expect((await box(timeline)).right, 'a clear lane before the launchers').toBeLessThanOrEqual((await box(launcher)).left - 7.5);
+    await page.setViewportSize({width: 1440, height: 900});
+    expect((await box(timeline)).width).toBeCloseTo(860, 0);
+    const margins = await timeline.evaluate(e => { const p = e.parentElement!, r = e.getBoundingClientRect(), b = p.getBoundingClientRect(), s = getComputedStyle(p); return [r.left - b.left - parseFloat(s.paddingLeft) - parseFloat(s.borderLeftWidth), b.right - parseFloat(s.paddingRight) - parseFloat(s.borderRightWidth) - r.right]; });
+    expect(Math.abs(margins[0]! - margins[1]!), 'centred at 1440 px, as before').toBeLessThanOrEqual(1);
+  });
+
+  test('the Day timeline: one action column, the tap at one x and the move arrows at another; "Change time" on one line', async ({page}) => {
+    await showcase(page, 1440);
+    await page.goto('/app/timeline');
+    await expect(page.locator('.timeline-page')).toHaveAttribute('data-timeline', 'ready');
+    const rows = await page.locator('.timeline-block > .timeline-actions').evaluateAll(list => list.map(r => {
+      const x = (sel: string) => { const e = r.querySelector<HTMLElement>(sel); return e ? Math.round(e.getBoundingClientRect().left) : null; };
+      const change = r.querySelector<HTMLElement>(':scope > .timeline-change');
+      return {tap: x(':scope > :is(.primary, .secondary)'), handle: x(':scope > .timeline-handle'), changeHeight: change ? change.getBoundingClientRect().height : 0};
+    }));
+    expect(rows.length).toBeGreaterThan(3);
+    expect(new Set(rows.map(r => r.tap).filter(x => x !== null)).size, 'every tap at one x').toBe(1);
+    expect(new Set(rows.map(r => r.handle).filter(x => x !== null)).size, 'every move handle at one x').toBe(1);
+    for (const r of rows) expect(r.changeHeight, '"Change time" on one line').toBeLessThanOrEqual(50);
+  });
+
+  test("Today's Day timeline card shows the Checklist's planets, as the timeline page does", async ({page}) => {
+    await showcase(page, 1440);
+    const card = page.locator('.today-timeline-card');
+    await openForYou(page, card);
+    await expect(card.getByRole('list', {name: 'Next on your timeline'})).toBeVisible();
+    await expect(card.locator('li[data-block][data-kind=checklist]').first()).toBeAttached();
+  });
+
+  for (const width of [1024, 1280]) test(`For you at ${width} px spans both columns once the rail has ended`, async ({page}) => {
+    await showcase(page, width);
+    const forYou = page.getByRole('region', {name: 'For you', exact: true});
+    await expect(forYou).toBeVisible({timeout: 15_000});
+    const [area, primary, rail] = await Promise.all([box(forYou), box(page.locator('.today-primary')), box(page.locator('.today-rail'))]);
+    expect(area.left).toBeCloseTo(primary.left, 0);
+    expect(area.right, 'under the rail too').toBeCloseTo(rail.right, 0);
+    expect(area.top, 'below both columns').toBeGreaterThanOrEqual(Math.max(primary.bottom, rail.bottom));
+  });
+});
