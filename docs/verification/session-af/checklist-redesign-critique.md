@@ -23,6 +23,7 @@ Evidence label: design review of screenshots and recorded frames (not a usabilit
 | 1 | `48277dc2` | FAIL (the Alpha strip inside the overlay, painted through the Undo toast) | FAIL (sizes pass: ≈ 72 px phone, 84 px computer; labels boxed, 2–3 lines) | FAIL (≈ 166 px node pitch vs Duolingo's ≈ 84; opens on the finished orbit; ZIGi small, one pose; upcoming planets dark discs; grey dotted track) | FAIL (press, burst, incoming glow, bar fill, XP count and the day's confetti visible; ZIGi's reaction, the onward glow, the streak's count-up and a real orbit celebration missing) | FAIL (Light: dark upcoming planets, a near-invisible line, dark timer cards, ZIGi's grey shadow; a completed orbit's bar reads black in every theme) | FAIL | no — the Duolingo vocabulary without its density, character presence or reward clarity; the Undo toast hides the next node and ZIGi on every tick |
 | 2 | `2d023640` | PASS (no shell, launcher or Alpha strip at 390/768/1440; the X top-left) | PASS (phone 72 px, next 82; tablet 88; computer 96, next 110; one unboxed name each) | FAIL (2–3 planets on the opening screen vs Duolingo's 7–8: pitch 110 px phone / 150 computer, four labelled chests, tall banners) | FAIL (press, burst, incoming glow, bars, XP count, chests, orbit and day celebrations visible; no ZIGi cheer on a tick; no onward glow seen reaching the next planet) | FAIL (Light: slate path line, navy jump buttons, a clipped shadow, a near-invisible Fast ring) | FAIL | no — still too sparse, and the Undo toast and corner buttons sit on the path on every tick |
 | 3 | `7c163836` | PASS (no shell, launcher or Alpha strip at 390/768/1440; the celebration covers the screen too) | PASS (phone 72 px, next ≈ 82; tablet 80; computer 96, next ≈ 110; one unboxed name each; "Meditate & breathwork 15…" cut by an ellipsis on a phone) | PASS, marginal (5 planets on the opening screen at 390, 7 at 768, 6 at 1440; the phone wave ≈ ±35 px vs Duolingo's ≈ ±70; 30 px chests; a two-line NEXT box) | FAIL (press, burst, shock ring, line glow, the onward comet reaching the next planet, bars, shine, XP, chest, orbit and day celebrations visible; ZIGi keeps its idle pose on a tick, its celebrate pose reads as dismay, and it stands idle beside the trophy on the day celebration) | FAIL (Light's iteration-2 defects fixed; Nebula and Dark stills differ only in base hue — no visible nebula; Light's unlit ribbons nearly vanish on a phone) | FAIL | no — the path now feels like Duolingo; ZIGi never cheers, the rewards are small or generic, Nebula reads as Dark |
+| 4 | `9a475ede` | PASS (no shell, launcher or strip at 390/768/1440; the celebration full-screen) | PASS (phone 72 px, next ≈ 82; tablet ≈ 80; computer 96, next ≈ 110; one unboxed name each; the long name wraps to two lines) | PASS (six whole planets and part of a seventh at 390, a ±60 px wave, NEXT on the planet's crown, unit-like banners, chests beside the path) | PASS (press, burst and shock ring, line glow, ZIGi's greeting with a hop and sparkles from f02, bars, XP, chest, orbit and day celebrations; the held pose reads as a salute, counted under 6) | FAIL (Nebula told from Dark at a glance, Light's ribbons visible; Light's twelve-weeks map a near-black panel in a white card on a computer) | FAIL (ZIGi comes to rest over a name or a chest after a tick and an orbit, also under reduced motion; the cheer reads as a salute) | no — close: path, density, chrome and the day celebration near premium; ZIGi's resting place and cheer are not |
 
 ## Iteration 1 — the critic's ranked improvements (sent to the lane)
 1. Land on the next node (open and after every tick: the next node at ≈ 40 % of the viewport, every width).
@@ -92,4 +93,25 @@ unchanged (SSIM 0.99997 / 1.0).
     strip replaced by a small winding row of mini planets, or dropped.
 Not in this lane: the computer's side launcher overlaps the Orbit 2 banner's right end on Earn's Start-here, and its
 outlined-node style differs from the Checklist (both pre-existing; the second is already an owner option).
+
+## Iteration 4 — the critic's ranked improvements (sent to the lane)
+Fixed from iteration 3: the full-screen day celebration (ZIGi ≈ 180 / 215 px in front of the trophy), Nebula told from
+Dark, Light's ribbons, the one-row phone bar with timer chips, the wave, alternating names and the NEXT tag, the long name
+wrapping, the computer's timer tiles and twelve weeks, Today's card (no badge, mini planets). Partly: the cheer, the comet's
+tail, chests on a computer, Nebula's clouds on a phone. Regressions: ZIGi at rest over a name (computer) or the chest
+(phone) in the reduced-motion stills, which were clean in iteration 3; Light's twelve-weeks map now open and dark.
+1. ZIGi at rest in a free place, ≥ 12 px clear of every name, chest, ring and banner, after a tick, an orbit and under
+   reduced motion, at 390, 768 and 1440 — asserted in the spec on what is drawn (the frames contradict today's check).
+2. A cheer that reads as joy with the existing art: hold the open-hand wave frame (never the hand at the forehead), two
+   hops of 16–24 px, squash and stretch, a star burst behind; or the arms-up art as an owner item.
+3. Reduced motion: the pointing or greeting still, never the hands-on-head figure.
+4. Light's twelve-weeks map: a light panel with pale "nothing" cells and the same accent colours.
+5. Comet: a 16–20 px head with a 60–80 px tail, visible on a phone in at least 3 frames.
+6. Chests on a computer 64 px.
+7. Nebula on a phone: visible magenta and teal clouds and star layers in the path column.
+8. Phone spacing: about 8 px more between the NEXT ring and the following planet.
+9. Phone toast: one line, ≤ 44 px.
+10. Names ≥ 12 px from rings.
+11. Background planets never half-cut at the screen edge.
+12. Today's card: dimmed filled mini planets instead of hollow rings, larger at 1440.
 
