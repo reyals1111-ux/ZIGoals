@@ -47,8 +47,12 @@ const CHEER_SPARKS = 12, CLEAR = 13; // (12 px, and one more so rounding never b
 /** How far ZIGi stays from the screen's edges (round 7: never pressed against them). */
 const EDGE = 16;
 /** How high a cheer hops at most (round 8: as high as the room above its place allows, 12 px clear, so it never reaches
- *  anything — and it starts where ZIGi already stands). */
-const HOP = 22;
+ *  anything — and it starts where ZIGi already stands; round 9: 15 px at most). */
+const HOP = 15;
+/** How far a cheer's squash and stretch reach (round 9: 4 % — CSS `path-zigi-hop`): a cheer's place keeps them clear too. */
+const SQUASH = .04;
+/** A cheer's sparkles: their angles and how far they fly (the CSS `path-zigi-spark` path, from 14 px out). */
+const SPARKS = Array.from({length: CHEER_SPARKS}, (_, n) => ({a: n * 360 / CHEER_SPARKS, d: 52 + (n * 29) % 38}));
 type Side = 'left' | 'right';
 type Box = {left: number; top: number; right: number; bottom: number};
 const FULL = '/brand/figures/zigi/origami-nebula/F006-presenting-large.webp', FULL_STILL = {src: FULL, srcSet: `${FULL} 1x`};
@@ -68,12 +72,14 @@ export function ringBox(dot: Element): Box {
   return {left: cx - half, top: cy - half, right: cx + half, bottom: cy + half};
 }
 /** A name's box where it comes to rest: a next planet's name steps out by `translate` (round 6), so while that glides it is
- *  read at the end of its step (round 8: a cheer placed against a name half way out moved again once it arrived). */
+ *  read to the end of its step (round 8: a cheer placed against a name half way out moved again once it arrived) — round 9:
+ *  the whole stretch it glides across. */
 export function labelBox(l: Element): Box {
   const r = l.getBoundingClientRect(), now = parseFloat(getComputedStyle(l).translate) || 0;
   const glide = l.getAnimations().find(a => (a as CSSTransition).transitionProperty === 'translate'), end = glide ? parseFloat(String((glide.effect as KeyframeEffect | null)?.getKeyframes().at(-1)?.translate ?? '')) : NaN;
+  // (Round 9: and wherever it passes on the way there — the whole of its glide.)
   const shift = (Number.isFinite(end) ? end : now) - now;
-  return {left: r.left + shift, top: r.top, right: r.right + shift, bottom: r.bottom};
+  return {left: r.left + Math.min(0, shift), top: r.top, right: r.right + Math.max(0, shift), bottom: r.bottom};
 }
 /** What ZIGi must stay clear of on the path (its own parts aside). */
 export function zigiObstacles(stage: Element, except: Element[]): Box[] {
@@ -90,7 +96,7 @@ const SMALL = 260;
 export function PathZigi({state, side, say, alive = false, centred = false, cheer = false, fit}: {state: string; side: Side; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean; fit?: string}) {
   const frames = useZigiFrames(), frame = frames?.[state] ?? frames?.idle;
   const poster = frame ? {src: frame.poster.x1, srcSet: `${frame.poster.x1} 1x, ${frame.poster.x2} 2x`} : {src: SHELL_FRAME.x1, srcSet: `${SHELL_FRAME.x1} 1x, ${SHELL_FRAME.x2} 2x`};
-  const ref = useRef<HTMLSpanElement>(null), [place, setPlace] = useState<{left: number; top: number; side: Side; scale: number; idle: boolean; hop: number} | null>(null), scaled = useRef(1);
+  const ref = useRef<HTMLSpanElement>(null), [place, setPlace] = useState<{left: number; top: number; side: Side; scale: number; idle: boolean; hop: number; sparks: number[]} | null>(null), scaled = useRef(1);
   useLayoutEffect(() => {
     const el = ref.current, node = el?.parentElement, stage = el?.closest('.path-stage');
     if (!alive || fit === undefined || !el || !node || !stage) return;
@@ -109,6 +115,8 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     const seen = lastSeen.get(stage), prev = seen && performance.now() - seen.at < RECENT_MS ? seen : null;
     // (Round 8: a cheer keeps clear of its own planet's name too — no name is ever hidden for it.)
     const others = zigiObstacles(stage, [el]);
+    // (A cheer's figure as it hops: wider and taller by its squash and stretch — round 9: the iteration-8 hop met a name.)
+    const swept = (b: Box): Box => cheer ? {left: b.left - (b.right - b.left) * SQUASH / 2, right: b.right + (b.right - b.left) * SQUASH / 2, top: b.top - (b.bottom - b.top) * SQUASH, bottom: b.bottom} : b;
     // (At rest its arm — held out at 31 % of its height — must point at this planet, through its body. Where it passes above
     // or below, and on to another planet within 260 px, ZIGi would seem to point at that one; such places cost AIM.)
     const planets = cheer ? [] : [...stage.querySelectorAll<HTMLElement>('.path-dot')].filter(d => d !== dot).map(d => ({...ringBox(d), done: d.dataset.state === 'done'}));
@@ -130,7 +138,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
       const gapsFor = (side: Side) => [...GAPS, ...near.map(o => side === 'left' ? ring.left - o.left + CLEAR + .5 : o.right + CLEAR + .5 - ring.right).filter(g => g >= 13 && g <= 175)];
       for (const s of [side, side === 'left' ? 'right' : 'left'] as Side[]) for (const gap of gapsFor(s)) for (const dy of dys) {
         const left = s === 'right' ? ring.right + gap : ring.left - gap - w, top = cy + dy - h / 2, box = {left, top, right: left + w, bottom: top + h};
-        const hit = others.reduce((sum, o) => sum + overlap(box, o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
+        const hit = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
         // (Near and level with its planet, then full size, then the open side of the wave, and pointing at it.)
         const cost = (hit > 0 || out > 0 ? 1e6 + hit + out * 1000 : 0) + gap * 1.4 + Math.abs(dy) * 1 + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s) + (h < least - .5 ? SMALL : 0);
         if (!best || cost < best.cost) best = {box, side: s, scale, cost};
@@ -146,7 +154,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     if (prev) {
       const box = {left: sb.left + prev.x, top: sb.top + prev.y, right: sb.left + prev.x + prev.w, bottom: sb.top + prev.y + prev.h}, scale = prev.h / h0;
       const s: Side | null = box.left >= ring.right ? 'right' : box.right <= ring.left ? 'left' : null, gap = s === 'right' ? box.left - ring.right : ring.left - box.right;
-      const hit = others.reduce((sum, o) => sum + overlap(box, o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
+      const hit = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
       const clear = !!s && hit === 0 && out === 0, keep = clear && cheer && (again || (gap <= 140 && box.top < ring.bottom && box.bottom > ring.top));
       if (keep || (clear && gap <= NEAR && box.top < ring.bottom && box.bottom > ring.top && scale <= 1.001 && scale >= best.scale - .02)) {
         const cost = gap * 1.4 + Math.abs((box.top + box.bottom) / 2 - cy) + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s) + (prev.h < least - .5 ? SMALL : 0);
@@ -156,11 +164,15 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     // (Where no free place lets it point at this planet, it stands idle instead.)
     const idle = !cheer && pointsAt(best.box, best.side) !== 'next';
     // (A cheer hops as high as the room above it allows: 12 px clear of whatever is above, 22 px at most.)
-    const b = best.box, room = others.filter(o => o.right > b.left - CLEAR && o.left < b.right + CLEAR && o.bottom <= b.top).reduce((m, o) => Math.min(m, b.top - o.bottom - CLEAR), HOP);
+    const b = best.box, sb2 = swept(b), room = others.filter(o => o.right > sb2.left - CLEAR && o.left < sb2.right + CLEAR && o.bottom <= sb2.top + 1).reduce((m, o) => Math.min(m, sb2.top - o.bottom - CLEAR), HOP);
     const hop = cheer ? Math.max(0, Math.min(HOP, Math.floor(room))) : 0;
-    const next = {left: Math.round(b.left - n.left), top: Math.round(b.top - n.top), side: best.side, scale: best.scale, idle, hop};
+    // (Round 9: each sparkle flies only as far as it stays off every name — 2 px clear of its own 7 px half — or not at all.)
+    const names = cheer ? [...stage.querySelectorAll('.path-label')].map(labelBox) : [];
+    const ox = b.left + (b.right - b.left) / 2, oy = b.top + (b.bottom - b.top) * .34;
+    const sparks = SPARKS.map(({a, d}) => { const sx = Math.sin(a * Math.PI / 180), sy = -Math.cos(a * Math.PI / 180); let far = 0; for (let r = 14; r <= d; r += 3) { const x = ox + sx * r, y = oy + sy * r; if (names.some(o => x > o.left - 9 && x < o.right + 9 && y > o.top - 9 && y < o.bottom + 9)) break; far = r; } return far >= 24 ? far : 0; });
+    const next = {left: Math.round(b.left - n.left), top: Math.round(b.top - n.top), side: best.side, scale: best.scale, idle, hop, sparks};
     scaled.current = best.scale;
-    setPlace(p => p && p.left === next.left && p.top === next.top && p.side === next.side && p.scale === next.scale && p.idle === next.idle && p.hop === next.hop ? p : next);
+    setPlace(p => p && p.left === next.left && p.top === next.top && p.side === next.side && p.scale === next.scale && p.idle === next.idle && p.hop === next.hop && p.sparks.join() === next.sparks.join() ? p : next);
     again = true;
     };
     // Now, before paint; and again once a tick's own motion (a planet filling, a chest or the trophy opening) has settled.
@@ -179,15 +191,18 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
       el.getAnimations().forEach(a => a.cancel());
       const dx = from.x - now.x, dy = from.y - now.y, k = from.h / now.h, w = now.w, h = now.h;
       // (Would the glide cross anything on the way — a name, a banner, a planet, a chest?)
+      // (Round 9: a name counts from 12 px around it.)
       const others = [...stage.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')]
-        .filter(o => !el.contains(o) && Number(getComputedStyle(o).opacity) > .5).map(o => o.classList.contains('path-dot') ? ringBox(o) : o.classList.contains('path-label') ? labelBox(o) : o.getBoundingClientRect());
+        .filter(o => !el.contains(o) && Number(getComputedStyle(o).opacity) > .5).map(o => { if (o.classList.contains('path-dot')) return ringBox(o); if (!o.classList.contains('path-label')) return o.getBoundingClientRect(); const b = labelBox(o); return {left: b.left - CLEAR, top: b.top - CLEAR, right: b.right + CLEAR, bottom: b.bottom + CLEAR}; });
       // (A cheer hops as it goes, as high as its place allows.)
-      const lift = cheer ? place.hop : 0, at = (t: number): Box => { const x = sb.left + now.x + dx * (1 - t), y = sb.top + now.y + dy * (1 - t), m = k + (1 - k) * t; return {left: x, top: y - lift, right: x + w * m, bottom: y + h * m}; };
+      const lift = cheer ? place.hop + h * SQUASH : 0, wide = cheer ? w * SQUASH / 2 : 0, at = (t: number): Box => { const x = sb.left + now.x + dx * (1 - t), y = sb.top + now.y + dy * (1 - t), m = k + (1 - k) * t; return {left: x - wide, top: y - lift, right: x + w * m + wide, bottom: y + h * m}; };
       // (Round 8: a move to the other side of a planet always hops — and while it shrinks away it keeps the way it faced.)
       const turns = from.side !== now.side, crosses = turns || [.08, .16, .24, .32, .4, .48, .56, .64, .72, .8, .88, .96].some(t => others.some(o => overlap(at(t), o, 0) > 0));
       const T = (x: number, y: number, m: number) => `translate(${x}px, ${y}px) scale(${m})`, small = .5;
       // (The figure as it faced before: its box mirrored about its own middle.)
       const F = (x: number, y: number, m: number) => turns ? `translate(${x + w * m}px, ${y}px) scale(${-m}, ${m})` : T(x, y, m);
+      // (A cheer's sparkles start once it has arrived.)
+      if (cheer) el.style.setProperty('--spark-delay', `${crosses ? 560 : 480}ms`);
       el.animate(crosses
         // Shrinking away at its old place and growing again at the new one, never seen over anything.
         ? [{transform: F(dx, dy, k), opacity: 1, transformOrigin: '0 0'}, {offset: .4, transform: F(dx + w * k * (1 - small) / 2, dy + h * k * (1 - small), k * small), opacity: 0, transformOrigin: '0 0'}, {offset: .55, transform: T(w * (1 - small) / 2, h * (1 - small), small), opacity: 0, transformOrigin: '0 0'}, {transform: 'none', opacity: 1, transformOrigin: '0 0'}]
@@ -205,7 +220,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} width={TRIM.width} height={TRIM.height} alt="" decorative/></span></span>
       : <span key={state} className={`zigi zigi-${state} path-zigi-figure`} data-state={state}><ZigiImage poster={poster} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>}
     {alive ? <span className="path-zigi-ground"/> : <span className="path-zigi-arrow"/>}
-    {alive && cheer && <span className="path-zigi-cheer">{Array.from({length: CHEER_SPARKS}, (_, n) => <i key={n} data-tone={n % 3} style={{'--a': `${Math.round(n * 360 / CHEER_SPARKS)}deg`, '--d': `${52 + (n * 29) % 38}px`} as CSSProperties}/>)}</span>}
+    {alive && cheer && <span className="path-zigi-cheer">{SPARKS.map(({a, d}, n) => { const far = place?.sparks[n] ?? d; return far ? <i key={n} data-tone={n % 3} style={{'--a': `${Math.round(a)}deg`, '--d': `${far}px`} as CSSProperties}/> : null; })}</span>}
     {say && <span className="path-zigi-say">{say}</span>}
   </span>;
 }

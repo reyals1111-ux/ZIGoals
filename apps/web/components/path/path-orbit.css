@@ -98,6 +98,9 @@
    rule agree.) */
 .path-stage[data-variant=orbit] { --label-reserve: calc((var(--dot-size) * (var(--next-scale) - 1) / 2 + (var(--ring) + var(--moon)) * var(--next-scale) + 13px - var(--label-gap)) * var(--step-out, 1)); }
 .path-stage[data-variant=orbit] .path-step[data-next] { --next-shift: var(--label-reserve); }
+/* (Round 9: the new next planet's name steps out a moment after the tick — once ZIGi, shrinking away from beside the planet
+   just ticked, has faded — so it never glides up to ZIGi while ZIGi is still seen there.) */
+.path-stage[data-variant=orbit] .path-step[data-next] .path-label { transition: translate 360ms cubic-bezier(.3, .7, .3, 1) 200ms, opacity 200ms ease; }
 .path-stage[data-variant=orbit] .path-step[data-next] .path-label[data-side=right] { translate: var(--next-shift) -50%; }
 .path-stage[data-variant=orbit] .path-step[data-next] .path-label[data-side=left] { translate: calc(-1 * var(--next-shift)) -50%; }
 @media (max-width: 640px) {
@@ -291,9 +294,10 @@
 /* A star burst behind the figure: soft gold rays and a glow, turning a little as they fade. */
 .path-zigi-burst { position: absolute; left: 50%; top: 42%; z-index: 0; width: 190%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: radial-gradient(closest-side, #fff4d1cc, #ffd27a66 32%, #ff74be26 58%, #ff74be00 72%), repeating-conic-gradient(from 0deg, #ffe39a00 0deg, #ffe39acc 3deg, #ffe39a00 7deg 22.5deg); -webkit-mask: radial-gradient(closest-side, #000 40%, #0000); mask: radial-gradient(closest-side, #000 40%, #0000); pointer-events: none; animation: path-zigi-burst 1300ms ease-out both; }
 @keyframes path-zigi-burst { 0% { opacity: 0; transform: scale(.3) rotate(-20deg); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1) rotate(25deg); } }
-@keyframes path-zigi-hop { 0% { transform: none; } 8% { transform: scale(1.08, .9); } 22% { transform: translateY(calc(var(--hop, 22px) * -1)) scale(.94, 1.08); } 36% { transform: translateY(0) scale(1.1, .88); } 46% { transform: scale(1.06, .92); } 58% { transform: translateY(calc(var(--hop, 22px) * -.82)) scale(.95, 1.07); } 72% { transform: translateY(0) scale(1.08, .9); } 82% { transform: none; } 100% { transform: none; } }
+/* (Round 9: a lower hop — 15 px at most, as the room above allows — and a gentler squash and stretch, 4 %.) */
+@keyframes path-zigi-hop { 0% { transform: none; } 8% { transform: scale(1.04, .95); } 22% { transform: translateY(calc(var(--hop, 15px) * -1)) scale(.97, 1.04); } 36% { transform: translateY(0) scale(1.04, .95); } 46% { transform: scale(1.03, .97); } 58% { transform: translateY(calc(var(--hop, 15px) * -.82)) scale(.97, 1.03); } 72% { transform: translateY(0) scale(1.04, .95); } 82% { transform: none; } 100% { transform: none; } }
 .path-zigi-cheer { position: absolute; left: 50%; top: 34%; z-index: 2; width: 0; height: 0; pointer-events: none; }
-.path-zigi-cheer i { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; background: #ffd27a; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); opacity: 0; animation: path-zigi-spark 1100ms cubic-bezier(.15, .7, .3, 1) 60ms both; }
+.path-zigi-cheer i { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; background: #ffd27a; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); opacity: 0; animation: path-zigi-spark 1100ms cubic-bezier(.15, .7, .3, 1) var(--spark-delay, 60ms) both; }
 .path-zigi-cheer i[data-tone='1'] { background: #ffffff; }
 .path-zigi-cheer i[data-tone='2'] { background: var(--step-colour, #23eaff); }
 @keyframes path-zigi-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(-14px) scale(.6); } 65% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(-1 * var(--d, 60px))) scale(1.15); } }
