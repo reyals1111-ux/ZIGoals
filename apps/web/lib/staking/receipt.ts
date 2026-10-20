@@ -40,7 +40,7 @@ function expectedEvent(m: StakingMessage): {type: string; key: string; value: st
     case STAKING_TYPE_URLS.attest: return {type: 'transfer', key: 'recipient', value: m.value.toAddress};
   }
 }
-export const RECEIPT_MISMATCH = 'The chain\'s record of this transaction does not match what you signed. Check it on the explorer.';
+export const RECEIPT_MISMATCH = 'The chain’s record of this transaction does not match what you signed. Check it on the explorer.';
 export async function verifyStakingReceipt(expected: readonly StakingMessage[], hash: string, receipt: ChainTx, memo = ''): Promise<Confirmed> {
   if (!/^[0-9A-F]{64}$/.test(hash) || typeof receipt?.hash !== 'string' || receipt.hash.toUpperCase() !== hash || !(receipt.tx instanceof Uint8Array) || (await txHash(receipt.tx)) !== hash) throw Error(RECEIPT_MISMATCH);
   if (!Number.isSafeInteger(receipt.height) || receipt.height <= 0 || !Number.isSafeInteger(receipt.code) || receipt.code < 0 || receipt.code > 0xffffffff) throw Error(RECEIPT_MISMATCH);

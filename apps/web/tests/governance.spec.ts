@@ -20,6 +20,16 @@ test('without a wallet: practice proposals in plain words, the open one first, i
   await expect(view).toContainText('ZIGChain changes by vote');
   await expect(view).toContainText('Practice first: the practice network (ZIGChain Testnet, no real value) votes the same way, with 10 minutes of voting and 100 ZIG of deposit to start a proposal (read from the chain).');
   await expect(view.getByRole('button', {name: /Practice network \(no real value\)/})).toHaveAttribute('aria-pressed', 'true');
+  // Session AF Gate C (design critique, money pages 11): the chosen tile carries a checked ring and the other an empty one;
+  // the line under them is a small note of the choice, no larger than a tile's own label.
+  const ring = (name: RegExp) => view.getByRole('button', {name}).locator('.staking-network-check').evaluate(e => ({fill: getComputedStyle(e).backgroundColor, mark: getComputedStyle(e, '::after').content}));
+  expect(await ring(/Practice network \(no real value\)/)).toMatchObject({mark: '""'});
+  expect((await ring(/Practice network \(no real value\)/)).fill).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await ring(/Real network \(real ZIG\)/)).toEqual({fill: 'rgba(0, 0, 0, 0)', mark: 'none'});
+  const note = view.locator('.staking-network-banner');
+  await expect(note).toHaveText('Chosen network: Practice network (no real value) · ZIGChain Testnet (zig-test-2)');
+  const size = (e: Element) => parseFloat(getComputedStyle(e).fontSize);
+  expect(await note.evaluate(size)).toBeLessThanOrEqual(await view.locator('.staking-network-label').first().evaluate(size));
   await expect(view.getByRole('heading', {name: 'Proposals on ZIGChain Testnet'})).toBeVisible();
   await expect(view).toContainText('Read from https://testnet-api.zigchain.com at block 8290599');
   await expect(view).toContainText('1 open for voting now.');
@@ -43,7 +53,7 @@ test('without a wallet: practice proposals in plain words, the open one first, i
   await expect(ended).toContainText('A text proposal: it asks a question or signals an intent. Nothing on the chain changes by itself if it passes.');
   await expect(ended).toContainText('Why it did not passproposal did not get enough votes to pass');
   await expect(view.locator('article[data-proposal="121"]')).toContainText('Repairs an expired connection to another chain (IBC).');
-  await expect(view.locator('article[data-proposal="118"]')).toContainText('Upgrades ZIGChain\'s software: every validator switches to a new version at a set block.');
+  await expect(view.locator('article[data-proposal="118"]')).toContainText('Upgrades ZIGChain’s software: every validator switches to a new version at a set block.');
   // The proposer's words are apart, closed, and labelled as theirs.
   const words = view.locator('article[data-proposal="121"] details.governance-summary');
   await expect(words).not.toHaveAttribute('open', '');

@@ -91,3 +91,14 @@
 /* Session AE (Part 5 audit, touch at 1024 px): the positions heading's line sits straight on the page's starfield, where the
    nebula's glow is lightest (4.23:1); a touch brighter it reads ≥ 5:1 there. */
 :root .positions-section-heading > .fine { color: #b6c3dc; }
+/* Session AF Gate C (design critique, money pages 5): with no wallet, one card across the totals' place (six "—" tiles had
+   stood in a ragged grid on a phone), saying what appears once a public wallet is added. */
+:root .position-metrics.is-empty { grid-template-columns: minmax(0, 1fr); }
+:root .position-metrics.is-empty > .stake-hero { grid-column: 1 / -1; }
+:root .position-metrics-empty > p { margin: 12px 0 0; max-width: 58ch; font-size: 16px; line-height: 1.55; color: var(--text-secondary); }
+/* Beside the wallet and scenario tools (computers), the one card fills their height, its words centred, so no gap opens
+   where the tiles stood. */
+@media (min-width: 901px) {
+  :root .positions-workspace .positions-top:has(> .position-metrics.is-empty) { align-items: stretch; }
+  :root .positions-workspace .position-metrics.is-empty { grid-template-rows: minmax(0, 1fr); }
+}
