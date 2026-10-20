@@ -44,7 +44,10 @@ test('"What’s new" and "Send feedback" are Help topics: two taps (Help, then t
     await today(page);
     const taps = await tapNav(page, 'Help');
     await page.waitForURL('**/app/help');
-    const topic = page.getByRole('navigation', {name: 'Help topics'}).getByRole('link', {name: label, exact: true});
+    const topics = page.getByRole('navigation', {name: 'Help topics'}), topic = topics.getByRole('link', {name: label, exact: true});
+    // Session AF Gate C (design critique; deliberate, as strict): a phone lists the first six topics with "All topics" for
+    // the rest, so the link is checked once they show. The tap count is unchanged: the section is on the page already.
+    if (await isPhone(page)) { await expect(page.locator('html[data-app-hydrated]')).toBeAttached(); await topics.getByRole('button', {name: 'All topics', exact: true}).click(); }
     await expect(topic).toHaveAttribute('href', hash);
     // On a phone Help sits in More (two taps), so the topic is already on the page that opens: no third tap needed.
     if (await isPhone(page)) await expect(page.locator(hash)).toBeAttached(); else { await topic.click(); await expect(page.locator(hash)).toBeInViewport(); }

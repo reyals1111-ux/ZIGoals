@@ -10,7 +10,7 @@ export const WHATS_NEW_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-af-wallets', label: 'Link more wallets read-only and see their balances'},
   {href: '/app/help#help-af-add-money', label: 'Add money: buy crypto to your own address, step by step'},
   {href: '/app/help#help-af-governance', label: 'Vote on ZIGChain proposals, in plain words'},
-  {href: '/app/help#help-af-checklist', label: 'The Checklist: your day as one path of dots'},
+  {href: '/app/help#help-af-checklist', label: 'The Checklist: your day as one path of planets'},
   {href: '/app/help#help-af-brief', label: 'ZIGi plans your day: a morning brief, an evening recap and plans'},
   {href: '/app/help#help-af-universe', label: 'My universe, the Day timeline and Stories'},
 ];
@@ -42,7 +42,7 @@ const SESSION_AD_LINKS: WhatsNewLink[] = [
 /** Session AC (release `2026-10-session-ac-polish`, ADR-025): polish — each thing once; Session AD followed it, so these lead "Earlier updates". */
 const SESSION_AC_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ac-habits', label: 'Habit cards show their last 28 days under the counter'},
-  {href: '/app/help#help-ac-sky', label: 'A calmer sky: plain dark at the top, richest in the middle'},
+  {href: '/app/help#help-ac-sky', label: 'A calmer sky: plainer at the top, richest in the middle'},
   {href: '/app/help#help-ac-footer', label: 'The page ends at the footer links; the Alpha’s facts live in Settings and Help'},
   {href: '/app/help#help-ac-today', label: 'Today shows each thing once (every card can come back)'},
   {href: '/app/help#help-ac-wealth', label: 'Wealth: your assets, accounts and debts in one list with filters'},

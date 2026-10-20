@@ -9,7 +9,8 @@ const SECTIONS: [id: string, title: string][] = [
   // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
   ['whole-life', 'Sleep, mind, music, chess, links and more'],
   // Session AA-Local (deliberate): the release's own topic, before the earlier ones.
-  ['aa', 'Best in class, and ZIGi knows every bit of it'],
+  // Session AF Gate C (design critique; deliberate, as strict): "Best in class" left the title, the exact new title is checked.
+  ['aa', 'Deeper Habits and Health, and ZIGi knows every bit of it'],
   // Session AB-Cloud (ADR-023, deliberate): this release's topic, after AA-Local's.
   ['ab', 'Everything travels with you, and nothing is lost'],
   // Session AB-Design (ADR-024, deliberate; the second merger): this release's topic, after AB-Cloud's.
@@ -25,7 +26,10 @@ const SECTIONS: [id: string, title: string][] = [
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'New: stunning, finished', 'New: wealth, unlocked', 'What\'s new', 'Known limitations', 'Send feedback'];
+// Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
+// names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
+// unlocked"); every label is still checked exactly, in order, with its link.
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one look for every page', 'New: calmer pages', 'New: Light, Nebula and Dark', 'New: Today’s scene, the sidebar and wallets', 'New: Earn, staking and the Checklist', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
@@ -34,6 +38,21 @@ test('Help has one title and eighteen topics, listed before them, each linking t
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
+  // Session AF Gate C (design critique; deliberate, stronger): on a phone the first six topics show with "All topics"
+  // under them (the eighteen chips had filled about one and a half screens before the first answer); one tap shows the
+  // rest and moves focus to the first of them. Computers and tablets show all eighteen and no such button. The checks
+  // below then run on the full list everywhere, as before.
+  const all = nav.getByRole('button', {name: 'All topics', exact: true});
+  await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
+  if ((page.viewportSize()?.width ?? 1280) < 768) {
+    await expect(topics).toHaveText(TOPICS.slice(0, 6));
+    await expect(all).toBeVisible();
+    const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
+    expect((await firstSection.boundingBox())!.y - (await nav.boundingBox())!.y).toBeLessThan(320);
+    await all.click();
+    await expect(all).toHaveCount(0);
+    await expect(topics.nth(6)).toBeFocused();
+  } else await expect(all).toBeHidden();
   await expect(topics).toHaveText(TOPICS);
   for (const [index, [id, title]] of SECTIONS.entries()) {
     await expect(page.getByRole('region', {name: title, exact: true})).toBeVisible();
@@ -151,10 +170,36 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   await page.setViewportSize({width, height: 844});
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-  const small = await page.locator('.help-page').evaluate(root => [...root.querySelectorAll('a, button, summary')]
-    .filter(el => { const box = el.getBoundingClientRect(); return box.width > 0 && box.height < 44; })
-    .map(el => el.textContent?.trim()));
+  // Session AF Gate C (design critique; deliberate, stronger): a link inside a sentence is part of the sentence — inline
+  // text with words beside it, the WCAG 2.5.8 inline exception that the layout audit and the touch-target specs already
+  // apply — so it is not held to 44 px here either; every other link, button and question still is. In its place each
+  // in-sentence link is checked to be just that: inline, starting on the same line as an opening "(" before it (the "("
+  // had been stranded at a line's end), and no line of it taller than its sentence's own line height.
+  const {small, inline, stranded, tall} = await page.locator('.help-page').evaluate(root => {
+    const out = {small: [] as string[], inline: 0, stranded: [] as string[], tall: [] as string[]};
+    for (const el of root.querySelectorAll<HTMLElement>('a, button, summary')) {
+      const box = el.getBoundingClientRect(), name = el.textContent?.trim() ?? '';
+      if (!(box.width > 0)) continue;
+      const parent = el.parentElement!, words = [...parent.childNodes].some(n => n.nodeType === 3 && n.textContent!.trim());
+      if (el.tagName === 'A' && words && getComputedStyle(el).display === 'inline') {
+        out.inline++;
+        const line = parseFloat(getComputedStyle(parent).lineHeight), first = el.getClientRects()[0]!;
+        if ([...el.getClientRects()].some(r => r.height > line + 1)) out.tall.push(name);
+        const before = el.previousSibling;
+        if (before?.nodeType === 3 && before.textContent!.endsWith('(')) {
+          const range = document.createRange(); range.setStart(before, before.textContent!.length - 1); range.setEnd(before, before.textContent!.length);
+          if (Math.abs(range.getBoundingClientRect().top - first.top) > 4) out.stranded.push(name);
+        }
+        continue;
+      }
+      if (box.height < 44) out.small.push(name);
+    }
+    return out;
+  });
   expect(small).toEqual([]);
+  expect(inline).toBeGreaterThanOrEqual(30);
+  expect(stranded).toEqual([]);
+  expect(tall).toEqual([]);
 });
 
 test('at phone width the top bar names Help and steps back to Settings', async ({page}) => {
@@ -183,7 +228,8 @@ test('New: your whole life: twenty linkable questions; a hash opens its answer a
   await expect(sleep).toContainText('Sleep debt is, for each logged night of the last 7 days, your goal minus the time you slept');
   await expect(sleep).toContainText('This is not medical advice');
   await page.goto('/app/help#help-w-music');
-  await expect(page.locator('#help-w-music')).toContainText('only up to five accounts the owner lists can connect');
+  // Session AF Gate C (design critique; deliberate, as strict): plain words for Spotify's limit, the same fact (five accounts).
+  await expect(page.locator('#help-w-music')).toContainText('for now only up to five invited accounts can connect');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
 

@@ -176,6 +176,12 @@ test('Help: the topic index is two columns on a phone and ZIGi’s section eyebr
   await page.goto('/app/help');
   const links = page.locator('nav.help-topics a');
   await expect(links.first()).toBeVisible();
+  // Session AF Gate C (design critique; deliberate, as strict): a phone shows six topics with "All topics" under them;
+  // with every topic shown, all eighteen still sit in the same two columns.
+  await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
+  await page.getByRole('button', {name: 'All topics', exact: true}).click();
+  await expect(links).toHaveCount(18);
+  for (const link of await links.all()) await expect(link).toBeVisible();
   const lefts = new Set((await links.evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().left)))));
   expect(lefts.size).toBe(2);
   const eyebrow = page.locator('#your-ai > .eyebrow');
