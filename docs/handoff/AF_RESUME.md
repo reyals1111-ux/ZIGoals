@@ -32,22 +32,22 @@ never re-plan; never enter plan mode again (the plan was approved once, with the
   green by Sun 25 Oct 11:00 Brussels.
 
 ## Gate C checklist (started Mon 19 Oct 19:04 Brussels on `49433538`, the owner's word: "start Gate C now"; tick as done, with the evidence file)
-- [ ] G1 full unit suite (`pnpm test`).
-- [ ] G2 full browser suite once (after the L3b Checklist merge, H132), Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
-- [ ] G3 the WebKit set: **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
-- [ ] G4 layout audits in Nebula, Light and Dark at 320/390/768/1024/1440/1920 + touch + stress, Chromium only → `docs/verification/af/`.
-- [ ] G4b Today's market watch (owner decision of 19 Oct, H131): `tests/market-watch-af.spec.ts` (320–1920 px, three themes, with and
+- [x] G1 full unit suite (`pnpm test`) — STATUS entry; CI's checks job on the final head.
+- [x] G2 full browser suite once (`gate-c-full-suite.txt`) (after the L3b Checklist merge, H132), Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
+- [x] G3 the WebKit set (CI): **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
+- [x] G4 layout audits in Nebula, Light and Dark (`gate-c-audits.md`) at 320/390/768/1024/1440/1920 + touch + stress, Chromium only → `docs/verification/af/`.
+- [x] G4b Today's market watch (owner decision of 19 Oct, H131): `tests/market-watch-af.spec.ts` (320–1920 px, three themes, with and
   without prices) in the Gate C run, and its captures at 320/390/768/1024/1440/1920 × Nebula/Light/Dark in the Gate C capture set
   (`$SP/lead/probe-today-figures.mjs <base> <out>` with `SHOTS=1 THEMES=nebula,light,dark`, plus `QUOTES=1` for prices).
-- [ ] G5 theme parity (`theme-parity-af.spec.ts` in Chromium; `webkit-theme-parity` in CI).
-- [ ] G6 weights: existing budgets unchanged; the new lines (H96) and each lazy chunk's gzip size (H54); theme sheets' gzip sizes (H112).
-- [ ] G7 revert gate: every commit newest-first with typecheck green, in a scratch worktree.
-- [ ] G8 frozen readers #37–#44 (`node scripts/frozen-readers.mjs`), never beside a build or Playwright run.
-- [ ] G9 key scans (check-secrets, the key sweep, no e-mail addresses in the diff).
-- [ ] G10 `scripts/earn/live-check.mjs` on the real network (read-only).
-- [ ] G11 hosted verifier against a local production build (`ZIGOALS_VERIFY_BASE`), Chromium.
-- [ ] G12 the three fresh reviews one after another (security of every Tier 3 commit, design critique of the after captures, test audit for weakened assertions), one fix round each.
-- [ ] G13 `build:alpha` + `check:alpha-artifact` + `check:alpha` on the final head; CI green on the final head (Milestone quality incl. the WebKit job).
+- [x] G5 theme parity (`theme-parity.md`) (`theme-parity-af.spec.ts` in Chromium; `webkit-theme-parity` in CI).
+- [x] G6 weights (`gate-c-weights.txt`): existing budgets unchanged; the new lines (H96) and each lazy chunk's gzip size (H54); theme sheets' gzip sizes (H112).
+- [x] G7 revert gate (`gate-c-revert-gate.txt`): every commit newest-first with typecheck green, in a scratch worktree.
+- [x] G8 frozen readers (`gate-c-frozen-readers.txt`) #37–#44 (`node scripts/frozen-readers.mjs`), never beside a build or Playwright run.
+- [x] G9 key scans (`gate-c-scans.txt`) (check-secrets, the key sweep, no e-mail addresses in the diff).
+- [x] G10 `scripts/earn/live-check.mjs` (`gate-c-live-check.txt`) on the real network (read-only).
+- [x] G11 hosted verifier (`gate-c-verifier.txt`) against a local production build (`ZIGOALS_VERIFY_BASE`), Chromium.
+- [x] G12 the three fresh reviews (`gate-c-security-review.md`, `gate-c-design-critique.md`, `gate-c-test-audit.md`) one after another (security of every Tier 3 commit, design critique of the after captures, test audit for weakened assertions), one fix round each.
+- [x] G13 `build:alpha` (`gate-c-alpha.txt`) + `check:alpha-artifact` + `check:alpha` on the final head; CI green on the final head (Milestone quality incl. the WebKit job).
 
 ## Pacing (owner amendment 4, ADR-028 H81)
 At most three helpers at the same time beside the lead. Start order: L2a, L1, L3; then L2b, L5a, L4, L5b as slots free.
@@ -84,6 +84,17 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
+
+## Resume here (2026-10-21 01:30 Brussels — Gate C done; CI on the final head, the STATUS entry, PR out of Draft)
+- Gate C complete on the final code: the layout audits in three themes + touch + stress with their fixes and re-runs
+  (`gate-c-audits.md`, ADR-028 H138); the test audit's fixes; the hosted verifier, Alpha checks, frozen readers, weights.
+- CI rounds after the test audit, each fixed at equal strength (H138 d–f): session-ac 9d, zigi-phone-rest, the Checklist's
+  ZIGi-past-the-name bound and its comet reading, zigi-act / zigi-chat-polish / zigi-voice-z (WebKit box empty after a fill:
+  a known intermittent, one re-run), motion-polish, staking execute.test's time budget; Canonical reproducibility fails only
+  while GitHub's runner images differ between its two builds (a known intermittent).
+- Next: CI green on the final head (one re-run only for a listed intermittent), the STATUS entry on top of docs/STATUS.md,
+  PR #90 out of Draft (never merged, never deployed), the short final report; stop caffeinate (`kill $(cat $SP/caffeinate.pid)`)
+  and the :3101 server (by port).
 
 ## Resume here (2026-10-20 13:25 Brussels — the Checklist merged; Gate C's final steps running)
 - The Checklist redesign merged (`ccb1ab67`, wiring `3caaa654`, H136): iterations 1–8 with a fresh critic each, the owner's

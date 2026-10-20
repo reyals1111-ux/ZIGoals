@@ -92,6 +92,9 @@ test('desktop and phone: after an auto-accepted card is undone, a second message
     await page.goto('/app/health');
     await page.getByRole('button', {name: /Open ZIGi/}).click();
     await expect(panel(page)).toBeVisible();
+    // Session AF Gate C (CI's WebKit on 499fff64): type once the panel has put its focus in its box, as a person does — a fill
+    // while the panel was still settling never reached the box (the known "box empty after a fill" class).
+    await expect(panel(page).getByRole('textbox', {name: 'Message to your AI'})).toBeFocused();
     const cards = panel(page).locator('.ai-card');
     await w.step(`round ${round}: first message`, async () => {
       await page.getByLabel('Message to your AI').fill('Drank 300 ml and I weigh 72.5 kg');
