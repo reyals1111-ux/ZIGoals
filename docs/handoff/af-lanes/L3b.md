@@ -7,7 +7,7 @@ kept, no storage change. References (never copied into the repository): `~/zigoa
 `frontend-design`: not available in this session (no Skill lists it) — the design language was applied by hand (ADR-028
 H3's precedent): cosmic/nebula, pillar colours, labels ≥ 14 px, body 15–16 px, targets ≥ 44 px.
 
-Eight rounds: round 1 (Part 7 commits) built the overlay; round 2 answered the iteration-1 critique (all six acceptance
+Nine rounds: round 1 (Part 7 commits) built the overlay; round 2 answered the iteration-1 critique (all six acceptance
 lines failed); round 3 the iteration-2 critique (lines 3–6 failed: too sparse, the toast and corner buttons on the path, no
 tick cheer, no visible onward glow, Light's slate line); round 4 the iteration-3 critique (lines 1–3 passed; 4–6 failed:
 ZIGi's cheer, the day's end, ZIGi over the path, a flat Nebula, Light's faint ribbons, the reward moments); round 5 the
@@ -16,8 +16,8 @@ ring and on the cheer reading as a salute); round 6 the iteration-5 critique (li
 moving on a tick, soft cheer art held on a hand-at-brow frame, a small computer ZIGi that jumped); round 7 the iteration-6
 critique (lines 1–5 passed; 6 "very close": ZIGi pointing past the next planet on a computer, small and pressed to the edge on
 a phone, a long name cut, moves over names and a banner, a comet hooking toward ZIGi); round 8 a polish round after all
-six lines passed (two regressions, three nits). The sections "Round 8", "Round 7", "Round 6", "Round 5" and "Round 4" below
-say what changed last.
+six lines passed (two regressions, three nits); round 9 a narrow fix of three regressions the confirming critic found. The
+sections "Round 9", "Round 8", "Round 7", "Round 6", "Round 5" and "Round 4" below say what changed last.
 
 ## What the Checklist is now
 - **Overlay** (`components/checklist/checklist-page.tsx`, `checklist.css`): `/app/checklist` renders a `<dialog>` drawn open
@@ -66,6 +66,29 @@ say what changed last.
   in their colours; on a wide card two columns. A due nudge is a small count on Continue (its sentence is still said to
   screen readers) instead of another line.
 - **Wording**: "planets" everywhere the Checklist speaks of its items.
+
+## Round 9 (three regressions, nothing else)
+1. **The phone tick's comet.** Round 8 let a comet bow toward ZIGi and flattened it to a 45 px stub. Now an arc never bows
+   toward ZIGi (where ZIGi stands as the comet starts: the arc's middle and ZIGi on opposite sides of the line between its
+   ends), and it flattens only as far as the names require, in fine steps (75 % down to 6 % of the planets' distance), names
+   counted from 12.5 px around them on samples 3 px apart; other things it passes behind count for little. A short arc's
+   tail may run 85 % of it (was 78 %). On the owner's supplements tick on a phone the roundest arc, 75 %, would pass 5 px
+   from "Move €200 to savings", so it takes the 55 % arc: 71 px, bowing away from ZIGi, its tail 60 px drawn, 19 px from the
+   nearest name; on a computer the round arc (tail about 110 px).
+2. **The cheer's peak.** Why the round-7 and round-8 checks missed it: they read ZIGi at rest (`zigiClash`) and during its
+   moves only (the move sampler watched frames in which ZIGi's own box was animating), never the frames of the cheer's hops,
+   which run on the figure inside; and no check read the sparkles. The hop's height was also computed from ZIGi's box at
+   rest, while its stretch (8 %) lifted the head a further 12 px. Now a check reads every frame of a cheer that is seen (more
+   than half opaque) — the figure as drawn, hop and squash with it, 12 px or more from every name, and no sparkle on a name
+   — on the spec's tick and on each of three ticks at 390, 768 and 1440; run against the iteration-8 build it fails (ZIGi 3–11
+   px from names, sparkles on a name). The fixes: a hop of 15 px at most, as high as the room above allows, the squash and
+   stretch 4 %, a cheer's place clear with them; each sparkle flies only as far as it stays off every name (or not at all);
+   a move counts names from 13 px; a name's whole glide counts; and the new next planet's name steps out 200 ms after the
+   tick, once ZIGi has faded from beside the planet just ticked. On the owner's ticks the figure stays 13.6 px (computer) and
+   14.3 px (phone) or more from every name, no sparkle on one.
+3. **Names at the foot bar.** On a phone and a tablet what scrolls down to the foot bar — and to the toast's row when it
+   grows — fades into it over 40 px (more than a name's two lines), as under the top bar, instead of being cut ("Play piano
+   15 minutes" on the opening screen, "Read 5 pages" at the toast). Asserted at the landing and, with the toast, after a tick.
 
 ## Round 8 (polish: two regressions and three nits; all six lines had passed)
 1. **The last tick on a computer.** ZIGi's move to the trophy shrinks away where it stood and grows beside the trophy; while
@@ -333,6 +356,12 @@ the chest.
   poster). New: every frame of a tick's moves keeps ZIGi off names, banners and planets shown; at the day's end ZIGi is 12 px
   clear of the trophy and everything else; on a phone a long name stays whole on two lines, also as the next planet's, and
   ZIGi beside it meets every rest check.
+- Round 9, `tests/checklist-overlay-af.spec.ts` (added; none weakened): every seen frame of a cheer keeps ZIGi's drawn figure
+  12 px or more from every name and every sparkle off the names (the spec's tick, and each of three ticks at 390, 768 and
+  1440); the comet bows away from ZIGi (the spec's tick and those three ticks), and on the spec's tick, where no name is in
+  the way, its tail is 60 px or more; no name is cut by the foot bar where it shows unfaded (the landing, and with the toast
+  after a tick). Moved at equal strength: `cometNearNames` became `cometReport` (the same 12 px from every name, plus the
+  bow and the tail).
 - Earlier rounds (kept): `checklist.spec.ts` Jump sweep on the overlay's scroller (500 ms wait); Edit path / How it works
   through the menu; `polish2-af.spec.ts` `sweepJump` scroller argument; `checklist-themes.spec.ts` waits for one-time
   animations only; `path-engine.spec.ts` no sideways scroll in the overlay; `checklist-timers.spec.ts` opens the corner
@@ -371,6 +400,17 @@ No registry, CSP, egress, budget or storage-key change beyond the sessionStorage
   card's nudge became a count on Continue (the Options line "On Today's card at 10:00, 15:00 and 19:00" still holds).
 - Nothing for registries, CSP, egress, budgets or storage. New sessionStorage key `zigoals-checklist-celebrated` (per tab).
 - WebKit (CI only, never run here): `webkit-checklist` and `webkit-theme-parity` /app/checklist — please read CI.
+
+## Evidence (round 9, final build; local production build on 127.0.0.1:3104, Chrome headless, ≤ 2 workers, locked)
+- `pnpm typecheck` clean; `pnpm lint` 0 errors (19 baseline warnings) and `pnpm exec eslint` on the changed files from the
+  repo root clean; unit (vitest from the root) 123 passed.
+- Browser, desktop + mobile: the sixteen Checklist / Today / touch-target specs — 92 passed, 14 skipped (project-specific);
+  theme-parity-af, whole: 55 passed, 1 skipped. The new cheer check run against the iteration-8 build failed, as it should
+  (ZIGi 3–11 px from names, sparkles on a name; and its comet bowing toward ZIGi).
+- The owner's day (probes): the phone tick's comet 71 px, bowing away from ZIGi, tail 60 px, 19 px from the nearest name;
+  the cheer's figure 13.6 / 14.3 px or more from every name, no sparkle on one; "Play piano 15 minutes" and, with the toast,
+  "Read 5 pages" inside the 40 px fade above the foot bar. Weight: `/app` 531.8 kB (567.0), `/app/checklist` 462.2 kB (492.0).
+- Captures: `~/zigoals-af/l3b/iter-9/` (INDEX.txt).
 
 ## Evidence (round 8, final build; local production build on 127.0.0.1:3104, Chrome headless, ≤ 2 workers, locked)
 - `pnpm typecheck` clean; `pnpm lint` 0 errors (19 baseline warnings) and `pnpm exec eslint` on the changed files from the
