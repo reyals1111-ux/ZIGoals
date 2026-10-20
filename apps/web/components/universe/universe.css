@@ -60,10 +60,15 @@
 /* Critique round 2 (L5c): four columns, one planet each, the same four columns as the names below. */
 .universe-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 72px; border-radius: 16px; background: radial-gradient(ellipse at 50% 50%, #241a52, #0a0c24 80%); }
 .universe-row svg { display: block; width: 100%; height: 100%; overflow: visible; }
+/* Gate C design review (finding 2): the row's one track is the row's own height, so each picture is exactly as tall as the
+   row (72 px, 56 on a phone). In an auto-sized track the svg's 100 % never resolved, so at 768 and 1440 px each picture
+   took its width's aspect height (≈ 200 px) and its planet and rings ran over the names below. */
+.universe-row { grid-template-rows: minmax(0, 1fr); overflow: visible; }
+.universe-row > svg { height: 72px; min-height: 0; }
 .today-universe-names { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; text-align: center; font-size: 14px; font-weight: 650; }
-/* Critique round 2 (L5c): "· lit" is part of the label (a real element, not a pseudo one), so the whole label centres
-   under its planet. */
-.today-universe-lit-mark { font-weight: 500; white-space: pre; }
+/* Critique round 2 (L5c): the light mark is part of the label (a real element, not a pseudo one), so the whole label
+   centres under its planet. Gate C design review: it reads "Lit today" under the name, the words Journey's planets use. */
+.today-universe-lit-mark { display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); }
 .today-universe-line { margin: 0; font-size: 16px; }
 .today-universe-line[data-new] { font-weight: 650; }
 .today-universe-skeleton { height: 72px; border-radius: 16px; background: #ffffff0d; }
@@ -79,5 +84,10 @@
   .universe-facts { padding-left: 16px; font-size: 14px; }
   .today-universe-card { gap: 4px; padding-block: 12px; }
   .universe-row { height: 56px; }
+  .universe-row > svg { height: 56px; }
   .today-universe-line { font-size: 15px; }
 }
+/* Gate C design review (finding 8): a phone's 2 × 2 grid (universe-scene.tsx). Each name hangs from its planet's centre,
+   8 px under its own rings and moons (--reach, in the scene's 400 units: a quarter of 1 % of the stage's width each). */
+.universe-stage[data-layout=grid] { container-type: inline-size; }
+.universe-stage[data-layout=grid] .universe-planet-name { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(var(--reach, 40) * .25cqw + 8px)); }

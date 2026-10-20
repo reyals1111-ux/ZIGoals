@@ -6,7 +6,9 @@ import {drawShareCard, shareOrSave} from '../../lib/share-image';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {crossPillarInsights, CROSS_MIN_PER_SIDE} from '../../lib/insights/cross-pillar';
 import {PILLAR_HEX, universeShareCard, type UniversePillar} from '../../lib/universe/model';
-import {UniverseScene, planetPosition, SCENE} from './universe-scene';
+import {UniverseScene, gridPlanet, sceneOf, scenePosition, type SceneLayout} from './universe-scene';
+import {usePhoneActive} from '../phone/use-phone-layout';
+import {keepWords} from '../today/keep-words';
 import {UniverseCelebration} from './universe-celebration';
 import {planetLabel, planetSummary} from './planet-words';
 import {useUniverse} from './use-universe';
@@ -24,6 +26,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)}
 export function UniverseSection() {
   const state = useUniverse(), {universe, loaded, failed} = state;
   const [selected, setSelected] = useState<UniversePillar | null>(null), [busy, setBusy] = useState(false);
+  const layout: SceneLayout = usePhoneActive() ? 'grid' : 'orbit', scene = sceneOf(layout);
   const discovery = useMemo(() => loaded && !failed ? crossPillarInsights({habits: state.habits, health: state.health, today: state.today, max: 1}) : null, [loaded, failed, state.habits, state.health, state.today]);
   const share = async () => {
     if (!universe) return;
@@ -44,15 +47,15 @@ export function UniverseSection() {
     </div>
     {!loaded ? <div className="universe-skeleton aa-skeleton" aria-hidden="true"><i /><i /></div> : failed ? <p role="status" className="universe-note">Some of your records could not be read on this device, so your universe waits until they can.</p> : universe && <>
       <UniverseCelebration milestones={state.pending} onCelebrate={state.celebrate} />
-      <div className="universe-stage" style={{aspectRatio: `${SCENE.width} / ${SCENE.height}`}}>
-        <UniverseScene planets={universe.planets} />
-        {universe.planets.map(p => { const {x, y} = planetPosition(p.pillar); return <button key={p.pillar} type="button" className="universe-planet-button" data-pillar={p.pillar} aria-pressed={selected === p.pillar} aria-controls={`universe-planet-${p.pillar}`} aria-label={planetLabel(p)} onClick={() => setSelected(s => s === p.pillar ? null : p.pillar)} style={{left: `${x / SCENE.width * 100}%`, top: `${y / SCENE.height * 100}%`} as CSSProperties}><span className="universe-planet-name">{p.label}</span></button>; })}
+      <div className="universe-stage" data-layout={layout} style={{aspectRatio: `${scene.width} / ${scene.height}`}}>
+        <UniverseScene planets={universe.planets} layout={layout} />
+        {universe.planets.map(p => { const {x, y} = scenePosition(p.pillar, layout); return <button key={p.pillar} type="button" className="universe-planet-button" data-pillar={p.pillar} aria-pressed={selected === p.pillar} aria-controls={`universe-planet-${p.pillar}`} aria-label={planetLabel(p)} onClick={() => setSelected(s => s === p.pillar ? null : p.pillar)} style={{left: `${x / scene.width * 100}%`, top: `${y / scene.height * 100}%`, ...(layout === 'grid' ? {'--reach': gridPlanet(p).reach.toFixed(1)} : {})} as CSSProperties}><span className="universe-planet-name">{p.label}</span></button>; })}
       </div>
       <ul className="universe-planets" aria-label="Your four planets">{universe.planets.map(p => <li key={p.pillar} id={`universe-planet-${p.pillar}`} data-pillar={p.pillar} data-selected={selected === p.pillar || undefined}>
         <p className="universe-planet-title"><strong>{p.label}</strong>{p.lit && <span className="universe-lit">Lit today</span>}</p>
         <p className="universe-planet-counts">{planetSummary(p)}</p>
         <p className="universe-planet-light">{p.lightLine}</p>
-        <ul className="universe-facts">{p.facts.map(f => <li key={f}>{f}</li>)}</ul>
+        <ul className="universe-facts">{p.facts.map(f => <li key={f}>{keepWords(f)}</li>)}</ul>
       </li>)}</ul>
       {discovery && (discovery.ready[0] ? <div className="universe-discovery" role="note" aria-label="Discovery"><p className="eyebrow">Discovery · {discovery.ready[0].title}</p><p>{discovery.ready[0].sentence}</p><p className="fine">Seen together in your own records over the last 90 days, never a cause.</p></div>
         : discovery.pending[0] && <div className="universe-discovery is-pending" role="note" aria-label="Discovery"><p className="eyebrow">A discovery is forming</p><p>{discovery.pending[0].title}: {Math.min(discovery.pending[0].withA, CROSS_MIN_PER_SIDE)} and {Math.min(discovery.pending[0].withoutA, CROSS_MIN_PER_SIDE)} of the {CROSS_MIN_PER_SIDE} days on each side it needs.</p></div>)}

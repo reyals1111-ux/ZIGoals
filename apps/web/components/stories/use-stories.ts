@@ -17,7 +17,9 @@ import {formatDate} from '../../lib/visual-format';
  * person's own Open) is the one write, to `zigoals:stories:v1`.
  */
 export const STORY_PERIODS: readonly EnginePeriod[] = ['week', 'month', 'year'];
-export const rangeLabel = (start: string, end: string, period: EnginePeriod) => `${formatDate(start, {year: period === 'year' ? undefined : false})} – ${formatDate(end, {year: period === 'year' ? undefined : false})}`;
+/** Gate C design review (copy): one date style on every cover — the year once, at the end ("10 Oct – 16 Oct 2026",
+ *  "1 Jan – 16 Oct 2026"), and on the start too only when a window crosses New Year. */
+export const rangeLabel = (start: string, end: string) => `${formatDate(start, {year: start.slice(0, 4) === end.slice(0, 4) ? false : undefined})} – ${formatDate(end)}`;
 export function useStories() {
   const habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), record = useDeviceRecord(STORIES);
   const loaded = habits.loaded && health.loaded && platform.loaded && averages.loaded && record.loaded;
@@ -29,7 +31,7 @@ export function useStories() {
     const one = (period: EnginePeriod) => {
       const window = reviewPeriod(period, today);
       const review = lifeReview({window, habits: habits.data, health: health.data, platform: platform.data, goals, averages: averages.unreadable ? [] : averages.data.goals, extras: emptyGoalExtras(), history: [], today});
-      return {...buildStory({review, records, platform: platform.data, rangeLabel: rangeLabel(window.start, window.end, period)}), start: window.start, end: window.end};
+      return {...buildStory({review, records, platform: platform.data, rangeLabel: rangeLabel(window.start, window.end)}), start: window.start, end: window.end};
     };
     return {week: one('week'), month: one('month'), year: one('year')};
   }, [loaded, failed, habits.today, habits.data, health.data, platform.data, averages.unreadable, averages.data]);

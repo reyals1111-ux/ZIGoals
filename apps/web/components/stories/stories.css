@@ -16,6 +16,13 @@
 .stories-cover:not([data-ready]) .stories-cover-big { opacity: .55; }
 .stories-cover .eyebrow, .stories-cover p { margin: 0; }
 .stories-count { font-size: 16px; font-weight: 650; }
+/* Gate C design review (finding 7): the big number and its own label on one baseline; a story still too short says what it
+   needs under them. */
+.stories-cover-count { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 4px; }
+:root .stories-cover-count .stories-cover-big { display: inline-block; margin: 2px 0 0; }
+.stories-cover-unit { font-size: 18px; font-weight: 700; }
+.stories-cover-need { flex-basis: 100%; font-size: 16px; font-weight: 650; }
+.stories-count .stories-style { font-weight: 500; }
 .stories-style { font-size: 15px; color: var(--text-secondary); }
 .stories-cover button { justify-self: start; min-height: 44px; margin-top: 6px; }
 .stories-fine { margin: 0; max-width: 72ch; }
