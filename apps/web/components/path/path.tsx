@@ -69,22 +69,37 @@ function scrollerOf(el: HTMLElement): HTMLElement | null {
   return null;
 }
 const sideOf = (offset: number): 'left' | 'right' => offset > 0 ? 'left' : 'right';
-/** Rounds 4–5 (the orbit look): the names alternate sides planet by planet, as a learning path's do — a name that has no
- *  room on its turn's side (the wave's far ends; a long name on a phone) takes the other. Round 5: ZIGi's side beside the
- *  next planet is chosen first — the side with room for the figure that neither neighbour winds toward — and the next
- *  planet's name and its neighbours' names move off that side where they have room, so ZIGi stands in clear sky. The room
- *  is read from the path's measured geometry once it is there (before that, from the wave alone). */
+/** Rounds 4–6 (the orbit look): the names alternate sides planet by planet, as a learning path's do — a name that has no
+ *  room on its turn's side (the wave's far ends; a long name on a phone) takes the other. Round 6: the sides come from the
+ *  path alone — never from which planet is next, nor from where ZIGi stands — so a tick moves no name and no chest (the
+ *  room each name needs includes the step out it takes while its planet is next). The room is read from the path's measured
+ *  geometry (the planets' own size, not the next one's larger drawing) once it is there; before that, from the wave alone.
+ *  ZIGi's side beside the next planet is the one without its name. */
 type Side = 'left' | 'right';
 const flip = (s: Side): Side => s === 'left' ? 'right' : 'left';
+/** A name's width as drawn (its font, from the page), or null before the page can measure. */
+let pen: CanvasRenderingContext2D | null | undefined;
+function nameWidth(text: string, px: number): number | null {
+  if (typeof document === 'undefined') return null;
+  if (pen === undefined) { try { pen = document.createElement('canvas').getContext('2d'); } catch { pen = null; } }
+  if (!pen) return null;
+  pen.font = `750 ${px}px ${getComputedStyle(document.body).fontFamily || 'sans-serif'}`;
+  return pen.measureText(text).width * 1.03;
+}
 function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => number, nextAt: number, geo: PathGeometry | null): {labels: Side[]; zigi: Side} {
-  const phone = !!geo && geo.w < 560, cw = phone ? 8.4 : 8.8, maxW = phone ? 176 : 272, zw = !geo ? 0 : phone ? 101 : geo.w < 900 ? 128 : 152;
+  // (The room a name has beside its planet, as the sheet gives it — less the step out it takes while its planet is next.)
+  const phone = !!geo && geo.w < 560, px = phone ? 14 : 15, maxW = phone ? 176 : 272, gap = phone ? 12 : 16, reserve = phone ? 18 : 28, slack = phone ? 8 : -6;
   const point = (i: number) => geo?.points[steps[i]?.id ?? ''];
-  // (The next planet's name stands further out, clear of its ring.)
-  const room = (i: number, side: Side) => { const p = point(i); if (!geo || !p) return null; const r = (p.r ?? 40) + (i === nextAt ? 16 : 0); return Math.min(maxW, side === 'left' ? p.x - r - 16 : geo.w - p.x - r - 16); };
+  const room = (i: number, side: Side) => { const p = point(i); if (!geo || !p) return null; const r = p.r ?? 40; return Math.min(maxW, (side === 'left' ? p.x - r : geo.w - p.x - r) - gap - reserve + slack); };
   const fits = (i: number, side: Side) => {
     const w = room(i, side), o = swing(i); if (w === null) return Math.abs(o) < 1 || (o > 0) === (side === 'left');
-    const label = steps[i]!.label, longest = Math.max(...label.split(/\s+/).map(x => x.length));
-    return phone ? longest * cw <= w && label.length * cw <= w * 1.9 : label.length * cw <= w;
+    const label = steps[i]!.label, whole = nameWidth(label, px);
+    if (whole === null) return label.length * (phone ? 8.4 : 8.8) <= (phone ? w * 1.9 : w);
+    if (!phone) return whole <= w;
+    // A phone: two lines at most, never a word cut.
+    let lines = 1, line = 0; const space = nameWidth(' ', px) ?? 4;
+    for (const word of label.split(/\s+/)) { const ww = nameWidth(word, px) ?? 0; if (ww > w) return false; if (!line) line = ww; else if (line + space + ww <= w) line += space + ww; else { lines++; line = ww; } }
+    return lines <= 2;
   };
   const labels: Side[] = [];
   steps.forEach((_, i) => {
@@ -92,16 +107,7 @@ function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => 
     if (!fits(i, side)) side = fits(i, flip(side)) ? flip(side) : (room(i, 'left') ?? 0) >= (room(i, 'right') ?? 0) ? 'left' : 'right';
     labels.push(side);
   });
-  if (nextAt < 0 || nextAt >= steps.length) return {labels, zigi: 'right'};
-  const o = swing(nextAt), inner: Side = o > 0 ? 'left' : 'right';
-  const score = (side: Side) => {
-    const p = point(nextAt), fitsZigi = !geo || !p ? true : (side === 'left' ? p.x - (p.r ?? 40) * 1.35 - 14 : geo.w - p.x - (p.r ?? 40) * 1.35 - 14) >= zw;
-    const toward = [nextAt - 1, nextAt + 1].filter(k => k >= 0 && k < steps.length).filter(k => { const dx = swing(k) - o; return side === 'right' ? dx > 0 : dx < 0; }).length;
-    return (fitsZigi ? 0 : 100) + toward * 10 + (fits(nextAt, flip(side)) ? 0 : 15) + (side === inner ? 0 : 1);
-  };
-  const zigi: Side = score('left') <= score('right') ? 'left' : 'right';
-  for (const k of [nextAt - 1, nextAt, nextAt + 1]) if (k >= 0 && k < steps.length && labels[k] === zigi && fits(k, flip(zigi))) labels[k] = flip(zigi);
-  return {labels, zigi};
+  return {labels, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
 }
 
 /** Steps (and chests) that have just changed into done / reached since the last render, for their one-time motion. */
