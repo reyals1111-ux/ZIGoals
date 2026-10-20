@@ -140,6 +140,9 @@ test('reduced motion and the Off preference keep buttons still on every route',a
  const secondary=page.locator('.secondary').first();
  await expect(secondary).toHaveCSS('transition-duration','0s');
  await page.goto('/app');
+ // Session AF Gate C (CI on eba4e437, mobile): read once Today has applied the Off preference, as on Goals above — a slow
+ // runner read the button before it had.
+ await expect(page.locator('html')).toHaveAttribute('data-app-motion','off');
  expect(await page.locator('.today-hero .primary').first().evaluate(el=>getComputedStyle(el,'::after').content)).toBe('none');
 });
 

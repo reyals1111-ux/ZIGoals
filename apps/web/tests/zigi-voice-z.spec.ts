@@ -142,7 +142,10 @@ test('replies to a spoken question are read aloud in the chosen language; a type
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you drank');
   // The language is the chosen one; a test page cannot hand Chrome a real voice object, so the voice itself is the device's.
   await expect.poll(() => spoken(page)).toEqual([expect.objectContaining({text: 'MOCK: you drank 1.2 litres today.', lang: 'nl-BE'})]);
-  // A typed question is not read.
+  // A typed question is not read. (Session AF Gate C: typed once the spoken reply has ended — its Stop button gone. CI's
+  // WebKit trace on eba4e437: the box was filled while that reply was still running, it ended mid-fill and the words never
+  // reached the box, so Send stayed disabled.)
+  await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0);
   await panel(page).getByRole('textbox', {name: 'Message to your AI'}).fill('Tell me something nice');
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(2);
