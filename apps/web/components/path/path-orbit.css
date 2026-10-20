@@ -91,8 +91,7 @@
    nothing else moves when a planet becomes next — its own name steps out from the ring by translate alone, gliding 360 ms,
    to stand 12 px clear of the ring and its moon. */
 .path-stage[data-variant=orbit] { --ring: 14px; --moon: 6px; --next-scale: 1.15; }
-/* (Round 7: a name ZIGi stood over while it cheered comes back only once ZIGi has moved away, 600 ms on.) */
-.path-stage[data-variant=orbit] .path-label { transition: translate 360ms cubic-bezier(.3, .7, .3, 1), opacity 220ms ease 600ms; }
+.path-stage[data-variant=orbit] .path-label { transition: translate 360ms cubic-bezier(.3, .7, .3, 1), opacity 200ms ease; }
 /* (`--label-reserve`: how far a name steps out while its planet is next — 12 px clear of the ring and moon, and one more for
    rounding. Every name keeps that much room at all times, so stepping out never rewraps it.) */
 /* (`--step-out`: 1, or 0 where the ring opens toward the name instead — a plain number, so the theme sheets' copies of this
@@ -220,15 +219,20 @@
 .path-stage[data-variant=orbit] .path-chest[data-inline] { --chest: 64px; position: absolute; left: 50%; top: calc(100% - var(--chest) * .38); z-index: 1; display: block; width: var(--chest); height: calc(var(--chest) * .86); margin: 0; padding: 0; translate: calc(-50% + var(--chest-shift, 0px)) 0; }
 .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=left] { --chest-shift: calc((var(--dot-size) / 2 + var(--chest) / 2 + 8px) * var(--chest-aside, 1)); }
 .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=right] { --chest-shift: calc((var(--dot-size) / -2 - var(--chest) / 2 - 8px) * var(--chest-aside, 1)); }
-/* (Round 7: on a phone and a tablet the chest sits on the line itself, just under its planet — that planet has a few px more
-   room below it than the others, set when the path opens — so neither side is taken: the name keeps its side and ZIGi the
-   other, and its lid, opening a little, never reaches a name.) */
+/* (Round 7: on a phone and a tablet the chest sits on the line itself, under its planet, so neither side is taken: the name
+   keeps its side and ZIGi the other. Round 8: 12 px below its planet's base (the planet's 6 px rim), 12 px above the banner
+   below — that planet keeps the room for it, set when the path opens — its lid opening only a little and its pop small, so
+   neither ever reaches the planet.) */
 @media (max-width: 1179.98px) {
-  .path-stage[data-variant=orbit] .path-chest[data-inline][data-side] { --chest: 64px; --chest-aside: 0; top: calc(100% - 6px); }
-  .path-stage[data-variant=orbit] .path-chest[data-inline][data-side][data-reached] .path-chest-lid { transform: rotate(-22deg) translate(-2px, -5px); }
-  .path-stage[data-variant=orbit] .path-step[data-chest] { margin-bottom: calc(var(--chest-room, 64px) * .86 - 38px); }
+  .path-stage[data-variant=orbit] .path-chest[data-inline][data-side] { --chest: 56px; --chest-aside: 0; top: calc(100% + 18px); }
+  .path-stage[data-variant=orbit] .path-chest[data-inline][data-side][data-reached] .path-chest-lid { transform: translate(-3px, 0) rotate(-7deg); }
+  .path-stage[data-variant=orbit] .path-chest[data-inline][data-side][data-just] .path-chest-art { animation-name: path-chest-pop-low; }
+  .path-stage[data-variant=orbit] .path-chest[data-inline][data-side][data-just] .path-chest-lid { animation-name: path-chest-fly-low; }
+  .path-stage[data-variant=orbit] .path-step[data-chest] { margin-bottom: calc(var(--chest-room, 56px) * .86 + 30px - var(--chest-zone) - 10px); }
 }
-@media (max-width: 640px) { .path-stage[data-variant=orbit] .path-chest[data-inline][data-side] { --chest: 56px; } .path-stage[data-variant=orbit] .path-step[data-chest] { --chest-room: 56px; } }
+@media (max-width: 640px) { .path-stage[data-variant=orbit] .path-chest[data-inline][data-side] { --chest: 44px; } .path-stage[data-variant=orbit] .path-step[data-chest] { --chest-room: 44px; } }
+@keyframes path-chest-pop-low { 0% { transform: scale(1); } 30% { transform: scale(1.12) rotate(-4deg); } 60% { transform: scale(.97) rotate(2deg); } 100% { transform: none; } }
+@keyframes path-chest-fly-low { 0% { transform: none; } 40% { transform: translate(-3px, -2px) rotate(-12deg); } 100% { transform: translate(-3px, 0) rotate(-7deg); } }
 .path-stage[data-variant=orbit] .path-chest[data-inline] .path-chest-art { display: block; width: 100%; height: 100%; opacity: .95; filter: drop-shadow(0 0 10px #ffd27a80) drop-shadow(0 6px 10px #00000059); }
 .path-stage[data-variant=orbit] .path-chest[data-inline] .path-chest-art svg { width: 100%; height: 100%; }
 .path-stage[data-variant=orbit] .path-chest[data-inline][data-reached] .path-chest-art { opacity: 1; filter: drop-shadow(0 0 18px #ffd27ae6) drop-shadow(0 6px 10px #00000059); }
@@ -270,8 +274,6 @@
 /* (Round 7: `--zigi-h` is the figure's own height — the still is cropped to it — and `--zw` its width.) */
 .path-stage[data-variant=orbit] .path-zigi[data-alive] { --zw: calc(var(--zigi-h) * .838); position: absolute; top: 50%; bottom: auto; translate: 0 -50%; display: block; width: var(--zw); height: var(--zigi-h); z-index: 3; }
 /* (Down: the figure's head — under the transparent top of its picture — just clear of a banner above the planet.) */
-/* While ZIGi cheers on its planet's name side, the name steps back for that moment. */
-.path-stage[data-variant=orbit] .path-node:has(> .path-zigi[data-cheer][data-side=left]) > .path-label[data-side=left], .path-stage[data-variant=orbit] .path-node:has(> .path-zigi[data-cheer][data-side=right]) > .path-label[data-side=right] { opacity: 0; transition-delay: 0s; }
 .path-stage[data-variant=orbit] .path-zigi[data-alive][data-side=right] { left: calc(100% + 14px); right: auto; }
 .path-stage[data-variant=orbit] .path-zigi[data-alive][data-side=left] { right: calc(100% + 14px); left: auto; }
 .path-stage[data-variant=orbit] .path-step[data-next] .path-zigi[data-alive][data-side=right] { left: calc(100% + 20px); }
@@ -289,7 +291,7 @@
 /* A star burst behind the figure: soft gold rays and a glow, turning a little as they fade. */
 .path-zigi-burst { position: absolute; left: 50%; top: 42%; z-index: 0; width: 190%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: radial-gradient(closest-side, #fff4d1cc, #ffd27a66 32%, #ff74be26 58%, #ff74be00 72%), repeating-conic-gradient(from 0deg, #ffe39a00 0deg, #ffe39acc 3deg, #ffe39a00 7deg 22.5deg); -webkit-mask: radial-gradient(closest-side, #000 40%, #0000); mask: radial-gradient(closest-side, #000 40%, #0000); pointer-events: none; animation: path-zigi-burst 1300ms ease-out both; }
 @keyframes path-zigi-burst { 0% { opacity: 0; transform: scale(.3) rotate(-20deg); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1) rotate(25deg); } }
-@keyframes path-zigi-hop { 0% { transform: none; } 8% { transform: scale(1.08, .9); } 22% { transform: translateY(-22px) scale(.94, 1.08); } 36% { transform: translateY(0) scale(1.1, .88); } 46% { transform: scale(1.06, .92); } 58% { transform: translateY(-18px) scale(.95, 1.07); } 72% { transform: translateY(0) scale(1.08, .9); } 82% { transform: none; } 100% { transform: none; } }
+@keyframes path-zigi-hop { 0% { transform: none; } 8% { transform: scale(1.08, .9); } 22% { transform: translateY(calc(var(--hop, 22px) * -1)) scale(.94, 1.08); } 36% { transform: translateY(0) scale(1.1, .88); } 46% { transform: scale(1.06, .92); } 58% { transform: translateY(calc(var(--hop, 22px) * -.82)) scale(.95, 1.07); } 72% { transform: translateY(0) scale(1.08, .9); } 82% { transform: none; } 100% { transform: none; } }
 .path-zigi-cheer { position: absolute; left: 50%; top: 34%; z-index: 2; width: 0; height: 0; pointer-events: none; }
 .path-zigi-cheer i { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; background: #ffd27a; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); opacity: 0; animation: path-zigi-spark 1100ms cubic-bezier(.15, .7, .3, 1) 60ms both; }
 .path-zigi-cheer i[data-tone='1'] { background: #ffffff; }

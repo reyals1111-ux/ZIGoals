@@ -131,6 +131,9 @@ function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => 
   return {labels, full, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
 }
 
+/** Where the orbit look lands the next planet: this share of the screen's height between its bars. */
+const landAt = () => typeof window !== 'undefined' && window.innerWidth < 1180 ? .44 : .4;
+
 /** Steps (and chests) that have just changed into done / reached since the last render, for their one-time motion. */
 function useJust(ids: string[], key: string): Set<string> {
   const previous = useRef<Set<string> | null>(null), [just, setJust] = useState<Set<string>>(() => new Set());
@@ -193,7 +196,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const zigiNow = orbit && cheering ? cheering.state : orbit && zigiState ? (anchor.mood === 'done' ? ZIGI_PATH_STATES.done : 'presenting') : zigiState;
 
   // The orbit look lands on the next planet: on opening (at once), and after a tick that leaves it outside the comfortable
-  // middle of the screen (a moment later, gliding unless motion is off), it is brought to about 40 % of the screen's height.
+  // middle of the screen (a moment later, gliding unless motion is off), it is brought to about 40 % of the screen's height
+  // (`landAt`; round 8: 44 % below 1180 px, where an orbit's chest keeps more room under its planet and the planets above the
+  // next one would otherwise slip off the top).
   const landed = useRef(false), measured = geo !== null, orbitsDone = useRef<string[] | null>(null), orbitsKey = completeIds.join('|');
   useEffect(() => {
     if (!orbit || !measured || !next) return;
@@ -208,7 +213,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       const r = el.getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad - padBottom};
       const at = (r.top + r.height / 2 - view.top) / view.height;
       if (glide && at >= .12 && at <= .7) return;
-      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * .4;
+      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * landAt();
       (scroller ?? window).scrollTo({top: Math.max(0, top), behavior: glide && entranceAllowed() ? 'smooth' : 'auto'});
     };
     if (!landed.current) { landed.current = true; go(false); return; }
@@ -256,7 +261,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const el = next ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`) : null; if (!el) return;
     // (The orbit look brings it to the same place as its landing: about 40 % of the part of the screen its bars leave.)
     const sc = orbit && stage.current ? scrollerOf(stage.current) : null;
-    if (sc) { const box = sc.getBoundingClientRect(), cs = getComputedStyle(sc), pad = parseFloat(cs.scrollPaddingTop) || 0, padB = parseFloat(cs.scrollPaddingBottom) || 0, r = el.getBoundingClientRect(); sc.scrollTo({top: Math.max(0, sc.scrollTop + r.top + r.height / 2 - box.top - pad - (box.height - pad - padB) * .4), behavior: entranceAllowed() ? 'smooth' : 'auto'}); }
+    if (sc) { const box = sc.getBoundingClientRect(), cs = getComputedStyle(sc), pad = parseFloat(cs.scrollPaddingTop) || 0, padB = parseFloat(cs.scrollPaddingBottom) || 0, r = el.getBoundingClientRect(); sc.scrollTo({top: Math.max(0, sc.scrollTop + r.top + r.height / 2 - box.top - pad - (box.height - pad - padB) * landAt()), behavior: entranceAllowed() ? 'smooth' : 'auto'}); }
     else el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
     el.focus({preventScroll: true});
   }, [next, orbit]);
