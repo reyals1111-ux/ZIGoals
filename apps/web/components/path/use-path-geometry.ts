@@ -12,16 +12,17 @@ import {useLayoutEffect, useState, type RefObject} from 'react';
  * which a test (or anything reading the geometry from outside) waits for. A new key measures again and clears it until
  * the new geometry has settled in turn.
  */
-export type PathPoint = {x: number; y: number};
+/** `r`: the dot's own radius as drawn (round 4: the orbit look's comet leaves and reaches a planet at its rim). */
+export type PathPoint = {x: number; y: number; r?: number};
 export type PathGeometry = {w: number; h: number; points: Record<string, PathPoint>};
-const same = (a: PathGeometry, b: PathGeometry) => a.w === b.w && a.h === b.h && Object.keys(a.points).length === Object.keys(b.points).length && Object.entries(a.points).every(([id, p]) => b.points[id]?.x === p.x && b.points[id]?.y === p.y);
+const same = (a: PathGeometry, b: PathGeometry) => a.w === b.w && a.h === b.h && Object.keys(a.points).length === Object.keys(b.points).length && Object.entries(a.points).every(([id, p]) => b.points[id]?.x === p.x && b.points[id]?.y === p.y && b.points[id]?.r === p.r);
 const round = (n: number) => Math.round(n * 10) / 10;
 
 export function measurePath(stage: HTMLElement): PathGeometry {
   const base = stage.getBoundingClientRect(), points: Record<string, PathPoint> = {};
   for (const el of stage.querySelectorAll<HTMLElement>('[data-path-point]')) {
     const id = el.dataset.pathPoint, r = el.getBoundingClientRect();
-    if (id && r.width > 0) points[id] = {x: round(r.left + r.width / 2 - base.left), y: round(r.top + r.height / 2 - base.top)};
+    if (id && r.width > 0) points[id] = {x: round(r.left + r.width / 2 - base.left), y: round(r.top + r.height / 2 - base.top), r: round(Math.min(r.width, r.height) / 2)};
   }
   return {w: round(base.width), h: round(base.height), points};
 }

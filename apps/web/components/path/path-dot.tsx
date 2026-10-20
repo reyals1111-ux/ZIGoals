@@ -19,7 +19,8 @@ import {PathGlyph} from './path-glyphs';
  * name says its state.
  */
 const SPARKS = 14;
-export type OrbitDot = {next: boolean};
+/** `arrive`: a comet is on its way to this (next) planet; its ring flashes as the comet reaches it (round 4). */
+export type OrbitDot = {next: boolean; arrive?: boolean};
 export function PathDot({step, intent, just, expanded, onPress, orbit}: {step: PathStep; intent: StepIntent | null; just: boolean; expanded: boolean; onPress: (intent: StepIntent) => void; orbit?: OrbitDot}) {
   const style = {'--dot': PATH_COLOURS[step.colour].token, ...(step.partial !== undefined && step.state !== 'done' ? {'--partial': step.partial} : {})} as CSSProperties;
   const label = stepAriaLabel(step), done = step.state === 'done';
@@ -35,7 +36,7 @@ export function PathDot({step, intent, just, expanded, onPress, orbit}: {step: P
       ? <span className="path-dot-burst" data-rich="" aria-hidden="true">{Array.from({length: SPARKS}, (_, n) => <i key={n} style={{'--a': `${Math.round(n * 360 / SPARKS + (n % 3) * 9)}deg`, '--d': (0.8 + (n * 37 % 5) * 0.12).toFixed(2), '--t': `${560 + (n * 53) % 260}ms`} as CSSProperties} data-tone={n % 3}/>)}</span>
       : <span className="path-dot-burst" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/><i/></span>)}
   </>;
-  const common = {className: 'path-dot', 'data-state': step.state, 'data-just': just ? '' : undefined, 'data-partial': step.partial !== undefined && !done ? '' : undefined, 'data-next': orbit?.next && !done ? '' : undefined, 'data-path-point': step.id, 'data-step': step.id, style};
+  const common = {className: 'path-dot', 'data-state': step.state, 'data-just': just ? '' : undefined, 'data-arrive': orbit?.arrive && !done ? '' : undefined, 'data-partial': step.partial !== undefined && !done ? '' : undefined, 'data-next': orbit?.next && !done ? '' : undefined, 'data-path-point': step.id, 'data-step': step.id, style};
   if (!intent) return <span {...common} role="img" aria-label={label}>{inner}</span>;
   if (intent === 'open' && step.href) return <Link {...common} href={step.href} aria-label={label} onClick={() => onPress('open')}>{inner}</Link>;
   return <button type="button" {...common} aria-label={label} aria-pressed={done} aria-expanded={intent === 'value' ? expanded : undefined} onClick={() => onPress(intent)}>{inner}</button>;

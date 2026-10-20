@@ -36,6 +36,7 @@ export function PathLine({geo, segments, rail = false, lead, tones}: {geo: PathG
     {drawn.map(s => <g key={s.id} className="path-segment" data-lit={s.lit || undefined} data-locked={s.locked || undefined} data-bridge={s.bridge || undefined} data-lead={lead === s.id || undefined} data-segment={s.id} style={rail && tones?.[s.id] ? {'--seg': tones[s.id]} as CSSProperties : undefined}>
       {rail ? <>
         <path className="path-segment-halo" d={s.d} fill="none"/>
+        <path className="path-segment-edge" d={s.d} fill="none"/>
         <path className="path-segment-base" d={s.d} fill="none"/>
         {lead === s.id && <path className="path-segment-lead" d={s.d} fill="none"/>}
         <path className="path-segment-glow" d={s.d} fill="none" pathLength={1}/>
@@ -50,11 +51,22 @@ export function PathLine({geo, segments, rail = false, lead, tones}: {geo: PathG
   </svg>;
 }
 
-/** Session AF (L3b, round 3): the orbit look's comets fly over the planets (a layer of their own above the path), from the
- *  planet just ticked to the next one's centre: at the path's pitch most of a stretch lies under its two planets, so a
- *  comet on the line itself was all but hidden. Drawn only while a segment is in `comets`; decorative. */
+/** Session AF (L3b, rounds 3–4): the orbit look's comets fly over the planets (a layer of their own above the path), from
+ *  the rim of the planet just ticked to the rim of the next one, arcing out to the side (round 4: at a phone's pitch the
+ *  two planets nearly touch, so a comet along the line had nowhere to be seen). The head fades as it reaches the rim and
+ *  the next planet's ring flashes (PathDot `arrive`). Drawn only while a segment is in `comets`; decorative. */
+const arc = (geo: PathGeometry, s: PathSegment) => {
+  const a = geo.points[s.from], b = geo.points[s.to]; if (!a || !b) return null;
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.max(1, Math.hypot(dx, dy)), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+  // Out toward the nearer edge of the stage, where the sky is open.
+  const sign = mx >= geo.w / 2 ? 1 : -1, nx = -dy / len, ny = dx / len, flip = nx * sign >= 0 ? 1 : -1, bulge = Math.max(56, Math.min(96, len * .7));
+  const cx = mx + nx * flip * bulge, cy = my + ny * flip * bulge;
+  const rim = (p: {x: number; y: number; r?: number}) => { const ux = cx - p.x, uy = cy - p.y, ul = Math.max(1, Math.hypot(ux, uy)), r = (p.r ?? 0) + 2; return {x: p.x + ux / ul * r, y: p.y + uy / ul * r}; };
+  const st = rim(a), en = rim(b), f = (n: number) => n.toFixed(1), approx = Math.hypot(cx - st.x, cy - st.y) + Math.hypot(en.x - cx, en.y - cy);
+  return {d: `M${f(st.x)} ${f(st.y)} Q${f(cx)} ${f(cy)} ${f(en.x)} ${f(en.y)}`, tail: Math.min(.7, 72 / Math.max(1, approx))};
+};
 export function PathComets({geo, segments, comets, tones}: {geo: PathGeometry; segments: PathSegment[]; comets: Set<string>; tones?: Record<string, string>}) {
-  const drawn = drawnSegments(geo, segments).filter(s => comets.has(s.id));
+  const drawn = segments.filter(s => comets.has(s.id)).flatMap(s => { const c = arc(geo, s); return c ? [{...s, ...c}] : []; });
   if (!drawn.length) return null;
   return <svg className="path-line path-comets" width={geo.w} height={geo.h} viewBox={`0 0 ${geo.w} ${geo.h}`} aria-hidden="true" focusable="false">
     {drawn.map(s => <g key={s.id} className="path-comet" data-segment={s.id} style={{...(tones?.[s.id] ? {'--seg': tones[s.id]} : {}), '--tail': s.tail.toFixed(3)} as CSSProperties}>

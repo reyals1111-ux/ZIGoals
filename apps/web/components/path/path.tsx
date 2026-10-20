@@ -69,9 +69,23 @@ function scrollerOf(el: HTMLElement): HTMLElement | null {
   return null;
 }
 const sideOf = (offset: number): 'left' | 'right' => offset > 0 ? 'left' : 'right';
-/** The orbit look's ZIGi stands in the open sky the path bends away from (where a learning path puts its characters): the
- *  side opposite the dot's swing, or, for a dot in the middle, opposite the dot before it (the one after it, for the first). */
-const orbitZigiSide = (i: number, swing: (i: number) => number): 'left' | 'right' => { const o = swing(i) || (i > 0 ? swing(i - 1) : swing(i + 1)); return o > 0 ? 'left' : 'right'; };
+/** Round 4 (the orbit look): the names alternate sides planet by planet, as a learning path's do — except at the wave's
+ *  far ends, where only the side toward the middle has room, and for a long name (it takes the roomier side, so it wraps
+ *  onto two lines instead of being cut). */
+const LONG_NAME = 20;
+function orbitLabelSides(steps: {id: string; label: string}[], swing: (i: number) => number, nextId: string | null): ('left' | 'right')[] {
+  const out: ('left' | 'right')[] = [];
+  steps.forEach((step, i) => {
+    const o = swing(i), inner = o > 0 ? 'left' : o < 0 ? 'right' : null, before = out[i - 1] ?? 'right';
+    let side: 'left' | 'right' = Math.abs(o) >= 1 && inner ? inner : before === 'left' ? 'right' : 'left';
+    if (inner && side !== inner && step.label.length > LONG_NAME) side = inner;
+    // The next planet keeps the roomier side (toward the middle) for ZIGi, its name taking the other — unless the name is
+    // long, or the planet stands at the wave's far end, where only the middle has room for a name.
+    if (step.id === nextId && inner && Math.abs(o) < 1 && step.label.length <= LONG_NAME) side = inner === 'left' ? 'right' : 'left';
+    out.push(side);
+  });
+  return out;
+}
 
 /** Steps (and chests) that have just changed into done / reached since the last render, for their one-time motion. */
 function useJust(ids: string[], key: string): Set<string> {
@@ -114,7 +128,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const cheerTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (!orbit || !tickedId || !next) return;
-    // (Round 3: a tick's cheer is ZIGi's celebrate pose — arms up — with its hops; the plain success frame read as no change.)
+    // Round 4: ZIGi cheers beside the planet just ticked (its waving greeting, hops, sparkles) — only where motion is allowed;
+    // under reduced motion and Motion Off it stays beside the next planet, pointing at it.
+    if (!entranceAllowed()) return;
     setCheerAt({id: tickedId, state: ZIGI_PATH_STATES.done});
     window.clearTimeout(cheerTimer.current);
     cheerTimer.current = window.setTimeout(() => setCheerAt(null), ORBIT_CHEER_MS);
@@ -210,6 +226,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Round 3: the comet runs on from the planet just ticked to the next one; with no such stretch (the next is elsewhere), along
   // the stretch the tick lit.
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
+  const labelSides = orbit ? orbitLabelSides(steps, swingOf, next?.id ?? null) : null;
+  // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
+  const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheerAt?.id ?? ''}` : undefined;
   const comets = orbit ? new Set((onward.length ? onward : segments.filter(s => (just.has(s.from) || just.has(s.to)) && s.lit)).map(s => s.id)) : undefined;
   // …and the way on from the last planet done to the next one stays faintly lit in the next planet's colour.
   const doneSet = new Set(doneIds), lead = orbit && next ? segments.find(s => s.to === next.id && doneSet.has(s.from))?.id : undefined;
@@ -224,20 +243,25 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
         <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading} meter={orbit} justComplete={just.has(`s:${section.id}`)}/>
         <ol className="path-steps">
           {section.steps.map((step, j) => {
-            const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = orbit ? orbitZigiSide(i, swingOf) : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
-            // The orbit look: ZIGi (on the side away from the name) leans away from the neighbour that winds toward it, and
-            // from the banner over an orbit's first planet or the chest and banner after its last.
+            const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
+            // The orbit look: ZIGi (on the side away from the name) first tries leaning away from the neighbour that winds
+            // toward it, and from the banner over an orbit's first planet or the chest and banner after its last; then it
+            // measures (PathZigi `fit`).
             const towardZigi = (k: number) => (swingOf(k) - offset) * (side === 'left' ? 1 : -1) > 0, first = j === 0, last = j === section.steps.length - 1;
-            const lean = !orbit || (first && last) ? undefined : first ? 'down' : last ? 'up' : towardZigi(i - 1) ? 'down' : towardZigi(i + 1) ? 'up' : undefined;
+            const lean = !orbit || (first && last) ? 'mid' : first ? 'down' : last ? 'up' : towardZigi(i - 1) ? 'down' : towardZigi(i + 1) ? 'up' : 'mid';
+            // (The name's room: toward the path's middle it has the wave's reach to spare, away from it the reach is lost.)
+            const toward = !orbit || offset === 0 ? 0 : (offset > 0) === (side === 'left') ? 1 : -1;
             const all = chestsAfter.get(step.id) ?? [];
             // The orbit look: a chest rides this planet's node (no row of its own); the day's trophy keeps its row at the end.
             const riding = orbit ? all.filter(m => m.at !== 'end') : [], chests = orbit ? all.filter(m => m.at === 'end') : all;
             return <Fragment key={step.id}>
-              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} data-lean={lean} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--step-colour': PATH_COLOURS[step.colour].token} : {})} as CSSProperties}>
+              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--toward': toward, '--step-colour': PATH_COLOURS[step.colour].token} : {})} as CSSProperties}>
                 <div className="path-node">
-                  <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext}} : {})}/>
-                  <span className={orbit && isNext ? 'path-label path-label-bubble' : 'path-label'} data-side={side}>{orbit && isNext && <span className="path-label-cue">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}<span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheerAt?.id === step.id}/>}
+                  <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
+                  {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
+                  {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
+                  <span className="path-label" data-side={side}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheerAt?.id === step.id} lean={lean} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
