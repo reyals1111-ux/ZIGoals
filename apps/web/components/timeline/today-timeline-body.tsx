@@ -15,7 +15,9 @@ const row = (b: TimelineBlock, rank: number) => <li key={b.id} data-block="" dat
  * and the "Now" pill on its line, placed where now falls among them (a block already under way sits above it).
  */
 export default function TodayTimelineBody() {
-  const {loaded, day} = useDayTimeline({sources: false});
+  // Gate C design review (finding 11): the card reads the registered sources too (the Checklist's planets), so it shows
+  // the same next blocks as the timeline page ("Read ten pages" at 19:00 was missing from the card).
+  const {loaded, day} = useDayTimeline();
   const next = day ? nextBlocks(day, 3) : [];
   const nowAt = day ? (i => i < 0 ? next.length : i)(next.findIndex(b => b.start! > day.nowMinute)) : 0;
   const nowRow = day ? <li key="now" className="today-timeline-now-row" data-now=""><span>Now · {clockLabel(day.nowMinute)}</span></li> : null;

@@ -43,6 +43,23 @@
 .timeline-handle:active { cursor: grabbing; }
 .timeline-handle:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
 .timeline-lock { display: inline-flex; align-items: center; gap: 6px; max-width: 30ch; font-size: 14px; color: var(--text-secondary); }
+/* Gate C design review (finding 15): one action column, the same on every row and at the block's right edge — the tap
+   (Complete, Log it or Open) in a fixed first slot, the move handle in the second, the time button in the third — so
+   Open, Complete and the arrows line up down the day. A row without a handle keeps the slot empty; a fixed block's reason
+   takes the last two. "Change time" never wraps inside itself. */
+.timeline-block > .timeline-actions { display: grid; grid-template-columns: 112px 44px 132px; justify-items: stretch; margin-left: auto; }
+.timeline-block > .timeline-actions > :is(.primary, .secondary) { grid-column: 1; grid-row: 1; justify-content: center; padding-inline: 10px; white-space: nowrap; }
+.timeline-block > .timeline-actions > .timeline-handle { grid-column: 2; grid-row: 1; }
+.timeline-block > .timeline-actions > .timeline-change { grid-column: 3; grid-row: 1; white-space: nowrap; }
+.timeline-block > .timeline-actions > .timeline-lock { grid-column: 2 / 4; grid-row: 1; max-width: none; }
+/* Gate C design review (finding 3): the right-edge launchers float over the page; at 1024 px the centred timeline ran under
+   them ("Give it a time" and a Sleep note). The page keeps the lane Earn's paths and Today's rail keep while the launchers
+   are on the right; where the page already sits clear of them (1440 px: its own centred margin is wider than the lane) it
+   does not move. */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) .timeline-page { width: min(860px, 100% - 64px); margin-inline: auto max(64px, (100% - 860px) / 2); }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .timeline-page { width: min(860px, 100% - 72px); margin-inline: auto max(72px, (100% - 860px) / 2); }
+}
 .timeline-now { position: relative; display: flex; align-items: center; min-height: 28px; margin-left: -18px; }
 .timeline-now::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, #f08bd6, #ffd27a); box-shadow: 0 0 10px #f08bd688; }
 .timeline-now span { position: relative; margin-left: 92px; padding: 1px 10px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #0b1020; background: linear-gradient(90deg, #f08bd6, #ffd27a); }
@@ -91,11 +108,18 @@
   .timeline-row { grid-template-columns: 66px minmax(0, 1fr); gap: 8px; }
   .timeline-time { font-size: 14px; }
   .timeline-block { padding: 8px 10px; }
-  /* One row of actions under the words (Done or Open, the move handle, Change time), so a phone's day stays short. */
-  .timeline-actions { flex-wrap: nowrap; gap: 6px; width: 100%; }
-  .timeline-actions .quiet { padding-inline: 10px; }
-  .timeline-actions .timeline-change { flex: 0 1 auto; min-width: 0; white-space: normal; text-align: center; line-height: 1.2; }
-  .timeline-lock { flex: 1 1 auto; min-width: 0; }
+  /* One row of actions under the words, so a phone's day stays short. Gate C design review (finding 15): the tap (Complete,
+     Log it or Open) at the row's left, "Change time" (never wrapped) or a fixed block's reason at its right, and the move
+     handle beside the words at the top right — the same places on every row (three in one row left "Change time" to wrap
+     beside Complete). */
+  .timeline-block { display: grid; grid-template-columns: auto minmax(0, 1fr) 44px; gap: 8px 6px; align-items: center; }
+  .timeline-block-main { grid-column: 1 / -1; grid-row: 1; }
+  .timeline-block:has(.timeline-handle) .timeline-block-main { grid-column: 1 / 3; }
+  .timeline-block > .timeline-actions { display: contents; }
+  .timeline-block > .timeline-actions > :is(.primary, .secondary) { grid-column: 1; grid-row: 2; justify-self: start; padding-inline: 14px; }
+  .timeline-block > .timeline-actions > .timeline-handle { grid-column: 3; grid-row: 1; align-self: start; }
+  .timeline-block > .timeline-actions > .timeline-change { grid-column: 2 / 4; grid-row: 2; justify-self: end; padding-inline: 10px; white-space: nowrap; }
+  .timeline-block > .timeline-actions > .timeline-lock { grid-column: 2 / 4; grid-row: 2; justify-self: end; min-width: 0; }
   .timeline-now span { margin-left: 66px; }
   .timeline-picker { margin-left: 0; }
   .today-timeline-card { gap: 4px; padding-block: 12px; }
