@@ -172,3 +172,30 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
    table's own sideways scroll; the coin column is narrower so more of them show at once. */
 @media (min-width: 768px) { .portfolio-holdings-section .data-table :is(th, td) { padding-inline: 8px; } }
 @media (max-width: 767.98px) { .portfolio-holdings-section .data-table th:first-child, .portfolio-holdings-section .data-table td:first-child { min-width: 128px; } }
+/* Session AF Gate C (design critique, money pages 10): "Record a transaction" opens like Earn's disclosures and says so with
+   their chevron, which turns when it opens (the flex summary had lost the browser's triangle). */
+.portfolio-add > summary { gap: 10px; list-style: none; }
+.portfolio-add > summary::-webkit-details-marker { display: none; }
+.portfolio-add > summary::after { content: ""; width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-3px); flex: none; transition: transform 160ms ease; }
+.portfolio-add[open] > summary::after { transform: rotate(225deg) translate(-2px, -1px); }
+@media (prefers-reduced-motion: reduce) { .portfolio-add > summary::after { transition: none; } }
+:root[data-app-motion=off] .portfolio-add > summary::after { transition: none; }
+/* Session AF Gate C (design critique, money pages 4): below 480 px the holdings are one stacked card each, as Earn's
+   validator list is on a phone: the coin across the top, then its 24h change, value and result side by side, each under
+   its column's name. Only Coin and 24h had shown, the value cut ("US$4,5…") and the rest scrolling sideways inside the
+   card. The columns a phone leaves out stay out (each coin's own page has them); 480 px and up keep the table. */
+@media (max-width: 479.98px) {
+  .portfolio-holdings-section .data-table-wrap { overflow: visible; border: 0; border-radius: 0; background: none; container-type: normal; }
+  .portfolio-holdings-section .data-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .portfolio-holdings-section .data-table, .portfolio-holdings-section .data-table tbody { display: block; width: 100%; }
+  .portfolio-holdings-section .data-table tbody > tr:not(.data-detail-row) { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 4px 10px; margin-top: 10px; padding: 6px 14px 14px; border: 1px solid #7fc8ff24; border-radius: 18px; background: #0f1a30cc; }
+  .portfolio-holdings-section .data-table tbody > tr > :is(th, td):not(.data-col-optional, .data-col-wide) { display: block; min-width: 0; padding: 0; border: 0; text-align: start; white-space: nowrap; position: static; background: none; }
+  .portfolio-holdings-section .data-table tbody > tr > td:last-child { text-align: end; }
+  .portfolio-holdings-section .data-table tbody > tr > th[scope="row"] { grid-column: 1 / -1; white-space: normal; }
+  .portfolio-holdings-section .data-table tbody > tr > td::before { content: attr(data-label); display: block; margin-bottom: 2px; font-size: 13px; font-weight: 600; color: #b7c8de; }
+  .portfolio-holdings-section .data-table tbody > tr.data-detail-row { display: block; }
+  .portfolio-holdings-section .data-table tbody > tr.data-detail-row > td { display: block; padding: 0 !important; border: 0; }
+  .portfolio-holdings-section .data-table tbody > tr.data-detail-row > td::before { content: none; }
+  .portfolio-holdings-section .coin-detail { position: static; width: auto; margin-top: 4px; border-radius: 18px; white-space: normal; }
+}
+@media (max-width: 359.98px) { .portfolio-holdings-section .data-table tbody > tr > td { font-size: 14px; } }

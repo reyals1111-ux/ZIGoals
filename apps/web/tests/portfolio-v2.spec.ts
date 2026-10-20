@@ -182,6 +182,25 @@ test('phone: the coin, its 24h change, value and result; allocation and transact
   await page.goto('/app/portfolio');
   const table = page.getByRole('table', {name: 'Fictional real coins holdings'});
   await expect(table.getByRole('columnheader').filter({visible: true})).toHaveText(['Coin', '24h', 'Value', 'Result']);
+  // Session AF Gate C (design critique, money pages 4; stronger): below 480 px each holding is one stacked card: the coin
+  // across its top, then the same three figures, each under its column's name, every figure whole (the value had been cut
+  // to "US$4,5…") and the card inside the page, nothing scrolling sideways inside it.
+  const cards = table.getByRole('row').filter({has: page.locator('.data-coin-toggle')});
+  await expect(cards).toHaveCount(2);
+  for (const card of await cards.all()) {
+    expect(await card.getByRole('cell').filter({visible: true}).evaluateAll(cells => cells.map(c => c.getAttribute('data-label')))).toEqual(['24h', 'Value', 'Result']);
+    const box = (await card.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    for (const cell of await card.getByRole('cell').filter({visible: true}).all()) {
+      expect(await cell.evaluate(c => c.scrollWidth <= c.clientWidth + 1), await cell.innerText()).toBe(true);
+      const at = (await cell.boundingBox())!;
+      expect(at.x + at.width, await cell.innerText()).toBeLessThanOrEqual(box.x + box.width + 0.5);
+      expect(at.y, 'the figures sit under the coin').toBeGreaterThan((await card.locator('.data-coin-toggle').boundingBox())!.y);
+    }
+  }
+  expect(await page.locator('.portfolio-holdings-section .data-table-wrap').first().evaluate(w => w.scrollWidth <= w.clientWidth + 1)).toBe(true);
+  await expect(table.getByRole('row').filter({hasText: 'Bitcoin'}).getByRole('cell').filter({visible: true}).nth(1)).toHaveText('$35,000.00');
   // Session AB-Design (owner request 27): allocation and transactions sit under the Analysis and Insights tabs, not folds.
   await expect(page.getByRole('tab', {name: 'Analysis', exact: true})).toHaveAttribute('aria-selected', 'false');
   await expect(page.getByRole('tab', {name: 'Insights', exact: true})).toHaveAttribute('aria-selected', 'false');
