@@ -7581,17 +7581,17 @@
         background-color: #edf1f6;
         color: #101725
     }
-    .habit-month-grid>span[data-level=some]:not(#\-) {
+    .habit-month-grid>span[data-level=some]:not(#\-), .habit-month-legend i[data-level=some]:not(#\-) {
         background-image: none;
         background-color: #e1e8ef;
         color: #0a1016
     }
-    .habit-month-grid>span[data-level=many]:not(#\-) {
+    .habit-month-grid>span[data-level=many]:not(#\-), .habit-month-legend i[data-level=many]:not(#\-) {
         background-image: none;
         background-color: #695691;
         color: #fff
     }
-    .habit-month-grid>span[data-level=full]:not(#\-) {
+    .habit-month-grid>span[data-level=full]:not(#\-), .habit-month-legend i[data-level=full]:not(#\-) {
         background-image: linear-gradient(135deg,#7ec9df,#aaa4f0,#d7a7df);
         background-color: transparent;
         color: #161c36

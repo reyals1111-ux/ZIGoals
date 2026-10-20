@@ -7991,17 +7991,17 @@
         background-color: #020814;
         color: #bac6dc
     }
-    .habit-month-grid>span[data-level=some]:not(#\-) {
+    .habit-month-grid>span[data-level=some]:not(#\-), .habit-month-legend i[data-level=some]:not(#\-) {
         background-image: none;
         background-color: #0e2133;
         color: #ecf5ff
     }
-    .habit-month-grid>span[data-level=many]:not(#\-) {
+    .habit-month-grid>span[data-level=many]:not(#\-), .habit-month-legend i[data-level=many]:not(#\-) {
         background-image: none;
         background-color: #695691;
         color: #fff
     }
-    .habit-month-grid>span[data-level=full]:not(#\-) {
+    .habit-month-grid>span[data-level=full]:not(#\-), .habit-month-legend i[data-level=full]:not(#\-) {
         background-image: linear-gradient(135deg,#7ec9df,#aaa4f0,#d7a7df);
         background-color: transparent;
         color: #161c36
