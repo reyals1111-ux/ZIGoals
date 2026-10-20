@@ -25,6 +25,7 @@ Evidence label: design review of screenshots and recorded frames (not a usabilit
 | 3 | `7c163836` | PASS (no shell, launcher or Alpha strip at 390/768/1440; the celebration covers the screen too) | PASS (phone 72 px, next ≈ 82; tablet 80; computer 96, next ≈ 110; one unboxed name each; "Meditate & breathwork 15…" cut by an ellipsis on a phone) | PASS, marginal (5 planets on the opening screen at 390, 7 at 768, 6 at 1440; the phone wave ≈ ±35 px vs Duolingo's ≈ ±70; 30 px chests; a two-line NEXT box) | FAIL (press, burst, shock ring, line glow, the onward comet reaching the next planet, bars, shine, XP, chest, orbit and day celebrations visible; ZIGi keeps its idle pose on a tick, its celebrate pose reads as dismay, and it stands idle beside the trophy on the day celebration) | FAIL (Light's iteration-2 defects fixed; Nebula and Dark stills differ only in base hue — no visible nebula; Light's unlit ribbons nearly vanish on a phone) | FAIL | no — the path now feels like Duolingo; ZIGi never cheers, the rewards are small or generic, Nebula reads as Dark |
 | 4 | `9a475ede` | PASS (no shell, launcher or strip at 390/768/1440; the celebration full-screen) | PASS (phone 72 px, next ≈ 82; tablet ≈ 80; computer 96, next ≈ 110; one unboxed name each; the long name wraps to two lines) | PASS (six whole planets and part of a seventh at 390, a ±60 px wave, NEXT on the planet's crown, unit-like banners, chests beside the path) | PASS (press, burst and shock ring, line glow, ZIGi's greeting with a hop and sparkles from f02, bars, XP, chest, orbit and day celebrations; the held pose reads as a salute, counted under 6) | FAIL (Nebula told from Dark at a glance, Light's ribbons visible; Light's twelve-weeks map a near-black panel in a white card on a computer) | FAIL (ZIGi comes to rest over a name or a chest after a tick and an orbit, also under reduced motion; the cheer reads as a salute) | no — close: path, density, chrome and the day celebration near premium; ZIGi's resting place and cheer are not |
 | 5 | `eee27568` | PASS | PASS (phone 72 px, next 82; tablet ≈ 80; computer 96; one unboxed name, at most two lines on a phone) | PASS (6 / 7 / 6 planets on the opening screens at 390 / 768 / 1440) | PASS (press, burst and shock ring, line glow, the comet, ZIGi's hops and star burst, bars and XP, chest, orbit and day celebrations) | PASS (Light's twelve weeks a light plate with the same accents; Nebula told from Dark at a glance on a phone; planet hues identical) | FAIL, close (every tick shuffles name sides and chests; the celebration's ZIGi soft and stair-stepped, its held frame a hand at the brow; on a computer ZIGi rests small and jumps across the path) | no, very close — screens and motion premium; the tick reflow and the day's peak are not |
+| 6 | `e7f71752` | PASS | PASS | PASS (6 / 7 / 6 planets) | PASS (press, burst, line glow, bars and XP, ZIGi's cheer with hops and a star burst, the comet, chest, orbit and day celebrations) | PASS (all three deliberate; hues identical; Light's twelve weeks a light plate) | FAIL, very close (on a computer ZIGi points past NEXT on the opening screen and after an orbit; on a phone ZIGi rests at ≈ 67–82 px against the edge; a long name cut; glide frames cross names and a banner title) | no, very close — screens, motion, rewards and celebration premium; ZIGi's pointing and phone size not |
 
 ## Iteration 1 — the critic's ranked improvements (sent to the lane)
 1. Land on the next node (open and after every tick: the next node at ≈ 40 % of the viewport, every width).
@@ -135,4 +136,22 @@ on the celebration; on a computer ZIGi rests ≈ 115 px tall, wedged between nam
 7. The comet's tail 60–80 px.
 8. The 1440 background planet's ring inside the screen.
 9. Today's card at 1440: the NEXT name on one line.
+
+## Iteration 6 — the critic's ranked improvements (sent to the lane)
+Fixed from iteration 5: nothing but the ticked planet moves on a tick; crisp ZIGi art (the 480 × 632 posters, never
+upscaled); the cheer lands on the presenting pose (hand away from the face: pride, "ta-da"); names ≥ 12 px from rings; the
+comet's tail (60–100 px); the background planet inside the screen; Today's card on one line. Partly: ZIGi's size and glide
+on a computer (≈ 135 px visible at rest), pointing at NEXT (not on the computer's opening screen or after an orbit).
+Regressions: the phone ZIGi at rest ≈ 67–82 px; "Meditate & breathwork 15 minutes" cut on a phone; glide frames over names
+and the Evening banner title.
+1. On a computer ZIGi points at NEXT on the opening screen and after an orbit — the level spot even at ≈ 140 px: pointing
+   at the right planet matters more than the 160 px target.
+2. On a phone ZIGi rests at ≥ 96 px, not squeezed at the screen edge; chest sides set when the path opens so every planet
+   has a spot for ZIGi; nothing moves on a tick.
+3. "Meditate & breathwork 15 minutes" whole on two lines on a phone (iteration 5's label column).
+4. Every glide frame clear of names and banner titles: the ticked planet's name returns only after ZIGi has moved ≥ 12 px
+   away; the orbit glide routed around the banner (or ZIGi faded or shrunk on long glides).
+5. The comet on one smooth arc to the next planet (it hooks out toward ZIGi; its tail crossed the Evening orbit title).
+6. The last tick's cheer off the trophy planet.
+7. Owner item: arms-up cheer art.
 
