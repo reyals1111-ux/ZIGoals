@@ -27,7 +27,11 @@ async function enter(page: Page, route: string, state: State, theme: Theme) {
 export async function parity(page: Page, info: TestInfo, route: string, state: State) {
   await openDevice(page, {showcase: state !== 'empty'});
   const snaps = {} as Record<Theme, Item[]>;
-  for (const theme of ['nebula', 'light', 'dark'] as const) { await enter(page, route, state, theme); snaps[theme] = await collect(page); }
+  // CI on a2c68959 (WebKit, /app · more): the More button's press feedback (scale .94, 160 ms back) was still easing when
+  // Light was collected (its box 0.986 of Nebula's). Every theme is collected with its finite animations and transitions
+  // done; endless loops (the owner-approved skies) are left running and never awaited.
+  const finished = () => page.evaluate(() => Promise.all(document.getAnimations().filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime ?? Infinity)).map(a => a.finished.catch(() => undefined))));
+  for (const theme of ['nebula', 'light', 'dark'] as const) { await enter(page, route, state, theme); await finished(); snaps[theme] = await collect(page); }
   await writeTheme(page, 'nebula');
   const out: {theme: Theme; counts: Partial<Record<Klass, number>>; mismatch: string | null; disallowed: (Diff & {known: boolean})[]}[] = [];
   for (const theme of ['light', 'dark'] as const) {
