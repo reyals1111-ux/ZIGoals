@@ -119,6 +119,10 @@ export function zigiAnchor(model: Pick<PathModel, 'sections'>): ZigiAnchor {
 
 /** The snake: each dot's sideways offset as a fraction of the swing (−1 left … 1 right), a gentle wave through every orbit. */
 export const snakeOffset = (index: number) => Math.round(Math.sin((index * Math.PI) / 4) * 100) / 100 || 0;
+/** Session AF (L3b): the Checklist's full-screen path winds as a learning path does — half a swing per planet, a whole S every
+ *  eight (0, .5, 1, .5, 0, −.5, −1, −.5), so neighbours are always a step apart sideways. The default path keeps `snakeOffset`. */
+const ORBIT_WAVE = [0, 0.5, 1, 0.5, 0, -0.5, -1, -0.5] as const;
+export const orbitOffset = (index: number) => ORBIT_WAVE[((index % 8) + 8) % 8]!;
 
 /** The dot's accessible name: its label, its value or note, and its state in words. */
 export function stepAriaLabel(step: PathStep): string {

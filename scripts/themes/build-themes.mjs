@@ -36,7 +36,11 @@ const GLOBAL_ORDER = ['app/globals.css', 'app/visual-theme.css', 'app/product-v2
 export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art',
   // Session AF (L3; P7.18): the Checklist's dots, lines, orbit banners, chests, ZIGi on the path, the jump bubble, the sky,
   // the launcher and its edge tab, the corner timers and the history keep the Nebula colours in every theme.
-  '.path-dot', '.path-line', '.path-banner', '.path-chest-art', '.path-zigi', '.path-jump', '.checklist-sky', '.checklist-launcher-stack', '.checklist-edge-tab', '.checklist-timer', '.checklist-history',
+  '.path-dot', '.path-line', '.path-banner', '.path-chest-art', '.path-zigi', '.path-jump', '.checklist-sky', '.checklist-launcher-stack', '.checklist-edge-tab', '.checklist-history',
+  // Session AF (L3b): the corner timers follow the theme now (white glass by day, their rings in their own colours); the
+  // full-screen Checklist's day celebration stays the same night moment in every theme, and the next planet's START / NEXT
+  // tag (round 4; the bubble before it) stays white with ink words.
+  '.checklist-celebration', '.path-label-bubble', '.path-next-tag', '.checklist-timer-ring',
   // Session AF (L5a for L1's Part 5, the lead's request): the Earn dock stays ZIGi's and the music button's twin in every
   // theme (components/earn-dock/earn-dock.css): its button, edge tab, app tiles and fold arrow.
   '.earn-dock-button', '.earn-dock-edge', '.earn-dock-app', '.earn-dock-fold',

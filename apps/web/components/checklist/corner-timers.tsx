@@ -15,8 +15,9 @@ import type {ChecklistState} from './use-checklist';
  * The always-on-top corner timers (P7.16): Sleep, Meditate, Fast, and Focus when a timed habit is on the path. One tap
  * starts the page's own timer (it is tracked on Health or Habits, exactly as if started there); the next tap ends it and
  * the record lands on its page (a night on Health's sleep, a session, a fast, minutes on the habit). Running: the button
- * says so, with how long, and a still ring shows how far (no loop). Desktop: a stack fixed at the page's top corner;
- * phones: a sticky strip of four chips under the progress bar.
+ * says so, with how long, and a still ring shows how far (no loop). Session AF (L3b): on a wide screen the timers stand at
+ * the top of the side column as glowing ringed tiles, two by two; round 4: on a phone or tablet they are the foot bar's
+ * own chips (no corner button to open first), each still one tap to start and one to end.
  */
 type Timer = {kind: TimerKind; label: string; glyph: string; colour: keyof typeof PATH_COLOURS; running: boolean; line: string; share?: number};
 export function CornerTimers({state}: {state: ChecklistState}) {
@@ -31,7 +32,7 @@ export function CornerTimers({state}: {state: ChecklistState}) {
   const timers: Timer[] = [
     {kind: 'sleep', label: 'Sleep', glyph: 'moon', colour: 'magenta', running: !!night, line: night ? `In bed since ${formatTime(night.start, {timeZone: night.timeZone})} · ${formatMinutes(inBedMinutes(night, now))}` : 'Tap at bedtime'},
     {kind: 'meditate', label: 'Meditate', glyph: 'lotus', colour: 'teal', running: !!run, line: run ? `${clockText(remainingMs(run, now))} left` : '10 minutes', ...(run ? {share: 1 - remainingMs(run, now) / (run.plannedSec * 1000)} : {})},
-    {kind: 'fast', label: 'Fast', glyph: 'hourglass', colour: 'gold', running: !!fast, line: fast ? `${formatFast(fastElapsed(fast, new Date(now)).ms)} of ${fast.targetHours} h` : `${fasting.data.sessions.at(-1)?.targetHours ?? 16} h target`, ...(fast ? {share: Math.min(1, fastElapsed(fast, new Date(now)).ms / (fast.targetHours * 3_600_000))} : {})},
+    {kind: 'fast', label: 'Fast', glyph: 'hourglass', colour: 'purple', running: !!fast, line: fast ? `${formatFast(fastElapsed(fast, new Date(now)).ms)} of ${fast.targetHours} h` : `${fasting.data.sessions.at(-1)?.targetHours ?? 16} h target`, ...(fast ? {share: Math.min(1, fastElapsed(fast, new Date(now)).ms / (fast.targetHours * 3_600_000))} : {})},
     ...(focus ? [{kind: 'focus' as const, label: 'Focus', glyph: 'focus', colour: 'cyan' as const, running: !!focusTimer, line: focusTimer && focusPreview ? `${focus.title} · ${clockText(focusPreview.elapsedMs)}` : focus.title}] : []),
   ];
   async function press(kind: TimerKind) {
@@ -40,12 +41,15 @@ export function CornerTimers({state}: {state: ChecklistState}) {
     setBusy(null);
     if (!out.ok) setMessage(out.message);
   }
-  return <div className="checklist-timers" role="group" aria-label="Quick timers">
+  const running = timers.find(t => t.running);
+  return <div className="checklist-timers-wrap" data-running={running ? '' : undefined}>
+    <div className="checklist-timers" role="group" aria-label="Quick timers">
     {timers.map(t => <button key={t.kind} type="button" className="checklist-timer" data-kind={t.kind} data-running={t.running || undefined} aria-pressed={t.running} aria-busy={busy === t.kind || undefined} disabled={busy !== null} onClick={() => void press(t.kind)}
       aria-label={`${t.label}: ${t.running ? `running, ${t.line}. Tap to end` : `${t.line}. Tap to start`}`} style={{'--timer': PATH_COLOURS[t.colour].token, ...(t.share !== undefined ? {'--share': Math.max(0, Math.min(1, t.share))} : {})} as CSSProperties}>
       <span className="checklist-timer-ring" aria-hidden="true"><svg viewBox="0 0 40 40" focusable="false"><circle className="checklist-timer-track" cx="20" cy="20" r="17"/>{t.running && <circle className="checklist-timer-arc" cx="20" cy="20" r="17" pathLength={1}/>}</svg><PathGlyph name={t.glyph} size={20}/></span>
-      <span className="checklist-timer-text"><strong>{t.label}</strong><small>{t.running ? t.line : `Tap to start · ${t.line}`}</small></span>
+      <span className="checklist-timer-text"><strong>{t.label}</strong>{t.running && <small>{t.line}</small>}</span>
     </button>)}
     {message && <p className="checklist-timers-message" role="alert">{message}</p>}
+    </div>
   </div>;
 }

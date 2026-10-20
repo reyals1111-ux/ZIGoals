@@ -63,7 +63,7 @@ describe('gentle nudges (P7.14): three moments a day, never in quiet hours, noth
     expect(nudgeDue(new Date(2026, 9, 18, 10, 5), {...opts, on: false})).toBeNull();
     expect(nudgeDue(new Date(2026, 9, 18, 10, 5), {...opts, waiting: 0})).toBeNull();
     expect(nudgeDue(new Date(2026, 9, 18, 19, 30), {...opts, quiet: {from: '19:00', to: '07:00'}})).toBeNull();
-    expect(nudgeText(1)).toBe('1 dot still waiting on your path.');
-    expect(nudgeText(4)).toBe('4 dots still waiting on your path.');
+    expect(nudgeText(1)).toBe('1 planet still waiting on your path.');
+    expect(nudgeText(4)).toBe('4 planets still waiting on your path.');
   });
 });

@@ -1,5 +1,6 @@
 'use client';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {createPortal} from 'react-dom';
 
 /**
  * One toast for every reversible action (Session AA-Cloud): "Water logged · Undo". A single toast at a time, announced
@@ -26,9 +27,27 @@ export function hideToast(id?: number) {
 }
 const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
 
+/**
+ * Session AF (L3b): a full-screen layer drawn in the browser's top layer (the Checklist, a modal dialog) leaves everything
+ * outside it inert, so while one is open it lends the toast a place inside itself: the one toast region moves there (a
+ * portal) and returns when the layer closes. Layers stack (the Checklist's day celebration over the Checklist): the
+ * topmost open one holds the toast, so its Undo stays in reach. Every other page keeps the region where the shell mounts it.
+ */
+const layers: HTMLElement[] = [];
+let layer: HTMLElement | null = null;
+const layerListeners = new Set<() => void>();
+const publishLayer = () => { const top = layers.at(-1) ?? null; if (top === layer) return; layer = top; for (const l of layerListeners) l(); };
+/** Lends the toast a place inside `el` until the returned function is called. */
+export function pushToastLayer(el: HTMLElement): () => void {
+  layers.push(el); publishLayer();
+  return () => { const at = layers.lastIndexOf(el); if (at >= 0) layers.splice(at, 1); publishLayer(); };
+}
+const subscribeLayer = (l: () => void) => { layerListeners.add(l); return () => { layerListeners.delete(l); }; };
+
 /** Mounted once by the shell. */
 export function UndoToastHost() {
   const toast = useSyncExternalStore(subscribe, () => current, () => null);
+  const target = useSyncExternalStore(subscribeLayer, () => layer, () => null);
   const [busy, setBusy] = useState(false), [held, setHeld] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => {
@@ -50,11 +69,12 @@ export function UndoToastHost() {
       setBusy(false);
     }
   }, [toast]);
-  return <div className="aa-toast-region" role="status" aria-live="polite">
+  const region = <div className="aa-toast-region" role="status" aria-live="polite">
     {toast && <div className="aa-toast" key={toast.id} onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
       <span>{toast.message}</span>
       {toast.undo && <button type="button" className="aa-toast-undo" disabled={busy} onClick={() => void undo()}>Undo</button>}
       <button type="button" className="aa-toast-close" aria-label="Close message" onClick={() => hideToast(toast.id)}>×</button>
     </div>}
   </div>;
+  return target ? createPortal(region, target) : region;
 }

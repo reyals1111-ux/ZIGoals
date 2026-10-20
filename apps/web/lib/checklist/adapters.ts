@@ -82,7 +82,7 @@ function goalStepPlan(dot: DerivedDot, ctx: TickContext): TickPlan {
     return {...s, goals: s.goals.map(g => g.id === goalId ? {...g, milestones: g.milestones.map(m => m.id === milestoneId ? {...m, done} : m)} : g)} as Platform;
   };
   const r = receiptWrites(dot, ctx, {kind: 'goal-step', id: `${goalId}:${milestoneId}`});
-  return {writes: [w('platform', flip(true)), r.apply], undo: [w('platform', flip(false)), r.undo], message: `“${dot.label}” done.`, undone: `“${dot.label}” is open again.`, done: true, signal: 'checklist_tick'};
+  return {writes: [w('platform', flip(true)), r.apply], undo: [w('platform', flip(false)), r.undo], message: `${dot.label} logged for today.`, undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};
 }
 
 const LB = 453.59237;
@@ -183,7 +183,7 @@ export function planTick(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'va
   if (dot.refusal) throw new TickRefused(dot.refusal);
   if (dot.kind === 'custom') {
     const done = dot.state !== 'done', r = receiptWrites(dot, ctx);
-    return {writes: [w('days', d => setCustomDone(d, ctx.date, dot.id, done)), ...(done ? [r.apply] : [r.undo])], undo: [w('days', d => setCustomDone(d, ctx.date, dot.id, !done)), ...(done ? [r.undo] : [])], message: done ? `${dot.label} done.` : `${dot.label} is open again.`, undone: done ? `${dot.label} is open again.` : `${dot.label} done.`, done, signal: 'checklist_tick'};
+    return {writes: [w('days', d => setCustomDone(d, ctx.date, dot.id, done)), ...(done ? [r.apply] : [r.undo])], undo: [w('days', d => setCustomDone(d, ctx.date, dot.id, !done)), ...(done ? [r.undo] : [])], message: done ? `${dot.label} logged for today.` : `${dot.label}: open again.`, undone: done ? `${dot.label}: back as it was.` : `${dot.label} logged for today.`, done, signal: 'checklist_tick'};
   }
   if (dot.state === 'done' && !(dot.kind === 'health' && (dot.input === 'water' || dot.input === 'sleep' || dot.input === 'fast' || (dot.input === 'meditation' && intent === 'value')))) throw new TickRefused(`${dot.label} is already done today.`);
   if (dot.kind === 'habit') return habitPlan(dot, ctx, intent);

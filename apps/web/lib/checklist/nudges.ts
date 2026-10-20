@@ -12,4 +12,4 @@ export function nudgeDue(now: Date, opts: {on: boolean; waiting: number; nudged:
   const due = [...NUDGE_SLOTS].reverse().find(s => hour >= s.hour);
   return due && !opts.nudged.includes(due.id) ? due.id : null;
 }
-export const nudgeText = (waiting: number) => `${waiting} ${waiting === 1 ? 'dot' : 'dots'} still waiting on your path.`;
+export const nudgeText = (waiting: number) => `${waiting} ${waiting === 1 ? 'planet' : 'planets'} still waiting on your path.`;

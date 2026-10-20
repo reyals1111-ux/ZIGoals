@@ -17,11 +17,13 @@ test('the Checklist on a phone in WebKit: a heading, 44 px dots and chips, no si
   await page.goto('/app/checklist'); await settled(page);
   await expect(page.locator('main h1').first()).toHaveText('Your orbit');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  // Session AF (L3b, round 4): on a phone the timers are the foot bar's own chips, in view without a button to open first.
+  await expect(page.getByRole('group', {name: 'Quick timers'})).toBeVisible();
   for (const el of [...await page.locator('button.path-dot').all(), ...await page.locator('.checklist-timer').all()]) {
     const box = (await el.boundingBox())!; expect(Math.round(Math.min(box.width, box.height))).toBeGreaterThanOrEqual(44);
   }
   await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
-  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 dots today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 planets today');
   const today = await browserToday(page);
   await expect.poll(async () => (await stored<{habits: {id: string; entries: {date: string; count: number}[]}[]}>(page, HABITS_KEY))?.habits.find(h => h.id === ID.stretch)?.entries.find(e => e.date === today)?.count).toBe(1);
   const prefetchCancel = (m: string) => /\?_rsc=[\w-]+ due to access control checks\.?$/.test(m);

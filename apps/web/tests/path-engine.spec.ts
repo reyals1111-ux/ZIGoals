@@ -16,6 +16,9 @@ test('dots, the line from centre to centre, banners, chests, ZIGi by the next do
   const dots = stage.locator('button.path-dot');
   await expect(dots).toHaveCount(4);
   for (const dot of await dots.all()) { const b = (await dot.boundingBox())!; expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(44); expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(56); }
+  // Session AF (L3b; CI on 42ec357c read a line end 3.01 px from its dot while the page was still settling), moved at equal
+  // strength: the line is read once the path says its geometry has settled (its own `data-settled`), with the same 2 px.
+  await expect(stage).toHaveAttribute('data-settled', '', {timeout: 10_000});
   // The line: each segment starts at a dot's centre and ends at the next dot's (in the stage's own coordinates).
   const geometry = await stage.evaluate(el => {
     const base = el.getBoundingClientRect(), centre = (d: Element) => { const r = d.getBoundingClientRect(); return [r.left + r.width / 2 - base.left, r.top + r.height / 2 - base.top]; };
@@ -54,6 +57,8 @@ test('the layout holds from a phone to a wide screen: no sideways scroll, labels
     await page.goto('/app/checklist'); await settled(page);
     await expect(page.locator('.path-dot').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${width}px: nothing scrolls sideways`).toBeLessThanOrEqual(0);
+    // Session AF (L3b): the full-screen Checklist scrolls in its own layer; nothing scrolls sideways there either.
+    expect(await page.locator('dialog.checklist-overlay').evaluate(d => d.scrollWidth - d.clientWidth), `${width}px: nothing scrolls sideways in the Checklist`).toBeLessThanOrEqual(0);
     const overlap = await page.locator('.path-step').evaluateAll(steps => steps.some(s => { const dot = s.querySelector('.path-dot')!.getBoundingClientRect(), label = s.querySelector('.path-label')!.getBoundingClientRect(); return label.left < dot.right && label.right > dot.left && label.top < dot.bottom && label.bottom > dot.top; }));
     expect(overlap, `${width}px: no label covers its dot`).toBe(false);
   }

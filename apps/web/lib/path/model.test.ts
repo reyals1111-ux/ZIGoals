@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {PAGE_PATH_COLOUR, PATH_COLOURS, PATH_COLOUR_IDS, PATH_NEON_STOPS, isPathColour, pathColour} from './colours';
-import {litSegments, milestoneState, nextStep, normalisePath, pathProblems, pathProgress, pathSegments, pathSteps, sectionProgress, snakeOffset, stepAriaLabel, stepIntent, withStepState, zigiAnchor, type PathModel, type PathStep} from './model';
+import {litSegments, milestoneState, nextStep, normalisePath, pathProblems, pathProgress, pathSegments, pathSteps, sectionProgress, snakeOffset, orbitOffset, stepAriaLabel, stepIntent, withStepState, zigiAnchor, type PathModel, type PathStep} from './model';
 
 const step = (id: string, state: PathStep['state'] = 'undone', extra: Partial<PathStep> = {}): PathStep => ({id, label: id, colour: 'cyan', state, ...extra});
 const at = <T,>(list: readonly T[], i: number): T => { const v = list[i]; if (v === undefined) throw new Error(`no item ${i}`); return v; };
@@ -126,6 +126,9 @@ describe('ZIGi, layout and words', () => {
   });
   test('the snake is a gentle wave', () => {
     expect([0, 1, 2, 3, 4, 5, 6, 7, 8].map(snakeOffset)).toEqual([0, 0.71, 1, 0.71, 0, -0.71, -1, -0.71, 0]);
+  });
+  test('the Checklist\'s orbit path swings half a step per planet, a whole S every eight', () => {
+    expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => orbitOffset(i))).toEqual([0, 0.5, 1, 0.5, 0, -0.5, -1, -0.5, 0, 0.5]);
   });
   test('each dot says its state in words', () => {
     expect(stepAriaLabel(step('Morning walk', 'done'))).toBe('Morning walk: done');

@@ -37,7 +37,7 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(star).toContain('`${label} is on your Checklist path. Take it off`');
     expect(page).toContain('<NebulaFlow identity="checklist-title">Your orbit</NebulaFlow>');
     expect(page).toContain('checklist-progress-line');
-    expect(page).toContain("`${done} of ${total} ${total === 1 ? 'dot' : 'dots'} today`");
+    expect(page).toContain("`${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today`");
     expect(adapters).toContain('message: `${dot.label} logged for ${forDay(day, ctx.date)}.`');
     expect(adapters).toContain("undone: `${dot.label}: back as it was.`");
     expect(toast).toContain('className="aa-toast-undo"');

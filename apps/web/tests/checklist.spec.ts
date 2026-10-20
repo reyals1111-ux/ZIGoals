@@ -35,16 +35,16 @@ test('a star on a habit puts it on the path; a tick writes the habit’s record;
   await page.goto('/app/checklist');
   await expect(page.getByRole('heading', {level: 1, name: 'Your orbit'})).toBeVisible();
   await expect(page.getByRole('heading', {level: 2, name: 'Morning orbit'})).toBeVisible();
-  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 dot today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 planet today');
   const dot = page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true});
   await dot.click();
   await expect(page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true})).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 1 dot today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 1 planet today');
   await expect.poll(() => entryToday(page, ID.stretch)).toMatchObject({count: 1, disposition: 'logged'});
   const receipts = await stored<{today: {ticks: {id: string}[]}}>(page, CHECKLIST_DAYS_KEY);
   expect(receipts?.today.ticks).toHaveLength(1);
   await page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}).click();
-  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 dot today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 planet today');
   await expect.poll(() => entryToday(page, ID.stretch)).toBeNull();
   await page.goto('/app/habits');
   await expect(page.getByRole('article', {name: TITLE.stretch, exact: true}).getByRole('button', {name: `Complete ${TITLE.stretch}`, exact: true})).toHaveAttribute('aria-pressed', 'false');
@@ -53,10 +53,10 @@ test('a star on a habit puts it on the path; a tick writes the habit’s record;
 test('any order; a value dot opens the stepper with the default, logs to Health and remembers the last value', async ({page}) => {
   await seedChecklist(page);
   await page.goto('/app/checklist');
-  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 dots today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 planets today');
   // The last dot first: the custom item, ticked on the path.
   await page.getByRole('button', {name: `${TITLE.custom}: not done yet`, exact: true}).click();
-  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 dots today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 planets today');
   // Water: the stepper opens with the item's default (250 ml) …
   await page.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
   const stepper = page.getByRole('form', {name: 'Log Water'});
@@ -76,7 +76,7 @@ test('any order; a value dot opens the stepper with the default, logs to Health 
   await push.getByRole('textbox').fill('20');
   await push.getByRole('button', {name: 'Log 20 times'}).click();
   await expect.poll(() => entryToday(page, ID.push)).toMatchObject({count: 20});
-  await expect(page.locator('.checklist-progress-line')).toContainText('3 of 4 dots today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('3 of 4 planets today');
   // The half-way chest is reached; the line between two lit dots is lit.
   await expect(page.locator('.path-chest[data-milestone="half"]')).toHaveAttribute('data-reached', 'true');
   await expect(page.locator('.path-segment[data-lit]')).not.toHaveCount(0);
@@ -85,6 +85,8 @@ test('any order; a value dot opens the stepper with the default, logs to Health 
 test('Edit path: a custom item, reorder by keyboard, an orbit renamed; the List view keeps the order', async ({page}) => {
   await seedChecklist(page);
   await page.goto('/app/checklist');
+  // Session AF (L3b): Edit path is in the Checklist's menu (⋯) of its top bar.
+  await page.getByRole('button', {name: 'Checklist menu'}).click();
   await page.getByRole('button', {name: 'Edit path', exact: true}).click();
   const edit = page.getByRole('region', {name: 'Edit path'});
   await edit.getByLabel('What to do').fill('Fictional tea ritual');
@@ -99,6 +101,8 @@ test('Edit path: a custom item, reorder by keyboard, an orbit renamed; the List 
   await page.getByRole('button', {name: 'Done', exact: true}).first().click();
   await expect(page.locator('.path-step .path-label-text').first()).toHaveText('Water');
   // The List view: the same dots as pills, in the same order; the choice is remembered.
+  // Session AF (L3b, round 4): on a phone the top bar is one row and the view lives in its menu (moved at equal strength).
+  if (!await page.getByRole('group', {name: 'View'}).isVisible()) await page.getByRole('button', {name: 'Checklist menu'}).click();
   await page.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List'}).click();
   await expect(page.locator('.checklist-pill-label').first()).toHaveText('Water');
   await expect(page.locator('.checklist-pill-label')).toContainText([ 'Water', TITLE.stretch, TITLE.push ]);
@@ -122,12 +126,15 @@ test('an empty path says how to build one; Jump to next focuses the first waitin
   const stage = page.getByRole('group', {name: "Today's path"});
   await expect(stage.getByRole('button', {name: 'Water: not done yet', exact: true})).toBeInViewport();
   await expect(jump).toHaveCount(0);
-  const box = (await stage.boundingBox())!, top = box.y + await page.evaluate(() => scrollY);
+  // Session AF (L3b), moved at equal strength: the Checklist is a full-screen layer with its own scroller (the window no
+  // longer moves the path), so the sweep scrolls that scroller; each step now waits up to 500 ms for the bubble (CI's
+  // slower phone runner measured after the old fixed 120 ms) instead of reading it once.
+  const scroller = page.locator('dialog.checklist-overlay');
+  const box = (await stage.boundingBox())!, top = box.y + await scroller.evaluate(d => d.scrollTop);
   let shown = false;
   for (let y = top; y < top + box.height && !shown; y += 60) {
-    await page.evaluate(v => window.scrollTo(0, v), y);
-    await page.waitForTimeout(120);
-    shown = await jump.isVisible();
+    await scroller.evaluate((d, v) => d.scrollTo(0, v), y);
+    shown = await page.waitForFunction(() => { const b = document.querySelector('.path-jump[data-clear]'); return !!b && getComputedStyle(b).visibility === 'visible'; }, null, {timeout: 500}).then(() => true, () => false);
   }
   expect(shown, 'the bubble shows while Water is off screen').toBe(true);
   await expect(jump).toBeInViewport();
@@ -141,10 +148,10 @@ test('midnight in the person’s zone: a fresh path, and yesterday sealed into t
   await seedChecklist(page);
   await page.goto('/app/checklist'); await settled(page);
   await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
-  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 dots today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 planets today');
   await page.clock.fastForward('03:00');
   await expect(page.locator('.checklist-head .eyebrow')).toContainText('Oct 21');
-  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 dots today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 planets today');
   await expect.poll(() => stored<{days: Record<string, {total: number; done: number}>; today: {date: string; ticks: unknown[]}}>(page, CHECKLIST_DAYS_KEY)).toMatchObject({days: {'2026-10-20': {total: 4, done: 1}}, today: {date: '2026-10-21', ticks: []}});
   await page.getByText('Your last twelve weeks', {exact: true}).click();
   await expect(page.locator('.checklist-heat-cell[title*="1 of 4 dots"]')).toHaveAttribute('data-level', 'some');
