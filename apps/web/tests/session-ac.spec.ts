@@ -209,7 +209,7 @@ test.describe('item 12: Activity shows no invented time for a date-only record',
 });
 
 test.describe('item 9d: phone tables', () => {
-  test('390 px: no table of three columns or fewer scrolls sideways; a wider one marks the edge with more to see', async ({page}) => {
+  test('390 px: no table of three columns or fewer scrolls sideways and the holdings are cards; a wider table marks the edge with more to see (520 px)', async ({page}) => {
     await page.setViewportSize({width: 390, height: 844});
     await showcase(page);
     for (const path of ['/app/habits', '/app/goals/tracked/9201', '/app/health', '/app/health?view=sleep', '/app/health?view=meditation', '/app/wealth', '/app/review']) {
@@ -223,6 +223,21 @@ test.describe('item 9d: phone tables', () => {
       }).map(t => t.getAttribute('aria-label') ?? t.querySelector('caption')?.textContent ?? 'a table'));
       expect(narrowScrolling, path).toEqual([]);
     }
+    // Session AF Gate C (design critique, money pages 4): below 480 px Portfolio's holdings are one stacked card each, so at
+    // 390 nothing in them scrolls sideways and every card's value sits inside the screen. From 480 px the table returns,
+    // wider than the screen until a computer's width, and its edge marks are checked there (520 px) exactly as before.
+    await page.goto('/app/portfolio'); await settled(page);
+    const holdings = page.locator('.portfolio-holdings-section .data-table-wrap').first();
+    await expect(holdings).toBeVisible();
+    expect(await holdings.evaluate(el => el.scrollWidth - el.clientWidth), '390 px: the holdings cards do not scroll sideways').toBeLessThanOrEqual(1);
+    const values = holdings.locator('tbody > tr:not(.data-detail-row) > td[data-label="Value"]');
+    expect(await values.count()).toBeGreaterThan(0);
+    for (const box of await values.evaluateAll(cells => cells.map(c => { const r = c.getBoundingClientRect(); return {left: r.left, right: r.right, width: r.width}; }))) {
+      expect(box.width).toBeGreaterThan(0);
+      expect(box.left).toBeGreaterThanOrEqual(0);
+      expect(box.right).toBeLessThanOrEqual(390);
+    }
+    await page.setViewportSize({width: 520, height: 844});
     await page.goto('/app/portfolio'); await settled(page);
     const wrap = page.locator('.data-table-wrap').first();
     await expect(wrap).toHaveAttribute('data-more-right', '');

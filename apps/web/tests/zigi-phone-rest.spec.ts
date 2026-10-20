@@ -88,25 +88,33 @@ test('390x844: a press on a control under the corner keeps that control under th
   // Session Z-Cloud Gate B (mechanics): a page whose first screen has a control where the corner is. Session AB-Design moved every game card to its page's bottom and the Goals cards below the first screen, so Help (its topic chips) is that page now; before that it was Activity's game card, and originally
   // Activity's game card to the page's bottom (owner request 9), so Goals is that page now: its first card's Details summary
   // sits under the corner at 390 px.
-  await page.goto('/app/help');
-  await expect(page.locator('.ai-launcher')).toBeVisible();
-  await page.waitForTimeout(1600);
-  // Where the corner is: the resting box moved down by its lift. A control there is what a person may tap.
-  const target = await page.evaluate(selector => {
-    const box = document.querySelector('.ai-launcher')!, lift = parseFloat(getComputedStyle(box).getPropertyValue('--zigi-rest-lift')) || 0;
-    const L = box.getBoundingClientRect(), C = {left: L.left, right: L.right, top: L.top + lift, bottom: L.bottom + lift};
-    for (const c of document.querySelectorAll<HTMLElement>(`main :is(${selector})`)) {
-      const r = c.getBoundingClientRect(), left = Math.max(r.left, C.left), right = Math.min(r.right, C.right), top = Math.max(r.top, C.top), bottom = Math.min(r.bottom, C.bottom);
-      if (r.width === 0 || right - left < 4 || bottom - top < 4) continue;
-      const x = (left + right) / 2, y = (top + bottom) / 2;
-      if (x >= L.left && x <= L.right && y >= L.top && y <= L.bottom) continue; // under the resting launcher already
-      if (document.elementFromPoint(x, y) !== c && !c.contains(document.elementFromPoint(x, y))) continue;
-      c.setAttribute('data-y44-target', '');
-      return {x, y, lift};
-    }
-    return null;
-  }, CONTROL_SELECTOR);
-  expect(target, 'Help has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+  // Session AF Gate C (moved at equal strength): Help on a phone now shows six topics and "All topics" (design review 2), so no
+  // control sits under the corner there; the test takes the first of these pages whose first screen has one, and the
+  // press check below is unchanged.
+  let target: {x: number; y: number; lift: number} | null = null, where = '';
+  for (const path of ['/app/help', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/markets', '/app/settings', '/app/earn']) {
+    await page.goto(path);
+    await expect(page.locator('.ai-launcher')).toBeVisible();
+    await page.waitForTimeout(1600);
+    // Where the corner is: the resting box moved down by its lift. A control there is what a person may tap.
+    target = await page.evaluate(selector => {
+      const box = document.querySelector('.ai-launcher')!, lift = parseFloat(getComputedStyle(box).getPropertyValue('--zigi-rest-lift')) || 0;
+      const L = box.getBoundingClientRect(), C = {left: L.left, right: L.right, top: L.top + lift, bottom: L.bottom + lift};
+      for (const c of document.querySelectorAll<HTMLElement>(`main :is(${selector})`)) {
+        const r = c.getBoundingClientRect(), left = Math.max(r.left, C.left), right = Math.min(r.right, C.right), top = Math.max(r.top, C.top), bottom = Math.min(r.bottom, C.bottom);
+        if (r.width === 0 || right - left < 4 || bottom - top < 4) continue;
+        const x = (left + right) / 2, y = (top + bottom) / 2;
+        if (x >= L.left && x <= L.right && y >= L.top && y <= L.bottom) continue; // under the resting launcher already
+        if (document.elementFromPoint(x, y) !== c && !c.contains(document.elementFromPoint(x, y))) continue;
+        c.setAttribute('data-y44-target', '');
+        return {x, y, lift};
+      }
+      return null;
+    }, CONTROL_SELECTOR);
+    if (target) { where = path; break; }
+  }
+  expect(target, 'a page has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+  test.info().annotations.push({type: 'corner page', description: where});
   expect(target!.lift).toBeGreaterThan(0);
   await page.mouse.move(target!.x, target!.y);
   await page.mouse.down();
