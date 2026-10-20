@@ -1,0 +1,17 @@
+L3b iteration 9 — the three regressions the confirming critic found in iteration 8, fixed (branch af/checklist2; production
+build of the final round-9 code; theme sheets regenerated locally, never committed). Nothing else changed.
+Data: the owner's own favourites on a fictional device (Showcase untouched). Fixed clock 2026-10-16 09:30 UTC; every /api
+call answered 503; Chrome headless. Sizes: p = 390×844 (mobile emulation, 2x), t = 768×1024, d = 1440×900.
+Files: overlay-{nebula,light,dark}-{p,t,d}-land.png; rec-tick-{p,d}, rec-orbit-{p,d}, rec-day-{p,d} (.webm and -frames/).
+
+1 THE PHONE TICK'S COMET   rec-tick-p-frames/f04–f07: one round arc from "Take all supplements" to "Move €200 to savings",
+                           bowing to the left — away from ZIGi, who cheers on the right — 71 px long, its tail 60 px drawn,
+                           19 px from the nearest name. (The roundest arc there, 75 %, would pass 5 px from "Move €200 to
+                           savings"; arcs now flatten in fine steps, only as far as the names require, never toward ZIGi.)
+                           On a computer, rec-tick-d-frames/f05–f08: the round arc, bowing away from ZIGi, tail about 110 px.
+2 THE CHEER'S PEAK         rec-tick-d-frames/f05–f10 and rec-tick-p-frames/f05–f10: ZIGi hops at most 15 px (as high as the
+                           room above allows) with a gentler squash and stretch, its figure 13.6 px or more from every name
+                           at every frame (14.3 on a phone); no sparkle reaches a name (rec-tick-d f06, rec-tick-p f05).
+3 NAMES AT THE FOOT BAR    overlay-nebula-p-land.png (and -light-, -dark-): "Play piano 15 minutes" fades into the foot bar
+                           instead of being cut; rec-tick-p-frames/f02–f15: with the toast's row, "Read 5 pages" fades into
+                           it likewise (a 40 px fade above the bar, as under the top bar).

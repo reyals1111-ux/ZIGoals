@@ -1,0 +1,63 @@
+L3b iteration 8 (polish) — the full-screen Checklist after the iteration-7 critique (branch af/checklist2; production build of
+the final round-8 code; theme sheets regenerated locally, never committed)
+Data: the owner's own favourites on a fictional device (Showcase untouched), as before. Fixed clock 2026-10-16 09:30 UTC;
+every /api call answered 503; Chrome headless. Sizes: p = 390×844 (mobile emulation, 2x), t = 768×1024, d = 1440×900.
+ZIGi's sizes are the figure as seen (its picture is cropped to the figure).
+
+OPENING-SCREEN PLANET COUNT (at least half shown between the top bar and the foot bar; measured in the page)
+390×844: 6 (Water 71 %);  1440×900: 6 (Water 63 %);  768×1024: 6 (8 on screen)
+(below 1180 px the path now lands the next planet at 44 % of the screen, so the chests' extra room costs no planet)
+
+ZIGI AT REST — the probe over all nine resting places of the owner's day at 390, 768 and 1440, with and without motion (54):
+the arm through the next planet's body at every planet (48 of 48), never idle, 12 px clear of everything in all 54. Figure
+heights: 142–178 px at 1440, 119–148 at 768, 97–119 on a phone (16 px or more from the edges); at the trophy 148 / 148 / 109.
+
+THE FIVE POINTS — where to look
+1 last tick (computer)  rec-day-d-frames/f01: ZIGi beside "Meditate & breathwork 15 minutes" (just ticked), its arm toward it;
+                        it then shrinks away there — facing the same way — and grows beside the trophy, its arm toward the
+                        trophy. rec-day-p-frames/f01 on a phone. Asserted: in every frame of the last tick ZIGi faces the
+                        nearer of the planet just ticked and the trophy; at rest its arm is toward the trophy.
+2 every name shown      rec-day-d-frames/f01: "Play piano 15 minutes" and every other name shown. A cheer no longer hides
+                        its planet's name: it keeps clear of it (rec-tick-p-frames/f05–f10, rec-tick-d-frames/f05–f10,
+                        "Take all supplements" shown throughout). Asserted for every frame of a tick and of the last tick.
+3 phone chests          overlay-nebula-p-land.png, -0.png, rec-tick-p-frames/f13: each chest 12 px below its planet's base
+                        and 12 px above the banner below (44 px; 56 on a tablet, overlay-nebula-t-*.png); the reached lid
+                        lifts only a little. Asserted on a phone (8 px from the base, lid included; 12 px from the banner).
+4 computer opening      overlay-{nebula,light,dark}-d-land.png: ZIGi 9 px nearer "Take all supplements" than in iteration 7
+                        (90 px from its ring, 142 px tall); 13 px under the Afternoon banner, so it cannot lift without
+                        dropping below 140 px.
+5 comet and names       rec-orbit-d-frames/f04–f07 and rec-tick-*-frames/f05–f08: the comet keeps 12 px or more from every
+                        name (asserted on the spec's ticks at 390, 768 and 1440, an orbit's end included; on the owner's
+                        three ticks here the nearest name is 22–81 px away once names settle). Where names flank
+                        both sides a phone's comet takes a flatter arc (rec-tick-p-frames/f05–f07), its tail then as long as
+                        that arc (about 45 px seen); on a computer the round arc (tail about 110 px).
+
+THE OVERLAY — "-land" is what opens; -0, -1 the overlay's own scroller from the top
+overlay-nebula-{p,t,d}-land.png, -0, -1.png   Nebula
+overlay-light-{p,t,d}-land.png, -0, -1.png    Light (the same layout in every theme)
+overlay-dark-{p,t,d}-land.png, -0, -1.png     Dark
+menu-, edit-, list-, options-nebula-{p,d}.png  as before
+reduced-nebula-p.png, reduced-nebula-d.png    right after a tick under reduced motion: ZIGi still, pointing at the next planet
+celebration-p.png, celebration-d.png          the day's moment (unchanged)
+today-card-p.png, today-card-d.png            Today's card (unchanged)
+earn-start-here-p.png, earn-start-here-d.png  Earn's Start-here (unchanged)
+
+RECORDINGS (~183 ms between tick frames, 200 ms in the orbit, ~333 ms in the day)
+rec-tick-{p,d}.webm / -frames/f01..f15   ticking "Take all supplements"
+rec-orbit-{p,d}.webm / -frames/f01..f15  "Move €200 to savings" completes the Afternoon orbit
+rec-day-{p,d}.webm / -frames/f01..f12    the last tick and the day's celebration
+
+ACCEPTANCE LINE 4 — frames per step (phone unless named)
+press ............ rec-tick-p-frames/f02–f03
+burst ............ rec-tick-p-frames/f03–f04
+ZIGi cheer ....... rec-tick-p-frames/f05–f10 (f03–f04 it shrinks away and grows there): the presenting figure beside the planet just ticked, hopping (as high as the
+                   room above allows) with squash and stretch, sparkles and a gold star burst; then on to the next planet
+                   and at rest pointing at it; rec-tick-d-frames the same on a computer
+onward comet ..... rec-tick-p-frames/f05–f07; rec-tick-d-frames/f05–f08
+line glow ........ rec-tick-p-frames/f03–f06
+bar fill / shine . rec-tick-p-frames/f03 (3 → 4 of 8); the shine rec-tick-d-frames/f04–f08
+XP count ......... rec-tick-p-frames/f03–f05 "+10", 22 → 32
+chest ............ rec-orbit-p-frames/f01–f03: the chest under "Move €200 to savings" pops, its lid opens a little, a gold flash
+orbit celebration  rec-orbit-p-frames/f02–f10 (burst, "Complete", the gold bar, ZIGi cheering), then on to "Read 5 pages"
+day celebration .. rec-day-p-frames/f01 the last tick, f02–f06 (glow, trophy, ZIGi presenting it, planets, streak 6 → 7,
+                   XP 77 → 92), f07–f12 at rest
