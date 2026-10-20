@@ -43,7 +43,12 @@ async function read(page: Page) {
       const box = card.getBoundingClientRect(), name = card.querySelector('h3')!, price = card.querySelector<HTMLElement>('.watch-price')!;
       const out = [...card.querySelectorAll<HTMLElement>('*')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > box.right + 0.5 || r.left < box.left - 0.5); }).map(e => e.className || e.tagName);
       const figures = (card.innerText.match(/[\d][\d,.]*%?/g) ?? []).filter(f => /\d{2}|%/.test(f));
-      return {name: name.textContent, title: name.getAttribute('title'), nameFits: name.scrollWidth <= name.clientWidth + 1, price: price.textContent, priceLines: Math.round(price.getBoundingClientRect().height / parseFloat(getComputedStyle(price).lineHeight)), priceFits: price.scrollWidth <= price.clientWidth + 1, out, figures, width: box.width};
+      // Gate C design review (findings 4–6): the orb's letters fit its tile; the source and the status chip each on a row of
+      // their own; where the price sits (cards of one row line up).
+      const orb = card.querySelector<HTMLElement>('.asset-orb'), source = card.querySelector<HTMLElement>('.asset-card-source > span'), chip = card.querySelector<HTMLElement>('.asset-card-source .freshness-badge');
+      return {name: name.textContent, title: name.getAttribute('title'), nameFits: name.scrollWidth <= name.clientWidth + 1, price: price.textContent, priceLines: Math.round(price.getBoundingClientRect().height / parseFloat(getComputedStyle(price).lineHeight)), priceFits: price.scrollWidth <= price.clientWidth + 1, out, figures, width: box.width,
+        top: Math.round(box.top), priceTop: price.getBoundingClientRect().top, text: card.innerText, orbFits: !orb || orb.querySelector('img') !== null || orb.scrollWidth <= orb.clientWidth + 1,
+        chipOwnRow: !chip || !source || chip.getBoundingClientRect().top >= source.getBoundingClientRect().bottom - 1};
     });
     return {broken, cards};
   });
@@ -71,6 +76,16 @@ for (const withPrices of [false, true]) {
           if (withPrices) { expect(card.price, where).toMatch(/\d/); expect(card.priceLines, `${where}: one line`).toBe(1); }
           else expect(card.price, where).toBe('Price unavailable');
           expect(new Set(card.figures).size, `${where}: a figure twice (${card.figures.join(' ')})`).toBe(card.figures.length);
+          // Gate C design review (findings 4–6): letters inside their tile, the chip on its own row, and a missing price
+          // said once — no 24h line, no "Needs value" chip, no "Not verified yet" under "Price unavailable".
+          expect(card.orbFits, `${where}: the orb's letters fit its tile`).toBe(true);
+          expect(card.chipOwnRow, `${where}: the status chip on its own row`).toBe(true);
+          if (!withPrices) expect(card.text, `${where}: a missing price said once`).not.toMatch(/24h|Needs value|Not verified/);
+        }
+        // Cards of one row keep their prices on one line across (a name that wraps keeps two lines' room in each).
+        if (width >= 768) for (const top of new Set(cards.map(c => c.top))) {
+          const row = cards.filter(c => c.top === top).map(c => c.priceTop);
+          expect(Math.max(...row) - Math.min(...row), `${width} px: the prices of a row line up`).toBeLessThanOrEqual(1);
         }
         // On a computer or tablet each card has room for its words: at least 220 px.
         if (width >= 768) for (const card of cards) expect(card.width, `${width} px · ${card.name}`).toBeGreaterThanOrEqual(220);
