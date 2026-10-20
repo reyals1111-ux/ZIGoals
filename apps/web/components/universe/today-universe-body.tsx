@@ -24,7 +24,7 @@ export default function TodayUniverseBody() {
     </div>
     {!loaded ? <div className="today-universe-skeleton" aria-hidden="true" /> : failed ? <p className="today-universe-line">Your universe waits until your records can be read.</p> : universe && <>
       <UniverseRow planets={universe.planets} />
-      <ul className="today-universe-names" aria-label="Your four planets">{universe.planets.map(p => <li key={p.pillar} data-pillar={p.pillar} data-lit={p.lit || undefined} aria-label={planetLabel(p)}><span className="today-universe-name">{p.label}</span>{p.lit && <span className="today-universe-lit-mark" aria-hidden="true"> · lit</span>}</li>)}</ul>
+      <ul className="today-universe-names" aria-label="Your four planets">{universe.planets.map(p => <li key={p.pillar} data-pillar={p.pillar} data-lit={p.lit || undefined} aria-label={planetLabel(p)}><span className="today-universe-name">{p.label}</span>{p.lit && <span className="today-universe-lit-mark" aria-hidden="true">Lit today</span>}</li>)}</ul>
       <p className="today-universe-line" data-new={pending.length > 0 || undefined}>{line}</p>
     </>}
     <Link className="today-universe-open text-link" href={UNIVERSE_ROUTE}>{pending.length ? 'Celebrate it in Journey →' : 'Open my universe →'}</Link>

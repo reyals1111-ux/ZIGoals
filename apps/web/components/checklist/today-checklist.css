@@ -1,5 +1,10 @@
 /* Session AF (L3; P7.21): Today's Checklist card. */
 .today-checklist-card { display: grid; gap: 10px; }
+/* Gate C design review (finding 1): the card is the container its layout reads, so the two-column layout follows the card's
+   own width, not the window's — at 1024 px Today's main column gives it only ≈ 500 px, where Continue covered "Next" and
+   ran out of its panel. */
+.today-checklist-card { container: today-checklist / inline-size; }
+.today-checklist-body { display: grid; gap: 10px; min-width: 0; }
 .today-checklist-head { display: flex; align-items: center; gap: 10px; }
 .today-checklist-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
 .today-checklist-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: radial-gradient(120% 120% at 30% 20%, #2b2a6e, #0d1230 70%); }
@@ -22,6 +27,14 @@
 .today-checklist-dots > li[data-next] { width: 24px; height: 24px; opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 35%, transparent), 0 0 12px var(--dot); }
 @media (min-width: 768px) { .today-checklist-dots { gap: 9px; } .today-checklist-dots > li { width: 22px; height: 22px; } .today-checklist-dots > li[data-next] { width: 28px; height: 28px; } }
 .today-checklist-dots > li[data-counted=no] { opacity: .3; }
+/* Gate C design review (finding 13): a waiting planet in its own hue — flat, a quarter darker and a little softer, never
+   see-through — as the Checklist's own path draws one (components/path/path-orbit.css). At 42 % opacity a waiting gold
+   read brown over the night and every colour turned pastel on Light's pale card. Done, running and next keep their glow;
+   a planet not counted today stays faint. */
+.today-checklist-dots > li:not([data-state=done], [data-state=running], [data-next], [data-counted=no]) { --orb-mid: color-mix(in srgb, var(--dot) 62%, #0b1030); --orb-rim: color-mix(in srgb, var(--dot) 72%, #0b1030); opacity: 1; background: var(--orb-mid); border-color: var(--orb-rim); }
+@supports (color: oklch(from red l c h)) {
+  .today-checklist-dots > li:not([data-state=done], [data-state=running], [data-next], [data-counted=no]) { --orb-mid: oklch(from var(--dot) calc(l * .76) calc(c * .86) h); --orb-rim: oklch(from var(--dot) calc(l * .88) c h); }
+}
 /* The next planet: a glowing world with its mark, its name, and Continue into the path. */
 .today-checklist-next { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
 .today-checklist-planet { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; color: #04101f; background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 40%, #ffffff) 0, var(--dot) 48%, color-mix(in srgb, var(--dot) 70%, #0b1030) 100%); box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--dot) 55%, #050818), 0 0 0 4px color-mix(in srgb, var(--dot) 22%, transparent), 0 0 26px color-mix(in srgb, var(--dot) 55%, transparent); }
@@ -30,14 +43,18 @@
 .today-checklist-next strong { color: var(--text, #f0f5ff); font-size: 17px; line-height: 1.25; overflow-wrap: anywhere; }
 .today-checklist-continue { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 999px; font-size: 16px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .today-checklist-continue[data-nudge] { box-shadow: 0 0 0 3px #ff74be59, 0 0 22px #ff74be80; }
-/* A wide card: the count, the bar and the planets on the left; the next planet and Continue on the right. */
-@media (min-width: 768px) {
-  .today-checklist-card:has(.today-checklist-next) { grid-template-columns: minmax(220px, 1fr) minmax(0, max-content); grid-template-areas: "head head" "title next" "bar next" "dots next"; column-gap: 28px; align-items: center; }
-  .today-checklist-card:has(.today-checklist-next) .today-checklist-head { grid-area: head; }
-  .today-checklist-card:has(.today-checklist-next) .today-checklist-title { grid-area: title; }
-  .today-checklist-card:has(.today-checklist-next) .today-checklist-bar { grid-area: bar; }
-  .today-checklist-card:has(.today-checklist-next) .today-checklist-dots { grid-area: dots; }
-  .today-checklist-card:has(.today-checklist-next) .today-checklist-next { grid-area: next; padding: 12px 14px; border-radius: 20px; background: color-mix(in srgb, var(--dot) 10%, transparent); border: 1px solid color-mix(in srgb, var(--dot) 30%, transparent); }
+/* A wide card (560 px of card or more; finding 1): the count, the bar and the planets on the left; the next planet and
+   Continue on the right. A card from 420 px keeps the next planet's panel, full width under the progress row. */
+@container today-checklist (min-width: 420px) {
+  .today-checklist-body:has(.today-checklist-next) .today-checklist-next { padding: 12px 14px; border-radius: 20px; background: color-mix(in srgb, var(--dot) 10%, transparent); border: 1px solid color-mix(in srgb, var(--dot) 30%, transparent); }
+}
+@container today-checklist (min-width: 560px) {
+  .today-checklist-body:has(.today-checklist-next) { grid-template-columns: minmax(220px, 1fr) minmax(0, max-content); grid-template-areas: "head head" "title next" "bar next" "dots next"; column-gap: 28px; align-items: center; }
+  .today-checklist-body:has(.today-checklist-next) .today-checklist-head { grid-area: head; }
+  .today-checklist-body:has(.today-checklist-next) .today-checklist-title { grid-area: title; }
+  .today-checklist-body:has(.today-checklist-next) .today-checklist-bar { grid-area: bar; }
+  .today-checklist-body:has(.today-checklist-next) .today-checklist-dots { grid-area: dots; }
+  .today-checklist-body:has(.today-checklist-next) .today-checklist-next { grid-area: next; }
 }
 .today-checklist-nudge { margin: 0; font-size: 15px; color: var(--muted, #a4b2cd); }
 .today-checklist-open { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 650; }
@@ -45,10 +62,11 @@
    next dot's line — so Today stays short. */
 @media (max-width: 767.98px) {
   .today-checklist-card { gap: 6px; padding-block: 14px; }
+  .today-checklist-body { gap: 6px; }
   .today-checklist-mark { width: 30px; height: 30px; }
   .today-checklist-title { font-size: 18px; }
   .today-checklist-line { font-size: 15px; }
   .today-checklist-open { min-height: 44px; justify-self: start; }
 }
 /* Round 6: on a wide card the next planet's name stays on one line (the panel takes the room it needs). */
-@media (min-width: 768px) { .today-checklist-card:has(.today-checklist-next) .today-checklist-next strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; } }
+@container today-checklist (min-width: 560px) { .today-checklist-body:has(.today-checklist-next) .today-checklist-next strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; } }

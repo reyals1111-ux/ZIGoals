@@ -110,3 +110,12 @@
 /* Session AB-Design Phase 2 closing pass (Gate C captures): a preset's name and line start at its left edge (the global
    button rule centred the grid's content, leaving a gap that read as a missing icon). */
 :root .dashboard-preset-choices > button { justify-content: start; justify-items: start; align-content: start; }
+/* Gate C design review (finding 9): For you follows the main column in the page's order (today-dashboard.tsx, .today-after)
+   and, beside a rail, spans both columns under them, as "Updates and summaries" does: the rail's column no longer stays
+   reserved, empty, beside it. In one column (phones, tablets, a Today without a rail) it simply follows the main column. */
+.personalized-today .today-layout>.today-after{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem;min-width:0;grid-column:1/-1;position:relative}
+.personalized-today .today-layout>.today-after>*{min-width:0}
+.personalized-today .today-layout>.today-after:not(:has(>:not(.for-you-place))):not(:has(>.for-you-place>*)){display:none}
+@media (min-width:1001px){.personalized-today:not([data-single]) .today-layout>.today-rail{grid-column:2;grid-row:1}.personalized-today:not([data-single]) .today-layout>.today-primary{grid-column:1;grid-row:1}.personalized-today:not([data-single]) .today-layout>.today-after{grid-row:2}}
+/* On a phone the main column's tighter rhythm (phone-today.css) holds below it too: the same 16 px. */
+@media (max-width:767.98px),(pointer:coarse) and (max-height:500px){:root .today-page .today-layout>.today-after{gap:16px}}

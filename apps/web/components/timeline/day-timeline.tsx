@@ -83,7 +83,7 @@ export function DayTimelinePage() {
 
   return <div className="timeline-page" data-timeline={!loaded ? 'loading' : day?.quiet ? 'quiet' : 'ready'}>
     <PageHeader className="page-heading timeline-hero" titleId="timeline-title" eyebrow={`Today${day ? ` · ${formatDate(day.date, {weekday: true})}` : ''}`} title="Your day on one line"
-      lede="Habits at their times, meals, sleep, a running fast, timers, reminders and your Checklist’s dots. Tap to complete; drag the arrows, use the arrow keys or change the time to move a habit or a meal."
+      lede="Habits at their times, meals, sleep, a running fast, timers, reminders and your Checklist’s planets. Tap to complete; drag the arrows, use the arrow keys or change the time to move a habit or a meal."
       actions={<p className="timeline-links"><Link className="text-link" href={CHECKLIST_ROUTE}>Your Checklist →</Link> <Link className="text-link" href="/app/habits">Habits →</Link></p>}
       art={<OrbitArt glyph={RemindersGlyph} spin={14} />} />
     {!loaded || !day ? <div className="timeline-skeleton aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>

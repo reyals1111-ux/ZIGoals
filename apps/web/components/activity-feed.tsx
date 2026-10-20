@@ -13,6 +13,9 @@ import { activityPresentation, activityDateHeading, activityTimeZone } from "../
 import { dailyData, getWaterActivities } from "../lib/health-daily";
 import { useShowcase } from "./showcase-controls";
 import {shownAmount} from "./platform/common";
+import {formatUnits} from "@zigoals/chain-config";
+import {formatMoney, isMoneyCurrency} from "../lib/visual-format";
+import {amountWithUnit} from "../lib/asset-unit";
 import "./activity-product.css";
 import { activityTimeLabel } from "../lib/activity-time";
 import { activityKeys } from "./activity-keys";
@@ -22,7 +25,10 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   const showcase = useShowcase();
   const platform=usePlatform();
   const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions();
-  const financial=includeGoals?platform.data.goals.flatMap(g=>goalTimeline(platform.data,g.id).filter(e=>!['valuation','observation'].includes(e.kind)).map(e=>({id:e.id,category:'GOAL',title:e.label,detail:[g.name,e.quantity?`${shownAmount(e.quantity,e.decimals??g.decimals)} ${e.asset}`:''].filter(Boolean).join(' · '),at:e.at,href:`/app/goals/tracked/${g.id}`,source:e.provenance==='REWARD_INCOME'?'Recorded income':e.provenance==='MANUAL_ATTRIBUTION'?'Explicit manual attribution':'Private Goal history'}))):[];
+  // Gate C design review (copy): an amount reads as money where it is money ("US$125.00", as Today writes it elsewhere, not
+  // "125 USD"), and a custom asset by its own name ("1 Collectible camera", not "1 CUSTOM").
+  const amountOf=(e:{id:string;quantity?:string;asset?:string;decimals?:number},decimals:number)=>{if(!e.quantity)return '';const d=e.decimals??decimals;if(e.asset&&isMoneyCurrency(e.asset))return formatMoney(formatUnits(e.quantity,d),e.asset);return amountWithUnit(platform.data,shownAmount(e.quantity,d),e.asset??'',platform.data.contributions.find(c=>`contribution:${c.id}`===e.id)?.positionId);};
+  const financial=includeGoals?platform.data.goals.flatMap(g=>goalTimeline(platform.data,g.id).filter(e=>!['valuation','observation'].includes(e.kind)).map(e=>({id:e.id,category:'GOAL',title:e.label,detail:[g.name,amountOf(e,g.decimals)].filter(Boolean).join(' · '),at:e.at,href:`/app/goals/tracked/${g.id}`,source:e.provenance==='REWARD_INCOME'?'Recorded income':e.provenance==='MANUAL_ATTRIBUTION'?'Explicit manual attribution':'Private Goal history'}))):[];
   const base = [
     ...financial,
     ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.name, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Saved Goal creation date" })) : []),

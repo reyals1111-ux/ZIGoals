@@ -42,7 +42,9 @@ export default function TodayChecklistBody() {
   const empty = state.dots.length === 0;
   const steps = model ? pathSteps(model) : [], next = model ? nextStep(model) : null;
   const nextDot = next ? state.dots.find(d => d.id === next.id) : undefined;
-  return <>
+  // Session AF Gate C (design review, finding 1): one wrapper inside the card, so the card's own width (a container query on
+  // the card) picks the two-column layout, not the window's: at 1024 px the card is only ≈ 500 px wide.
+  return <div className="today-checklist-body">
     <div className="today-checklist-head"><span className="today-checklist-mark" aria-hidden="true"><ChecklistMark size={26}/></span><p className="eyebrow" id="today-checklist-title">Checklist</p>
       {!empty && <span className="today-checklist-streak" role="img" aria-label={`${streak?.current ?? 0}-day streak`}><FlameMark lit={!!streak?.todayComplete}/><span aria-hidden="true">{streak?.current ?? 0}</span></span>}</div>
     {empty ? <>
@@ -58,9 +60,9 @@ export default function TodayChecklistBody() {
         <span className="today-checklist-planet" aria-hidden="true"><PathGlyph name={nextDot ? itemGlyph(nextDot) : next.glyph ?? 'sparkle'} size={24}/></span>
         <p className="today-checklist-line"><span className="today-checklist-cue">Next<span className="sr-only">:</span> </span><strong data-next-step={next.id}>{next.label}</strong></p>
         <Link className="primary today-checklist-continue" href={CHECKLIST_ROUTE} onClick={seen} data-nudge={slot ? '' : undefined}>Continue</Link>
-      </div> : <p className="today-checklist-line">{summary.total && summary.done >= summary.total ? 'All planets lit. See you tomorrow.' : summary.total ? 'Nothing to tick here now: open your path.' : 'Every dot rests today.'}</p>}
+      </div> : <p className="today-checklist-line">{summary.total && summary.done >= summary.total ? 'All planets lit. See you tomorrow.' : summary.total ? 'Nothing to tick here now: open your path.' : 'Every planet rests today.'}</p>}
       {slot && <p className="today-checklist-nudge sr-only" role="status">{nudgeText(waiting)}</p>}
     </>}
     {(empty || !next) && <Link className="text-link today-checklist-open" href={CHECKLIST_ROUTE} onClick={seen}>{empty ? 'Build your path →' : 'Open your path →'}</Link>}
-  </>;
+  </div>;
 }

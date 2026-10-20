@@ -23,10 +23,10 @@ export const BADGES: readonly BadgeDef[] = [
   {id: 'reviewer', title: 'Reviewer', blurb: 'Four weekly reviews completed.', symbol: '✧', test: s => (s.weekly?.reviews ?? []).filter(r => r.completedAt).length >= 4},
   {id: 'level-5', title: 'Comet', blurb: 'Level 5 reached.', symbol: '☄', test: (s, t) => levelOf(xpEvents(s, t).reduce((n, e) => n + e.xp, 0)) >= 5},
   {id: 'level-10', title: 'Quasar', blurb: 'Level 10 reached.', symbol: '✺', test: (s, t) => levelOf(xpEvents(s, t).reduce((n, e) => n + e.xp, 0)) >= 10},
-  // Session AF (L3; P7.7, P7.13): from the Checklist's day history (and today, once every dot is lit).
-  {id: 'first-orbit', title: 'First orbit', blurb: 'A day with every dot on your path lit.', symbol: '◍', test: (s, t) => checklistOrbitDays(s, t).length >= 1},
-  {id: 'seven-orbits', title: 'Seven orbits', blurb: 'Seven days with every dot on your path lit.', symbol: '⊛', test: (s, t) => checklistOrbitDays(s, t).length >= 7},
-  {id: 'perfect-orbit', title: 'Perfect orbit', blurb: 'Every dot lit in path order, in one day.', symbol: '✪', test: (s, t) => checklistOrbitDays(s, t).some(o => o.perfect)},
+  // Session AF (L3; P7.7, P7.13): from the Checklist's day history (and today, once every planet is lit). Gate C design review: "planets", the Checklist's own word.
+  {id: 'first-orbit', title: 'First orbit', blurb: 'A day with every planet on your path lit.', symbol: '◍', test: (s, t) => checklistOrbitDays(s, t).length >= 1},
+  {id: 'seven-orbits', title: 'Seven orbits', blurb: 'Seven days with every planet on your path lit.', symbol: '⊛', test: (s, t) => checklistOrbitDays(s, t).length >= 7},
+  {id: 'perfect-orbit', title: 'Perfect orbit', blurb: 'Every planet lit in path order, in one day.', symbol: '✪', test: (s, t) => checklistOrbitDays(s, t).some(o => o.perfect)},
 ];
 export type Badge = Omit<BadgeDef, 'test'> & {earned: boolean};
 export function badges(stores: GameStores, today: string): Badge[] { return BADGES.map(({test, ...b}) => ({...b, earned: test(stores, today)})); }

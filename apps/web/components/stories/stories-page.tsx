@@ -39,11 +39,12 @@ export function StoriesPage() {
       <ul className="stories-covers" aria-label="Your stories">{STORY_PERIODS.map(period => {
         const s = stories[period], when = seen[s.key];
         return <li key={period} className="panel stories-cover" data-period={period} data-ready={s.enough || undefined} data-pillar={s.style?.pillar ?? undefined}>
-          <p className="eyebrow">{rangeLabel(s.start, s.end, period)}</p>
+          <p className="eyebrow">{rangeLabel(s.start, s.end)}</p>
           <h2>{NAME[period]}</h2>
-          <p className="stories-cover-big" aria-hidden="true">{formatNumber(s.loggedDays)}</p>
-          <p className="stories-count">{s.enough ? `${plural(s.loggedDays, 'logged day')} · ${plural(s.cards.length, 'card')}` : `${plural(s.loggedDays, 'logged day')} of the ${STORY_MIN_DAYS} a story needs`}</p>
-          {s.style && <p className="stories-style">Your style: {s.style.label}</p>}
+          {/* Gate C design review (finding 7): the number once — big, with "logged days" as its label — then the cards and
+              the style on one line ("8 cards · Your style: Rhythm keeper"). */}
+          <p className="stories-cover-count"><span className="stories-cover-big">{formatNumber(s.loggedDays)}</span> <span className="stories-cover-unit">{s.loggedDays === 1 ? 'logged day' : 'logged days'}</span>{!s.enough && <> <span className="stories-cover-need">of the {STORY_MIN_DAYS} a story needs</span></>}</p>
+          {s.enough && <p className="stories-count">{plural(s.cards.length, 'card')}{s.style && <> · <span className="stories-style">Your style: {s.style.label}</span></>}</p>}
           <button type="button" className={s.enough ? 'primary' : 'secondary'} ref={el => { openers.current[period] = el; }} onClick={() => start(period)} aria-label={`Open ${NAME[period].toLowerCase()}’s story`}>Open the story</button>
           <p className="fine">{when ? `Opened ${when === today ? 'today' : formatDate(when, {year: false})}.` : 'Not opened yet.'}</p>
         </li>;
