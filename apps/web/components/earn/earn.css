@@ -324,3 +324,11 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-calculator-live { display: grid; gap: 8px; }
 /* A box whose figure lives on another page says where it is and why it is not here: never a blank box. */
 .earn-figure-elsewhere .earn-value { font-size: 17px; }
+/* Session AF Gate C (the Checklist critics, iterations 3 and 4): the right-edge launchers float over the page, and on a
+   computer the Start-here and Academy paths' orbit banners ran ≈ 19 px under them at 1024–1440 px, their counts at the
+   right end. Both paths keep the lane Today's rail keeps (components/platform/platform.css), while the launchers are on
+   the right. */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 64px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 72px; }
+}
