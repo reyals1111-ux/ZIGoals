@@ -23,36 +23,48 @@ export const ZIGI_PATH_STATES: Record<ZigiMood | 'tick', string> = {empty: 'enco
  * figure with its animated clips (ZigiFigure: the clip only while motion is allowed, else the still), standing in the
  * open sky beside the next dot. `cheer` (a tick just landed beside it): two hops and a ring of sparkles, once (CSS).
  *
- * Rounds 4–6 (the critiques: the celebrate frame reads as hands clutching the head, the greeting frames as a salute or a
+ * Rounds 4–7 (the critiques: the celebrate frame reads as hands clutching the head, the greeting frames as a salute or a
  * hand at the brow, and a 96 px clip frame drawn at 130–230 px is soft): on the Checklist's path, at the day's trophy and
- * in the day's celebration ZIGi is drawn from a delivered still at its large size (480 × 632), never upscaled (the largest
- * drawn size, 260 px, needs 520): F006-presenting — the arm held out with an open hand, away from the face, as one presents
- * something: the next planet at rest, the planet just ticked during a cheer, the trophy at the day's end. Only where its
- * place beside the next planet would put that arm's line on a planet already done (so it would seem to point back at the
- * one just ticked) does it rest in F001-idle instead, arms down, facing the next planet. A cheer adds two hops with squash and stretch, a star burst behind and sparkles; the figure faces its planet
- * (mirrored on the planet's left). The figures have no arms-up pose; that needs new art.
+ * in the day's celebration ZIGi is drawn from a delivered still at its large size (480 × 632), never upscaled:
+ * F006-presenting — the arm held out with an open hand, away from the face, as one presents something: the next planet at
+ * rest, the planet just ticked during a cheer, the trophy at the day's end. Round 7: on the path the still is cropped to
+ * the figure itself (`/brand/checklist/zigi-present.webp`, 435 × 519, the same pixels without the empty margin; and
+ * `zigi-idle.webp`, F001-idle cropped alike), so its box is what is seen and every size here is the figure's own. At rest
+ * it points at the next planet — its arm (at 31 % of its height) level with the planet's ring — and where no free place
+ * allows that it stands in the idle still instead, arms down, facing the planet. A cheer adds two hops with squash and
+ * stretch, a star burst behind and sparkles; the figure faces its planet (mirrored on the planet's left). The figures have
+ * no arms-up pose; that needs new art.
  *
  * `fit` (a key that changes whenever the path's layout does): ZIGi measures the planets (the next one with its ring and
  * moon), names, banners, chests, the NEXT tag and an open panel, each grown by 12 px, and takes the nearest place beside
  * its planet where its drawn box touches none of them — preferring the place it already stands, so it does not jump —
  * either side, a little further out, higher or lower, smaller only where nothing else is free, never past the screen.
- * Placed before paint, again once a tick's motion has settled; a move from one place to the next glides (480 ms), and
- * nothing else on the path moves for it.
+ * Placed before paint, again once a tick's motion has settled; a move from one place to the next glides (480 ms) — or,
+ * where a glide would cross a name, a banner, a planet or a chest, shrinks away and grows again at the new place (560 ms)
+ * — and nothing else on the path moves for it.
  */
 const CHEER_SPARKS = 12, CLEAR = 13; // (12 px, and one more so rounding never brings it under)
+/** How far ZIGi stays from the screen's edges (round 7: never pressed against them). */
+const EDGE = 16;
+/** How high a cheer hops (22 px, and room to spare): a cheer's place keeps that much clear above it too. */
+const HOP = 24;
 type Side = 'left' | 'right';
 type Box = {left: number; top: number; right: number; bottom: number};
-const PRESENT = '/brand/figures/zigi/origami-nebula/F006-presenting-large.webp', PRESENT_STILL = {src: PRESENT, srcSet: `${PRESENT} 1x`};
-const IDLE = '/brand/figures/zigi/origami-nebula/F001-idle-large.webp', IDLE_STILL = {src: IDLE, srcSet: `${IDLE} 1x`};
+const FULL = '/brand/figures/zigi/origami-nebula/F006-presenting-large.webp', FULL_STILL = {src: FULL, srcSet: `${FULL} 1x`};
+const PRESENT = '/brand/checklist/zigi-present.webp', PRESENT_STILL = {src: PRESENT, srcSet: `${PRESENT} 1x`};
+const IDLE = '/brand/checklist/zigi-idle.webp', IDLE_STILL = {src: IDLE, srcSet: `${IDLE} 1x`};
+const TRIM = {width: 435, height: 519};
 /** Where ZIGi last stood on each path (in the stage's own coordinates), so its next place can prefer it and glide from it. */
 const lastSeen = new WeakMap<Element, {x: number; y: number; w: number; h: number; at: number}>();
 const RECENT_MS = 5000;
-/** A planet's box with its orbit ring and moon (the next planet's), as drawn: the ring's own box turns, so it is read from
- *  the dot's drawn box and the ring's layout size. */
+/** A planet's box with its orbit ring and moon (the next planet's), at rest: its centre as drawn, its size from its layout
+ *  and its resting scale (round 7: never read through a tick's bounce, which moved ZIGi's cheer half way through it). */
 export function ringBox(dot: Element): Box {
   const r = dot.getBoundingClientRect(), ring = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit'), own = (dot as HTMLElement).offsetWidth || r.width;
-  const extra = ring ? ((ring.offsetWidth - own) / 2 + 6) * (r.width / own) : 0;
-  return {left: r.left - extra, top: r.top - extra, right: r.right + extra, bottom: r.bottom + extra};
+  if (!dot.classList.contains('path-dot')) return {left: r.left, top: r.top, right: r.right, bottom: r.bottom};
+  const stage = dot.closest('.path-stage'), k = dot.hasAttribute('data-next') && stage ? parseFloat(getComputedStyle(stage).getPropertyValue('--next-scale')) || 1 : 1;
+  const half = own / 2 * k + (ring ? ((ring.offsetWidth - own) / 2 + 6) * k : 0), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+  return {left: cx - half, top: cy - half, right: cx + half, bottom: cy + half};
 }
 /** What ZIGi must stay clear of on the path (its own parts and, while it cheers, its own planet's name aside). */
 export function zigiObstacles(stage: Element, except: Element[]): Box[] {
@@ -62,7 +74,10 @@ export function zigiObstacles(stage: Element, except: Element[]): Box[] {
     .filter(r => r.right - r.left > 2 && r.bottom - r.top > 2);
 }
 const overlap = (a: Box, b: Box, grow: number) => Math.max(0, Math.min(a.right, b.right + grow) - Math.max(a.left, b.left - grow)) * Math.max(0, Math.min(a.bottom, b.bottom + grow) - Math.max(a.top, b.top - grow));
-const GAPS = [13, 15, 18, 21, 24, 28, 32, 38, 44, 52, 60, 70, 84, 100, 120, 145, 175], SHIFTS = Array.from({length: 107}, (_, i) => (i % 2 ? -1 : 1) * Math.ceil(i / 2) * 3), SCALES = [1, .985, .96, .92, .88, .85, .82, .8, .75, .7, .65, .6], SIZE = 500, NEAR = 60, STAY = 40, ARM = .42, AIM = 90, AIM_ON = 30;
+const GAPS = [13, 15, 18, 21, 24, 28, 32, 38, 44, 52, 60, 70, 84, 100, 120, 145, 175], SHIFTS = Array.from({length: 107}, (_, i) => (i % 2 ? -1 : 1) * Math.ceil(i / 2) * 3), SCALES = [1, .985, .96, .92, .88, .85, .82, .8, .75, .7, .65, .6], SIZE = 500, NEAR = 60, STAY = 40, ARM = .31;
+/** What a place costs where ZIGi's arm would not point at its planet: at a planet already done, at one still to come, at nothing. */
+const AIM = {done: 600, later: 220, none: 150, next: 0} as const;
+const SMALL = 260;
 export function PathZigi({state, side, say, alive = false, centred = false, cheer = false, fit}: {state: string; side: Side; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean; fit?: string}) {
   const frames = useZigiFrames(), frame = frames?.[state] ?? frames?.idle;
   const poster = frame ? {src: frame.poster.x1, srcSet: `${frame.poster.x1} 1x, ${frame.poster.x2} 2x`} : {src: SHELL_FRAME.x1, srcSet: `${SHELL_FRAME.x1} 1x, ${SHELL_FRAME.x2} 2x`};
@@ -70,27 +85,33 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
   useLayoutEffect(() => {
     const el = ref.current, node = el?.parentElement, stage = el?.closest('.path-stage');
     if (!alive || fit === undefined || !el || !node || !stage) return;
+    let again = false;
     const measure = () => {
     // (Its planet; at the day's end, the trophy. Its full size: the box it has now, undone by the scale it was last given.)
+    // (`--zigi-min`: the least it rests at — a place any smaller costs SMALL more.)
+    const least = parseFloat(getComputedStyle(el).getPropertyValue('--zigi-min')) || 0;
     const w0 = el.offsetWidth / scaled.current, h0 = el.offsetHeight / scaled.current, dot = node.querySelector(':scope > .path-dot') ?? node.querySelector(':scope > .path-chest-art');
     if (!w0 || !h0 || !dot) return;
-    const n = node.getBoundingClientRect(), sb = stage.getBoundingClientRect(), ring = ringBox(dot), cy = (ring.top + ring.bottom) / 2, right = document.documentElement.clientWidth - 4;
+    const n = node.getBoundingClientRect(), sb = stage.getBoundingClientRect(), ring = ringBox(dot), cy = (ring.top + ring.bottom) / 2, right = document.documentElement.clientWidth - EDGE;
+    // (Pointing at it: the arm's line through the middle of the planet's own body — half its radius either side of its
+    // centre, 14 px at least — never along the edge of its ring, which reads as pointing at the planet beyond.)
+    const body = dot.classList.contains('path-dot') ? (dot as HTMLElement).offsetWidth / 2 * (dot.hasAttribute('data-next') ? parseFloat(getComputedStyle(stage).getPropertyValue('--next-scale')) || 1 : 1) : (ring.bottom - ring.top) / 2;
+    const aimBand = Math.max(14, body * .5);
     const seen = lastSeen.get(stage), prev = seen && performance.now() - seen.at < RECENT_MS ? seen : null;
     // (While it cheers, its own planet's name steps back for that moment, CSS.)
     const own = cheer ? node.querySelector(':scope > .path-label') : null;
     const others = zigiObstacles(stage, [el, ...(own ? [own] : [])]);
-    // (At rest its arm — held out at about 42 % of its height — must point at this planet: where it passes above or below
-    // it and on to another planet within 260 px, ZIGi would seem to point at that one — a planet already done (the one just
-    // ticked) costs AIM more, one still to come AIM_ON.)
+    // (At rest its arm — held out at 31 % of its height — must point at this planet, through its body. Where it passes above
+    // or below, and on to another planet within 260 px, ZIGi would seem to point at that one; such places cost AIM.)
     const planets = cheer ? [] : [...stage.querySelectorAll<HTMLElement>('.path-dot')].filter(d => d !== dot).map(d => ({...ringBox(d), done: d.dataset.state === 'done'}));
     const pointsAt = (box: Box, s: Side): 'next' | 'done' | 'later' | 'none' => {
       const arm = box.top + (box.bottom - box.top) * ARM;
-      if (arm >= ring.top - 6 && arm <= ring.bottom + 6) return 'next';
+      if (Math.abs(arm - cy) <= aimBand) return 'next';
       const from = s === 'right' ? box.left - 260 : box.right, to = s === 'right' ? box.left : box.right + 260;
       const on = planets.filter(o => o.top <= arm && o.bottom >= arm && o.right >= from && o.left <= to);
       return on.some(o => o.done) ? 'done' : on.length ? 'later' : 'none';
     };
-    const aim = (box: Box, s: Side) => { if (cheer) return 0; const at = pointsAt(box, s); return at === 'done' ? AIM : at === 'later' ? AIM_ON : 0; };
+    const aim = (box: Box, s: Side) => cheer ? 0 : AIM[pointsAt(box, s)];
     let best = null as {box: Box; side: Side; scale: number; cost: number} | null;
     for (const [k, scale] of SCALES.entries()) {
       const w = w0 * scale, h = h0 * scale;
@@ -98,9 +119,9 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
       const dys = [...SHIFTS, ...others.flatMap(o => [o.bottom + CLEAR + .5 + h / 2 - cy, o.top - CLEAR - .5 - h / 2 - cy]).filter(d => Math.abs(d) <= 170)];
       for (const s of [side, side === 'left' ? 'right' : 'left'] as Side[]) for (const gap of GAPS) for (const dy of dys) {
         const left = s === 'right' ? ring.right + gap : ring.left - gap - w, top = cy + dy - h / 2, box = {left, top, right: left + w, bottom: top + h};
-        const hit = others.reduce((sum, o) => sum + overlap(box, o, CLEAR), 0), out = Math.max(0, 4 - box.left) + Math.max(0, box.right - right);
+        const hit = others.reduce((sum, o) => sum + overlap(cheer ? {...box, top: box.top - HOP} : box, o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
         // (Near and level with its planet, then full size, then the open side of the wave, and pointing at it.)
-        const cost = (hit > 0 || out > 0 ? 1e6 + hit + out * 1000 : 0) + gap * 1.4 + Math.abs(dy) * 1 + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s);
+        const cost = (hit > 0 || out > 0 ? 1e6 + hit + out * 1000 : 0) + gap * 1.4 + Math.abs(dy) * 1 + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s) + (h < least - .5 ? SMALL : 0);
         if (!best || cost < best.cost) best = {box, side: s, scale, cost};
       }
       // (A smaller ZIGi near its planet may beat a full-size one far off: stop only once no smaller size could.)
@@ -109,20 +130,23 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     if (!best) return;
     // Where it stood a moment ago (its cheer, or this place before a re-measure) it stays, so long as that place is clear,
     // beside this planet (within NEAR px of its ring, level with it), as large and nearly as good: it never needs to jump.
+    // A cheer measured again (round 7) stays wherever it is while that place is clear: it never moves mid-cheer.
     if (prev) {
       const box = {left: sb.left + prev.x, top: sb.top + prev.y, right: sb.left + prev.x + prev.w, bottom: sb.top + prev.y + prev.h}, scale = prev.h / h0;
       const s: Side | null = box.left >= ring.right ? 'right' : box.right <= ring.left ? 'left' : null, gap = s === 'right' ? box.left - ring.right : ring.left - box.right;
-      const hit = others.reduce((sum, o) => sum + overlap(box, o, CLEAR), 0), out = Math.max(0, 4 - box.left) + Math.max(0, box.right - right);
-      if (s && hit === 0 && out === 0 && gap <= NEAR && box.top < ring.bottom && box.bottom > ring.top && scale <= 1.001 && scale >= best.scale - .02) {
-        const cost = gap * 1.4 + Math.abs((box.top + box.bottom) / 2 - cy) + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s);
-        if (cost <= best.cost + STAY) best = {box, side: s, scale: Math.min(1, scale), cost};
+      const hit = others.reduce((sum, o) => sum + overlap(cheer ? {...box, top: box.top - HOP} : box, o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
+      const clear = !!s && hit === 0 && out === 0, keep = clear && cheer && again;
+      if (keep || (clear && gap <= NEAR && box.top < ring.bottom && box.bottom > ring.top && scale <= 1.001 && scale >= best.scale - .02)) {
+        const cost = gap * 1.4 + Math.abs((box.top + box.bottom) / 2 - cy) + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s) + (prev.h < least - .5 ? SMALL : 0);
+        if (keep || cost <= best.cost + STAY) best = {box, side: s ?? best.side, scale: Math.min(1, scale), cost};
       }
     }
-    // (Where no place lets it point at this planet without pointing at one already done, it stands idle instead.)
-    const idle = !cheer && pointsAt(best.box, best.side) === 'done';
+    // (Where no free place lets it point at this planet, it stands idle instead.)
+    const idle = !cheer && pointsAt(best.box, best.side) !== 'next';
     const next = {left: Math.round(best.box.left - n.left), top: Math.round(best.box.top - n.top), side: best.side, scale: best.scale, idle};
     scaled.current = best.scale;
     setPlace(p => p && p.left === next.left && p.top === next.top && p.side === next.side && p.scale === next.scale && p.idle === next.idle ? p : next);
+    again = true;
     };
     // Now, before paint; and again once a tick's own motion (a planet filling, a chest or the trophy opening) has settled.
     measure();
@@ -138,15 +162,28 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     const seen = lastSeen.get(stage), from = seen && now.at - seen.at < RECENT_MS ? seen : null;
     if (from && entranceAllowed() && typeof el.animate === 'function' && Math.hypot(from.x - now.x, from.y - now.y) > 3) {
       el.getAnimations().forEach(a => a.cancel());
-      el.animate([{transform: `translate(${from.x - now.x}px, ${from.y - now.y}px) scale(${from.h / now.h})`, transformOrigin: '0 0'}, {transform: 'none', transformOrigin: '0 0'}], {duration: 480, easing: 'cubic-bezier(.3, .7, .25, 1)'});
+      const dx = from.x - now.x, dy = from.y - now.y, k = from.h / now.h, w = now.w, h = now.h;
+      // (Would the glide cross anything on the way — a name, a banner, a planet, a chest? A name that is hidden for the
+      // moment, the one ZIGi has just left, does not count.)
+      const others = [...stage.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')]
+        .filter(o => !el.contains(o) && Number(getComputedStyle(o).opacity) > .5).map(o => o.classList.contains('path-dot') ? ringBox(o) : o.getBoundingClientRect());
+      // (A cheer hops up to 22 px as it goes.)
+      const lift = cheer ? HOP : 0, at = (t: number): Box => { const x = sb.left + now.x + dx * (1 - t), y = sb.top + now.y + dy * (1 - t), m = k + (1 - k) * t; return {left: x, top: y - lift, right: x + w * m, bottom: y + h * m}; };
+      const crosses = [.08, .16, .24, .32, .4, .48, .56, .64, .72, .8, .88, .96].some(t => others.some(o => overlap(at(t), o, 0) > 0));
+      const T = (x: number, y: number, m: number) => `translate(${x}px, ${y}px) scale(${m})`, small = .5;
+      el.animate(crosses
+        // Shrinking away at its old place and growing again at the new one, never seen over anything.
+        ? [{transform: T(dx, dy, k), opacity: 1, transformOrigin: '0 0'}, {offset: .4, transform: T(dx + w * k * (1 - small) / 2, dy + h * k * (1 - small), k * small), opacity: 0, transformOrigin: '0 0'}, {offset: .55, transform: T(w * (1 - small) / 2, h * (1 - small), small), opacity: 0, transformOrigin: '0 0'}, {transform: 'none', opacity: 1, transformOrigin: '0 0'}]
+        : [{transform: T(dx, dy, k), transformOrigin: '0 0'}, {transform: 'none', transformOrigin: '0 0'}],
+        crosses ? {duration: 560, easing: 'ease-in-out'} : {duration: 480, easing: 'cubic-bezier(.3, .7, .25, 1)'});
     }
     lastSeen.set(stage, now);
-  }, [alive, place]);
+  }, [alive, place, cheer]);
   const shownSide = place?.side ?? side, cheering = alive && (cheer || state === 'celebrate');
   const placed = alive && place ? {left: place.left, top: place.top, right: 'auto', bottom: 'auto', translate: 'none', ...(place.scale !== 1 ? {height: `calc(var(--zigi-h) * ${place.scale})`, width: `calc(var(--zw) * ${place.scale})`} : {})} as CSSProperties : undefined;
   return <span ref={ref} className="path-zigi" data-side={shownSide} data-placed={place && alive ? '' : undefined} data-zigi-state={cheering ? 'cheer' : state} data-alive={alive || undefined} data-centred={centred || undefined} data-cheer={alive && cheer ? '' : undefined} aria-hidden="true" style={placed}>
     {alive && cheer && <span className="path-zigi-burst"/>}
-    {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span></span>
+    {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} width={TRIM.width} height={TRIM.height} alt="" decorative/></span></span>
       : <span key={state} className={`zigi zigi-${state} path-zigi-figure`} data-state={state}><ZigiImage poster={poster} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>}
     {alive ? <span className="path-zigi-ground"/> : <span className="path-zigi-arrow"/>}
     {alive && cheer && <span className="path-zigi-cheer">{Array.from({length: CHEER_SPARKS}, (_, n) => <i key={n} data-tone={n % 3} style={{'--a': `${Math.round(n * 360 / CHEER_SPARKS)}deg`, '--d': `${52 + (n * 29) % 38}px`} as CSSProperties}/>)}</span>}
@@ -156,5 +193,5 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
 
 /** ZIGi presenting, outside the path (the day's celebration: it presents the trophy). */
 export function ZigiCheer() {
-  return <span className="zigi zigi-figure zigi-present"><ZigiImage poster={PRESENT_STILL} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>;
+  return <span className="zigi zigi-figure zigi-present"><ZigiImage poster={FULL_STILL} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>;
 }

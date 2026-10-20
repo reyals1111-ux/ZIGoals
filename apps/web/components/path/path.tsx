@@ -86,28 +86,49 @@ function nameWidth(text: string, px: number): number | null {
   pen.font = `750 ${px}px ${getComputedStyle(document.body).fontFamily || 'sans-serif'}`;
   return pen.measureText(text).width * 1.03;
 }
-function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => number, nextAt: number, geo: PathGeometry | null): {labels: Side[]; zigi: Side} {
-  // (The room a name has beside its planet, as the sheet gives it — less the step out it takes while its planet is next.)
-  const phone = !!geo && geo.w < 560, px = phone ? 14 : 15, maxW = phone ? 176 : 272, gap = phone ? 12 : 16, reserve = phone ? 18 : 28, slack = phone ? 8 : -6;
+function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => number, nextAt: number, geo: PathGeometry | null): {labels: Side[]; full: boolean[]; zigi: Side} {
+  // (The room a name has beside its planet, as the sheet gives it, and the step out it takes while its planet is next.)
+  const phone = !!geo && geo.w < 560, wide = !!geo && geo.w >= 900, px = phone ? 14 : 15, maxW = phone ? 176 : 272, gap = phone ? 12 : 16, reserve = phone ? 0 : 28, slack = phone ? 8 : -6;
   const point = (i: number) => geo?.points[steps[i]?.id ?? ''];
-  const room = (i: number, side: Side) => { const p = point(i); if (!geo || !p) return null; const r = p.r ?? 40; return Math.min(maxW, (side === 'left' ? p.x - r : geo.w - p.x - r) - gap - reserve + slack); };
-  const fits = (i: number, side: Side) => {
-    const w = room(i, side), o = swing(i); if (w === null) return Math.abs(o) < 1 || (o > 0) === (side === 'left');
-    const label = steps[i]!.label, whole = nameWidth(label, px);
-    if (whole === null) return label.length * (phone ? 8.4 : 8.8) <= (phone ? w * 1.9 : w);
-    if (!phone) return whole <= w;
-    // A phone: two lines at most, never a word cut.
-    let lines = 1, line = 0; const space = nameWidth(' ', px) ?? 4;
-    for (const word of label.split(/\s+/)) { const ww = nameWidth(word, px) ?? 0; if (ww > w) return false; if (!line) line = ww; else if (line + space + ww <= w) line += space + ww; else { lines++; line = ww; } }
-    return lines <= 2;
+  // (The room the sheet gives a name — less the step out it takes while its planet is next, unless it keeps the full room.)
+  const space = (i: number, side: Side) => { const p = point(i); if (!geo || !p) return null; const r = p.r ?? 40; return (side === 'left' ? p.x - r : geo.w - p.x - r) - gap; };
+  const room = (i: number, side: Side, full = false) => { const x = space(i, side); return x === null ? null : Math.min(maxW, x - (full ? 0 : reserve) + slack); };
+  // (A name's lines at a width: one on a tablet or a computer, two at most on a phone, never a word cut; its longest line.)
+  const wrap = (label: string, w: number): {lines: number; longest: number} | null => {
+    const whole = nameWidth(label, px); if (whole === null) return null;
+    if (!phone) return {lines: whole <= w ? 1 : 9, longest: whole};
+    let lines = 1, line = 0, longest = 0; const space = nameWidth(' ', px) ?? 4;
+    for (const word of label.split(/\s+/)) { const ww = nameWidth(word, px) ?? 0; if (ww > w) return {lines: 9, longest: ww}; if (!line) line = ww; else if (line + space + ww <= w) line += space + ww; else { longest = Math.max(longest, line); lines++; line = ww; } }
+    return {lines, longest: Math.max(longest, line)};
   };
-  const labels: Side[] = [];
+  // A name fits a side when it keeps to its lines in the room left after its step out as the next planet's. Failing that
+  // (round 7: a long name on a phone), when it keeps to them in the full room and its longest line, stepped out, still ends
+  // 4 px inside the screen: that name keeps the full room (`full`), so it never rewraps either way.
+  const fit = (i: number, side: Side): {ok: boolean; full: boolean} => {
+    const w = room(i, side), o = swing(i), label = steps[i]!.label;
+    if (w === null) return {ok: Math.abs(o) < 1 || (o > 0) === (side === 'left'), full: false};
+    const most = phone ? 2 : 1, cut = wrap(label, w);
+    if (cut === null) return {ok: label.length * (phone ? 8.4 : 8.8) <= (phone ? w * 1.9 : w), full: false};
+    if (cut.lines <= most) return {ok: true, full: false};
+    const wf = room(i, side, true)!, whole = wrap(label, wf), edge = (space(i, side) ?? 0) + (side === 'left' ? geo?.inset?.left ?? 0 : geo?.inset?.right ?? 0) - 4;
+    return whole && whole.lines <= most && whole.longest + reserve <= edge ? {ok: true, full: true} : {ok: false, full: false};
+  };
+  // (Round 7: ZIGi stands on the side away from the name, so that side must hold it: from the next planet's ring — a size
+  // larger, its ring and moon — 13 px clear to 14 px from the edge, as wide as ZIGi at its smallest rest: 96 px tall on a
+  // phone, 120 on a tablet, 140 on a computer.)
+  const zigiRoom = (i: number, side: Side) => {
+    const p = point(i); if (!geo || !p) return true;
+    const r = (p.r ?? 40) * (phone ? 1.1 : 1.15) + (phone ? 13.2 : 23), need = 13 + (phone ? 96 : wide ? 140 : 120) * .838 + 10;
+    return (side === 'left' ? p.x - r : geo.w - p.x - r) >= need;
+  };
+  const labels: Side[] = [], full: boolean[] = [];
   steps.forEach((_, i) => {
-    let side: Side = (labels[i - 1] ?? 'right') === 'left' ? 'right' : 'left';
-    if (!fits(i, side)) side = fits(i, flip(side)) ? flip(side) : (room(i, 'left') ?? 0) >= (room(i, 'right') ?? 0) ? 'left' : 'right';
-    labels.push(side);
+    const alt: Side = (labels[i - 1] ?? 'right') === 'left' ? 'right' : 'left', order: Side[] = [alt, flip(alt)];
+    let side = order.find(s => fit(i, s).ok && zigiRoom(i, flip(s))) ?? order.find(s => fit(i, s).ok);
+    if (!side) side = (room(i, 'left') ?? 0) >= (room(i, 'right') ?? 0) ? 'left' : 'right';
+    labels.push(side); full.push(fit(i, side).full);
   });
-  return {labels, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
+  return {labels, full, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
 }
 
 /** Steps (and chests) that have just changed into done / reached since the last render, for their one-time motion. */
@@ -162,11 +183,14 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   }, [orbit, tickedId]);
   useEffect(() => () => window.clearTimeout(cheerTimer.current), []);
   const zigiState = zigi === false ? null : zigi.state ?? (cheer && anchor.mood !== 'done' ? ZIGI_PATH_STATES.tick : ZIGI_PATH_STATES[anchor.mood]);
-  const zigiAt = orbit ? cheerAt?.id ?? next?.id ?? null : next?.id ?? null;
+  // (Round 7: the cheer starts with the very render that shows the tick — the state above is set a frame later, and for that
+  // frame ZIGi stood by the next planet and then went back, a jump the iteration-6 frames caught.)
+  const cheering = cheerAt ?? (orbit && tickedId && next && entranceAllowed() ? {id: tickedId, state: ZIGI_PATH_STATES.done} : null);
+  const zigiAt = orbit ? cheering?.id ?? next?.id ?? null : next?.id ?? null;
   // Round 5 (the orbit look): at rest beside the next planet ZIGi points at it (`presenting`, art of its own) whatever the
   // day's mood — the half-way `proud` and `success` have no art of their own and wear the celebrate frame (hands on the
   // head) — and at the day's end it cheers at the trophy.
-  const zigiNow = orbit && cheerAt ? cheerAt.state : orbit && zigiState ? (anchor.mood === 'done' ? ZIGI_PATH_STATES.done : 'presenting') : zigiState;
+  const zigiNow = orbit && cheering ? cheering.state : orbit && zigiState ? (anchor.mood === 'done' ? ZIGI_PATH_STATES.done : 'presenting') : zigiState;
 
   // The orbit look lands on the next planet: on opening (at once), and after a tick that leaves it outside the comfortable
   // middle of the screen (a moment later, gliding unless motion is off), it is brought to about 40 % of the screen's height.
@@ -254,7 +278,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
   const sides = orbit ? orbitSides(steps, swingOf, next ? steps.findIndex(x => x.id === next.id) : -1, geo) : null, labelSides = sides?.labels ?? null;
   // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
-  const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheerAt?.id ?? ''}` : undefined;
+  const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheering?.id ?? ''}` : undefined;
   const comets = orbit ? new Set((onward.length ? onward : segments.filter(s => (just.has(s.from) || just.has(s.to)) && s.lit)).map(s => s.id)) : undefined;
   // …and the way on from the last planet done to the next one stays faintly lit in the next planet's colour.
   const doneSet = new Set(doneIds), lead = orbit && next ? segments.find(s => s.to === next.id && doneSet.has(s.from))?.id : undefined;
@@ -281,8 +305,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
-                  <span className="path-label" data-side={side}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheerAt && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheerAt?.id === step.id} fit={zigiFit}/>}
+                  <span className="path-label" data-side={side} data-room={sides?.full[i] ? 'full' : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
