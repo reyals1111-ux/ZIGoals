@@ -27,6 +27,7 @@ Evidence label: design review of screenshots and recorded frames (not a usabilit
 | 5 | `eee27568` | PASS | PASS (phone 72 px, next 82; tablet ≈ 80; computer 96; one unboxed name, at most two lines on a phone) | PASS (6 / 7 / 6 planets on the opening screens at 390 / 768 / 1440) | PASS (press, burst and shock ring, line glow, the comet, ZIGi's hops and star burst, bars and XP, chest, orbit and day celebrations) | PASS (Light's twelve weeks a light plate with the same accents; Nebula told from Dark at a glance on a phone; planet hues identical) | FAIL, close (every tick shuffles name sides and chests; the celebration's ZIGi soft and stair-stepped, its held frame a hand at the brow; on a computer ZIGi rests small and jumps across the path) | no, very close — screens and motion premium; the tick reflow and the day's peak are not |
 | 6 | `e7f71752` | PASS | PASS | PASS (6 / 7 / 6 planets) | PASS (press, burst, line glow, bars and XP, ZIGi's cheer with hops and a star burst, the comet, chest, orbit and day celebrations) | PASS (all three deliberate; hues identical; Light's twelve weeks a light plate) | FAIL, very close (on a computer ZIGi points past NEXT on the opening screen and after an orbit; on a phone ZIGi rests at ≈ 67–82 px against the edge; a long name cut; glide frames cross names and a banner title) | no, very close — screens, motion, rewards and celebration premium; ZIGi's pointing and phone size not |
 | 7 | `3816e73c` | PASS | PASS (phone 72 px, NEXT ≈ 78; computer 96, NEXT ≈ 110) | PASS (6 / 7 / 6 planets; the same vocabulary as the references) | PASS (press, burst and shock ring, line glow, ZIGi's cheer, bars and XP, comet, chest pop, orbit and day celebrations) | PASS (layout, hues, ZIGi and chests identical; Light clean and soft) | PASS, marginal (ZIGi points at NEXT in every resting state at every size, ≈ 98–120 px on a phone, no move crosses content; polish left: a mirrored ZIGi and a dropped name on the computer's last-tick frame, cramped phone chests) | **yes (marginal)** |
+| 8 (polish, confirming pass) | `9f2c16c1` | PASS | PASS | PASS (6 / 6 / 6 planets) | PASS | PASS | PASS, marginal | **yes**; two small regressions against iteration 7 (the phone tick's comet a short hook toward ZIGi; the computer cheer's peak touching a name), so one narrow fix round before the merge (owner, 20 Oct) |
 
 ## Iteration 1 — the critic's ranked improvements (sent to the lane)
 1. Land on the next node (open and after every tick: the next node at ≈ 40 % of the viewport, every width).
@@ -170,4 +171,15 @@ The lead sends these to the lane as one polish round, then a fresh critic confir
 4. Computer opening: ZIGi 10–20 px toward NEXT so it reads with NEXT, not with the name below.
 5. The comet ≥ 12 px clear of names.
 Owner item: arms-up cheer art.
+
+## Iteration 8 — the polish round and the owner's confirming pass
+The owner (20 Oct): after this polish round and one confirming critic pass, merge — no further iterations unless the
+confirming critic finds a regression. The confirming critic: every line passes; polish points 1–3 and 5 (computer) fixed,
+4 partly (ZIGi 9 px closer). Regressions against iteration 7, sent as one narrow fix round, checked by the lead on the named
+frames before the merge: (1) the phone tick's comet (rec-tick-p f05–f07) a ≈ 45 px stub bowing toward ZIGi and hooking
+onto NEXT's ring, where iteration 7 drew one round ≈ 70–90 px arc away from ZIGi; (2) the computer cheer's hop peak
+(rec-tick-d f07) touching the descenders of "Take all supplements", and a sparkle on the name (tick-d f06, tick-p f05);
+(3) on a phone, "Play piano 15 minutes" cut by the foot bar on the opening screen and "Read 5 pages" clipped at the toast
+(whole in iteration 7). Nits left as they are: phone chests smaller (the cost of point 3), the tablet's opening at 6
+planets, ZIGi on the computer's opening still close to the name below; the arms-up cheer art (owner item).
 
