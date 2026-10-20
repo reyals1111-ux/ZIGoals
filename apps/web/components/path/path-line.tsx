@@ -1,7 +1,8 @@
 'use client';
-import {useId, type CSSProperties} from 'react';
+import {useId, useLayoutEffect, useRef, type CSSProperties} from 'react';
 import {PATH_NEON_STOPS} from '../../lib/path/colours';
 import type {PathSegment} from '../../lib/path/model';
+import {entranceAllowed} from '../use-entrance';
 import {curve, type PathGeometry} from './use-path-geometry';
 
 /**
@@ -51,29 +52,54 @@ export function PathLine({geo, segments, rail = false, lead, tones}: {geo: PathG
   </svg>;
 }
 
-/** Session AF (L3b, rounds 3–4): the orbit look's comets fly over the planets (a layer of their own above the path), from
- *  the rim of the planet just ticked to the rim of the next one, arcing out to the side (round 4: at a phone's pitch the
- *  two planets nearly touch, so a comet along the line had nowhere to be seen). The head fades as it reaches the rim and
- *  the next planet's ring flashes (PathDot `arrive`). Drawn only while a segment is in `comets`; decorative. */
+/** Session AF (L3b, rounds 3–5): the orbit look's comets fly over the planets (a layer of their own above the path), from
+ *  the rim of the planet just ticked to the rim of the next one, arcing well out to the side (round 4: at a phone's pitch
+ *  the two planets nearly touch, so a comet along the line had nowhere to be seen). Round 5: an 18 px white-hot head in a
+ *  halo of the planet's colour and a 60–80 px tail, animated with each comet's own lengths (the Web Animations API: a CSS
+ *  keyframe reading a custom property stepped instead of gliding, so the tail never showed); the head fades at the rim and
+ *  the next planet's ring flashes (PathDot `arrive`). Drawn only while a segment is in `comets`; decorative; never under
+ *  reduced motion or Motion Off (CSS hides the layer). */
 const arc = (geo: PathGeometry, s: PathSegment) => {
   const a = geo.points[s.from], b = geo.points[s.to]; if (!a || !b) return null;
   const dx = b.x - a.x, dy = b.y - a.y, len = Math.max(1, Math.hypot(dx, dy)), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-  // Out toward the nearer edge of the stage, where the sky is open.
-  const sign = mx >= geo.w / 2 ? 1 : -1, nx = -dy / len, ny = dx / len, flip = nx * sign >= 0 ? 1 : -1, bulge = Math.max(56, Math.min(96, len * .7));
+  // Out toward the nearer edge of the stage, where the sky is open (but never past it).
+  const sign = mx >= geo.w / 2 ? 1 : -1, nx = -dy / len, ny = dx / len, flip = nx * sign >= 0 ? 1 : -1;
+  const room = sign > 0 ? geo.w - mx - 8 : mx - 8, bulge = Math.max(40, Math.min(150, Math.max(110, len * .9), room * 1.6));
   const cx = mx + nx * flip * bulge, cy = my + ny * flip * bulge;
   const rim = (p: {x: number; y: number; r?: number}) => { const ux = cx - p.x, uy = cy - p.y, ul = Math.max(1, Math.hypot(ux, uy)), r = (p.r ?? 0) + 2; return {x: p.x + ux / ul * r, y: p.y + uy / ul * r}; };
-  const st = rim(a), en = rim(b), f = (n: number) => n.toFixed(1), approx = Math.hypot(cx - st.x, cy - st.y) + Math.hypot(en.x - cx, en.y - cy);
-  return {d: `M${f(st.x)} ${f(st.y)} Q${f(cx)} ${f(cy)} ${f(en.x)} ${f(en.y)}`, tail: Math.min(.7, 72 / Math.max(1, approx))};
+  const st = rim(a), en = rim(b), f = (n: number) => n.toFixed(1);
+  // (A quadratic's length, closely enough: the mean of its chord and its control polygon.)
+  const chord = Math.hypot(en.x - st.x, en.y - st.y), poly = Math.hypot(cx - st.x, cy - st.y) + Math.hypot(en.x - cx, en.y - cy), length = (chord + poly) / 2;
+  return {d: `M${f(st.x)} ${f(st.y)} Q${f(cx)} ${f(cy)} ${f(en.x)} ${f(en.y)}`, tail: Math.min(.62, 74 / Math.max(1, length))};
 };
+const COMET = {duration: 1100, delay: 140, easing: 'cubic-bezier(.4, .08, .45, 1)', fill: 'both' as const};
+function Comet({id, d, tail, tone}: {id: string; d: string; tail: number; tone?: string}) {
+  const g = useRef<SVGGElement>(null);
+  useLayoutEffect(() => {
+    // (Never under reduced motion or Motion Off: there the layer is hidden, and nothing on the path may run.)
+    if (!entranceAllowed()) return;
+    const paths = [...(g.current?.querySelectorAll<SVGPathElement>('path') ?? [])];
+    const runs = paths.map(p => {
+      const near = p.classList.contains('path-comet-tail-near'), isTail = p.classList.contains('path-comet-tail'), l = near ? tail * .55 : tail;
+      const peak = isTail ? (near ? .9 : .6) : p.classList.contains('path-comet-halo') ? .75 : 1;
+      if (typeof p.animate !== 'function') return null;
+      return isTail
+        ? p.animate([{strokeDashoffset: l, opacity: 0}, {opacity: peak, offset: .08}, {opacity: peak, offset: .86}, {strokeDashoffset: l - 1, opacity: 0}], COMET)
+        : p.animate([{strokeDashoffset: 0, opacity: 0}, {opacity: peak, offset: .08}, {opacity: peak, offset: .86}, {strokeDashoffset: -1, opacity: 0}], COMET);
+    });
+    return () => runs.forEach(r => r?.cancel());
+  }, [d, tail]);
+  return <g ref={g} className="path-comet" data-segment={id} style={tone ? {'--seg': tone} as CSSProperties : undefined}>
+    <path className="path-comet-tail" d={d} fill="none" pathLength={1} strokeDasharray={`${tail.toFixed(3)} 2`}/>
+    <path className="path-comet-tail path-comet-tail-near" d={d} fill="none" pathLength={1} strokeDasharray={`${(tail * .55).toFixed(3)} 2`}/>
+    <path className="path-comet-halo" d={d} fill="none" pathLength={1}/>
+    <path className="path-comet-head" d={d} fill="none" pathLength={1}/>
+  </g>;
+}
 export function PathComets({geo, segments, comets, tones}: {geo: PathGeometry; segments: PathSegment[]; comets: Set<string>; tones?: Record<string, string>}) {
   const drawn = segments.filter(s => comets.has(s.id)).flatMap(s => { const c = arc(geo, s); return c ? [{...s, ...c}] : []; });
   if (!drawn.length) return null;
   return <svg className="path-line path-comets" width={geo.w} height={geo.h} viewBox={`0 0 ${geo.w} ${geo.h}`} aria-hidden="true" focusable="false">
-    {drawn.map(s => <g key={s.id} className="path-comet" data-segment={s.id} style={{...(tones?.[s.id] ? {'--seg': tones[s.id]} : {}), '--tail': s.tail.toFixed(3)} as CSSProperties}>
-      <path className="path-comet-tail" d={s.d} fill="none" pathLength={1}/>
-      <path className="path-comet-tail path-comet-tail-near" d={s.d} fill="none" pathLength={1}/>
-      <path className="path-comet-halo" d={s.d} fill="none" pathLength={1}/>
-      <path className="path-comet-head" d={s.d} fill="none" pathLength={1}/>
-    </g>)}
+    {drawn.map(s => <Comet key={s.id} id={s.id} d={s.d} tail={s.tail} tone={tones?.[s.id]}/>)}
   </svg>;
 }

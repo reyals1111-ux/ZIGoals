@@ -23,56 +23,80 @@ export const ZIGI_PATH_STATES: Record<ZigiMood | 'tick', string> = {empty: 'enco
  * figure with its animated clips (ZigiFigure: the clip only while motion is allowed, else the still), standing in the
  * open sky beside the next dot. `cheer` (a tick just landed beside it): two hops and a ring of sparkles, once (CSS).
  *
- * Round 4 (the critique: the celebrate frame reads as hands clutching the head, and its clip starts on the idle frame):
- * every cheer — a tick, an orbit, the day's end — shows ZIGi's waving greeting as a still from the first frame (its large
- * art where the skin has it), never the celebrate frame. The figures have no arms-up pose; that needs new art.
- * `fit` (a key that changes whenever the path's layout does): ZIGi measures the planets, names, banners, chests and the
- * NEXT tag around its planet and takes the first place that touches none — beside the planet on the preferred side, then
- * the other, centred, raised or half a step down — falling back to the place that touches least. Placed before paint.
+ * Round 4–5 (the critiques: the celebrate frame reads as hands clutching the head; the greeting's poster as a salute):
+ * every cheer — a tick, an orbit, the day's end, the day's celebration — shows one held frame of ZIGi's delivered greeting
+ * clip, the open hand raised with a wink (public/brand/checklist/zigi-cheer-wave*.webp: frame 24 of F002-greeting, never
+ * redrawn), with two hops, squash and stretch, a star burst behind and sparkles. The figures have no arms-up pose; that
+ * needs new art. At rest beside the next planet ZIGi points at it (`presenting`, mirrored when it stands on the left).
+ *
+ * `fit` (a key that changes whenever the path's layout does): ZIGi measures the planets (with the next one's ring), names,
+ * banners, chests, the NEXT tag and an open panel, each grown by 12 px, and takes the nearest place beside its planet where
+ * its drawn box touches none of them — either side, a little further out, higher or lower, and, only where nothing else is
+ * free, a little smaller — never past the screen. Placed before paint, again whenever the layout changes.
  */
-const CHEER_SPARKS = 12;
-type Lean = 'mid' | 'down' | 'up' | 'low';
-const LEANS: Lean[] = ['mid', 'down', 'up', 'low'];
-/** The waving greeting still, for every cheer: the poster's 2x, and the skin's large art on a dense screen when it has one. */
-function cheerStill(frames: ReturnType<typeof useZigiFrames>) {
-  const f = frames?.greeting ?? frames?.idle, x2 = f?.poster.x2 ?? SHELL_FRAME.x2, large = x2.endsWith('-2x.webp') ? x2.replace(/-2x\.webp$/, '-large.webp') : x2;
-  return {src: x2, srcSet: `${x2} 1x, ${large} 2x`};
+const CHEER_SPARKS = 12, CLEAR = 13; // (12 px, and one more so rounding never brings it under)
+type Side = 'left' | 'right';
+type Box = {left: number; top: number; right: number; bottom: number};
+const CHEER_STILL = {src: '/brand/checklist/zigi-cheer-wave-2x.webp', srcSet: '/brand/checklist/zigi-cheer-wave-2x.webp 1x, /brand/checklist/zigi-cheer-wave-large.webp 2x'};
+/** A planet's box with its orbit ring and moon (the next planet's), as drawn: the ring's own box turns, so it is read from
+ *  the dot's drawn box and the ring's layout size. */
+export function ringBox(dot: Element): Box {
+  const r = dot.getBoundingClientRect(), ring = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit'), own = (dot as HTMLElement).offsetWidth || r.width;
+  const extra = ring ? ((ring.offsetWidth - own) / 2 + 6) * (r.width / own) : 0;
+  return {left: r.left - extra, top: r.top - extra, right: r.right + extra, bottom: r.bottom + extra};
 }
-export function PathZigi({state, side, say, alive = false, centred = false, cheer = false, lean = 'mid', fit}: {state: string; side: 'left' | 'right'; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean; lean?: Lean; fit?: string}) {
+/** What ZIGi must stay clear of on the path (its own parts and, while it cheers, its own planet's name aside). */
+export function zigiObstacles(stage: Element, except: Element[]): Box[] {
+  return [...stage.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest-art, .path-chest-text, .path-next-tag, .path-panel')]
+    .filter(o => !except.some(e => e === o || e.contains(o)))
+    .map(o => o.classList.contains('path-dot') ? ringBox(o) : o.getBoundingClientRect())
+    .filter(r => r.right - r.left > 2 && r.bottom - r.top > 2);
+}
+const overlap = (a: Box, b: Box, grow: number) => Math.max(0, Math.min(a.right, b.right + grow) - Math.max(a.left, b.left - grow)) * Math.max(0, Math.min(a.bottom, b.bottom + grow) - Math.max(a.top, b.top - grow));
+const GAPS = [13, 15, 18, 21, 24, 28, 32, 38, 44, 52, 60, 70], SHIFTS = Array.from({length: 41}, (_, i) => (i % 2 ? -1 : 1) * Math.ceil(i / 2) * 6), SCALES = [1, .96, .92, .88, .85, .8, .75, .7];
+export function PathZigi({state, side, say, alive = false, centred = false, cheer = false, fit}: {state: string; side: Side; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean; fit?: string}) {
   const frames = useZigiFrames(), frame = frames?.[state] ?? frames?.idle;
   const poster = frame ? {src: frame.poster.x1, srcSet: `${frame.poster.x1} 1x, ${frame.poster.x2} 2x`} : {src: SHELL_FRAME.x1, srcSet: `${SHELL_FRAME.x1} 1x, ${SHELL_FRAME.x2} 2x`};
-  const ref = useRef<HTMLSpanElement>(null), [place, setPlace] = useState<{side: 'left' | 'right'; lean: Lean} | null>(null);
+  const ref = useRef<HTMLSpanElement>(null), [place, setPlace] = useState<{left: number; top: number; side: Side; scale: number} | null>(null), scaled = useRef(1);
   useLayoutEffect(() => {
     const el = ref.current, node = el?.parentElement, stage = el?.closest('.path-stage');
     if (!alive || fit === undefined || !el || !node || !stage) return;
-    // (Its bounds: the screen, less a small margin — the figure may stand past the path's own box, never past the screen.)
-    const n = node.getBoundingClientRect(), z = el.getBoundingClientRect(), box = {left: 6, right: document.documentElement.clientWidth - 6}, w = z.width, h = z.height;
-    if (!w || !h) return;
-    const gap = node.closest('[data-next]') ? 20 : 14;
-    // (While it cheers, its own planet's name may give way: it steps back for that moment, CSS.)
+    const measure = () => {
+    // (Its planet; at the day's end, the trophy.)
+    // (Its full size: the box it has now, undone by the scale it was last given.)
+    const w0 = el.offsetWidth / scaled.current, h0 = el.offsetHeight / scaled.current, dot = node.querySelector(':scope > .path-dot') ?? node.querySelector(':scope > .path-chest-art');
+    if (!w0 || !h0 || !dot) return;
+    const n = node.getBoundingClientRect(), ring = ringBox(dot), cy = (ring.top + ring.bottom) / 2, right = document.documentElement.clientWidth - 4;
+    // (While it cheers, its own planet's name steps back for that moment, CSS.)
     const own = cheer ? node.querySelector(':scope > .path-label') : null;
-    const others = [...stage.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')].filter(o => !el.contains(o) && o !== own).map(o => o.getBoundingClientRect()).filter(r => r.width > 0 && r.height > 0);
-    const at = (s: 'left' | 'right', l: Lean) => {
-      const left = s === 'right' ? n.right + gap : n.left - gap - w, top = l === 'down' ? n.top - 16 - h * .06 : l === 'up' ? n.bottom + 18 - h : l === 'low' ? n.top + n.height * .55 : n.top + n.height / 2 - h / 2;
-      return {left, top, right: left + w, bottom: top + h};
+    const others = zigiObstacles(stage, [el, ...(own ? [own] : [])]);
+    let best = null as {box: Box; side: Side; scale: number; cost: number} | null;
+    for (const scale of SCALES) {
+      const w = w0 * scale, h = h0 * scale;
+      for (const s of [side, side === 'left' ? 'right' : 'left'] as Side[]) for (const gap of GAPS) for (const dy of SHIFTS) {
+        const left = s === 'right' ? ring.right + gap : ring.left - gap - w, top = cy + dy - h / 2, box = {left, top, right: left + w, bottom: top + h};
+        const hit = others.reduce((sum, o) => sum + overlap(box, o, CLEAR), 0), out = Math.max(0, 4 - box.left) + Math.max(0, box.right - right);
+        // (Level with its planet matters more than full size: a figure far above or below reads as another planet's.)
+        const cost = (hit > 0 || out > 0 ? 1e6 + hit + out * 1000 : 0) + gap * .7 + Math.abs(dy) * 1.3 + (s === side ? 0 : 24) + (1 - scale) * 500;
+        if (!best || cost < best.cost) best = {box, side: s, scale, cost};
+      }
+      if (best && best.cost < 1e6) break;
+    }
+    if (!best) return;
+    const next = {left: Math.round(best.box.left - n.left), top: Math.round(best.box.top - n.top), side: best.side, scale: best.scale};
+    scaled.current = best.scale;
+    setPlace(p => p && p.left === next.left && p.top === next.top && p.side === next.side && p.scale === next.scale ? p : next);
     };
-    const cost = (r: {left: number; top: number; right: number; bottom: number}) => {
-      // (The figure's art fills about its middle two thirds across and starts below the picture's top: its transparent sides
-      // and top may touch.)
-      const inset = w * .16, l = r.left + inset, rr = r.right - inset, t = r.top + h * .08;
-      const out = Math.max(0, box.left - r.left) + Math.max(0, r.right - box.right);
-      return out * 1000 + others.reduce((sum, o) => sum + Math.max(0, Math.min(rr, o.right) - Math.max(l, o.left)) * Math.max(0, Math.min(r.bottom, o.bottom) - Math.max(t, o.top)), 0);
-    };
-    const sides: ('left' | 'right')[] = [side, side === 'left' ? 'right' : 'left'];
-    const order = [lean, ...LEANS.filter(x => x !== lean)];
-    let best: {side: 'left' | 'right'; lean: Lean; c: number} | null = null;
-    for (const s of sides) for (const l of order) { const c = cost(at(s, l)); if (!best || c < best.c) best = {side: s, lean: l, c}; if (c === 0) break; }
-    const choice = best && {side: best.side, lean: best.lean};
-    setPlace(p => p && choice && p.side === choice.side && p.lean === choice.lean ? p : choice);
-  }, [alive, fit, side, lean, state, cheer]);
-  const shownSide = place?.side ?? side, shownLean = place?.lean ?? lean, cheering = alive && (cheer || state === 'celebrate');
-  return <span ref={ref} className="path-zigi" data-side={shownSide} data-lean={alive ? shownLean : undefined} data-zigi-state={cheering ? 'cheer' : state} data-alive={alive || undefined} data-centred={centred || undefined} data-cheer={alive && cheer ? '' : undefined} aria-hidden="true">
-    {cheering ? <span key={cheer ? 'cheer' : state} className="path-zigi-figure"><span className="zigi zigi-figure zigi-cheer"><ZigiImage poster={cheerStill(frames)} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span></span>
+    // Now, before paint; and again once a tick's own motion (a planet filling, a chest or the trophy opening) has settled.
+    measure();
+    const timers = [320, 1300].map(ms => window.setTimeout(measure, ms));
+    return () => timers.forEach(t => window.clearTimeout(t));
+  }, [alive, fit, side, state, cheer]);
+  const shownSide = place?.side ?? side, cheering = alive && (cheer || state === 'celebrate');
+  const placed = alive && place ? {left: place.left, top: place.top, right: 'auto', bottom: 'auto', translate: 'none', ...(place.scale !== 1 ? {height: `calc(var(--zigi-h) * ${place.scale})`, width: `calc(var(--zw) * ${place.scale})`} : {})} as CSSProperties : undefined;
+  return <span ref={ref} className="path-zigi" data-side={shownSide} data-placed={place && alive ? '' : undefined} data-zigi-state={cheering ? 'cheer' : state} data-alive={alive || undefined} data-centred={centred || undefined} data-cheer={alive && cheer ? '' : undefined} aria-hidden="true" style={placed}>
+    {alive && cheer && <span className="path-zigi-burst"/>}
+    {cheering ? <span key={cheer ? 'cheer' : state} className="path-zigi-figure"><span className="zigi zigi-figure zigi-cheer"><ZigiImage poster={CHEER_STILL} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span></span>
       : alive ? <span key={state} className="path-zigi-figure"><ZigiFigure state={state}/></span>
       : <span key={state} className={`zigi zigi-${state} path-zigi-figure`} data-state={state}><ZigiImage poster={poster} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>}
     {alive ? <span className="path-zigi-ground"/> : <span className="path-zigi-arrow"/>}
@@ -81,8 +105,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
   </span>;
 }
 
-/** The waving greeting still for a cheer outside the path (the day's celebration): ZIGi's large art where the skin has it. */
+/** The cheer still outside the path (the day's celebration). */
 export function ZigiCheer() {
-  const frames = useZigiFrames(), still = cheerStill(frames);
-  return <span className="zigi zigi-figure zigi-cheer"><ZigiImage poster={still} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>;
+  return <span className="zigi zigi-figure zigi-cheer"><ZigiImage poster={CHEER_STILL} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>;
 }

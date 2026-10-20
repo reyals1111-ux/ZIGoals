@@ -50,14 +50,13 @@
 .path-stage[data-variant=orbit] :is(.path-segment-lit, .path-segment-glow) { transition-duration: 640ms; transition-delay: 160ms; }
 /* (The comets' own layer, over the planets and ZIGi, under the jump button.) */
 .path-stage[data-variant=orbit] .path-comets { z-index: 4; }
-.path-comet > path { stroke-linecap: round; animation: path-comet-head 1000ms cubic-bezier(.45, .05, .4, 1) 160ms both; }
-.path-comet-head { stroke: #ffffff; stroke-width: 10; stroke-dasharray: .001 2; }
-.path-comet-halo { stroke: var(--seg, #9ff6ff); stroke-width: 22; stroke-dasharray: .001 2; opacity: .75; }
-.path-comet > .path-comet-tail { stroke: var(--seg, #9ff6ff); stroke-width: 5; stroke-dasharray: var(--tail, .4) 2; opacity: .5; animation-name: path-comet-tail; }
-.path-comet > .path-comet-tail-near { stroke: #ffffff; stroke-width: 6; stroke-dasharray: calc(var(--tail, .4) * .45) 2; opacity: .8; animation-name: path-comet-tail-near; }
-@keyframes path-comet-head { 0% { stroke-dashoffset: 0; opacity: 0; } 8% { opacity: 1; } 88% { opacity: 1; } 100% { stroke-dashoffset: -1; opacity: 0; } }
-@keyframes path-comet-tail { 0% { stroke-dashoffset: var(--tail, .4); opacity: 0; } 8% { opacity: .55; } 88% { opacity: .55; } 100% { stroke-dashoffset: calc(var(--tail, .4) - 1); opacity: 0; } }
-@keyframes path-comet-tail-near { 0% { stroke-dashoffset: calc(var(--tail, .4) * .45); opacity: 0; } 8% { opacity: .85; } 88% { opacity: .85; } 100% { stroke-dashoffset: calc(var(--tail, .4) * .45 - 1); opacity: 0; } }
+/* Round 5: an 18 px white-hot head in a 34 px halo of the planet's colour, and a 60–80 px tail tapering in two strokes; the
+   motion itself is each comet's own (path-line.tsx, the Web Animations API), drawn hidden until it starts. */
+.path-comet > path { stroke-linecap: round; opacity: 0; }
+.path-comet-head { stroke: #ffffff; stroke-width: 18; stroke-dasharray: .001 2; }
+.path-comet-halo { stroke: var(--seg, #9ff6ff); stroke-width: 34; stroke-dasharray: .001 2; }
+.path-comet > .path-comet-tail { stroke: var(--seg, #9ff6ff); stroke-width: 14; }
+.path-comet > .path-comet-tail-near { stroke: #ffffff; stroke-width: 8; }
 
 /* A name beside its planet, toward the path's middle: one line from a tablet up, two at most on a phone; no box, a halo. */
 .path-stage[data-variant=orbit] .path-label { top: 50%; translate: 0 -50%; display: block; width: max-content; max-width: min(272px, calc(50cqi + var(--toward, 1) * var(--reach, 0) * var(--swing) - var(--dot-size) / 2 - var(--label-gap) - 6px)); padding: 0; background: none; color: var(--text, #f0f5ff); font-size: var(--label-font); line-height: 1.25; font-weight: 750; letter-spacing: -.005em; text-shadow: 0 1px 2px #02061499, 0 0 14px #020614cc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -82,8 +81,19 @@
 .path-stage[data-variant=orbit] .path-step[data-next] { --dot-next: var(--step-colour, #23eaff); }
 .path-stage[data-variant=orbit] .path-step[data-next] .path-label { color: var(--text, #f0f5ff); font-weight: 850; }
 /* (The next planet is a size larger with a ring around it: its name stands clear of the ring.) */
-.path-stage[data-variant=orbit] .path-step[data-next] .path-label[data-side=right] { left: calc(100% + var(--label-gap) + 12px); }
-.path-stage[data-variant=orbit] .path-step[data-next] .path-label[data-side=left] { right: calc(100% + var(--label-gap) + 12px); }
+.path-stage[data-variant=orbit] { --ring: 14px; }
+/* (12 px clear of the ring the next planet wears: the planet is a size larger, the ring stands out around it.) */
+.path-stage[data-variant=orbit] .path-step[data-next] { --next-gap: calc(var(--dot-size) * .075 + var(--ring) * 1.15 + 12px); }
+.path-stage[data-variant=orbit] .path-step[data-next] .path-label[data-side=right] { left: calc(100% + var(--next-gap)); }
+.path-stage[data-variant=orbit] .path-step[data-next] .path-label[data-side=left] { right: calc(100% + var(--next-gap)); }
+.path-stage[data-variant=orbit] .path-step[data-next] .path-label { max-width: min(272px, calc(50cqi + var(--toward, 1) * var(--reach, 0) * var(--swing) - var(--dot-size) / 2 - var(--next-gap) - 4px)); }
+@media (max-width: 640px) {
+  .path-stage[data-variant=orbit] { --ring: 7px; }
+  .path-stage[data-variant=orbit] .path-step[data-next] .path-label { max-width: min(176px, calc(50cqi + var(--toward, 1) * var(--reach, 0) * var(--swing) - var(--dot-size) / 2 - var(--next-gap) - 2px)); }
+  /* (More room around the next planet: its ring never touches the planets before and after it, and ZIGi stands beside it
+     at full size between the names and banners around it.) */
+  .path-stage[data-variant=orbit] .path-step[data-next] { padding-block: 14px 22px; }
+}
 /* The orbit path may reach past its own box (ZIGi near the screen's edge); the overlay itself never scrolls sideways. */
 .path-stage[data-variant=orbit] { overflow-x: visible; }
 @media (max-width: 640px) { .path-next-tag { top: -13px; padding: 2px 8px 3px; font-size: 13px; } }
@@ -119,9 +129,9 @@
 /* The next planet: a soft pulse and an orbit with a small moon. */
 .path-dot-pulse { position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--dot) 0%, transparent) 54%, color-mix(in srgb, var(--dot) 55%, transparent) 70%, color-mix(in srgb, var(--dot) 0%, transparent) 73%); pointer-events: none; animation: path-pulse 2200ms ease-out infinite; }
 @keyframes path-pulse { 0% { opacity: .95; transform: scale(.94); } 70% { opacity: 0; transform: scale(1.5); } 100% { opacity: 0; transform: scale(1.5); } }
-.path-dot-orbit { position: absolute; inset: -14px; border-radius: 50%; border: 2.5px dashed color-mix(in srgb, var(--dot) 70%, transparent); pointer-events: none; animation: path-orbit-turn 12s linear infinite; }
-.path-stage[data-variant=orbit] .path-dot[data-arrive] .path-dot-orbit { animation: path-orbit-turn 12s linear infinite, path-ring-flash 700ms ease-out 1060ms both; }
-.path-stage[data-variant=orbit] .path-dot[data-arrive] { animation: path-arrive-glow 800ms ease-out 1060ms both; }
+.path-dot-orbit { position: absolute; inset: calc(-1 * var(--ring, 14px)); border-radius: 50%; border: 2.5px dashed color-mix(in srgb, var(--dot) 70%, transparent); pointer-events: none; animation: path-orbit-turn 12s linear infinite; }
+.path-stage[data-variant=orbit] .path-dot[data-arrive] .path-dot-orbit { animation: path-orbit-turn 12s linear infinite, path-ring-flash 700ms ease-out 1180ms both; }
+.path-stage[data-variant=orbit] .path-dot[data-arrive] { animation: path-arrive-glow 800ms ease-out 1180ms both; }
 @keyframes path-ring-flash { 0% { border-color: #ffffff; box-shadow: 0 0 0 0 #ffffffcc; } 40% { border-color: #ffffff; box-shadow: 0 0 22px 6px color-mix(in srgb, var(--dot) 80%, #ffffff); } 100% { box-shadow: 0 0 0 0 #ffffff00; } }
 @keyframes path-arrive-glow { 0% { filter: brightness(1); } 35% { filter: brightness(1.35); } 100% { filter: brightness(1); } }
 .path-dot-orbit i { position: absolute; left: 50%; top: -6px; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, var(--dot) 70%); box-shadow: 0 0 10px var(--dot); }
@@ -187,7 +197,7 @@
 /* Round 4: a chest rides its orbit's last planet half a step down, beside it and the line (away from the name), 52 px on
    a phone and 64 on a computer, warm gold with a soft glow — so it takes almost no height; reached, its lid flies open
    with a gold burst and sparks. */
-.path-stage[data-variant=orbit] .path-chest[data-inline] { --chest: 52px; position: absolute; left: 50%; top: calc(100% - var(--chest) * .38); z-index: 1; display: block; width: var(--chest); height: calc(var(--chest) * .86); margin: 0; padding: 0; translate: calc(-50% + var(--chest-shift, 0px)) 0; }
+.path-stage[data-variant=orbit] .path-chest[data-inline] { --chest: 64px; position: absolute; left: 50%; top: calc(100% - var(--chest) * .38); z-index: 1; display: block; width: var(--chest); height: calc(var(--chest) * .86); margin: 0; padding: 0; translate: calc(-50% + var(--chest-shift, 0px)) 0; }
 .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=left] { --chest-shift: calc(var(--dot-size) / 2 + var(--chest) / 2 + 8px); }
 .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=right] { --chest-shift: calc(var(--dot-size) / -2 - var(--chest) / 2 - 8px); }
 .path-stage[data-variant=orbit] .path-chest[data-inline] .path-chest-art { display: block; width: 100%; height: 100%; opacity: .95; filter: drop-shadow(0 0 10px #ffd27a80) drop-shadow(0 6px 10px #00000059); }
@@ -201,7 +211,9 @@
 @keyframes path-chest-pop { 0% { transform: scale(1); } 30% { transform: scale(1.35) rotate(-6deg); } 60% { transform: scale(.95) rotate(3deg); } 100% { transform: none; } }
 @keyframes path-chest-fly { 0% { transform: none; } 40% { transform: rotate(-58deg) translate(-4px, -16px); } 100% { transform: rotate(-38deg) translate(-3px, -9px); } }
 .path-stage[data-variant=orbit] .path-step:has(> .path-panel) .path-chest[data-inline] { visibility: hidden; }
-@media (min-width: 1180px) { .path-stage[data-variant=orbit] .path-chest[data-inline] { --chest: 64px; } }
+/* (The chest's art fills about three quarters of its box: 64 px seen on a computer, 54 on a tablet, 48 on a phone.) */
+@media (min-width: 641px) { .path-stage[data-variant=orbit] .path-chest[data-inline] { --chest: 72px; } }
+@media (min-width: 1180px) { .path-stage[data-variant=orbit] .path-chest[data-inline] { --chest: 86px; } }
 .path-stage[data-variant=orbit] .path-chest[data-on-path]:not([data-inline]) { position: relative; display: grid; justify-items: center; gap: 2px; justify-self: center; width: auto; max-width: none; margin: 0; padding: 0; translate: calc(var(--offset, 0) * var(--swing)) 0; text-align: center; }
 .path-stage[data-variant=orbit] .path-chest[data-on-path] .path-chest-text { justify-items: center; max-width: var(--cap, 200px); color: var(--text, #f0f5ff); font-size: 14px; text-shadow: 0 1px 2px #02061499, 0 0 12px #020614cc; }
 .path-stage[data-variant=orbit] .path-chest[data-on-path] .path-chest-text strong { font-size: 14px; font-weight: 750; }
@@ -229,10 +241,6 @@
    own soft coloured glow in every theme (no grey shadow on a white sky). */
 .path-stage[data-variant=orbit] .path-zigi[data-alive] { --zw: calc(var(--zigi-h) * .762); position: absolute; top: 50%; bottom: auto; translate: 0 -50%; display: block; width: var(--zw); height: var(--zigi-h); z-index: 3; }
 /* (Down: the figure's head — under the transparent top of its picture — just clear of a banner above the planet.) */
-.path-stage[data-variant=orbit] .path-zigi[data-alive][data-lean=down] { top: calc(-16px - var(--zigi-h) * .06); translate: none; }
-.path-stage[data-variant=orbit] .path-zigi[data-alive][data-lean=up] { top: auto; bottom: -18px; translate: none; }
-/* (Half a step down, where both sides are busy at the planet's own height.) */
-.path-stage[data-variant=orbit] .path-zigi[data-alive][data-lean=low] { top: 55%; translate: none; }
 /* While ZIGi cheers on its planet's name side, the name steps back for that moment. */
 .path-stage[data-variant=orbit] .path-node:has(> .path-zigi[data-cheer][data-side=left]) > .path-label[data-side=left], .path-stage[data-variant=orbit] .path-node:has(> .path-zigi[data-cheer][data-side=right]) > .path-label[data-side=right] { opacity: 0; }
 .path-stage[data-variant=orbit] .path-zigi[data-alive][data-side=right] { left: calc(100% + 14px); right: auto; }
@@ -242,12 +250,17 @@
 .path-stage[data-variant=orbit] .path-zigi[data-alive] .path-zigi-figure { position: relative; z-index: 1; display: block; width: 100%; height: 100%; filter: none; }
 .path-stage[data-variant=orbit] .path-zigi[data-alive] .path-zigi-figure .zigi { width: 100%; height: 100%; }
 .path-stage[data-variant=orbit] .path-zigi[data-alive] .path-zigi-figure img { filter: drop-shadow(0 10px 14px #6b4dff59); }
+/* At rest ZIGi points at its planet: the pointing art points left, so on the planet's left it is mirrored. */
+.path-stage[data-variant=orbit] .path-zigi[data-alive][data-side=left]:not([data-zigi-state=cheer]) .path-zigi-figure { transform: scaleX(-1); }
 .path-zigi-ground { position: absolute; left: 14%; right: 14%; bottom: -2px; height: 14%; border-radius: 50%; background: radial-gradient(closest-side, #9273ff73, #23eaff26 62%, #23eaff00); }
 .path-stage[data-variant=orbit] .path-chest .path-zigi[data-alive] { --zigi-h: 170px; top: auto; bottom: 18px; left: calc(50% + 58px); right: auto; translate: none; }
 @media (max-width: 640px) { .path-stage[data-variant=orbit] .path-chest .path-zigi[data-alive] { --zigi-h: 132px; left: calc(50% + 42px); } }
 /* ZIGi's cheer when a tick lands beside it: arms up (its celebrate pose), two hops and a ring of sparkles, once. */
-.path-zigi[data-cheer] .path-zigi-figure { animation: path-zigi-hop 1400ms cubic-bezier(.3, .7, .4, 1) both; }
-@keyframes path-zigi-hop { 0% { transform: translateY(0); } 14% { transform: translateY(-16px) scale(1.05); } 28% { transform: translateY(0) scale(1.04, .97); } 42% { transform: translateY(-12px) scale(1.03); } 58% { transform: none; } 100% { transform: none; } }
+.path-zigi[data-cheer] .path-zigi-figure { transform-origin: 50% 100%; animation: path-zigi-hop 1400ms linear both; }
+/* A star burst behind the figure: soft gold rays and a glow, turning a little as they fade. */
+.path-zigi-burst { position: absolute; left: 50%; top: 42%; z-index: 0; width: 190%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; background: radial-gradient(closest-side, #fff4d1cc, #ffd27a66 32%, #ff74be26 58%, #ff74be00 72%), repeating-conic-gradient(from 0deg, #ffe39a00 0deg, #ffe39acc 3deg, #ffe39a00 7deg 22.5deg); -webkit-mask: radial-gradient(closest-side, #000 40%, #0000); mask: radial-gradient(closest-side, #000 40%, #0000); pointer-events: none; animation: path-zigi-burst 1300ms ease-out both; }
+@keyframes path-zigi-burst { 0% { opacity: 0; transform: scale(.3) rotate(-20deg); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1) rotate(25deg); } }
+@keyframes path-zigi-hop { 0% { transform: none; } 8% { transform: scale(1.08, .9); } 22% { transform: translateY(-22px) scale(.94, 1.08); } 36% { transform: translateY(0) scale(1.1, .88); } 46% { transform: scale(1.06, .92); } 58% { transform: translateY(-18px) scale(.95, 1.07); } 72% { transform: translateY(0) scale(1.08, .9); } 82% { transform: none; } 100% { transform: none; } }
 .path-zigi-cheer { position: absolute; left: 50%; top: 34%; z-index: 2; width: 0; height: 0; pointer-events: none; }
 .path-zigi-cheer i { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; background: #ffd27a; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); opacity: 0; animation: path-zigi-spark 1100ms cubic-bezier(.15, .7, .3, 1) 60ms both; }
 .path-zigi-cheer i[data-tone='1'] { background: #ffffff; }
@@ -266,7 +279,7 @@
 :root[data-theme=light] .path-stage[data-variant=orbit] .path-jump { border-color: #9273ff66; background: radial-gradient(circle at 35% 28%, #ffffff, #eef0fb 72%); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #9273ff33; }
 
 /* On a phone the next planet's ring hugs it, so it never reaches its neighbours at the path's pitch. */
-@media (max-width: 640px) { .path-stage[data-variant=orbit] .path-dot-orbit { inset: -7px; } .path-stage[data-variant=orbit] .path-dot-pulse { inset: -5px; } }
+@media (max-width: 640px) { .path-stage[data-variant=orbit] .path-dot-pulse { inset: -5px; } }
 
 /* Stills: reduced motion and Motion Off show the next planet's ring, moon and bubble, at rest. */
 @media (prefers-reduced-motion: reduce) { .path-dot-pulse { opacity: .45; transform: scale(1.12); } .path-comets { display: none; } }

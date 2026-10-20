@@ -13,7 +13,7 @@ import {PathZigi} from './path-zigi';
  * it rides its planet's node, on the line just below it, with no name on the path (its name and state stay for screen
  * readers).
  */
-export type ChestOnPath = {offset: number; trophy: boolean; zigi: string | null; inline?: boolean};
+export type ChestOnPath = {offset: number; trophy: boolean; zigi: string | null; inline?: boolean; fit?: string};
 export function PathChest({milestone, just, side, uid, onPath}: {milestone: PlacedMilestone; just: boolean; side: 'left' | 'right'; uid: string; onPath?: ChestOnPath}) {
   const gold = `path-chest-gold-${uid}-${milestone.id.replace(/[^a-zA-Z0-9]/g, '')}`;
   const reward = [milestone.reward?.badge ? `Badge: ${milestone.reward.badge}` : null, milestone.reward?.xp ? `+${milestone.reward.xp} XP` : null].filter(Boolean).join(' · ');
@@ -32,7 +32,7 @@ export function PathChest({milestone, just, side, uid, onPath}: {milestone: Plac
       <span className="path-chest-sparks"><i/><i/><i/><i/><i/><i/></span>
     </span>
     <span className={onPath?.inline ? 'path-chest-text sr-only' : 'path-chest-text'}><strong>{text}</strong>{milestone.reached && reward ? <small>{reward}</small> : null}<span className="sr-only">{milestone.reached ? ' (reached)' : ' (not reached yet)'}</span></span>
-    {onPath?.zigi && <PathZigi state={onPath.zigi} side="right" alive/>}
+    {onPath?.zigi && <PathZigi state={onPath.zigi} side="right" alive fit={onPath.fit}/>}
   </Root>;
 }
 

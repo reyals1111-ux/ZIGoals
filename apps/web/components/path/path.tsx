@@ -9,7 +9,7 @@ import {PathDot} from './path-dot';
 import {PathComets, PathLine} from './path-line';
 import {PathBanner} from './path-section';
 import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
-import {usePathGeometry} from './use-path-geometry';
+import {usePathGeometry, type PathGeometry} from './use-path-geometry';
 import './path.css';
 
 /**
@@ -69,22 +69,39 @@ function scrollerOf(el: HTMLElement): HTMLElement | null {
   return null;
 }
 const sideOf = (offset: number): 'left' | 'right' => offset > 0 ? 'left' : 'right';
-/** Round 4 (the orbit look): the names alternate sides planet by planet, as a learning path's do — except at the wave's
- *  far ends, where only the side toward the middle has room, and for a long name (it takes the roomier side, so it wraps
- *  onto two lines instead of being cut). */
-const LONG_NAME = 20;
-function orbitLabelSides(steps: {id: string; label: string}[], swing: (i: number) => number, nextId: string | null): ('left' | 'right')[] {
-  const out: ('left' | 'right')[] = [];
-  steps.forEach((step, i) => {
-    const o = swing(i), inner = o > 0 ? 'left' : o < 0 ? 'right' : null, before = out[i - 1] ?? 'right';
-    let side: 'left' | 'right' = Math.abs(o) >= 1 && inner ? inner : before === 'left' ? 'right' : 'left';
-    if (inner && side !== inner && step.label.length > LONG_NAME) side = inner;
-    // The next planet keeps the roomier side (toward the middle) for ZIGi, its name taking the other — unless the name is
-    // long, or the planet stands at the wave's far end, where only the middle has room for a name.
-    if (step.id === nextId && inner && Math.abs(o) < 1 && step.label.length <= LONG_NAME) side = inner === 'left' ? 'right' : 'left';
-    out.push(side);
+/** Rounds 4–5 (the orbit look): the names alternate sides planet by planet, as a learning path's do — a name that has no
+ *  room on its turn's side (the wave's far ends; a long name on a phone) takes the other. Round 5: ZIGi's side beside the
+ *  next planet is chosen first — the side with room for the figure that neither neighbour winds toward — and the next
+ *  planet's name and its neighbours' names move off that side where they have room, so ZIGi stands in clear sky. The room
+ *  is read from the path's measured geometry once it is there (before that, from the wave alone). */
+type Side = 'left' | 'right';
+const flip = (s: Side): Side => s === 'left' ? 'right' : 'left';
+function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => number, nextAt: number, geo: PathGeometry | null): {labels: Side[]; zigi: Side} {
+  const phone = !!geo && geo.w < 560, cw = phone ? 8.4 : 8.8, maxW = phone ? 176 : 272, zw = !geo ? 0 : phone ? 101 : geo.w < 900 ? 128 : 152;
+  const point = (i: number) => geo?.points[steps[i]?.id ?? ''];
+  // (The next planet's name stands further out, clear of its ring.)
+  const room = (i: number, side: Side) => { const p = point(i); if (!geo || !p) return null; const r = (p.r ?? 40) + (i === nextAt ? 16 : 0); return Math.min(maxW, side === 'left' ? p.x - r - 16 : geo.w - p.x - r - 16); };
+  const fits = (i: number, side: Side) => {
+    const w = room(i, side), o = swing(i); if (w === null) return Math.abs(o) < 1 || (o > 0) === (side === 'left');
+    const label = steps[i]!.label, longest = Math.max(...label.split(/\s+/).map(x => x.length));
+    return phone ? longest * cw <= w && label.length * cw <= w * 1.9 : label.length * cw <= w;
+  };
+  const labels: Side[] = [];
+  steps.forEach((_, i) => {
+    let side: Side = (labels[i - 1] ?? 'right') === 'left' ? 'right' : 'left';
+    if (!fits(i, side)) side = fits(i, flip(side)) ? flip(side) : (room(i, 'left') ?? 0) >= (room(i, 'right') ?? 0) ? 'left' : 'right';
+    labels.push(side);
   });
-  return out;
+  if (nextAt < 0 || nextAt >= steps.length) return {labels, zigi: 'right'};
+  const o = swing(nextAt), inner: Side = o > 0 ? 'left' : 'right';
+  const score = (side: Side) => {
+    const p = point(nextAt), fitsZigi = !geo || !p ? true : (side === 'left' ? p.x - (p.r ?? 40) * 1.35 - 14 : geo.w - p.x - (p.r ?? 40) * 1.35 - 14) >= zw;
+    const toward = [nextAt - 1, nextAt + 1].filter(k => k >= 0 && k < steps.length).filter(k => { const dx = swing(k) - o; return side === 'right' ? dx > 0 : dx < 0; }).length;
+    return (fitsZigi ? 0 : 100) + toward * 10 + (fits(nextAt, flip(side)) ? 0 : 15) + (side === inner ? 0 : 1);
+  };
+  const zigi: Side = score('left') <= score('right') ? 'left' : 'right';
+  for (const k of [nextAt - 1, nextAt, nextAt + 1]) if (k >= 0 && k < steps.length && labels[k] === zigi && fits(k, flip(zigi))) labels[k] = flip(zigi);
+  return {labels, zigi};
 }
 
 /** Steps (and chests) that have just changed into done / reached since the last render, for their one-time motion. */
@@ -140,7 +157,10 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   useEffect(() => () => window.clearTimeout(cheerTimer.current), []);
   const zigiState = zigi === false ? null : zigi.state ?? (cheer && anchor.mood !== 'done' ? ZIGI_PATH_STATES.tick : ZIGI_PATH_STATES[anchor.mood]);
   const zigiAt = orbit ? cheerAt?.id ?? next?.id ?? null : next?.id ?? null;
-  const zigiNow = orbit && cheerAt ? cheerAt.state : orbit && zigiState === ZIGI_PATH_STATES.tick ? ZIGI_PATH_STATES[anchor.mood] : zigiState;
+  // Round 5 (the orbit look): at rest beside the next planet ZIGi points at it (`presenting`, art of its own) whatever the
+  // day's mood — the half-way `proud` and `success` have no art of their own and wear the celebrate frame (hands on the
+  // head) — and at the day's end it cheers at the trophy.
+  const zigiNow = orbit && cheerAt ? cheerAt.state : orbit && zigiState ? (anchor.mood === 'done' ? ZIGI_PATH_STATES.done : 'presenting') : zigiState;
 
   // The orbit look lands on the next planet: on opening (at once), and after a tick that leaves it outside the comfortable
   // middle of the screen (a moment later, gliding unless motion is off), it is brought to about 40 % of the screen's height.
@@ -226,7 +246,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Round 3: the comet runs on from the planet just ticked to the next one; with no such stretch (the next is elsewhere), along
   // the stretch the tick lit.
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
-  const labelSides = orbit ? orbitLabelSides(steps, swingOf, next?.id ?? null) : null;
+  const sides = orbit ? orbitSides(steps, swingOf, next ? steps.findIndex(x => x.id === next.id) : -1, geo) : null, labelSides = sides?.labels ?? null;
   // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
   const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheerAt?.id ?? ''}` : undefined;
   const comets = orbit ? new Set((onward.length ? onward : segments.filter(s => (just.has(s.from) || just.has(s.to)) && s.lit)).map(s => s.id)) : undefined;
@@ -242,13 +262,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
         <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading} meter={orbit} justComplete={just.has(`s:${section.id}`)}/>
         <ol className="path-steps">
-          {section.steps.map((step, j) => {
+          {section.steps.map(step => {
             const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
-            // The orbit look: ZIGi (on the side away from the name) first tries leaning away from the neighbour that winds
-            // toward it, and from the banner over an orbit's first planet or the chest and banner after its last; then it
-            // measures (PathZigi `fit`).
-            const towardZigi = (k: number) => (swingOf(k) - offset) * (side === 'left' ? 1 : -1) > 0, first = j === 0, last = j === section.steps.length - 1;
-            const lean = !orbit || (first && last) ? 'mid' : first ? 'down' : last ? 'up' : towardZigi(i - 1) ? 'down' : towardZigi(i + 1) ? 'up' : 'mid';
             // (The name's room: toward the path's middle it has the wave's reach to spare, away from it the reach is lost.)
             const toward = !orbit || offset === 0 ? 0 : (offset > 0) === (side === 'left') ? 1 : -1;
             const all = chestsAfter.get(step.id) ?? [];
@@ -261,7 +276,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
                   <span className="path-label" data-side={side}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheerAt?.id === step.id} lean={lean} fit={zigiFit}/>}
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheerAt && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheerAt?.id === step.id} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
@@ -269,7 +284,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
               {chests.map(m => {
                 const after = layout === 'snake' ? swingOf(i + 1) : 0, around = offset + after;
                 // The orbit look sets a chest on the path itself, half way between its two dots; the day's end is a trophy.
-                const onPath = orbit ? {offset: m.at === 'end' ? 0 : Math.round((offset + after) / 2 * 100) / 100, trophy: m.at === 'end', zigi: m.at === 'end' && zigiAtEnd ? zigiNow : null} : undefined;
+                const onPath = orbit ? {offset: m.at === 'end' ? 0 : Math.round((offset + after) / 2 * 100) / 100, trophy: m.at === 'end', zigi: m.at === 'end' && zigiAtEnd ? zigiNow : null, fit: zigiFit} : undefined;
                 return <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={around >= 0 ? 'left' : 'right'} uid={uid} onPath={onPath}/>;
               })}
             </Fragment>;
