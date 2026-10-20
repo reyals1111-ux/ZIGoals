@@ -26,6 +26,7 @@ Evidence label: design review of screenshots and recorded frames (not a usabilit
 | 4 | `9a475ede` | PASS (no shell, launcher or strip at 390/768/1440; the celebration full-screen) | PASS (phone 72 px, next ≈ 82; tablet ≈ 80; computer 96, next ≈ 110; one unboxed name each; the long name wraps to two lines) | PASS (six whole planets and part of a seventh at 390, a ±60 px wave, NEXT on the planet's crown, unit-like banners, chests beside the path) | PASS (press, burst and shock ring, line glow, ZIGi's greeting with a hop and sparkles from f02, bars, XP, chest, orbit and day celebrations; the held pose reads as a salute, counted under 6) | FAIL (Nebula told from Dark at a glance, Light's ribbons visible; Light's twelve-weeks map a near-black panel in a white card on a computer) | FAIL (ZIGi comes to rest over a name or a chest after a tick and an orbit, also under reduced motion; the cheer reads as a salute) | no — close: path, density, chrome and the day celebration near premium; ZIGi's resting place and cheer are not |
 | 5 | `eee27568` | PASS | PASS (phone 72 px, next 82; tablet ≈ 80; computer 96; one unboxed name, at most two lines on a phone) | PASS (6 / 7 / 6 planets on the opening screens at 390 / 768 / 1440) | PASS (press, burst and shock ring, line glow, the comet, ZIGi's hops and star burst, bars and XP, chest, orbit and day celebrations) | PASS (Light's twelve weeks a light plate with the same accents; Nebula told from Dark at a glance on a phone; planet hues identical) | FAIL, close (every tick shuffles name sides and chests; the celebration's ZIGi soft and stair-stepped, its held frame a hand at the brow; on a computer ZIGi rests small and jumps across the path) | no, very close — screens and motion premium; the tick reflow and the day's peak are not |
 | 6 | `e7f71752` | PASS | PASS | PASS (6 / 7 / 6 planets) | PASS (press, burst, line glow, bars and XP, ZIGi's cheer with hops and a star burst, the comet, chest, orbit and day celebrations) | PASS (all three deliberate; hues identical; Light's twelve weeks a light plate) | FAIL, very close (on a computer ZIGi points past NEXT on the opening screen and after an orbit; on a phone ZIGi rests at ≈ 67–82 px against the edge; a long name cut; glide frames cross names and a banner title) | no, very close — screens, motion, rewards and celebration premium; ZIGi's pointing and phone size not |
+| 7 | `3816e73c` | PASS | PASS (phone 72 px, NEXT ≈ 78; computer 96, NEXT ≈ 110) | PASS (6 / 7 / 6 planets; the same vocabulary as the references) | PASS (press, burst and shock ring, line glow, ZIGi's cheer, bars and XP, comet, chest pop, orbit and day celebrations) | PASS (layout, hues, ZIGi and chests identical; Light clean and soft) | PASS, marginal (ZIGi points at NEXT in every resting state at every size, ≈ 98–120 px on a phone, no move crosses content; polish left: a mirrored ZIGi and a dropped name on the computer's last-tick frame, cramped phone chests) | **yes (marginal)** |
 
 ## Iteration 1 — the critic's ranked improvements (sent to the lane)
 1. Land on the next node (open and after every tick: the next node at ≈ 40 % of the viewport, every width).
@@ -154,4 +155,19 @@ and the Evening banner title.
 5. The comet on one smooth arc to the next planet (it hooks out toward ZIGi; its tail crossed the Evening orbit title).
 6. The last tick's cheer off the trophy planet.
 7. Owner item: arms-up cheer art.
+
+## Iteration 7 — every line passes; the polish round asked for before the merge
+Fixed from iteration 6: on a computer ZIGi points through NEXT on the opening screen and after an orbit (≈ 140–145 px);
+on a phone it rests at 98–120 px, 18 px from the edge; the long name whole on two lines; moves shrink away and grow at the
+new spot, the ticked name returning only after ZIGi leaves; one round comet arc behind the banners; the last tick's cheer
+beside the trophy on a phone. Regressions: on the computer's last-tick frame (≈ 333 ms before the celebration) ZIGi stands
+mirrored, pointing at nothing, and "Play piano 15 minutes" has no name; phone chests on the line under their planets read
+crowded (a lid over a planet's base, a chest ≈ 7 px above a banner).
+The lead sends these to the lane as one polish round, then a fresh critic confirms before the merge ("do it right once"):
+1. Computer last tick: ZIGi's arm toward the path, beside the trophy (or the planet just ticked), pointing at it.
+2. Every planet name visible on the last-tick frame.
+3. Phone chests ≥ 8 px from their planet's base and ≥ 12 px from the banner below (or offset along the line).
+4. Computer opening: ZIGi 10–20 px toward NEXT so it reads with NEXT, not with the name below.
+5. The comet ≥ 12 px clear of names.
+Owner item: arms-up cheer art.
 
