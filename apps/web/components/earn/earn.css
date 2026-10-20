@@ -307,6 +307,10 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 :root .earn-page :is(p, li, dd, span, small) > .verified-link:has(> a.text-link) { display: inline; min-height: 0; }
 :root .earn-page :is(p, li, dd, span, small) > .verified-link:has(> a.text-link) .verified-link-arrow { margin-inline-start: 3px; }
 :root .earn-page :is(p, li, dd, span, small) > .verified-link:has(> a.text-link) > .verified-mark { margin-inline-start: 6px; vertical-align: -2px; }
+/* Gate C layout audit: with a mouse the same padding gives the WCAG 2.5.8 minimum of 24 px (a source line's "its economics
+   page" and "Zignaly's notice" were 18 px tall at 768–1440); a verified link's wrapper hides the sentence from the
+   audit's in-sentence rule, so the hit area is real rather than exempt. */
+:root .earn-page :is(p, li, dd, span, small) > a.text-link { padding-block: 4px; }
 @media (max-width: 767.98px), (pointer: coarse) {
   :root .earn-page :is(p, li, dd, span, small) > a.text-link { padding-block: 15px; }
 }

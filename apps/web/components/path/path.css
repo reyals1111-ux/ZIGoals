@@ -33,6 +33,10 @@
 
 .path-steps { --swing: min(118px, 15cqi); list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; }
 .path-step { position: relative; z-index: 2; display: grid; justify-items: center; }
+/* Gate C layout audit (320 px, Earn's Start-here and Academy): on a stage this narrow a label wraps to three or four lines,
+   taller than its dot, and touched the next step's label (6–10 px); the steps stand further apart there. The orbit
+   variant (the Checklist) keeps its own spacing. */
+@container (max-width: 359.98px) { .path-stage:not([data-variant=orbit]) .path-steps { gap: 40px; } }
 .path-node { position: relative; width: var(--dot-size); height: var(--dot-size); translate: calc(var(--offset, 0) * var(--swing)) 0; }
 .path-stage[data-layout=straight] .path-steps { justify-items: start; padding-inline-start: 6px; }
 .path-stage[data-layout=straight] .path-step { justify-items: start; }

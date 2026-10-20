@@ -145,8 +145,9 @@ const STATES = [
   {name: 'earn-live', path: '/app/earn', steps: async p => { await liveEarn(p); await p.reload({waitUntil: 'domcontentloaded'}); await p.waitForLoadState('networkidle', {timeout: 8000}).catch(() => {}); await p.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 700) { scrollTo(0, y); await new Promise(r => setTimeout(r, 90)); } scrollTo(0, 0); }); await p.waitForTimeout(900); }, after: async p => p.unrouteAll({behavior: 'ignoreErrors'})}, // the context's offline /api stays
   {name: 'earn-whats-this', path: '/app/earn', steps: async p => click(p, p.locator('button.whats-this').filter({visible: true}))},
   {name: 'checklist', path: '/app/checklist'},
-  {name: 'checklist-list', path: '/app/checklist', steps: async p => click(p, p.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List', exact: true}))},
-  {name: 'checklist-edit', path: '/app/checklist', steps: async p => click(p, btn(p, 'Edit path'))},
+  // The Checklist redesign (ccb1ab67) keeps Edit path, and on a phone the View switch, in the Checklist's menu (⋯).
+  {name: 'checklist-list', path: '/app/checklist', steps: async p => { if (!await p.getByRole('group', {name: 'View'}).isVisible()) await click(p, btn(p, 'Checklist menu')); await click(p, p.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List', exact: true})); }},
+  {name: 'checklist-edit', path: '/app/checklist', steps: async p => { await click(p, btn(p, 'Checklist menu')); await click(p, btn(p, 'Edit path')); }},
   {name: 'governance', path: '/app/governance'},
   {name: 'add-money', path: '/app/wealth/add-money'},
   {name: 'add-money-back', path: '/app/wealth/add-money/back'},
@@ -217,7 +218,9 @@ function inspect() {
   // With a modal dialog or sheet open, only it is checked (the page behind is dimmed and inert). Fixed and sticky chrome
   // (the bars, the dock) is the frame content scrolls under: it is hidden from the screenshot and left out of overlaps.
   const modal = [...document.querySelectorAll('dialog')].find(d => d.open && d.matches(':modal')) ?? document.querySelector('.phone-sheet[open], [role="dialog"][aria-modal="true"]');
-  const scope = modal ?? document.body;
+  // The Checklist's sheets (Edit path, Options, About) slide over its path inside its own dialog, behind a scrim: with one
+  // open, only the sheet is checked, as with any other sheet (Gate C: the path's names behind it read 1.3:1 on the sheet).
+  const scope = (modal ?? document).querySelector('.checklist-sheet-panel') ?? modal ?? document.body;
   const fixedOf = el => { for (let a = el; a && a !== document.body; a = a.parentElement) { const pos = getComputedStyle(a).position; if (pos === 'fixed' || pos === 'sticky') return a; } return null; };
   if (!modal) for (const el of document.querySelectorAll('body *')) { const pos = getComputedStyle(el).position; if (pos === 'fixed' || pos === 'sticky') el.setAttribute('data-audit-fixed', ''); }
   const texts = [...scope.querySelectorAll('*')].filter(el => !(el instanceof SVGElement) && hasOwnText(el) && shown(el) && !clipped(el) && (modal || !fixedOf(el)));
@@ -415,7 +418,10 @@ for (const width of WIDTHS) {
         const pngs = [];
         if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
         else if (chunked) { const {h, vh} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, vh: innerHeight})); const start = await p.evaluate(() => scrollY);
-          for (let top = 0; ; top += vh - 120) { const at = await p.evaluate(t => { scrollTo(0, t); return scrollY; }, top); await p.waitForTimeout(80); pngs.push({top: at, png: readPng(await p.screenshot(shotOpts))}); if (at + vh >= h) break; }
+          // Slices overlap by 240 px: a text is read from the first slice that holds it whole, so it is never nearer a slice's
+          // top than the overlap, and sticky chrome stays at each slice's top (Gate C: Earn's top bar and chip rail at 320 px
+          // are taller than the old 120 px, and a path note just under them read 3.01:1 against the rail; 8.4:1 on the page).
+          for (let top = 0; ; top += vh - 240) { const at = await p.evaluate(t => { scrollTo(0, t); return scrollY; }, top); await p.waitForTimeout(80); pngs.push({top: at, png: readPng(await p.screenshot(shotOpts))}); if (at + vh >= h) break; }
           await p.evaluate(t => scrollTo(0, t), start); }
         else { const {h, w} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, w: document.documentElement.clientWidth})); for (let top = 0; top < h; top += 7800) pngs.push({top, png: readPng(await p.screenshot({...shotOpts, fullPage: true, clip: {x: 0, y: top, width: w, height: Math.min(8000, h - top)}}))}); }
         currentKey = key;

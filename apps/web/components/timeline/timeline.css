@@ -121,6 +121,11 @@
   .timeline-block > .timeline-actions > .timeline-change { grid-column: 2 / 4; grid-row: 2; justify-self: end; padding-inline: 10px; white-space: nowrap; }
   .timeline-block > .timeline-actions > .timeline-lock { grid-column: 2 / 4; grid-row: 2; justify-self: end; min-width: 0; }
   .timeline-now span { margin-left: 66px; }
+  /* Gate C layout audit (320 px): Complete and "Change time" no longer fit one row of a block that narrow (the change
+     button sat on Complete); below 380 px the change or the reason takes its own row under the tap. */
+  @media (max-width: 379.98px) {
+    .timeline-block > .timeline-actions > :is(.timeline-change, .timeline-lock) { grid-column: 1 / -1; grid-row: 3; justify-self: start; }
+  }
   .timeline-picker { margin-left: 0; }
   .today-timeline-card { gap: 4px; padding-block: 12px; }
   .today-timeline-next > li { grid-template-columns: 72px minmax(0, 1fr); font-size: 15px; }
