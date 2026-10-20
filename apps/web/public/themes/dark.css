@@ -4070,24 +4070,89 @@
 /*  components/checklist/checklist.css  */
 @scope (:root[data-theme=dark]) {
     :scope:not(#\-) {
-        --checklist-ink-timer-a: #0d1838ee;
-        --checklist-ink-timer-b: #070e25ee;
         --checklist-ink-history: #0a1430
     }
+    .checklist-overlay:not(#\-) {
+        border-color: currentcolor;
+        color: var(--text, #f0f5ff);
+        background-image: radial-gradient(130% 60% at 50% -6%, #060221 0%, #020213 40%, #010108 74%, #000103 100%);
+        background-color: transparent
+    }
+    .checklist-overlay:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #000103
+    }
+    .checklist-overlay:focus:not(#\-) {
+        outline-color: currentcolor
+    }
     .checklist-mist:not(#\-) {
-        filter: blur(40px)
+        filter: blur(36px)
     }
     .checklist-mist-a:not(#\-) {
-        background-image: radial-gradient(closest-side, #826cff38, #826cff00);
+        background-image: radial-gradient(closest-side, #826cff47, #826cff1f 55%, #826cff00);
         background-color: transparent
     }
     .checklist-mist-b:not(#\-) {
-        background-image: radial-gradient(closest-side, #23eaff26, #ff74be14 60%, #ff74be00);
+        background-image: radial-gradient(closest-side, #f06dff40, #ff74be1c 58%, #ff74be00);
+        background-color: transparent
+    }
+    .checklist-mist-c:not(#\-) {
+        background-image: radial-gradient(closest-side, #26e8bd38, #23eaff17 58%, #23eaff00);
         background-color: transparent
     }
     .checklist-stars:not(#\-) {
-        background-image: radial-gradient(1.2px 1.2px at 18% 22%, #ffffffb0, #fff0), radial-gradient(1px 1px at 72% 14%, #ffffff90, #fff0), radial-gradient(1.4px 1.4px at 84% 58%, #ffffffa0, #fff0), radial-gradient(1px 1px at 32% 76%, #ffffff80, #fff0), radial-gradient(1.2px 1.2px at 56% 44%, #ffffff70, #fff0);
+        background-image: radial-gradient(1.2px 1.2px at 18% 22%, #ffffffb0, #fff0), radial-gradient(1px 1px at 72% 14%, #ffffff90, #fff0), radial-gradient(1.4px 1.4px at 84% 58%, #ffffffa0, #fff0), radial-gradient(1px 1px at 32% 76%, #ffffff80, #fff0), radial-gradient(1.2px 1.2px at 56% 44%, #ffffff70, #fff0), radial-gradient(1px 1px at 8% 64%, #ffffff8c, #fff0), radial-gradient(1.3px 1.3px at 44% 8%, #ffffffa6, #fff0), radial-gradient(1px 1px at 92% 86%, #ffffff7a, #fff0);
         background-color: transparent
+    }
+    .checklist-stars-near:not(#\-) {
+        background-image: radial-gradient(1.8px 1.8px at 12% 40%, #ffffffd9, #fff0), radial-gradient(2px 2px at 66% 30%, #c9f7ffcc, #fff0), radial-gradient(1.6px 1.6px at 38% 88%, #ffd9f2cc, #fff0), radial-gradient(2.2px 2.2px at 88% 12%, #ffffffe0, #fff0), radial-gradient(1.6px 1.6px at 52% 60%, #e7e1ffcc, #fff0);
+        background-color: transparent
+    }
+    .checklist-stars-far:not(#\-) {
+        background-image: radial-gradient(.8px .8px at 9% 13%, #ffffff8c, #fff0), radial-gradient(.8px .8px at 31% 47%, #ffffff73, #fff0), radial-gradient(.9px .9px at 57% 21%, #e8e2ff80, #fff0), radial-gradient(.7px .7px at 77% 63%, #ffffff66, #fff0), radial-gradient(.8px .8px at 43% 83%, #d9fbff80, #fff0), radial-gradient(.7px .7px at 89% 31%, #ffffff66, #fff0), radial-gradient(.8px .8px at 21% 71%, #ffffff73, #fff0);
+        background-color: transparent
+    }
+    .checklist-world:not(#\-) {
+        background-image: radial-gradient(circle at 32% 28%, #9d8bff 0, #5442b8 34%, #09022c 70%, #020111 100%);
+        background-color: transparent;
+        box-shadow: inset -24px -18px 50px #000a, 0 0 80px #826cff38;
+        filter: blur(1.5px)
+    }
+    .checklist-world-ring:not(#\-) {
+        border-color: #c7b8ff47;
+        border-top-color: #c7b8ff14
+    }
+    .checklist-moon-orbit:not(#\-) {
+        border-color: #ffffff14;
+        filter: blur(1px)
+    }
+    .checklist-moon:not(#\-) {
+        background-image: radial-gradient(circle at 35% 30%, #ffffff, #23eaff 55%, #011424);
+        background-color: transparent;
+        box-shadow: 0 0 14px #23eaff99
+    }
+    @media (max-width: 767.98px) {
+        .checklist-mist:not(#\-) {
+            filter: blur(28px)
+        }
+    }
+    @media (max-width: 767.98px) {
+        .checklist-mist-a:not(#\-) {
+            background-image: radial-gradient(closest-side, #826cff52, #826cff24 55%, #826cff00);
+            background-color: transparent
+        }
+    }
+    @media (max-width: 767.98px) {
+        .checklist-mist-b:not(#\-) {
+            background-image: radial-gradient(closest-side, #f06dff4d, #ff74be24 58%, #ff74be00);
+            background-color: transparent
+        }
+    }
+    @media (max-width: 767.98px) {
+        .checklist-mist-c:not(#\-) {
+            background-image: radial-gradient(closest-side, #26e8bd45, #23eaff1f 58%, #23eaff00);
+            background-color: transparent
+        }
     }
     :scope[data-theme=light] .checklist-mist-a:not(#\-) {
         background-image: radial-gradient(closest-side, #e9e3fd, #e9e3fd00);
@@ -4097,24 +4162,82 @@
         background-image: radial-gradient(closest-side, #e2f6fb, #fbe9f3 60%, #fbe9f300);
         background-color: transparent
     }
+    :scope[data-theme=light] .checklist-mist-c:not(#\-) {
+        background-image: radial-gradient(closest-side, #fbe6fb, #fbe6fb00);
+        background-color: transparent
+    }
+    :scope[data-theme=light] .checklist-sky .checklist-mist-a:not(#\-) {
+        background-image: radial-gradient(closest-side, #e9e3fd, #e9e3fd00);
+        background-color: transparent
+    }
+    :scope[data-theme=light] .checklist-sky .checklist-mist-b:not(#\-) {
+        background-image: radial-gradient(closest-side, #fbe6f6, #fbe9f300);
+        background-color: transparent
+    }
+    :scope[data-theme=light] .checklist-sky .checklist-mist-c:not(#\-) {
+        background-image: radial-gradient(closest-side, #e2f6fb, #e2f6fb00);
+        background-color: transparent
+    }
+    :scope[data-theme=light] .checklist-world:not(#\-) {
+        background-image: radial-gradient(circle at 32% 26%, #ffffff 0, #e4ddff 30%, #b9acf3 68%, #9a8be6 100%);
+        background-color: transparent;
+        box-shadow: inset -18px -14px 34px #7b6cd659, 0 14px 40px -10px #9273ff59
+    }
+    :scope[data-theme=light] .checklist-world-ring:not(#\-) {
+        border-color: #9a8be6a6;
+        border-top-color: #9a8be640
+    }
     :scope[data-theme=dark] .checklist-sky:not(#\-) {
         background-image: none;
         background-color: #000002
     }
+    .checklist-topbar:not(#\-) {
+        background-image: linear-gradient(180deg, #010109f2, #010109e6);
+        background-color: transparent;
+        border-bottom-color: #ffffff17;
+        box-shadow: 0 12px 30px -24px #000
+    }
+    .checklist-topbar:not(#\-)::after {
+        background-image: linear-gradient(180deg, #010109d9, #01010900);
+        background-color: transparent
+    }
+    .checklist-close:not(#\-) {
+        border-color: #ffffff2e;
+        background-image: none;
+        background-color: #ffffff12;
+        color: var(--text, #f0f5ff);
+        box-shadow: 0 3px 0 #00000059
+    }
+    .checklist-close:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff1f
+    }
+    .checklist-close:active:not(#\-) {
+        box-shadow: 0 1px 0 #00000059
+    }
+    .checklist-close:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-progress-line:not(#\-) {
+        color: var(--muted, #a4b2cd)
+    }
+    .checklist-progress-line strong:not(#\-) {
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-progress-line .eyebrow:not(#\-) {
+        color: var(--muted, #a4b2cd)
+    }
     .checklist-perfect:not(#\-) {
         color: var(--muted, #a4b2cd)
     }
-    .checklist-streak:not(#\-) {
-        border-color: color-mix(in srgb, var(--muted, #a4b2cd) 35%, transparent);
-        color: var(--muted, #a4b2cd)
-    }
-    .checklist-streak[data-lit]:not(#\-) {
-        color: var(--text, #f0f5ff);
-        border-color: #ffad8780;
-        box-shadow: 0 0 22px #ff74be30
+    .checklist-progress-shine:not(#\-)::before {
+        background-image: linear-gradient(100deg, #ffffff00, #ffffffe6 50%, #ffffff00);
+        background-color: transparent
     }
     .checklist-view-switch:not(#\-) {
-        border-color: color-mix(in srgb, var(--muted, #a4b2cd) 35%, transparent)
+        border-color: #ffffff2b;
+        background-image: none;
+        background-color: #00000026
     }
     .checklist-view-switch button:not(#\-) {
         border-color: currentcolor;
@@ -4123,20 +4246,107 @@
         color: var(--text, #f0f5ff)
     }
     .checklist-view-switch button[aria-pressed=true]:not(#\-) {
-        background-image: linear-gradient(100deg, #23eaff33, #9273ff40);
+        background-image: linear-gradient(100deg, #23eaff40, #9273ff59);
         background-color: transparent;
-        box-shadow: inset 0 0 0 1px #9273ff80
+        box-shadow: inset 0 0 0 1px #9273ff99
     }
     .checklist-view-switch button:focus-visible:not(#\-) {
         outline-color: currentColor
     }
+    .checklist-streak:not(#\-), .checklist-xp:not(#\-) {
+        border-color: #ffffff1f;
+        background-image: none;
+        background-color: #ffffff0d;
+        color: var(--muted, #a4b2cd)
+    }
+    .checklist-xp:not(#\-) {
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-streak[data-lit]:not(#\-) {
+        color: var(--text, #f0f5ff);
+        border-color: #ffad8780;
+        box-shadow: 0 0 22px #ff74be30
+    }
+    .checklist-xp small:not(#\-) {
+        color: var(--muted, #a4b2cd)
+    }
+    .checklist-xp-gain:not(#\-) {
+        background-image: none;
+        background-color: #ffd27a;
+        color: #2a1800;
+        box-shadow: 0 0 16px #ffd27acc
+    }
+    .checklist-menu-button:not(#\-) {
+        border-color: #ffffff2e;
+        background-image: none;
+        background-color: #ffffff12;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-menu-button[aria-expanded=true]:not(#\-) {
+        border-color: #9273ffb3;
+        background-image: none;
+        background-color: #9273ff33
+    }
+    .checklist-menu-button:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-menu:not(#\-) {
+        border-color: #ffffff24;
+        background-image: none;
+        background-color: #010313;
+        box-shadow: 0 24px 50px -20px #000, 0 0 0 1px #00000040
+    }
+    .checklist-menu button:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-menu button:hover:not(#\-), .checklist-menu button[aria-expanded=true]:not(#\-) {
+        background-image: none;
+        background-color: #ffffff12
+    }
+    .checklist-menu button:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-menu-view:not(#\-) {
+        border-bottom-color: #ffffff17
+    }
+    .checklist-menu .checklist-menu-view button[aria-pressed=true]:not(#\-) {
+        background-image: linear-gradient(100deg, #23eaff40, #9273ff59);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #9273ff99
+    }
+    @media (min-width: 1180px) {
+        .checklist-overlay .checklist-timers .checklist-timer:not(#\-) {
+            border-color: color-mix(in srgb, var(--timer) 60%, transparent);
+            background-image: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--timer) 22%, transparent), transparent 70%), linear-gradient(160deg, #020417f2, #01020df2);
+            background-color: transparent;
+            box-shadow: 0 5px 0 #02061499, 0 16px 34px -20px #000c, 0 0 26px color-mix(in srgb, var(--timer) 22%, transparent)
+        }
+    }
+    @media (min-width: 1180px) {
+        .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring:not(#\-) {
+            filter: drop-shadow(0 0 10px color-mix(in srgb, var(--timer) 70%, transparent))
+        }
+    }
+    @media (min-width: 1180px) {
+        .checklist-history-open:not(#\-) {
+            border-color: #ffffff1f;
+            background-image: none;
+            background-color: #ffffff08
+        }
+    }
     .checklist-timer:not(#\-) {
         --timer: var(--pillar-habits, #23eaff);
-        border-color: color-mix(in srgb, var(--timer) 40%, transparent);
-        background-image: linear-gradient(120deg, var(--checklist-ink-timer-a), var(--checklist-ink-timer-b));
+        border-color: color-mix(in srgb, var(--timer) 45%, transparent);
+        background-image: linear-gradient(120deg, #020417ee, #01020dee);
         background-color: transparent;
         color: #eef4ff;
-        box-shadow: 0 12px 28px -18px #000c
+        box-shadow: 0 4px 0 #02061499, 0 12px 28px -18px #000c
+    }
+    .checklist-timer:active:not(#\-) {
+        box-shadow: 0 2px 0 #02061499
     }
     .checklist-timer:focus-visible:not(#\-) {
         outline-color: var(--timer)
@@ -4148,9 +4358,12 @@
     .checklist-timer-ring:not(#\-) {
         color: var(--timer)
     }
+    .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring:not(#\-) {
+        color: var(--timer)
+    }
     .checklist-timer-track:not(#\-) {
         fill: none;
-        stroke: color-mix(in srgb, var(--timer) 28%, transparent)
+        stroke: color-mix(in srgb, var(--timer) 70%, transparent)
     }
     .checklist-timer-arc:not(#\-) {
         fill: none;
@@ -4159,10 +4372,59 @@
     .checklist-timer-text small:not(#\-) {
         color: #c5d3ea
     }
+    .checklist-timers-message:not(#\-) {
+        background-image: none;
+        background-color: #010109f2;
+        color: #eef4ff
+    }
+    @media (max-width: 1179.98px) {
+        .checklist-dock:not(#\-) {
+            background-image: linear-gradient(180deg, #01020a, #010109);
+            background-color: transparent;
+            border-top-color: #ffffff17;
+            box-shadow: 0 -12px 30px -24px #000
+        }
+    }
+    @media (max-width: 1179.98px) {
+        .checklist-dock:not(#\-)::before {
+            background-image: linear-gradient(0deg, #010109f2, #01010900);
+            background-color: transparent
+        }
+    }
+    @media (max-width: 1179.98px) {
+        .checklist-overlay .checklist-timers .checklist-timer:not(#\-) {
+            box-shadow: 0 3px 0 #02061499
+        }
+    }
+    @media (max-width: 1179.98px) {
+        .path-dock-jump:not(#\-) {
+            border-color: #8cc8ff80;
+            background-image: radial-gradient(circle at 35% 28%, #050b2a, #010313 70%);
+            background-color: transparent;
+            color: #eef4ff;
+            box-shadow: 0 5px 0 #02061499, 0 14px 28px -12px #000c, 0 0 22px #4f8dff40
+        }
+    }
+    @media (max-width: 1179.98px) {
+        .path-dock-jump:active:not(#\-) {
+            box-shadow: 0 2px 0 #02061499
+        }
+    }
+    @media (max-width: 1179.98px) {
+        .path-dock-jump:focus-visible:not(#\-) {
+            outline-color: currentColor
+        }
+    }
+    :scope .checklist-toast-slot .aa-toast:not(#\-) {
+        border-color: #7fc6e666;
+        background-image: none;
+        background-color: #010314;
+        box-shadow: 0 10px 30px -14px #000
+    }
     .checklist-loading span:not(#\-) {
         background-image: none;
         background-color: #ffffff10;
-        box-shadow: inset 0 0 0 2px #ffffff18
+        box-shadow: inset 0 0 0 3px #ffffff18, 0 7px 0 #ffffff0a
     }
     .checklist-ghost-line:not(#\-) {
         fill: none
@@ -4174,14 +4436,42 @@
         fill: currentColor;
         stroke: currentColor
     }
-    .checklist-stepper:not(#\-), .checklist-dot-panel:not(#\-) {
-        border-color: color-mix(in srgb, var(--dot, #9273ff) 45%, transparent);
+    .checklist-sheet-scrim:not(#\-) {
         background-image: none;
-        background-color: var(--panel, #010412f2);
-        box-shadow: 0 18px 40px -24px #000d
+        background-color: #000103b3
+    }
+    .checklist-sheet-panel:not(#\-) {
+        background-image: linear-gradient(180deg, #010313, #01020a);
+        background-color: transparent;
+        border-left-color: #ffffff1f;
+        box-shadow: -30px 0 60px -30px #000
+    }
+    .checklist-sheet-panel:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    :scope .checklist-overlay .checklist-sheet-panel > .panel:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    @media (max-width: 767.98px) {
+        .checklist-sheet-panel:not(#\-) {
+            border-left-color: currentcolor;
+            border-top-color: #ffffff1f
+        }
+    }
+    .checklist-about li:not(#\-)::marker {
+        color: var(--pillar-habits, #23eaff)
+    }
+    .checklist-stepper:not(#\-), .checklist-dot-panel:not(#\-) {
+        border-color: color-mix(in srgb, var(--dot, #9273ff) 55%, transparent);
+        background-image: none;
+        background-color: var(--panel, #010412f5);
+        box-shadow: 0 5px 0 color-mix(in srgb, var(--dot, #9273ff) 30%, #040a1e), 0 18px 40px -20px #000d
     }
     .checklist-stepper-bump:not(#\-) {
-        border-color: color-mix(in srgb, var(--dot, #9273ff) 60%, transparent);
+        border-color: color-mix(in srgb, var(--dot, #9273ff) 70%, transparent);
         background-image: none;
         background-color: transparent;
         color: var(--text, #f0f5ff)
@@ -4209,42 +4499,56 @@
     .checklist-stepper-error:not(#\-) {
         color: var(--danger, #ffb3c4)
     }
-    .checklist-list:not(#\-) {
+    .checklist-list-view:not(#\-) {
         --accent: var(--pillar-habits, #23eaff)
     }
-    .checklist-pill:not(#\-) {
-        border-color: var(--line, #ffffff22);
-        background-image: none;
-        background-color: var(--panel, #010412e6)
-    }
-    .checklist-pill-check:not(#\-) {
-        border-color: var(--accent);
-        background-image: none;
-        background-color: transparent;
-        color: var(--accent)
-    }
-    .checklist-pill-check[data-state=done]:not(#\-) {
+    .checklist-list-add:not(#\-) {
+        border-color: currentcolor;
         background-image: none;
         background-color: var(--accent);
         color: #04101f;
-        box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent)
+        box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 50%, #040a1e), 0 12px 26px -14px var(--accent)
     }
-    .checklist-pill-check[data-state=running]:not(#\-) {
-        box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent)
+    .checklist-list-add:active:not(#\-) {
+        box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 50%, #040a1e)
     }
-    .checklist-pill-check:focus-visible:not(#\-) {
+    .checklist-list-add:focus-visible:not(#\-) {
         outline-color: var(--accent)
     }
-    .checklist-pill[data-state=done] .checklist-pill-label:not(#\-) {
-        text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent)
-    }
-    .checklist-pill-note:not(#\-) {
+    .checklist-list-orbit:not(#\-) {
         color: var(--muted, #a4b2cd)
     }
-    .checklist-pill-tag:not(#\-) {
-        border-color: color-mix(in srgb, var(--tag) 55%, transparent)
+    .checklist-list-orbit h3:not(#\-) {
+        color: var(--text, #f0f5ff)
     }
-    .checklist-options fieldset:not(#\-) {
+    .checklist-pill:not(#\-) {
+        border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--accent) 12%, #010313)
+    }
+    .checklist-pill-check:not(#\-) {
+        --item: var(--accent);
+        border-color: var(--item);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--item) 16%, transparent);
+        color: var(--item)
+    }
+    .checklist-pill-check[data-state=done]:not(#\-) {
+        background: var(--item);
+        color: #04101f;
+        box-shadow: 0 0 16px color-mix(in srgb, var(--item) 55%, transparent)
+    }
+    .checklist-pill-check[data-state=running]:not(#\-) {
+        box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--item) 40%, transparent)
+    }
+    .checklist-pill-check:focus-visible:not(#\-) {
+        outline-color: var(--item)
+    }
+    .checklist-pill[data-state=done] .checklist-pill-label:not(#\-) {
+        color: var(--muted, #a4b2cd);
+        text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent)
+    }
+    .checklist-options fieldset:not(#\-), .checklist-edit fieldset:not(#\-) {
         border-color: currentcolor
     }
     .checklist-swatch span[aria-hidden]:not(#\-) {
@@ -4257,10 +4561,37 @@
     .checklist-swatch input:focus-visible + span[aria-hidden]:not(#\-) {
         outline-color: var(--swatch)
     }
-    .checklist-edit-list li:not(#\-) {
+    .checklist-options .checklist-toggle:not(#\-) {
+        border-bottom-color: #ffffff14
+    }
+    .checklist-toggle small:not(#\-) {
+        color: var(--muted, #a4b2cd)
+    }
+    :scope .checklist-options .checklist-toggle input:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: #ffffff26;
+        box-shadow: inset 0 0 0 1px #ffffff26
+    }
+    .checklist-switch-knob:not(#\-) {
+        background-image: none;
+        background-color: #ffffff;
+        box-shadow: 0 2px 6px #0006
+    }
+    :scope .checklist-options .checklist-toggle input:checked:not(#\-) {
+        background-image: linear-gradient(100deg, #23eaff, #9273ff);
+        background-color: transparent
+    }
+    :scope .checklist-options .checklist-toggle input:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-edit-list li[data-edit-row]:not(#\-) {
         border-color: var(--line, #ffffff22);
         background-image: none;
         background-color: var(--panel, #010412)
+    }
+    .checklist-edit-orbit-head:not(#\-) {
+        color: var(--muted, #a4b2cd)
     }
     .checklist-edit-list li[data-dragging]:not(#\-) {
         box-shadow: 0 18px 40px -16px #000d;
@@ -4277,15 +4608,49 @@
     }
     .checklist-edit-dot:not(#\-) {
         background: var(--dot);
-        color: #04101f
+        color: #04101f;
+        box-shadow: 0 3px 0 color-mix(in srgb, var(--dot) 45%, #050818)
     }
     .checklist-edit-label small:not(#\-) {
         color: var(--muted, #a4b2cd)
+    }
+    .checklist-edit-more:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: #ffffff0f;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-edit-more:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-edit-orbit-choice:not(#\-) {
+        border-color: #ffffff2b;
+        background-image: none;
+        background-color: #00000026
+    }
+    .checklist-edit-orbit-choice button:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-edit-orbit-choice button[aria-checked=true]:not(#\-) {
+        background-image: linear-gradient(100deg, #23eaff40, #9273ff59);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #9273ff99
+    }
+    .checklist-edit-orbit-choice button:focus-visible:not(#\-) {
+        outline-color: currentColor
     }
     .checklist-edit-orbits li:not(#\-) {
         border-left-color: var(--dot);
         background-image: none;
         background-color: var(--panel, #010412)
+    }
+    .checklist-history-fold > summary:not(#\-) {
+        border-color: #ffffff1f;
+        background-image: none;
+        background-color: #ffffff0a
     }
     .checklist-history-fold > summary:not(#\-)::after {
         color: var(--muted, #a4b2cd)
@@ -4326,6 +4691,36 @@
     .checklist-heat-legend:not(#\-) {
         color: #c5d3ea
     }
+    :scope[data-theme=light] .checklist-history:not(#\-) {
+        background-image: none;
+        background-color: #f4f5fc;
+        box-shadow: inset 0 0 0 1px #d9dcf0
+    }
+    :scope[data-theme=light] .checklist-heat-cell:not(#\-), :scope[data-theme=light] .checklist-heat-legend li:not(#\-)::before {
+        background-image: none;
+        background-color: #e3e6f3
+    }
+    :scope[data-theme=light] .checklist-heat-cell[data-level=future]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #d9dcf0
+    }
+    :scope[data-theme=light] .checklist-heat-cell[data-today]:not(#\-) {
+        outline-color: #3b3f66
+    }
+    :scope[data-theme=light] .checklist-heat-legend:not(#\-) {
+        color: #3f4566
+    }
+    :scope[data-theme=light] .checklist-heat-cell[data-level=some]:not(#\-), :scope[data-theme=light] .checklist-heat-legend li[data-level=some]:not(#\-)::before {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--heat-some) 55%, transparent)
+    }
+    :scope[data-theme=light] .checklist-heat-cell[data-level=all]:not(#\-), :scope[data-theme=light] .checklist-heat-legend li[data-level=all]:not(#\-)::before {
+        background: var(--heat-all)
+    }
+    :scope[data-theme=light] .checklist-heat-cell[data-level=perfect]:not(#\-), :scope[data-theme=light] .checklist-heat-legend li[data-level=perfect]:not(#\-)::before {
+        background: var(--heat-perfect)
+    }
     .checklist-heat-legend li:not(#\-)::before {
         background-image: none;
         background-color: #ffffff12
@@ -4339,6 +4734,106 @@
     }
     .checklist-heat-legend li[data-level=perfect]:not(#\-)::before {
         background: var(--heat-perfect)
+    }
+}
+/*  components/checklist/day-celebration.css  */
+@scope (:root[data-theme=dark]) {
+    :scope:not(#\-) {
+        --checklist-ink-celebration-a: #1b1550;
+        --checklist-ink-celebration-b: #070b22;
+        --checklist-ink-celebration-card: #0b1233f2
+    }
+    .checklist-celebration:not(#\-) {
+        border-color: currentcolor;
+        color: #f2f6ff;
+        background-image: radial-gradient(80% 60% at 50% 38%, var(--checklist-ink-celebration-a), var(--checklist-ink-celebration-b) 72%);
+        background-color: transparent
+    }
+    .checklist-celebration:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #000103cc
+    }
+    .checklist-celebration-glow:not(#\-) {
+        background-image: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%);
+        background-color: transparent
+    }
+    .checklist-celebration-rays:not(#\-) {
+        background-image: repeating-conic-gradient(from 0deg, #fff3d600 0deg, #fff3d6b3 4deg, #fff3d600 9deg, #fff3d600 20deg);
+        background-color: transparent
+    }
+    .checklist-celebration-burst i:not(#\-) {
+        background: var(--c)
+    }
+    .checklist-celebration-card:not(#\-) {
+        border-color: #ffd27a59;
+        background-image: none;
+        background-color: var(--checklist-ink-celebration-card);
+        box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40
+    }
+    .checklist-celebration-trophy:not(#\-) {
+        filter: drop-shadow(0 0 30px #ffd27acc) drop-shadow(0 12px 18px #0009)
+    }
+    .checklist-celebration-zigi:not(#\-) {
+        filter: drop-shadow(0 12px 18px #0009)
+    }
+    .checklist-celebration-planets li:not(#\-) {
+        background-image: radial-gradient(circle at 35% 30%, #ffffff, var(--c) 45%, color-mix(in srgb, var(--c) 60%, #050a1e));
+        background-color: transparent;
+        box-shadow: 0 0 12px var(--c)
+    }
+    .checklist-celebration-eyebrow:not(#\-) {
+        color: #ffd27a
+    }
+    .checklist-celebration-line:not(#\-) {
+        color: #c9d5ee
+    }
+    .checklist-celebration-stats li:not(#\-) {
+        border-color: #ffffff26;
+        background-image: none;
+        background-color: #ffffff0f;
+        color: #dfe8fb
+    }
+    .checklist-celebration-stats strong:not(#\-) {
+        color: #ffffff
+    }
+    .checklist-celebration-go:not(#\-) {
+        border-color: currentcolor;
+        background-image: linear-gradient(100deg, #23eaff, #9273ff 55%, #ff74be);
+        background-color: transparent;
+        color: #050b1f;
+        box-shadow: 0 5px 0 #4b3aa8, 0 16px 30px -12px #9273ffaa
+    }
+    .checklist-celebration-go:active:not(#\-) {
+        box-shadow: 0 1px 0 #4b3aa8
+    }
+    .checklist-celebration-go:focus-visible:not(#\-) {
+        outline-color: #ffffff
+    }
+    :scope .checklist-celebration .checklist-celebration-undo .aa-toast:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    :scope .checklist-celebration .checklist-celebration-undo .aa-toast-undo:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #c9d5ee
+    }
+    :scope .checklist-celebration .checklist-celebration-undo .aa-toast-undo:focus-visible:not(#\-) {
+        outline-color: #ffffff
+    }
+    .checklist-celebration-card:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none
+    }
+    .checklist-celebration-stats li:not(#\-) {
+        border-color: #ffffff2b;
+        background-image: linear-gradient(160deg, #ffffff1c, #ffffff08);
+        background-color: transparent
     }
 }
 /*  components/checklist/star-toggle.css  */
@@ -4382,16 +4877,36 @@
     }
     .today-checklist-dots > li:not(#\-) {
         border-color: var(--dot);
-        background-image: none;
+        background-image: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--dot) 55%, #ffffff), var(--dot) 70%);
         background-color: transparent
     }
     .today-checklist-dots > li[data-state=done]:not(#\-) {
-        background: var(--dot);
-        box-shadow: 0 0 8px color-mix(in srgb, var(--dot) 55%, transparent)
+        box-shadow: 0 0 10px color-mix(in srgb, var(--dot) 65%, transparent)
     }
-    .today-checklist-dots > li[data-state=running]:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in srgb, var(--dot) 40%, transparent)
+    .today-checklist-dots > li[data-next]:not(#\-) {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 35%, transparent), 0 0 12px var(--dot)
+    }
+    .today-checklist-planet:not(#\-) {
+        color: #04101f;
+        background-image: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 40%, #ffffff) 0, var(--dot) 48%, color-mix(in srgb, var(--dot) 70%, #0b1030) 100%);
+        background-color: transparent;
+        box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--dot) 55%, #050818), 0 0 0 4px color-mix(in srgb, var(--dot) 22%, transparent), 0 0 26px color-mix(in srgb, var(--dot) 55%, transparent)
+    }
+    .today-checklist-cue:not(#\-) {
+        color: var(--muted, #a4b2cd)
+    }
+    .today-checklist-next strong:not(#\-) {
+        color: var(--text, #f0f5ff)
+    }
+    .today-checklist-continue[data-nudge]:not(#\-) {
+        box-shadow: 0 0 0 3px #ff74be59, 0 0 22px #ff74be80
+    }
+    @media (min-width: 768px) {
+        .today-checklist-card:has(.today-checklist-next) .today-checklist-next:not(#\-) {
+            background-image: none;
+            background-color: color-mix(in srgb, var(--dot) 10%, transparent);
+            border-color: color-mix(in srgb, var(--dot) 30%, transparent)
+        }
     }
     .today-checklist-nudge:not(#\-) {
         color: var(--muted, #a4b2cd)
@@ -9640,6 +10155,378 @@
     }
     .page-minor-actions .page-ask-zigi:hover:not(#\-), .page-minor-actions .page-backup-link:hover:not(#\-), .page-minor-actions .page-ask-zigi:focus-visible:not(#\-), .page-minor-actions .page-backup-link:focus-visible:not(#\-) {
         color: #fff
+    }
+}
+/*  components/path/path-orbit.css  */
+@scope (:root[data-theme=dark]) {
+    :scope:not(#\-) {
+        --path-ink-banner-word: #050b1f;
+        --path-ink-meter-track: #0a12302e
+    }
+    .path-stage[data-variant=orbit] .path-segment-halo:not(#\-) {
+        stroke: var(--seg, #9273ff)
+    }
+    .path-stage[data-variant=orbit] .path-segment-edge:not(#\-) {
+        stroke: color-mix(in srgb, var(--seg, #9273ff) 62%, #000)
+    }
+    @supports (color: oklch(from red l c h)) {
+        .path-stage[data-variant=orbit] .path-segment-edge:not(#\-) {
+            stroke: oklch(from var(--seg, #9273ff) calc(l * .62) c h)
+        }
+    }
+    .path-stage[data-variant=orbit] .path-segment-base:not(#\-) {
+        stroke: var(--seg, #9273ff)
+    }
+    .path-stage[data-variant=orbit] .path-segment-lead:not(#\-) {
+        stroke: var(--seg, #23eaff)
+    }
+    .path-stage[data-variant=orbit] .path-segment-glow:not(#\-) {
+        stroke: var(--seg, #9273ff)
+    }
+    .path-stage[data-variant=orbit] .path-segment-lit:not(#\-) {
+        stroke: var(--seg, #9273ff)
+    }
+    .path-stage[data-variant=orbit] .path-segment-core:not(#\-) {
+        stroke: #ffffff
+    }
+    .path-comet-head:not(#\-) {
+        stroke: #ffffff
+    }
+    .path-comet-halo:not(#\-) {
+        stroke: var(--seg, #9ff6ff)
+    }
+    .path-comet > .path-comet-tail:not(#\-) {
+        stroke: var(--seg, #9ff6ff)
+    }
+    .path-comet > .path-comet-tail-near:not(#\-) {
+        stroke: #ffffff
+    }
+    .path-stage[data-variant=orbit] .path-label:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        color: var(--text, #f0f5ff);
+        text-shadow: 0 1px 2px #02061499, 0 0 14px #020614cc
+    }
+    .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label:not(#\-) {
+        color: var(--muted, #b9c6de)
+    }
+    :scope[data-theme=light] .path-stage[data-variant=orbit] :is(.path-label, .path-chest-text):not(#\-) {
+        text-shadow: none
+    }
+    .path-next-tag:not(#\-) {
+        border-color: var(--dot-next, #23eaff);
+        background-image: none;
+        background-color: #ffffff;
+        color: #08112a;
+        box-shadow: 0 3px 0 color-mix(in srgb, var(--dot-next, #23eaff) 55%, #0a1230), 0 8px 18px -8px #000b
+    }
+    .path-stage[data-variant=orbit] .path-node > .path-next-tag:not(#\-) {
+        color: #08112a
+    }
+    .path-next-tag:not(#\-)::after {
+        background-image: none;
+        background-color: #ffffff;
+        border-right-color: var(--dot-next, #23eaff);
+        border-bottom-color: var(--dot-next, #23eaff)
+    }
+    .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
+        --dot-next: var(--step-colour, #23eaff)
+    }
+    .path-stage[data-variant=orbit] .path-step[data-next] .path-label:not(#\-) {
+        color: var(--text, #f0f5ff)
+    }
+    .path-stage[data-variant=orbit]:not(#\-) {
+        --label-reserve: calc((var(--dot-size) * (var(--next-scale) - 1) / 2 + (var(--ring) + var(--moon)) * var(--next-scale) + 13px - var(--label-gap)) * var(--step-out, 1))
+    }
+    .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
+        --next-shift: var(--label-reserve)
+    }
+    .path-stage[data-variant=orbit] .path-dot:not(#\-) {
+        --orb-hi: color-mix(in srgb, var(--dot) 72%, #ffffff);
+        --orb-mid: color-mix(in srgb, var(--dot) 62%, #0b1030);
+        --orb-low: color-mix(in srgb, var(--dot) 42%, #070b22);
+        --orb-shade: color-mix(in srgb, var(--dot) 40%, #050818);
+        --rim: color-mix(in srgb, var(--dot) 38%, #050818);
+        background: var(--orb-mid);
+        box-shadow: inset 0 -6px 0 var(--orb-shade), 0 6px 0 var(--rim)
+    }
+    .path-stage[data-variant=orbit] .path-dot:is([data-next], [data-state=done], [data-state=running]):not(#\-) {
+        background-image: radial-gradient(circle at 34% 28%, var(--orb-hi) 0, var(--orb-mid) 46%, var(--orb-low) 100%);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] .path-dot-core:not(#\-) {
+        color: #ffffffd9;
+        filter: drop-shadow(0 1px 2px #0006)
+    }
+    .path-stage[data-variant=orbit] .path-dot-shine:not(#\-) {
+        background-image: radial-gradient(ellipse at 50% 40%, #ffffff59, #ffffff00 70%);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] :is(button, a).path-dot:hover:not(#\-) {
+        box-shadow: inset 0 -6px 0 var(--orb-shade), 0 6px 0 var(--rim), 0 0 30px color-mix(in srgb, var(--dot) 46%, transparent)
+    }
+    .path-stage[data-variant=orbit] :is(button, a).path-dot:active:not(#\-) {
+        box-shadow: inset 0 -4px 0 var(--orb-shade), 0 1px 0 var(--rim), 0 0 30px color-mix(in srgb, var(--dot) 46%, transparent)
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-next]:not(#\-) {
+        --orb-hi: color-mix(in srgb, var(--dot) 36%, #ffffff);
+        --orb-mid: var(--dot);
+        --orb-low: color-mix(in srgb, var(--dot) 70%, #0b1030);
+        --orb-shade: color-mix(in srgb, var(--dot) 58%, #050818);
+        --rim: color-mix(in srgb, var(--dot) 50%, #050818);
+        box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 24px -8px #000a, 0 0 44px color-mix(in srgb, var(--dot) 62%, transparent)
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-next] .path-dot-core:not(#\-) {
+        color: #04101f;
+        filter: none
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-state=done]:not(#\-) {
+        --orb-hi: color-mix(in srgb, var(--dot) 34%, #ffffff);
+        --orb-mid: var(--dot);
+        --orb-low: color-mix(in srgb, var(--dot) 62%, #050a1e);
+        --orb-shade: color-mix(in srgb, var(--dot) 58%, #030816);
+        --rim: color-mix(in srgb, var(--dot) 52%, #030816);
+        box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 24px -8px #000b, 0 0 34px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 90px color-mix(in srgb, var(--dot) 28%, transparent)
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-core:not(#\-) {
+        color: #04101f;
+        filter: none
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-shine:not(#\-) {
+        background-image: radial-gradient(ellipse at 50% 40%, #ffffff8c, #ffffff00 70%);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-state=running]:not(#\-) {
+        box-shadow: inset 0 0 0 5px #ffffffd9, inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 0 44px color-mix(in srgb, var(--dot) 60%, transparent)
+    }
+    @supports (color: oklch(from red l c h)) {
+        .path-stage[data-variant=orbit] .path-dot:not(#\-) {
+            --orb-mid: oklch(from var(--dot) calc(l * .76) calc(c * .86) h);
+            --orb-low: oklch(from var(--dot) calc(l * .62) c h);
+            --orb-shade: oklch(from var(--dot) calc(l * .5) c h);
+            --rim: oklch(from var(--dot) calc(l * .42) c h)
+        }
+    }
+    @supports (color: oklch(from red l c h)) {
+        .path-stage[data-variant=orbit] .path-dot[data-next]:not(#\-) {
+            --orb-mid: var(--dot);
+            --orb-low: oklch(from var(--dot) calc(l * .74) c h);
+            --orb-shade: oklch(from var(--dot) calc(l * .6) c h);
+            --rim: oklch(from var(--dot) calc(l * .52) c h)
+        }
+    }
+    @supports (color: oklch(from red l c h)) {
+        .path-stage[data-variant=orbit] .path-dot[data-state=done]:not(#\-) {
+            --orb-mid: var(--dot);
+            --orb-low: oklch(from var(--dot) calc(l * .68) c h);
+            --orb-shade: oklch(from var(--dot) calc(l * .58) c h);
+            --rim: oklch(from var(--dot) calc(l * .5) c h)
+        }
+    }
+    .path-stage[data-variant=orbit] .path-dot:focus-visible:not(#\-) {
+        outline-color: #ffffff
+    }
+    .path-dot-pulse:not(#\-) {
+        background-image: radial-gradient(circle, color-mix(in srgb, var(--dot) 0%, transparent) 54%, color-mix(in srgb, var(--dot) 55%, transparent) 70%, color-mix(in srgb, var(--dot) 0%, transparent) 73%);
+        background-color: transparent
+    }
+    .path-dot-orbit:not(#\-) {
+        border-color: color-mix(in srgb, var(--dot) 70%, transparent)
+    }
+    .path-dot-orbit i:not(#\-) {
+        background-image: radial-gradient(circle at 35% 30%, #ffffff, var(--dot) 70%);
+        background-color: transparent;
+        box-shadow: 0 0 10px var(--dot)
+    }
+    .path-dot-burst[data-rich]:not(#\-)::after {
+        background-image: radial-gradient(circle, #ffffffe6 0, color-mix(in srgb, var(--dot) 70%, transparent) 26%, color-mix(in srgb, var(--dot) 0%, transparent) 60%);
+        background-color: transparent
+    }
+    .path-dot-burst[data-rich] i[data-tone='1']:not(#\-) {
+        background-image: none;
+        background-color: #ffffff;
+        box-shadow: 0 0 12px #ffffff
+    }
+    .path-dot-burst[data-rich] i[data-tone='2']:not(#\-) {
+        background-image: none;
+        background-color: #ffd27a;
+        box-shadow: 0 0 10px #ffd27a
+    }
+    .path-stage[data-variant=orbit] .path-banner:not(#\-) {
+        border-color: transparent;
+        color: var(--path-ink-banner-word);
+        background-image: radial-gradient(90% 140% at 0% 0%, #ffffff59, #ffffff00 55%), linear-gradient(105deg, color-mix(in srgb, var(--banner) 80%, #ffffff) 0%, var(--banner) 46%, color-mix(in srgb, var(--banner) 80%, #11163a) 100%);
+        background-color: transparent;
+        box-shadow: 0 5px 0 color-mix(in srgb, var(--banner) 46%, #050a1e), 0 18px 34px -18px color-mix(in srgb, var(--banner) 80%, transparent), inset 0 1px 0 #ffffffa6
+    }
+    .path-stage[data-variant=orbit] .path-banner:not(#\-)::before {
+        background-image: radial-gradient(1.4px 1.4px at 62% 24%, #ffffffd9, #fff0), radial-gradient(1.2px 1.2px at 78% 70%, #ffffffb3, #fff0), radial-gradient(1.6px 1.6px at 88% 32%, #ffffffcc, #fff0), radial-gradient(1px 1px at 54% 78%, #ffffff99, #fff0);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] .path-banner-planet:not(#\-) {
+        background-image: radial-gradient(circle at 34% 28%, #ffffff 0, color-mix(in srgb, var(--banner) 40%, #ffffff) 26%, color-mix(in srgb, var(--banner) 70%, #0a1230) 100%);
+        background-color: transparent;
+        box-shadow: 0 0 0 2px #ffffff59, 0 4px 10px -4px #0008
+    }
+    .path-stage[data-variant=orbit] .path-banner-planet i:not(#\-) {
+        border-color: #0a1230b3
+    }
+    .path-stage[data-variant=orbit] .path-banner-eyebrow:not(#\-) {
+        color: #0a1230
+    }
+    .path-stage[data-variant=orbit] .path-banner-title:not(#\-) {
+        color: var(--path-ink-banner-word)
+    }
+    .path-stage[data-variant=orbit] .path-banner-count:not(#\-) {
+        background-image: none;
+        background-color: #ffffffd9;
+        color: var(--path-ink-banner-word);
+        box-shadow: 0 3px 0 #0a123033
+    }
+    .path-banner-done:not(#\-) {
+        background-image: none;
+        background-color: var(--path-ink-banner-word);
+        color: #ffffff;
+        box-shadow: 0 0 0 2px #ffd27a, 0 0 18px #ffd27a99
+    }
+    .path-banner-done:not(#\-)::before {
+        border-left-color: #ffd27a;
+        border-bottom-color: #ffd27a
+    }
+    .path-banner-meter:not(#\-) {
+        background-image: none;
+        background-color: var(--path-ink-meter-track)
+    }
+    .path-banner-meter i:not(#\-) {
+        background-image: linear-gradient(90deg, #ffffff, #fff4d6);
+        background-color: transparent;
+        box-shadow: 0 0 10px #ffffffd9
+    }
+    .path-stage[data-variant=orbit] .path-banner[data-complete] .path-banner-meter:not(#\-) {
+        box-shadow: 0 0 14px #ffd27acc
+    }
+    .path-stage[data-variant=orbit] .path-banner[data-complete] .path-banner-meter i:not(#\-) {
+        background-image: linear-gradient(90deg, #fff1c4, #ffd27a 55%, #ffb547);
+        background-color: transparent;
+        box-shadow: 0 0 14px #ffd27a
+    }
+    .path-banner-shine:not(#\-)::after {
+        background-image: linear-gradient(100deg, #ffffff00, #ffffffd9 50%, #ffffff00);
+        background-color: transparent
+    }
+    .path-banner-sparks i:not(#\-) {
+        background-image: none;
+        background-color: #ffffff;
+        box-shadow: 0 0 10px #ffffff
+    }
+    .path-banner-sparks i[data-tone='1']:not(#\-) {
+        background-image: none;
+        background-color: #ffd27a;
+        box-shadow: 0 0 10px #ffd27a
+    }
+    .path-banner-sparks i[data-tone='2']:not(#\-) {
+        background: var(--banner);
+        box-shadow: 0 0 12px var(--banner)
+    }
+    .path-banner-sparks i[data-tone='3']:not(#\-) {
+        background-image: none;
+        background-color: #ff74be;
+        box-shadow: 0 0 10px #ff74be
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=left]:not(#\-) {
+        --chest-shift: calc((var(--dot-size) / 2 + var(--chest) / 2 + 8px) * var(--chest-aside, 1))
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=right]:not(#\-) {
+        --chest-shift: calc((var(--dot-size) / -2 - var(--chest) / 2 - 8px) * var(--chest-aside, 1))
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-inline] .path-chest-art:not(#\-) {
+        filter: drop-shadow(0 0 10px #ffd27a80) drop-shadow(0 6px 10px #00000059)
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-inline][data-reached] .path-chest-art:not(#\-) {
+        filter: drop-shadow(0 0 18px #ffd27ae6) drop-shadow(0 6px 10px #00000059)
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-inline][data-just] .path-chest-art:not(#\-)::after {
+        background-image: radial-gradient(closest-side, #fff4d1e6, #ffd27a80 45%, #ffd27a00);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-on-path] .path-chest-text:not(#\-) {
+        color: var(--text, #f0f5ff);
+        text-shadow: 0 1px 2px #02061499, 0 0 12px #020614cc
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-trophy] .path-chest-art:not(#\-) {
+        filter: drop-shadow(0 10px 18px #0007)
+    }
+    .path-stage[data-variant=orbit] .path-chest[data-trophy][data-reached] .path-chest-art:not(#\-) {
+        filter: drop-shadow(0 0 26px #ffd27acc) drop-shadow(0 10px 18px #0009)
+    }
+    .path-trophy-world:not(#\-) {
+        stroke: #fff2c7
+    }
+    .path-trophy-ring-back:not(#\-) {
+        fill: none;
+        stroke: #f0a24b
+    }
+    .path-trophy-ring-front:not(#\-) {
+        fill: none;
+        stroke: #ffe6a8
+    }
+    .path-trophy-cup:not(#\-) {
+        fill: #fff6dc;
+        stroke: #8a5a1c
+    }
+    .path-trophy-rays:not(#\-) {
+        fill: none;
+        stroke: #ffe39a
+    }
+    .path-stage[data-variant=orbit] .path-zigi[data-alive]:not(#\-) {
+        --zw: calc(var(--zigi-h) * .838)
+    }
+    .path-stage[data-variant=orbit] .path-zigi[data-alive] .path-zigi-figure:not(#\-) {
+        filter: none
+    }
+    .path-stage[data-variant=orbit] .path-zigi[data-alive] .path-zigi-figure img:not(#\-) {
+        filter: drop-shadow(0 10px 14px #6b4dff59)
+    }
+    .path-zigi-ground:not(#\-) {
+        background-image: radial-gradient(closest-side, #9273ff73, #23eaff26 62%, #23eaff00);
+        background-color: transparent
+    }
+    .path-zigi-burst:not(#\-) {
+        background-image: radial-gradient(closest-side, #fff4d1cc, #ffd27a66 32%, #ff74be26 58%, #ff74be00 72%), repeating-conic-gradient(from 0deg, #ffe39a00 0deg, #ffe39acc 3deg, #ffe39a00 7deg 22.5deg);
+        background-color: transparent
+    }
+    .path-zigi-cheer i:not(#\-) {
+        background-image: none;
+        background-color: #ffd27a
+    }
+    .path-zigi-cheer i[data-tone='1']:not(#\-) {
+        background-image: none;
+        background-color: #ffffff
+    }
+    .path-zigi-cheer i[data-tone='2']:not(#\-) {
+        background-image: none;
+        background-color: var(--step-colour, #23eaff)
+    }
+    .path-stage[data-variant=orbit] .path-jump:not(#\-) {
+        border-color: #8cc8ff80;
+        box-shadow: 0 5px 0 #0a1230, 0 12px 20px -10px #000c, 0 0 16px #4f8dff59
+    }
+    :scope[data-theme=light] .path-stage[data-variant=orbit] .path-jump:not(#\-) {
+        border-color: #9273ff66;
+        background-image: radial-gradient(circle at 35% 28%, #ffffff, #eef0fb 72%);
+        background-color: transparent;
+        color: #23264d;
+        box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #9273ff33
+    }
+    @media (forced-colors: active) {
+        .path-next-tag:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .path-stage[data-variant=orbit] .path-banner:not(#\-) {
+            border-color: currentcolor
+        }
     }
 }
 /*  components/path/path.css  */
