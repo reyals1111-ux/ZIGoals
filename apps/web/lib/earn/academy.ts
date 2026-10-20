@@ -25,7 +25,7 @@ export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
     {q: 'What is a validator’s commission?', options: ['A share of your rewards the validator keeps', 'A fee ZIGoals charges', 'The ZIG you lose when you leave'], answer: 0, why: 'The commission is the validator’s cut of the rewards your stake earns.'},
     {q: 'What can happen to your stake if your validator misbehaves?', options: ['Nothing at all', 'It doubles', 'A small part can be slashed'], answer: 2, why: 'Slashing takes a small part of the stake behind a validator that double-signs or stays offline too long.'},
   ]},
-  {id: 'apr-apy', title: 'APR and APY', short: 'Two ways to say a rate', minutes: 4, glyph: 'scale', colour: 'gold', body: [
+  {id: 'apr-apy', title: 'APR and APY', short: 'Two ways to say a rate', minutes: 4, glyph: 'activity', colour: 'gold', body: [
     'APR is a simple yearly rate: 5 % APR on 1,000 ZIG is 50 ZIG over a year, if nothing changes.',
     'APY assumes the rewards are added back as you go (compounding), so for the same rate it reads a little higher than the APR.',
     'Staking rewards are not added back by themselves: you claim them and stake them again, each time with a small network fee. That is why ZIGoals shows the APR.',
@@ -55,7 +55,7 @@ export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
     {q: 'What is the fastest way from stZIG back to ZIG?', options: ['Sell stZIG on an exchange', 'Wait for unbonding', 'There is none'], answer: 0, why: 'A swap is instant, usually at a small discount; redeeming takes weeks.'},
     {q: 'Compared with staking yourself, what risk does liquid staking add?', options: ['None at all', 'Contract risk', 'Higher network fees'], answer: 1, why: 'A contract holds the ZIG, so its faults and its controllers matter.'},
   ]},
-  {id: 'pools', title: 'Liquidity pools and impermanent loss', short: 'Swap fees, and the catch', minutes: 6, glyph: 'focus', colour: 'magenta', body: [
+  {id: 'pools', title: 'Liquidity pools and impermanent loss', short: 'Swap fees, and the catch', minutes: 6, glyph: 'portfolio', colour: 'magenta', body: [
     'A liquidity pool holds two tokens, ZIG and USDC for example. People swap one for the other through it and pay a small fee that goes to the pool’s providers.',
     'To provide liquidity you add equal values of both tokens and receive LP tokens: your share of the pool and its fees.',
     'Impermanent loss: when one token’s price moves, swappers trade against the pool, which ends up holding more of the cheaper token and less of the dearer one. When you take your share out, you can have less value than if you had simply kept both tokens.',
@@ -65,7 +65,7 @@ export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
     {q: 'ZIG’s price rises fast. What does a ZIG / USDC pool end up holding?', options: ['Less ZIG and more USDC', 'More ZIG', 'Exactly the same'], answer: 0, why: 'Swappers buy the cheaper ZIG from the pool until its price matches the market.'},
     {q: 'What is impermanent loss?', options: ['A fee for leaving', 'Losing your LP tokens', 'Having less than if you had kept both tokens'], answer: 2, why: 'It is the gap between your pool share and simply holding the two tokens.'},
   ]},
-  {id: 'custody', title: 'Copy trading and custody', short: 'Who holds the keys', minutes: 6, glyph: 'heart', colour: 'magenta', body: [
+  {id: 'custody', title: 'Copy trading and custody', short: 'Who holds the keys', minutes: 6, glyph: 'lock', colour: 'magenta', body: [
     'Copy trading: a trader manages money for many people, and the trader’s results are copied into each person’s account. Profits are shared with the trader.',
     'On a copy-trading platform the platform usually holds the money (it is custodial): you have an account there, not your own keys. The platform decides what is possible, and when.',
     'An example, as its own notice states it: Zignaly, the company ZIG first came from and a copy-trading platform, is closing. New investments stopped on 15 October 2026, trading closed on 16 October, and the last day to withdraw is 1 December 2026, in USDT on BNB Smart Chain only. Its customers withdraw in the way, and by the date, it sets.',
@@ -85,7 +85,7 @@ export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
     {q: 'Someone from “support” asks for your recovery phrase. What do you do?', options: ['Never share it', 'Share it if they seem real', 'Share half of it'], answer: 0, why: 'Nobody genuine ever asks; anyone with the words can take everything.'},
     {q: 'A signing window opens that you did not start. What do you do?', options: ['Approve it quickly', 'Reject it', 'Leave it open'], answer: 1, why: 'Sign only what you started and understand.'},
   ]},
-  {id: 'fees', title: 'Gas and fees', short: 'Why you keep a little ZIG', minutes: 4, glyph: 'pill', colour: 'purple', body: [
+  {id: 'fees', title: 'Gas and fees', short: 'Why you keep a little ZIG', minutes: 4, glyph: 'wallet', colour: 'purple', body: [
     'Every transaction on ZIGChain pays a small network fee in ZIG to the validators who process it.',
     'Gas is the work a transaction needs; the fee is the gas times the gas price. Your wallet shows the fee before you sign, and may let you raise it.',
     'ZIGChain takes its fees in ZIG only: with only USDC or ATOM in your wallet you cannot even swap until you have a little ZIG.',
@@ -110,7 +110,12 @@ export function lessonState(record: EarnAcademy, id: AcademyLessonId): {passed: 
 export function academyProgress(record: EarnAcademy): {passed: number; total: number} {
   return {passed: ACADEMY_LESSON_IDS.filter(id => lessonState(record, id).passed).length, total: ACADEMY_LESSON_IDS.length};
 }
-/** The mini path: two orbits of four lessons, a chest half way and one at the end. */
+/**
+ * The mini path: two orbits of four lessons, a chest halfway and one at the end. Session AF Gate C (design critique, money
+ * pages 8): each lesson's mark is one from the app's own icon set that fits it (a rising chart for a rate, a share of a pie
+ * for a pool, a lock for custody, a wallet for the fees you keep ZIG for), never one that means something else elsewhere
+ * (a bag, a clock, a heart, a pill).
+ */
 export function academyModel(record: EarnAcademy): PathModel {
   const step = (l: Lesson): PathStep => {
     const s = lessonState(record, l.id);
@@ -120,7 +125,7 @@ export function academyModel(record: EarnAcademy): PathModel {
     {id: 'academy-basics', label: 'The basics', eyebrow: 'Lessons 1–4', colour: 'gold', steps: ACADEMY_LESSONS.slice(0, 4).map(step)},
     {id: 'academy-beyond', label: 'Beyond staking', eyebrow: 'Lessons 5–8', colour: 'magenta', steps: ACADEMY_LESSONS.slice(4).map(step)},
   ], milestones: [
-    {id: 'academy-half', at: 'half', label: 'Half way', reachedLabel: 'Half the Academy passed'},
+    {id: 'academy-half', at: 'half', label: 'Halfway', reachedLabel: 'Half the Academy passed'},
     {id: 'academy-done', at: 'end', label: 'Academy, complete', reachedLabel: 'Every lesson passed'},
   ]};
 }

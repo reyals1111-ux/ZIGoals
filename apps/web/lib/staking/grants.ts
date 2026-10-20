@@ -79,7 +79,7 @@ const ACTS: Readonly<Record<string, string>> = Object.freeze({
   MsgSetWithdrawAddress: 'change where your rewards are paid',
   MsgVote: 'vote for you',
   MsgVoteWeighted: 'vote for you',
-  MsgDeposit: 'add to a proposal\'s deposit for you',
+  MsgDeposit: 'add to a proposal’s deposit for you',
   MsgSubmitProposal: 'submit a proposal for you',
   MsgExecuteContract: 'use smart contracts for you',
   MsgTransfer: 'send tokens to another chain from your wallet',

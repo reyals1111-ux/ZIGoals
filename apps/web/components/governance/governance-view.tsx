@@ -6,7 +6,7 @@ import {PageHeader} from '../page-header';
 import {useShowcase} from '../showcase-controls';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {NetworkSwitch} from '../staking/network-switch';
+import {NetworkBanner, NetworkSwitch} from '../staking/network-switch';
 import {RealConfirm} from '../staking/real-confirm';
 import {TxProgress, type Progress} from '../staking/tx-progress';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
@@ -141,7 +141,7 @@ export function GovernanceView() {
   }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps -- re-quote once per expiry
   function done(receipt: StakingReceipt) {
     setQuote(null); revision.current++;
-    setProgress({state: 'SUCCESS', hash: receipt.hash, height: receipt.height, refreshed: 'Your vote is in this device\'s vote journal. The chain\'s own record of it shows here within a minute.'});
+    setProgress({state: 'SUCCESS', hash: receipt.hash, height: receipt.height, refreshed: 'Your vote is in this device’s vote journal. The chain’s own record of it shows here within a minute.'});
     window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: STAKING_JOURNAL.key}));
     if (wallet && votingIds) setTimeout(() => void readVotes(wallet, votingIds.split(',')), 61_000);
   }
@@ -171,7 +171,7 @@ export function GovernanceView() {
         <div><p className="eyebrow">Signed in your own wallet</p><h2 id="governance-network-title">Vote on a network</h2></div>
         <NetworkSwitch network={network} onChoose={choose} disabled={!!quote || !!reviewing}/>
       </div>
-      <p className={`staking-network-banner is-${network}`}><strong>{words.label}</strong> · {words.name} ({words.chainId})</p>
+      <NetworkBanner network={network}/>
       {askReal && <RealConfirm onConfirm={confirmReal} onCancel={() => { setAskReal(false); setRealError(''); }} error={realError}/>}
       {showcase ? <p>Exit the Showcase to vote. The Showcase keeps its simulated wallet and signs nothing.</p>
         : !wallet ? <div className="staking-connect">

@@ -168,9 +168,11 @@ export function PermapodSection({llama, now}: {llama: LiveState<DefillamaData>; 
     ]}
     stepsTime="a few minutes of reading. You sign nothing."
     actions={<>
-      <VerifiedLink provider="permapod" kind="site" className="secondary">Permapod’s site</VerifiedLink>
-      {/* Critique round 2 (L5c): the halted app's own site, with a plain caution beside it. */}
+      {/* Critique round 2 (L5c): the halted app's own site, with a plain caution. Session AF Gate C (design critique, money
+          pages 9): the caution is a full-width line above the links, right before Permapod's site, no longer a box at
+          button height between two buttons that read like a third button. */}
       <p className="earn-caution" data-caution="permapod" role="note">Read only: do not connect a wallet or sign anything there while it is halted.</p>
+      <VerifiedLink provider="permapod" kind="site" className="secondary">Permapod’s site</VerifiedLink>
       <VerifiedLink provider="permapod" kind="defillama" className="secondary" mark="full">On DefiLlama</VerifiedLink>
     </>}
   />;

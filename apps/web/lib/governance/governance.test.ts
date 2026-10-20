@@ -14,12 +14,12 @@ describe('what a proposal changes', () => {
     expect(partsOf('/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade')).toEqual({module: 'cosmos.upgrade', name: 'MsgSoftwareUpgrade'});
     expect(partsOf('/ibc.core.client.v1.MsgRecoverClient')).toEqual({module: 'ibc.core.client', name: 'MsgRecoverClient'});
     expect(partsOf('/zigchain.factory.MsgSetDenomMetadata')).toEqual({module: 'zigchain.factory', name: 'MsgSetDenomMetadata'});
-    expect(whatChanges(['/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade'])).toEqual(['Upgrades ZIGChain\'s software: every validator switches to a new version at a set block.']);
+    expect(whatChanges(['/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade'])).toEqual(['Upgrades ZIGChain’s software: every validator switches to a new version at a set block.']);
     expect(whatChanges(['/cosmwasm.wasm.v1.MsgAddCodeUploadParamsAddresses', '/cosmwasm.wasm.v1.MsgAddCodeUploadParamsAddresses'])).toHaveLength(1);
     expect(whatChanges(['/cosmos.distribution.v1beta1.MsgCommunityPoolSpend'])[0]).toBe('Spends ZIG from the community pool.');
     expect(whatChanges([])[0]).toMatch(/^A text proposal/);
     expect(whatChanges(['/cosmos.evidence.v1.MsgUpdateParams'])[0]).toBe('Changes the settings of the evidence module.');
-    expect(whatChanges(['/zigchain.factory.MsgSetDenomMetadata'])[0]).toBe('A change ZIGoals has no plain words for yet (MsgSetDenomMetadata, zigchain.factory); read the proposer\'s words below.');
+    expect(whatChanges(['/zigchain.factory.MsgSetDenomMetadata'])[0]).toBe('A change ZIGoals has no plain words for yet (MsgSetDenomMetadata, zigchain.factory); read the proposer’s words below.');
   });
 });
 describe('the tally, exactly (BigInt), by the SDK\'s rule', () => {

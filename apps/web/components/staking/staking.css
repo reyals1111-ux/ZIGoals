@@ -9,6 +9,14 @@
 .staking-network-option{display:grid;gap:2px;text-align:left;min-height:44px;min-width:min(240px,100%);padding:10px 14px;border-radius:14px;border:2px solid var(--line,#6b91c846);background:var(--surface-1,#101b32);color:var(--text,#eef4ff);font-size:16px;cursor:pointer}
 .staking-network-option.is-practice[aria-pressed="true"]{border-style:dashed;border-color:var(--staking-practice)}
 .staking-network-option.is-real[aria-pressed="true"]{border-color:var(--staking-real);box-shadow:inset 0 0 0 1px var(--staking-real)}
+/* Session AF Gate C (design critique, money pages 11): the chosen tile carries a checked ring at its top right (a radio's
+   mark, filled in the network's own colour), so the choice shows on the tile itself; the other tile keeps an empty ring. */
+.staking-network-option{position:relative;padding-right:46px}
+.staking-network-check{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;border:2px solid var(--line,#6b91c8);box-sizing:border-box}
+.staking-network-option.is-practice[aria-pressed="true"] .staking-network-check{border-color:var(--staking-practice);background:var(--staking-practice)}
+.staking-network-option.is-real[aria-pressed="true"] .staking-network-check{border-color:var(--staking-real);background:var(--staking-real)}
+.staking-network-option[aria-pressed="true"] .staking-network-check::after{content:"";position:absolute;left:5.5px;top:1.5px;width:5px;height:10px;border:solid #1d1400;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+@media (forced-colors: active){.staking-network-option[aria-pressed="true"] .staking-network-check{background:Highlight;border-color:Highlight}.staking-network-option[aria-pressed="true"] .staking-network-check::after{border-color:HighlightText}}
 .staking-network-option:disabled{opacity:.6;cursor:not-allowed}
 .staking-network-badge{font-weight:800;letter-spacing:.08em;font-size:14px}
 /* crit1: practice reads as an outline, real as a filled gold chip, so the two never look alike. */
@@ -18,9 +26,13 @@
 .staking-network-chain{font-size:14px;color:var(--text-secondary,#b7c8de)}
 /* crit1: `:root` lifts these above the app's `.panel p { font-size: 15px }`, so the network words are 18 px (16 px under an
    amount) as designed; the practice banner is a statement with a dashed rule, not a third box beside the two choices. */
-:root .staking-network-banner{margin:0;font-size:18px;line-height:1.5;padding:10px 14px;border-radius:12px}
-:root .staking-network-banner.is-practice{border:0;border-left:5px dashed var(--staking-practice);border-radius:0;padding:4px 0 4px 14px}
-.staking-network-banner.is-real{background:var(--staking-real);color:#1d1400}
+/* Session AF Gate C (design critique, money pages 11): the line under the two tiles is a small note of the choice ("Chosen
+   network: …", 16 px, the network words' floor, in the secondary colour, a thin rule in the network's own style), no
+   longer an 18 px line that read like a third option; the chosen tile itself carries the check. */
+:root .staking-network-banner{margin:0;font-size:16px;line-height:1.5;padding:2px 0 2px 12px;border:0;border-left:3px solid var(--line,#6b91c8);border-radius:0;background:none;color:var(--text-secondary,#b7c8de)}
+:root .staking-network-banner strong{font-weight:650;color:var(--text,#eef4ff)}
+:root .staking-network-banner.is-practice{border-left:3px dashed var(--staking-practice)}
+:root .staking-network-banner.is-real{border-left:3px solid var(--staking-real);background:none;color:var(--text-secondary,#b7c8de)}
 :root .staking-network-line{margin:6px 0 0;font-size:16px;font-weight:700;line-height:1.5;letter-spacing:.02em;overflow-wrap:anywhere}
 .staking-network-line{padding-left:10px;border-left:4px solid var(--line,#6b91c8)}
 .staking-network-line.is-practice{border-left:4px dashed var(--staking-practice,#e8a33d)}

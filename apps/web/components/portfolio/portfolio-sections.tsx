@@ -43,7 +43,13 @@ function PriceCell({price, currency}: {price?: Price; currency: string}) {
   if (!price) return <>No price yet</>;
   return <>{formatPrice(price.value, currency)}<small data-stale={price.stale || undefined}>{price.stale ? 'Needs refresh' : price.source}{price.at ? ` · ${formatDateTime(price.at)}` : ''}</small></>;
 }
-/** The holdings table: one row per coin ever held, linking to its page. Narrow screens keep the coin, value and result. */
+/**
+ * The holdings table: one row per coin ever held, linking to its page. Narrow screens keep the coin, value and result.
+ * Session AF Gate C (design critique, money pages 4): below 480 px each holding is one stacked card (as Earn's validator
+ * list is on a phone): the coin across the top, then its 24h change, value and result, each under its column's name
+ * (`data-label`), so no figure is clipped and nothing scrolls sideways inside the card. The roles are written out so the
+ * cards stay a table to assistive tech when the phone's styles change how the rows are drawn.
+ */
 export function HoldingsTable({portfolio, rows, sort, onSort, onRemove}: {portfolio: Portfolio; rows: Row[]; sort: 'value' | 'name' | 'result'; onSort: (sort: 'value' | 'name' | 'result') => void; /** Session AB-Design (owner request 27): removes a transaction from the expanded row's transfers. */ onRemove?: (id: string) => void}) {
   const edges = useScrollEdges<HTMLDivElement>();
   const currency = portfolio.currency;
@@ -53,25 +59,26 @@ export function HoldingsTable({portfolio, rows, sort, onSort, onRemove}: {portfo
   return <section className="portfolio-holdings-section" aria-labelledby={`holdings-${portfolio.id}`}>
     <header className="portfolio-section-head"><h3 id={`holdings-${portfolio.id}`}>Holdings</h3><label className="field portfolio-sort"><span>Sort holdings</span><select value={sort} onChange={event => onSort(event.target.value as typeof sort)}><option value="value">By value</option><option value="result">By result</option><option value="name">By name</option></select></label></header>
     <div ref={edges} className="data-table-wrap" role="region" aria-label={`${portfolio.name} holdings, scrolls sideways`} tabIndex={0}>
-      <table className="data-table" aria-label={`${portfolio.name} holdings`}>
-        <thead><tr><th scope="col">Coin</th><th scope="col" className="data-col-wide">Price</th><th scope="col" className="data-col-optional">1h</th><th scope="col">24h</th><th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th><th scope="col" className="data-col-wide">Holdings</th><th scope="col">Value</th><th scope="col" className="data-col-optional">Average cost</th><th scope="col">Result</th></tr></thead>
-        <tbody>{sorted.map(row => {
+      <table className="data-table" role="table" aria-label={`${portfolio.name} holdings`}>
+        <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Coin</th><th scope="col" role="columnheader" className="data-col-wide">Price</th><th scope="col" role="columnheader" className="data-col-optional">1h</th><th scope="col" role="columnheader">24h</th><th scope="col" role="columnheader" className="data-col-optional">7d</th><th scope="col" role="columnheader" className="data-col-optional">Last 7 days</th><th scope="col" role="columnheader" className="data-col-wide">Holdings</th><th scope="col" role="columnheader">Value</th><th scope="col" role="columnheader" className="data-col-optional">Average cost</th><th scope="col" role="columnheader">Result</th></tr></thead>
+        <tbody role="rowgroup">{sorted.map(row => {
           const held = Number(row.holding.quantity) > 0;
           const expanded = open === row.holding.coin, detailId = `coin-detail-${portfolio.id}-${row.holding.coin}`.replace(/[^A-Za-z0-9_-]/g, '-');
-          return <Fragment key={row.holding.coin}><tr data-closed={!held || undefined} data-expanded={expanded || undefined}>
-            <th scope="row"><button type="button" className="data-coin-toggle" aria-expanded={expanded} aria-controls={detailId} aria-label={`${expanded ? 'Hide' : 'Show'} ${row.coin.name} details`} onClick={() => setOpen(expanded ? null : row.holding.coin)}><AssetIcon symbol={row.coin.symbol} logoUrl={row.market.logoUrl} /><span><strong>{row.coin.name}</strong><small>{row.coin.symbol}</small></span><span className="data-coin-chevron" aria-hidden="true">›</span></button></th>
-            <td className="data-col-wide"><PriceCell price={row.market.price} currency={currency} /></td>
-            <td className="data-col-optional"><Change value={row.market.change1h} label="in 1 hour" /></td>
-            <td><Change value={row.market.change24h} label="in 24 hours" /></td>
-            <td className="data-col-optional"><Change value={row.market.change7d} label="in 7 days" /></td>
-            <td className="data-col-optional">{row.market.sparkline ? <Sparkline prices={row.market.sparkline} label={sparklineWords(row.coin.name, row.market.sparkline, text => formatPrice(text, currency))} /> : <span className="data-unknown">Not provided</span>}</td>
-            <td className="data-col-wide">{formatExactNumber(row.holding.quantity)} {row.coin.symbol}</td>
-            <td>{row.value === undefined ? held ? 'Value unknown' : '—' : formatMoney(row.value, currency)}</td>
-            <td className="data-col-optional">{row.holding.averageCost === undefined ? held ? 'Unknown' : '—' : formatPrice(row.holding.averageCost, currency)}</td>
-            <td data-direction={direction(row.unrealized)}>{!held ? 'Closed' : row.unrealized === undefined ? <>Unknown<small>{row.holding.cost === undefined ? 'cost unknown' : 'no price'}</small></> : <>{formatSignedMoney(row.unrealized, currency)}{row.unrealizedPct ? <small>{percent(row.unrealizedPct)}</small> : null}</>}</td>
+          return <Fragment key={row.holding.coin}><tr role="row" data-closed={!held || undefined} data-expanded={expanded || undefined}>
+            <th scope="row" role="rowheader"><button type="button" className="data-coin-toggle" aria-expanded={expanded} aria-controls={detailId} aria-label={`${expanded ? 'Hide' : 'Show'} ${row.coin.name} details`} onClick={() => setOpen(expanded ? null : row.holding.coin)}><AssetIcon symbol={row.coin.symbol} logoUrl={row.market.logoUrl} /><span><strong>{row.coin.name}</strong><small>{row.coin.symbol}</small></span><span className="data-coin-chevron" aria-hidden="true">›</span></button></th>
+            <td role="cell" className="data-col-wide" data-label="Price"><PriceCell price={row.market.price} currency={currency} /></td>
+            <td role="cell" className="data-col-optional" data-label="1h"><Change value={row.market.change1h} label="in 1 hour" /></td>
+            <td role="cell" data-label="24h"><Change value={row.market.change24h} label="in 24 hours" /></td>
+            <td role="cell" className="data-col-optional" data-label="7d"><Change value={row.market.change7d} label="in 7 days" /></td>
+            <td role="cell" className="data-col-optional" data-label="Last 7 days">{row.market.sparkline ? <Sparkline prices={row.market.sparkline} label={sparklineWords(row.coin.name, row.market.sparkline, text => formatPrice(text, currency))} /> : <span className="data-unknown">Not provided</span>}</td>
+            <td role="cell" className="data-col-wide" data-label="Holdings">{formatExactNumber(row.holding.quantity)} {row.coin.symbol}</td>
+            <td role="cell" data-label="Value">{row.value === undefined ? held ? 'Value unknown' : '—' : formatMoney(row.value, currency)}</td>
+            <td role="cell" className="data-col-optional" data-label="Average cost">{row.holding.averageCost === undefined ? held ? 'Unknown' : '—' : formatPrice(row.holding.averageCost, currency)}</td>
+            {/* Session AF Gate C (design critique, copy): an unknown result says why in one phrase ("Unknown / cost unknown" had said it twice). */}
+            <td role="cell" data-label="Result" data-direction={direction(row.unrealized)}>{!held ? 'Closed' : row.unrealized === undefined ? (row.holding.cost === undefined ? 'Cost unknown' : 'No price yet') : <>{formatSignedMoney(row.unrealized, currency)}{row.unrealizedPct ? <small>{percent(row.unrealizedPct)}</small> : null}</>}</td>
           </tr>
           {/* Session AB-Design (owner request 27): the coin's detail card — its figures, its transfers and its links — right under its row. */}
-          {expanded && <tr className="data-detail-row"><td colSpan={10}><div id={detailId} className="coin-detail" role="region" aria-label={`${row.coin.name} details`}>
+          {expanded && <tr className="data-detail-row" role="row"><td role="cell" colSpan={10}><div id={detailId} className="coin-detail" role="region" aria-label={`${row.coin.name} details`}>
             <dl className="portfolio-totals coin-detail-figures">
               <div><dt>Price</dt><dd><PriceCell price={row.market.price} currency={currency} /></dd></div>
               <div><dt>Holdings</dt><dd>{formatExactNumber(row.holding.quantity)} {row.coin.symbol}</dd><small>{row.value === undefined ? (held ? 'Value unknown until a price is known' : 'Nothing held now') : `${formatMoney(row.value, currency)} at the last price`}</small></div>

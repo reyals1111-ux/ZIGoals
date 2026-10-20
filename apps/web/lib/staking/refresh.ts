@@ -22,7 +22,7 @@ export async function readPositionsAfter(network: StakingNetwork, address: strin
     if (seen !== undefined && seen >= BigInt(height)) return {positions: last, height: seen.toString()};
     if (attempt < REFRESH_ATTEMPTS) await wait(REFRESH_GAP_MS);
   }
-  throw Error('The chain relay has not reached your transaction\'s block yet. Your positions will update on the next refresh.');
+  throw Error('The chain relay has not reached your transaction’s block yet. Your positions will update on the next refresh.');
 }
 /** The platform record with the new observation, scoped to the wallet that signed (the tracker's own path). */
 export function withStakingObservation(data: Platform, chainId: string, address: string, positions: Position[]): Platform {

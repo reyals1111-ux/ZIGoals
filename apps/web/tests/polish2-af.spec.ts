@@ -113,11 +113,17 @@ test.describe('Earn', () => {
     for (const label of ['On DefiLlama', 'All of Valdora’s vaults', 'All closure articles']) {
       for (const link of await page.locator('.earn-option-actions .verified-link').filter({has: page.getByRole('link', {name: new RegExp(`^${label}`)})}).all()) await expect(link.locator('.verified-mark')).toContainText(/verified link · \w+/);
     }
-    // 8. Permapod's site link carries a plain caution beside it.
+    // 8. Permapod's site link carries a plain caution. Session AF Gate C (design critique, money pages 9; moved, stronger):
+    //    the caution comes right before the site's link now (it had sat right after it, between the two links), as a
+    //    full-width line above the links: it is the actions' first child, spans the row, and both links sit below it.
     const permapod = page.locator('#permapod .earn-option-actions');
     await expect(permapod.locator('[data-caution="permapod"]')).toHaveText('Read only: do not connect a wallet or sign anything there while it is halted.');
     const order = await permapod.evaluate(el => [...el.children].map(c => c.matches('.verified-link') ? c.textContent!.split('↗')[0]!.trim() : c.getAttribute('data-caution')));
-    expect(order.indexOf('permapod')).toBe(order.indexOf('Permapod’s site') + 1);
+    expect(order.indexOf('permapod')).toBe(0);
+    expect(order.indexOf('Permapod’s site')).toBe(order.indexOf('permapod') + 1);
+    const [row, caution] = await Promise.all([permapod.boundingBox(), permapod.locator('[data-caution="permapod"]').boundingBox()]);
+    expect(caution!.width).toBeGreaterThanOrEqual(row!.width - 1);
+    for (const link of await permapod.locator('.verified-link').all()) expect((await link.boundingBox())!.y).toBeGreaterThanOrEqual(caution!.y + caution!.height - 1);
     // 10. The decoy denom: never `break-all`, a break opportunity after each dot, the words intact; where the tile is wide
     //     enough (a computer), every line break falls right after a dot.
     const denom = page.locator('.earn-denom-decoy');
@@ -153,7 +159,8 @@ test.describe('Earn', () => {
     // 13. The calculator's rate carries the same source line as the native figures.
     const calc = page.locator('#calculator [data-live-figure="calculator"]');
     await expect(calc).toHaveAttribute('data-state', 'ok');
-    await expect(calc.locator('.earn-source').first()).toContainText('ZIGChain mainnet LCD (official)');
+    // Session AF Gate C (design critique, copy; moved, as strict): the same official source, by its plain name.
+    await expect(calc.locator('.earn-source').first()).toContainText('ZIGChain’s official mainnet server');
     await expect(calc.locator('.earn-source').first()).toContainText(/ · as of /);
     // 15. The Academy's end chest is named like Start here's.
     await expect(page.locator('#start-here .path-chest[data-milestone="start-complete"]')).toContainText('Start here, complete');

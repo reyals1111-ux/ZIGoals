@@ -1,6 +1,6 @@
 'use client';
 import {useCallback, useEffect, useMemo, useRef, useState, type FormEvent} from 'react';
-import {NETWORK_WORDS, STAKING_NETWORKS, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {STAKING_NETWORKS, type StakingNetwork} from '@zigoals/chain-config/networks';
 import {usePlatform} from '../platform/use-platform';
 import {useShowcase} from '../showcase-controls';
 import {usePhoneActive} from '../phone/use-phone-layout';
@@ -19,7 +19,7 @@ import {StakingFailure, type StakingReceipt} from '../../lib/staking/execute';
 import type {StakingQuote} from '../../lib/staking/quote';
 import {daysText, holdingsOf, zigText} from '../../lib/staking/view';
 import {connectStaking, dropStakingSession, keplrMobileLink, onKeystoreChange, readStakingSession, saveStakingSession, type StakingSession} from '../../lib/wallets/keplr-session';
-import {NetworkLine, NetworkSwitch} from './network-switch';
+import {NetworkBanner, NetworkLine, NetworkSwitch} from './network-switch';
 import {RealConfirm} from './real-confirm';
 import {ReviewSheet} from './review-sheet';
 import {TxProgress, type Progress} from './tx-progress';
@@ -272,7 +272,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       <div><p className="eyebrow">Signed in your own wallet</p><h2 id="staking-actions-title">Stake, unstake and claim</h2></div>
       <NetworkSwitch network={network} onChoose={choose} disabled={quoting || !!quote}/>
     </div>
-    <p className={`staking-network-banner is-${network}`}><strong>{NETWORK_WORDS[network].label}</strong> · {NETWORK_WORDS[network].name} ({NETWORK_WORDS[network].chainId})</p>
+    <NetworkBanner network={network}/>
     {/* Session AF (L1c, N1): the plain words of what this panel does, one tap away. */}
     <p className="whats-this-row"><WhatsThis term="practice-network"/> <WhatsThis term="staking"/></p>
     {askReal && <RealConfirm onConfirm={confirmReal} onCancel={() => { setAskReal(false); setRealError(''); }} error={realError}/>}

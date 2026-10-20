@@ -21,7 +21,11 @@ test('live figures carry their source and age; every outgoing link is a verified
     await expect(figure, id).toContainText(/updated just now|updated \d+ min ago/);
   }
   await expect(page.locator('[data-live-figure="native-apr"] .earn-value')).toHaveText(/^\d+\.\d{2}\s%$/);
-  await expect(page.locator('[data-live-figure="native-apr"]')).toContainText('ZIGChain mainnet LCD (official)');
+  // Session AF Gate C (design critique, copy; moved, stronger): the source has a plain name on the page now ("LCD" was
+  // jargon), and its time is named in UTC; no source line on Earn says "LCD".
+  await expect(page.locator('[data-live-figure="native-apr"]')).toContainText('ZIGChain’s official mainnet server');
+  await expect(page.locator('[data-live-figure="native-apr"] .earn-source')).toContainText(/ · as of .+ UTC$/);
+  await expect(page.locator('.earn-source').filter({hasText: 'LCD'})).toHaveCount(0);
   await expect(page.locator('[data-live-figure="native-unbonding"] .earn-value')).toHaveText('21 days');
   await expect(page.locator('[data-live-figure="valdora-rate"] .earn-value')).toHaveText(/^1\.0\d{3}\sZIG$/);
   await expect(page.locator('[data-live-figure="valdora-fee"] .earn-value')).toHaveText('10 % of the staking rewards');

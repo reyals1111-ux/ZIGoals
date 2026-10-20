@@ -23,7 +23,7 @@ import './accounts.css';
  */
 export const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
-const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); if (value < 0n) throw Error('Enter the amount as a positive number; a debt\'s balance is what is owed.'); return {value, decimals: 2, date}; };
+const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
   const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate();
@@ -41,7 +41,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
     const account = accountForPrefill(accounts.data.items, handed.account);
     queueMicrotask(() => {
       setHanded(null); // used once: saving the balance later never reopens the form
-      if (!account) { setMessage(`ZIGi's balance names “${handed.account}”, which is not exactly one of your accounts here. Choose the account below and enter it; nothing was saved.`); return; }
+      if (!account) { setMessage(`ZIGi’s balance names “${handed.account}”, which is not exactly one of your accounts here. Choose the account below and enter it; nothing was saved.`); return; }
       setOpen({id: account.id, mode: 'balance'}); setPrefill({id: account.id, amount: handed.balance, date: handed.date});
       setMessage(`Pre-filled from your chat with ZIGi: ${account.name}'s balance${handed.currency && handed.currency !== account.currency ? ` (ZIGi said ${handed.currency}; this account is in ${account.currency})` : ''}. Check it, then save; nothing is saved until you do.`);
     });
@@ -61,6 +61,8 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
     {worth.rows.length > 0 && <div className="accounts-worth" role="group" aria-label="Net worth by currency">
       {worth.rows.map(r => <article key={r.currency} className="accounts-worth-card" aria-label={`Net worth in ${r.currency}`}>
         <h3>Net worth · {r.currency}</h3>
+        {/* Session AF Gate C (design critique 2): what this total counts and its date, beside Wealth's holdings total and the chart. */}
+        <p className="accounts-worth-scope">Accounts + holdings − debts, on {formatDate(today)}</p>
         <strong className="accounts-worth-net">{show(r.net, r.currency)}</strong>
         <dl><div><dt>Accounts</dt><dd>{show(r.assets, r.currency)}</dd></div><div><dt>Holdings in Wealth</dt><dd>{show(r.holdings, r.currency)}</dd></div><div><dt>Debts</dt><dd>{show(r.debts, r.currency)}</dd></div></dl>
         <AssetsVsDebts assets={r.assets} holdings={r.holdings} debts={r.debts} currency={r.currency} />

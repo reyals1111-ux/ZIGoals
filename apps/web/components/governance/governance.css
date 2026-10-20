@@ -46,3 +46,10 @@
 .governance-choice span{display:grid;gap:2px}
 .governance-choice span span{font-size:14px;color:var(--text-secondary,#b7c8de)}
 .governance-journal-list ul{margin:0;padding-left:20px;display:grid;gap:4px}
+/* Session AF Gate C (design critique, money pages 7): the floating launchers (Earn dock, music, Checklist, ZIGi) on the right
+   edge covered the header's "Staking" button at 768 px and the real-network tile's edge on computers. While they are on the
+   right, the page keeps the lane Earn's paths and Today's rail keep (components/platform/platform.css, --rail-lane). */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) .governance-page { padding-inline-end: 64px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .governance-page { padding-inline-end: 72px; }
+}

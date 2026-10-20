@@ -22,7 +22,7 @@ export const CHOICE_WORDS: Readonly<Record<VoteChoiceWire, {label: string; means
 });
 /** gov v1beta1 option numbers (the vote journal stores the signed number) back to a choice. */
 export const CHOICE_OF_OPTION: Readonly<Record<string, VoteChoiceWire>> = Object.freeze({'1': 'yes', '2': 'abstain', '3': 'no', '4': 'no_with_veto'});
-export const WHY_VOTING_MATTERS = 'ZIGChain changes by vote: software upgrades, the rules for staking and rewards, who may upload smart contracts, and spending from the community pool are all decided by the people who stake. Each vote counts with the ZIG staked behind it. If you do not vote, your validator\'s vote counts for your stake; voting yourself replaces it for your share.';
+export const WHY_VOTING_MATTERS = 'ZIGChain changes by vote: software upgrades, the rules for staking and rewards, who may upload smart contracts, and spending from the community pool are all decided by the people who stake. Each vote counts with the ZIG staked behind it. If you do not vote, your validator’s vote counts for your stake; voting yourself replaces it for your share.';
 export const VOTE_IS_PUBLIC = 'Your vote is public and tied to your address forever: anyone can see how this address voted on this proposal.';
 
 type Words = {module: string; name: string; words: string};
@@ -34,11 +34,11 @@ export function partsOf(typeUrl: string): {module: string; name: string} {
   return {module: (version >= 0 ? segments.slice(0, version) : segments).join('.'), name};
 }
 const KNOWN: readonly Words[] = Object.freeze([
-  {module: 'cosmos.upgrade', name: 'MsgSoftwareUpgrade', words: 'Upgrades ZIGChain\'s software: every validator switches to a new version at a set block.'},
+  {module: 'cosmos.upgrade', name: 'MsgSoftwareUpgrade', words: 'Upgrades ZIGChain’s software: every validator switches to a new version at a set block.'},
   {module: 'cosmos.upgrade', name: 'MsgCancelUpgrade', words: 'Cancels a planned software upgrade.'},
   {module: 'cosmwasm.wasm', name: 'MsgAddCodeUploadParamsAddresses', words: 'Adds addresses to the list allowed to upload smart contracts.'},
   {module: 'cosmwasm.wasm', name: 'MsgRemoveCodeUploadParamsAddresses', words: 'Removes addresses from the list allowed to upload smart contracts.'},
-  {module: 'cosmwasm.wasm', name: 'MsgUpdateParams', words: 'Changes the smart-contract module\'s settings, such as who may upload contracts.'},
+  {module: 'cosmwasm.wasm', name: 'MsgUpdateParams', words: 'Changes the smart-contract module’s settings, such as who may upload contracts.'},
   {module: 'cosmwasm.wasm', name: 'MsgStoreCode', words: 'Uploads smart-contract code.'},
   {module: 'cosmwasm.wasm', name: 'MsgStoreAndInstantiateContract', words: 'Uploads and starts a smart contract.'},
   {module: 'cosmwasm.wasm', name: 'MsgMigrateContract', words: 'Replaces the code of an existing smart contract.'},
@@ -47,7 +47,7 @@ const KNOWN: readonly Words[] = Object.freeze([
   {module: 'cosmos.distribution', name: 'MsgUpdateParams', words: 'Changes how rewards are shared out, such as the community tax.'},
   {module: 'cosmos.staking', name: 'MsgUpdateParams', words: 'Changes the staking rules, such as how many validators are active or how long unstaking takes.'},
   {module: 'cosmos.gov', name: 'MsgUpdateParams', words: 'Changes the voting rules: deposits, voting time, quorum or thresholds.'},
-  {module: 'cosmos.gov', name: 'MsgExecLegacyContent', words: 'An older kind of proposal; read the proposer\'s words below.'},
+  {module: 'cosmos.gov', name: 'MsgExecLegacyContent', words: 'An older kind of proposal; read the proposer’s words below.'},
   {module: 'cosmos.mint', name: 'MsgUpdateParams', words: 'Changes how new ZIG is issued (inflation).'},
   {module: 'cosmos.slashing', name: 'MsgUpdateParams', words: 'Changes the penalties for validators that go offline or misbehave.'},
   {module: 'cosmos.bank', name: 'MsgUpdateParams', words: 'Changes the rules for sending tokens.'},
@@ -64,7 +64,7 @@ export function whatChanges(messageTypes: readonly string[]): string[] {
   for (const type of messageTypes) {
     const {module, name} = partsOf(type);
     const known = KNOWN.find(k => k.module === module && k.name === name);
-    const words = known ? known.words : name === 'MsgUpdateParams' && module ? `Changes the settings of the ${module.split('.').pop()} module.` : `A change ZIGoals has no plain words for yet (${name || 'unknown'}${module ? `, ${module}` : ''}); read the proposer's words below.`;
+    const words = known ? known.words : name === 'MsgUpdateParams' && module ? `Changes the settings of the ${module.split('.').pop()} module.` : `A change ZIGoals has no plain words for yet (${name || 'unknown'}${module ? `, ${module}` : ''}); read the proposer’s words below.`;
     if (!out.includes(words)) out.push(words);
   }
   return out;

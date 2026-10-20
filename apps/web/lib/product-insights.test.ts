@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {portfolioComposition,needsAttention,fundingAgenda,marketUniverse} from './product-insights';
+import {portfolioComposition,needsAttention,fundingAgenda,marketUniverse,shareBasisPoints} from './product-insights';
 import {buildShowcase} from './showcase-data';
 import {emptyPlatform,PLATFORM_KEY,type Platform} from './positions';
 import {wealthOverview} from './wealth';
@@ -12,4 +12,20 @@ test('market universe deduplicates owned favourites without manufacturing owners
 test('composition exposes top holdings and reconciled allocated/available values within each currency',()=>{
  const p=emptyPlatform();const base=data().positions.find(p=>p.id==='showcase-usd')!;p.positions=[{...base,id:'usd-a',providerId:'Larger USD',quantity:'10000',valuation:{...base.valuation!,value:'10000'}},{...base,id:'usd-b',providerId:'Smaller USD',quantity:'5000',valuation:{...base.valuation!,value:'5000'}},{...base,id:'eur',providerId:'EUR asset',asset:'EUR',quantity:'20000',valuation:{...base.valuation!,value:'20000',currency:'EUR'}}];p.goals=[data().goals[0]!];p.allocations=[{goalId:p.goals[0]!.id,positionId:'usd-a',quantity:'2500'}];
  const groups=portfolioComposition(wealthOverview(p,now));const usd=groups.find(g=>g.currency==='USD')!,eur=groups.find(g=>g.currency==='EUR')!;expect(usd).toMatchObject({total:15000n,allocated:2500n,available:12500n,topHoldings:[{id:'usd-a',name:'Larger USD',value:10000n},{id:'usd-b',name:'Smaller USD',value:5000n}]});expect(eur).toMatchObject({total:20000n,allocated:0n,available:20000n,topHoldings:[{id:'eur',value:20000n}]});
+});
+// Session AF Gate C (design critique, money pages 1): one class map and one share per figure. The Showcase's ETF is its own
+// class; each class's share is to the nearest basis point and they add up to exactly 100 %; a class of one valued holding
+// reads that holding's own share (Cash and the USD cash reserve had read 4.99 % and 4.98 %, ETFs and the ETF 11.96 % and 11.95 %).
+test('shares: nearest basis point, exactly 100 % in all, a one-holding class equal to its holding',()=>{
+ expect(shareBasisPoints([1n,1n,1n],3n)).toEqual([3334,3333,3333]);
+ expect(shareBasisPoints([2500n,7500n],10000n)).toEqual([2500,7500]);
+ expect(shareBasisPoints([5n],0n)).toEqual([0]);
+ const usd=portfolioComposition(wealthOverview(data(),now)).find(g=>g.currency==='USD')!;
+ expect(usd.segments.map(s=>s.label)).toEqual(['Crypto','Stablecoins','Stocks','ETFs','Precious Metals','Property','Cash','Custom']);
+ expect(usd.segments.reduce((n,s)=>n+s.basisPoints,0)).toBe(10000);
+ for(const s of usd.segments){const exact=Number(s.value)*10000/Number(usd.total);expect(Math.abs(s.basisPoints-exact),s.label).toBeLessThan(1);}
+ const share=(name:string)=>usd.topHoldings.find(h=>h.name===name)!.basisPoints;
+ expect(usd.segments.find(s=>s.label==='ETFs')!.basisPoints).toBe(share('Vanguard S&P 500 ETF'));
+ expect(usd.segments.find(s=>s.label==='Cash')!.basisPoints).toBe(share('USD cash reserve'));
+ expect(usd.segments.find(s=>s.label==='Property')!.basisPoints).toBe(share('Riverside apartment'));
 });

@@ -318,8 +318,10 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-how-read code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; overflow-wrap: anywhere; color: var(--text-strong); }
 .earn-figure .earn-how-read { margin-top: 4px; background: #0b1428; }
 .earn-steps li .earn-how-read, .earn-start-steps li .earn-how-read { margin-top: 6px; }
-/* A caution beside a link (Permapod's site while it is halted). */
-.earn-caution { flex: 1 1 260px; margin: 0; padding: 8px 12px; border-radius: 12px; border: 1px solid #ffb27a66; background: #2a1a1f66; color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
+/* A caution above a halted app's links (Permapod's site while it is halted). Session AF Gate C (design critique, money pages
+   9): a full-width line with a warm rule at its start, the links on the row under it; it had sat between the two links at
+   button height and read like a third button. */
+.earn-caution { flex: 1 1 100%; margin: 0; padding: 4px 0 4px 12px; border: 0; border-inline-start: 3px solid #ffb27a; border-radius: 0; background: none; color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
 /* The calculator's rate with its source line under it. */
 .earn-calculator-live { display: grid; gap: 8px; }
 /* A box whose figure lives on another page says where it is and why it is not here: never a blank box. */
@@ -331,4 +333,9 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 @media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
   :root:not([data-zigi-side=left]) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 64px; }
   :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 72px; }
+}
+/* Session AF Gate C (design critique, money pages 7): on a phone ZIGi's button sits at the bottom right of the screen and
+   covered the end of the first screen's "Nothing here is advice" line; while ZIGi is on the right, that line keeps clear of it. */
+@media (max-width: 767.98px) {
+  :root:not([data-zigi-side=left]) .earn-hero-note { padding-inline-end: 60px; }
 }

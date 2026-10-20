@@ -21,6 +21,16 @@ export function large(n: number, digits = 2): string {
   return formatNumber(n, {maximumFractionDigits: n >= 1000 ? 0 : digits});
 }
 export const zig = (azig: string, options?: {compact?: boolean; digits?: number}) => tokenAmount(azig, 18, 'ZIG', options);
+/**
+ * Session AF Gate C (design critique, copy): a source's name in plain words on the page. "LCD" (the chain's public web
+ * service) is jargon, so "ZIGChain mainnet LCD (official)" reads "ZIGChain’s official mainnet server" and Polkachu's
+ * fallback "Polkachu’s ZIGChain mainnet server". The answers keep their own names (ZIGi and the exports quote those).
+ */
+export function plainSource(name: string): string {
+  const m = /^ZIGChain (mainnet|testnet) LCD(?: \((official|Polkachu)\))?$/.exec(name);
+  if (!m) return name;
+  return m[2] === 'official' ? `ZIGChain’s official ${m[1]} server` : m[2] === 'Polkachu' ? `Polkachu’s ZIGChain ${m[1]} server` : `a ZIGChain ${m[1]} server`;
+}
 /** A decimal fraction as a percentage: "0.057427" → "5.74 %". */
 export function pct(fraction: string, places = 2): string {
   return `${formatNumber(Number(rounded(fixed(fraction) * 100n, places)), {minimumFractionDigits: places, maximumFractionDigits: places})}${NB}%`;

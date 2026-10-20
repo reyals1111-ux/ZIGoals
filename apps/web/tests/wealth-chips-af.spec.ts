@@ -3,7 +3,8 @@ import {expect, test} from '@playwright/test';
 /**
  * Session AF (L5a, Part 10.11): Wealth's chip row ("What you have": All · Accounts · Debts · Assets · each kind · Needs
  * attention) never wraps on a computer: one row at every width, "Needs attention" whole on it; at 1440 px the Showcase's
- * twelve chips fit without scrolling; where they do not fit the row scrolls sideways and every chip can be reached; chips
+ * chips (thirteen since Session AF Gate C gave ETFs its own) fit without scrolling; where they do not fit the row scrolls
+ * sideways and every chip can be reached; chips
  * stay 44 px tall.
  */
 test.describe('Wealth’s chip row', () => {

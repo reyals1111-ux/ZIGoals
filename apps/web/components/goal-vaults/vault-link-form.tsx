@@ -36,7 +36,7 @@ export function VaultLinkForm({goalId, wallets, readingOf, rate, onRead, onSaved
       <label><input type="checkbox" checked={parts.includes('delegations')} onChange={() => toggle('delegations')}/> Staked ZIG and its rewards waiting</label>
       <label><input type="checkbox" checked={parts.includes('stzig')} onChange={() => toggle('stzig')}/> Valdora stZIG</label>
     </fieldset>
-    <p className="fine" role="status">{state?.busy ? 'Reading your stake…' : reading ? `Read ${formatDateTime(reading.at)}: ${shownUnits(reading.stakedAzig.toString(), 18, 4)} ZIG staked · ${shownUnits(reading.rewardsAzig.toString(), 18, 4)} ZIG rewards waiting · ${shownUnits(reading.stzigUnits.toString(), 6, 4)} stZIG.` : state?.error ? `Couldn't read the chain just now: ${state.error}` : 'Not read yet.'}</p>
+    <p className="fine" role="status">{state?.busy ? 'Reading your stake…' : reading ? `Read ${formatDateTime(reading.at)}: ${shownUnits(reading.stakedAzig.toString(), 18, 4)} ZIG staked · ${shownUnits(reading.rewardsAzig.toString(), 18, 4)} ZIG rewards waiting · ${shownUnits(reading.stzigUnits.toString(), 6, 4)} stZIG.` : state?.error ? `Couldn’t read the chain just now: ${state.error}` : 'Not read yet.'}</p>
     <div className="vault-link-actions">
       <button type="button" className="secondary" onClick={() => chosen && onRead(chosen.id)}>Read the stake</button>
       <button type="submit" className="primary" disabled={!reading || !parts.length}>Link this stake to the Goal</button>
