@@ -27,7 +27,11 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   await expect(sheet.locator('.phone-more-tagline')).toHaveCount(0);await expect(sheet).not.toContainText(/Shape & Fold|Your Own Future/i);
   await page.keyboard.press('Escape');
  }else{
-  expect(mark.width).toBeGreaterThanOrEqual(130);expect(mark.height).toBeGreaterThanOrEqual(150);expect(Math.abs(mark.x+mark.width/2-(sidebar.x+sidebar.width/2))).toBeLessThanOrEqual(2);
+  // Session AF Gate C (design critique; deliberate, stronger): in a window up to 1000 px tall the Z logo is the compact
+  // 85 × 96, so that all sixteen destinations, Help last, fit a 900 px window (checked below); a taller window keeps the
+  // full logo, still at least 130 × 150 (checked below at 1080 px).
+  const tall=(page.viewportSize()?.height??720)>1000;
+  expect(mark.width).toBeGreaterThanOrEqual(tall?130:84);expect(mark.height).toBeGreaterThanOrEqual(tall?150:95);expect(Math.abs(mark.x+mark.width/2-(sidebar.x+sidebar.width/2))).toBeLessThanOrEqual(2);
   await expect(brand.locator('.brand-wordmark')).toBeHidden();await expect(page.locator('.app-sidebar>.product-descriptor')).toBeHidden();
   await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeHidden();
   const nav=(await page.getByRole('navigation',{name:'Main navigation'}).boundingBox())!;
@@ -43,6 +47,18 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   await expect(destination.locator('.sidebar-star')).toHaveAttribute('aria-hidden','true');
   await expect(destination.locator('small, .sidebar-tagline')).toHaveCount(0);
   expect(await page.evaluate(()=>document.body.textContent)).not.toMatch(/Shape & Fold|Your Own Future/i);
+  // Session AF Gate C (design critique): at 1440 × 900 every destination shows, Help's whole row with room to spare below
+  // it (Earn, Governance and the Checklist had pushed the Checklist, Settings and Help under the edge); at 1440 × 1080 the
+  // logo is the full one again.
+  const main=page.getByRole('navigation',{name:'Main navigation'}),help=main.getByRole('link',{name:'Help',exact:true});
+  await page.setViewportSize({width:1440,height:900});
+  await expect.poll(()=>main.getByRole('link').count()).toBe(16);
+  await page.locator('.app-sidebar').evaluate(s=>{s.scrollTop=0;});
+  await expect.poll(async()=>{const b=(await help.boundingBox())!;return b.y+b.height;}).toBeLessThanOrEqual(900-24);
+  const compact=(await logo.boundingBox())!;expect(compact.width).toBeGreaterThanOrEqual(84);expect(compact.height).toBeGreaterThanOrEqual(95);
+  await page.setViewportSize({width:1440,height:1080});
+  await expect.poll(async()=>(await logo.boundingBox())!.height).toBeGreaterThanOrEqual(150);
+  expect((await logo.boundingBox())!.width).toBeGreaterThanOrEqual(130);
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);
  await brand.screenshot({path:info.outputPath('brand.png')});

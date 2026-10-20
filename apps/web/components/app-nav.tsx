@@ -3,7 +3,7 @@ import { useNavExtras } from "./nav-extras";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties, type RefObject } from "react";
 import { AppIcon } from "./app-icon";
 import { entranceAllowed } from "./use-entrance";
 import { usePagesView } from "./pages/use-pages-view";
@@ -152,8 +152,11 @@ export function AppNav() {
     observer.observe(el);
     return () => { cancelAnimationFrame(frame); observer.disconnect(); };
   }, []);
+  // Session AF Gate C (design critique): the tablet header gives each group its own row, as many columns as the largest
+  // group has items (navigation.css), so no row ends with one item on its own.
+  const columns = Math.max(1, ...[1, 2, 3].map(group => items.filter(([href]) => navGroupOf(href) === group).length));
   return (
-    <nav ref={nav} className="app-nav" aria-label="Main navigation">
+    <nav ref={nav} className="app-nav" aria-label="Main navigation" style={{ "--nav-cols": columns } as CSSProperties}>
       {items.map(([href, label, icon]) => (
         <Link key={href} href={href} prefetch={navPrefetch(href)}
           data-group-start={starts.get(href)}
