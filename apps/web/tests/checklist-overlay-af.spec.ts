@@ -89,15 +89,17 @@ test('big planets (88–112 px on a computer, 64–84 px on a phone, the next on
     expect(dots.length).toBe(4);
     for (const d of dots) { expect(d, `${size.width}px`).toBeGreaterThanOrEqual(range[0]!); expect(d, `${size.width}px`).toBeLessThanOrEqual(range[1]!); }
   }
-  // One name per planet, beside it (no box), one line from a tablet up and two at most on a phone, 14 px or more; the next
-  // planet's name is its START / NEXT bubble — round 3 (L3b), moved at equal strength: beside it, off the line, no longer
-  // above it on the line's last stretch (where a comet arriving would be hidden).
+  // One name per planet, beside it (no box), one line from a tablet up and two at most on a phone, 14 px or more. Round 4
+  // (L3b), moved at greater strength: the next planet's name is no longer a bubble but an ordinary name held to the same
+  // rules as every other, and the planet itself wears a one-word NEXT / START tag on its crown (asserted below).
   const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(); return {bubble: e.classList.contains('path-label-bubble'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), boxed: cs.backgroundColor !== 'rgba(0, 0, 0, 0)', beside: r.right <= dot.left + 1 || r.left >= dot.right - 1, above: r.bottom <= dot.top + 1}; }));
-  expect(names.filter(n => n.bubble)).toHaveLength(1);
+  expect(names.filter(n => n.bubble)).toHaveLength(0);
   for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); }
-  for (const n of names.filter(x => !x.bubble)) { expect(n.boxed, 'no box behind a name').toBe(false); expect(n.beside, 'beside its planet').toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
-  expect(names.find(n => n.bubble)!.beside, 'the next planet’s bubble beside it, off the line').toBe(true);
-  expect(names.find(n => n.bubble)!.above, 'not over the line above it').toBe(false);
+  for (const n of names) { expect(n.boxed, 'no box behind a name').toBe(false); expect(n.beside, 'beside its planet').toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
+  const tag = await page.locator('[data-next] .path-next-tag').evaluate(el => { const r = el.getBoundingClientRect(), d = el.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(); return {text: el.textContent, onCrown: r.top < d.top && r.bottom > d.top - 2, centred: Math.abs((r.left + r.right) / 2 - (d.left + d.right) / 2) <= 2}; });
+  expect(tag.text, 'one word').toMatch(/^(Next|Start)$/);
+  expect(tag.onCrown, 'the tag sits on the planet’s crown').toBe(true);
+  expect(tag.centred, 'centred on its planet').toBe(true);
   // The path view carries no paragraph: its words are captions, banner titles and counts.
   expect(await page.locator('.checklist-stage p').count()).toBe(0);
   // The explanation lives behind the menu.
@@ -117,9 +119,12 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   // its celebrate pose with hops and sparkles, beside the planet just ticked.
   await expect(page.locator('.path-comet .path-comet-head')).not.toHaveCount(0);
   await expect(page.locator('.path-comet .path-comet-tail')).not.toHaveCount(0);
-  const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="celebrate"]');
+  // Round 4, moved at greater strength: the cheer is a still from its first frame — ZIGi's waving greeting, never the
+  // celebrate frame that reads as hands on the head — with its sparkles.
+  const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
   await expect(cheer).toHaveCount(1);
   await expect(cheer.locator('.path-zigi-cheer i')).not.toHaveCount(0);
+  await expect(cheer.locator('img')).toHaveAttribute('src', /greeting/);
   await expect(done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-zigi[data-cheer]')).toHaveCount(1);
   await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
@@ -138,8 +143,11 @@ for (const mode of ['reduced motion', 'Motion Off'] as const) {
     await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
     await expect(page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true})).toBeVisible();
     expect(await still()).toEqual([]);
-    // Every end state is readable: the next planet's bubble and ring are there, at rest.
-    await expect(page.locator('[data-next] .path-label-bubble')).toBeVisible();
+    // Every end state is readable: the next planet's tag and ring are there, at rest; ZIGi points at the next planet (no
+    // cheer at the planet just ticked).
+    await expect(page.locator('[data-next] .path-next-tag')).toBeVisible();
+    await expect(page.locator('[data-next] .path-zigi')).toHaveCount(1);
+    await expect(page.locator('.path-zigi[data-cheer]')).toHaveCount(0);
     expect(await page.locator('.path-dot[data-next] .path-dot-pulse').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
   });
 }
@@ -158,6 +166,12 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   expect(await party.evaluate(d => d.matches(':modal'))).toBe(true);
   // The last tick's Undo stays in reach over the celebration.
   await expect(party.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
+  // Round 4: a full-screen moment — ZIGi large (160 px on a phone, 200 on a computer), cheering, in front of the trophy.
+  await party.locator('.checklist-celebration-zigi').evaluate(el => Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => undefined))));
+  const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
+  expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
+  expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
+  expect(zigi.src).toMatch(/greeting/);
   await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
@@ -199,9 +213,13 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   expect(Math.min(Math.abs(z.left - n.right), Math.abs(n.left - z.right)), 'ZIGi beside the next planet').toBeLessThanOrEqual(24);
   expect(z.left).toBeGreaterThanOrEqual(0); expect(z.right).toBeLessThanOrEqual(z.vw); expect(z.top).toBeGreaterThanOrEqual(0); expect(z.bottom).toBeLessThanOrEqual(z.vh);
   expect(z.bottom - z.top).toBeGreaterThanOrEqual(130);
-  // The corner timers are on the first screen: the side column's Sleep on a computer, the corner button on a phone.
-  if (info.project.name === 'mobile') await expect(page.getByRole('button', {name: /^Timers:/})).toBeInViewport();
-  else await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
+  // The corner timers are on the first screen: the side column's Sleep on a computer, the foot bar's Sleep chip on a phone.
+  // (Round 4: on a phone the timers are the foot bar's own chips, so Sleep itself is on the first screen everywhere.)
+  await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
+  // Round 4: ZIGi at rest touches no planet, name, banner or chest (its art: the figure's transparent sides and the top of
+  // its picture may).
+  const clash = await page.locator('[data-next] .path-zigi').evaluate(z => { const r = z.getBoundingClientRect(), inset = r.width * .16, l = r.left + inset, rr = r.right - inset, t = r.top + r.height * .08; return [...document.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest-art')].filter(o => !z.contains(o)).filter(o => { const b = o.getBoundingClientRect(); return b.width > 0 && Math.min(rr, b.right) - Math.max(l, b.left) > 1 && Math.min(r.bottom, b.bottom) - Math.max(t, b.top) > 1; }).map(o => `${o.className}`); });
+  expect(clash, 'ZIGi clear of the path').toEqual([]);
   // The shell's own strips are not drawn inside the Checklist.
   await expect(overlay(page)).not.toContainText('NOTHING MOVES UNLESS YOU SIGN');
   // A tick: the toast is 52 px at most and covers neither the new next planet nor ZIGi — round 3 (L3b), at greater strength:
@@ -222,7 +240,7 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   else { const stage = await rect(page, '.path-stage'); expect(t.left).toBeGreaterThanOrEqual(stage.right); }
 });
 
-test('a learning path’s density: five planets or more on the opening screen, between the bars; the foot bar keeps the path clear', async ({page}, info) => {
+test('a learning path’s density: six planets or more on the opening screen, between the bars; the foot bar keeps the path clear', async ({page}, info) => {
   // Round 3 (L3b): the critique's target — at least five planets on the opening screen at 390 and at 1440 (the owner's
   // reference shows seven or eight). A planet counts when at least half of it shows between the top bar and the foot bar.
   const mobile = info.project.name === 'mobile';
@@ -237,11 +255,14 @@ test('a learning path’s density: five planets or more on the opening screen, b
     const foot = dock && getComputedStyle(dock).display !== 'none' ? dock.getBoundingClientRect().top : innerHeight;
     return [...document.querySelectorAll('.path-step .path-dot')].filter(d => { const r = d.getBoundingClientRect(); return Math.min(r.bottom, foot) - Math.max(r.top, top) >= r.height / 2; }).length;
   });
-  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(5);
+  // (Round 4, raised: six — one more than iteration 3's five, from the one-row top bar and the chests beside their planets.)
+  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(6);
   if (mobile) {
-    // The foot bar is opaque and holds the timers' button: nothing of the path is drawn over it.
-    const bar = await rect(page, '.checklist-dock'), fab = await rect(page, '.checklist-timers-fab');
-    expect(fab.top).toBeGreaterThanOrEqual(bar.top - 1); expect(fab.bottom).toBeLessThanOrEqual(bar.bottom + 1);
+    // The foot bar is opaque and holds the timers: nothing of the path is drawn over it.
+    // (Round 4: the bar holds the timers' own chips, each 44 px or more.)
+    const bar = await rect(page, '.checklist-dock'), chips = await rect(page, '.checklist-timers');
+    expect(chips.top).toBeGreaterThanOrEqual(bar.top - 1); expect(chips.bottom).toBeLessThanOrEqual(bar.bottom + 1);
+    for (const b of await page.getByRole('group', {name: 'Quick timers'}).getByRole('button').all()) { const box = (await b.boundingBox())!; expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44); }
     const alpha = await page.locator('.checklist-dock').evaluate(el => { const m = getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) ?? []; return Math.min(...m.map(c => { const v = c.match(/[\d.]+/g)!.map(Number); return v.length > 3 ? v[3]! : 1; })); });
     expect(alpha, 'the foot bar is opaque').toBeGreaterThanOrEqual(.95);
   }

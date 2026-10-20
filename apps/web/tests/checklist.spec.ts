@@ -101,6 +101,8 @@ test('Edit path: a custom item, reorder by keyboard, an orbit renamed; the List 
   await page.getByRole('button', {name: 'Done', exact: true}).first().click();
   await expect(page.locator('.path-step .path-label-text').first()).toHaveText('Water');
   // The List view: the same dots as pills, in the same order; the choice is remembered.
+  // Session AF (L3b, round 4): on a phone the top bar is one row and the view lives in its menu (moved at equal strength).
+  if (!await page.getByRole('group', {name: 'View'}).isVisible()) await page.getByRole('button', {name: 'Checklist menu'}).click();
   await page.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List'}).click();
   await expect(page.locator('.checklist-pill-label').first()).toHaveText('Water');
   await expect(page.locator('.checklist-pill-label')).toContainText([ 'Water', TITLE.stretch, TITLE.push ]);

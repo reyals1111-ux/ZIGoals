@@ -12,7 +12,7 @@ import {ID, TITLE, fixturePath, seedChecklist, stored} from './checklist-fixture
  */
 type Health = {sleep?: {nights: {start: string; end: string | null}[]}; meditation?: {sessions: {seconds: number}[]}; fasting?: {sessions: {endedAt: string | null}[]}};
 const timer = (page: Page, name: string) => page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: new RegExp(`^${name}:`)});
-/** Session AF (L3b): on a phone or tablet the timers fold into one corner button; it is opened first (a computer shows them). */
+/** Session AF (L3b): the timers in view — round 4: the foot bar's own chips on a phone or tablet, the side column on a computer (a corner button, where one is, is opened first). */
 async function openTimers(page: Page) {
   const fab = page.getByRole('button', {name: /^Timers:/});
   await expect(page.locator('.checklist-timers-wrap')).toBeAttached();
