@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, test} from 'vitest';
-import {liveCheck, replay} from './live-check.mjs';
+import {liveCheck, replay, withoutContacts} from './live-check.mjs';
 
 // Session AF chunk 2 (P11.7): scripts/earn/live-check.mjs on one recorded real run (scripts/earn/fixtures/live-check-2026-10-19.json),
 // with no network: every check passes on the record; a malformed, out-of-range or missing answer fails the run (exit 1);
@@ -15,6 +15,14 @@ const failed = r => r.results.filter(x => !x.ok).map(x => x.name);
 const earliest = recorded.requests.filter(r => r.url.includes('/rewards/')).map(r => r.height).sort()[0];
 
 describe('the Earn live check, on a recorded run', () => {
+  // Session AF Gate C (G9): the record holds no e-mail address — validators' contact and free-text fields are left out
+  // when recording (withoutContacts), as the repository keeps no addresses (ADR-028 H101).
+  test('the record holds no e-mail address; a recording leaves validators\' contact fields out', () => {
+    expect(JSON.stringify(recorded)).not.toMatch(/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/);
+    const contact = ['contact', 'validator.test'].join('@'); // built from parts: the repository holds no address
+    const cut = JSON.parse(withoutContacts(JSON.stringify({validators: [{description: {moniker: 'M', website: 'https://m.example', security_contact: contact, details: `mail ${contact}`}}]})));
+    expect(cut.validators[0].description).toEqual({moniker: 'M', website: 'https://m.example'});
+  });
   test('every check passes on the record, each with its as-of; nothing flagged', async () => {
     const r = await run();
     expect(r.exitCode).toBe(0);

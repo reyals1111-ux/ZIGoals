@@ -247,7 +247,10 @@ export const BALANCE_HOSTS = Object.freeze({
 });
 export const PUBLIC_ADDRESSES = Object.freeze({cosmosHub: 'cosmos1jv65s3grqf6v6jl3dp4t6c9t9rk99cd88lyufl', evm: '0x000000000000000000000000000000000000dEaD', solana: 'Vote111111111111111111111111111111111111111', bitcoin: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'});
 
-/** Wraps the network so every request and answer is kept (large yields bodies cut to their ZIGChain rows), for --record. */
+/** A validator's description without its contact and free-text fields (they can hold e-mail addresses; no check reads them). */
+export const withoutContacts = body => { try { return JSON.stringify(JSON.parse(body), (k, v) => k === 'description' && v && typeof v === 'object' ? {...v, security_contact: undefined, details: undefined} : v); } catch { return body; } };
+/** Wraps the network so every request and answer is kept (large yields bodies cut to their ZIGChain rows, validators'
+ *  contact fields left out), for --record. */
 export function recording(fetcher) {
   const requests = [];
   const record = async (url, init) => {
@@ -256,6 +259,7 @@ export function recording(fetcher) {
     if (url === 'https://yields.llama.fi/pools' && response.ok) { const j = JSON.parse(body); kept = JSON.stringify({status: j.status, data: [...j.data.filter(r => r.chain !== 'ZIGChain').slice(0, 3), ...j.data.filter(r => r.chain === 'ZIGChain')]}); }
     if (url.startsWith('https://api.llama.fi/protocol/') && response.ok) { const j = JSON.parse(body); kept = JSON.stringify({name: j.name, currentChainTvls: j.currentChainTvls, hacks: j.hacks}); }
     if (url.startsWith('https://api.rampnetwork.com/') && response.ok) { const j = JSON.parse(body); kept = JSON.stringify({currencyCode: j.currencyCode, minFeePercent: j.minFeePercent, maxFeePercent: j.maxFeePercent, minFeeAmount: j.minFeeAmount, minPurchaseAmount: j.minPurchaseAmount, maxPurchaseAmount: j.maxPurchaseAmount, assets: j.assets.filter(a => ['COSMOS_ATOM', 'ETH_ETH', 'ETH_USDC'].includes(`${a.chain}_${a.symbol}`.toUpperCase()))}); }
+    if (/\/cosmos\/staking\/v1beta1\/validators/.test(url) && response.ok) kept = withoutContacts(kept);
     requests.push({url, height: init.headers?.['x-cosmos-block-height'] ?? null, status: response.status, responseHeight: response.headers.get('x-cosmos-block-height'), body: kept});
     const headers = new Headers({'content-type': 'application/json'}); const h = response.headers.get('x-cosmos-block-height'); if (h) headers.set('x-cosmos-block-height', h);
     return new Response(body, {status: response.status, headers});
