@@ -42,8 +42,12 @@ const smart = (contract, query) => `/cosmwasm/wasm/v1/contract/${contract}/smart
 const units = (amount, decimals) => fixed(amount) / 10n ** BigInt(decimals);
 const ratio = (a, b) => text(a * 10n ** 18n / b);
 
-/** Runs every check; `fetcher` is the network (or a recorded replay). Returns each result and the exit code. */
-export async function liveCheck({fetcher = (url, init) => fetch(url, init), log = () => {}} = {}) {
+/**
+ * Runs every check; `fetcher` is the network (or a recorded replay). Returns each result and the exit code. The sources
+ * without a time of their own (DefiLlama, Ramp, the balance hosts) are dated by `now`: the clock on a real run, the
+ * record's own time on a replay (CI on 1a7624d6, the first run after the recording's day, dated them today).
+ */
+export async function liveCheck({fetcher = (url, init) => fetch(url, init), log = () => {}, now = fetcher.recordedAt ? () => new Date(fetcher.recordedAt) : () => new Date()} = {}) {
   const results = [];
   const get = async (url, height) => {
     const response = await fetcher(url, {method: 'GET', headers: {accept: 'application/json', 'user-agent': UA, ...(height ? {'x-cosmos-block-height': height} : {})}, redirect: 'manual', signal: AbortSignal.timeout(60_000)});
@@ -159,7 +163,7 @@ export async function liveCheck({fetcher = (url, init) => fetch(url, init), log 
       ...(agreement.disagree ? {flag: 'unavailable: reward path unverified — the two figures differ by more than 10 %'} : {})};
   });
   await check('DefiLlama (third party): value locked per app and yield pools on ZIGChain', async () => {
-    const at2 = new Date().toISOString();
+    const at2 = now().toISOString();
     const protocols = {};
     for (const slug of PINS.llama) {
       const p = await get(`https://api.llama.fi/protocol/${slug}`);
@@ -203,7 +207,7 @@ export async function liveCheck({fetcher = (url, init) => fetch(url, init), log 
     return {asOf, detail: `newest #${latest.id} (${latest.status.replace('PROPOSAL_STATUS_', '').toLowerCase().replaceAll('_', ' ')}), its tally read; quorum ${(quorum * 100).toFixed(1)} %`};
   });
   await check('Ramp Network’s public asset list (Add money)', async () => {
-    const at3 = new Date().toISOString(), r = await get('https://api.rampnetwork.com/api/host-api/v3/assets?currencyCode=EUR');
+    const at3 = now().toISOString(), r = await get('https://api.rampnetwork.com/api/host-api/v3/assets?currencyCode=EUR');
     need(r.currencyCode === 'EUR' && Array.isArray(r.assets), 'malformed asset list');
     for (const k of ['minFeePercent', 'maxFeePercent', 'minFeeAmount', 'minPurchaseAmount']) need(typeof r[k] === 'number' && r[k] >= 0 && r[k] <= 1_000_000, `${k} out of range`);
     need(r.maxFeePercent <= 20, `fees up to ${r.maxFeePercent} %`);
@@ -212,7 +216,7 @@ export async function liveCheck({fetcher = (url, init) => fetch(url, init), log 
     return {asOf: at3, detail: `${r.assets.length} assets; ATOM on Cosmos Hub ${atom.enabled && !atom.hidden ? 'offered' : 'listed, not offered now'}; fees ${r.minFeePercent}–${r.maxFeePercent} %, at least €${r.minFeeAmount}`};
   });
   await check('the browser-direct balance hosts, one public address each', async () => {
-    const at4 = new Date().toISOString(), answered = [];
+    const at4 = now().toISOString(), answered = [];
     const rpc = async (url, body) => {
       const response = await fetcher(url, {method: 'POST', headers: {accept: 'application/json', 'content-type': 'application/json', 'user-agent': UA}, body: JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(60_000)});
       if (!response.ok) throw new Error(`HTTP ${response.status} from ${new URL(url).host}`);
@@ -260,7 +264,7 @@ export function recording(fetcher) {
 }
 /** Replays a recorded run: a request is answered only when the record holds that exact URL with the same block height. */
 export function replay(recorded, override) {
-  return async (url, init) => {
+  return Object.assign(async (url, init) => {
     const height = init.headers?.['x-cosmos-block-height'] ?? null;
     const hit = recorded.requests.find(r => r.url === url && r.height === height);
     const changed = override?.(url, hit);
@@ -268,7 +272,7 @@ export function replay(recorded, override) {
     if (!hit) throw new TypeError(`no recorded answer for ${url}`);
     const headers = new Headers({'content-type': 'application/json'}); if (hit.responseHeight) headers.set('x-cosmos-block-height', hit.responseHeight);
     return new Response(hit.body, {status: hit.status, headers});
-  };
+  }, {recordedAt: recorded.recordedAt});
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
