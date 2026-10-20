@@ -76,14 +76,12 @@ test('on a phone: no floating dock; the Earn page shows the apps as a strip', as
   await expect(page.locator('.earn-dock-button, .earn-dock-edge')).toHaveCount(0);
   await page.goto('/app/earn');
   const strip = page.getByRole('navigation', {name: 'Ecosystem apps', exact: true});
+  // Gate C test audit: the design fix round's three-link strip ("Start here" once) moved Start here and ZIGChain staking
+  // into the chip index, which is not on a phone's first screen; the strip, the phone's Earn dock (P5.5), keeps all five
+  // on the first screen, as this test held it.
   await expect(strip).toBeVisible();
-  // Session AF Gate C (design critique, money pages 13; moved, stronger): the strip lists the ecosystem apps only, in the
-  // dock's order; Start here and ZIGChain staking, the dock's other two, are the first two links of the chip index right
-  // under it (so each of the five is still one tap away on the first screen), and "Start here" appears once in the two.
-  expect(await strip.getByRole('link').evaluateAll(els => els.map(a => a.getAttribute('href')))).toEqual(['#valdora', '#oroswap', '#nawa']);
-  const index = page.getByRole('navigation', {name: 'On this page', exact: true});
-  expect((await index.getByRole('link').evaluateAll(els => els.map(a => a.getAttribute('href')))).slice(0, 2)).toEqual(['#start-here', '#native-staking']);
-  expect(await page.locator('.earn-apps-strip, .earn-chips').getByRole('link', {name: 'Start here', exact: true}).count()).toBe(1);
+  await expect(strip).toBeInViewport();
+  expect(await strip.getByRole('link').evaluateAll(els => els.map(a => a.getAttribute('href')))).toEqual(['#start-here', '#native-staking', '#valdora', '#oroswap', '#nawa']);
   for (const link of await strip.getByRole('link').all()) expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
 });

@@ -312,7 +312,9 @@ const restFacts = (page: Page) => page.evaluate(() => {
     }
   }
   const cy = (d.top + d.bottom) / 2, band = Math.max(14, d.height / 4);
-  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked};
+  // (Gate C test audit: the figure's distance from the next planet's ring, as drawn, on the side it stands.)
+  const gap = left ? (d.left - e) - fig.right : fig.left - (d.right + e);
+  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked, gap};
 });
 /** Round 8: the comet's arc, once it has chosen its way, sampled along its whole length — the names it comes within 12 px of,
  *  where they stand once the tick's own steps (a name stepping back in, the next one's stepping out, 360 ms) have settled.
@@ -389,6 +391,12 @@ async function expectRest(page: Page, width: number, when: string) {
   expect(f.mirrored, `${width}px, ${when}: ZIGi faces the next planet`).toBe(f.left);
   expect(f.points, `${width}px, ${when}: ZIGi points at the next planet, its arm through the planet's body`).toBe(true);
   expect(f.nameGap, `${width}px, ${when}: the next planet's name 12 px clear of its ring and moon`).toBeGreaterThanOrEqual(12);
+  // Gate C test audit (new, after every tick and under reduced motion, not only on opening): ZIGi's figure stays beside the
+  // next planet — 12 px clear of its ring and no further than the measured rests (1440: 91, 768: 60, 390: 27 px from the
+  // ring) plus 8 px or so: 100 on a computer, 68 on a tablet, 36 on a phone.
+  expect(f.gap, `${width}px, ${when}: ZIGi 12 px or more from the next planet's ring`).toBeGreaterThanOrEqual(12);
+  expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 36);
+  test.info().annotations.push({type: 'zigi-gap', description: `${width}px ${when}: ${Math.round(f.gap)}`});
 }
 /** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */
 async function zigiAtRest(page: Page) {
@@ -422,7 +430,10 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   // at the planet and holds a 140 px figure (the free band left of it is 106 px tall), 12–104 px from the ring, its arm
   // through the planet's body (`expectRest`) and nothing on the path between its arm and the ring.
   const wide = page.viewportSize()!.width >= 1180;
-  expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 104 : 36);
+  // Gate C test audit (tightened): the computer's bound is the landing's measured distance (78 px from the ring at 1280 px,
+  // the figure as drawn) plus 8 px of play, not 104.
+  expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 86 : 36);
+  test.info().annotations.push({type: 'zigi-landing', description: `${page.viewportSize()!.width}px: ${Math.round(beside)}`});
   const sight = await page.evaluate(() => {
     const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
     const arm = img.top + img.height * .31, from = img.right <= d.left ? img.right : d.right, to = img.right <= d.left ? d.left : img.left;
