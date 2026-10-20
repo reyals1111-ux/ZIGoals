@@ -44,6 +44,10 @@ export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '
   // Session AF (L5a for L1's Part 5, the lead's request): the Earn dock stays ZIGi's and the music button's twin in every
   // theme (components/earn-dock/earn-dock.css): its button, edge tab, app tiles and fold arrow.
   '.earn-dock-button', '.earn-dock-edge', '.earn-dock-app', '.earn-dock-fold',
+  // Session AF Gate C (design review 2): three night tiles that Light had half-flipped keep Nebula's colours — Goals' life
+  // balance wheel (its white figure had turned black on its navy core), the goal covers' art (a black ₿ on maroon) and
+  // Health's exercise medallions (a navy-to-white smear behind a bright glyph).
+  '.balance-wheel', '.vision-art', '.exercise-medallion',
   // Session AF (the lead, crit1): the ecosystem apps' logo discs on Earn keep Nebula's navy disc in every theme, so a light
   // logo glyph stays visible by day (the Light sheet had washed them to near-white, 1.4:1).
   '.earn-medallion', '.earn-dock-app-face'];
@@ -175,6 +179,8 @@ const TEXT_CLIP_CLASSES = new Set();
  *  by the background of a clipped-to-text rule: never a fill, a colour, a line or another token), so their own declarations,
  *  at the root and where a page redefines them (a pillar's flow), take the gradient-word role. */
 export const GRADIENT_TEXT_TOKENS = new Set();
+/** Custom properties that paint a fill although their names read like words (roleOf). */
+export const PAINT_TOKENS = new Set(['--glass-ink']);
 const subjectClasses = selector => selector.split(/,(?![^(]*\))/).flatMap(part => { const last = part.trim().split(/[\s>+~]+/).pop() ?? ''; return [...last.matchAll(/\.([\w-]+)/g)].map(m => m[1]); });
 export function roleOf(prop, rule) {
   const p = prop.toLowerCase();
@@ -182,6 +188,9 @@ export function roleOf(prop, rule) {
     if (GRADIENT_TEXT_TOKENS.has(p)) return 'gradientText';
     const parts = new Set(p.slice(2).split('-')), has = (...words) => words.some(w => parts.has(w));
     if (has('shadow', 'glow')) return 'shadow';
+    // Gate C design review 2: a paint, not a word, despite its name — the glass bars' fill (components/progress/glass-progress.css),
+    // so Light keeps Nebula's colour (it had deepened Health's meal bar and macro meters to teal, navy, plum and maroon).
+    if (PAINT_TOKENS.has(p)) return 'accent';
     if (has('text', 'muted', 'ink', 'meta', 'strong', 'secondary', 'fg', 'label', 'copy')) return 'text';
     if (has('line', 'edge', 'border', 'rule', 'divider', 'stroke', 'outline', 'track')) return 'border';
     if (has('bg', 'panel', 'surface', 'space', 'card', 'glass', 'backdrop', 'scrim', 'sheet', 'field', 'input', 'deep', 'night', 'dark')) return 'surface';

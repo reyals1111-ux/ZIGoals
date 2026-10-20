@@ -1,0 +1,24 @@
+/* Session AF Gate C (design review 2, ADR-028 H137): Light's last half-flipped pieces, by hand. Every rule carries the
+   sheet's one id of weight (:not(#\-)) and the theme root, so it wins over the generated rule it replaces. */
+/* The glass bars' sheen stays a white sheen over Nebula's fill (the generator had turned the white highlight into a 30 %
+   ink film, so Habits' rhythm bar and every glass meter read teal-to-plum instead of cyan-to-pink). */
+:root[data-theme=light] .glass-fill:not(#\-)::before { background: linear-gradient(180deg, #ffffff4d, #ffffff0d 48%, #00000014), var(--glass-ink, var(--nebula-flow, linear-gradient(110deg, #18d9ef, #4299f6 27%, #9574ff 52%, #e26bee 77%, #ff97ac))); }
+:root[data-theme=light] .glass-track[data-axis=y] .glass-fill:not(#\-)::before { background: linear-gradient(90deg, #ffffff38, #ffffff0a 45%, #0000000f), var(--glass-ink, linear-gradient(0deg, #18d9ef, #4299f6 40%, #9574ff 75%, #e26bee)); }
+:root[data-theme=light] .glass-track .glass-segment:not(#\-) { background: linear-gradient(180deg, #ffffff40, #ffffff08 50%, #00000012), var(--glass-ink, #7fa7f5); }
+/* A ring's empty track is the day's neutral line, not Nebula's near-black navy (Goals' rings read as heavy dark arcs);
+   inside the night islands it keeps its night colour. */
+:root[data-theme=light] .glass-ring-track:not(#\-):not(:where(.today-hero, .stake-hero, .destination-panel, .account-panel, .site-footer, .checklist-celebration, .checklist-timer-ring) *) { stroke: #1c2c4826; }
+/* A favourite's star stays gold by day: a deep gold that still reads as gold (3:1 against white, WCAG 1.4.11), not the
+   olive the generic deepening gave. */
+:root[data-theme=light] .market-favourite[aria-pressed="true"]:not(#\-) { color: #a86f00; }
+/* Settings' mode line: no night glow on a white page (it read as a grey smudge). */
+:root[data-theme=light] .mode-strip:not(#\-) { text-shadow: none; }
+/* Earn's "You keep the keys" tag: white, not a tinted fill, its words a deep gold (Nebula's gold edge unchanged). */
+:root[data-theme=light] .earn-tag[data-tone=keys]:not(#\-) { background: #ffffff; color: #7a4f00; }
+/* Wealth's chosen base currency: white with ink words (the generator had made a beige pill); its gold edge as in Nebula. */
+:root[data-theme=light] .wealth-base-switch > button[aria-pressed="true"]:not(#\-) { background: #ffffff; color: #0d0f15; }
+/* Add money's choice rings: a visible ring by day and a chosen ring that meets 3:1 (WCAG 1.4.11); the cyan itself is
+   too faint on white for a state. */
+:root[data-theme=light] .add-money-tile button:not(#\-)::after { border-color: #6b7a93; }
+:root[data-theme=light] .add-money-tile button[aria-pressed="true"]:not(#\-)::after { border-color: #0a8a9c; background: radial-gradient(circle, #0a8a9c 0 4px, transparent 5px); }
+:root[data-theme=light] .add-money-tile button[aria-pressed="true"]:not(#\-) { border-color: #0a8a9c; box-shadow: inset 0 0 0 1px #0a8a9c; }
