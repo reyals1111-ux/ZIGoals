@@ -7,6 +7,6 @@ ran beside it at nice 19: typechecks only). Chromium headless only: WebKit runs 
 Evidence label: local, Chromium (Chrome channel); not a device.
 
 Result: 2670 passed (1.5h); 652 skipped; 0 failed, 0 flaky, exit 0.
-Tests listed: 3322 (desktop + mobile). The skips are by design: project-specific tests (phone-only or desktop-only), the
-WebKit-only specs (webkit-*.spec.ts) and the owner's hardware-gated specs.
-Slowest file: Slow test file: [mobile] › tests/theme-parity-af.spec.ts (5.1m).
+Tests listed: 3322 (desktop + mobile). The skips are the specs' own test.skip conditions: one project only (phone-only or
+desktop-only) and the WebKit-only specs (webkit-*.spec.ts) in a Chrome run.
+Slowest file: [mobile] › tests/theme-parity-af.spec.ts (5.1m).
