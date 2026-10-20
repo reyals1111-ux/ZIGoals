@@ -43,11 +43,15 @@ describe('Session AE wallet guard', () => {
   // blocked on the Alpha) and native staking's one signer, lib/staking/execute.ts, whose only function that calls it starts
   // with assertNativeStakingAllowed. Every other file, the AE wallet files above included, still names no signer at all;
   // lib/staking/staking-guard.test.ts pins who may reach execute.ts (the review sheet's submit handler only).
+  // Gate C test audit: a file is cut at every top-level declaration (a function or a const, exported or not), so a signer
+  // call in a private helper written after a function is that helper's, never the function's above it.
+  const declarations = (text: string) => text.split(/(?=^(?:export )?(?:async )?function |^(?:export )?const \w+ = )/m);
+  const nameOf = (body: string) => body.match(/^(?:export )?(?:async )?function (\w+)|^(?:export )?const (\w+)/)?.slice(1).find(Boolean) ?? 'outside a function';
   test('the only signers stay in lib/wallet.ts\'s blocked execute path and lib/staking/execute.ts\'s staking path', () => {
     const uses = [...sources('lib'), ...sources('components'), ...sources('app')].filter(file => /getOfflineSigner/.test(read(file)));
     expect(uses).toEqual(['lib/staking/execute.ts', 'lib/wallet.ts']);
-    const staking = read('lib/staking/execute.ts').split(/(?=export (?:async )?function )/);
-    const stakingCalls = staking.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(body => body.match(/^export (?:async )?function (\w+)/)?.[1] ?? 'outside a function');
+    const staking = declarations(read('lib/staking/execute.ts'));
+    const stakingCalls = staking.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(nameOf);
     expect(stakingCalls).toEqual(['executeSigned']);
     // Session AF chunk 3: the first statement passes the ticket as the signature's context (chain id, memo, Ledger), so
     // the practice-badge and revoke rules run there too; it is still the first statement (equal strength).
@@ -56,8 +60,8 @@ describe('Session AE wallet guard', () => {
     expect(read('lib/wallets/keplr-session.ts')).not.toMatch(FORBIDDEN);
     const wallet = read('lib/wallet.ts');
     // The interface declares it once; each call sits in quoteExecute or executeQuote, which start with the Alpha's block.
-    const functions = wallet.split(/(?=export (?:async )?function )/);
-    const calling = functions.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(body => body.match(/^export (?:async )?function (\w+)/)?.[1] ?? 'outside a function');
+    const functions = declarations(wallet);
+    const calling = functions.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(nameOf);
     expect(calling.sort()).toEqual(['executeQuote', 'quoteExecute']);
     for (const name of calling) expect(functions.find(body => body.startsWith(`export async function ${name}(`))!.replace(/^[^{]*\{/, '').trimStart().startsWith('assertFinancialExecutionAllowed();'), name).toBe(true);
     expect(relative(WEB, join(WEB, 'lib/wallet.ts'))).toBe('lib/wallet.ts');

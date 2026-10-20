@@ -85,7 +85,8 @@ const CALM_PROPS = new Set(['opacity', 'filter']);
 const shadeOnly = (a: string, b: string) => skeleton(a) === skeleton(b) && /drop-shadow/.test(a);
 
 /** Classifies one property's difference on one element. */
-export function classify(prop: string, nebula: Item, other: Item): Klass {
+/** `theme` is the theme compared with Nebula; the gradient-word class exists by day only (H130; Gate C test audit). */
+export function classify(prop: string, nebula: Item, other: Item, theme: 'light' | 'dark' = 'light'): Klass {
   const a = nebula.props[prop] ?? '', b = other.props[prop] ?? '';
   if (nebula.bar) return 'theme-bar';
   if (TEXT_PROPS.has(prop)) return 'text';
@@ -107,7 +108,7 @@ export function classify(prop: string, nebula: Item, other: Item): Klass {
     // A paint or a gradient stop that is the element's own word colour (currentColor) follows the word.
     const fromText = (prop !== 'background-image' || nebula.clip) && (ca[i] === ownA && cb[i] === ownB || sameRgb(ca[i]!, ownA) && sameRgb(cb[i]!, ownB));
     if (fromText || (nebula.svgText && prop === 'fill')) { klass = klass === 'neutral' ? 'text' : klass; continue; }
-    if (prop === 'background-image' && nebula.clip && deeperSameHue(ca[i]!, cb[i]!)) { klass = 'gradient-word'; continue; }
+    if (theme === 'light' && prop === 'background-image' && nebula.clip && deeperSameHue(ca[i]!, cb[i]!)) { klass = 'gradient-word'; continue; }
     if (!flips(ca[i]!)) return 'DISALLOWED';
   }
   return klass;
@@ -117,12 +118,12 @@ export function classify(prop: string, nebula: Item, other: Item): Klass {
  *  names the same paint; what it paints is compared on its own stops. */
 const sameIds = (v: string) => v.replace(/url\("#[^"]*"\)/g, 'url(#id)');
 /** Every difference between two snapshots of the same page (same DOM), classified; boxes beyond half a pixel are DISALLOWED. */
-export function compare(nebula: readonly Item[], other: readonly Item[]): {diffs: Diff[]; mismatch: string | null} {
+export function compare(nebula: readonly Item[], other: readonly Item[], theme: 'light' | 'dark' = 'light'): {diffs: Diff[]; mismatch: string | null} {
   const byPath = new Map(other.map(i => [i.path, i])), diffs: Diff[] = [];
   let missing = 0;
   for (const n of nebula) {
     const o = byPath.get(n.path); if (!o) { missing++; continue; }
-    for (const prop of Object.keys(n.props)) if (sameIds(n.props[prop]!) !== sameIds(o.props[prop] ?? '')) diffs.push({path: n.path, desc: n.desc, prop, nebula: n.props[prop]!, other: o.props[prop] ?? '', klass: classify(prop, n, o)});
+    for (const prop of Object.keys(n.props)) if (sameIds(n.props[prop]!) !== sameIds(o.props[prop] ?? '')) diffs.push({path: n.path, desc: n.desc, prop, nebula: n.props[prop]!, other: o.props[prop] ?? '', klass: classify(prop, n, o, theme)});
     if (n.box.some((v, i) => Math.abs(v - o.box[i]!) > BOX_TOLERANCE)) diffs.push({path: n.path, desc: n.desc, prop: 'box', nebula: n.box.join(' '), other: o.box.join(' '), klass: 'DISALLOWED'});
   }
   const mismatch = missing || nebula.length !== other.length ? `${nebula.length} elements in Nebula, ${other.length} in the other theme, ${missing} unmatched` : null;

@@ -39,6 +39,9 @@ describe('what may differ between themes', () => {
     const word = (stops, over = {}) => item({'background-image': `linear-gradient(100deg, rgb(20, 24, 33) 42%, ${stops})`, color: 'rgb(20, 24, 33)'}, {clip: true, ...over});
     const nebula = word('rgb(111, 230, 246) 72%, rgb(143, 166, 255) 84%');
     expect(classify('background-image', nebula, word('rgb(20, 119, 130) 72%, rgb(84, 103, 186) 84%'))).toBe('gradient-word');
+    // by day only (Gate C test audit): the same deeper stops in Dark are a difference Dark may not have
+    expect(classify('background-image', nebula, word('rgb(20, 119, 130) 72%, rgb(84, 103, 186) 84%'), 'dark')).toBe('DISALLOWED');
+    expect(classify('background-image', nebula, word('rgb(20, 119, 130) 72%, rgb(84, 103, 186) 84%'), 'light')).toBe('gradient-word');
     // another hue, a lighter shade, a shade still below 4.5:1, a fill that is not a word, a moved stop: all disallowed
     expect(classify('background-image', nebula, word('rgb(138, 84, 181) 72%, rgb(84, 103, 186) 84%'))).toBe('DISALLOWED');
     expect(classify('background-image', word('rgb(20, 119, 130) 72%, rgb(84, 103, 186) 84%'), nebula)).toBe('DISALLOWED');

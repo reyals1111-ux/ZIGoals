@@ -197,7 +197,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
     return out;
   });
   expect(small).toEqual([]);
-  expect(inline).toBeGreaterThanOrEqual(30);
+  // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
+  // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).
+  expect(inline).toBe(37);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });

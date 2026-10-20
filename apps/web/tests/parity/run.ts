@@ -35,7 +35,7 @@ export async function parity(page: Page, info: TestInfo, route: string, state: S
   await writeTheme(page, 'nebula');
   const out: {theme: Theme; counts: Partial<Record<Klass, number>>; mismatch: string | null; disallowed: (Diff & {known: boolean})[]}[] = [];
   for (const theme of ['light', 'dark'] as const) {
-    const {diffs, mismatch} = compare(snaps.nebula, snaps[theme]);
+    const {diffs, mismatch} = compare(snaps.nebula, snaps[theme], theme);
     const counts: Partial<Record<Klass, number>> = {}; for (const d of diffs) counts[d.klass] = (counts[d.klass] ?? 0) + 1;
     out.push({theme, counts, mismatch, disallowed: diffs.filter(d => d.klass === 'DISALLOWED').map(d => ({...d, known: isKnown(route, state, d)}))});
   }

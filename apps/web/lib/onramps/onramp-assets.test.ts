@@ -81,6 +81,13 @@ describe('A2.9: no ZIGoals address, no payment code, every outgoing link verifie
     expect(files.filter(f => readFileSync(join(WEB, f), 'utf8').includes('app.demo.rampnetwork.com'))).toEqual(['lib/onramps/urls.ts']);
   });
   test('"What can I do with it now?": a guide per asset; every link from a verified list or ZIGoals\' own pages; route claims sourced', () => {
+    // Gate C test audit (strength restored, then raised): every asset's guides, exactly and in order — the old rule (more
+    // than one guide, Earn last) stopped fitting when the multi-asset Add money gave BTC, ETH, USDT and SOL routes that end
+    // before staking; `> 0` alone checked nothing.
+    expect(Object.fromEntries(BUY_ASSETS.map(a => [a.id, NEXT_STEPS[a.id].map(g => g.id)]))).toEqual({
+      usdc: ['hold', 'bridge', 'swap', 'earn'], usdt: ['hold', 'bridge'], eth: ['hold', 'bridge'], sol: ['hold', 'swap'],
+      btc: ['hold'], atom: ['hold', 'bridge', 'swap', 'earn'], 'zig-via-atom': ['bridge', 'swap', 'earn'],
+    });
     for (const a of BUY_ASSETS) {
       const guides = NEXT_STEPS[a.id];
       expect(guides.length, a.id).toBeGreaterThan(0);
