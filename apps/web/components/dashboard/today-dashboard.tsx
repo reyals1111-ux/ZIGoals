@@ -88,7 +88,7 @@ import {Skeleton} from '../ui/skeleton';
 import {WalletCard} from '../wallet/wallet-card';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
-const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
+const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your financial progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
  const ref=useRef<HTMLDialogElement>(null);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null,dialog=ref.current;dialog?.showModal();return()=>{dialog?.close();previous?.focus();};},[]);
@@ -202,7 +202,7 @@ export function TodayDashboard(){
   }
   switch(id){
    case 'goals':return financial?<section className="today-goals surface-featured" aria-label="Your goals"><div className="section-heading"><div><h2>Your goals</h2><p>Small steps. A bigger future.</p></div><Link href="/app/goals" className="text-link">View all goals →</Link></div>{!legacy.loaded||!platform.loaded?<Skeleton label="Loading your Goals…" block lines={2}/>:active.length?<div className="today-goals-grid">{activeCards.map(g=><GoalSummaryCard key={g.key} summary={g} compact/>)}<Link href="/app/goals/new" className="new-destination-card"><span aria-hidden="true">＋</span><strong>Create a new goal</strong><small>A new destination<br/>is waiting.</small></Link></div>:<div className="today-goal-empty"><div><AppIcon name="goals" size={42}/><h3>A plan with your name on it.</h3><p>Choose what matters. Set a target. See the next step.</p><Link className="text-link" href="/app/goals/new">Create your first goal →</Link></div><SceneArt scene="home"/></div>}<p className="local-label">{legacy.mode==='local'?'Local demo · simulated ZIG, never wallet funds':'Testnet wallet view · financial execution disabled'}</p></section>:null;
-   case 'progress':return financial?<section className="progress-summary" aria-label="Your financial progress"><div className="section-heading"><div><h2>Your progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div><div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatPlainDecimal(formatUnits(legacy.goals.reduce((total,g)=>total+BigInt(g.position_units),0n).toString(),TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><small>{legacy.mode==='local'?'Simulated local allocation':'Known wallet Goal allocation'}</small></div><div><AppIcon name="ecosystem"/><strong>None</strong><small>Future return assumed</small></div></div></section>:null;
+   case 'progress':return financial?<section className="progress-summary" aria-label="Your financial progress"><div className="section-heading"><div><h2>Your financial progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div><div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatPlainDecimal(formatUnits(legacy.goals.reduce((total,g)=>total+BigInt(g.position_units),0n).toString(),TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><small>{legacy.mode==='local'?'Simulated local allocation':'Known wallet Goal allocation'}</small></div><div><AppIcon name="ecosystem"/><strong>None</strong><small>Future return assumed</small></div></div></section>:null;
    case 'habits':return domains.includes('habits')?<HabitsToday/>:null;
    case 'health':return domains.includes('health')?<HealthToday/>:null;
    case 'next-action':return financial&&nextGoal?<div className="next-step"><span className="eyebrow">Your next goal action</span><Link href={nextGoal.href} className="text-link">Review {nextGoal.name} →</Link></div>:null;
@@ -275,6 +275,12 @@ export function TodayDashboard(){
    </section>
    {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
    {gameOn&&uiPrefs.loaded&&!uiPrefs.unreadable&&!!uiPrefs.data.today?.gameWidgets?.length&&<LoadBoundary quiet><Suspense fallback={null}><TodayGameCards/></Suspense></LoadBoundary>}
+  </div>
+  {/* Gate C design review (finding 9): For you (and the Showcase's "Make Today yours") follow the main column in reading
+      order but sit under both columns on a computer, as "Updates and summaries" does: the rail's column stayed reserved,
+      empty, beside them once Recent activity ended (≈ 280 px beside a 498 px column at 1024 px). Before the rail in the
+      page's order, exactly where they were. */}
+  <div className="today-after">
    {parts.main}<div className="for-you-place" ref={setMainPlace}/>
    {showcase&&makeToday&&<PhoneFold label="Make Today yours">{makeToday}</PhoneFold>}
   </div>{!single&&<aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={railItems} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside>}</div>

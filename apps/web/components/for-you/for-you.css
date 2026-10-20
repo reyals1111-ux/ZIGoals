@@ -20,3 +20,11 @@
 /* Session AB-Design Phase 2 closing pass (Gate C captures): the release's items are whole sentences; from tablet width
    they read as two columns of short lines instead of seven narrow ones (phones keep their layout). */
 @media (min-width: 768px) { .whats-new-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; } .whats-new-links a { text-wrap: pretty; } }
+/* Gate C design review (finding 14): below 480 px a For you card's actions stack instead of sharing one row (the Guide's
+   three: "Not today" wrapped between its words), and What's new lists its items in one column (two 150 px columns left
+   their rows misaligned). Layout only; nothing is removed. */
+@media (max-width: 479.98px) {
+  .today-page .guide-card .actions { display: grid; justify-items: start; gap: 4px; }
+  .today-page .guide-card .actions > * { min-height: 44px; }
+  .today-page .whats-new-links { grid-template-columns: minmax(0, 1fr); }
+}
