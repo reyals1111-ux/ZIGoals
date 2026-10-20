@@ -2,7 +2,7 @@
 import type {ReactNode} from 'react';
 import {REASON_WORDS, type UnavailableReason} from '../../lib/earn/live/envelope';
 import type {LiveAnswer, LiveState} from '../../lib/earn/client';
-import {STALE_AFTER_MS, updatedAgo} from '../../lib/earn/format';
+import {STALE_AFTER_MS, plainSource, updatedAgo} from '../../lib/earn/format';
 import {formatDateTime} from '../../lib/visual-format';
 import {HowRead} from './how-read';
 
@@ -32,9 +32,10 @@ export function Unavailable({reason, short = false}: {reason: Reason; short?: bo
 export function SourceLine({answer, now, third = false}: {answer: LiveAnswer<unknown>; now: number; third?: boolean}) {
   const old = answer.stale || now - Date.parse(answer.fetchedAt) > STALE_AFTER_MS;
   return <small className="earn-source" data-stale={old || undefined}>
-    {third && !/third party/i.test(answer.source.name) ? <><b>third party</b> · </> : null}{answer.source.name}{answer.height ? <> · block {answer.height}</> : null} · <span className="earn-age">{old ? updatedAgo(answer.fetchedAt, now).replace('updated', 'last read') : updatedAgo(answer.fetchedAt, now)}</span>
-    {/* Session AF chunk 2: every figure says "as of": the block's time when the source has blocks, else the time of the read. */}
-    <> · as of <time dateTime={answer.observedAt ?? answer.fetchedAt}>{formatDateTime(answer.observedAt ?? answer.fetchedAt)}</time></>
+    {third && !/third party/i.test(answer.source.name) ? <><b>third party</b> · </> : null}{plainSource(answer.source.name)}{answer.height ? <> · block {answer.height}</> : null} · <span className="earn-age">{old ? updatedAgo(answer.fetchedAt, now).replace('updated', 'last read') : updatedAgo(answer.fetchedAt, now)}</span>
+    {/* Session AF chunk 2: every figure says "as of": the block's time when the source has blocks, else the time of the read.
+        Session AF Gate C (design critique, copy): in UTC, named, as the page's other dates and deadlines are ("23:59 UTC"). */}
+    <> · as of <time dateTime={answer.observedAt ?? answer.fetchedAt}>{formatDateTime(answer.observedAt ?? answer.fetchedAt, {timeZone: 'UTC'})} UTC</time></>
     {answer.stale && answer.reason ? <> · the latest read failed: {reasonWords(answer.reason)}</> : null}
   </small>;
 }

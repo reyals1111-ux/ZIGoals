@@ -69,8 +69,8 @@ export function NativeSection({chain, validators, measured, now, reads = []}: {c
     </>}
     figuresNote={<>
       {compare && <p className="earn-agreement" data-apr-agreement={compare.disagree ? 'disagree' : 'agree'}>{compare.disagree
-        ? <><b>The two figures disagree</b>: at the same {pctShort(m!.validator.commission)} commission the issuance arithmetic gives {pct(compare.issuance)} and the measured stake earned {pct(compare.measured)}, more than 10 % apart. Both stay here; neither is a promise.</>
-        : <>At the same {pctShort(m!.validator.commission)} commission the issuance arithmetic gives {pct(compare.issuance)} and the measured stake earned {pct(compare.measured)}: within 10 % of each other.</>}</p>}
+        ? <><b>The two figures disagree</b>: at the same {pctShort(m!.validator.commission)} commission, the rate worked out from the new ZIG the network pays out is {pct(compare.issuance)} and the measured stake earned {pct(compare.measured)}. The gap between them is more than a tenth of the worked-out rate (a relative difference of over 10 %, not 10 percentage points). Both stay here; neither is a promise.</>
+        : <>At the same {pctShort(m!.validator.commission)} commission, the rate worked out from the new ZIG the network pays out is {pct(compare.issuance)} and the measured stake earned {pct(compare.measured)}. They agree: the gap between them is less than a tenth of the worked-out rate (a relative difference under 10 %, not 10 percentage points).</>}</p>}
       {choices.length > 1 && <fieldset className="earn-commission"><legend>See the rate at a commission validators charge now</legend>{choices.map(c => <label key={c}><input type="radio" name="earn-commission" checked={c === commission} onChange={() => setPicked(c)}/><span>{pctShort(c)}</span></label>)}</fieldset>}
       <details className="earn-formula">
         <summary>How this is computed</summary>

@@ -34,7 +34,8 @@ export function StartHereSection({facts, live}: {facts: StartFacts; live: StartL
       ? <LoadBoundary label="The Start-here path"><Suspense fallback={<StartList states={states}/>}><StartHerePath states={states} open={open} onOpen={setOpen} onMark={mark} live={live} markError={error}/></Suspense></LoadBoundary>
       : <StartList states={states}/>}
     {record.loaded && record.data.todayCard === 'dismissed' && <p className="fine earn-start-today">The Earn card is off on Today. <button type="button" className="text-link" onClick={showToday}>Show it on Today again</button></p>}
-    <p className="fine">Stuck on a word? The <a className="text-link" href="#academy">Academy</a> explains staking, fees and safety in five-minute lessons. <Link className="text-link" href="/app/staking">Go to Staking</Link></p>
+    {/* Session AF Gate C (design critique, copy): each link follows its own sentence (the Staking link had followed the Academy's). */}
+    <p className="fine">Stuck on a word? The <a className="text-link" href="#academy">Academy</a> explains staking, fees and safety in five-minute lessons. Ready to stake? <Link className="text-link" href="/app/staking">Go to Staking</Link></p>
   </section>;
 }
 /** Before the path's chunk arrives (or if it cannot load): the six steps as a plain list with their state. */

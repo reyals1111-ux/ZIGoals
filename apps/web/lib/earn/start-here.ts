@@ -98,10 +98,12 @@ export function startStates(facts: StartFacts, record: EarnPath): StartStepState
 export const STEP_WORDS: Readonly<Record<StartStepId, {label: string; short: string; glyph: string}>> = Object.freeze({
   'get-wallet': {label: 'Get a wallet', short: 'Your own keys', glyph: 'sparkle'},
   practice: {label: 'Practice first', short: 'Free test ZIG', glyph: 'leaf'},
-  'add-money': {label: 'Add money', short: 'Card or bank', glyph: 'heart'},
+  // Session AF Gate C (design critique, money pages 8): marks that fit their step (a plus to add money, the ecosystem's
+  // network to explore more), never a heart or a clock borrowed from elsewhere.
+  'add-money': {label: 'Add money', short: 'Card or bank', glyph: 'plus'},
   'get-zig': {label: 'Get ZIG', short: 'Onto ZIGChain', glyph: 'drop'},
   'first-stake': {label: 'Your first real stake', short: 'Real network', glyph: 'flag'},
-  explore: {label: 'Explore more', short: 'Liquid staking, pools, votes', glyph: 'focus'},
+  explore: {label: 'Explore more', short: 'Liquid staking, pools, votes', glyph: 'ecosystem'},
 });
 /** The path model the shared renderer draws: three orbits of two dots, a chest after practice and one at the end. */
 export function startHereModel(states: readonly StartStepState[]): PathModel {
