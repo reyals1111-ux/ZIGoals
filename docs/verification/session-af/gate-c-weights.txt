@@ -1,54 +1,51 @@
-Session AF Gate C — page weights on a fresh production build of 196fa934 (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED,
-next start on 127.0.0.1:3101), node scripts/check-weight-budget.mjs http://127.0.0.1:3101, gzip level 6. The thirteen existing
-budgets are unchanged (a unit guard pins them); the eight new lines are the owner-approved ones of 33193870 (ADR-028 H96, H119).
+Session AF Gate C — page weights on the final head cac3b73e (the Checklist redesign merged), a fresh production build
+(NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED, TZ=UTC next start on 127.0.0.1:3101), node scripts/check-weight-budget.mjs
+http://127.0.0.1:3101, gzip level 6. Every page is within its budget; the thirteen existing budgets are unchanged (a unit
+guard pins them); the eight new lines are the owner-approved ones of 33193870 (ADR-028 H96, H119). Since 196fa934 every page
+gained 4.6 kB through the shell (the Checklist merge and the commits after it); /app/checklist itself +17.8 kB.
 
 Page weight (gzip level 6 of the scripts each page loads) at http://127.0.0.1:3101
-ok    /app                      531.6 kB  budget  567.0 kB  main  616.9 kB
-ok    /app/goals                443.1 kB  budget  478.0 kB  main  515.1 kB
-ok    /app/habits               468.1 kB  budget  504.0 kB  main  525.6 kB
-ok    /app/health               491.5 kB  budget  531.0 kB  main  550.8 kB
-ok    /app/wealth               458.9 kB  budget  512.0 kB  main  542.5 kB
-ok    /app/markets              435.2 kB  budget  476.0 kB  main  512.3 kB
-ok    /app/portfolio            457.3 kB  budget  500.0 kB  main  515.8 kB
-ok    /app/staking              447.2 kB  budget  487.0 kB  main  534.7 kB
-ok    /app/activity             413.9 kB  budget  457.0 kB  main  497.6 kB
-ok    /app/settings             494.1 kB  budget  531.0 kB  main  525.9 kB
-ok    /app/help                 406.3 kB  budget  450.0 kB  main  493.6 kB
-ok    /app/chess                417.0 kB  budget  459.0 kB  main         —
-ok    /app/earn                 458.1 kB  budget  496.0 kB  main         —
-ok    /app/checklist            448.9 kB  budget  492.0 kB  main         —
-ok    /app/governance           426.8 kB  budget  468.0 kB  main         —
-ok    /app/wealth/add-money     425.7 kB  budget  469.0 kB  main         —
-ok    /app/wealth/add-money/back  422.5 kB  budget  465.0 kB  main         —
-ok    /app/journey              443.3 kB  budget  488.0 kB  main         —
-ok    /app/timeline             428.8 kB  budget  472.0 kB  main         —
-ok    /app/stories              433.7 kB  budget  477.0 kB  main         —
-ok    shell (on every page)     402.2 kB  budget  447.0 kB  main  491.6 kB
+ok    /app                      536.3 kB  budget  567.0 kB  main  616.9 kB
+ok    /app/goals                447.7 kB  budget  478.0 kB  main  515.1 kB
+ok    /app/habits               472.7 kB  budget  504.0 kB  main  525.6 kB
+ok    /app/health               496.1 kB  budget  531.0 kB  main  550.8 kB
+ok    /app/wealth               463.5 kB  budget  512.0 kB  main  542.5 kB
+ok    /app/markets              439.8 kB  budget  476.0 kB  main  512.3 kB
+ok    /app/portfolio            461.9 kB  budget  500.0 kB  main  515.8 kB
+ok    /app/staking              451.8 kB  budget  487.0 kB  main  534.7 kB
+ok    /app/activity             418.6 kB  budget  457.0 kB  main  497.6 kB
+ok    /app/settings             498.8 kB  budget  531.0 kB  main  525.9 kB
+ok    /app/help                 410.9 kB  budget  450.0 kB  main  493.6 kB
+ok    /app/chess                421.7 kB  budget  459.0 kB  main         —
+ok    /app/earn                 463.0 kB  budget  496.0 kB  main         —
+ok    /app/checklist            466.7 kB  budget  492.0 kB  main         —
+ok    /app/governance           431.4 kB  budget  468.0 kB  main         —
+ok    /app/wealth/add-money     430.4 kB  budget  469.0 kB  main         —
+ok    /app/wealth/add-money/back  427.1 kB  budget  465.0 kB  main         —
+ok    /app/journey              448.0 kB  budget  488.0 kB  main         —
+ok    /app/timeline             433.5 kB  budget  472.0 kB  main         —
+ok    /app/stories              438.3 kB  budget  477.0 kB  main         —
+ok    shell (on every page)     406.8 kB  budget  447.0 kB  main  491.6 kB
 
-H54: the weight check sums only the scripts a page's HTML loads up front; these are loaded later, on a tap or a section
-coming into view. Listed by $SP/lead/lazy-chunks.mjs (every chunk in .next/static/chunks that no measured page's HTML
-loads, gzip level 6), labelled by markers in its content — a chunk can hold shared code, so a label says what the chunk
-carries, not that it holds nothing else. H112: the theme sheets load only when that theme is chosen.
-
-Lazy chunks (not loaded by any measured page's HTML), labelled by content, gzip level 6, http://127.0.0.1:3101:
+H54: the weight check sums only the scripts a page's HTML loads up front; these load later, on a tap or a section coming
+into view ($SP/lead/lazy-chunks.mjs; a label says what a chunk holds, a chunk can hold shared code):
   129.6 kB  WalletConnect sign client  (0_m9q26k1z2y4.js)
   129.1 kB  staking signer (CosmJS signing client)  (2jgppn-iabf5g.js)
    79.5 kB  Add money  (0imldcwzeqgf6.js)
    21.0 kB  EVM/Solana/BTC readers  (1alyvf4v3wxws.js)
    20.1 kB  Add money  (37d6god93gh6w.js)
-   18.7 kB  EVM/Solana/BTC readers  (3rylhsds79u37.js)
+   18.7 kB  EVM/Solana/BTC readers  (1lmgjx5v7_zca.js)
    18.5 kB  EVM/Solana/BTC readers  (3n-20t96iljh9.js)
    18.4 kB  Day timeline  (20pemyuwi915n.js)
    18.1 kB  EVM/Solana/BTC readers  (0r2mlpkvtkilh.js)
+   17.8 kB  EVM/Solana/BTC readers  (25ee18-pjpoq-.js)
    17.8 kB  EVM/Solana/BTC readers, Add money  (35_mmk86kor8i.js)
-   17.3 kB  EVM/Solana/BTC readers  (04wjvs3unwzhx.js)
-   16.8 kB  EVM/Solana/BTC readers  (08xqdg39a-k2k.js)
+   17.3 kB  EVM/Solana/BTC readers  (2vsns_1h725o7.js)
    16.2 kB  Earn dock, Add money  (0yb6xqxue9s36.js)
-   14.8 kB  WalletConnect sign client  (1gh9-dgyi6lxn.js)
+   14.8 kB  WalletConnect sign client  (39vtj4wj2fh-z.js)
    13.1 kB  EVM/Solana/BTC readers, Add money  (3lifm1sr4w7x6.js)
+   12.1 kB  staking signer (CosmJS signing client)  (2p6029tw_pt3v.js)
    12.1 kB  Earn illustrations  (2c90se853e6w_.js)
-   12.0 kB  Earn Academy  (0-f4-loel20ty.js)
-   11.9 kB  staking signer (CosmJS signing client)  (18bboy94t8sht.js)
    11.9 kB  Day timeline  (1l-hsda_x09d3.js)
    11.8 kB  Earn dock, Add money  (01sl7n8ycd4zy.js)
    11.1 kB  EVM/Solana/BTC readers  (13588an1ahv0m.js)
@@ -56,8 +53,7 @@ Lazy chunks (not loaded by any measured page's HTML), labelled by content, gzip 
    10.7 kB  EVM/Solana/BTC readers  (06kyuv85l9e_5.js)
    10.5 kB  EVM/Solana/BTC readers  (0y--nj5xifuwq.js)
    10.2 kB  EVM/Solana/BTC readers  (1drrg2ajq3u7g.js)
-   10.0 kB  Add money  (2bhdqntw-3dtv.js)
-    9.7 kB  staking signer (CosmJS signing client)  (0b62qzsqxp-sk.js)
+    9.8 kB  staking signer (CosmJS signing client)  (3gq84xyw1_t0i.js)
     9.4 kB  EVM/Solana/BTC readers  (1nai5vdrqvv13.js)
     9.2 kB  EVM/Solana/BTC readers  (1855c17nblk2b.js)
     8.4 kB  Day timeline  (385vgarav_n82.js)
@@ -66,13 +62,15 @@ Lazy chunks (not loaded by any measured page's HTML), labelled by content, gzip 
     7.1 kB  EVM/Solana/BTC readers  (1_ymbfkt3tlx8.js)
     6.7 kB  My universe  (0abenud8bv3b1.js)
     6.6 kB  EVM/Solana/BTC readers  (3veg-q3q9bt5t.js)
+    5.8 kB  Earn Academy  (2ivag0j7ce33k.js)
     4.1 kB  Add money  (1xejgq93xm6iv.js)
     3.8 kB  Add money  (0b--_q5hbotrg.js)
+    3.7 kB  Add money  (0p4slf86zdm9g.js)
     2.9 kB  Earn illustrations  (1nz2wtwh2sp5z.js)
     2.6 kB  Earn illustrations  (0qu0vm3-_dn8o.js)
     1.9 kB  Earn illustrations  (1yr7dmn_5svwd.js)
     1.8 kB  Earn illustrations  (2y1pc0m4vytf0.js)
     1.7 kB  Earn illustrations  (39td43689uz_5.js)
-    0.9 kB  Checklist history  (2mri03in9kcwn.js)
-theme sheet light.css: 529.8 kB raw, 65.8 kB gzip (loaded only when that theme is chosen)
-theme sheet dark.css: 452.7 kB raw, 62.7 kB gzip (loaded only when that theme is chosen)
+    0.9 kB  Checklist history  (23ygwp9xveb54.js)
+theme sheet light.css: 568.3 kB raw, 69.6 kB gzip (loaded only when that theme is chosen)
+theme sheet dark.css: 489.7 kB raw, 67.4 kB gzip (loaded only when that theme is chosen)

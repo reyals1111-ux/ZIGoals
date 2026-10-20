@@ -1,10 +1,13 @@
-Session AF Gate C — key scans on 49433538 (local), Mon 19 Oct 2026 19:05 Brussels; the two fixes in 196fa934
+Session AF Gate C (G9) — key scans on the final head (the Checklist redesign merged), Tue 20 Oct 2026, local
 - scripts/check-secrets.mjs: "Tracked-file credential pattern check passed (0 allowlisted test values). This is a limited pattern scan, not a complete secret audit."
-- scripts/zigi/key-sweep.mjs: "Key sweep clean: 5 pattern(s) over the diff, both histories and 7 folders."
-- E-mail addresses in the added lines of origin/main..HEAD (git diff -U0, the address pattern [A-Za-z0-9._%+-]+@domain.tld):
-    git@github.com ×3 — ssh:// repository URLs inside the WalletConnect licence notices (public/licenses/walletconnect.txt);
-      not addresses, kept (ADR-028 H101).
-    user@api.zigchain.com ×1 — a negative-test URL with user info in lib/server/earn/routes.test.ts; now built from parts
-      (196fa934).
-    the commit trailer's address ×1 — quoted in docs/handoff/af-lanes/README.md; now named, not quoted (196fa934).
-  After 196fa934: none left besides the licence notices' repository URLs.
+- scripts/zigi/key-sweep.mjs: "Key sweep clean: 5 pattern(s) over the diff, both histories and 9 folders."
+- E-mail addresses in the added lines of origin/main..HEAD (git diff -U0, an address-shaped pattern: local part, the at
+  sign, a dotted domain):
+    The live check's recorded run (scripts/earn/fixtures/live-check-2026-10-19.json, re-recorded in the Gate C ledger pass)
+      held validators' public contact addresses from the chain's validator descriptions: removed from the record, and the
+      recorder now leaves those fields out (003cf6e3; a test asserts the record holds no address).
+    ssh:// repository URLs inside the WalletConnect licence notices (public/licenses/walletconnect.txt) and the ADR row
+      that decides them (H101): repository URLs, not addresses; kept.
+    This file's own earlier wording quoted a negative-test URL and the pattern itself; it no longer does.
+  After these: nothing left besides the licence notices' repository URLs and the ADR row naming them.
+Earlier run (19 Oct, on 49433538, before the fixes of 196fa934): the same two scans clean; two quoted addresses fixed then.
