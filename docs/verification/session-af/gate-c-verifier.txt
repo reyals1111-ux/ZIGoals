@@ -22,5 +22,5 @@ Run 2 (18:11:58–18:14:54 UTC = 20:11–20:14 Brussels, 15-minute limit, progre
   requests inspected 1873; privacy sentinel matches []; every request GET; origins ['http://127.0.0.1:3101', 'https://testnet-rpc.zigchain.com', 'https://testnet-api.zigchain.com']
   page errors 0, console errors 0, HTTP errors 0; the designed 'not configured' answers 2 (named, not errors)
   aborted by the verifier's own navigations: 115 (a count, A3)
-  the one finding: http://127.0.0.1:3101/api/push net::ERR_ABORTED — ZIGoals' own one-time push check (lib/push/client.ts), whose only aborts are its 15 s limit and the page being left; here the page change was stamped more than 2 s after the abort, so A3 counts it
+  the one finding: http://127.0.0.1:3101/api/push net::ERR_ABORTED — ZIGoals' own one-time push check (lib/push/client.ts), whose only aborts are its 15 s limit and the page being left; this abort fell outside the 2 s window A3 allows around a navigation, so it counts (not investigated further: no stage failed and the app logged no error)
   The live-only stages (the market coordinator's price, the separate landing) are for the owner's run on the live Alpha.
