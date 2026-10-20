@@ -168,8 +168,13 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Governance','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  // The narrow-tablet header: the last group starts its own row, and Quick add (below the nav) follows it in tab order.
  await page.setViewportSize({width:820,height:1180});await page.goto('/app/goals');await expect(page.locator('main h1')).toBeVisible();
- const today=await box(page,'.app-nav a[href="/app"]'),ecosystem=await box(page,'.app-nav a[href="/app/ecosystem"]'),staking=await box(page,'.app-nav a[href="/app/staking"]');
- expect(ecosystem.x).toBeCloseTo(today.x,0);expect(ecosystem.y).toBeGreaterThan(today.y+today.height-1);expect(staking.y).toBeCloseTo(today.y,0);
+ // Session AF Gate C (design critique; deliberate, stronger): every group starts its own row (the money group had broken
+ // across two rows, 8 then 2 then 6), so Staking sits on Earn's row, not Today's; the last group still starts its own row
+ // under them, and the rows read 5 · 5 · 6, none of them a single item.
+ await expect.poll(()=>page.locator('.app-nav a').evaluateAll(links=>{const rows=new Map<number,number>();for(const a of links){const y=Math.round(a.getBoundingClientRect().top);rows.set(y,(rows.get(y)??0)+1);}return [...rows.entries()].sort((a,b)=>a[0]-b[0]).map(([,n])=>n);})).toEqual([5,5,6]);
+ const today=await box(page,'.app-nav a[href="/app"]'),earn=await box(page,'.app-nav a[href="/app/earn"]'),ecosystem=await box(page,'.app-nav a[href="/app/ecosystem"]'),staking=await box(page,'.app-nav a[href="/app/staking"]');
+ expect(earn.x).toBeCloseTo(today.x,0);expect(earn.y).toBeGreaterThan(today.y+today.height-1);expect(staking.y).toBeCloseTo(earn.y,0);
+ expect(ecosystem.x).toBeCloseTo(today.x,0);expect(ecosystem.y).toBeGreaterThan(earn.y+earn.height-1);
  await page.locator('.app-nav a[href="/app/help"]').focus();await page.keyboard.press('Tab');
  await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeFocused();
 });

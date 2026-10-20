@@ -43,6 +43,7 @@
 .bottom-streaks li span { font-weight:600;color:#f4f8ff;overflow-wrap:anywhere; }
 .bottom-streaks li strong { color:var(--accent-violet,#cbbfff); }
 .bottom-streaks li small { grid-column:1/-1;font-size:14px;color:var(--text-meta,#c2d0e5); }
+.bottom-streaks .bottom-note { margin-top:10px;font-size:14px; }
 .bottom-stack { height:16px;border-radius:999px; }
 .bottom-legend { list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px 22px; }
 .bottom-legend li { display:flex;align-items:center;gap:8px;font-size:15px;color:#e3ecfa; }

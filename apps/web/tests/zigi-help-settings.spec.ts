@@ -38,7 +38,7 @@ const QUESTIONS: [string, string, string][] = [
   ['your-ai-agents', 'Can an AI agent in my browser use ZIGoals?', 'chrome://flags/#enable-webmcp-testing'],
   ['your-ai-which-setup', 'Which setup fits me?', 'nothing is sent'],
   ['your-ai-on-device', 'What is Chrome’s on-device model?', 'Answered by Chrome’s on-device model'],
-  ['your-ai-hosted', 'What is ZIGoals hosted?', 'not available yet'],
+  ['your-ai-hosted', 'What is hosted ZIGoals?', 'not available yet'], // Session AF Gate C (design critique; deliberate, as strict): the question reads naturally
   ['your-ai-look', 'Can I change how ZIGi looks?', 'Meet ZIGi'],
 ];
 

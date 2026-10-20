@@ -198,6 +198,13 @@
 @media (max-width: 1100px) { .site-footer-inner { padding-top: clamp(48px, 7cqw, 80px); } .site-footer-logo { width: 310px; } }
 /* Tablets: the floating music and ZIGi buttons float at the right edge; the steps keep their lane clear on both sides, so they stay centred (Session AD design review: the buttons covered a step's words at 1024 px). */
 @media (min-width: 768px) and (max-width: 1279.98px) { .site-footer-steps { padding-inline: 72px; } }
+/* Session AF Gate C (design critique): at 768 px the social row was 17 px short of its four chips, so "Back to top"
+   wrapped onto a line of its own. Up to 1023 px the chips are a little tighter (13 px sides, 8 px gaps), so the four share
+   one line with room to spare, and the row keeps its width, clear of the floating buttons at the right edge. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .site-footer-social-links { gap: 8px; }
+  .site-footer-social a, .site-footer-top { padding: 0 13px; gap: 8px; }
+}
 /* Phones: the planet whole at the top, framing the wordmark and the slogan; the steps one under the other with the line
    running down through them, on the dark below; then the social row. */
 @media (max-width: 767.98px) {
@@ -217,6 +224,9 @@
   .site-footer-n { min-width: 26px; height: 26px; font-size: 12px; }
   .site-footer-steps strong { margin-top: 8px; font-size: 18px; }
   .site-footer-steps p { max-width: none; }
+  /* Session AF Gate C (design critique): the ribbon (Part 10.8) runs up the stage's right edge, about 8 px in; the steps'
+     words now stop 26 px short of that edge, so "…build the pattern." no longer runs into it. The ribbon is unchanged. */
+  .site-footer-steps { padding-right: 26px; }
   /* The social row stays one line: the two X handles, the website as an icon and Back to top as a 44 px arrow (their names kept for assistive technology). */
   .site-footer-social { width: 100%; flex-wrap: nowrap; padding: 10px 0; }
   .site-footer-social-links { flex-wrap: nowrap; min-width: 0; gap: 6px; }

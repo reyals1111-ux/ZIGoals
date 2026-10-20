@@ -11,6 +11,12 @@
 .help-page h3 { font-size: 18px; line-height: 1.4; margin: 20px 0 6px; color: var(--text-strong, #f4f8ff); }
 .help-page strong { color: var(--text-strong, #f4f8ff); }
 .help-page .text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 15px; }
+/* Session AF Gate C (design critique): a link inside a sentence is part of the sentence. As a 44 px box it could not
+   break, so an opening "(" was left at a line's end, a lone ")." took a line, and every line with a link stood taller
+   than its neighbours. Now it is plain inline text in the sentence's own size: it wraps with its line, "(" stays with
+   it, and the line keeps its height (WCAG 2.5.8 exempts links inside a sentence, and the layout audit and the touch
+   target specs count them so). A link on a line of its own ("← Back to Settings") keeps its 44 px box. */
+:root .help-page :is(p:not(.help-back), li, dd) > a.text-link { display: inline; min-height: 0; font-size: inherit; }
 .help-page :is(a, button, summary):focus-visible, .help-page [tabindex="-1"]:focus-visible { outline: 2px solid #accffa; outline-offset: 4px; border-radius: 6px; }
 .help-back { margin: -8px 0 0; }
 /* The phone shell orders every nav last (nav { order: 3 }); the topic list stays where it is in the page. */
@@ -51,3 +57,11 @@
 /* Session AB-Design Phase 2 closing pass: on phones a topic link keeps a margin above the 44 px floor (the first row once
    measured a hair under it in a loaded run). */
 @media (max-width: 767.98px) { .help-topics a { min-height: 46px; } }
+/* Session AF Gate C (design critique): on a phone the eighteen topic chips filled about one and a half screens before the
+   first answer. The first six show, with "All topics" under them for the rest (one tap; help-topics.tsx); computers and
+   tablets list every topic as before. Every section is on the page either way, and search finds every answer. */
+.help-page .help-topics-all { display: none; }
+@media (max-width: 767.98px) {
+  .help-page > nav.help-topics:not([data-all]) > a[data-more] { display: none; }
+  .help-page .help-topics-all { display: inline-flex; grid-column: 1 / -1; align-items: center; justify-content: center; min-height: 46px; padding: 8px 14px; font-size: 15px; font-weight: 600; }
+}
