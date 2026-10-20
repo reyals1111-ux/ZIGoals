@@ -4,6 +4,7 @@ import {PATH_NEON_STOPS} from '../../lib/path/colours';
 import type {PathSegment} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
 import {curve, type PathGeometry} from './use-path-geometry';
+import {labelBox} from './path-zigi';
 
 /**
  * The neon flow line (P7.4): one SVG over the whole stage, a soft S from dot centre to dot centre. Every segment has a
@@ -55,16 +56,17 @@ export function PathLine({geo, segments, rail = false, lead, tones}: {geo: PathG
 /** Session AF (L3b, rounds 3–7): the orbit look's comets fly from the rim of the planet just ticked to the rim of the next
  *  one. Round 7: on one smooth circular arc (a quadratic with its control point far out read as a hook), bowing out by
  *  75 % of the distance between the planets (90 px at most) on whichever side crosses less — names, ZIGi, chests, other
- *  planets — measured as it starts; it passes behind everything on the path, as the line does (path-orbit.css). An 18 px white-hot head in a
+ *  planets — measured as it starts; it passes behind everything on the path, as the line does (path-orbit.css). Round 8:
+ *  names count from 12 px around them, and flatter arcs (50 %, 30 %) are tried too, so the comet keeps 12 px from names. An 18 px white-hot head in a
  *  halo of the planet's colour and a tail of about 110 px drawn (at most 78 % of the arc), animated with each comet's own
  *  lengths (the Web Animations API: a CSS keyframe reading a custom property stepped instead of gliding); the head fades
  *  at the rim and the next planet's ring flashes (PathDot `arrive`). Drawn only while a segment is in `comets`;
  *  decorative; never under reduced motion or Motion Off (CSS hides the layer). */
 type Arc = {d: string; tail: number; pts: [number, number][]};
-const arc = (geo: PathGeometry, s: PathSegment, bow: 1 | -1): Arc | null => {
+const arc = (geo: PathGeometry, s: PathSegment, bow: 1 | -1, round = .75): Arc | null => {
   const a = geo.points[s.from], b = geo.points[s.to]; if (!a || !b) return null;
   const dx = b.x - a.x, dy = b.y - a.y, c = Math.max(1, Math.hypot(dx, dy)), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-  const ux = -dy / c * bow, uy = dx / c * bow, h = Math.min(c * .75, 90), R = (c * c / 4 + h * h) / (2 * h);
+  const ux = -dy / c * bow, uy = dx / c * bow, h = Math.min(c * round, 90), R = (c * c / 4 + h * h) / (2 * h);
   // (The circle through both planets' centres with its farthest point h out; the arc runs through that point.)
   const ox = mx + ux * (h - R), oy = my + uy * (h - R), ta = Math.atan2(a.y - oy, a.x - ox), tb = Math.atan2(b.y - oy, b.x - ox);
   const tm = Math.atan2(my + uy * h - oy, mx + ux * h - ox), norm = (t: number) => ((t % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -79,16 +81,20 @@ const arc = (geo: PathGeometry, s: PathSegment, bow: 1 | -1): Arc | null => {
 };
 const COMET = {duration: 1100, delay: 140, easing: 'cubic-bezier(.4, .08, .45, 1)', fill: 'both' as const};
 /** How much of an arc runs over something on the path (names shown, ZIGi, chests, planets other than its own two), or off it. */
+const labelRect = (l: Element) => { const b = labelBox(l); return new DOMRect(b.left, b.top, b.right - b.left, b.bottom - b.top); };
 function crossings(svg: SVGSVGElement, arc: Arc, ends: string[]): number {
   const stage = svg.closest('.path-stage'); if (!stage) return 0;
-  const sb = stage.getBoundingClientRect(), grow = 6;
+  const sb = stage.getBoundingClientRect();
   // (ZIGi where it is placed — its box as laid out, with room for its hops — never through a move still running.)
   const placed = (z: HTMLElement) => { const p = z.parentElement!.getBoundingClientRect(); return new DOMRect(p.left + z.offsetLeft, p.top + z.offsetTop - 24, z.offsetWidth, z.offsetHeight + 24); };
   const boxes = [...stage.querySelectorAll<HTMLElement>('.path-label, .path-zigi, .path-chest-art, .path-dot, .path-next-tag')]
     .filter(o => !(o.classList.contains('path-dot') && ends.includes(o.dataset.pathPoint ?? '')) && (o.classList.contains('path-zigi') || Number(getComputedStyle(o).opacity) > .5))
-    .map(o => o.classList.contains('path-zigi') ? placed(o) : o.getBoundingClientRect()).filter(r => r.width > 2 && r.height > 2)
-    .map(r => ({left: r.left - sb.left - grow, top: r.top - sb.top - grow, right: r.right - sb.left + grow, bottom: r.bottom - sb.top + grow}));
-  return arc.pts.filter(([x, y]) => x < 4 || x > sb.width - 4 || boxes.some(b => x >= b.left && x <= b.right && y >= b.top && y <= b.bottom)).length;
+    // (A name counts from 12 px around it, and a hundred times over — beside a name a comet reads as touching it, while
+    // behind ZIGi, a chest or a planet it is only hidden for a moment; anything else counts from 6 px.)
+    // (A name where it comes to rest: the ticked planet's steps back in, the next one's out, while the comet flies.)
+    .map(o => ({r: o.classList.contains('path-zigi') ? placed(o) : o.classList.contains('path-label') ? labelRect(o) : o.getBoundingClientRect(), name: o.classList.contains('path-label')})).filter(({r}) => r.width > 2 && r.height > 2)
+    .map(({r, name}) => { const grow = name ? 12 : 6; return {left: r.left - sb.left - grow, top: r.top - sb.top - grow, right: r.right - sb.left + grow, bottom: r.bottom - sb.top + grow, weight: name ? 100 : 1}; });
+  return arc.pts.reduce((sum, [x, y]) => sum + (x < 4 || x > sb.width - 4 ? 1 : Math.max(0, ...boxes.filter(b => x >= b.left && x <= b.right && y >= b.top && y <= b.bottom).map(b => b.weight))), 0);
 }
 function Comet({id, ends, arcs, tone}: {id: string; ends: string[]; arcs: Arc[]; tone?: string}) {
   const g = useRef<SVGGElement>(null), [pick, setPick] = useState<number | null>(null);
@@ -96,7 +102,8 @@ function Comet({id, ends, arcs, tone}: {id: string; ends: string[]; arcs: Arc[];
   useLayoutEffect(() => {
     if (pick !== null) return;
     if (!entranceAllowed() || arcs.length < 2) { setPick(0); return; }
-    const frame = requestAnimationFrame(() => { const svg = g.current?.ownerSVGElement; if (!svg) { setPick(0); return; } const n = arcs.map(a => crossings(svg, a, ends)); setPick(n[1]! < n[0]! ? 1 : 0); });
+    // (The arc crossing least, a flatter one counting a little more — it is shorter, its tail with it: arcs come rounder first.)
+    const frame = requestAnimationFrame(() => { const svg = g.current?.ownerSVGElement; if (!svg) { setPick(0); return; } const n = arcs.map((a, i) => crossings(svg, a, ends) + Math.floor(i / 2) * 8); setPick(n.indexOf(Math.min(...n))); });
     return () => cancelAnimationFrame(frame);
   }, [pick, arcs, ends]);
   const chosen = pick === null ? null : arcs[pick] ?? null, d = chosen?.d ?? '', tail = chosen?.tail ?? 0;
@@ -124,7 +131,7 @@ function Comet({id, ends, arcs, tone}: {id: string; ends: string[]; arcs: Arc[];
   </g>;
 }
 export function PathComets({geo, segments, comets, tones}: {geo: PathGeometry; segments: PathSegment[]; comets: Set<string>; tones?: Record<string, string>}) {
-  const drawn = useMemo(() => segments.filter(s => comets.has(s.id)).flatMap(s => { const arcs = ([1, -1] as const).map(bow => arc(geo, s, bow)).filter((x): x is Arc => x !== null); return arcs.length ? [{...s, arcs, ends: [s.from, s.to]}] : []; }), [geo, segments, comets]);
+  const drawn = useMemo(() => segments.filter(s => comets.has(s.id)).flatMap(s => { const arcs = [.75, .5, .3].flatMap(round => ([1, -1] as const).map(bow => arc(geo, s, bow, round))).filter((x): x is Arc => x !== null); return arcs.length ? [{...s, arcs, ends: [s.from, s.to]}] : []; }), [geo, segments, comets]);
   if (!drawn.length) return null;
   return <svg className="path-line path-comets" width={geo.w} height={geo.h} viewBox={`0 0 ${geo.w} ${geo.h}`} aria-hidden="true" focusable="false">
     {drawn.map(s => <Comet key={s.id} id={s.id} ends={s.ends} arcs={s.arcs} tone={tones?.[s.id]}/>)}
