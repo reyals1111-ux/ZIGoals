@@ -47,8 +47,19 @@
 @keyframes checklist-world-turn { to { transform: rotate(360deg); } }
 /* (On a phone they sit at the screen's edges, half out of it, behind the path and quieter still.) */
 /* (Below a computer's width the world keeps to the screen's edge, off the names: mostly outside it.) */
-@media (max-width: 1179.98px) { .checklist-world { width: 170px; height: 170px; right: -110px; bottom: 14vh; } }
-@media (max-width: 767.98px) { .checklist-world { width: 112px; height: 112px; right: -70px; bottom: 30vh; opacity: .32; } .checklist-moon-orbit { width: 104px; height: 104px; left: -58px; top: 58vh; } }
+/* Round 5: a background planet is whole or not drawn — below a computer's width the path fills the screen, so none. */
+@media (max-width: 1179.98px) { .checklist-world, .checklist-moon-orbit { display: none; } }
+/* Nebula on a phone: the clouds sit in the path's own column — magenta high on the right, teal low on the left, violet at the
+   top — and the stars are a touch larger, so the sky reads at a glance. */
+@media (max-width: 767.98px) {
+  .checklist-mist { width: 130vw; height: 130vw; filter: blur(28px); }
+  .checklist-mist-a { left: -50vw; top: -22vw; background: radial-gradient(closest-side, #826cff52, #826cff24 55%, #826cff00); }
+  .checklist-mist-b { right: -60vw; left: auto; top: 30vh; background: radial-gradient(closest-side, #f06dff4d, #ff74be24 58%, #ff74be00); }
+  .checklist-mist-c { left: -62vw; top: 62vh; bottom: auto; background: radial-gradient(closest-side, #26e8bd45, #23eaff1f 58%, #23eaff00); }
+  .checklist-stars { background-size: 300px 300px; }
+  .checklist-stars-near { background-size: 420px 420px; }
+  .checklist-stars-far { background-size: 150px 150px; }
+}
 /* By day: a calm white sky with a light colour mist and a soft pastel world; for Dark, black with a subtle mist. Both still. */
 :root[data-theme=light] .checklist-sky .checklist-mist { opacity: .9; animation: none; }
 :root[data-theme=light] .checklist-mist-a { background: radial-gradient(closest-side, #e9e3fd, #e9e3fd00); }
@@ -230,7 +241,15 @@
 @media (max-width: 1179.98px) {
   /* (While a toast shows, the foot bar grows a row for it above the timers' chips, which stay in reach.) */
   :root .checklist-toast-slot .aa-toast-region { left: max(10px, env(safe-area-inset-left, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); width: auto; }
-  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(132px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(124px + env(safe-area-inset-bottom, 0px)); }
+}
+/* Round 5, a phone: the toast is one line, 44 px — its words, Undo; it leaves by itself after 8 s (its close button is left
+   out there, so the words keep their room). */
+@media (max-width: 767.98px) {
+  :root .checklist-toast-slot .aa-toast { min-height: 44px; max-height: 44px; padding: 0 4px 0 14px; border-radius: 16px; }
+  :root .checklist-toast-slot .aa-toast > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  :root .checklist-toast-slot .aa-toast > .aa-toast-undo { min-height: 44px; margin-block: -1px; padding: 0 14px; }
+  :root .checklist-toast-slot .aa-toast-close { display: none; }
 }
 
 /* The stage's other states. */
@@ -385,6 +404,15 @@
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
 .checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 14px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
+/* Round 5, Light: a light plate — pale cells for nothing, the same accent colours for planets — and ink words. */
+:root[data-theme=light] .checklist-history { background: #f4f5fc; box-shadow: inset 0 0 0 1px #d9dcf0; }
+:root[data-theme=light] .checklist-heat-cell, :root[data-theme=light] .checklist-heat-legend li::before { background: #e3e6f3; }
+:root[data-theme=light] .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #d9dcf0; }
+:root[data-theme=light] .checklist-heat-cell[data-today] { outline-color: #3b3f66; }
+:root[data-theme=light] .checklist-heat-legend { color: #3f4566; }
+:root[data-theme=light] .checklist-heat-cell[data-level=some], :root[data-theme=light] .checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
+:root[data-theme=light] .checklist-heat-cell[data-level=all], :root[data-theme=light] .checklist-heat-legend li[data-level=all]::before { background: var(--heat-all); }
+:root[data-theme=light] .checklist-heat-cell[data-level=perfect], :root[data-theme=light] .checklist-heat-legend li[data-level=perfect]::before { background: var(--heat-perfect); }
 .checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
 .checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: #ffffff12; }
 .checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
