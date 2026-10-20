@@ -48,6 +48,8 @@ export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '
   // balance wheel (its white figure had turned black on its navy core), the goal covers' art (a black ₿ on maroon) and
   // Health's exercise medallions (a navy-to-white smear behind a bright glyph).
   '.balance-wheel', '.vision-art', '.exercise-medallion',
+  // Today's door tiles (Stories, Earn, the Checklist card): Light had paled their night tiles, so the glyphs went faint.
+  '.today-stories-mark', '.today-earn-mark', '.today-checklist-mark',
   // Session AF (the lead, crit1): the ecosystem apps' logo discs on Earn keep Nebula's navy disc in every theme, so a light
   // logo glyph stays visible by day (the Light sheet had washed them to near-white, 1.4:1).
   '.earn-medallion', '.earn-dock-app-face'];

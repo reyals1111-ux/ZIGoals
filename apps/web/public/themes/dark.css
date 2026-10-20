@@ -4886,6 +4886,18 @@
     .today-checklist-dots > li[data-next]:not(#\-) {
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 35%, transparent), 0 0 12px var(--dot)
     }
+    .today-checklist-dots > li:not([data-state=done], [data-state=running], [data-next], [data-counted=no]):not(#\-) {
+        --orb-mid: color-mix(in srgb, var(--dot) 62%, #0b1030);
+        --orb-rim: color-mix(in srgb, var(--dot) 72%, #0b1030);
+        background: var(--orb-mid);
+        border-color: var(--orb-rim)
+    }
+    @supports (color: oklch(from red l c h)) {
+        .today-checklist-dots > li:not([data-state=done], [data-state=running], [data-next], [data-counted=no]):not(#\-) {
+            --orb-mid: oklch(from var(--dot) calc(l * .76) calc(c * .86) h);
+            --orb-rim: oklch(from var(--dot) calc(l * .88) c h)
+        }
+    }
     .today-checklist-planet:not(#\-) {
         color: #04101f;
         background-image: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 40%, #ffffff) 0, var(--dot) 48%, color-mix(in srgb, var(--dot) 70%, #0b1030) 100%);
@@ -4901,8 +4913,8 @@
     .today-checklist-continue[data-nudge]:not(#\-) {
         box-shadow: 0 0 0 3px #ff74be59, 0 0 22px #ff74be80
     }
-    @media (min-width: 768px) {
-        .today-checklist-card:has(.today-checklist-next) .today-checklist-next:not(#\-) {
+    @container today-checklist (min-width: 420px) {
+        .today-checklist-body:has(.today-checklist-next) .today-checklist-next:not(#\-) {
             background-image: none;
             background-color: color-mix(in srgb, var(--dot) 10%, transparent);
             border-color: color-mix(in srgb, var(--dot) 30%, transparent)
@@ -12395,6 +12407,9 @@
     .wealth-product .wealth-summary .wealth-split dt:not(#\-) {
         color: var(--text-secondary, #c9d6ea)
     }
+    :scope .watch-card .watch-change-missing:not(#\-) {
+        color: var(--text-secondary, #aac0d9)
+    }
 }
 /*  components/platform/wealth-total.css  */
 @scope (:root[data-theme=dark]) {
@@ -13974,6 +13989,9 @@
     .universe-row:not(#\-) {
         background-image: radial-gradient(ellipse at 50% 50%, #0a0325, #02020c 80%);
         background-color: transparent
+    }
+    .today-universe-lit-mark:not(#\-) {
+        color: var(--text-secondary)
     }
     .today-universe-skeleton:not(#\-) {
         background-image: none;
