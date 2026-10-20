@@ -23,9 +23,9 @@ import {ChecklistMark, FlameMark} from './checklist-marks';
  * path model), so the card and the path never disagree. Reading only: nothing is written.
  *
  * Round 3 (L3b): the card reads as the path does — the next planet as a glowing planet with its name and a Continue button
- * into the path, today's planets as small overlapping planets in their colours (done ones lit), and on a wide card the
- * count and the planets on the left, the next one on the right. A due nudge is a small count on Continue (its sentence is
- * still said to screen readers), not another line.
+ * into the path, today's planets as a small winding row of mini planets in their colours (done ones lit), and on a wide
+ * card the count and the planets on the left, the next one on the right. A due nudge makes Continue glow softly (its
+ * sentence is still said to screen readers), not another line or a count that reads as unread messages.
  */
 export default function TodayChecklistBody() {
   const state = useChecklist(), {summary, streak, loaded, date} = state;
@@ -57,7 +57,7 @@ export default function TodayChecklistBody() {
       {next ? <div className="today-checklist-next" style={{'--dot': PATH_COLOURS[next.colour].token} as CSSProperties}>
         <span className="today-checklist-planet" aria-hidden="true"><PathGlyph name={nextDot ? itemGlyph(nextDot) : next.glyph ?? 'sparkle'} size={24}/></span>
         <p className="today-checklist-line"><span className="today-checklist-cue">Next<span className="sr-only">:</span> </span><strong data-next-step={next.id}>{next.label}</strong></p>
-        <Link className="primary today-checklist-continue" href={CHECKLIST_ROUTE} onClick={seen}>Continue{slot && <span className="today-checklist-nudge-count" aria-hidden="true">{waiting}</span>}</Link>
+        <Link className="primary today-checklist-continue" href={CHECKLIST_ROUTE} onClick={seen} data-nudge={slot ? '' : undefined}>Continue</Link>
       </div> : <p className="today-checklist-line">{summary.total && summary.done >= summary.total ? 'All planets lit. See you tomorrow.' : summary.total ? 'Nothing to tick here now: open your path.' : 'Every dot rests today.'}</p>}
       {slot && <p className="today-checklist-nudge sr-only" role="status">{nudgeText(waiting)}</p>}
     </>}

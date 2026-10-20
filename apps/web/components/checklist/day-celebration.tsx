@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useRef, useState, type CSSProperties} from 'react';
 import {NebulaFlow} from '../nebula-flow';
-import {ZigiFigure} from '../zigi/zigi-figure';
+import {ZigiCheer} from '../path/path-zigi';
 import {useEscapeLayer} from './escape-layers';
 import {pushToastLayer} from '../ui/undo-toast';
 import {FlameMark} from './checklist-marks';
@@ -15,7 +15,8 @@ import './day-celebration.css';
  * Motion Off show the same card, still. A night island: the same in every theme. Its own chunk, loaded when it plays.
  * Round 3: a gold-to-violet glow with soft rays behind it, the confetti a couple of seconds longer, ZIGi large and in front
  * of the trophy, and the last tick's Undo a quiet text button under Continue (the toast lends itself there) instead of a
- * toast over the moment.
+ * toast over the moment. Round 4: a full-screen moment rather than a card — the trophy high, ZIGi (its waving greeting, the
+ * cheer the figures have) large in front of it, the day's planets, big streak and XP tiles, Continue near the foot.
  */
 const CONFETTI = 56, COLOURS = ['#23eaff', '#9273ff', '#ff74be', '#ffd27a', '#459dff', '#f06dff', '#26e8bd'];
 export default function DayCelebration({streak, xp, xpFrom = null, perfect, total, colours = [], onClose}: {streak: number; xp: number | null; xpFrom?: number | null; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
@@ -44,7 +45,7 @@ export default function DayCelebration({streak, xp, xpFrom = null, perfect, tota
           <path d="M46 42h28v8c0 9-6 15-14 15s-14-6-14-15zM46 46h-6c0 7 3 11 8 12M74 46h6c0 7-3 11-8 12M60 65v8M50 79h20M53 73h14v6H53z" fill="#fff6dc" stroke="#8a5a1c" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/>
           <path d="M4 64c0 8 25 15 56 15s56-7 56-15" fill="none" stroke="#ffe6a8" strokeWidth="4" strokeLinecap="round"/>
         </svg>
-        <span className="checklist-celebration-zigi"><ZigiFigure state="celebrate"/></span>
+        <span className="checklist-celebration-zigi"><ZigiCheer/></span>
       </div>
       {colours.length > 0 && <ol className="checklist-celebration-planets" aria-hidden="true">{colours.map((c, i) => <li key={i} style={{'--c': c, '--i': i} as CSSProperties}/>)}</ol>}
       <p className="checklist-celebration-eyebrow">Day complete</p>
@@ -54,6 +55,7 @@ export default function DayCelebration({streak, xp, xpFrom = null, perfect, tota
         <li><FlameMark lit/><strong><Rise from={Math.max(0, streak - 1)} to={streak} delay={700}/></strong><span>day streak</span></li>
         {xp !== null && <li><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M13.2 2.5 5 13.4h6l-1.2 8.1L19 10.4h-6.1z" fill="#ffd27a" stroke="#f0a24b" strokeWidth="1.3" strokeLinejoin="round"/></svg><strong><Rise from={xpFrom ?? 0} to={xp} delay={950}/></strong><span>XP today</span></li>}
       </ul>
+      <span className="checklist-celebration-spacer" aria-hidden="true"/>
       <button ref={button} type="button" className="checklist-celebration-go" onClick={onClose}>Continue</button>
       <div ref={toastSlot} className="checklist-toast-slot checklist-celebration-undo"/>
     </section>

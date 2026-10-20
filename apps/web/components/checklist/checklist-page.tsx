@@ -33,9 +33,8 @@ const markCelebrated = (date: string) => { try { sessionStorage.setItem(CELEBRAT
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
  *  which the path never runs under; the jump button moves into it there. */
-const NARROW = '(max-width: 1179.98px)';
-const subscribeNarrow = (l: () => void) => { const m = window.matchMedia?.(NARROW); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); };
-const useNarrow = () => useSyncExternalStore(subscribeNarrow, () => !!window.matchMedia?.(NARROW).matches, () => false);
+const NARROW = '(max-width: 1179.98px)', PHONE = '(max-width: 767.98px)';
+const useMedia = (query: string) => useSyncExternalStore(useCallback((l: () => void) => { const m = window.matchMedia?.(query); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); }, [query]), () => !!window.matchMedia?.(query).matches, () => false);
 
 /**
  * Where the close goes: back through the app's own history when the Checklist was opened from a page in the app (the
@@ -70,7 +69,7 @@ export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
-  const narrow = useNarrow(), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
+  const narrow = useMedia(NARROW), phone = useMedia(PHONE), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
   // once the page runs it becomes modal. Our own close here is not the person's close.
@@ -116,7 +115,7 @@ export function ChecklistPage() {
   }, [state.gameOn, state.date, summary, habits.data, health.data, platform.data, state.days.data]);
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
-  const [menu, setMenu] = useState(false), [timersOpen, setTimersOpen] = useState(false);
+  const [menu, setMenu] = useState(false);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
   // The day's XP before the last tick, so the celebration counts up from it.
@@ -160,6 +159,11 @@ export function ChecklistPage() {
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
+            {/* Round 4: on a phone the top bar is one row, so the view lives here (the bar's own switch is hidden there). */}
+            {phone && <div className="checklist-menu-view" role="group" aria-label="View">
+              <button type="button" aria-pressed={prefs.view === 'path'} onClick={() => { setMenu(false); state.setPrefs({view: 'path'}); }}><ViewMark name="path"/>Path</button>
+              <button type="button" aria-pressed={prefs.view === 'list'} onClick={() => { setMenu(false); state.setPrefs({view: 'list'}); }}><ViewMark name="list"/>List</button>
+            </div>}
             <button type="button" aria-expanded={sheet === 'edit'} onClick={() => open('edit')}><ToolMark name="edit"/>Edit path</button>
             <button type="button" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
             <button type="button" aria-expanded={sheet === 'about'} onClick={() => open('about')}><ToolMark name="about"/>How it works</button>
@@ -178,8 +182,13 @@ export function ChecklistPage() {
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
-        {loaded && !state.unreadable && <CornerTimers state={state} open={timersOpen} onOpen={setTimersOpen}/>}
-        {loaded && !empty && !state.unreadable && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
+        {loaded && !state.unreadable && <CornerTimers state={state}/>}
+        {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
+        {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
+          <h2 id="checklist-history-title" className="checklist-history-title">Your last twelve weeks</h2>
+          <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>
+        </section>}
+        {loaded && !empty && !state.unreadable && (narrow || !state.date) && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
           <summary>Your last twelve weeks</summary>
           {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>}
         </details>}

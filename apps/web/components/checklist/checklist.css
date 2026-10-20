@@ -18,7 +18,7 @@
 :root:has(.checklist-overlay[open]) { overflow: hidden; }
 /* The sticky top bar's height: what the overlay's own scrolling (focus, the landing on the next planet) keeps clear. */
 .checklist-overlay { scroll-padding-top: calc(max(8px, env(safe-area-inset-top, 0px)) + 64px); }
-@media (max-width: 767.98px) { .checklist-overlay { scroll-padding-top: calc(max(8px, env(safe-area-inset-top, 0px)) + 108px); } }
+@media (max-width: 767.98px) { .checklist-overlay { scroll-padding-top: calc(max(8px, env(safe-area-inset-top, 0px)) + 56px); } }
 /* Round 3: below 1180 px the foot bar's height too (the path never counts what runs under it as on screen). */
 @media (max-width: 1179.98px) { .checklist-overlay { scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } }
 :root:has(.checklist-overlay[open]) :is(.skip, .phone-topbar, .app-sidebar, .phone-tabbar) { display: none !important; }
@@ -30,12 +30,14 @@
 
 /* The sky: fixed behind everything in the overlay. Nebula: drifting mists, two star layers, a ringed world and a moon. */
 .checklist-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.checklist-mist { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(40px); opacity: .55; }
-.checklist-mist-a { left: -18vmax; top: 4vh; background: radial-gradient(closest-side, #826cff4d, #826cff00); animation: checklist-mist-drift 60s ease-in-out infinite alternate; }
-.checklist-mist-b { right: -22vmax; top: 34vh; background: radial-gradient(closest-side, #23eaff33, #ff74be1a 60%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
-.checklist-mist-c { left: 20vw; bottom: -40vmax; background: radial-gradient(closest-side, #f06dff2e, #f06dff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
+.checklist-mist { position: absolute; width: 80vmax; height: 80vmax; border-radius: 50%; filter: blur(36px); opacity: 1; }
+/* Round 4: Nebula's clouds are seen at a glance (violet, magenta and teal at about a fifth), so a still is never Dark's. */
+.checklist-mist-a { left: -28vmax; top: -10vh; background: radial-gradient(closest-side, #826cff47, #826cff1f 55%, #826cff00); animation: checklist-mist-drift 60s ease-in-out infinite alternate; }
+.checklist-mist-b { right: -30vmax; top: 22vh; background: radial-gradient(closest-side, #f06dff40, #ff74be1c 58%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
+.checklist-mist-c { left: -10vw; bottom: -42vmax; background: radial-gradient(closest-side, #26e8bd38, #23eaff17 58%, #23eaff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
 .checklist-stars { position: absolute; inset: -12%; background: radial-gradient(1.2px 1.2px at 18% 22%, #ffffffb0, #fff0), radial-gradient(1px 1px at 72% 14%, #ffffff90, #fff0), radial-gradient(1.4px 1.4px at 84% 58%, #ffffffa0, #fff0), radial-gradient(1px 1px at 32% 76%, #ffffff80, #fff0), radial-gradient(1.2px 1.2px at 56% 44%, #ffffff70, #fff0), radial-gradient(1px 1px at 8% 64%, #ffffff8c, #fff0), radial-gradient(1.3px 1.3px at 44% 8%, #ffffffa6, #fff0), radial-gradient(1px 1px at 92% 86%, #ffffff7a, #fff0); background-size: 520px 520px; animation: checklist-stars-drift 160s linear infinite; }
 .checklist-stars-near { background: radial-gradient(1.8px 1.8px at 12% 40%, #ffffffd9, #fff0), radial-gradient(2px 2px at 66% 30%, #c9f7ffcc, #fff0), radial-gradient(1.6px 1.6px at 38% 88%, #ffd9f2cc, #fff0), radial-gradient(2.2px 2.2px at 88% 12%, #ffffffe0, #fff0), radial-gradient(1.6px 1.6px at 52% 60%, #e7e1ffcc, #fff0); background-size: 760px 760px; animation-duration: 95s; }
+.checklist-stars-far { background: radial-gradient(.8px .8px at 9% 13%, #ffffff8c, #fff0), radial-gradient(.8px .8px at 31% 47%, #ffffff73, #fff0), radial-gradient(.9px .9px at 57% 21%, #e8e2ff80, #fff0), radial-gradient(.7px .7px at 77% 63%, #ffffff66, #fff0), radial-gradient(.8px .8px at 43% 83%, #d9fbff80, #fff0), radial-gradient(.7px .7px at 89% 31%, #ffffff66, #fff0), radial-gradient(.8px .8px at 21% 71%, #ffffff73, #fff0); background-size: 210px 210px; opacity: .9; animation-duration: 240s; }
 @keyframes checklist-stars-drift { to { transform: translate3d(-60px, -120px, 0); } }
 @keyframes checklist-mist-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vmax, 4vmax, 0); } }
 .checklist-world { position: absolute; right: 3vw; bottom: 8vh; width: 210px; height: 210px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #9d8bff 0, #5442b8 34%, #22195e 70%, #0d0b2c 100%); box-shadow: inset -24px -18px 50px #000a, 0 0 80px #826cff38; opacity: .4; filter: blur(1.5px); animation: checklist-world-turn 240s linear infinite; }
@@ -44,23 +46,31 @@
 .checklist-moon { position: absolute; left: 50%; top: -8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, #23eaff 55%, #0b3a5a); box-shadow: 0 0 14px #23eaff99; }
 @keyframes checklist-world-turn { to { transform: rotate(360deg); } }
 /* (On a phone they sit at the screen's edges, half out of it, behind the path and quieter still.) */
-@media (max-width: 767.98px) { .checklist-world { width: 112px; height: 112px; right: -46px; bottom: 26vh; opacity: .32; } .checklist-moon-orbit { width: 104px; height: 104px; left: -58px; top: 58vh; } }
+/* (Below a computer's width the world keeps to the screen's edge, off the names: mostly outside it.) */
+@media (max-width: 1179.98px) { .checklist-world { width: 170px; height: 170px; right: -110px; bottom: 14vh; } }
+@media (max-width: 767.98px) { .checklist-world { width: 112px; height: 112px; right: -70px; bottom: 30vh; opacity: .32; } .checklist-moon-orbit { width: 104px; height: 104px; left: -58px; top: 58vh; } }
 /* By day: a calm white sky with a light colour mist and a soft pastel world; for Dark, black with a subtle mist. Both still. */
 :root[data-theme=light] .checklist-sky .checklist-mist { opacity: .9; animation: none; }
 :root[data-theme=light] .checklist-mist-a { background: radial-gradient(closest-side, #e9e3fd, #e9e3fd00); }
 :root[data-theme=light] .checklist-mist-b { background: radial-gradient(closest-side, #e2f6fb, #fbe9f3 60%, #fbe9f300); }
 :root[data-theme=light] .checklist-mist-c { background: radial-gradient(closest-side, #fbe6fb, #fbe6fb00); }
 :root[data-theme=light] :is(.checklist-stars, .checklist-moon-orbit) { display: none; }
+:root[data-theme=light] .checklist-sky .checklist-mist-a { background: radial-gradient(closest-side, #e9e3fd, #e9e3fd00); }
+:root[data-theme=light] .checklist-sky .checklist-mist-b { background: radial-gradient(closest-side, #fbe6f6, #fbe9f300); }
+:root[data-theme=light] .checklist-sky .checklist-mist-c { background: radial-gradient(closest-side, #e2f6fb, #e2f6fb00); }
 :root[data-theme=light] .checklist-world { opacity: .4; animation: none; background: radial-gradient(circle at 32% 26%, #ffffff 0, #e4ddff 30%, #b9acf3 68%, #9a8be6 100%); box-shadow: inset -18px -14px 34px #7b6cd659, 0 14px 40px -10px #9273ff59; }
 :root[data-theme=light] .checklist-world-ring { border-color: #9a8be6a6; border-top-color: #9a8be640; }
 :root[data-theme=dark] .checklist-sky { background: #010208; }
-:root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .3; animation: none; }
+:root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .12; animation: none; }
+:root[data-theme=dark] .checklist-stars-far { display: none; }
 :root[data-theme=dark] :is(.checklist-stars, .checklist-world, .checklist-moon-orbit) { animation: none; }
 :root[data-theme=dark] .checklist-world { opacity: .36; }
 
 /* The top bar: one row on a tablet or computer; two on a phone (the title, streak, XP and menu; then today's progress and
    the view). */
 .checklist-topbar { position: sticky; top: 0; z-index: 20; padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px; background: linear-gradient(180deg, #050a1ef2, #050a1ee6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff17; box-shadow: 0 12px 30px -24px #000; }
+/* Round 4: what scrolls under the bar fades into it instead of being cut. */
+.checklist-topbar::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 26px; background: linear-gradient(180deg, #050a1ed9, #050a1e00); pointer-events: none; }
 .checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto auto 44px; grid-template-areas: "close title prog view streak xp menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
 .checklist-close { grid-area: close; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; box-shadow: 0 3px 0 #00000059; }
 .checklist-close:hover { background: #ffffff1f; }
@@ -112,19 +122,27 @@
   .checklist-topbar-row { column-gap: 10px; }
   .checklist-xp small { display: none; }
 }
+/* Round 4, a phone: one row — close, today's bar and count, the flame, the XP and the menu (Path / List live in the menu;
+   the title is said, not shown; the date is in the menu's place too, for screen readers it stays in the line). */
 @media (max-width: 767.98px) {
-  .checklist-topbar { padding: max(8px, env(safe-area-inset-top, 0px)) 12px 8px; }
-  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto auto 44px; grid-template-areas: "close title streak xp menu" "prog prog prog view view"; column-gap: 8px; row-gap: 8px; }
-  .checklist-title h1 { font-size: 21px; }
-  .checklist-streak, .checklist-xp { min-height: 40px; padding: 0 9px 0 5px; font-size: 18px; gap: 3px; }
-  .checklist-streak .checklist-flame { width: 24px; height: 24px; }
+  .checklist-topbar { padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px; }
+  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto auto 44px; grid-template-areas: "close prog streak xp menu"; column-gap: 6px; }
+  .checklist-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .checklist-view-switch { display: none; }
+  .checklist-progress { gap: 3px; }
+  .checklist-progress-bar { height: 12px; }
+  .checklist-progress-line { font-size: 14px; }
+  .checklist-progress-line .eyebrow, .checklist-perfect { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .checklist-streak, .checklist-xp { min-height: 38px; padding: 0 8px 0 4px; font-size: 17px; gap: 2px; }
+  .checklist-streak .checklist-flame { width: 22px; height: 22px; }
   .checklist-xp small { display: none; }
-  .checklist-xp-mark { width: 20px; height: 20px; }
-  /* On a phone the view switch sits right under the XP pill, so the gain flashes on the pill itself instead of below it. */
-  .checklist-xp-gain { top: 50%; translate: -50% -50%; animation-name: checklist-xp-flash; animation-duration: 1100ms; }
-  .checklist-view-switch { justify-self: end; }
-  .checklist-progress-bar { height: 14px; }
+  .checklist-xp-mark { width: 19px; height: 19px; }
+  .checklist-xp-gain { top: calc(100% + 4px); }
 }
+/* The view, in the menu on a phone. */
+.checklist-menu-view { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 0 0 6px; margin-bottom: 4px; border-bottom: 1px solid #ffffff17; }
+.checklist-menu .checklist-menu-view button { justify-content: center; gap: 8px; }
+.checklist-menu .checklist-menu-view button[aria-pressed=true] { background: linear-gradient(100deg, #23eaff40, #9273ff59); box-shadow: inset 0 0 0 1px #9273ff99; }
 
 /* The body: the path, and beside it on a wide screen the timers and the history. */
 /* (No stacking layer of its own: the foot bar paints over the path while the timers' button inside the shell paints over the
@@ -146,8 +164,18 @@
 
 /* The corner timers: on a wide screen the side column's top (one tap each); on a phone or tablet one corner button that
    opens them above it. White glass by day, night glass by night; each ring in its own colour. */
-.checklist-timers-fab { display: none; }
 .checklist-timers { display: grid; gap: 10px; }
+/* Round 4, a computer: the timers as glowing ringed tiles, two by two; the twelve weeks open under them. */
+@media (min-width: 1180px) {
+  .checklist-timers { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 8px; min-height: 118px; padding: 14px 10px 12px; text-align: center; border-radius: 24px; border: 1.5px solid color-mix(in srgb, var(--timer) 60%, transparent); background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--timer) 22%, transparent), transparent 70%), linear-gradient(160deg, #0d1838f2, #070e25f2); box-shadow: 0 5px 0 #02061499, 0 16px 34px -20px #000c, 0 0 26px color-mix(in srgb, var(--timer) 22%, transparent); }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 58px; height: 58px; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--timer) 70%, transparent)); }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: center; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text strong { font-size: 17px; }
+  .checklist-history-open { display: grid; gap: 10px; padding: 16px; border-radius: 24px; border: 1px solid #ffffff1f; background: #ffffff08; }
+  .checklist-history-title { margin: 0; font-size: 17px; }
+  .checklist-history-open .checklist-history { margin: 0; padding: 12px; }
+}
 .checklist-timer { --timer: var(--pillar-habits, #23eaff); display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 60px; padding: 6px 14px 6px 6px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--timer) 45%, transparent); background: linear-gradient(120deg, #0d1838ee, #070e25ee); color: #eef4ff; font: inherit; text-align: start; cursor: pointer; box-shadow: 0 4px 0 #02061499, 0 12px 28px -18px #000c; }
 .checklist-timer:active { transform: translateY(2px); box-shadow: 0 2px 0 #02061499; }
 .checklist-timer:focus-visible { outline: 3px solid var(--timer); outline-offset: 3px; }
@@ -164,29 +192,30 @@
 .checklist-timer-text small { font-size: 14px; color: #c5d3ea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .checklist-timers-message { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 14px; background: #050a1ef2; color: #eef4ff; font-size: 15px; }
 /* Round 3, the foot bar (phones and tablets): an opaque band the path never runs under (the overlay's scroll padding
-   counts it), holding the timers' button at its left, the toast in its middle and "Jump to next" at its right. */
+   counts it); round 4: filled with the timers' chips, "Jump to next" at its right, and while a toast shows, a row above
+   the chips for it. */
 .checklist-dock, .checklist-jump-slot { display: none; }
 @media (max-width: 1179.98px) {
   .checklist-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 14; display: block; height: calc(72px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, #060b20, #050a1e); border-top: 1px solid #ffffff17; box-shadow: 0 -12px 30px -24px #000; }
   .checklist-jump-slot { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 16; display: block; }
   .checklist-overlay:has(.checklist-sheet) :is(.checklist-dock, .checklist-jump-slot) { z-index: 13; }
-  .checklist-timers-wrap { position: fixed; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 15; display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 10px; }
-  .checklist-timers-fab { --timer: var(--pillar-goals, #9273ff); position: relative; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--timer) 70%, transparent); background: radial-gradient(circle at 35% 28%, #1d2a5c, #0a1230 70%); color: #eef4ff; cursor: pointer; box-shadow: 0 5px 0 #02061499, 0 14px 28px -12px #000c, 0 0 22px color-mix(in srgb, var(--timer) 30%, transparent); }
-  .checklist-timers-fab[aria-expanded=true] { border-color: var(--timer); }
-  .checklist-timers-fab:active { transform: translateY(3px); box-shadow: 0 2px 0 #02061499; }
+  /* Round 4: the foot bar is filled with the timers themselves — Sleep, Meditate, Fast (and Focus) as chips, one tap each. */
+  .checklist-timers-wrap { position: fixed; left: max(10px, env(safe-area-inset-left, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 15; display: block; }
+  .checklist-overlay:has(.checklist-jump-slot .path-dock-jump) .checklist-timers-wrap { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 62px); }
+  .checklist-timers { display: flex; gap: 6px; }
+  .checklist-overlay .checklist-timers .checklist-timer { flex: 1 1 0; min-width: 0; grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 2px; min-height: 56px; padding: 4px 4px 5px; border-radius: 18px; text-align: center; box-shadow: 0 3px 0 #02061499; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 30px; height: 30px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring svg:last-child { width: 16px; height: 16px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: center; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text strong { font-size: 14px; line-height: 1.1; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text small { display: none; }
+  .checklist-timers-message { position: fixed; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 31; }
   /* "Jump to next", docked: the foot bar's own round button (it follows the theme, as the timers' button does). */
   .path-dock-jump { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 50%; border: 2px solid #8cc8ff80; background: radial-gradient(circle at 35% 28%, #1d2a5c, #0a1230 70%); color: #eef4ff; font: inherit; cursor: pointer; box-shadow: 0 5px 0 #02061499, 0 14px 28px -12px #000c, 0 0 22px #4f8dff40; }
   .path-dock-jump > span:first-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .path-dock-jump .path-jump-arrow { font-size: 24px; line-height: 1; }
   .path-dock-jump:active { transform: translateY(3px); box-shadow: 0 2px 0 #02061499; }
   .path-dock-jump:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
-  .checklist-timers-fab:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
-  .checklist-timers-wrap[data-running] .checklist-timers-fab { color: var(--timer); border-color: var(--timer); box-shadow: 0 5px 0 #02061499, 0 0 28px color-mix(in srgb, var(--timer) 60%, transparent); }
-  .checklist-timers-fab-dot { position: absolute; right: 6px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--timer); box-shadow: 0 0 10px var(--timer); }
-  .checklist-timers { display: none; }
-  .checklist-timers-wrap[data-open] .checklist-timers { display: grid; width: 220px; box-sizing: border-box; padding: 8px; gap: 8px; border-radius: 24px; border: 1px solid #ffffff1f; background: #050a1ef0; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 24px 50px -20px #000; animation: checklist-tray-in 200ms ease-out; }
-  @keyframes checklist-tray-in { from { opacity: 0; transform: translateY(10px) scale(.96); } }
-  .checklist-timer { min-height: 56px; }
   :root[data-keyboard=open] .checklist-timers-wrap { display: none; }
 }
 /* The toast's place in the open layer: no box of its own (the region inside is fixed). */
@@ -199,8 +228,9 @@
 :root .checklist-toast-slot .aa-toast > button { min-height: 44px; flex: none; }
 :root .checklist-toast-slot .aa-toast-close { min-width: 40px; }
 @media (max-width: 1179.98px) {
-  :root .checklist-toast-slot .aa-toast-region { left: calc(max(12px, env(safe-area-inset-left, 0px)) + 62px); right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); width: auto; }
-  :root .checklist-overlay:has(.checklist-jump-slot .path-dock-jump) .checklist-toast-slot .aa-toast-region { right: calc(max(12px, env(safe-area-inset-right, 0px)) + 62px); }
+  /* (While a toast shows, the foot bar grows a row for it above the timers' chips, which stay in reach.) */
+  :root .checklist-toast-slot .aa-toast-region { left: max(10px, env(safe-area-inset-left, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(72px + env(safe-area-inset-bottom, 0px)); width: auto; }
+  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(132px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* The stage's other states. */

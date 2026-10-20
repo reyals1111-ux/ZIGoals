@@ -11,11 +11,15 @@
 /* Critique round 2 (L5c), round 3 (L3b): today's planets as small overlapping worlds, in path order, each in its item's own
    colour (the path engine's palette, the same in every theme); a done one lit and glowing, a waiting one a ring, the next
    one ringed brighter. */
-.today-checklist-dots { display: flex; flex-wrap: wrap; align-items: center; row-gap: 4px; margin: 0; padding: 0 0 0 6px; list-style: none; }
-.today-checklist-dots > li { box-sizing: border-box; width: 22px; height: 22px; margin-left: -6px; border-radius: 50%; border: 2px solid var(--dot); background: #0b1230; box-shadow: 0 0 0 2px var(--panel-solid, #0b1530); }
-.today-checklist-dots > li[data-state=done] { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--dot) 40%, #ffffff), var(--dot) 60%); box-shadow: 0 0 0 2px var(--panel-solid, #0b1530), 0 0 10px color-mix(in srgb, var(--dot) 60%, transparent); }
+.today-checklist-dots { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0; padding: 6px 2px; list-style: none; }
+/* Round 4 (L3b): a small winding row of mini planets, rising and falling as the path does, on a faint line. */
+.today-checklist-dots::before { content: ''; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; background: linear-gradient(90deg, #9273ff59, #23eaff59, #ff74be59); }
+.today-checklist-dots > li { position: relative; box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--dot); background: #0b1230; }
+.today-checklist-dots > li:nth-child(4n + 2) { translate: 0 -5px; }
+.today-checklist-dots > li:nth-child(4n + 4) { translate: 0 5px; }
+.today-checklist-dots > li[data-state=done] { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--dot) 40%, #ffffff), var(--dot) 60%); box-shadow: 0 0 9px color-mix(in srgb, var(--dot) 60%, transparent); }
 .today-checklist-dots > li[data-state=running] { background: color-mix(in srgb, var(--dot) 40%, #0b1230); }
-.today-checklist-dots > li[data-next] { border-width: 3px; box-shadow: 0 0 0 2px var(--panel-solid, #0b1530), 0 0 12px var(--dot); }
+.today-checklist-dots > li[data-next] { width: 20px; height: 20px; border-width: 3px; box-shadow: 0 0 10px var(--dot); }
 .today-checklist-dots > li[data-counted=no] { opacity: .55; }
 /* The next planet: a glowing world with its mark, its name, and Continue into the path. */
 .today-checklist-next { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
@@ -24,7 +28,7 @@
 .today-checklist-cue { font-size: 14px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #a4b2cd); }
 .today-checklist-next strong { color: var(--text, #f0f5ff); font-size: 17px; line-height: 1.25; overflow-wrap: anywhere; }
 .today-checklist-continue { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 999px; font-size: 16px; font-weight: 800; text-decoration: none; white-space: nowrap; }
-.today-checklist-nudge-count { position: absolute; right: -6px; top: -6px; display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #ff74be; color: #2a0418; font-size: 14px; font-weight: 900; box-shadow: 0 0 10px #ff74be99; }
+.today-checklist-continue[data-nudge] { box-shadow: 0 0 0 3px #ff74be59, 0 0 22px #ff74be80; }
 /* A wide card: the count, the bar and the planets on the left; the next planet and Continue on the right. */
 @media (min-width: 768px) {
   .today-checklist-card:has(.today-checklist-next) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "head head" "title next" "bar next" "dots next"; column-gap: 28px; align-items: center; }
