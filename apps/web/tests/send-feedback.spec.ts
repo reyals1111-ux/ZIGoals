@@ -28,6 +28,10 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   const wordmark = page.locator('footer.site-footer img').first();
   await wordmark.scrollIntoViewIfNeeded();
   await expect.poll(() => wordmark.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  // Session AF Gate C (CI on bdd09e65): the footer's finale marks itself seen for the visit (a display-only session key)
+  // once its stage is well in view, and that once came inside the window below; it is decided first, as the wordmark is.
+  await page.locator('footer.site-footer .site-footer-stage').scrollIntoViewIfNeeded();
+  await expect(page.locator('footer.site-footer')).toHaveAttribute('data-intro', /play|done/, {timeout: 15_000});
   await page.waitForLoadState('networkidle');
   const before = await storage(page), requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
