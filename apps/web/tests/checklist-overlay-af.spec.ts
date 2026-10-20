@@ -111,6 +111,24 @@ test('big planets (88–112 px on a computer, 64–84 px on a phone, the next on
 test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s cheer and the bar’s shine', async ({page}) => {
   await open(page);
   const dot = page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true});
+  // Round 7 (L3b; the iteration-6 frames showed ZIGi's head over a name and a banner's title as it glided): every frame of
+  // ZIGi's moves — to its cheer and on to the next planet — keeps its figure off every name, banner and planet shown.
+  await page.evaluate(() => {
+    const w = window as unknown as {__moves: string[]}; w.__moves = []; const t0 = performance.now();
+    const frame = () => {
+      const z = document.querySelector<HTMLElement>('.path-zigi');
+      if (z && z.getAnimations().some(a => a.playState === 'running') && Number(getComputedStyle(z).opacity) > .5) {
+        const r = z.querySelector('img')!.getBoundingClientRect();
+        for (const o of document.querySelectorAll<HTMLElement>('.path-label, .path-banner, .path-dot')) {
+          if (Number(getComputedStyle(o).opacity) <= .5) continue;
+          const b = o.getBoundingClientRect();
+          if (Math.min(r.right, b.right) - Math.max(r.left, b.left) > 1 && Math.min(r.bottom, b.bottom) - Math.max(r.top, b.top) > 1) w.__moves.push(`${Math.round(performance.now() - t0)} ms: over ${o.className.toString().split(' ')[0]} ${(o.textContent ?? '').slice(0, 20)}`);
+        }
+      }
+      if (performance.now() - t0 < 3200) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
   await dot.click();
   const done = page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true});
   await expect(done).toHaveAttribute('data-just', '');
@@ -124,9 +142,10 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
   await expect(cheer).toHaveCount(1);
   await expect(cheer.locator('.path-zigi-cheer i')).not.toHaveCount(0);
-  // Round 6, moved at equal strength: ZIGi's delivered presenting still at its large size (the arm held out, the hand away
-  // from the face; never the celebrate art nor a greeting frame), with its star burst.
-  await expect(cheer.locator('img')).toHaveAttribute('src', /F006-presenting-large/);
+  // Round 6, moved in round 7 at equal strength: ZIGi's delivered presenting still, cropped to the figure (the same pixels
+  // without the empty margin; the arm held out, the hand away from the face; never the celebrate art nor a greeting frame),
+  // with its star burst.
+  await expect(cheer.locator('img')).toHaveAttribute('src', /\/brand\/checklist\/zigi-present\.webp$/);
   await expect(cheer.locator('.path-zigi-burst')).toHaveCount(1);
   // (Where it cheers, for the glide below.)
   // (Its laid-out place — never read through a glide or a hop.)
@@ -144,6 +163,8 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   await page.waitForTimeout(1600);
   const rested = await stageOf();
   if (Math.hypot(rested.x - cheered.x, rested.y - cheered.y) > 3) expect(glided?.glide, 'ZIGi glides to its place, never jumps').toBe(true);
+  const moves = await page.evaluate(() => (window as unknown as {__moves: string[]}).__moves);
+  expect(moves, 'ZIGi never passes over a name, a banner or a planet').toEqual([]);
 });
 
 for (const mode of ['reduced motion', 'Motion Off'] as const) {
@@ -162,7 +183,7 @@ for (const mode of ['reduced motion', 'Motion Off'] as const) {
     await expect(page.locator('.path-zigi[data-cheer]')).toHaveCount(0);
     // Round 5 (L3b): it points at the next planet — the pointing still, never the hands-on-head celebrate art (the half-way
     // mood's `proud` wears it), and 12 px clear of everything on the path.
-    await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /presenting/);
+    await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /\/brand\/checklist\/zigi-present\.webp$/);
     await page.waitForTimeout(1500);
     expect(await zigiClash(page), 'ZIGi 12 px clear of the path').toEqual([]);
     expect(await page.locator('.path-dot[data-next] .path-dot-pulse').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
@@ -192,6 +213,10 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
+  // Round 7 (L3b; the iteration-6 frames showed ZIGi over the trophy planet on the last tick): at the day's end ZIGi
+  // stands beside the trophy, 12 px clear of it and of everything else on the path.
+  await page.waitForTimeout(1500);
+  expect(await zigiClash(page), 'ZIGi beside the trophy, clear').toEqual([]);
   // The day record says the day is complete; reopening it never celebrates again.
   await expect.poll(async () => (await stored<{today: {custom: string[]}}>(page, CHECKLIST_DAYS_KEY))?.today.custom.length).toBe(2);
   await page.reload(); await settled(page);
@@ -223,19 +248,48 @@ const zigiClash = (page: Page) => page.evaluate(() => {
     .filter(({b}) => b.right - b.left > 2 && b.bottom - b.top > 2 && Math.min(r.right, b.right + C) - Math.max(r.left, b.left - C) > 0 && Math.min(r.bottom, b.bottom + C) - Math.max(r.top, b.top - C) > 0)
     .map(({o}) => `${o.className.toString().split(' ')[0]}: ${(o.textContent ?? '').slice(0, 24)}`);
 });
-/** ZIGi at rest beside the next planet: its drawn height, which way it faces, whether it points at the next planet and
- *  never at one already done (round 6: the presenting arm's line, at 42 % of its height, meets the next planet's ring, or
- *  else no done planet within 260 px; where none of its places allows that it stands idle, arms down), and the next
- *  planet's name's distance from the ring and moon. */
+/** Round 7 (L3b): ZIGi at rest beside the next planet, measured on the figure as seen — its picture's non-transparent
+ *  pixels, mapped onto the drawn box (mirrored on the planet's left) — never on the box: its height, its distance from the
+ *  screen's edges, which way it faces, and whether it points at the next planet: the presenting still, its arm (31 % of
+ *  the figure's height) through the middle of the planet's body (half its radius either side of its centre; the edge of its
+ *  ring reads as pointing at the planet beyond). And the next planet's name's distance from the
+ *  ring and moon as drawn: from their box where the ring is whole; where the ring opens toward the name (a phone), from every
+ *  point of the ring and moon that is not faded out. */
 const restFacts = (page: Page) => page.evaluate(() => {
-  const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
-  const o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, e = ((o.offsetWidth - dot.offsetWidth) / 2 + 6) * (d.width / dot.offsetWidth), l = document.querySelector('[data-next] .path-label')!.getBoundingClientRect();
-  const left = (img.left + img.right) / 2 < (d.left + d.right) / 2, arm = img.top + img.height * .42, from = left ? img.right : img.left - 260, to = left ? img.right + 260 : img.left;
-  const atNext = arm >= d.top - e - 6 && arm <= d.bottom + e + 6;
-  const atDone = [...document.querySelectorAll<HTMLElement>('.path-dot[data-state="done"]')].some(p => { const b = p.getBoundingClientRect(); return b.top <= arm && b.bottom >= arm && b.right >= from && b.left <= to; });
-  const idle = /F001-idle-large/.test(z.querySelector('img')!.getAttribute('src') ?? '');
-  return {h: img.height, mirrored: z.getAttribute('data-side') === 'left', left, points: idle || atNext || !atDone, nameGap: l.left >= d.right ? l.left - (d.right + e) : (d.left - e) - l.right};
+  const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, image = z.querySelector('img')!, dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
+  const b = image.getBoundingClientRect(), W = image.naturalWidth, H = image.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d')!; x.drawImage(image, 0, 0); const px = x.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) if (px[(y * W + i) * 4 + 3]! > 8) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const k = Math.min(b.width / W, b.height / H), ox = b.left + (b.width - W * k) / 2, oy = b.top + (b.height - H * k) / 2, mirrored = z.getAttribute('data-side') === 'left';
+  const fig = {left: mirrored ? ox + (W - 1 - x1) * k : ox + x0 * k, right: mirrored ? ox + (W - x0) * k : ox + (x1 + 1) * k, top: oy + y0 * k, bottom: oy + (y1 + 1) * k};
+  const o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, s = d.width / dot.offsetWidth, e = ((o.offsetWidth - dot.offsetWidth) / 2 + 6) * s, l = document.querySelector('[data-next] .path-label')!.getBoundingClientRect();
+  const left = (fig.left + fig.right) / 2 < (d.left + d.right) / 2, arm = fig.top + (fig.bottom - fig.top) * .31;
+  const presenting = /\/brand\/checklist\/zigi-present\.webp$/.test(image.getAttribute('src') ?? '');
+  const os = getComputedStyle(o), mask = os.maskImage || os.getPropertyValue('-webkit-mask-image'), masked = !!mask && mask !== 'none';
+  let nameGap = l.left >= d.right ? l.left - (d.right + e) : (d.left - e) - l.right;
+  if (masked) {
+    // (The ring as drawn: every point of its band and its moon's path, outside the faded opening toward the name.)
+    const open = parseFloat(os.getPropertyValue('--open')) || 90, half = parseFloat(os.getPropertyValue('--opening')) || 0, cx = (d.left + d.right) / 2, cy = (d.top + d.bottom) / 2;
+    const rOut = (o.offsetWidth / 2 + 6) * s, rIn = (o.offsetWidth / 2 - 8) * s;
+    nameGap = Infinity;
+    for (let t = 0; t < 360; t += 2) {
+      const off = Math.abs(((t - open + 540) % 360) - 180); if (off <= half) continue;
+      for (const r of [rIn, (rIn + rOut) / 2, rOut]) { const qx = cx + r * Math.sin(t * Math.PI / 180), qy = cy - r * Math.cos(t * Math.PI / 180), dx = Math.max(l.left - qx, 0, qx - l.right), dy = Math.max(l.top - qy, 0, qy - l.bottom); nameGap = Math.min(nameGap, Math.hypot(dx, dy)); }
+    }
+  }
+  const cy = (d.top + d.bottom) / 2, band = Math.max(14, d.height / 4);
+  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked};
 });
+/** The round-7 rest checks, at each size (see `restFacts`). */
+async function expectRest(page: Page, width: number, when: string) {
+  const f = await restFacts(page), least = width >= 1180 ? 140 : width >= 641 ? 118 : 96;
+  expect(f.h, `${width}px, ${when}: ZIGi's figure at rest ${least} px or more`).toBeGreaterThanOrEqual(least);
+  if (width < 641) expect(f.edge, `${width}px, ${when}: ZIGi 16 px or more from the screen's edges`).toBeGreaterThanOrEqual(16);
+  expect(f.mirrored, `${width}px, ${when}: ZIGi faces the next planet`).toBe(f.left);
+  expect(f.points, `${width}px, ${when}: ZIGi points at the next planet, its arm through the planet's body`).toBe(true);
+  expect(f.nameGap, `${width}px, ${when}: the next planet's name 12 px clear of its ring and moon`).toBeGreaterThanOrEqual(12);
+}
 /** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */
 async function zigiAtRest(page: Page) {
   await expect(page.locator('.path-zigi[data-cheer]')).toHaveCount(0, {timeout: 5000});
@@ -263,10 +317,25 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   const ringEdge = await page.locator('[data-next] .path-dot').evaluate(dot => { const b = dot.getBoundingClientRect(), o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, own = (dot as HTMLElement).offsetWidth, e = ((o.offsetWidth - own) / 2 + 6) * (b.width / own); return {left: b.left - e, right: b.right + e, top: b.top - e, bottom: b.bottom + e}; });
   const beside = z.left >= ringEdge.right ? z.left - ringEdge.right : ringEdge.left - z.right;
   expect(beside, 'ZIGi beside the next planet').toBeGreaterThanOrEqual(12);
-  expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(36);
+  // Round 7, moved (iteration-6 critique: pointing at the next planet comes before size, and size before nearness): on a
+  // phone and a tablet still 12–36 px from the ring; on a computer, where at this landing no place within 36 px both points
+  // at the planet and holds a 140 px figure (the free band left of it is 106 px tall), 12–104 px from the ring, its arm
+  // through the planet's body (`expectRest`) and nothing on the path between its arm and the ring.
+  const wide = page.viewportSize()!.width >= 1180;
+  expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 104 : 36);
+  const sight = await page.evaluate(() => {
+    const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
+    const arm = img.top + img.height * .31, from = img.right <= d.left ? img.right : d.right, to = img.right <= d.left ? d.left : img.left;
+    return [...document.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')].filter(o => o !== dot && !dot.contains(o))
+      .filter(o => { const b = o.getBoundingClientRect(); return b.top <= arm && b.bottom >= arm && b.right > from && b.left < to; }).map(o => `${o.className.toString().split(' ')[0]} ${(o.textContent ?? '').slice(0, 20)}`);
+  });
+  expect(sight, 'nothing between ZIGi\'s arm and the next planet').toEqual([]);
   expect(Math.min(z.bottom, ringEdge.bottom) - Math.max(z.top, ringEdge.top), 'level with it').toBeGreaterThan(0);
   expect(z.left).toBeGreaterThanOrEqual(0); expect(z.right).toBeLessThanOrEqual(z.vw); expect(z.top).toBeGreaterThanOrEqual(0); expect(z.bottom).toBeLessThanOrEqual(z.vh);
-  expect(z.bottom - z.top).toBeGreaterThanOrEqual(130);
+  // Round 7, moved at greater strength: the figure as seen (`restFacts`), never the box — 106 px or more on a phone (was: a
+  // 130 px box of the uncropped picture, 81 % of it figure: 106 px) and 140 on a computer; pointing at the planet.
+  await expectRest(page, page.viewportSize()!.width, 'on opening');
+  expect((await restFacts(page)).h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 641 ? 106 : 140);
   // The corner timers are on the first screen: the side column's Sleep on a computer, the foot bar's Sleep chip on a phone.
   // (Round 4: on a phone the timers are the foot bar's own chips, so Sleep itself is on the first screen everywhere.)
   await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
@@ -339,25 +408,21 @@ test('ZIGi at rest is 12 px clear of the path after a tick, after an orbit and u
       await zigiAtRest(page);
       expect(await zigiClash(page), `${size.width}px: after ticking star ${n}`).toEqual([]);
       await expect(page.locator('[data-next] .path-zigi img')).not.toHaveAttribute('src', /celebrate/);
-      // Round 6: on a computer ZIGi rests at 160 px or more; it faces the next planet (the presenting art holds its arm out
-      // to the left, so on the planet's left it is mirrored) and never points at a planet already done (`restFacts`); the
-      // next planet's name stands 12 px clear of its ring and moon.
-      const f = await restFacts(page);
-      if (size.width === 1440) expect(f.h, '1440px: ZIGi at rest 160 px or more').toBeGreaterThanOrEqual(160);
-      expect(f.mirrored, `${size.width}px: ZIGi faces the next planet`).toBe(f.left);
-      expect(f.points, `${size.width}px: ZIGi points at the next planet (or stands), never at one already done`).toBe(true);
-      expect(f.nameGap, `${size.width}px: the next planet's name 12 px clear of its ring`).toBeGreaterThanOrEqual(12);
+      // Round 6, moved in round 7 at greater strength (the iteration-6 frames: a 164 px box held a 135 px figure, its arm
+      // aimed past the next planet): ZIGi's figure as seen — never its box — rests at 140 px or more at 1440 (was: a 160 px
+      // box, a 130 px figure), 118 at 768 and 96 on a phone, 16 px or more from the screen's edges on a phone; it faces the
+      // next planet and points at it, presenting, its arm through the planet's body (was: never at a planet already done); the
+      // next planet's name stands 12 px clear of its ring and moon as drawn (`restFacts`).
+      await expectRest(page, size.width, `after ticking star ${n}`);
     }
     // Under reduced motion: the pointing still, clear.
     await page.emulateMedia({reducedMotion: 'reduce'});
     await page.reload(); await settled(page);
     await page.getByRole('button', {name: 'Fictional star 4: not done yet', exact: true}).click();
     await zigiAtRest(page);
-    await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /presenting/);
+    await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /\/brand\/checklist\/zigi-present\.webp$/);
     expect(await zigiClash(page), `${size.width}px: reduced motion, after ticking star 4`).toEqual([]);
-    const still = await restFacts(page);
-    expect(still.mirrored, `${size.width}px: reduced motion, ZIGi faces the next planet`).toBe(still.left);
-    expect(still.points, `${size.width}px: reduced motion, ZIGi points at the next planet (or stands), never at one already done`).toBe(true);
+    await expectRest(page, size.width, 'reduced motion, after ticking star 4');
   }
 });
 
@@ -396,4 +461,28 @@ test('a tick moves nothing but its own planet: every other name and every chest 
       }
     }
   }
+});
+
+test('a long name stays whole, on two lines at most, on a phone — also once its planet is the next one', async ({page}, info) => {
+  // Round 7 (L3b; the iteration-6 frames cut a long name to "… breathwork 15…" on a phone).
+  test.skip(info.project.name !== 'mobile', 'a phone');
+  test.setTimeout(90_000);
+  let r = emptyChecklist();
+  const sections = ['morning', 'morning', 'morning', 'afternoon', 'afternoon', 'evening', 'evening', 'evening'];
+  sections.forEach((section, i) => { r = addCustom(r, {label: i === 7 ? 'Starlight & breathwork 15 minutes' : `Fictional star ${i + 1}`, colour: 'teal', section}, {id: `ck_fixture-${i + 1}`, at: new Date(Date.now() - (10 - i) * 86_400_000)}); });
+  await page.setViewportSize({width: 390, height: 844});
+  await open(page, {path: r});
+  const name = page.locator('.path-label', {hasText: 'Starlight & breathwork 15 minutes'});
+  const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight); return {cut: t.scrollHeight > t.clientHeight + 1 || t.scrollWidth > t.clientWidth + 1, lines: Math.round(t.getBoundingClientRect().height / lh), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
+  const before = await whole();
+  expect(before.cut, 'whole').toBe(false);
+  expect(before.lines, 'two lines at most').toBeLessThanOrEqual(2);
+  for (const n of [1, 2, 3, 4, 5, 6, 7]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
+  await zigiAtRest(page);
+  await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight & breathwork 15 minutes');
+  const after = await whole();
+  expect(after.cut, 'whole as the next planet\'s name').toBe(false);
+  expect(after.lines, 'the same lines').toBe(before.lines);
+  expect(after.left, 'on the screen').toBeGreaterThanOrEqual(0); expect(after.right, 'on the screen').toBeLessThanOrEqual(after.vw);
+  await expectRest(page, 390, 'beside the long name\'s planet');
 });
