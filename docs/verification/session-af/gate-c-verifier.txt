@@ -1,0 +1,26 @@
+Session AF Gate C (G11) — the hosted verifier run locally (ZIGOALS_VERIFY_BASE=http://127.0.0.1:3101 node scripts/verify-hosted-alpha.mjs <new folder>)
+against the final code's production build on :3101 (build commit c9d97eef with the restored Earn strip; Chrome channel; nothing
+else in a browser). Evidence label: local base smoke (LOCAL_BASE_SMOKE), not the live Alpha.
+
+Run 1 (Tue 20 Oct, 18:59–19:59 Brussels, build 25858cb2): every stage PASS or SKIPPED (live only), then the run sat for the
+rest of an hour after its last stage and was stopped by the 60-minute limit (exit 124). Cause: since Part 11 A2 the verifier
+reads the body of every error answer, with no time limit; one answer's request (GET /api/push) was aborted by a page change, so
+its body never arrived and the final wait for the bodies never ended. Fixed in the next commit (TIER 3, verifier/CI): each read
+waits at most 10 s (an unread body stays an error: fail closed, as A2 designed), and the run logs each stage's start and end.
+
+Run 2 (18:11:58–18:14:54 UTC = 20:11–20:14 Brussels, 15-minute limit, progress log): COMPLETED_WITH_FINDINGS (exit 2).
+  SKIPPED  Live BTC/USD price through the market coordinator
+  PASS     Live Alpha identity, initial resources and navigation
+  PASS     Fictional local create, deposit and withdraw
+  PASS     Local backup export/import and live read-only diagnostics
+  PASS     Reload retention, close empty goal and navigation
+  PASS     AA pages: calculator, Life review, Journey, Your data, Reminders and Share open
+  SKIPPED  Live landing CTA, safety copy, social links and responsiveness
+  PASS     Recipe import refuses http, a private host and an oversized address
+  PASS     Earn: every live figure says its source and as-of or why it is unavailable; every outgoing link is a verified one; nothing signs; GET on the base only
+  PASS     Checklist: a fictional favourite habit ticks its own record, and Undo restores it
+  requests inspected 1873; privacy sentinel matches []; every request GET; origins ['http://127.0.0.1:3101', 'https://testnet-rpc.zigchain.com', 'https://testnet-api.zigchain.com']
+  page errors 0, console errors 0, HTTP errors 0; the designed 'not configured' answers 2 (named, not errors)
+  aborted by the verifier's own navigations: 115 (a count, A3)
+  the one finding: http://127.0.0.1:3101/api/push net::ERR_ABORTED — ZIGoals' own one-time push check (lib/push/client.ts), whose only aborts are its 15 s limit and the page being left; here the page change was stamped more than 2 s after the abort, so A3 counts it
+  The live-only stages (the market coordinator's price, the separate landing) are for the owner's run on the live Alpha.

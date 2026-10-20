@@ -54,8 +54,11 @@ page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations
 page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure: r.failure(), at: Date.now(), rsc: isRscRequest(r.url(), r.headers()) }));
 // Session AF Part 11 A2: the body of every error answer is read at once (a later navigation can drop it), so the two
 // designed "not configured" answers can be matched exactly; an answer whose body cannot be read stays an error.
+// Session AF Gate C: a body that never arrives (its request aborted by a navigation) once held the run for an hour after its
+// last stage; each read now waits at most BODY_READ_MS, and an unread body stays an error (fail closed, as A2 designed).
+const BODY_READ_MS = 10_000, progress = what => console.error(`[verifier ${new Date().toISOString()}] ${what}`);
 const answers = new WeakMap(), bodyReads = [];
-page.on('response', r => { if (r.status() >= 400) { const entry = {url:r.url(), status:r.status()}; report.httpErrors.push(entry); const answer = {method: r.request().method()}; answers.set(entry, answer); bodyReads.push(r.text().then(text => { answer.body = text.slice(0, 4000); }, () => {})); } });
+page.on('response', r => { if (r.status() >= 400) { const entry = {url:r.url(), status:r.status()}; report.httpErrors.push(entry); const answer = {method: r.request().method()}; answers.set(entry, answer); bodyReads.push(Promise.race([r.text().then(text => { answer.body = text.slice(0, 4000); }, () => {}), new Promise(done => setTimeout(done, BODY_READ_MS))])); } });
 const ctx = { base: alpha, live, origins: LIVE_ORIGINS, expectedCommit: expectedBuild, expect, report, reviewedVersions: REVIEWED_TESTNET_VERSIONS, egressPolicy, output };
 try {
   let alphaCaptureCount = captures.length;
@@ -63,11 +66,13 @@ try {
     // Every request the page made before the landing stage was made on the Alpha (the origin allow-list below).
     if (stage.key === 'landing') alphaCaptureCount = captures.length;
     if (stage.liveOnly && !live) { report.stages.push({name:stage.name, status:'SKIPPED'}); continue; }
+    progress(`stage start: ${stage.name}`);
     await stage.run(page, ctx);
+    progress(`stage done: ${stage.name}`);
     if (!stage.reportsItself) report.stages.push({name:stage.name, status:'PASS'});
   }
-  await page.waitForLoadState('networkidle');
-  let drained=0; while(drained<captures.length) {const batch=captures.slice(drained); drained+=batch.length; report.requestRecords.push(...await Promise.all(batch));}
+  progress('stages done; waiting for the network to settle'); await page.waitForLoadState('networkidle');
+  progress('reading the captured requests'); let drained=0; while(drained<captures.length) {const batch=captures.slice(drained); drained+=batch.length; report.requestRecords.push(...await Promise.all(batch));}
   assert(!report.requestRecords.some(r=>r.captureError));
   const egress=JSON.stringify(report.requestRecords);
   report.privacy={sentinels:SENTINELS, requestsInspected:report.requestRecords.length, completeHeaderCapture:'request.allHeaders()',matches:SENTINELS.filter(value=>egress.includes(value))};
@@ -80,7 +85,7 @@ try {
   assert(report.requestOrigins.every(o=>[alpha,apex,'https://testnet-rpc.zigchain.com','https://testnet-api.zigchain.com','https://fonts.googleapis.com','https://fonts.gstatic.com'].includes(o)));
   assert(report.requestRecords.every(r=>r.method==='GET'));
   // A local build has none of the deployment's bindings: the base's own /api answers of 503 are set aside, not counted.
-  await Promise.all(bodyReads);
+  progress(`reading ${bodyReads.length} error bodies`); await Promise.all(bodyReads); progress('error bodies read');
   // The two designed "not configured" answers are named items on every base (live included), never errors.
   setAsideNotConfigured(report, alpha, entry => answers.get(entry));
   if (!live) setAsideUnboundApi(report, alpha);
