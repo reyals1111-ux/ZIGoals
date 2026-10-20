@@ -85,6 +85,21 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-20 13:25 Brussels — the Checklist merged; Gate C's final steps running)
+- The Checklist redesign merged (`ccb1ab67`, wiring `3caaa654`, H136): iterations 1–8 with a fresh critic each, the owner's
+  confirming pass (20 Oct: "no further iterations unless the confirming critic finds a regression"), one narrow regression
+  fix (iteration 9), checked by the lead on the named frames. Every acceptance line passes.
+- Fixed on the way: H135 root error screen (+ Link), parity waits for finite animations, send-feedback's footer, whats-new's
+  budget, the live check's replay dating and its record's contact fields, Math.sign in the comet (the staking guard),
+  Earn's paths keep the launcher lane, zigi-chat-polish's WebKit diagnostics (watch CI: the box emptied after fill).
+- Gate C on the final code (`cac3b73e` build on :3101, TZ=UTC): G1 unit 5,889 passed; lint 0 errors; G6 weights all within
+  budget; G9 scans clean; G10 live check 12/12. Running: G2 full Chromium suite (`$SP/logs/gatec-full.log`, nohup) and G7 the
+  revert gate on `f34ac767` (`$SP/logs/gate-c-revert-gate.txt`, nice 19).
+- Next, in order: G4/G4b audits in three themes + touch + stress and the after captures (incl. 768/1024, LINKED Earn, the
+  new Checklist) → `review/session-af-screens` after/; G5 parity report; G8 frozen readers; G13 build:alpha +
+  check:alpha-artifact + check:alpha; G11 hosted verifier; G12 design critique (with the copy audit), then the test audit,
+  one fix round each; CI green; STATUS entry with the ledger; PR out of Draft; stop caffeinate and servers.
+
 ## Resume here (2026-10-20 01:10 Brussels — Checklist iteration 3 under critique; webkit-earn's cause fixed)
 - webkit-earn's cause (CI on `e44575d0`): on Settings, the test's navigation aborts the page's own route files; the root's
   error boundary then drew Next's built-in screen, whose styles go through innerHTML, which Trusted Types refuses. Fixed by
