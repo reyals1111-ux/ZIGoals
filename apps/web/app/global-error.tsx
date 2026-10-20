@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 /**
  * Session AF Gate C (ADR-028 H135): when the root itself fails (seen in WebKit when a navigation aborts the page's own
@@ -21,7 +22,7 @@ export default function GlobalError({retry}: {error: Error & {digest?: string}; 
         <p style={{margin: '0 0 20px'}}>Something went wrong while drawing it. Nothing was changed or lost: your records stay on this device.</p>
         <div style={{display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center'}}>
           <button type="button" style={button} onClick={() => retry()}>Try again</button>
-          <a href="/app" style={link}>Go to Today</a>
+          <Link href="/app" style={link}>Go to Today</Link>
         </div>
       </main>
     </body>
