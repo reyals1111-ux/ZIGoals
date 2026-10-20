@@ -29,3 +29,25 @@
 .add-money-tile button { position: relative; padding-right: 44px; }
 .add-money-tile button::after { content: ""; position: absolute; top: 14px; right: 14px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-strong, #9fc8ff80); box-sizing: border-box; }
 .add-money-tile button[aria-pressed="true"]::after { border-color: var(--brand-cyan, #23eaff); background: radial-gradient(circle, var(--brand-cyan, #23eaff) 0 4px, transparent 5px); }
+/* Session AF Gate C (design critique, money pages 12): each "What's this?" sits inside its tile's foot, in Earn's dotted-link
+   style, on the same line in every tile of a row (they had floated between the tiles, 13 px apart). The tile is the card
+   now; its choice button fills it above the foot and keeps the ring. */
+.add-money-tile { display: flex; flex-direction: column; gap: 0; border-radius: 14px; border: 1px solid var(--border-subtle, #9fc8ff2e); background: var(--surface-raised, #0a1a30); }
+.add-money-tile[data-selected] { border-color: var(--brand-cyan, #23eaff); box-shadow: inset 0 0 0 1px var(--brand-cyan, #23eaff); }
+.add-money-tile button { flex: 1 1 auto; align-content: start; border: 0; border-radius: 14px 14px 0 0; background: transparent; }
+.add-money-tile button[aria-pressed="true"] { border: 0; box-shadow: none; }
+.add-money-tile details { margin-top: auto; padding: 0 14px 6px; }
+.add-money-tile details summary { min-height: 44px; padding: 0; color: #8bddeb; font-size: 14px; font-weight: 650; text-decoration: underline dotted; text-underline-offset: 3px; list-style: none; }
+.add-money-tile details summary::-webkit-details-marker { display: none; }
+.add-money-tile details[open] summary { text-decoration-style: solid; }
+.add-money-tile details p { margin: 0 0 8px; font-size: 15px; line-height: 1.5; }
+/* Session AF Gate C (design critique, money pages 7): the floating launchers on the right edge covered Solana's choice ring on a
+   computer; while they are on the right, the page keeps the lane Earn's paths and Today's rail keep. On a phone ZIGi's
+   button sits at the bottom right of the first screen, over step 1's line: that line keeps clear of it. */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) .add-money-page { padding-inline-end: 64px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .add-money-page { padding-inline-end: 72px; }
+}
+@media (max-width: 767.98px) {
+  :root:not([data-zigi-side=left]) .add-money-hint { padding-inline-end: 60px; }
+}

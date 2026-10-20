@@ -86,7 +86,7 @@ export default function GoalVaultSection({goal}: {goal: {id: string; name: strin
           <div className="goal-vault-figures">
             <h3 id={`${id}-${link.id}`}>{wallet ? `${wallet.label}’s stake` : 'A wallet no longer linked'}</h3>
             {!wallet ? <p>That wallet is no longer linked on this device. Link it again to see this Goal Vault.</p>
-              : !now ? <p role="status">{state.busy ? 'Reading your stake…' : state.error ? `Couldn't read the chain just now: ${state.error}` : 'Reading your stake…'}</p>
+              : !now ? <p role="status">{state.busy ? 'Reading your stake…' : state.error ? `Couldn’t read the chain just now: ${state.error}` : 'Reading your stake…'}</p>
               : <>
                 <dl>
                   {p!.parts.includes('delegations') && <><div><dt>Staked now</dt><dd>{zig(p!.stakedAzig)}</dd></div><div><dt>Rewards waiting</dt><dd>{zig(p!.rewardsAzig)}</dd></div></>}

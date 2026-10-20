@@ -18,6 +18,12 @@ test('the five steps: plain words, the recommended network and its warning, only
   await expect(tiles.getByRole('button')).toHaveCount(7);
   await expect(tiles.getByRole('button', {name: /USD Coin/})).toContainText('USDC: a digital dollar, stays about 1 USD.');
   await expect(tiles.getByRole('button', {name: /ZIG via ATOM/})).toContainText('buy ATOM, move it to ZIGChain, swap it for ZIG');
+  // Session AF Gate C (design critique, copy and money pages 12): a tile's words do not repeat its title, and each
+  // "What's this?" sits inside its own tile's foot, on one line with the others of its row.
+  expect((await tiles.getByRole('button', {name: /ZIG via ATOM/}).innerText()).split('ZIG via ATOM').length - 1).toBe(1);
+  const feet = await tiles.locator('.add-money-tile').evaluateAll(cards => cards.map(card => { const box = card.getBoundingClientRect(), what = card.querySelector('summary')!.getBoundingClientRect(); return {inside: what.left >= box.left && what.right <= box.right && what.bottom <= box.bottom + 0.5 && what.top >= card.querySelector('button')!.getBoundingClientRect().bottom - 0.5, row: Math.round(box.top), bottom: Math.round(what.bottom)}; }));
+  for (const foot of feet) expect(foot.inside).toBe(true);
+  for (const row of new Set(feet.map(f => f.row))) expect(new Set(feet.filter(f => f.row === row).map(f => f.bottom)).size).toBe(1);
   await tiles.locator('details').first().locator('summary').click();
   await expect(tiles.locator('details').first()).toContainText('issued by Circle');
   await tiles.getByRole('button', {name: /USD Coin/}).click();

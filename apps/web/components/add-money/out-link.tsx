@@ -18,7 +18,7 @@ export function LaneLink({id, href, children, className = ''}: {id: L2bLinkId; h
   const url = href ?? row.url;
   if (!url.startsWith(row.url) && !(id === 'banxa-site' && /^https:\/\/[a-z0-9-]{2,40}\.banxa\.com\/\?/.test(url))) throw Error(`Not a link of ${id}.`);
   const day = formatDate(`${row.checkedAt}T12:00:00Z`, {timeZone: 'UTC'}), from = new URL(row.source).hostname;
-  const detail = row.check === 'ok' ? `ZIGoals opened this address on ${day}. It opens the site's own page in a new tab.` : `This site turns away automated checks, so ZIGoals took the address from ${from} on ${day}. It opens the site's own page in a new tab.`;
+  const detail = row.check === 'ok' ? `ZIGoals opened this address on ${day}. It opens the site’s own page in a new tab.` : `This site turns away automated checks, so ZIGoals took the address from ${from} on ${day}. It opens the site’s own page in a new tab.`;
   return <span className="verified-link" data-mark="full">
     <a className={className || undefined} href={url} target="_blank" rel="noopener noreferrer" aria-describedby={mark} data-lane-link={id}>{children}<span aria-hidden="true" className="verified-link-arrow">↗</span></a>
     <small className="verified-mark" id={mark} title={detail} data-check={row.check}>
