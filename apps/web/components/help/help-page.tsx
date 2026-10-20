@@ -305,7 +305,7 @@ export function HelpPage() {
         <li><strong>The Checklist stays on this device:</strong> your path, your own items and the day history aren&rsquo;t synced yet, so another device starts with an empty path (<a className="text-link" href="#help-af-checklist">What is the Checklist?</a>).</li>
         <li><strong>Ecosystem apps open in their own tab:</strong> ZIGoals shows their live numbers and steps but never frames their sites, and signs nothing for them; only native staking signs, in your own wallet (<a className="text-link" href="#help-af-earn">What is the Earn page?</a>).</li>
         <li><strong>ZIGi never stakes, signs or moves money:</strong> a staking card only opens the review you complete in your own wallet (<a className="text-link" href="#help-af-earn-coach">What does ZIGi&rsquo;s Earn coach do?</a>).</li>
-        <li><strong>Timeline times stay on this device;</strong> a running fast or timer cannot be moved, and sleep, reminders and Checklist dots move on their own pages (<a className="text-link" href="#help-af-timeline">What is the Day timeline?</a>).</li>
+        <li><strong>Timeline times stay on this device;</strong> a running fast or timer cannot be moved, and sleep, reminders and Checklist planets move on their own pages (<a className="text-link" href="#help-af-timeline">What is the Day timeline?</a>).</li>
         <li><strong>Add money opens the providers&rsquo; plain sites</strong> until ZIGoals has registered with them, so nothing is filled in for you yet; pairing a wallet by QR on a phone waits for the same step (<a className="text-link" href="#help-af-add-money">How do I add money?</a>).</li>
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
       </ul>

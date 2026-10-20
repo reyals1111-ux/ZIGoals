@@ -18,7 +18,7 @@ export default function AiYourDay() {
   if (!zigi.loaded) return <p className="ai-note" role="status">Reading your choices…</p>;
   return <div className="ai-pack-body ai-your-day">
     <Switch checked={prefs.morning} onChange={next => save({morning: next}, next ? 'The morning brief shows on Today.' : 'No morning brief on Today; /brief still shows it in the chat.')} label="Morning brief on Today"
-      note="What is open today, your Checklist dots, meals planned, timers running, goal steps this week, the earning line and a note you keep, made on this device from your records."/>
+      note="What is open today, your Checklist planets, meals planned, timers running, goal steps this week, the earning line and a note you keep, made on this device from your records."/>
     <Switch checked={prefs.evening} onChange={next => save({evening: next}, next ? `The evening recap shows from ${prefs.eveningTime}.` : 'No evening recap on Today; /recap still shows it in the chat.')} label="Evening recap on Today"
       note="What you did today, the streaks you kept, Health's counts while Health is shared, your Checklist, the earning line and one for tomorrow."/>
     <label className="field">Evening recap from<input type="time" value={prefs.eveningTime} disabled={!prefs.evening} onChange={e => { const v = e.target.value; if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(v)) save({eveningTime: v}, `The evening recap shows from ${v}.`); }}/></label>

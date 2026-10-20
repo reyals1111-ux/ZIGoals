@@ -27,7 +27,7 @@ export const CARD_HELP: Readonly<Record<string, Help>> = {
   'today:game': H('Your progress', 'Your progress shows levels and badges from your own records, while the game layer is on.', 'Je voortgang toont levels en badges uit je eigen gegevens, zolang de spellaag aan staat.'),
   'today:links': H('My links', 'My links are the buttons to your own pages that you added to Today.', 'Mijn links zijn de knoppen naar je eigen pagina\'s die je aan Vandaag toevoegde.'),
   'today:week': H('Your week', 'Your week sums up this week from your records: check-ins, entries and goal steps.', 'Je week vat deze week samen uit je gegevens: check-ins, invoer en doelstappen.'),
-  'today:checklist': H('Checklist', 'The Checklist card counts today\'s dots on your path; open it to tick them in order.', 'De Checklist-kaart telt de stippen van vandaag op je pad; open hem om ze op volgorde af te vinken.'),
+  'today:checklist': H('Checklist', 'The Checklist card counts today\'s planets on your path; open it to tick them, in any order.', 'De Checklist-kaart telt de planeten van vandaag op je pad; open hem om ze af te vinken, in elke volgorde.'),
   // For you (components/for-you/today-for-you.tsx)
   'card:fasting': H('Fasting', 'The fasting line shows the fast that is running and how far it is, from Health\'s fasting timer.', 'De vastenregel toont de lopende vasten en hoe ver die is, uit de vastentimer van Health.'),
   'card:whats-new': H('What\'s new', 'What\'s new lists what changed in this version of ZIGoals; dismiss it once read.', 'Wat is er nieuw toont wat er veranderde in deze versie van ZIGoals; sluit het als je het gelezen hebt.'),
