@@ -35,7 +35,10 @@ export function TodayWeek({today,habits,health,platform,financial,...layout}:Lay
  // On a phone the seven-day rows fold into one line of totals (Session G, Part 4); the note below stays in view.
  const phone=usePhoneActive(),[days,setDays]=useState(false),rowsId=useId();
  const totals=rows.map(r=>{const total=week.reduce((n,d)=>n+d[r.key],0);return total?`${formatNumber(total)} ${(total===1?r.one:r.label).toLowerCase()}`:`no ${r.label.toLowerCase()}`;}).join(' · ');
- return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede="How many records you saved each day (Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.">
+ // Gate C design review (finding 10): the window is named (Today's other "week" cards count other windows) and so is what
+ // a habit check-in counts here, every one saved, done or partly done: the Life review counts completed habit days.
+ const span=week.length?`${formatDate(week[0]!.date,{weekday:true,year:false})} – ${formatDate(week.at(-1)!.date,{weekday:true,year:false})}`:'';
+ return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede={`How many records you saved each day${span?`, ${span}`:''} (habit check-ins: every one saved, done or partly done; Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.`}>
   {phone&&<p className="bottom-week-totals">Last 7 days: {totals}.</p>}
   <div className="bottom-rows" id={rowsId} {...(phone&&!days?{'data-phone-collapsed':''}:{})}>{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);return <li key={d.date} data-today={d.date===today||undefined}><small>{l.weekday} {l.day}</small><Count value={d[r.key]} label={r.label.toLowerCase()}/></li>;})}</ul></div>)}</div>
   {phone&&<button type="button" className="secondary phone-show-all" aria-controls={rowsId} aria-expanded={days} onClick={()=>setDays(!days)}>{days?'Hide each day':'Show each day'}</button>}
