@@ -113,9 +113,11 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   const dot = page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true});
   // Round 7 (L3b; the iteration-6 frames showed ZIGi's head over a name and a banner's title as it glided): every frame of
   // ZIGi's moves — to its cheer and on to the next planet — keeps its figure off every name, banner and planet shown.
+  // Round 8 (the iteration-7 frames lost a name while ZIGi cheered beside its planet): every name stays shown in every frame.
   await page.evaluate(() => {
     const w = window as unknown as {__moves: string[]}; w.__moves = []; const t0 = performance.now();
     const frame = () => {
+      for (const l of document.querySelectorAll<HTMLElement>('.path-label')) if (Number(getComputedStyle(l).opacity) < .9) w.__moves.push(`${Math.round(performance.now() - t0)} ms: the name ${(l.textContent ?? '').slice(0, 20)} hidden`);
       const z = document.querySelector<HTMLElement>('.path-zigi');
       if (z && z.getAnimations().some(a => a.playState === 'running') && Number(getComputedStyle(z).opacity) > .5) {
         const r = z.querySelector('img')!.getBoundingClientRect();
@@ -137,6 +139,7 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   // its celebrate pose with hops and sparkles, beside the planet just ticked.
   await expect(page.locator('.path-comet .path-comet-head')).not.toHaveCount(0);
   await expect(page.locator('.path-comet .path-comet-tail')).not.toHaveCount(0);
+  expect(await cometNearNames(page), 'the comet 12 px or more from every name').toEqual([]);
   // Round 4, moved at greater strength: the cheer is a still from its first frame — ZIGi's waving greeting, never the
   // celebrate frame that reads as hands on the head — with its sparkles.
   const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
@@ -164,7 +167,7 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   const rested = await stageOf();
   if (Math.hypot(rested.x - cheered.x, rested.y - cheered.y) > 3) expect(glided?.glide, 'ZIGi glides to its place, never jumps').toBe(true);
   const moves = await page.evaluate(() => (window as unknown as {__moves: string[]}).__moves);
-  expect(moves, 'ZIGi never passes over a name, a banner or a planet').toEqual([]);
+  expect(moves, 'ZIGi never passes over a name, a banner or a planet, and no name is hidden').toEqual([]);
 });
 
 for (const mode of ['reduced motion', 'Motion Off'] as const) {
@@ -197,9 +200,29 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   await open(page, {path: r});
   await page.getByRole('button', {name: 'Fictional first star: not done yet', exact: true}).click();
   await expect(page.getByRole('dialog', {name: /lit!$/})).toHaveCount(0);
+  // Round 8 (the iteration-7 frames: on the last tick a name was missing and ZIGi, on its way to the trophy, faced the
+  // screen's edge): in every frame of the last tick every name stays shown, and ZIGi, wherever it shows, faces the planet
+  // just ticked or the trophy, whichever is nearer — its arm toward it.
+  await page.evaluate(() => {
+    const w = window as unknown as {__last: string[]}; w.__last = []; const t0 = performance.now();
+    const frame = () => {
+      const t = Math.round(performance.now() - t0);
+      for (const l of document.querySelectorAll<HTMLElement>('.path-stage .path-label')) if (Number(getComputedStyle(l).opacity) < .9) w.__last.push(`${t} ms: the name ${(l.textContent ?? '').slice(0, 20)} hidden`);
+      const z = document.querySelector<HTMLElement>('.path-stage .path-zigi'), ticked = [...document.querySelectorAll<HTMLElement>('.path-stage .path-dot')].at(-1), trophy = document.querySelector('.path-stage .path-chest[data-trophy] .path-chest-art');
+      if (z && ticked && trophy && Number(getComputedStyle(z).opacity) > .5) {
+        const r = z.querySelector('img')!.getBoundingClientRect(), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+        const target = [ticked.getBoundingClientRect(), trophy.getBoundingClientRect()].map(b => ({x: (b.left + b.right) / 2, d: Math.hypot((b.left + b.right) / 2 - cx, (b.top + b.bottom) / 2 - cy)})).sort((a, b) => a.d - b.d)[0]!;
+        const armRight = (z.getAttribute('data-side') === 'left') !== (new DOMMatrix(getComputedStyle(z).transform).a < 0);
+        if (armRight ? target.x < cx : target.x > cx) w.__last.push(`${t} ms: ZIGi faces away from its planet`);
+      }
+      if (performance.now() - t0 < 900 && !document.querySelector('[role=dialog][open], dialog.checklist-celebration[open]')) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
   await page.getByRole('button', {name: 'Fictional last star: not done yet', exact: true}).click();
   const party = page.getByRole('dialog', {name: 'All 2 planets lit!'});
   await expect(party).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as {__last: string[]}).__last), 'the last tick: every name shown, ZIGi facing its planet').toEqual([]);
   await expect(party.getByRole('button', {name: 'Continue'})).toBeFocused();
   expect(await party.evaluate(d => d.matches(':modal'))).toBe(true);
   // The last tick's Undo stays in reach over the celebration.
@@ -214,9 +237,14 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
   // Round 7 (L3b; the iteration-6 frames showed ZIGi over the trophy planet on the last tick): at the day's end ZIGi
-  // stands beside the trophy, 12 px clear of it and of everything else on the path.
+  // stands beside the trophy, 12 px clear of it and of everything else on the path; round 8: its arm toward the trophy.
   await page.waitForTimeout(1500);
   expect(await zigiClash(page), 'ZIGi beside the trophy, clear').toEqual([]);
+  const faces = await page.evaluate(() => {
+    const z = document.querySelector<HTMLElement>('.path-stage .path-zigi')!, r = z.querySelector('img')!.getBoundingClientRect(), b = document.querySelector('.path-stage .path-chest[data-trophy] .path-chest-art')!.getBoundingClientRect();
+    return (z.getAttribute('data-side') === 'left') === ((r.left + r.right) / 2 < (b.left + b.right) / 2);
+  });
+  expect(faces, 'ZIGi beside the trophy, its arm toward it').toBe(true);
   // The day record says the day is complete; reopening it never celebrates again.
   await expect.poll(async () => (await stored<{today: {custom: string[]}}>(page, CHECKLIST_DAYS_KEY))?.today.custom.length).toBe(2);
   await page.reload(); await settled(page);
@@ -281,6 +309,25 @@ const restFacts = (page: Page) => page.evaluate(() => {
   const cy = (d.top + d.bottom) / 2, band = Math.max(14, d.height / 4);
   return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked};
 });
+/** Round 8: the comet's arc, once it has chosen its way, sampled along its whole length — the names it comes within 12 px of,
+ *  where they stand once the tick's own steps (a name stepping back in, the next one's stepping out, 360 ms) have settled. */
+async function cometNearNames(page: Page) {
+  await expect(page.locator('.path-comet[data-bow]')).not.toHaveCount(0);
+  await page.waitForTimeout(400);
+  return page.evaluate(() => {
+    const out: string[] = [], heads = document.querySelectorAll<SVGPathElement>('.path-comet[data-bow] .path-comet-head');
+    if (!heads.length) return ['no comet left to measure'];
+    for (const head of heads) {
+      const L = head.getTotalLength(), m = head.getScreenCTM()!;
+      const names = [...document.querySelectorAll<HTMLElement>('.path-label')].map(l => ({t: (l.textContent ?? '').slice(0, 20), b: l.getBoundingClientRect()}));
+      for (let i = 0; i <= 60; i++) {
+        const q = new DOMPoint(head.getPointAtLength(L * i / 60).x, head.getPointAtLength(L * i / 60).y).matrixTransform(m);
+        for (const {t, b} of names) { const d = Math.hypot(Math.max(b.left - q.x, 0, q.x - b.right), Math.max(b.top - q.y, 0, q.y - b.bottom)); if (d < 12 && !out.includes(t)) out.push(t); }
+      }
+    }
+    return out;
+  });
+}
 /** The round-7 rest checks, at each size (see `restFacts`). */
 async function expectRest(page: Page, width: number, when: string) {
   const f = await restFacts(page), least = width >= 1180 ? 140 : width >= 641 ? 118 : 96;
@@ -389,6 +436,16 @@ test('a learning path’s density: six planets or more on the opening screen, be
     for (const b of await page.getByRole('group', {name: 'Quick timers'}).getByRole('button').all()) { const box = (await b.boundingBox())!; expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44); }
     const alpha = await page.locator('.checklist-dock').evaluate(el => { const m = getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) ?? []; return Math.min(...m.map(c => { const v = c.match(/[\d.]+/g)!.map(Number); return v.length > 3 ? v[3]! : 1; })); });
     expect(alpha, 'the foot bar is opaque').toBeGreaterThanOrEqual(.95);
+    // Round 8 (L3b; the iteration-7 frames: a chest's lid over its planet's base, a chest 7 px above a banner): an orbit's
+    // chest on a phone sits on the line under its planet, 8 px or more below the planet's base (its 6 px rim), its lid too,
+    // and 12 px or more above the banner below.
+    const chests = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.path-chest[data-inline]')].map(c => {
+      const art = c.querySelector('.path-chest-art')!.getBoundingClientRect(), lid = c.querySelector('.path-chest-lid')!.getBoundingClientRect(), dot = c.closest('.path-step')!.querySelector('.path-dot')!.getBoundingClientRect();
+      const banner = [...document.querySelectorAll('.path-banner')].map(b => b.getBoundingClientRect()).find(b => b.top > dot.bottom);
+      return {base: Math.min(art.top, lid.top) - (dot.bottom + 6), banner: banner ? banner.top - art.bottom : 99};
+    }));
+    expect(chests.length, 'chests on the path').toBeGreaterThan(0);
+    for (const c of chests) { expect(c.base, 'a chest 8 px below its planet').toBeGreaterThanOrEqual(8); expect(c.banner, 'a chest 12 px above the banner below').toBeGreaterThanOrEqual(12); }
   }
 });
 
@@ -444,6 +501,8 @@ test('a tick moves nothing but its own planet: every other name and every chest 
     for (const n of [1, 2, 3]) {
       const before = await boxes(), ticked = `name ck_fixture-${n}`, next = `name ck_fixture-${n + 1}`;
       await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
+      // Round 8 (the iteration-7 frames: a comet's head touching a name): its arc keeps 12 px from every name.
+      expect(await cometNearNames(page), `${size.width}px, star ${n}: the comet 12 px or more from every name`).toEqual([]);
       // The new next planet's name glides out (translate, 300 ms or more) to clear its ring.
       const glide = await page.locator('[data-next] .path-label').evaluate(l => { const cs = getComputedStyle(l); return {property: cs.transitionProperty, duration: parseFloat(cs.transitionDuration)}; });
       expect(glide.property).toContain('translate');
