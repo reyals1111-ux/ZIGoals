@@ -7,12 +7,14 @@ kept, no storage change. References (never copied into the repository): `~/zigoa
 `frontend-design`: not available in this session (no Skill lists it) — the design language was applied by hand (ADR-028
 H3's precedent): cosmic/nebula, pillar colours, labels ≥ 14 px, body 15–16 px, targets ≥ 44 px.
 
-Five rounds: round 1 (Part 7 commits) built the overlay; round 2 answered the iteration-1 critique (all six acceptance
+Six rounds: round 1 (Part 7 commits) built the overlay; round 2 answered the iteration-1 critique (all six acceptance
 lines failed); round 3 the iteration-2 critique (lines 3–6 failed: too sparse, the toast and corner buttons on the path, no
 tick cheer, no visible onward glow, Light's slate line); round 4 the iteration-3 critique (lines 1–3 passed; 4–6 failed:
 ZIGi's cheer, the day's end, ZIGi over the path, a flat Nebula, Light's faint ribbons, the reward moments); round 5 the
 iteration-4 critique (lines 1–4 passed; 5 failed on Light's twelve-weeks plate, 6 on ZIGi resting over a name, a chest or a
-ring and on the cheer reading as a salute). The sections "Round 5" and "Round 4" below say what changed last.
+ring and on the cheer reading as a salute); round 6 the iteration-5 critique (lines 1–5 passed; 6 "close": names and chests
+moving on a tick, soft cheer art held on a hand-at-brow frame, a small computer ZIGi that jumped). The sections "Round 6",
+"Round 5" and "Round 4" below say what changed last.
 
 ## What the Checklist is now
 - **Overlay** (`components/checklist/checklist-page.tsx`, `checklist.css`): `/app/checklist` renders a `<dialog>` drawn open
@@ -61,6 +63,50 @@ ring and on the cheer reading as a salute). The sections "Round 5" and "Round 4"
   in their colours; on a wide card two columns. A due nudge is a small count on Continue (its sentence is still said to
   screen readers) instead of another line.
 - **Wording**: "planets" everywhere the Checklist speaks of its items.
+
+## Round 6 (the iteration-5 critique's nine points)
+1. **A tick moves nothing but its own planet.** Names take their sides from the path alone (`orbitSides`: they alternate,
+   each on the side where its words fit, measured in its own font on a canvas — never from which planet is next), and every
+   name keeps, at all times, the room it would need as the next planet's (`--label-reserve`), so its lines never change.
+   The next planet is a size larger by `scale` (no layout change), its ring and moon are drawn outside its box, and its name
+   steps out by `translate` alone, gliding 360 ms; the phone's extra room around the next planet (round 5) is gone (a phone's
+   step gap is 16 px for every planet); the geometry reads each planet's layout radius, so the line and comets do not shift. Chests never move.
+2. **Crisp art.** ZIGi on the path, in the cheer and in the day's celebration is the delivered presenting poster at its
+   large size (`F006-presenting-large.webp`, 480 × 632): drawn at most 200 px tall on the path (3.2× source) and 260 px in the
+   celebration (2.4×). The round-5 still (`public/brand/checklist/zigi-cheer-wave*.webp`, a 96 × 126 clip frame upscaled)
+   is deleted.
+3. **The cheer.** The two hops (22 and 18 px), squash and stretch, the gold star burst and the sparkles stay; the figure is
+   the presenting pose and it lands on that same pose at rest, so no frame is ever held at the brow. Why that frame: the
+   clips are 96 × 126, so any held clip frame is upscaled at 132–260 px (the softness the critic saw); only the posters exist
+   at 480 × 632, and of those celebrate has both hands on the head, greeting the open hand at the brow (the salute), idle
+   the arms down — presenting holds one arm out, pointing, the other hand on the hip, the hand well away from the face. The
+   day's celebration uses the same pose. No new art; arms-up stays an owner item.
+4. **ZIGi at rest on a computer ≥ 160 px, near the next planet, gliding.** The placement weighs nearness and being level
+   first, then size, then the open side of the wave (the side away from the name); it now weighs every size before choosing
+   (round 5 stopped at the first size that fitted anywhere, which put a full-size ZIGi 145 px out from the planet), and it
+   tries every height that just clears a name or banner above or below. Where it cheered (or where it stands, on a
+   re-measure) it stays when that place is clear, within 60 px of the next ring, level with it and as large. A move glides
+   480 ms from where it stood (Web Animations, phone too; none under reduced motion or Motion Off). Over the owner's nine
+   resting places, with and without motion: 164–200 px at 1440, 118–168 at 768, 86–132 on a phone; no clash in any of the
+   54.
+5. **ZIGi points at the next planet**: the presenting arm points left, so on the planet's left the figure is mirrored; and
+   the placement weighs where the arm points — its line, at 42 % of ZIGi's height, should meet the next planet's ring; a
+   place whose arm line passes it and meets a planet already done (the one just ticked) within 260 px costs 90 more, one
+   still to come 30. Where every free place would still point at a done planet, ZIGi rests in the delivered idle still
+   (`F001-idle-large.webp`, 480 × 632, arms down, facing the next planet) instead of pointing back. Over the 54 resting
+   places: 53 presenting (the arm on the next planet at 41, passing just beside it toward a later planet at 12), one idle
+   (a phone, the owner's third planet, both motion settings).
+6. **Names 12 px from the next ring and its moon** (`--label-reserve`: the planet's extra size, the ring and moon at the
+   next size, 13 px, less the usual gap) — asserted after each tick at 390, 768 and 1440.
+7. **The comet's tail**: drawn 112 px back from the head (at most 78 % of the arc; was 74 px, seen as 35–45), the white
+   core 62 px, at .75 / .95 opacity (was .6 / .9). Measured as seen (a probe pauses the flight and compares the picture
+   with and without the comet layer along the arc): three quarters of the way along, the tail shows 84 px (phone) to 107 px
+   (computer) back from the head's centre — 67–90 px past its 34 px halo — its white-hot part 40–50 px; earlier in the
+   flight the tail is as long as the arc already flown (a computer's arc is about 145 px, a phone's 99).
+8. **The 1440 background planet**: placed `max(3vw, 104 px)` in from the right, so its ring (42 % wider each side) stays on
+   the screen.
+9. **Today's card at 1440**: the right column takes the room the next planet's name needs (`max-content`, the left at least
+   220 px) and the name stays on one line (an ellipsis past 340 px).
 
 ## Round 5 (the iteration-4 critique)
 **(a) Why the round-4 check passed while the frames showed ZIGi over a name and a chest.** Two reasons, both in the check:
@@ -184,6 +230,15 @@ the chest.
   planet's body) is now 12–36 px from its ring and level with it — the same 24 px of play past the new clearance (the old
   bound measured from the body cannot hold once ZIGi must clear the ring by 12 px). The cheer's image is the held greeting
   frame (was: the greeting poster) with its star burst; the celebration's ZIGi likewise.
+- Round 6, `tests/checklist-overlay-af.spec.ts`: the cheer's image and the celebration's ZIGi are the presenting poster at
+  its large size (was: the held greeting frame) — still one named still, never the celebrate art, with the star burst. New:
+  after the cheer ZIGi glides (an animation of 300 ms or more) to its place unless it stays; at each of three ticks at
+  1440 ZIGi rests at 160 px or more, and at 390 / 768 / 1440 it faces the next planet, never points at a planet already
+  done (its arm's line meets the next ring, or no done planet within 260 px; or it stands idle) — after each tick and under
+  reduced motion — and the next name stands 12 px clear of the ring and moon; a new test reads every name's and chest's box before and after each of three ticks (390; 1440 and
+  768): all but the ticked planet's keep side, height and lines within 1 px, all but the new next one keep their place and
+  width within 1 px, and the new next name only steps out (≤ 40 px) on a translate of 300 ms or more. ZIGi's rest is read
+  2.2 s after its cheer (was 1.6 s; its last measure is 1.3 s after a move, which glides 480 ms) — a wait, not a bound.
 - Earlier rounds (kept): `checklist.spec.ts` Jump sweep on the overlay's scroller (500 ms wait); Edit path / How it works
   through the menu; `polish2-af.spec.ts` `sweepJump` scroller argument; `checklist-themes.spec.ts` waits for one-time
   animations only; `path-engine.spec.ts` no sideways scroll in the overlay; `checklist-timers.spec.ts` opens the corner
@@ -201,6 +256,18 @@ the chest.
   card's nudge became a count on Continue (the Options line "On Today's card at 10:00, 15:00 and 19:00" still holds).
 - Nothing for registries, CSP, egress, budgets or storage. New sessionStorage key `zigoals-checklist-celebrated` (per tab).
 - WebKit (CI only, never run here): `webkit-checklist` and `webkit-theme-parity` /app/checklist — please read CI.
+
+## Evidence (round 6, final build; local production build on 127.0.0.1:3104, Chrome headless, ≤ 2 workers, locked)
+- `pnpm typecheck` clean; `pnpm lint` 0 errors (19 baseline warnings) and `pnpm exec eslint` on the changed files from the
+  repo root clean; unit (vitest from the root) 123 passed.
+- Browser, desktop + mobile: the sixteen Checklist / Today / touch-target specs — 91 passed, 13 skipped (project-specific);
+  a11y-wcag-x, today-v2, showcase-today-aa, zigi-a11y-pass, aa-a11y: 46 passed; theme-parity-af, whole: 55 passed, 1 skipped.
+- A probe over the owner's nine resting places at 390 / 768 / 1440, with and without motion: no clash in 54; sizes and
+  poses as in point 4 and 5 above. Weight: `/app` 531.8 kB (567.0), `/app/checklist` 459.8 kB (492.0), `/app/earn`
+  458.4 kB. The round-5 cheer stills are deleted; ZIGi's two stills are the existing delivered `-large` posters.
+- Earn's Start-here against iteration 5: SSIM 0.997 on a computer (the whole difference the floating launchers' glow at the
+  right edge), 0.963 on a phone (the sticky header band, as before).
+- Captures: `~/zigoals-af/l3b/iter-6/` (INDEX.txt).
 
 ## Evidence (round 5, final build; local production build on 127.0.0.1:3104, Chrome headless, ≤ 2 workers, locked)
 - `pnpm typecheck` clean; `pnpm lint` 0 errors (19 baseline warnings) and `pnpm exec eslint` on the changed files from the
