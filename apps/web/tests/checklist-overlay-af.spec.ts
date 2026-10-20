@@ -134,6 +134,7 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
     };
     requestAnimationFrame(frame);
   });
+  await armComet(page, 60);
   await dot.click();
   const done = page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true});
   await expect(done).toHaveAttribute('data-just', '');
@@ -143,7 +144,7 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   await expect(page.locator('.path-comet .path-comet-head')).not.toHaveCount(0);
   await expect(page.locator('.path-comet .path-comet-tail')).not.toHaveCount(0);
   // Round 9 (the iteration-8 phone frames: a 45 px stub): here, where no name is in the way, a tail of 60 px or more.
-  expect(await cometReport(page, 60), 'the comet 12 px or more from every name, bowing away from ZIGi, its tail 60 px or more').toEqual([]);
+  expect(await cometReport(page), 'the comet 12 px or more from every name, bowing away from ZIGi, its tail 60 px or more').toEqual([]);
   // Round 4, moved at greater strength: the cheer is a still from its first frame — ZIGi's waving greeting, never the
   // celebrate frame that reads as hands on the head — with its sparkles.
   const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
@@ -324,31 +325,44 @@ const restFacts = (page: Page) => page.evaluate(() => {
  *  where they stand once the tick's own steps (a name stepping back in, the next one's stepping out, 360 ms) have settled.
  *  Round 9 (the iteration-8 frames: on a phone a short arc bowing toward ZIGi, its head beside ZIGi's hand): and the side it
  *  bows to — never ZIGi's (the arc's middle and ZIGi, where it stands, on opposite sides of the line between its ends). */
-async function cometReport(page: Page, minTail = 0) {
-  await expect(page.locator('.path-comet[data-bow]')).not.toHaveCount(0);
-  await page.waitForTimeout(400);
-  return page.evaluate(minTail => {
-    const out: string[] = [], heads = document.querySelectorAll<SVGPathElement>('.path-comet[data-bow] .path-comet-head');
-    if (!heads.length) return ['no comet left to measure'];
-    for (const head of heads) {
-      const L = head.getTotalLength(), m = head.getScreenCTM()!, at = (f: number) => new DOMPoint(head.getPointAtLength(L * f).x, head.getPointAtLength(L * f).y).matrixTransform(m);
-      const names = [...document.querySelectorAll<HTMLElement>('.path-label')].map(l => ({t: (l.textContent ?? '').slice(0, 20), b: l.getBoundingClientRect()}));
-      for (let i = 0; i <= 60; i++) {
-        const q = at(i / 60);
-        for (const {t, b} of names) { const d = Math.hypot(Math.max(b.left - q.x, 0, q.x - b.right), Math.max(b.top - q.y, 0, q.y - b.bottom)); if (d < 12 && !out.includes(t)) out.push(t); }
+//  Gate C (CI on 40479dc4, a slow mobile shard: the runner's own checks after the tap outlasted the 1.24 s comet, so it was
+//  gone when the runner came to read it — "no comet left to measure"): armed before the tap, the page itself reads the new
+//  comet 400 ms after it appears, as the runner meant to; `cometReport` then waits for that reading. The checks are unchanged.
+async function armComet(page: Page, minTail = 0) {
+  await page.evaluate(minTail => {
+    const w = window as unknown as {__comet?: string[]}; delete w.__comet;
+    // (A comet already drawn at the tap — or its element reused for another segment — is told apart by its segment and way.)
+    const sign = (c: Element) => `${c.getAttribute('data-segment')}|${c.getAttribute('data-bow')}`, old = new Map([...document.querySelectorAll('.path-comet')].map(c => [c, sign(c)]));
+    const measure = () => {
+      const out: string[] = [], heads = document.querySelectorAll<SVGPathElement>('.path-comet[data-bow] .path-comet-head');
+      if (!heads.length) return ['no comet left to measure'];
+      for (const head of heads) {
+        const L = head.getTotalLength(), m = head.getScreenCTM()!, at = (f: number) => new DOMPoint(head.getPointAtLength(L * f).x, head.getPointAtLength(L * f).y).matrixTransform(m);
+        const names = [...document.querySelectorAll<HTMLElement>('.path-label')].map(l => ({t: (l.textContent ?? '').slice(0, 20), b: l.getBoundingClientRect()}));
+        for (let i = 0; i <= 60; i++) {
+          const q = at(i / 60);
+          for (const {t, b} of names) { const d = Math.hypot(Math.max(b.left - q.x, 0, q.x - b.right), Math.max(b.top - q.y, 0, q.y - b.bottom)); if (d < 12 && !out.includes(t)) out.push(t); }
+        }
+        const z = document.querySelector<HTMLElement>('.path-zigi');
+        if (z) {
+          const p = z.parentElement!.getBoundingClientRect(), zx = p.left + z.offsetLeft + z.offsetWidth / 2, zy = p.top + z.offsetTop + z.offsetHeight / 2;
+          const a = at(0), b = at(1), mid = at(.5), side = (x: number, y: number) => Math.sign((b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x));
+          if (side(mid.x, mid.y) === side(zx, zy)) out.push('the comet bows toward ZIGi');
+        }
+        // (Its tail as drawn: its dash's share of the arc.)
+        const tail = parseFloat(head.closest('.path-comet')!.querySelector('.path-comet-tail')!.getAttribute('stroke-dasharray') ?? '0') * L;
+        if (tail < minTail) out.push(`a tail of ${Math.round(tail)} px`);
       }
-      const z = document.querySelector<HTMLElement>('.path-zigi');
-      if (z) {
-        const p = z.parentElement!.getBoundingClientRect(), zx = p.left + z.offsetLeft + z.offsetWidth / 2, zy = p.top + z.offsetTop + z.offsetHeight / 2;
-        const a = at(0), b = at(1), mid = at(.5), side = (x: number, y: number) => Math.sign((b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x));
-        if (side(mid.x, mid.y) === side(zx, zy)) out.push('the comet bows toward ZIGi');
-      }
-      // (Its tail as drawn: its dash's share of the arc.)
-      const tail = parseFloat(head.closest('.path-comet')!.querySelector('.path-comet-tail')!.getAttribute('stroke-dasharray') ?? '0') * L;
-      if (tail < minTail) out.push(`a tail of ${Math.round(tail)} px`);
-    }
-    return out;
+      return out;
+    };
+    const wait = () => { if ([...document.querySelectorAll('.path-comet[data-bow]')].some(c => old.get(c) !== sign(c))) setTimeout(() => { w.__comet = measure(); }, 400); else requestAnimationFrame(wait); };
+    requestAnimationFrame(wait);
   }, minTail);
+}
+/** The armed reading (`armComet`): a new comet appeared, chose its way and was read 400 ms later. */
+async function cometReport(page: Page) {
+  await expect.poll(() => page.evaluate(() => (window as unknown as {__comet?: string[]}).__comet ?? null), {message: 'a comet appears after the tap and is read', timeout: 8000}).not.toBeNull();
+  return page.evaluate(() => (window as unknown as {__comet: string[]}).__comet);
 }
 /** Round 9 (L3b; the iteration-8 frames: at the top of a cheer's hop ZIGi's head met the descenders of a name, and a sparkle
  *  sat on a name — the round-7 and round-8 checks read ZIGi at rest and its moves only, never the hop's own frames, nor the
@@ -576,6 +590,7 @@ test('a tick moves nothing but its own planet: every other name and every chest 
     for (const n of [1, 2, 3]) {
       const before = await boxes(), ticked = `name ck_fixture-${n}`, next = `name ck_fixture-${n + 1}`;
       const cheer = await watchCheer(page);
+      await armComet(page);
       await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
       // Round 8 (the iteration-7 frames: a comet's head touching a name): its arc keeps 12 px from every name.
       expect(await cometReport(page), `${size.width}px, star ${n}: the comet 12 px or more from every name, bowing away from ZIGi`).toEqual([]);
