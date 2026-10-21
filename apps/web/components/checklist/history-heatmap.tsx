@@ -1,7 +1,7 @@
 'use client';
 import type {CSSProperties} from 'react';
 import {addDays} from '../../lib/zone-time';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatWeekday} from '../../lib/visual-format';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import type {ChecklistDays} from '../../lib/checklist/schema';
 
@@ -14,7 +14,7 @@ import type {ChecklistDays} from '../../lib/checklist/schema';
  * brightest cyan with a glow. The same in every theme.
  */
 type Cell = {date: string; level: 'none' | 'some' | 'all' | 'perfect' | 'future'; label: string};
-const WEEKS = 12, DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEKS = 12;
 function weekday(date: string) { const [y, m, d] = date.split('-').map(Number); return (new Date(Date.UTC(y!, m! - 1, d!)).getUTCDay() + 6) % 7; }
 export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays; today: string; todaySummary: {total: number; done: number; perfect: boolean} | null}) {
   const end = addDays(today, 6 - weekday(today)), start = addDays(end, -(WEEKS * 7 - 1));
@@ -29,7 +29,7 @@ export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays
   const results = cells.filter(c => c.level !== 'none' && c.level !== 'future');
   return <div className="checklist-history">
     <div className="checklist-heat" style={style}>
-      <ol className="checklist-heat-days" aria-hidden="true">{DAYS.map(d => <li key={d}>{d}</li>)}</ol>
+      <ol className="checklist-heat-days" aria-hidden="true">{Array.from({length: 7}, (_, i) => <li key={i}>{formatWeekday(addDays(start, i))}</li>)}</ol>
       <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with planets lit`}>
         {cells.map(c => <span key={c.date} className="checklist-heat-cell" data-level={c.level} data-today={c.date === today || undefined} title={c.label}/>)}
       </div>
