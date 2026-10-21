@@ -1,6 +1,6 @@
 /* Session AG (ADR-029; references 04–06): the orbit path's flowing neon line — a soft wide glow, a halo and a thin bright
-   core, each along its stretch's gradient (flow-line.tsx). The same hues in every theme (`.path-line` is a theme island);
-   by day the glow is softer. Motion: one light runs along a stretch a tick has just lit, once; never under reduced
+   core, each along its stretch's gradient (flow-line.tsx). The same hues and strengths in every theme (`.path-line` is a theme island;
+   theme parity allows no change of a glow's strength by day, ADR-029 I11). Motion: one light runs along a stretch a tick has just lit, once; never under reduced
    motion or Motion Off. */
 .orbit-flow { position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; overflow: visible; }
 .orbit-flow path { stroke-linecap: round; stroke-linejoin: round; }
@@ -14,8 +14,6 @@
 .orbit-flow-travel { stroke: #ffffff; stroke-width: 4; stroke-dasharray: .12 2; stroke-dashoffset: .12; opacity: 0; filter: drop-shadow(0 0 6px var(--seg, #ffffff)) drop-shadow(0 0 12px var(--seg, #ffffff));
   animation: orbit-flow-travel 950ms cubic-bezier(.45, .05, .4, 1) 120ms both; }
 @keyframes orbit-flow-travel { 0% { stroke-dashoffset: .12; opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { stroke-dashoffset: -1; opacity: 0; } }
-:root[data-theme=light] .orbit-flow-glow path { opacity: .32; }
-:root[data-theme=light] .orbit-flow-halo { opacity: .38; }
 @media (prefers-reduced-motion: reduce) { .orbit-flow-travel { display: none; animation: none; } }
 :root[data-app-motion=off] .orbit-flow-travel { display: none; animation: none; }
 @media (forced-colors: active) { .orbit-flow-glow { display: none; } .orbit-flow path { stroke: CanvasText; } }

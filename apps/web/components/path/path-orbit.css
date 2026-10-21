@@ -66,12 +66,16 @@
 .path-stage[data-variant=orbit] .path-label-note { display: none; }
 /* Lit: the tab fills in its node's colour, with a check before the name — "done" never rests on colour alone. */
 .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab { border-color: var(--node); background: linear-gradient(135deg, color-mix(in srgb, var(--node) 72%, #ffffff), var(--node)); color: #06102a; box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 70%, transparent); }
-.path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab::before { content: ''; display: inline-block; width: 10px; height: 5px; margin: 0 7px 3px 1px; border-left: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; rotate: -45deg; }
+/* (The tab is a flex row so the check keeps its own place beside the name, which wraps and clamps on its own.) */
+.path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab { display: flex; align-items: center; gap: 7px; }
+.path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab .path-label-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab::before { content: ''; flex: none; display: inline-block; width: 10px; height: 5px; margin: 0 0 3px 1px; border-left: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; rotate: -45deg; }
 .path-stage[data-variant=orbit] .path-step[data-next] .path-label.orbit-tab { color: #ffffff; border-color: color-mix(in srgb, var(--node) 72%, var(--node-dim)); }
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] .path-label.orbit-tab { max-width: min(170px, calc(50cqi + var(--toward, 1) * var(--reach, 0) * var(--swing) - var(--dot-size) * .3 - 8px)); white-space: normal; border-radius: 14px; padding: 4px 10px 5px; }
   .path-stage[data-variant=orbit] .path-label.orbit-tab .path-label-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-  .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab::before { float: left; margin-top: 6px; }
+  .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab { align-items: flex-start; }
+  .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab::before { margin-top: 6px; }
 }
 
 /* The next node's one-word tag on its crown (START / NEXT), still: slim glass in its colour. */
