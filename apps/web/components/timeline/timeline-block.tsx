@@ -51,7 +51,7 @@ export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; 
     block.reminder && block.timeFrom === 'moved here' ? `reminder ${formatClock(block.reminder)}` : null,
     block.onChecklist ? 'on your Checklist' : null,
   ].filter(Boolean).join(' · ');
-  return <li className="timeline-row" data-kind={block.kind} data-pillar={block.pillar ?? undefined} data-done={block.done || undefined} data-skipped={block.skipped || undefined} data-moving={moving || undefined} data-block={block.id} style={{'--drag': `${drag.offset}px`} as CSSProperties}>
+  return <li className="timeline-row" data-kind={block.kind} data-pillar={block.pillar ?? undefined} data-done={block.done || undefined} data-skipped={block.skipped || undefined} data-moving={moving || undefined} data-block={block.id} style={{'--drag': `${drag.offset}px`, ...(block.colour ? {'--item-colour': block.colour} : {})} as CSSProperties}>
     <span className="timeline-time">{timed ? clockLabel(moving ? drag.pending! : block.start!) : 'Any time'}</span>
     <div className="timeline-block">
       <div className="timeline-block-main">

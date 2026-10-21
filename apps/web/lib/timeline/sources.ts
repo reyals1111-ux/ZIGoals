@@ -17,6 +17,8 @@ export type TimelineSourceItem = {
   habitId?: string;
   /** A short plain word for what it is ("Checklist"). */
   label?: string;
+  /** Session AG: its own colour (a CSS colour), the one it wears on the Checklist's path. */
+  colour?: string;
 };
 /** What a source is given: today's records as the timeline read them (typed loosely here, so this file imports nothing). */
 export type TimelineSourceContext = {date: string; now: Date; stores: Record<string, unknown>};

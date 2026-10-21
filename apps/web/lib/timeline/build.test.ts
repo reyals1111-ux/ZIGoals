@@ -157,8 +157,9 @@ describe('registerTimelineSource: the seam other features use (the Checklist)', 
     const stores = {habits: habits(), habitsDay: DATE, health: createEmptyHealth(), healthDay: DATE, sleep: emptySleep(), meditation: {version: 1, sessions: []}, meditationRun: {version: 1, run: null}, fasting: {version: 1, sessions: []}, platform: emptyPlatform(), zone: ZONE};
     const items = checklistTimelineSource({date: DATE, now: at('10:30'), stores});
     expect(items).toEqual([
-      {id: 'ck_1', title: 'Fictional stretch', done: false, href: '/app/checklist', band: 'morning', pillar: 'habits', label: 'Checklist', habitId: ID.stretch},
-      {id: 'ck_2', title: 'Fictional sketch', done: false, href: '/app/checklist', band: 'evening', pillar: null, label: 'Checklist'},
+      {id: 'ck_1', title: 'Fictional stretch', done: false, href: '/app/checklist', band: 'morning', pillar: 'habits', label: 'Checklist', colour: 'var(--pillar-habits, #23eaff)', habitId: ID.stretch},
+      {id: 'ck_2', title: 'Fictional sketch', done: false, href: '/app/checklist', band: 'evening', pillar: null, label: 'Checklist', colour: 'var(--pillar-wealth, #ffd27a)'},
+      // (Session AG: each dot carries the colour it wears on the Checklist's path — its habit card's tone, or its own.)
     ]);
     expect(writes).toEqual([]);
   });

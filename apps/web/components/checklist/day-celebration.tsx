@@ -5,21 +5,25 @@ import {ZigiCheer} from '../path/path-zigi';
 import {useEscapeLayer} from './escape-layers';
 import {pushToastLayer} from '../ui/undo-toast';
 import {FlameMark} from './checklist-marks';
+import {OrbitNodeFace} from '../orbit-path/orbit-node';
+import {PATH_COLOURS} from '../../lib/path/colours';
 import './day-celebration.css';
 
 /**
  * Session AF (L3b): the day's full-screen celebration, the moment the last planet of the day is lit by a tick on the
  * Checklist (never when a day already complete is opened, never on a reload, once a day in this tab; the caller decides).
- * A modal dialog over the Checklist: the trophy planet rising in a burst of colour, ZIGi celebrating, the streak and today's
- * XP (with the game layer on), a Perfect orbit when the day went in path order. Confetti plays once; reduced motion and
- * Motion Off show the same card, still. A night island: the same in every theme. Its own chunk, loaded when it plays.
+ * A modal dialog over the Checklist: the day's finale node rising, ZIGi celebrating, the streak, a Perfect orbit when the
+ * day went in path order. Session AG (owner Part 6): no XP and no confetti — a space moment, once: a supernova ring
+ * expanding from the finale, a shooting star sweeping across, a short twinkle of stars; reduced motion and Motion Off
+ * show the same card, still. A night island: the same in every theme. Its own chunk, loaded when it plays.
  * Round 3: a gold-to-violet glow with soft rays behind it, the confetti a couple of seconds longer, ZIGi large and in front
  * of the trophy, and the last tick's Undo a quiet text button under Continue (the toast lends itself there) instead of a
  * toast over the moment. Round 4: a full-screen moment rather than a card — the trophy high, ZIGi (its waving greeting, the
  * cheer the figures have) large in front of it, the day's planets, big streak and XP tiles, Continue near the foot.
  */
-const CONFETTI = 56, COLOURS = ['#23eaff', '#9273ff', '#ff74be', '#ffd27a', '#459dff', '#f06dff', '#26e8bd'];
-export default function DayCelebration({streak, xp, xpFrom = null, perfect, total, colours = [], onClose}: {streak: number; xp: number | null; xpFrom?: number | null; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
+/** The twinkle: fourteen small stars around the moment, each at its own place, size and beat (fixed, so a still is the same). */
+const TWINKLE = Array.from({length: 14}, (_, i) => ({x: `${(i * 37 + 11) % 92 + 4}vw`, y: `${(i * 53 + 7) % 78 + 6}vh`, s: 8 + (i * 5) % 10, t: `${380 + (i * 131) % 900}ms`}));
+export default function DayCelebration({streak, perfect, total, colours = [], onClose}: {streak: number; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
   const ref = useRef<HTMLDialogElement>(null), button = useRef<HTMLButtonElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   useEscapeLayer(true, onClose);
   useEffect(() => {
@@ -33,18 +37,13 @@ export default function DayCelebration({streak, xp, xpFrom = null, perfect, tota
   return <dialog ref={ref} className="checklist-celebration" aria-labelledby="checklist-celebration-title" aria-describedby="checklist-celebration-line" onCancel={e => e.preventDefault()}>
     <div className="checklist-celebration-burst" aria-hidden="true">
       <span className="checklist-celebration-glow"/>
-      <span className="checklist-celebration-rays"/>
-      {Array.from({length: CONFETTI}, (_, i) => <i key={i} style={{'--a': `${(i * 137.5) % 360}deg`, '--d': `${34 + (i * 53) % 30}vmin`, '--c': COLOURS[i % COLOURS.length], '--t': `${3100 + (i * 97) % 900}ms`, '--r': `${(i * 71) % 360}deg`} as CSSProperties} data-shape={i % 3}/>)}
+      <span className="checklist-celebration-nova"/><span className="checklist-celebration-nova checklist-celebration-nova-2"/>
     </div>
+    <span className="checklist-celebration-comet" aria-hidden="true"/>
+    <div className="checklist-celebration-twinkle" aria-hidden="true">{TWINKLE.map((t, i) => <i key={i} style={{left: t.x, top: t.y, '--s': `${t.s}px`, '--t': t.t} as CSSProperties}/>)}</div>
     <section className="checklist-celebration-card">
       <div className="checklist-celebration-stage" aria-hidden="true">
-        <svg className="checklist-celebration-trophy" viewBox="0 0 120 120" focusable="false">
-          <defs><radialGradient id="checklist-celebration-gold" cx=".36" cy=".3" r=".75"><stop offset="0" stopColor="#fff4d1"/><stop offset=".35" stopColor="#ffd27a"/><stop offset=".78" stopColor="#f0a24b"/><stop offset="1" stopColor="#b8681f"/></radialGradient></defs>
-          <ellipse cx="60" cy="64" rx="56" ry="15" fill="none" stroke="#f0a24b" strokeWidth="4" opacity=".55"/>
-          <circle cx="60" cy="60" r="40" fill="url(#checklist-celebration-gold)" stroke="#fff2c7" strokeWidth="1.5"/>
-          <path d="M46 42h28v8c0 9-6 15-14 15s-14-6-14-15zM46 46h-6c0 7 3 11 8 12M74 46h6c0 7-3 11-8 12M60 65v8M50 79h20M53 73h14v6H53z" fill="#fff6dc" stroke="#8a5a1c" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/>
-          <path d="M4 64c0 8 25 15 56 15s56-7 56-15" fill="none" stroke="#ffe6a8" strokeWidth="4" strokeLinecap="round"/>
-        </svg>
+        <span className="checklist-celebration-trophy orbit-node" data-lit="" style={{'--node': PATH_COLOURS.gold.token, '--node-size': '150px'} as CSSProperties}><OrbitNodeFace glyph="star"/></span>
         <span className="checklist-celebration-zigi"><ZigiCheer/></span>
       </div>
       {colours.length > 0 && <ol className="checklist-celebration-planets" aria-hidden="true">{colours.map((c, i) => <li key={i} style={{'--c': c, '--i': i} as CSSProperties}/>)}</ol>}
@@ -53,7 +52,6 @@ export default function DayCelebration({streak, xp, xpFrom = null, perfect, tota
       <p id="checklist-celebration-line" className="checklist-celebration-line">{perfect ? 'A Perfect orbit: every planet in path order.' : 'Every planet today, in your own order.'}</p>
       <ul className="checklist-celebration-stats">
         <li><FlameMark lit/><strong><Rise from={Math.max(0, streak - 1)} to={streak} delay={700}/></strong><span>day streak</span></li>
-        {xp !== null && <li><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M13.2 2.5 5 13.4h6l-1.2 8.1L19 10.4h-6.1z" fill="#ffd27a" stroke="#f0a24b" strokeWidth="1.3" strokeLinejoin="round"/></svg><strong><Rise from={xpFrom ?? 0} to={xp} delay={950}/></strong><span>XP today</span></li>}
       </ul>
       <span className="checklist-celebration-spacer" aria-hidden="true"/>
       <button ref={button} type="button" className="checklist-celebration-go" onClick={onClose}>Continue</button>

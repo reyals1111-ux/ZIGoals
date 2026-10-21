@@ -394,31 +394,26 @@
 .checklist-history-fold[open] > summary::after { content: "Hide"; }
 .checklist-history-fold[open] > summary::before { transform: rotate(225deg); margin-top: 4px; }
 .checklist-history { display: grid; gap: 10px; margin-top: 10px; padding: 16px; border-radius: 20px; background: var(--checklist-ink-history); }
-.checklist-heat-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 4px; justify-content: start; overflow-x: auto; }
-.checklist-heat-cell { width: 18px; height: 18px; border-radius: 5px; background: #ffffff12; }
-.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
-.checklist-heat-cell[data-level=all] { background: var(--heat-all); box-shadow: 0 0 8px color-mix(in srgb, var(--heat-all) 50%, transparent); }
-.checklist-heat-cell[data-level=perfect] { background: var(--heat-perfect); box-shadow: 0 0 10px color-mix(in srgb, var(--heat-perfect) 60%, transparent); }
+/* Session AG (reference 12): rounded squares with gaps, the weekdays on the left and the weeks below, nebula shades. */
+.checklist-heat { --cell: 18px; display: grid; grid-template-columns: auto auto; grid-template-areas: "days grid" ". weeks"; column-gap: 8px; row-gap: 6px; justify-content: start; max-width: 100%; overflow-x: auto; }
+.checklist-heat-days { grid-area: days; display: grid; grid-template-rows: repeat(7, var(--cell)); gap: 5px; margin: 0; padding: 0; list-style: none; color: #c5d3ea; font-size: 14px; line-height: var(--cell); }
+.checklist-heat-weeks { grid-area: weeks; display: grid; grid-template-columns: repeat(12, var(--cell)); gap: 5px; margin: 0; padding: 0; list-style: none; color: #c5d3ea; font-size: 14px; white-space: nowrap; }
+.checklist-heat-weeks li:last-child { justify-self: end; }
+.checklist-heat-grid { grid-area: grid; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 5px; justify-content: start; }
+.checklist-heat-cell { width: var(--cell); height: var(--cell); border-radius: 5px; background: #ffffff0f; box-shadow: inset 0 0 0 1px #ffffff08; }
+.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--heat-some) 52%, #0a1130); }
+.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff)); box-shadow: 0 0 6px color-mix(in srgb, var(--heat-all) 45%, transparent); }
+.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%); box-shadow: 0 0 10px color-mix(in srgb, var(--heat-perfect) 75%, transparent); }
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
-.checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 14px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
-/* Round 5, Light: a light plate — pale cells for nothing, the same accent colours for planets — and ink words. */
-:root[data-theme=light] .checklist-history { background: #f4f5fc; box-shadow: inset 0 0 0 1px #d9dcf0; }
-:root[data-theme=light] .checklist-heat-cell, :root[data-theme=light] .checklist-heat-legend li::before { background: #e3e6f3; }
-:root[data-theme=light] .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #d9dcf0; }
-:root[data-theme=light] .checklist-heat-cell[data-today] { outline-color: #3b3f66; }
-:root[data-theme=light] .checklist-heat-legend { color: #3f4566; }
-:root[data-theme=light] .checklist-heat-cell[data-level=some], :root[data-theme=light] .checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
-:root[data-theme=light] .checklist-heat-cell[data-level=all], :root[data-theme=light] .checklist-heat-legend li[data-level=all]::before { background: var(--heat-all); }
-:root[data-theme=light] .checklist-heat-cell[data-level=perfect], :root[data-theme=light] .checklist-heat-legend li[data-level=perfect]::before { background: var(--heat-perfect); }
+.checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
 .checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: #ffffff12; }
-.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
-.checklist-heat-legend li[data-level=all]::before { background: var(--heat-all); }
-.checklist-heat-legend li[data-level=perfect]::before { background: var(--heat-perfect); }
-.checklist-limits { margin: 0; font-size: 14px; }
-@media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat-cell { width: 15px; height: 15px; } }
-@media (max-width: 767.98px) { .checklist-heat-cell { width: 16px; height: 16px; } }
+.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: #ffffff0f; box-shadow: inset 0 0 0 1px #ffffff14; }
+.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 52%, #0a1130); }
+.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff)); }
+.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%); box-shadow: 0 0 8px color-mix(in srgb, var(--heat-perfect) 70%, transparent); }
+@media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat { --cell: 15px; } }
+@media (max-width: 767.98px) { .checklist-heat { --cell: 16px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
 :root[data-app-motion=off] .checklist-mist { animation: none !important; }
 :root[data-app-motion=off] .checklist-page *:not(.checklist-mist) { transition: none !important; }

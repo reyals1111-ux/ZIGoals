@@ -7,11 +7,14 @@ import type {ChecklistDays} from '../../lib/checklist/schema';
 
 /**
  * The history (P7.15): twelve weeks of days, Monday to Sunday, each cell one sealed day — nothing on the path, partly
- * done, every dot lit, or a Perfect orbit — in the path's own colours, the same in every theme. Today shows as it stands.
- * A grid of images with one name each, plus a list for screen readers of the days that have a result.
+ * done, every dot lit, or a Perfect orbit. Today shows as it stands. A grid of images with one name each, plus a list for
+ * screen readers of the days that have a result. Session AG (owner Part 6, reference 12): "Orbit consistency" — rounded
+ * squares with gaps, the weekdays on the left and the weeks below ("12w … Now"), in nebula shades by our four honest states:
+ * nothing just above the background, some planets deep violet, all planets bright violet-blue, a Perfect orbit the
+ * brightest cyan with a glow. The same in every theme.
  */
 type Cell = {date: string; level: 'none' | 'some' | 'all' | 'perfect' | 'future'; label: string};
-const WEEKS = 12;
+const WEEKS = 12, DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 function weekday(date: string) { const [y, m, d] = date.split('-').map(Number); return (new Date(Date.UTC(y!, m! - 1, d!)).getUTCDay() + 6) % 7; }
 export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays; today: string; todaySummary: {total: number; done: number; perfect: boolean} | null}) {
   const end = addDays(today, 6 - weekday(today)), start = addDays(end, -(WEEKS * 7 - 1));
@@ -22,11 +25,15 @@ export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays
     const level = day.done >= day.total ? (day.perfect ? 'perfect' : 'all') : day.done > 0 ? 'some' : 'none';
     return {date, level, label: `${formatDate(date)}: ${day.done} of ${day.total} dots${level === 'perfect' ? ', a Perfect orbit' : ''}${date === today ? ' so far' : ''}`};
   });
-  const style = {'--heat-some': PATH_COLOURS.blue.token, '--heat-all': PATH_COLOURS.cyan.token, '--heat-perfect': PATH_COLOURS.gold.token} as CSSProperties;
+  const style = {'--heat-some': PATH_COLOURS.purple.token, '--heat-all': PATH_COLOURS.blue.token, '--heat-perfect': PATH_COLOURS.cyan.token} as CSSProperties;
   const results = cells.filter(c => c.level !== 'none' && c.level !== 'future');
   return <div className="checklist-history">
-    <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with planets lit`} style={style}>
-      {cells.map(c => <span key={c.date} className="checklist-heat-cell" data-level={c.level} data-today={c.date === today || undefined} title={c.label}/>)}
+    <div className="checklist-heat" style={style}>
+      <ol className="checklist-heat-days" aria-hidden="true">{DAYS.map(d => <li key={d}>{d}</li>)}</ol>
+      <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with planets lit`}>
+        {cells.map(c => <span key={c.date} className="checklist-heat-cell" data-level={c.level} data-today={c.date === today || undefined} title={c.label}/>)}
+      </div>
+      <ol className="checklist-heat-weeks" aria-hidden="true">{Array.from({length: WEEKS}, (_, i) => <li key={i}>{i === 0 ? `${WEEKS}w` : i === WEEKS - 1 ? 'Now' : i === WEEKS / 2 ? `${WEEKS / 2}w` : ''}</li>)}</ol>
     </div>
     <ul className="checklist-heat-legend" style={style}><li data-level="none">Nothing</li><li data-level="some">Some planets</li><li data-level="all">All planets</li><li data-level="perfect">Perfect orbit</li></ul>
     <ul className="sr-only">{results.map(c => <li key={c.date}>{c.label}</li>)}</ul>

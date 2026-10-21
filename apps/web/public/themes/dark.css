@@ -4615,21 +4615,30 @@
         background-image: none;
         background-color: var(--checklist-ink-history)
     }
+    .checklist-heat-days:not(#\-) {
+        color: #c5d3ea
+    }
+    .checklist-heat-weeks:not(#\-) {
+        color: #c5d3ea
+    }
     .checklist-heat-cell:not(#\-) {
         background-image: none;
-        background-color: #ffffff12
+        background-color: #ffffff0f;
+        box-shadow: inset 0 0 0 1px #ffffff08
     }
     .checklist-heat-cell[data-level=some]:not(#\-) {
         background-image: none;
-        background-color: color-mix(in srgb, var(--heat-some) 55%, transparent)
+        background-color: color-mix(in srgb, var(--heat-some) 52%, #0a1130)
     }
     .checklist-heat-cell[data-level=all]:not(#\-) {
-        background: var(--heat-all);
-        box-shadow: 0 0 8px color-mix(in srgb, var(--heat-all) 50%, transparent)
+        background-image: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff));
+        background-color: transparent;
+        box-shadow: 0 0 6px color-mix(in srgb, var(--heat-all) 45%, transparent)
     }
     .checklist-heat-cell[data-level=perfect]:not(#\-) {
-        background: var(--heat-perfect);
-        box-shadow: 0 0 10px color-mix(in srgb, var(--heat-perfect) 60%, transparent)
+        background-image: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%);
+        background-color: transparent;
+        box-shadow: 0 0 10px color-mix(in srgb, var(--heat-perfect) 75%, transparent)
     }
     .checklist-heat-cell[data-level=future]:not(#\-) {
         background-image: none;
@@ -4642,49 +4651,23 @@
     .checklist-heat-legend:not(#\-) {
         color: #c5d3ea
     }
-    :scope[data-theme=light] .checklist-history:not(#\-) {
-        background-image: none;
-        background-color: #f4f5fc;
-        box-shadow: inset 0 0 0 1px #d9dcf0
-    }
-    :scope[data-theme=light] .checklist-heat-cell:not(#\-), :scope[data-theme=light] .checklist-heat-legend li:not(#\-)::before {
-        background-image: none;
-        background-color: #e3e6f3
-    }
-    :scope[data-theme=light] .checklist-heat-cell[data-level=future]:not(#\-) {
-        background-image: none;
-        background-color: transparent;
-        box-shadow: inset 0 0 0 1px #d9dcf0
-    }
-    :scope[data-theme=light] .checklist-heat-cell[data-today]:not(#\-) {
-        outline-color: #3b3f66
-    }
-    :scope[data-theme=light] .checklist-heat-legend:not(#\-) {
-        color: #3f4566
-    }
-    :scope[data-theme=light] .checklist-heat-cell[data-level=some]:not(#\-), :scope[data-theme=light] .checklist-heat-legend li[data-level=some]:not(#\-)::before {
-        background-image: none;
-        background-color: color-mix(in srgb, var(--heat-some) 55%, transparent)
-    }
-    :scope[data-theme=light] .checklist-heat-cell[data-level=all]:not(#\-), :scope[data-theme=light] .checklist-heat-legend li[data-level=all]:not(#\-)::before {
-        background: var(--heat-all)
-    }
-    :scope[data-theme=light] .checklist-heat-cell[data-level=perfect]:not(#\-), :scope[data-theme=light] .checklist-heat-legend li[data-level=perfect]:not(#\-)::before {
-        background: var(--heat-perfect)
-    }
     .checklist-heat-legend li:not(#\-)::before {
         background-image: none;
-        background-color: #ffffff12
+        background-color: #ffffff0f;
+        box-shadow: inset 0 0 0 1px #ffffff14
     }
     .checklist-heat-legend li[data-level=some]:not(#\-)::before {
         background-image: none;
-        background-color: color-mix(in srgb, var(--heat-some) 55%, transparent)
+        background-color: color-mix(in srgb, var(--heat-some) 52%, #0a1130)
     }
     .checklist-heat-legend li[data-level=all]:not(#\-)::before {
-        background: var(--heat-all)
+        background-image: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff));
+        background-color: transparent
     }
     .checklist-heat-legend li[data-level=perfect]:not(#\-)::before {
-        background: var(--heat-perfect)
+        background-image: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%);
+        background-color: transparent;
+        box-shadow: 0 0 8px color-mix(in srgb, var(--heat-perfect) 70%, transparent)
     }
 }
 /*  components/checklist/day-celebration.css  */
@@ -4708,12 +4691,32 @@
         background-image: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%);
         background-color: transparent
     }
-    .checklist-celebration-rays:not(#\-) {
-        background-image: repeating-conic-gradient(from 0deg, #fff3d600 0deg, #fff3d6b3 4deg, #fff3d600 9deg, #fff3d600 20deg);
+    .checklist-celebration-glow:not(#\-) {
+        background-image: radial-gradient(closest-side, #ffd27a59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%);
         background-color: transparent
     }
-    .checklist-celebration-burst i:not(#\-) {
-        background: var(--c)
+    .checklist-celebration-nova:not(#\-) {
+        border-color: #fff3d6;
+        box-shadow: 0 0 30px #ffd27a, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80
+    }
+    .checklist-celebration-nova-2:not(#\-) {
+        border-color: #9ff6ff;
+        box-shadow: 0 0 24px #23eaff, 0 0 60px #f06dff80
+    }
+    .checklist-celebration-comet:not(#\-) {
+        background-image: linear-gradient(90deg, #ffffff00, #9ff6ff99 60%, #ffffff);
+        background-color: transparent;
+        box-shadow: 0 0 12px #9ff6ff
+    }
+    .checklist-celebration-comet:not(#\-)::after {
+        background-image: none;
+        background-color: #ffffff;
+        box-shadow: 0 0 14px 4px #9ff6ff
+    }
+    .checklist-celebration-twinkle i:not(#\-) {
+        background-image: none;
+        background-color: #ffffff;
+        filter: drop-shadow(0 0 4px #9ff6ff)
     }
     .checklist-celebration-card:not(#\-) {
         border-color: #ffd27a59;
@@ -4722,7 +4725,7 @@
         box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40
     }
     .checklist-celebration-trophy:not(#\-) {
-        filter: drop-shadow(0 0 30px #ffd27acc) drop-shadow(0 12px 18px #0009)
+        filter: drop-shadow(0 0 24px #ffd27a99)
     }
     .checklist-celebration-zigi:not(#\-) {
         filter: drop-shadow(0 12px 18px #0009)
@@ -13731,6 +13734,10 @@
     .timeline-row[data-kind=reminder] .timeline-block:not(#\-), .timeline-row[data-kind=checklist] .timeline-block:not(#\-) {
         background-image: none;
         background-color: transparent
+    }
+    .timeline-row[data-kind=checklist][style*='--item-colour'] .timeline-block:not(#\-) {
+        border-color: color-mix(in srgb, var(--item-colour) 70%, transparent);
+        box-shadow: inset 3px 0 0 var(--item-colour)
     }
     .timeline-row[data-kind=fast] .timeline-block:not(#\-), .timeline-row[data-kind=sleep] .timeline-block:not(#\-), .timeline-row[data-kind=timer] .timeline-block:not(#\-), .timeline-row[data-kind=meditation] .timeline-block:not(#\-) {
         background-image: linear-gradient(135deg, #6fe6f60f, #c790f612);

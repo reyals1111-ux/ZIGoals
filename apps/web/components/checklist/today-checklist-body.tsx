@@ -6,6 +6,7 @@ import {nudgeDue, nudgeText} from '../../lib/checklist/nudges';
 import {markNudged, todayOf} from '../../lib/checklist/day';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {checklistPath} from '../../lib/checklist/derive';
+import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {nextStep, normalisePath, pathSteps} from '../../lib/path/model';
 import {itemGlyph} from '../../lib/checklist/glyphs';
@@ -36,7 +37,8 @@ export default function TodayChecklistBody() {
     const check = () => setSlot(nudgeDue(new Date(), {on: state.prefs.nudges, waiting, nudged: nudgedKey ? nudgedKey.split(',') : [], quiet: state.quiet}));
     check(); const t = window.setInterval(check, 60_000); return () => window.clearInterval(t);
   }, [loaded, state.prefs.nudges, waiting, nudgedKey, state.quiet]);
-  const model = useMemo(() => loaded ? normalisePath(checklistPath(state.record.data, state.dots, [])) : null, [loaded, state.record.data, state.dots]);
+  // Session AG: the path's own colours (ADR-029 I3), so the card's planets match the Checklist's nodes.
+  const model = useMemo(() => { if (!loaded) return null; const colours = checklistDisplayColours(state.record.data, state.dots); return normalisePath(checklistPath(state.record.data, state.dots.map(d => ({...d, colour: colours.get(d.id) ?? d.colour})), [])); }, [loaded, state.record.data, state.dots]);
   const seen = () => { if (slot && date) { try { state.days.update(d => markNudged(d, date, slot)); } catch { /* the nudge shows again next time */ } } };
   if (!loaded || !summary) return <><p className="eyebrow" id="today-checklist-title">Checklist</p><p className="today-checklist-line">Reading your path…</p></>;
   const empty = state.dots.length === 0;

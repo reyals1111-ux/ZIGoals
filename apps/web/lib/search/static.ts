@@ -223,6 +223,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["af-checklist-star", "How do I put something on my path?"],
   ["af-checklist-tick", "What happens when I tick a dot?"],
   ["af-checklist-streak", "How does the Checklist streak work?"],
+  ["ag-orbit", "Why does the Checklist look different?"],
   ["af-checklist-timers", "What are the timers in the corner of the Checklist?"],
   ["af-checklist-launcher", "Where is the Checklist button, and can I hide it?"],
   ["auto-checkins", "Can a habit tick itself off from my Health journal?"],

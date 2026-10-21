@@ -8,6 +8,7 @@ import {pushToastLayer} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {PATH_COLOURS} from '../../lib/path/colours';
+import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
@@ -174,11 +175,11 @@ export function ChecklistPage() {
         {loaded && !state.unreadable && <CornerTimers state={state}/>}
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
-          <h2 id="checklist-history-title" className="checklist-history-title">Your last twelve weeks</h2>
+          <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
           <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>
         </section>}
         {loaded && !empty && !state.unreadable && (narrow || !state.date) && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
-          <summary>Your last twelve weeks</summary>
+          <summary>Orbit consistency · last 12 weeks</summary>
           {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>}
         </details>}
       </aside>
@@ -187,7 +188,7 @@ export function ChecklistPage() {
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} xp={null} perfect={!!summary?.perfect} total={total} colours={state.dots.filter(d => d.counted).map(d => PATH_COLOURS[d.colour].hex)} onClose={() => setCelebrate(false)}/></Suspense>}
+    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} perfect={!!summary?.perfect} total={total} colours={(() => { const c = checklistDisplayColours(state.record.data, state.dots); return state.dots.filter(d => d.counted).map(d => PATH_COLOURS[c.get(d.id) ?? d.colour].hex); })()} onClose={() => setCelebrate(false)}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>

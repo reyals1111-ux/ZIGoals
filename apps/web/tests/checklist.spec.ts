@@ -154,6 +154,6 @@ test('midnight in the person’s zone: a fresh path, and yesterday sealed into t
   await expect(page.locator('.checklist-head .eyebrow')).toContainText('Oct 21');
   await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 planets today');
   await expect.poll(() => stored<{days: Record<string, {total: number; done: number}>; today: {date: string; ticks: unknown[]}}>(page, CHECKLIST_DAYS_KEY)).toMatchObject({days: {'2026-10-20': {total: 4, done: 1}}, today: {date: '2026-10-21', ticks: []}});
-  await page.getByText('Your last twelve weeks', {exact: true}).click();
+  await page.getByText('Orbit consistency · last 12 weeks', {exact: true}).click(); // (Session AG: the history's new name, reference 12)
   await expect(page.locator('.checklist-heat-cell[title*="1 of 4 dots"]')).toHaveAttribute('data-level', 'some');
 });

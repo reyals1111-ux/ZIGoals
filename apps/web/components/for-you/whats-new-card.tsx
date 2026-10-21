@@ -3,8 +3,12 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AE (release `2026-10-session-ae-stunning`, ADR-027): stunning, finished. Each link opens its Help answer. */
+/** Session AG (release `2026-10-session-ag-orbit-checklist`, ADR-029): the orbit Checklist. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ag-orbit', label: 'The Checklist, redrawn: glowing planets on one flowing line'},
+];
+/** Session AF (release `2026-10-session-af-wealth-unlocked`, ADR-028); Session AG followed it, so these lead "Earlier updates". */
+const SESSION_AF_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-af-earn', label: 'Earn: every way to earn in the ZIG Finance ecosystem, with live numbers and risks'},
   {href: '/app/help#help-af-staking', label: 'Stake ZIG in your own wallet, practice or real, after a review'},
   {href: '/app/help#help-af-wallets', label: 'Link more wallets read-only and see their balances'},
@@ -137,6 +141,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AF_LINKS,
   ...SESSION_AE_LINKS,
   ...SESSION_AD_LINKS,
   ...SESSION_AC_LINKS,
