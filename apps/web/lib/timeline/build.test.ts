@@ -158,7 +158,8 @@ describe('registerTimelineSource: the seam other features use (the Checklist)', 
     const items = checklistTimelineSource({date: DATE, now: at('10:30'), stores});
     expect(items).toEqual([
       {id: 'ck_1', title: 'Fictional stretch', done: false, href: '/app/checklist', band: 'morning', pillar: 'habits', label: 'Checklist', colour: 'var(--pillar-habits, #23eaff)', habitId: ID.stretch},
-      {id: 'ck_2', title: 'Fictional sketch', done: false, href: '/app/checklist', band: 'evening', pillar: null, label: 'Checklist', colour: 'var(--pillar-wealth, #ffd27a)'},
+      // (Session AG Polish, ADR-030 J4: the custom item is stored gold; the Checklist's colours show it as pink, never gold.)
+      {id: 'ck_2', title: 'Fictional sketch', done: false, href: '/app/checklist', band: 'evening', pillar: null, label: 'Checklist', colour: 'var(--pillar-health, #ff74be)'},
       // (Session AG: each dot carries the colour it wears on the Checklist's path — its habit card's tone, or its own.)
     ]);
     expect(writes).toEqual([]);
