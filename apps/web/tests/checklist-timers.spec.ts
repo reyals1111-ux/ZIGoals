@@ -71,3 +71,20 @@ test('Focus shows with a timed habit on the path: its own timer starts, then the
   await expect.poll(async () => { const h = (await stored<{habits: {id: string; timer?: unknown; timerReceipts?: {status: string}[]}[]}>(page, HABITS_KEY))?.habits.find(x => x.id === ID.piano); return h ? {timer: h.timer ?? null, receipts: h.timerReceipts?.map(r => r.status)} : null; }).toEqual({timer: null, receipts: ['logged']});
   await expect(page.locator('.aa-toast')).toContainText('your time is logged on Habits');
 });
+
+test('honest timer cards: only a goal the person set says "Goal"; otherwise the card says what its value is', async ({page}, info) => {
+  // Session AG (owner amendment 3, non-negotiable 3): no invented "8h 0m Goal". The fixture sets no sleep or meditation
+  // goal and has never fasted; the piano habit's own target (15 minutes a day) is the person's goal for Focus.
+  test.skip(info.project.name !== 'desktop', 'the side column shows every card\'s sub line');
+  await seedChecklist(page, {path: fixturePath({piano: true})});
+  await page.goto('/app/checklist');
+  await openTimers(page);
+  const sub = (name: string) => timer(page, name).locator('small');
+  await expect(sub('Sleep')).toHaveText('No goal set · tap at bedtime');
+  await expect(sub('Meditate')).toHaveText('No goal set · starts 10m');
+  await expect(sub('Fast')).toHaveText('No goal set · starts at 16h');
+  await expect(sub('Focus')).toHaveText('15m Goal');
+  // The number wears the card's colour; the words stay plain.
+  await expect(timer(page, 'Focus').locator('small b')).toHaveText('15m');
+  for (const name of ['Sleep', 'Meditate', 'Fast']) await expect(sub(name), `${name}: never "Goal" for a value the person did not set`).not.toContainText(/\bGoal\b/);
+});

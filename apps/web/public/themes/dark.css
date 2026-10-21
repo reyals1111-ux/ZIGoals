@@ -4338,18 +4338,54 @@
         background-color: transparent;
         box-shadow: inset 0 0 0 1px #9273ff99
     }
-    @media (min-width: 1180px) {
-        .checklist-overlay .checklist-timers .checklist-timer:not(#\-) {
-            border-color: color-mix(in srgb, var(--timer) 60%, transparent);
-            background-image: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--timer) 22%, transparent), transparent 70%), linear-gradient(160deg, #020417f2, #01020df2);
-            background-color: transparent;
-            box-shadow: 0 5px 0 #02061499, 0 16px 34px -20px #000c, 0 0 26px color-mix(in srgb, var(--timer) 22%, transparent)
+    .checklist-timer:not(#\-) {
+        --timer: var(--pillar-habits, #23eaff);
+        border-color: color-mix(in srgb, var(--timer) 62%, transparent);
+        background-image: linear-gradient(150deg, #02051af0, #01020cf2);
+        background-color: transparent;
+        color: #f4f8ff;
+        box-shadow: 0 0 18px -4px color-mix(in srgb, var(--timer) 45%, transparent), inset 0 1px 0 #ffffff12
+    }
+    .checklist-timer:not(#\-)::after {
+        background-image: linear-gradient(120deg, #ffffff10, #ffffff00 42%);
+        background-color: transparent
+    }
+    @media (hover: hover) {
+        .checklist-timer:hover:not(#\-) {
+            border-color: var(--timer);
+            box-shadow: 0 0 26px -4px color-mix(in srgb, var(--timer) 60%, transparent), inset 0 1px 0 #ffffff18
         }
     }
-    @media (min-width: 1180px) {
-        .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring:not(#\-) {
-            filter: drop-shadow(0 0 10px color-mix(in srgb, var(--timer) 70%, transparent))
-        }
+    .checklist-timer:focus-visible:not(#\-) {
+        outline-color: var(--timer)
+    }
+    .checklist-timer[data-running]:not(#\-) {
+        border-color: var(--timer);
+        box-shadow: 0 0 0 1px var(--timer), 0 0 32px -2px color-mix(in srgb, var(--timer) 70%, transparent), inset 0 0 22px color-mix(in srgb, var(--timer) 16%, transparent)
+    }
+    .checklist-timer-ring:not(#\-) {
+        color: var(--timer);
+        filter: drop-shadow(0 0 7px color-mix(in srgb, var(--timer) 70%, transparent))
+    }
+    .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring:not(#\-) {
+        color: var(--timer)
+    }
+    .checklist-timer[data-running] .checklist-timer-ring:not(#\-) {
+        filter: drop-shadow(0 0 10px var(--timer)) brightness(1.2)
+    }
+    .checklist-timer-text small:not(#\-) {
+        color: #c9d5ec
+    }
+    .checklist-timer-text small b:not(#\-) {
+        color: color-mix(in srgb, var(--timer) 78%, #ffffff)
+    }
+    :scope[data-theme=light] .checklist-timer-text small b:not(#\-) {
+        color: color-mix(in srgb, var(--timer) 50%, #0b1430)
+    }
+    .checklist-timers-message:not(#\-) {
+        background-image: none;
+        background-color: #010109f2;
+        color: #eef4ff
     }
     @media (min-width: 1180px) {
         .checklist-history-open:not(#\-) {
@@ -4357,46 +4393,6 @@
             background-image: none;
             background-color: #ffffff08
         }
-    }
-    .checklist-timer:not(#\-) {
-        --timer: var(--pillar-habits, #23eaff);
-        border-color: color-mix(in srgb, var(--timer) 45%, transparent);
-        background-image: linear-gradient(120deg, #020417ee, #01020dee);
-        background-color: transparent;
-        color: #eef4ff;
-        box-shadow: 0 4px 0 #02061499, 0 12px 28px -18px #000c
-    }
-    .checklist-timer:active:not(#\-) {
-        box-shadow: 0 2px 0 #02061499
-    }
-    .checklist-timer:focus-visible:not(#\-) {
-        outline-color: var(--timer)
-    }
-    .checklist-timer[data-running]:not(#\-) {
-        border-color: var(--timer);
-        box-shadow: 0 0 0 1px var(--timer), 0 0 26px color-mix(in srgb, var(--timer) 40%, transparent)
-    }
-    .checklist-timer-ring:not(#\-) {
-        color: var(--timer)
-    }
-    .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring:not(#\-) {
-        color: var(--timer)
-    }
-    .checklist-timer-track:not(#\-) {
-        fill: none;
-        stroke: color-mix(in srgb, var(--timer) 70%, transparent)
-    }
-    .checklist-timer-arc:not(#\-) {
-        fill: none;
-        stroke: var(--timer)
-    }
-    .checklist-timer-text small:not(#\-) {
-        color: #c5d3ea
-    }
-    .checklist-timers-message:not(#\-) {
-        background-image: none;
-        background-color: #010109f2;
-        color: #eef4ff
     }
     @media (max-width: 1179.98px) {
         .checklist-dock:not(#\-) {
@@ -4412,12 +4408,7 @@
             background-color: transparent
         }
     }
-    @media (max-width: 1179.98px) {
-        .checklist-overlay .checklist-timers .checklist-timer:not(#\-) {
-            box-shadow: 0 3px 0 #02061499
-        }
-    }
-    @media (max-width: 1179.98px) {
+    @media (min-width: 641px) and (max-width: 1179.98px) {
         .path-dock-jump:not(#\-) {
             border-color: #8cc8ff80;
             background-image: radial-gradient(circle at 35% 28%, #050b2a, #010313 70%);
@@ -4426,12 +4417,12 @@
             box-shadow: 0 5px 0 #02061499, 0 14px 28px -12px #000c, 0 0 22px #4f8dff40
         }
     }
-    @media (max-width: 1179.98px) {
+    @media (min-width: 641px) and (max-width: 1179.98px) {
         .path-dock-jump:active:not(#\-) {
             box-shadow: 0 2px 0 #02061499
         }
     }
-    @media (max-width: 1179.98px) {
+    @media (min-width: 641px) and (max-width: 1179.98px) {
         .path-dock-jump:focus-visible:not(#\-) {
             outline-color: currentColor
         }

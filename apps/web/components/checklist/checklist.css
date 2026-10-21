@@ -174,37 +174,40 @@
   .checklist-history-fold > summary { white-space: nowrap; }
 }
 
-/* The corner timers: on a wide screen the side column's top (one tap each); on a phone or tablet one corner button that
-   opens them above it. White glass by day, night glass by night; each ring in its own colour. */
+/* Session AG (owner pointer 10, references 08–11): the timers as slim horizontal glass cards — a thin neon border and
+   glow in each card's colour, its line icon on the left, the name in white and one sub line whose number wears the card's
+   colour. On a computer one column of four at the top of the side column; on a phone or tablet the foot bar's compact cards.
+   Running: a brighter border and glow, the icon lit once. Night glass by night, white glass by day; the neon is the same. */
 .checklist-timers { display: grid; gap: 10px; }
-/* Round 4, a computer: the timers as glowing ringed tiles, two by two; the twelve weeks open under them. */
+.checklist-timer { --timer: var(--pillar-habits, #23eaff); position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 14px; min-height: 68px; padding: 10px 16px 10px 14px; border-radius: 18px;
+  border: 1.5px solid color-mix(in srgb, var(--timer) 62%, transparent); background: linear-gradient(150deg, #101b3ef0, #070d24f2); color: #f4f8ff; font: inherit; text-align: start; cursor: pointer;
+  box-shadow: 0 0 18px -4px color-mix(in srgb, var(--timer) 45%, transparent), inset 0 1px 0 #ffffff12; transition: box-shadow 220ms ease, border-color 220ms ease, transform 160ms ease; }
+.checklist-timer::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(120deg, #ffffff10, #ffffff00 42%); pointer-events: none; }
+@media (hover: hover) { .checklist-timer:hover { border-color: var(--timer); box-shadow: 0 0 26px -4px color-mix(in srgb, var(--timer) 60%, transparent), inset 0 1px 0 #ffffff18; transition-delay: 70ms; } }
+.checklist-timer:active { transform: scale(.985); }
+.checklist-timer:focus-visible { outline: 3px solid var(--timer); outline-offset: 3px; }
+.checklist-timer:disabled { cursor: progress; }
+.checklist-timer[data-running] { border-color: var(--timer); box-shadow: 0 0 0 1px var(--timer), 0 0 32px -2px color-mix(in srgb, var(--timer) 70%, transparent), inset 0 0 22px color-mix(in srgb, var(--timer) 16%, transparent); }
+.checklist-timer-ring { position: relative; display: grid; place-items: center; width: 44px; height: 44px; color: var(--timer); filter: drop-shadow(0 0 7px color-mix(in srgb, var(--timer) 70%, transparent)); }
+/* The icon is a theme island (its own colour by day too): above the islands' own word colour. */
+.checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { color: var(--timer); }
+.checklist-timer-ring svg { width: 32px; height: 32px; }
+/* Running: the icon lights up once (a single flare), then stays lit. */
+.checklist-timer[data-running] .checklist-timer-ring { filter: drop-shadow(0 0 10px var(--timer)) brightness(1.2); animation: checklist-timer-lit 900ms cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes checklist-timer-lit { 0% { transform: scale(.9); filter: drop-shadow(0 0 0 var(--timer)); } 45% { transform: scale(1.12); filter: drop-shadow(0 0 16px var(--timer)) brightness(1.5); } 100% { transform: none; } }
+.checklist-timer-text { display: grid; gap: 2px; min-width: 0; }
+.checklist-timer-text strong { font-size: 18px; line-height: 1.2; font-weight: 750; letter-spacing: -.01em; }
+.checklist-timer-text small { max-width: 100%; font-size: 15px; line-height: 1.3; color: #c9d5ec; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-timer-text small b { color: color-mix(in srgb, var(--timer) 78%, #ffffff); font-weight: 700; }
+:root[data-theme=light] .checklist-timer-text small b { color: color-mix(in srgb, var(--timer) 50%, #0b1430); }
+.checklist-timers-message { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 14px; background: #050a1ef2; color: #eef4ff; font-size: 15px; }
 @media (min-width: 1180px) {
-  /* (Gate C stress audit: columns that may shrink, so a long timed habit's line ends in its ellipsis in its tile; an auto
-     minimum took the whole line and pushed the Checklist 62 px sideways at 1440.) */
-  .checklist-timers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 8px; min-height: 118px; padding: 14px 10px 12px; text-align: center; border-radius: 24px; border: 1.5px solid color-mix(in srgb, var(--timer) 60%, transparent); background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--timer) 22%, transparent), transparent 70%), linear-gradient(160deg, #0d1838f2, #070e25f2); box-shadow: 0 5px 0 #02061499, 0 16px 34px -20px #000c, 0 0 26px color-mix(in srgb, var(--timer) 22%, transparent); }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 58px; height: 58px; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--timer) 70%, transparent)); }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: center; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text strong { font-size: 17px; }
   .checklist-history-open { display: grid; gap: 10px; padding: 16px; border-radius: 24px; border: 1px solid #ffffff1f; background: #ffffff08; }
   .checklist-history-title { margin: 0; font-size: 17px; }
   .checklist-history-open .checklist-history { margin: 0; padding: 12px; }
 }
-.checklist-timer { --timer: var(--pillar-habits, #23eaff); display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 60px; padding: 6px 14px 6px 6px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--timer) 45%, transparent); background: linear-gradient(120deg, #0d1838ee, #070e25ee); color: #eef4ff; font: inherit; text-align: start; cursor: pointer; box-shadow: 0 4px 0 #02061499, 0 12px 28px -18px #000c; }
-.checklist-timer:active { transform: translateY(2px); box-shadow: 0 2px 0 #02061499; }
-.checklist-timer:focus-visible { outline: 3px solid var(--timer); outline-offset: 3px; }
-.checklist-timer:disabled { cursor: progress; }
-.checklist-timer[data-running] { border-color: var(--timer); box-shadow: 0 0 0 1px var(--timer), 0 0 26px color-mix(in srgb, var(--timer) 40%, transparent); }
-.checklist-timer-ring { position: relative; display: grid; place-items: center; width: 48px; height: 48px; color: var(--timer); }
-/* The ring is a theme island (its own colour by day too): above the islands' own word colour. */
-.checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { color: var(--timer); }
-.checklist-timer-ring > svg:first-child { position: absolute; inset: 0; width: 100%; height: 100%; rotate: -90deg; } /* the ring only; the glyph keeps its own 20 px and stands upright (crit1) */
-.checklist-timer-track { fill: none; stroke: color-mix(in srgb, var(--timer) 70%, transparent); stroke-width: 3; }
-.checklist-timer-arc { fill: none; stroke: var(--timer); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--share, 1)); }
-.checklist-timer-text { display: grid; gap: 1px; min-width: 0; }
-.checklist-timer-text strong { font-size: 16px; }
-.checklist-timer-text small { max-width: 100%; font-size: 14px; color: #c5d3ea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.checklist-timers-message { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 14px; background: #050a1ef2; color: #eef4ff; font-size: 15px; }
+@media (prefers-reduced-motion: reduce) { .checklist-timer[data-running] .checklist-timer-ring { animation: none; } }
+:root[data-app-motion=off] .checklist-timer[data-running] .checklist-timer-ring { animation: none; }
 /* Round 3, the foot bar (phones and tablets): an opaque band the path never runs under (the overlay's scroll padding
    counts it); round 4: filled with the timers' chips, "Jump to next" at its right, and while a toast shows, a row above
    the chips for it. */
@@ -220,12 +223,19 @@
   .checklist-timers-wrap { position: fixed; left: max(10px, env(safe-area-inset-left, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 15; display: block; }
   .checklist-overlay:has(.checklist-jump-slot .path-dock-jump) .checklist-timers-wrap { right: calc(max(10px, env(safe-area-inset-right, 0px)) + 62px); }
   .checklist-timers { display: flex; gap: 6px; }
-  .checklist-overlay .checklist-timers .checklist-timer { flex: 1 1 0; min-width: 0; grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 2px; min-height: 56px; padding: 4px 4px 5px; border-radius: 18px; text-align: center; box-shadow: 0 3px 0 #02061499; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 30px; height: 30px; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring svg:last-child { width: 16px; height: 16px; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: center; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text strong { font-size: 14px; line-height: 1.1; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text small { display: none; }
+  /* (Compact cards: the icon over the name, 56 px tall; on a tablet beside it; while one runs its time shows under its name.) */
+  .checklist-overlay .checklist-timers .checklist-timer { flex: 1 1 0; min-width: 0; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 2px; min-height: 56px; padding: 4px 6px; border-radius: 16px; text-align: center; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: center; max-width: 100%; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 26px; height: 26px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring svg { width: 22px; height: 22px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text strong { font-size: 14px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text small { display: none; font-size: 14px; }
+  .checklist-overlay .checklist-timers .checklist-timer[data-running] .checklist-timer-text small { display: block; }
+  .checklist-overlay .checklist-timers .checklist-timer[data-running] .checklist-timer-label { display: none; }
+}
+@media (min-width: 641px) and (max-width: 1179.98px) {
+  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 8px; padding: 4px 12px; text-align: start; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }
   .checklist-timers-message { position: fixed; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 31; }
   /* "Jump to next", docked: the foot bar's own round button (it follows the theme, as the timers' button does). */
   .path-dock-jump { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 50%; border: 2px solid #8cc8ff80; background: radial-gradient(circle at 35% 28%, #1d2a5c, #0a1230 70%); color: #eef4ff; font: inherit; cursor: pointer; box-shadow: 0 5px 0 #02061499, 0 14px 28px -12px #000c, 0 0 22px #4f8dff40; }
