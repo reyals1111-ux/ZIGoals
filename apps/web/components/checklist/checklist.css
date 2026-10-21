@@ -223,6 +223,29 @@
   .path-dock-jump:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
   :root[data-keyboard=open] .checklist-timers-wrap { display: none; }
 }
+/* Session AG Polish (owner Part 2): a phone's foot dock is one slim row — 48 px chips (44 px with the icon beside the word
+   from 420 px), the bar 64 / 58 px tall — so the path keeps most of the screen; the path's end scrolls clear of it and of
+   the toast's row. */
+@media (max-width: 640px) {
+  .checklist-dock { height: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(112px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay .checklist-timers .checklist-timer { min-height: 48px; padding: 3px 4px; gap: 1px; border-radius: 14px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 22px; height: 22px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring svg { width: 19px; height: 19px; }
+  .checklist-jump-slot { bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .path-dock-jump { width: 50px; height: 50px; }
+  :root .checklist-toast-slot .aa-toast-region { bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-timers-message { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-shell { padding-bottom: calc(136px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 420px) and (max-width: 640px) {
+  .checklist-dock { height: calc(58px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 6px; min-height: 44px; padding: 0 8px; text-align: start; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }
+  :root .checklist-toast-slot .aa-toast-region { bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(106px + env(safe-area-inset-bottom, 0px)); }
+}
 @media (min-width: 641px) and (max-width: 1179.98px) {
   .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 8px; padding: 4px 12px; text-align: start; }
   .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }

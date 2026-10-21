@@ -9,9 +9,9 @@ No new dependencies; one storage field only (`checklist.celebratedOn` in `zigoal
 | Part | What | State | Commits |
 |---|---|---|---|
 | 0 | Records (Alpha #46, verifier on #46, H62 correction), ADR-030, this file, Draft PR (#92) | done | `cc7e9a24` |
-| 1 | Nebula glyphs, more glyphs, matte unreached, no gold, the arc | done | this commit |
+| 1 | Nebula glyphs, more glyphs, matte unreached, no gold, the arc | done | `fb19d01b` |
 | 2b | Owner addition: the phone header's Checklist pill, the launcher's bold check | to do (after 2) | — |
-| 2 | The phone layout | to do | — |
+| 2 | The phone layout | done | this commit |
 | 3 | The Habits banners | to do | — |
 | 4 | Orbit planets | to do | — |
 | 5 | Pointer 9 on phones, Orbit consistency | to do | — |
@@ -20,7 +20,7 @@ No new dependencies; one storage field only (`checklist.celebratedOn` in `zigoal
 | 8 | Extras | to do | — |
 | 9 | Themes, checks, finish | to do | — |
 
-## Captures used (self-check, scratchpad only): 0 of 20
+## Captures used (self-check, scratchpad only): 1 of 20
 
 ## Next step
-Part 2 (phone lanes: `lib/path/phone-lanes.ts` is written and unit-tested, not yet wired into `components/path/path.tsx`). Part 2b's files are in `git stash` (`part2b`). Part 3's shared banner parts (`components/habits/habit-section-banner.tsx`) are written, uncommitted. Helper 2 (planet assets) is running.
+Part 2b: `git stash pop` (`part2b`: the header pill, the bold check, the theme island) plus `tests/phone-checklist-button.spec.ts` (untracked). Then Part 3 (`components/habits/habit-section-banner.tsx` written, `habit-sections.tsx` uses it, uncommitted) and Part 4 (helper 2's assets are in `public/art/checklist/planets/`, `lib/path/planet-designs.ts`, `scripts/checklist/prepare-planets.py`, uncommitted).
