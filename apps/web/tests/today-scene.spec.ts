@@ -57,7 +57,11 @@ test('one scene: rising behind the status row, under the right column, down behi
     // On past the hero's right edge (into the gap and under the right column) and down behind "What is due now".
     expect(g.picture.right).toBeGreaterThan(g.hero.right + 60);
     expect(g.picture.bottom).toBeGreaterThan(g.hero.bottom + 40);
-    for (const position of await page.locator('.today-primary > .today-hero ~ *, .today-rail').evaluateAll(els => els.map(e => getComputedStyle(e).position))) expect(position).toBe('relative');
+    // (Session AF Gate C, CI on 1b19fcda: one sibling read with no position at all — a lazily loaded card swapped in during
+    // the read; the check now reads until every sibling on the page is relative.)
+    const positions = () => page.locator('.today-primary > .today-hero ~ *, .today-rail').evaluateAll(els => els.filter(e => e.isConnected).map(e => getComputedStyle(e).position));
+    expect((await positions()).length).toBeGreaterThan(0);
+    await expect.poll(async () => (await positions()).filter(position => position !== 'relative')).toEqual([]);
   }
   // Under the content: with the layer made hit-testable for a moment, each sampled piece of content is above it.
   const samples = await page.evaluate(() => {

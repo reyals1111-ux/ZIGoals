@@ -24,3 +24,15 @@ Run 2 (18:11:58–18:14:54 UTC = 20:11–20:14 Brussels, 15-minute limit, progre
   aborted by the verifier's own navigations: 115 (a count, A3)
   the one finding: http://127.0.0.1:3101/api/push net::ERR_ABORTED — ZIGoals' own one-time push check (lib/push/client.ts), whose only aborts are its 15 s limit and the page being left; this abort fell outside the 2 s window A3 allows around a navigation, so it counts (not investigated further: no stage failed and the app logged no error)
   The live-only stages (the market coordinator's price, the separate landing) are for the owner's run on the live Alpha.
+
+Run 3 (20 Oct 23:46:00–23:48:57 UTC = Wed 21 Oct 01:46–01:49 Brussels, the final app code 499fff64's build on :3101, 15-minute
+limit): every stage PASS (the live-only ones SKIPPED); 1,873 requests inspected, no privacy match, every request GET, only the
+app's and ZIGChain testnet's origins; no HTTP or console error; 100 aborts counted by A3's rule (RSC prefetches and two
+not-configured status reads), 3 not-configured answers named. Status FAIL on one page error: React #418 (a text that differs
+between the server's render and the browser's) on /app/review. Cause (a probe over 25 routes, fresh and Showcase, browser in
+Europe/Brussels): `useLocalToday` (components/use-local-today.ts, unchanged since Session AB-Design) starts from the
+render's own local date, so between local midnight and UTC midnight the UTC server and the Brussels browser render
+different dates in the Life review; React then renders that page on the client. Not changed by this session (the view and
+the hook are as on main; this session added the header's "Stories" link and the engine's year window); not checked on
+main's own build. An owner item: run the verifier outside 00:00–02:00 Brussels, or make the hook
+hydration-safe (start from the server's date and move to the local one after mount).
