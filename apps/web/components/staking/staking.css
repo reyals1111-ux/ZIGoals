@@ -1,0 +1,129 @@
+/* Session AF (L2 design §4): the staking actions. Practice is a dashed amber ring on a striped backdrop; real a solid gold
+   badge. Network words are never smaller than 16 px and wrap rather than cut; every control is at least 44 px. */
+.staking-actions{--staking-practice:#e8a33d;--staking-real:var(--pillar-wealth,#ffd27a);display:grid;gap:18px;min-width:0;overflow-wrap:anywhere}
+.staking-actions.is-practice{border:2px dashed var(--staking-practice);background-image:repeating-linear-gradient(135deg,transparent 0 14px,color-mix(in srgb,var(--staking-practice) 7%,transparent) 14px 28px)}
+.staking-actions.is-real{border:2px solid var(--staking-real)}
+.staking-actions h2{margin:4px 0 0}
+.staking-actions-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px}
+.staking-network-switch{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px;min-width:0;flex:1 1 520px} /* crit1: the two choices side by side, equal, filling the row */
+.staking-network-option{display:grid;gap:2px;text-align:left;min-height:44px;min-width:min(240px,100%);padding:10px 14px;border-radius:14px;border:2px solid var(--line,#6b91c846);background:var(--surface-1,#101b32);color:var(--text,#eef4ff);font-size:16px;cursor:pointer}
+.staking-network-option.is-practice[aria-pressed="true"]{border-style:dashed;border-color:var(--staking-practice)}
+.staking-network-option.is-real[aria-pressed="true"]{border-color:var(--staking-real);box-shadow:inset 0 0 0 1px var(--staking-real)}
+/* Session AF Gate C (design critique, money pages 11): the chosen tile carries a checked ring at its top right (a radio's
+   mark, filled in the network's own colour), so the choice shows on the tile itself; the other tile keeps an empty ring. */
+.staking-network-option{position:relative;padding-right:46px}
+.staking-network-check{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;border:2px solid var(--line,#6b91c8);box-sizing:border-box}
+.staking-network-option.is-practice[aria-pressed="true"] .staking-network-check{border-color:var(--staking-practice);background:var(--staking-practice)}
+.staking-network-option.is-real[aria-pressed="true"] .staking-network-check{border-color:var(--staking-real);background:var(--staking-real)}
+.staking-network-option[aria-pressed="true"] .staking-network-check::after{content:"";position:absolute;left:5.5px;top:1.5px;width:5px;height:10px;border:solid #1d1400;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+@media (forced-colors: active){.staking-network-option[aria-pressed="true"] .staking-network-check{background:Highlight;border-color:Highlight}.staking-network-option[aria-pressed="true"] .staking-network-check::after{border-color:HighlightText}}
+.staking-network-option:disabled{opacity:.6;cursor:not-allowed}
+.staking-network-badge{font-weight:800;letter-spacing:.08em;font-size:14px}
+/* crit1: practice reads as an outline, real as a filled gold chip, so the two never look alike. */
+.staking-network-option.is-practice .staking-network-badge{display:inline-block;justify-self:start;padding:0 8px;border-radius:8px;border:2px dashed var(--staking-practice);background:transparent;color:var(--staking-practice)}
+.staking-network-option.is-real .staking-network-badge{display:inline-block;justify-self:start;padding:1px 8px;border-radius:8px;background:var(--staking-real);color:#1d1400}
+.staking-network-label{font-weight:700;font-size:16px}
+.staking-network-chain{font-size:14px;color:var(--text-secondary,#b7c8de)}
+/* crit1: `:root` lifts these above the app's `.panel p { font-size: 15px }`, so the network words are 18 px (16 px under an
+   amount) as designed; the practice banner is a statement with a dashed rule, not a third box beside the two choices. */
+/* Session AF Gate C (design critique, money pages 11): the line under the two tiles is a small note of the choice ("Chosen
+   network: …", 16 px, the network words' floor, in the secondary colour, a thin rule in the network's own style), no
+   longer an 18 px line that read like a third option; the chosen tile itself carries the check. */
+:root .staking-network-banner{margin:0;font-size:16px;line-height:1.5;padding:2px 0 2px 12px;border:0;border-left:3px solid var(--line,#6b91c8);border-radius:0;background:none;color:var(--text-secondary,#b7c8de)}
+:root .staking-network-banner strong{font-weight:650;color:var(--text,#eef4ff)}
+:root .staking-network-banner.is-practice{border-left:3px dashed var(--staking-practice)}
+:root .staking-network-banner.is-real{border-left:3px solid var(--staking-real);background:none;color:var(--text-secondary,#b7c8de)}
+:root .staking-network-line{margin:6px 0 0;font-size:16px;font-weight:700;line-height:1.5;letter-spacing:.02em;overflow-wrap:anywhere}
+.staking-network-line{padding-left:10px;border-left:4px solid var(--line,#6b91c8)}
+.staking-network-line.is-practice{border-left:4px dashed var(--staking-practice,#e8a33d)}
+.staking-network-line.is-real{border-left:4px solid var(--staking-real,#ffd27a)}
+.staking-connect,.staking-connected{display:grid;gap:14px;min-width:0}
+.staking-connect .primary,.staking-connect .secondary{justify-self:start;min-height:44px;display:inline-flex;align-items:center}
+.staking-open-keplr{font-size:18px;padding:12px 20px}
+.staking-wallet-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin:0}
+.staking-wallet-row .text-link{min-height:44px;background:none;border:0;padding:0 4px;cursor:pointer}
+.staking-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.staking-tabs button{min-height:44px;padding:8px 16px;border-radius:40px;border:1px solid var(--line,#6b91c846);background:var(--surface-1,#101b32);color:var(--text,#eef4ff);font-size:16px;cursor:pointer}
+.staking-tabs button.is-active{border-color:var(--brand-cyan,#33cce4);font-weight:700}
+.staking-form{display:grid;gap:16px;min-width:0}
+.staking-form>.primary{justify-self:start;min-height:44px;min-width:160px}
+.staking-validators{display:grid;gap:10px;border:0;padding:0;margin:0;min-width:0}
+.staking-validators legend{font-weight:700;margin-bottom:6px;font-size:16px}
+.staking-validator-list{display:grid;gap:8px;max-height:420px;overflow:auto;padding-right:4px}
+.staking-validator{display:flex;gap:12px;align-items:flex-start;min-height:44px;padding:12px;border:1px solid var(--line,#6b91c846);border-radius:14px;cursor:pointer;min-width:0}
+.staking-validator input{width:22px;height:22px;margin-top:2px;flex:none}
+.staking-validator:has(input:checked){border-color:var(--brand-cyan,#33cce4)}
+.staking-validator-text{display:grid;gap:4px;min-width:0;font-size:15px}
+.staking-validator-text strong{font-size:16px}
+.staking-validator-address{font-family:ui-monospace,monospace;font-size:13px;color:var(--text-secondary,#b7c8de)}
+.staking-concentration{margin:0}
+.staking-amount{display:grid;gap:8px;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+.staking-amount>.field input{min-height:48px;font-size:18px}
+.staking-amount>.secondary{min-height:48px;min-width:64px}
+.staking-amount>#staking-amount-network,.staking-amount>.fine{grid-column:1/-1;margin:0}
+.staking-explainer summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.staking-progress{display:grid;gap:8px;min-width:0}
+.staking-progress h3{margin:0;font-size:18px}
+.staking-hash code{overflow-wrap:anywhere;word-break:break-all;font-size:13px}
+.staking-explorer-links{display:flex;flex-wrap:wrap;gap:14px}
+.staking-explorer-links a{min-height:44px;display:inline-flex;align-items:center}
+.staking-sheet .staking-sheet-body{display:grid;gap:16px;min-width:0}
+.staking-sheet>header{min-width:0;box-sizing:border-box;max-width:100%}
+.staking-sheet>.staking-sheet-body{box-sizing:border-box;max-width:100%}
+.staking-sheet>header>div{min-width:0}
+.staking-sheet>header .eyebrow{white-space:normal;overflow-wrap:anywhere;letter-spacing:.06em}
+.staking-sheet.is-real{border:2px solid var(--pillar-wealth,#ffd27a)}
+.staking-sheet.is-practice{border:2px dashed #e8a33d}
+.staking-sheet.is-practice .staking-network-line{border-left:4px dashed #e8a33d}
+.staking-sheet.is-real .staking-network-line{border-left:4px solid var(--pillar-wealth,#ffd27a)}
+.staking-review-facts{display:grid;gap:12px;margin:0}
+.staking-review-facts>div{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr);gap:12px;align-items:start}
+.staking-review-facts dt{font-weight:700;color:var(--text-secondary,#b7c8de)}
+.staking-review-facts dd{margin:0;min-width:0;overflow-wrap:anywhere;font-size:16px}
+.staking-claim-list{margin:0;padding-left:18px;display:grid;gap:6px}
+.staking-raw pre{white-space:pre-wrap;word-break:break-all;font-size:12px;max-height:240px;overflow:auto}
+.staking-raw summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.staking-sheet-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:12px}
+.staking-sheet-actions button{min-height:48px;min-width:120px}
+.staking-check{display:flex;gap:10px;align-items:center;min-height:44px;font-size:16px}
+.staking-check input{width:22px;height:22px}
+/* The shared phone-sheet rule bleeds a sheet's header 16 px past each edge, for dialogs padded 16 px; this sheet has no
+   side padding, so its header stays inside (nothing scrolls sideways in the review). */
+@media (max-width:767.98px){:root dialog.wealth-sheet.staking-sheet>header{margin-inline:0}}
+@media (max-width:600px){
+  .staking-network-option{min-width:100%}
+  .staking-review-facts>div{grid-template-columns:minmax(0,1fr);gap:4px}
+  .staking-sheet{max-height:100dvh!important;height:100dvh;width:100vw!important;border-radius:0!important;margin:0}
+  .staking-sheet-actions{position:sticky;bottom:0;padding-top:8px;background:inherit}
+  .staking-sheet-actions button{flex:1 1 140px}
+}
+@media (prefers-reduced-motion:reduce){.staking-actions *{transition:none!important;animation:none!important}}
+/* Session AF chunk 3 (lane L2a): rewards sweep and validator health inside the staking actions; plain, no motion. */
+.staking-sweep,.staking-health{display:grid;gap:10px;min-width:0;padding-top:12px;border-top:1px solid var(--line,#6b91c846)}
+.staking-sweep h3,.staking-health h3{margin:0;font-size:18px}
+.staking-sweep p,.staking-health p{margin:0}
+.staking-sweep-list,.staking-health-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.staking-sweep-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.staking-sweep-list .secondary{min-height:44px}
+.staking-health-item{display:grid;gap:4px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846)}
+.staking-health-item.is-medium{border-color:var(--staking-practice,#e8a33d)}
+.staking-health-item.is-high{border:2px solid #e5675e}
+.staking-health-name{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.staking-health-alerts{margin:0;padding-left:20px;display:grid;gap:4px}
+.staking-health-alerts .text-link{min-height:44px;background:none;border:0;padding:0 4px;cursor:pointer;text-decoration:underline}
+.staking-grants,.staking-badges{display:grid;gap:10px;min-width:0;padding-top:12px;border-top:1px solid var(--line,#6b91c846)}
+.staking-grants h3,.staking-badges h3{margin:0;font-size:18px}
+.staking-grants p,.staking-badges p{margin:0}
+.staking-grants-list,.staking-badges-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.staking-grants-list li,.staking-badges-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846)}
+.staking-badges-list li{display:grid;justify-content:stretch}
+.staking-grants .secondary,.staking-badges .secondary,.staking-badges .primary{min-height:44px;justify-self:start}
+.staking-badges .text-link,.staking-grants .text-link{min-height:44px;background:none;border:0;padding:0 4px;cursor:pointer;text-decoration:underline}
+.staking-badges-form{display:grid;gap:10px}
+.staking-memo{overflow-wrap:anywhere;word-break:break-all}
+.staking-choices{display:grid;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.staking-choices legend{font-weight:700;margin-bottom:6px}
+.staking-choice{display:flex;gap:10px;align-items:flex-start;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846);cursor:pointer}
+.staking-choice input{margin-top:4px;width:20px;height:20px;flex:none}
+.staking-choice span{display:grid;gap:2px}
+.staking-choice span span{font-size:14px;color:var(--text-secondary,#b7c8de)}

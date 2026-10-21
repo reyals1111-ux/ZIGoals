@@ -4,7 +4,8 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {GOAL_EXTRAS, reconcileGoalExtras} from '../../lib/goal-extras/store';
 import {averageKey} from '../../lib/average-goals/store';
 import {deleteImages, listImages} from '../../lib/vision/store';
-import {isShowcase} from '../../lib/showcase-storage';
+import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
+import {referencedPhotoIds} from '../../lib/goal-extras/photo-references';
 import {useAverageGoals, visionScope} from './use-goal-extras';
 
 /** Keeps the goal extras in step with the goals that exist (G2–G7, owner edit 3); renders nothing. Loaded after Goals. */
@@ -29,7 +30,10 @@ export function useGoalExtrasConsistency(liveKeys: readonly string[], ready: boo
     const result = reconcileGoalExtras(extras.data, keys, today);
     if (!result.changed) return;
     try { extras.update(current => reconcileGoalExtras(current, keys, today).extras); } catch { return; }
-    if (result.orphanImages.length && !isShowcase()) void deleteImages(visionScope(), result.orphanImages).catch(() => undefined);
+    // Session AF Part 11 A10: never a photo another goal-extras version still points at; nothing when unreadable.
+    const refs = referencedPhotoIds(getAppStorage());
+    const orphans = refs.unreadable ? [] : result.orphanImages.filter(id => !refs.ids.has(id));
+    if (orphans.length && !isShowcase()) void deleteImages(visionScope(), orphans).catch(() => undefined);
   }, [ready, signature, extras, averages.loaded, averages.unreadable, keys]);
   // Photos no goal points at any more (replaced or removed earlier; kept until now so Undo could bring them back).
   const tidied = useRef(false);
@@ -37,7 +41,12 @@ export function useGoalExtrasConsistency(liveKeys: readonly string[], ready: boo
     // Never in the Showcase: its goal extras live in the tab and say nothing about the photos this device keeps.
     if (!ready || tidied.current || !extras.loaded || extras.unreadable || isShowcase()) return;
     tidied.current = true;
+    // Session AF Part 11 A10: the references of every goal-extras version count (v1 and a future v2, by bytes);
+    // when either record cannot be read, nothing is deleted.
+    const refs = referencedPhotoIds(getAppStorage());
+    if (refs.unreadable) return;
     const used = new Set([...Object.values(extras.data.goals), ...Object.values(extras.data.dormant ?? {})].flatMap(e => e.vision?.kind === 'photo' ? [e.vision.imageId] : []));
+    for (const id of refs.ids) used.add(id);
     void listImages(visionScope()).then(images => deleteImages(visionScope(), images.filter(i => !used.has(i.id)).map(i => i.id))).catch(() => undefined);
   }, [ready, extras.loaded, extras.unreadable, extras.data]);
 }

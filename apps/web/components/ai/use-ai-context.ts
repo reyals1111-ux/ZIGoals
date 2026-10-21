@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState, useSyncExternalStore} from 'react';
 import {usePathname} from 'next/navigation';
 import {formatUnits} from '@zigoals/chain-config';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
@@ -40,6 +40,11 @@ import {CHESS_CACHE} from '../../lib/skills/chess/schema';
 import {chessOf} from '../../lib/skills/chess/engine';
 import {linksOf} from '../../lib/links/engine';
 import {useHealthConsent} from './use-health-consent';
+import {CHECKLIST, CHECKLIST_DAYS} from '../../lib/checklist/schema';
+import {checklistDay} from '../../lib/checklist/day';
+import {ZIGI_PLANS} from '../../lib/ai/store/plans';
+import {earnSnapshot, subscribeEarnSnapshot} from '../../lib/earn/snapshot';
+import {readPageView, trackCardFocus} from '../../lib/ai/context/page-view';
 
 /**
  * What ZIGi may see on this page (ADR-012, Part 4 wiring): the specialist's area from the pathname, the consent gates
@@ -85,6 +90,10 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
   const memory = useDeviceRecord(AI_MEMORY), options = useDeviceRecord(AI_OPTIONS);
   // Session W Part 21: the device records ZIGi's new tools read (accounts, milestone dates, chess); each tool keeps its area's switch.
   const accounts = useDeviceRecord(ACCOUNTS), milestoneDates = useDeviceRecord(MILESTONE_DATES), chessCache = useDeviceRecord(CHESS_CACHE);
+  // Session AF (L4): the Checklist's records, ZIGi's plans, and the Earn snapshot (what the Earn page read in this visit; memory only).
+  const checklist = useDeviceRecord(CHECKLIST), checklistDays = useDeviceRecord(CHECKLIST_DAYS), plans = useDeviceRecord(ZIGI_PLANS);
+  const earn = useSyncExternalStore(subscribeEarnSnapshot, earnSnapshot, earnSnapshot);
+  useEffect(() => { trackCardFocus(); }, []);
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
   const gates = useMemo(() => consent({settings, area, pathname, layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted}), [settings, area, pathname, layoutHasHealth, healthConsent.accountActive, healthConsent.accountHealthPermitted]);
   const ready = platform.loaded && habits.loaded && health.loaded && fasting.loaded && portfolios.loaded && legacy.loaded && dashboard.loaded && healthConsent.loaded;
@@ -140,7 +149,11 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: notesForAi(options.data, memory.data),
       accounts: accounts.loaded && !accounts.unreadable ? accounts.data : null, milestoneDates: milestoneDates.loaded && !milestoneDates.unreadable ? milestoneDates.data : null,
       chess: chessCache.loaded && !chessCache.unreadable ? {settings: dashboard.loaded && !dashboard.error ? chessOf(dashboard.data) ?? null : null, cache: chessCache.data} : null,
-      linksCount: dashboard.loaded && !dashboard.error ? linksOf(dashboard.data).items.length : null, showcase: isShowcase()};
-  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data]);
+      linksCount: dashboard.loaded && !dashboard.error ? linksOf(dashboard.data).items.length : null, showcase: isShowcase(),
+      // Session AF (L4): read at the moment of the question, like the rest; the page view is titles only, Health cards only with the gate.
+      checklist: checklist.loaded && checklistDays.loaded ? {record: checklist.data, days: checklistDays.data, date: checklistDay(now), unreadable: checklist.unreadable || checklistDays.unreadable} : null,
+      earn, plans: plans.loaded && !plans.unreadable ? plans.data : null,
+      pageView: (() => { try { return readPageView(document, pathname, {healthOpen: toolGates.localHealth, sensitive}); } catch { return null; } })()};
+  }, [ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};
 }

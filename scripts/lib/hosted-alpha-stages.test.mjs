@@ -2,7 +2,8 @@ import { afterEach, expect, test, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import nextConfig from "../../apps/web/next.config.ts";
 import { composeCsp } from "../../apps/web/lib/csp-compose.mjs";
-import { LIVE_ONLY_CHECKS, LIVE_ORIGINS, VERIFIER_STAGES, liveOnlySkips, setAsideUnboundApi, verifyBase } from "./hosted-alpha-stages.mjs";
+import { EARN_STAGE } from "./hosted-alpha-earn.mjs";
+import { LIVE_ONLY_CHECKS, LIVE_ORIGINS, NAVIGATION_WINDOW_MS, NOT_CONFIGURED_ANSWERS, VERIFIER_STAGES, classifyFailedRequests, isRscRequest, liveOnlySkips, setAsideNotConfigured, setAsideUnboundApi, verifyBase } from "./hosted-alpha-stages.mjs";
 // Session AE (Part 0b, ADR-027): the verifier's stage list, its live-only classification and its base option. The browser
 // half (stages 2 → 6 in this order on one page) is apps/web/tests/hosted-verifier-order.spec.ts.
 
@@ -22,8 +23,10 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
     [6, "aa-pages", "AA pages: calculator, Life review, Journey, Your data, Reminders and Share open"],
     [7, "landing", LANDING],
     [8, "recipe", "Recipe import refuses http, a private host and an oversized address"],
+    [9, "earn", EARN_STAGE.name],
+    [10, "checklist", "Checklist: a fictional favourite habit ticks its own record, and Undo restores it"],
   ]);
-  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7]);
+  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7, 9, 10]);
   expect(VERIFIER_STAGES.filter(stage => stage.reportsItself).map(stage => stage.number)).toEqual([1]);
   expect(Object.isFrozen(VERIFIER_STAGES) && VERIFIER_STAGES.every(Object.isFrozen)).toBe(true);
 });
@@ -32,7 +35,7 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
 // call on the page must be a goto to the page it needs, before anything else touches the page.
 test("every browser stage opens its own page first; stage 3 opens Today", async () => {
   const STOP = Symbol("stop");
-  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex };
+  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex, 9: `${LOCAL}/app/earn`, 10: `${LOCAL}/app/habits` };
   for (const stage of VERIFIER_STAGES.filter(s => s.browser)) {
     const calls = [];
     const page = new Proxy({}, { get: (_, name) => (...args) => { calls.push([name, ...args]); throw STOP; } });
@@ -103,6 +106,86 @@ test("a local base sets aside only the base's own /api answers of 503 and Chrome
   // The verifier calls it on a local base only; the live run counts every error as before.
   const verifier = readFileSync(new URL("../verify-hosted-alpha.mjs", import.meta.url), "utf8");
   expect(verifier).toContain("if (!live) setAsideUnboundApi(report, alpha);");
+});
+
+// Session AF Part 11 A2 (ADR-028 H70): the owner's run on Alpha #44 passed every stage and ended FAIL only on these.
+test("A2: exactly the two designed 'not configured' answers become named, counted items on a live base; every near miss still counts", () => {
+  const ALPHA = LIVE_ORIGINS.alpha;
+  const push = JSON.stringify({ error: "PUSH_UNAVAILABLE", message: "Reminders while ZIGoals is closed are not available in this build." });
+  const account = JSON.stringify({ error: "HOSTED_CONFIGURATION_REQUIRED", message: "Email and encrypted sync have not been configured. Local records remain available." });
+  const failed = "Failed to load resource: the server responded with a status of 503 ()";
+  const e = (url, status) => ({ url, status });
+  const rows = [
+    [e(`${ALPHA}/api/push`, 503), { method: "GET", body: push }],                                         // designed
+    [e(`${ALPHA}/api/private-account?action=status`, 503), { method: "GET", body: account }],           // designed
+    [e(`${ALPHA}/api/push`, 503), { method: "GET", body: push }],                                         // designed (again)
+    [e(`${ALPHA}/api/push`, 503), { method: "GET", body: account }],                                      // wrong body
+    [e(`${ALPHA}/api/push`, 503), { method: "GET", body: JSON.stringify({ error: "PUSH_UNAVAILABLE" }) }], // body missing the message
+    [e(`${ALPHA}/api/push`, 503), { method: "GET", body: push.replace("}", ',"extra":1}') }],             // an extra field
+    [e(`${ALPHA}/api/push`, 503), { method: "POST", body: push }],                                        // wrong method
+    [e(`${ALPHA}/api/push`, 500), { method: "GET", body: push }],                                         // wrong status
+    [e(`${ALPHA}/api/private-account?action=other`, 503), { method: "GET", body: account }],            // wrong query
+    [e(`${ALPHA}/api/private-account`, 503), { method: "GET", body: account }],                         // no query
+    [e(`${LIVE_ORIGINS.fallback}/api/push`, 503), { method: "GET", body: push }],                         // another origin
+    [e(`${ALPHA}/api/push`, 503), { method: "GET" }],                                                     // body unread: fail closed
+    [e(`${ALPHA}/api/push`, 503), { method: "GET", body: "not json" }],
+  ];
+  const map = new Map(rows);
+  const report = {
+    httpErrors: rows.map(([entry]) => entry),
+    consoleErrors: [
+      { message: failed, location: { url: `${ALPHA}/api/push` } }, { message: failed, location: { url: `${ALPHA}/api/private-account?action=status` } },
+      { message: failed, location: { url: `${ALPHA}/api/private-account?action=other` } }, { message: "TypeError: boom", location: { url: `${ALPHA}/api/push` } },
+    ],
+  };
+  setAsideNotConfigured(report, ALPHA, entry => map.get(entry));
+  expect(report.notConfigured.count).toBe(3);
+  expect(report.notConfigured.answers).toEqual([
+    { url: `${ALPHA}/api/push`, status: 503, error: "PUSH_UNAVAILABLE" },
+    { url: `${ALPHA}/api/private-account?action=status`, status: 503, error: "HOSTED_CONFIGURATION_REQUIRED" },
+    { url: `${ALPHA}/api/push`, status: 503, error: "PUSH_UNAVAILABLE" },
+  ]);
+  expect(report.notConfigured.consoleErrors).toHaveLength(2);
+  expect(report.httpErrors).toHaveLength(rows.length - 3);
+  expect(report.consoleErrors.map(c => c.location.url)).toEqual([`${ALPHA}/api/private-account?action=other`, `${ALPHA}/api/push`]);
+  // The bodies are the routes' own exported answers, not copies that could drift.
+  const pushRoute = readFileSync(new URL("../../apps/web/lib/server/push-route.ts", import.meta.url), "utf8");
+  const accountRoute = readFileSync(new URL("../../apps/web/lib/server/private-account.ts", import.meta.url), "utf8");
+  for (const answer of NOT_CONFIGURED_ANSWERS) {
+    const source = answer.path === "/api/push" ? pushRoute : accountRoute;
+    expect(source).toContain(`error:'${answer.body.error}',message:'${answer.body.message}'`);
+  }
+  // The verifier reads every error body, then sets the designed answers aside on every base (live included).
+  const verifier = readFileSync(new URL("../verify-hosted-alpha.mjs", import.meta.url), "utf8");
+  expect(verifier).toContain("setAsideNotConfigured(report, alpha, entry => answers.get(entry));");
+  expect(verifier.indexOf("setAsideNotConfigured(report")).toBeLessThan(verifier.indexOf("assert.deepEqual(report.pageErrors,[]); assert.deepEqual(report.httpErrors,[]);"));
+});
+
+test("A3: requests the verifier's own navigations abort are a count; a real failed request still counts", () => {
+  const nav = 10_000;
+  const r = (url, errorText, at, rsc) => ({ url, failure: { errorText }, at, rsc });
+  const report = { failedRequests: [
+    r("https://alpha.zigoals.app/app/activity?_rsc=abc", "net::ERR_ABORTED", 50_000, true),           // prefetch, any time
+    r("https://alpha.zigoals.app/api/private-account?action=status", "net::ERR_ABORTED", nav + 900, false), // cut off by a goto
+    r("https://alpha.zigoals.app/api/push", "net::ERR_ABORTED", nav - NAVIGATION_WINDOW_MS, false),  // the window's edge
+    r("https://alpha.zigoals.app/api/push", "net::ERR_ABORTED", nav + NAVIGATION_WINDOW_MS + 1, false), // outside: counts
+    r("https://alpha.zigoals.app/app?_rsc=x", "net::ERR_FAILED", nav, true),                           // not an abort: counts
+    r("https://alpha.zigoals.app/_next/static/chunk.js", "net::ERR_CONNECTION_RESET", nav, false),      // counts
+    { url: "https://alpha.zigoals.app/x", failure: null, at: nav, rsc: false },                       // no failure text: counts
+  ] };
+  classifyFailedRequests(report, [nav]);
+  expect(report.abortedByNavigation).toEqual({ count: 3, urls: [
+    "https://alpha.zigoals.app/app/activity?_rsc=abc", "https://alpha.zigoals.app/api/private-account?action=status", "https://alpha.zigoals.app/api/push",
+  ] });
+  expect(report.failedRequests).toHaveLength(4);
+  expect(isRscRequest("https://alpha.zigoals.app/app?_rsc=1")).toBe(true);
+  expect(isRscRequest("https://alpha.zigoals.app/app", { "next-router-prefetch": "1" })).toBe(true);
+  expect(isRscRequest("https://alpha.zigoals.app/app", { rsc: "1" })).toBe(true);
+  expect(isRscRequest("https://alpha.zigoals.app/api/push", {})).toBe(false);
+  expect(isRscRequest("not a url", {})).toBe(false);
+  const verifier = readFileSync(new URL("../verify-hosted-alpha.mjs", import.meta.url), "utf8");
+  expect(verifier).toContain("classifyFailedRequests(report, navigations);");
+  expect(verifier.indexOf("classifyFailedRequests(report, navigations);")).toBeLessThan(verifier.indexOf("report.status=hostedStatus(report);"));
 });
 
 /** The headers a local `next start` sends on /app: next.config.ts's every-route block and the middleware's CSP and cache. */

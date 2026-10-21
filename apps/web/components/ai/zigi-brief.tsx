@@ -1,13 +1,14 @@
 'use client';
 import {useEffect, useMemo, useRef} from 'react';
-import {morningBrief, type Brief} from '../../lib/ai/proactive/brief';
+import {eveningRecap, morningBrief, recapDue, type Brief} from '../../lib/ai/proactive/brief';
 import {BRIEF_ID, dismissedOn, dismissFor} from '../../lib/ai/proactive/dismiss';
-import {ZIGI, zigiPrefs} from '../../lib/ai/store/records';
+import {briefPrefs, ZIGI, zigiPrefs} from '../../lib/ai/store/records';
 import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {toolEnv} from '../../lib/ai/tools/env';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {askZigi} from './ask';
-import {BriefLines} from './proactive';
+import {BriefLines, RecapLines} from './proactive';
+import {localClock, ReadAloudButton, useBriefClock} from './brief-parts';
 import {useAiContext} from './use-ai-context';
 import {useAiSettings} from './use-ai-settings';
 import {useDeviceRecord} from './use-device-record';
@@ -18,29 +19,49 @@ import './ai.css';
  * other cards stay as they are. Loaded only while ZIGi is on and its launcher shows; made on this device (Health only
  * through its gate); shown only when there is something to say and the person did not hide it today; nothing written
  * on view ("Not today" is the only write).
+ *
+ * Session AF (L4, P8.2): Daily Briefing v2 — the brief gains its sections (today's Checklist dots, meals planned, timers
+ * running, goals needing a step, the earning summary, a note the person keeps) — and the Evening Recap, from the time the
+ * person chose (18:00 by default) until they hide it for the day, in the same card's place. Each has "Read aloud" (on a
+ * tap, never by itself), "Open ZIGi" and "Not today". The morning brief and the recap can each be turned off in Settings
+ * → ZIGi · Your day (`zigoals:zigi:v1` `brief`).
  */
-export type DayBrief = {brief: Brief; day: string};
+export const RECAP_ID = 'recap';
+export type DayBrief = {brief: Brief | null; day: string; recap?: Brief | null};
 export function BriefProbe({onBrief}: {onBrief: (brief: DayBrief | null) => void}) {
-  const settings = useAiSettings(), {toolSources, gates} = useAiContext(settings.data, 'your AI', false), zigi = useDeviceRecord(ZIGI);
-  // Made again only when the records, the gates or the ZIGi record change (the context object itself is new on every
-  // render), and passed up only when its words change: a new object for the same brief would re-render Today, which
-  // re-renders this probe, without end (found by Part 9's spec: the endless updates starved the chat's own loading).
+  const settings = useAiSettings(), {toolSources, gates} = useAiContext(settings.data, 'your AI', false), zigi = useDeviceRecord(ZIGI), now = useBriefClock();
+  // Made again only when the records, the gates, the ZIGi record or the half-minute clock change (the context object
+  // itself is new on every render), and passed up only when its words change: a new object for the same brief would
+  // re-render Today, which re-renders this probe, without end (found by Part 9's spec: the endless updates starved the
+  // chat's own loading).
+  const due = now ? recapDue(localClock(now), briefPrefs(zigi.data).eveningTime) : false;
   const brief = useMemo<DayBrief | null>(() => {
     if (!zigi.loaded || zigiPrefs(zigi.data).greeting === 'quiet') return null;
     const sources = toolSources(); if (!sources) return null;
-    if (dismissedOn(zigi.data, sources.habitDay).has(BRIEF_ID)) return null;
-    const made = morningBrief(toolEnv(sources, gates, 'local'));
-    return made ? {brief: made, day: sources.habitDay} : null;
-  }, [toolSources, gates, zigi.loaded, zigi.data]);
+    const prefs = briefPrefs(zigi.data), hidden = dismissedOn(zigi.data, sources.habitDay), env = toolEnv(sources, gates, 'local'), extras = {snapshot: sources.earn, earning: prefs.earning};
+    const morning = prefs.morning && !hidden.has(BRIEF_ID) ? morningBrief(env, extras) : null;
+    const recap = prefs.evening && due && !hidden.has(RECAP_ID) ? eveningRecap(env, extras) : null;
+    return morning || recap ? {brief: morning, day: sources.habitDay, ...(recap ? {recap} : {})} : null;
+  }, [toolSources, gates, zigi.loaded, zigi.data, due]);
   const sent = useRef<string | null>(null);
   useEffect(() => { const key = JSON.stringify(brief); if (key === sent.current) return; sent.current = key; onBrief(brief); }, [brief, onBrief]);
   return null;
 }
-export function BriefCard({brief, day}: DayBrief) {
-  const hide = () => { try { dismissFor(getAppStorage(), day, BRIEF_ID); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_KEY})); } catch { /* it stays; nothing else changes */ } };
-  return <article className="panel zigi-brief-card" aria-label="ZIGi's morning brief">
-    <p className="eyebrow">ZIGI · YOUR DAY</p>
-    <BriefLines brief={brief}/>
-    <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => askZigi('')}>Open ZIGi</button><button type="button" className="text-link" onClick={hide}>Not today</button></div>
-  </article>;
+function hideFor(day: string, id: string) {
+  try { dismissFor(getAppStorage(), day, id); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_KEY})); } catch { /* it stays; nothing else changes */ }
+}
+export function BriefCard({brief, day, recap}: DayBrief) {
+  // One root for the For-you slot (a layout item keeps one DOM root): the recap, once its time has come, sits above the morning brief.
+  return <div className="zigi-brief-stack">
+    {recap && <article className="panel zigi-brief-card zigi-recap-card" aria-label="ZIGi's evening recap">
+      <p className="eyebrow">ZIGI · YOUR EVENING</p>
+      <RecapLines recap={recap}/>
+      <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => askZigi('')}>Open ZIGi</button><button type="button" className="text-link" onClick={() => hideFor(day, RECAP_ID)}>Not today</button></div>
+    </article>}
+    {brief && <article className="panel zigi-brief-card" aria-label="ZIGi's morning brief">
+      <p className="eyebrow">ZIGI · YOUR DAY</p>
+      <BriefLines brief={brief} footer={<ReadAloudButton brief={brief} intro="Your morning brief."/>}/>
+      <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => askZigi('')}>Open ZIGi</button><button type="button" className="text-link" onClick={() => hideFor(day, BRIEF_ID)}>Not today</button></div>
+    </article>}
+  </div>;
 }

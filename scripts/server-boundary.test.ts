@@ -18,4 +18,4 @@ it('keeps the real client graph free of server-only imports and poisons the prov
  expect(readFileSync('apps/web/lib/server/coingecko.ts','utf8')).toMatch(/^import 'server-only';/);
  expect(readFileSync('apps/web/lib/server/market-service.ts','utf8')).toMatch(/^import 'server-only';/);
  expect(clientServerViolations('apps/web')).toEqual([]);
-});
+},20_000); // CI on 49433538: walking Session AF's larger client graph took 5.6 s on a slow runner (1.9 s here); a time budget, every check unchanged

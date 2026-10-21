@@ -14,11 +14,14 @@ import {connectSources, frameSources} from '../../apps/web/lib/csp-compose.mjs';
 import {probeAlphaMarket} from './alpha-market-probe.mjs';
 import {appNonceFindings, priceFinding, reviewReason, reviewedRestPattern} from './hosted-alpha-review.mjs';
 import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
+import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
+import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 
 export const LIVE_ORIGINS = Object.freeze({alpha: 'https://alpha.zigoals.app', fallback: 'https://zigoals-alpha.reyals1111.workers.dev', apex: 'https://zigoals.app'});
 /** The fictional values no request may carry (the privacy check) and no safe diagnostic summary may show. */
-export const SENTINELS = Object.freeze([GOAL_SENTINELS.name, GOAL_SENTINELS.target, GOAL_SENTINELS.targetUnits, GOAL_SENTINELS.date, GOAL_SENTINELS.note]);
+// Session AF (ADR-028 H57): the Checklist stage's fictional habit title joins the privacy sentinels.
+export const SENTINELS = Object.freeze([GOAL_SENTINELS.name, GOAL_SENTINELS.target, GOAL_SENTINELS.targetUnits, GOAL_SENTINELS.date, GOAL_SENTINELS.note, CHECKLIST_SENTINELS.habit]);
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 /**
@@ -106,13 +109,13 @@ async function identity(page, {base, expect, report}) {
   await page.goto(base + '/app'); await page.waitForLoadState('networkidle');
   // Session AC (owner finding 3 on #41): the page ends after the footer's link columns. The first-visit notice carries
   // the label and the sentence on /app; Settings' facts block carries the sentence, the mode and the build environment.
-  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('No blockchain transactions or financial signatures');
+  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
   await expect(page.locator('footer .network-banner, footer .mode-strip')).toHaveCount(0);
   report.initialPerformance = await page.evaluate(() => ({navigation: performance.getEntriesByType('navigation').map(x => x.toJSON()), resources: performance.getEntriesByType('resource').map(x => x.toJSON())}));
   await recordLayouts(page, report, 'alpha-dashboard');
   await page.goto(base + '/app/settings');
   await expect(page.locator('.about-alpha')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
-  await expect(page.locator('.about-alpha .network-banner')).toContainText('No blockchain transactions or financial signatures');
+  await expect(page.locator('.about-alpha .network-banner')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
 }
 
 /**
@@ -222,6 +225,9 @@ export const VERIFIER_STAGES = Object.freeze([
   {number: 6, key: 'aa-pages', name: 'AA pages: calculator, Life review, Journey, Your data, Reminders and Share open', browser: true, liveOnly: false, reportsItself: false, run: aaPages},
   {number: 7, key: 'landing', name: LANDING, browser: true, liveOnly: true, reportsItself: false, run: landing},
   {number: 8, key: 'recipe', name: 'Recipe import refuses http, a private host and an oversized address', browser: false, liveOnly: false, reportsItself: false, run: recipeRefusals},
+  // Session AF (ADR-028 H57): new stages are appended, never inserted; existing numbers never change.
+  EARN_STAGE,
+  CHECKLIST_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**
@@ -256,4 +262,64 @@ export function setAsideUnboundApi(report, base) {
   report.setAside = {httpErrors: report.httpErrors.filter(unbound), consoleErrors: report.consoleErrors.filter(line)};
   report.httpErrors = report.httpErrors.filter(answer => !unbound(answer));
   report.consoleErrors = report.consoleErrors.filter(entry => !line(entry));
+}
+
+/**
+ * Session AF Part 11 A2 (ADR-028 H70): the public Alpha's two designed "not configured on this installation" answers. On
+ * any base, exactly these — the path, the query, GET, status 503 and this JSON body — are named items, not HTTP errors:
+ * the push Worker and accounts are off until the owner activates them, and a correctly configured Alpha says so on every
+ * page that asks. Anything else still counts, including the same path with another status, body, query or method, and an
+ * answer whose body could not be read (fail closed).
+ */
+export const NOT_CONFIGURED_ANSWERS = Object.freeze([
+  Object.freeze({path: '/api/push', search: '', method: 'GET', status: 503, body: Object.freeze({error: 'PUSH_UNAVAILABLE', message: 'Reminders while ZIGoals is closed are not available in this build.'})}),
+  Object.freeze({path: '/api/private-account', search: '?action=status', method: 'GET', status: 503, body: Object.freeze({error: 'HOSTED_CONFIGURATION_REQUIRED', message: 'Email and encrypted sync have not been configured. Local records remain available.'})}),
+]);
+const sameJson = (text, expected) => { try { const parsed = JSON.parse(text); return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length === Object.keys(expected).length && Object.entries(expected).every(([key, value]) => parsed[key] === value); } catch { return false; } };
+/**
+ * Moves the designed answers (NOT_CONFIGURED_ANSWERS) and Chrome's "Failed to load resource" line for each of their URLs
+ * from report.httpErrors and report.consoleErrors to report.notConfigured, a named, counted list printed in the summary
+ * and never a review reason (a review reason would deny PASS to every correctly configured Alpha). `answerOf(entry)`
+ * returns the request method and the response body the verifier read for that error (undefined when unread).
+ */
+export function setAsideNotConfigured(report, base, answerOf) {
+  const designed = entry => {
+    let url; try { url = new URL(entry.url); } catch { return undefined; }
+    const answer = answerOf(entry);
+    if (url.origin !== base || typeof answer?.body !== 'string') return undefined;
+    return NOT_CONFIGURED_ANSWERS.find(d => url.pathname === d.path && url.search === d.search && entry.status === d.status && answer.method === d.method && sameJson(answer.body, d.body));
+  };
+  const named = report.httpErrors.map(entry => ({entry, match: designed(entry)})).filter(x => x.match);
+  const urls = new Set(named.map(x => x.entry.url));
+  const line = entry => UNBOUND_CONSOLE.test(entry.message ?? '') && urls.has(entry.location?.url);
+  report.notConfigured = {
+    count: named.length,
+    answers: named.map(({entry, match}) => ({url: entry.url, status: entry.status, error: match.body.error})),
+    consoleErrors: report.consoleErrors.filter(line),
+  };
+  const moved = new Set(named.map(x => x.entry));
+  report.httpErrors = report.httpErrors.filter(entry => !moved.has(entry));
+  report.consoleErrors = report.consoleErrors.filter(entry => !line(entry));
+}
+
+/**
+ * Session AF Part 11 A3 (ADR-028 H5/H70): requests the verifier's own navigations abort (Next link prefetches and RSC
+ * fetches cancelled when a stage navigates; a page's own fetch cut off by the next goto) are recorded as a count, not as
+ * findings. A failed request is "aborted by a navigation" only when its error is net::ERR_ABORTED and it is a Next
+ * prefetch or RSC fetch, or it failed within 2 s of a main-frame navigation; everything else still counts.
+ * Each failedRequests entry carries `at` (ms) and `rsc` (a prefetch or RSC request); `navigations` is the list of
+ * main-frame navigation times (ms).
+ */
+export const NAVIGATION_WINDOW_MS = 2000;
+export function classifyFailedRequests(report, navigations) {
+  const nearNavigation = at => typeof at === 'number' && navigations.some(t => Math.abs(at - t) <= NAVIGATION_WINDOW_MS);
+  const aborted = entry => entry.failure?.errorText === 'net::ERR_ABORTED' && (entry.rsc === true || nearNavigation(entry.at));
+  const set = report.failedRequests.filter(aborted);
+  report.abortedByNavigation = {count: set.length, urls: set.map(entry => entry.url)};
+  report.failedRequests = report.failedRequests.filter(entry => !aborted(entry));
+}
+/** A Next prefetch or RSC request: the `next-router-prefetch: 1` header, an `rsc: 1` header or an `_rsc` query parameter. */
+export function isRscRequest(url, headers = {}) {
+  if (headers['next-router-prefetch'] === '1' || headers.rsc === '1') return true;
+  try { return new URL(url).searchParams.has('_rsc'); } catch { return false; }
 }

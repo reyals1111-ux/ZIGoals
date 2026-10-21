@@ -278,3 +278,17 @@ nav[aria-label="Measurement history pages"] button { min-height: 44px; }
 /* Session AB-Design Phase 2 closing pass (layout audit, 320 px): the last line before the footer sits over the edge of its
    planet glow; it takes the secondary text colour so it keeps 4.5:1 there too. */
 :root .health-private-note { color: var(--text-secondary, #c9d6ea); }
+/* Session AF Gate C (design critique): on a phone "kcal logged" ran into the ring under "1,970" (the 112 px ring left an
+   inner circle about 89 px wide, and the label sat where the circle narrows). The ring is 128 px and the figure a little
+   smaller, so the label clears the ring with room on each side; the label stays 14 px. Overrides phone-health.css. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .health-page .health-summary.panel { grid-template-columns: 128px minmax(0, 1fr); column-gap: 12px; }
+  :root .health-page .health-summary .health-gauge { width: 128px; height: 128px; }
+  :root .health-page .health-summary .health-gauge strong { font-size: 1.5rem; }
+}
+/* Under 375 px the figures beside the ring had no room (the title alone needs about 171 px, and the panel cut its words
+   off, already before this change): there the ring sits above them, centred. */
+@media (max-width: 374.98px) {
+  :root .health-page .health-summary.panel { grid-template-columns: minmax(0, 1fr); }
+  :root .health-page .health-summary .health-gauge { margin: 0 auto; }
+}

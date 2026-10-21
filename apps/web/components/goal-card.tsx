@@ -19,6 +19,7 @@ import {Suspense, lazy, useId, useState} from 'react';
 import {useCardArt} from './goals/use-card-art';
 import type {CardArt} from '../lib/card-art/catalog';
 import './goal-card-ab.css';
+import {StarToggle} from './checklist/star-toggle';
 const GoalArtPicker = lazy(() => import('./goals/goal-art-picker'));
 export const displayAmount= formatGoalAmount;
 export function GoalProgressRing({name,progressPct,goalId,assetMix=[],complete,bound}:{assetMix?:AssetMix[];name:string;progressPct:string;goalId?:string;complete?:boolean;bound?:ProgressBound}){
@@ -35,7 +36,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
  const scene:CardArt=preview??chosen??g.scene;
  return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
   <div className="goal-card-art"><Suspense fallback={null}><SceneArt scene={scene}/></Suspense><span>{g.type}</span></div>
-  <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{!compact&&g.status!=='closed'&&<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`}]} extra={<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button>}/>}</div>
+  <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`}]} extra={<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button>}/></span>}</div>
   {picker&&<Suspense fallback={null}><GoalArtPicker goalKey={g.key} name={g.name} current={scene} onClose={()=>setPicker(false)} onPreview={setPreview}/></Suspense>}
   <h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>
   <p className="goal-value nebula-number">{g.progressBound==='unavailable'&&!g.heldAsset?'Value unavailable':`${g.progressBound==='at-least'?'At least ':''}${formatGoalAmount(g.current,g.heldAsset??g.currency)}`}<span> / {g.target?formatGoalAmount(g.target,g.currency):'No target saved'}</span></p>

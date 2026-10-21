@@ -13,6 +13,7 @@ import {useHabits} from '../habits/use-habits';
 import type {FastingStore} from './use-fasting';
 import './fasting.css';
 import type {LayoutAttrs} from '../layout-edit';
+import {StarToggle} from '../checklist/star-toggle';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
 const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone}); } catch { return formatTime(iso); } };
@@ -50,7 +51,7 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
   const history = fastingHistory(fasting.data);
   // As a layout item inside PhoneFold the region's attributes arrive here on desktop (components/phone/phone-fold.tsx).
   return <section {...layout} className="panel fasting-timer" id="fasting" aria-labelledby="fasting-title">
-    <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div></div>
+    <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div><StarToggle item={{kind: 'health', input: 'fast'}} label="Fast" defaultValue={16} unit="h"/></div>
     <p className="fasting-safety" role="note">{FASTING_SAFETY_NOTE}</p>
     <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice.</p>
     {fasting.unreadable ? fasting.error ? <div className="notice" role="alert"><p>{fasting.error}</p></div> : <div className="notice" role="alert"><p>Your saved fasts on this device could not be read. They were not changed.</p>

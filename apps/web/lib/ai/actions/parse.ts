@@ -1,5 +1,5 @@
 import {ACTION_FENCE} from '../context/specialists';
-import {ACTION_KINDS, COMPOSITE_KINDS, GOAL_CATEGORIES, KIND_ALIASES, MAX_PROPOSALS, actionSchema, compositeSchema, expandComposite, type Action} from './schema';
+import {ACTION_KINDS, COMPOSITE_KINDS, GOAL_CATEGORIES, KIND_ALIASES, MAX_BUNDLE_STEPS, MAX_PROPOSALS, actionSchema, compositeSchema, expandComposite, type Action} from './schema';
 const KIND_SET: Record<string, true> = Object.fromEntries([...ACTION_KINDS, ...COMPOSITE_KINDS].map(k => [k, true]));
 const GOAL_CATEGORY_SET = new Set<string>(GOAL_CATEGORIES);
 /** A habit's measurement as a bare word, mapped to the schema's words or a unit of its own. */
@@ -99,7 +99,15 @@ function coerceNumbers(value: unknown): unknown {
   return out;
 }
 /** `revise` (Session X-Local Part 5a): a block carried "revise": true, so the previous reply's still-pending cards are replaced by this reply's. */
-export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean};
+/**
+ * `bundle` (Session AF, L4; TIER 3 data formats): the reply carried one plan-bundle; its cards are `proposals[first]` to
+ * `proposals[first + count - 1]`, `steps` is how many cards the plan had before the cut (the reply shows at most 10).
+ */
+export type BundleMeta = {title: string; first: number; count: number; steps: number};
+export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean; bundle?: BundleMeta};
+/** The words a cut plan carries, and a second plan in the same reply. */
+export const BUNDLE_CUT = (shown: number) => `Only the first ${shown} steps of this plan are shown; ask for the rest once these are done.`;
+export const ONE_BUNDLE = 'One plan per reply: ask for the next plan once this one is decided.';
 export const FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]*\n([\s\S]*?)\n[^\S\n]*\1[^\S\n]*(?=\n|$)/gi;
 const firstIssue = (error: {issues: {path: PropertyKey[]; message: string}[]}) => { const issue = error.issues[0]; return issue ? `${issue.path.length ? `${issue.path.map(String).join('.')}: ` : ''}${issue.message}` : 'invalid'; };
 function normalise(value: unknown, flags: {revise: boolean}): unknown {
@@ -127,6 +135,11 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   }
   if ((record.kind === 'create-goal' || record.kind === 'plan-goal' || record.kind === 'edit-goal') && typeof record.category === 'string' && !GOAL_CATEGORY_SET.has(record.category.trim())) { const match = [...GOAL_CATEGORY_SET].find(c => c.toLowerCase() === (record.category as string).trim().toLowerCase()); if (match) record.category = match; else delete record.category; }
   if (record.kind === 'create-goal' && Array.isArray(record.habits)) record.kind = 'plan-goal';
+  // Session AF (L4): a plan's habits and goal get the same readings as the cards they become (a habit's words, a goal's category).
+  if (record.kind === 'plan-bundle') {
+    if (Array.isArray(record.habits)) record.habits = record.habits.map(h => { if (!h || typeof h !== 'object' || Array.isArray(h)) return h; const {kind, ...rest} = normalise({...(h as object), kind: 'create-habit'}, flags) as Record<string, unknown>; void kind; return rest; });
+    if (record.goal && typeof record.goal === 'object' && !Array.isArray(record.goal)) { const {kind, ...rest} = normalise({...(record.goal as object), kind: 'create-goal'}, flags) as Record<string, unknown>; void kind; record.goal = rest; }
+  }
   // A reminder "for" a named thing: a habit named means for:"habit", a goal named means for:"goal" (seen on qwen3.6).
   if (record.kind === 'create-reminder' && typeof record.for === 'string' && !['habit', 'water', 'goal', 'wealth', 'pack'].includes(record.for.trim().toLowerCase())) { const f = record.for.trim().toLowerCase(); record.for = typeof record.habit === 'string' ? 'habit' : typeof record.goal === 'string' ? 'goal' : /water|drink|hydrat/.test(f) ? 'water' : /wealth|money|finance/.test(f) ? 'wealth' : /pack|context/.test(f) ? 'pack' : record.for; }
   // Phase 2: a recipe ingredient's amount in millilitres (ml, milliliters), or a quantity with a unit; an estimate given
@@ -163,6 +176,7 @@ function withDayAlias(part: unknown): unknown {
 }
 export function parseReply(reply: string): ParsedReply {
   const proposals: Action[] = [], rejected: Rejected[] = [], seen = new Set<string>(), flags = {revise: false};
+  let bundle: BundleMeta | undefined;
   // New habits a reply names itself (new1, new2) keep their numbers; an expanded "build-habit" takes the next free one.
   let source = reply, refs = Math.max(0, ...[...reply.matchAll(/\bnew(\d{1,2})\b/gi)].map(m => Number(m[1])));
   const nextRef = () => `new${++refs}`;
@@ -185,24 +199,30 @@ export function parseReply(reply: string): ParsedReply {
     for (const item of items) {
       if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
       const normalised = normalise(coerceNumbers(item), flags) as Record<string, unknown>;
-      let parts: unknown[] = [normalised];
+      let parts: unknown[] = [normalised], plan: BundleMeta | null = null;
       if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
+        if (normalised.kind === 'plan-bundle' && bundle) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: ONE_BUNDLE}); continue; }
         const composite = compositeSchema.safeParse(normalised);
         if (!composite.success) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: firstIssue(composite.error)}); continue; }
         parts = expandComposite(composite.data, nextRef);
+        // Session AF (L4): a plan's cards are counted from here; each step is still validated alone (a bad step is refused, the rest stay).
+        if (composite.data.kind === 'plan-bundle') plan = {title: composite.data.title, first: proposals.length, count: 0, steps: parts.length};
       }
       for (const part of parts) {
         const result = actionSchema.safeParse(withDayAlias(part));
         if (!result.success) { rejected.push({raw: JSON.stringify(part).slice(0, 200), reason: firstIssue(result.error)}); continue; }
         const key = JSON.stringify(result.data);
         if (seen.has(key)) continue;
-        if (proposals.length >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
+        if (plan && plan.count >= MAX_BUNDLE_STEPS) { rejected.push({raw: key.slice(0, 200), reason: BUNDLE_CUT(MAX_BUNDLE_STEPS)}); continue; }
+        if (proposals.length >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: plan ? BUNDLE_CUT(plan.count) : `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
         seen.add(key); proposals.push(result.data);
+        if (plan) plan.count++;
       }
+      if (plan && plan.count > 0) bundle = plan;
     }
     void block; return '';
   }).replace(/\n{3,}/g, '\n\n').trim();
-  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {})};
+  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {}), ...(bundle ? {bundle} : {})};
 }
 /** Whether a reply still has an open proposal fence (streaming): nothing is parsed before it closes. */
 export function hasOpenFence(partial: string): boolean { const opens = partial.match(new RegExp(`(\`\`\`+|~~~+)[^\\S\\n]*(?:json[^\\S\\n]+)?${ACTION_FENCE.replace('-', '[-_ ]?')}`, 'gi'))?.length ?? 0; return opens > (partial.match(FENCE)?.length ?? 0); }

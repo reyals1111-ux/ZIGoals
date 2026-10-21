@@ -301,3 +301,20 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-check:has(.ai-check-name){display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;white-space:nowrap;min-width:0}
 .ai-check-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .ai-connection-copy{grid-template-columns:minmax(0,1fr)}
+/* Session AF (L4): the brief's sections and the evening recap, a plan's head, and the first Remember note. Still: no motion. */
+.ai-brief-sections{margin:0;display:grid;gap:6px;font-size:15px;line-height:1.45}
+.ai-brief-section{display:grid;grid-template-columns:minmax(0,9.5em) minmax(0,1fr);gap:8px;align-items:baseline}
+.ai-brief-section dt{margin:0;font-weight:600;color:var(--muted,#aab2d9)}
+.ai-brief-section dd{margin:0;min-width:0;overflow-wrap:anywhere}
+@media (max-width:520px){.ai-brief-section{grid-template-columns:minmax(0,1fr);gap:2px}}
+.ai-recap{border-color:color-mix(in srgb,var(--brand-magenta,#c86bff) 35%,var(--line,#2a325a))}
+.zigi-brief-stack{display:grid;gap:12px}
+.ai-brief .text-link,.ai-recap .text-link{min-height:44px;justify-self:start}
+.ai-brief-quiet{margin:0}
+.ai-bundle-head{display:grid;gap:4px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 35%,var(--line,#2a325a))}
+.ai-bundle-head .eyebrow{margin:0}
+.ai-bundle-title{margin:0;font-size:16px;line-height:1.35;overflow-wrap:anywhere}
+.ai-bundle-skip{min-height:44px;justify-self:start}
+.ai-card-first-note{border-left:3px solid color-mix(in srgb,var(--cyan,#6fd3ff) 60%,transparent);padding-left:8px}
+.ai-plan-steps{margin:4px 0 0;padding-left:18px;display:grid;gap:2px;font-size:14px;line-height:1.4}
+.ai-your-day input[type=time]{min-height:44px}

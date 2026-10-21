@@ -630,7 +630,8 @@ journey('J144', 'Wealth with a value of 1e15 and a quantity of 0.00000001: both 
   await addAsset(page, 'Cash', [['Asset name', 'Fictional vault cash'], ['Cash amount', '1000000000000000']]);
   await addAsset(page, 'Custom', [['Asset name', 'Fictional dust token'], ['Quantity', '0.00000001'], ['Total holding value', '0.01']]);
   await expect(assetCard(page, 'Fictional vault cash').locator('.owned-value strong')).toHaveText('$1,000,000,000,000,000.00');
-  await expect(assetCard(page, 'Fictional dust token').locator('.owned-value span')).toHaveText('0.00000001 UNIT');
+  // Session AF Gate C (design critique, Wealth's units; moved, as strict): a custom asset counts in plain words ("UNIT" read as a code).
+  await expect(assetCard(page, 'Fictional dust token').locator('.owned-value span')).toHaveText('0.00000001 items');
   await expect(assetCard(page, 'Fictional dust token').locator('.owned-value strong')).toHaveText('$0.01');
   // The total keeps the last cent of a quadrillion.
   await expect(page.locator('.wealth-hero-total .wealth-total-headline')).toHaveText('$1,000,000,000,000,000.01');

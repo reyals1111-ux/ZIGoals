@@ -12,6 +12,7 @@ import {useLocalToday} from '../use-local-today';
 import {SectionHeading} from '../ui/section-heading';
 import {showToast} from '../ui/undo-toast';
 import {CalculatorChart, type ChartLine} from './calculator-chart';
+import {earnCalculatorPrefill} from '../../lib/earn/calculator-link';
 import './calculator.css';
 
 /**
@@ -66,10 +67,19 @@ export function Calculator() {
   const [draft, setDraft] = useState<Draft>(() => toDraft(DEFAULT_INPUT)), [restored, setRestored] = useState(false), [touched, setTouched] = useState(false);
   const [compare, setCompare] = useState<Compare>({higher: true, lower: true, earlier: false, custom: ''});
   const [name, setName] = useState(''), [allRows, setAllRows] = useState(false);
+  // Session AF (L1, ADR-028 H17): opened from the Earn page (?from=earn&rate=…&label=illustration), the yearly return starts
+  // at that live rate under an "illustration" banner; the first field the person touches clears it. Never remembered by itself.
+  const [illustration, setIllustration] = useState<string | null>(null);
   // The page opens on the inputs it showed last on this device.
   useEffect(() => {
     if (restored || !record.loaded) return;
-    queueMicrotask(() => { setRestored(true); if (record.data.last) setDraft(toDraft(record.data.last)); });
+    queueMicrotask(() => {
+      setRestored(true);
+      const rate = earnCalculatorPrefill(window.location.search);
+      if (record.data.last) setDraft(rate ? {...toDraft(record.data.last), ratePercent: rate} : toDraft(record.data.last));
+      else if (rate) setDraft(d => ({...d, ratePercent: rate}));
+      setIllustration(rate);
+    });
   }, [record.loaded, record.data.last, restored]);
   const parsed = useMemo(() => parseDraft(draft), [draft]);
   // While a field is being corrected the results keep showing the last inputs that worked.
@@ -98,7 +108,7 @@ export function Calculator() {
     return () => window.clearTimeout(t);
   }, [parsed.input, restored, touched, record]);
 
-  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => { setTouched(true); setDraft(d => ({...d, [key]: value})); };
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => { setTouched(true); setIllustration(null); setDraft(d => ({...d, [key]: value})); };
   const money = (v: string) => formatMoney(v, input.currency);
   const scenarios = record.loaded && !record.unreadable ? record.data.scenarios : [];
   const save = () => {
@@ -122,6 +132,7 @@ export function Calculator() {
   const busy = parsed.input !== undefined && input !== parsed.input;
 
   return <div className="calc">
+    {illustration && <p className="calc-illustration notice" role="status" style={{margin: "0 0 16px"}} data-earn-illustration={illustration}><b>Illustration, not a promise.</b> The yearly return starts at {illustration} %, ZIGChain’s native staking rate as the Earn page read it live (a simple yearly rate, not compounded). Rates move every block and nothing here is guaranteed. Change any field to use your own numbers.</p>}
     {!result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
       <section className={`calc-results panel${parsed.input ? '' : ' is-stale'}`} aria-labelledby="calc-results-title" aria-busy={busy}>
         <SectionHeading id="calc-results-title" eyebrow={`After ${input.years} ${input.years === 1 ? 'year' : 'years'} · an estimate`} title="What it could grow to" />
@@ -203,7 +214,7 @@ export function Calculator() {
       {record.unreadable && <p className="notice" role="status">Saved scenarios on this device could not be read, so nothing is changed there.</p>}
       {scenarios.length ? <ul className="calc-scenarios">{scenarios.map(s => { const r = safeCompound(s.input); return <li key={s.id}>
         <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {s.input.years} {s.input.years === 1 ? 'year' : 'years'}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
-        <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
+        <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setIllustration(null); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
       </li>; })}</ul> : <p className="calc-empty">No saved scenarios yet. Save one to compare plans later.</p>}
     </section>
   </div>;

@@ -390,7 +390,7 @@ journey('J237', 'the contract section says NOT DEPLOYED and financial execution 
   await open(page, '/app/settings');
   const contract = page.locator('#contract');
   await expect(contract).toContainText('NOT DEPLOYED');
-  await expect(contract).toContainText('Financial execution is disabled in the public Alpha.');
+  await expect(contract).toContainText('Contract execution is disabled in the public Alpha.'); // Session AF (H100)
 });
 
 journey('J229', 'Help → Install on iPhone on a phone: the steps for this browser', {views: ['P'], data: ['E'], live: true}, async j => {

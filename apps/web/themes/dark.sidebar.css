@@ -2,7 +2,7 @@
    and the same vector stars dimmed by a veil of that ground, so they no longer outshine the page's dimmed starfield. */
 :root[data-theme=dark] .app-sidebar:not(#\-) {
   background: linear-gradient(#0508159e, #0508159e) local,
-    url('/art/v24/sidebar-stars.svg') center bottom / 240px 1100px no-repeat local,
+    url('/art/v24/sidebar-stars.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
     linear-gradient(0deg, #03050e 0, #03050e 300px, #060718 560px, #070a1d 700px, #080c22 930px) local,
     #080c22;
   /* At 768–900 px the sidebar is the page's header: one clean deep navy, like the page's top. Gate C design review

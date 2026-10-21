@@ -9,7 +9,8 @@ const SECTIONS: [id: string, title: string][] = [
   // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
   ['whole-life', 'Sleep, mind, music, chess, links and more'],
   // Session AA-Local (deliberate): the release's own topic, before the earlier ones.
-  ['aa', 'Best in class, and ZIGi knows every bit of it'],
+  // Session AF Gate C (design critique; deliberate, as strict): "Best in class" left the title, the exact new title is checked.
+  ['aa', 'Deeper Habits and Health, and ZIGi knows every bit of it'],
   // Session AB-Cloud (ADR-023, deliberate): this release's topic, after AA-Local's.
   ['ab', 'Everything travels with you, and nothing is lost'],
   // Session AB-Design (ADR-024, deliberate; the second merger): this release's topic, after AB-Cloud's.
@@ -19,18 +20,39 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AD (ADR-026, deliberate): this release's topic, after AC's.
   ['ad', 'The final look, and three ways to see it'],
   // Session AE (ADR-027, deliberate): this release's topic, after AD's.
-  ['ae', 'One scene from top to end, and three finished looks'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['ae', 'One scene from top to end, and three finished looks'],
+  // Session AF (ADR-028, deliberate): this release's topic, after AE's.
+  ['af', 'Earn, stake in your own wallet, and your day as one path'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'New: stunning, finished', 'What\'s new', 'Known limitations', 'Send feedback'];
+// Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
+// names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
+// unlocked"); every label is still checked exactly, in order, with its link.
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one look for every page', 'New: calmer pages', 'New: Light, Nebula and Dark', 'New: Today’s scene, the sidebar and wallets', 'New: Earn, staking and the Checklist', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
-test('Help has one title and seventeen topics, listed before them, each linking to its section', async ({page}) => {
+// Session AF (ADR-028, deliberate): eighteen topics, AF's after AE's.
+test('Help has one title and eighteen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
+  // Session AF Gate C (design critique; deliberate, stronger): on a phone the first six topics show with "All topics"
+  // under them (the eighteen chips had filled about one and a half screens before the first answer); one tap shows the
+  // rest and moves focus to the first of them. Computers and tablets show all eighteen and no such button. The checks
+  // below then run on the full list everywhere, as before.
+  const all = nav.getByRole('button', {name: 'All topics', exact: true});
+  await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
+  if ((page.viewportSize()?.width ?? 1280) < 768) {
+    await expect(topics).toHaveText(TOPICS.slice(0, 6));
+    await expect(all).toBeVisible();
+    const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
+    expect((await firstSection.boundingBox())!.y - (await nav.boundingBox())!.y).toBeLessThan(320);
+    await all.click();
+    await expect(all).toHaveCount(0);
+    await expect(topics.nth(6)).toBeFocused();
+  } else await expect(all).toBeHidden();
   await expect(topics).toHaveText(TOPICS);
   for (const [index, [id, title]] of SECTIONS.entries()) {
     await expect(page.getByRole('region', {name: title, exact: true})).toBeVisible();
@@ -148,10 +170,38 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   await page.setViewportSize({width, height: 844});
   await page.goto('/app/help');await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-  const small = await page.locator('.help-page').evaluate(root => [...root.querySelectorAll('a, button, summary')]
-    .filter(el => { const box = el.getBoundingClientRect(); return box.width > 0 && box.height < 44; })
-    .map(el => el.textContent?.trim()));
+  // Session AF Gate C (design critique; deliberate, stronger): a link inside a sentence is part of the sentence — inline
+  // text with words beside it, the WCAG 2.5.8 inline exception that the layout audit and the touch-target specs already
+  // apply — so it is not held to 44 px here either; every other link, button and question still is. In its place each
+  // in-sentence link is checked to be just that: inline, starting on the same line as an opening "(" before it (the "("
+  // had been stranded at a line's end), and no line of it taller than its sentence's own line height.
+  const {small, inline, stranded, tall} = await page.locator('.help-page').evaluate(root => {
+    const out = {small: [] as string[], inline: 0, stranded: [] as string[], tall: [] as string[]};
+    for (const el of root.querySelectorAll<HTMLElement>('a, button, summary')) {
+      const box = el.getBoundingClientRect(), name = el.textContent?.trim() ?? '';
+      if (!(box.width > 0)) continue;
+      const parent = el.parentElement!, words = [...parent.childNodes].some(n => n.nodeType === 3 && n.textContent!.trim());
+      if (el.tagName === 'A' && words && getComputedStyle(el).display === 'inline') {
+        out.inline++;
+        const line = parseFloat(getComputedStyle(parent).lineHeight), first = el.getClientRects()[0]!;
+        if ([...el.getClientRects()].some(r => r.height > line + 1)) out.tall.push(name);
+        const before = el.previousSibling;
+        if (before?.nodeType === 3 && before.textContent!.endsWith('(')) {
+          const range = document.createRange(); range.setStart(before, before.textContent!.length - 1); range.setEnd(before, before.textContent!.length);
+          if (Math.abs(range.getBoundingClientRect().top - first.top) > 4) out.stranded.push(name);
+        }
+        continue;
+      }
+      if (box.height < 44) out.small.push(name);
+    }
+    return out;
+  });
   expect(small).toEqual([]);
+  // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
+  // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).
+  expect(inline).toBe(37);
+  expect(stranded).toEqual([]);
+  expect(tall).toEqual([]);
 });
 
 test('at phone width the top bar names Help and steps back to Settings', async ({page}) => {
@@ -180,7 +230,8 @@ test('New: your whole life: twenty linkable questions; a hash opens its answer a
   await expect(sleep).toContainText('Sleep debt is, for each logged night of the last 7 days, your goal minus the time you slept');
   await expect(sleep).toContainText('This is not medical advice');
   await page.goto('/app/help#help-w-music');
-  await expect(page.locator('#help-w-music')).toContainText('only up to five accounts the owner lists can connect');
+  // Session AF Gate C (design critique; deliberate, as strict): plain words for Spotify's limit, the same fact (five accounts).
+  await expect(page.locator('#help-w-music')).toContainText('for now only up to five invited accounts can connect');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
 
@@ -325,6 +376,58 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
   await page.locator('#help-ae-themes').getByRole('link', {name: 'What are Light, Nebula and Dark?', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/help#help-ad-themes$/);
   await expect(page.locator('#help-ad-themes')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-ad-themes')).toContainText('white-family surfaces');
+  // Session AF (ADR-028 H13, the Light redo; deliberate, as strict): the answer describes the redone Light.
+  await expect(page.locator('#help-ad-themes')).toContainText('Nebula by day: a white page with a light colour mist and dark words');
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session AF (ADR-028): this release's answers open from their hash, each saying what the code does; the staking answer
+// keeps the safety facts (your own wallet, a review screen first, ZIGoals never sees keys); the Earn answer says nothing is
+// ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
+test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
+  const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
+  await expect(section.locator('details.help-question')).toHaveCount(ids.length);
+  for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  await expect(section).not.toContainText(/partner/i);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, words] of [
+    ['af-earn', 'ZIGoals never ranks them by rate, never holds your money and never signs for you'],
+    ['af-staking', 'you sign it in Keplr. ZIGoals never sees your keys and sends nothing on its own'],
+    ['af-governance', 'A vote is public and tied to your address forever, and the review screen says so before you sign'],
+    ['af-practice-badges', 'ZIGoals never does this on the real network'],
+    ['af-start-here', "Practice never ticks a real step"],
+    ['af-academy', "a lesson you pass earns XP once"],
+    ['af-earn-dock', "Phones have no extra floating button"],
+    ['af-validator-alerts', "ZIGoals sends no notifications"],
+    ['af-wallets', "Keplr stays the wallet that signs"],
+    ['af-add-money', "ZIGoals never sees either and never holds the money"],
+    ['af-goal-vaults', "Nothing moves and nothing is signed"],
+    ['af-brief', "made on this device without an AI"],
+    ['af-zigi-checklist', "nothing changes until you add it"],
+    ['af-plans', "Forget removes a plan, not what you added"],
+    ['af-page-awareness', "never a number"],
+    ['af-earn-coach', "ZIGi never signs, sends or broadcasts anything"],
+    ['af-zigi-memory', "Notes stay on this device"],
+    ['af-universe', "Nothing is ever taken away"],
+    ['af-timeline', "Times you move stay on this device"],
+    ['af-stories', "never an amount, a price or a return"],
+    ['af-checklist', 'It starts fresh at local midnight'],
+    ['af-checklist-star', 'Edit path'],
+    ['af-checklist-tick', 'Undo puts that record back exactly'],
+    ['af-checklist-streak', 'Rest days (not scheduled, paused or skipped) are left out, never failed'],
+    ['af-checklist-timers', 'the whole night lands on Health'],
+    ['af-checklist-launcher', 'Your path stays on this device: it is not synced yet'],
+  ] as const) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(words);
+  }
+  // Known limitations point to the answers.
+  const limits = page.getByRole('region', {name: 'What the Alpha can’t do yet', exact: true});
+  await expect(limits.getByRole('link', {name: 'What is the Checklist?', exact: true})).toHaveAttribute('href', '#help-af-checklist');
+  await expect(limits.getByRole('link', {name: 'What is the Earn page?', exact: true})).toHaveAttribute('href', '#help-af-earn');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });

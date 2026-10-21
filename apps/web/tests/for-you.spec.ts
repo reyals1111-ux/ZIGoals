@@ -24,7 +24,8 @@ test('Showcase: at most two cards are open and the rest fold behind Show more', 
     await expect(body).toBeHidden();
     expect((await fold.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await fold.click();
-    await expect(area.getByRole('button', {name: 'Hide', exact: true})).toBeVisible();
+    // Gate C design review (finding 12): the open row names what it hides, with the count it showed while closed.
+    await expect(area.getByRole('button', {name: `Hide ${folded} ${folded === 1 ? 'card' : 'cards'}`, exact: true})).toBeVisible();
     await expect(body.locator('.for-you-slot')).toHaveCount(folded);
     await expect(body).toBeVisible();
   }

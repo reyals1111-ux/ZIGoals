@@ -2,22 +2,23 @@ import {expect, test} from 'vitest';
 import {continuePrompt, turnMarkdown} from './continue';
 import {DATA_CLOSE, DATA_OPEN} from './context/specialists';
 import {followupsFor} from './followups';
-import {helpText, parseSlash, SLASH_COMMANDS, suggestCommands} from './slash';
+import {EXTRA_COMMANDS, helpText, parseSlash, SLASH_COMMANDS, suggestCommands} from './slash';
 import type {ChatTurn} from './chats';
 
 // Session V Part 10: slash commands, follow-up chips and "Continue in my AI", all made on the device.
 const turn = (role: 'user' | 'assistant', text: string, extra: Partial<ChatTurn> = {}): ChatTurn => ({id: `t_${Math.random()}`, role, text, at: '2026-10-05T10:00:00.000Z', ...(role === 'assistant' ? {provider: 'openai' as const, model: 'mock', usage: null} : {}), ...extra} as ChatTurn);
 
-test('slash commands: the eight commands, parsed only at the start, suggested while the first word is typed', () => {
-  expect(SLASH_COMMANDS.map(c => c.name)).toEqual(['/log', '/ask', '/plan', '/review', '/pack', '/insights', '/remember', '/help']);
+test('slash commands: the nine listed commands (Session AF adds /brief; /recap is parsed and offered from "/rec"), parsed only at the start, suggested while the first word is typed', () => {
+  expect(SLASH_COMMANDS.map(c => c.name)).toEqual(['/log', '/ask', '/plan', '/review', '/pack', '/insights', '/brief', '/remember', '/help']);
+  expect(EXTRA_COMMANDS.map(c => c.name)).toEqual(['/recap']); expect(parseSlash('/recap')).toMatchObject({command: {name: '/recap'}, rest: ''}); expect(suggestCommands('/rec').map(c => c.name)).toEqual(['/recap']);
   expect(parseSlash('/log two eggs and a coffee')).toEqual({command: SLASH_COMMANDS[0], rest: 'two eggs and a coffee'});
   expect(parseSlash('  /REMEMBER  I train before work ')).toMatchObject({command: {name: '/remember'}, rest: 'I train before work'});
   expect(parseSlash('/review')).toMatchObject({command: {name: '/review'}, rest: ''});
   expect(parseSlash('/unknown thing')).toBeNull(); expect(parseSlash('please /log this')).toBeNull(); expect(parseSlash('/')).toBeNull();
-  expect(suggestCommands('/').map(c => c.name)).toHaveLength(8);
+  expect(suggestCommands('/').map(c => c.name)).toHaveLength(9);
   expect(suggestCommands('/r').map(c => c.name)).toEqual(['/review', '/remember']);
   expect(suggestCommands('/log ')).toEqual([]); expect(suggestCommands('log')).toEqual([]);
-  for (const c of SLASH_COMMANDS) expect(helpText()).toContain(`${c.name}: ${c.hint}.`);
+  for (const c of [...SLASH_COMMANDS, ...EXTRA_COMMANDS]) expect(helpText()).toContain(`${c.name}: ${c.hint}.`);
 });
 test('follow-ups come from what the answer looked at: never the question just asked, at most three', () => {
   expect(followupsFor([{tool: 'habit_stats', args: {habit: 'Meditate', range: 'this month'}}], 'How many minutes did I meditate this month?')).toEqual(['How many times did I check in Meditate last week?', "What's my longest Meditate streak?"]);

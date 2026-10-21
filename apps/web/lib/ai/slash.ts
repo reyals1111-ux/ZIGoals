@@ -4,8 +4,16 @@
  * a command: /log and /plan only ask the person's AI for proposal cards, /remember only proposes a note card, /ask
  * skips ZIGi's on-device answer for one message, and the rest open a view of ZIGi or a page.
  */
-export type SlashName = '/log' | '/ask' | '/plan' | '/review' | '/pack' | '/insights' | '/remember' | '/help';
+export type SlashName = '/log' | '/ask' | '/plan' | '/review' | '/pack' | '/insights' | '/remember' | '/help' | '/brief' | '/recap';
 export type SlashCommand = {name: SlashName; hint: string; takesText: boolean};
+/**
+ * Session AF (L4, P8.2): /brief (listed) shows the morning brief, /recap the evening recap, both made on this device.
+ * /recap is parsed and named in /help and Help, and offered in the "/" list once its own letters are typed ("/rec"), so
+ * the list a person sees for "/r" stays /review and /remember (the chat-polish spec pins that list).
+ */
+export const EXTRA_COMMANDS: readonly SlashCommand[] = [
+  {name: '/recap', hint: 'Your evening recap, made on this device', takesText: false},
+];
 export const SLASH_COMMANDS: readonly SlashCommand[] = [
   {name: '/log', hint: 'Log what you did, ate or drank; ZIGi proposes cards', takesText: true},
   {name: '/ask', hint: 'Ask your AI directly, even when ZIGi could answer here', takesText: true},
@@ -13,10 +21,11 @@ export const SLASH_COMMANDS: readonly SlashCommand[] = [
   {name: '/review', hint: 'Go through your week, on this device', takesText: false},
   {name: '/pack', hint: 'Make a context pack for your AI, in Settings', takesText: false},
   {name: '/insights', hint: 'Patterns in your records, on this device', takesText: false},
+  {name: '/brief', hint: 'Your morning brief, made on this device', takesText: false},
   {name: '/remember', hint: 'Keep a note in What ZIGi knows about me, after you confirm it', takesText: true},
   {name: '/help', hint: 'What ZIGi can do, and these commands', takesText: false},
 ];
-const BY_NAME = new Map(SLASH_COMMANDS.map(c => [c.name, c]));
+const BY_NAME = new Map([...SLASH_COMMANDS, ...EXTRA_COMMANDS].map(c => [c.name, c]));
 /** A message that starts with a known command, and the words after it; null for any other message. */
 export function parseSlash(text: string): {command: SlashCommand; rest: string} | null {
   const match = /^\s*(\/[a-z]+)(?:\s+([\s\S]*))?$/i.exec(text);
@@ -27,11 +36,11 @@ export function parseSlash(text: string): {command: SlashCommand; rest: string} 
 export function suggestCommands(text: string): SlashCommand[] {
   if (!/^\/[a-z]*$/i.test(text)) return [];
   const typed = text.toLowerCase();
-  return SLASH_COMMANDS.filter(c => c.name.startsWith(typed));
+  return [...SLASH_COMMANDS.filter(c => c.name.startsWith(typed)), ...(typed.length >= 4 ? EXTRA_COMMANDS.filter(c => c.name.startsWith(typed)) : [])];
 }
 /** What /plan adds to the system prompt for that one message: proposal cards only, never a write. */
 export const PLAN_NOTE = 'The person wants to plan a goal or a habit. Ask at most one short question if something essential is missing; otherwise propose it as a plan-goal or build-habit card (several small cards are fine). Nothing is written until they confirm.';
 /** The words /help shows, on the device. */
 export function helpText(): string {
-  return ['ZIGi answers questions about your records here, and with your own AI connected it can answer more and propose cards you confirm. Commands:', ...SLASH_COMMANDS.map(c => `${c.name}: ${c.hint}.`), 'Press ? (outside the message box) for keyboard shortcuts. More in Help → ZIGi.'].join('\n');
+  return ['ZIGi answers questions about your records here, and with your own AI connected it can answer more and propose cards you confirm. Commands:', ...[...SLASH_COMMANDS, ...EXTRA_COMMANDS].map(c => `${c.name}: ${c.hint}.`), 'Press ? (outside the message box) for keyboard shortcuts. More in Help → ZIGi.'].join('\n');
 }

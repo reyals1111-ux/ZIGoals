@@ -1,0 +1,18 @@
+/* Session AF (L2b, Part 3): the linked wallets' balances in Wealth's "What you have" and Portfolio's strip. Tokens only;
+   every control a 44 px target; the list reflows to one column on a phone. */
+.wallet-holdings { display: grid; gap: 12px; margin-top: 16px; }
+.wallet-holdings-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+.wallet-holdings-head h3 { margin: 2px 0 0; }
+.wallet-holdings-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.wallet-holdings-actions .secondary, .wallet-holdings-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.wallet-holdings .holdings-filters button { min-height: 44px; }
+.wallet-holdings-total { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; color: var(--text-secondary, #dde7f7); }
+.wallet-holdings-total strong { font-size: 1.25rem; color: var(--text-strong, #f4f8ff); }
+.wallet-holdings-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.wallet-holding { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border-subtle, #9fc8ff2e); background: var(--surface-raised, #0a1a30); min-width: 0; }
+.wallet-holding-main, .wallet-holding-amount { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; min-width: 0; }
+.wallet-holding-main span, .wallet-holding-amount span { color: var(--text-meta, #c2d0e5); overflow-wrap: anywhere; }
+.wallet-holding-amount strong { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.wallet-holding-unavailable { font-size: 14px; }
+.wallet-holding-source { margin: 0; overflow-wrap: anywhere; }
+.wallet-holdings-note .text-link { min-height: 44px; }

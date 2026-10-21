@@ -11,7 +11,7 @@ export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
  * the persona decisions (ADR-019). Session AA-Cloud bumps it for pages in order, Goals, the calculator, search and the
  * Life review (ADR-021). Same key and schema: an earlier build reads the id as one more dismissed string.
  */
-export const WHATS_NEW_RELEASE = '2026-10-session-ae-stunning'; // Session AE (ADR-027): stunning, finished — Today's welcome header as one scene, the page's finale, three finished themes, the sidebar's cleaner sky, header art on every page, wallets linked read-only and the wallet card's currencies, the demo-balance line gone from the top bar, Habits' even groups and Routines block, the music button as ZIGi's twin — on top of AD's '2026-10-session-ad-final-look' (ADR-026), whose links now lead "Earlier updates"
+export const WHATS_NEW_RELEASE = '2026-10-session-af-wealth-unlocked'; // Session AF (ADR-028): wealth, unlocked — Earn, staking in your own wallet, wallets and Add money, governance, the Checklist, ZIGi's new skills, My universe, the Day timeline and Stories
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;

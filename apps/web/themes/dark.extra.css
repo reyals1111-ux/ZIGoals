@@ -1,6 +1,22 @@
-/* Session AD (Part 3, ADR-026 F14): Dark's hand-written layer — the same nebula, deeper: a near-black ground, the starfield
-   and the artwork dimmed a little, the accents as they are. */
-:root[data-theme=dark] body { background: #010208; }
-:root[data-theme=dark] .app-content::before { opacity: .62; }
-:root[data-theme=dark] :is(.account-panel, .destination-panel, .stake-hero, .staking-card)::before { filter: brightness(.82); }
-:root[data-theme=dark] .site-footer-art { filter: brightness(.8); }
+/* Session AD (Part 3, ADR-026 F14): Dark's hand-written layer — the same nebula, deeper: the artwork dimmed a little, the
+   accents as they are. Session AF (L5a, Part 10.2, ADR-028 D9): the star-system background is black with a very subtle
+   colour mist — four faint dark clouds (indigo, deep blue, plum, deep teal) on black, the starfield dimmed by a veil of
+   black instead of its layer's opacity so the mist reads, and the starfield's veils black too. Everything else in Dark
+   stays as it was. */
+:root[data-theme=dark] body:not(#\-) { background: #000000; }
+:root[data-theme=dark] .app-content:not(#\-)::before {
+  opacity: 1;
+  background:
+    radial-gradient(1200px 700px at 12% 6%, #1a153fcc 0, #1a153f00 70%),
+    radial-gradient(1000px 640px at 88% 16%, #0f2238cc 0, #0f223800 70%),
+    radial-gradient(1100px 800px at 64% 82%, #2a1230cc 0, #2a123000 70%),
+    radial-gradient(900px 600px at 20% 92%, #0e2a2acc 0, #0e2a2a00 70%),
+    linear-gradient(#00000061, #00000061),
+    var(--cosmic-starfield) center / cover no-repeat,
+    #000000;
+}
+:root[data-theme=dark] .app-content:not(#\-)::after { background:
+  linear-gradient(180deg, #000 0, #000 calc(max(240px, 30vh) + 120px), #000000e0 calc(46vh + 120px), #000000a8 66vh, #00000062 88vh, #00000024 110vh, #00000000 130vh) top / 100% 130vh no-repeat,
+  linear-gradient(0deg, #000 0, #000 12vh, #000000d0 34vh, #00000080 58vh, #00000030 84vh, #00000000 110vh) bottom / 100% 110vh no-repeat; }
+:root[data-theme=dark] :is(.account-panel, .destination-panel, .stake-hero, .staking-card):not(#\-)::before { filter: brightness(.82); }
+:root[data-theme=dark] .site-footer-art:not(#\-) { filter: brightness(.8); }

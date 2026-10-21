@@ -83,7 +83,7 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
   }, [finishIdle, language, providerOk, scope, settings.provider, settings.voice.transcriptionModel]);
   const start = useCallback(async () => {
     if (state !== 'idle') return;
-    if (mode === 'browser') await startBrowser(); else if (mode === 'provider') await startProvider(); else setError('Voice is off. Turn it on in Settings → ZIGi · your AI → Voice.');
+    if (mode === 'browser') await startBrowser(); else if (mode === 'provider') await startProvider(); else setError('Voice is off. Turn it on in Settings → ZIGi · Your Personal AI Companion → Voice.');
   }, [mode, startBrowser, startProvider, state]);
   const stop = useCallback(() => {
     if (recognition.current) { try { recognition.current.stop(); } catch { /* already stopped */ } return; }

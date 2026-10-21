@@ -1,0 +1,134 @@
+/* Session AF (L5b; P9.2, ADR-028 D2 (a), H76): the Day Timeline — a vertical line of today in four parts of the day, a
+   "now" line, blocks with 44 px targets, a drag handle that takes the pointer (touch-action: none). No motion but the drag
+   itself, which follows the pointer and stops where it is let go. */
+.timeline-page { display: grid; gap: 18px; width: min(860px, 100%); margin: 0 auto; }
+.timeline-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; }
+.timeline-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }
+.timeline-note, .timeline-fine { margin: 0; }
+.timeline-skeleton { min-height: 240px; }
+
+.timeline-band { display: grid; gap: 8px; }
+.timeline-band > h2 { display: flex; align-items: baseline; gap: 10px; margin: 0; font-size: 20px; }
+.timeline-band > h2 small { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.timeline-list { position: relative; display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; list-style: none; }
+.timeline-list::before { content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: linear-gradient(#6fe6f6aa, #c790f6aa, #f08bd6aa); }
+.timeline-row { position: relative; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: start; }
+/* Only a row being moved is transformed (it follows the drag); a resting row carries no transform. */
+.timeline-row[data-moving] { z-index: 2; transform: translateY(var(--drag, 0px)); }
+.timeline-row[data-moving] .timeline-block { box-shadow: 0 10px 30px #00000066, 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.timeline-row::before { content: ''; position: absolute; left: -18px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: #0b1030; border: 2px solid #9fb3ff; }
+.timeline-row[data-done]::before { background: #6fe6f6; border-color: #6fe6f6; }
+.timeline-row[data-pillar=habits]::before { border-color: var(--pillar-habits); }
+.timeline-row[data-pillar=health]::before { border-color: var(--pillar-health); }
+.timeline-row[data-pillar=goals]::before { border-color: var(--pillar-goals); }
+.timeline-row[data-pillar=wealth]::before { border-color: var(--pillar-wealth); }
+.timeline-time { padding-top: 14px; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.timeline-block { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; min-height: 56px; padding: 10px 12px 10px 14px; border-radius: 16px; border: 1px solid var(--border-subtle, #ffffff1f); background: #ffffff0a; }
+.timeline-row[data-kind=reminder] .timeline-block, .timeline-row[data-kind=checklist] .timeline-block { min-height: 48px; padding-block: 6px; background: transparent; border-style: dashed; }
+.timeline-row[data-kind=fast] .timeline-block, .timeline-row[data-kind=sleep] .timeline-block, .timeline-row[data-kind=timer] .timeline-block, .timeline-row[data-kind=meditation] .timeline-block { background: linear-gradient(135deg, #6fe6f60f, #c790f612); }
+.timeline-row[data-done] .timeline-title strong { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: #ffffff66; }
+.timeline-row[data-skipped] .timeline-block { opacity: .75; }
+.timeline-block-main { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.timeline-block-main p { margin: 0; }
+.timeline-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 16px; }
+.timeline-state { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; font-weight: 650; color: var(--brand-cyan, #6fe6f6); }
+.timeline-meta, .timeline-note { font-size: 14px; color: var(--text-secondary); }
+.timeline-moving { font-size: 14px; font-weight: 650; color: var(--brand-cyan, #6fe6f6); }
+.timeline-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.timeline-actions .primary, .timeline-actions .secondary, .timeline-actions .quiet, .timeline-open { min-height: 44px; }
+.timeline-open { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; }
+.timeline-handle { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 12px; border: 1px solid #9fb3ff55; background: #ffffff0d; color: inherit; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+/* crit1: "Complete" is wider than "Done" was; on a phone's one-line action row the handle keeps its 44 px. */
+.timeline-handle { flex: none; min-width: 44px; min-height: 44px; }
+.timeline-handle:active { cursor: grabbing; }
+.timeline-handle:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
+.timeline-lock { display: inline-flex; align-items: center; gap: 6px; max-width: 30ch; font-size: 14px; color: var(--text-secondary); }
+/* Gate C design review (finding 15): one action column, the same on every row and at the block's right edge — the tap
+   (Complete, Log it or Open) in a fixed first slot, the move handle in the second, the time button in the third — so
+   Open, Complete and the arrows line up down the day. A row without a handle keeps the slot empty; a fixed block's reason
+   takes the last two. "Change time" never wraps inside itself. */
+.timeline-block > .timeline-actions { display: grid; grid-template-columns: 112px 44px 132px; justify-items: stretch; margin-left: auto; }
+.timeline-block > .timeline-actions > :is(.primary, .secondary) { grid-column: 1; grid-row: 1; justify-content: center; padding-inline: 10px; white-space: nowrap; }
+.timeline-block > .timeline-actions > .timeline-handle { grid-column: 2; grid-row: 1; }
+.timeline-block > .timeline-actions > .timeline-change { grid-column: 3; grid-row: 1; white-space: nowrap; }
+.timeline-block > .timeline-actions > .timeline-lock { grid-column: 2 / 4; grid-row: 1; max-width: none; }
+/* Gate C design review (finding 3): the right-edge launchers float over the page; at 1024 px the centred timeline ran under
+   them ("Give it a time" and a Sleep note). The page keeps the lane Earn's paths and Today's rail keep while the launchers
+   are on the right; where the page already sits clear of them (1440 px: its own centred margin is wider than the lane) it
+   does not move. */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) .timeline-page { width: min(860px, 100% - 64px); margin-inline: auto max(64px, (100% - 860px) / 2); }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .timeline-page { width: min(860px, 100% - 72px); margin-inline: auto max(72px, (100% - 860px) / 2); }
+}
+.timeline-now { position: relative; display: flex; align-items: center; min-height: 28px; margin-left: -18px; }
+.timeline-now::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, #f08bd6, #ffd27a); box-shadow: 0 0 10px #f08bd688; }
+.timeline-now span { position: relative; margin-left: 92px; padding: 1px 10px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #0b1020; background: linear-gradient(90deg, #f08bd6, #ffd27a); }
+.timeline-picker { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; gap: 10px 14px; margin-left: 102px; padding: 12px 14px; border-radius: 16px; border: 1px solid #9fb3ff44; background: #0b1030cc; }
+.timeline-picker .field { display: grid; gap: 4px; font-size: 14px; }
+.timeline-picker input, .timeline-picker select { min-height: 44px; font-size: 16px; }
+.timeline-picker-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.timeline-picker-actions button { min-height: 44px; }
+.timeline-picker .fine { flex-basis: 100%; margin: 0; }
+.timeline-replan { display: grid; gap: 8px; }
+.timeline-replan h2 { margin: 0; }
+.timeline-replan-lede { margin: 0; }
+.timeline-replan-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.timeline-replan-list > li { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border-subtle, #ffffff1f); }
+.timeline-replan-list p { display: grid; margin: 0; font-size: 16px; }
+.timeline-replan-list small { font-size: 14px; color: var(--text-secondary); }
+.timeline-replan-list .timeline-picker { margin-left: 0; flex-basis: 100%; }
+.timeline-quiet { display: grid; gap: 8px; }
+.timeline-quiet h2, .timeline-quiet p { margin: 0; }
+
+/* Today's compact card: one short block. */
+.today-timeline-card { display: grid; gap: 8px; }
+.today-timeline-head { display: flex; align-items: center; gap: 10px; }
+.today-timeline-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.today-timeline-now { margin-left: auto; font-size: 15px; font-weight: 700; }
+/* Critique round 2 (L5c): the page's look in small — a short rail, a node per block in its pillar's colour, and the "Now"
+   pill on its gradient line where now falls among the rows. */
+.today-timeline-next { position: relative; display: grid; gap: 6px; margin: 0; padding: 0 0 0 20px; list-style: none; }
+.today-timeline-next::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: linear-gradient(#6fe6f6aa, #c790f6aa, #f08bd6aa); }
+.today-timeline-next > li { position: relative; display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 26px; font-size: 16px; }
+.today-timeline-next > li[data-block]::before { content: ''; position: absolute; left: -20px; top: 50%; translate: 0 -50%; box-sizing: border-box; width: 12px; height: 12px; border-radius: 50%; background: #0b1030; border: 2px solid #9fb3ff; }
+.today-timeline-next > li[data-pillar=habits]::before { border-color: var(--pillar-habits); }
+.today-timeline-next > li[data-pillar=health]::before { border-color: var(--pillar-health); }
+.today-timeline-next > li[data-pillar=goals]::before { border-color: var(--pillar-goals); }
+.today-timeline-next > li[data-pillar=wealth]::before { border-color: var(--pillar-wealth); }
+.today-timeline-next > li .today-timeline-time { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.today-timeline-next > li strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.today-timeline-next > li.today-timeline-now-row { display: block; min-height: 24px; }
+.today-timeline-now-row::before { content: ''; position: absolute; left: -20px; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, #f08bd6, #ffd27a); box-shadow: 0 0 10px #f08bd688; }
+.today-timeline-now-row > span { position: relative; display: inline-block; margin-left: 92px; padding: 1px 10px; border-radius: 999px; font-size: 14px; font-weight: 700; line-height: 1.5; color: #0b1020; background: linear-gradient(90deg, #f08bd6, #ffd27a); }
+.today-timeline-line { margin: 0; font-size: 16px; }
+.today-timeline-skeleton { height: 60px; border-radius: 12px; background: #ffffff0d; }
+.today-timeline-open { display: inline-flex; align-items: center; min-height: 44px; justify-self: start; font-size: 16px; font-weight: 650; }
+
+@media (max-width: 767.98px) {
+  .timeline-row { grid-template-columns: 66px minmax(0, 1fr); gap: 8px; }
+  .timeline-time { font-size: 14px; }
+  .timeline-block { padding: 8px 10px; }
+  /* One row of actions under the words, so a phone's day stays short. Gate C design review (finding 15): the tap (Complete,
+     Log it or Open) at the row's left, "Change time" (never wrapped) or a fixed block's reason at its right, and the move
+     handle beside the words at the top right — the same places on every row (three in one row left "Change time" to wrap
+     beside Complete). */
+  .timeline-block { display: grid; grid-template-columns: auto minmax(0, 1fr) 44px; gap: 8px 6px; align-items: center; }
+  .timeline-block-main { grid-column: 1 / -1; grid-row: 1; }
+  .timeline-block:has(.timeline-handle) .timeline-block-main { grid-column: 1 / 3; }
+  .timeline-block > .timeline-actions { display: contents; }
+  .timeline-block > .timeline-actions > :is(.primary, .secondary) { grid-column: 1; grid-row: 2; justify-self: start; padding-inline: 14px; }
+  .timeline-block > .timeline-actions > .timeline-handle { grid-column: 3; grid-row: 1; align-self: start; }
+  .timeline-block > .timeline-actions > .timeline-change { grid-column: 2 / 4; grid-row: 2; justify-self: end; padding-inline: 10px; white-space: nowrap; }
+  .timeline-block > .timeline-actions > .timeline-lock { grid-column: 2 / 4; grid-row: 2; justify-self: end; min-width: 0; }
+  .timeline-now span { margin-left: 66px; }
+  /* Gate C layout audit (320 px): Complete and "Change time" no longer fit one row of a block that narrow (the change
+     button sat on Complete); below 380 px the change or the reason takes its own row under the tap. */
+  @media (max-width: 379.98px) {
+    .timeline-block > .timeline-actions > :is(.timeline-change, .timeline-lock) { grid-column: 1 / -1; grid-row: 3; justify-self: start; }
+  }
+  .timeline-picker { margin-left: 0; }
+  .today-timeline-card { gap: 4px; padding-block: 12px; }
+  .today-timeline-next > li { grid-template-columns: 72px minmax(0, 1fr); font-size: 15px; }
+  .today-timeline-next > li[data-rank="2"] { display: none; }
+  .today-timeline-now-row > span { margin-left: 80px; }
+}

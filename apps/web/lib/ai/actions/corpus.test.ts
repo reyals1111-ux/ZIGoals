@@ -55,7 +55,8 @@ describe('the reply corpus (MOCK, hand-written)', () => {
       for (const word of entry.expect.textExcludes ?? []) expect(parsed.text).not.toContain(word);
       // A closed or stripped reply never shows a raw proposal block; every surviving proposal is a whitelisted kind.
       expect(parsed.text).not.toMatch(/```\s*zigoals/i);
-      for (const proposal of parsed.proposals) expect([...WRITING_KINDS, 'prefill-holding']).toContain(proposal.kind);
+      // Session AF (L4): the staking review's pre-fill joins the holding's (ADR-028 D7; both only fill in a form the person submits).
+      for (const proposal of parsed.proposals) expect([...WRITING_KINDS, 'prefill-holding', 'prefill-staking']).toContain(proposal.kind);
       // Every rejected block has a plain-words reason and a bounded raw excerpt.
       for (const r of parsed.rejected) { expect(r.reason.length).toBeGreaterThan(8); expect(r.raw.length).toBeLessThanOrEqual(200); }
       // The planner never throws and never writes: it plans a card or refuses calmly.

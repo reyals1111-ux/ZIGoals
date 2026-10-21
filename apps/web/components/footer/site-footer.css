@@ -139,6 +139,14 @@
 .site-footer[data-intro=play] .site-footer-arc[data-part=return] { animation: sf-corner-in .8s cubic-bezier(.3, .1, .3, 1) var(--sf-arc-return, 2.7s) both; --sf-from: translate(100%, 100%); }
 .site-footer[data-intro=play] .site-footer-arc[data-part=return] > .site-footer-arc-in { animation: sf-corner-in .8s cubic-bezier(.3, .1, .3, 1) var(--sf-arc-return, 2.7s) both; --sf-from: translate(-100%, -100%); }
 @keyframes sf-corner-in { from { transform: var(--sf-from); } to { transform: none; } }
+/* Session AF (L5a, Part 10.8): the ribbon (footer-path.tsx, lib/footer-ribbon.ts) is revealed by the same two wipes. On
+   phones it is drawn in the moment "= Wealth" already waited for after the last word (FOOTER_TIMING.PHONE_ARC): beneath
+   the steps from the left, then up the right edge and into the word from the bottom-right corner, quicker. */
+.site-footer[data-intro=ready] .site-footer-arc[data-phone][data-part=rise], .site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] { transform: translate(-100%, 0); }
+.site-footer[data-intro=ready] .site-footer-arc[data-phone][data-part=rise] > .site-footer-arc-in, .site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] > .site-footer-arc-in { transform: translate(100%, 0); }
+.site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] { animation: sf-corner-in .2s linear var(--sf-arc-rise, 2.1s) both; --sf-from: translate(-100%, 0); }
+.site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] > .site-footer-arc-in { animation: sf-corner-in .2s linear var(--sf-arc-rise, 2.1s) both; --sf-from: translate(100%, 0); }
+.site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=return], .site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=return] > .site-footer-arc-in { animation-duration: .21s; }
 .site-footer-burst { position: absolute; z-index: 1; width: 0; height: 0; pointer-events: none; }
 .site-footer-burst > i { position: absolute; left: -170px; top: -95px; width: 340px; height: 190px; border-radius: 50%; opacity: 0; filter: blur(20px); background: radial-gradient(closest-side, var(--mist), #0000 72%); }
 .site-footer-burst > i:nth-child(1) { --mist: #23eaff8c; --dx: -70px; --dy: 6px; }
@@ -190,6 +198,13 @@
 @media (max-width: 1100px) { .site-footer-inner { padding-top: clamp(48px, 7cqw, 80px); } .site-footer-logo { width: 310px; } }
 /* Tablets: the floating music and ZIGi buttons float at the right edge; the steps keep their lane clear on both sides, so they stay centred (Session AD design review: the buttons covered a step's words at 1024 px). */
 @media (min-width: 768px) and (max-width: 1279.98px) { .site-footer-steps { padding-inline: 72px; } }
+/* Session AF Gate C (design critique): at 768 px the social row was 17 px short of its four chips, so "Back to top"
+   wrapped onto a line of its own. Up to 1023 px the chips are a little tighter (13 px sides, 8 px gaps), so the four share
+   one line with room to spare, and the row keeps its width, clear of the floating buttons at the right edge. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .site-footer-social-links { gap: 8px; }
+  .site-footer-social a, .site-footer-top { padding: 0 13px; gap: 8px; }
+}
 /* Phones: the planet whole at the top, framing the wordmark and the slogan; the steps one under the other with the line
    running down through them, on the dark below; then the social row. */
 @media (max-width: 767.98px) {
@@ -209,6 +224,9 @@
   .site-footer-n { min-width: 26px; height: 26px; font-size: 12px; }
   .site-footer-steps strong { margin-top: 8px; font-size: 18px; }
   .site-footer-steps p { max-width: none; }
+  /* Session AF Gate C (design critique): the ribbon (Part 10.8) runs up the stage's right edge, about 8 px in; the steps'
+     words now stop 26 px short of that edge, so "…build the pattern." no longer runs into it. The ribbon is unchanged. */
+  .site-footer-steps { padding-right: 26px; }
   /* The social row stays one line: the two X handles, the website as an icon and Back to top as a 44 px arrow (their names kept for assistive technology). */
   .site-footer-social { width: 100%; flex-wrap: nowrap; padding: 10px 0; }
   .site-footer-social-links { flex-wrap: nowrap; min-width: 0; gap: 6px; }

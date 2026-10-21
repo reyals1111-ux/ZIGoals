@@ -21,6 +21,8 @@ export function LifeReviewTeaser({habits, health, platform, goals, today}: {habi
     <p className="eyebrow">Life review · {formatDay(window.start)} – {formatDay(window.end)}</p>
     <h2 id="life-review-teaser-title">Your week at a glance.</h2>
     {review?.highlights.length ? <ul className="life-list">{review.highlights.slice(0, 3).map(h => <li key={h}>{h}</li>)}</ul> : <p className="fine">Your review fills as you check in, log and contribute.</p>}
+    {/* Gate C design review (finding 10): what this card's check-ins count, beside Today's other week cards. */}
+    {review?.counts.habitCheckIns ? <p className="fine">The last seven days. A habit check-in here is a habit’s day completed.</p> : null}
     <div className="actions"><Link className="secondary" href="/app/review">Open your life review →</Link></div>
   </section>;
 }

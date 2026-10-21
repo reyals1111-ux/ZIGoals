@@ -338,6 +338,8 @@ test('11. Help is the last item of the sidebar and of More; Help\'s "Send feedba
   // Help's own topic link, two taps away (Help, then the topic). As strict: the same href, the same landing in view.
   await expect(page.locator('footer').getByRole('link', {name: 'Report a bug'})).toHaveCount(0);
   await page.goto('/app/help');
+  // Session AF Gate C (design critique; deliberate, as strict): a phone lists six topics with "All topics" for the rest.
+  if (await isPhone(page)) { await expect(page.locator('html[data-app-hydrated]')).toBeAttached(); await page.getByRole('button', {name: 'All topics', exact: true}).click(); }
   const feedback = page.getByRole('navigation', {name: 'Help topics'}).getByRole('link', {name: 'Send feedback', exact: true});
   await expect(feedback).toHaveAttribute('href', '#feedback');
   await feedback.click();

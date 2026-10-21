@@ -4,6 +4,9 @@ import type {Platform} from '../positions';
 import type {WeeklyReview} from '../weekly-review/schema';
 import {addLocalDays, localWeekday} from '../local-date';
 import {levelProgress, type LevelProgress} from './levels';
+import type {ChecklistDays} from '../checklist/schema';
+import {ACADEMY_LESSON_IDS, ACADEMY_LESSON_XP} from '../earn/academy-ids';
+import type {EarnAcademy} from '../earn/records';
 
 /**
  * XP is derived from the person's own records, never stored: a check-in, a log, a goal step or a review earns points the
@@ -13,9 +16,31 @@ import {levelProgress, type LevelProgress} from './levels';
 export const XP_RULES = {
   habitComplete: 10, habitPartial: 3, diaryEntry: 5, diaryCapPerDay: 20, water: 2, waterCapPerDay: 10, weight: 5, sleep: 5, meditation: 5, activity: 3,
   goalMilestone: 25, goalStatus: 25, contribution: 10, review: 30,
+  // Session AF (L3; P7.7, P7.13): a Checklist day with every counted dot lit, and its Perfect orbit (in path order).
+  checklistDay: 15, checklistPerfect: 5,
+  // Session AF chunk 2 (L1; P1.27): an Earn Academy lesson passed (all three answers right), once per lesson.
+  earnLesson: ACADEMY_LESSON_XP,
 } as const;
-export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null};
-export type XpEvent = {id: string; day: string; xp: number; kind: 'habit' | 'health' | 'goal' | 'review'; title: string};
+/** Session AF (L3): `checklist` is the Checklist's day history (device-only in AF); `checklistToday` today's summary as the
+ *  Checklist derives it from the records (the history holds sealed days only). Both optional: a store without them earns no
+ *  Checklist XP, as before. */
+export type ChecklistDaySummaryXp = {date: string; total: number; done: number; perfect?: boolean};
+/** Session AF chunk 2 (L1): `earnAcademy` is the Earn Academy's device record (`zigoals:earn-academy:v1`); optional, so a store
+ *  without it earns no Academy XP, as before. */
+export type GameStores = {habits: HabitData; health: HealthData; platform?: Platform | null; weekly?: WeeklyReview | null; checklist?: ChecklistDays | null; checklistToday?: ChecklistDaySummaryXp | null; earnAcademy?: EarnAcademy | null};
+export type XpEvent = {id: string; day: string; xp: number; kind: 'habit' | 'health' | 'goal' | 'review' | 'checklist' | 'earn'; title: string};
+/** Session AF chunk 2 (L1): the Academy lessons this build knows, passed on or before `today`, each once (by its first pass). */
+export function earnLessonsPassed(stores: Pick<GameStores, 'earnAcademy'>, today: string): {id: string; day: string}[] {
+  const lessons = stores.earnAcademy?.lessons ?? {};
+  return ACADEMY_LESSON_IDS.flatMap(id => { const at = lessons[id]?.passedAt; const day = typeof at === 'string' ? at.slice(0, 10) : null; return day && day <= today ? [{id, day}] : []; });
+}
+/** Session AF (L3): the days with every counted Checklist dot lit (sealed days, then today once complete), each with its Perfect orbit flag. */
+export function checklistOrbitDays(stores: Pick<GameStores, 'checklist' | 'checklistToday'>, today: string): {day: string; perfect: boolean}[] {
+  const out = Object.entries(stores.checklist?.days ?? {}).filter(([day, d]) => day < today && d.total > 0 && d.done >= d.total).map(([day, d]) => ({day, perfect: !!d.perfect}));
+  const t = stores.checklistToday;
+  if (t && t.date === today && t.total > 0 && t.done >= t.total) out.push({day: today, perfect: !!t.perfect});
+  return out.sort((a, b) => a.day.localeCompare(b.day));
+}
 const isoDay = (stamp: string) => stamp.slice(0, 10);
 export function xpEvents(stores: GameStores, today: string): XpEvent[] {
   const out: XpEvent[] = [];
@@ -41,6 +66,11 @@ export function xpEvents(stores: GameStores, today: string): XpEvent[] {
     for (const c of stores.platform.contributions) { if (c.direction !== 'IN' || c.reversesId) continue; const day = isoDay(c.occurredAt); if (day <= today) out.push({id: `contribution:${c.id}`, day, xp: XP_RULES.contribution, kind: 'goal', title: 'A contribution'}); }
   }
   for (const r of stores.weekly?.reviews ?? []) if (r.completedAt && isoDay(r.completedAt) <= today) out.push({id: `review:${r.weekStart}`, day: isoDay(r.completedAt), xp: XP_RULES.review, kind: 'review', title: 'Weekly review'});
+  for (const o of checklistOrbitDays(stores, today)) {
+    out.push({id: `checklist:${o.day}`, day: o.day, xp: XP_RULES.checklistDay, kind: 'checklist', title: 'Every Checklist dot lit'});
+    if (o.perfect) out.push({id: `checklist-perfect:${o.day}`, day: o.day, xp: XP_RULES.checklistPerfect, kind: 'checklist', title: 'Perfect orbit'});
+  }
+  for (const l of earnLessonsPassed(stores, today)) out.push({id: `earn-lesson:${l.id}`, day: l.day, xp: XP_RULES.earnLesson, kind: 'earn', title: 'An Earn Academy lesson passed'});
   return out;
 }
 export const weekStart = (day: string) => addLocalDays(day, -((localWeekday(day) + 6) % 7));
@@ -48,7 +78,7 @@ export type XpSummary = {total: number; level: LevelProgress; thisWeek: number; 
 export function xpSummary(stores: GameStores, today: string): XpSummary {
   const events = xpEvents(stores, today), ws = weekStart(today), lastWs = addLocalDays(ws, -7);
   let total = 0, thisWeek = 0, lastWeek = 0, todayXp = 0;
-  const byKind: Record<XpEvent['kind'], number> = {habit: 0, health: 0, goal: 0, review: 0};
+  const byKind: Record<XpEvent['kind'], number> = {habit: 0, health: 0, goal: 0, review: 0, checklist: 0, earn: 0};
   for (const e of events) { total += e.xp; byKind[e.kind] += e.xp; if (e.day >= ws) thisWeek += e.xp; else if (e.day >= lastWs) lastWeek += e.xp; if (e.day === today) todayXp += e.xp; }
   return {total, level: levelProgress(total), thisWeek, lastWeek, today: todayXp, byKind, events};
 }

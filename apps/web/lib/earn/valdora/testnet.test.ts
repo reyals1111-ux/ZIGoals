@@ -206,15 +206,25 @@ describe('displayAmount (BigInt only)', () => {
 });
 
 describe('scope', () => {
-  it('is imported by no page, component or route: it is a foundation, not a feature', () => {
+  // Session AF (ADR-028 H26; assertion changed, recorded in docs/handoff/af-lanes/L1.md): lib/earn now also holds the Earn
+  // hub's shared modules (the APR, the live envelope), so the old "no file outside lib/earn names lib/earn" would forbid the
+  // Earn page by construction. H26 lifts the scope for this reader through a server relay only. What stays guarded, at full
+  // strength: no page, component, route or worker imports this testnet reader; only server code under lib/server/earn may.
+  it('is imported by no page, component, route or worker; only a server relay under lib/server/earn may import it (H26)', () => {
     const web = fileURLToPath(new URL('../../../', import.meta.url));
     const walk = (dir: string): string[] => readdirSync(dir).flatMap(name => {
       const path = join(dir, name);
       if (name === 'node_modules' || name.startsWith('.')) return [];
       return statSync(path).isDirectory() ? walk(path) : /\.(tsx?|mjs|js)$/.test(name) ? [path] : [];
     });
+    // (Gate C test audit: `require(...)` and `export … from` count too.)
+    const importsReader = (text: string) => /(?:from|import|require)\s*\(?\s*['"][^'"]*earn\/valdora(?:\/testnet)?['"]/.test(text);
     const users = ['app', 'components', 'lib', 'workers'].flatMap(dir => { try { return walk(join(web, dir)); } catch { return []; } })
-      .filter(path => !path.includes(join('lib', 'earn')) && /lib\/earn|earn\/valdora/.test(readFileSync(path, 'utf8')));
-    expect(users).toEqual([]);
+      .filter(path => !path.includes(join('lib', 'earn', 'valdora')) && importsReader(readFileSync(path, 'utf8')));
+    expect(users.filter(path => !path.includes(join('lib', 'server', 'earn')))).toEqual([]);
+    expect(importsReader("import {readValdoraTestnet} from '../../lib/earn/valdora/testnet';")).toBe(true);
+    expect(importsReader("const m = await import('../earn/valdora/testnet');")).toBe(true);
+    expect(importsReader("const m = require('../earn/valdora/testnet');")).toBe(true);
+    expect(importsReader("export {readValdoraTestnet} from '../earn/valdora/testnet';")).toBe(true);
   });
 });

@@ -37,6 +37,9 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'s launcher shows its poster', async ({page}) => {
+  // Session AF (CI on 8443a1e3 and bf72baa0, the Chrome shard): about twenty pages, each left only once its network is
+  // idle (up to 10 s), outgrew the default 45 s on CI's runners; every check below is unchanged.
+  test.setTimeout(120_000);
   const errors: {at: number; message: string}[] = [], navigations: number[] = [];
   page.on('pageerror', e => errors.push({at: Date.now(), message: e.message}));
   // ADR-017 S64: the router's prefetches that WebKit rejects when the page is left never reach `requestfailed`; what

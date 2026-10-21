@@ -38,7 +38,7 @@ const QUESTIONS: [string, string, string][] = [
   ['your-ai-agents', 'Can an AI agent in my browser use ZIGoals?', 'chrome://flags/#enable-webmcp-testing'],
   ['your-ai-which-setup', 'Which setup fits me?', 'nothing is sent'],
   ['your-ai-on-device', 'What is Chrome’s on-device model?', 'Answered by Chrome’s on-device model'],
-  ['your-ai-hosted', 'What is ZIGoals hosted?', 'not available yet'],
+  ['your-ai-hosted', 'What is hosted ZIGoals?', 'not available yet'], // Session AF Gate C (design critique; deliberate, as strict): the question reads naturally
   ['your-ai-look', 'Can I change how ZIGi looks?', 'Meet ZIGi'],
 ];
 
@@ -71,7 +71,8 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // Session AB-Design bumped it (ADR-024, deliberate; the second merger): AB-Cloud's links lead "Earlier updates".
   // Session AC bumped it (ADR-025); AB-Design's links lead "Earlier updates".
   // Session AD bumped it (ADR-026); AC's links lead "Earlier updates".
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-ae-stunning'); // Session AE (ADR-027, deliberate): AD's links lead "Earlier updates"
+  // Session AE bumped it (ADR-027); AD's links lead "Earlier updates".
+  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-af-wealth-unlocked'); // Session AF (ADR-028, deliberate): AE's links lead "Earlier updates"
   await page.goto('/app');
   // Session AA-Cloud Part 1 (deliberate): the card sits in Today's "Updates and summaries"; on a phone that area waits
   // behind its one row, so open it first. Nothing about the card changes.

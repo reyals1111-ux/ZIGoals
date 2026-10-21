@@ -43,6 +43,7 @@ import {useHealth} from '../health/use-health';
 import {useAutoCheckIns} from '../habits/use-auto-checkins';
 import {TodayForYou,type ForYouParts} from '../for-you/today-for-you';
 import {TodayFocus} from './today-focus';
+import {TodayChecklistCard} from '../checklist/today-checklist-card';
 import {ProgressSlot,Slot} from '../progress/slot';
 import {HealthLinkContext} from '../habits/health-link-context';
 import {exerciseData} from '../../lib/health-counters';
@@ -63,6 +64,7 @@ import {CardOptions} from '../card-options';
 import {AskZigiItem} from '../ai/ask-zigi-item';
 import {wealthMarketRequests} from '../../lib/wealth';
 import {unifiedGoalSummaries} from '../../lib/goal-summary';
+import {attentionFirst,todayGoalRoles} from '../../lib/today/goal-roles';
 import {dailyData,healthDay} from '../../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,TODAY_GROUPS,todayGroup,twinOf,type TodayGroup,emptyDashboardSettings,saveWidget,removeWidget,visibleDomains,WIDGET_CATALOG,DASHBOARD_BUILTINS,reconcileDashboardPlacement,moveDashboardItem,setDashboardBuiltinHidden,applyDashboardPreset,resetDashboardPlacement,type DashboardPreset,type DashboardWidget,type DashboardSettings,type WidgetKind,type DashboardBuiltinId,type DashboardItemRef,type DashboardRegion} from '../../lib/dashboard-settings';
 import {dashboardIntegrityWarning,widgetMetric,type DashboardSources,type WidgetMetric} from '../../lib/dashboard-metrics';
@@ -86,7 +88,7 @@ import {Skeleton} from '../ui/skeleton';
 import {WalletCard} from '../wallet/wallet-card';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
-const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
+const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your financial progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
  const ref=useRef<HTMLDialogElement>(null);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null,dialog=ref.current;dialog?.showModal();return()=>{dialog?.close();previous?.focus();};},[]);
@@ -139,10 +141,13 @@ export function TodayDashboard(){
  const loaded=(domain:string)=>domain==='health'?health.loaded:domain==='habits'?habits.loaded:platform.loaded&&legacy.loaded;
  const domainError=(domain:string)=>domain==='health'?health.error:domain==='habits'?habits.error:platform.error;
  const savedLayout=useSavedLayout();
- const active=goals.filter(g=>g.status==='active'),nextGoal=active[0];
+ const active=goals.filter(g=>g.status==='active');
  // Today's Goal cards follow the order arranged on the Goals page.
  const cardOrder=resolveOrder(goals.map(g=>entityLayoutId(g.key)),savedOrder(savedLayout,'goals','cards'));
  const activeCards=[...active].sort((a,b)=>cardOrder.indexOf(entityLayoutId(a.key))-cardOrder.indexOf(entityLayoutId(b.key)));
+ // Session AF (L5a, Part 10.10): "Next step", "What matters today" and the goal cards each say something different
+ // (lib/today/goal-roles.ts): the top goal's next step, the most urgent other goal, each goal's progress.
+ const roles=todayGoalRoles(activeCards,platform.data.goals,today),nextGoal=roles.focus?.goal;
  const integrityWarning=platform.loaded&&!platform.error?dashboardIntegrityWarning(platform.data):undefined;
  const hasFundingGoal=platform.data.goals.some(g=>g.status!=='closed'&&g.type!=='PROJECT');
  const meta=(id:DashboardBuiltinId)=>DASHBOARD_BUILTINS.find(b=>b.id===id)!;
@@ -189,7 +194,7 @@ export function TodayDashboard(){
    <CardOptions label={metric.title}><AskZigiItem kind={w.kind} metric={w.metric} name={habit?.title??(w.entity?goals.find(g=>g.key===w.entity)?.name:undefined)}/><button type="button" disabled={busy} onClick={()=>setEditor(w)}>Edit widget</button><button type="button" disabled={busy} onClick={()=>apply(s=>saveWidget(s,{...w,hidden:!w.hidden},w.revision))}>{w.hidden?'Show widget':'Hide widget'}</button><button type="button" aria-label={`Move ${metric.title} up`} disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,metric.title)}>Move earlier</button><button type="button" aria-label={`Move ${metric.title} down`} disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,metric.title)}>Move later</button><button type="button" onClick={()=>moveLane(ref,region,metric.title)} disabled={busy}>Move to {region==='main'?'rail':'main'}</button><button type="button" disabled={busy||w.size==='compact'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'compact'},w.revision),'Compact size saved.')}>Compact size</button><button type="button" disabled={busy||w.size==='wide'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'wide'},w.revision),'Wide size saved.')}>Wide size</button><button type="button" disabled={busy} onClick={()=>apply(s=>removeWidget(s,w.id),'Widget removed. Your underlying record was kept.')}>Remove widget</button></CardOptions>
   </article>;
  }
- const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={sources} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module}/>;
+ const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={module==='attention'?{...sources,platform:{...platform.data,goals:attentionFirst(platform.data.goals,roles)}}:sources} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module}/>;
  function renderBuiltin(id:DashboardBuiltinId){
   if(['whole-life','attention','funding','needs-attention','watchlist'].includes(id)){
    if(!financial||!platform.loaded||!!platform.error||id==='attention'&&!hasFundingGoal)return null;
@@ -197,7 +202,7 @@ export function TodayDashboard(){
   }
   switch(id){
    case 'goals':return financial?<section className="today-goals surface-featured" aria-label="Your goals"><div className="section-heading"><div><h2>Your goals</h2><p>Small steps. A bigger future.</p></div><Link href="/app/goals" className="text-link">View all goals →</Link></div>{!legacy.loaded||!platform.loaded?<Skeleton label="Loading your Goals…" block lines={2}/>:active.length?<div className="today-goals-grid">{activeCards.map(g=><GoalSummaryCard key={g.key} summary={g} compact/>)}<Link href="/app/goals/new" className="new-destination-card"><span aria-hidden="true">＋</span><strong>Create a new goal</strong><small>A new destination<br/>is waiting.</small></Link></div>:<div className="today-goal-empty"><div><AppIcon name="goals" size={42}/><h3>A plan with your name on it.</h3><p>Choose what matters. Set a target. See the next step.</p><Link className="text-link" href="/app/goals/new">Create your first goal →</Link></div><SceneArt scene="home"/></div>}<p className="local-label">{legacy.mode==='local'?'Local demo · simulated ZIG, never wallet funds':'Testnet wallet view · financial execution disabled'}</p></section>:null;
-   case 'progress':return financial?<section className="progress-summary" aria-label="Your financial progress"><div className="section-heading"><div><h2>Your progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div><div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatPlainDecimal(formatUnits(legacy.goals.reduce((total,g)=>total+BigInt(g.position_units),0n).toString(),TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><small>{legacy.mode==='local'?'Simulated local allocation':'Known wallet Goal allocation'}</small></div><div><AppIcon name="ecosystem"/><strong>None</strong><small>Future return assumed</small></div></div></section>:null;
+   case 'progress':return financial?<section className="progress-summary" aria-label="Your financial progress"><div className="section-heading"><div><h2>Your financial progress</h2><p>Built on your contributions.</p></div><span className="pill">Idle strategy</span></div><div className="progress-stats"><div><AppIcon name="goals"/><strong>{active.length}</strong><small>Active goals</small></div><div><AppIcon name="activity"/><strong>{formatPlainDecimal(formatUnits(legacy.goals.reduce((total,g)=>total+BigInt(g.position_units),0n).toString(),TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong><small>{legacy.mode==='local'?'Simulated local allocation':'Known wallet Goal allocation'}</small></div><div><AppIcon name="ecosystem"/><strong>None</strong><small>Future return assumed</small></div></div></section>:null;
    case 'habits':return domains.includes('habits')?<HabitsToday/>:null;
    case 'health':return domains.includes('health')?<HealthToday/>:null;
    case 'next-action':return financial&&nextGoal?<div className="next-step"><span className="eyebrow">Your next goal action</span><Link href={nextGoal.href} className="text-link">Review {nextGoal.name} →</Link></div>:null;
@@ -260,7 +265,9 @@ export function TodayDashboard(){
    {financial&&platform.error&&legacy.loaded&&!legacy.error&&goals.some(g=>g.key.startsWith('legacy:'))&&<section className="panel" aria-label="Available local simulation Goals"><h2>Your local simulation Goals are still available.</h2><p>Private tracked records need recovery. These separate local simulation records remain readable.</p><ul>{goals.filter(g=>g.key.startsWith('legacy:')).map(g=><li key={g.key} data-goal-key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul></section>}
    {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}
    {!showcase&&makeToday}
-   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
+   {!brandNew&&<TodayChecklistCard/>}
    <section aria-label="Your Today widgets" className="dashboard-widget-area">
     {customize&&<div className="section-heading dashboard-layout-heading"><h2>Arrange your daily space</h2><div className="dashboard-actions"><button className="primary" disabled={busy||settings.data.widgets.length>=24} onClick={()=>{setInsertAt(null);setEditor('new');}}>Add widget</button><button className="secondary" onClick={()=>setPreset(settings.data.preset)}>Choose preset</button></div></div>}
     <p role="status" className="dashboard-save-status">{status}</p>{error&&<p role="alert">{error}</p>}
@@ -268,6 +275,12 @@ export function TodayDashboard(){
    </section>
    {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
    {gameOn&&uiPrefs.loaded&&!uiPrefs.unreadable&&!!uiPrefs.data.today?.gameWidgets?.length&&<LoadBoundary quiet><Suspense fallback={null}><TodayGameCards/></Suspense></LoadBoundary>}
+  </div>
+  {/* Gate C design review (finding 9): For you (and the Showcase's "Make Today yours") follow the main column in reading
+      order but sit under both columns on a computer, as "Updates and summaries" does: the rail's column stayed reserved,
+      empty, beside them once Recent activity ended (≈ 280 px beside a 498 px column at 1024 px). Before the rail in the
+      page's order, exactly where they were. */}
+  <div className="today-after">
    {parts.main}<div className="for-you-place" ref={setMainPlace}/>
    {showcase&&makeToday&&<PhoneFold label="Make Today yours">{makeToday}</PhoneFold>}
   </div>{!single&&<aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={railItems} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside>}</div>

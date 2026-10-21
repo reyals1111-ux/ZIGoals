@@ -140,15 +140,28 @@ test('reduced motion and the Off preference keep buttons still on every route',a
  const secondary=page.locator('.secondary').first();
  await expect(secondary).toHaveCSS('transition-duration','0s');
  await page.goto('/app');
+ // Session AF Gate C (CI on eba4e437, mobile): read once Today has applied the Off preference, as on Goals above — a slow
+ // runner read the button before it had.
+ await expect(page.locator('html')).toHaveAttribute('data-app-motion','off');
  expect(await page.locator('.today-hero .primary').first().evaluate(el=>getComputedStyle(el,'::after').content)).toBe('none');
 });
 
 test('progress fills grow in once when seen and glide to new values while their state updates at once',async({page},info)=>{
  await watch(page,{'glass-fill-x':{property:'transform',within:'.today-pace-track'},'glass-ring-draw':{property:'stroke-dashoffset',within:'.health-gauge, .life-ring[data-pillar="health"]'}});
  await showcase(page);
+ // Session AF (ADR-028 H113, deliberate): "What matters today" now shows the Showcase's most urgent *other* goal, which has
+ // no contribution yet, so its pace bar was empty (nothing to grow: start = end). One contribution is recorded on that goal's
+ // own page (the same tab keeps the Showcase), and the same bar is then watched growing in, as strictly as before.
+ const goalPage=await page.locator('section',{has:page.locator('.today-pace-track')}).first().getByRole('link',{name:'Open Goal intelligence →'}).getAttribute('href');
+ await page.goto(goalPage!);
+ await page.getByRole('button',{name:'Record contribution',exact:true}).click();await page.getByRole('button',{name:'Record history only',exact:true}).click();
+ await page.getByLabel(/^Actual amount in /).fill('500');await page.getByRole('button',{name:'Save history only',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution recorded');
+ await page.goto('/app');
  const share=(locator:Locator)=>locator.evaluate(el=>({value:Number(getComputedStyle(el).getPropertyValue('--glass-value')),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
  // A bar slides in from wholly before its start and settles exactly where its value says.
  const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
+ expect((await share(pace)).value,'the watched bar has something to show').toBeGreaterThan(0);
  const grow=await settled(page,'glass-fill-x'),paceShare=await share(pace);
  expect(translate(grow.start).x).toBeLessThan(translate(grow.mid!).x);expect(translate(grow.mid!).x).toBeLessThan(translate(grow.end).x);expect(translate(grow.end).x).toBeCloseTo((paceShare.value-1)*paceShare.width,0);
  // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): Today's vertical calorie gauge became the

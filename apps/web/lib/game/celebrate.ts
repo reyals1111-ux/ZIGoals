@@ -11,8 +11,8 @@ import type {GameRecord} from './schema';
  * milestone (Part 3 adds its ids), a goal reached (AA-Cloud emits the event; this lane renders it, once a day per kind).
  * Tasteful and one-time; never a punishment, never a loss.
  */
-export type Celebration = {id: string; kind: 'level' | 'badge' | 'streak' | 'goal' | 'fast'; title: string; line: string; symbol: string; semantic?: 'level_up' | 'achievement_unlocked'};
-export const celebrationId = {level: (n: number) => `level:${n}`, badge: (id: string) => `badge:${id}`, streak: (habitId: string) => `streak-100:${habitId}`, goal: (type: string, day: string) => `goal:${type}:${day}`, fast: (id: string) => `fast:${id}`};
+export type Celebration = {id: string; kind: 'level' | 'badge' | 'streak' | 'goal' | 'fast' | 'checklist'; title: string; line: string; symbol: string; semantic?: 'level_up' | 'achievement_unlocked'};
+export const celebrationId = {level: (n: number) => `level:${n}`, badge: (id: string) => `badge:${id}`, streak: (habitId: string) => `streak-100:${habitId}`, goal: (type: string, day: string) => `goal:${type}:${day}`, fast: (id: string) => `fast:${id}`, checklist: (moment: 'all' | 'perfect', day: string) => `checklist:${moment}:${day}`};
 export function pendingCelebrations(stores: GameStores, game: GameRecord, seen: Celebrations['seen'], today: string, fasting?: {id: string; hours: number; targetHours: number; endedAt: string | null}[]): Celebration[] {
   // The moment the layer is switched on, what the records already hold is remembered (level and badges), not celebrated.
   if (!game.enabled || game.levelSeen === undefined) return [];
@@ -23,6 +23,18 @@ export function pendingCelebrations(stores: GameStores, game: GameRecord, seen: 
   for (const b of badges(stores, today)) if (b.earned && !game.badgesSeen?.[b.id] && !seen[celebrationId.badge(b.id)]) out.push({id: celebrationId.badge(b.id), kind: 'badge', title: `New badge · ${b.title}`, line: b.blurb, symbol: b.symbol, semantic: 'achievement_unlocked'});
   for (const h of (stores.habits as HabitData).habits) if (habitStats(h, today).bestStreak >= 100 && !seen[celebrationId.streak(h.id)]) out.push({id: celebrationId.streak(h.id), kind: 'streak', title: `100 days · ${h.title}`, line: 'A hundred days in a row. That is a rhythm.', symbol: '✷'});
   for (const f of fasting ?? []) if (f.endedAt === null && f.hours >= f.targetHours && !seen[celebrationId.fast(f.id)]) out.push({id: celebrationId.fast(f.id), kind: 'fast', title: `${f.targetHours} hours fasted`, line: 'You reached the hours you set. How you end it is yours.', symbol: '◌'});
+  out.push(...checklistCelebrations(stores, today, seen));
+  return out;
+}
+/**
+ * Session AF (L3; P7.7): today's Checklist moments, derived from the Checklist's own summary of today (never stored): every
+ * dot lit, then a Perfect orbit (every dot, in path order). One each per day on this device, through the seen map.
+ */
+export function checklistCelebrations(stores: Pick<GameStores, 'checklistToday'>, today: string, seen: Celebrations['seen']): Celebration[] {
+  const t = stores.checklistToday; if (!t || t.date !== today || t.total === 0 || t.done < t.total) return [];
+  const out: Celebration[] = [];
+  if (!seen[celebrationId.checklist('all', today)]) out.push({id: celebrationId.checklist('all', today), kind: 'checklist', title: 'All dots lit', line: 'Every dot on your path, today. See you tomorrow.', symbol: '◍'});
+  if (t.perfect && !seen[celebrationId.checklist('perfect', today)]) out.push({id: celebrationId.checklist('perfect', today), kind: 'checklist', title: 'Perfect orbit', line: 'Every dot, in the order of your path.', symbol: '✪'});
   return out;
 }
 /** What the first switch-on remembers: the current level and every badge already earned. */

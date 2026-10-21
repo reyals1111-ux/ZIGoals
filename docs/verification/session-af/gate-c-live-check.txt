@@ -1,0 +1,39 @@
+Session AF Gate C — G10, the live check on the real network (read-only), node scripts/earn/live-check.mjs on the Mac.
+Run 2, Mon 19 Oct 2026 19:48 Brussels (head with the Gate C ledger's P11.7 checks: validators, governance, Ramp's asset list, the
+nine browser-direct balance hosts with public, non-personal addresses; recorded as scripts/earn/fixtures/live-check-2026-10-19.json).
+Nothing signed, no person's address sent.
+
+Earn live check, read-only, started 2026-10-19T17:48:35.850Z
+OK   ZIGChain latest block: zigchain-1 at block 13068552 (as of 2026-10-19T17:48:31.137329117Z)
+OK   chain denom facts (H21: azig, 18 decimals, from the chain itself): bond denom azig, display zig at exponent 18, node v5.1.2 (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   staking parameters and the issuance inputs: issuance 5.32 % before commission (gross 5.74 %, block 3.173 s, factor 0.9462), unbonding 21 days (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   Valdora stZIG (pinned staker) and the rate against OroSwap’s pool: 1 stZIG = 1.0730 ZIG (contract) / 1.0665 (pool) (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   OroSwap fee tiers, pools (vouched for by the factory) and farms: 4 pools (zig-usdc 25 bps, zig-usdc-inj 25 bps, zig-atom 1 bps, stzig-zig 1 bps); farms running: 0 (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   USDC vaults (assets, share price, paused, deposit asset): 4 vaults, 4 holding USDC on Noble (USDC.n); paused: 0 (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   measured vs issuance staking figure (H97): ZIG Sentinel - Foundation 1 at 5.0 %: measured 5.20 %, issuance 5.06 % (2.8 % apart) (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   DefiLlama (third party): value locked per app and yield pools on ZIGChain: 5 apps with a value; 2 yield pools; incidents: permapod 2026-08-29 (as of 2026-10-19T17:48:37.961Z)
+OK   validators (the list Earn and Staking show): 14 bonded (at most 14), none jailed; commissions 5.0–10.0 %; the ten largest hold 96.51 % (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   governance: the newest proposals and the latest tally: newest #44 (voting period), its tally read; quorum 33.4 % (as of 2026-10-19T17:48:31.137329117Z, block 13068552)
+OK   Ramp Network’s public asset list (Add money): 126 assets; ATOM on Cosmos Hub offered; fees 0.99–3.9 %, at least €2.49 (as of 2026-10-19T17:48:39.769Z)
+OK   the browser-direct balance hosts, one public address each: 9 hosts answered well-formed balances (Cosmos Hub, Ethereum, Arbitrum, Base, OP Mainnet, Polygon, BNB Chain, Solana, Bitcoin) (as of 2026-10-19T17:48:39.876Z)
+12 of 12 checks passed; 0 flagged. Exit 0.
+
+Run 1 (19:08, the first eight checks, head 196fa934): 8 of 8 passed, 0 flagged (the same sources, then at block 13067786).
+
+Run 3, Tue 20 Oct 2026 13:16 Brussels, on the final head (the Checklist merged; the record's contact fields cut, 003cf6e3). Nothing
+signed, no person's address sent. New since run 2: proposal #44 is in its voting period.
+
+Earn live check, read-only, started 2026-10-20T11:16:37.060Z
+OK   ZIGChain latest block: zigchain-1 at block 13088336 (as of 2026-10-20T11:16:32.811774347Z)
+OK   chain denom facts (H21: azig, 18 decimals, from the chain itself): bond denom azig, display zig at exponent 18, node v5.1.2 (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   staking parameters and the issuance inputs: issuance 5.30 % before commission (gross 5.74 %, block 3.181 s, factor 0.9438), unbonding 21 days (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   Valdora stZIG (pinned staker) and the rate against OroSwap’s pool: 1 stZIG = 1.0731 ZIG (contract) / 1.0694 (pool) (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   OroSwap fee tiers, pools (vouched for by the factory) and farms: 4 pools (zig-usdc 25 bps, zig-usdc-inj 25 bps, zig-atom 1 bps, stzig-zig 1 bps); farms running: 0 (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   USDC vaults (assets, share price, paused, deposit asset): 4 vaults, 4 holding USDC on Noble (USDC.n); paused: 0 (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   measured vs issuance staking figure (H97): ZIG Sentinel - Foundation 1 at 5.0 %: measured 5.18 %, issuance 5.04 % (2.9 % apart) (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   DefiLlama (third party): value locked per app and yield pools on ZIGChain: 5 apps with a value; 2 yield pools; incidents: permapod 2026-08-29 (as of 2026-10-20T11:16:38.224Z)
+OK   validators (the list Earn and Staking show): 14 bonded (at most 14), none jailed; commissions 5.0–10.0 %; the ten largest hold 96.52 % (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   governance: the newest proposals and the latest tally: newest #44 (voting period), its tally read; quorum 33.4 % (as of 2026-10-20T11:16:32.811774347Z, block 13088336)
+OK   Ramp Network’s public asset list (Add money): 126 assets; ATOM on Cosmos Hub offered; fees 0.99–3.9 %, at least €2.49 (as of 2026-10-20T11:16:40.677Z)
+OK   the browser-direct balance hosts, one public address each: 9 hosts answered well-formed balances (Cosmos Hub, Ethereum, Arbitrum, Base, OP Mainnet, Polygon, BNB Chain, Solana, Bitcoin) (as of 2026-10-20T11:16:40.789Z)
+12 of 12 checks passed; 0 flagged. Exit 0.

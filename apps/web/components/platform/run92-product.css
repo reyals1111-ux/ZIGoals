@@ -26,5 +26,8 @@ small{font-size:14px}
 .today-hero-copy{container-type:inline-size}
 .today-hero .today-hero-copy .orbit-slogan{font-size:clamp(18px,7cqw,90px)!important;line-height:1.15!important;letter-spacing:-.045em;text-wrap:initial}
 .orbit-slogan .slogan-line{display:block;white-space:nowrap}
+/* Session AF (L5a, Part 10.9, ADR-028 H14): the line height is a little less than the font's own box, so the two lines'
+   letters touched (4–5 px at 768 and 1920 px); one margin on the second line keeps them apart. Nothing else in the hero. */
+@media(min-width:768px){.today-hero .today-hero-copy .orbit-slogan .slogan-line+.slogan-line{margin-top:max(13px,.18em)}}
 
 @media(max-width:379px){.today-hero .hero-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.today-hero .hero-actions :is(a,button){width:100%;justify-content:center;white-space:normal}}

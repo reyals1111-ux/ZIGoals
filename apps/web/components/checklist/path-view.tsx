@@ -1,0 +1,75 @@
+'use client';
+import {useCallback, useMemo, useState} from 'react';
+import {Path} from '../path/path';
+import {checklistMilestones, checklistPath, type DerivedDot} from '../../lib/checklist/derive';
+import {PATH_COLOURS} from '../../lib/path/colours';
+import {XP_RULES, checklistOrbitDays} from '../../lib/game/xp';
+import {itemGlyph} from '../../lib/checklist/glyphs';
+import {milestoneState, type PathModel, type PathStep, type StepIntent} from '../../lib/path/model';
+import {DotPanel} from './dot-panel';
+import {ValueStepper} from './value-stepper';
+import {useEscapeLayer} from './escape-layers';
+import type {ChecklistState} from './use-checklist';
+// Session AF (L3b): the orbit look of the shared path, the Checklist's own (Earn's paths never load it).
+import '../path/path-orbit.css';
+
+/** Dots that take more once done: another glass, a new night, a new fast, more minutes. */
+const AGAIN = new Set(['water', 'sleep', 'fast', 'meditation']);
+export type PanelState = {id: string; mode: 'value' | 'details'; message?: string} | null;
+
+/** The press of a dot, shared by the Path and the List (P7.10, P7.11 any order, P7.12 the stepper). */
+export function useDotPress(state: ChecklistState) {
+  const [panel, setPanel] = useState<PanelState>(null), [busy, setBusy] = useState<string | null>(null);
+  // Escape closes an open stepper or a dot's details before it closes the Checklist (L3b).
+  useEscapeLayer(panel !== null, () => setPanel(null));
+  const press = useCallback(async (dot: DerivedDot, intent: StepIntent) => {
+    if (intent === 'open') return;
+    const again = dot.kind === 'health' && !!dot.input && AGAIN.has(dot.input);
+    if (dot.state === 'done' && !again && dot.kind !== 'custom') { setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: 'details'}); return; }
+    if (intent === 'value') { setPanel(p => p?.id === dot.id && p.mode === 'value' ? null : {id: dot.id, mode: 'value'}); return; }
+    setBusy(dot.id);
+    const out = await state.tick(dot, 'tick');
+    setBusy(null);
+    setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message});
+  }, [state]);
+  const log = useCallback(async (dot: DerivedDot, value: number) => {
+    setBusy(dot.id);
+    const out = await state.tick(dot, 'value', value);
+    setBusy(null);
+    setPanel(out.ok ? null : {id: dot.id, mode: 'value', message: out.message});
+  }, [state]);
+  const renderPanel = useCallback((dot: DerivedDot) => {
+    if (!panel || panel.id !== dot.id) return null;
+    if (panel.mode === 'value' && dot.value) return <>
+      <ValueStepper key={dot.id} label={dot.label} value={dot.value} colour={PATH_COLOURS[dot.colour].token} busy={busy === dot.id} onLog={n => void log(dot, n)} onCancel={() => setPanel(null)}/>
+      {panel.message && <p className="checklist-stepper-error" role="alert">{panel.message}</p>}
+    </>;
+    return <DotPanel dot={dot} message={panel.message} canUndo={state.canUndo(dot.id)} onUndo={() => void state.undoLast(dot.id).then(out => setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message}))} onClose={() => setPanel(null)}/>;
+  }, [panel, busy, log, state]);
+  return {panel, setPanel, press, renderPanel, busy};
+}
+
+/** Session AF (L3b): one chest per orbit at most, at the end of each orbit but the last (whose end is the day's trophy); it
+ *  opens when every planet up to it is lit. No reward is claimed for it: it marks the way. Round 3 (a learning path's
+ *  density): the half-way chest stays only where it falls at an orbit's end (it is then that orbit's chest); half way
+ *  through an orbit it would be a second chest in it, so it is left off the path (its moment is still ZIGi's and the
+ *  game layer's, which read the records, not the chest). */
+function withOrbitChests(model: PathModel): PathModel {
+  const half = milestoneState(model).find(m => m.id === 'half')?.afterStepId ?? null, sections = model.sections.filter(s => s.steps.length);
+  const ends = new Set(sections.map(s => s.steps.at(-1)!.id)), halfAtEnd = half !== null && ends.has(half);
+  const kept = model.milestones.filter(m => m.at !== 'half' || halfAtEnd);
+  const chests = sections.slice(0, -1).flatMap(s => { const last = s.steps.at(-1)!; return last.id === half ? [] : [{id: `orbit-${s.id}`, at: {afterStep: last.id}, label: 'Orbit chest'}]; });
+  return chests.length || kept.length !== model.milestones.length ? {...model, milestones: [...kept, ...chests]} : model;
+}
+
+/** The Path view (P7.4–P7.11): today's favourites as the shared path engine's dots, in the person's orbits and order. */
+export function PathView({state, jumpDock = null}: {state: ChecklistState; jumpDock?: HTMLElement | null}) {
+  const {panel, press, renderPanel} = useDotPress(state);
+  const byId = useMemo(() => new Map(state.dots.map(d => [d.id, d])), [state.dots]);
+  // The chests' rewards (game layer on): the day's XP, and the First orbit badge while it has not been earned on an earlier day.
+  const firstOrbit = state.gameOn && !!state.date && checklistOrbitDays({checklist: state.days.data}, state.date).length === 0;
+  const model = useMemo(() => withOrbitChests(checklistPath(state.record.data, state.dots.map(d => ({...d, glyph: itemGlyph(d)})), checklistMilestones({on: state.gameOn, dayXp: XP_RULES.checklistDay, badge: firstOrbit ? 'First orbit' : null}))), [state.record.data, state.dots, state.gameOn, firstOrbit]);
+  const onStep = useCallback((step: PathStep, intent: StepIntent) => { const dot = byId.get(step.id); if (dot) void press(dot, intent); }, [byId, press]);
+  const say = state.summary && state.summary.total > 0 && state.summary.done === 0 ? 'Tap a planet to begin' : state.summary?.next === null && (state.summary?.total ?? 0) > 0 ? 'All planets lit!' : undefined;
+  return <Path model={model} ariaLabel="Today's path" onStep={onStep} panelFor={panel?.id ?? null} renderPanel={step => { const dot = byId.get(step.id); return dot ? renderPanel(dot) : null; }} zigi={say ? {say} : {}} className="checklist-path" variant="orbit" jumpDock={jumpDock}/>;
+}

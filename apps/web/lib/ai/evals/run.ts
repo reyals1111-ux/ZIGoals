@@ -6,6 +6,9 @@ import {createHabit} from '../../habits';
 import {startChallenge} from '../../habits-v2/challenge';
 import type {ToolEnv, ToolSources} from '../tools/env';
 import {GOLDEN_CATEGORIES, type GoldenCase, type GoldenCategory} from './golden-set';
+import {toolEnv} from '../tools/env';
+import {gatesFor} from '../tools/fixtures';
+import {todayView, withChecklist, withEarn, withPage} from './fixtures-af';
 
 /**
  * Runs ZIGi's golden set (Session V Part 11) on the device's own deciders: no provider, no network, no storage. Each
@@ -13,13 +16,22 @@ import {GOLDEN_CATEGORIES, type GoldenCase, type GoldenCategory} from './golden-
  */
 export type GoldenResult = {id: string; category: GoldenCategory; pass: boolean; why: string | null};
 const count = (text: string, part: string) => text.split(part).length - 1;
-function check(c: GoldenCase, envs: {open: ToolEnv; closed: ToolEnv}): string | null {
+/** The records the cases run on; `af` (Session AF): the same with this session's records, for the cases that name them. */
+export type GoldenEnvs = {open: ToolEnv; closed: ToolEnv; af?: {open: ToolEnv; closed: ToolEnv; bare: ToolEnv}};
+function envOf(c: GoldenCase & {kind: 'local'}, envs: GoldenEnvs): ToolEnv | null {
+  if (!c.env) return c.health === 'closed' ? envs.closed : envs.open;
+  if (!envs.af) return null;
+  return c.env === 'af-bare' ? envs.af.bare : c.health === 'closed' ? envs.af.closed : envs.af.open;
+}
+function check(c: GoldenCase, envs: GoldenEnvs): string | null {
   switch (c.kind) {
     case 'local': {
-      const r = localAnswer(c.question, c.health === 'closed' ? envs.closed : envs.open), text = 'text' in r ? r.text : '';
+      const env = envOf(c, envs); if (!env) return `needs the ${c.env} records, which this run does not have`;
+      const r = localAnswer(c.question, env), text = 'text' in r ? r.text : '';
       if (r.kind !== c.expect.reply) return `expected ${c.expect.reply}, got ${r.kind}${text ? `: "${text.slice(0, 80)}"` : ''}`;
-      for (const words of c.expect.includes ?? []) if (!text.includes(words)) return `missing "${words}" in "${text.slice(0, 120)}"`;
-      for (const words of c.expect.excludes ?? []) if (text.includes(words)) return `must not say "${words}"`;
+      // Session AF (crit2): a number and its unit may be joined by a no-break space; the words are compared whatever the space.
+      for (const words of c.expect.includes ?? []) if (!text.replace(/\u00a0/g, ' ').includes(words.replace(/\u00a0/g, ' '))) return `missing "${words}" in "${text.slice(0, 120)}"`;
+      for (const words of c.expect.excludes ?? []) if (text.replace(/\u00a0/g, ' ').includes(words.replace(/\u00a0/g, ' '))) return `must not say "${words}"`;
       const tools = r.kind === 'none' ? [] : r.calls.map(call => call.tool);
       for (const tool of c.expect.tools ?? []) if (!tools.includes(tool)) return `expected the ${tool} tool, used ${tools.join(', ') || 'none'}`;
       if (c.expect.choices) { const offered = (r.kind === 'choices' || r.kind === 'refusal' ? (r.choices ?? []).map(choice => choice.label) : []).sort(); if (JSON.stringify(offered) !== JSON.stringify([...c.expect.choices].sort())) return `expected choices ${c.expect.choices.join(', ')}, got ${offered.join(', ') || 'none'}`; }
@@ -52,7 +64,12 @@ export function goldenSources(base: ToolSources): ToolSources {
   const goals = fund ? [...base.platform.goals, {...fund, id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Holiday fund'}] : base.platform.goals;
   return {...base, habits, platform: {...base.platform, goals}};
 }
-export function runGolden(cases: readonly GoldenCase[], envs: {open: ToolEnv; closed: ToolEnv}): GoldenResult[] {
+/** Session AF: the golden records with this session's (fixtures-af.ts): a Checklist path, the Earn snapshot, Today's page view. */
+export function afGoldenEnvs(s: ToolSources): NonNullable<GoldenEnvs['af']> {
+  return {open: toolEnv(withPage(withEarn(withChecklist(s))), gatesFor(true), 'local'), closed: toolEnv(withPage(withEarn(withChecklist(s)), todayView(false)), gatesFor(false), 'local'),
+    bare: toolEnv(withChecklist(s), gatesFor(true), 'local')};
+}
+export function runGolden(cases: readonly GoldenCase[], envs: GoldenEnvs): GoldenResult[] {
   return cases.map(c => { let why: string | null; try { why = check(c, envs); } catch (error) { why = `threw: ${error instanceof Error ? error.message : String(error)}`; } return {id: c.id, category: c.category, pass: why === null, why}; });
 }
 /** The pass rate, overall and per category, and one line for the CI log. */

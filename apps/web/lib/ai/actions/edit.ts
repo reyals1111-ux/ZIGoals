@@ -6,7 +6,7 @@ import {LINK_ICONS} from '../../links/schema';
 import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
 import {ACCOUNT_KINDS} from '../../accounts/schema';
 import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
-import {PRESET_IDS, WEEKDAY_NAMES} from './schema';
+import {PRESET_IDS, STAKING_ACTIONS, STAKING_NETWORKS, WEEKDAY_NAMES} from './schema';
 
 /**
  * "Edit" on a proposal card (ADR-012, Part 5): the person changes the plain fields of a proposal before adding it. The
@@ -104,6 +104,12 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'log-mood': [int('mood', 'Mood (1 = hard, 5 = great)'), text('note', 'Note', true, true), DAY],
   'add-link': [text('label', 'Name'), text('url', 'Address (https://…)'), select('icon', 'Icon', LINK_ICONS, true)],
   'add-widget': [select('widget', 'Widget', WIDGET_KINDS), text('metric', 'Metric', true), text('title', 'Title', true), select('size', 'Size', ['compact', 'wide'])],
+  // Session AF (L4). A starred habit is named by the card (ask again to change it); the staking review's own fields are all editable here and again on the review.
+  'checklist-tick': [text('item', 'Item on your Checklist'), DAY],
+  'checklist-add-favourite': [],
+  'checklist-add-custom': [text('text', 'Your item (up to 60 characters)')],
+  'set-brief': [{key: 'eveningTime', label: 'Evening recap from (HH:MM)', type: 'text', optional: true}],
+  'prefill-staking': [select('action', 'What to fill in', STAKING_ACTIONS), select('network', 'Network', STAKING_NETWORKS, false), text('validator', 'Validator (its zigvaloper address or its name)', true), text('amount', 'Amount in ZIG', true)],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];
 const read = (record: unknown, path: string): unknown => path.split('.').reduce<unknown>((value, part) => value && typeof value === 'object' ? (value as Record<string, unknown>)[part] : undefined, record);

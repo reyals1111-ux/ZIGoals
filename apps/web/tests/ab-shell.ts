@@ -7,9 +7,14 @@ import {isPhone,navLink,openMore} from './phone-nav';
  * the Status & wallet sheet behind More. Session AC: the footer's line moved to Settings (see `aboutAlpha`). These
  * helpers assert the same facts at their new places, as strictly.
  */
-export const ALPHA_LABEL='PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA';
-export const ALPHA_SENTENCE='Simulation + wallet connection only. No blockchain transactions or financial signatures.';
-export const MODE_LOCAL='LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions';
+// Session AF (crit1, ADR-028 H124; `TIER 3 (public-safety labels)`): the label changed with real-network staking (it was
+// "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA"); every place that asserted it keeps asserting it, word for word.
+export const ALPHA_LABEL='PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN';
+// Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): the sentence changed with native-staking signing (it was
+// "Simulation + wallet connection only. No blockchain transactions or financial signatures.").
+export const ALPHA_SENTENCE='Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.';
+// Session AF (ADR-028 H19, H62): staking signs in the person's own wallet from every mode, so the strip says so.
+export const MODE_LOCAL='LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet';
 /** The compact notice at the top of every page (until closed on this device). */
 export const alphaNotice=(page:Page)=>page.getByRole('complementary',{name:'Alpha notice'});
 /**

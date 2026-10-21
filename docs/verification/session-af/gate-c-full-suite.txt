@@ -1,0 +1,12 @@
+Session AF Gate C (G2) — the full Chromium suite, once, on the final code
+Head: cac3b73e (the Checklist redesign merged; every later commit before this record touches scripts and docs only), a fresh
+production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED, TZ=UTC next start on 127.0.0.1:3101), Tue 20 Oct
+2026 13:14–14:43 Brussels. Command: TZ=UTC PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 playwright test --project=desktop
+--project=mobile --workers=2 --reporter=line, under the machine lock, nothing else in a browser meanwhile (the revert gate
+ran beside it at nice 19: typechecks only). Chromium headless only: WebKit runs in CI's required WebKit job (ADR-028 H114).
+Evidence label: local, Chromium (Chrome channel); not a device.
+
+Result: 2670 passed (1.5h); 652 skipped; 0 failed, 0 flaky, exit 0.
+Tests listed: 3322 (desktop + mobile). The skips are the specs' own test.skip conditions: one project only (phone-only or
+desktop-only) and the WebKit-only specs (webkit-*.spec.ts) in a Chrome run.
+Slowest file: [mobile] › tests/theme-parity-af.spec.ts (5.1m).

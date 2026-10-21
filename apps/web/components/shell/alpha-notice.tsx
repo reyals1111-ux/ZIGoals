@@ -13,7 +13,7 @@ import './shell-ab.css';
  */
 /** Session AC (owner item 8): what the Alpha must say even when the page's own facts block cannot show (no scripts, or a
  * private read that stalls and keeps the page hidden), in Settings' words. */
-export const ALPHA_ESSENTIALS = `${FINANCIAL_EXECUTION_ALLOWED ? '' : 'Financial execution is disabled on this Alpha. '}Independent project · Unaudited alpha · Idle strategy only. Never share secrets, private backups or wallet details.`;
+export const ALPHA_ESSENTIALS = `${FINANCIAL_EXECUTION_ALLOWED ? '' : 'Contract execution is disabled on this Alpha. '}Independent project · Unaudited alpha · Idle strategy only. Never share secrets, private backups or wallet details.`;
 export function AlphaNotice({label, sentence, mode, stalled = false}: {label: string; sentence: string; mode: 'local' | 'keplr'; stalled?: boolean}) {
   // Rendered on the server too (no layout jump, and readable without scripts); it leaves once the device says it was closed.
   const prefs = useUiPrefs();

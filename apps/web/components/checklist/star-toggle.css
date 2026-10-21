@@ -1,0 +1,32 @@
+/* Session AF (L3; P7.2): the Checklist star. Outlined in the text colour when off (it follows the theme); filled with the
+   item's own colour (a pillar or brand token, the same in every theme) when on, with a faint orbit stroke that marks it as
+   the path's star, distinct from Health's own food favourites. A 44 px target. One pop when toggled; none under reduced
+   motion or Motion Off. */
+.star-toggle { flex: none; display: inline-grid; place-items: center; box-sizing: border-box; width: 44px; height: 44px; min-width: 44px; min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted, #a4b2cd); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.star-toggle:hover { color: var(--text, #f0f5ff); background: color-mix(in srgb, currentColor 8%, transparent); }
+.star-toggle:focus-visible { outline: 2px solid var(--checklist-star); outline-offset: 2px; }
+.star-toggle:disabled { cursor: default; opacity: .5; }
+.star-toggle svg { overflow: visible; }
+/* Session AF (the lead): the item's colour travels as --checklist-star; a bare --star is the app's own root colour token
+   (product-v2.css), which the Light sheet resolved and inked, so a starred star turned dark by day. */
+.star-toggle-star { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+.star-toggle-orbit { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; opacity: .45; }
+.star-toggle[data-on] .star-toggle-star { fill: var(--checklist-star); stroke: var(--checklist-star); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--checklist-star) 70%, transparent)); }
+.star-toggle[data-on] .star-toggle-orbit { stroke: var(--checklist-star); opacity: .8; }
+.star-toggle[data-dim] { opacity: .55; }
+.star-toggle[data-pop] svg { animation: star-toggle-pop 300ms var(--motion-glide, ease) both; }
+@keyframes star-toggle-pop { 0% { transform: scale(.75); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .star-toggle[data-pop] svg { animation: none; } }
+:root[data-app-motion=off] .star-toggle[data-pop] svg { animation: none; }
+/* Beside a card's options ("⋯"), before them. */
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading) > .star-toggle { order: 8; margin-top: -6px; }
+.health-pick-actions .star-toggle, .goal-milestone-row .star-toggle { margin: -4px 0; }
+/* The habit card's heading grid places every button in its Edit column: the star takes its own column before "⋯". */
+:root .habit-card-heading:has(> .star-toggle) { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+:root .habit-card-heading > .star-toggle { grid-column: 3; grid-row: 1; }
+:root .habit-card-heading:has(> .star-toggle) > .pin-to-today { grid-column: 4; }
+/* The goal card: the star sits beside "⋯" at the top right. */
+/* Session AF (the lead): the star sits with the options in the row's end group (card-options.css .card-top-tools). */
+.unified-goal-card .card-top-tools > .star-toggle { margin: -6px 0; }
+/* Water and the weight journal keep "⋯" in their top corner: the star sits just left of it. */
+:is(.health-water, .health-weight-overview) > .star-toggle { position: absolute; top: 1rem; right: calc(1rem + 48px); z-index: 4; }

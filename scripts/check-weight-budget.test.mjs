@@ -30,3 +30,14 @@ test('the budgets file names main\'s number and a budget for every page and the 
     if (b.main !== null) expect(Number.isInteger(b.main) && b.main > 0, name).toBe(true);
   }
 });
+// Session AF (owner rule O3, ADR-028 H96): the thirteen budgets Session AE left are never raised, and every route Session
+// AF adds (with /app/journey, which it makes heavier) has its own line, so the check measures it.
+test('Session AE\'s budgets are not raised; each Session AF route has its own line', async () => {
+  const budgets = JSON.parse(await readFile(new URL('./weight-budgets.json', import.meta.url), 'utf8'));
+  const AE = {'/app': 567000, '/app/goals': 478000, '/app/habits': 504000, '/app/health': 531000, '/app/wealth': 512000, '/app/markets': 476000, '/app/portfolio': 500000, '/app/staking': 487000, '/app/activity': 457000, '/app/settings': 531000, '/app/help': 450000, '/app/chess': 459000};
+  for (const [path, budget] of Object.entries(AE)) expect(budgets.pages[path]?.budget, path).toBeLessThanOrEqual(budget);
+  expect(budgets.shell.budget).toBeLessThanOrEqual(447000);
+  for (const path of ['/app/earn', '/app/checklist', '/app/governance', '/app/wealth/add-money', '/app/wealth/add-money/back', '/app/journey', '/app/timeline', '/app/stories']) {
+    expect(budgets.pages[path], path).toEqual({main: null, budget: expect.any(Number)});
+  }
+});

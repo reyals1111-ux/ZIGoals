@@ -1,5 +1,10 @@
 import {DEVICE_KEYS, MODULE_KEYS} from '../export/everything';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
+import {EARN_CATALOG_LABELS} from '../af-earn-keys';
+import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
+import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
+import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
+import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -31,6 +36,16 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   healthVitamins: ['Vitamins of your foods and their targets', 'Health'], pointTell: ['Point & tell notes', 'Settings'],
   // Session AE (Part 6, ADR-027): the wallets linked read-only.
   linkedWallets: ['Linked wallet addresses (read-only)', 'Wallet'],
+  // Session AF (ADR-028): the Earn and Checklist device records (lib/af-earn-keys.ts, lib/af-checklist-keys.ts).
+  earnPath: [EARN_CATALOG_LABELS.earnPath[0], EARN_CATALOG_LABELS.earnPath[1]], earnAcademy: [EARN_CATALOG_LABELS.earnAcademy[0], EARN_CATALOG_LABELS.earnAcademy[1]], earnPrefs: [EARN_CATALOG_LABELS.earnPrefs[0], EARN_CATALOG_LABELS.earnPrefs[1]],
+  checklist: [AF_CHECKLIST_CATALOG_LABELS.checklist[0], AF_CHECKLIST_CATALOG_LABELS.checklist[1]], checklistDays: [AF_CHECKLIST_CATALOG_LABELS.checklistDays[0], AF_CHECKLIST_CATALOG_LABELS.checklistDays[1]],
+  // Session AF (L2a): native staking's two device records.
+  stakingJournal: ['Staking and vote transactions', 'Wallet'], stakingPrefs: ['Staking choices: practice or real', 'Wallet'], validatorAlerts: ['Validator health alerts: what this device last saw', 'Wallet'],
+  // Session AF (L2b): linked wallets' last balances and Goal Vault links.
+  walletBalances: [WALLET_CATALOG_LABELS.walletBalances[0], WALLET_CATALOG_LABELS.walletBalances[1]], goalVaults: [WALLET_CATALOG_LABELS.goalVaults[0], WALLET_CATALOG_LABELS.goalVaults[1]],
+  // Session AF (L4, L5b): ZIGi's plans; My universe, Day timeline and Stories.
+  zigiPlans: [AF_ZIGI_CATALOG_LABELS.zigiPlans[0], AF_ZIGI_CATALOG_LABELS.zigiPlans[1]],
+  universe: [AF_EXTRAS_CATALOG_LABELS.universe[0], AF_EXTRAS_CATALOG_LABELS.universe[1]], dayTimeline: [AF_EXTRAS_CATALOG_LABELS.dayTimeline[0], AF_EXTRAS_CATALOG_LABELS.dayTimeline[1]], stories: [AF_EXTRAS_CATALOG_LABELS.stories[0], AF_EXTRAS_CATALOG_LABELS.stories[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

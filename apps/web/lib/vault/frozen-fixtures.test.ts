@@ -10,6 +10,12 @@ import {EXTRAS_SECTIONS} from './extras-sections';
 import {applySection, collectSection, mergeSection} from './extras-sync';
 import {LAYOUT_KEY, emptyLayout, serializeLayout, setRegionOrder} from '../page-layout';
 import {LINKED_WALLETS_KEY} from '../linked-wallets-key';
+import {EARN_ACADEMY_KEY, EARN_PATH_KEY, EARN_PREFS_KEY} from '../af-earn-keys';
+import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY} from '../af-signing-keys';
+import {GOAL_VAULTS_KEY, WALLET_BALANCES_KEY} from '../af-wallet-keys';
+import {ZIGI_PLANS_KEY} from '../af-zigi-keys';
+import {DAY_TIMELINE_KEY, STORIES_KEY, UNIVERSE_KEY} from '../af-extras-keys';
+import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../af-checklist-keys';
 import {linkedWalletsSchema} from '../linked-wallets';
 
 /**
@@ -69,9 +75,49 @@ export function frozenFixture() {
   records[LAYOUT_KEY] = serializeLayout(layout);
   // Session AE (ADR-027 G16, TIER 3 storage): the device-only record of wallets linked read-only (fictional addresses).
   // No older build has a reader: the key is ignored there (and never synced or restored here).
-  const linked = linkedWalletsSchema.parse({version: 1, display: 'USD', wallets: [{kind: 'btc', address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', label: 'BIP-173 test vector', addedAt: '2026-10-17T08:00:00.000Z'}]});
+  // Session AF (L2b): the record also carries the new kind 'solana' and the optional `chains`/`via` (older builds keep them
+  // through their own writes and hide the kind; lib/wallets/frozen-readers.test.ts runs AE's own modules on it).
+  const linked = linkedWalletsSchema.parse({version: 1, display: 'USD', wallets: [
+    {kind: 'btc', address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', label: 'BIP-173 test vector', addedAt: '2026-10-17T08:00:00.000Z'},
+    {id: 'w-evm', kind: 'evm', wallet: 'MetaMask', address: '0x0000000000000000000000000000000000000001', label: 'Fictional EVM address', addedAt: '2026-10-18T08:00:00.000Z', chains: ['eip155:8453'], via: 'extension'},
+    {id: 'w-sol', kind: 'solana', wallet: 'Phantom', address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', label: 'Fictional Solana address', addedAt: '2026-10-18T08:05:00.000Z', via: 'extension'},
+  ]});
   records[LINKED_WALLETS_KEY] = JSON.stringify(linked);
   checks.push({key: LINKED_WALLETS_KEY, module: './linked-wallets', spec: 'LINKED_WALLETS', expect: {display: 'USD'}});
+  // Session AF (ADR-028, TIER 3 storage): the Earn and Checklist device records (fictional). No release before AF has a
+  // reader: each key is ignored there (ABSENT); this build reads its own.
+  records[EARN_PATH_KEY] = JSON.stringify({version: 1, steps: {wallet: {done: true, at: '2026-10-18T20:00:00.000Z'}}, todayCard: 'auto', visited: ['native']});
+  checks.push({key: EARN_PATH_KEY, module: './earn/records', spec: 'EARN_PATH', expect: {'steps.wallet.done': true}});
+  records[EARN_ACADEMY_KEY] = JSON.stringify({version: 1, lessons: {'what-is-staking': {read: true, score: 3, passedAt: '2026-10-18T20:05:00.000Z', attempts: 1}}});
+  checks.push({key: EARN_ACADEMY_KEY, module: './earn/records', spec: 'EARN_ACADEMY', expect: {'lessons.what-is-staking.score': 3}});
+  records[EARN_PREFS_KEY] = JSON.stringify({version: 1, pageShown: true, dockShown: true, dockFolded: false});
+  checks.push({key: EARN_PREFS_KEY, module: './earn/records', spec: 'EARN_PREFS', expect: {dockShown: true}});
+  records[CHECKLIST_KEY] = JSON.stringify({version: 1, items: [{id: 'c1', kind: 'custom', label: 'Fictional piano 15 minutes', colour: 'gold', section: 'evening', addedAt: '2026-10-17T07:00:00.000Z'}]});
+  checks.push({key: CHECKLIST_KEY, module: './checklist/schema', spec: 'CHECKLIST', expect: {version: 1}});
+  records[CHECKLIST_DAYS_KEY] = JSON.stringify({version: 1, days: {'2026-10-17': {total: 6, done: 6, perfect: true}}});
+  checks.push({key: CHECKLIST_DAYS_KEY, module: './checklist/schema', spec: 'CHECKLIST_DAYS', expect: {'days.2026-10-17.perfect': true}});
+  // Session AF (L2a): native staking's choices and journal (fictional address and hash).
+  records[STAKING_PREFS_KEY] = JSON.stringify({version: 1, network: 'real', realConfirmedAt: '2026-10-18T21:00:00.000Z', lastValidator: {'zigchain-1': 'zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl'}});
+  checks.push({key: STAKING_PREFS_KEY, module: './staking/prefs', spec: 'STAKING_PREFS', expect: {network: 'real'}});
+  records[STAKING_JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{operationId: '00000000-0000-4000-8000-000000000001', chainId: 'zig-test-2', wallet: 'zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr', action: 'delegate', validator: 'zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl', amount: '25000000000000000000', state: 'CONFIRMED', hash: 'AB'.repeat(32), height: '8290600', code: 0, at: '2026-10-18T21:00:00.000Z'}]});
+  checks.push({key: STAKING_JOURNAL_KEY, module: './staking/journal', spec: 'STAKING_JOURNAL', expect: {version: 1}});
+  // Session AF (L2b): linked wallets' last balances and a Goal Vault link (fictional ids and amounts).
+  records[WALLET_BALANCES_KEY] = JSON.stringify({version: 1, observations: {'w-evm:eip155:8453': {walletId: 'w-evm', chainId: 'eip155:8453', at: '2026-10-18T09:00:00.000Z', height: '21000000', assets: [{id: 'native', symbol: 'ETH', decimals: 18, amount: '1000000000000000'}], missing: ['USDC']}}});
+  checks.push({key: WALLET_BALANCES_KEY, module: './wallets/balances/store', spec: 'WALLET_BALANCES', expect: {version: 1}});
+  records[GOAL_VAULTS_KEY] = JSON.stringify({version: 1, links: [{id: 'v1', goalId: 'g1', walletId: 'w-zig', parts: ['delegations'], linkedAt: '2026-10-18T10:00:00.000Z', baseline: {stakedAzig: '25000000000000000000', rewardsAzig: '0', stzigUnits: '0', height: '13046000'}}]});
+  checks.push({key: GOAL_VAULTS_KEY, module: './goal-vaults/store', spec: 'GOAL_VAULTS', expect: {'links.0.goalId': 'g1'}});
+  // Session AF (L2a chunk 3): what this device last saw of a validator, for the health alerts.
+  records[VALIDATOR_ALERTS_KEY] = JSON.stringify({version: 1, seen: {'zig-test-2 zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl': {at: '2026-10-19T00:00:00.000Z', rate: '0.05', maxRate: '0.2', maxChangeRate: '0.01', updatedAt: '2026-01-18T21:24:58.055Z'}}});
+  checks.push({key: VALIDATOR_ALERTS_KEY, module: './validators/health', spec: 'VALIDATOR_ALERTS', expect: {version: 1}});
+  // Session AF (L4): ZIGi's plans; (L5b) My universe, Day timeline, Stories.
+  records[ZIGI_PLANS_KEY] = JSON.stringify({version: 1, plans: [{id: 'plan_1', title: 'Your 10k plan', createdAt: '2026-10-18T08:00:00.000Z', updatedAt: '2026-10-18T08:05:00.000Z', done: false, items: [{sig: '0a1b2c3d', kind: 'checklist-add-custom', label: 'Add to your Checklist: Buy race socks', outcome: 'opened'}]}]});
+  checks.push({key: ZIGI_PLANS_KEY, module: './ai/store/plans', spec: 'ZIGI_PLANS', expect: {version: 1}});
+  records[UNIVERSE_KEY] = JSON.stringify({version: 1, celebrated: {'universe:habits:ring:1': '2026-10-17'}});
+  checks.push({key: UNIVERSE_KEY, module: './universe/store', spec: 'UNIVERSE', expect: {version: 1}});
+  records[DAY_TIMELINE_KEY] = JSON.stringify({version: 1, times: {'meal:Lunch': {time: '12:30'}}});
+  checks.push({key: DAY_TIMELINE_KEY, module: './timeline/store', spec: 'DAY_TIMELINE', expect: {version: 1}});
+  records[STORIES_KEY] = JSON.stringify({version: 1, seen: {'week:2026-10-11': '2026-10-17'}});
+  checks.push({key: STORIES_KEY, module: './stories/store', spec: 'STORIES', expect: {version: 1}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -81,7 +127,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

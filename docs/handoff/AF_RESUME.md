@@ -1,0 +1,354 @@
+# Session AF — Resume here
+
+Kept current after every part and every lane merge (owner rule). On any resume, usage pause or model switch: read this
+file, `git status`, `git log --oneline -15` and the lock file, then continue at "Next action". Never redo finished work;
+never re-plan; never enter plan mode again (the plan was approved once, with the owner's eleven amendments: ADR-028
+"Owner decisions"; the approved plan is `~/.claude/plans/pasted-content-id-d264-owner-approved-s-swift-hippo.md`).
+
+## Commands (this Mac)
+- Node 24.19.0 first, in every shell and every helper (the shell's default is 22.23.1):
+  `export PATH=$HOME/.local/share/fnm/node-versions/v24.19.0/installation/bin:$PATH`
+- Scratch dir outside the checkout: `SP=$HOME/zigoals-af` (`bin/`, `logs/`, `captures/`). Install:
+  `pnpm install --frozen-lockfile --ignore-scripts`; check: `pnpm run doctor`.
+- The machine lock (ADR-028 H91): every build, Playwright run and Chromium screenshot runs as
+  `$SP/bin/with-lock.sh <cmd…>` (`/usr/bin/shlock` on `/tmp/af-browser.lock`); a long-running `next start` never holds it.
+- Timeouts: `$SP/bin/tmo.sh <seconds> <cmd…>` (Perl alarm; exit 124 on timeout). Every long command gets one and a log in `$SP/logs/`.
+- Build + serve: `$SP/bin/rebuild.sh <checkout> <port> <log>` (kills the port's listener, builds
+  `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED` under the lock, starts `TZ=UTC next start` on 127.0.0.1:<port>,
+  curls `/app` until up). Ports: 3102 (lane builds), 3103 (before captures / main), 3104 (Gate C).
+- Browser tests: `cd apps/web && PLAYWRIGHT_BASE_URL=http://127.0.0.1:<port> $SP/bin/with-lock.sh $SP/bin/tmo.sh 3600 pnpm exec playwright test <spec> --workers=2`.
+- **Never run Playwright WebKit (or any headed browser) on this Mac** (owner, 2026-10-19, ADR-028 H114): it crashes
+  WindowServer while the displays sleep and ends the login session. Local runs, captures and audits: Chromium headless only
+  (`--project=desktop --project=mobile`, default config). The WebKit set runs in CI's required WebKit job; a WebKit-only
+  failure is read from CI's trace/artifacts (`gh run download <run> -n web-webkit-<sha>-shard-<n>`).
+- Push at least every 60 minutes (owner, 2026-10-19), so an interruption never loses more than an hour.
+  The full suite runs in the background (`nohup … > $SP/logs/full.log 2>&1 &`) and the log is polled (ADR-028 H86).
+- Unit: `pnpm test` from the repo root (vitest; run `.tsx` tests from the root, memory note).
+- Captures: `node $SP/bin/capture-af.mjs <base> <out>` (`THEMES=nebula,light,dark`, `ONLY=<regex>`), under the lock;
+  results go to the orphan branch `review/session-af-screens`, never the feature branch.
+- Theme sheets after any CSS change: `node scripts/themes/build-themes.mjs` (the unit test fails otherwise; only the lead regenerates).
+- caffeinate: `$SP/caffeinate.pid` (started 2026-10-18 22:15 Brussels); stop at the end with `kill $(cat $SP/caffeinate.pid)`.
+- Times: `TZ=Europe/Brussels date`. Gate C starts by Sat 24 Oct 08:00; code freeze Fri 23 Oct 22:00; PR out of Draft with CI
+  green by Sun 25 Oct 11:00 Brussels.
+
+## Gate C checklist (started Mon 19 Oct 19:04 Brussels on `49433538`, the owner's word: "start Gate C now"; tick as done, with the evidence file)
+- [x] G1 full unit suite (`pnpm test`) — STATUS entry; CI's checks job on the final head.
+- [x] G2 full browser suite once (`gate-c-full-suite.txt`) (after the L3b Checklist merge, H132), Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
+- [x] G3 the WebKit set (CI): **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
+- [x] G4 layout audits in Nebula, Light and Dark (`gate-c-audits.md`) at 320/390/768/1024/1440/1920 + touch + stress, Chromium only → `docs/verification/af/`.
+- [x] G4b Today's market watch (owner decision of 19 Oct, H131): `tests/market-watch-af.spec.ts` (320–1920 px, three themes, with and
+  without prices) in the Gate C run, and its captures at 320/390/768/1024/1440/1920 × Nebula/Light/Dark in the Gate C capture set
+  (`$SP/lead/probe-today-figures.mjs <base> <out>` with `SHOTS=1 THEMES=nebula,light,dark`, plus `QUOTES=1` for prices).
+- [x] G5 theme parity (`theme-parity.md`) (`theme-parity-af.spec.ts` in Chromium; `webkit-theme-parity` in CI).
+- [x] G6 weights (`gate-c-weights.txt`): existing budgets unchanged; the new lines (H96) and each lazy chunk's gzip size (H54); theme sheets' gzip sizes (H112).
+- [x] G7 revert gate (`gate-c-revert-gate.txt`): every commit newest-first with typecheck green, in a scratch worktree.
+- [x] G8 frozen readers (`gate-c-frozen-readers.txt`) #37–#44 (`node scripts/frozen-readers.mjs`), never beside a build or Playwright run.
+- [x] G9 key scans (`gate-c-scans.txt`) (check-secrets, the key sweep, no e-mail addresses in the diff).
+- [x] G10 `scripts/earn/live-check.mjs` (`gate-c-live-check.txt`) on the real network (read-only).
+- [x] G11 hosted verifier (`gate-c-verifier.txt`) against a local production build (`ZIGOALS_VERIFY_BASE`), Chromium.
+- [x] G12 the three fresh reviews (`gate-c-security-review.md`, `gate-c-design-critique.md`, `gate-c-test-audit.md`) one after another (security of every Tier 3 commit, design critique of the after captures, test audit for weakened assertions), one fix round each.
+- [x] G13 `build:alpha` (`gate-c-alpha.txt`) + `check:alpha-artifact` + `check:alpha` on the final head; CI green on the final head (Milestone quality incl. the WebKit job).
+
+## Pacing (owner amendment 4, ADR-028 H81)
+At most three helpers at the same time beside the lead. Start order: L2a, L1, L3; then L2b, L5a, L4, L5b as slots free.
+No research fan-out. Gate C reviews one after another. "pace down" from the owner → two helpers.
+
+## Lanes (ADR-028 H3, H73)
+| Lane | Branch / worktree | Owner | State |
+|---|---|---|---|
+| L6 lead (records, verifier, sync, security, words, merges, Gate C) | `feature/session-af-wealth-unlocked` (this checkout) | lead | Part 0 done; A2/A3/A4/A10 done |
+| L2a chain + signing + staking UI + governance + validator health | `af/signing`, `af/signing3` | helper | done: Part 2 merged `df19ef40`; chunk 3 (Part 6) merged and wired (`8443a1e3`) |
+| L1 Earn hub + data routes + Academy + dock + Today card | `af/earn`, `af/earn2` | helper | done: both chunks merged (`a444c5ae`, `b205460a`) and wired (stage 9, Today EARN card in For you H104, dock, Settings, game) |
+| L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
+| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` | helper | done: merged and wired; its links now in the registry (H103) |
+| L5a UI changes + theme parity | `af/ui` | helper | done: merged `3d507e9a` (Part 10); wiring: themes, Help Light answers, ADR H109–H113 |
+| L4 ZIGi | `af/zigi` (an agent worktree) | helper | done: merged `bf60a398`, wired (`8537487b`, Part 12 `be68a4f7`; the staking form re-reads a pre-fill while open) |
+| L5b My Universe, Day Timeline, Stories | `af/extras` (an agent worktree) | helper | done: merged `35afad0e`, wired (`8537487b`, `133f8420`) |
+
+Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner per file).
+
+## Parts
+| Part | State | Commits |
+|---|---|---|
+| 0 Records, setup | done except the reference captures + route/asset checks (the next free helper slot, H93) | `5e4f909d` `59e44be9` `5c015f2c`; captures `c438f25b` on `review/session-af-screens` |
+| 1 Earn hub | done (merged, wired); critique round at Gate C | `a444c5ae` `b205460a` + wiring |
+| 2 Native staking | done (merged, wired); owner's real-wallet checks after deploy | merge `df19ef40`; wiring `f2388078` `602f7bfb` `15f0d9af` `1518b802` |
+| 3 Wallets | done (merged, wired) | merge of af/wallet; `68aa69b0` (no e-mail addresses, H101) |
+| 4 Add money (multi-asset) | done (merged, wired); owner IDs pending | merge of af/wallet; `c0f424d8` |
+| 5 Earn dock | done (merged, wired) | in `b205460a`; islands asked of L5a |
+| 6 Goal Vaults + governance | done (merged, wired) | af/wallet merge; af/signing3 merge; `8443a1e3` |
+| 7 Checklist | done (merged, wired); critique round at Gate C | merge `206a26c4`; wiring as Part 1; stage 10 `8bb65419` |
+| 8 ZIGi | done (merged, wired); the real-model round after 25 Oct (owner) | merge `bf60a398`; `8537487b` |
+| 9 My Universe, Day Timeline, Stories | done (merged, wired); critique round at Gate C | merge `35afad0e`; `8537487b` `133f8420` |
+| 10 UI changes + theme parity | done (merged, wired); parity Chrome 51/51, WebKit 6/6; Gate C audits in three themes still to run | `3d507e9a` |
+| 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
+| 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
+| Gate C | not started | — |
+
+## Resume here (2026-10-21 01:30 Brussels — Gate C done; CI on the final head, the STATUS entry, PR out of Draft)
+- Gate C complete on the final code: the layout audits in three themes + touch + stress with their fixes and re-runs
+  (`gate-c-audits.md`, ADR-028 H138); the test audit's fixes; the hosted verifier, Alpha checks, frozen readers, weights.
+- CI rounds after the test audit, each fixed at equal strength (H138 d–f): session-ac 9d, zigi-phone-rest, the Checklist's
+  ZIGi-past-the-name bound and its comet reading, zigi-act / zigi-chat-polish / zigi-voice-z (WebKit box empty after a fill:
+  a known intermittent, one re-run), motion-polish, staking execute.test's time budget; Canonical reproducibility fails only
+  while GitHub's runner images differ between its two builds (a known intermittent).
+- Next: CI green on the final head (one re-run only for a listed intermittent), the STATUS entry on top of docs/STATUS.md,
+  PR #90 out of Draft (never merged, never deployed), the short final report; stop caffeinate (`kill $(cat $SP/caffeinate.pid)`)
+  and the :3101 server (by port).
+
+## Resume here (2026-10-20 13:25 Brussels — the Checklist merged; Gate C's final steps running)
+- The Checklist redesign merged (`ccb1ab67`, wiring `3caaa654`, H136): iterations 1–8 with a fresh critic each, the owner's
+  confirming pass (20 Oct: "no further iterations unless the confirming critic finds a regression"), one narrow regression
+  fix (iteration 9), checked by the lead on the named frames. Every acceptance line passes.
+- Fixed on the way: H135 root error screen (+ Link), parity waits for finite animations, send-feedback's footer, whats-new's
+  budget, the live check's replay dating and its record's contact fields, Math.sign in the comet (the staking guard),
+  Earn's paths keep the launcher lane, zigi-chat-polish's WebKit diagnostics (watch CI: the box emptied after fill).
+- Gate C on the final code (`cac3b73e` build on :3101, TZ=UTC): G1 unit 5,889 passed; lint 0 errors; G6 weights all within
+  budget; G9 scans clean; G10 live check 12/12. Running: G2 full Chromium suite (`$SP/logs/gatec-full.log`, nohup) and G7 the
+  revert gate on `f34ac767` (`$SP/logs/gate-c-revert-gate.txt`, nice 19).
+- Next, in order: G4/G4b audits in three themes + touch + stress and the after captures (incl. 768/1024, LINKED Earn, the
+  new Checklist) → `review/session-af-screens` after/; G5 parity report; G8 frozen readers; G13 build:alpha +
+  check:alpha-artifact + check:alpha; G11 hosted verifier; G12 design critique (with the copy audit), then the test audit,
+  one fix round each; CI green; STATUS entry with the ledger; PR out of Draft; stop caffeinate and servers.
+
+## Resume here (2026-10-20 01:10 Brussels — Checklist iteration 3 under critique; webkit-earn's cause fixed)
+- webkit-earn's cause (CI on `e44575d0`): on Settings, the test's navigation aborts the page's own route files; the root's
+  error boundary then drew Next's built-in screen, whose styles go through innerHTML, which Trusted Types refuses. Fixed by
+  the app's own `app/global-error.tsx` (H135, `80e4e26f`); the assertion unchanged. Read webkit-earn on CI for `ed7c6b10`.
+- The layout audit's AF states and the gradient-word contrast are committed (`ed7c6b10`).
+- L3b's iteration 3 is on `af/checklist2` (`7c163836`); a fresh critic scores it. Any failing line → the findings go to L3b
+  for iteration 4 (as many as it needs, owner); all six pass → merge `af/checklist2` (`--no-ff`), regenerate the theme
+  sheets, wire, ADR rows (H67 superseded for the Checklist, H55 loops inside the overlay, ISLANDS, the
+  `zigoals-checklist-celebrated` session key, the half-way chest, long names on phones, the Fast ring), then Gate C's
+  remaining steps on the final head (list below).
+
+## Resume here (2026-10-19 19:55 Brussels — security fix round done; ledger closures done; L3b iterating)
+- Security review (G12 1/3) done: no critical/high; S1–S11 fixed (`d6a09eca` `83ca5838` `9807eb91` `0441cd7d` `6563cb19`),
+  record `docs/verification/session-af/gate-c-security-review.md`, ADR-028 H133. Staking/governance/badge/ZIGi specs 85 + 8 green.
+- Ledger pass done (260 rows; scratch `ledger-af.md`); closed since: N1 (vault taps), P1.16 (`visible-poll.ts` + test),
+  P1.23 and P8.4 (H134, the sections say where your own share is seen), P11.7 (live check 12/12, re-recorded), N11
+  (`gate-c-inventory.txt`). G8 frozen readers PASS (`gate-c-frozen-readers.txt`). CI's checks-job timeout fixed (`d64ac738`).
+- L3b (the Checklist redesign, H132 + the owner's addendum with references in `$SP/owner-refs/checklist/`, never committed)
+  is on iteration 1; the owner's full brief was passed on. After each iteration: a fresh design critic scores the six
+  acceptance lines with the references beside the captures → `docs/verification/session-af/checklist-redesign-critique.md`.
+- Still to run on the final head (after the L3b merge): G2 full suite, G4/G4b audits (the audit now covers AF's pages and
+  measures gradient words), after captures (+ a linked-wallet Earn state for P1.29, + 768/1024 for W9) pushed to
+  `review/session-af-screens`, G5 parity report, G6 weights, G7 revert gate (`$SP/lead/revert-gate.zsh`), G9 scans, G11
+  verifier, G13 alpha checks, G12 design critique (with the copy audit) and test audit, CI, STATUS, PR ready.
+
+## Resume here (2026-10-19 19:30 Brussels — the owner's Checklist redesign round before Gate C's final steps)
+- The owner's verdict (H132): the Checklist becomes a full-screen, Duolingo-style overlay with living motion. Helper lane
+  L3b (`af/checklist2`, its own worktree, port 3104, scratch `$SP/l3b/`) builds it; after each iteration a fresh design
+  critic compares its captures (`$SP/l3b/iter-<n>/`) with Duolingo's path; at least two iterations, until "stand-alone
+  premium app" quality; then merge, regenerate the theme sheets, and continue Gate C with the new Checklist in the suite,
+  audits, captures and reviews; the after captures go to `review/session-af-screens`.
+- Gate C so far (on 196fa934): G1 unit, G9 scans, G6 weights, G10 live check — all green (re-run on the final head). The
+  full suite was stopped at 476 of 3,290 (none failed) for the redesign. The security review and the ledger pass (both
+  read-only) keep running; their Checklist-related points are re-checked after the merge.
+- CI: webkit-earn's diagnostics pushed (`859648d4`); the WebKit Checklist parity (one extra element in the first
+  snapshot, probably the jump bubble) is read on the run that includes L5c.
+
+## Resume here (2026-10-19 19:05 Brussels — Gate C started on 49433538; code frozen)
+- The owner started Gate C early (all parts built, both polish rounds merged). Order: G1 unit, G9 scans, a fresh
+  production build on 3101 → G6 weights → G2 the full Chromium suite (nohup, polled) → G4/G4b audits and the after
+  captures (orphan branch `review/session-af-screens`) → G5 parity report → G8 frozen readers → G7 revert gate (scratch
+  worktree) → G10 live check → G13 build:alpha + check:alpha-artifact → G11 hosted verifier → G12 the three reviews one
+  after another (security first, with depth on wallet/signing, CSP, egress, privacy; then design on the after captures;
+  then the test audit), one fix round each → CI green on the final head → STATUS entry with the ledger → PR out of Draft.
+- Evidence files: `docs/verification/session-af/gate-c-*.{md,txt}` (AE's format).
+- Only fixes from Gate C findings land from here; every fix gets its focused re-run and a line in the evidence file.
+
+## Resume here (2026-10-19 18:30 Brussels — L5c merged and wired; no helper running)
+- Merged `af/polish2` (`2c30c9dd`, critique round 2 findings 1–22) and wired it (`199770ff`: theme sheets; the round-2
+  record's outcomes). Unit 5,877 passed / 0 failed; typecheck clean; lint 0 errors.
+- Browser (3101, Chromium, both projects): the lane's Earn and Path/Today/a11y sets + theme-parity-af, light-redo-af,
+  market-watch-af — 293 passed, 30 skipped, 1 failed (earn-plain-words: Governance's first tap read 43.99997 px while the
+  page's entrance transform ran; the spec now measures at rest, same 44 px floor; 8/8 after). Script `$SP/lead/run-l5c-sets.zsh`.
+- Owner decisions of 19 Oct done: H130 (`d4760ce8`, `dee2c2f6`), H131 (`72d9178a`); daily PR comment posted 18:00.
+- CI: GitHub stalled this afternoon (jobs queued for 40+ min, API 502s; the reproducibility run on `72d9178a` compared
+  before its build-b finished). Read the run on `199770ff`; one re-run only for a known intermittent.
+- Next: CI on the head; then Gate C preparation (frozen readers, revert-gate dry run, clip captures of every new page
+  including the market watch, G4b) and the ledger helper on the final head before the Friday 22:00 freeze.
+
+## Resume here (2026-10-19 17:45 Brussels — the owner's two decisions being built; L5c running)
+- Owner decisions of 19 Oct (no reply needed): (1) deepen Light's gradient words → `d4760ce8` + `dee2c2f6` (the
+  token set was too wide: `--nebula-pink` and `--text` slipped in and deepened the phone quick-add's fill; the islands did
+  not restore `--nebula-headline`); ADR-028 H130; parity class `gradient-word`. (2) Today's market watch: no mid-word breaks
+  (word-boundary wrap, two-line names with an ellipsis and a hover title, one-line prices scaled to their card, cards ≥ 230 px
+  from 768 px), each figure of a card once → H131, `market-watch-af` green (6/6, 320–1920, three themes, with/without prices).
+  Today's other repeats (wealth total ×4, kcal ×3–4, active Goals ×2–4, the featured goal, next contributions) are left as
+  they are and listed for the owner: the decision names the card, and Today is the protected baseline (H131).
+- Running: rebuild of 3101 + `market-watch-af`, `light-redo-af`, `theme-parity-af` and the watch specs (`$SP/logs/h130-mw-specs.log`).
+- CI on `6c4ae382`: every job still queued at 17:40 (GitHub's jobs API answered 502).
+- L5c (`af/polish2`, port 3104) still running round-2 items 1–22.
+- 18:00: the PR comment (draft `pr-comment-mon19.md` in the scratchpad, updated for the owner's decisions).
+
+## Resume here (2026-10-19 16:40 Brussels — L1c merged; CI on five shards; critique round 2 running)
+- Merged `af/earn3` (`f84076d7`: N1 glossary taps, N5 sourced risks, P1.19 ZIGi in guide mode, P1.23 your position) and
+  wired it (`da6b42dc`: theme sheets; ZIGi keeps an early "Ask ZIGi" chip; the coach's chip names the option; the Earn
+  index spy line 64 px past the landing spot). `1872098c` TIER 3 CI: five browser shards (H128); `1620f626` checks 15 min.
+- CI on `d7684949`: zigi-oneline-z, webkit-timeline and most parity routes now pass in WebKit; left: webkit-earn's Trusted
+  Types error (the spec now records every string given to an HTML sink — read it on `da6b42dc`'s run), parity on
+  /app/checklist (the collector now waits for path stages too), zigi-accept-correct:260 Brussels (the recorded WebKit
+  navigation-stall intermittent; one re-run if it recurs).
+- Critique round 2 running (three read-only reviewers over `$SP/captures/crit2`, clip captures with folds opened): Earn
+  desktop and phone (incl. the never-reviewed lower half), the day pages with the Checklist's Showcase path.
+- 18:00: the PR comment (draft `pr-comment-mon19.md` in the scratchpad).
+
+## Resume here (2026-10-19 15:35 Brussels — suite findings fixed; push after the last check)
+- Full Chromium suite on `5fdad4ac`: 2,584 passed / 17 failed / 645 skipped (1.4 h; `$SP/logs/full-1.log`); every failure
+  fixed or moved (`05f339c2`, `66609d71`), two were local-time-zone only (local runs now use `TZ=UTC` like CI:
+  `$SP/bin/full-suite.sh`). Rerun of failed + touched specs: 251 passed.
+- CI on `c224bbe1` (run 39249750766): fixed in `66609d71` (Settings switch rows as grids — the diagnostic named "Validator
+  alerts"; star colour; timeline handle; Wealth door; zigi-local-answers settle; parity collector) and `1620f626`
+  (TIER 3 CI: web checks 10 → 15 min, H127). Open: webkit-earn's Trusted Types report during Earn's load — the spec now
+  prints the browser's violation reports; read them on the next CI run.
+- Running: `$SP/logs/lead-integ9.log` (the last edits). Then push; then the PR comment at 18:00 (draft in the scratchpad
+  `pr-comment-mon19.md`, update with the suite numbers).
+- Helper L1c still running (`af/earn3`).
+
+## Resume here (2026-10-19 14:25 Brussels — ledger triage; full suite still running; L1c helper running)
+- Pushed `c224bbe1` (cancelled `70f76578`'s superseded CI run so the latest head runs next). Since 13:45: `05f339c2`
+  (streak role, path geometry, QA-27 moved, Stories covers, Staking CTA), `07984cd8` (TIER 3 labels: threat model AF rows,
+  LEGAL §6.9, decoy "ZIG" beside wallet lists, H126), `c224bbe1` (Wealth's door to Earn).
+- Ledger draft (all 236 rows, read-only helper): done 190 / partly 16 / not done 0 / Gate C 28 / owner 2; triage in
+  `$SP/ledger/README.txt`; the full tables are in the session transcript (re-run the helper on the final head for F1).
+- Helper L1c (`af/earn3`, agent `aad578dbf00b11d3a`, port 3104): N1 glossary taps, N5 five sourced risks, P1.19 ZIGi in
+  guide mode, P1.23 optional. Merge when it reports, then regenerate the theme sheets.
+- Full Chromium suite on `5fdad4ac` (`$SP/logs/full-1.log`): failures so far a11y streak role (fixed `05f339c2`),
+  QA-27 and motion-polish (H113's goal with no contribution; both moved at equal strength, uncommitted motion-polish),
+  earn-hub chip spy (fixed in `earn-chips.tsx`, uncommitted), theme-parity stars (`--star` collided with the root token;
+  renamed `--checklist-star`, uncommitted) and stories (my own contamination: theme sheets regenerated mid-run; never touch
+  `apps/web/public/` while a run uses the checkout's server).
+- After the suite: regenerate theme sheets, rebuild 3101, rerun every failed spec plus the touched ones, commit, push.
+
+## Resume here (2026-10-19 13:45 Brussels — CI's WebKit findings fixed; design critique round 1 done; full Chromium suite running)
+- Pushed `5fdad4ac`: `c1a273c3` (staking form re-reads a pre-fill, H120), `eec7c6e3` (CI run 39237963419's WebKit
+  failures: uncaught chunk import H122, parity collected at rest H123, Settings rows; zigi-oneline-z's diagnostic now names
+  the element), `546bbd24` (TIER 3 labels, H124: "PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN"), `5fdad4ac` (crit1 fixes,
+  H125). Record: `docs/verification/session-af/design-critique-round-1.md`.
+- Running: the full Chromium suite on `5fdad4ac` (3101; `$SP/logs/full-1.log`, `FULL_EXIT=` at the end; ≈ 2.5 h, holds the
+  lock). Read it, fix, then push. CI on `5fdad4ac`: read its WebKit job (zigi-oneline-z at 320/768 with the sharper
+  diagnostic; webkit-earn; webkit-theme-parity).
+- Owner items found today: Light's gradient words' tails stay pastel by H111 (2.05–2.4:1 by day; "deepen the Light flow" is
+  one hand-layer rule plus a parity class if the owner wants it); Today's market watch breaks words at 1440 and repeats
+  figures (pre-existing, protected baseline).
+- Next: the daily PR comment ~18:00; Gate C round 2 captures in clips ≤ 16,000 px (Earn's lower half was not reviewed);
+  frozen readers and the revert gate when no build or browser runs.
+
+## Resume here (2026-10-19 13:00 Brussels — every lane merged and wired; no helper running)
+- Done since 12:15: L4 merged `bf60a398` and L5b merged `35afad0e`, wired (`8537487b` TIER 3 storage, `133f8420`);
+  Part 12 `be68a4f7` (pushed 12:37); the owner-approved budget lines `33193870` (H96: eight routes measured on `be68a4f7`
+  + 10 %; a unit guard pins AE's thirteen budgets as never raised); the staking form re-reads ZIGi's pre-fill when already
+  open (L4's optional item; event name in `lib/af-signing-keys.ts`, spec in `zigi-earn-coach-af`); OWNER_ACCOUNTS says the
+  WalletConnect ID also needs one CSP commit.
+- Local Chromium integration run on `be68a4f7` (`$SP/logs/lead-integ5.log`, 244 cases): only `whats-new` failed (AE's
+  links now under "Earlier updates"; moved at equal strength by nine positions).
+- CI: `be68a4f7`'s Milestone quality queued behind `bf72baa0`'s; read its WebKit job (zigi-oneline-z diagnostic at 320 px,
+  webkit-earn, webkit-smoke timing) before pushing over it, and push by 13:37 at the latest (hourly rule).
+- Next: rebuild 3101, rerun the moved specs, push; the daily PR comment ~18:00; then the full Chromium suite in the
+  background (H86) and the Gate C preparation (captures in three themes for the critique round; frozen readers; live-check).
+
+## Resume here (2026-10-19 12:15 Brussels — after a session restart; L5a merged; L4 and L5b resumed)
+- The Claude Code process exited at about 06:10 Brussels; L4 and L5b were stopped mid-task and resumed at 12:15 from their
+  transcripts (their worktrees kept every change). If this happens again: `git -C .claude/worktrees/<agent> status`, then
+  SendMessage to the agent id in `$SP/lanes.txt` to resume it; never spawn a duplicate.
+- CI run 39188085528 on `8443a1e3` failed on: page-titles (5 new pages without rows), persona-x (a stale fold list),
+  zigi-a11y-pass (a hidden Today card's aria-labelledby), webkit-earn (a lazy CSS chunk cancelled by navigation → unhandled
+  ChunkLoadError + Trusted Types in Linux WebKit; the CI trace shows "Load request cancelled"), zigi-oneline-z in WebKit
+  (Settings at 320 px: "Forget my staking choices" did not wrap with Linux fonts), webkit-smoke (a 45 s timeout in the
+  Chrome shard). Fixed in `e30e49d0` `5fc84a33` and the uncommitted signing-section CSS; webkit-smoke timing to check.
+- Merged L5a (`3d507e9a`); uncommitted until the spec run passes: Help's Light/Dark/sidebar answers, ADR H109–H113,
+  regenerated theme sheets (Light 506,803 B / 64,122 B gzip; Dark 437,912 B / 61,263 B gzip).
+- Next: commit and push once green; merge L4 and L5b as they report; Part 12; budgets; the daily PR comment ~18:00 today.
+
+## Resume here (2026-10-19 04:00 Brussels — L1 and L2a finished; L5a, L4, L5b running)
+- Done since 02:20: social card + metadata labels; L1 chunk 2 merged `b205460a` and wired (stage 9 `15a5a83b`; registry
+  move H103 `288e037b`; Earn wiring + Today EARN card in For you H104 `20572134`); CI run 39180668121 (on `cb40492a`)
+  failures fixed: Checklist "viewing writes nothing" `cbc8ce4f`, goal card menu under the sidebar `85f33940`, Staking reads
+  no Valdora `eae1043e`, pinned counts/hash `e8b982f8`; L2a chunk 3 merged and wired (`8443a1e3`: storage, egress,
+  Governance nav H108, Help, PRIVACY, ADR H105–H108). Unit 5707; lint 0 errors / 19 warnings; integration specs green.
+  Pushed `8443a1e3`; CI running on it. The WebKit Earn ChunkLoadError/TrustedHTML from that CI run did not reproduce
+  locally (3/3) on the newer page: if it recurs on `8443a1e3`, investigate (not a known intermittent).
+- Running helpers (3, the cap): L5a (3102, also asked to add the Earn dock to ISLANDS), L4 ZIGi (3103), L5b extras (3104).
+  No lane waits for a slot any more.
+- Next: merge each as it reports (L5a: theme regeneration + parity; L4: zigi-plans key rows, Help; L5b: Today cards —
+  keep Today ≤ 5.8 screens on a phone, nav/search for Timeline and Stories, keys, budgets). Then Part 12 (What's new,
+  remaining Help, Known limitations), the budgets commit (H96), the daily PR comment ~18:00 Mon, freeze Fri 22:00, Gate C
+  Sat 08:00.
+
+## Resume here (2026-10-19 02:20 Brussels — L2b merged and wired; L2a chunk 3 started)
+- Done since 01:50: Help's first AF answers `7ed163bc`; the L2b merge, then `68aa69b0` (WalletConnect notices without
+  e-mail addresses, H101), `d19e8188` (TIER 3 storage), `c0f424d8` (TIER 3 egress: Ramp's API server-only; sanitizer;
+  search Add money; About panel notice; PRIVACY; themes), `043946f7` (TIER 3 labels: "Contract execution is disabled",
+  H100; H102 verifier origins unchanged). Unit 5611 + the guard fix; lint 0 errors / 19 warnings (the baseline; `.claude/**`
+  ignored since `9497a70a`).
+- Running helpers (3): L5a (3102), L1 chunk 2 (3103), L2a chunk 3 (3104). Next slots: L4 (ZIGi), then L5b (extras).
+- Open lead items: move L2b's wallet link rows (`lib/wallets/links.ts`) into the verified registry after L1 chunk 2
+  merges; mount L1's Today EARN card and the Earn/Checklist/Signing Settings sections as they arrive; budgets commit
+  (H96: add-money 465,189 B and /back 462,270 B measured by L2b; earn; checklist; governance later); Part 12 list above.
+- When the owner sets `reownProjectId`: one commit with the five WalletConnect hosts (L2b.md "What the lead must wire").
+
+## Resume here (2026-10-19 01:50 Brussels — L2a and Part 0 merged; L5a and L1 chunk 2 started)
+- Done since 00:45: nav fixes `59c61ea1` (phone tabs never take a navigation extra, H68; specs moved), `4df00252`;
+  `8f09dc5f` (merge af/part0-research: routes onto ZIGChain, on-ramp codes, the 10-19 re-check); reference captures
+  `bf342394` on `review/session-af-screens` (pushed); `df19ef40` (merge af/signing) + wiring `f2388078` (TIER 3 storage),
+  `602f7bfb` (TIER 3 egress: server-only origins named + guard), `15f0d9af` (Earn ↔ validators wire contract; Staking
+  empty preview mounted lazily; sanitizer route), `1518b802` (themes, PRIVACY); `b988e4a1` (lane scratch rule, H99).
+  Unit 5529 passed; lint 0 errors. Pushed to `b988e4a1`.
+- In progress (uncommitted when written): the TIER 3 public-safety labels of H100 (mode strip, Help answer, stZIG card,
+  their specs); the integration spec set on 3101 (`$SP/logs/lead-integ.log`).
+- Running helpers (3): L2b (port 3104, told about the codes and L2a), L5a (3102), L1 chunk 2 (3103). Ids in `$SP/lanes.txt`.
+- Known local-only failure: `hosted-verifier-order` throws React #418 on `/app/review` between 00:00 and 02:00 Brussels
+  (Life review's `useLocalToday` starts from the server's UTC date; CI is all-UTC); rerun it after 02:00. Pre-existing on
+  `main`; recorded for STATUS, not fixed here.
+- Next slots, in order: L2a chunk 3 (governance UI, validator health, rewards sweep, staking-prefs Remove), L4 (ZIGi),
+  L5b (extras). Still before Gate C: the social card re-render (Part 12), the owner's landing wording (owner item).
+- Deploy gates proven on this branch (amendment 7), 2026-10-19 02:05 Brussels, tree `9497a70a`, under the lock:
+  `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build:alpha` exit 0 ("OpenNext build complete.");
+  `pnpm check:alpha-artifact` exit 0 ("empty compiled environment, no env file copies, no secret markers, no configured
+  names"); `pnpm check:alpha` (wrangler dry-run) exit 0 (21,864.64 KiB / gzip 4,814.56 KiB). Log `$SP/logs/lead-build-alpha.log`.
+  Repeat at Gate C on the final head.
+- The verifier order spec (stages 2–6 + 10) passed after 00:00 UTC on `9497a70a`'s build: the #418 earlier was the
+  midnight case above.
+- Part 12 list (lead, after the lanes merge): What's new `2026-10-session-af-wealth-unlocked` + links; Help section `af`
+  (Earn hub, Start-here, each option, Academy, dock, native staking practice/real and the review screen, wallets, Add
+  money, Goal Vaults, governance, validator health, the Checklist's six answers from docs/product/CHECKLIST.md, ZIGi,
+  My Universe, Timeline, Stories, the UI changes; update `ae-themes` for the Light redo) mirrored in search; Known
+  limitations (phones before the Reown ID, on-ramp coverage, Checklist not synced, nothing framed, …); the social card;
+  OWNER_ACCOUNTS.md (L2b); the budgets commit (H96).
+
+## Resume here (2026-10-19 00:45 Brussels — L1 chunk 1 and L3 merged and wired)
+- Done since 22:45: merges `a444c5ae` (af/earn) and `206a26c4` (af/checklist); wiring commits `a3cbc5c3` (TIER 3 storage:
+  the five keys in every registry + `lib/af-lead-registries.test.ts`), `acd71be2` (TIER 3 shell navigation: Earn first in the
+  money group following Wealth's switch H98, icons, More notes, search, Settings section, Today's Checklist card H95, game
+  layer), `8bb65419` (TIER 3 verifier/CI: stage 10 appended, sentinel, order spec, workflow doc, sanitizer routes),
+  `64942576` (theme sheets), `cc5d9d79` (PRIVACY Checklist paragraph; ADR H95–H98), `16d69ce9` (research verdict tables
+  re-attributed). Unit suite: 5333 passed before the visibility fix, the 4 failures fixed in `acd71be2`. Lint 0 errors.
+- Running: L2a (signing, port 3102), the Part 0 helper (reference captures + route/code checks), L2b (wallets, port 3104).
+  The lead's build serves on 3101; the focused browser set's log is `$SP/logs/lead-focused.log`.
+- Next: when the focused set is green, push. When a helper reports: merge, wire from its lane file, regenerate themes,
+  lint/typecheck/unit/focused, push. Slot order after these: L1 chunk 2, L5a, L4, L5b, then L2a chunk 3. At L2a's merge:
+  align the Earn page's `/api/chain/validators?network=mainnet` to `zigchain-1`, mount `StakingEmptyPreview` in
+  `positions-view.tsx`, add the serverOnly `earnLive` and `recipeResolver` notes to `egress-policy.json`, prove
+  `build:alpha` + `check:alpha-artifact` (amendment 7). Daily PR comment ~18:00 Brussels.
+
+## Resume here (2026-10-18 22:45 Brussels — Part 0 done, three lanes running)
+- Done: Part 0 records (`5e4f909d`), the lane rules (`59e44be9`), the frozen-reader releases #37–#44 (`5c015f2c`); the
+  before captures on `review/session-af-screens` (`c438f25b`, 107 views); Draft PR #90; Part 11 A2/A3 (`4f92d3ff`),
+  A4 (`569f3b63`), A10 (`95bca53d`, `fec6385c`).
+- Running: L2a (signing), L1 (Earn core), L3 (Checklist) — three helpers, the owner's cap. Lane ids in `$SP/lanes.txt`.
+- Next: when a lane reports, merge its branch (`git merge --no-ff af/<lane>`), wire its registry rows from its lane file,
+  regenerate the theme sheets if CSS changed, run lint/typecheck/its focused specs, push; then start the next helper in
+  the order: Part 0 reference/route helper (H93), L2b, L5a, L4, L5b. The lead adds the server-only egress notes
+  (`cloudflare-dns.com`, the Earn hosts) to `egress-policy.json` after L2a's CSP commit merges (H94).
+- Daily PR comment ~18:00 Brussels from Mon 19.
+
+## Resume here (2026-10-18 22:30 Brussels — Part 0)
+- Done: preflight (clean checkout, nothing stashed), `main` = `4f92495`, branch created; toolchain; `caffeinate`; STATUS
+  Alpha #44 record + AE heading; ADR-028 (owner decisions + amendments 1–11, H1–H91); this file; the build of `main` on
+  :3103; before captures running (`$SP/logs/capture-before.log`).
+- Next: the research docs from the Phase R journal (`~/.claude/projects/-Users-AIUSER-Documents-ZIGoals-Claude/1f1a37d0-095e-4785-8558-ce3b8df11086/subagents/workflows/wf_645c1bda-1e6/journal.jsonl`)
+  → `docs/earn/af/`, `docs/research/session-af/`; PRIVACY.md design paragraph per H16; commit + push; the Draft PR; the
+  orphan branch with the before captures; one helper for the reference captures and the new route/asset checks; then lanes L2a, L1, L3.
+- Open decisions: none (amendments settle D1–D10).

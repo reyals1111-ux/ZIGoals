@@ -1,0 +1,143 @@
+/* Session AF (ADR-028; P7.4–P7.11, P7.18, P7.23): the shared path renderer. The dots, the line, the orbit banners, the
+   chests, ZIGi and the jump bubble are theme islands (scripts/themes/build-themes.mjs): they keep the Nebula colours in
+   Light and Dark, so a dot is the same colour in every theme; only the labels beside the dots follow the theme's text.
+   A dot's colour comes from its step (`--dot`, a pillar or brand token set on the element), never from a local token an
+   ancestor defines. Every motion is one-time (a dot that has just been done, a line that has just lit, a chest just
+   reached, ZIGi's one move per state); nothing loops, and reduced motion and Motion Off show each final state at once. */
+/* The deep night colours of the art, as :root tokens of the "ink" family, which the Light and Dark sheets carry unchanged
+   (a dark surface colour written in a rule would be deepened in Dark): the dots and banners are the same in every theme. */
+:root { --path-ink-glass-hi: #1c2a58; --path-ink-glass: #0b1433; --path-ink-glass-lo: #070d24; --path-ink-deep: #020614; --path-ink-locked: #0a1128; --path-ink-band-a: #0d1838f5; --path-ink-band-b: #060e24f5; --path-ink-say: #101a3ef0; --path-ink-jump-a: #12224af5; --path-ink-jump-b: #1a1446f5; }
+.path-stage { --dot-size: 72px; --label-gap: 16px; position: relative; isolation: isolate; container-type: inline-size; overflow-x: clip; display: grid; gap: 30px; padding: 6px 0 28px; }
+.path-stage[data-density=compact] { --dot-size: 56px; --label-gap: 12px; gap: 20px; }
+@media (max-width: 640px) { .path-stage { --dot-size: 64px; --label-gap: 12px; gap: 26px; } .path-stage[data-density=compact] { --dot-size: 52px; } }
+
+/* The line, under the dots and banners. */
+.path-line { position: absolute; left: 0; top: 0; z-index: 0; pointer-events: none; overflow: visible; }
+.path-segment-base { stroke: #8fb2e85c; stroke-width: 2.5; stroke-linecap: round; }
+.path-segment[data-locked] .path-segment-base { stroke-dasharray: 2 8; }
+.path-segment-lit, .path-segment-glow { stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 520ms var(--motion-glide, ease) 160ms; }
+.path-segment-lit { stroke-width: 4; }
+.path-segment-glow { stroke-width: 12; opacity: .6; }
+.path-segment[data-lit] :is(.path-segment-lit, .path-segment-glow) { stroke-dashoffset: 0; }
+
+/* An orbit: its banner, then its dots. */
+.path-section { position: relative; display: grid; gap: 22px; }
+.path-banner { position: relative; z-index: 1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 66px; padding: 12px 16px 12px 24px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--banner) 46%, transparent); background: radial-gradient(130% 180% at 0% 50%, color-mix(in srgb, var(--banner) 30%, transparent), transparent 62%), linear-gradient(100deg, var(--path-ink-band-a), var(--path-ink-band-b)); box-shadow: 0 16px 36px -22px color-mix(in srgb, var(--banner) 80%, transparent), inset 0 1px 0 #ffffff17; color: #eef4ff; }
+.path-banner-planet { position: relative; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ffffffc0 0, color-mix(in srgb, var(--banner) 70%, #fff) 18%, var(--banner) 52%, color-mix(in srgb, var(--banner) 42%, var(--path-ink-deep)) 100%); box-shadow: 0 0 20px color-mix(in srgb, var(--banner) 55%, transparent); }
+.path-banner-planet i { position: absolute; left: -11px; right: -11px; top: 15px; bottom: 15px; border: 1.5px solid color-mix(in srgb, var(--banner) 70%, #ffffff40); border-radius: 50%; transform: rotate(-16deg); }
+.path-banner-text { display: grid; gap: 1px; min-width: 0; }
+.path-banner-eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--banner) 62%, #ffffff); }
+.path-banner-title { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 750; letter-spacing: -.01em; color: #f4f8ff; overflow-wrap: anywhere; }
+.path-banner-count { padding: 6px 12px; border-radius: 999px; background: #ffffff14; color: #dfe9fb; font-size: 15px; font-weight: 650; white-space: nowrap; }
+.path-banner[data-complete] .path-banner-count { background: color-mix(in srgb, var(--banner) 28%, #0000); color: #ffffff; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--banner) 60%, transparent); }
+
+.path-steps { --swing: min(118px, 15cqi); list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; }
+.path-step { position: relative; z-index: 2; display: grid; justify-items: center; }
+/* Gate C layout audit (320 px, Earn's Start-here and Academy): on a stage this narrow a label wraps to three or four lines,
+   taller than its dot, and touched the next step's label (6–10 px); the steps stand further apart there. The orbit
+   variant (the Checklist) keeps its own spacing. */
+@container (max-width: 359.98px) { .path-stage:not([data-variant=orbit]) .path-steps { gap: 40px; } }
+.path-node { position: relative; width: var(--dot-size); height: var(--dot-size); translate: calc(var(--offset, 0) * var(--swing)) 0; }
+.path-stage[data-layout=straight] .path-steps { justify-items: start; padding-inline-start: 6px; }
+.path-stage[data-layout=straight] .path-step { justify-items: start; }
+
+/* The labels follow the theme's text (they sit on the page, not on the art). */
+.path-label { position: absolute; top: 50%; translate: 0 -50%; width: max-content; max-width: calc(50cqi - var(--dot-size) / 2 - var(--label-gap) - 8px); display: grid; gap: 2px; color: var(--text, #f0f5ff); font-size: 16px; line-height: 1.3; font-weight: 650; overflow-wrap: anywhere; }
+.path-label[data-side=right] { left: calc(100% + var(--label-gap)); text-align: start; }
+.path-label[data-side=left] { right: calc(100% + var(--label-gap)); text-align: end; }
+.path-stage[data-layout=straight] .path-label { max-width: calc(100cqi - var(--dot-size) - var(--label-gap) - 16px); }
+.path-label-note { color: var(--muted, #a4b2cd); font-size: 14px; font-weight: 520; }
+.path-step[data-counted=no] .path-label-text { opacity: .78; }
+@media (max-width: 640px) { .path-label { font-size: 15px; } }
+
+/* A dot: a pressable planet in its own colour. */
+.path-dot { position: relative; display: grid; place-items: center; box-sizing: border-box; width: var(--dot-size); height: var(--dot-size); min-width: 44px; min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; color: #eef4ff; text-decoration: none; cursor: pointer; background: radial-gradient(circle at 50% 32%, var(--path-ink-glass-hi) 0, var(--path-ink-glass) 62%, var(--path-ink-glass-lo) 100%); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--dot) 72%, transparent), 0 6px 0 #040918, 0 0 24px color-mix(in srgb, var(--dot) 30%, transparent); transition: transform var(--motion-press, 90ms) ease, box-shadow 220ms ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.path-dot-core { display: grid; place-items: center; color: var(--dot); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--dot) 65%, transparent)); }
+.path-dot-core svg { width: calc(var(--dot-size) * .42); height: calc(var(--dot-size) * .42); }
+:is(button, a).path-dot:hover { box-shadow: inset 0 0 0 3px var(--dot), 0 6px 0 #040918, 0 0 34px color-mix(in srgb, var(--dot) 48%, transparent); }
+:is(button, a).path-dot:active { transform: translateY(3px); box-shadow: inset 0 0 0 3px var(--dot), 0 3px 0 #040918, 0 0 24px color-mix(in srgb, var(--dot) 40%, transparent); }
+.path-dot:focus-visible { outline: 3px solid #ffffff; outline-offset: 5px; }
+.path-dot[data-state=done] { background: radial-gradient(circle at 36% 28%, color-mix(in srgb, var(--dot) 34%, #ffffff) 0, var(--dot) 44%, color-mix(in srgb, var(--dot) 68%, var(--path-ink-deep)) 100%); box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--dot) 58%, #020614), 0 6px 0 color-mix(in srgb, var(--dot) 34%, #020614), 0 0 30px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 72px color-mix(in srgb, var(--dot) 26%, transparent); }
+.path-dot[data-state=done] .path-dot-core { color: #04101f; filter: none; }
+.path-dot[data-state=done] .path-dot-core svg { width: calc(var(--dot-size) * .46); height: calc(var(--dot-size) * .46); }
+.path-dot[data-state=running] { box-shadow: inset 0 0 0 5px var(--dot), 0 6px 0 #040918, 0 0 34px color-mix(in srgb, var(--dot) 55%, transparent); }
+.path-dot[data-state=locked] { cursor: default; background: var(--path-ink-locked); box-shadow: inset 0 0 0 2px #ffffff22, 0 6px 0 #040918; }
+.path-dot[data-state=locked] .path-dot-core { color: #8d9cbf; filter: none; }
+.path-dot-ring { position: absolute; inset: -7px; width: calc(100% + 14px); height: calc(100% + 14px); rotate: -90deg; pointer-events: none; overflow: visible; }
+.path-dot-ring circle { fill: none; stroke: var(--dot); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--partial, 0)); transition: stroke-dashoffset 420ms var(--motion-glide, ease); }
+
+/* The tick: the dot fills once, a ring bursts and eight sparks fly; then only the final still remains. */
+.path-dot[data-just] { animation: path-dot-fill 380ms var(--motion-glide, ease) both; }
+.path-dot-burst { position: absolute; inset: 0; pointer-events: none; }
+.path-dot-burst::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 3px solid var(--dot); opacity: 0; animation: path-dot-ring 600ms var(--motion-glide, ease) both; }
+.path-dot-burst i { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; background: var(--dot); box-shadow: 0 0 10px var(--dot); opacity: 0; animation: path-dot-spark 680ms var(--motion-glide, ease) 40ms both; }
+.path-dot-burst i:nth-child(1) { --a: 0deg; } .path-dot-burst i:nth-child(2) { --a: 45deg; } .path-dot-burst i:nth-child(3) { --a: 90deg; } .path-dot-burst i:nth-child(4) { --a: 135deg; }
+.path-dot-burst i:nth-child(5) { --a: 180deg; } .path-dot-burst i:nth-child(6) { --a: 225deg; } .path-dot-burst i:nth-child(7) { --a: 270deg; } .path-dot-burst i:nth-child(8) { --a: 315deg; }
+@keyframes path-dot-fill { 0% { transform: scale(.84); } 55% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes path-dot-ring { 0% { opacity: .95; transform: scale(.92); } 100% { opacity: 0; transform: scale(1.8); } }
+@keyframes path-dot-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(calc(var(--dot-size) * -.36)) scale(1); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--dot-size) * -.92)) scale(.35); } }
+
+/* A chest beside the path. */
+.path-chest { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: max-content; max-width: 100%; justify-self: start; padding-inline-start: clamp(0px, 10cqi, 96px); }
+.path-chest[data-side=right] { justify-self: end; flex-direction: row-reverse; text-align: end; padding-inline: 0 clamp(0px, 10cqi, 96px); }
+/* Critique round 2 (L5c): a chest not reached yet is dimmed by opacity alone, so it keeps its gold (a desaturating,
+   darkening filter made it brown clip-art); reached, it is whole and glows. */
+.path-chest-art { position: relative; display: grid; place-items: center; width: 66px; height: 58px; filter: drop-shadow(0 8px 14px #0009); opacity: .55; }
+.path-chest-art svg { width: 64px; height: 56px; overflow: visible; }
+.path-chest-band { stroke: #8a5a1c; stroke-width: 2; }
+.path-chest-clasp { fill: #fff3cf; stroke: #8a5a1c; stroke-width: 1.5; }
+.path-chest-lid { transform-box: fill-box; transform-origin: 0% 100%; }
+.path-chest-lid path { stroke: #8a5a1c; stroke-width: 1.5; }
+.path-chest-shine { opacity: 0; fill: #fff8e0; stroke: #ffe39a; stroke-width: 2; stroke-linecap: round; }
+.path-chest-sparks { position: absolute; inset: 0; pointer-events: none; }
+.path-chest-sparks i { position: absolute; left: 50%; top: 40%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #ffe39a; box-shadow: 0 0 8px #ffd27a; opacity: 0; }
+.path-chest[data-reached] .path-chest-art { filter: drop-shadow(0 0 18px #ffd27a99) drop-shadow(0 8px 14px #0008); opacity: 1; }
+.path-chest[data-reached] .path-chest-lid { transform: rotate(-24deg) translate(-2px, -6px); }
+.path-chest[data-reached] .path-chest-shine { opacity: 1; }
+.path-chest[data-just] .path-chest-lid { animation: path-chest-open 700ms var(--motion-glide, ease) both; }
+.path-chest[data-just] .path-chest-shine { animation: path-chest-shine 900ms ease-out 260ms both; }
+.path-chest[data-just] .path-chest-sparks i { animation: path-dot-spark 820ms var(--motion-glide, ease) 300ms both; --dot-size: 70px; }
+.path-chest-sparks i:nth-child(1) { --a: -60deg; } .path-chest-sparks i:nth-child(2) { --a: -30deg; } .path-chest-sparks i:nth-child(3) { --a: 0deg; } .path-chest-sparks i:nth-child(4) { --a: 30deg; } .path-chest-sparks i:nth-child(5) { --a: 60deg; } .path-chest-sparks i:nth-child(6) { --a: 90deg; }
+@keyframes path-chest-open { 0% { transform: none; } 45% { transform: rotate(-34deg) translate(-2px, -9px); } 100% { transform: rotate(-24deg) translate(-2px, -6px); } }
+@keyframes path-chest-shine { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: none; } }
+.path-chest-text { display: grid; gap: 2px; max-width: 220px; color: var(--text, #f0f5ff); font-size: 15px; line-height: 1.3; }
+.path-chest-text strong { font-size: 16px; font-weight: 700; }
+.path-chest-text small { color: var(--muted, #a4b2cd); font-size: 14px; }
+
+/* ZIGi beside the next dot (or the end), pointing at it with a small nebula arrow. */
+.path-zigi { position: absolute; top: 50%; translate: 0 -58%; display: flex; align-items: center; gap: 2px; pointer-events: none; }
+.path-zigi[data-side=left] { right: calc(100% + 10px); }
+.path-zigi[data-side=right] { left: calc(100% + 10px); flex-direction: row-reverse; }
+.path-zigi-figure { display: block; width: 52px; height: 68px; filter: drop-shadow(0 8px 14px #0008); }
+.path-zigi-figure img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.path-zigi-arrow { width: 14px; height: 14px; border-radius: 3px; background: linear-gradient(135deg, #63e7ff, #826cff 55%, #ff74be); clip-path: polygon(0 0, 100% 50%, 0 100%, 26% 50%); filter: drop-shadow(0 0 6px #826cffaa); }
+.path-zigi[data-side=right] .path-zigi-arrow { rotate: 180deg; }
+/* Critique round 2 (L5c): ZIGi's line is one line (it wrapped at 180 px and sat on the next dot's label): it starts at
+   ZIGi's outer edge and runs toward the dot, under ZIGi, above the next dot's label; a line longer than the room ends
+   in an ellipsis (the dot's own label says it in full). */
+.path-zigi-say { position: absolute; top: 100%; translate: 0 6px; box-sizing: border-box; width: max-content; max-width: min(260px, 46cqi); padding: 5px 10px; border-radius: 12px; background: var(--path-ink-say); border: 1px solid #826cff66; color: #eef4ff; font-size: 14px; line-height: 1.25; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.path-zigi[data-side=left] .path-zigi-say { left: 0; }
+.path-zigi[data-side=right] .path-zigi-say { right: 0; }
+.path-end { position: relative; z-index: 2; display: grid; justify-items: center; min-height: 76px; }
+.path-end .path-zigi { position: relative; top: auto; translate: none; right: auto; left: auto; }
+@media (max-width: 640px) { .path-zigi-figure { width: 44px; height: 58px; } }
+
+/* The caller's inline panel (the value stepper, a done dot's details) under its dot, over the line. */
+.path-panel { position: relative; z-index: 3; width: min(100%, 440px); margin-top: 16px; }
+
+/* "Jump to next": a glass bubble that stays in view while the next dot is not. */
+/* Critique round 2 (L5c): the bubble takes no layout space (it was a grid row: an empty band at every path's end) — a
+   track laid over the whole stage holds a zero-height dock at its foot, sticky to the bottom of the screen, and the
+   bubble hangs from it at the path's start edge. The renderer shows it (data-clear) only while it sits whole on the
+   screen, inside the path, over no banner, chest or open panel; otherwise it is hidden, not focusable and not read. */
+.path-jump-track { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
+.path-jump-dock { position: sticky; bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 16px); height: 0; }
+.path-jump { position: absolute; bottom: 0; left: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid #8cc8ff66; background: linear-gradient(100deg, var(--path-ink-jump-a), var(--path-ink-jump-b)); box-shadow: 0 14px 30px -12px #000c, 0 0 24px #4f8dff40; color: #f2f7ff; font: inherit; font-size: 16px; font-weight: 700; white-space: nowrap; cursor: pointer; pointer-events: auto; }
+.path-jump:not([data-clear]) { visibility: hidden; pointer-events: none; }
+.path-jump:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
+.path-jump-arrow { font-size: 18px; }
+@media (max-width: 640px) { .path-jump-dock { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 84px); } .path-jump { min-height: 44px; padding: 0 14px; font-size: 15px; } }
+
+/* Stills: reduced motion and Motion Off paint every final state at once. */
+@media (prefers-reduced-motion: reduce) { .path-stage, .path-stage *, .path-stage *::before, .path-stage *::after { animation: none !important; transition: none !important; } }
+:root[data-app-motion=off] .path-stage, :root[data-app-motion=off] .path-stage *, :root[data-app-motion=off] .path-stage *::before, :root[data-app-motion=off] .path-stage *::after { animation: none !important; transition: none !important; }

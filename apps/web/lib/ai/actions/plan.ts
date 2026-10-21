@@ -23,13 +23,17 @@ import type {Reminders} from '../../reminders/schema';
 import {reviewWindow} from '../../weekly-review/engine';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import {reviewFor, saveReviewNotes, setReviewWeekday, skipReview} from '../../weekly-review/store';
-import {addNote, CATEGORY_LABELS, deleteNote, isHealthNote, newNoteId, noteProblem} from '../memory';
+import {addNote, CATEGORY_LABELS, consentOnRemember, deleteNote, isHealthNote, MEMORY_DECLINED, newNoteId, noteProblem} from '../memory';
+import {memoryConsent} from '../store/records';
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
 import {STALE_HANDLE} from '../handles';
 import {LIFE_REVIEW_KEY} from '../../life-review/store';
 import type {planAaAction as PlanAa} from './plan-aa';
+import type {planAfAction as PlanAf} from './plan-af';
+import type {StakingPrefillValues} from './staking-prefill';
+import type {Checklist, ChecklistDays} from '../../checklist/schema';
 /**
  * Session AA-Local Gate A (ADR-022 B41): the planner for this session's twelve kinds lives in its own chunk, loaded at run
  * time the moment this module evaluates (the shell carries this module through the knock), so a page's first load never
@@ -37,10 +41,13 @@ import type {planAaAction as PlanAa} from './plan-aa';
  */
 let aaPlanner: typeof PlanAa | null = null;
 export function installAaPlanner(fn: typeof PlanAa) { aaPlanner = fn; }
+/** Session AF (L4): this session's kinds travel in the same lazy chunk (plan-aa.ts re-exports plan-af.ts): no new request at load. */
+let afPlanner: typeof PlanAf | null = null;
+export function installAfPlanner(fn: typeof PlanAf) { afPlanner = fn; }
 let aaLoading: Promise<void> | null = null;
 export function loadAaPlanner(): Promise<void> {
-  if (aaPlanner) return Promise.resolve();
-  aaLoading ??= import('./plan-aa').then(m => { installAaPlanner(m.planAaAction); });
+  if (aaPlanner && afPlanner) return Promise.resolve();
+  aaLoading ??= import('./plan-aa').then(m => { installAaPlanner(m.planAaAction); installAfPlanner(m.planAfAction); });
   return aaLoading;
 }
 void loadAaPlanner().catch(() => { aaLoading = null; });
@@ -74,7 +81,12 @@ import {formatMinutes, instantAt, wallClock} from '../../zone-time';
 export type Stores = {health: HealthData; habits: HabitData; fasting: Fasting; platform: Platform; reminders: Reminders; zigiReminders: ZigiReminders; weekly: WeeklyReview; memory: AiMemory; settings: DashboardSettings};
 export type Target = keyof Stores | 'form';
 /** `refs`: habits that cards of the same reply create ("new1" → the id it will have and its title), for their reminders. */
-export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitDay: string; healthDay: string; timeZone: string; weightUnit?: 'kg' | 'lb'; newHealthId?: () => string; newHabitId?: () => string; newNoteId?: () => string; refs?: ReadonlyMap<string, {id: string; title: string}>; zigi?: ZigiLookEnv};
+export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitDay: string; healthDay: string; timeZone: string; weightUnit?: 'kg' | 'lb'; newHealthId?: () => string; newHabitId?: () => string; newNoteId?: () => string; refs?: ReadonlyMap<string, {id: string; title: string}>; zigi?: ZigiLookEnv;
+  /** Session AF (L4): the Checklist's records on this device and its day (null: no Checklist read), for its cards. */
+  checklist?: ChecklistEnv | null;
+  /** Session AF (L4): the validators the Earn page read in this visit (lib/earn/snapshot.ts), to name one by its moniker. */
+  earn?: {validators: readonly {operator: string; moniker: string}[]} | null};
+export type ChecklistEnv = {record: Checklist; days: ChecklistDays; date: string; unreadable: boolean};
 /** ZIGi's current look and the looks this build has, when the runner knows them (a change to the same value is then refused). */
 export type ZigiLookEnv = {prefs: ZigiPrefs; skins: readonly string[]};
 export type Card = {kind: ActionKind; title: string; lines: string[]; where: string; day: string | null; estimate: boolean; safety?: string};
@@ -100,7 +112,9 @@ export type Plan = {card: Card; target: Target; write: (current: Stores) => Part
   /** SECURITY_REVIEW_Y F9: the card shows or keeps Health content though its kind is not a Health kind (a Health widget on Today, a diet note): auto-accept treats it as Health-gated. */
   healthContent?: boolean;
   /** Session Z-Local Part 6 (L21): the day already holds this very entry (the same water amount, the same library food for the same meal); the card still shows, auto-accept never takes it. */
-  duplicate?: boolean};
+  duplicate?: boolean;
+  /** Session AF (ADR-028 D7, H47): the Staking page's review, filled in (a hand-off; the person reviews and signs in their own wallet). */
+  staking?: StakingPrefillValues};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -527,10 +541,12 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'remember': {
       // ZIGi never keeps a note about a health condition by itself; the person can write one in the panel if they want it.
       if (action.category === 'health') return refuse('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · Your Personal AI Companion → What ZIGi knows about me.');
+      // Session AF (L4, H30): the person turned off notes from ZIGi's cards; their own notes in the panel stay theirs.
+      if (memoryConsent(stores.memory) === 'declined') return refuse(MEMORY_DECLINED);
       const problem = noteProblem(action.text, stores.memory); if (problem) return refuse(problem);
       const id = (env.newNoteId ?? newNoteId)(), sent = isHealthNote(action.category) ? 'while "Use my notes" is on and Health is shared with ZIGi' : 'while "Use my notes" is on';
       return {ok: true, plan: {target: 'memory', card: {kind: action.kind, title: 'Remember this?', lines: [action.text, `Kept as: ${CATEGORY_LABELS[action.category]}`, `On this device only; it goes to your AI with your messages ${sent}`], where: 'ZIGi · What ZIGi knows about me', day: null, estimate: false},
-        write: s => ({memory: addNote(s.memory, {text: action.text, category: action.category, source: 'zigi'}, env.now, id)}),
+        write: s => ({memory: consentOnRemember(addNote(s.memory, {text: action.text, category: action.category, source: 'zigi'}, env.now, id), env.now)}),
         undo: {label: 'Forget this note', write: s => ({memory: deleteNote(s.memory, id)}), unchanged: (after, current) => same(after.memory.notes?.find(n => n.id === id), current.memory.notes?.find(n => n.id === id))},
         activity: {id: `note:${id}`, title: `Remembered: ${action.text.slice(0, 120)}`}, ...(action.category === 'diet' ? {healthContent: true} : {})}};
     }
@@ -721,11 +737,13 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'open-page': {
       // A page the person hid in "Your pages & buttons" is not opened behind their back.
       const view = viewOf(settingsGroupIn(stores.settings, 'pages'));
-      const pageId = action.page === 'settings' || action.page === 'help' || action.page === 'music' || action.page === 'journey' || action.page === 'review' || action.page === 'share' ? null : action.page;
-      if (pageId && !isShown(view, pageId)) return refuse(`${PAGE_LABEL[pageId]} is hidden in Settings → Your pages & buttons; show it there first.`);
-      let href = action.page === 'today' ? '/app' : action.page === 'music' ? '/app/music/spotify' : `/app/${action.page}`, label = action.page === 'review' ? 'Life review' : action.page === 'share' ? 'Share to ZIGoals' : action.page === 'settings' ? 'Settings' : action.page === 'help' ? 'Help' : action.page === 'music' ? 'Music' : action.page === 'journey' ? 'Journey' : PAGE_LABEL[pageId!];
+      // Session AF (L4): the Checklist and Earn have no switch of their own (H72); Earn shows and hides with Wealth (H98).
+      const pageId = action.page === 'settings' || action.page === 'help' || action.page === 'music' || action.page === 'journey' || action.page === 'review' || action.page === 'share' || action.page === 'checklist' ? null : action.page === 'earn' ? 'wealth' : action.page;
+      if (pageId && !isShown(view, pageId)) return refuse(`${action.page === 'earn' ? 'Earn follows Wealth, which' : PAGE_LABEL[pageId]} is hidden in Settings → Your pages & buttons; show it there first.`);
+      let href = action.page === 'today' ? '/app' : action.page === 'music' ? '/app/music/spotify' : `/app/${action.page}`, label = action.page === 'review' ? 'Life review' : action.page === 'share' ? 'Share to ZIGoals' : action.page === 'settings' ? 'Settings' : action.page === 'help' ? 'Help' : action.page === 'music' ? 'Music' : action.page === 'journey' ? 'Journey' : action.page === 'checklist' ? 'Checklist' : action.page === 'earn' ? 'Earn' : PAGE_LABEL[pageId!];
       if (action.view) {
         const v = action.view;
+        if (v === 'start-here' || v === 'academy') { if (action.page !== 'earn') return refuse(`The ${v === 'academy' ? 'Academy' : 'Start-here path'} is on Earn.`); href = `/app/earn#${v}`; label = v === 'academy' ? 'Earn → Earn Academy' : 'Earn → Start here'; }
         if (['sleep', 'meditation', 'devices', 'imports'].includes(v)) { if (action.page !== 'health') return refuse(`The ${v} view is on Health.`); href = `/app/health?view=${v}`; label = `Health → ${v[0]!.toUpperCase()}${v.slice(1)}`; }
         // Session AA-Local Part 5: the Health tabs of Part 3, the Habits views of Part 1 and the Reminders page of Part 4.
         else if (['planner', 'insights', 'import'].includes(v)) { if (action.page !== 'health') return refuse(`The ${v} view is on Health.`); href = `/app/health#${v}`; label = `Health → ${v === 'import' ? 'Import' : v[0]!.toUpperCase() + v.slice(1)}`; }
@@ -754,6 +772,10 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'set-goal-area': case 'set-goal-plan': case 'set-sub-goal': case 'create-average-goal': case 'log-average': case 'calculator-scenario': case 'open-search': case 'open-review':
       if (!aaPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
       return aaPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf}) ?? refuse('That card is not one ZIGi can make.');
+    // Session AF (L4): this session's kinds live in plan-af.ts, in the same lazy chunk.
+    case 'checklist-tick': case 'checklist-add-favourite': case 'checklist-add-custom': case 'set-brief': case 'prefill-staking':
+      if (!afPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
+      return afPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf, plan: planAction}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
       const habit = found.habit, current = latestHabitRule(habit).state;

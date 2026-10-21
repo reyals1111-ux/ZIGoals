@@ -39,13 +39,39 @@ async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Rec
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) {
+  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  // Session AF Gate C: the panel puts the focus in its box as it opens (ai-chat.tsx, the open effect). CI's WebKit run on c9d97eef
+  // typed 120 ms after the panel opened, while that focus was still moving: the trace shows the fill's text never reached
+  // the box and Send stayed disabled. A person types once the cursor is there; the test waits for it too.
+  await expect(panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/})).toBeFocused();
+}
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 const box = (page: Page) => panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
 /** Sends what is in the box with the composer's own button (on phones Enter adds a line, by design). */
 const submit = (page: Page) => panel(page).locator('.ai-composer button[type=submit]').click();
-const say = async (page: Page, text: string) => { await box(page).fill(text); await submit(page); };
+/**
+ * Session AF Gate C (diagnostic only; nothing is asserted more loosely): CI's WebKit job on efeed49a and 5b0bd5e7 found the
+ * box empty a moment after it was filled on a freshly loaded page (the Send button then stayed disabled). The page keeps a
+ * note of what happened to the composer — its box added or removed, a dialog opened or closed, each typed value — and a
+ * failure here names them. Chromium on this Mac does not reproduce it.
+ */
+const watchComposer = (page: Page) => page.addInitScript(() => {
+  const w = window as unknown as {__composer?: string[]}; w.__composer = [];
+  const t0 = performance.now(), note = (what: string) => w.__composer!.push(`${Math.round(performance.now() - t0)} ms ${what}`);
+  new MutationObserver(records => { for (const r of records) {
+    if (r.type === 'attributes') { const el = r.target as Element; note(`${el.tagName.toLowerCase()}.${(el.getAttribute('class') ?? '').split(' ')[0]} open=${el.hasAttribute('open')}`); continue; }
+    for (const n of r.addedNodes) if (n instanceof Element && (n.matches('textarea') || n.querySelector('.ai-composer textarea'))) note('composer box added');
+    for (const n of r.removedNodes) if (n instanceof Element && (n.matches('textarea') || n.querySelector('.ai-composer textarea'))) note('composer box removed');
+  } }).observe(document, {subtree: true, childList: true, attributes: true, attributeFilter: ['open']});
+  document.addEventListener('input', e => { if (e.target instanceof HTMLTextAreaElement) note(`typed ${JSON.stringify(e.target.value.slice(0, 30))}`); }, true);
+});
+const say = async (page: Page, text: string) => {
+  await box(page).fill(text);
+  try { await expect(box(page)).toHaveValue(text); await submit(page); }
+  catch (error) { const log = await page.evaluate(() => (window as unknown as {__composer?: string[]}).__composer ?? []).catch(() => ['(no note)']); throw new Error(`${(error as Error).message}\ncomposer notes: ${log.slice(-25).join(' | ')}`); }
+};
 /** The words of the person's last message (its "Edit" button aside). */
 const lastAsked = (page: Page) => panel(page).locator('.ai-turn-user').last();
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
@@ -236,6 +262,7 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
 });
 
 test('History: Pin puts a chat under "Pinned"; the page filter uses where each chat started, kept apart from the chat itself', async ({page}) => {
+  await watchComposer(page);
   await server(page);
   await seed(page, {});
   await page.goto('/app/health');

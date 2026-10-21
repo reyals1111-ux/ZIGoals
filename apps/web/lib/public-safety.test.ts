@@ -24,8 +24,15 @@ test("production policy has per-request unpredictable nonces and exact connectio
   // own key, browser-direct), the loopback names and, on /app documents, chess.com's and Lichess's public APIs (Session W
   // Part 14, with the username only) and Spotify's accounts service and Web API (Part 20, once the person connects
   // Spotify). Exactly these, in this order, and nothing else.
+  // Session AF (ADR-028 H16 (b), `TIER 3 (CSP)`): plus ZIGChain mainnet's RPC after the testnet endpoints, the host the
+  // browser signs native staking through (CosmJS: account, simulate, broadcast, receipt); the mainnet REST host
+  // api.zigchain.com stays server-only (the positions and validators relays) and is not here.
   expect(a.csp).toContain(`connect-src ${CONNECT_SOURCES.join(" ")}`);
-  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com"]);
+  // Session AF (ADR-028 H16 (c)/(d), `TIER 3 (CSP)`, lane L2b): then, on /app documents, the browser-direct balance hosts
+  // of linked wallets — PublicNode's Cosmos REST, its six EVM JSON-RPC hosts and its Solana RPC, and mempool.space — in
+  // the order of lib/wallets/balances/chains.ts; still exactly these and nothing else (no ZIGChain mainnet REST host).
+  expect(CONNECT_SOURCES).not.toContain("https://api.zigchain.com");
+  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com", "https://cosmos-rest.publicnode.com", "https://ethereum-rpc.publicnode.com", "https://arbitrum-one-rpc.publicnode.com", "https://base-rpc.publicnode.com", "https://optimism-rpc.publicnode.com", "https://polygon-bor-rpc.publicnode.com", "https://bsc-rpc.publicnode.com", "https://solana-rpc.publicnode.com", "https://mempool.space"]);
   for (const origin of Object.values(egress.aiProviderOrigins)) expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+$/);
   expect(a.csp).toContain("frame-ancestors 'none'");
   expect(a.csp).toContain("worker-src 'self'");

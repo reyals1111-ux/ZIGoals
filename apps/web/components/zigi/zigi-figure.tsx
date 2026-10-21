@@ -2,6 +2,8 @@
 import {SHELL_FRAME} from '../../lib/ai/zigi-look';
 import {useZigiFrames, useZigiIdleVariant} from './bus';
 import {ZigiImage} from './zigi-image';
+// Session AF (L4, for L5a's theme parity): the figure brings its own styles (its shadow in every theme, Nebula included).
+import './zigi.css';
 
 /**
  * ZIGi in the launcher shell (Session V Part 12; Session X-Local Part 1): until the alive chunk has published the frames,

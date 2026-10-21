@@ -8,7 +8,7 @@ async function showcase(page: Page) {
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
-const TODAY = ['Your market watch', 'Your progress', 'Your wallet', 'Staking', 'Plan a new destination', 'Recent activity', 'Your week']; // Session AB-Design (owner request 2): the 3-step card became the footer's line
+const TODAY = ['Your market watch', 'Your financial progress', 'Your wallet', 'Staking', 'Plan a new destination', 'Recent activity', 'Your week']; // Session AB-Design (owner request 2): the 3-step card became the footer's line
 const WEALTH = ['Your wealth, in perspective', 'Your favourite markets', 'Your wealth over time', 'Evidence & returns', 'Allocation and coverage'];
 const fold = (page: Page, label: string) => page.locator('.phone-fold').filter({has: page.getByRole('button', {name: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)})}).first();
 

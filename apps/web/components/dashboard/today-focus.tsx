@@ -8,6 +8,8 @@ import {asleep, nightsIn} from '../../lib/sleep/engine';
 import {elapsedMs, formatFast} from '../../lib/fasting/engine';
 import type {GoalSummary} from '../../lib/goal-summary';
 import {formatGoalAmount} from '../../lib/goal-summary';
+import type {GoalStep} from '../../lib/today/goal-roles';
+import {formatUnits} from '@zigoals/chain-config';
 import {formatDate} from '../../lib/visual-format';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
@@ -22,6 +24,19 @@ const waterText = (ml: number, unit: 'ml' | 'fl-oz-us') => unit === 'ml' ? (ml >
 /** A goal's share as the cards show it: whole percent, rounded down ("45%", never "45.00%"). */
 const pct = (value: string) => { const n = Number(value); return Number.isFinite(n) ? `${Math.floor(n)}%` : value; };
 const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(Math.round(minutes % 60)).padStart(2, '0')} min`;
+/** Session AF (L5a, Part 10.10): the top goal's next step in plain words (its progress is on its card). */
+export function stepText(step: GoalStep): string {
+  const amount = 'amount' in step && step.amount ? `${formatGoalAmount(formatUnits(step.amount.value, step.amount.decimals), step.amount.asset)} ` : '';
+  switch (step.kind) {
+    case 'review': return 'Next: review its wealth sources';
+    case 'overdue': return `Contribution ${amount}due since ${formatDate(step.date)}`;
+    case 'milestone': return `Next milestone: ${step.title}`;
+    case 'contribution': return `Next contribution ${amount}on ${formatDate(step.date)}`;
+    case 'target': return step.days === 0 ? `Its target date is today, ${formatDate(step.date)}` : `${step.days} ${step.days === 1 ? 'day' : 'days'} to its target date, ${formatDate(step.date)}`;
+    case 'plan': return 'Next: set a contribution plan';
+    case 'open': return 'Open it to plan the next step';
+  }
+}
 
 /**
  * Today's focus (Session AA-Cloud Part 1): what is due now, in one place right under the hero. The reminder cards that
@@ -31,7 +46,7 @@ const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(Math.
  * Health coach check-in (`today:coach`). Links to a view of a page (`?add=`, `?view=`) are not prefetched: WebKit
  * reports a prefetch cancelled by leaving Today as a page error (ADR-017 S64), and a tap loads them quickly anyway.
  */
-export function TodayFocus({reminders, nextGoal, financial, showHabits, showHealth, healthDate, habitsWidget = false}: {reminders?: ReactNode; nextGoal?: GoalSummary; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string; /** Session AB-Design (owner request 12): the habits widget shows the due habits itself, so the tile stands down. */ habitsWidget?: boolean}) {
+export function TodayFocus({reminders, nextGoal, step, financial, showHabits, showHealth, healthDate, habitsWidget = false}: {reminders?: ReactNode; nextGoal?: GoalSummary; /** Session AF (L5a): the goal's next step (lib/today/goal-roles.ts); without it, its progress as before. */ step?: GoalStep; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string; /** Session AB-Design (owner request 12): the habits widget shows the due habits itself, so the tile stands down. */ habitsWidget?: boolean}) {
   const habits = useHabits(), health = useHealth(), fasting = useFasting();
   const due = habits.loaded && !habits.error ? habits.data.habits.filter(h => habitDay(h, habits.today, habits.today).scheduled) : [];
   const done = due.filter(h => habitDay(h, habits.today, habits.today).status === 'complete').length;
@@ -70,7 +85,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
         <span className="focus-label"><AppIcon name="goals" size={20} />Next step</span>
         {nextGoal ? <>
           <strong>{nextGoal.name}</strong>
-          <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${formatDate(nextGoal.nextContributionDate)}` : ''}</p>
+          {step ? <p data-step={step.kind}>{stepText(step)}</p> : <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${formatDate(nextGoal.nextContributionDate)}` : ''}</p>}
           <div className="focus-actions"><Link className="text-link" href={nextGoal.href}>Open Goal →</Link></div>
         </> : <>
           <strong>No active goal yet</strong>

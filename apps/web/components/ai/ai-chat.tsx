@@ -37,6 +37,8 @@ import {ASK_EVENT, takePendingAsk} from './ask';
 import {examplesFor} from '../../lib/ai/local-answers/examples';
 import {LOCAL_LABEL} from '../../lib/ai/local-answers/words';
 import {toolEnv} from '../../lib/ai/tools/env';
+import {BRIEF_LABEL, briefChatText} from '../../lib/ai/proactive/brief';
+import {briefPrefs} from '../../lib/ai/store/records';
 import {runTool, toolText} from '../../lib/ai/tools/registry';
 import type {ToolResult} from '../../lib/ai/tools/types';
 import {questionContext, type QuestionContext} from '../../lib/ai/context/question';
@@ -170,6 +172,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const ask = useCallback((question: string) => { if (connected) sendQuestion(question); else void session.ask(question); }, [connected, sendQuestion, session]);
   /** A suggestion from the sheet: sent like typed words, counted like them, and the sheet closes. */
   const suggest = useCallback((question: string) => { setSheet(false); asked(question); ask(question); }, [ask, asked]);
+  // Session AF (L4): /brief and /recap may read their words aloud (the reader is made further down; its speak is kept here).
+  const speak = useRef<((text: string) => void) | null>(null);
   /** Slash commands that open a view, a page or a local card (Session V Part 10); /log, /ask and /plan go on as messages. */
   const onCommand = useCallback((name: SlashName, rest: string, typed: string): boolean => {
     switch (name) {
@@ -178,10 +182,21 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       case '/insights': setView('insights'); return true;
       case '/pack': onClose(); if (/^\/app\/settings\/?$/.test(window.location.pathname)) window.location.hash = 'zigi-pack'; else router.push('/app/settings#zigi-pack'); return true;
       case '/remember': session.say(typed, rememberReply(rest)); return true;
+      // Session AF (L4, P8.2): the brief and the recap, made on this device; read aloud when the person chose that for an asked-for brief.
+      case '/brief': case '/recap': {
+        const sources = sensitive ? null : context.toolSources(), env = sources ? toolEnv(sources, context.gates, 'local') : null;
+        let prefs = briefPrefs({version: 1}), muted = false;
+        try { prefs = briefPrefs(readDeviceRecord(getAppStorage(), ZIGI).data); muted = voicePrefs(readDeviceRecord(getAppStorage(), ZIGI_VOICE).data).muted; } catch { /* the defaults */ }
+        const text = briefChatText(env, name === '/recap' ? 'evening' : 'morning', {snapshot: sources?.earn, earning: prefs.earning});
+        session.say(typed, text);
+        if (prefs.readAloud && !muted) speak.current?.(text.replace(BRIEF_LABEL, ''));
+        return true;
+      }
       default: if (connected) return false; session.say(typed, NEEDS_AI); return true;
     }
-  }, [connected, onClose, router, session]);
+  }, [connected, onClose, router, session, sensitive, context]);
   const reader = useReadAloud(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
+  useEffect(() => { speak.current = reader.speak; }, [reader.speak]);
   // Session Z-Cloud Part 3: a reply to a spoken question is read aloud (the person's choice, on by default), never in quiet
   // hours and never while muted; a tap anywhere in the panel, or talking again, stops it.
   const voiceRec = useDeviceRecord(ZIGI_VOICE), vprefs = voicePrefs(voiceRec.data), zigiRec = useDeviceRecord(ZIGI), spokenAsked = useRef(false);
@@ -309,7 +324,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         day={sensitive ? <p className="ai-note">Paused on this private screen: nothing is read from the page.</p> : <><BriefBlock context={context} connected={connected} session={session}/><ProactiveEntries onView={v => { setSheet(false); setView(v); }}/></>}/>}
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
-      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={connected ? onAbout : undefined} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} onAsked={asked}
+      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={onAbout} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} onAsked={asked}
         onSpoken={() => { spokenAsked.current = true; setSpokenDutch(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language).startsWith('nl')); }}
         chips={<><SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>{reader.supported && (vprefs.readSpoken || data.voice.readAloud) && <button type="button" className="ai-chip ai-mute" aria-pressed={vprefs.muted} aria-label="Mute ZIGi’s voice" title={vprefs.muted ? 'Muted: ZIGi reads nothing aloud until you press again' : 'Mute: ZIGi reads nothing aloud'} onClick={toggleMute}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>{vprefs.muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg><span className="ai-chip-label">Mute</span></button>}</>}
         placeholder="Ask ZIGi…" title={!connected ? 'Ask about your records: answered here, no AI' : `Ask about ${AREA_LABELS[area]}, or say what to log`}/>}
@@ -376,12 +391,15 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
     : reply.kind === 'examples' ? reply.examples.map(e => ({label: e, run: () => void session.ask(e)})) : [] : [];
   // Session V Part 15: an answer made with Chrome's on-device model says so; it stays on this device like a lookup.
   const label = turn.source === 'on-device' ? ON_DEVICE_LABEL : LOCAL_LABEL;
+  // Session AF (L4): a card ZIGi made on this device names a habit by its exact title (a Checklist command, a timer), so
+  // the person's habits are its handles; the device wrote the words itself from the records, no model was involved.
+  const localHandles = useMemo(() => runner.stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})), [runner.stores.habits.habits]);
   const copy = () => { copyText(`${shown}\n\n${label}`).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <SafeText className="ai-local-answer" text={shown}/>
-      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id}/>}
+      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
       {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
       {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
@@ -462,7 +480,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
-      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id}/>}
+      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>

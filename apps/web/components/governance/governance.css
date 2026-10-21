@@ -1,0 +1,55 @@
+/* Session AF chunk 3 (lane L2a; P6.5, P6.6): the Governance page. Plain cards, no motion; text never smaller than 14 px,
+   every control at least 44 px, long proposer text wrapping (never a sideways scroll). Practice and real borders come from
+   the staking styles (components/staking/staking.css). */
+.governance-page{display:grid;gap:18px;min-width:0}
+.governance-why{display:grid;gap:8px}
+.governance-why h2,.governance-proposals h2,.governance-journal-list h2{margin:0}
+.governance-network{gap:14px}
+:root .governance-eligibility{margin:0;font-size:16px;line-height:1.5}
+.governance-proposals{display:grid;gap:14px;min-width:0}
+.governance-proposal{display:grid;gap:12px;min-width:0;overflow-wrap:anywhere}
+.governance-proposal.is-voting{border:2px solid var(--pillar-wealth,#ffd27a)}
+.governance-proposal-head{display:grid;gap:4px}
+.governance-proposal-head h3{margin:0;font-size:20px;line-height:1.3}
+.governance-proposal-head .eyebrow{margin:0}
+.governance-state{display:inline-block;padding:1px 8px;border-radius:8px;border:1px solid var(--line,#6b91c846);font-weight:700}
+.governance-state.is-voting{background:var(--pillar-wealth,#ffd27a);color:#1d1400;border-color:transparent}
+.governance-deadline{margin:0;font-size:16px}
+.governance-changes h4,.governance-tally h4{margin:0 0 4px;font-size:16px}
+.governance-changes ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.governance-tally{display:grid;gap:8px}
+.governance-tally p{margin:0}
+.governance-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--surface-1,#101b32);border:1px solid var(--line,#6b91c846)}
+.governance-bar span{display:block;height:100%;min-width:0}
+.governance-bar .is-yes,.governance-shares .is-yes::before{background:#3ec58a}
+.governance-bar .is-no,.governance-shares .is-no::before{background:#e5675e}
+.governance-bar .is-abstain,.governance-shares .is-abstain::before{background:#8ea3c2}
+.governance-bar .is-noWithVeto,.governance-shares .is-noWithVeto::before{background:#b25bd6}
+.governance-shares{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px}
+.governance-shares li{display:inline-flex;align-items:center;gap:6px}
+.governance-shares li::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px}
+.governance-verdict{font-weight:700}
+.governance-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:8px 16px;margin:0}
+.governance-facts div{display:grid;gap:2px;min-width:0}
+.governance-facts dt{font-size:14px;color:var(--text-secondary,#b7c8de)}
+.governance-facts dd{margin:0}
+.governance-summary summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+.governance-summary-text{white-space:pre-line;margin:0;max-height:24em;overflow:auto}
+.governance-journal{margin:0}
+.governance-vote{display:grid;gap:10px;padding-top:6px;border-top:1px solid var(--line,#6b91c846)}
+.governance-vote p{margin:0}
+.governance-vote .primary{justify-self:start;min-height:44px}
+.governance-choices{display:grid;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.governance-choices legend{font-weight:700;margin-bottom:6px}
+.governance-choice{display:flex;gap:10px;align-items:flex-start;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846);cursor:pointer}
+.governance-choice input{margin-top:4px;width:20px;height:20px;flex:none}
+.governance-choice span{display:grid;gap:2px}
+.governance-choice span span{font-size:14px;color:var(--text-secondary,#b7c8de)}
+.governance-journal-list ul{margin:0;padding-left:20px;display:grid;gap:4px}
+/* Session AF Gate C (design critique, money pages 7): the floating launchers (Earn dock, music, Checklist, ZIGi) on the right
+   edge covered the header's "Staking" button at 768 px and the real-network tile's edge on computers. While they are on the
+   right, the page keeps the lane Earn's paths and Today's rail keep (components/platform/platform.css, --rail-lane). */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) .governance-page { padding-inline-end: 64px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .governance-page { padding-inline-end: 72px; }
+}

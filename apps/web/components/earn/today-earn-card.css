@@ -1,0 +1,21 @@
+/* Session AF chunk 2 (P1.30): Today's EARN card — a gold-rimmed nebula panel with Earn's mark; still (no motion). */
+.today-earn-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: start; border-color: #ffd27a40; background: linear-gradient(150deg, #13203cf2, #0b1328f5 60%, #1a1238f2); }
+.today-earn-card[hidden] { display: none; }
+.today-earn-mark { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1px solid #ffd27a55; background: radial-gradient(circle at 35% 30%, #23365c, #0b142a 70%); }
+.today-earn-mark .earn-glyph-mark { width: 44px; height: 44px; }
+.today-earn-mark .earn-glyph-mark .ha-ink-c { fill: var(--accent-cyan, #63e7ff); }
+.today-earn-body h2 { margin: 2px 0 8px; font-size: clamp(20px, 1.6vw + 10px, 26px); }
+.today-earn-body p { margin: 0 0 10px; color: var(--text-secondary); line-height: 1.5; }
+.today-earn-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+/* Session AF (the lead, today-screens ceiling): on a phone the card is one compact block — the mark beside the title and
+   both buttons; the lede and the note stay on larger screens and on the Earn page itself, so Today stays short. */
+@media (max-width: 767.98px) {
+  .today-earn-card { grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding-block: 14px; }
+  .today-earn-mark { width: 40px; height: 40px; }
+  .today-earn-mark .earn-glyph-mark { width: 30px; height: 30px; }
+  .today-earn-body h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.25; }
+  .today-earn-body .eyebrow { margin-bottom: 2px; }
+  .today-earn-lede, .today-earn-note { display: none; }
+  .today-earn-actions { margin: 0; gap: 8px; }
+  .today-earn-actions > * { flex: 1 1 0; min-height: 44px; }
+}

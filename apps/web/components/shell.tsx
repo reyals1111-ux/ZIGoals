@@ -51,6 +51,8 @@ import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged se
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
+import { ChecklistLauncher } from "./checklist/checklist-launcher"; // Session AF (L3): the Checklist button between Music and ZIGi, and its navigation entry
+import { EarnDock } from "./earn-dock/earn-dock"; // Session AF (L1 chunk 2, Part 5): the Earn dock on top of the right-edge stack
 import { PointTellMount } from "./point-tell/mount";
 import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
@@ -112,11 +114,14 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const plain = s.mode === "local" && s.walletState !== "CONNECTED";
   const [statusOpen, setStatusOpen] = useState(false);
   useEffect(() => { const open = () => setStatusOpen(true); window.addEventListener(PHONE_STATUS_EVENT, open); return () => window.removeEventListener(PHONE_STATUS_EVENT, open); }, []);
-  const networkLabel = plain ? "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
-  const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures.";
+  // Session AF (crit1, ADR-028 H124; `TIER 3 (public-safety labels)`): "practice money (no real value)" stopped being true
+  // when native staking began to sign on the real network too; the label says what holds on every network.
+  const networkLabel = plain ? "PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
+  // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): native staking signs in the person's own wallet on both networks.
+  const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.";
   const modeText = s.mode === "local"
-    ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
-    : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
+    ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet"
+    : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Contract actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
   const alphaFacts = {network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners};
   const walletButtons = <>
           <button
@@ -274,7 +279,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <OfflineNotice />
         <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
       {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout. Session AC:

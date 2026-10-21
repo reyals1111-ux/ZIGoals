@@ -5,6 +5,8 @@
 .accounts-worth > .fine { grid-column: 1 / -1; margin: 0; }
 .accounts-worth-card { padding: 14px 16px; border: 1px solid #a6c1fa26; border-radius: 16px; }
 .accounts-worth-card h3 { font-size: .95rem; margin: 0 0 6px; }
+/* Session AF Gate C (design critique 2): what the net worth counts and its date, under its heading. */
+:root .accounts-worth-card .accounts-worth-scope { margin: -2px 0 6px; font-size: 14px; line-height: 1.4; color: var(--text-meta); }
 .accounts-worth-net { display: block; font-size: 1.5rem; margin-bottom: 8px; }
 .accounts-worth-card dl { display: grid; gap: 4px; margin: 0 0 10px; }
 .accounts-worth-card dl div { display: flex; justify-content: space-between; gap: 12px; }
@@ -28,6 +30,19 @@
 .wealth-holdings-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
 .wealth-holdings-actions .text-link{display:inline-flex;align-items:center;min-height:44px}
 .wealth-holdings-one .holdings-filters button{min-height:44px}
+/* Session AF (L5a, Part 10.11): the chip row never wraps on computers ("Needs attention" fell onto a second row at
+   1440 px). The chips sit a little tighter, in one row that scrolls sideways where it does not fit, its end fading out
+   (the fade meets a chip only when the row is full); no chip is hidden. Room is kept around the row for the chips' focus
+   rings (the scrolling row would clip them). Phones keep their own row (phone-wealth.css). */
+@media (min-width: 768px) {
+  .wealth-holdings-one .holdings-filters { flex-wrap: nowrap; gap: 5px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 10px; margin: -10px; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); }
+  .wealth-holdings-one .holdings-filters::-webkit-scrollbar { display: none; }
+  .wealth-holdings-one .holdings-filters button { flex: none; white-space: nowrap; padding-inline: 10px; }
+  /* Session AF Gate C (design critique, money pages 1): ETFs is its own chip now (the Showcase has thirteen), so the chips
+     sit a little closer still and all thirteen fit one row at 1440 px, as the twelve did. */
+  .wealth-holdings-one .holdings-filters { gap: 4px; }
+  .wealth-holdings-one .holdings-filters button { padding-inline: 7px; }
+}
 .wealth-holdings-one > .phone-fold, .wealth-holdings-one > .accounts-section{margin-top:18px}
 .what-you-have-count{opacity:.75;font-variant-numeric:tabular-nums}
 /* Gate C (design critique): a row's actions sit together under its balance, at the right (the shared `.actions` grid had

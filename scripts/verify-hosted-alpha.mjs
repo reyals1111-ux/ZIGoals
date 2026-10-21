@@ -11,7 +11,7 @@ import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { REVIEWED_TESTNET_VERSIONS } from '../packages/chain-config/src/index.ts';
 import { hostedStatus } from './lib/hosted-alpha-review.mjs';
-import { LIVE_ORIGINS, SENTINELS, VERIFIER_STAGES, liveOnlySkips, setAsideUnboundApi, verifyBase } from './lib/hosted-alpha-stages.mjs';
+import { LIVE_ORIGINS, SENTINELS, VERIFIER_STAGES, classifyFailedRequests, isRscRequest, liveOnlySkips, setAsideNotConfigured, setAsideUnboundApi, verifyBase } from './lib/hosted-alpha-stages.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium, expect } = require('@playwright/test');
 const output = process.argv[2];
@@ -40,14 +40,25 @@ page.on('request', request => captures.push(request.allHeaders().then(headers =>
 // the verifier's own timing (a local run: 2 of 1,226 requests, right after Settings' samples), not on the site. So every
 // navigation and reload waits until the page has had no request in flight for half a second (at most 10 s). The check
 // itself is unchanged: a capture that still fails fails the run, now with its URL.
+// Main-frame navigation times (Session AF Part 11 A3): stamped by the goto/reload wrapper below and by framenavigated.
+const navigations = [];
 const inFlight = new Set();
 page.on('request', r => inFlight.add(r)); page.on('requestfinished', r => inFlight.delete(r)); page.on('requestfailed', r => inFlight.delete(r));
 async function settled() { const end = Date.now() + 10000; let calm = 0; while (Date.now() < end) { calm = inFlight.size ? 0 : calm + 1; if (calm >= 5) return; await new Promise(r => setTimeout(r, 100)); } }
-for (const name of ['goto', 'reload']) { const original = page[name].bind(page); page[name] = async (...args) => { await settled(); return original(...args); }; }
+for (const name of ['goto', 'reload']) { const original = page[name].bind(page); page[name] = async (...args) => { await settled(); navigations.push(Date.now()); return original(...args); }; }
 page.on('pageerror', e => report.pageErrors.push(e.message));
 page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push({message:m.text(),location:m.location(),pageUrl:page.url()}); });
-page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure: r.failure() }));
-page.on('response', r => { if (r.status() >= 400) report.httpErrors.push({url:r.url(), status:r.status()}); });
+// Session AF Part 11 A3: each failed request carries its time and whether it is a Next prefetch/RSC fetch, and every
+// main-frame navigation is stamped, so the requests the verifier's own navigations abort can be told from real failures.
+page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push(Date.now()); });
+page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure: r.failure(), at: Date.now(), rsc: isRscRequest(r.url(), r.headers()) }));
+// Session AF Part 11 A2: the body of every error answer is read at once (a later navigation can drop it), so the two
+// designed "not configured" answers can be matched exactly; an answer whose body cannot be read stays an error.
+// Session AF Gate C: a body that never arrives (its request aborted by a navigation) once held the run for an hour after its
+// last stage; each read now waits at most BODY_READ_MS, and an unread body stays an error (fail closed, as A2 designed).
+const BODY_READ_MS = 10_000, progress = what => console.error(`[verifier ${new Date().toISOString()}] ${what}`);
+const answers = new WeakMap(), bodyReads = [];
+page.on('response', r => { if (r.status() >= 400) { const entry = {url:r.url(), status:r.status()}; report.httpErrors.push(entry); const answer = {method: r.request().method()}; answers.set(entry, answer); bodyReads.push(Promise.race([r.text().then(text => { answer.body = text.slice(0, 4000); }, () => {}), new Promise(done => setTimeout(done, BODY_READ_MS))])); } });
 const ctx = { base: alpha, live, origins: LIVE_ORIGINS, expectedCommit: expectedBuild, expect, report, reviewedVersions: REVIEWED_TESTNET_VERSIONS, egressPolicy, output };
 try {
   let alphaCaptureCount = captures.length;
@@ -55,11 +66,13 @@ try {
     // Every request the page made before the landing stage was made on the Alpha (the origin allow-list below).
     if (stage.key === 'landing') alphaCaptureCount = captures.length;
     if (stage.liveOnly && !live) { report.stages.push({name:stage.name, status:'SKIPPED'}); continue; }
+    progress(`stage start: ${stage.name}`);
     await stage.run(page, ctx);
+    progress(`stage done: ${stage.name}`);
     if (!stage.reportsItself) report.stages.push({name:stage.name, status:'PASS'});
   }
-  await page.waitForLoadState('networkidle');
-  let drained=0; while(drained<captures.length) {const batch=captures.slice(drained); drained+=batch.length; report.requestRecords.push(...await Promise.all(batch));}
+  progress('stages done; waiting for the network to settle'); await page.waitForLoadState('networkidle');
+  progress('reading the captured requests'); let drained=0; while(drained<captures.length) {const batch=captures.slice(drained); drained+=batch.length; report.requestRecords.push(...await Promise.all(batch));}
   assert(!report.requestRecords.some(r=>r.captureError));
   const egress=JSON.stringify(report.requestRecords);
   report.privacy={sentinels:SENTINELS, requestsInspected:report.requestRecords.length, completeHeaderCapture:'request.allHeaders()',matches:SENTINELS.filter(value=>egress.includes(value))};
@@ -72,7 +85,12 @@ try {
   assert(report.requestOrigins.every(o=>[alpha,apex,'https://testnet-rpc.zigchain.com','https://testnet-api.zigchain.com','https://fonts.googleapis.com','https://fonts.gstatic.com'].includes(o)));
   assert(report.requestRecords.every(r=>r.method==='GET'));
   // A local build has none of the deployment's bindings: the base's own /api answers of 503 are set aside, not counted.
+  progress(`reading ${bodyReads.length} error bodies`); await Promise.all(bodyReads); progress('error bodies read');
+  // The two designed "not configured" answers are named items on every base (live included), never errors.
+  setAsideNotConfigured(report, alpha, entry => answers.get(entry));
   if (!live) setAsideUnboundApi(report, alpha);
+  // Requests the verifier's own navigations aborted are a count, not findings; every other failed request still counts.
+  classifyFailedRequests(report, navigations);
   assert.deepEqual(report.pageErrors,[]); assert.deepEqual(report.httpErrors,[]);
   report.status=hostedStatus(report);
   if (report.status !== 'PASS') process.exitCode=report.status==='NEEDS_OWNER_REVIEW'?3:2;
@@ -82,4 +100,4 @@ finally {
   if (!live) report.summary=`${report.status} on a local base (${alpha}); skipped as live only: ${report.skipped.map(s=>s.stage).join('; ')}`;
   report.completedAt=new Date().toISOString(); await writeFile(output+'/HOSTED_SMOKE.json',JSON.stringify(report,null,2)+'\n'); await context.close(); await browser.close();
 }
-console.log(JSON.stringify({status:report.status, ...(live ? {} : {summary:report.summary, base:alpha, skipped:report.skipped}), stages:report.stages, review:report.review, policyWindow:report.policyWindow?.text, failure:report.failure, output}));
+console.log(JSON.stringify({status:report.status, ...(live ? {} : {summary:report.summary, base:alpha, skipped:report.skipped}), stages:report.stages, review:report.review, notConfigured:report.notConfigured ? {count:report.notConfigured.count, answers:report.notConfigured.answers.map(a=>`${a.status} ${a.error} ${a.url}`)} : undefined, abortedByNavigation:report.abortedByNavigation?.count, policyWindow:report.policyWindow?.text, failure:report.failure, output}));

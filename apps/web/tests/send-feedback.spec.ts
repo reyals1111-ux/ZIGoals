@@ -28,6 +28,10 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   const wordmark = page.locator('footer.site-footer img').first();
   await wordmark.scrollIntoViewIfNeeded();
   await expect.poll(() => wordmark.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  // Session AF Gate C (CI on bdd09e65): the footer's finale marks itself seen for the visit (a display-only session key)
+  // once its stage is well in view, and that once came inside the window below; it is decided first, as the wordmark is.
+  await page.locator('footer.site-footer .site-footer-stage').scrollIntoViewIfNeeded();
+  await expect(page.locator('footer.site-footer')).toHaveAttribute('data-intro', /play|done/, {timeout: 15_000});
   await page.waitForLoadState('networkidle');
   const before = await storage(page), requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
@@ -88,13 +92,28 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   const items = section.getByRole('listitem');
   // Session AB-Cloud Part 10 (ADR-023 C31): three more, each checked by its words below (was 10).
   // Session AC (friends pack): three more again (was 13), each checked by its words and its link below.
-  await expect(items).toHaveCount(16);
+  // Session AF (ADR-028, deliberate): two more (was 16), each checked by its words and its link below.
+  // Session AF, at the ZIGi and extras merges (deliberate): three more (was 18), each checked by its words and link below.
+  await expect(items).toHaveCount(21);
+  await expect(section).toContainText('ZIGi never stakes, signs or moves money');
+  await expect(section).toContainText('Timeline times stay on this device');
+  await expect(section).toContainText('Add money opens the providers’ plain sites');
+  await expect(section.getByRole('link', {name: 'How do I add money?', exact: true})).toHaveAttribute('href', '#help-af-add-money');
+  await expect(section).toContainText('The Checklist stays on this device: your path, your own items and the day history aren’t synced yet');
+  await expect(section).toContainText('Ecosystem apps open in their own tab: ZIGoals shows their live numbers and steps but never frames their sites, and signs nothing for them');
+  await expect(section.getByRole('link', {name: 'What is the Checklist?', exact: true})).toHaveAttribute('href', '#help-af-checklist');
+  await expect(section.getByRole('link', {name: 'What is the Earn page?', exact: true})).toHaveAttribute('href', '#help-af-earn');
   await expect(section).toContainText('Safari on iPhone and iPad offers no Home Screen shortcuts and no Share sheet entry for ZIGoals');
-  await expect(section).toContainText('Push notifications are switched off in this Alpha: nothing reaches your phone while ZIGoals is closed');
+  // Session AF Gate C (design critique; deliberate, as strict): Help's two push lines say what the app does (opt-in, a
+  // signed-in account), and still that nothing reaches a phone while ZIGoals is closed on this Alpha.
+  await expect(section).toContainText('Push notifications are opt-in and need a signed-in account, so on this Alpha, where accounts aren’t open yet, nothing reaches your phone while ZIGoals is closed');
+  await expect(section).toContainText('Reminders when ZIGoals is closed are opt-in, one device at a time (Settings → Reminders when closed), and need a signed-in account');
   await expect(section).toContainText('Your last backup isn’t recorded: Settings → Your data says “Not recorded”');
   await expect(section).toContainText('Goals count in US dollars or euros.');
   await expect(items.first()).toContainText('Accounts and sync aren’t open yet on alpha.zigoals.app.');
-  await expect(section).toContainText('No real money moves.');
+  // Session AF (ADR-028 H19): the bullet changed with native-staking signing (it was "No real money moves.").
+  await expect(section).toContainText('Only staking moves ZIG, and only in your own wallet.');
+  await expect(section).toContainText('ZIGoals never holds keys');
   await expect(section).toContainText('never zero');
   await expect(section).toContainText('Photos stay on the device where you added them; another device shows the goal’s colours.');
   await expect(section).toContainText('After a new vault key, your extras wait until the device that synced them last syncs once; nothing is lost meanwhile.');

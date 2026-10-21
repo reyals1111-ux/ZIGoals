@@ -1,0 +1,29 @@
+/* Session AF (L2b, Part 6): Goal Vaults inside a Goal's detail. Tokens only; 44 px targets; one column on a phone; the
+   sparks move once and are still under reduced motion and Motion Off. */
+.goal-vault { display: grid; gap: 12px; }
+.goal-vault-line { margin: 0; font-weight: 600; }
+.goal-vault-card { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; padding: 14px; border-radius: 16px; border: 1px solid var(--border-subtle, #9fc8ff2e); background: var(--surface-raised, #0a1a30); }
+.goal-vault-figures { display: grid; gap: 8px; flex: 1 1 260px; min-width: 0; }
+.goal-vault-figures h3 { margin: 0; }
+.goal-vault-figures dl { display: grid; gap: 6px; margin: 0; }
+.goal-vault-figures dl div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; }
+.goal-vault-figures dt { color: var(--text-meta, #c2d0e5); }
+.goal-vault-figures dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.goal-vault-illustration { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--border-subtle, #9fc8ff55); }
+.goal-vault-illustration p { margin: 0; }
+.goal-vault-illustration input, .vault-link-form select { min-height: 44px; width: 100%; max-width: 320px; }
+.goal-vault-actions, .vault-link-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.goal-vault-actions button, .vault-link-actions button { min-height: 44px; }
+.vault-link-form { display: grid; gap: 8px; }
+.vault-link-form fieldset { display: grid; gap: 6px; margin: 0; padding: 8px 10px; border: 1px solid var(--border-subtle, #9fc8ff2e); border-radius: 12px; }
+.vault-link-form fieldset label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.goal-vault-empty { margin: 0; }
+.vault-orbit { flex: none; }
+.vault-orbit-ring { fill: none; stroke: var(--border-subtle, #9fc8ff33); stroke-width: 6; }
+.vault-orbit-fill { fill: none; stroke: var(--brand-cyan, #23eaff); stroke-width: 6; stroke-linecap: round; }
+.vault-orbit-planet { fill: var(--pillar-wealth, #ffcf5a); opacity: .9; }
+.vault-orbit-moon { fill: var(--text-strong, #f4f8ff); }
+.vault-orbit-sparks circle { fill: var(--brand-cyan, #23eaff); opacity: 0; animation: vault-spark 1.4s ease-out 1 forwards; }
+@keyframes vault-spark { 0% { opacity: 0; transform: translate(0, 0); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(-6px, 6px); } }
+@media (prefers-reduced-motion: reduce) { .vault-orbit-sparks circle { animation: none; opacity: 0; } }
+:root[data-app-motion=off] .vault-orbit-sparks circle { animation: none; opacity: 0; }

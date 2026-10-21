@@ -1,0 +1,17 @@
+/* Session AF (L5b; P9.3): Today's Stories door — one short block. */
+.today-stories-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.today-stories-mark { display: flex; gap: 3px; width: 48px; height: 48px; padding: 8px; border-radius: 14px; background: radial-gradient(120% 120% at 30% 20%, #2b2a6e, #0d1230 70%); }
+.today-stories-mark i { flex: 1; border-radius: 4px; background: linear-gradient(#6fe6f6, #c790f6); opacity: .9; }
+.today-stories-mark i:nth-child(2) { background: linear-gradient(#c790f6, #f08bd6); }
+.today-stories-mark i:nth-child(3) { background: linear-gradient(#f08bd6, #ffd27a); }
+.today-stories-body { display: grid; gap: 2px; }
+.today-stories-body .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.today-stories-body h2 { margin: 0; font-size: clamp(18px, 1.2vw + 12px, 22px); line-height: 1.2; }
+.today-stories-line { margin: 0; font-size: 16px; color: var(--text-secondary); }
+.today-stories-open { display: inline-flex; align-items: center; min-height: 44px; justify-self: start; font-size: 16px; font-weight: 650; }
+@media (max-width: 767.98px) {
+  .today-stories-card { gap: 10px; padding-block: 12px; }
+  .today-stories-mark { width: 40px; height: 40px; padding: 7px; }
+  .today-stories-body h2 { font-size: 18px; }
+  .today-stories-line { display: none; }
+}

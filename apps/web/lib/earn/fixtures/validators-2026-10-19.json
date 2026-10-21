@@ -1,0 +1,413 @@
+{
+ "recordedAt": "2026-10-18T22:00:13.663Z",
+ "note": "One real read of ZIGChain mainnet’s validator set at one block height, in lane L2a’s GET /api/chain/validators wire shape (scripts/earn/record-validators-fixture.test.ts). For the Earn page’s browser tests until that route is in the build. Aligned by the lead at L2a's merge (network \"zigchain-1\", source the LCD's origin), so it parses with lib/chain/validators-wire.ts.",
+ "answer": {
+  "version": 1,
+  "status": "ok",
+  "network": "zigchain-1",
+  "height": "13046134",
+  "observedAt": "2026-10-18T22:00:08.673Z",
+  "source": "https://api.zigchain.com",
+  "bondedTotal": "425559497761956330156508434",
+  "validators": [
+   {
+    "operator": "zigvaloper19jhukjxn9ckjl5c95453hrmuypgarftg8exy6s",
+    "moniker": "Solva (CryptoCrew)",
+    "website": "https://solva.solutions",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "4020111376132000000000000",
+    "votingPowerShare": "0.009446649",
+    "commission": {
+     "rate": "0.100000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-03-05T17:35:49.483878842Z"
+    },
+    "selfBond": "10000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+    "moniker": "ZIG Sentinel - Foundation 1",
+    "website": "https://zigchain.com",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "84174084119054635855933299",
+    "votingPowerShare": "0.197796276",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2025-09-18T14:00:11.135665363Z"
+    },
+    "selfBond": "100000000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1ggp94cjvvfkslwldf05wl58ktlr3xhf3ekf4gv",
+    "moniker": "Stake&Relax 🦥",
+    "website": "https://linktr.ee/stakeandrelax",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "4044043450843000000000000",
+    "votingPowerShare": "0.009502886",
+    "commission": {
+     "rate": "0.100000000000000000",
+     "maxRate": "0.300000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-03-04T14:59:15.621043905Z"
+    },
+    "selfBond": "1000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1gg7r4csxsmwy77002jqy9kn3jdl6dxmymld8ly",
+    "moniker": "polkachu.com",
+    "website": "https://polkachu.com",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "4809286373440560466500000",
+    "votingPowerShare": "0.01130109",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.100000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-02-20T19:35:20.116819379Z"
+    },
+    "selfBond": "9999000000159743782",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1vpsw66sxuju7w6psa3x05a4llccec2zqrsn270",
+    "moniker": "PureValidator",
+    "website": "https://purevalidator.com",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "12466508752334412374788246",
+    "votingPowerShare": "0.029294396",
+    "commission": {
+     "rate": "0.100000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-01-12T10:30:55.398102025Z"
+    },
+    "selfBond": "62160863861000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1vd9ljpsgq5ev7yf7r6tu7t237qqpf2vehp4kvp",
+    "moniker": "ZIG Bastion - Foundation 3",
+    "website": "https://zigchain.com",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "82107272076204582114973413",
+    "votingPowerShare": "0.192939583",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.900000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2025-06-23T13:46:58.421488225Z"
+    },
+    "selfBond": "100000000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1d9u9s63q5l5zlm7t7l904vkjnfj3xgmjt3h2vc",
+    "moniker": "Numia",
+    "website": "https://numia.xyz",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "2667060567638000000000000",
+    "votingPowerShare": "0.006267186",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.050000000000000000",
+     "updatedAt": "2026-03-17T19:10:05.975907276Z"
+    },
+    "selfBond": "999900000017797926",
+    "uptime": {
+     "window": 35000,
+     "missed": 2,
+     "signedShare": "0.9999428571428571"
+    }
+   },
+   {
+    "operator": "zigvaloper1w4ady9wwe58ylcrrg02q938hvd3862d5l556mr",
+    "moniker": "NodeStake",
+    "website": "https://nodestake.org",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "4192112184437883205449928",
+    "votingPowerShare": "0.009850825",
+    "commission": {
+     "rate": "0.100000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.050000000000000000",
+     "updatedAt": "2026-06-22T04:50:58.743185836Z"
+    },
+    "selfBond": "1034938000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper10kxxleaad7ggdvelspcxlv7qpfyq4f3m7mgp7n",
+    "moniker": "Colossus",
+    "website": "https://www.colossus.digital/",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "80137144853770000000000000",
+    "votingPowerShare": "0.188310084",
+    "commission": {
+     "rate": "0.100000000000000000",
+     "maxRate": "0.350000000000000000",
+     "maxChangeRate": "0.100000000000000000",
+     "updatedAt": "2026-08-17T14:33:33.314198233Z"
+    },
+    "selfBond": "2000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper10amz3j7c6nfgw5hslcnc8l7xak7u0kgt799lr5",
+    "moniker": "BTCS",
+    "website": "https://btcs.com.pl/",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "35427689389483111473293541",
+    "votingPowerShare": "0.083249673",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.150000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-01-18T21:24:58.055188405Z"
+    },
+    "selfBond": "10000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1jh6jve7n4pu9vxnmr67eg4m6qk7d7s4lf4uu0j",
+    "moniker": "ZIG Zella - Foundation 4",
+    "website": "https://zigchain.com",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "75710411122846753881056421",
+    "votingPowerShare": "0.177907934",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.900000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2025-06-23T13:49:52.570751219Z"
+    },
+    "selfBond": "100000000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper15pwqnx4hgkwq839xv3jgjxh9aj2wdg8p8dgy76",
+    "moniker": "ZIG Titan - Foundation 2",
+    "website": "https://zigchain.com",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "27049012565814529887078461",
+    "votingPowerShare": "0.063561059",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.900000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2025-06-23T13:42:25.043939463Z"
+    },
+    "selfBond": "100000000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1h3xw7s9dsm856re2dtkqvpkl7t4d377z7xplg7",
+    "moniker": "CryptoComics",
+    "website": "https://www.cryptocomics.cc/",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "4085219618742918172115125",
+    "votingPowerShare": "0.009599643",
+    "commission": {
+     "rate": "0.075000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-03-11T22:41:17.084611978Z"
+    },
+    "selfBond": "1000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1lefjpg5yrkv3pkppqawlm4g84v7efun5up8zjn",
+    "moniker": "Range",
+    "website": "https://range.org",
+    "status": "bonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "4669541311213942725320000",
+    "votingPowerShare": "0.01097271",
+    "commission": {
+     "rate": "0.100000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-01-08T16:02:05.821261015Z"
+    },
+    "selfBond": "10000000000000000000",
+    "uptime": {
+     "window": 35000,
+     "missed": 0,
+     "signedShare": "1"
+    }
+   },
+   {
+    "operator": "zigvaloper1pjrjnkyunr8e8jrkgrzg4m64wp5tqzyeuf75yj",
+    "moniker": "RydOne",
+    "website": "https://provewithryd.xyz",
+    "status": "unbonded",
+    "jailed": false,
+    "tombstoned": null,
+    "tokens": "46000000000000000000",
+    "votingPowerShare": "0",
+    "commission": {
+     "rate": "0.000000000000000000",
+     "maxRate": "1.000000000000000000",
+     "maxChangeRate": "0.050000000000000000",
+     "updatedAt": "2026-02-18T05:11:31.306464859Z"
+    },
+    "selfBond": null,
+    "uptime": null
+   },
+   {
+    "operator": "zigvaloper1820tgl9adw2qkz4rpvyclctw5wxk64vvn35gmq",
+    "moniker": "LuncGoblins (powered by Frag)",
+    "website": "https://x.com/frag_dude",
+    "status": "unbonded",
+    "jailed": false,
+    "tombstoned": false,
+    "tokens": "45301986107000000000000",
+    "votingPowerShare": "0",
+    "commission": {
+     "rate": "0.000000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-05-22T05:54:33.017417120Z"
+    },
+    "selfBond": null,
+    "uptime": null
+   },
+   {
+    "operator": "zigvaloper1g235ayf20we7faxp55mu89rjhdpgq0m3rhqet6",
+    "moniker": "VALIDARIOS",
+    "website": "https://validarios.com/",
+    "status": "unbonded",
+    "jailed": false,
+    "tombstoned": null,
+    "tokens": "75000000000000000000",
+    "votingPowerShare": "0",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.100000000000000000",
+     "updatedAt": "2026-04-04T20:18:03.867820053Z"
+    },
+    "selfBond": null,
+    "uptime": null
+   },
+   {
+    "operator": "zigvaloper12x6g3yxgdx4knr983mg62wr2pf2s8e0ksz5jxf",
+    "moniker": "AKNodes",
+    "website": "https://aknodes.com",
+    "status": "unbonded",
+    "jailed": false,
+    "tombstoned": null,
+    "tokens": "45000000000000000000",
+    "votingPowerShare": "0",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.200000000000000000",
+     "updatedAt": "2026-03-27T09:35:22.225329469Z"
+    },
+    "selfBond": null,
+    "uptime": null
+   },
+   {
+    "operator": "zigvaloper1vc3gvvttje3upm7hfpnt47uhjz7ya8zt30pedr",
+    "moniker": "Leonoor's Cryptoman",
+    "website": "",
+    "status": "unbonded",
+    "jailed": false,
+    "tombstoned": null,
+    "tokens": "1900200000000000000000",
+    "votingPowerShare": "0",
+    "commission": {
+     "rate": "0.050000000000000000",
+     "maxRate": "0.200000000000000000",
+     "maxChangeRate": "0.010000000000000000",
+     "updatedAt": "2026-09-11T16:54:21.925229326Z"
+    },
+    "selfBond": null,
+    "uptime": null
+   }
+  ]
+ }
+}

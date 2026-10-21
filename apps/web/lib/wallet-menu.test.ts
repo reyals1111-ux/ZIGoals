@@ -48,7 +48,9 @@ test('the ▾ opens a menu of the choices; arrows move, Escape closes and the fo
   await open();
   expect(trigger.getAttribute('aria-expanded')).toBe('true');
   const items = [...container.querySelectorAll<HTMLElement>('[role="menuitem"]')].map(el => el.getAttribute('aria-label'));
-  expect(items).toEqual(['Keplr', 'Leap: link address', 'Fictional EVM: link address', 'Plain Wallet: link address', 'Get MetaMask', 'Get Rabby', 'Get Coinbase Wallet', 'Watch a Bitcoin address']);
+  // Assertion changed (Session AF L2b, ADR-028 H40/H41, still the exact list): the three R4 wallets AE did not name gain
+  // their "Get" rows after AE's three, and the Solana group (no Wallet Standard wallet in this page) offers Phantom's site.
+  expect(items).toEqual(['Keplr', 'Leap: link address', 'Fictional EVM: link address', 'Plain Wallet: link address', 'Get MetaMask', 'Get Rabby', 'Get Coinbase Wallet', 'Get Trust Wallet', 'Get OKX Wallet', 'Get Phantom', 'Get Phantom for Solana', 'Watch a Bitcoin address']);
   // An announced data: image is shown; a remote URL is not (the generic glyph instead).
   expect(byName('Fictional EVM: link address')!.querySelector('img')?.getAttribute('src')).toMatch(/^data:image\/png/);
   expect(byName('Plain Wallet: link address')!.querySelector('img')).toBeNull();

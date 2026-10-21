@@ -1,0 +1,24 @@
+Session AF Gate C — the feature inventory (N11 "additive: nothing removed"), origin/main 4f92495 against the head 46ebf64d,
+Mon 19 Oct 2026 19:55 Brussels (git only; read from both trees).
+
+Files: 750 changed, 78,684 lines added, 6,152 removed; no file deleted, none renamed (git diff --diff-filter=D / R: empty);
+no file with more than 200 lines removed and fewer than a quarter as many added.
+
+Registries (ids on main → on the head; removed):
+- Routes (apps/web/app/**/page|route.tsx): 50 → 70; removed 0.
+- Navigation (app-nav.tsx hrefs): 15 → 17; removed 0.
+- Hideable pages (lib/pages/schema.ts ids): 19 → 19; removed 0 (new pages are not hideable this session, H72).
+- Help answers (HelpQuestion ids): 124 → 150; removed 0.
+- Search entries (lib/search/static.ts ids): 43 → 50; removed 0.
+- Today modules (today-dashboard.tsx cases): 10 → 10; widget kinds (dashboard-widget-registry.ts): 26 → 26; device Today
+  cards (lib/today-cards/store.ts ids): 5 → 5; removed 0 (the new Today cards are For you cards and layout items, H29, H104).
+- Settings sections (app/app/settings/page.tsx ids): 21 → 21; removed 0 (the new sections are af-*-section components).
+- Home Screen shortcuts (manifest): 5 → 6; removed 0.
+
+Deliberate removals the owner asked for (each moved, not lost):
+- "Saved on this device" under the sidebar's three buttons (P10.7, H31): the fact stays in Settings → Your data and Help.
+- Session AE's matte accents, translucent tints and amber golds in Light, and its deeper day stops for gradient headings
+  (the owner's Light redo, H13, H111; then deeper same-hue gradient words by the owner's decision, H130).
+- The Alpha notice's "practice money (no real value)" and "Simulation + wallet connection only. No blockchain transactions
+  or financial signatures." — untrue once real-network staking signs (H62, H124): replaced by true sentences in the same
+  places ("PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN"; "Staking and votes sign in your own wallet …").

@@ -1,0 +1,53 @@
+/* Session AF (L2b, Part 4): Add money's five steps and its return page. Tokens only; every choice a 44 px target; one
+   column on a phone, no sideways scroll. */
+.add-money { display: grid; gap: 16px; }
+.add-money-honest { margin: 0; }
+.add-money-step { display: grid; gap: 12px; }
+.add-money-step h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 1.15rem; }
+.add-money-n { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-subtle, #9fc8ff55); font-size: 15px; flex: none; }
+.add-money-tiles, .add-money-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.add-money-tile { display: grid; gap: 4px; min-width: 0; }
+.add-money-tile button, .add-money-options button { display: grid; gap: 4px; min-height: 44px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border-subtle, #9fc8ff2e); background: var(--surface-raised, #0a1a30); color: var(--text, #f0f5ff); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.add-money-tile button[aria-pressed="true"], .add-money-options button[aria-pressed="true"] { border-color: var(--brand-cyan, #23eaff); box-shadow: inset 0 0 0 1px var(--brand-cyan, #23eaff); }
+.add-money-tile button span, .add-money-options button span { color: var(--text-secondary, #dde7f7); overflow-wrap: anywhere; }
+.add-money-options button small { color: var(--text-meta, #c2d0e5); overflow-wrap: anywhere; }
+.add-money-tile details summary { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; cursor: pointer; color: var(--brand-cyan, #23eaff); }
+.add-money-tile details p { margin: 0 4px 6px; color: var(--text-secondary, #dde7f7); }
+.add-money-badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--brand-cyan, #23eaff); font-size: 12px; font-weight: 700; color: var(--brand-cyan, #23eaff); }
+.add-money-warning { margin: 0; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--warning, #ffcf5a); background: var(--warning-surface, #3a2c0a); color: var(--text-strong, #fff7e0); font-size: 1rem; }
+.add-money-link-first p { margin: 0; }
+.add-money-address { display: grid; gap: 4px; margin: 0; }
+.add-money-address code { overflow-wrap: anywhere; word-break: break-all; font-size: 14px; }
+.add-money-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0; }
+.add-money-actions .primary, .add-money-actions .secondary, .add-money .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.add-money-guides { display: grid; gap: 14px; margin: 0; padding-left: 1.2rem; }
+.add-money-guides h3 { margin: 0 0 4px; font-size: 1rem; }
+.add-money-guides p { margin: 0 0 6px; }
+.add-money-guide-steps { margin: 0 0 8px; padding-left: 1.2rem; }
+/* crit1: step 1 says what to do and what follows; a tile shows it can be chosen (a ring that fills when chosen). */
+.add-money-hint { margin: -4px 0 12px; color: var(--text-secondary, #dde7f7); font-size: 15px; }
+.add-money-tile button { position: relative; padding-right: 44px; }
+.add-money-tile button::after { content: ""; position: absolute; top: 14px; right: 14px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-strong, #9fc8ff80); box-sizing: border-box; }
+.add-money-tile button[aria-pressed="true"]::after { border-color: var(--brand-cyan, #23eaff); background: radial-gradient(circle, var(--brand-cyan, #23eaff) 0 4px, transparent 5px); }
+/* Session AF Gate C (design critique, money pages 12): each "What's this?" sits inside its tile's foot, in Earn's dotted-link
+   style, on the same line in every tile of a row (they had floated between the tiles, 13 px apart). The tile is the card
+   now; its choice button fills it above the foot and keeps the ring. */
+.add-money-tile { display: flex; flex-direction: column; gap: 0; border-radius: 14px; border: 1px solid var(--border-subtle, #9fc8ff2e); background: var(--surface-raised, #0a1a30); }
+.add-money-tile[data-selected] { border-color: var(--brand-cyan, #23eaff); box-shadow: inset 0 0 0 1px var(--brand-cyan, #23eaff); }
+.add-money-tile button { flex: 1 1 auto; align-content: start; border: 0; border-radius: 14px 14px 0 0; background: transparent; }
+.add-money-tile button[aria-pressed="true"] { border: 0; box-shadow: none; }
+.add-money-tile details { margin-top: auto; padding: 0 14px 6px; }
+.add-money-tile details summary { min-height: 44px; padding: 0; color: #8bddeb; font-size: 14px; font-weight: 650; text-decoration: underline dotted; text-underline-offset: 3px; list-style: none; }
+.add-money-tile details summary::-webkit-details-marker { display: none; }
+.add-money-tile details[open] summary { text-decoration-style: solid; }
+.add-money-tile details p { margin: 0 0 8px; font-size: 15px; line-height: 1.5; }
+/* Session AF Gate C (design critique, money pages 7): the floating launchers on the right edge covered Solana's choice ring on a
+   computer; while they are on the right, the page keeps the lane Earn's paths and Today's rail keep. On a phone ZIGi's
+   button sits at the bottom right of the first screen, over step 1's line: that line keeps clear of it. */
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
+  :root:not([data-zigi-side=left]) .add-money-page { padding-inline-end: 64px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) .add-money-page { padding-inline-end: 72px; }
+}
+@media (max-width: 767.98px) {
+  :root:not([data-zigi-side=left]) .add-money-hint { padding-inline-end: 60px; }
+}

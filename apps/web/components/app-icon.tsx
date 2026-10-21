@@ -19,6 +19,11 @@ const paths: Record<string, string> = {
   portfolio: "M11 3.05A9 9 0 1 0 20.95 13H11zM14 3.5A8 8 0 0 1 20.5 10H14z",
   future: "m12 2 10 6v10l-10 5-10-5V8zm0 10 10-4M12 12 2 8m10 4v11m-5-9 5 3 5-3",
   chain: "m10 14 4-4M8 16l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m0 12a4 4 0 0 0 6 0l5-5a4 4 0 0 0-6-6l-1 1",
+  // Session AF (ADR-028): Earn (a coin with a rising line) and the Checklist (a rounded square with a check).
+  earn: "M9.5 20.6A8 8 0 1 1 20 12M12 8v8m-3-5 3-3 3 3M18 15l1.5 1.5L18 18m1.5-1.5H15",
+  checklist: "M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1m3.5 8 2.5 2.5 5-5",
+  // Session AF: Governance — a ballot box with a tick.
+  governance: "M4 11h16v9H4zM8 11V5h8v6M9.8 8l1.6 1.6L14.6 6.4",
   chevron: "m6 9 6 6 6-6",
   refresh: "M20 7v5h-5M4 17v-5h5m10-2a7 7 0 0 0-12-5M5 14a7 7 0 0 0 12 5",
   plus: "M12 5v14M5 12h14",

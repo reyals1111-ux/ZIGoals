@@ -17,6 +17,9 @@ import './health-aa.css';
  * records the answer; Adjust writes the suggested calorie target (from the energy estimate when ready) after the tap
  * and records it. One answer a week on this device; on Health, Today (`today:coach`) and the Life review (`review:coach`).
  */
+/** Gate C design review (copy): the pace in the check-in's own style — a true minus, the person's weight unit and "/week",
+ *  as the line above it reads ("−0.4 kg/week", not "-0.4 kg a week"). */
+const paceLabel = (kg: number, unit: string) => `${kg < 0 ? '−' : kg > 0 ? '+' : ''}${unit === 'lb' ? (Math.abs(kg) / 0.45359237).toFixed(1) : String(Math.abs(kg))} ${unit === 'lb' ? 'lb' : 'kg'}/week`;
 export function CoachCard({data, today, perform, compact = false}: {data: HealthData; today: string; perform: HealthPerform; compact?: boolean}) {
   const coach = useDeviceRecord(HEALTH_COACH), unit = dailyData(data).preferences.weightUnit;
   const c = coachCheckIn(data, coach.loaded && !coach.unreadable ? coach.data : {version: 1}, today, unit);
@@ -29,7 +32,7 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
     <p className="eyebrow">Weekly check-in</p><h2 id="coach-title"><NebulaFlow identity={`coach-title${compact ? '-compact' : ''}`}>Your coach</NebulaFlow></h2>
     <p className="health-coach-line">{c.sentence}</p>
     {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => answer('adjust')} disabled={!c.suggestion}>{c.suggestion ? `Adjust to ${c.suggestion.kcal} kcal` : 'Adjust (needs the estimate)'}</button></div>)}
-    <p className="fine">{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${c.suggestion.paceKg} kg a week toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'} <span className="health-estimate-tag">an estimate, not medical advice</span></p>
+    <p className="fine">{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${paceLabel(c.suggestion.paceKg, unit)} toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'} <span className="health-estimate-tag">an estimate, not medical advice</span></p>
   </section>;
 }
 /** The slot card for Today and the Life review: the same check-in, from the Health store directly. */

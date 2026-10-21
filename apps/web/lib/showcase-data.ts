@@ -28,6 +28,9 @@ import {showcaseGame} from './game/showcase';
 import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
 import {withEarlierHabit,withEarlierSeason} from './insights/showcase';
 import {CALCULATOR_KEY} from './compound/store';
+import {CHECKLIST_DAYS_KEY,CHECKLIST_KEY} from './af-checklist-keys';
+import {checklistDaysSchema,emptyChecklist} from './checklist/schema';
+import {addCustom,addFavourite} from './checklist/store';
 import {showcaseCalculator} from './compound/showcase';
 import {LIFE_REVIEW_KEY} from './life-review/store';
 import {showcaseLifeReview} from './life-review/showcase';
@@ -160,6 +163,39 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  * they join the Showcase tab when it loads (lib/showcase.ts) and stay out of `records`, which tests also seed as a
  * person's own data: a person with these records who never chose a card sees none.
  */
-export function showcaseChoices():Record<string,string>{
- return {[TODAY_CARDS_KEY]:JSON.stringify(todayCardsSchema.parse({version:1,cards:['balance','forecasts','calculator']}))};
+export function showcaseChoices(records:Record<string,string>={},day?:string):Record<string,string>{
+ return {[TODAY_CARDS_KEY]:JSON.stringify(todayCardsSchema.parse({version:1,cards:['balance','forecasts','calculator']})),...showcaseChecklist(records,day)};
+}
+/**
+ * Session AF (crit1): the Showcase's Checklist path, a choice like the cards above (so a person's own records never get
+ * one): one active build habit per part of the day from the Showcase's own habits, a glass of water and one item of the
+ * person's own, so the demo shows the real path of dots. Dots light from the Showcase's own check-ins; nothing else is written.
+ */
+export function showcaseChecklist(records:Record<string,string>,day?:string):Record<string,string>{
+ try{
+  type Raw={id:string;title:string;timeOfDay?:string;rules?:{state?:string;type?:string}[]};
+  const habits=((JSON.parse(records[HABITS_KEY]??'{}') as {habits?:Raw[]}).habits??[]).filter(h=>{const rule=h.rules?.at(-1);return (rule?.type??'build')==='build'&&(rule?.state??'active')==='active';});
+  const at=(n:number)=>new Date(Date.UTC(2026,8,1,7,0,n));
+  // crit2: the glass of water opens the morning, so the habits that follow sit next to each other and a done pair lights
+  // its line; the day history (twelve weeks ending in a six-day streak, a few rest and partial days) lights the flame and
+  // the heatmap. Counts only, as the Checklist itself keeps them.
+  let path=addFavourite(emptyChecklist(),{kind:'health',input:'water'},{id:'ck_showcase-1',at:at(1),section:'morning',defaultValue:250,unit:'ml'}),n=1,starred=0;
+  for(const section of ['morning','afternoon','evening'] as const){const habit=habits.find(h=>h.timeOfDay===section);if(habit){path=addFavourite(path,{kind:'habit',habitId:habit.id},{id:`ck_showcase-${++n}`,at:at(n),section});starred++;}}
+  if(!starred)return {}; // no Showcase habits to star: no path at all
+  path=addCustom(path,{label:'Read ten pages',colour:'gold',section:'evening'},{id:`ck_showcase-${++n}`,at:at(n)});
+  const out:Record<string,string>={[CHECKLIST_KEY]:JSON.stringify(path)};
+  if(day){
+   const total=path.order.length,days:Record<string,{total:number;done:number;perfect?:boolean}>={};
+   for(let i=1;i<=84;i++){const date=addLocalDays(day,-i),rest=i>6&&i%13===0,partial=i===7||(i>6&&(i%5===0||i%9===0));days[date]=rest?{total:0,done:0}:{total,done:partial?Math.max(1,total-1-(i%2)):total,...(!partial&&i%4===1?{perfect:true}:{})};}
+   const checklist=checklistDaysSchema.parse({version:1,days});
+   out[CHECKLIST_DAYS_KEY]=JSON.stringify(checklist);
+   // The history earns Checklist XP and badges: the game record is made again with it, so every level and badge earned
+   // so far is marked seen and loading the Showcase never opens a celebration over the page (lib/game/showcase.ts).
+   try{
+    const habitsData=habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),healthData=healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),platformData=records[PLATFORM_KEY]?platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!)):null;
+    out[GAME_KEY]=JSON.stringify(showcaseGame({habits:habitsData,health:healthData,platform:platformData,checklist},day));
+   }catch{delete out[CHECKLIST_DAYS_KEY];} // without a matching game record, no history (never a celebration over the demo)
+  }
+  return out;
+ }catch{return {};}
 }

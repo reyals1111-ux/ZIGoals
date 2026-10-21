@@ -124,7 +124,7 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(await page.evaluate(()=>Reflect.get(window,"__untrustedScript"))).toBeUndefined();
   await (await navLink(page,"Settings")).click();
   await expect(page.getByRole("heading",{name:"Your data. Your control."})).toBeVisible();
-  await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures");
+  await expect(page.locator(".network-banner")).toContainText("Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.");
   expect(await page.locator('a[target="_blank"]').evaluateAll(nodes=>nodes.every(n=>n.getAttribute("rel")?.includes("noopener")&&n.getAttribute("rel")?.includes("noreferrer")))).toBe(true);
   await page.goto("/app/goals/987654321?view=canonical-probe");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonicalUrl);

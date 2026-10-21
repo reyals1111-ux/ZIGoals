@@ -38,6 +38,10 @@ import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
 import { MusicSettings } from "../../../components/music/music-settings";
 import { PagesSettings } from "../../../components/settings/pages-settings";
+import { AfChecklistSection } from "../../../components/settings/af-checklist-section";
+import { AfEarnSection } from "../../../components/settings/af-earn-section";
+import { AfSigningSection } from "../../../components/settings/af-signing-section";
+import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -167,6 +171,10 @@ export default function Settings() {
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
         <PagesSettings/>
+        <AfChecklistSection/>
+        <AfEarnSection/>
+        <AfSigningSection/>
+        <AfExtrasSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
@@ -189,7 +197,7 @@ export default function Settings() {
         <div className="settings-overview">
           <section className="panel" id="account"><p className="eyebrow">ACCOUNT</p><h2>Your space.</h2><p>{s.mode === "local" ? "Local Demo · no account needed" : "Keplr · explicitly connected for this session"}</p><code>{shortAccount(s.owner)}</code><p className="fine">Habits and Health belong to this browser, independently of the active wallet. Switching wallets does not hide or move them.</p></section>
           <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain Testnet.</h2><p>zig-test-2 · ZIG (18 decimals)</p><span className="badge">Testnet Alpha</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
-          <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Financial execution is disabled in the public Alpha.</p></section>
+          <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Contract execution is disabled in the public Alpha.</p></section>
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-zigi" title="ZIGi">
@@ -225,17 +233,19 @@ export default function Settings() {
             </div>
             <div>
               <dt>Goal metadata</dt>
-              <dd>Device-local · version 1 JSON</dd>
+              <dd>Device-local · kept in this browser</dd>
             </div>
             <div>
               <dt>Investment strategy</dt>
-              <dd>Idle. External integrations pending verification.</dd>
+              <dd>Idle: nothing is invested, and no outside service is switched on.</dd>
             </div>
           </dl>
           <p>
             Funding Wealth assumes 0% future investment return. Scenario
-            projections are illustrative. Testnet assets have no monetary value.
-            This alpha is unaudited and does not support mainnet.
+            projections are illustrative. Practice money (testnet ZIG) has no
+            monetary value; ZIG on the real network is real money. This alpha is
+            unaudited: staking and votes sign in your own wallet, on the practice
+            or the real network as you choose, and nothing else moves.
           </p>
           {/* Session AC (owner finding 3): the facts the footer used to carry, live, with the build environment. */}
           <AboutThisAlpha />

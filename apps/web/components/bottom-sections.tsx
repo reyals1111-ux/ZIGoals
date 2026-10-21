@@ -14,7 +14,7 @@ import type {GoalSummary} from '../lib/goal-summary';
 import './bottom-sections.css';
 import {NebulaFlow} from './nebula-flow';
 import {GlassSegments} from './progress/glass-progress';
-import { formatDate, formatNumber, formatWeekday, progressPresentation } from '../lib/visual-format';
+import { formatDate, formatNumber, formatPlainDecimal, formatWeekday, progressPresentation } from '../lib/visual-format';
 import {ML_PER_US_FL_OZ,type WaterUnit} from '../lib/health-units';
 import {healthGroupIn} from '../lib/vault/w-homes';
 
@@ -35,7 +35,10 @@ export function TodayWeek({today,habits,health,platform,financial,...layout}:Lay
  // On a phone the seven-day rows fold into one line of totals (Session G, Part 4); the note below stays in view.
  const phone=usePhoneActive(),[days,setDays]=useState(false),rowsId=useId();
  const totals=rows.map(r=>{const total=week.reduce((n,d)=>n+d[r.key],0);return total?`${formatNumber(total)} ${(total===1?r.one:r.label).toLowerCase()}`:`no ${r.label.toLowerCase()}`;}).join(' · ');
- return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede="How many records you saved each day (Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.">
+ // Gate C design review (finding 10): the window is named (Today's other "week" cards count other windows) and so is what
+ // a habit check-in counts here, every one saved, done or partly done: the Life review counts completed habit days.
+ const span=week.length?`${formatDate(week[0]!.date,{weekday:true,year:false})} – ${formatDate(week.at(-1)!.date,{weekday:true,year:false})}`:'';
+ return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede={`How many records you saved each day${span?`, ${span}`:''} (habit check-ins: every one saved, done or partly done; Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.`}>
   {phone&&<p className="bottom-week-totals">Last 7 days: {totals}.</p>}
   <div className="bottom-rows" id={rowsId} {...(phone&&!days?{'data-phone-collapsed':''}:{})}>{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);return <li key={d.date} data-today={d.date===today||undefined}><small>{l.weekday} {l.day}</small><Count value={d[r.key]} label={r.label.toLowerCase()}/></li>;})}</ul></div>)}</div>
   {phone&&<button type="button" className="secondary phone-show-all" aria-controls={rowsId} aria-expanded={days} onClick={()=>setDays(!days)}>{days?'Hide each day':'Show each day'}</button>}
@@ -62,7 +65,7 @@ export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:
  return <Shell layout={layout} id="bottom-habit-rhythm" eyebrow="YOUR RHYTHM" title={<>Consistency by weekday.</>} lede="Check-ins recorded over the last four weeks, and your best streaks.">
   <div className="bottom-two">
    <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} ${plural(d.checkins,'check-in')}`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>
-   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {s.unit}</strong><small>Now {s.current} {s.unit}</small></li>)}</ol>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
+   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {s.unit}</strong><small>Now {s.current} {s.unit}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
   </div>
   {!r.total&&<p className="bottom-note">No check-ins in the last four weeks yet.</p>}
  </Shell>;
@@ -94,7 +97,7 @@ export function WealthAllocationSection({overview,...layout}:LayoutAttrs&{overvi
  const a=wealthAllocation(overview);
  return <Shell layout={layout} id="bottom-wealth-allocation" eyebrow="THE SHAPE OF WHAT YOU KNOW" title={<>Allocation and coverage.</>} lede={a.currency?`How the known ${a.currency} value is spread across asset classes.`:'Add a valued asset to see how your wealth is spread.'}>
   {a.classes.length>0&&<><GlassSegments identity="bottom-wealth-allocation" className="bottom-stack" aria-hidden="true" segments={a.classes.map(c=>({key:c.assetClass,share:c.share/100,color:ASSET_COLORS[c.assetClass as keyof typeof ASSET_COLORS]}))}/>
-   <ul className="bottom-legend">{a.classes.map(c=><li key={c.assetClass}><i style={{background:ASSET_COLORS[c.assetClass as keyof typeof ASSET_COLORS]}} aria-hidden="true"/><span>{c.assetClass}</span><strong>{formatNumber(c.share, {maximumFractionDigits:1})}%</strong></li>)}</ul></>}
+   <ul className="bottom-legend">{a.classes.map(c=><li key={c.assetClass}><i style={{background:ASSET_COLORS[c.assetClass as keyof typeof ASSET_COLORS]}} aria-hidden="true"/><span>{c.assetClass}</span><strong>{formatPlainDecimal(c.share.toFixed(2))}%</strong></li>)}</ul></>}
   <div className="bottom-coverage"><strong>{a.coverage.valued} of {a.coverage.total}</strong><span>assets have a known value{a.coverage.total>a.coverage.valued?'. Valuation coverage is incomplete; assets without a value are left out.':'.'}</span></div>
   {a.otherCurrencies.length>0&&<p className="bottom-note">{a.otherCurrencies.join(', ')} holdings are not included here. Currencies stay separate; no FX is assumed.</p>}
  </Shell>;
@@ -113,7 +116,7 @@ export function ValueSources({variant,platform,...layout}:LayoutAttrs&{variant:'
  return <Shell layout={layout} id={`bottom-${variant}-sources`} eyebrow="WHERE VALUES COME FROM" title={<>What’s tracked, and how.</>} lede="Every value keeps its source and time. When the price service is unavailable, no new price appears; the last verified value keeps its timestamp.">
   <dl className="bottom-counts">{counts.map(([label,n])=><div key={label}><dt>{label}</dt><dd>{formatNumber(n)}</dd></div>)}</dl>
   <ul className="bottom-sources">{SOURCES.map(([title,body])=><li key={title}><strong>{title}</strong><span>{body}</span></li>)}</ul>
-  <p className="bottom-note">No trading, return forecast or advice is implied. Financial execution is not available in this Alpha.</p>
+  <p className="bottom-note">No trading, return forecast or advice is implied. Nothing is bought or sold here; only native staking and votes sign, in your own wallet.</p>
  </Shell>;
 }
 

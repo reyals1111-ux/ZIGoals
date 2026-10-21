@@ -14,11 +14,19 @@ import {addressShapeOk, canonicalAddress, verifyAddress, type AddressKind} from 
  *   builds never read the key.
  * - **Checked on write:** at most 12 wallets; an entry this build writes passes its address checks (lib/wallet-address.ts),
  *   a Bitcoin base58 address with its checksum; a record that cannot be read is never overwritten.
+ * Session AF (L2b, ADR-028 H16, L2 design §6; `TIER 3 (storage)`): additive only, still `v1`. The kind `'solana'` (a
+ * Solana address from a Wallet Standard wallet) and two optional fields per entry: `chains` (the chains this address is
+ * tracked on, e.g. a subset of the six EVM chains; absent = the kind's default) and `via` (how it was linked:
+ * 'extension', 'in-app-browser', 'walletconnect' or 'typed'). AE's build (#44) keeps both fields on write and hides the
+ * new kind (lib/wallets/frozen-readers.test.ts runs AE's own modules on this build's record).
  */
 export {LINKED_WALLETS_KEY};
 export const MAX_LINKED_WALLETS = 12;
 export const MAX_WALLET_LABEL = 40;
-export const WALLET_KINDS: readonly AddressKind[] = ['cosmos', 'evm', 'btc'];
+export const WALLET_KINDS: readonly AddressKind[] = ['cosmos', 'evm', 'btc', 'solana'];
+export const WALLET_VIAS = ['extension', 'in-app-browser', 'walletconnect', 'typed'] as const;
+export type WalletVia = typeof WALLET_VIAS[number];
+export const MAX_TRACKED_CHAINS = 16;
 export const DISPLAY_CURRENCIES = ['ZIG', 'USD', 'EUR', 'BTC'] as const;
 export type DisplayCurrency = typeof DISPLAY_CURRENCIES[number];
 
@@ -31,6 +39,10 @@ const entrySchema = z.looseObject({
   label: z.string().max(80).optional(),
   address: z.string().max(120).optional(),
   addedAt: z.string().max(40).optional(),
+  /** Session AF: the chains tracked for this address (CAIP-2 style ids such as 'eip155:8453'); absent = the kind's default. */
+  chains: z.array(z.string().max(40)).max(MAX_TRACKED_CHAINS).optional(),
+  /** Session AF: how it was linked; a value this build does not know is kept and ignored. */
+  via: z.string().max(24).optional(),
 });
 export const linkedWalletsSchema = z.looseObject({
   version: z.literal(1),
@@ -41,7 +53,7 @@ export const linkedWalletsSchema = z.looseObject({
   display: z.string().max(8).optional(),
 });
 export type LinkedWallets = z.infer<typeof linkedWalletsSchema>;
-export type LinkedWallet = {id: string; kind: AddressKind; wallet: string; label: string; address: string; addedAt: string};
+export type LinkedWallet = {id: string; kind: AddressKind; wallet: string; label: string; address: string; addedAt: string; chains?: string[]; via?: WalletVia};
 export const emptyLinkedWallets = (): LinkedWallets => ({version: 1});
 export const LINKED_WALLETS: DeviceRecordSpec<LinkedWallets> = {key: LINKED_WALLETS_KEY, schema: linkedWalletsSchema, empty: emptyLinkedWallets};
 
@@ -57,11 +69,17 @@ function complete(e: Entry): e is Entry & LinkedWallet {
   return typeof e.id === 'string' && e.id.length > 0 && isKind(e.kind) && typeof e.wallet === 'string' && e.wallet.length > 0 && typeof e.label === 'string'
     && typeof e.address === 'string' && typeof e.addedAt === 'string' && !Number.isNaN(Date.parse(e.addedAt)) && addressShapeOk(e.kind, e.address);
 }
+const CHAIN_ID = /^[a-z0-9-]{2,16}:[A-Za-z0-9_-]{1,32}$/;
+/** The two Session AF fields as this build shows them: known `via` values only, well-formed chain ids, each once. */
+function optionalOf(e: Entry): Pick<LinkedWallet, 'chains' | 'via'> {
+  const chains = Array.isArray(e.chains) ? [...new Set(e.chains.filter(c => CHAIN_ID.test(c)))] : undefined;
+  return {...(chains ? {chains} : {}), ...((WALLET_VIAS as readonly string[]).includes(e.via ?? '') ? {via: e.via as WalletVia} : {})};
+}
 /** The linked wallets this build can show: complete, of a known kind, well formed, each id once. */
 export function linkedWalletsOf(record: LinkedWallets): LinkedWallet[] {
   const seen = new Set<string>();
   return (record.wallets ?? []).filter(complete).filter(e => !seen.has(e.id) && !!seen.add(e.id))
-    .map(e => ({id: e.id, kind: e.kind, wallet: e.wallet, label: e.label.slice(0, MAX_WALLET_LABEL), address: e.address, addedAt: e.addedAt}));
+    .map(e => ({id: e.id, kind: e.kind, wallet: e.wallet, label: e.label.slice(0, MAX_WALLET_LABEL), address: e.address, addedAt: e.addedAt, ...optionalOf(e)}));
 }
 export const displayOf = (record: LinkedWallets): DisplayCurrency => (DISPLAY_CURRENCIES as readonly string[]).includes(record.display ?? '') ? record.display as DisplayCurrency : 'ZIG';
 /** 'app' unless the record names a linked wallet this build shows. */
@@ -69,8 +87,17 @@ export const selectedOf = (record: LinkedWallets): string => record.selected && 
 
 const sameAddress = (a: LinkedWallet, kind: AddressKind, address: string) => a.kind === kind && (kind === 'evm' ? a.address.toLowerCase() === address.toLowerCase() : a.address === address);
 /** A new entry from what a wallet or the person gave: the label trimmed to 40 characters, the address in its stored spelling. */
-export function newLinkedWallet(input: {kind: AddressKind; wallet: string; label: string; address: string}, now = new Date(), id: string = crypto.randomUUID()): LinkedWallet {
-  return {id, kind: input.kind, wallet: input.wallet.slice(0, 120), label: input.label.trim().slice(0, MAX_WALLET_LABEL) || input.wallet.slice(0, MAX_WALLET_LABEL), address: canonicalAddress(input.kind, input.address.trim()), addedAt: now.toISOString()};
+export type LinkInput = {kind: AddressKind; wallet: string; label: string; address: string; chains?: readonly string[]; via?: WalletVia};
+export function newLinkedWallet(input: LinkInput, now = new Date(), id: string = crypto.randomUUID()): LinkedWallet {
+  const chains = input.chains ? [...new Set(input.chains)].filter(c => CHAIN_ID.test(c)).slice(0, MAX_TRACKED_CHAINS) : undefined;
+  return {id, kind: input.kind, wallet: input.wallet.slice(0, 120), label: input.label.trim().slice(0, MAX_WALLET_LABEL) || input.wallet.slice(0, MAX_WALLET_LABEL), address: canonicalAddress(input.kind, input.address.trim()), addedAt: now.toISOString(),
+    ...(chains?.length ? {chains} : {}), ...(input.via && (WALLET_VIAS as readonly string[]).includes(input.via) ? {via: input.via} : {})};
+}
+/** Session AF: a wallet's tracked chains changed (Wealth's chain chips); the other fields stay as stored. */
+export function withChains(record: LinkedWallets, id: string, chains: readonly string[]): LinkedWallets {
+  if (!linkedWalletsOf(record).some(w => w.id === id)) throw new LinkedWalletError('That wallet is no longer linked on this device.');
+  const clean = [...new Set(chains)].filter(c => CHAIN_ID.test(c)).slice(0, MAX_TRACKED_CHAINS);
+  return {...record, wallets: (record.wallets ?? []).map(e => e.id === id ? {...e, chains: clean} : e)};
 }
 export function withWallet(record: LinkedWallets, entry: LinkedWallet): LinkedWallets {
   if (!complete(entry)) throw new LinkedWalletError(LINK_INVALID_MESSAGE);
@@ -105,7 +132,7 @@ export function writeLinkedWallets(storage: Pick<Storage, 'getItem' | 'setItem'>
   });
 }
 /** Links one address after every check (a Bitcoin base58 checksum included); returns the stored entry. */
-export async function linkWallet(storage: Pick<Storage, 'getItem' | 'setItem'>, input: {kind: AddressKind; wallet: string; label: string; address: string}): Promise<LinkedWallet> {
+export async function linkWallet(storage: Pick<Storage, 'getItem' | 'setItem'>, input: LinkInput): Promise<LinkedWallet> {
   const entry = newLinkedWallet(input);
   if (!await verifyAddress(entry.kind, entry.address)) throw new LinkedWalletError(LINK_INVALID_MESSAGE);
   writeLinkedWallets(storage, record => withWallet(record, entry));

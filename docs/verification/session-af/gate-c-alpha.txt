@@ -1,0 +1,7 @@
+Session AF Gate C (G13, the Alpha's own checks) — on a clean scratch worktree of ec8f5570 (the final app code; no .env file
+anywhere in reach), Tue 20 Oct 2026 20:16 Brussels. Nothing deployed, no Cloudflare login, no Worker changed.
+
+pnpm run build:alpha            → exit 0: "OpenNext build complete." (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED)
+  .open-next/alpha-build.json   → {"environment":"PUBLIC_ALPHA_UNDEPLOYED","version":"0.1.0","commit":"ec8f5570a0e8bf0e1cb7f1a45f772146f835a6a7","dirty":false}
+pnpm run check:alpha-artifact   → exit 0: "Alpha artifact check passed: empty compiled environment, no env file copies, no secret markers, no configured names."
+pnpm run check:alpha            → exit 0: wrangler deploy --config wrangler.alpha.jsonc --dry-run, "Total Upload: 24709.70 KiB / gzip: 5508.71 KiB", "--dry-run: exiting now."

@@ -15,7 +15,7 @@ describe('the search index of the app itself (Session AA-Cloud Part 4)', () => {
   it('every navigation page is searchable, and every Settings anchor exists in Settings', () => {
     const nav = read('../../components/app-nav.tsx');
     const hrefs = [...nav.matchAll(/\["(\/app[^"]*)",/g)].map(m => m[1]!);
-    expect(hrefs).toHaveLength(13);
+    expect(hrefs).toHaveLength(15); // Session AF: Earn and Governance joined the money group (ADR-028)
     for (const href of hrefs) expect(PAGES.map(p => p.href)).toContain(href);
     const settings = [read('../../app/app/settings/page.tsx'), ...['pages-settings', 'time-zone-settings', 'wrap-up-settings', 'chess-settings'].map(f => read(`../../components/settings/${f}.tsx`)), read('../../components/ai/ai-settings-section.tsx'), read('../../components/import/switch-import.tsx')].join('\n');
     for (const s of SETTINGS.filter(x => x.href.includes('#'))) expect(settings, s.href).toMatch(new RegExp(`id=["{]['"]?${s.href.split('#')[1]}['"]?`));

@@ -17,6 +17,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {GlassBar} from '../progress/glass-progress';
 import {amount} from './common';
 import {formatDate} from '../../lib/visual-format';
+import {StarToggle} from '../checklist/star-toggle';
 
 /**
  * A Goal's milestones (Session W Part 11): each with an optional target value (where the Goal keeps it) and target date
@@ -66,6 +67,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
       </form> : <div className="goal-milestone-row">
         <label className="checkbox"><input type="checkbox" checked={m.done} disabled={closed} onChange={e => { const done = e.target.checked; void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done} : x)))); }} />{m.title}</label>
         <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${formatDate(date)}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : ''].filter(Boolean).join(' · ')}</small>
+        {!closed && <StarToggle item={{kind: 'goal-step', goalId: goal.id, milestoneId: m.id}} label={m.title}/>}
         {!closed && <button type="button" className="quiet" aria-label={`Edit milestone ${m.title}`} onClick={() => setEditing(m.id)}>Edit</button>}
       </div>}
     </>; const done = () => void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done: true} : x)))); return phone ? <Suspense key={m.id} fallback={<li>{row}</li>}><SwipeRow as="li" label={m.title} nameRow={false} completeLabel="Done" onComplete={!closed && !m.done ? done : undefined}>{row}</SwipeRow></Suspense> : <li key={m.id}>{row}</li>; })}</ul> : <p>No milestones yet.</p>}

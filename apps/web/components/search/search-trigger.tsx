@@ -37,7 +37,7 @@ export function SearchHost() {
 }
 
 export function SearchButton({className = 'search-trigger', label = false}: {className?: string; label?: boolean}) {
-  return <button type="button" className={className} aria-label={label ? undefined : 'Search'} aria-keyshortcuts="/" title="Search ( / )" onPointerEnter={() => void import('./search-palette')} onClick={() => openSearch()}>
+  return <button type="button" className={className} aria-label={label ? undefined : 'Search'} aria-keyshortcuts="/" title="Search ( / )" onPointerEnter={() => void import('./search-palette').catch(() => undefined)} onClick={() => openSearch()}>
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></svg>
     {label && <><span>Search</span><kbd aria-hidden="true">/</kbd></>}
   </button>;
