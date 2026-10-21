@@ -27,12 +27,12 @@ Deadline: PR out of Draft with CI green by Sat 24 Oct 12:00 Brussels.
 | 0 Records, ADR-029, this file, Draft PR | done | see git log, PR #91 |
 | 1–3 Nodes, lines, orbit labels (one commit, ADR-029 I6) | done | see git log |
 | 4 Timer cards (honest lines) | done | see git log |
-| 5 Background, planet, top bar | — | — |
+| 5 Background, planet, top bar | done | see git log |
 | 6 Removals and smaller changes | — | — |
 | 7 Self-check, audits, CI, STATUS, ready | — | — |
 
 ## Next action
-Part 5 (the dashboard's background per theme, the destination planet lazily, the top bar without XP), then Part 6, Part 7.
+Part 6 (removals: XP source and words, celebration, heatmap, ZIGi sizes done, List/Today/timeline colours, Help/What's new), then Part 7.
 
 ## Notes
 - The dev server's "X and Escape … opened directly, to Today" fails on `main` too in this sandbox (dev mode); check it on a

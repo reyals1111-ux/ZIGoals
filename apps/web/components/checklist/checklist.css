@@ -28,74 +28,65 @@
 .checklist-overlay[open] > .checklist-shell { animation: checklist-arrive 360ms ease-out; }
 @keyframes checklist-arrive { from { opacity: 0; } }
 
-/* The sky: fixed behind everything in the overlay. Nebula: drifting mists, two star layers, a ringed world and a moon. */
-.checklist-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.checklist-mist { position: absolute; width: 80vmax; height: 80vmax; border-radius: 50%; filter: blur(36px); opacity: 1; }
-/* Round 4: Nebula's clouds are seen at a glance (violet, magenta and teal at about a fifth), so a still is never Dark's. */
-.checklist-mist-a { left: -28vmax; top: -10vh; background: radial-gradient(closest-side, #826cff47, #826cff1f 55%, #826cff00); animation: checklist-mist-drift 60s ease-in-out infinite alternate; }
-.checklist-mist-b { right: -30vmax; top: 22vh; background: radial-gradient(closest-side, #f06dff40, #ff74be1c 58%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
-.checklist-mist-c { left: -10vw; bottom: -42vmax; background: radial-gradient(closest-side, #26e8bd38, #23eaff17 58%, #23eaff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
-.checklist-stars { position: absolute; inset: -12%; background: radial-gradient(1.2px 1.2px at 18% 22%, #ffffffb0, #fff0), radial-gradient(1px 1px at 72% 14%, #ffffff90, #fff0), radial-gradient(1.4px 1.4px at 84% 58%, #ffffffa0, #fff0), radial-gradient(1px 1px at 32% 76%, #ffffff80, #fff0), radial-gradient(1.2px 1.2px at 56% 44%, #ffffff70, #fff0), radial-gradient(1px 1px at 8% 64%, #ffffff8c, #fff0), radial-gradient(1.3px 1.3px at 44% 8%, #ffffffa6, #fff0), radial-gradient(1px 1px at 92% 86%, #ffffff7a, #fff0); background-size: 520px 520px; animation: checklist-stars-drift 160s linear infinite; }
-.checklist-stars-near { background: radial-gradient(1.8px 1.8px at 12% 40%, #ffffffd9, #fff0), radial-gradient(2px 2px at 66% 30%, #c9f7ffcc, #fff0), radial-gradient(1.6px 1.6px at 38% 88%, #ffd9f2cc, #fff0), radial-gradient(2.2px 2.2px at 88% 12%, #ffffffe0, #fff0), radial-gradient(1.6px 1.6px at 52% 60%, #e7e1ffcc, #fff0); background-size: 760px 760px; animation-duration: 95s; }
-.checklist-stars-far { background: radial-gradient(.8px .8px at 9% 13%, #ffffff8c, #fff0), radial-gradient(.8px .8px at 31% 47%, #ffffff73, #fff0), radial-gradient(.9px .9px at 57% 21%, #e8e2ff80, #fff0), radial-gradient(.7px .7px at 77% 63%, #ffffff66, #fff0), radial-gradient(.8px .8px at 43% 83%, #d9fbff80, #fff0), radial-gradient(.7px .7px at 89% 31%, #ffffff66, #fff0), radial-gradient(.8px .8px at 21% 71%, #ffffff73, #fff0); background-size: 210px 210px; opacity: .9; animation-duration: 240s; }
-@keyframes checklist-stars-drift { to { transform: translate3d(-60px, -120px, 0); } }
+/* Session AG (owner pointers 11–12): the sky is the dashboard's own ground — Nebula's starfield on the night (as the shell's
+   `.app-content::before`; Light's mist and Dark's black sky come from themes/light.extra.css and themes/dark.extra.css,
+   which paint both) — with Nebula's calm drifting mist over it and one of the app's own planets low on the right. */
+.checklist-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: var(--cosmic-starfield) center / cover no-repeat, var(--cosmic-dark, #020918); }
+.checklist-mist { position: absolute; width: 80vmax; height: 80vmax; border-radius: 50%; filter: blur(36px); opacity: .7; }
+.checklist-mist-a { left: -28vmax; top: -10vh; background: radial-gradient(closest-side, #826cff3d, #826cff1a 55%, #826cff00); animation: checklist-mist-drift 60s ease-in-out infinite alternate; }
+.checklist-mist-b { right: -30vmax; top: 22vh; background: radial-gradient(closest-side, #f06dff33, #ff74be17 58%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
+.checklist-mist-c { left: -10vw; bottom: -42vmax; background: radial-gradient(closest-side, #26e8bd2e, #23eaff12 58%, #23eaff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
 @keyframes checklist-mist-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vmax, 4vmax, 0); } }
-/* (Round 6: far enough in that its ring, wider than the world, stays inside the screen.) */
-.checklist-world { position: absolute; right: max(3vw, 104px); bottom: 8vh; width: 210px; height: 210px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #9d8bff 0, #5442b8 34%, #22195e 70%, #0d0b2c 100%); box-shadow: inset -24px -18px 50px #000a, 0 0 80px #826cff38; opacity: .4; filter: blur(1.5px); animation: checklist-world-turn 240s linear infinite; }
-.checklist-world-ring { position: absolute; left: -42%; right: -42%; top: 42%; height: 16%; border-radius: 50%; border: 5px solid #c7b8ff47; border-top-color: #c7b8ff14; rotate: -14deg; }
-.checklist-moon-orbit { position: absolute; left: 14px; top: 60vh; width: 150px; height: 150px; border-radius: 50%; border: 1px dashed #ffffff14; opacity: .4; filter: blur(1px); animation: checklist-world-turn 70s linear infinite; }
-.checklist-moon { position: absolute; left: 50%; top: -8px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, #23eaff 55%, #0b3a5a); box-shadow: 0 0 14px #23eaff99; }
-@keyframes checklist-world-turn { to { transform: rotate(360deg); } }
-/* (On a phone they sit at the screen's edges, half out of it, behind the path and quieter still.) */
-/* (Below a computer's width the world keeps to the screen's edge, off the names: mostly outside it.) */
-/* Round 5: a background planet is whole or not drawn — below a computer's width the path fills the screen, so none. */
-@media (max-width: 1179.98px) { .checklist-world, .checklist-moon-orbit { display: none; } }
-/* Nebula on a phone: the clouds sit in the path's own column — magenta high on the right, teal low on the left, violet at the
-   top — and the stars are a touch larger, so the sky reads at a glance. */
+/* The planet (pointer 11): the destination art's horizon rising low on the right, its night melting into the sky (screen);
+   only on a computer, where the sidebar already loads it. Below that, a small CSS planet in its style, behind the path. */
+.checklist-planet { position: absolute; right: -16vw; top: 58vh; display: none; width: min(62vw, 1000px); aspect-ratio: 1000 / 689; opacity: 1; mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(90deg, #0000 0, #000 34%), linear-gradient(180deg, #0000 0, #000 22%); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, #0000 0, #000 34%), linear-gradient(180deg, #0000 0, #000 22%); mask-composite: intersect; }
+.checklist-planet img { display: block; width: 100%; height: 100%; }
+.checklist-planet-small { position: absolute; right: -54px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); width: 168px; height: 168px; border-radius: 50%; opacity: .5;
+  background: radial-gradient(circle at 70% 26%, #b49bff66 0, #4f8dff2e 22%, #0a1236 52%, #040817 76%); box-shadow: inset 4px 6px 0 -2px #8fc8ff73, inset 10px 14px 24px -10px #c08bff99, 0 0 46px -8px #6b8dff66; }
+.checklist-planet-small::after { content: ''; position: absolute; left: -24%; right: -24%; top: 46%; height: 12%; border-radius: 50%; border: 2px solid #9fb7ff40; border-top-color: #9fb7ff12; rotate: -16deg; }
+@media (min-width: 1180px) { .checklist-planet { display: block; } .checklist-planet-small { display: none; } }
+/* Nebula on a phone: the clouds sit in the path's own column. */
 @media (max-width: 767.98px) {
   .checklist-mist { width: 130vw; height: 130vw; filter: blur(28px); }
-  .checklist-mist-a { left: -50vw; top: -22vw; background: radial-gradient(closest-side, #826cff52, #826cff24 55%, #826cff00); }
-  .checklist-mist-b { right: -60vw; left: auto; top: 30vh; background: radial-gradient(closest-side, #f06dff4d, #ff74be24 58%, #ff74be00); }
-  .checklist-mist-c { left: -62vw; top: 62vh; bottom: auto; background: radial-gradient(closest-side, #26e8bd45, #23eaff1f 58%, #23eaff00); }
-  .checklist-stars { background-size: 300px 300px; }
-  .checklist-stars-near { background-size: 420px 420px; }
-  .checklist-stars-far { background-size: 150px 150px; }
+  .checklist-mist-a { left: -50vw; top: -22vw; }
+  .checklist-mist-b { right: -60vw; left: auto; top: 30vh; }
+  .checklist-mist-c { left: -62vw; top: 62vh; bottom: auto; }
 }
-/* By day: a calm white sky with a light colour mist and a soft pastel world; for Dark, black with a subtle mist. Both still. */
+/* By day the dashboard's white-family mist is the ground (light.extra.css); the clouds rest, a breath of tint. Dark: the
+   dashboard's black sky (dark.extra.css), the clouds faint and still. */
 :root[data-theme=light] .checklist-sky .checklist-mist { opacity: .9; animation: none; }
-:root[data-theme=light] .checklist-mist-a { background: radial-gradient(closest-side, #e9e3fd, #e9e3fd00); }
-:root[data-theme=light] .checklist-mist-b { background: radial-gradient(closest-side, #e2f6fb, #fbe9f3 60%, #fbe9f300); }
-:root[data-theme=light] .checklist-mist-c { background: radial-gradient(closest-side, #fbe6fb, #fbe6fb00); }
-:root[data-theme=light] :is(.checklist-stars, .checklist-moon-orbit) { display: none; }
 :root[data-theme=light] .checklist-sky .checklist-mist-a { background: radial-gradient(closest-side, #e9e3fd, #e9e3fd00); }
 :root[data-theme=light] .checklist-sky .checklist-mist-b { background: radial-gradient(closest-side, #fbe6f6, #fbe9f300); }
 :root[data-theme=light] .checklist-sky .checklist-mist-c { background: radial-gradient(closest-side, #e2f6fb, #e2f6fb00); }
-:root[data-theme=light] .checklist-world { opacity: .4; animation: none; background: radial-gradient(circle at 32% 26%, #ffffff 0, #e4ddff 30%, #b9acf3 68%, #9a8be6 100%); box-shadow: inset -18px -14px 34px #7b6cd659, 0 14px 40px -10px #9273ff59; }
-:root[data-theme=light] .checklist-world-ring { border-color: #9a8be6a6; border-top-color: #9a8be640; }
-:root[data-theme=dark] .checklist-sky { background: #010208; }
+:root[data-theme=light] .checklist-planet { mix-blend-mode: normal; opacity: .9; }
+:root[data-theme=light] .checklist-planet-small { opacity: .6; }
 :root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .12; animation: none; }
-:root[data-theme=dark] .checklist-stars-far { display: none; }
-:root[data-theme=dark] :is(.checklist-stars, .checklist-world, .checklist-moon-orbit) { animation: none; }
-:root[data-theme=dark] .checklist-world { opacity: .36; }
+:root[data-theme=dark] .checklist-planet { opacity: .75; }
 
-/* The top bar: one row on a tablet or computer; two on a phone (the title, streak, XP and menu; then today's progress and
-   the view). */
+/* The top bar: one row (close, the title, today's progress and date, the view, the streak, the menu; no XP since Session AG); on a
+   phone the title is said, not shown, and the view lives in the menu. */
 .checklist-topbar { position: sticky; top: 0; z-index: 20; padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px; background: linear-gradient(180deg, #050a1ef2, #050a1ee6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff17; box-shadow: 0 12px 30px -24px #000; }
 /* Round 4: what scrolls under the bar fades into it instead of being cut. */
 .checklist-topbar::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 26px; background: linear-gradient(180deg, #050a1ed9, #050a1e00); pointer-events: none; }
-.checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto auto 44px; grid-template-areas: "close title prog view streak xp menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+.checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto 44px; grid-template-areas: "close title prog view streak menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
 .checklist-close { grid-area: close; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; box-shadow: 0 3px 0 #00000059; }
 .checklist-close:hover { background: #ffffff1f; }
 .checklist-close:active { transform: translateY(2px); box-shadow: 0 1px 0 #00000059; }
 .checklist-close:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 .checklist-title { grid-area: title; min-width: 0; }
-.checklist-title h1 { margin: 0; font-size: 24px; line-height: 1.1; letter-spacing: -.02em; white-space: nowrap; }
+/* Session AG (pointer 12): the dashboard's heading — bigger, white into the nebula. */
+.checklist-title h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; white-space: nowrap; }
 .checklist-progress { grid-area: prog; display: grid; gap: 4px; min-width: 0; }
-.checklist-progress-bar { height: 16px; }
-.checklist-progress-line { margin: 0; font-size: 14px; line-height: 1.2; color: var(--muted, #a4b2cd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-progress-bar { height: 18px; --glass-ink: linear-gradient(90deg, #23eaff, #459dff 30%, #9273ff 58%, #f06dff 82%, #ff74be); --glass-glow: #ff9fdcd9; }
+/* (A small four-point sparkle rides the bar's leading end, as in the owner's mockup.) */
+.checklist-progress-spark { position: absolute; top: 50%; left: calc(var(--glass-value, 0) * 100%); width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 6px #ffb3ea); transition: left var(--glass-fill-duration, 760ms) cubic-bezier(.2, .8, .3, 1); }
+.glass-track[data-empty] .checklist-progress-spark { display: none; }
+.checklist-progress-line { margin: 0; font-size: 15px; line-height: 1.25; color: var(--muted, #a4b2cd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .checklist-progress-line strong { color: var(--text, #f0f5ff); font-weight: 750; }
 .checklist-progress-line .eyebrow { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: 0; text-transform: none; color: var(--muted, #a4b2cd); }
-.checklist-perfect { color: var(--muted, #a4b2cd); font-weight: 600; }
+.checklist-perfect { color: var(--ring-emerald, #26e8bd); font-weight: 750; }
+:root[data-theme=light] .checklist-perfect { color: #0b7a62; }
 .checklist-progress-shine { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--glass-value, 0) * 100%); border-radius: inherit; overflow: hidden; pointer-events: none; }
 .checklist-progress-shine::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 46%; background: linear-gradient(100deg, #ffffff00, #ffffffe6 50%, #ffffff00); transform: translateX(-120%); animation: checklist-shine 900ms ease-in-out 420ms both; }
 @keyframes checklist-shine { from { transform: translateX(-120%); } to { transform: translateX(330%); } }
@@ -103,21 +94,15 @@
 .checklist-view-switch button { display: grid; place-items: center; width: 44px; height: 38px; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--text, #f0f5ff); cursor: pointer; }
 .checklist-view-switch button[aria-pressed=true] { background: linear-gradient(100deg, #23eaff40, #9273ff59); box-shadow: inset 0 0 0 1px #9273ff99; }
 .checklist-view-switch button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.checklist-streak, .checklist-xp { position: relative; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: 0; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #ffffff1f; background: #ffffff0d; color: var(--muted, #a4b2cd); font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.checklist-streak { position: relative; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: 0; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #ffffff1f; background: #ffffff0d; color: var(--muted, #a4b2cd); font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .checklist-streak { grid-area: streak; }
-.checklist-xp { grid-area: xp; color: var(--text, #f0f5ff); }
 .checklist-streak[data-lit] { color: var(--text, #f0f5ff); border-color: #ffad8780; box-shadow: 0 0 22px #ff74be30; }
-.checklist-xp small { font-size: 14px; font-weight: 700; color: var(--muted, #a4b2cd); }
 .checklist-streak .checklist-flame { width: 28px; height: 28px; }
 .checklist-count { display: inline-block; }
 .checklist-count[data-pop] { animation: checklist-pop-a 520ms cubic-bezier(.2, .9, .25, 1.3) both; }
 .checklist-count[data-pop=b] { animation-name: checklist-pop-b; }
 @keyframes checklist-pop-a { 0% { transform: scale(1); } 35% { transform: scale(1.4) translateY(-2px); } 100% { transform: none; } }
 @keyframes checklist-pop-b { 0% { transform: scale(1); } 35% { transform: scale(1.4) translateY(-2px); } 100% { transform: none; } }
-/* "+15": today's XP gained by a tick, rising from the XP count. */
-.checklist-xp-gain { position: absolute; left: 50%; top: calc(100% + 2px); translate: -50% 0; padding: 2px 9px; border-radius: 999px; background: #ffd27a; color: #2a1800; font-size: 15px; font-weight: 900; white-space: nowrap; box-shadow: 0 0 16px #ffd27acc; pointer-events: none; animation: checklist-xp-rise 1300ms cubic-bezier(.2, .8, .2, 1) both; }
-@keyframes checklist-xp-flash { 0% { opacity: 0; transform: scale(.6); } 18% { opacity: 1; transform: scale(1.14); } 60% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-8px) scale(.92); } }
-@keyframes checklist-xp-rise { 0% { opacity: 0; transform: translateY(14px) scale(.7); } 20% { opacity: 1; transform: translateY(0) scale(1.1); } 70% { opacity: 1; transform: translateY(-4px) scale(1); } 100% { opacity: 0; transform: translateY(-14px); } }
 /* The menu: Edit path, Options, How it works. */
 .checklist-menu-wrap { grid-area: menu; position: relative; }
 .checklist-menu-button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; }
@@ -129,27 +114,23 @@
 .checklist-menu button:hover, .checklist-menu button[aria-expanded=true] { background: #ffffff12; }
 .checklist-menu button:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
 .checklist-menu-scrim { position: fixed; inset: 0; z-index: 19; }
-/* A tablet's one row is tight: the XP pill keeps its mark and number (as on a phone), so today's line keeps its date. */
 @media (min-width: 768px) and (max-width: 1023.98px) {
   .checklist-topbar-row { column-gap: 10px; }
-  .checklist-xp small { display: none; }
+  .checklist-title h1 { font-size: 26px; }
 }
-/* Round 4, a phone: one row — close, today's bar and count, the flame, the XP and the menu (Path / List live in the menu;
+/* Round 4, a phone: one row — close, today's bar and count, the flame and the menu (Path / List live in the menu;
    the title is said, not shown; the date is in the menu's place too, for screen readers it stays in the line). */
 @media (max-width: 767.98px) {
   .checklist-topbar { padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px; }
-  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto auto 44px; grid-template-areas: "close prog streak xp menu"; column-gap: 6px; }
+  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto 44px; grid-template-areas: "close prog streak menu"; column-gap: 8px; }
   .checklist-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .checklist-view-switch { display: none; }
   .checklist-progress { gap: 3px; }
-  .checklist-progress-bar { height: 12px; }
+  .checklist-progress-bar { height: 14px; }
   .checklist-progress-line { font-size: 14px; }
   .checklist-progress-line .eyebrow, .checklist-perfect { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .checklist-streak, .checklist-xp { min-height: 38px; padding: 0 8px 0 4px; font-size: 17px; gap: 2px; }
+  .checklist-streak { min-height: 38px; padding: 0 8px 0 4px; font-size: 17px; gap: 2px; }
   .checklist-streak .checklist-flame { width: 22px; height: 22px; }
-  .checklist-xp small { display: none; }
-  .checklist-xp-mark { width: 19px; height: 19px; }
-  .checklist-xp-gain { top: calc(100% + 4px); }
 }
 /* The view, in the menu on a phone. */
 .checklist-menu-view { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 0 0 6px; margin-bottom: 4px; border-bottom: 1px solid #ffffff17; }
@@ -232,10 +213,7 @@
   .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text small { display: none; font-size: 14px; }
   .checklist-overlay .checklist-timers .checklist-timer[data-running] .checklist-timer-text small { display: block; }
   .checklist-overlay .checklist-timers .checklist-timer[data-running] .checklist-timer-label { display: none; }
-}
-@media (min-width: 641px) and (max-width: 1179.98px) {
-  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 8px; padding: 4px 12px; text-align: start; }
-  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }
+
   .checklist-timers-message { position: fixed; left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 31; }
   /* "Jump to next", docked: the foot bar's own round button (it follows the theme, as the timers' button does). */
   .path-dock-jump { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border-radius: 50%; border: 2px solid #8cc8ff80; background: radial-gradient(circle at 35% 28%, #1d2a5c, #0a1230 70%); color: #eef4ff; font: inherit; cursor: pointer; box-shadow: 0 5px 0 #02061499, 0 14px 28px -12px #000c, 0 0 22px #4f8dff40; }
@@ -244,6 +222,10 @@
   .path-dock-jump:active { transform: translateY(3px); box-shadow: 0 2px 0 #02061499; }
   .path-dock-jump:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
   :root[data-keyboard=open] .checklist-timers-wrap { display: none; }
+}
+@media (min-width: 641px) and (max-width: 1179.98px) {
+  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 8px; padding: 4px 12px; text-align: start; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }
 }
 /* The toast's place in the open layer: no box of its own (the region inside is fixed). */
 .checklist-toast-slot { position: absolute; width: 0; height: 0; }
@@ -437,8 +419,8 @@
 .checklist-limits { margin: 0; font-size: 14px; }
 @media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat-cell { width: 15px; height: 15px; } }
 @media (max-width: 767.98px) { .checklist-heat-cell { width: 16px; height: 16px; } }
-@media (prefers-reduced-motion: reduce) { .checklist-mist, .checklist-stars, .checklist-world, .checklist-moon-orbit { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
-:root[data-app-motion=off] :is(.checklist-mist, .checklist-stars, .checklist-world, .checklist-moon-orbit) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
+:root[data-app-motion=off] .checklist-mist { animation: none !important; }
 :root[data-app-motion=off] .checklist-page *:not(.checklist-mist) { transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .checklist-page *, .checklist-page *::before, .checklist-page *::after { animation: none !important; } }
 :root[data-app-motion=off] .checklist-page *, :root[data-app-motion=off] .checklist-page *::before, :root[data-app-motion=off] .checklist-page *::after { animation: none !important; }

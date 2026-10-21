@@ -3921,91 +3921,30 @@
         filter: blur(36px)
     }
     .checklist-mist-a:not(#\-) {
-        background-image: radial-gradient(closest-side, #826cff47, #826cff1f 55%, #826cff00);
+        background-image: radial-gradient(closest-side, #826cff3d, #826cff1a 55%, #826cff00);
         background-color: transparent
     }
     .checklist-mist-b:not(#\-) {
-        background-image: radial-gradient(closest-side, #f06dff40, #ff74be1c 58%, #ff74be00);
+        background-image: radial-gradient(closest-side, #f06dff33, #ff74be17 58%, #ff74be00);
         background-color: transparent
     }
     .checklist-mist-c:not(#\-) {
-        background-image: radial-gradient(closest-side, #26e8bd38, #23eaff17 58%, #23eaff00);
+        background-image: radial-gradient(closest-side, #26e8bd2e, #23eaff12 58%, #23eaff00);
         background-color: transparent
     }
-    .checklist-stars:not(#\-) {
-        background-image: radial-gradient(1.2px 1.2px at 18% 22%, #242424b0, #24242400), radial-gradient(1px 1px at 72% 14%, #24242490, #24242400), radial-gradient(1.4px 1.4px at 84% 58%, #242424a0, #24242400), radial-gradient(1px 1px at 32% 76%, #24242480, #24242400), radial-gradient(1.2px 1.2px at 56% 44%, #24242470, #24242400), radial-gradient(1px 1px at 8% 64%, #2424248c, #24242400), radial-gradient(1.3px 1.3px at 44% 8%, #242424a6, #24242400), radial-gradient(1px 1px at 92% 86%, #2424247a, #24242400);
-        background-color: transparent
-    }
-    .checklist-stars-near:not(#\-) {
-        background-image: radial-gradient(1.8px 1.8px at 12% 40%, #242424d9, #24242400), radial-gradient(2px 2px at 66% 30%, #06292ecc, #24242400), radial-gradient(1.6px 1.6px at 38% 88%, #311c2acc, #24242400), radial-gradient(2.2px 2.2px at 88% 12%, #242424e0, #24242400), radial-gradient(1.6px 1.6px at 52% 60%, #252035cc, #24242400);
-        background-color: transparent
-    }
-    .checklist-stars-far:not(#\-) {
-        background-image: radial-gradient(.8px .8px at 9% 13%, #2424248c, #24242400), radial-gradient(.8px .8px at 31% 47%, #24242473, #24242400), radial-gradient(.9px .9px at 57% 21%, #25203580, #24242400), radial-gradient(.7px .7px at 77% 63%, #24242466, #24242400), radial-gradient(.8px .8px at 43% 83%, #0b292c80, #24242400), radial-gradient(.7px .7px at 89% 31%, #24242466, #24242400), radial-gradient(.8px .8px at 21% 71%, #24242473, #24242400);
-        background-color: transparent
-    }
-    .checklist-world:not(#\-) {
-        background-image: radial-gradient(circle at 32% 28%, #9d8bff 0, #5442b8 34%, #eceeff 70%, #f2f3fc 100%);
+    .checklist-planet-small:not(#\-) {
+        background-image: radial-gradient(circle at 70% 26%, #b49bff66 0, #4f8dff2e 22%, #eef2fc 52%, #f3f5fa 76%);
         background-color: transparent;
-        box-shadow: inset -24px -18px 50px #3d3d3d44, 0 0 80px #826cff38;
-        filter: blur(1.5px)
+        box-shadow: inset 4px 6px 0 -2px #8fc8ff73, inset 10px 14px 24px -10px #c08bff99, 0 0 46px -8px #6b8dff66
     }
-    .checklist-world-ring:not(#\-) {
-        border-color: #c7b8ff47;
-        border-top-color: #c7b8ff14
-    }
-    .checklist-moon-orbit:not(#\-) {
-        border-color: #3333331e;
-        filter: blur(1px)
-    }
-    .checklist-moon:not(#\-) {
-        background-image: radial-gradient(circle at 35% 30%, #242424, #23eaff 55%, #e4eef6);
-        background-color: transparent;
-        box-shadow: 0 0 14px #23eaff99
+    .checklist-planet-small:not(#\-)::after {
+        border-color: #9fb7ff40;
+        border-top-color: #9fb7ff12
     }
     @media (max-width: 767.98px) {
         .checklist-mist:not(#\-) {
             filter: blur(28px)
         }
-    }
-    @media (max-width: 767.98px) {
-        .checklist-mist-a:not(#\-) {
-            background-image: radial-gradient(closest-side, #826cff52, #826cff24 55%, #826cff00);
-            background-color: transparent
-        }
-    }
-    @media (max-width: 767.98px) {
-        .checklist-mist-b:not(#\-) {
-            background-image: radial-gradient(closest-side, #f06dff4d, #ff74be24 58%, #ff74be00);
-            background-color: transparent
-        }
-    }
-    @media (max-width: 767.98px) {
-        .checklist-mist-c:not(#\-) {
-            background-image: radial-gradient(closest-side, #26e8bd45, #23eaff1f 58%, #23eaff00);
-            background-color: transparent
-        }
-    }
-    :scope[data-theme=light] .checklist-mist-a:not(#\-) {
-        background-image: radial-gradient(closest-side, #262033, #26203300);
-        background-color: transparent
-    }
-    :scope[data-theme=light] .checklist-mist-b:not(#\-) {
-        background-image: radial-gradient(closest-side, #17272b, #2c2027 60%, #2c202700);
-        background-color: transparent
-    }
-    :scope[data-theme=light] .checklist-mist-c:not(#\-) {
-        background-image: radial-gradient(closest-side, #2d1e2d, #2d1e2d00);
-        background-color: transparent
-    }
-    :scope[data-theme=light] .checklist-world:not(#\-) {
-        background-image: radial-gradient(circle at 32% 26%, #242424 0, #252035 30%, #b9acf3 68%, #9a8be6 100%);
-        background-color: transparent;
-        box-shadow: inset -18px -14px 34px #7b6cd659, 0 14px 40px -10px #9273ff59
-    }
-    :scope[data-theme=light] .checklist-world-ring:not(#\-) {
-        border-color: #9a8be6a6;
-        border-top-color: #9a8be640
     }
     .checklist-topbar:not(#\-) {
         background-image: linear-gradient(180deg, #f2f5fbf2, #f2f5fbe6);
@@ -4034,6 +3973,15 @@
     .checklist-close:focus-visible:not(#\-) {
         outline-color: currentColor
     }
+    .checklist-progress-bar:not(#\-) {
+        --glass-ink: linear-gradient(90deg, #23eaff, #459dff 30%, #9273ff 58%, #f06dff 82%, #ff74be);
+        --glass-glow: #ff9fdcd9
+    }
+    .checklist-progress-spark:not(#\-) {
+        background-image: none;
+        background-color: #242424;
+        filter: drop-shadow(0 0 6px #ffb3ea)
+    }
     .checklist-progress-line:not(#\-) {
         color: var(--muted, #1e2635)
     }
@@ -4044,7 +3992,10 @@
         color: var(--muted, #1e2635)
     }
     .checklist-perfect:not(#\-) {
-        color: var(--muted, #1e2635)
+        color: #0d6955
+    }
+    :scope[data-theme=light] .checklist-perfect:not(#\-) {
+        color: #156754
     }
     .checklist-progress-shine:not(#\-)::before {
         background-image: linear-gradient(100deg, #24242400, #242424e6 50%, #24242400);
@@ -4069,28 +4020,16 @@
     .checklist-view-switch button:focus-visible:not(#\-) {
         outline-color: currentColor
     }
-    .checklist-streak:not(#\-), .checklist-xp:not(#\-) {
+    .checklist-streak:not(#\-) {
         border-color: #3333332f;
         background-image: none;
         background-color: #2424240d;
         color: var(--muted, #1e2635)
     }
-    .checklist-xp:not(#\-) {
-        color: var(--text, #0c0f16)
-    }
     .checklist-streak[data-lit]:not(#\-) {
         color: var(--text, #0c0f16);
         border-color: #ffad8780;
         box-shadow: 0 0 22px #ff74be30
-    }
-    .checklist-xp small:not(#\-) {
-        color: var(--muted, #1e2635)
-    }
-    .checklist-xp-gain:not(#\-) {
-        background-image: none;
-        background-color: #ffd27a;
-        color: #2a1800;
-        box-shadow: 0 0 16px #ffd27acc
     }
     .checklist-menu-button:not(#\-) {
         border-color: #33333345;
@@ -4193,7 +4132,7 @@
             background-color: transparent
         }
     }
-    @media (min-width: 641px) and (max-width: 1179.98px) {
+    @media (max-width: 1179.98px) {
         .path-dock-jump:not(#\-) {
             border-color: #8cc8ff80;
             background-image: radial-gradient(circle at 35% 28%, #e9edfa, #eff3fb 70%);
@@ -4202,12 +4141,12 @@
             box-shadow: 0 5px 0 #333d503d, 0 14px 28px -12px #3d3d3d52, 0 0 22px #4f8dff40
         }
     }
-    @media (min-width: 641px) and (max-width: 1179.98px) {
+    @media (max-width: 1179.98px) {
         .path-dock-jump:active:not(#\-) {
             box-shadow: 0 2px 0 #333d503d
         }
     }
-    @media (min-width: 641px) and (max-width: 1179.98px) {
+    @media (max-width: 1179.98px) {
         .path-dock-jump:focus-visible:not(#\-) {
             outline-color: currentColor
         }
@@ -13574,7 +13513,8 @@
 :root[data-theme=light] :is(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .phone-more-signature):not(#\-) { color-scheme: dark; }
 :root[data-theme=light] body:not(#\-) { background: #f7f7fb; }
 /* Session AE (Part 3, ADR-027 G7): a white-family day — the nebula's clouds only a breath of tint on a near-white ground. */
-:root[data-theme=light] .app-content:not(#\-)::before {
+/* Session AG (owner pointer 11): the Checklist's sky is the dashboard's ground too. */
+:root[data-theme=light] .app-content:not(#\-)::before, :root[data-theme=light] .checklist-sky:not(#\-) {
   background:
     radial-gradient(1200px 700px at 12% 6%, #eeeafd 0, #eeeafd00 70%),
     radial-gradient(1000px 640px at 88% 16%, #e6f3fd 0, #e6f3fd00 70%),

@@ -47,16 +47,23 @@ test('nodes, name tabs, the line, the labels’ planets and the timers’ rings 
   test.skip(info.project.name !== 'desktop', 'one layout is enough for colours');
   test.setTimeout(90_000);
   await openIn(page, 'nebula'); const nebula = await paint(page);
-  const nebulaSky = await page.locator('.checklist-sky').evaluate(el => getComputedStyle(el).backgroundColor);
+  // Session AG (owner pointer 11), moved at greater strength (was: Nebula's sky transparent, Dark's near-black, Light's mist
+  // light): in every theme the Checklist's sky is the dashboard's own ground — the same layers as the shell's
+  // `.app-content::before` behind it.
+  const ground = () => page.evaluate(() => { const shell = getComputedStyle(document.querySelector('.app-content')!, '::before'), sky = getComputedStyle(document.querySelector('.checklist-sky')!); return {shell: [shell.backgroundImage, shell.backgroundColor], sky: [sky.backgroundImage, sky.backgroundColor]}; });
+  const nebulaGround = await ground();
+  expect(nebulaGround.sky, 'Nebula: the dashboard\'s ground').toEqual(nebulaGround.shell);
+  expect(nebulaGround.sky[0], 'Nebula: the starfield').toMatch(/starfield\.svg/);
   for (const theme of ['light', 'dark'] as const) {
     await openIn(page, theme);
     expect(await paint(page), `${theme}: the path paints as in Nebula`).toEqual(nebula);
     const sky = await page.locator('.checklist-sky').evaluate(el => ({background: getComputedStyle(el).backgroundColor, mist: getComputedStyle(el.querySelector('.checklist-mist-a')!).backgroundImage}));
+    const g = await ground();
+    expect(g.sky, `${theme}: the dashboard's ground`).toEqual(g.shell);
     if (theme === 'dark') { const [r, g, b] = sky.background.match(/\d+/g)!.map(Number); expect(Math.max(r!, g!, b!), 'Dark: a near-black sky').toBeLessThan(10); }
     else expect(sky.mist, 'Light: a light colour mist').toMatch(/rgb\((2[2-5]\d), (2[2-5]\d), (2[2-5]\d)\)/);
     if (theme === 'light') { const [r, g, b] = (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).match(/\d+/g)!.map(Number); expect(Math.min(r!, g!, b!)).toBeGreaterThan(225); }
   }
-  expect(nebulaSky).toBe('rgba(0, 0, 0, 0)');
   // Session AG (owner pointer 1): the line runs from each node's colour to the next one's — never one colour all the way.
   expect(new Set(nebula.stops.map(s => s.replace(/ [\d.]+$/, ''))).size, 'the line in the nodes\' own colours').toBeGreaterThan(2);
 });
