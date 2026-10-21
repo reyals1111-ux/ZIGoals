@@ -13,7 +13,10 @@ Deadline: PR out of Draft with CI green by Sat 24 Oct 12:00 Brussels.
 
 ## Commands (cloud sandbox)
 - Install: `pnpm install --frozen-lockfile --ignore-scripts`
-- Checks: `pnpm typecheck`, `pnpm lint`, `pnpm --filter @zigoals/web exec vitest run lib/checklist lib/path lib/game components/orbit-path`
+- Checks: `pnpm typecheck`, `pnpm lint`, unit tests from the repo root (the root vitest config holds the JSX transform):
+  `pnpm exec vitest run apps/web/lib/checklist apps/web/lib/path apps/web/lib/game`; after any CSS change
+  `node scripts/themes/build-themes.mjs` (CI runs `--check`). Known sandbox-only unit failures (Node 22, ICU): pre-run11-setup,
+  run11/domain-review-race, visual-format ja-JP, vault/finance-homes — they fail on `main` here too and pass in CI.
 - Browser: production build (`NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`), `pnpm --filter @zigoals/web start`,
   then `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3100 pnpm --filter @zigoals/web exec playwright test <specs> --workers=2`
   (Chromium stands in for the Chrome channel locally, as CLAUDE.md describes).
@@ -21,14 +24,17 @@ Deadline: PR out of Draft with CI green by Sat 24 Oct 12:00 Brussels.
 ## Parts
 | Part | State | Commits |
 |---|---|---|
-| 0 Records, ADR-029, this file, Draft PR | in progress | — |
-| 1 Nodes | — | — |
-| 2 Lines | — | — |
-| 3 Orbit labels | — | — |
+| 0 Records, ADR-029, this file, Draft PR | done | `c6c2f3c0`-era Part 0 commit, PR #91 |
+| 1–3 Nodes, lines, orbit labels (one commit, ADR-029 I6) | done | see git log |
 | 4 Timer cards | — | — |
 | 5 Background, planet, top bar | — | — |
 | 6 Removals and smaller changes | — | — |
 | 7 Self-check, audits, CI, STATUS, ready | — | — |
 
 ## Next action
-Commit Part 0, push, open the Draft PR; then Part 1 (`components/orbit-path/`).
+Part 4 (timer cards, honest labels: only a set goal says "Goal"), then Part 5, Part 6, Part 7.
+
+## Notes
+- The dev server's "X and Escape … opened directly, to Today" fails on `main` too in this sandbox (dev mode); check it on a
+  production build before Gate.
+- Self-check captures: scratchpad only (`cap/cap.spec.ts`), never committed.

@@ -1,6 +1,8 @@
 import type {CSSProperties} from 'react';
 import type {PlacedMilestone} from '../../lib/path/model';
 import {PathZigi} from './path-zigi';
+import {PATH_COLOURS} from '../../lib/path/colours';
+import {OrbitNodeFace} from '../orbit-path/orbit-node';
 
 /**
  * A reward chest on the path (P7.7): closed and dim until reached; reached, its lid stands open with a gold glow and its
@@ -48,4 +50,20 @@ function TrophyPlanet({gold}: {gold: string}) {
     <path className="path-trophy-ring-front" d="M4 64c0 8 25 15 56 15s56-7 56-15"/>
     <g className="path-trophy-rays"><path d="M60 4v10M18 18l7 7M102 18l-7 7M8 52h9M103 52h9"/></g>
   </svg>;
+}
+
+/**
+ * Session AG (ADR-029; owner Part 6): the orbit path's finale — "All planets lit" as a node in the new style (a gold star
+ * node, lit once every planet is), where the flowing line ends; no reward line (the Checklist awards no XP). ZIGi
+ * celebrates beside it at the day's end, on the side it stood beside the last planet (so it never turns as it glides
+ * over; it stands there, placed by the sheet, never gliding across the finale). `point`: its id for the line's geometry.
+ */
+export function OrbitFinale({milestone, just, point, zigi, zigiSide = 'right'}: {milestone: PlacedMilestone; just: boolean; point: string; zigi: string | null; zigiSide?: 'left' | 'right'}) {
+  return <li className="path-chest path-finale" data-milestone={milestone.id} data-trophy="" data-on-path="" data-reached={milestone.reached || undefined} data-just={just ? '' : undefined}>
+    <div className="path-finale-node">
+      <span className="path-chest-art orbit-node" data-lit={milestone.reached || undefined} data-just={just ? '' : undefined} data-path-point={point} aria-hidden="true" style={{'--node': PATH_COLOURS.gold.token} as CSSProperties}><OrbitNodeFace glyph="star" just={just}/></span>
+      {zigi && <PathZigi state={zigi} side={zigiSide} alive/>}
+    </div>
+    <span className="path-chest-text"><strong>{milestone.label}</strong><span className="sr-only">{milestone.reached ? ' (reached)' : ' (not reached yet)'}</span></span>
+  </li>;
 }

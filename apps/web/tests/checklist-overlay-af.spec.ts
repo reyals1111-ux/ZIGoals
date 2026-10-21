@@ -10,10 +10,11 @@ import {navLink} from './phone-nav';
  * Session AF (L3b; the owner's full-screen Checklist): the Checklist is a stand-alone layer over the whole app. Only the
  * Checklist is on screen — no sidebar, header, footer banner, tab bar or other launcher — as a modal dialog in the
  * browser's top layer, so everything behind it is inert and focus stays inside; X and Escape return to the page it was
- * opened from, or to Today when it was opened directly; the address stays /app/checklist. The path's planets are 72–88 px
- * on a computer and 64–76 px on a phone, each with one short caption and no paragraph on the path. A tick presses,
- * bursts and sends a comet along the line under normal motion and is a still under reduced motion and Motion Off. The
- * day's celebration plays once, on the last tick, never when a finished day is opened again.
+ * opened from, or to Today when it was opened directly; the address stays /app/checklist. Session AG (ADR-029): the path's
+ * nodes are 76–88 px on a computer and 58–68 px on a phone, each with one name tab and no paragraph on the path. A tick
+ * lights its node (the ring blooms, the tab fills with a check) and sends a light along the line under normal motion, and
+ * is a still under reduced motion and Motion Off. The day's celebration plays once, on the last tick, never when a
+ * finished day is opened again.
  */
 const overlay = (page: Page) => page.locator('dialog.checklist-overlay');
 async function open(page: Page, path?: Parameters<typeof seedChecklist>[1]) {
@@ -80,22 +81,23 @@ test('X and Escape return to the page it was opened from; opened directly, to To
   await expect(page).toHaveURL(/\/app\/habits$/);
 });
 
-test('big planets (88–112 px on a computer, 64–84 px on a phone, the next one a size larger); one short name beside each, no paragraph on the path', async ({page}, info) => {
+test('nodes (76–88 px on a computer, 58–68 px on a phone, the next one a size larger); one name tab on each, no paragraph on the path', async ({page}, info) => {
   await open(page);
-  const range = info.project.name === 'mobile' ? [64, 84] : [88, 112];
+  // Session AG, moved at equal strength: the footer banner's nodes (80 px on a computer, 62 on a phone; the next ×1.06).
+  const range = info.project.name === 'mobile' ? [58, 68] : [76, 88];
   for (const size of info.project.name === 'mobile' ? [{width: 390, height: 844}] : [{width: 1440, height: 900}, {width: 1280, height: 720}]) {
     await page.setViewportSize(size); await page.waitForTimeout(300);
     const dots = await page.locator('button.path-dot').evaluateAll(els => els.map(e => { const r = e.getBoundingClientRect(); return Math.round(Math.min(r.width, r.height)); }));
     expect(dots.length).toBe(4);
     for (const d of dots) { expect(d, `${size.width}px`).toBeGreaterThanOrEqual(range[0]!); expect(d, `${size.width}px`).toBeLessThanOrEqual(range[1]!); }
   }
-  // One name per planet, beside it (no box), one line from a tablet up and two at most on a phone, 14 px or more. Round 4
-  // (L3b), moved at greater strength: the next planet's name is no longer a bubble but an ordinary name held to the same
-  // rules as every other, and the planet itself wears a one-word NEXT / START tag on its crown (asserted below).
-  const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(); return {bubble: e.classList.contains('path-label-bubble'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), boxed: cs.backgroundColor !== 'rgba(0, 0, 0, 0)', beside: r.right <= dot.left + 1 || r.left >= dot.right - 1, above: r.bottom <= dot.top + 1}; }));
+  // Session AG (owner pointer 2), moved at equal strength: one name per node, now a tab attached to it where the footer's
+  // badge sits — overlapping its ring on its lower side, below its centre — one line from a tablet up and two at most on a
+  // phone (a clean ellipsis past that), 14 px or more, with the full name in its title.
+  const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(), cx = (dot.left + dot.right) / 2, cy = (dot.top + dot.bottom) / 2; return {bubble: e.classList.contains('path-label-bubble'), tab: e.classList.contains('orbit-tab'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), title: e.getAttribute('title'), label: text.textContent, attached: r.left < dot.right && r.right > dot.left && r.top < dot.bottom && r.bottom > dot.top, below: r.top > cy, aside: e.getAttribute('data-side') === 'right' ? r.left > cx && r.right > dot.right : r.right < cx && r.left < dot.left}; }));
   expect(names.filter(n => n.bubble)).toHaveLength(0);
-  for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); }
-  for (const n of names) { expect(n.boxed, 'no box behind a name').toBe(false); expect(n.beside, 'beside its planet').toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
+  for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); expect(n.tab, 'a name tab').toBe(true); expect(n.title, 'the full name in its title').toBe(n.label); }
+  for (const n of names) { expect(n.attached, `${n.label}: attached to its node`).toBe(true); expect(n.below, `${n.label}: on the node's lower side`).toBe(true); expect(n.aside, `${n.label}: toward its side`).toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
   const tag = await page.locator('[data-next] .path-next-tag').evaluate(el => { const r = el.getBoundingClientRect(), d = el.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(); return {text: el.textContent, onCrown: r.top < d.top && r.bottom > d.top - 2, centred: Math.abs((r.left + r.right) / 2 - (d.left + d.right) / 2) <= 2}; });
   expect(tag.text, 'one word').toMatch(/^(Next|Start)$/);
   expect(tag.onCrown, 'the tag sits on the planet’s crown').toBe(true);
@@ -108,7 +110,7 @@ test('big planets (88–112 px on a computer, 64–84 px on a phone, the next on
   await expect(page.getByRole('region', {name: 'How it works'})).toContainText('Any order counts');
 });
 
-test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s cheer and the bar’s shine', async ({page}) => {
+test('a tick: the node lights (its ring blooms, its tab fills with a check), a light runs along the line, ZIGi’s cheer and the bar’s shine', async ({page}) => {
   await open(page);
   const dot = page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true});
   // Round 7 (L3b; the iteration-6 frames showed ZIGi's head over a name and a banner's title as it glided): every frame of
@@ -134,17 +136,30 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
     };
     requestAnimationFrame(frame);
   });
-  await armComet(page, 60);
+  // (The bloom and the light play once, about a second: the page records them as they appear, so a slow runner reads them.)
+  await page.evaluate(() => {
+    const w = window as unknown as {__lit: {bloom: string[]; travel: {segment: string; running: number}[]}}; w.__lit = {bloom: [], travel: []};
+    new MutationObserver(records => { for (const r of records) for (const n of r.addedNodes) {
+      if (!(n instanceof Element)) continue;
+      for (const b of [n, ...n.querySelectorAll('*')].filter(e => e.classList.contains('orbit-node-bloom'))) w.__lit.bloom.push(b.closest('[data-path-point]')?.getAttribute('data-path-point') ?? '');
+      for (const t of [n, ...n.querySelectorAll('*')].filter(e => e.classList.contains('orbit-flow-travel'))) requestAnimationFrame(() => w.__lit.travel.push({segment: t.closest('[data-segment]')?.getAttribute('data-segment') ?? '', running: t.getAnimations().length}));
+    } }).observe(document.querySelector('.path-stage')!, {childList: true, subtree: true});
+  });
   await dot.click();
   const done = page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true});
-  await expect(done).toHaveAttribute('data-just', '');
-  await expect(done.locator('.path-dot-burst[data-rich] i')).toHaveCount(14);
-  // Round 3 (L3b), moved at greater strength: the comet is a head with its tail, running on to the next planet; ZIGi's cheer is
-  // its celebrate pose with hops and sparkles, beside the planet just ticked.
-  await expect(page.locator('.path-comet .path-comet-head')).not.toHaveCount(0);
-  await expect(page.locator('.path-comet .path-comet-tail')).not.toHaveCount(0);
-  // Round 9 (the iteration-8 phone frames: a 45 px stub): here, where no name is in the way, a tail of 60 px or more.
-  expect(await cometReport(page), 'the comet 12 px or more from every name, bowing away from ZIGi, its tail 60 px or more').toEqual([]);
+  await expect(done).toHaveAttribute('data-lit', '');
+  // Session AG (owner pointers 1–2), moved at equal strength (was: fourteen sparks and a comet): the node lights — lit, its
+  // ring blooming once — its name tab fills in its colour with a check, and a light runs from it along the line toward the
+  // next node, once.
+  const lit = () => page.evaluate(() => (window as unknown as {__lit: {bloom: string[]; travel: {segment: string; running: number}[]}}).__lit);
+  await expect.poll(async () => (await lit()).bloom, {message: 'its ring blooms once'}).toEqual(['ck_fixture-1']);
+  const tab = await done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-label').evaluate(l => { const cs = getComputedStyle(l), check = getComputedStyle(l, '::before'); return {fill: cs.backgroundImage, check: check.content !== 'none' && parseFloat(check.borderLeftWidth) > 0}; });
+  expect(tab.fill, 'the tab fills in its colour').toMatch(/gradient/);
+  expect(tab.check, 'a check before the name: done never rests on colour alone').toBe(true);
+  await expect.poll(async () => (await lit()).travel.length, {message: 'a light runs along the line'}).toBe(1);
+  const travel = (await lit()).travel[0]!;
+  expect(travel.segment, 'from the node just lit to the next one').toMatch(/^ck_fixture-1>/);
+  expect(travel.running, 'the light runs').toBeGreaterThan(0);
   // Round 4, moved at greater strength: the cheer is a still from its first frame — ZIGi's waving greeting, never the
   // celebrate frame that reads as hands on the head — with its sparkles.
   const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
@@ -163,9 +178,11 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
   expect(moving, 'the tick plays').toBeGreaterThan(5);
-  // Then the burst is gone and the planet rests, done.
+  // Then the bloom and the light are gone and the node rests, lit.
   await expect(done).not.toHaveAttribute('data-just', /.*/, {timeout: 3000});
-  await expect(done.locator('.path-dot-burst')).toHaveCount(0);
+  await expect(done.locator('.orbit-node-bloom')).toHaveCount(0);
+  await expect(page.locator('.orbit-flow-travel')).toHaveCount(0);
+  await expect(done).toHaveAttribute('data-lit', '');
   // Round 6: from the cheer to its place beside the next planet ZIGi glides (a 300 ms move or longer), or stays where it is.
   const glided = await page.waitForFunction(() => { const z = document.querySelector('.path-zigi'); if (!z || z.hasAttribute('data-cheer')) return null; return {glide: z.getAnimations().some(a => Number(a.effect?.getComputedTiming().duration) >= 300)}; }, null, {polling: 'raf', timeout: 5000}).then(h => h.jsonValue());
   await page.waitForTimeout(1600);
@@ -195,7 +212,11 @@ for (const mode of ['reduced motion', 'Motion Off'] as const) {
     await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /\/brand\/checklist\/zigi-present\.webp$/);
     await page.waitForTimeout(1500);
     expect(await zigiClash(page), 'ZIGi 12 px clear of the path').toEqual([]);
-    expect(await page.locator('.path-dot[data-next] .path-dot-pulse').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+    // Session AG, moved at equal strength (was: the next planet's pulse at rest): the lit state shows at once — the node lit,
+    // its stretch of line lit from its side — and no light runs along the line.
+    await expect(page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true})).toHaveAttribute('data-lit', '');
+    await expect(page.locator('.orbit-flow-segment[data-light=from]')).not.toHaveCount(0);
+    expect(await page.locator('.orbit-flow-travel').evaluateAll(els => els.filter(el => getComputedStyle(el).display !== 'none').length)).toBe(0);
   });
 }
 
@@ -272,11 +293,11 @@ function longDay() {
   return r;
 }
 /** Round 5 (L3b): the parts of the path ZIGi's drawn figure — its picture's own box, as painted — comes within 12 px of:
- *  planets (the next one with its ring and moon), names, banners, chests and their names, the NEXT tag, an open panel. */
+ *  nodes (with their 6 px dark halo; Session AG), names, banners, chests and their names, the NEXT tag, an open panel. */
 const zigiClash = (page: Page) => page.evaluate(() => {
   const z = document.querySelector<HTMLElement>('.path-zigi'); if (!z) return ['no ZIGi'];
   const r = z.querySelector('img')!.getBoundingClientRect(), C = 12;
-  const ring = (dot: HTMLElement) => { const b = dot.getBoundingClientRect(), o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit'), own = dot.offsetWidth || b.width, e = o ? ((o.offsetWidth - own) / 2 + 6) * (b.width / own) : 0; return {left: b.left - e, top: b.top - e, right: b.right + e, bottom: b.bottom + e}; };
+  const ring = (dot: HTMLElement) => { const b = dot.getBoundingClientRect(), own = dot.offsetWidth || b.width, e = 6 * (b.width / own); return {left: b.left - e, top: b.top - e, right: b.right + e, bottom: b.bottom + e}; };
   return [...document.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-chest-text, .path-next-tag, .path-panel')].filter(o => !z.contains(o))
     .map(o => ({o, b: o.classList.contains('path-dot') ? ring(o) : o.getBoundingClientRect()}))
     .filter(({b}) => b.right - b.left > 2 && b.bottom - b.top > 2 && Math.min(r.right, b.right + C) - Math.max(r.left, b.left - C) > 0 && Math.min(r.bottom, b.bottom + C) - Math.max(r.top, b.top - C) > 0)
@@ -297,21 +318,12 @@ const restFacts = (page: Page) => page.evaluate(() => {
   for (let y = 0; y < H; y++) for (let i = 0; i < W; i++) if (px[(y * W + i) * 4 + 3]! > 8) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   const k = Math.min(b.width / W, b.height / H), ox = b.left + (b.width - W * k) / 2, oy = b.top + (b.height - H * k) / 2, mirrored = z.getAttribute('data-side') === 'left';
   const fig = {left: mirrored ? ox + (W - 1 - x1) * k : ox + x0 * k, right: mirrored ? ox + (W - x0) * k : ox + (x1 + 1) * k, top: oy + y0 * k, bottom: oy + (y1 + 1) * k};
-  const o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, s = d.width / dot.offsetWidth, e = ((o.offsetWidth - dot.offsetWidth) / 2 + 6) * s, l = document.querySelector('[data-next] .path-label')!.getBoundingClientRect();
+  // (Session AG: the node's ring as drawn reaches its 6 px dark halo; there is no orbit ring or moon any more.)
+  const e = 6 * d.width / dot.offsetWidth, l = document.querySelector('[data-next] .path-label')!.getBoundingClientRect();
   const left = (fig.left + fig.right) / 2 < (d.left + d.right) / 2, arm = fig.top + (fig.bottom - fig.top) * .31;
   const presenting = /\/brand\/checklist\/zigi-present\.webp$/.test(image.getAttribute('src') ?? '');
-  const os = getComputedStyle(o), mask = os.maskImage || os.getPropertyValue('-webkit-mask-image'), masked = !!mask && mask !== 'none';
-  let nameGap = l.left >= d.right ? l.left - (d.right + e) : (d.left - e) - l.right;
-  if (masked) {
-    // (The ring as drawn: every point of its band and its moon's path, outside the faded opening toward the name.)
-    const open = parseFloat(os.getPropertyValue('--open')) || 90, half = parseFloat(os.getPropertyValue('--opening')) || 0, cx = (d.left + d.right) / 2, cy = (d.top + d.bottom) / 2;
-    const rOut = (o.offsetWidth / 2 + 6) * s, rIn = (o.offsetWidth / 2 - 8) * s;
-    nameGap = Infinity;
-    for (let t = 0; t < 360; t += 2) {
-      const off = Math.abs(((t - open + 540) % 360) - 180); if (off <= half) continue;
-      for (const r of [rIn, (rIn + rOut) / 2, rOut]) { const qx = cx + r * Math.sin(t * Math.PI / 180), qy = cy - r * Math.cos(t * Math.PI / 180), dx = Math.max(l.left - qx, 0, qx - l.right), dy = Math.max(l.top - qy, 0, qy - l.bottom); nameGap = Math.min(nameGap, Math.hypot(dx, dy)); }
-    }
-  }
+  // (Session AG: the next node's name is a tab attached to its node — `nameGap` now reads that it overlaps the node.)
+  const nameGap = Math.min(l.right, d.right) - Math.max(l.left, d.left) > 0 && Math.min(l.bottom, d.bottom) - Math.max(l.top, d.top) > 0 ? 0 : -1, masked = false;
   const cy = (d.top + d.bottom) / 2, band = Math.max(14, d.height / 4);
   // (Gate C test audit: the figure's distance from the next planet's ring, as drawn, on the side it stands.)
   const gap = left ? (d.left - e) - fig.right : fig.left - (d.right + e);
@@ -321,49 +333,6 @@ const restFacts = (page: Page) => page.evaluate(() => {
   const pastName = between ? (left ? l.left - fig.right : fig.left - l.right) : null;
   return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked, gap, pastName};
 });
-/** Round 8: the comet's arc, once it has chosen its way, sampled along its whole length — the names it comes within 12 px of,
- *  where they stand once the tick's own steps (a name stepping back in, the next one's stepping out, 360 ms) have settled.
- *  Round 9 (the iteration-8 frames: on a phone a short arc bowing toward ZIGi, its head beside ZIGi's hand): and the side it
- *  bows to — never ZIGi's (the arc's middle and ZIGi, where it stands, on opposite sides of the line between its ends). */
-//  Gate C (CI on 40479dc4, a slow mobile shard: the runner's own checks after the tap outlasted the 1.24 s comet, so it was
-//  gone when the runner came to read it — "no comet left to measure"): armed before the tap, the page itself reads the new
-//  comet 400 ms after it appears, as the runner meant to; `cometReport` then waits for that reading. The checks are unchanged.
-async function armComet(page: Page, minTail = 0) {
-  await page.evaluate(minTail => {
-    const w = window as unknown as {__comet?: string[]}; delete w.__comet;
-    // (A comet already drawn at the tap — or its element reused for another segment — is told apart by its segment and way.)
-    const sign = (c: Element) => `${c.getAttribute('data-segment')}|${c.getAttribute('data-bow')}`, old = new Map([...document.querySelectorAll('.path-comet')].map(c => [c, sign(c)]));
-    const measure = () => {
-      const out: string[] = [], heads = document.querySelectorAll<SVGPathElement>('.path-comet[data-bow] .path-comet-head');
-      if (!heads.length) return ['no comet left to measure'];
-      for (const head of heads) {
-        const L = head.getTotalLength(), m = head.getScreenCTM()!, at = (f: number) => new DOMPoint(head.getPointAtLength(L * f).x, head.getPointAtLength(L * f).y).matrixTransform(m);
-        const names = [...document.querySelectorAll<HTMLElement>('.path-label')].map(l => ({t: (l.textContent ?? '').slice(0, 20), b: l.getBoundingClientRect()}));
-        for (let i = 0; i <= 60; i++) {
-          const q = at(i / 60);
-          for (const {t, b} of names) { const d = Math.hypot(Math.max(b.left - q.x, 0, q.x - b.right), Math.max(b.top - q.y, 0, q.y - b.bottom)); if (d < 12 && !out.includes(t)) out.push(t); }
-        }
-        const z = document.querySelector<HTMLElement>('.path-zigi');
-        if (z) {
-          const p = z.parentElement!.getBoundingClientRect(), zx = p.left + z.offsetLeft + z.offsetWidth / 2, zy = p.top + z.offsetTop + z.offsetHeight / 2;
-          const a = at(0), b = at(1), mid = at(.5), side = (x: number, y: number) => Math.sign((b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x));
-          if (side(mid.x, mid.y) === side(zx, zy)) out.push('the comet bows toward ZIGi');
-        }
-        // (Its tail as drawn: its dash's share of the arc.)
-        const tail = parseFloat(head.closest('.path-comet')!.querySelector('.path-comet-tail')!.getAttribute('stroke-dasharray') ?? '0') * L;
-        if (tail < minTail) out.push(`a tail of ${Math.round(tail)} px`);
-      }
-      return out;
-    };
-    const wait = () => { if ([...document.querySelectorAll('.path-comet[data-bow]')].some(c => old.get(c) !== sign(c))) setTimeout(() => { w.__comet = measure(); }, 400); else requestAnimationFrame(wait); };
-    requestAnimationFrame(wait);
-  }, minTail);
-}
-/** The armed reading (`armComet`): a new comet appeared, chose its way and was read 400 ms later. */
-async function cometReport(page: Page) {
-  await expect.poll(() => page.evaluate(() => (window as unknown as {__comet?: string[]}).__comet ?? null), {message: 'a comet appears after the tap and is read', timeout: 8000}).not.toBeNull();
-  return page.evaluate(() => (window as unknown as {__comet: string[]}).__comet);
-}
 /** Round 9 (L3b; the iteration-8 frames: at the top of a cheer's hop ZIGi's head met the descenders of a name, and a sparkle
  *  sat on a name — the round-7 and round-8 checks read ZIGi at rest and its moves only, never the hop's own frames, nor the
  *  sparkles): installed in the page, it reads one frame of a cheer — ZIGi's figure as drawn at that moment (its hop and its
@@ -403,12 +372,14 @@ const cutNames = (page: Page) => page.evaluate(() => {
 });
 /** The round-7 rest checks, at each size (see `restFacts`). */
 async function expectRest(page: Page, width: number, when: string) {
-  const f = await restFacts(page), least = width >= 1180 ? 140 : width >= 641 ? 118 : 96;
+  // Session AG (owner Part 6): ZIGi on the path at half its earlier size on a computer and a tablet (140 → 70, 118 → 59 as
+  // drawn); a phone keeps a size that reads (96 → 76).
+  const f = await restFacts(page), least = width >= 1180 ? 66 : width >= 641 ? 56 : 76;
   expect(f.h, `${width}px, ${when}: ZIGi's figure at rest ${least} px or more`).toBeGreaterThanOrEqual(least);
   if (width < 641) expect(f.edge, `${width}px, ${when}: ZIGi 16 px or more from the screen's edges`).toBeGreaterThanOrEqual(16);
   expect(f.mirrored, `${width}px, ${when}: ZIGi faces the next planet`).toBe(f.left);
   expect(f.points, `${width}px, ${when}: ZIGi points at the next planet, its arm through the planet's body`).toBe(true);
-  expect(f.nameGap, `${width}px, ${when}: the next planet's name 12 px clear of its ring and moon`).toBeGreaterThanOrEqual(12);
+  expect(f.nameGap, `${width}px, ${when}: the next node's name tab attached to it`).toBe(0);
   // Gate C test audit (new, after every tick and under reduced motion, not only on opening): ZIGi's figure stays beside the
   // next planet — 12 px clear of its ring and no further than the measured rests (1440: 91, 768: 60, 390: 27 px from the
   // ring) plus 8 px or so: 100 on a computer, 68 on a tablet, 36 on a phone.
@@ -446,7 +417,7 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   // figure stands 12 to 36 px from the ring — the same 24 px of play the old check allowed, past the new clearance.
   await zigiAtRest(page);
   const z = await rect(page, '[data-next] .path-zigi img');
-  const ringEdge = await page.locator('[data-next] .path-dot').evaluate(dot => { const b = dot.getBoundingClientRect(), o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, own = (dot as HTMLElement).offsetWidth, e = ((o.offsetWidth - own) / 2 + 6) * (b.width / own); return {left: b.left - e, right: b.right + e, top: b.top - e, bottom: b.bottom + e}; });
+  const ringEdge = await page.locator('[data-next] .path-dot').evaluate(dot => { const b = dot.getBoundingClientRect(), e = 6 * (b.width / (dot as HTMLElement).offsetWidth); return {left: b.left - e, right: b.right + e, top: b.top - e, bottom: b.bottom + e}; });
   const beside = z.left >= ringEdge.right ? z.left - ringEdge.right : ringEdge.left - z.right;
   expect(beside, 'ZIGi beside the next planet').toBeGreaterThanOrEqual(12);
   // Round 7, moved (iteration-6 critique: pointing at the next planet comes before size, and size before nearness): on a
@@ -471,7 +442,7 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   // 130 px box of the uncropped picture, 81 % of it figure: 106 px) and 140 on a computer; pointing at the planet.
   await expectRest(page, page.viewportSize()!.width, 'on opening');
   expect(await cutNames(page), 'no name cut by the foot bar: it fades into it').toEqual([]);
-  expect((await restFacts(page)).h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 641 ? 106 : 140);
+  expect((await restFacts(page)).h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 641 ? 76 : 66);
   // The corner timers are on the first screen: the side column's Sleep on a computer, the foot bar's Sleep chip on a phone.
   // (Round 4: on a phone the timers are the foot bar's own chips, so Sleep itself is on the first screen everywhere.)
   await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
@@ -525,16 +496,11 @@ test('a learning path’s density: six planets or more on the opening screen, be
     for (const b of await page.getByRole('group', {name: 'Quick timers'}).getByRole('button').all()) { const box = (await b.boundingBox())!; expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44); }
     const alpha = await page.locator('.checklist-dock').evaluate(el => { const m = getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) ?? []; return Math.min(...m.map(c => { const v = c.match(/[\d.]+/g)!.map(Number); return v.length > 3 ? v[3]! : 1; })); });
     expect(alpha, 'the foot bar is opaque').toBeGreaterThanOrEqual(.95);
-    // Round 8 (L3b; the iteration-7 frames: a chest's lid over its planet's base, a chest 7 px above a banner): an orbit's
-    // chest on a phone sits on the line under its planet, 8 px or more below the planet's base (its 6 px rim), its lid too,
-    // and 12 px or more above the banner below.
-    const chests = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.path-chest[data-inline]')].map(c => {
-      const art = c.querySelector('.path-chest-art')!.getBoundingClientRect(), lid = c.querySelector('.path-chest-lid')!.getBoundingClientRect(), dot = c.closest('.path-step')!.querySelector('.path-dot')!.getBoundingClientRect();
-      const banner = [...document.querySelectorAll('.path-banner')].map(b => b.getBoundingClientRect()).find(b => b.top > dot.bottom);
-      return {base: Math.min(art.top, lid.top) - (dot.bottom + 6), banner: banner ? banner.top - art.bottom : 99};
-    }));
-    expect(chests.length, 'chests on the path').toBeGreaterThan(0);
-    for (const c of chests) { expect(c.base, 'a chest 8 px below its planet').toBeGreaterThanOrEqual(8); expect(c.banner, 'a chest 12 px above the banner below').toBeGreaterThanOrEqual(12); }
+    // Session AG (owner Part 6), replacing the chests' places on a phone: there are no chests on the path any more — only
+    // the day's finale, at its end.
+    await expect(page.locator('.path-chest[data-inline]')).toHaveCount(0);
+    await expect(page.locator('.path-stage .path-chest')).toHaveCount(1);
+    await expect(page.locator('.path-stage .path-chest')).toHaveAttribute('data-milestone', 'end');
   }
 });
 
@@ -572,7 +538,7 @@ test('ZIGi at rest is 12 px clear of the path after a tick, after an orbit and u
   }
 });
 
-test('a tick moves nothing but its own planet: every other name and every chest keeps its place; the new next name only steps out, gliding', async ({page}, info) => {
+test('a tick moves nothing but its own node: every name keeps its place, the new next one too; a light runs along the line', async ({page}, info) => {
   // Round 6 (L3b; the iteration-5 frames showed names swapping sides and chests jumping between two frames of a tick).
   test.setTimeout(120_000);
   const sizes = info.project.name === 'mobile' ? [{width: 390, height: 844}] : [{width: 1440, height: 900}, {width: 768, height: 1024}];
@@ -580,7 +546,6 @@ test('a tick moves nothing but its own planet: every other name and every chest 
     const st = document.querySelector('.path-stage')!.getBoundingClientRect(), out: Record<string, {x: number; y: number; w: number; h: number; side: string}> = {};
     const box = (e: Element, side = '') => { const b = e.getBoundingClientRect(); return {x: b.left - st.left, y: b.top - st.top, w: b.width, h: b.height, side}; };
     for (const step of document.querySelectorAll('.path-step')) { const id = step.querySelector('[data-path-point]')!.getAttribute('data-path-point')!, l = step.querySelector('.path-label')!; out[`name ${id}`] = box(l, l.getAttribute('data-side') ?? ''); }
-    for (const c of document.querySelectorAll('.path-chest[data-inline] .path-chest-art')) out[`chest ${c.closest('.path-chest')!.getAttribute('data-milestone')}`] = box(c);
     return out;
   });
   for (const size of sizes) {
@@ -590,14 +555,9 @@ test('a tick moves nothing but its own planet: every other name and every chest 
     for (const n of [1, 2, 3]) {
       const before = await boxes(), ticked = `name ck_fixture-${n}`, next = `name ck_fixture-${n + 1}`;
       const cheer = await watchCheer(page);
-      await armComet(page);
       await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
-      // Round 8 (the iteration-7 frames: a comet's head touching a name): its arc keeps 12 px from every name.
-      expect(await cometReport(page), `${size.width}px, star ${n}: the comet 12 px or more from every name, bowing away from ZIGi`).toEqual([]);
-      // The new next planet's name glides out (translate, 300 ms or more) to clear its ring.
-      const glide = await page.locator('[data-next] .path-label').evaluate(l => { const cs = getComputedStyle(l); return {property: cs.transitionProperty, duration: parseFloat(cs.transitionDuration)}; });
-      expect(glide.property).toContain('translate');
-      expect(glide.duration).toBeGreaterThanOrEqual(.3);
+      // Session AG, moved (was: a comet 12 px from every name): the light runs along the line itself, from the node just lit.
+      await expect(page.locator(`.orbit-flow-segment[data-travel][data-segment^="ck_fixture-${n}>"]`)).toHaveCount(1);
       await zigiAtRest(page);
       // Round 9: every frame of the cheer — the hop's top, its sparkles — off the names.
       expect(await cheer(), `${size.width}px, star ${n}: ZIGi's cheer and its sparkles off every name`).toEqual([]);
@@ -608,14 +568,15 @@ test('a tick moves nothing but its own planet: every other name and every chest 
         expect(a.side, `${size.width}px, star ${n}: ${key} keeps its side`).toBe(b.side);
         expect(Math.abs(a.y - b.y), `${size.width}px, star ${n}: ${key} keeps its height on the path`).toBeLessThanOrEqual(1);
         expect(Math.abs(a.h - b.h), `${size.width}px, star ${n}: ${key} keeps its lines`).toBeLessThanOrEqual(1);
-        if (key === next) expect(Math.abs(a.x - b.x), `${size.width}px, star ${n}: the next name steps out a little`).toBeLessThanOrEqual(40);
-        else { expect(Math.abs(a.x - b.x), `${size.width}px, star ${n}: ${key} stays`).toBeLessThanOrEqual(1); expect(Math.abs(a.w - b.w), `${size.width}px, star ${n}: ${key} keeps its width`).toBeLessThanOrEqual(1); }
+        // (Session AG, at greater strength: the next node's name tab no longer steps out — it stays too, `next` included.)
+        void next;
+        expect(Math.abs(a.x - b.x), `${size.width}px, star ${n}: ${key} stays`).toBeLessThanOrEqual(1); expect(Math.abs(a.w - b.w), `${size.width}px, star ${n}: ${key} keeps its width`).toBeLessThanOrEqual(1);
       }
     }
   }
 });
 
-test('a long name stays whole, on two lines at most, on a phone — also once its planet is the next one', async ({page}, info) => {
+test('a long name keeps to two lines at most on a phone, with a clean ellipsis and its full name in its title — also once its node is the next one', async ({page}, info) => {
   // Round 7 (L3b; the iteration-6 frames cut a long name to "… breathwork 15…" on a phone).
   test.skip(info.project.name !== 'mobile', 'a phone');
   test.setTimeout(90_000);
@@ -625,15 +586,18 @@ test('a long name stays whole, on two lines at most, on a phone — also once it
   await page.setViewportSize({width: 390, height: 844});
   await open(page, {path: r});
   const name = page.locator('.path-label', {hasText: 'Starlight & breathwork 15 minutes'});
-  const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight); return {cut: t.scrollHeight > t.clientHeight + 1 || t.scrollWidth > t.clientWidth + 1, lines: Math.round(t.getBoundingClientRect().height / lh), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
+  // Session AG (owner pointer 2, AF15), moved: past two lines a name ends in an ellipsis (no word cut mid-line, no third
+  // line), and its full name stays in its title and its node's name.
+  const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight), cs = getComputedStyle(t); return {clamped: t.scrollHeight > t.clientHeight + 1 ? cs.webkitLineClamp === '2' || cs.getPropertyValue('line-clamp') === '2' : true, lines: Math.round(t.getBoundingClientRect().height / lh), title: l.getAttribute('title'), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
   const before = await whole();
-  expect(before.cut, 'whole').toBe(false);
+  expect(before.clamped, 'a clean ellipsis where it is cut').toBe(true);
+  expect(before.title, 'the full name in its title').toBe('Starlight & breathwork 15 minutes');
   expect(before.lines, 'two lines at most').toBeLessThanOrEqual(2);
   for (const n of [1, 2, 3, 4, 5, 6, 7]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
   await zigiAtRest(page);
   await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight & breathwork 15 minutes');
   const after = await whole();
-  expect(after.cut, 'whole as the next planet\'s name').toBe(false);
+  expect(after.clamped, 'a clean ellipsis where it is cut, as the next node\'s name').toBe(true);
   expect(after.lines, 'the same lines').toBe(before.lines);
   expect(after.left, 'on the screen').toBeGreaterThanOrEqual(0); expect(after.right, 'on the screen').toBeLessThanOrEqual(after.vw);
   await expectRest(page, 390, 'beside the long name\'s planet');

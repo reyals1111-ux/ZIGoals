@@ -52,7 +52,9 @@ export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '
   '.today-stories-mark', '.today-earn-mark', '.today-checklist-mark',
   // Session AF (the lead, crit1): the ecosystem apps' logo discs on Earn keep Nebula's navy disc in every theme, so a light
   // logo glyph stays visible by day (the Light sheet had washed them to near-white, 1.4:1).
-  '.earn-medallion', '.earn-dock-app-face'];
+  '.earn-medallion', '.earn-dock-app-face',
+  // Session AG (ADR-029): the orbit path's nodes, their name tabs and its flowing line keep the Nebula colours in every theme.
+  '.orbit-node', '.orbit-tab', '.orbit-flow'];
 
 export function sourceFiles() {
   const out = [];

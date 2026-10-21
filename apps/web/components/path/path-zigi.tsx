@@ -64,11 +64,12 @@ const lastSeen = new WeakMap<Element, {x: number; y: number; w: number; h: numbe
 const RECENT_MS = 5000;
 /** A planet's box with its orbit ring and moon (the next planet's), at rest: its centre as drawn, its size from its layout
  *  and its resting scale (round 7: never read through a tick's bounce, which moved ZIGi's cheer half way through it). */
+/** A dot's ring as drawn: its orbit ring where it has one (Session AF), an orbit node's 6 px dark halo (Session AG). */
 export function ringBox(dot: Element): Box {
   const r = dot.getBoundingClientRect(), ring = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit'), own = (dot as HTMLElement).offsetWidth || r.width;
   if (!dot.classList.contains('path-dot')) return {left: r.left, top: r.top, right: r.right, bottom: r.bottom};
   const stage = dot.closest('.path-stage'), k = dot.hasAttribute('data-next') && stage ? parseFloat(getComputedStyle(stage).getPropertyValue('--next-scale')) || 1 : 1;
-  const half = own / 2 * k + (ring ? ((ring.offsetWidth - own) / 2 + 6) * k : 0), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+  const half = own / 2 * k + (ring ? ((ring.offsetWidth - own) / 2 + 6) * k : dot.classList.contains('orbit-node') ? 6 * k : 0), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
   return {left: cx - half, top: cy - half, right: cx + half, bottom: cy + half};
 }
 /** A name's box where it comes to rest: a next planet's name steps out by `translate` (round 6), so while that glides it is

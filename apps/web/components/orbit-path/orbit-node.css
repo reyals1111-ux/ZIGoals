@@ -1,0 +1,35 @@
+/* Session AG (ADR-029; reference 02): the orbit node — the footer banner's node (components/footer/site-footer.css
+   `.site-footer-node`: the same glass, ring and glow) as a reusable piece. Driven by `--node` (its colour) and `data-lit`.
+   The values are custom properties too, so a host with stronger rules of its own (the shared path's dots) applies them.
+   The same hues in every theme (`.orbit-node` is a theme island). */
+/* (The glass's night colours as :root tokens, which the theme sheets leave as they are: the node is the same in every theme.) */
+:root { --orbit-hue-disc-hi: #1b2f5a; --orbit-hue-disc-lo: #0a1130; --orbit-hue-rim: #020918; }
+.orbit-node {
+  --node-dim: color-mix(in srgb, var(--node, #23eaff) 46%, #5d6680);
+  --node-glass: radial-gradient(120% 120% at 30% 20%, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo) 70%);
+  --node-edge: var(--node-dim);
+  --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 16px -6px color-mix(in srgb, var(--node-dim) 55%, transparent), inset 0 1px 0 #ffffff14;
+  --node-ink: var(--node-dim);
+  --node-glyph-glow: none;
+  position: relative; display: grid; place-items: center; box-sizing: border-box; border-radius: 50%;
+  background: var(--node-glass); border: 2px solid var(--node-edge); box-shadow: var(--node-shadow); color: var(--node-ink);
+}
+@supports (color: oklch(from red l c h)) { .orbit-node { --node-dim: oklch(from var(--node, #23eaff) calc(l * .72) calc(c * .38) h); } }
+.orbit-node[data-lit] {
+  --node-edge: var(--node, #23eaff);
+  --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 38px -4px color-mix(in srgb, var(--node, #23eaff) 75%, transparent), inset 0 1px 0 #ffffff22, inset 0 -10px 20px color-mix(in srgb, var(--node, #23eaff) 22%, transparent);
+  --node-ink: color-mix(in srgb, var(--node, #23eaff) 60%, #ffffff);
+  --node-glyph-glow: drop-shadow(0 0 8px color-mix(in srgb, var(--node, #23eaff) 80%, transparent));
+}
+.orbit-node-glyph { display: grid; place-items: center; color: var(--node-ink); filter: var(--node-glyph-glow); transition: color 320ms ease, filter 320ms ease; }
+.orbit-node-glyph svg { width: calc(var(--node-size, 80px) * .42); height: calc(var(--node-size, 80px) * .42); }
+/* Just lit: the ring blooms from dim to full — a short flare of its colour that grows and fades, once. */
+.orbit-node-bloom { position: absolute; inset: -4px; border-radius: 50%; border: 3px solid var(--node, #23eaff); box-shadow: 0 0 24px var(--node, #23eaff), inset 0 0 18px color-mix(in srgb, var(--node, #23eaff) 60%, transparent); pointer-events: none; opacity: 0;
+  animation: orbit-node-bloom 720ms cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes orbit-node-bloom { 0% { opacity: .95; transform: scale(.92); } 45% { opacity: .8; } 100% { opacity: 0; transform: scale(1.55); } }
+.orbit-node[data-just] { animation: orbit-node-light 520ms cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes orbit-node-light { 0% { filter: brightness(.7) saturate(.5); } 40% { filter: brightness(1.45) saturate(1.2); } 100% { filter: none; } }
+@media (prefers-reduced-motion: reduce) { .orbit-node[data-just], .orbit-node-glyph { animation: none; transition: none; } .orbit-node-bloom { display: none; } }
+:root[data-app-motion=off] .orbit-node[data-just], :root[data-app-motion=off] .orbit-node-glyph { animation: none; transition: none; }
+:root[data-app-motion=off] .orbit-node-bloom { display: none; }
+@media (forced-colors: active) { .orbit-node { border: 2px solid CanvasText; } .orbit-node-glyph { color: CanvasText; filter: none; } }

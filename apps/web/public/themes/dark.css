@@ -10179,6 +10179,71 @@
         color: var(--text-secondary, #c9d6ea)
     }
 }
+/*  components/orbit-path/flow-line.css  */
+@scope (:root[data-theme=dark]) {
+    .orbit-flow-segment[data-lit] .orbit-flow-core:not(#\-) {
+        filter: brightness(1.35) saturate(1.1)
+    }
+    .orbit-flow-travel:not(#\-) {
+        stroke: #ffffff;
+        filter: drop-shadow(0 0 6px var(--seg, #ffffff)) drop-shadow(0 0 12px var(--seg, #ffffff))
+    }
+    @media (forced-colors: active) {
+        .orbit-flow path:not(#\-) {
+            stroke: CanvasText
+        }
+    }
+}
+/*  components/orbit-path/orbit-node.css  */
+@scope (:root[data-theme=dark]) {
+    :scope:not(#\-) {
+        --orbit-hue-disc-hi: #1b2f5a;
+        --orbit-hue-disc-lo: #0a1130;
+        --orbit-hue-rim: #020918
+    }
+    .orbit-node:not(#\-) {
+        --node-dim: color-mix(in srgb, var(--node, #23eaff) 46%, #5d6680);
+        --node-glass: radial-gradient(120% 120% at 30% 20%, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo) 70%);
+        --node-edge: var(--node-dim);
+        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 16px -6px color-mix(in srgb, var(--node-dim) 55%, transparent), inset 0 1px 0 #ffffff14;
+        --node-ink: var(--node-dim);
+        background-image: var(--node-glass);
+        background-color: transparent;
+        border-color: var(--node-edge);
+        box-shadow: var(--node-shadow);
+        color: var(--node-ink)
+    }
+    @supports (color: oklch(from red l c h)) {
+        .orbit-node:not(#\-) {
+            --node-dim: oklch(from var(--node, #23eaff) calc(l * .72) calc(c * .38) h)
+        }
+    }
+    .orbit-node[data-lit]:not(#\-) {
+        --node-edge: var(--node, #23eaff);
+        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 38px -4px color-mix(in srgb, var(--node, #23eaff) 75%, transparent), inset 0 1px 0 #ffffff22, inset 0 -10px 20px color-mix(in srgb, var(--node, #23eaff) 22%, transparent);
+        --node-ink: color-mix(in srgb, var(--node, #23eaff) 60%, #ffffff);
+        --node-glyph-glow: drop-shadow(0 0 8px color-mix(in srgb, var(--node, #23eaff) 80%, transparent))
+    }
+    .orbit-node-glyph:not(#\-) {
+        color: var(--node-ink);
+        filter: var(--node-glyph-glow)
+    }
+    .orbit-node-bloom:not(#\-) {
+        border-color: var(--node, #23eaff);
+        box-shadow: 0 0 24px var(--node, #23eaff), inset 0 0 18px color-mix(in srgb, var(--node, #23eaff) 60%, transparent)
+    }
+    @media (forced-colors: active) {
+        .orbit-node:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+    @media (forced-colors: active) {
+        .orbit-node-glyph:not(#\-) {
+            color: CanvasText;
+            filter: none
+        }
+    }
+}
 /*  components/page-actions.css  */
 @scope (:root[data-theme=dark]) {
     .page-minor-actions .page-ask-zigi:not(#\-), .page-minor-actions .page-backup-link:not(#\-) {
@@ -10194,323 +10259,154 @@
 /*  components/path/path-orbit.css  */
 @scope (:root[data-theme=dark]) {
     :scope:not(#\-) {
-        --path-ink-banner-word: #050b1f;
-        --path-ink-meter-track: #0a12302e
-    }
-    .path-stage[data-variant=orbit] .path-segment-halo:not(#\-) {
-        stroke: var(--seg, #9273ff)
-    }
-    .path-stage[data-variant=orbit] .path-segment-edge:not(#\-) {
-        stroke: color-mix(in srgb, var(--seg, #9273ff) 62%, #000)
-    }
-    @supports (color: oklch(from red l c h)) {
-        .path-stage[data-variant=orbit] .path-segment-edge:not(#\-) {
-            stroke: oklch(from var(--seg, #9273ff) calc(l * .62) c h)
-        }
-    }
-    .path-stage[data-variant=orbit] .path-segment-base:not(#\-) {
-        stroke: var(--seg, #9273ff)
-    }
-    .path-stage[data-variant=orbit] .path-segment-lead:not(#\-) {
-        stroke: var(--seg, #23eaff)
-    }
-    .path-stage[data-variant=orbit] .path-segment-glow:not(#\-) {
-        stroke: var(--seg, #9273ff)
-    }
-    .path-stage[data-variant=orbit] .path-segment-lit:not(#\-) {
-        stroke: var(--seg, #9273ff)
-    }
-    .path-stage[data-variant=orbit] .path-segment-core:not(#\-) {
-        stroke: #ffffff
-    }
-    .path-comet-head:not(#\-) {
-        stroke: #ffffff
-    }
-    .path-comet-halo:not(#\-) {
-        stroke: var(--seg, #9ff6ff)
-    }
-    .path-comet > .path-comet-tail:not(#\-) {
-        stroke: var(--seg, #9ff6ff)
-    }
-    .path-comet > .path-comet-tail-near:not(#\-) {
-        stroke: #ffffff
-    }
-    .path-stage[data-variant=orbit] .path-label:not(#\-) {
-        background-image: none;
-        background-color: transparent;
-        color: var(--text, #f0f5ff);
-        text-shadow: 0 1px 2px #02061499, 0 0 14px #020614cc
-    }
-    .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label:not(#\-) {
-        color: var(--muted, #b9c6de)
-    }
-    :scope[data-theme=light] .path-stage[data-variant=orbit] :is(.path-label, .path-chest-text):not(#\-) {
-        text-shadow: none
-    }
-    .path-next-tag:not(#\-) {
-        border-color: var(--dot-next, #23eaff);
-        background-image: none;
-        background-color: #ffffff;
-        color: #08112a;
-        box-shadow: 0 3px 0 color-mix(in srgb, var(--dot-next, #23eaff) 55%, #0a1230), 0 8px 18px -8px #000b
-    }
-    .path-stage[data-variant=orbit] .path-node > .path-next-tag:not(#\-) {
-        color: #08112a
-    }
-    .path-next-tag:not(#\-)::after {
-        background-image: none;
-        background-color: #ffffff;
-        border-right-color: var(--dot-next, #23eaff);
-        border-bottom-color: var(--dot-next, #23eaff)
-    }
-    .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
-        --dot-next: var(--step-colour, #23eaff)
-    }
-    .path-stage[data-variant=orbit] .path-step[data-next] .path-label:not(#\-) {
-        color: var(--text, #f0f5ff)
-    }
-    .path-stage[data-variant=orbit]:not(#\-) {
-        --label-reserve: calc((var(--dot-size) * (var(--next-scale) - 1) / 2 + (var(--ring) + var(--moon)) * var(--next-scale) + 13px - var(--label-gap)) * var(--step-out, 1))
-    }
-    .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
-        --next-shift: var(--label-reserve)
+        --path-ink-banner-word: #050b1f
     }
     .path-stage[data-variant=orbit] .path-dot:not(#\-) {
-        --orb-hi: color-mix(in srgb, var(--dot) 72%, #ffffff);
-        --orb-mid: color-mix(in srgb, var(--dot) 62%, #0b1030);
-        --orb-low: color-mix(in srgb, var(--dot) 42%, #070b22);
-        --orb-shade: color-mix(in srgb, var(--dot) 40%, #050818);
-        --rim: color-mix(in srgb, var(--dot) 38%, #050818);
-        background: var(--orb-mid);
-        box-shadow: inset 0 -6px 0 var(--orb-shade), 0 6px 0 var(--rim)
+        --node-size: var(--dot-size);
+        background-image: var(--node-glass);
+        background-color: transparent;
+        border-color: var(--node-edge) !important;
+        box-shadow: var(--node-shadow);
+        color: var(--node-ink)
     }
-    .path-stage[data-variant=orbit] .path-dot:is([data-next], [data-state=done], [data-state=running]):not(#\-) {
-        background-image: radial-gradient(circle at 34% 28%, var(--orb-hi) 0, var(--orb-mid) 46%, var(--orb-low) 100%);
-        background-color: transparent
-    }
-    .path-stage[data-variant=orbit] .path-dot-core:not(#\-) {
-        color: #ffffffd9;
-        filter: drop-shadow(0 1px 2px #0006)
-    }
-    .path-stage[data-variant=orbit] .path-dot-shine:not(#\-) {
-        background-image: radial-gradient(ellipse at 50% 40%, #ffffff59, #ffffff00 70%);
-        background-color: transparent
+    .path-stage[data-variant=orbit] .path-dot .path-dot-core:not(#\-) {
+        color: var(--node-ink);
+        filter: var(--node-glyph-glow)
     }
     .path-stage[data-variant=orbit] :is(button, a).path-dot:hover:not(#\-) {
-        box-shadow: inset 0 -6px 0 var(--orb-shade), 0 6px 0 var(--rim), 0 0 30px color-mix(in srgb, var(--dot) 46%, transparent)
+        box-shadow: var(--node-shadow), 0 0 26px -6px color-mix(in srgb, var(--node) 55%, transparent);
+        --node-edge: color-mix(in srgb, var(--node) 70%, var(--node-dim))
     }
     .path-stage[data-variant=orbit] :is(button, a).path-dot:active:not(#\-) {
-        box-shadow: inset 0 -4px 0 var(--orb-shade), 0 1px 0 var(--rim), 0 0 30px color-mix(in srgb, var(--dot) 46%, transparent)
-    }
-    .path-stage[data-variant=orbit] .path-dot[data-next]:not(#\-) {
-        --orb-hi: color-mix(in srgb, var(--dot) 36%, #ffffff);
-        --orb-mid: var(--dot);
-        --orb-low: color-mix(in srgb, var(--dot) 70%, #0b1030);
-        --orb-shade: color-mix(in srgb, var(--dot) 58%, #050818);
-        --rim: color-mix(in srgb, var(--dot) 50%, #050818);
-        box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 24px -8px #000a, 0 0 44px color-mix(in srgb, var(--dot) 62%, transparent)
-    }
-    .path-stage[data-variant=orbit] .path-dot[data-next] .path-dot-core:not(#\-) {
-        color: #04101f;
-        filter: none
-    }
-    .path-stage[data-variant=orbit] .path-dot[data-state=done]:not(#\-) {
-        --orb-hi: color-mix(in srgb, var(--dot) 34%, #ffffff);
-        --orb-mid: var(--dot);
-        --orb-low: color-mix(in srgb, var(--dot) 62%, #050a1e);
-        --orb-shade: color-mix(in srgb, var(--dot) 58%, #030816);
-        --rim: color-mix(in srgb, var(--dot) 52%, #030816);
-        box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 24px -8px #000b, 0 0 34px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 90px color-mix(in srgb, var(--dot) 28%, transparent)
-    }
-    .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-core:not(#\-) {
-        color: #04101f;
-        filter: none
-    }
-    .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-shine:not(#\-) {
-        background-image: radial-gradient(ellipse at 50% 40%, #ffffff8c, #ffffff00 70%);
-        background-color: transparent
-    }
-    .path-stage[data-variant=orbit] .path-dot[data-state=running]:not(#\-) {
-        box-shadow: inset 0 0 0 5px #ffffffd9, inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 0 44px color-mix(in srgb, var(--dot) 60%, transparent)
-    }
-    @supports (color: oklch(from red l c h)) {
-        .path-stage[data-variant=orbit] .path-dot:not(#\-) {
-            --orb-mid: oklch(from var(--dot) calc(l * .76) calc(c * .86) h);
-            --orb-low: oklch(from var(--dot) calc(l * .62) c h);
-            --orb-shade: oklch(from var(--dot) calc(l * .5) c h);
-            --rim: oklch(from var(--dot) calc(l * .42) c h)
-        }
-    }
-    @supports (color: oklch(from red l c h)) {
-        .path-stage[data-variant=orbit] .path-dot[data-next]:not(#\-) {
-            --orb-mid: var(--dot);
-            --orb-low: oklch(from var(--dot) calc(l * .74) c h);
-            --orb-shade: oklch(from var(--dot) calc(l * .6) c h);
-            --rim: oklch(from var(--dot) calc(l * .52) c h)
-        }
-    }
-    @supports (color: oklch(from red l c h)) {
-        .path-stage[data-variant=orbit] .path-dot[data-state=done]:not(#\-) {
-            --orb-mid: var(--dot);
-            --orb-low: oklch(from var(--dot) calc(l * .68) c h);
-            --orb-shade: oklch(from var(--dot) calc(l * .58) c h);
-            --rim: oklch(from var(--dot) calc(l * .5) c h)
-        }
+        box-shadow: var(--node-shadow)
     }
     .path-stage[data-variant=orbit] .path-dot:focus-visible:not(#\-) {
         outline-color: #ffffff
     }
-    .path-dot-pulse:not(#\-) {
-        background-image: radial-gradient(circle, color-mix(in srgb, var(--dot) 0%, transparent) 54%, color-mix(in srgb, var(--dot) 55%, transparent) 70%, color-mix(in srgb, var(--dot) 0%, transparent) 73%);
-        background-color: transparent
+    .path-stage[data-variant=orbit] .path-dot[data-next]:not(#\-) {
+        --node-edge: color-mix(in srgb, var(--node) 72%, var(--node-dim));
+        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 78%, transparent), 0 0 26px -6px color-mix(in srgb, var(--node) 60%, transparent), inset 0 1px 0 #ffffff1a
     }
-    .path-dot-orbit:not(#\-) {
-        border-color: color-mix(in srgb, var(--dot) 70%, transparent)
+    .path-stage[data-variant=orbit] .path-dot[data-state=running]:not(#\-) {
+        --node-edge: var(--node)
     }
-    .path-dot-orbit i:not(#\-) {
-        background-image: radial-gradient(circle at 35% 30%, #ffffff, var(--dot) 70%);
+    .path-stage[data-variant=orbit] .path-dot-ring circle:not(#\-) {
+        stroke: var(--node)
+    }
+    .path-stage[data-variant=orbit] .path-label.orbit-tab:not(#\-) {
+        border-color: var(--node-dim, #5d6680);
+        background-image: linear-gradient(180deg, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo));
         background-color: transparent;
-        box-shadow: 0 0 10px var(--dot)
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 6px 16px -8px #000c;
+        color: #dbe5f8;
+        text-shadow: none
     }
-    .path-dot-burst[data-rich]:not(#\-)::after {
-        background-image: radial-gradient(circle, #ffffffe6 0, color-mix(in srgb, var(--dot) 70%, transparent) 26%, color-mix(in srgb, var(--dot) 0%, transparent) 60%);
-        background-color: transparent
+    .path-stage[data-variant=orbit] .orbit-tab:not(#\-) {
+        --node-dim: color-mix(in srgb, var(--node, #23eaff) 46%, #5d6680)
     }
-    .path-dot-burst[data-rich] i[data-tone='1']:not(#\-) {
+    @supports (color: oklch(from red l c h)) {
+        .path-stage[data-variant=orbit] .orbit-tab:not(#\-) {
+            --node-dim: oklch(from var(--node, #23eaff) calc(l * .72) calc(c * .38) h)
+        }
+    }
+    .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab:not(#\-) {
+        border-color: var(--node);
+        background-image: linear-gradient(135deg, color-mix(in srgb, var(--node) 72%, #ffffff), var(--node));
+        background-color: transparent;
+        color: #06102a;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 70%, transparent)
+    }
+    .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab:not(#\-)::before {
+        border-left-color: currentColor;
+        border-bottom-color: currentColor
+    }
+    .path-stage[data-variant=orbit] .path-step[data-next] .path-label.orbit-tab:not(#\-) {
+        color: #ffffff;
+        border-color: color-mix(in srgb, var(--node) 72%, var(--node-dim))
+    }
+    .path-next-tag:not(#\-) {
+        border-color: var(--dot-next, #23eaff);
         background-image: none;
-        background-color: #ffffff;
-        box-shadow: 0 0 12px #ffffff
+        background-color: var(--orbit-hue-disc-lo);
+        color: #ffffff;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 14px -2px color-mix(in srgb, var(--dot-next, #23eaff) 70%, transparent)
     }
-    .path-dot-burst[data-rich] i[data-tone='2']:not(#\-) {
-        background-image: none;
-        background-color: #ffd27a;
-        box-shadow: 0 0 10px #ffd27a
+    .path-stage[data-variant=orbit] .path-node > .path-next-tag:not(#\-) {
+        color: #ffffff
+    }
+    .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
+        --dot-next: var(--step-colour, #23eaff)
     }
     .path-stage[data-variant=orbit] .path-banner:not(#\-) {
-        border-color: transparent;
-        color: var(--path-ink-banner-word);
-        background-image: radial-gradient(90% 140% at 0% 0%, #ffffff59, #ffffff00 55%), linear-gradient(105deg, color-mix(in srgb, var(--banner) 80%, #ffffff) 0%, var(--banner) 46%, color-mix(in srgb, var(--banner) 80%, #11163a) 100%);
+        border-color: currentcolor;
+        background-image: none;
         background-color: transparent;
-        box-shadow: 0 5px 0 color-mix(in srgb, var(--banner) 46%, #050a1e), 0 18px 34px -18px color-mix(in srgb, var(--banner) 80%, transparent), inset 0 1px 0 #ffffffa6
+        box-shadow: none
     }
     .path-stage[data-variant=orbit] .path-banner:not(#\-)::before {
-        background-image: radial-gradient(1.4px 1.4px at 62% 24%, #ffffffd9, #fff0), radial-gradient(1.2px 1.2px at 78% 70%, #ffffffb3, #fff0), radial-gradient(1.6px 1.6px at 88% 32%, #ffffffcc, #fff0), radial-gradient(1px 1px at 54% 78%, #ffffff99, #fff0);
-        background-color: transparent
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--banner) 30%, #010213e6) 0, color-mix(in srgb, var(--banner) 18%, #01021399) 34%, color-mix(in srgb, var(--banner) 8%, transparent) 52%, transparent 70%);
+        background-color: transparent;
+        box-shadow: inset 1px 0 0 color-mix(in srgb, var(--banner) 55%, transparent)
     }
     .path-stage[data-variant=orbit] .path-banner-planet:not(#\-) {
-        background-image: radial-gradient(circle at 34% 28%, #ffffff 0, color-mix(in srgb, var(--banner) 40%, #ffffff) 26%, color-mix(in srgb, var(--banner) 70%, #0a1230) 100%);
+        background-image: radial-gradient(circle at 34% 28%, #ffffff 0, color-mix(in srgb, var(--banner) 50%, #ffffff) 22%, var(--banner) 58%, color-mix(in srgb, var(--banner) 40%, #050a1e) 100%);
         background-color: transparent;
-        box-shadow: 0 0 0 2px #ffffff59, 0 4px 10px -4px #0008
+        box-shadow: 0 0 16px color-mix(in srgb, var(--banner) 55%, transparent)
     }
     .path-stage[data-variant=orbit] .path-banner-planet i:not(#\-) {
-        border-color: #0a1230b3
+        border-color: color-mix(in srgb, var(--banner) 70%, #ffffff66)
     }
     .path-stage[data-variant=orbit] .path-banner-eyebrow:not(#\-) {
-        color: #0a1230
+        color: color-mix(in srgb, var(--banner) 55%, #ffffff)
     }
     .path-stage[data-variant=orbit] .path-banner-title:not(#\-) {
-        color: var(--path-ink-banner-word)
+        color: #f4f8ff
     }
     .path-stage[data-variant=orbit] .path-banner-count:not(#\-) {
         background-image: none;
-        background-color: #ffffffd9;
-        color: var(--path-ink-banner-word);
-        box-shadow: 0 3px 0 #0a123033
+        background-color: color-mix(in srgb, var(--banner) 16%, #01021399);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--banner) 40%, transparent);
+        color: #dfe9fb
     }
     .path-banner-done:not(#\-) {
-        background-image: none;
-        background-color: var(--path-ink-banner-word);
-        color: #ffffff;
-        box-shadow: 0 0 0 2px #ffd27a, 0 0 18px #ffd27a99
+        background-image: linear-gradient(135deg, color-mix(in srgb, var(--banner) 70%, #ffffff), var(--banner));
+        background-color: transparent;
+        color: #06102a;
+        box-shadow: 0 0 16px -2px color-mix(in srgb, var(--banner) 70%, transparent)
     }
     .path-banner-done:not(#\-)::before {
-        border-left-color: #ffd27a;
-        border-bottom-color: #ffd27a
-    }
-    .path-banner-meter:not(#\-) {
-        background-image: none;
-        background-color: var(--path-ink-meter-track)
-    }
-    .path-banner-meter i:not(#\-) {
-        background-image: linear-gradient(90deg, #ffffff, #fff4d6);
-        background-color: transparent;
-        box-shadow: 0 0 10px #ffffffd9
-    }
-    .path-stage[data-variant=orbit] .path-banner[data-complete] .path-banner-meter:not(#\-) {
-        box-shadow: 0 0 14px #ffd27acc
-    }
-    .path-stage[data-variant=orbit] .path-banner[data-complete] .path-banner-meter i:not(#\-) {
-        background-image: linear-gradient(90deg, #fff1c4, #ffd27a 55%, #ffb547);
-        background-color: transparent;
-        box-shadow: 0 0 14px #ffd27a
-    }
-    .path-banner-shine:not(#\-)::after {
-        background-image: linear-gradient(100deg, #ffffff00, #ffffffd9 50%, #ffffff00);
-        background-color: transparent
+        border-left-color: currentColor;
+        border-bottom-color: currentColor
     }
     .path-banner-sparks i:not(#\-) {
         background-image: none;
         background-color: #ffffff;
-        box-shadow: 0 0 10px #ffffff
+        box-shadow: 0 0 8px var(--banner)
     }
-    .path-banner-sparks i[data-tone='1']:not(#\-) {
-        background-image: none;
-        background-color: #ffd27a;
-        box-shadow: 0 0 10px #ffd27a
-    }
-    .path-banner-sparks i[data-tone='2']:not(#\-) {
-        background: var(--banner);
-        box-shadow: 0 0 12px var(--banner)
-    }
-    .path-banner-sparks i[data-tone='3']:not(#\-) {
-        background-image: none;
-        background-color: #ff74be;
-        box-shadow: 0 0 10px #ff74be
-    }
-    .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=left]:not(#\-) {
-        --chest-shift: calc((var(--dot-size) / 2 + var(--chest) / 2 + 8px) * var(--chest-aside, 1))
-    }
-    .path-stage[data-variant=orbit] .path-chest[data-inline][data-side=right]:not(#\-) {
-        --chest-shift: calc((var(--dot-size) / -2 - var(--chest) / 2 - 8px) * var(--chest-aside, 1))
-    }
-    .path-stage[data-variant=orbit] .path-chest[data-inline] .path-chest-art:not(#\-) {
-        filter: drop-shadow(0 0 10px #ffd27a80) drop-shadow(0 6px 10px #00000059)
-    }
-    .path-stage[data-variant=orbit] .path-chest[data-inline][data-reached] .path-chest-art:not(#\-) {
-        filter: drop-shadow(0 0 18px #ffd27ae6) drop-shadow(0 6px 10px #00000059)
-    }
-    .path-stage[data-variant=orbit] .path-chest[data-inline][data-just] .path-chest-art:not(#\-)::after {
-        background-image: radial-gradient(closest-side, #fff4d1e6, #ffd27a80 45%, #ffd27a00);
+    :scope[data-theme=light] .path-stage[data-variant=orbit] .path-banner:not(#\-)::before {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--banner) 26%, #ffffffe6) 0, color-mix(in srgb, var(--banner) 16%, #ffffffb3) 34%, color-mix(in srgb, var(--banner) 7%, transparent) 52%, transparent 70%);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .path-chest[data-on-path] .path-chest-text:not(#\-) {
-        color: var(--text, #f0f5ff);
-        text-shadow: 0 1px 2px #02061499, 0 0 12px #020614cc
+    :scope[data-theme=light] .path-stage[data-variant=orbit] .path-banner-title:not(#\-) {
+        color: #0b1430
     }
-    .path-stage[data-variant=orbit] .path-chest[data-trophy] .path-chest-art:not(#\-) {
-        filter: drop-shadow(0 10px 18px #0007)
+    :scope[data-theme=light] .path-stage[data-variant=orbit] .path-banner-eyebrow:not(#\-) {
+        color: color-mix(in srgb, var(--banner) 45%, #0b1430)
     }
-    .path-stage[data-variant=orbit] .path-chest[data-trophy][data-reached] .path-chest-art:not(#\-) {
-        filter: drop-shadow(0 0 26px #ffd27acc) drop-shadow(0 10px 18px #0009)
+    :scope[data-theme=light] .path-stage[data-variant=orbit] .path-banner-count:not(#\-) {
+        color: #1d2547;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--banner) 14%, #ffffffcc)
     }
-    .path-trophy-world:not(#\-) {
-        stroke: #fff2c7
+    .path-stage[data-variant=orbit] .path-finale .path-chest-art:not(#\-) {
+        --node-size: calc(var(--dot-size) * 1.1);
+        filter: none
     }
-    .path-trophy-ring-back:not(#\-) {
-        fill: none;
-        stroke: #f0a24b
+    .path-stage[data-variant=orbit] .path-finale .path-chest-text:not(#\-) {
+        color: var(--text, #f0f5ff)
     }
-    .path-trophy-ring-front:not(#\-) {
-        fill: none;
-        stroke: #ffe6a8
-    }
-    .path-trophy-cup:not(#\-) {
-        fill: #fff6dc;
-        stroke: #8a5a1c
-    }
-    .path-trophy-rays:not(#\-) {
-        fill: none;
-        stroke: #ffe39a
+    .path-stage[data-variant=orbit] .path-finale:not([data-reached]) .path-chest-text:not(#\-) {
+        color: var(--muted, #b9c6de)
     }
     .path-stage[data-variant=orbit] .path-zigi[data-alive]:not(#\-) {
         --zw: calc(var(--zigi-h) * .838)
@@ -10553,7 +10449,7 @@
         box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #9273ff33
     }
     @media (forced-colors: active) {
-        .path-next-tag:not(#\-) {
+        .path-next-tag:not(#\-), .path-stage[data-variant=orbit] .path-label.orbit-tab:not(#\-) {
             border-color: CanvasText
         }
     }
