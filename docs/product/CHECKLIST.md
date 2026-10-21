@@ -11,6 +11,10 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   cyan, Goals purple, Health pink, water blue, sleep magenta, meditation teal, fasting gold, custom items the person's
   colour), joined by the footer banner's neon line, grouped in orbits (Morning, Afternoon, Evening, Anytime, or the
   person's own) with banners; chests half way and at the end; ZIGi beside the next dot; a "Jump to next" bubble.
+  **Session AG (ADR-029):** the path is redrawn — nodes in the footer banner's design (glass, a neon ring, one line glyph,
+  a name tab; unlit until done, lit once done), each in its own colour (a habit's card tone, else its own; no two
+  neighbours alike), one flowing neon line tangent to every ring, light left-anchored orbit labels, slim timer cards with
+  honest values, the dashboard's own sky, one of the app's planets, no chests (only the day's finale) and no XP.
 - **Ticking.** Any dot, in any order. The real record is written through each page's own functions: a habit check-in
   (Habits' Complete / Add), a goal step (the milestone's own tick), water, a diary entry, a weight (an upsert for the day),
   a night (start, then end), mindful minutes, a fast (start, then stop, with the linked habit's time as Health adds it).
@@ -36,8 +40,10 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   shortcut (`/app/checklist` in the manifest) lead to it (ADR-028 H68).
 - **Themes.** Nebula: the star sky with a slow mist (the page's one loop, owner-approved); Light: white with a very light
   colour mist; Dark: black with a subtle mist. Dots, lines, banners, chests and timers are the same colours in all three.
+  Session AG: the sky is the dashboard's own ground in each theme.
 - **Motion.** One-time: a dot fills and bursts once, its line lights once, a chest opens once, ZIGi's move plays once per
-  state. Under reduced motion and Motion Off every state is a still.
+  state (Session AG: a node's ring blooms once and a light runs along its line once; the day's celebration is a supernova
+  ring, a shooting star and a twinkle, once — no confetti). Under reduced motion and Motion Off every state is a still.
 
 ## Storage (device only in Session AF)
 - `zigoals:checklist:v1` — favourites (pointers to records, never the records), custom items, Health quick inputs (kept
@@ -61,6 +67,7 @@ Record-backed dots are ticked by ZIGi's existing kinds (check-in, log-water, sta
 
 ## Known limitations
 - The Checklist stays on this device: favourites, custom items and the day history are not synced yet; a second device
-  starts with an empty path, and its XP from Checklist days is lower until a later sync carries the history.
+  starts with an empty path, and its badges from Checklist days wait until a later sync carries the history (since
+  Session AG the Checklist adds no XP).
 - Undo of an ended night reopens it as a new running night with the original start (no function reopens a night).
 - A finished Focus timer is changed on Habits (its receipt is part of the habit's record), so that toast has no Undo.

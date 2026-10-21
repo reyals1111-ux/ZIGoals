@@ -3,6 +3,8 @@ import {getAppStorage} from '../showcase-storage';
 import {CHECKLIST, CHECKLIST_DAYS} from '../checklist/schema';
 import {todayOf} from '../checklist/day';
 import {deriveDots, type DeriveSources} from '../checklist/derive';
+import {checklistDisplayColours} from '../checklist/display-colours';
+import {PATH_COLOURS} from '../path/colours';
 import type {TimelineBand, TimelineSource, TimelineSourceItem} from './sources';
 
 /**
@@ -20,9 +22,10 @@ export const checklistTimelineSource: TimelineSource = ({date, now, stores}) => 
   if (record.unreadable || days.unreadable || !record.data.order.length) return [];
   const sources = {...(stores as Omit<DeriveSources, 'now'>), now} as DeriveSources;
   if (!sources.habits || !sources.zone) return [];
-  return deriveDots(record.data, todayOf(days.data, date), date, sources).filter(dot => dot.counted && !dot.missing).map((dot): TimelineSourceItem => {
+  const dots = deriveDots(record.data, todayOf(days.data, date), date, sources), colours = checklistDisplayColours(record.data, dots);
+  return dots.filter(dot => dot.counted && !dot.missing).map((dot): TimelineSourceItem => {
     const ref = dot.item.ref as {habitId?: unknown} | undefined, habitId = dot.kind === 'habit' && typeof ref?.habitId === 'string' ? ref.habitId : undefined;
-    return {id: dot.id, title: dot.label, done: dot.state === 'done', href: '/app/checklist', band: (BANDS.includes(dot.section) ? dot.section : 'anytime') as TimelineBand, pillar: PILLAR[dot.kind] ?? null, label: 'Checklist', ...(habitId ? {habitId} : {})};
+    return {id: dot.id, title: dot.label, done: dot.state === 'done', href: '/app/checklist', band: (BANDS.includes(dot.section) ? dot.section : 'anytime') as TimelineBand, pillar: PILLAR[dot.kind] ?? null, label: 'Checklist', colour: PATH_COLOURS[colours.get(dot.id) ?? dot.colour].token, ...(habitId ? {habitId} : {})};
   });
 };
 export default checklistTimelineSource;

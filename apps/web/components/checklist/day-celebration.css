@@ -1,5 +1,6 @@
 /* Session AF (L3b): the day's full-screen celebration. A night island (scripts/themes/build-themes.mjs ISLANDS): the same
-   cosmic moment in Nebula, Light and Dark. The trophy rises, rays turn once, confetti flies once, ZIGi celebrates; the
+   cosmic moment in Nebula, Light and Dark. The finale node rises, a supernova ring, a shooting star and a twinkle play once
+   (Session AG: no confetti, no XP), ZIGi celebrates; the
    card's words stay on the night. Reduced motion and Motion Off: the same card, still. Transform and opacity only. */
 :root { --checklist-ink-celebration-a: #1b1550; --checklist-ink-celebration-b: #070b22; --checklist-ink-celebration-card: #0b1233f2; }
 .checklist-celebration { position: fixed; inset: 0; z-index: 2147483001; box-sizing: border-box; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 16px; border: 0; display: grid; place-items: center; overflow: hidden auto; color: #f2f6ff; background: radial-gradient(80% 60% at 50% 38%, var(--checklist-ink-celebration-a), var(--checklist-ink-celebration-b) 72%); }
@@ -8,16 +9,22 @@
 /* Round 3: a gold-to-violet glow, with soft white-gold rays over it at a quarter strength at most. */
 .checklist-celebration-glow { position: absolute; left: -48vmax; top: -48vmax; width: 96vmax; height: 96vmax; border-radius: 50%; background: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%); animation: checklist-glow-in 1400ms ease-out both; }
 @keyframes checklist-glow-in { from { opacity: 0; transform: scale(.5); } }
-.checklist-celebration-rays { position: absolute; left: -60vmax; top: -60vmax; width: 120vmax; height: 120vmax; border-radius: 50%; opacity: .25; background: repeating-conic-gradient(from 0deg, #fff3d600 0deg, #fff3d6b3 4deg, #fff3d600 9deg, #fff3d600 20deg); -webkit-mask: radial-gradient(closest-side, #000 30%, #0000); mask: radial-gradient(closest-side, #000 30%, #0000); animation: checklist-rays 2600ms ease-out both; }
-@keyframes checklist-rays { from { opacity: 0; transform: rotate(-30deg) scale(.6); } 30% { opacity: .25; } to { opacity: .22; transform: rotate(20deg) scale(1); } }
-.checklist-celebration-burst i { position: absolute; left: -6px; top: -8px; width: 12px; height: 16px; border-radius: 3px; background: var(--c); opacity: 0; animation: checklist-confetti var(--t, 1400ms) cubic-bezier(.12, .7, .3, 1) 120ms both; }
-.checklist-celebration-burst i[data-shape='1'] { width: 9px; height: 9px; border-radius: 50%; }
-.checklist-celebration-burst i[data-shape='2'] { width: 6px; height: 16px; }
-@keyframes checklist-confetti { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0) rotate(0deg); } 70% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) rotate(var(--r)); } }
+.checklist-celebration-glow { background: radial-gradient(closest-side, #ffd27a59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%); }
+/* Session AG (owner Part 6): a supernova ring expanding from the finale, twice; a shooting star sweeping across; a short
+   twinkle of stars — once each, transform and opacity only. */
+.checklist-celebration-nova { position: absolute; left: -90px; top: -90px; width: 180px; height: 180px; border-radius: 50%; border: 3px solid #fff3d6; box-shadow: 0 0 30px #ffd27a, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80; opacity: 0; animation: checklist-nova 1500ms cubic-bezier(.15, .7, .3, 1) 160ms both; }
+.checklist-celebration-nova-2 { border-color: #9ff6ff; box-shadow: 0 0 24px #23eaff, 0 0 60px #f06dff80; animation-delay: 420ms; animation-duration: 1800ms; }
+@keyframes checklist-nova { 0% { opacity: 1; transform: scale(.2); } 60% { opacity: .55; } 100% { opacity: 0; transform: scale(5.5); } }
+.checklist-celebration-comet { position: fixed; left: -20vw; top: 14vh; z-index: 1; width: 22vw; height: 3px; border-radius: 3px; pointer-events: none; background: linear-gradient(90deg, #ffffff00, #9ff6ff99 60%, #ffffff); box-shadow: 0 0 12px #9ff6ff; rotate: 16deg; opacity: 0; animation: checklist-comet 1300ms cubic-bezier(.4, .05, .4, 1) 700ms both; }
+.checklist-celebration-comet::after { content: ''; position: absolute; right: -5px; top: -4px; width: 11px; height: 11px; border-radius: 50%; background: #ffffff; box-shadow: 0 0 14px 4px #9ff6ff; }
+@keyframes checklist-comet { 0% { opacity: 0; transform: translateX(0); } 12% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(140vw); } }
+.checklist-celebration-twinkle { position: fixed; inset: 0; pointer-events: none; }
+.checklist-celebration-twinkle i { position: absolute; width: var(--s, 10px); height: var(--s, 10px); background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 4px #9ff6ff); opacity: 0; animation: checklist-twinkle 1100ms ease-out var(--t, 400ms) both; }
+@keyframes checklist-twinkle { 0% { opacity: 0; transform: scale(.2) rotate(0deg); } 40% { opacity: 1; transform: scale(1.15) rotate(30deg); } 100% { opacity: 0; transform: scale(.6) rotate(60deg); } }
 .checklist-celebration-card { position: relative; display: grid; justify-items: center; gap: 12px; width: min(460px, 100%); padding: 28px 24px 26px; border-radius: 32px; border: 1px solid #ffd27a59; background: var(--checklist-ink-celebration-card); box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40; text-align: center; animation: checklist-card-in 640ms cubic-bezier(.2, .9, .25, 1.15) both; }
 @keyframes checklist-card-in { from { opacity: 0; transform: translateY(30px) scale(.9); } }
 .checklist-celebration-stage { position: relative; display: grid; place-items: center; width: 220px; height: 170px; margin-top: -86px; }
-.checklist-celebration-trophy { width: 170px; height: 170px; overflow: visible; filter: drop-shadow(0 0 30px #ffd27acc) drop-shadow(0 12px 18px #0009); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
+.checklist-celebration-trophy { width: 150px; height: 150px; box-sizing: border-box; border-width: 3px; filter: drop-shadow(0 0 24px #ffd27a99); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
 @keyframes checklist-trophy-rise { from { opacity: 0; transform: translateY(40px) scale(.6) rotate(-10deg); } }
 /* ZIGi large and in front of the trophy (never behind its ring), celebrating. */
 .checklist-celebration-zigi { position: absolute; z-index: 2; right: -96px; bottom: 2px; width: 122px; height: 160px; filter: drop-shadow(0 12px 18px #0009); animation: checklist-zigi-hop 760ms cubic-bezier(.2, .9, .25, 1.3) 380ms both; }
@@ -37,9 +44,14 @@
 .checklist-celebration-go:active { transform: translateY(4px); box-shadow: 0 1px 0 #4b3aa8; }
 .checklist-celebration-go:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
 @media (max-width: 480px) { .checklist-celebration-zigi { right: -64px; bottom: 4px; width: 107px; height: 140px; } .checklist-celebration-stage { width: 170px; height: 140px; translate: -34px 0; } .checklist-celebration-trophy { width: 140px; height: 140px; } }
-@media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; } .checklist-celebration-burst i { display: none; } }
+@media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; } }
 :root[data-app-motion=off] :is(.checklist-celebration *) { animation: none !important; }
-:root[data-app-motion=off] .checklist-celebration-burst i { display: none; }
+/* (The still frame: the supernova's ring at rest around the finale and the stars shining; the shooting star is not drawn.) */
+@media (prefers-reduced-motion: reduce) { .checklist-celebration-nova { opacity: .4; transform: scale(1.7); } .checklist-celebration-nova-2 { opacity: .22; transform: scale(2.6); } .checklist-celebration-twinkle i { opacity: .75; } .checklist-celebration-comet { display: none; } }
+:root[data-app-motion=off] .checklist-celebration-nova { opacity: .4; transform: scale(1.7); }
+:root[data-app-motion=off] .checklist-celebration-nova-2 { opacity: .22; transform: scale(2.6); }
+:root[data-app-motion=off] .checklist-celebration-twinkle i { opacity: .75; }
+:root[data-app-motion=off] .checklist-celebration-comet { display: none; }
 /* L3b round 2: a bigger card on a wide screen; the day's planets as small worlds. */
 @media (min-width: 1024px) { .checklist-celebration-card { width: 560px; padding: 34px 32px 30px; } .checklist-celebration h2 { font-size: 46px; } }
 .checklist-celebration-planets { gap: 10px; margin: 6px 0 2px; }
@@ -73,7 +85,9 @@
 .checklist-celebration-zigi .zigi img { width: 100%; height: 100%; object-fit: contain; animation: checklist-zigi-cheer 1100ms cubic-bezier(.3, .7, .4, 1) 600ms 2 both; }
 @keyframes checklist-zigi-cheer { 0%, 100% { transform: none; } 25% { transform: translateY(-18px) rotate(-3deg); } 50% { transform: none; } 70% { transform: translateY(-10px) rotate(2deg); } }
 .checklist-celebration h2 { font-size: clamp(32px, 7vw, 48px); }
-.checklist-celebration-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 440px; margin: 4px 0 0; }
+.checklist-celebration-stats { display: grid; grid-template-columns: minmax(0, 200px); justify-content: center; gap: 12px; width: 100%; max-width: 440px; margin: 4px 0 0; }
+/* (Session AG: the streak alone — no XP tile — stands in the middle.) */
+.checklist-celebration-trophy .orbit-node-glyph svg { width: 62px; height: 62px; }
 .checklist-celebration-stats li { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 112px; padding: 12px 10px; border-radius: 24px; border: 1px solid #ffffff2b; background: linear-gradient(160deg, #ffffff1c, #ffffff08); font-size: 15px; }
 .checklist-celebration-stats li > svg, .checklist-celebration-stats .checklist-flame { width: 32px; height: 32px; }
 .checklist-celebration-stats strong { font-size: 44px; line-height: 1.05; }

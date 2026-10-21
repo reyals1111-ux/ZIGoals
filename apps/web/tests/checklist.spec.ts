@@ -77,8 +77,9 @@ test('any order; a value dot opens the stepper with the default, logs to Health 
   await push.getByRole('button', {name: 'Log 20 times'}).click();
   await expect.poll(() => entryToday(page, ID.push)).toMatchObject({count: 20});
   await expect(page.locator('.checklist-progress-line')).toContainText('3 of 4 planets today');
-  // The half-way chest is reached; the line between two lit dots is lit.
-  await expect(page.locator('.path-chest[data-milestone="half"]')).toHaveAttribute('data-reached', 'true');
+  // The line between two lit dots is lit. (Session AG, owner Part 6: no chests on the path — the half-way chest is gone; the
+  // half-way moment is ZIGi's and the game layer's, which read the records.)
+  await expect(page.locator('.path-chest[data-milestone="half"]')).toHaveCount(0);
   await expect(page.locator('.path-segment[data-lit]')).not.toHaveCount(0);
 });
 
@@ -153,6 +154,6 @@ test('midnight in the person’s zone: a fresh path, and yesterday sealed into t
   await expect(page.locator('.checklist-head .eyebrow')).toContainText('Oct 21');
   await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 planets today');
   await expect.poll(() => stored<{days: Record<string, {total: number; done: number}>; today: {date: string; ticks: unknown[]}}>(page, CHECKLIST_DAYS_KEY)).toMatchObject({days: {'2026-10-20': {total: 4, done: 1}}, today: {date: '2026-10-21', ticks: []}});
-  await page.getByText('Your last twelve weeks', {exact: true}).click();
+  await page.getByText('Orbit consistency · last 12 weeks', {exact: true}).click(); // (Session AG: the history's new name, reference 12)
   await expect(page.locator('.checklist-heat-cell[title*="1 of 4 dots"]')).toHaveAttribute('data-level', 'some');
 });

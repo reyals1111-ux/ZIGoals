@@ -1,15 +1,17 @@
 /**
- * The Checklist's sky (P7.18; Session AF L3b, the owner's "slowly moving star system"): in Nebula, three drifting colour
- * clouds (violet, magenta, teal; round 4: seen at a glance), three layers of stars drifting at different speeds, a distant ringed planet turning slowly and a small moon on its
- * orbit — the owner-approved loop of the full-screen Checklist; in Light a calm white sky with a light colour mist; in Dark
- * black with a subtle mist. Every layer moves by transform only; reduced motion and Motion Off hold it still. Decorative
- * and fixed behind the path; the planets, lines and colours on top are the same in every theme.
+ * The Checklist's sky (P7.18). Session AG (owner pointers 11–12): the app dashboard's own ground in each theme — Nebula's
+ * starfield on the night, Light's white-family mist, Dark's black sky (the same rules as the shell's `.app-content::before`,
+ * app/visual-v21.css and themes/*.extra.css) — so the Checklist feels part of ZIGoals; Nebula keeps its owner-approved calm
+ * drifting mist, still under reduced motion and Motion Off. The planet is the app's own destination art
+ * (`/art/v21/destination.webp`, already loaded by the sidebar on a computer), low on the right behind everything, loaded
+ * lazily; on a phone and a tablet, where Today does not load that art, a small CSS planet in the same blue-violet style
+ * (no request). Decorative and fixed behind the path; nothing on top of it changes colour with the theme.
  */
 export function ChecklistSky() {
   return <div className="checklist-sky" aria-hidden="true">
     <span className="checklist-mist checklist-mist-a"/><span className="checklist-mist checklist-mist-b"/><span className="checklist-mist checklist-mist-c"/>
-    <span className="checklist-stars checklist-stars-far"/><span className="checklist-stars"/><span className="checklist-stars checklist-stars-near"/>
-    <span className="checklist-world"><span className="checklist-world-ring"/></span>
-    <span className="checklist-moon-orbit"><span className="checklist-moon"/></span>
+    {/* eslint-disable-next-line @next/next/no-img-element -- the app's existing art, lazily, as the sidebar shows it */}
+    <span className="checklist-planet"><img src="/art/v21/destination.webp" alt="" width={1000} height={689} loading="lazy" decoding="async"/></span>
+    <span className="checklist-planet-small"/>
   </div>;
 }

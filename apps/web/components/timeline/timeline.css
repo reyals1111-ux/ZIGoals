@@ -25,6 +25,8 @@
 .timeline-time { padding-top: 14px; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
 .timeline-block { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; min-height: 56px; padding: 10px 12px 10px 14px; border-radius: 16px; border: 1px solid var(--border-subtle, #ffffff1f); background: #ffffff0a; }
 .timeline-row[data-kind=reminder] .timeline-block, .timeline-row[data-kind=checklist] .timeline-block { min-height: 48px; padding-block: 6px; background: transparent; border-style: dashed; }
+/* Session AG: a Checklist dot wears its own colour from the path (ADR-029 I3). */
+.timeline-row[data-kind=checklist][style*='--item-colour'] .timeline-block { border-color: color-mix(in srgb, var(--item-colour) 70%, transparent); box-shadow: inset 3px 0 0 var(--item-colour); }
 .timeline-row[data-kind=fast] .timeline-block, .timeline-row[data-kind=sleep] .timeline-block, .timeline-row[data-kind=timer] .timeline-block, .timeline-row[data-kind=meditation] .timeline-block { background: linear-gradient(135deg, #6fe6f60f, #c790f612); }
 .timeline-row[data-done] .timeline-title strong { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: #ffffff66; }
 .timeline-row[data-skipped] .timeline-block { opacity: .75; }

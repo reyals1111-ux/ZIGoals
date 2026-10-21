@@ -8,7 +8,8 @@
 :root[data-theme=light] :is(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .phone-more-signature):not(#\-) { color-scheme: dark; }
 :root[data-theme=light] body:not(#\-) { background: #f7f7fb; }
 /* Session AE (Part 3, ADR-027 G7): a white-family day — the nebula's clouds only a breath of tint on a near-white ground. */
-:root[data-theme=light] .app-content:not(#\-)::before {
+/* Session AG (owner pointer 11): the Checklist's sky is the dashboard's ground too. */
+:root[data-theme=light] .app-content:not(#\-)::before, :root[data-theme=light] .checklist-sky:not(#\-) {
   background:
     radial-gradient(1200px 700px at 12% 6%, #eeeafd 0, #eeeafd00 70%),
     radial-gradient(1000px 640px at 88% 16%, #e6f3fd 0, #e6f3fd00 70%),

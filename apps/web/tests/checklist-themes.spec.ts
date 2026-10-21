@@ -9,18 +9,21 @@ import {TITLE, seedChecklist, settled} from './checklist-fixtures';
  * day, black with a subtle mist for Dark) and the page's own text differ. Under reduced motion and Motion Off nothing
  * moves on the path, even right after a tick: every state is a still. The only loop on the page is the Nebula mist.
  */
-// Session AF (L3b), moved at equal strength: the full-screen Checklist's next planet pulses, its moon orbits and its bubble
-// bobs for as long as it waits (the owner's motion exception), and those loops never finish; every one-time motion is still
-// waited out before the colours are read, and the loops move only transform and opacity, never a colour read here.
+// Session AG: nothing on the path loops any more (one-time motion only); every one-time motion is waited out before the
+// colours are read (the filter keeps loops out, should one ever return).
 const paint = async (page: Page) => { await page.locator('.path-stage').evaluate(el => Promise.all(el.getAnimations({subtree: true}).filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined)))); return page.evaluate(() => {
   const css = (sel: string, props: string[]) => { const el = document.querySelector(sel); if (!el) return null; const s = getComputedStyle(el); return Object.fromEntries(props.map(p => [p, s.getPropertyValue(p)])); };
   return {
-    doneDot: css('.path-dot[data-state=done]', ['background-image', 'box-shadow', '--dot']),
-    undoneDot: css('.path-dot[data-state=undone]', ['--dot', 'box-shadow']),
+    // Session AG, moved at equal strength: the orbit nodes (glass, ring, glow, glyph; lit and unlit), their name tabs (lit
+    // and unlit), the flowing line (its strokes and every gradient stop) and the orbit labels' planets and done chips.
+    doneDot: css('.path-dot[data-state=done]', ['background-image', 'box-shadow', 'border-top-color', '--dot']),
+    undoneDot: css('.path-dot[data-state=undone]', ['--dot', 'box-shadow', 'border-top-color', 'background-image']),
     glyph: css('.path-dot[data-state=undone] .path-dot-core', ['color']),
-    lit: css('.path-segment[data-lit] .path-segment-lit', ['stroke', 'stroke-width']),
-    stops: [...document.querySelectorAll('.path-line linearGradient stop')].map(s => s.getAttribute('stop-color')),
-    banner: css('.path-banner', ['border-top-color', 'box-shadow', 'background-image']),
+    doneGlyph: css('.path-dot[data-state=done] .path-dot-core', ['color', 'filter']),
+    doneTab: css('.path-step[data-state=done] .path-label', ['background-image', 'color', 'border-top-color']),
+    undoneTab: css('.path-step[data-state=undone] .path-label', ['background-image', 'color', 'border-top-color']),
+    lit: css('.path-segment[data-lit] .orbit-flow-core', ['stroke', 'stroke-width']),
+    stops: [...document.querySelectorAll('.orbit-flow linearGradient stop')].map(s => `${getComputedStyle(s).stopColor} ${getComputedStyle(s).stopOpacity}`),
     planet: css('.path-banner-planet', ['background-image']),
     timerRing: css('.checklist-timer[data-kind=sleep] .checklist-timer-ring', ['color']),
   };
@@ -40,21 +43,29 @@ async function openIn(page: Page, theme: 'nebula' | 'light' | 'dark') {
   await expect(page.locator('.path-segment[data-lit]')).not.toHaveCount(0);
 }
 
-test('dots, lines, banners and the timers’ rings are identical in Nebula, Light and Dark; the sky is the theme’s', async ({page}, info) => {
+test('nodes, name tabs, the line, the labels’ planets and the timers’ rings are identical in Nebula, Light and Dark; the sky is the theme’s', async ({page}, info) => {
   test.skip(info.project.name !== 'desktop', 'one layout is enough for colours');
   test.setTimeout(90_000);
   await openIn(page, 'nebula'); const nebula = await paint(page);
-  const nebulaSky = await page.locator('.checklist-sky').evaluate(el => getComputedStyle(el).backgroundColor);
+  // Session AG (owner pointer 11), moved at greater strength (was: Nebula's sky transparent, Dark's near-black, Light's mist
+  // light): in every theme the Checklist's sky is the dashboard's own ground — the same layers as the shell's
+  // `.app-content::before` behind it.
+  const ground = () => page.evaluate(() => { const shell = getComputedStyle(document.querySelector('.app-content')!, '::before'), sky = getComputedStyle(document.querySelector('.checklist-sky')!); return {shell: [shell.backgroundImage, shell.backgroundColor], sky: [sky.backgroundImage, sky.backgroundColor]}; });
+  const nebulaGround = await ground();
+  expect(nebulaGround.sky, 'Nebula: the dashboard\'s ground').toEqual(nebulaGround.shell);
+  expect(nebulaGround.sky[0], 'Nebula: the starfield').toMatch(/starfield\.svg/);
   for (const theme of ['light', 'dark'] as const) {
     await openIn(page, theme);
     expect(await paint(page), `${theme}: the path paints as in Nebula`).toEqual(nebula);
     const sky = await page.locator('.checklist-sky').evaluate(el => ({background: getComputedStyle(el).backgroundColor, mist: getComputedStyle(el.querySelector('.checklist-mist-a')!).backgroundImage}));
+    const g = await ground();
+    expect(g.sky, `${theme}: the dashboard's ground`).toEqual(g.shell);
     if (theme === 'dark') { const [r, g, b] = sky.background.match(/\d+/g)!.map(Number); expect(Math.max(r!, g!, b!), 'Dark: a near-black sky').toBeLessThan(10); }
     else expect(sky.mist, 'Light: a light colour mist').toMatch(/rgb\((2[2-5]\d), (2[2-5]\d), (2[2-5]\d)\)/);
     if (theme === 'light') { const [r, g, b] = (await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).match(/\d+/g)!.map(Number); expect(Math.min(r!, g!, b!)).toBeGreaterThan(225); }
   }
-  expect(nebulaSky).toBe('rgba(0, 0, 0, 0)');
-  expect(nebula.stops).toEqual(['#9273ff', '#23eaff', '#ff74be', '#f06dff']);
+  // Session AG (owner pointer 1): the line runs from each node's colour to the next one's — never one colour all the way.
+  expect(new Set(nebula.stops.map(s => s.replace(/ [\d.]+$/, ''))).size, 'the line in the nodes\' own colours').toBeGreaterThan(2);
 });
 
 for (const mode of ['reduced motion', 'Motion Off'] as const) {

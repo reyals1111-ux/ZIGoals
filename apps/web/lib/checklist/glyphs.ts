@@ -24,3 +24,23 @@ export function itemGlyph(item: {glyph: string; label: string}): string {
   for (const [re, glyph] of WORDS) if (re.test(item.label)) return glyph;
   return item.glyph;
 }
+
+/**
+ * Session AG (owner pointer 2): the mark a node wears on the orbit path — one line glyph per item, in the footer banner's
+ * line style. The item's own words first (walk → footsteps, focus → target, savings → coin …), then its page's own mark,
+ * then a mark for its kind; a custom item with no telling words is a star. One table, a sensible default. Pure.
+ */
+const ORBIT_WORDS: [RegExp, string][] = [
+  [/\bwalk|steps\b|\bhike|stroll/i, 'footsteps'],
+  [/\bfocus|deep work|\bpomodoro|concentrat/i, 'target'],
+  [/sav(e|ing)|invest|budget|wealth|money|contribut|€|\$|\bdca\b|stak(e|ing)|\bzig\b/i, 'coin'],
+  [/\bapple|fruit/i, 'apple'],
+  [/\bheart|blood pressure|cardio|health check/i, 'heart'],
+];
+/** Generic page marks the orbit path replaces with a kind's own glyph. */
+const ORBIT_KIND: Record<string, string> = {sparkle: 'star', habits: 'orbit', focus: 'clock', flag: 'target'};
+export function orbitGlyph(item: {glyph: string; label: string}): string {
+  for (const [re, glyph] of ORBIT_WORDS) if (re.test(item.label)) return glyph;
+  const mark = itemGlyph(item);
+  return ORBIT_KIND[mark] ?? mark;
+}

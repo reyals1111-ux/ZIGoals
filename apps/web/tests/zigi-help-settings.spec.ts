@@ -72,7 +72,7 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // Session AC bumped it (ADR-025); AB-Design's links lead "Earlier updates".
   // Session AD bumped it (ADR-026); AC's links lead "Earlier updates".
   // Session AE bumped it (ADR-027); AD's links lead "Earlier updates".
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-af-wealth-unlocked'); // Session AF (ADR-028, deliberate): AE's links lead "Earlier updates"
+  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-ag-orbit-checklist'); // Session AG (ADR-029, deliberate): AF's links lead "Earlier updates"
   await page.goto('/app');
   // Session AA-Cloud Part 1 (deliberate): the card sits in Today's "Updates and summaries"; on a phone that area waits
   // behind its one row, so open it first. Nothing about the card changes.

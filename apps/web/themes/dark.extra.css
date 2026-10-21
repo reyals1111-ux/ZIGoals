@@ -4,7 +4,8 @@
    black instead of its layer's opacity so the mist reads, and the starfield's veils black too. Everything else in Dark
    stays as it was. */
 :root[data-theme=dark] body:not(#\-) { background: #000000; }
-:root[data-theme=dark] .app-content:not(#\-)::before {
+/* Session AG (owner pointer 11): the Checklist's sky is the dashboard's ground too. */
+:root[data-theme=dark] .app-content:not(#\-)::before, :root[data-theme=dark] .checklist-sky:not(#\-) {
   opacity: 1;
   background:
     radial-gradient(1200px 700px at 12% 6%, #1a153fcc 0, #1a153f00 70%),

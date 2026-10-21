@@ -1,14 +1,14 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassBar} from '../progress/glass-progress';
 import {zigiSignals} from '../zigi/bus';
 import {pushToastLayer} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
-import {xpEvents} from '../../lib/game/xp';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {PATH_COLOURS} from '../../lib/path/colours';
+import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
@@ -107,20 +107,11 @@ export function ChecklistPage() {
 
   const total = summary?.total ?? 0, done = summary?.done ?? 0, empty = loaded && state.dots.length === 0;
   const streakDays = streak?.current ?? 0;
-  // Today's XP, the game layer's own count from today's records (only while the game layer is on).
-  const {habits, health, platform} = state.stores;
-  const xpToday = useMemo(() => {
-    if (!state.gameOn || !state.date || !summary) return null;
-    try { return xpEvents({habits: habits.data, health: health.data, platform: platform.data, checklist: state.days.data, checklistToday: {date: state.date, total: summary.total, done: summary.done, ...(summary.perfect ? {perfect: true} : {})}}, state.date).filter(e => e.day === state.date).reduce((n, e) => n + e.xp, 0); } catch { return null; }
-  }, [state.gameOn, state.date, summary, habits.data, health.data, platform.data, state.days.data]);
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
   const [menu, setMenu] = useState(false);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
-  // The day's XP before the last tick, so the celebration counts up from it.
-  const xpBefore = useRef<number | null>(null), xpNow = useRef<number | null>(null);
-  useEffect(() => { if (xpToday !== xpNow.current) { xpBefore.current = xpNow.current; xpNow.current = xpToday; } }, [xpToday]);
   // ZIGi's poses on the path need the frames the launcher's small "alive" chunk publishes; the launcher sits behind the
   // Checklist, so the Checklist starts that chunk itself once the browser is idle (it starts once per page, wherever).
   useEffect(() => {
@@ -141,13 +132,13 @@ export function ChecklistPage() {
       leave();
     }}>
     <ChecklistSky/>
-    {/* The top bar: close, the title with today's progress and date, the view, the streak, today's XP, the menu. */}
+    {/* The top bar (Session AG, pointer 12): close, the title, today's progress and date, the view, the streak, the menu — no XP. */}
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">
         <button type="button" className="checklist-close" aria-label="Close the Checklist" onClick={leave}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
         <div className="checklist-progress">
-          <GlassBar identity="checklist-progress" ready={loaded} className="checklist-progress-bar" value={total ? done / total : 0} role="progressbar" aria-label="Planets lit today" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-valuetext={progressText}><Shine at={done}/></GlassBar>
+          <GlassBar identity="checklist-progress" ready={loaded} className="checklist-progress-bar" value={total ? done / total : 0} role="progressbar" aria-label="Planets lit today" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-valuetext={progressText}><Shine at={done}/><span className="checklist-progress-spark" aria-hidden="true"/></GlassBar>
           <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
         <div className="checklist-view-switch" role="group" aria-label="View">
@@ -155,7 +146,6 @@ export function ChecklistPage() {
           <button type="button" aria-label="List" aria-pressed={prefs.view === 'list'} onClick={() => state.setPrefs({view: 'list'})}><ViewMark name="list"/></button>
         </div>
         <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
-        {xpToday !== null && <p className="checklist-xp" role="img" aria-label={`${xpToday} XP today`}><XpMark/><CountUp value={xpToday}/><small aria-hidden="true">XP</small><XpGain value={xpToday}/></p>}
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
@@ -185,11 +175,11 @@ export function ChecklistPage() {
         {loaded && !state.unreadable && <CornerTimers state={state}/>}
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
-          <h2 id="checklist-history-title" className="checklist-history-title">Your last twelve weeks</h2>
+          <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
           <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>
         </section>}
         {loaded && !empty && !state.unreadable && (narrow || !state.date) && <details className="checklist-history-fold" onToggle={e => setHistory((e.currentTarget as HTMLDetailsElement).open)}>
-          <summary>Your last twelve weeks</summary>
+          <summary>Orbit consistency<span className="checklist-history-span"> · last 12 weeks</span></summary>
           {history && state.date && <Suspense fallback={<p role="status">Loading the history…</p>}><HistoryHeatmap days={state.days.data} today={state.date} todaySummary={summary ? {total: summary.total, done: summary.done, perfect: !!summary.perfect} : null}/></Suspense>}
         </details>}
       </aside>
@@ -198,7 +188,7 @@ export function ChecklistPage() {
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} xp={xpToday} xpFrom={xpBefore.current} perfect={!!summary?.perfect} total={total} colours={state.dots.filter(d => d.counted).map(d => PATH_COLOURS[d.colour].hex)} onClose={() => setCelebrate(false)}/></Suspense>}
+    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} perfect={!!summary?.perfect} total={total} colours={(() => { const c = checklistDisplayColours(state.record.data, state.dots); return state.dots.filter(d => d.counted).map(d => PATH_COLOURS[c.get(d.id) ?? d.colour].hex); })()} onClose={() => setCelebrate(false)}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>
@@ -262,25 +252,11 @@ function Shine({at}: {at: number}) {
   return run ? <span key={run} className="checklist-progress-shine" aria-hidden="true"/> : null;
 }
 
-function XpMark() {
-  return <svg className="checklist-xp-mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M13.2 2.5 5 13.4h6l-1.2 8.1L19 10.4h-6.1z" fill="#ffd27a" stroke="#f0a24b" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
-}
 function ToolMark({name}: {name: 'edit' | 'options' | 'about'}) {
   return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'edit' ? <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/> : name === 'options' ? <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"/> : <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 16.8h.01"/>}</svg>;
 }
 function ViewMark({name}: {name: 'path' | 'list'}) {
   return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'path' ? <><circle cx="8" cy="5" r="2.6"/><circle cx="16" cy="12" r="2.6"/><circle cx="8" cy="19" r="2.6"/><path d="M10.2 6.4 13.8 10.6M13.8 13.4 10.2 17.6"/></> : <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>}</svg>;
-}
-/** "+15" rising from the XP count each time it grows (never on the first paint; not shown under reduced motion). */
-function XpGain({value}: {value: number}) {
-  const seen = useRef<number | null>(null), [gain, setGain] = useState<{n: number; key: number} | null>(null);
-  useEffect(() => {
-    const before = seen.current; seen.current = value;
-    if (before === null || value <= before || !motionOk()) return;
-    setGain(g => ({n: value - before, key: (g?.key ?? 0) + 1}));
-    const t = window.setTimeout(() => setGain(null), 1400); return () => window.clearTimeout(t);
-  }, [value]);
-  return gain ? <span key={gain.key} className="checklist-xp-gain" aria-hidden="true">+{gain.n}</span> : null;
 }
 
 /** Session AF (crit1): the empty path's picture: five faint dots in the path's own colours on a dashed flow line, so an

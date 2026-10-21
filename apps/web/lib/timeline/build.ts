@@ -30,6 +30,8 @@ export type TimelineBlock = {
   /** Length in minutes (0 for a reminder: a moment, not a block). */
   minutes: number;
   pillar: BlockPillar; href: string; done: boolean; skipped?: boolean;
+  /** Session AG: a Checklist dot's own colour on the path (a CSS colour). */
+  colour?: string;
   movable: boolean; lockedReason?: string;
   /** The override key a move writes (`habit:<id>`, `meal:<slot>`). */
   timeKey?: string;
@@ -167,7 +169,7 @@ export function buildDayTimeline(input: TimelineInput): DayTimeline {
   for (const item of input.extra ?? []) {
     if (item.habitId && habitBlocks.has(item.habitId)) { habitBlocks.get(item.habitId)!.onChecklist = true; continue; }
     const band: TimelineBand = item.band ?? 'anytime', time = item.time && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(item.time) ? item.time : band === 'anytime' ? null : PART_OF_DAY[band];
-    out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, href: item.href || '/app/checklist', done: item.done, movable: false, lockedReason: 'Its place is set on the Checklist.', timeFrom: 'the Checklist', action: 'open', note: item.label ?? 'Checklist'});
+    out.push({id: item.id, kind: 'checklist', title: item.title, start: time ? clockMinutes(time) : null, minutes: 0, pillar: item.pillar ?? null, ...(item.colour ? {colour: item.colour} : {}), href: item.href || '/app/checklist', done: item.done, movable: false, lockedReason: 'Its place is set on the Checklist.', timeFrom: 'the Checklist', action: 'open', note: item.label ?? 'Checklist'});
   }
 
   const timed = out.filter(b => b.start !== null).map(b => ({...b, start: clampDay(b.start!)}))

@@ -386,7 +386,7 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
 // ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
 test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
-  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
+  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'ag-orbit', 'af-checklist-timers', 'af-checklist-launcher'];
   const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
@@ -418,6 +418,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     ['af-checklist-star', 'Edit path'],
     ['af-checklist-tick', 'Undo puts that record back exactly'],
     ['af-checklist-streak', 'Rest days (not scheduled, paused or skipped) are left out, never failed'],
+    // Session AG (ADR-029): the redesign's answer; the Checklist adds no XP any more, and says so.
+    ['ag-orbit', 'the Checklist no longer adds XP'],
     ['af-checklist-timers', 'the whole night lands on Health'],
     ['af-checklist-launcher', 'Your path stays on this device: it is not synced yet'],
   ] as const) {

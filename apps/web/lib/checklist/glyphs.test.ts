@@ -14,3 +14,22 @@ describe('a planet\'s mark from its own words (L3b)', () => {
     expect(itemGlyph({glyph: 'focus', label: 'Deep work'})).toBe('focus');
   });
 });
+
+describe('a node\'s glyph on the orbit path (Session AG)', () => {
+  test('words first, then the page\'s mark, then the kind\'s; a custom item without telling words is a star', async () => {
+    const {orbitGlyph} = await import('./glyphs');
+    expect(orbitGlyph({glyph: 'habits', label: 'Walk 8,000 steps'})).toBe('footsteps');
+    expect(orbitGlyph({glyph: 'focus', label: 'Deep work block'})).toBe('target');
+    expect(orbitGlyph({glyph: 'flag', label: 'Move €200 to savings'})).toBe('coin');
+    expect(orbitGlyph({glyph: 'habits', label: 'Read 5 pages'})).toBe('book');
+    expect(orbitGlyph({glyph: 'drop', label: 'Water'})).toBe('drop');
+    expect(orbitGlyph({glyph: 'sparkle', label: 'Call grandma'})).toBe('star');
+    expect(orbitGlyph({glyph: 'habits', label: 'Tidy the desk'})).toBe('orbit');
+    expect(orbitGlyph({glyph: 'flag', label: 'Launch the website'})).toBe('target');
+    expect(orbitGlyph({glyph: 'focus', label: 'Practise'})).toBe('clock');
+  });
+  test('every glyph it can give is drawn by the path\'s own glyph table (no icon library)', async () => {
+    const {PATH_GLYPH_NAMES} = await import('../../components/path/glyph-paths');
+    for (const name of ['star', 'target', 'footsteps', 'coin', 'apple', 'orbit', 'clock', 'heart', 'book', 'lotus', 'moon', 'hourglass', 'dumbbell', 'scale', 'meal', 'pill', 'pen', 'note', 'drop']) expect(PATH_GLYPH_NAMES, name).toContain(name);
+  });
+});
