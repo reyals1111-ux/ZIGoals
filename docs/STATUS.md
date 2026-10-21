@@ -1,3 +1,61 @@
+# Session AG — "The orbit Checklist" (ADR-029, Parts 0–7) (2026-10-21, [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91), ready for review, not merged, not deployed)
+**Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3100, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = CI's required WebKit job only (no WebKit locally). No paid service, no secret, no deploy, no new dependency.
+**Base:** `main` `8778497` (Alpha #45). **Rules (owner):** the brief; the approved plan with seven amendments (ADR-029 "Owner decisions": no review captures, a scratchpad-only self-check, "Goal" only for a set goal, a verifier change in its own Tier 3 commit, the words updated, the planet lazily, the deadline). Decisions without asking: ADR-029 I1–I13. Resume file: `docs/handoff/AG_RESUME.md`.
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: Alpha #45 (run 47, VERIFIED, version `7c69e106`, rollback `24d86173` #44, floor #32), Session AF marked merged and deployed, Release identity, ADR-029, AG_RESUME, Draft PR | 1 | `fbea0847` | Actions API |
+| 1–3 | Nodes, the flowing line and the orbit labels (one commit: one shared sheet, I6), the chests off the path, ZIGi at half size | 1 | `0a4d754e` `a3886c80` | local, CI |
+| 4 | Timer cards with honest lines | 1 | `7a5ba5b4` | local, CI |
+| 5 | The dashboard's sky, the destination planet, the top bar without XP | 1 | `9974c859` | local, CI |
+| 6 | The Checklist's XP source removed; the celebration, the heatmap, per-item colours on the List, Today's card and the Day timeline; Help, search and What's new | 1 / 3 | `a8017bfc` (TIER 3) `2bb57714` | local, CI |
+| 7 | The self-check's fix round, theme parity, the audits | 1 | `65a998b6` | local, CI, WebKit CI |
+| — | This entry, PR ready for review | — | this commit | — |
+
+## What changed, pointer by pointer (the owner's reference 01)
+- **1–2 Nodes:** the footer banner's node (`components/orbit-path/orbit-node`): dark glass, a thin neon ring in the node's own colour, one line glyph (one table, `orbitGlyph`: footsteps, target, coin, star, lotus, moon, book, dumbbell, pill and more), unlit until done and lit once done, the ring blooming once on a tick. Each node's colour is its habit card's tone or its own, and no two neighbours share one (`lib/path/orbit-colours.ts`). A name tab sits where the footer's badge does: one line on a computer, two with an ellipsis on a phone (AF15), the full name in its title, filled with a check once done.
+- **1–5 Lines:** one continuous flowing neon line (`components/orbit-path/flow-line`, `lib/path/flow-geometry.ts`). It is tangent to each ring at its side point and draws a seeded S per stretch (the same every visit). Each stretch is a gradient from node to node, lit, half-lit or dim. A lead-in runs from above the first orbit, a tail runs to the day's finale, and a light runs once along the stretch a tick lit. Phones get a narrower swing, with no sideways scroll at 320.
+- **6–9 Orbit labels:** light and left-anchored: a small planet, the eyebrow and the title on a tint that mists away past the title; "Orbit complete" as a lit chip right after the title; the line passes the labels.
+- **10 Timers:** slim glass cards (Sleep cyan, Meditate teal, Fast violet, Focus pink) with a line icon and one sub line, its number tinted. "Goal" appears only for a goal the person set; otherwise the card says "Last night ·", "Last fast ·", "Usually" or "No goal set ·". A running card gets a brighter border, its icon lit once, and "Running · …".
+- **11 Planet:** the app's own destination art, low on the right on a computer (`loading=lazy`, `decoding=async`, no preload; the sidebar already loads it); on a phone and a tablet a small CSS planet in its style (no request). The sky is the dashboard's own ground in each theme.
+- **12 Top bar:** no XP pill; the title bigger, white into the nebula; a thicker cyan → violet → pink progress bar with a sparkle at its leading end; count · Perfect orbit · date on one 15 px line; Path/List, the flame and the menu as before.
+- **Removals (owner-approved):** no chests (only the finale, "All planets lit", as a gold star node); no XP anywhere in the Checklist; the confetti replaced by a supernova ring, a shooting star and a twinkle (a still frame under reduced motion and Motion Off); ZIGi on the path at half size (a phone keeps a size that reads).
+- **Also:** "Orbit consistency · last 12 weeks" in reference 12's style (four honest states); the same per-item colours on the List, Today's card, the celebration and the Day timeline; the Help answers, their search entry, `docs/product/CHECKLIST.md` and What's new `2026-10-session-ag-orbit-checklist`.
+
+## Tier 3, in plain words (risk → rollback)
+- **Game-layer data (`a8017bfc`):** the Checklist no longer adds game-layer XP (Session AF gave 15 for a day with every dot lit and 5 more for a Perfect orbit). XP is derived from stored records on each read and never stored, so no record or format changes. **A person's XP total and level can drop by up to 20 XP for each finished Checklist day since Session AF (owner-approved).** A level already celebrated stays seen; no new celebration opens. The badges First orbit, Seven orbits and Perfect orbit still read the same days. Rollback: revert the commit.
+- **Verifier:** unchanged. Stage 10 (`hosted-checklist-stage`) passes as it is, so no `TIER 3 (verifier)` commit was needed.
+- Nothing in auth, sync, CSP, headers, Workers, wallets, signing or the deploy workflow changed. Storage keys and formats are unchanged (frozen readers #37–#44 PASS).
+
+## Weights (gzip -6 of the scripts each page loads; production build of `2bb57714`; budgets never raised)
+`/app/checklist` 466.5 kB of its 492.0 kB line (Session AF: 466.7 kB): the comets and chests left as the nodes and line came in. Every other page is unchanged and within its line; the shell is 406.9 of 447.0 kB.
+
+## Tests and assertions changed (deliberate; none weakened; ADR-029 I10)
+- `checklist-overlay-af`: planet sizes → node sizes (76–88 / 58–68 px). Fourteen sparks and a comet → the ring's bloom, the tab's fill and check, and a light along the stretch to the next node, recorded as they appear. "A name beside, no box" → "a tab attached to its node, on its lower side, toward its side, the full name in its title". The next name's glide → it no longer moves (greater strength). "A long name stays whole" → two lines at most with a clean ellipsis and the full name in its title (AF15). Chest placement → no chest on the path. ZIGi's size bounds halved (owner Part 6), its clearance read from the node's 6 px halo. The pulse at rest → the lit state at once and no light running.
+- `path-engine`: "the line from centre to centre" → "side point to side point, tangent, in path order, on to the finale"; "no label covers its dot" → "no tab covers its node's glyph"; the half-way chest → none.
+- `checklist-themes`: the paint compared across themes now covers the nodes, tabs, line strokes and every gradient stop; the line uses the nodes' own colours; the sky is asserted equal to the dashboard's own ground in each theme (greater strength).
+- `checklist-timers`: a new test — no card says "Goal" for a value the person did not set; Focus shows the habit's own target as its goal. `checklist`: the half-way chest is gone, and the history has its new name.
+- `lib/checklist/game-layer.test.ts`: the 15/5 XP case removed with the feature and replaced at equal strength (no Checklist day adds an event or a point; the same days still count for the badges). `lib/timeline/build.test.ts`: the colour on each Checklist item.
+- `whats-new` (positions +8; AF's Earn link via "Earlier updates"), `help-page` (the new answer), `zigi-help-settings` (the release id): moved with the release.
+- New unit tests: `lib/path/flow-geometry.test.ts` (tangency, determinism, the column's width at 320 px), `lib/path/orbit-colours.test.ts` (no equal neighbours, stable), `lib/checklist/glyphs.test.ts` (the glyph table).
+
+## Evidence
+- Local, production build: the Checklist's specs (`checklist-overlay-af`, `path-engine`, `checklist-themes`, `checklist`, `checklist-timers`, `checklist-launcher`, `checklist-view-writes-nothing-af`, `hosted-checklist-stage`, `zigi-checklist-af`, the WebKit file's Chromium skip), computer and phone: 58 passed. Then theme parity for `/app/checklist` (computer and phone) with the moved specs: 32 passed. `whats-new`, `help-page` (Session AF), `timeline-af`: passed. The dev server's X/Escape check failed on `main` too (dev mode); it passes on the build.
+- Layout audit `/app/checklist` (states: path, list, Edit path, empty; 320/390/768/1024/1440/1920): Nebula clean, Dark clean, touch at 768/1024 clean; Light one judged reading (a tab under the foot bar's fade, ADR-029 I13). Gradient words lowest 5.29:1 by day, 8.19:1 by night.
+- Unit: the checklist, path, game and timeline suites pass; the full suite passes except four files that fail on `main` in this sandbox too (Node 22, ICU: pre-run11-setup, run11/domain-review-race, visual-format ja-JP, vault/finance-homes) and pass in CI. Typecheck and lint are green (warnings only); the theme sheets pass `--check`; check-secrets passed; frozen readers #37–#44 PASS.
+- CI: Milestone quality on `a3886c80` (Parts 1–3): checks, integration (weights), contract, the Alpha gate, Chrome shards 3 and 5 and WebKit shard 1 green. WebKit shard 2 had the `/app/checklist` parity rows (Light's softer glow, fixed in `65a998b6`) and `zigi-chat-polish:79`, the listed WebKit intermittent "ZIGi's box empty after a fill" (unrelated to this session). The run on this commit, the final head, is on the PR.
+
+## Known CI intermittents (this session)
+- Canonical reproducibility "environment disagreement" (the reproducibility workflow, Part 0's head): runner images differ, as listed by Session AF.
+- `zigi-chat-polish:79` in WebKit (Parts 1–3's head): the listed "ZIGi's box empty after a fill" class.
+
+## Left for S1 and the owner
+- **S1:** Earn's Start-here path in the new style (AF12), with the reusable `components/orbit-path/*` (node, line) and `lib/path/flow-geometry.ts` / `orbit-colours.ts`; phone one-tap access to the Checklist (AF8).
+- **Owner:** the branch `review/session-ag-refs` (the reference images) can be deleted after this PR merges; Light's glows stay Nebula's strength by the parity rule (ADR-029 I11; say "soften the Checklist's glows by day" to allow it as a parity exception).
+
+---
+
 # Session AF — "Wealth, unlocked" (ADR-028, Parts 0–12, Gate C) (2026-10-18/21, [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90), merged into `main` as `8778497` and deployed as Alpha #45)
 **Evidence labels:** local = this Mac (M1 Max), production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3101–3104, Playwright with the Chrome channel, Chromium headless only (the owner's hard rule of 19 Oct: never WebKit or a headed browser on this Mac, ADR-028 H114), at most 2 workers, builds and browser runs one at a time under `/usr/bin/shlock` (H91); CI = Milestone quality on the PR head; WebKit = CI's required WebKit job only; live = read-only reads of the real ZIGChain network and public sources from this Mac; design review = screenshots and recorded frames (not a usability test, not a device). No paid model call, no secret, no deploy, no wallet typed into or signed with.
 **Base:** `main` `4f92495` (Alpha #44). **Rules (owner):** the plan approved on 18 Oct with eleven amendments (`docs/research/session-af/PLAN_APPROVED.md`, ADR-028 "Owner decisions" D1–D10); the hard rule of 19 Oct (no WebKit locally; push at least every 60 minutes); the decisions of 19 Oct (Light's gradient words H130; Today's market watch H131; the Checklist redesign H132 with its six acceptance lines); Gate C started early on the owner's word (19 Oct 19:04); 20 Oct: one polish round and one confirming pass for the Checklist, then merge (H136). Decisions without asking: ADR-028 H1–H138. Resume file: `docs/handoff/AF_RESUME.md`; lane files `docs/handoff/af-lanes/*.md`. Captures: orphan branch `review/session-af-screens` (`before/`, `reference/`, `after/`).

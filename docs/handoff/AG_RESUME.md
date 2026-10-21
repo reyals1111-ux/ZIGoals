@@ -29,10 +29,10 @@ Deadline: PR out of Draft with CI green by Sat 24 Oct 12:00 Brussels.
 | 4 Timer cards (honest lines) | done | see git log |
 | 5 Background, planet, top bar | done | see git log |
 | 6 Removals and smaller changes | done | see git log (Tier 3 game-layer data on its own) |
-| 7 Self-check, audits, CI, STATUS, ready | — | — |
+| 7 Self-check, audits, CI, STATUS, ready | done (CI on the final head pending, then out of Draft) | `65a998b6` + the STATUS entry |
 
 ## Next action
-Part 7: self-check (8 scratchpad images, one fix round), production build, layout audit + theme parity for /app/checklist, focused specs incl. X/Escape on the build, weights, CI, STATUS entry, PR ready.
+Wait for Milestone quality on the final head; fix anything red (one re-run only for a listed intermittent); then take PR #91 out of Draft and give the owner the short report.
 
 ## Notes
 - The dev server's "X and Escape … opened directly, to Today" fails on `main` too in this sandbox (dev mode); check it on a
