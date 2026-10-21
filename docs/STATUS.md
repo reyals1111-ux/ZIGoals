@@ -1,4 +1,4 @@
-# Session AF — "Wealth, unlocked" (ADR-028, Parts 0–12, Gate C) (2026-10-18/21, [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90), ready for review, not merged, not deployed)
+# Session AF — "Wealth, unlocked" (ADR-028, Parts 0–12, Gate C) (2026-10-18/21, [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90), merged into `main` as `8778497` and deployed as Alpha #45)
 **Evidence labels:** local = this Mac (M1 Max), production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3101–3104, Playwright with the Chrome channel, Chromium headless only (the owner's hard rule of 19 Oct: never WebKit or a headed browser on this Mac, ADR-028 H114), at most 2 workers, builds and browser runs one at a time under `/usr/bin/shlock` (H91); CI = Milestone quality on the PR head; WebKit = CI's required WebKit job only; live = read-only reads of the real ZIGChain network and public sources from this Mac; design review = screenshots and recorded frames (not a usability test, not a device). No paid model call, no secret, no deploy, no wallet typed into or signed with.
 **Base:** `main` `4f92495` (Alpha #44). **Rules (owner):** the plan approved on 18 Oct with eleven amendments (`docs/research/session-af/PLAN_APPROVED.md`, ADR-028 "Owner decisions" D1–D10); the hard rule of 19 Oct (no WebKit locally; push at least every 60 minutes); the decisions of 19 Oct (Light's gradient words H130; Today's market watch H131; the Checklist redesign H132 with its six acceptance lines); Gate C started early on the owner's word (19 Oct 19:04); 20 Oct: one polish round and one confirming pass for the Checklist, then merge (H136). Decisions without asking: ADR-028 H1–H138. Resume file: `docs/handoff/AF_RESUME.md`; lane files `docs/handoff/af-lanes/*.md`. Captures: orphan branch `review/session-af-screens` (`before/`, `reference/`, `after/`).
 
@@ -203,6 +203,19 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #45 — 2026-10-21, `8778497` live
+Recorded by Session AG (2026-10-21).
+- **Source:** `8778497abc105d798b6d6c237698616a0b5eedc5`, `main` after [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90) (Merge #90, Session AF, "Wealth, unlocked", ADR-028), merged 2026-10-21 05:34:56 UTC. Verified: git.
+- **CI:** Milestone quality #1100 ([run 39550378826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39550378826)) on `8778497` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 47 ([run 39558146080](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39558146080)), dispatched 2026-10-21 06:52:23 UTC from `main`, exact source `8778497`; finished 07:06:37 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 3 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `7c69e106-ef03-4848-ab52-a08d2a67ad3e`; rollback `24d86173-c7ac-457c-affd-b35ecd02b6ac` (#44). Owner-reported.
+- **What went live:** Session AF (ADR-028) on top of AE (#44).
+- **Release identity:** live #45, previous #44. **Rollback floor:** stays #32.
+- **Record note:** run number 47 is Alpha #45 (the run number runs two ahead of the Alpha count).
 
 ---
 
@@ -6562,11 +6575,11 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-17 for the [Alpha deploy #43](#alpha-deploy-43--2026-10-17-11d8408-live) record near the top of this file (recorded by Session AE). Rollback floor: #32.
-- Deployed source `11d8408280f4f7d5b32f12d17eeeaedd62b43b1f`, `main` after [PR #88](https://github.com/reyals1111-ux/ZIGoals/pull/88) (Merge #88, Session AD). Verified: Actions API.
-- CI: Milestone quality #995 ([run 39033571400](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39033571400)) on `11d8408`: success (attempt 1). Verified: Actions API.
-- Deployment: Manual Alpha deployment, run number 45 ([run 39038011811](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39038011811)), exact source `11d8408`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
-- Alpha Worker `zigoals-alpha`: live version `5ee8241e-047f-4cf1-93d8-c688b4a71f29`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z, 14 days left); rollback `e3c6ba1c-14f9-4a9b-928b-e1bd57b3ce08` (#42). Owner-reported. The owner's hosted verifier on #43: stages 1–2 PASS, stage 3 FAIL on a verifier bug (stage order since `c9273d6b`; fixed in Session AE Part 0), not a site bug.
+Updated 2026-10-21 for the [Alpha deploy #45](#alpha-deploy-45--2026-10-21-8778497-live) record near the top of this file (recorded by Session AG). Rollback floor: #32.
+- Deployed source `8778497abc105d798b6d6c237698616a0b5eedc5`, `main` after [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90) (Merge #90, Session AF). Verified: Actions API.
+- CI: Milestone quality #1100 ([run 39550378826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39550378826)) on `8778497`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 47 ([run 39558146080](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39558146080)), exact source `8778497`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `7c69e106-ef03-4848-ab52-a08d2a67ad3e`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `24d86173-c7ac-457c-affd-b35ecd02b6ac` (#44). Owner-reported.
 
 Previous release identity (#42, 2026-10-16, recorded by Session AD):
 - Deployed source `61204c3fb1e959763ecbe81ef402c76990ad1f14`, `main` after [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87) (Merge #87, Session AC). Verified: Actions API.

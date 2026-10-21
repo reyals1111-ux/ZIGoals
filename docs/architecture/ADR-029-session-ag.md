@@ -1,0 +1,22 @@
+# ADR-029: Session AG, "The orbit Checklist": session decisions
+
+Status: **In progress** on `feature/session-ag-checklist-orbit`, from `main` `8778497` (Merge #90, Session AF; live as Alpha #45), in a cloud session. This record holds the owner's decisions at plan approval and every decision the session took without asking (by the project rules and the safest option). Resume point: `docs/handoff/AG_RESUME.md`.
+
+## Owner decisions (2026-10-21, plan approval)
+- **The brief:** Session AG, a focused visual redesign of the Checklist's Path view (pointers 1–12 on the owner's reference 01; references 02–12 on the orphan branch `review/session-ag-refs`, used as references only, never committed here or shipped). Non-negotiables 1–8 as written: additive behaviour, no storage key or format change, honest numbers, one-time motion, three-theme parity, readability and touch, no new dependencies or Tier 3 areas beyond the named ones, and Earn's Start-here left as it is.
+- **The approved plan:** keep the shared path engine and redraw only its Checklist-only `orbit` variant with reusable pieces in `components/orbit-path/` (I1); Parts 0–7 in priority order, each pushed.
+- **Amendments (2026-10-21, after approval):**
+  1. No screenshots for owner review: no before-captures, no `review/session-ag-screens` branch, no capture-script push, no design-critique helper.
+  2. A minimal self-check only: about eight images (Nebula 390 and 1440 half and all done; Light and Dark 1440 all done; the celebration still at 390; a long name with 12+ items at 390), kept in the scratchpad, never committed, at most one fix round. The automated checks stay (layout audit and theme parity for `/app/checklist`, contrast, overflow, the focused specs).
+  3. Timer cards: only the person's own set goal is labelled "Goal"; a last-used value or a default says what it is ("Last fast · 16h", "Usually 10 min").
+  4. Any change to the hosted verifier (stage 10) is its own commit labelled `TIER 3 (verifier)`, with risk and rollback in STATUS.
+  5. Every Help answer, Known limitation, search text and What's new line that mentions Checklist XP, chests or confetti is updated; one short What's new entry for this redesign (`2026-10-session-ag-orbit-checklist`).
+  6. The destination planet image: `loading="lazy"`, `decoding="async"`, no preload; on phones only if it costs no request beyond what Today already loads, otherwise a smaller CSS planet in the same style.
+  7. Deadline: the PR out of Draft with CI green by Sat 24 Oct 12:00 Brussels. No "captures" lines in the STATUS entry or the report; the report gives preview steps only.
+
+## Decisions taken without asking
+- **I1 — The engine stays; the orbit look is redrawn.** Ticking, Undo, the stepper and panel, the keyboard, landing on the next planet, "Jump to next", ZIGi's placement and the measured geometry (`data-path-point`, `data-settled`) already live in `components/path/path.tsx` and are pinned by tests. Only the `variant="orbit"` drawing changes (the Checklist alone imports it), so Earn's Start-here path and the Academy (`variant="default"`) cannot move. The new pieces — the node, the glyph table, the flowing line's geometry and SVG, the per-item colours — live in `components/orbit-path/` so S1 can align Earn's path with them later (AF12).
+- **I2 — Class names kept.** The redrawn node keeps `.path-dot`, `.path-label`, `data-path-point` and the aria names, so the layout audit, theme parity and the a11y tools read the new design without changes to their selectors.
+- **I3 — Per-item display colours are presentation only.** A starred habit takes its habit card's tone (`visualTone`), anything else its stored or page colour, else a stable hash into the palette; a fix-up pass then makes every neighbour on the path differ. The stored `colour` is never rewritten (non-negotiable 2).
+- **I4 — The Checklist's game-layer XP stops at the source** (`lib/game/xp.ts` emits no Checklist events); the First orbit, Seven orbits and Perfect orbit badges still read `checklistOrbitDays`. XP is derived from stored days, so no stored data changes; a person's XP total and level can drop slightly (owner-approved). Labelled `TIER 3 (game-layer data)`; rollback: revert.
+- **I5 — No reference pixels.** Every shape (nodes, lines, glyphs, cards, the heatmap) is SVG or CSS; the only image is the app's existing destination planet art.
