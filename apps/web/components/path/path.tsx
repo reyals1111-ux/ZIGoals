@@ -294,7 +294,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const flow = orbit && geo ? (() => {
     const nodes: FlowNode[] = steps.flatMap((st, i) => { const p = geo.points[st.id]; return p ? [{id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'}] : []; });
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
-    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.gold.token, done: anchor.mood === 'done'});
+    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
     const vw = typeof window === 'undefined' ? 1440 : window.innerWidth, swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
     return {nodes, travel, swing, tailTo: fin ? geo.h - 4 : null};

@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {HABIT_TONE_COLOURS, ORBIT_PALETTE, orbitColours, stableHash} from './orbit-colours';
+import {CHECKLIST_COLOUR_IDS, HABIT_TONE_COLOURS, ORBIT_PALETTE, nebulaColour, orbitColours, stableHash} from './orbit-colours';
 
 describe('the orbit path\'s node colours (Session AG, ADR-029 I3)', () => {
   test('no two neighbours share a colour, whatever comes in (all cyan, all one tone, mixed)', () => {
@@ -17,7 +17,16 @@ describe('the orbit path\'s node colours (Session AG, ADR-029 I3)', () => {
     }
   });
   test('an item keeps its own colour (or its habit card\'s tone) where its neighbours allow', () => {
-    expect(orbitColours([{id: 'w', colour: 'blue'}, {id: 'h', tone: 2}, {id: 'g', colour: 'gold'}])).toEqual(['blue', HABIT_TONE_COLOURS[2], 'gold']);
+    expect(orbitColours([{id: 'w', colour: 'blue'}, {id: 'h', tone: 2}, {id: 'm', colour: 'magenta'}])).toEqual(['blue', HABIT_TONE_COLOURS[2], 'magenta']);
+  });
+  test('Session AG Polish (request 1d): never gold — a stored gold is shown as pink, the nebula hue nearest to it', () => {
+    expect(ORBIT_PALETTE).not.toContain('gold');
+    expect(CHECKLIST_COLOUR_IDS).not.toContain('gold');
+    expect(nebulaColour('gold')).toBe('pink');
+    expect(orbitColours([{id: 'w', colour: 'blue'}, {id: 'h', tone: 2}, {id: 'g', colour: 'gold'}])).toEqual(['blue', HABIT_TONE_COLOURS[2], 'pink']);
+    const many = orbitColours(Array.from({length: 40}, (_, i) => ({id: `g${i}`, colour: i % 2 ? 'gold' as const : null})));
+    expect(many).not.toContain('gold');
+    for (let i = 1; i < many.length; i++) expect(many[i]).not.toBe(many[i - 1]);
   });
   test('stable: the same ids in the same order give the same colours, every time', () => {
     const items = Array.from({length: 15}, (_, i) => ({id: `ck_${i}`, colour: i % 3 ? 'cyan' as const : null}));

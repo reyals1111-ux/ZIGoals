@@ -6,13 +6,13 @@
 .checklist-celebration { position: fixed; inset: 0; z-index: 2147483001; box-sizing: border-box; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 16px; border: 0; display: grid; place-items: center; overflow: hidden auto; color: #f2f6ff; background: radial-gradient(80% 60% at 50% 38%, var(--checklist-ink-celebration-a), var(--checklist-ink-celebration-b) 72%); }
 .checklist-celebration::backdrop { background: #02040dcc; }
 .checklist-celebration-burst { position: fixed; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; }
-/* Round 3: a gold-to-violet glow, with soft white-gold rays over it at a quarter strength at most. */
-.checklist-celebration-glow { position: absolute; left: -48vmax; top: -48vmax; width: 96vmax; height: 96vmax; border-radius: 50%; background: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%); animation: checklist-glow-in 1400ms ease-out both; }
+/* A nebula glow (Session AG Polish, request 1d: no gold). */
+.checklist-celebration-glow { position: absolute; left: -48vmax; top: -48vmax; width: 96vmax; height: 96vmax; border-radius: 50%; background: radial-gradient(closest-side, #8fe9ff8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%); animation: checklist-glow-in 1400ms ease-out both; }
 @keyframes checklist-glow-in { from { opacity: 0; transform: scale(.5); } }
-.checklist-celebration-glow { background: radial-gradient(closest-side, #ffd27a59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%); }
+.checklist-celebration-glow { background: radial-gradient(closest-side, #effcff59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%); }
 /* Session AG (owner Part 6): a supernova ring expanding from the finale, twice; a shooting star sweeping across; a short
    twinkle of stars — once each, transform and opacity only. */
-.checklist-celebration-nova { position: absolute; left: -90px; top: -90px; width: 180px; height: 180px; border-radius: 50%; border: 3px solid #fff3d6; box-shadow: 0 0 30px #ffd27a, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80; opacity: 0; animation: checklist-nova 1500ms cubic-bezier(.15, .7, .3, 1) 160ms both; }
+.checklist-celebration-nova { position: absolute; left: -90px; top: -90px; width: 180px; height: 180px; border-radius: 50%; border: 3px solid #effcff; box-shadow: 0 0 30px #8fe9ff, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80; opacity: 0; animation: checklist-nova 1500ms cubic-bezier(.15, .7, .3, 1) 160ms both; }
 .checklist-celebration-nova-2 { border-color: #9ff6ff; box-shadow: 0 0 24px #23eaff, 0 0 60px #f06dff80; animation-delay: 420ms; animation-duration: 1800ms; }
 @keyframes checklist-nova { 0% { opacity: 1; transform: scale(.2); } 60% { opacity: .55; } 100% { opacity: 0; transform: scale(5.5); } }
 .checklist-celebration-comet { position: fixed; left: -20vw; top: 14vh; z-index: 1; width: 22vw; height: 3px; border-radius: 3px; pointer-events: none; background: linear-gradient(90deg, #ffffff00, #9ff6ff99 60%, #ffffff); box-shadow: 0 0 12px #9ff6ff; rotate: 16deg; opacity: 0; animation: checklist-comet 1300ms cubic-bezier(.4, .05, .4, 1) 700ms both; }
@@ -21,10 +21,10 @@
 .checklist-celebration-twinkle { position: fixed; inset: 0; pointer-events: none; }
 .checklist-celebration-twinkle i { position: absolute; width: var(--s, 10px); height: var(--s, 10px); background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 4px #9ff6ff); opacity: 0; animation: checklist-twinkle 1100ms ease-out var(--t, 400ms) both; }
 @keyframes checklist-twinkle { 0% { opacity: 0; transform: scale(.2) rotate(0deg); } 40% { opacity: 1; transform: scale(1.15) rotate(30deg); } 100% { opacity: 0; transform: scale(.6) rotate(60deg); } }
-.checklist-celebration-card { position: relative; display: grid; justify-items: center; gap: 12px; width: min(460px, 100%); padding: 28px 24px 26px; border-radius: 32px; border: 1px solid #ffd27a59; background: var(--checklist-ink-celebration-card); box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40; text-align: center; animation: checklist-card-in 640ms cubic-bezier(.2, .9, .25, 1.15) both; }
+.checklist-celebration-card { position: relative; display: grid; justify-items: center; gap: 12px; width: min(460px, 100%); padding: 28px 24px 26px; border-radius: 32px; border: 1px solid #8fa6ff59; background: var(--checklist-ink-celebration-card); box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40; text-align: center; animation: checklist-card-in 640ms cubic-bezier(.2, .9, .25, 1.15) both; }
 @keyframes checklist-card-in { from { opacity: 0; transform: translateY(30px) scale(.9); } }
 .checklist-celebration-stage { position: relative; display: grid; place-items: center; width: 220px; height: 170px; margin-top: -86px; }
-.checklist-celebration-trophy { width: 150px; height: 150px; box-sizing: border-box; border-width: 3px; filter: drop-shadow(0 0 24px #ffd27a99); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
+.checklist-celebration-trophy { width: 150px; height: 150px; box-sizing: border-box; border-width: 3px; filter: drop-shadow(0 0 24px #9273ff99); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
 @keyframes checklist-trophy-rise { from { opacity: 0; transform: translateY(40px) scale(.6) rotate(-10deg); } }
 /* ZIGi large and in front of the trophy (never behind its ring), celebrating. */
 .checklist-celebration-zigi { position: absolute; z-index: 2; right: -96px; bottom: 2px; width: 122px; height: 160px; filter: drop-shadow(0 12px 18px #0009); animation: checklist-zigi-hop 760ms cubic-bezier(.2, .9, .25, 1.3) 380ms both; }
@@ -33,7 +33,7 @@
 .checklist-celebration-planets { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
 .checklist-celebration-planets li { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, var(--c) 45%, color-mix(in srgb, var(--c) 60%, #050a1e)); box-shadow: 0 0 12px var(--c); animation: checklist-planet-pop 420ms cubic-bezier(.2, .9, .25, 1.4) calc(500ms + var(--i) * 90ms) both; }
 @keyframes checklist-planet-pop { from { opacity: 0; transform: scale(.2); } }
-.checklist-celebration-eyebrow { margin: 0; color: #ffd27a; font-size: 14px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.checklist-celebration-eyebrow { margin: 0; color: #8fe9ff; font-size: 14px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .checklist-celebration h2 { margin: 0; font-size: clamp(30px, 6vw, 40px); line-height: 1.08; letter-spacing: -.02em; }
 .checklist-celebration-line { margin: 0; font-size: 16px; color: #c9d5ee; }
 .checklist-celebration-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 4px 0 6px; padding: 0; list-style: none; }

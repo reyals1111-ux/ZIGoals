@@ -4688,16 +4688,16 @@
         background-color: #000103cc
     }
     .checklist-celebration-glow:not(#\-) {
-        background-image: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%);
+        background-image: radial-gradient(closest-side, #8fe9ff8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%);
         background-color: transparent
     }
     .checklist-celebration-glow:not(#\-) {
-        background-image: radial-gradient(closest-side, #ffd27a59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%);
+        background-image: radial-gradient(closest-side, #effcff59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%);
         background-color: transparent
     }
     .checklist-celebration-nova:not(#\-) {
-        border-color: #fff3d6;
-        box-shadow: 0 0 30px #ffd27a, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80
+        border-color: #effcff;
+        box-shadow: 0 0 30px #8fe9ff, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80
     }
     .checklist-celebration-nova-2:not(#\-) {
         border-color: #9ff6ff;
@@ -4719,13 +4719,13 @@
         filter: drop-shadow(0 0 4px #9ff6ff)
     }
     .checklist-celebration-card:not(#\-) {
-        border-color: #ffd27a59;
+        border-color: #8fa6ff59;
         background-image: none;
         background-color: var(--checklist-ink-celebration-card);
         box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40
     }
     .checklist-celebration-trophy:not(#\-) {
-        filter: drop-shadow(0 0 24px #ffd27a99)
+        filter: drop-shadow(0 0 24px #9273ff99)
     }
     .checklist-celebration-zigi:not(#\-) {
         filter: drop-shadow(0 12px 18px #0009)
@@ -4736,7 +4736,7 @@
         box-shadow: 0 0 12px var(--c)
     }
     .checklist-celebration-eyebrow:not(#\-) {
-        color: #ffd27a
+        color: #8fe9ff
     }
     .checklist-celebration-line:not(#\-) {
         color: #c9d5ee
@@ -4851,12 +4851,6 @@
             --orb-mid: oklch(from var(--dot) calc(l * .76) calc(c * .86) h);
             --orb-rim: oklch(from var(--dot) calc(l * .88) c h)
         }
-    }
-    .today-checklist-planet:not(#\-) {
-        color: #04101f;
-        background-image: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 40%, #ffffff) 0, var(--dot) 48%, color-mix(in srgb, var(--dot) 70%, #0b1030) 100%);
-        background-color: transparent;
-        box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--dot) 55%, #050818), 0 0 0 4px color-mix(in srgb, var(--dot) 22%, transparent), 0 0 26px color-mix(in srgb, var(--dot) 55%, transparent)
     }
     .today-checklist-cue:not(#\-) {
         color: var(--muted, #a4b2cd)
@@ -10135,10 +10129,10 @@
         --orbit-hue-rim: #020918
     }
     .orbit-node:not(#\-) {
-        --node-dim: color-mix(in srgb, var(--node, #23eaff) 46%, #5d6680);
+        --node-dim: color-mix(in srgb, var(--node, #23eaff) 34%, #5a6276);
         --node-glass: radial-gradient(120% 120% at 30% 20%, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo) 70%);
         --node-edge: var(--node-dim);
-        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 16px -6px color-mix(in srgb, var(--node-dim) 55%, transparent), inset 0 1px 0 #ffffff14;
+        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), inset 0 1px 0 #ffffff12;
         --node-ink: var(--node-dim);
         background-image: var(--node-glass);
         background-color: transparent;
@@ -10148,18 +10142,24 @@
     }
     @supports (color: oklch(from red l c h)) {
         .orbit-node:not(#\-) {
-            --node-dim: oklch(from var(--node, #23eaff) calc(l * .72) calc(c * .38) h)
+            --node-dim: oklch(from var(--node, #23eaff) calc(l * .78) calc(c * .28) h)
         }
     }
     .orbit-node[data-lit]:not(#\-) {
         --node-edge: var(--node, #23eaff);
         --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 38px -4px color-mix(in srgb, var(--node, #23eaff) 75%, transparent), inset 0 1px 0 #ffffff22, inset 0 -10px 20px color-mix(in srgb, var(--node, #23eaff) 22%, transparent);
         --node-ink: color-mix(in srgb, var(--node, #23eaff) 60%, #ffffff);
-        --node-glyph-glow: drop-shadow(0 0 8px color-mix(in srgb, var(--node, #23eaff) 80%, transparent))
+        --node-glyph-glow: drop-shadow(0 0 6px #8fa6ffa6) drop-shadow(0 0 2px #effcff59)
     }
     .orbit-node-glyph:not(#\-) {
         color: var(--node-ink);
         filter: var(--node-glyph-glow)
+    }
+    .orbit-node .nebula-glyph:not(#\-) {
+        filter: saturate(.62)
+    }
+    .orbit-node[data-lit] .nebula-glyph:not(#\-) {
+        filter: none
     }
     .orbit-node-bloom:not(#\-) {
         border-color: var(--node, #23eaff);
@@ -10174,6 +10174,11 @@
         .orbit-node-glyph:not(#\-) {
             color: CanvasText;
             filter: none
+        }
+    }
+    @media (forced-colors: active) {
+        .nebula-glyph path:not(#\-) {
+            stroke: CanvasText
         }
     }
 }
@@ -10217,8 +10222,8 @@
         outline-color: #ffffff
     }
     .path-stage[data-variant=orbit] .path-dot[data-next]:not(#\-) {
-        --node-edge: color-mix(in srgb, var(--node) 72%, var(--node-dim));
-        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 78%, transparent), 0 0 26px -6px color-mix(in srgb, var(--node) 60%, transparent), inset 0 1px 0 #ffffff1a
+        --node-edge: color-mix(in srgb, var(--node) 26%, var(--node-dim));
+        --node-shadow: 0 0 0 6px color-mix(in srgb, var(--orbit-hue-rim) 78%, transparent), inset 0 1px 0 #ffffff1a
     }
     .path-stage[data-variant=orbit] .path-dot[data-state=running]:not(#\-) {
         --node-edge: var(--node)
@@ -10355,12 +10360,12 @@
         background-color: transparent
     }
     .path-zigi-burst:not(#\-) {
-        background-image: radial-gradient(closest-side, #fff4d1cc, #ffd27a66 32%, #ff74be26 58%, #ff74be00 72%), repeating-conic-gradient(from 0deg, #ffe39a00 0deg, #ffe39acc 3deg, #ffe39a00 7deg 22.5deg);
+        background-image: radial-gradient(closest-side, #effcffcc, #8fa6ff66 32%, #f08bd626 58%, #f08bd600 72%), repeating-conic-gradient(from 0deg, #c7e9ff00 0deg, #c7e9ffcc 3deg, #c7e9ff00 7deg 22.5deg);
         background-color: transparent
     }
     .path-zigi-cheer i:not(#\-) {
         background-image: none;
-        background-color: #ffd27a
+        background-color: #6fe6f6
     }
     .path-zigi-cheer i[data-tone='1']:not(#\-) {
         background-image: none;

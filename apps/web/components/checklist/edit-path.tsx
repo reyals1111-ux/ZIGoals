@@ -1,6 +1,7 @@
 'use client';
 import {Fragment, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
-import {PATH_COLOURS, PATH_COLOUR_IDS, pathColour} from '../../lib/path/colours';
+import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
+import {CHECKLIST_COLOUR_IDS, nebulaColour} from '../../lib/path/orbit-colours';
 import {HEALTH_MEALS} from '../../lib/health';
 import {latestHabitRule} from '../../lib/habits';
 import {addCustom, addFavourite, addSection, customToHabit, isFavourite, moveItem, moveWithinSection, newChecklistId, orderedItems, removeItem, removeSection, sectionOfItem, sectionsOf, updateItem, updateSection, type FavouriteRef} from '../../lib/checklist/store';
@@ -24,7 +25,7 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
   const {record} = state, sections = sectionsOf(record.data), items = orderedItems(record.data);
   // The list reads as the path does: orbit by orbit, each in its own order.
   const pathOrder = sections.flatMap(s => items.filter(i => sectionOfItem(record.data, i) === s.id));
-  const [status, setStatus] = useState(''), [custom, setCustom] = useState({label: '', colour: 'gold', section: 'anytime'}), [orbitName, setOrbitName] = useState(''), [openRow, setOpenRow] = useState<string | null>(null);
+  const [status, setStatus] = useState(''), [custom, setCustom] = useState({label: '', colour: 'pink', section: 'anytime'}), [orbitName, setOrbitName] = useState(''), [openRow, setOpenRow] = useState<string | null>(null);
   const dotById = useMemo(() => new Map(state.dots.map(d => [d.id, d])), [state.dots]);
   const write = (change: Parameters<typeof record.update>[0], words: string) => { try { record.update(change); setStatus(words); return true; } catch (e) { setStatus(message(e)); return false; } };
   const add = (ref: FavouriteRef, label: string, extra: {section?: string; defaultValue?: number; unit?: string} = {}) => write(r => addFavourite(r, ref, {id: newChecklistId(), at: new Date(), label, ...extra}), `${label} added to your path.`);
@@ -77,7 +78,7 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
     <p className="fine checklist-edit-status" role="status" aria-live="polite">{status}</p>
     <h3>On your path</h3>
     {pathOrder.length ? <ol ref={list} className="checklist-edit-list">{pathOrder.map((item, n) => {
-      const dot: DerivedDot | undefined = dotById.get(item.id), label = dot?.label ?? item.label ?? 'Item', section = sectionOfItem(record.data, item), colour = pathColour(item.colour, dot?.colour ?? 'cyan');
+      const dot: DerivedDot | undefined = dotById.get(item.id), label = dot?.label ?? item.label ?? 'Item', section = sectionOfItem(record.data, item), colour = nebulaColour(pathColour(item.colour, dot?.colour ?? 'cyan'));
       const dragging = drag?.id === item.id, mates = pathOrder.filter(i => sectionOfItem(record.data, i) === section), mate = mates.findIndex(i => i.id === item.id), orbitLabel = sections.find(x => x.id === section)?.label ?? 'its orbit';
       const orbitHead = n === 0 || sectionOfItem(record.data, pathOrder[n - 1]!) !== section;
       return <Fragment key={item.id}>
@@ -88,7 +89,7 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
         <button type="button" className="checklist-edit-more" aria-expanded={openRow === item.id} aria-label={`Change ${label}: orbit, colour, place`} onClick={() => setOpenRow(o => o === item.id ? null : item.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
         {openRow === item.id && <div className="checklist-edit-controls">
           <div className="checklist-edit-orbit-choice" role="radiogroup" aria-label={`Orbit of ${label}`}>{sections.map(s => <button key={s.id} type="button" role="radio" aria-checked={s.id === section} onClick={() => { if (s.id !== section) write(r => updateItem(r, item.id, {section: s.id}), `${label} moved to ${s.label}.`); }}>{s.label.replace(/ orbit$/i, '')}</button>)}</div>
-          <fieldset className="checklist-edit-colours"><legend className="sr-only">Colour of {label}</legend><div className="checklist-swatches">{PATH_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name={`colour-${item.id}`} checked={colour === id} onChange={() => write(r => updateItem(r, item.id, {colour: id}), `${label} is ${PATH_COLOURS[id].label.toLowerCase()} now.`)}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
+          <fieldset className="checklist-edit-colours"><legend className="sr-only">Colour of {label}</legend><div className="checklist-swatches">{CHECKLIST_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name={`colour-${item.id}`} checked={colour === id} onChange={() => write(r => updateItem(r, item.id, {colour: id}), `${label} is ${PATH_COLOURS[id].label.toLowerCase()} now.`)}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
           <div className="checklist-edit-actions">
             <button type="button" className="quiet" aria-label={`Move ${label} up`} disabled={mate === 0} onClick={() => write(r => moveWithinSection(r, item.id, -1), `${label} moved up in ${orbitLabel}.`)}>↑</button>
             <button type="button" className="quiet" aria-label={`Move ${label} down`} disabled={mate === mates.length - 1} onClick={() => write(r => moveWithinSection(r, item.id, 1), `${label} moved down in ${orbitLabel}.`)}>↓</button>
@@ -103,7 +104,7 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
     <h3>Your own item</h3>
     <form className="checklist-edit-custom" onSubmit={submitCustom}>
       <label className="field">What to do<input value={custom.label} maxLength={60} required placeholder="Something you do each day" onChange={e => setCustom(c => ({...c, label: e.target.value}))}/></label>
-      <fieldset className="checklist-edit-colours"><legend>Colour</legend><div className="checklist-swatches">{PATH_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name="checklist-custom-colour" checked={custom.colour === id} onChange={() => setCustom(c => ({...c, colour: id}))}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
+      <fieldset className="checklist-edit-colours"><legend>Colour</legend><div className="checklist-swatches">{CHECKLIST_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name="checklist-custom-colour" checked={custom.colour === id} onChange={() => setCustom(c => ({...c, colour: id}))}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
       <div className="checklist-edit-orbit-choice" role="radiogroup" aria-label="Orbit">{sections.map(s => <button key={s.id} type="button" role="radio" aria-checked={custom.section === s.id} onClick={() => setCustom(c => ({...c, section: s.id}))}>{s.label.replace(/ orbit$/i, '')}</button>)}</div>
       <button type="submit" className="secondary">Add to path</button>
     </form>
@@ -117,9 +118,9 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
     </div>
 
     <h3>Orbits</h3>
-    <ul className="checklist-edit-orbits">{sections.map(s => <li key={s.id} style={{'--dot': PATH_COLOURS[pathColour(s.colour)].token} as CSSProperties}>
+    <ul className="checklist-edit-orbits">{sections.map(s => <li key={s.id} style={{'--dot': PATH_COLOURS[nebulaColour(pathColour(s.colour))].token} as CSSProperties}>
       <label className="field"><span className="sr-only">Name of {s.label}</span><input defaultValue={s.label} maxLength={30} onBlur={e => { if (e.target.value.trim() && e.target.value.trim() !== s.label) write(r => updateSection(r, s.id, {label: e.target.value}), `Renamed to ${e.target.value.trim()}.`); }}/></label>
-      <fieldset className="checklist-edit-colours"><legend className="sr-only">Colour of {s.label}</legend><div className="checklist-swatches">{PATH_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name={`orbit-colour-${s.id}`} checked={pathColour(s.colour) === id} onChange={() => write(r => updateSection(r, s.id, {colour: id}), `${s.label} is ${PATH_COLOURS[id].label.toLowerCase()} now.`)}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
+      <fieldset className="checklist-edit-colours"><legend className="sr-only">Colour of {s.label}</legend><div className="checklist-swatches">{CHECKLIST_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name={`orbit-colour-${s.id}`} checked={nebulaColour(pathColour(s.colour)) === id} onChange={() => write(r => updateSection(r, s.id, {colour: id}), `${s.label} is ${PATH_COLOURS[id].label.toLowerCase()} now.`)}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
       {sections.length > 1 && <button type="button" className="quiet" aria-label={`Remove the ${s.label} orbit`} onClick={() => write(r => removeSection(r, s.id), `${s.label} removed; its items moved to ${sections.filter(x => x.id !== s.id).at(-1)?.label}.`)}>Remove</button>}
     </li>)}</ul>
     <form className="checklist-edit-custom" onSubmit={submitOrbit}><label className="field">New orbit<input value={orbitName} maxLength={30} required placeholder="Gym" onChange={e => setOrbitName(e.target.value)}/></label><button type="submit" className="secondary">Add orbit</button></form>

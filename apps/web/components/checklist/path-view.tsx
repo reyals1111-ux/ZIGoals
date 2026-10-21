@@ -4,6 +4,7 @@ import {Path} from '../path/path';
 import {checklistMilestones, checklistPath, type DerivedDot} from '../../lib/checklist/derive';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {PATH_COLOURS} from '../../lib/path/colours';
+import {nebulaColour} from '../../lib/path/orbit-colours';
 import {orbitGlyph} from '../../lib/checklist/glyphs';
 import type {PathModel, PathStep, StepIntent} from '../../lib/path/model';
 import {DotPanel} from './dot-panel';
@@ -41,7 +42,7 @@ export function useDotPress(state: ChecklistState) {
   const renderPanel = useCallback((dot: DerivedDot) => {
     if (!panel || panel.id !== dot.id) return null;
     if (panel.mode === 'value' && dot.value) return <>
-      <ValueStepper key={dot.id} label={dot.label} value={dot.value} colour={PATH_COLOURS[dot.colour].token} busy={busy === dot.id} onLog={n => void log(dot, n)} onCancel={() => setPanel(null)}/>
+      <ValueStepper key={dot.id} label={dot.label} value={dot.value} colour={PATH_COLOURS[nebulaColour(dot.colour)].token} busy={busy === dot.id} onLog={n => void log(dot, n)} onCancel={() => setPanel(null)}/>
       {panel.message && <p className="checklist-stepper-error" role="alert">{panel.message}</p>}
     </>;
     return <DotPanel dot={dot} message={panel.message} canUndo={state.canUndo(dot.id)} onUndo={() => void state.undoLast(dot.id).then(out => setPanel(out.ok ? null : {id: dot.id, mode: 'details', message: out.message}))} onClose={() => setPanel(null)}/>;

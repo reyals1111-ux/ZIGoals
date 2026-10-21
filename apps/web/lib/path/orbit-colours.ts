@@ -1,4 +1,4 @@
-import {PATH_COLOURS, type PathColour} from './colours';
+import {PATH_COLOURS, PATH_COLOUR_IDS, type PathColour} from './colours';
 
 /**
  * Session AG (ADR-029 I3; owner pointer 1): the colour each node wears on the orbit path. Presentation only: a stored
@@ -10,7 +10,15 @@ import {PATH_COLOURS, type PathColour} from './colours';
  *   the path never shows two neighbours in one colour (today every habit is cyan). The same ids in the same order always
  *   give the same colours: on every visit, every day.
  */
-export const ORBIT_PALETTE: readonly PathColour[] = ['teal', 'cyan', 'blue', 'purple', 'magenta', 'pink', 'gold'];
+export const ORBIT_PALETTE: readonly PathColour[] = ['teal', 'cyan', 'blue', 'purple', 'magenta', 'pink'];
+/**
+ * Session AG Polish (ADR-030 J4; owner request 1d): the Checklist uses only the nebula palette — never gold or yellow. A
+ * stored or default gold (custom items, fasts, Wealth and Earn items) is shown as pink, the nebula hue nearest to gold;
+ * the stored colour is never rewritten. Gold stays for Wealth and Earn elsewhere (`PATH_COLOURS` keeps it).
+ */
+export const nebulaColour = (colour: PathColour): PathColour => colour === 'gold' ? 'pink' : colour;
+/** The colours a person can choose inside the Checklist (Edit path, Options): the palette without gold. */
+export const CHECKLIST_COLOUR_IDS: readonly PathColour[] = PATH_COLOUR_IDS.filter(c => c !== 'gold');
 /** The habit cards' five tones (app/visual-v21.css `[data-tone]`, by each tone's lead colour): 0 cyan, 1 violet, 2 mint, 3 blue, 4 magenta. */
 export const HABIT_TONE_COLOURS: readonly PathColour[] = ['cyan', 'purple', 'teal', 'blue', 'magenta'];
 
@@ -24,7 +32,7 @@ export function stableHash(text: string): number {
 export type OrbitColourSource = {id: string; colour?: PathColour | null; tone?: number | null};
 const own = (item: OrbitColourSource): PathColour => {
   if (typeof item.tone === 'number' && Number.isInteger(item.tone)) return HABIT_TONE_COLOURS[((item.tone % 5) + 5) % 5]!;
-  if (item.colour && item.colour in PATH_COLOURS) return item.colour;
+  if (item.colour && item.colour in PATH_COLOURS) return nebulaColour(item.colour);
   return ORBIT_PALETTE[stableHash(item.id) % ORBIT_PALETTE.length]!;
 };
 

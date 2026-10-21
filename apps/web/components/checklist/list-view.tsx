@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import {Fragment, useMemo, type CSSProperties} from 'react';
 import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
+import {nebulaColour} from '../../lib/path/orbit-colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {sectionsOf} from '../../lib/checklist/store';
 import {itemGlyph} from '../../lib/checklist/glyphs';
@@ -20,7 +21,7 @@ import type {ChecklistState} from './use-checklist';
  * are in its check's name.
  */
 export function ListView({state, onAdd}: {state: ChecklistState; onAdd?: () => void}) {
-  const {panel, press, renderPanel, busy} = useDotPress(state), accent = PATH_COLOURS[pathColour(state.prefs.accent)].token;
+  const {panel, press, renderPanel, busy} = useDotPress(state), accent = PATH_COLOURS[nebulaColour(pathColour(state.prefs.accent))].token;
   // Session AG: each item in the colour it wears on the path (ADR-029 I3).
   const colours = checklistDisplayColours(state.record.data, state.dots);
   const sections = useMemo(() => sectionsOf(state.record.data), [state.record.data]);

@@ -43,7 +43,7 @@ export default function DayCelebration({streak, perfect, total, colours = [], on
     <div className="checklist-celebration-twinkle" aria-hidden="true">{TWINKLE.map((t, i) => <i key={i} style={{left: t.x, top: t.y, '--s': `${t.s}px`, '--t': t.t} as CSSProperties}/>)}</div>
     <section className="checklist-celebration-card">
       <div className="checklist-celebration-stage" aria-hidden="true">
-        <span className="checklist-celebration-trophy orbit-node" data-lit="" style={{'--node': PATH_COLOURS.gold.token, '--node-size': '150px'} as CSSProperties}><OrbitNodeFace glyph="star"/></span>
+        <span className="checklist-celebration-trophy orbit-node" data-lit="" style={{'--node': PATH_COLOURS.purple.token, '--node-size': '150px'} as CSSProperties}><OrbitNodeFace glyph="star"/></span>
         <span className="checklist-celebration-zigi"><ZigiCheer/></span>
       </div>
       {colours.length > 0 && <ol className="checklist-celebration-planets" aria-hidden="true">{colours.map((c, i) => <li key={i} style={{'--c': c, '--i': i} as CSSProperties}/>)}</ol>}

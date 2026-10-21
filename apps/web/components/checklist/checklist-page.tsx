@@ -261,7 +261,7 @@ function ViewMark({name}: {name: 'path' | 'list'}) {
 
 /** Session AF (crit1): the empty path's picture: five faint dots in the path's own colours on a dashed flow line, so an
  *  empty Checklist shows what it becomes. Decorative only (aria-hidden), still, the same in every theme. */
-const GHOST_DOTS: [number, number, string][] = [[24, 62, 'var(--pillar-habits, #23eaff)'], [92, 26, 'var(--brand-blue, #459dff)'], [160, 46, 'var(--brand-magenta, #f06dff)'], [228, 70, 'var(--pillar-goals, #9273ff)'], [296, 32, 'var(--pillar-wealth, #ffd27a)']];
+const GHOST_DOTS: [number, number, string][] = [[24, 62, 'var(--pillar-habits, #23eaff)'], [92, 26, 'var(--brand-blue, #459dff)'], [160, 46, 'var(--brand-magenta, #f06dff)'], [228, 70, 'var(--pillar-goals, #9273ff)'], [296, 32, 'var(--ring-emerald, #26e8bd)']];
 function GhostPath() {
   const id = useId().replace(/:/g, '');
   return <svg className="checklist-ghost-path" viewBox="0 0 320 96" aria-hidden="true" focusable="false">

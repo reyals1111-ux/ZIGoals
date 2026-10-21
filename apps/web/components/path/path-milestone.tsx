@@ -53,15 +53,15 @@ function TrophyPlanet({gold}: {gold: string}) {
 }
 
 /**
- * Session AG (ADR-029; owner Part 6): the orbit path's finale — "All planets lit" as a node in the new style (a gold star
- * node, lit once every planet is), where the flowing line ends; no reward line (the Checklist awards no XP). ZIGi
+ * Session AG (ADR-029; owner Part 6): the orbit path's finale — "All planets lit" as a node in the new style (a star
+ * node in the nebula palette — Session AG Polish, request 1d: violet, never gold — lit once every planet is), where the flowing line ends; no reward line (the Checklist awards no XP). ZIGi
  * celebrates beside it at the day's end, on the side it stood beside the last planet (so it never turns as it glides
  * over; it stands there, placed by the sheet, never gliding across the finale). `point`: its id for the line's geometry.
  */
 export function OrbitFinale({milestone, just, point, zigi, zigiSide = 'right'}: {milestone: PlacedMilestone; just: boolean; point: string; zigi: string | null; zigiSide?: 'left' | 'right'}) {
   return <li className="path-chest path-finale" data-milestone={milestone.id} data-trophy="" data-on-path="" data-reached={milestone.reached || undefined} data-just={just ? '' : undefined}>
     <div className="path-finale-node">
-      <span className="path-chest-art orbit-node" data-lit={milestone.reached || undefined} data-just={just ? '' : undefined} data-path-point={point} aria-hidden="true" style={{'--node': PATH_COLOURS.gold.token} as CSSProperties}><OrbitNodeFace glyph="star" just={just}/></span>
+      <span className="path-chest-art orbit-node" data-lit={milestone.reached || undefined} data-just={just ? '' : undefined} data-path-point={point} aria-hidden="true" style={{'--node': PATH_COLOURS.purple.token} as CSSProperties}><OrbitNodeFace glyph="star" just={just}/></span>
       {zigi && <PathZigi state={zigi} side={zigiSide} alive/>}
     </div>
     <span className="path-chest-text"><strong>{milestone.label}</strong><span className="sr-only">{milestone.reached ? ' (reached)' : ' (not reached yet)'}</span></span>
