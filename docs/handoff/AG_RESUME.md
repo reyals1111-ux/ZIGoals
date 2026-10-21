@@ -24,7 +24,7 @@ Deadline: PR out of Draft with CI green by Sat 24 Oct 12:00 Brussels.
 ## Parts
 | Part | State | Commits |
 |---|---|---|
-| 0 Records, ADR-029, this file, Draft PR | done | `c6c2f3c0`-era Part 0 commit, PR #91 |
+| 0 Records, ADR-029, this file, Draft PR | done | see git log, PR #91 |
 | 1–3 Nodes, lines, orbit labels (one commit, ADR-029 I6) | done | see git log |
 | 4 Timer cards | — | — |
 | 5 Background, planet, top bar | — | — |
