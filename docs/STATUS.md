@@ -1,4 +1,4 @@
-# Session AG — "The orbit Checklist" (ADR-029, Parts 0–7) (2026-10-21, [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91), ready for review, not merged, not deployed)
+# Session AG — "The orbit Checklist" (ADR-029, Parts 0–7) (2026-10-21, [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91), merged into `main` as `98a29b4` and deployed as Alpha #46)
 **Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3100, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = CI's required WebKit job only (no WebKit locally). No paid service, no secret, no deploy, no new dependency.
 **Base:** `main` `8778497` (Alpha #45). **Rules (owner):** the brief; the approved plan with seven amendments (ADR-029 "Owner decisions": no review captures, a scratchpad-only self-check, "Goal" only for a set goal, a verifier change in its own Tier 3 commit, the words updated, the planet lazily, the deadline). Decisions without asking: ADR-029 I1–I13. Resume file: `docs/handoff/AG_RESUME.md`.
 
@@ -261,6 +261,21 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #46 — 2026-10-21, `98a29b4` live
+Recorded by Session AG Polish (2026-10-22).
+- **Source:** `98a29b43c025c9e8916a76f88bc1a013d1cd60e0`, `main` after [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91) (Merge #91, Session AG, "The orbit Checklist", ADR-029), merged 2026-10-21 18:54:00 UTC. Verified: git.
+- **CI:** Milestone quality #1108 ([run 39656861876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39656861876)) on `98a29b4` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 48 ([run 39665883370](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39665883370)), dispatched 2026-10-21 19:55:50 UTC from `main`, exact source `98a29b4`; finished 20:23:39 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 4 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `ae7cd3b3-04a1-469a-8312-22c3257c8eb0`; rollback `7c69e106-ef03-4848-ab52-a08d2a67ad3e` (#45). Owner-reported.
+- **What went live:** Session AG (ADR-029) on top of AF (#45).
+- **Release identity:** live #46, previous #45. **Rollback floor:** stays #32.
+- **Hosted verifier on #46 (owner-reported, 2026-10-21 22:56 UTC, `EXPECTED_COMMIT=98a29b4…`):** all 10 stages PASS; overall FAIL only because four `/api/push` 503 answers were not counted as the Alpha's designed "not configured" answer (the two `/api/private-account` 503s were). Recorded only; the fix belongs to S1 (AF7). No site bug.
+- **Correction to ADR-028 H62 (owner-reported):** H62 lists `landing/index.html` among the places the public-safety sentence changed, but that file is byte-identical in #44, #45 and #46. The owner's landing redeploy on 21 Oct (version `5397cf67-dd5e-4344-bc1c-d71537768a6f`, rollback `057ee6b3-8e95-4db0-ad79-14b69f4c7794`) therefore changed nothing. The landing's staking and signing claims are fixed later, in S1 (not in Session AG Polish).
+- **Record note:** run number 48 is Alpha #46 (the run number runs two ahead of the Alpha count).
 
 ---
 
@@ -6633,11 +6648,15 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-21 for the [Alpha deploy #45](#alpha-deploy-45--2026-10-21-8778497-live) record near the top of this file (recorded by Session AG). Rollback floor: #32.
+Updated 2026-10-22 for the [Alpha deploy #46](#alpha-deploy-46--2026-10-21-98a29b4-live) record near the top of this file (recorded by Session AG Polish). Rollback floor: #32.
+- Deployed source `98a29b43c025c9e8916a76f88bc1a013d1cd60e0`, `main` after [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91) (Merge #91, Session AG). Verified: Actions API.
+- CI: Milestone quality #1108 ([run 39656861876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39656861876)) on `98a29b4`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 48 ([run 39665883370](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39665883370)), exact source `98a29b4`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `ae7cd3b3-04a1-469a-8312-22c3257c8eb0`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `7c69e106-ef03-4848-ab52-a08d2a67ad3e` (#45). Owner-reported.
+
+Previous release identity (#45, 2026-10-21, recorded by Session AG):
 - Deployed source `8778497abc105d798b6d6c237698616a0b5eedc5`, `main` after [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90) (Merge #90, Session AF). Verified: Actions API.
-- CI: Milestone quality #1100 ([run 39550378826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39550378826)) on `8778497`: success (attempt 1). Verified: Actions API.
-- Deployment: Manual Alpha deployment, run number 47 ([run 39558146080](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39558146080)), exact source `8778497`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
-- Alpha Worker `zigoals-alpha`: live version `7c69e106-ef03-4848-ab52-a08d2a67ad3e`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `24d86173-c7ac-457c-affd-b35ecd02b6ac` (#44). Owner-reported.
+- Alpha Worker `zigoals-alpha`: version `7c69e106-ef03-4848-ab52-a08d2a67ad3e`; rollback `24d86173-c7ac-457c-affd-b35ecd02b6ac` (#44). Owner-reported.
 
 Previous release identity (#42, 2026-10-16, recorded by Session AD):
 - Deployed source `61204c3fb1e959763ecbe81ef402c76990ad1f14`, `main` after [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87) (Merge #87, Session AC). Verified: Actions API.
