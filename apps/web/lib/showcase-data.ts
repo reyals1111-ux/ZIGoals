@@ -189,7 +189,7 @@ export function showcaseChecklist(records:Record<string,string>,day?:string):Rec
    for(let i=1;i<=84;i++){const date=addLocalDays(day,-i),rest=i>6&&i%13===0,partial=i===7||(i>6&&(i%5===0||i%9===0));days[date]=rest?{total:0,done:0}:{total,done:partial?Math.max(1,total-1-(i%2)):total,...(!partial&&i%4===1?{perfect:true}:{})};}
    const checklist=checklistDaysSchema.parse({version:1,days});
    out[CHECKLIST_DAYS_KEY]=JSON.stringify(checklist);
-   // The history earns Checklist XP and badges: the game record is made again with it, so every level and badge earned
+   // The history earns the Checklist's badges (no XP since Session AG): the game record is made again with it, so every level and badge earned
    // so far is marked seen and loading the Showcase never opens a celebration over the page (lib/game/showcase.ts).
    try{
     const habitsData=habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),healthData=healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),platformData=records[PLATFORM_KEY]?platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!)):null;

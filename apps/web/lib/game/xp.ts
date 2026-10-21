@@ -16,14 +16,14 @@ import type {EarnAcademy} from '../earn/records';
 export const XP_RULES = {
   habitComplete: 10, habitPartial: 3, diaryEntry: 5, diaryCapPerDay: 20, water: 2, waterCapPerDay: 10, weight: 5, sleep: 5, meditation: 5, activity: 3,
   goalMilestone: 25, goalStatus: 25, contribution: 10, review: 30,
-  // Session AF (L3; P7.7, P7.13): a Checklist day with every counted dot lit, and its Perfect orbit (in path order).
-  checklistDay: 15, checklistPerfect: 5,
+  // Session AG (owner Part 6; ADR-029 I4): the Checklist awards no XP any more (Session AF gave 15 for a day with every dot
+  // lit and 5 for its Perfect orbit). Its badges — First orbit, Seven orbits, Perfect orbit — stay (lib/game/badges.ts).
   // Session AF chunk 2 (L1; P1.27): an Earn Academy lesson passed (all three answers right), once per lesson.
   earnLesson: ACADEMY_LESSON_XP,
 } as const;
 /** Session AF (L3): `checklist` is the Checklist's day history (device-only in AF); `checklistToday` today's summary as the
- *  Checklist derives it from the records (the history holds sealed days only). Both optional: a store without them earns no
- *  Checklist XP, as before. */
+ *  Checklist derives it from the records (the history holds sealed days only). Both optional. Session AG: they feed the
+ *  Checklist's badges only — the Checklist earns no XP. */
 export type ChecklistDaySummaryXp = {date: string; total: number; done: number; perfect?: boolean};
 /** Session AF chunk 2 (L1): `earnAcademy` is the Earn Academy's device record (`zigoals:earn-academy:v1`); optional, so a store
  *  without it earns no Academy XP, as before. */
@@ -66,10 +66,7 @@ export function xpEvents(stores: GameStores, today: string): XpEvent[] {
     for (const c of stores.platform.contributions) { if (c.direction !== 'IN' || c.reversesId) continue; const day = isoDay(c.occurredAt); if (day <= today) out.push({id: `contribution:${c.id}`, day, xp: XP_RULES.contribution, kind: 'goal', title: 'A contribution'}); }
   }
   for (const r of stores.weekly?.reviews ?? []) if (r.completedAt && isoDay(r.completedAt) <= today) out.push({id: `review:${r.weekStart}`, day: isoDay(r.completedAt), xp: XP_RULES.review, kind: 'review', title: 'Weekly review'});
-  for (const o of checklistOrbitDays(stores, today)) {
-    out.push({id: `checklist:${o.day}`, day: o.day, xp: XP_RULES.checklistDay, kind: 'checklist', title: 'Every Checklist dot lit'});
-    if (o.perfect) out.push({id: `checklist-perfect:${o.day}`, day: o.day, xp: XP_RULES.checklistPerfect, kind: 'checklist', title: 'Perfect orbit'});
-  }
+  // (Session AG: no Checklist events — the kind stays in the summary's breakdown at 0, so older readers of it still read.)
   for (const l of earnLessonsPassed(stores, today)) out.push({id: `earn-lesson:${l.id}`, day: l.day, xp: XP_RULES.earnLesson, kind: 'earn', title: 'An Earn Academy lesson passed'});
   return out;
 }
