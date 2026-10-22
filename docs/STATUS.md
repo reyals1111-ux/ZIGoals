@@ -16,6 +16,7 @@
 | 8 | Extras: camera follow, ZIGi's greeting on an orbit, the flame ignites, the replay | 1 | `2fe53781` | local, CI |
 | 9 | Words (What's new, Help, search), the Light self-check fixes, the layout audit's fixes, this entry | 1 | `b6efd3e8` `6eebfcd0` `961f32de` `7c30c7ac` `7c83b298`, this commit | local, CI, WebKit CI |
 | — | Owner request (22 Oct): the phone header's "+" drawn at 36 px (the logo's height) inside its 44 px target, the pill's glass the same | 1 | `31b374c7` | local, CI |
+| 2b fix | The pill's keyboard focus visible in forced colours (a transparent outline the system paints; CI's `ui-evidence` forced-colours test on a phone found it on `961f32de`) | 1 | `8f93c8c4` | local, CI |
 
 ## What changed, pointer by pointer (reference 01) and per request
 - **1–4 Orbit banners:** the Habits page's own section banner (`HabitSectionBannerParts`, shared; the Habits page's markup unchanged, its specs and parity rows pass) with ☀ ◐ ☾ ✦, "Morning Orbit" … in the nebula flow, AG's fade, the count chip right after the title, "Complete ✓" with one light sweep. No box of its own; a night band behind the title in every theme.
@@ -48,6 +49,7 @@
 - New: `checklist-ag-polish` (nebula glyph gradient, matte rings ≥ 3:1, no gold hue except the flame, the arc at six widths, banners, planets by hue and lit state, the line's rims), `checklist-phone-ag-polish` (320–430: no overlap, no sideways scroll, ≥ 44 px, the pitch, one-line tabs), `phone-checklist-button` (320/375/390/430, opens the Checklist, no overflow, absent on desktop, the launcher's check), `checklist-celebration-ag-polish` (tap, stepper, List, a day finished elsewhere, reload, once per day, replay, reduced motion, theme parity), `checklist-list-ag-polish` (sections, 44 px targets, Done fold, keyboard, "+", add preset); unit `phone-lanes`, `planet-designs` (≤ 60 kB), `planet-pick`, `flow-geometry` (top/bottom rims), `glyphs` (the map).
 
 ## Evidence
+- Local, production build of `8f93c8c4`: `ui-evidence` (forced colours, every main page, focus visible) and `phone-checklist-button` 23 passed.
 - Local, production build of `31b374c7`: `phone-checklist-button`, `pages-visibility`, `checklist-themes` and the header's theme-parity rows (`/app/goals`, `/app/health`, `/app/settings`, `/app/checklist`) passed; `logo-quickadd-goals-header`'s two brand-film tests fail here only (this Chromium plays no video; CLAUDE.md) and pass in CI.
 - Local, production build of `7c30c7ac`: the Checklist specs (`checklist-list-ag-polish`, `checklist-celebration-ag-polish`, `checklist-ag-polish`, `checklist-themes`, `checklist`, `checklist-phone-ag-polish`, `path-engine`) 50 passed; `checklist-overlay-af`, `hosted-checklist-stage` and the `/app/checklist` theme-parity rows 26 passed. On `6eebfcd0`: Showcase (`showcase-today-aa`, `showcase-export-guard`), `phone-checklist-button`, `whats-new`, `zigi-help-settings` 51 passed; `habits-aa` passed.
 - Layout audit `/app/checklist` (path, List, Edit path, empty; 320/390/768/1440; Nebula, Light, Dark; touch at 768/1024): clean after the Part 9 fixes (J19); lowest gradient word 3.58:1.
