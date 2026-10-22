@@ -84,7 +84,7 @@ export function labelBox(l: Element): Box {
 }
 /** What ZIGi must stay clear of on the path (its own parts aside). */
 export function zigiObstacles(stage: Element, except: Element[]): Box[] {
-  return [...stage.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest-art, .path-chest-text, .path-next-tag, .path-panel')]
+  return [...stage.querySelectorAll('.path-dot, .path-label, .path-banner, .orbit-planet, .path-chest-art, .path-chest-text, .path-next-tag, .path-panel')]
     .filter(o => !except.some(e => e === o || e.contains(o)))
     .map(o => o.classList.contains('path-dot') ? ringBox(o) : o.classList.contains('path-label') ? labelBox(o) : o.getBoundingClientRect())
     .filter(r => r.right - r.left > 2 && r.bottom - r.top > 2);
@@ -193,7 +193,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
       const dx = from.x - now.x, dy = from.y - now.y, k = from.h / now.h, w = now.w, h = now.h;
       // (Would the glide cross anything on the way — a name, a banner, a planet, a chest?)
       // (Round 9: a name counts from 12 px around it.)
-      const others = [...stage.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')]
+      const others = [...stage.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .orbit-planet, .path-chest-art, .path-next-tag')]
         .filter(o => !el.contains(o) && Number(getComputedStyle(o).opacity) > .5).map(o => { if (o.classList.contains('path-dot')) return ringBox(o); if (!o.classList.contains('path-label')) return o.getBoundingClientRect(); const b = labelBox(o); return {left: b.left - CLEAR, top: b.top - CLEAR, right: b.right + CLEAR, bottom: b.bottom + CLEAR}; });
       // (A cheer hops as it goes, as high as its place allows.)
       const lift = cheer ? place.hop + h * SQUASH : 0, wide = cheer ? w * SQUASH / 2 : 0, at = (t: number): Box => { const x = sb.left + now.x + dx * (1 - t), y = sb.top + now.y + dy * (1 - t), m = k + (1 - k) * t; return {left: x - wide, top: y - lift, right: x + w * m + wide, bottom: y + h * m}; };

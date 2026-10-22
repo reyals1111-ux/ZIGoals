@@ -28,24 +28,33 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
     return [...el.querySelectorAll('.orbit-flow-segment[data-kind=step]')].map(g => { const [from, to] = g.getAttribute('data-segment')!.split('>'); const n = g.querySelector('.orbit-flow-core')!.getAttribute('d')!.match(/-?\d+(\.\d+)?/g)!.map(Number);
       return {id: g.getAttribute('data-segment')!, start: [n[0]!, n[1]!], startDir: [n[2]! - n[0]!, n[3]! - n[1]!], end: [n.at(-2)!, n.at(-1)!], endDir: [n.at(-2)! - n.at(-4)!, n.at(-1)! - n.at(-3)!], from: at(from!), to: at(to!), lit: g.hasAttribute('data-lit')}; });
   });
-  expect(geometry.map(s => s.id)).toEqual(['ck_fixture-1>ck_fixture-2', 'ck_fixture-2>ck_fixture-3', 'ck_fixture-3>ck_fixture-4', 'ck_fixture-4>finale:end']);
+  // Session AG Polish (owner Part 4, moved at equal strength): each orbit's planet stands on the line before its first
+  // node — the line enters the planet at its top rim and leaves from its bottom rim (reference 03), straight down at both.
+  expect(geometry.map(s => s.id)).toEqual(['planet:morning>ck_fixture-1', 'ck_fixture-1>ck_fixture-2', 'ck_fixture-2>planet:afternoon', 'planet:afternoon>ck_fixture-3', 'ck_fixture-3>planet:evening', 'planet:evening>ck_fixture-4', 'ck_fixture-4>finale:end']);
   for (const s of geometry) {
     const side = (p: number[], c: {x: number; y: number; r: number}) => Math.min(Math.hypot(p[0]! - (c.x - c.r), p[1]! - c.y), Math.hypot(p[0]! - (c.x + c.r), p[1]! - c.y));
-    expect(side(s.start, s.from), `${s.id}: leaves its ring at a side point`).toBeLessThan(2); expect(side(s.end, s.to), `${s.id}: enters its ring at a side point`).toBeLessThan(2);
+    const rim = (p: number[], c: {x: number; y: number; r: number}, top: boolean) => Math.hypot(p[0]! - c.x, p[1]! - (c.y + (top ? -c.r : c.r)));
+    const [fromId, toId] = s.id.split('>');
+    expect(fromId!.startsWith('planet:') ? rim(s.start, s.from, false) : side(s.start, s.from), `${s.id}: leaves its ring at a side point (a planet: its bottom rim)`).toBeLessThan(2);
+    expect(toId!.startsWith('planet:') ? rim(s.end, s.to, true) : side(s.end, s.to), `${s.id}: enters its ring at a side point (a planet: its top rim)`).toBeLessThan(2);
     expect(Math.abs(s.startDir[0]!), `${s.id}: leaves straight down`).toBeLessThan(.2); expect(s.startDir[1]!).toBeGreaterThan(0);
     expect(Math.abs(s.endDir[0]!), `${s.id}: arrives straight down`).toBeLessThan(.2); expect(s.endDir[1]!).toBeGreaterThan(0);
   }
   expect(geometry.some(s => s.lit)).toBe(false);
   // Orbit banners are headings with their counts; ZIGi stands by the first waiting dot.
-  await expect(stage.getByRole('heading', {level: 2})).toHaveText(['Morning orbit', 'Afternoon orbit', 'Evening orbit']);
-  await expect(stage.locator('.path-banner-count').first()).toHaveText('0 of 2');
+  // (Session AG Polish, owner Part 3, moved: the Habits page's banners, titled "… Orbit", the count right after the title.)
+  await expect(stage.getByRole('heading', {level: 2})).toHaveText(['Morning Orbit', 'Afternoon Orbit', 'Evening Orbit']);
+  await expect(stage.locator('.habit-section-count > [aria-hidden]').first()).toHaveText('0 of 2');
   await expect(stage.locator('[data-next] .path-zigi')).toHaveCount(1);
   await expect(stage.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', `${TITLE.stretch}: not done yet`);
   // Ticking two neighbours lights the line between them; no chest on the path (owner Part 6), the finale not yet reached.
   await stage.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
   await stage.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
   await page.getByRole('form', {name: 'Log Water'}).getByRole('button', {name: /^Log /}).click();
-  await expect(stage.locator('.path-segment[data-lit]')).toHaveCount(1);
+  // (Session AG Polish, owner Part 4: the two complete the morning, so its planet lights too — the stretch from the planet
+  // into the first node is lit as well as the one between the two.)
+  await expect(stage.locator('.path-segment[data-lit]')).toHaveCount(2);
+  expect(await stage.locator('.path-segment[data-lit]').evaluateAll(gs => gs.map(g => g.getAttribute('data-segment')))).toEqual(['planet:morning>ck_fixture-1', 'ck_fixture-1>ck_fixture-2']);
   await expect(stage.locator('.path-chest[data-milestone="half"]')).toHaveCount(0);
   await expect(stage.locator('.path-chest[data-milestone="end"]')).not.toHaveAttribute('data-reached', /.*/);
   await expect(stage.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', `${TITLE.push}: not done yet`);

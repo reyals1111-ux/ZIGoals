@@ -10,6 +10,9 @@ import {PathLine} from './path-line';
 import {FlowLine} from '../orbit-path/flow-line';
 import {sidesFor, type FlowNode} from '../../lib/path/flow-geometry';
 import {PathBanner} from './path-section';
+import {OrbitBanner} from '../orbit-path/orbit-banner';
+import {planetDesigns} from '../../lib/path/planet-pick';
+import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
 import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
 import {usePathGeometry, type PathGeometry} from './use-path-geometry';
 import {phoneLanes, type Lane} from '../../lib/path/phone-lanes';
@@ -272,7 +275,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       const b = bubble.current, s = stage.current; if (!b || !s) return;
       const r = b.getBoundingClientRect(), box = s.getBoundingClientRect();
       const whole = r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.top >= box.top && r.bottom <= box.bottom;
-      const covers = [...s.querySelectorAll('.path-banner, .path-chest, .path-end, .path-panel')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
+      const covers = [...s.querySelectorAll('.path-banner, .orbit-planet, .path-chest, .path-end, .path-panel')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
       setJumpClear(whole && !covers);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
@@ -304,6 +307,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Round 3: the comet runs on from the planet just ticked to the next one; with no such stretch (the next is elsewhere), along
   // the stretch the tick lit.
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
+  // Session AG Polish (owner Part 4): each orbit's planet, by the colour of the node it spawns (lib/path/planet-pick.ts).
+  const planets = useMemo(() => orbit ? planetDesigns(model.sections.map(s => s.steps[0]?.colour ?? null), model.id).map(id => id ? PLANET_DESIGNS[id] : null) : [], [orbit, model]);
   const nextAt = next ? steps.findIndex(x => x.id === next.id) : -1;
   const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(l => l.side), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? lanes[nextAt]!.side : flip(lanes[nextAt]!.side)) : 'right' as Side}
     : orbit ? orbitSides(steps, swingOf, nextAt, geo) : null, labelSides = sides?.labels ?? null;
@@ -313,7 +318,14 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Session AG (owner pointers 1–5): the orbit look's one flowing line through every node in path order, in on each node's
   // name side and out on the other, on to the day's finale; a tick sends a light along the stretch it lit.
   const flow = orbit && geo ? (() => {
-    const nodes: FlowNode[] = steps.flatMap((st, i) => { const p = geo.points[st.id]; return p ? [{id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'}] : []; });
+    // (An orbit's planet comes before its first node: the line flows into its top and out of its bottom — reference 03.)
+    const opens = new Map(model.sections.map((sec, si) => [sec.steps[0]?.id ?? '', {sec, si}]));
+    const nodes: FlowNode[] = steps.flatMap((st, i) => {
+      const p = geo.points[st.id], gate = opens.get(st.id), out: FlowNode[] = [];
+      if (gate && planets[gate.si]) { const q = geo.points[`planet:${gate.sec.id}`], pr = sectionProgress(gate.sec); if (q) out.push({id: `planet:${gate.sec.id}`, x: q.x, y: q.y, r: q.r ?? 40, inSide: 'top', outSide: 'bottom', colour: PATH_COLOURS[st.colour].token, done: pr.total > 0 && pr.done === pr.total}); }
+      if (p) out.push({id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'});
+      return out;
+    });
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
     if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
@@ -326,7 +338,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
-        <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading} meter={orbit} justComplete={just.has(`s:${section.id}`)}/>
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
             const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;

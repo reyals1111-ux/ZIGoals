@@ -28,7 +28,7 @@
   .path-stage[data-variant=orbit] { --dot-size: 62px; --label-gap: 12px; --label-font: 14px; --zigi-h: min(92px, 26cqi); --zigi-min: 80px; }
   /* Session AG Polish (owner Part 2): a long, airy journey on a phone — about 170 px from node to node (AG: 96), each
      orbit's banner in a clear band of its own, so no tab, ZIGi or banner ever touches a neighbour. */
-  .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 104px; padding-top: 44px; }
+  .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 104px; padding-top: 72px; }
   .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 76px; }
   /* Each node stands in its lane (lib/path/phone-lanes.ts): its tab on one line with the free width, ZIGi's room on the
      other side. Before the first measure the wave places it, as before. */
@@ -106,42 +106,39 @@
 .path-stage[data-variant=orbit] .path-step[data-next] { --dot-next: var(--step-colour, #23eaff); }
 @media (max-width: 640px) { .path-next-tag { top: -15px; padding: 1px 8px 2px; font-size: 13px; } }
 
-/* ---- An orbit's label (pointers 6–9): light and left-anchored; its tint mists away from just past the title. ---- */
-.path-stage[data-variant=orbit] .path-banner { position: relative; box-sizing: border-box; width: 100%; max-width: 720px; min-height: 56px; margin-inline: auto; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 8px 14px 8px 10px; border: 0; border-radius: 18px; background: none; box-shadow: none; }
-.path-stage[data-variant=orbit] .path-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--banner) 30%, #0a1130e6) 0, color-mix(in srgb, var(--banner) 18%, #0a113099) 34%, color-mix(in srgb, var(--banner) 8%, transparent) 52%, transparent 70%);
-  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--banner) 55%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 34%, #0000 72%); mask-image: linear-gradient(90deg, #000 0, #000 34%, #0000 72%); }
-.path-stage[data-variant=orbit] .path-banner-planet { flex: none; width: 30px; height: 30px; background: radial-gradient(circle at 34% 28%, #ffffff 0, color-mix(in srgb, var(--banner) 50%, #ffffff) 22%, var(--banner) 58%, color-mix(in srgb, var(--banner) 40%, #050a1e) 100%); box-shadow: 0 0 16px color-mix(in srgb, var(--banner) 55%, transparent); }
-.path-stage[data-variant=orbit] .path-banner-planet i { left: -8px; right: -8px; top: 12px; bottom: 12px; border: 1.5px solid color-mix(in srgb, var(--banner) 70%, #ffffff66); }
-.path-stage[data-variant=orbit] .path-banner-text { flex: none; gap: 0; min-width: 0; max-width: 62%; }
-.path-stage[data-variant=orbit] .path-banner-eyebrow { color: color-mix(in srgb, var(--banner) 55%, #ffffff); font-size: 14px; line-height: 1.15; font-weight: 800; letter-spacing: .14em; }
-.path-stage[data-variant=orbit] .path-banner-title { color: #f4f8ff; font-size: 20px; line-height: 1.2; font-weight: 800; letter-spacing: -.015em; }
-.path-stage[data-variant=orbit] .path-banner-count { flex: none; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--banner) 16%, #0a113099); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--banner) 40%, transparent); color: #dfe9fb; font-size: 14px; font-weight: 750; }
-.path-stage[data-variant=orbit] .path-banner[data-complete] .path-banner-count { display: none; }
-.path-stage[data-variant=orbit] .path-banner-meter, .path-stage[data-variant=orbit] .path-banner-shine { display: none; }
-/* "Orbit complete": a small lit chip right after the title, in the orbit's colour, with a check. */
-.path-banner-done { position: relative; z-index: 1; flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px 4px 9px; border-radius: 999px; background: linear-gradient(135deg, color-mix(in srgb, var(--banner) 70%, #ffffff), var(--banner)); color: #06102a; font-size: 14px; font-weight: 800; box-shadow: 0 0 16px -2px color-mix(in srgb, var(--banner) 70%, transparent); white-space: nowrap; }
-.path-banner-done::before { content: ''; width: 10px; height: 5px; margin: -3px 1px 0 0; border-left: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; rotate: -45deg; }
-.path-banner-done-short { display: none; }
-@media (max-width: 640px) { .path-banner-done-long { display: none; } .path-banner-done-short { display: inline; } }
-/* Complete, once: the label's planet flares and a ring of light leaves it (the orbit's small celebration). */
-.path-banner[data-just] .path-banner-planet { animation: orbit-label-flare 900ms cubic-bezier(.2, .9, .25, 1.2) both; }
-@keyframes orbit-label-flare { 0% { transform: scale(1); filter: none; } 40% { transform: scale(1.3); filter: brightness(1.6); } 100% { transform: none; filter: none; } }
-.path-banner-sparks { position: absolute; left: 25px; top: 50%; z-index: 3; width: 0; height: 0; pointer-events: none; }
-.path-banner-sparks i { position: absolute; left: -2px; top: -2px; width: 4px; height: 4px; border-radius: 50%; background: #ffffff; box-shadow: 0 0 8px var(--banner); opacity: 0; animation: orbit-label-spark var(--t, 900ms) cubic-bezier(.15, .7, .3, 1) both; }
-.path-banner-sparks i:nth-child(n+13) { display: none; }
-@keyframes orbit-label-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(-8px); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(-.6 * var(--d, 60px))); } }
-@media (max-width: 640px) {
-  .path-stage[data-variant=orbit] .path-banner { min-height: 52px; gap: 10px; padding: 6px 10px 6px 8px; }
-  .path-stage[data-variant=orbit] .path-banner-title { font-size: 18px; }
-  .path-stage[data-variant=orbit] .path-banner-text { max-width: 58%; }
-}
-/* By day the label's words are ink on the mist; the tint keeps its hue. */
-:root[data-theme=light] .path-stage[data-variant=orbit] .path-banner::before { background: linear-gradient(90deg, color-mix(in srgb, var(--banner) 26%, #ffffffe6) 0, color-mix(in srgb, var(--banner) 16%, #ffffffb3) 34%, color-mix(in srgb, var(--banner) 7%, transparent) 52%, transparent 70%); }
-:root[data-theme=light] .path-stage[data-variant=orbit] .path-banner-title { color: #0b1430; }
-:root[data-theme=light] .path-stage[data-variant=orbit] .path-banner-eyebrow { color: color-mix(in srgb, var(--banner) 45%, #0b1430); }
-:root[data-theme=light] .path-stage[data-variant=orbit] .path-banner-count { color: #1d2547; background: color-mix(in srgb, var(--banner) 14%, #ffffffcc); }
+/* ---- An orbit's banner (Session AG Polish, owner Part 3; pointers 1–4, reference 02): the Habits page's own section banner
+   (components/orbit-path/orbit-banner.tsx; its rules in components/habits/habits-aa.css) — symbol, nebula title, count.
+   Here: no box of its own, AG's fade (whole behind the symbol and title, misting away from about the middle), the count
+   chip right after the title, and one light sweep along the band when the orbit completes. ---- */
+.path-stage[data-variant=orbit] .orbit-banner { position: relative; z-index: 2; box-sizing: border-box; width: 100%; max-width: 720px; margin-inline: auto; border: 0; border-radius: 22px; background: none; overflow: visible; isolation: isolate; }
+/* (The Habits section's own glass band, under its tint, faded the same way.) */
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { content: ''; position: absolute; inset: 0; z-index: -2; border-radius: inherit; pointer-events: none; border: 1px solid #bd9ffb22; background: linear-gradient(120deg, #2a1f4433, #12101f99);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); }
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { grid-template-columns: 34px auto auto; justify-content: start; cursor: default; }
+/* Its planet (owner Part 4) stands on the line at the banner's height, after the title and count; where the banner leaves
+   it too little room (a narrow phone) it wraps under the banner, right-aligned, in a band of its own — still on the line. */
+.path-stage[data-variant=orbit] { --planet-size: 128px; }
+.path-stage[data-variant=orbit] .orbit-banner { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; max-width: min(100%, 860px); overflow-x: clip; overflow-clip-margin: 0px; }
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { flex: 0 1 auto; min-width: 0; }
+.path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { margin: 6px max(6px, 4%) 6px auto; }
+@media (max-width: 1179.98px) { .path-stage[data-variant=orbit] { --planet-size: 104px; } }
+@media (max-width: 640px) { .path-stage[data-variant=orbit] { --planet-size: 60px; } .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { margin: 2px 4px 2px auto; } }
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); }
+.path-stage[data-variant=orbit] .orbit-banner .habit-section-title { white-space: nowrap; }
+.path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count { color: #ffffff; background: color-mix(in srgb, var(--banner) 30%, #0a113099); border-color: color-mix(in srgb, var(--banner) 60%, transparent); }
+/* (The Checklist uses the nebula palette only, request 1d: the morning's warm glow and the afternoon's pale sun take their
+   nebula neighbours here — pink for the morning's gold, ice cyan for the afternoon's yellow; the Habits page keeps its own.) */
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-morning > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #ff9ad255, transparent 70px), linear-gradient(100deg, #ff8fb033 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #c7f6ff55, transparent 70px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-morning .habit-section-mark { color: #ffd6ec; background: radial-gradient(circle at 40% 35%, #ff9ad288, #ff8fb033); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon .habit-section-mark { color: #d4f8ff; background: radial-gradient(circle at 40% 35%, #c7f6ff88, #39c6ff33); }
+/* Complete, once: a soft light sweeps along the band. */
+.orbit-banner-sweep { position: absolute; inset: 0; z-index: 1; border-radius: inherit; overflow: hidden; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, #000 0, #000 46%, #0000 80%); mask-image: linear-gradient(90deg, #000 0, #000 46%, #0000 80%); }
+.orbit-banner-sweep::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 38%; background: linear-gradient(100deg, #ffffff00, #effcff59 45%, #c790f640 60%, #ffffff00); translate: -110% 0; animation: orbit-banner-sweep 1300ms cubic-bezier(.3, .6, .25, 1) 200ms both; }
+@keyframes orbit-banner-sweep { to { translate: 260% 0; } }
+@media (max-width: 640px) { .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { padding-inline: 10px 12px; gap: 10px; } }
+@media (prefers-reduced-motion: reduce) { .orbit-banner-sweep { display: none; } }
+:root[data-app-motion=off] .orbit-banner-sweep { display: none; }
 
 /* ---- The day's finale: "All planets lit", a violet star node where the line ends (no gold, request 1d). ---- */
 .path-stage[data-variant=orbit] .path-finale { position: relative; z-index: 2; display: grid; justify-items: center; gap: 18px; margin: 26px auto 0; padding: 0; list-style: none; }
@@ -195,7 +192,6 @@
 :root[data-theme=light] .path-stage[data-variant=orbit] .path-jump { border-color: #9273ff66; background: radial-gradient(circle at 35% 28%, #ffffff, #eef0fb 72%); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #9273ff33; }
 
 /* Stills: reduced motion and Motion Off show every final state at once. */
-@media (prefers-reduced-motion: reduce) { .path-stage[data-variant=orbit] :is(.path-dot, .path-banner-planet, .path-label) { animation: none !important; transition: none !important; } .path-banner-sparks { display: none; } }
-:root[data-app-motion=off] .path-stage[data-variant=orbit] :is(.path-dot, .path-banner-planet, .path-label) { animation: none !important; transition: none !important; }
-:root[data-app-motion=off] .path-banner-sparks { display: none; }
-@media (forced-colors: active) { .path-next-tag, .path-stage[data-variant=orbit] .path-label.orbit-tab { border-color: CanvasText; } .path-stage[data-variant=orbit] .path-banner { border: 2px solid CanvasText; } }
+@media (prefers-reduced-motion: reduce) { .path-stage[data-variant=orbit] :is(.path-dot, .path-label) { animation: none !important; transition: none !important; } }
+:root[data-app-motion=off] .path-stage[data-variant=orbit] :is(.path-dot, .path-label) { animation: none !important; transition: none !important; }
+@media (forced-colors: active) { .path-next-tag, .path-stage[data-variant=orbit] .path-label.orbit-tab { border-color: CanvasText; } .path-stage[data-variant=orbit] .orbit-banner { border: 2px solid CanvasText; } }

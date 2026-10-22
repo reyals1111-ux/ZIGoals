@@ -13,6 +13,8 @@ import {useEscapeLayer} from './escape-layers';
 import type {ChecklistState} from './use-checklist';
 // Session AF (L3b): the orbit look of the shared path, the Checklist's own (Earn's paths never load it).
 import '../path/path-orbit.css';
+// Session AG Polish (owner Part 3): the orbits wear the Habits page's own section banners, from its own stylesheet.
+import '../habits/habits-aa.css';
 
 /** Dots that take more once done: another glass, a new night, a new fast, more minutes. */
 const AGAIN = new Set(['water', 'sleep', 'fast', 'meditation']);

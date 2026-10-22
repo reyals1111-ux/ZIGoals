@@ -139,3 +139,65 @@ test('1e: a node\'s progress arc is exactly concentric with its ring at every wi
     expect(Math.abs(m.r - m.track), `${width} px: on the ring's own track`).toBeLessThanOrEqual(1.5);
   }
 });
+
+/** Session AG Polish Parts 3–4: the Habits banners on the orbits, and each orbit's planet on the line. */
+const PLANET_BY_HEX: Record<string, string[]> = {'#23eaff': ['05'], '#459dff': ['06'], '#f06dff': ['07'], '#9273ff': ['09'], '#26e8bd': ['04', '08', '10'], '#ff74be': ['07', '09']};
+test('3: each orbit wears the Habits page\'s section banner — symbol, "… Orbit" in the nebula flow, the count right after it', async ({page}) => {
+  await open(page);
+  const banners = page.locator('.path-stage .orbit-banner');
+  await expect(banners).toHaveCount(3);
+  await expect(page.locator('.path-stage').getByRole('heading', {level: 2})).toHaveText(['Morning Orbit', 'Afternoon Orbit', 'Evening Orbit']);
+  expect(await banners.evaluateAll(els => els.map(b => [b.classList.contains('habit-section'), b.querySelector('.habit-section-summary .habit-section-mark')?.textContent, !!b.querySelector('.habit-section-title .nebula-flow')]))).toEqual([[true, '☀', true], [true, '◐', true], [true, '☾', true]]);
+  // The count chip in the visible part, right after the title.
+  const gap = await banners.first().evaluate(b => { const t = b.querySelector('.habit-section-title')!.getBoundingClientRect(), c = b.querySelector('.habit-section-count')!.getBoundingClientRect(); return {gap: c.left - t.right, text: b.querySelector('.habit-section-count [aria-hidden]')!.textContent}; });
+  expect(gap.gap).toBeGreaterThanOrEqual(0); expect(gap.gap).toBeLessThanOrEqual(24); expect(gap.text).toBe('0 of 2');
+  await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
+  await page.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
+  const form = page.getByRole('form', {name: 'Log Water'});
+  if (await form.count()) await form.getByRole('button', {name: /^Log /}).click();
+  await expect(banners.first().locator('.habit-section-count [aria-hidden]')).toHaveText('Complete ✓');
+});
+
+test('4: each orbit has its planet, chosen by its first node\'s hue, matte until the orbit is complete, then lit', async ({page}) => {
+  await open(page);
+  const facts = await page.locator('.path-stage .path-section').evaluateAll(sections => sections.map(s => ({id: s.getAttribute('data-section'), planet: s.querySelector('.orbit-planet')?.getAttribute('data-planet') ?? null, lit: s.querySelector('.orbit-planet')?.hasAttribute('data-lit') ?? null,
+    first: getComputedStyle(s.querySelector('.path-dot')!).getPropertyValue('--node').trim(), hidden: s.querySelector('.orbit-planet')?.getAttribute('aria-hidden'), img: (() => { const i = s.querySelector('.orbit-planet img'); return i ? [i.getAttribute('loading'), i.getAttribute('decoding')] : null; })()})));
+  for (const f of facts) {
+    const hex = /#[0-9a-f]{6}/i.exec(f.first)?.[0]?.toLowerCase() ?? '';
+    expect(PLANET_BY_HEX[hex], `${f.id}: its first node's colour ${f.first}`).toContain(f.planet);
+    expect(f.lit, `${f.id}: matte before its orbit is complete`).toBe(false);
+    expect(f.hidden).toBe('true'); expect(f.img).toEqual(['lazy', 'async']);
+  }
+  // The morning: tick its two nodes; its planet lights, the others stay matte.
+  await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
+  await page.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
+  const form = page.getByRole('form', {name: 'Log Water'});
+  if (await form.count()) await form.getByRole('button', {name: /^Log /}).click();
+  await expect(page.locator('.path-section[data-section=morning] .orbit-planet')).toHaveAttribute('data-lit', '');
+  await expect(page.locator('.path-section[data-section=afternoon] .orbit-planet')).not.toHaveAttribute('data-lit', '');
+  // Reload: lit and still (no replay of the completion).
+  await page.reload(); await settled(page);
+  await expect(page.locator('.path-section[data-section=morning] .orbit-planet')).toHaveAttribute('data-lit', '');
+  await expect(page.locator('.path-section[data-section=morning] .orbit-planet')).not.toHaveAttribute('data-just', '');
+});
+
+test('4: the line meets each planet at its top rim and leaves from its bottom rim, and is never drawn across it', async ({page}) => {
+  await open(page);
+  const m = await page.locator('.path-stage').evaluate(stage => {
+    const base = stage.getBoundingClientRect(), out: {id: string; issues: string[]}[] = [];
+    for (const sphere of stage.querySelectorAll<HTMLElement>('.orbit-planet-sphere')) {
+      const id = sphere.dataset.pathPoint!, r = sphere.getBoundingClientRect(), c = {x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top}, rad = r.width / 2, issues: string[] = [];
+      const into = stage.querySelector<SVGPathElement>(`.orbit-flow-segment[data-segment$=">${CSS.escape(id)}"] .orbit-flow-core, .orbit-flow-segment[data-segment="lead:${CSS.escape(id)}"] .orbit-flow-core`);
+      const from = stage.querySelector<SVGPathElement>(`.orbit-flow-segment[data-segment^="${CSS.escape(id)}>"] .orbit-flow-core`);
+      if (!into || !from) { out.push({id, issues: ['missing stretch']}); continue; }
+      const end = into.getPointAtLength(into.getTotalLength()), start = from.getPointAtLength(0);
+      if (Math.hypot(end.x - c.x, end.y - (c.y - rad)) > 1.5) issues.push(`enters at ${end.x},${end.y} not the top rim ${c.x},${c.y - rad}`);
+      if (Math.hypot(start.x - c.x, start.y - (c.y + rad)) > 1.5) issues.push(`leaves at ${start.x},${start.y} not the bottom rim`);
+      for (const seg of stage.querySelectorAll<SVGPathElement>('.orbit-flow-core')) { const L = seg.getTotalLength(); for (let k = 0; k <= 60; k++) { const p = seg.getPointAtLength(L * k / 60); if (Math.hypot(p.x - c.x, p.y - c.y) < rad - 1.5) { issues.push(`${seg.parentElement!.getAttribute('data-segment')} crosses it`); break; } } }
+      out.push({id, issues});
+    }
+    return out;
+  });
+  expect(m.length).toBe(3);
+  for (const p of m) expect(p.issues, p.id).toEqual([]);
+});

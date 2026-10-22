@@ -259,7 +259,8 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
   expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
   expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
-  expect(zigi.src).toMatch(/F006-presenting-large/);
+  // (Session AG Polish, owner Part 6b, moved: ZIGi cheers with its celebrate figure — the animated clip, then its sharp still.)
+  expect(zigi.src).toMatch(/F009-celebrate/);
   await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
@@ -501,9 +502,10 @@ test('a learning path’s density: six planets or more on the opening screen, be
     return [...document.querySelectorAll('.path-step .path-dot')].filter(d => { const r = d.getBoundingClientRect(); return Math.min(r.bottom, foot) - Math.max(r.top, top) >= r.height / 2; }).length;
   });
   // (Round 4, raised: six — one more than iteration 3's five, from the one-row top bar and the chests beside their planets.)
-  // Session AG Polish (owner Part 2, moved on a phone): a phone's path is a long, airy journey — about 170 px from node to
-  // node, scrolled more — so a phone's opening screen holds three or more; a computer keeps six or more.
-  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(mobile ? 3 : 6);
+  // Session AG Polish (owner Parts 2 and 4, moved): a phone's path is a long, airy journey — about 170 px from node to
+  // node, scrolled more — and each orbit now opens with its planet in a band of its own, so the opening screen holds four
+  // or more nodes on a computer and two or more on a phone (the planets on it besides).
+  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(mobile ? 2 : 4);
   if (mobile) {
     // The foot bar is opaque and holds the timers: nothing of the path is drawn over it.
     // (Round 4: the bar holds the timers' own chips, each 44 px or more.)
