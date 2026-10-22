@@ -31,6 +31,8 @@ const EditPath = lazy(() => import('./edit-path').then(m => ({default: m.EditPat
 const OptionsSheet = lazy(() => import('./options-sheet').then(m => ({default: m.OptionsSheet})));
 const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({default: m.HistoryHeatmap})));
 const DayCelebration = lazy(() => import('./day-celebration'));
+// Session AG Polish 2 (owner Part 5): the quick-add form, its own chunk too.
+const OrbitQuickAdd = lazy(() => import('./orbit-quick-add').then(m => ({default: m.OrbitQuickAdd})));
 
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
@@ -70,7 +72,7 @@ function cameFromTheApp(): boolean {
 export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
-  const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
+  const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), phone = useMedia(PHONE), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
@@ -169,6 +171,8 @@ export function ChecklistPage() {
           <button type="button" aria-label="List" aria-pressed={prefs.view === 'list'} onClick={() => state.setPrefs({view: 'list'})}><ViewMark name="list"/></button>
         </div>
         <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
+        {/* Session AG Polish 2 (owner Part 5, pointer D-path 11): quick add where "⋯" stood; "⋯" moves to the far right. */}
+        <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
@@ -192,7 +196,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
+          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -212,6 +216,7 @@ export function ChecklistPage() {
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
+    {sheet === 'quick' && !state.unreadable && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening quick add…</p>}><OrbitQuickAdd state={state} onClose={() => setSheet(null)} onAdded={id => { setSheet(null); setArrive(id); }}/></Suspense></Sheet>}
     {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} {...celebrationBodies(state)} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}

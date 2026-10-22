@@ -64,6 +64,8 @@ export type PathProps = {
   variant?: 'default' | 'orbit';
   /** Where the "Jump to next" button goes instead of riding the path (see above). */
   jumpDock?: HTMLElement | null;
+  /** Session AG Polish 2 (owner Part 5): a step just added — the path brings it into view and it blooms once. */
+  arrive?: string | null;
 };
 
 /** The orbit look's finale node: where the line ends (Session AG). */
@@ -217,7 +219,7 @@ function useJust(ids: string[], key: string): Set<string> {
   return just;
 }
 
-export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null}: PathProps) {
+export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null, arrive = null}: PathProps) {
   const orbit = variant === 'orbit', swingOf = orbit ? orbitOffset : snakeOffset;
   const model = useMemo(() => normalisePath(raw), [raw]);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, ''), stage = useRef<HTMLDivElement>(null);
@@ -357,6 +359,22 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     else el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
     el.focus({preventScroll: true});
   }, [next, orbit]);
+
+  // Session AG Polish 2 (owner Part 5): a step just added through quick add comes into view (as "Jump to next" brings the
+  // next one) and blooms once, as a tick's ring does (none under reduced motion and Motion Off). Once per added step.
+  const arrived = useRef<string | null>(null);
+  useEffect(() => {
+    if (!arrive || arrived.current === arrive || !measured) return;
+    const s = stage.current, el = s?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(arrive)}"]`); if (!s || !el) return;
+    arrived.current = arrive;
+    const sc = scrollerOf(s);
+    if (sc) { const box = sc.getBoundingClientRect(), cs = getComputedStyle(sc), pad = parseFloat(cs.scrollPaddingTop) || 0, padB = parseFloat(cs.scrollPaddingBottom) || 0, r = el.getBoundingClientRect(); sc.scrollTo({top: Math.max(0, sc.scrollTop + r.top + r.height / 2 - box.top - pad - (box.height - pad - padB) * landAt()), behavior: entranceAllowed() ? 'smooth' : 'auto'}); }
+    else el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
+    if (!entranceAllowed()) return;
+    el.setAttribute('data-arrive', '');
+    const t = window.setTimeout(() => el.removeAttribute('data-arrive'), 1300);
+    return () => { window.clearTimeout(t); el.removeAttribute('data-arrive'); };
+  }, [arrive, measured, geometryKey]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const dots = [...(stage.current?.querySelectorAll<HTMLElement>('button.path-dot, a.path-dot') ?? [])], at = dots.indexOf(event.target as HTMLElement);

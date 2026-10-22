@@ -20,8 +20,8 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 1 | Phone path (lanes v2, tabs as drawn, the flowing line, compact banner, planet beside) | done | `0083619e` |
 | 2 | Banner fade; planets lit when reached | done | `eb4272e2` |
 | 3 | Progress bar segments | done | `35ad3f53` |
-| 4 | Ambient sky | done | this commit |
-| 5 | Quick add | — | — |
+| 4 | Ambient sky | done | `92ce3825` |
+| 5 | Quick add | done | this commit |
 | 6 | List view | — | — |
 | 7 | Celebration video | — | — |
 | 8 | Consistency colours | — | — |
@@ -30,4 +30,4 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 ## Captures used (self-check, scratchpad only): 1 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-Part 5 (quick add).
+Part 6 (the List view).

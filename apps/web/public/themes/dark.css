@@ -1939,6 +1939,12 @@
         background-color: #01101fa0;
         color: #b9f1fb
     }
+    :scope .aa-toast-link:not(#\-) {
+        color: #b9f1fb
+    }
+    :scope .aa-toast-link:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
     :scope .aa-toast-close:not(#\-) {
         border-color: currentcolor;
         background-image: none;
@@ -4250,6 +4256,24 @@
         border-color: #ffad8780;
         box-shadow: 0 0 22px #ff74be30
     }
+    .checklist-plus-button:not(#\-) {
+        border-color: #ffffff2e;
+        background-image: none;
+        background-color: #ffffff12;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-plus-button:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff1f
+    }
+    .checklist-plus-button[aria-expanded=true]:not(#\-) {
+        border-color: #9273ffb3;
+        background-image: none;
+        background-color: #9273ff33
+    }
+    .checklist-plus-button:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
     .checklist-menu-button:not(#\-) {
         border-color: #ffffff2e;
         background-image: none;
@@ -4587,6 +4611,57 @@
     }
     :scope[data-theme=light] .checklist-row-check:focus-visible:not(#\-) {
         outline-color: #10183a
+    }
+    .checklist-quick-preview:not(#\-) {
+        border-color: #ffffff14;
+        background-image: radial-gradient(120% 150% at 0% 0%, color-mix(in srgb, var(--node) 22%, transparent), transparent 62%), linear-gradient(180deg, #010213e6, #01021380);
+        background-color: transparent
+    }
+    .checklist-quick-tab:not(#\-) {
+        border-color: color-mix(in srgb, var(--node) 72%, #5d6680);
+        background-image: linear-gradient(180deg, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo));
+        background-color: transparent;
+        color: #f0f5ff
+    }
+    .checklist-quick-name:not(#\-), .checklist-quick-group > legend:not(#\-), .checklist-quick-row label:not(#\-) {
+        color: var(--muted, #a4b2cd)
+    }
+    .checklist-quick-group:not(#\-) {
+        border-color: currentcolor
+    }
+    .checklist-quick-chip > span:not(#\-) {
+        border-color: #ffffff26;
+        background-image: none;
+        background-color: #ffffff0d;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-quick-chip:hover > span:not(#\-) {
+        background-image: none;
+        background-color: #ffffff17
+    }
+    .checklist-quick-chip > input:checked + span:not(#\-) {
+        border-color: #9273ffcc;
+        background-image: linear-gradient(100deg, #23eaff33, #9273ff4d);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #9273ff99
+    }
+    .checklist-quick-chip > input:focus-visible + span:not(#\-), .checklist-quick-swatch > input:focus-visible + span:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-quick-swatch > span:not(#\-) {
+        border-color: #ffffff26;
+        background-image: radial-gradient(circle, var(--swatch) 0 12px, transparent 13px);
+        background-color: transparent
+    }
+    .checklist-quick-swatch > input:checked + span:not(#\-) {
+        border-color: var(--swatch);
+        box-shadow: 0 0 14px -2px var(--swatch)
+    }
+    .checklist-quick-error:not(#\-) {
+        color: #ffb1c1
+    }
+    :scope[data-theme=light] .checklist-quick-error:not(#\-) {
+        color: #b4174a
     }
     .checklist-options fieldset:not(#\-), .checklist-edit fieldset:not(#\-) {
         border-color: currentcolor
@@ -10374,6 +10449,10 @@
     }
     .path-stage[data-variant=orbit] .path-dot-ring circle:not(#\-) {
         stroke: var(--node)
+    }
+    .path-stage[data-variant=orbit] .path-dot[data-arrive]:not(#\-)::after {
+        border-color: var(--node, #23eaff);
+        box-shadow: 0 0 24px var(--node, #23eaff)
     }
     .path-stage[data-variant=orbit] .path-label.orbit-tab:not(#\-) {
         border-color: var(--node-dim, #5d6680);

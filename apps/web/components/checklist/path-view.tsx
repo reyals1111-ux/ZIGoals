@@ -56,7 +56,7 @@ export function useDotPress(state: ChecklistState) {
 const finaleOnly = (model: PathModel): PathModel => ({...model, milestones: model.milestones.filter(m => m.at === 'end').map(m => ({id: m.id, at: m.at, label: m.label, ...(m.reachedLabel ? {reachedLabel: m.reachedLabel} : {})}))});
 
 /** The Path view (P7.4–P7.11): today's favourites as the shared path engine's dots, in the person's orbits and order. */
-export function PathView({state, jumpDock = null}: {state: ChecklistState; jumpDock?: HTMLElement | null}) {
+export function PathView({state, jumpDock = null, arrive = null}: {state: ChecklistState; jumpDock?: HTMLElement | null; arrive?: string | null}) {
   const {panel, press, renderPanel} = useDotPress(state);
   const byId = useMemo(() => new Map(state.dots.map(d => [d.id, d])), [state.dots]);
   // Session AG: each node in its own colour (its habit card's tone, or its own), no two neighbours alike, with its own glyph.
@@ -66,5 +66,5 @@ export function PathView({state, jumpDock = null}: {state: ChecklistState; jumpD
   }, [state.record.data, state.dots]);
   const onStep = useCallback((step: PathStep, intent: StepIntent) => { const dot = byId.get(step.id); if (dot) void press(dot, intent); }, [byId, press]);
   const say = state.summary && state.summary.total > 0 && state.summary.done === 0 ? 'Tap a planet to begin' : state.summary?.next === null && (state.summary?.total ?? 0) > 0 ? 'All planets lit!' : undefined;
-  return <Path model={model} ariaLabel="Today's path" onStep={onStep} panelFor={panel?.id ?? null} renderPanel={step => { const dot = byId.get(step.id); return dot ? renderPanel(dot) : null; }} zigi={say ? {say} : {}} className="checklist-path" variant="orbit" jumpDock={jumpDock}/>;
+  return <Path model={model} ariaLabel="Today's path" onStep={onStep} panelFor={panel?.id ?? null} renderPanel={step => { const dot = byId.get(step.id); return dot ? renderPanel(dot) : null; }} zigi={say ? {say} : {}} className="checklist-path" variant="orbit" jumpDock={jumpDock} arrive={arrive}/>;
 }

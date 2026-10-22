@@ -59,6 +59,10 @@
    units, 19.4 within 0.2 px from a 62 px node to an 88 px one.) */
 .path-stage[data-variant=orbit] .path-dot-ring { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); }
 .path-stage[data-variant=orbit] .path-dot-ring circle { stroke: var(--node); }
+/* (Session AG Polish 2, owner Part 5: a node just added by quick add blooms once in its colour, as a tick's ring does.) */
+.path-stage[data-variant=orbit] .path-dot[data-arrive]::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid var(--node, #23eaff); box-shadow: 0 0 24px var(--node, #23eaff); pointer-events: none; animation: orbit-node-bloom 1100ms cubic-bezier(.2, .7, .3, 1) both; }
+@media (prefers-reduced-motion: reduce) { .path-stage[data-variant=orbit] .path-dot[data-arrive]::after { display: none; } }
+:root[data-app-motion=off] .path-stage[data-variant=orbit] .path-dot[data-arrive]::after { display: none; }
 /* (The shared look's own tick motion is the default look's; the orbit node blooms instead.) */
 .path-stage[data-variant=orbit] .path-dot[data-just] { animation: orbit-node-light 520ms cubic-bezier(.2, .8, .3, 1) both; }
 

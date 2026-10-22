@@ -27,7 +27,7 @@ import type {ChecklistState} from './use-checklist';
 const KIND_WORD: Record<string, string> = {habit: 'Habit', goal: 'Goal', 'goal-step': 'Goal step', custom: 'Your own', health: 'Health'};
 const KEEP_MS = 900;
 
-export function ListView({state, onAdd}: {state: ChecklistState; onAdd?: (section?: string) => void}) {
+export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; onAdd?: (section?: string) => void; arrive?: string | null}) {
   const {panel, setPanel, press, renderPanel, busy} = useDotPress(state);
   const colours = checklistDisplayColours(state.record.data, state.dots);
   const sections = useMemo(() => sectionsOf(state.record.data), [state.record.data]);
@@ -45,6 +45,14 @@ export function ListView({state, onAdd}: {state: ChecklistState; onAdd?: (sectio
     return () => window.clearTimeout(t);
   }, [doneKey]);
   const list = useRef<HTMLDivElement>(null);
+  // Session AG Polish 2 (owner Part 5): a row just added by quick add comes into view.
+  const shown = useRef<string | null>(null);
+  useEffect(() => {
+    if (!arrive || shown.current === arrive) return;
+    const el = list.current?.querySelector<HTMLElement>(`[data-step="${CSS.escape(arrive)}"]`); if (!el) return;
+    shown.current = arrive;
+    el.scrollIntoView({block: 'center', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.appMotion === 'off' ? 'auto' : 'smooth'});
+  });
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const checks = [...(list.current?.querySelectorAll<HTMLElement>('.checklist-row-check') ?? [])].filter(el => el.offsetParent !== null), at = checks.indexOf(e.target as HTMLElement);
     if (at < 0) return;

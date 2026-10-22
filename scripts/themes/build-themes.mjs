@@ -56,7 +56,7 @@ export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '
   // Session AG (ADR-029): the orbit path's nodes, their name tabs and its flowing line keep the Nebula colours in every theme.
   '.orbit-node', '.orbit-tab', '.orbit-flow', '.phone-checklist-pill', '.orbit-planet', '.orbit-banner',
   // Session AG Polish 2 (ADR-031): the progress bar's segments and its sparkle keep the nodes' own colours in every theme.
-  '.checklist-progress-seg', '.checklist-progress-spark'];
+  '.checklist-progress-seg', '.checklist-progress-spark', '.checklist-quick-preview'];
 
 export function sourceFiles() {
   const out = [];

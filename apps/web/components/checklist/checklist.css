@@ -80,7 +80,10 @@
 .checklist-topbar { position: sticky; top: 0; z-index: 20; padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px; background: linear-gradient(180deg, #050a1ef2, #050a1ee6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff17; box-shadow: 0 12px 30px -24px #000; }
 /* Round 4: what scrolls under the bar fades into it instead of being cut. */
 .checklist-topbar::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 26px; background: linear-gradient(180deg, #050a1ed9, #050a1e00); pointer-events: none; }
-.checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto 44px; grid-template-areas: "close title prog view streak menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+.checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto 44px 44px; grid-template-areas: "close title prog view streak plus menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+/* Session AG Polish 2 (owner Part 5, D-path 11): on a computer the bar spans the shell's own width, so "⋯" stands at the far
+   right, over the timers' right edge, and quick add's "+" where "⋯" stood. */
+@media (min-width: 1180px) { .checklist-topbar { padding-inline: 24px; } .checklist-topbar-row { max-width: 1352px; } }
 .checklist-close { grid-area: close; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; box-shadow: 0 3px 0 #00000059; }
 .checklist-close:hover { background: #ffffff1f; }
 .checklist-close:active { transform: translateY(2px); box-shadow: 0 1px 0 #00000059; }
@@ -131,6 +134,10 @@
 @keyframes checklist-pop-b { 0% { transform: scale(1); } 35% { transform: scale(1.4) translateY(-2px); } 100% { transform: none; } }
 /* The menu: Edit path, Options, How it works. */
 .checklist-menu-wrap { grid-area: menu; position: relative; }
+.checklist-plus-button { grid-area: plus; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; }
+.checklist-plus-button:hover { background: #ffffff1f; transition: background-color 120ms ease 70ms; }
+.checklist-plus-button[aria-expanded=true] { border-color: #9273ffb3; background: #9273ff33; }
+.checklist-plus-button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 .checklist-menu-button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; }
 .checklist-menu-button[aria-expanded=true] { border-color: #9273ffb3; background: #9273ff33; }
 .checklist-menu-button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
@@ -148,7 +155,7 @@
    the title is said, not shown; the date is in the menu's place too, for screen readers it stays in the line). */
 @media (max-width: 767.98px) {
   .checklist-topbar { padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px; }
-  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto 44px; grid-template-areas: "close prog streak menu"; column-gap: 8px; }
+  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto 44px 44px; grid-template-areas: "close prog streak plus menu"; column-gap: 8px; }
   .checklist-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .checklist-view-switch { display: none; }
   .checklist-progress { gap: 3px; }
@@ -402,6 +409,32 @@
 
 /* Options and Edit path (inside their sheets). */
 .checklist-options, .checklist-edit, .checklist-about { display: grid; gap: 12px; width: 100%; box-sizing: border-box; }
+/* Session AG Polish 2 (ADR-031 K11; owner Part 5): the quick-add sheet — the node it becomes, live, then the short form in
+   glass chips (44 px each), the nebula "Add to my orbit". The preview keeps the path's night colours in every theme. */
+.checklist-quick, .checklist-quick-form { display: grid; gap: 14px; }
+.checklist-quick-preview { display: flex; align-items: center; min-width: 0; padding: 16px 12px; border-radius: 22px; border: 1px solid #ffffff14; background: radial-gradient(120% 150% at 0% 0%, color-mix(in srgb, var(--node) 22%, transparent), transparent 62%), linear-gradient(180deg, #0a1130e6, #0a113080); }
+.checklist-quick-node { --node-size: 62px; position: relative; z-index: 1; flex: none; width: 62px; height: 62px; }
+.checklist-quick-tab { min-width: 0; margin-left: -12px; padding: 6px 14px 7px 20px; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--node) 72%, #5d6680); background: linear-gradient(180deg, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo)); color: #f0f5ff; font-size: 15px; line-height: 1.25; font-weight: 750; overflow-wrap: anywhere; }
+.checklist-quick-name, .checklist-quick-group > legend, .checklist-quick-row label { padding: 0; font-size: 14px; font-weight: 750; letter-spacing: .01em; color: var(--muted, #a4b2cd); }
+.checklist-quick-input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; font-size: 16px; border-radius: 14px; }
+.checklist-quick-group { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.checklist-quick-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.checklist-quick-chip, .checklist-quick-swatch { position: relative; display: inline-flex; }
+.checklist-quick-chip > input, .checklist-quick-swatch > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.checklist-quick-chip > span { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #ffffff26; background: #ffffff0d; color: var(--text, #f0f5ff); font-size: 15px; font-weight: 700; transition: background-color 160ms ease, border-color 160ms ease; }
+.checklist-quick-chip:hover > span { background: #ffffff17; transition-delay: 70ms; }
+.checklist-quick-chip > input:checked + span { border-color: #9273ffcc; background: linear-gradient(100deg, #23eaff33, #9273ff4d); box-shadow: inset 0 0 0 1px #9273ff99; }
+.checklist-quick-chip > input:focus-visible + span, .checklist-quick-swatch > input:focus-visible + span { outline: 3px solid currentColor; outline-offset: 2px; }
+.checklist-quick-days .checklist-quick-chip > span { min-width: 44px; justify-content: center; padding: 0 10px; }
+.checklist-quick-swatch > span { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #ffffff26; background: radial-gradient(circle, var(--swatch) 0 12px, transparent 13px); }
+.checklist-quick-swatch > input:checked + span { border-color: var(--swatch); box-shadow: 0 0 14px -2px var(--swatch); }
+.checklist-quick-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 12px; }
+.checklist-quick-error { margin: 0; color: #ffb1c1; font-size: 14px; font-weight: 650; }
+:root[data-theme=light] .checklist-quick-error { color: #b4174a; }
+.checklist-quick-go { min-height: 48px; font-size: 16px; }
+.checklist-quick-fine { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .checklist-quick-chip > span { transition: none; } }
+
 .checklist-options-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .checklist-options-head h2 { margin: 0; font-size: 24px; }
 .checklist-options-head button { min-height: 44px; }
