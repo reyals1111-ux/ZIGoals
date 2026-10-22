@@ -52,9 +52,10 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
   await stage.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
   await page.getByRole('form', {name: 'Log Water'}).getByRole('button', {name: /^Log /}).click();
   // (Session AG Polish, owner Part 4: the two complete the morning, so its planet lights too — the stretch from the planet
-  // into the first node is lit as well as the one between the two.)
-  await expect(stage.locator('.path-segment[data-lit]')).toHaveCount(2);
-  expect(await stage.locator('.path-segment[data-lit]').evaluateAll(gs => gs.map(g => g.getAttribute('data-segment')))).toEqual(['planet:morning>ck_fixture-1', 'ck_fixture-1>ck_fixture-2']);
+  // into the first node is lit as well as the one between the two. Session AG Polish 2, owner Part 2b, moved at equal
+  // strength: with the morning done the afternoon's planet is reached, so the stretch into it is lit too.)
+  await expect(stage.locator('.path-segment[data-lit]')).toHaveCount(3);
+  expect(await stage.locator('.path-segment[data-lit]').evaluateAll(gs => gs.map(g => g.getAttribute('data-segment')))).toEqual(['planet:morning>ck_fixture-1', 'ck_fixture-1>ck_fixture-2', 'ck_fixture-2>planet:afternoon']);
   await expect(stage.locator('.path-chest[data-milestone="half"]')).toHaveCount(0);
   await expect(stage.locator('.path-chest[data-milestone="end"]')).not.toHaveAttribute('data-reached', /.*/);
   await expect(stage.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', `${TITLE.push}: not done yet`);

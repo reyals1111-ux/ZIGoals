@@ -18,7 +18,9 @@ import {OrbitPlanet} from './orbit-planet';
  */
 const KNOWN = new Set(['morning', 'afternoon', 'evening', 'anytime']);
 export const orbitTitle = (label: string) => `${label.replace(/\s*orbit\s*$/i, '').trim() || 'Your'} Orbit`;
-export function OrbitBanner({section, done, total, headingId, justComplete = false, planet = null, box = false}: {section: PathSection; done: number; total: number; headingId: string; justComplete?: boolean; planet?: PlanetDesign | null; /** Session AG Polish 2: the phone's line keeps clear of the banner's words (`data-path-box`). */ box?: boolean}) {
+export function OrbitBanner({section, done, total, headingId, justComplete = false, planet = null, planetLit = false, planetJust = false, box = false}: {section: PathSection; done: number; total: number; headingId: string; justComplete?: boolean; planet?: PlanetDesign | null;
+  /** Session AG Polish 2 (owner Part 2b): the planet is lit once reached, and plays its completion the moment it is. */ planetLit?: boolean; planetJust?: boolean;
+  /** Session AG Polish 2: the phone's line keeps clear of the banner's words (`data-path-box`). */ box?: boolean}) {
   const complete = total > 0 && done === total, kind = KNOWN.has(section.id) ? section.id as keyof typeof SECTION_SYMBOLS : 'anytime';
   return <div className={`path-banner orbit-banner habit-section-${kind}`} data-colour={section.colour} data-complete={complete ? '' : undefined} data-just={justComplete ? '' : undefined} style={{'--banner': PATH_COLOURS[nebulaColour(section.colour)].token} as CSSProperties}>
     <div className="habit-section-summary" data-path-box={box ? `banner:${section.id}` : undefined}>
@@ -28,6 +30,6 @@ export function OrbitBanner({section, done, total, headingId, justComplete = fal
     </div>
     {/* (Its planet on the line, at the banner's height; where the banner leaves it too little room — a narrow phone — it
         wraps to its own band just under the banner, still on the line.) */}
-    {planet && <OrbitPlanet design={planet} lit={complete} just={justComplete} point={`planet:${section.id}`}/>}
+    {planet && <OrbitPlanet design={planet} lit={planetLit} just={planetJust} point={`planet:${section.id}`}/>}
   </div>;
 }

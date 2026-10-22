@@ -17,8 +17,8 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | Part | What | State | Commits |
 |---|---|---|---|
 | 0 | Records (Alpha #47, AG Polish merged and deployed), ADR-031, this file, Draft PR ([#93](https://github.com/reyals1111-ux/ZIGoals/pull/93)) | done | `87f9a78e` |
-| 1 | Phone path (lanes v2, tabs as drawn, the flowing line, compact banner, planet beside) | done | this commit |
-| 2 | Banner fade; planets lit when reached | — | — |
+| 1 | Phone path (lanes v2, tabs as drawn, the flowing line, compact banner, planet beside) | done | `0083619e` |
+| 2 | Banner fade; planets lit when reached | done | this commit |
 | 3 | Progress bar segments | — | — |
 | 4 | Ambient sky | — | — |
 | 5 | Quick add | — | — |
@@ -30,4 +30,4 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 ## Captures used (self-check, scratchpad only): 1 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-Part 2 (its test change in `tests/checklist-ag-polish.spec.ts` test 4 and `tests/checklist-ag-polish-2.spec.ts` are written; the code patch is in the session scratchpad `part2.py`).
+Part 3 (`components/checklist/progress-segments.tsx` and its tests are written; the page/CSS patch is in the session scratchpad `part3.py`).

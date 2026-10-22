@@ -1,7 +1,7 @@
 'use client';
 import {Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject} from 'react';
 import {createPortal} from 'react-dom';
-import {milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
+import {isDone, milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathSection, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {OrbitFinale, PathChest} from './path-milestone';
@@ -141,6 +141,23 @@ function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => 
   return {labels, full, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
 }
 
+/**
+ * Session AG Polish 2 (ADR-031 K6; owner Part 2b, pointers D-path 7–10): which orbit planets have been reached. The day's
+ * first planet (the first orbit with nodes) as soon as any node of its own orbit is done; every later planet once every
+ * node before it — every counted node of the orbit before it (all of them, where that orbit counts none) — is done. Undo
+ * that un-reaches a planet returns it to matte. The banner's "Complete ✓" still means its own orbit is complete.
+ */
+export function planetsReached(sections: readonly PathSection[]): boolean[] {
+  let before: PathSection | null = null;
+  return sections.map(sec => {
+    if (!sec.steps.length) return false;
+    const prev = before; before = sec;
+    if (!prev) return sec.steps.some(isDone);
+    const counted = prev.steps.filter(s => s.counted !== false);
+    return (counted.length ? counted : prev.steps).every(isDone);
+  });
+}
+
 /** Session AG Polish (owner Part 2): the phone's own layout below 641 px (the orbit sheet's phone breakpoint). */
 const PHONE_QUERY = '(max-width: 640px)';
 const subscribePhone = (l: () => void) => { const m = typeof window === 'undefined' ? null : window.matchMedia?.(PHONE_QUERY); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); };
@@ -209,7 +226,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const doneIds = steps.filter(s => s.state === 'done').map(s => s.id), reachedIds = milestones.filter(m => m.reached).map(m => `m:${m.id}`);
   // The orbit look also celebrates an orbit the moment its last dot is done (once; `s:<id>`).
   const completeIds = orbit ? model.sections.filter(s => { const p = sectionProgress(s); return p.total > 0 && p.done === p.total; }).map(s => `s:${s.id}`) : [];
-  const justIds = [...doneIds, ...reachedIds, ...completeIds];
+  // Session AG Polish 2 (owner Part 2b): each orbit's planet lights once it is reached (`p:<id>`, its completion plays then).
+  const reached = orbit ? planetsReached(model.sections) : [], reachedPlanetIds = model.sections.filter((_, si) => reached[si]).map(s => `p:${s.id}`);
+  const justIds = [...doneIds, ...reachedIds, ...completeIds, ...reachedPlanetIds];
   const just = useJust(justIds, justIds.join('|'));
   // Session AG Polish (owner Part 2): on a phone each node stands in a lane chosen so its tab fits on one line and ZIGi
   // has room on the other side (lib/path/phone-lanes.ts); the lanes come from the width and the names alone.
@@ -370,7 +389,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const opens = new Map(model.sections.map((sec, si) => [sec.steps[0]?.id ?? '', {sec, si}]));
     const nodes: FlowNode[] = steps.flatMap((st, i) => {
       const p = geo.points[st.id], gate = opens.get(st.id), out: FlowNode[] = [];
-      if (gate && planets[gate.si]) { const q = geo.points[`planet:${gate.sec.id}`], pr = sectionProgress(gate.sec); if (q) out.push({id: `planet:${gate.sec.id}`, x: q.x, y: q.y, r: q.r ?? 40, inSide: 'top', outSide: 'bottom', colour: PATH_COLOURS[st.colour].token, done: pr.total > 0 && pr.done === pr.total}); }
+      if (gate && planets[gate.si]) { const q = geo.points[`planet:${gate.sec.id}`]; if (q) out.push({id: `planet:${gate.sec.id}`, x: q.x, y: q.y, r: q.r ?? 40, inSide: 'top', outSide: 'bottom', colour: PATH_COLOURS[st.colour].token, done: !!reached[gate.si]}); }
       if (p) out.push({id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'});
       return out;
     });
@@ -408,7 +427,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
-        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
             const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;

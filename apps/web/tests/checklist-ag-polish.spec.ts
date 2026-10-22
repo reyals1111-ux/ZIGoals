@@ -161,27 +161,34 @@ test('3: each orbit wears the Habits page\'s section banner — symbol, "… Orb
   await expect(banners.first().locator('.habit-section-count [aria-hidden]')).toHaveText('Complete ✓');
 });
 
-test('4: each orbit has its planet, chosen by its first node\'s hue, matte until the orbit is complete, then lit', async ({page}) => {
+test('4: each orbit has its planet, chosen by its first node\'s hue, matte until it is reached, then lit', async ({page}) => {
   await open(page);
   const facts = await page.locator('.path-stage .path-section').evaluateAll(sections => sections.map(s => ({id: s.getAttribute('data-section'), planet: s.querySelector('.orbit-planet')?.getAttribute('data-planet') ?? null, lit: s.querySelector('.orbit-planet')?.hasAttribute('data-lit') ?? null,
     first: getComputedStyle(s.querySelector('.path-dot')!).getPropertyValue('--node').trim(), hidden: s.querySelector('.orbit-planet')?.getAttribute('aria-hidden'), img: (() => { const i = s.querySelector('.orbit-planet img'); return i ? [i.getAttribute('loading'), i.getAttribute('decoding')] : null; })()})));
   for (const f of facts) {
     const hex = /#[0-9a-f]{6}/i.exec(f.first)?.[0]?.toLowerCase() ?? '';
     expect(PLANET_BY_HEX[hex], `${f.id}: its first node's colour ${f.first}`).toContain(f.planet);
-    expect(f.lit, `${f.id}: matte before its orbit is complete`).toBe(false);
+    expect(f.lit, `${f.id}: matte before it is reached`).toBe(false);
     expect(f.hidden).toBe('true'); expect(f.img).toEqual(['lazy', 'async']);
   }
-  // The morning: tick its two nodes; its planet lights, the others stay matte.
+  // Session AG Polish 2 (ADR-031 K6; owner Part 2b), moved at equal strength: a planet lights when it is reached, not when
+  // its own orbit is complete. The day's first planet lights with the first tick in its orbit; the next one once every
+  // node before it is done.
+  const planet = (id: string) => page.locator(`.path-section[data-section=${id}] .orbit-planet`);
   await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
+  await expect(planet('morning')).toHaveAttribute('data-lit', '');
+  await expect(planet('afternoon')).not.toHaveAttribute('data-lit', '');
   await page.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
   const form = page.getByRole('form', {name: 'Log Water'});
   if (await form.count()) await form.getByRole('button', {name: /^Log /}).click();
-  await expect(page.locator('.path-section[data-section=morning] .orbit-planet')).toHaveAttribute('data-lit', '');
-  await expect(page.locator('.path-section[data-section=afternoon] .orbit-planet')).not.toHaveAttribute('data-lit', '');
+  await expect(planet('afternoon'), 'reached once the morning is done').toHaveAttribute('data-lit', '');
+  await expect(planet('evening')).not.toHaveAttribute('data-lit', '');
   // Reload: lit and still (no replay of the completion).
   await page.reload(); await settled(page);
-  await expect(page.locator('.path-section[data-section=morning] .orbit-planet')).toHaveAttribute('data-lit', '');
-  await expect(page.locator('.path-section[data-section=morning] .orbit-planet')).not.toHaveAttribute('data-just', '');
+  await expect(planet('morning')).toHaveAttribute('data-lit', '');
+  await expect(planet('afternoon')).toHaveAttribute('data-lit', '');
+  await expect(planet('morning')).not.toHaveAttribute('data-just', '');
+  await expect(planet('afternoon')).not.toHaveAttribute('data-just', '');
 });
 
 test('4: the line meets each planet at its top rim and leaves from its bottom rim, and is never drawn across it', async ({page}) => {
