@@ -128,7 +128,7 @@ export function curveFacts(c: readonly Pt[], o: {left: number; right: number; ri
     if (p.x < o.left - .01 || p.x > o.right + .01) outside = true;
     const k = speed < 1e-9 ? Infinity : (v.x * acc.y - v.y * acc.x) / speed ** 3;
     if (Math.abs(k) > 0) minRadius = Math.min(minRadius, 1 / Math.abs(k));
-    if (Math.abs(k) >= FLAT) { const s = Math.sign(k); if (lastSign && s !== lastSign) turns++; lastSign = s; }
+    if (Math.abs(k) >= FLAT) { const s = k > 0 ? 1 : -1; if (lastSign && s !== lastSign) turns++; lastSign = s; }
   }
   // (The rings: beyond the stretch's first and last 4 %, where it leaves and meets its own two rings tangentially.)
   let ring = Infinity;
@@ -227,7 +227,7 @@ export function ribbonSegments(nodes: readonly FlowNode[], o: FlowOptions): Flow
   });
   // The tail: on past the last ring, in the direction it left it, settling upright, fading out.
   if (o.tailTo !== null && o.tailTo !== undefined && o.tailTo > last.y + last.r) {
-    const P = ps.at(-1)!, p0 = P.exit, dy = o.tailTo - p0.y, r = seeded(`${o.seed}|tail|${last.id}`), s = P.dir.x ? Math.sign(P.dir.x) : sign(last.outSide) || 1;
+    const P = ps.at(-1)!, p0 = P.exit, dy = o.tailTo - p0.y, r = seeded(`${o.seed}|tail|${last.id}`), s = P.dir.x ? (P.dir.x > 0 ? 1 : -1) : sign(last.outSide) || 1;
     let c: Pt[] = [];
     for (const share of [.15 + r() * .3, .1, 0]) {
       const ex = clampX(p0.x + s * Math.min(o.swing * share, dy * .5)), ctrl = [p0, {x: p0.x + P.dir.x * dy * .5, y: p0.y + P.dir.y * dy * .5}, {x: ex, y: o.tailTo - dy * .45}, {x: ex, y: o.tailTo}];
