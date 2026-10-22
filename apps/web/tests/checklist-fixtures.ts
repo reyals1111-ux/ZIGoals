@@ -35,7 +35,10 @@ export const settled = (page: Page) => page.waitForLoadState('networkidle', {tim
 /** Writes the fixture (and anything extra) before the app reads it; the app's own /api routes answer offline. */
 export async function seedChecklist(page: Page, {path = fixturePath(), extra = {}}: {path?: Checklist | null; extra?: Record<string, string>} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
-  await page.goto('/app/settings');
+  // Session AG Polish (ADR-030 J21): the storage is written on a same-origin page that runs no app code (it was Settings),
+  // so no app request is still in flight when the test navigates on. WebKit reports each one cancelled as a page error
+  // ("… due to access control checks": the shell's music, push and account status reads, CI on 961f32de and 4322f55c).
+  await page.goto('/robots.txt');
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {
     'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true}),
     [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}),
