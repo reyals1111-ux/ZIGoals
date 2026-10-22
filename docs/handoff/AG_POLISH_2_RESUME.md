@@ -23,11 +23,11 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 4 | Ambient sky | done | `92ce3825` |
 | 5 | Quick add | done | `5527be1b` |
 | 6 | List view | done | `a73cb962` |
-| 7 | Celebration video | done | this commit |
-| 8 | Consistency colours | — | — |
+| 7 | Celebration video | done | `e30840fe` (by a staging slip only the old ZIGi constant's removal) + `ff28406e` (its files) |
+| 8 | Consistency colours | done | this commit |
 | 9 | Themes, checks, finish | — | — |
 
 ## Captures used (self-check, scratchpad only): 4 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-Part 8 (the consistency colours).
+The owner's change to Part 1b (22 Oct, mid-session): the phone banner on ONE row — compact chip, planet beside; then Part 9.

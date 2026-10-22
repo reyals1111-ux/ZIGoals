@@ -143,3 +143,37 @@ test('4: under reduced motion the sky is still — no twinkle, no shooting star'
   await expect(page.locator('.checklist-ambient')).toHaveAttribute('data-ambient', 'off');
   await expect(page.locator('.checklist-ambient i, .checklist-ambient b')).toHaveCount(0);
 });
+
+test('8: orbit consistency — one neon colour per state, each legend swatch exactly its cells, ≥ 3:1 on the panel', async ({page}) => {
+  // Twelve weeks with every state: a Perfect orbit, all planets, some planets and nothing.
+  const day = (back: number) => { const d = new Date(); d.setDate(d.getDate() - back); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const days = {version: 1, days: {[day(3)]: {total: 4, done: 4, perfect: true}, [day(4)]: {total: 4, done: 4}, [day(5)]: {total: 4, done: 2}, [day(6)]: {total: 4, done: 0}}};
+  await seedChecklist(page, {path: smallDay(), extra: {'zigoals:checklist-days:v1': JSON.stringify(days)}});
+  await page.goto('/app/checklist'); await settled(page);
+  await expect(page.locator('dialog.checklist-overlay')).toHaveAttribute('data-loaded');
+  const fold = page.locator('details.checklist-history-fold');
+  if (await fold.count() && await fold.isVisible()) await fold.locator('summary').click();
+  await expect(page.locator('.checklist-heat-legend .checklist-heat-swatch')).toHaveCount(4);
+  const facts = await page.locator('.checklist-history').evaluate(h => {
+    const look = (el: Element) => { const s = getComputedStyle(el); return {bg: s.backgroundColor, img: s.backgroundImage, shadow: s.boxShadow}; };
+    const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number);
+    const lum = ([r, g, b]: number[]) => [r, g, b].map(v => { v! /= 255; return v! <= .03928 ? v! / 12.92 : ((v! + .055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i]!, 0);
+    const plate = rgb(getComputedStyle(h).backgroundColor);
+    const out: Record<string, {swatch: unknown; cell: unknown; contrast: number}> = {};
+    for (const level of ['none', 'some', 'all', 'perfect']) {
+      const sw = h.querySelector(`.checklist-heat-swatch[data-level=${level}]`)!, cell = h.querySelector(`.checklist-heat-grid .checklist-heat-cell[data-level=${level}]`);
+      // (What shows of each state on the panel: its fill, or for Nothing its teal outline, over the panel.)
+      const shown = level === 'none' ? rgb(getComputedStyle(sw).boxShadow) : rgb(getComputedStyle(sw).backgroundColor);
+      const a = shown[3] ?? 1, mix = [0, 1, 2].map(i => shown[i]! * a + plate[i]! * (1 - a)), l1 = lum(mix), l2 = lum(plate);
+      out[level] = {swatch: look(sw), cell: cell ? look(cell) : null, contrast: (Math.max(l1, l2) + .05) / (Math.min(l1, l2) + .05)};
+    }
+    return out;
+  });
+  for (const [level, f] of Object.entries(facts)) {
+    expect(f.cell, `${level}: a cell of that state on the grid`).not.toBeNull();
+    expect(f.swatch, `${level}: the legend swatch is exactly its cells`).toEqual(f.cell);
+    expect(f.contrast, `${level}: ≥ 3:1 on the panel`).toBeGreaterThanOrEqual(3);
+  }
+  expect(facts.none!.swatch, 'Nothing and Some clearly different').not.toEqual(facts.some!.swatch);
+  expect(new Set(Object.values(facts).map(f => JSON.stringify(f.swatch))).size, 'four distinct states').toBe(4);
+});

@@ -528,19 +528,17 @@
 .checklist-heat-weeks { grid-area: weeks; display: grid; grid-template-columns: repeat(12, var(--cell)); gap: 5px; margin: 0; padding: 0; list-style: none; color: #c5d3ea; font-size: 14px; white-space: nowrap; }
 .checklist-heat-weeks li:last-child { justify-self: end; }
 .checklist-heat-grid { grid-area: grid; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 5px; justify-content: start; }
-.checklist-heat-cell { --c: #9273ff; width: var(--cell); height: var(--cell); border-radius: 5px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
+/* Session AG Polish 2 (ADR-031 K14; owner Part 8): one fixed neon colour per state, the legend's swatches being cells too. */
+.checklist-heat-cell { width: var(--cell); height: var(--cell); border-radius: 5px; background: #ffffff08; box-shadow: inset 0 0 0 1.5px #26e8bd8c; }
 /* (Session AG Polish, pointer 11: the week's nebula hue, the state's intensity.) */
-.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
-.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
-.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 80%, transparent); }
+.checklist-heat-cell[data-level=some] { background: #9273ff; box-shadow: none; }
+.checklist-heat-cell[data-level=all] { background: #23eaff; box-shadow: none; }
+.checklist-heat-cell[data-level=perfect] { background: #f06dff; box-shadow: 0 0 8px #f06dffb3; }
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
 .checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
 .checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
-.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
-.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
-.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 80%, transparent); }
+.checklist-heat-legend .checklist-heat-swatch { --cell: 14px; flex: none; }
 @media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat { --cell: 14px; } }
 @media (max-width: 767.98px) { .checklist-heat { --cell: 16px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
