@@ -24,7 +24,9 @@ export function PhoneChecklistButton() {
   const shown = !off && pathname !== CHECKLIST_ROUTE;
   const compact = useFitsHeader(shown);
   if (!shown) return null;
-  return <Link ref={compact.ref} href={CHECKLIST_ROUTE} className="phone-checklist-pill" data-compact={compact.on || undefined} aria-label="Open the Checklist"><ChecklistMark size={22}/><span className="phone-checklist-pill-word" aria-hidden="true">Checklist</span></Link>;
+  // (No prefetch: on a phone every page would otherwise fetch the Checklist's route in the background — more Worker calls on
+  // the Alpha, and in WebKit the app's own reads were still in flight when the next page opened, ADR-030 J22.)
+  return <Link ref={compact.ref} href={CHECKLIST_ROUTE} prefetch={false} className="phone-checklist-pill" data-compact={compact.on || undefined} data-measured={compact.measured || undefined} aria-label="Open the Checklist"><ChecklistMark size={22}/><span className="phone-checklist-pill-word" aria-hidden="true">Checklist</span></Link>;
 }
 
 /**
@@ -33,10 +35,13 @@ export function PhoneChecklistButton() {
  * hold it again. Measured on the header's own size changes, never per frame.
  */
 function useFitsHeader(active: boolean) {
-  const ref = useRef<HTMLAnchorElement>(null), [on, setOn] = useState(false), extra = useRef(84);
+  const ref = useRef<HTMLAnchorElement>(null), [on, setOn] = useState(false), [measured, setMeasured] = useState(false), extra = useRef(84);
   useLayoutEffect(() => {
     const pill = ref.current, row = pill?.closest<HTMLElement>('.phone-topbar-row'); if (!active || !pill || !row) return;
     const title = row.querySelector<HTMLElement>('.phone-title'), actions = pill.parentElement;
+    // (Until measured, a narrow phone shows the check alone by CSS, so the page as served never scrolls sideways; the word is
+    // shown for the first measure, then kept or let go.)
+    pill.setAttribute('data-measured', '');
     const measure = () => {
       const wide = !pill.hasAttribute('data-compact');
       if (wide) {
@@ -45,10 +50,10 @@ function useFitsHeader(active: boolean) {
         if (spill > 1 || (last && last.right > edge)) setOn(true);
       } else if ((title?.getBoundingClientRect().width ?? 0) >= extra.current - .5) setOn(false);
     };
-    measure();
+    measure(); setMeasured(true);
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
     ro?.observe(row); if (actions) ro?.observe(actions); if (title) ro?.observe(title);
     return () => ro?.disconnect();
   }, [active, on]);
-  return {ref, on};
+  return {ref, on, measured};
 }

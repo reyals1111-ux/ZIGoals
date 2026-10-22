@@ -18,6 +18,8 @@
 .phone-checklist-pill[data-compact] { padding: 0; width: 44px; justify-content: center; }
 .phone-checklist-pill[data-compact]::before { inset: 4px; }
 .phone-checklist-pill[data-compact] .phone-checklist-pill-word { display: none; }
+/* (As served, before it is measured: below 375 px the check alone, so the header never spills on a narrow phone.) */
+@media (max-width: 374.98px) { .phone-checklist-pill:not([data-measured]) { padding: 0; width: 44px; justify-content: center; } .phone-checklist-pill:not([data-measured])::before { inset: 4px; } .phone-checklist-pill:not([data-measured]) .phone-checklist-pill-word { display: none; } }
 @media (prefers-reduced-motion: reduce) { .phone-checklist-pill, .phone-checklist-pill::before { transition: none; } .phone-checklist-pill:active { transform: none; } }
 :root[data-app-motion=off] .phone-checklist-pill { transition: none; transform: none !important; }
 @media (forced-colors: active) { .phone-checklist-pill { color: ButtonText; } .phone-checklist-pill::before { border-color: ButtonText; background: ButtonFace; } }
