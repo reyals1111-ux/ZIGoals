@@ -1,5 +1,5 @@
 'use client';
-import {Fragment, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
+import {Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
 import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
 import {CHECKLIST_COLOUR_IDS, nebulaColour} from '../../lib/path/orbit-colours';
 import {HEALTH_MEALS} from '../../lib/health';
@@ -21,11 +21,14 @@ import type {ChecklistState} from './use-checklist';
  */
 const message = (e: unknown) => storageMessageOr(e, 'Not saved on this device. Try again.');
 const SECTION_TIME: Record<string, 'morning' | 'afternoon' | 'evening' | 'anytime'> = {morning: 'morning', afternoon: 'afternoon', evening: 'evening'};
-export function EditPath({state, onClose}: {state: ChecklistState; onClose: () => void}) {
+/** `addTo` (Session AG Polish, the List's "+ Add to … Orbit"): the orbit the new item's form starts in, focused. */
+export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClose: () => void; addTo?: string}) {
   const {record} = state, sections = sectionsOf(record.data), items = orderedItems(record.data);
+  const addInput = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (addTo) { addInput.current?.scrollIntoView({block: 'center'}); addInput.current?.focus({preventScroll: true}); } }, [addTo]);
   // The list reads as the path does: orbit by orbit, each in its own order.
   const pathOrder = sections.flatMap(s => items.filter(i => sectionOfItem(record.data, i) === s.id));
-  const [status, setStatus] = useState(''), [custom, setCustom] = useState({label: '', colour: 'pink', section: 'anytime'}), [orbitName, setOrbitName] = useState(''), [openRow, setOpenRow] = useState<string | null>(null);
+  const [status, setStatus] = useState(''), [custom, setCustom] = useState({label: '', colour: 'pink', section: addTo && sections.some(s => s.id === addTo) ? addTo : 'anytime'}), [orbitName, setOrbitName] = useState(''), [openRow, setOpenRow] = useState<string | null>(null);
   const dotById = useMemo(() => new Map(state.dots.map(d => [d.id, d])), [state.dots]);
   const write = (change: Parameters<typeof record.update>[0], words: string) => { try { record.update(change); setStatus(words); return true; } catch (e) { setStatus(message(e)); return false; } };
   const add = (ref: FavouriteRef, label: string, extra: {section?: string; defaultValue?: number; unit?: string} = {}) => write(r => addFavourite(r, ref, {id: newChecklistId(), at: new Date(), label, ...extra}), `${label} added to your path.`);
@@ -103,7 +106,7 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
 
     <h3>Your own item</h3>
     <form className="checklist-edit-custom" onSubmit={submitCustom}>
-      <label className="field">What to do<input value={custom.label} maxLength={60} required placeholder="Something you do each day" onChange={e => setCustom(c => ({...c, label: e.target.value}))}/></label>
+      <label className="field">What to do<input ref={addInput} value={custom.label} maxLength={60} required placeholder="Something you do each day" onChange={e => setCustom(c => ({...c, label: e.target.value}))}/></label>
       <fieldset className="checklist-edit-colours"><legend>Colour</legend><div className="checklist-swatches">{CHECKLIST_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name="checklist-custom-colour" checked={custom.colour === id} onChange={() => setCustom(c => ({...c, colour: id}))}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
       <div className="checklist-edit-orbit-choice" role="radiogroup" aria-label="Orbit">{sections.map(s => <button key={s.id} type="button" role="radio" aria-checked={custom.section === s.id} onClick={() => setCustom(c => ({...c, section: s.id}))}>{s.label.replace(/ orbit$/i, '')}</button>)}</div>
       <button type="submit" className="secondary">Add to path</button>

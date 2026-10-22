@@ -105,10 +105,11 @@ test('Edit path: a custom item, reorder by keyboard, an orbit renamed; the List 
   // Session AF (L3b, round 4): on a phone the top bar is one row and the view lives in its menu (moved at equal strength).
   if (!await page.getByRole('group', {name: 'View'}).isVisible()) await page.getByRole('button', {name: 'Checklist menu'}).click();
   await page.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List'}).click();
-  await expect(page.locator('.checklist-pill-label').first()).toHaveText('Water');
-  await expect(page.locator('.checklist-pill-label')).toContainText([ 'Water', TITLE.stretch, TITLE.push ]);
+  // (Session AG Polish, owner Part 7, moved: the List's rows are grouped by orbit; the same dots in the same order.)
+  await expect(page.locator('.checklist-row-name').first()).toHaveText('Water');
+  await expect(page.locator('.checklist-row-name')).toContainText([ 'Water', TITLE.stretch, TITLE.push ]);
   await page.reload(); await settled(page);
-  await expect(page.getByRole('list', {name: "Today's list"})).toBeVisible();
+  await expect(page.getByRole('list', {name: 'Morning Orbit'})).toBeVisible();
 });
 
 test('an empty path says how to build one; Jump to next focuses the first waiting dot', async ({page}) => {

@@ -67,7 +67,7 @@ function cameFromTheApp(): boolean {
 export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
-  const [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
+  const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), phone = useMedia(PHONE), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
@@ -178,7 +178,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={() => setSheet('edit')}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
+          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -196,7 +196,7 @@ export function ChecklistPage() {
     </div>
 
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
-    {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
+    {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
     {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} {...celebrationBodies(state)} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
