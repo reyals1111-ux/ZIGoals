@@ -114,6 +114,9 @@ export function ChecklistPage() {
     if (!complete) setCelebrate(false);
   }, [loaded, state.prefsLoaded, state.date, summary, complete, prefs.celebratedOn, state]);
 
+  // Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes here and the streak grows.
+  const lit = !!streak?.todayComplete, wasLit = useRef<boolean | null>(null), [ignite, setIgnite] = useState(0);
+  useEffect(() => { if (!loaded) return; if (wasLit.current === false && lit) setIgnite(n => n + 1); wasLit.current = lit; }, [lit, loaded]);
   const total = summary?.total ?? 0, done = summary?.done ?? 0, empty = loaded && state.dots.length === 0;
   const streakDays = streak?.current ?? 0;
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
@@ -154,7 +157,7 @@ export function ChecklistPage() {
           <button type="button" aria-label="Path" aria-pressed={prefs.view === 'path'} onClick={() => state.setPrefs({view: 'path'})}><ViewMark name="path"/></button>
           <button type="button" aria-label="List" aria-pressed={prefs.view === 'list'} onClick={() => state.setPrefs({view: 'list'})}><ViewMark name="list"/></button>
         </div>
-        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
+        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">

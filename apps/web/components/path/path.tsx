@@ -69,6 +69,8 @@ export type PathProps = {
 /** The orbit look's finale node: where the line ends (Session AG). */
 const FINALE_POINT = 'finale:end';
 const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
+/** Session AG Polish (owner Part 8): ZIGi's greeting clip, played during the cheer that completes an orbit. */
+const ORBIT_CHEER_CLIP = '/brand/figures/zigi/origami-nebula/F002-greeting.anim.webp';
 /** After a tick that completes an orbit, the path glides on to the next planet once the orbit's celebration has played. */
 const ORBIT_LAND_AFTER_MS = 1400;
 /** The element that scrolls the path (the full-screen Checklist's own layer), or null for the page. */
@@ -231,15 +233,19 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     // (Read here, in the same commit as the new next planet: the `just` marks only arrive a render later.)
     const before = orbitsDone.current, finished = before !== null && completeIds.some(id => !before.includes(id)); orbitsDone.current = completeIds;
     const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
+    // Session AG Polish (owner Part 8, camera follow): after an orbit completes the path glides on toward the next orbit's
+    // planet when the next node opens that orbit; after any other tick the next node comes to the upper third.
+    const gate = finished ? model.sections.find(sec => sec.steps[0]?.id === next.id) : undefined;
+    const target = (gate && stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(`planet:${gate.id}`)}"]`)) || el;
     const scroller = scrollerOf(s);
     const go = (glide: boolean) => {
       // (The part of the scroller a sticky bar does not cover: its scroll-padding-top, as the browser's own scrolling reads it.)
       const box = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight}, cs = scroller ? getComputedStyle(scroller) : null;
       const pad = cs ? parseFloat(cs.scrollPaddingTop) || 0 : 0, padBottom = cs ? parseFloat(cs.scrollPaddingBottom) || 0 : 0;
-      const r = el.getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad - padBottom};
-      const at = (r.top + r.height / 2 - view.top) / view.height;
-      if (glide && at >= .12 && at <= .7) return;
-      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * landAt();
+      const r = (glide ? target : el).getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad - padBottom};
+      const at = (r.top + r.height / 2 - view.top) / view.height, aim = glide ? (target === el ? .33 : .3) : landAt();
+      if (glide && at >= .15 && at <= .45) return;
+      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * aim;
       (scroller ?? window).scrollTo({top: Math.max(0, top), behavior: glide && entranceAllowed() ? 'smooth' : 'auto'});
     };
     if (!landed.current) { landed.current = true; go(false); return; }
@@ -354,7 +360,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
                   <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} fit={zigiFit}/>}
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}

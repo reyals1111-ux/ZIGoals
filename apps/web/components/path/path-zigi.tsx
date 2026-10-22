@@ -94,7 +94,7 @@ const GAPS = [13, 15, 18, 21, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 65, 70, 76
 /** What a place costs where ZIGi's arm would not point at its planet: at a planet already done, at one still to come, at nothing. */
 const AIM = {done: 600, later: 220, none: 150, next: 0} as const;
 const SMALL = 260;
-export function PathZigi({state, side, say, alive = false, centred = false, cheer = false, fit}: {state: string; side: Side; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean; fit?: string}) {
+export function PathZigi({state, side, say, alive = false, centred = false, cheer = false, clip = null, fit}: {state: string; side: Side; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean; clip?: string | null; fit?: string}) {
   const frames = useZigiFrames(), frame = frames?.[state] ?? frames?.idle;
   const poster = frame ? {src: frame.poster.x1, srcSet: `${frame.poster.x1} 1x, ${frame.poster.x2} 2x`} : {src: SHELL_FRAME.x1, srcSet: `${SHELL_FRAME.x1} 1x, ${SHELL_FRAME.x2} 2x`};
   const ref = useRef<HTMLSpanElement>(null), [place, setPlace] = useState<{left: number; top: number; side: Side; scale: number; idle: boolean; hop: number; sparks: number[]} | null>(null), scaled = useRef(1);
@@ -218,7 +218,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
   const placed = alive && place ? {left: place.left, top: place.top, right: 'auto', bottom: 'auto', translate: 'none', '--hop': `${place.hop}px`, ...(place.scale !== 1 ? {height: `calc(var(--zigi-h) * ${place.scale})`, width: `calc(var(--zw) * ${place.scale})`} : {})} as CSSProperties : undefined;
   return <span ref={ref} className="path-zigi" data-side={shownSide} data-placed={place && alive ? '' : undefined} data-zigi-state={cheering ? 'cheer' : state} data-alive={alive || undefined} data-centred={centred || undefined} data-cheer={alive && cheer ? '' : undefined} aria-hidden="true" style={placed}>
     {alive && cheer && <span className="path-zigi-burst"/>}
-    {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} width={TRIM.width} height={TRIM.height} alt="" decorative/></span></span>
+    {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} animated={cheer && clip && entranceAllowed() ? clip : null} width={TRIM.width} height={TRIM.height} alt="" decorative/></span></span>
       : <span key={state} className={`zigi zigi-${state} path-zigi-figure`} data-state={state}><ZigiImage poster={poster} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>}
     {alive ? <span className="path-zigi-ground"/> : <span className="path-zigi-arrow"/>}
     {alive && cheer && <span className="path-zigi-cheer">{SPARKS.map(({a, d}, n) => { const far = place?.sparks[n] ?? d; return far ? <i key={n} data-tone={n % 3} style={{'--a': `${Math.round(a)}deg`, '--d': `${far}px`} as CSSProperties}/> : null; })}</span>}
