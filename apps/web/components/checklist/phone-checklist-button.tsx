@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
@@ -16,10 +16,12 @@ import './phone-checklist-button.css';
  * Checklist button). Phones only (the header exists only there). S1 builds the rest of the phone's quick access around it.
  */
 export function PhoneChecklistButton() {
-  const pathname = usePathname() ?? '', prefsRecord = useUiPrefs(), [mounted, setMounted] = useState(false);
-  useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
+  const pathname = usePathname() ?? '', prefsRecord = useUiPrefs();
   const prefs = checklistPrefsOf(prefsRecord.data);
-  const shown = mounted && prefsRecord.loaded && !prefsRecord.unreadable && prefs.launcher && pathname !== CHECKLIST_ROUTE;
+  // In the header from the first paint (the launcher is on unless switched off), so it never pushes the header's icons
+  // aside once the page has loaded (CI's layout-shift check); it leaves only once the stored settings say "off".
+  const off = prefsRecord.loaded && (prefsRecord.unreadable || !prefs.launcher);
+  const shown = !off && pathname !== CHECKLIST_ROUTE;
   const compact = useFitsHeader(shown);
   if (!shown) return null;
   return <Link ref={compact.ref} href={CHECKLIST_ROUTE} className="phone-checklist-pill" data-compact={compact.on || undefined} aria-label="Open the Checklist"><ChecklistMark size={22}/><span className="phone-checklist-pill-word" aria-hidden="true">Checklist</span></Link>;
