@@ -66,6 +66,15 @@
 :root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .12; animation: none; }
 :root[data-theme=dark] .checklist-planet { opacity: .75; }
 
+/* Session AG Polish 2 (ADR-031 K10; owner Part 4, D-path 12): the ambient sky — a twinkle now and then, a shooting star every
+   25–45 s (components/checklist/ambient-sky.tsx) — over the sky and behind everything else, moved by transform and opacity only. */
+.checklist-ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; contain: strict; }
+.checklist-ambient i { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; opacity: 0; background: var(--tw, #ffffff); clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); filter: drop-shadow(0 0 3px var(--tw, #ffffff)); will-change: transform, opacity; }
+.checklist-ambient b { position: absolute; left: -200px; top: -1px; width: 200px; height: 2px; opacity: 0; border-radius: 2px; transform-origin: 100% 50%; background: linear-gradient(90deg, #ffffff00, color-mix(in srgb, var(--tw, #dff9ff) 55%, transparent) 62%, var(--tw, #dff9ff) 94%, #ffffff); filter: drop-shadow(0 0 4px var(--tw, #dff9ff)); will-change: transform, opacity; }
+@media (prefers-reduced-motion: reduce) { .checklist-ambient { display: none; } }
+:root[data-app-motion=off] .checklist-ambient { display: none; }
+@media (forced-colors: active) { .checklist-ambient { display: none; } }
+
 /* The top bar: one row (close, the title, today's progress and date, the view, the streak, the menu; no XP since Session AG); on a
    phone the title is said, not shown, and the view lives in the menu. */
 .checklist-topbar { position: sticky; top: 0; z-index: 20; padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px; background: linear-gradient(180deg, #050a1ef2, #050a1ee6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff17; box-shadow: 0 12px 30px -24px #000; }

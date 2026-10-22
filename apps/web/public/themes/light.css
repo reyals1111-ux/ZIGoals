@@ -3937,6 +3937,16 @@
             filter: blur(28px)
         }
     }
+    .checklist-ambient i:not(#\-) {
+        background-image: none;
+        background-color: var(--tw, #242424);
+        filter: drop-shadow(0 0 3px var(--tw, #9e9e9e8c))
+    }
+    .checklist-ambient b:not(#\-) {
+        background-image: linear-gradient(90deg, #24242400, color-mix(in srgb, var(--tw, #dff9ff) 55%, transparent) 62%, var(--tw, #13282c) 94%, #242424);
+        background-color: transparent;
+        filter: drop-shadow(0 0 4px var(--tw, #8ba3a98c))
+    }
     .checklist-topbar:not(#\-) {
         background-image: linear-gradient(180deg, #f2f5fbf2, #f2f5fbe6);
         background-color: transparent;

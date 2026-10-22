@@ -20,6 +20,7 @@ import {PathView} from './path-view';
 import {ListView} from './list-view';
 import {CornerTimers} from './corner-timers';
 import {ChecklistSky} from './checklist-sky';
+import {AmbientSky} from './ambient-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
 import {escapeTop, useEscapeLayer} from './escape-layers';
@@ -152,6 +153,8 @@ export function ChecklistPage() {
       leave();
     }}>
     <ChecklistSky/>
+    {/* Session AG Polish 2 (owner Part 4): now and then a twinkle, rarely a shooting star — resting while anything is open over the path. */}
+    <AmbientSky paused={celebrate || sheet !== null || menu}/>
     {/* The top bar (Session AG, pointer 12): close, the title, today's progress and date, the view, the streak, the menu — no XP. */}
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">

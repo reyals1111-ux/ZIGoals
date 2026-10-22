@@ -110,3 +110,36 @@ test('3: under reduced motion a segment lights at once', async ({page}) => {
   await expect(seg).toHaveAttribute('data-lit', '');
   expect(await seg.evaluate(e => [getComputedStyle(e, '::after').transitionDuration, Number(getComputedStyle(e, '::after').opacity)])).toEqual(['0s', 1]);
 });
+
+test('4: the ambient sky twinkles behind everything, rests while the tab is hidden or the menu is open, and is off under reduced motion and Motion Off', async ({page}) => {
+  await open(page);
+  const sky = page.locator('.checklist-ambient');
+  await expect(sky).toHaveAttribute('data-ambient', 'running');
+  expect(await sky.evaluate(el => { const cs = getComputedStyle(el), shell = document.querySelector('.checklist-shell')!; return [cs.position, cs.pointerEvents, cs.zIndex, !!(el.compareDocumentPosition(shell) & Node.DOCUMENT_POSITION_FOLLOWING)]; }), 'fixed, behind the path and its words').toEqual(['fixed', 'none', '0', true]);
+  // A twinkle within a few seconds: transform and opacity only.
+  await expect.poll(() => sky.evaluate(el => el.getAnimations({subtree: true}).length), {timeout: 9000}).toBeGreaterThan(0);
+  const props = await sky.evaluate(el => [...new Set(el.getAnimations({subtree: true}).flatMap(a => (a.effect as KeyframeEffect).getKeyframes().flatMap(k => Object.keys(k).filter(p => !['offset', 'easing', 'composite', 'computedOffset'].includes(p)))))].sort());
+  expect(props).toEqual(['opacity', 'transform']);
+  // The tab hidden: it rests, and nothing keeps running.
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {value: 'hidden', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+  await expect(sky).toHaveAttribute('data-ambient', 'paused');
+  expect(await sky.evaluate(el => el.getAnimations({subtree: true}).filter(a => a.playState === 'running').length)).toBe(0);
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {value: 'visible', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+  await expect(sky).toHaveAttribute('data-ambient', 'running');
+  // Something open over the path: it rests.
+  await page.getByRole('button', {name: 'Checklist menu'}).click();
+  await expect(sky).toHaveAttribute('data-ambient', 'paused');
+  await page.keyboard.press('Escape');
+  await expect(sky).toHaveAttribute('data-ambient', 'running');
+  // Motion Off: off, nothing drawn.
+  await page.evaluate(() => { document.documentElement.dataset.appMotion = 'off'; });
+  await expect(sky).toHaveAttribute('data-ambient', 'off');
+  await expect(sky.locator('i, b')).toHaveCount(0);
+});
+
+test('4: under reduced motion the sky is still — no twinkle, no shooting star', async ({page}) => {
+  await page.emulateMedia({reducedMotion: 'reduce'});
+  await open(page);
+  await expect(page.locator('.checklist-ambient')).toHaveAttribute('data-ambient', 'off');
+  await expect(page.locator('.checklist-ambient i, .checklist-ambient b')).toHaveCount(0);
+});

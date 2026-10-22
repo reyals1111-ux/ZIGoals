@@ -19,8 +19,8 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 0 | Records (Alpha #47, AG Polish merged and deployed), ADR-031, this file, Draft PR ([#93](https://github.com/reyals1111-ux/ZIGoals/pull/93)) | done | `87f9a78e` |
 | 1 | Phone path (lanes v2, tabs as drawn, the flowing line, compact banner, planet beside) | done | `0083619e` |
 | 2 | Banner fade; planets lit when reached | done | `eb4272e2` |
-| 3 | Progress bar segments | done | this commit |
-| 4 | Ambient sky | — | — |
+| 3 | Progress bar segments | done | `35ad3f53` |
+| 4 | Ambient sky | done | this commit |
 | 5 | Quick add | — | — |
 | 6 | List view | — | — |
 | 7 | Celebration video | — | — |
@@ -30,4 +30,4 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 ## Captures used (self-check, scratchpad only): 1 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-Part 4 (`components/checklist/ambient-sky.tsx` is written, not yet wired).
+Part 5 (quick add).
