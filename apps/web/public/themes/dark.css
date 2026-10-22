@@ -4864,25 +4864,33 @@
 /*  components/checklist/phone-checklist-button.css  */
 @scope (:root[data-theme=dark]) {
     .phone-checklist-pill:not(#\-) {
-        color: #f2f7ff;
+        color: #f2f7ff
+    }
+    .phone-checklist-pill:not(#\-)::before {
         border-color: transparent;
         background-image: linear-gradient(130deg, #00030df2, #01020fee, #08041eea), linear-gradient(120deg, #7bddffc9, #5a91c29c 34%, #9775eda6, #c98fffcc);
         background-color: transparent;
         box-shadow: inset 0 1px 3px #8ddfff36, inset 0 -2px 3px #bf7eff40, 0 5px 18px #00112d69
     }
-    .phone-checklist-pill:hover:not(#\-) {
+    .phone-checklist-pill:hover:not(#\-)::before {
         box-shadow: 0 0 18px #23eaff40, 0 5px 20px #f06dff40, inset 0 1px 3px #8ddfff4d
     }
     .phone-checklist-pill:focus-visible:not(#\-) {
-        outline-color: currentcolor;
+        outline-color: currentcolor
+    }
+    .phone-checklist-pill:focus-visible:not(#\-)::before {
         box-shadow: 0 0 0 2px #050a1e, 0 0 0 4.5px #8fe9ff, 0 5px 18px #00112d69
     }
     @media (forced-colors: active) {
         .phone-checklist-pill:not(#\-) {
+            color: ButtonText
+        }
+    }
+    @media (forced-colors: active) {
+        .phone-checklist-pill:not(#\-)::before {
             border-color: ButtonText;
             background-image: none;
-            background-color: transparent;
-            color: ButtonText
+            background-color: transparent
         }
     }
 }
@@ -10927,7 +10935,8 @@
             color: #041126;
             background-image: var(--nebula-emphasis), linear-gradient(120deg, #bff4ff, #9d8cff);
             background-color: transparent;
-            box-shadow: inset 0 1px 2px #e4fcffb0, 0 0 14px #2edbff40
+            box-shadow: inset 0 1px 2px #e4fcffb0;
+            filter: drop-shadow(0 0 6px #2edbff59)
         }
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
