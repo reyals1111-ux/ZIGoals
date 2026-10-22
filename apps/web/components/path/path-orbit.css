@@ -144,29 +144,35 @@
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary { flex: 0 1 auto; min-width: 0; }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .orbit-planet { margin: 6px max(6px, 4%) 6px auto; }
 @media (max-width: 1179.98px) { .path-stage[data-variant=orbit] { --planet-size: 104px; } }
-/* Session AG Polish 2 (ADR-031 K4, K5; owner Parts 1b and 1c): on a phone the banner is the Habits banner's compact form —
-   the symbol beside "Morning Orbit" over its count chip, about half its former width — and the planet stands beside it,
-   at its height, as large as a computer's next to its node (88–100 px: about 1.5 × a 62 px node). Its sphere stands 12 px
-   from the stage's edge (a wide ring fades out at the edge); the banner's words lie above its ring layer, so a ring reaching
-   the banner's end passes behind them. */
+/* Session AG Polish 2 (ADR-031 K7, K15; owner Parts 1b and 1c, and the owner's change of 22 Oct): on a phone the banner is
+   ONE row — the symbol (26 px), "Morning Orbit" (16 px; 15 px under 360 px) and a compact count chip ("0/5"; "✓ Done", the
+   check alone under 360 px; the whole said in words) — reaching into the shell's left margin, and the planet stands beside
+   it at its height, as large as a computer's next to its node (88–100 px: about 1.5 × a 62 px node; 84 px under 360 px),
+   4 px from the stage's edge; a wide ring runs on to the screen's edge, where it is cut sideways only (never its soft mist,
+   which a mask had boxed); the banner's words lie above its ring layer, so a ring reaching the banner's end passes behind. */
+.orbit-banner .habit-section-count-short { display: none; }
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] { --planet-size: clamp(88px, 26cqi, 100px); }
-  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; min-height: calc(var(--planet-size) + 10px); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 16px), #0000); mask-image: linear-gradient(90deg, #000 calc(100% - 16px), #0000); }
-  .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; z-index: 2; flex: none; grid-template-columns: 28px auto; grid-template-areas: "mark title" "mark count"; column-gap: 10px; row-gap: 5px; align-items: center; justify-items: start; min-height: 0; padding: 9px 12px 9px 10px; }
-  .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { grid-area: mark; width: 28px; height: 28px; font-size: 14px; }
-  .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { grid-area: title; font-size: 17px; line-height: 1.15; }
-  .path-stage[data-variant=orbit] .orbit-banner .habit-section-count { grid-area: count; font-size: 14px; line-height: 1.2; padding: 3px 10px; }
-  /* (The sphere 12 px from the stage's edge; a ring reaching past it softens away in the banner's last 16 px.) */
-  .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { position: absolute; z-index: 1; right: calc(12px - (var(--ex, 1) - 1) * var(--sphere) / 2); top: 50%; margin: 0; translate: 0 -50%; }
+  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; box-sizing: border-box; width: calc(100% + 6px); max-width: none; min-height: calc(var(--planet-size) + 10px); margin-left: -6px; padding: 4px 0; overflow-x: clip; overflow-clip-margin: 12px; }
+  .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; z-index: 2; flex: none; grid-template-columns: 26px auto auto; column-gap: 8px; align-items: center; min-height: 0; padding: 7px 10px 7px 6px; white-space: nowrap; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { width: 26px; height: 26px; font-size: 13px; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { font-size: 16px; line-height: 1.2; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-count { font-size: 14px; line-height: 1.2; padding: 3px 9px; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-count > span:first-child { display: none; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-count-short { display: inline; }
+  .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { position: absolute; z-index: 1; right: calc(4px - (var(--ex, 1) - 1) * var(--sphere) / 2); top: 50%; margin: 0; translate: 0 -50%; }
+  /* (Its mist a little narrower, so it fades out before the stage's edge instead of meeting it.) */
+  .path-stage[data-variant=orbit] .orbit-banner .orbit-planet-mist { width: calc(var(--sphere) * 2.1); height: calc(var(--sphere) * 1.6); }
+}
+@media (max-width: 359.98px) {
+  /* (At 320 px the planet gives the one-row banner its room: 84 px, 1.35 × a node — the owner's allowance.) */
+  .path-stage[data-variant=orbit] { --planet-size: 84px; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { font-size: 15px; }
+  .path-stage[data-variant=orbit] .orbit-banner .orbit-banner-done { display: none; }
 }
 @media (max-width: 640px) {
   /* (Its tint ends about 44 px after the count chip, well before the planet.) */
   :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner { --banner-fade: 44px; }
-}
-@media (max-width: 359.98px) {
-  .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { column-gap: 8px; padding: 8px 10px 8px 8px; grid-template-columns: 26px auto; }
-  .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { width: 26px; height: 26px; font-size: 13px; }
-  .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { font-size: 16px; }
 }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--banner-fade, 96px)), #0000 100%); mask-image: linear-gradient(90deg, #000 calc(100% - var(--banner-fade, 96px)), #0000 100%); }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner .habit-section-title { white-space: nowrap; }

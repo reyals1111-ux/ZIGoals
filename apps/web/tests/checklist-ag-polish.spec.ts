@@ -148,17 +148,14 @@ test('3: each orbit wears the Habits page\'s section banner — symbol, "… Orb
   await expect(banners).toHaveCount(3);
   await expect(page.locator('.path-stage').getByRole('heading', {level: 2})).toHaveText(['Morning Orbit', 'Afternoon Orbit', 'Evening Orbit']);
   expect(await banners.evaluateAll(els => els.map(b => [b.classList.contains(`habit-section-${b.closest('.path-section')!.getAttribute('data-section')}`), b.querySelector('.habit-section-summary .habit-section-mark')?.textContent, !!b.querySelector('.habit-section-title .nebula-flow')]))).toEqual([[true, '☀', true], [true, '◐', true], [true, '☾', true]]);
-  // The count chip in the visible part, right after the title — on a phone (Session AG Polish 2, owner Part 1b, moved at
-  // equal strength) the compact banner sets it right under the title, aligned with it.
-  const gap = await banners.first().evaluate(b => { const t = b.querySelector('.habit-section-title')!.getBoundingClientRect(), c = b.querySelector('.habit-section-count')!.getBoundingClientRect(); return {gap: c.left - t.right, under: c.top - t.bottom, aligned: Math.abs(c.left - t.left), text: b.querySelector('.habit-section-count [aria-hidden]')!.textContent}; });
-  if (test.info().project.name === 'mobile') { expect(gap.under).toBeGreaterThanOrEqual(0); expect(gap.under).toBeLessThanOrEqual(12); expect(gap.aligned).toBeLessThanOrEqual(1); }
-  else { expect(gap.gap).toBeGreaterThanOrEqual(0); expect(gap.gap).toBeLessThanOrEqual(24); }
-  expect(gap.text).toBe('0 of 2');
+  // The count chip in the visible part, right after the title (on a phone too: one row, the owner's change of 22 Oct).
+  const gap = await banners.first().evaluate(b => { const t = b.querySelector('.habit-section-title')!.getBoundingClientRect(), c = b.querySelector('.habit-section-count')!.getBoundingClientRect(); return {gap: c.left - t.right, text: b.querySelector('.habit-section-count [aria-hidden]')!.textContent}; });
+  expect(gap.gap).toBeGreaterThanOrEqual(0); expect(gap.gap).toBeLessThanOrEqual(24); expect(gap.text).toBe('0 of 2');
   await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
   await page.getByRole('button', {name: 'Water: not done yet', exact: true}).click();
   const form = page.getByRole('form', {name: 'Log Water'});
   if (await form.count()) await form.getByRole('button', {name: /^Log /}).click();
-  await expect(banners.first().locator('.habit-section-count [aria-hidden]')).toHaveText('Complete ✓');
+  await expect(banners.first().locator('.habit-section-count > [aria-hidden]:first-child')).toHaveText('Complete ✓');
 });
 
 test('4: each orbit has its planet, chosen by its first node\'s hue, matte until it is reached, then lit', async ({page}) => {

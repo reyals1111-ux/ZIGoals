@@ -102,7 +102,8 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
       const p = b.sphere!, cy = (p.top + p.bottom) / 2;
       expect(cy, 'the planet at its banner\'s height').toBeGreaterThanOrEqual(b.words.top); expect(cy).toBeLessThanOrEqual(b.words.bottom);
       expect(p.left, 'beside the banner, not under it').toBeGreaterThanOrEqual(b.words.right - .5);
-      expect(p.w, `a planet as big as on a computer (≥ 1.4 × the ${node} px node)`).toBeGreaterThanOrEqual(node * 1.4);
+      // (The owner's change of 22 Oct: at 320 px the planet may give the one-row banner room, down to about 1.3 × a node.)
+      expect(p.w, `a planet as big as on a computer (≥ ${width < 360 ? 1.3 : 1.4} × the ${node} px node)`).toBeGreaterThanOrEqual(node * (width < 360 ? 1.3 : 1.4));
     }
     const things: {id: string; b: Box; kind: string}[] = [
       ...m.steps.map(s => ({id: `${s.id} node`, b: s.dot, kind: 'node'})), ...m.steps.map(s => ({id: `${s.id} tab`, b: s.tab, kind: 'tab'})),
@@ -122,4 +123,59 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     for (const seg of m.segments) for (const s of m.steps) { const t = s.tab; if (seg.pts.some(q => q.x > t.left + 1 && q.x < t.right - 1 && q.y > t.top + 1 && q.y < t.bottom - 1)) under.add(`${seg.id} under ${s.id}'s tab`); }
     expect([...under], 'no tab covers the line').toEqual([]);
   });
+});
+
+/** The owner's change to Part 1b (22 Oct): every orbit banner on a phone is ONE row — symbol, title, compact chip — beside
+ *  its planet, in progress ("0/2") and complete ("✓ Done"; the check alone under 360 px), its words said in full. */
+const FOUR: [string, string][] = [['Fictional sunrise', 'morning'], ['Fictional dawn', 'morning'], ['Fictional noon', 'afternoon'], ['Fictional tea', 'afternoon'], ['Fictional dusk', 'evening'], ['Fictional moon', 'evening'], ['Fictional any', 'anytime'], ['Fictional other', 'anytime']];
+function fourOrbits(): Checklist { let r = emptyChecklist(), n = 0; for (const [label, section] of FOUR) r = addCustom(r, {label, colour: 'cyan', section}, {id: `ck_four-${++n}`, at: new Date(Date.UTC(2026, 0, 1, 0, 0, n))}); return r; }
+for (const state of ['in progress', 'complete'] as const) test(`the phone banner is one row beside its planet, ${state}, at 320–430 px for all four orbits`, async ({page}, info) => {
+  test.skip(info.project.name !== 'mobile', 'the phone layout');
+  test.setTimeout(90_000);
+  await seedChecklist(page, {path: fourOrbits()});
+  if (state === 'complete') await page.evaluate(() => {
+    const d = new Date(), today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    localStorage.setItem('zigoals:checklist-days:v1', JSON.stringify({version: 1, days: {}, today: {date: today, ticks: [], custom: Array.from({length: 8}, (_, i) => `ck_four-${i + 1}`), nudged: []}}));
+    localStorage.setItem('zigoals:ui-prefs:v1', JSON.stringify({version: 1, checklist: {celebratedOn: today}}));
+  });
+  await page.goto('/app/checklist'); await settled(page);
+  await expect(page.locator('dialog.checklist-overlay')).toHaveAttribute('data-loaded');
+  for (const width of [320, 375, 390, 430]) {
+    await page.setViewportSize({width, height: 844});
+    await expect(page.locator('.path-stage[data-settled]')).toHaveCount(1, {timeout: 10_000});
+    await page.waitForTimeout(500);
+    const m = await page.locator('.path-stage').evaluate(stage => {
+      const box = (el: Element) => { const r = el.getBoundingClientRect(); return {left: r.left, right: r.right, top: r.top, bottom: r.bottom, w: r.width, h: r.height}; };
+      const node = Math.min(...[...stage.querySelectorAll('.path-step:not([data-next]) .path-dot')].map(d => (d as HTMLElement).offsetWidth));
+      const banners = [...stage.querySelectorAll('.orbit-banner')].map(b => {
+        const words = b.querySelector('.habit-section-summary')!, mark = b.querySelector('.habit-section-mark')!, title = b.querySelector('.habit-section-title')!, chip = b.querySelector('.habit-section-count')!;
+        const short = [...chip.querySelectorAll('[aria-hidden]')].find(e => getComputedStyle(e).display !== 'none');
+        return {title: title.textContent, words: box(words), mark: box(mark), titleBox: box(title), chip: box(chip), shown: (short as HTMLElement | undefined)?.innerText.trim() ?? '', spoken: chip.querySelector('.sr-only')?.textContent ?? '',
+          lineH: parseFloat(getComputedStyle(title).lineHeight), size: parseFloat(getComputedStyle(title).fontSize), cut: (title as HTMLElement).scrollWidth > (title as HTMLElement).clientWidth + 1 || (chip as HTMLElement).scrollWidth > (chip as HTMLElement).clientWidth + 1,
+          sphere: box(b.querySelector('.orbit-planet-sphere')!)};
+      });
+      const dialog = stage.closest('dialog')!;
+      return {node, banners, sideways: dialog.scrollWidth - dialog.clientWidth};
+    });
+    expect(m.sideways, `${width}: no sideways scroll`).toBeLessThanOrEqual(0);
+    expect(m.banners.map(b => b.title)).toEqual(['Morning Orbit', 'Afternoon Orbit', 'Evening Orbit', 'Anytime Orbit']);
+    for (const b of m.banners) {
+      const at = `${width}, ${state}, ${b.title}`, mid = (r: {top: number; bottom: number}) => (r.top + r.bottom) / 2;
+      // One row: the title on one line; symbol, title and chip on the same line; the banner one row tall.
+      expect(b.titleBox.h, `${at}: the title on one line`).toBeLessThan(b.lineH * 1.5);
+      expect(Math.abs(mid(b.mark) - mid(b.titleBox)), `${at}: symbol and title on one row`).toBeLessThanOrEqual(4);
+      expect(Math.abs(mid(b.chip) - mid(b.titleBox)), `${at}: chip and title on one row`).toBeLessThanOrEqual(4);
+      expect(b.words.h, `${at}: the banner one row tall`).toBeLessThanOrEqual(Math.max(b.mark.h, b.titleBox.h, b.chip.h) + 20);
+      expect(b.size, `${at}: the title 16 px (15 at 320)`).toBe(width < 360 ? 15 : 16);
+      expect(b.cut, `${at}: nothing cut`).toBe(false);
+      // The compact chip, the whole said in words.
+      expect(b.shown, `${at}: the compact chip`).toBe(state === 'complete' ? (width < 360 ? '✓' : '✓ Done') : '0/2');
+      expect(b.spoken, `${at}: said in full`).toBe(state === 'complete' ? `${b.title} complete` : '0 of 2 complete');
+      // Beside its planet, at its height; the planet clear of the words and clearly bigger than a node.
+      expect(b.sphere.left, `${at}: the planet clear of the chip`).toBeGreaterThanOrEqual(Math.max(b.chip.right, b.titleBox.right) + 2);
+      expect(mid(b.sphere), `${at}: the planet at the banner's height`).toBeGreaterThanOrEqual(b.words.top); expect(mid(b.sphere)).toBeLessThanOrEqual(b.words.bottom);
+      expect(b.sphere.w, `${at}: the planet clearly bigger than a node`).toBeGreaterThanOrEqual(m.node * (width < 360 ? 1.3 : 1.4));
+      expect(b.words.left, `${at}: on screen`).toBeGreaterThanOrEqual(0);
+    }
+  }
 });

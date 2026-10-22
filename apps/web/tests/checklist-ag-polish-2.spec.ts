@@ -49,13 +49,13 @@ test('2b: a planet lights when it is reached, plays its completion then, and goe
   await expect(planet(page, 'morning')).toHaveAttribute('data-just', '');
   await expect(planet(page, 'afternoon')).not.toHaveAttribute('data-lit', '');
   // Its orbit is not complete yet: the banner still counts.
-  await expect(page.locator('.path-section[data-section=morning] .habit-section-count [aria-hidden]')).toHaveText('1 of 2');
+  await expect(page.locator('.path-section[data-section=morning] .habit-section-count > [aria-hidden]:first-child')).toHaveText('1 of 2');
   // The next planet: lit once every node before it is done (the planet has been reached).
   await tick(page, 'Fictional two');
   await expect(planet(page, 'afternoon')).toHaveAttribute('data-lit', '');
   await expect(planet(page, 'afternoon')).toHaveAttribute('data-just', '');
   await expect(planet(page, 'evening')).not.toHaveAttribute('data-lit', '');
-  await expect(page.locator('.path-section[data-section=morning] .habit-section-count [aria-hidden]')).toHaveText('Complete ✓');
+  await expect(page.locator('.path-section[data-section=morning] .habit-section-count > [aria-hidden]:first-child')).toHaveText('Complete ✓');
   // Undo un-reaches it: matte again.
   await undo(page);
   await expect(planet(page, 'afternoon')).not.toHaveAttribute('data-lit', '');

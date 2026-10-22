@@ -9,6 +9,7 @@ No new dependencies; no storage key or format change (quick add uses the Habits 
 1. Bounded obstacle retries in `flowSegments` (≤ 12 per stretch), best try then move the tab; unit-tested.
 2. WebKit CI covers the celebration and its replay on a phone: video starts or still + UI within 1.5 s; Continue always works.
 3. Quick-add Undo removes the habit only if unchanged; otherwise only the star, with "Removed from your orbit · the habit stays on Habits"; both tested.
+4. (22 Oct, after Part 8) The phone banner is ONE row (compact chip "0/5" / "✓ Done", full words for screen readers), the planet beside it (≥ 1.3 × a node at 320 px); record in ADR-031 and STATUS.
 
 ## Plan summary
 Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tabs with no ellipsis, a flowing line with phone-only minimum bow and tab/banner obstacles, the compact stacked banner, the planet beside it at 88–100 px) · 2 the banner's short fade, planets lit when reached · 3 the progress bar in segments · 4 the ambient sky · 5 quick add "+" (the Habits page's create, the Checklist's favourites, Undo, a link to Habits) · 6 the List (Habits banners, path-size nodes with tabs) · 7 the celebration video (one constant, primed when one item is left, 1.5 s still fallback, no toast while open) · 8 the consistency colours (legend = cells) · 9 themes, checks, words, STATUS.
@@ -24,10 +25,11 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 5 | Quick add | done | `5527be1b` |
 | 6 | List view | done | `a73cb962` |
 | 7 | Celebration video | done | `e30840fe` (by a staging slip only the old ZIGi constant's removal) + `ff28406e` (its files) |
-| 8 | Consistency colours | done | this commit |
+| 8 | Consistency colours | done | `5a2de36e` |
+| 1b′ | Owner's change (22 Oct): the phone banner on one row (amendment 4, K15) | done | this commit |
 | 9 | Themes, checks, finish | — | — |
 
-## Captures used (self-check, scratchpad only): 4 of 20 · fix rounds used: 0 of 2
+## Captures used (self-check, scratchpad only): 6 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-The owner's change to Part 1b (22 Oct, mid-session): the phone banner on ONE row — compact chip, planet beside; then Part 9.
+Part 9 (themes, checks, words, STATUS — the STATUS entry must record amendment 4, the one-row banner, as an owner decision).
