@@ -10425,6 +10425,9 @@
         background-color: transparent;
         box-shadow: none
     }
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary:not(#\-) {
+        color: #eef4ff
+    }
     :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary:not(#\-)::after {
         border-color: #bd9ffb22;
         background-image: linear-gradient(120deg, #06031bc7, #030209c7);
@@ -10435,10 +10438,13 @@
         background-image: linear-gradient(120deg, #02010df7, #010213f7);
         background-color: transparent
     }
+    :scope:not(#\-) {
+        --orbit-chip-ground: #0a113099
+    }
     :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner[data-complete] .habit-section-count:not(#\-) {
         color: #ffffff;
         background-image: none;
-        background-color: color-mix(in srgb, var(--banner) 30%, #01021399);
+        background-color: color-mix(in srgb, var(--banner) 30%, var(--orbit-chip-ground));
         border-color: color-mix(in srgb, var(--banner) 60%, transparent)
     }
     :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-morning > .habit-section-summary:not(#\-)::before {

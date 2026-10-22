@@ -129,6 +129,9 @@
 /* (The Habits section's own glass band, under its tint, faded the same way.) */
 /* (The Habits section's summary rules, here without its card: the band's place and its tint, which mists away past the title.) */
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary { position: relative; isolation: isolate; border-radius: 22px; }
+/* (Session AG Polish 2, Part 9: the banner's own words colour, so Light's islands — whose copy of Nebula's text token is a
+   shade lighter — paint it exactly as Nebula and Dark do.) */
+:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary { color: #eef4ff; }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary::before { content: ''; position: absolute; inset: 0 calc(-1 * var(--banner-fade, 96px)) 0 0; z-index: -1; border-radius: inherit; pointer-events: none; }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary::after { content: ''; position: absolute; inset: 0 calc(-1 * var(--banner-fade, 96px)) 0 0; z-index: -2; border-radius: inherit; pointer-events: none; border: 1px solid #bd9ffb22; background: linear-gradient(120deg, #1b1640c7, #0f0d1fc7);
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--banner-fade, 96px)), #0000 100%); mask-image: linear-gradient(90deg, #000 calc(100% - var(--banner-fade, 96px)), #0000 100%); }
@@ -178,7 +181,10 @@
 }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--banner-fade, 96px)), #0000 100%); mask-image: linear-gradient(90deg, #000 calc(100% - var(--banner-fade, 96px)), #0000 100%); }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner .habit-section-title { white-space: nowrap; }
-:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner[data-complete] .habit-section-count { color: #ffffff; background: color-mix(in srgb, var(--banner) 30%, #0a113099); border-color: color-mix(in srgb, var(--banner) 60%, transparent); }
+/* (Session AG Polish 2, Part 9: its ground a :root token, which Dark's sheet keeps as it is, so the chip is the same in
+   every theme.) */
+:root { --orbit-chip-ground: #0a113099; }
+:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner[data-complete] .habit-section-count { color: #ffffff; background: color-mix(in srgb, var(--banner) 30%, var(--orbit-chip-ground)); border-color: color-mix(in srgb, var(--banner) 60%, transparent); }
 /* (Each glow stays round its symbol — 48 px, not the Habits page's 70 — so the gradient title keeps 3:1 over it.)
 /* (The Checklist uses the nebula palette only, request 1d: the morning's warm glow and the afternoon's pale sun take their
    nebula neighbours here — pink for the morning's gold, ice cyan for the afternoon's yellow; the Habits page keeps its own.) */

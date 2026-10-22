@@ -9734,6 +9734,9 @@
     .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
         --dot-next: var(--step-colour, #23eaff)
     }
+    :scope:not(#\-) {
+        --orbit-chip-ground: #0a113099
+    }
     .orbit-banner-sweep:not(#\-)::before {
         background-image: linear-gradient(100deg, #24242400, #1c262859 45%, #c790f640 60%, #24242400);
         background-color: transparent
