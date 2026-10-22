@@ -148,6 +148,22 @@ const STATES = [
   // The Checklist redesign (ccb1ab67) keeps Edit path, and on a phone the View switch, in the Checklist's menu (⋯).
   {name: 'checklist-list', path: '/app/checklist', steps: async p => { if (!await p.getByRole('group', {name: 'View'}).isVisible()) await click(p, btn(p, 'Checklist menu')); await click(p, p.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List', exact: true})); }},
   {name: 'checklist-edit', path: '/app/checklist', steps: async p => { await click(p, btn(p, 'Checklist menu')); await click(p, btn(p, 'Edit path')); }},
+  // Session AG Polish 2 (ADR-031): the quick-add sheet, and the day's celebration at rest with its words (a new device with
+  // one item, done today and not yet celebrated; a tap skips the film to its last frame).
+  {name: 'checklist-quick-add', path: '/app/checklist', steps: async p => click(p, btn(p, 'Quick add to your Checklist'))},
+  {name: 'checklist-celebration', path: '/app/checklist', fresh: true, steps: async p => {
+    await p.evaluate(() => {
+      const d = new Date(), today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      localStorage.setItem('zigoals:checklist:v1', JSON.stringify({version: 1, items: [{id: 'ck_audit-1', kind: 'custom', label: 'Fictional evening walk', colour: 'cyan', section: 'evening', addedAt: '2026-01-01T00:00:00.000Z'}], healthItems: [], order: ['ck_audit-1']}));
+      localStorage.setItem('zigoals:checklist-days:v1', JSON.stringify({version: 1, days: {}, today: {date: today, ticks: [], custom: ['ck_audit-1'], nudged: []}}));
+    });
+    await p.reload({waitUntil: 'domcontentloaded'});
+    const party = p.locator('dialog.checklist-celebration');
+    await party.waitFor({state: 'visible', timeout: 15000});
+    if (!await party.evaluate(d => d.hasAttribute('data-words'))) await party.click({position: {x: 30, y: 120}});
+    await p.locator('dialog.checklist-celebration[data-words]').waitFor({timeout: 5000});
+    await p.waitForTimeout(700);
+  }},
   {name: 'governance', path: '/app/governance'},
   {name: 'add-money', path: '/app/wealth/add-money'},
   {name: 'add-money-back', path: '/app/wealth/add-money/back'},
