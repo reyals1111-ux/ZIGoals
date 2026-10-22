@@ -17,6 +17,7 @@
 | 9 | Words (What's new, Help, search), the Light self-check fixes, the layout audit's fixes, this entry | 1 | `b6efd3e8` `6eebfcd0` `961f32de` `7c30c7ac` `7c83b298`, this commit | local, CI, WebKit CI |
 | — | Owner request (22 Oct): the phone header's "+" drawn at 36 px (the logo's height) inside its 44 px target, the pill's glass the same | 1 | `31b374c7` | local, CI |
 | 2b fix | The pill's keyboard focus visible in forced colours (a transparent outline the system paints; CI's `ui-evidence` forced-colours test on a phone found it on `961f32de`) | 1 | `8f93c8c4` | local, CI |
+| 9 fix | Help: the new answer in the AF section's hash test; no internal words in the answer | 1 | `81eaaabf` | local, CI |
 
 ## What changed, pointer by pointer (reference 01) and per request
 - **1–4 Orbit banners:** the Habits page's own section banner (`HabitSectionBannerParts`, shared; the Habits page's markup unchanged, its specs and parity rows pass) with ☀ ◐ ☾ ✦, "Morning Orbit" … in the nebula flow, AG's fade, the count chip right after the title, "Complete ✓" with one light sweep. No box of its own; a night band behind the title in every theme.
@@ -44,7 +45,7 @@
 ## Tests and assertions changed (deliberate; none weakened)
 - `checklist-overlay-af`: the opening screen's density 6 → 4 nodes on a computer and 2 on a phone (the longer phone journey and each orbit's planet band, owner Parts 2 and 4); ZIGi's rest check gains the "above a long name" slot (12 px clear of node and name, within 60 px); the celebration's ZIGi is F009-celebrate.
 - `path-engine`: the line's segment list includes each planet (in at its top rim, out at its bottom rim); headings read "… Orbit"; the count reads from the Habits banner's count; two lit segments after an orbit.
-- `checklist`: the List rows' name class and "Morning Orbit". `whats-new` (positions +1), `zigi-help-settings` (the release id): moved with the release.
+- `checklist`: the List rows' name class and "Morning Orbit". `whats-new` (positions +1), `zigi-help-settings` (the release id): moved with the release. `help-page` (`81eaaabf`): the AF section's hash test lists the new "What’s new in the Checklist?" answer (28 answers) and checks its words, as AG did for its own.
 - Unit: `lib/timeline/build.test.ts` (a stored gold shows as pink), `lib/path/orbit-colours.test.ts` (no gold), `lib/checklist/schema.test.ts` (the new field).
 - New: `checklist-ag-polish` (nebula glyph gradient, matte rings ≥ 3:1, no gold hue except the flame, the arc at six widths, banners, planets by hue and lit state, the line's rims), `checklist-phone-ag-polish` (320–430: no overlap, no sideways scroll, ≥ 44 px, the pitch, one-line tabs), `phone-checklist-button` (320/375/390/430, opens the Checklist, no overflow, absent on desktop, the launcher's check), `checklist-celebration-ag-polish` (tap, stepper, List, a day finished elsewhere, reload, once per day, replay, reduced motion, theme parity), `checklist-list-ag-polish` (sections, 44 px targets, Done fold, keyboard, "+", add preset); unit `phone-lanes`, `planet-designs` (≤ 60 kB), `planet-pick`, `flow-geometry` (top/bottom rims), `glyphs` (the map).
 
@@ -58,6 +59,7 @@
 - CI: Milestone quality on `961f32de`: checks (lint, types, unit, build, audit, secret scan), integration (with the page weight budgets), contract and the Alpha gate green. On `b6efd3e8`-era heads the unit job would have met the search entry's apostrophe (fixed in `961f32de`, found locally). The run on the final head (browser shards and the required WebKit job) is on the PR.
 
 ## Known CI intermittents (this session)
+- `webkit-checklist:11` (WebKit, phone, on `961f32de`): three of the app's own `/api` fetches on the seeding Settings page reported as cancelled "due to access control checks" when the test navigated on, the WebKit navigation family named by ADR-025 E28 and ADR-027 G23. The header pill adds only two Checklist prefetches there and no delay (Settings is idle at 1.7 s with or without it, measured in Chromium); the run on the final head is its one re-run.
 - Canonical reproducibility "environment disagreement" (the reproducibility workflow's compare job): runner images differ, as listed by Session AF; not part of Milestone quality.
 - `scripts/run11/stage8-rehearsal/lock-switch-browser` (integration job, on `379f92d3`): timed out once waiting for the vault form's recovery secret, in account code this PR does not touch; passed on the next head.
 
