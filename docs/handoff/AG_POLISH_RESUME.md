@@ -18,9 +18,9 @@ No new dependencies; one storage field only (`checklist.celebratedOn` in `zigoal
 | 6 | Celebration: always fires (Tier 3 storage) and rebuilt | done | `688d1dfa` (Tier 3), `17519c9c` |
 | 7 | The List view | done | `5360c3fd` |
 | 8 | Extras (camera follow, ZIGi's greeting on an orbit, the flame, replay) | done | `2fe53781` |
-| 9 | Themes, checks, finish | in progress | words `b6efd3e8`; the Light self-check fixes (this push) |
+| 9 | Themes, checks, finish | done but the CI result and Draft | words `b6efd3e8`; Light self-check `6eebfcd0`; search `961f32de`; layout audit `7c30c7ac`; STATUS entry (final commit) |
 
-## Captures used (self-check, scratchpad only): 11 of 20 · fix rounds used: 2 of 2
+## Captures used (self-check, scratchpad only): 13 of 20 · fix rounds used: 2 of 2 (plus the layout audit's fixes, ADR-030 J19)
 
 ## Next step
-Part 9: weights, frozen readers, check-secrets, the CI result on this head (theme parity's "at 100% 0px" vs "at right top" rows on pages this PR does not touch fail only in this sandbox's Chromium), the STATUS entry; then the PR out of Draft once CI is green. No fix rounds left: anything else found goes to the STATUS entry as left for S1.
+CI (Milestone quality) on the head with the STATUS entry: when green, the PR comes out of Draft and the owner gets the short report. Never merge, never deploy. The STATUS entry's draft is in the session scratchpad until then.
