@@ -1,4 +1,4 @@
-# Session AG Polish — The Checklist, finished (ADR-030, Parts 0–9) (2026-10-21/22, [PR #92](https://github.com/reyals1111-ux/ZIGoals/pull/92), not merged, not deployed)
+# Session AG Polish — The Checklist, finished (ADR-030, Parts 0–9) (2026-10-21/22, [PR #92](https://github.com/reyals1111-ux/ZIGoals/pull/92), merged into `main` as `b0fe242` and deployed as Alpha #47)
 **Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3101, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = CI's required WebKit job only (no WebKit locally). No paid service, no secret, no deploy, no new dependency.
 **Base:** `main` `98a29b4` (Alpha #46). **Rules (owner):** the brief; the approved plan with five amendments (the flame stays orange; the Habits page untouched; celebration safety; the celebration on each theme's own sky; Light planet captures) and one addition (the phone header's Checklist pill, the launcher's bold check). Decisions without asking: ADR-030 J1–J20. Resume file: `docs/handoff/AG_POLISH_RESUME.md`. Self-check: 15 of 20 scratchpad captures (none committed), 2 fix rounds.
 
@@ -340,6 +340,19 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #47 — 2026-10-22, `b0fe242` live
+Recorded by Session AG Polish 2 (2026-10-22).
+- **Source:** `b0fe24244a52fe352f11dd4c86a802dd8d9e7707`, `main` after [PR #92](https://github.com/reyals1111-ux/ZIGoals/pull/92) (Merge #92, Session AG Polish, "The Checklist, finished", ADR-030), merged 2026-10-22 06:33:02 UTC. Verified: git.
+- **CI:** Milestone quality #1123 ([run 39734642191](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39734642191)) on `b0fe242` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 49 ([run 39742552437](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39742552437)), dispatched 2026-10-22 07:44:00 UTC from `main`, exact source `b0fe242`; finished 07:56:24 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 3 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `f0aca295-23cd-420e-83cc-c668bb61ddad`; rollback `ae7cd3b3-04a1-469a-8312-22c3257c8eb0` (#46). Owner-reported.
+- **What went live:** Session AG Polish (ADR-030) on top of AG (#46).
+- **Release identity:** live #47, previous #46. **Rollback floor:** stays #32.
+- **Record note:** run number 49 is Alpha #47 (the run number runs two ahead of the Alpha count).
 
 ---
 
