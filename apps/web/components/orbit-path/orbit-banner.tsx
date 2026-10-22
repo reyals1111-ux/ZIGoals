@@ -18,13 +18,13 @@ import {OrbitPlanet} from './orbit-planet';
  */
 const KNOWN = new Set(['morning', 'afternoon', 'evening', 'anytime']);
 export const orbitTitle = (label: string) => `${label.replace(/\s*orbit\s*$/i, '').trim() || 'Your'} Orbit`;
-export function OrbitBanner({section, done, total, headingId, justComplete = false, planet = null, planetLit = false, planetJust = false, box = false}: {section: PathSection; done: number; total: number; headingId: string; justComplete?: boolean; planet?: PlanetDesign | null;
+export function OrbitBanner({section, done, total, headingId, justComplete = false, planet = null, planetLit = false, planetJust = false, box = false, heading = 'h2'}: {section: PathSection; /** The title's level (the List's sections: h3). */ heading?: 'h2' | 'h3'; done: number; total: number; headingId: string; justComplete?: boolean; planet?: PlanetDesign | null;
   /** Session AG Polish 2 (owner Part 2b): the planet is lit once reached, and plays its completion the moment it is. */ planetLit?: boolean; planetJust?: boolean;
   /** Session AG Polish 2: the phone's line keeps clear of the banner's words (`data-path-box`). */ box?: boolean}) {
   const complete = total > 0 && done === total, kind = KNOWN.has(section.id) ? section.id as keyof typeof SECTION_SYMBOLS : 'anytime';
   return <div className={`path-banner orbit-banner habit-section-${kind}`} data-colour={section.colour} data-complete={complete ? '' : undefined} data-just={justComplete ? '' : undefined} style={{'--banner': PATH_COLOURS[nebulaColour(section.colour)].token} as CSSProperties}>
     <div className="habit-section-summary" data-path-box={box ? `banner:${section.id}` : undefined}>
-      <HabitSectionBannerParts symbol={SECTION_SYMBOLS[kind]} title={orbitTitle(section.label)} identity={`orbit-banner:${section.id}`} titleId={headingId} chevron={false}
+      <HabitSectionBannerParts symbol={SECTION_SYMBOLS[kind]} title={orbitTitle(section.label)} identity={`orbit-banner:${section.id}`} titleId={headingId} chevron={false} heading={heading}
         count={total ? complete ? 'Complete ✓' : `${done} of ${total}` : 'Nothing here yet'} spoken={total ? complete ? 'complete' : `${done} of ${total} done` : 'nothing here yet'}/>
       {justComplete && <span className="orbit-banner-sweep" aria-hidden="true"/>}
     </div>

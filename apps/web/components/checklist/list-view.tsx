@@ -6,11 +6,14 @@ import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {sectionsOf} from '../../lib/checklist/store';
 import {orbitGlyph} from '../../lib/checklist/glyphs';
 import {formatTime} from '../../lib/visual-format';
-import {orbitTitle} from '../orbit-path/orbit-banner';
+import {OrbitBanner, orbitTitle} from '../orbit-path/orbit-banner';
 import {OrbitNodeFace} from '../orbit-path/orbit-node';
 import {SwipeRow} from '../swipe/swipe-row';
 import {useDotPress} from './path-view';
 import type {DerivedDot} from '../../lib/checklist/derive';
+import type {PathSection} from '../../lib/path/model';
+// Session AG Polish 2 (owner Part 6a): the List's sections wear the path's own Habits banners, from the Habits page's sheet.
+import '../habits/habits-aa.css';
 import type {ChecklistState} from './use-checklist';
 
 /**
@@ -65,8 +68,9 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     const label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
     const kind = KIND_WORD[dot.kind] ?? '', time = done && dot.doneAt ? formatTime(dot.doneAt) : '';
     const sub = [dot.note, kind, time].filter(Boolean).join(' · ');
-    // (The node is the path's own, 34 px; its button is a 44 px touch target around it.)
-    const face = <OrbitNodeFace glyph={orbitGlyph(dot)} just={just}/>, style = {'--node': colour, '--node-size': '34px'} as CSSProperties;
+    // Session AG Polish 2 (owner Part 6b): the node is the path's own at the path's own size (80, 72 or 62 px), and the
+    // button is the node.
+    const face = <OrbitNodeFace glyph={orbitGlyph(dot)} just={just}/>, style = {'--node': colour} as CSSProperties;
     const check = dot.intent === 'open' && dot.href
       ? <Link className="checklist-row-check" data-lit={done ? '' : undefined} href={dot.href} aria-label={label} data-step={dot.id} style={style}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></Link>
       : <button type="button" className="checklist-row-check" data-lit={done ? '' : undefined} aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} style={style} onClick={() => void press(dot, dot.intent ?? 'tick')}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></button>;
@@ -74,7 +78,9 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     const content = <>
       <div className="checklist-row-line">
         {check}
-        <span className="checklist-row-text"><span className="checklist-row-name" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
+        {/* (The path's name tab, from the node's right-centre to the right, longer, like a step: dark with a coloured edge,
+            filled in the node's colour with dark words once done.) */}
+        <span className="checklist-row-text checklist-row-tab" data-lit={done ? '' : undefined} style={{'--node': colour} as CSSProperties}><span className="checklist-row-name" title={dot.label}>{dot.label}</span>{sub && <span className="checklist-row-sub">{sub}</span>}</span>
         {again && <button type="button" className="checklist-row-plus" aria-label={`Log ${dot.value!.suggested} ${dot.value!.unit} for ${dot.label}`} disabled={busy === dot.id} onClick={() => void state.tick(dot, 'value', dot.value!.suggested)}>+{dot.value!.suggested}<span className="checklist-row-unit"> {dot.value!.unit}</span></button>}
         <button type="button" className="checklist-row-more" aria-label={`More for ${dot.label}`} aria-expanded={panel?.id === dot.id} onClick={() => setPanel(p => p?.id === dot.id ? null : {id: dot.id, mode: dot.intent === 'value' && !done ? 'value' : 'details'})}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg></button>
       </div>
@@ -87,11 +93,12 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
   return <div ref={list} className="checklist-list-view" onKeyDown={onKeyDown}>
     {groups.map(g => {
       const counted = g.dots.filter(d => d.counted), doneN = counted.filter(d => d.state === 'done').length, first = g.dots[0]!, tone = PATH_COLOURS[colours.get(first.id) ?? first.colour].token;
+      const banner: PathSection = {id: g.id, label: g.label, colour: colours.get(first.id) ?? first.colour, steps: []};
       const open = !folded[g.id], waiting = g.dots.filter(d => d.state !== 'done' || recent.has(d.id)), finished = g.dots.filter(d => d.state === 'done' && !recent.has(d.id)), title = orbitTitle(g.label);
       return <section key={g.id} className="checklist-list-section" data-section={g.id} aria-labelledby={`list-${g.id}`} style={{'--orbit': tone} as CSSProperties}>
+        {/* Session AG Polish 2 (owner Part 6a, D-list 1–4): the path's Habits banner — symbol, nebula title, count, the short fade — and the fold. */}
         <div className="checklist-list-banner">
-          <h3 id={`list-${g.id}`}>{title}</h3>
-          <span className="checklist-list-count"><span aria-hidden="true">{doneN}/{counted.length}</span><span className="sr-only">{doneN} of {counted.length} done</span></span>
+          <OrbitBanner section={banner} done={doneN} total={counted.length} headingId={`list-${g.id}`} heading="h3"/>
           <button type="button" className="checklist-list-fold" aria-expanded={open} aria-label={`${open ? 'Fold' : 'Open'} ${title}`} onClick={() => setFolded(f => ({...f, [g.id]: open}))}><span aria-hidden="true">›</span></button>
         </div>
         {open && <>

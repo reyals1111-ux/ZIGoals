@@ -21,13 +21,13 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 2 | Banner fade; planets lit when reached | done | `eb4272e2` |
 | 3 | Progress bar segments | done | `35ad3f53` |
 | 4 | Ambient sky | done | `92ce3825` |
-| 5 | Quick add | done | this commit |
-| 6 | List view | — | — |
+| 5 | Quick add | done | `5527be1b` |
+| 6 | List view | done | this commit |
 | 7 | Celebration video | — | — |
 | 8 | Consistency colours | — | — |
 | 9 | Themes, checks, finish | — | — |
 
-## Captures used (self-check, scratchpad only): 1 of 20 · fix rounds used: 0 of 2
+## Captures used (self-check, scratchpad only): 2 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-Part 6 (the List view).
+Part 7 (the celebration video).

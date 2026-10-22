@@ -27,13 +27,35 @@ test('sections per orbit in their node colour, rows with the node as checkbox, n
   for (const [orbit, node] of tones) expect(orbit).toBe(node);
   const stretch = page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true});
   expect(await stretch.evaluate(b => [!!b.querySelector(':scope > .orbit-node'), b.hasAttribute('data-lit'), [...b.querySelectorAll('svg.nebula-glyph stop')].map(s => s.getAttribute('stop-color'))])).toEqual([true, false, NEBULA_GLYPH_STOPS.map(s => s.hex)]);
-  // The path's own node at 34 px, inside a 44 px touch target (the layout audit's rule).
+  // Session AG Polish 2 (owner Part 6b), moved at greater strength: the path's own node at the path's own size (was 34 px
+  // inside a 44 px target) — the node is the target, at least 44 px.
   const node = (await stretch.locator(':scope > .orbit-node').boundingBox())!, box = (await stretch.boundingBox())!;
-  expect(node.width).toBeGreaterThanOrEqual(34); expect(node.width).toBeLessThanOrEqual(36);
   expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
-  await stretch.click();
+  await page.evaluate(() => { (document.querySelector('.checklist-view-switch button[aria-label=Path]') as HTMLButtonElement | null)?.click(); });
+  if (!(await page.locator('.path-stage').count())) { await page.getByRole('button', {name: 'Checklist menu'}).click(); await page.locator('.checklist-menu-view').getByRole('button', {name: 'Path'}).click(); }
+  const pathNode = await page.locator('.path-step:not([data-next]) .path-dot').first().evaluate(d => (d as HTMLElement).offsetWidth);
+  expect(Math.abs(node.width - pathNode), `the List's node ${node.width} px = the path's ${pathNode} px`).toBeLessThanOrEqual(.5);
+  if (await page.locator('.checklist-view-switch').isVisible()) await page.getByRole('button', {name: 'List', exact: true}).click();
+  else { await page.getByRole('button', {name: 'Checklist menu'}).click(); await page.locator('.checklist-menu-view').getByRole('button', {name: 'List'}).click(); }
+  await expect(page.locator('.checklist-list-view')).toBeVisible();
+  // The path's name tab from the node's right-centre to the right: dark with white words and a coloured edge until done.
+  const tab = (name: string) => page.locator('.checklist-row', {hasText: name}).locator('.checklist-row-tab');
+  const looks = (name: string) => tab(name).evaluate(t => { const cs = getComputedStyle(t), n = t.parentElement!.querySelector('.checklist-row-check')!.getBoundingClientRect(), r = t.getBoundingClientRect(); return {bg: cs.backgroundImage, ink: getComputedStyle(t.querySelector('.checklist-row-name')!).color, edge: cs.borderTopColor, from: r.left - (n.left + n.width / 2), mid: Math.abs((r.top + r.bottom) / 2 - (n.top + n.bottom) / 2), lit: t.hasAttribute('data-lit')}; });
+  const before = await looks(TITLE.stretch);
+  expect(before.lit).toBe(false);
+  expect(before.ink, 'white words').toBe('rgb(240, 245, 255)');
+  expect(before.from, 'starts at the node\'s right-centre').toBeLessThanOrEqual(node.width / 2); expect(before.from).toBeGreaterThan(0);
+  expect(before.mid, 'level with the node').toBeLessThanOrEqual(6);
+  // The banner is the path's Habits banner: symbol, nebula title, count.
+  expect(await sections.first().evaluate(s => [!!s.querySelector('.orbit-banner .habit-section-mark'), !!s.querySelector('.orbit-banner .habit-section-title .nebula-flow'), s.querySelector('.orbit-banner .habit-section-count [aria-hidden]')?.textContent])).toEqual([true, true, '0 of 2']);
+  await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
   const done = page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true});
   await expect(done).toHaveAttribute('data-lit', '');
+  // Done: the tab fills with the node's colour and its words turn dark.
+  const after = await looks(TITLE.stretch);
+  expect(after.lit).toBe(true);
+  expect(after.ink, 'dark words').toBe('rgb(6, 16, 42)');
+  expect(after.bg).not.toBe(before.bg);
   // A moment later it moves into the morning's "Done · 1" fold (closed), and the toast keeps Undo.
   const fold = sections.first().locator('details.checklist-list-done');
   await expect(fold.locator('summary')).toHaveText('Done · 1');

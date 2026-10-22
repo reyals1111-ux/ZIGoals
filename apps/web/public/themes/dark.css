@@ -4491,20 +4491,6 @@
     .checklist-list-section:not(#\-) {
         --orbit: #9273ff
     }
-    .checklist-list-banner:not(#\-)::before {
-        background-image: linear-gradient(100deg, color-mix(in srgb, var(--orbit) 34%, #010213e6) 0, color-mix(in srgb, var(--orbit) 16%, #01021399) 46%, transparent 92%);
-        background-color: transparent;
-        box-shadow: inset 2px 0 0 color-mix(in srgb, var(--orbit) 70%, transparent)
-    }
-    .checklist-list-banner h3:not(#\-) {
-        color: #f4f8ff
-    }
-    .checklist-list-count:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in srgb, var(--orbit) 22%, #01021399);
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--orbit) 45%, transparent);
-        color: #e7efff
-    }
     .checklist-list-fold:not(#\-) {
         border-color: currentcolor;
         background-image: none;
@@ -4518,32 +4504,48 @@
         background-image: none;
         background-color: #ffffff08
     }
-    .checklist-row-line:not(#\-) {
-        border-bottom-color: #ffffff10
-    }
     .checklist-row-check:not(#\-) {
+        --node-size: var(--row-node);
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
         color: inherit
     }
-    .checklist-row-node.orbit-node:not(#\-) {
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent)
-    }
-    .checklist-row-node.orbit-node[data-lit]:not(#\-) {
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 75%, transparent)
-    }
     .checklist-row-check:focus-visible:not(#\-) {
         outline-color: #ffffff
     }
+    .checklist-row-tab:not(#\-) {
+        border-color: color-mix(in srgb, var(--node, #23eaff) 72%, #5d6680);
+        background-image: linear-gradient(180deg, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo));
+        background-color: transparent;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 6px 16px -8px #000c
+    }
     .checklist-row-name:not(#\-) {
-        color: var(--text, #f0f5ff)
+        color: #f0f5ff
     }
     .checklist-row-sub:not(#\-) {
-        color: var(--text-secondary, #b7c8de)
+        color: #c3cfe6
     }
-    .checklist-row[data-state=done] .checklist-row-name:not(#\-) {
-        color: var(--muted, #a4b2cd)
+    .checklist-row-tab[data-lit]:not(#\-) {
+        border-color: var(--node);
+        background-image: linear-gradient(135deg, color-mix(in srgb, var(--node) 72%, #ffffff), var(--node));
+        background-color: transparent;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 70%, transparent)
+    }
+    .checklist-row-tab[data-lit] .checklist-row-name:not(#\-) {
+        color: #06102a
+    }
+    .checklist-row-tab[data-lit] .checklist-row-name:not(#\-)::before {
+        border-left-color: currentColor;
+        border-bottom-color: currentColor
+    }
+    .checklist-row-tab[data-lit] .checklist-row-sub:not(#\-) {
+        color: #0b1738
+    }
+    @media (forced-colors: active) {
+        .checklist-row-tab:not(#\-) {
+            border-color: CanvasText
+        }
     }
     .checklist-row-plus:not(#\-) {
         border-color: color-mix(in srgb, var(--orbit) 50%, transparent);
@@ -4588,26 +4590,11 @@
     .checklist-list-add:focus-visible:not(#\-) {
         outline-color: var(--orbit)
     }
-    :scope[data-theme=light] .checklist-list-banner:not(#\-)::before {
-        background-image: linear-gradient(100deg, color-mix(in srgb, var(--orbit) 26%, #ffffffe6) 0, color-mix(in srgb, var(--orbit) 12%, #ffffffb3) 46%, transparent 92%);
-        background-color: transparent
-    }
-    :scope[data-theme=light] .checklist-list-banner h3:not(#\-) {
-        color: #0b1430
-    }
-    :scope[data-theme=light] .checklist-list-count:not(#\-) {
-        color: #1d2547;
-        background-image: none;
-        background-color: color-mix(in srgb, var(--orbit) 14%, #ffffffcc)
-    }
     :scope[data-theme=light] .checklist-list-fold:not(#\-) {
         color: #23264d
     }
     :scope[data-theme=light] .checklist-list-add:not(#\-) {
         color: color-mix(in srgb, var(--orbit) 45%, #10183a)
-    }
-    :scope[data-theme=light] .checklist-row-line:not(#\-) {
-        border-bottom-color: #10183a14
     }
     :scope[data-theme=light] .checklist-row-check:focus-visible:not(#\-) {
         outline-color: #10183a
@@ -10498,50 +10485,50 @@
     .path-stage[data-variant=orbit] .path-step[data-next]:not(#\-) {
         --dot-next: var(--step-colour, #23eaff)
     }
-    .path-stage[data-variant=orbit] .orbit-banner:not(#\-) {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner:not(#\-) {
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
         box-shadow: none
     }
-    .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary:not(#\-)::after {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary:not(#\-)::after {
         border-color: #bd9ffb22;
         background-image: linear-gradient(120deg, #06031bc7, #030209c7);
         background-color: transparent
     }
-    :scope[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary:not(#\-)::after {
+    :scope[data-theme=light] :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary:not(#\-)::after {
         border-color: #bd9ffb40;
         background-image: linear-gradient(120deg, #02010df7, #010213f7);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count:not(#\-) {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner[data-complete] .habit-section-count:not(#\-) {
         color: #ffffff;
         background-image: none;
         background-color: color-mix(in srgb, var(--banner) 30%, #01021399);
         border-color: color-mix(in srgb, var(--banner) 60%, transparent)
     }
-    .path-stage[data-variant=orbit] .orbit-banner.habit-section-morning > .habit-section-summary:not(#\-)::before {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-morning > .habit-section-summary:not(#\-)::before {
         background-image: radial-gradient(circle at 34px 50%, #ff9ad255, transparent 48px), linear-gradient(100deg, #ff8fb033 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon > .habit-section-summary:not(#\-)::before {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-afternoon > .habit-section-summary:not(#\-)::before {
         background-image: radial-gradient(circle at 34px 50%, #c7f6ff55, transparent 48px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .orbit-banner.habit-section-evening > .habit-section-summary:not(#\-)::before {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-evening > .habit-section-summary:not(#\-)::before {
         background-image: radial-gradient(circle at 34px 50%, #ff74be44, transparent 48px), linear-gradient(100deg, #ff6f8f33 0%, #b177f42e 34%, #15073a26 68%, transparent 95%);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .orbit-banner.habit-section-anytime > .habit-section-summary:not(#\-)::before {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-anytime > .habit-section-summary:not(#\-)::before {
         background-image: radial-gradient(circle at 34px 50%, #cfd9ff33, transparent 48px), radial-gradient(1px 1px at 62% 30%, #ffffff99, transparent), radial-gradient(1px 1px at 78% 62%, #ffffff88, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #ffffffaa, transparent), linear-gradient(100deg, #0c0d3140 0%, #05062030 50%, transparent 95%);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .orbit-banner.habit-section-morning .habit-section-mark:not(#\-) {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-morning .habit-section-mark:not(#\-) {
         color: #ffd6ec;
         background-image: radial-gradient(circle at 40% 35%, #ff9ad288, #ff8fb033);
         background-color: transparent
     }
-    .path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon .habit-section-mark:not(#\-) {
+    :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner.habit-section-afternoon .habit-section-mark:not(#\-) {
         color: #d4f8ff;
         background-image: radial-gradient(circle at 40% 35%, #c7f6ff88, #39c6ff33);
         background-color: transparent
