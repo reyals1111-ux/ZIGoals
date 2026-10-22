@@ -6,8 +6,10 @@ import {seedChecklist, settled} from './checklist-fixtures';
 /**
  * Session AG Polish 2 (ADR-031; owner Part 1, references 03–06): the phone path. With twelve items and long names, at
  * 320, 375, 390 and 430 px:
- * - 1a the line flows like the computer's: neighbours travel across the width (on average a quarter of the stage or more),
- *   every stretch bends (no near-straight vertical run over 40 % of it), and the line stays inside the stage;
+ * - 1a the line flows like the computer's (owner amendment 5, ADR-031 K16): each stretch ONE cubic Bézier whose curvature
+ *   changes sign at most once, never a radius under 40 px, leaving each ring in the direction it came in (under 5°) and
+ *   meeting each node's ring tangentially; neighbours travel across the width (on average 30 % of the stage or more); no
+ *   near-straight vertical run over 40 % of a stretch; the line inside the stage and over no tab, node, planet or banner;
  * - 1b/1c each orbit's planet stands beside its compact banner, at its height, at least 1.4 × a node;
  * - 1d every name shows whole — never cut, never "…" — and no tab covers the line, a node, a planet, a banner or ZIGi;
  * - 1e ZIGi touches no node, tab, planet or banner; nothing scrolls sideways.
@@ -18,6 +20,22 @@ const NAMES: [string, string][] = [
   ['Journal three lines before bed', 'evening'], ['Stretch', 'evening'], ['No sugar today', 'evening'],
   ['Learn Spanish', 'anytime'], ['Save €10 for the trip', 'anytime'],
 ];
+/** A cubic Bézier's point, velocity and acceleration (the test's own, independent of the app's geometry). */
+type Pt = {x: number; y: number};
+function bezier(c: Pt[], t: number) {
+  const u = 1 - t, [a, b, d, e] = c as [Pt, Pt, Pt, Pt];
+  return {p: {x: u ** 3 * a.x + 3 * u * u * t * b.x + 3 * u * t * t * d.x + t ** 3 * e.x, y: u ** 3 * a.y + 3 * u * u * t * b.y + 3 * u * t * t * d.y + t ** 3 * e.y},
+    v: {x: 3 * u * u * (b.x - a.x) + 6 * u * t * (d.x - b.x) + 3 * t * t * (e.x - d.x), y: 3 * u * u * (b.y - a.y) + 6 * u * t * (d.y - b.y) + 3 * t * t * (e.y - d.y)},
+    a: {x: 6 * u * (d.x - 2 * b.x + a.x) + 6 * t * (e.x - 2 * d.x + b.x), y: 6 * u * (d.y - 2 * b.y + a.y) + 6 * t * (e.y - 2 * d.y + b.y)}};
+}
+/** A stretch's path data as its pieces: `M x y C …` (one cubic) or `M x y L x y` (straight). */
+function pieces(d: string): {cmds: string; c: Pt[]} {
+  const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), c: Pt[] = [];
+  for (let i = 0; i + 1 < n.length; i += 2) c.push({x: n[i]!, y: n[i + 1]!});
+  return {cmds: d.replace(/[^A-Za-z]/g, ''), c: c.length === 2 ? [c[0]!, c[0]!, c[1]!, c[1]!] : c};
+}
+const unit = (v: Pt) => { const l = Math.hypot(v.x, v.y) || 1; return {x: v.x / l, y: v.y / l}; };
+const angle = (a: Pt, b: Pt) => Math.acos(Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y))) * 180 / Math.PI;
 function longPath(): Checklist {
   let r = emptyChecklist(), n = 0;
   for (const [label, section] of NAMES) r = addCustom(r, {label, colour: 'cyan', section}, {id: `ck_phone2-${++n}`, at: new Date(Date.UTC(2026, 0, 1, 0, 0, n))});
@@ -52,8 +70,13 @@ async function measure(page: Page) {
       for (let l = 0; l <= len; l += 1) { const q = path.getPointAtLength(l); pts.push({x: so.left + q.x, y: so.top + q.y}); }
       return {id: p.parentElement!.getAttribute('data-segment')!, len, pts};
     });
+    // (Every stretch's own curve, its ends' rings and the banners, in the line's own coordinates.)
+    const flow = [...svg.querySelectorAll('.orbit-flow-segment')].map(g => ({id: g.getAttribute('data-segment')!, kind: g.getAttribute('data-kind')!, d: g.querySelector('.orbit-flow-core')!.getAttribute('d')!}));
+    const rings: Record<string, {x: number; y: number; r: number}> = {};
+    for (const el of stage.querySelectorAll<HTMLElement>('[data-path-point]')) { const r = el.getBoundingClientRect(); rings[el.dataset.pathPoint!] = {x: r.left + r.width / 2 - so.left, y: r.top + r.height / 2 - so.top, r: (el.offsetWidth || r.width) / 2}; }
+    const local = (b: {left: number; right: number; top: number; bottom: number}) => ({left: b.left - so.left, right: b.right - so.left, top: b.top - so.top, bottom: b.bottom - so.top});
     const dialog = stage.closest('dialog')!;
-    return {stage: sb, steps, banners, zigi: fig ? box(fig) : null, segments, sideways: dialog.scrollWidth - dialog.clientWidth};
+    return {stage: sb, steps, banners, zigi: fig ? box(fig) : null, segments, flow, rings, local: {banners: banners.map(b => local(b.words)), tabs: steps.map(s => ({id: s.id, ...local(s.tab)}))}, svgW: so.width, sideways: dialog.scrollWidth - dialog.clientWidth};
   });
 }
 
@@ -69,7 +92,7 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     expect(m.sideways, 'no sideways scroll').toBeLessThanOrEqual(0);
     const xs = m.steps.map(s => (s.dot.left + s.dot.right) / 2), travel = xs.slice(1).map((x, i) => Math.abs(x - xs[i]!));
     const mean = travel.reduce((a, b) => a + b, 0) / travel.length;
-    expect(mean / m.stage.w, `mean sideways travel ${Math.round(mean)} px of ${Math.round(m.stage.w)}`).toBeGreaterThanOrEqual(.25);
+    expect(mean / m.stage.w, `mean sideways travel ${Math.round(mean)} px of ${Math.round(m.stage.w)}`).toBeGreaterThanOrEqual(.3);
     expect(new Set(travel.map(t => Math.round(t / 12))).size, 'wide and short sweeps, not one step size').toBeGreaterThan(2);
     expect(m.segments.length, 'a stretch between each two neighbours and each planet').toBeGreaterThanOrEqual(NAMES.length);
     const straight: string[] = [], outside: string[] = [];
@@ -82,6 +105,49 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     }
     expect(straight, 'no stretch with a straight vertical run over 40 % of it').toEqual([]);
     expect(outside, 'the line inside the stage').toEqual([]);
+    // Owner amendment 5: each stretch one smooth curve — one cubic, at most one S-turn, no radius under 40 px.
+    const FLAT = 1 / 3000, shape: string[] = [], tight: string[] = [], turns: string[] = [], joins: string[] = [], rings: string[] = [], over: string[] = [];
+    const curves = m.flow.map(s => ({...s, ...pieces(s.d)}));
+    for (const s of curves) {
+      if (s.kind === 'step' && s.cmds !== 'MC') shape.push(`${s.id}: ${s.cmds}`);
+      if (s.cmds !== 'MC' && s.cmds !== 'ML') shape.push(`${s.id}: ${s.cmds}`);
+      let flips = 0, last = 0, least = Infinity;
+      for (let i = 0; i <= 400; i++) {
+        const {v, a} = bezier(s.c, i / 400), speed = Math.hypot(v.x, v.y);
+        if (speed < 1e-6) continue;
+        const k = (v.x * a.y - v.y * a.x) / speed ** 3;
+        if (k) least = Math.min(least, 1 / Math.abs(k));
+        if (Math.abs(k) >= FLAT) { if (last && Math.sign(k) !== last) flips++; last = Math.sign(k); }
+      }
+      if (least < 40) tight.push(`${s.id}: ${Math.round(least)} px`);
+      if (flips > 1) turns.push(`${s.id}: ${flips}`);
+      // Over nothing: no banner, no tab, no ring but its own two (sampled each 1 %).
+      const [from, to] = s.kind === 'step' ? s.id.split('>') : s.kind === 'lead' ? ['', s.id.slice(5)] : [s.id.slice(5), ''];
+      for (let i = 2; i <= 98; i++) {
+        const {p} = bezier(s.c, i / 100);
+        for (const b of [...m.local.banners, ...m.local.tabs]) if (p.x > b.left + 1 && p.x < b.right - 1 && p.y > b.top + 1 && p.y < b.bottom - 1) over.push(`${s.id} over ${'id' in b ? `${b.id}'s tab` : 'a banner'}`);
+        for (const [id, q] of Object.entries(m.rings)) if (id !== from && id !== to && Math.hypot(p.x - q.x, p.y - q.y) < q.r + 2) over.push(`${s.id} over ${id}`);
+      }
+    }
+    // Tangent through every ring: each stretch leaves a ring in the direction the one before came in (under 5°), touching a
+    // node's ring at a right angle to its radius; a planet's course runs on through its centre (it passes behind it).
+    for (let i = 0; i + 1 < curves.length; i++) {
+      const a = curves[i]!, b = curves[i + 1]!, end = a.c[3]!, before = a.c[2]!.x === end.x && a.c[2]!.y === end.y ? a.c[1]! : a.c[2]!, start = b.c[0]!, after = b.c[1]!.x === start.x && b.c[1]!.y === start.y ? b.c[2]! : b.c[1]!;
+      const tin = unit({x: end.x - before.x, y: end.y - before.y}), tout = unit({x: after.x - start.x, y: after.y - start.y}), at = a.kind === 'lead' ? a.id.slice(5) : a.id.split('>')[1]!;
+      if (angle(tin, tout) >= 5) joins.push(`${at}: ${angle(tin, tout).toFixed(1)}°`);
+      const q = m.rings[at]; if (!q) continue;
+      for (const [p, t] of [[end, tin], [start, tout]] as const) {
+        if (Math.abs(Math.hypot(p.x - q.x, p.y - q.y) - q.r) > 1.5) rings.push(`${at}: the line meets it ${Math.round(Math.hypot(p.x - q.x, p.y - q.y) - q.r)} px off its rim`);
+        const radial = unit({x: p.x - q.x, y: p.y - q.y}), cross = Math.abs(t.x * radial.y - t.y * radial.x);
+        if (at.startsWith('planet:') ? cross > Math.sin(5 * Math.PI / 180) : Math.abs(t.x * radial.x + t.y * radial.y) > Math.sin(5 * Math.PI / 180)) rings.push(`${at}: ${at.startsWith('planet:') ? 'its course misses its centre' : 'not tangent to its ring'}`);
+      }
+    }
+    expect(shape, 'each stretch one cubic Bézier').toEqual([]);
+    expect(turns, 'at most one S-turn per stretch').toEqual([]);
+    expect(tight, 'no radius of curvature under 40 px').toEqual([]);
+    expect(joins, 'the line leaves each ring in the direction it came in').toEqual([]);
+    expect(rings, 'tangent to each node\'s ring, through each planet\'s centre').toEqual([]);
+    expect([...new Set(over)], 'the line over no tab, node, planet or banner').toEqual([]);
   });
 
   test('1b–1e: whole names, planets beside their banners, nothing overlapping, tabs clear of the line', async ({page}) => {

@@ -239,20 +239,20 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const geo = usePathGeometry(stage, geometryKey);
   const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0, tabWidths = useTabWidths(probe, labelsKey, phoneLayout);
   // (Session AG Polish 2: an orbit's first node travels from its orbit's planet, which stands at the right of its banner.)
-  const planetFrom = orbit && geo ? model.sections.map(sec => geo.points[`planet:${sec.id}`]?.x ?? null) : null;
+  // (Owner amendment 5: the path's last node goes on to the day's finale, after the planets.)
+  const planetFrom = orbit && geo ? [...model.sections.map(sec => geo.points[`planet:${sec.id}`]?.x ?? null), geo.points[FINALE_POINT]?.x ?? null] : null;
   const fromKey = planetFrom ? planetFrom.map(x => x === null ? '' : Math.round(x)).join(',') : '';
   const lanes: Lane[] | null = useMemo(() => {
     if (!phoneLayout || !stageW || !tabWidths) return null;
     const labels = labelsKey.split('\u0001'), planetsAt = fromKey ? fromKey.split(',') : [];
-    let k = 0; const from: (number | null)[] = model.sections.flatMap((sec, si) => sec.steps.map((_, j) => { k++; return j === 0 && planetsAt[si] ? Number(planetsAt[si]) : null; }));
+    // (An orbit's first node comes from its planet; its last node goes on to the next planet, the last of all to the
+    // day's finale — owner amendment 5.)
+    let k = 0; const from: (number | null)[] = [], to: (number | null)[] = [];
+    model.sections.forEach((sec, si) => sec.steps.forEach((_, j) => { k++; from.push(j === 0 && planetsAt[si] ? Number(planetsAt[si]) : null); to.push(j === sec.steps.length - 1 && planetsAt[si + 1] ? Number(planetsAt[si + 1]) : null); }));
     // (ZIGi's width at rest on a phone: `--zigi-h: min(92px, 26cqi)` and its figure's 0.838 ratio.)
-    return phoneLanes(labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838, seed: model.id, from: k === labels.length ? from : undefined});
+    return phoneLanes(labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838, seed: model.id, ...(k === labels.length ? {from, to} : {})});
   }, [phoneLayout, stageW, labelsKey, tabWidths, fromKey, model]);
-  // Owner amendment 1 (ADR-031): a tab the line still meets after its bounded tries moves to its node's other side, once.
-  const [flipped, setFlipped] = useState<{key: string; ids: string[]}>({key: '', ids: []});
-  const baseLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
-  const flips = flipped.key === baseLaneKey ? flipped.ids : [];
-  const nextLaneKey = baseLaneKey ? `${baseLaneKey}|${flips.join(',')}` : '';
+  const nextLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
   useLayoutEffect(() => { if (nextLaneKey !== laneKey) setLaneKey(nextLaneKey); }, [nextLaneKey, laneKey]);
 
   // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood. The orbit look cheers beside the
@@ -394,8 +394,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Session AG Polish (owner Part 4): each orbit's planet, by the colour of the node it spawns (lib/path/planet-pick.ts).
   const planets = useMemo(() => orbit ? planetDesigns(model.sections.map(s => s.steps[0]?.colour ?? null), model.id).map(id => id ? PLANET_DESIGNS[id] : null) : [], [orbit, model]);
   const nextAt = next ? steps.findIndex(x => x.id === next.id) : -1;
-  const laneSide = (i: number) => flips.includes(steps[i]?.id ?? '') ? flip(lanes![i]!.side) : lanes![i]!.side;
-  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map((_, i) => laneSide(i)), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? laneSide(nextAt) : flip(laneSide(nextAt))) : 'right' as Side}
+  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(l => l.side), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? lanes[nextAt]!.side : flip(lanes[nextAt]!.side)) : 'right' as Side}
     : orbit ? orbitSides(steps, swingOf, nextAt, geo) : null, labelSides = sides?.labels ?? null;
   // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
   const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheering?.id ?? ''}` : undefined;
@@ -412,35 +411,28 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       return out;
     });
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
-    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
+    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done', ...(lanes ? {upright: true} : {})});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
     const vw = typeof window === 'undefined' ? 1440 : window.innerWidth;
-    // Session AG Polish 2 (owner Part 1a): on a phone the line swings as widely as the screen allows and every stretch
-    // bows, keeping clear of the name tabs and banners (each tab's reserved one-line width, so a tick never moves the line).
+    // Session AG Polish 2, owner amendment 5 (ADR-031 K16): on a phone the line is one smooth ribbon across the whole
+    // width, leaning through each node toward its tab; the tabs (at their reserved one-line width, so a tick never moves the
+    // line) and the banners only choose among its clean curves — it never bends around them.
     if (lanes && lanes.length === steps.length) {
       const reach = 62 * .3, obstacles: FlowBox[] = [];
       steps.forEach((st, i) => {
         const p = geo.points[st.id], q = geo.boxes?.[`tab:${st.id}`], lane = lanes[i]!; if (!p || !q) return;
-        const side = sides?.labels[i] ?? lane.side, wide = lane.maxTab;
-        obstacles.push({id: `tab:${st.id}`, top: q.top, bottom: q.bottom, left: side === 'right' ? p.x + reach : p.x - reach - wide, right: side === 'right' ? p.x + reach + wide : p.x - reach});
+        const wide = lane.maxTab;
+        obstacles.push({id: `tab:${st.id}`, top: q.top, bottom: q.bottom, left: lane.side === 'right' ? p.x + reach : p.x - reach - wide, right: lane.side === 'right' ? p.x + reach + wide : p.x - reach});
       });
       for (const [id, q] of Object.entries(geo.boxes ?? {})) if (id.startsWith('banner:')) obstacles.push({id, ...q});
-      return {nodes, travel, swing: Math.min(150, geo.w * .4), minBow: geo.w * .18, obstacles, tailTo: fin ? geo.h - 4 : null};
+      return {nodes, travel, swing: Math.min(150, geo.w * .4), ribbon: true, obstacles, tailTo: fin ? geo.h - 4 : null};
     }
     const swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
-    return {nodes, travel, swing, minBow: undefined, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
+    return {nodes, travel, swing, ribbon: false, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
   })() : null;
-  // (The tabs the line still meets after its tries: each moves to its node's other side, once per layout — never a loop.)
-  // (Only a tab whose whole name fits on its node's other side, on one line, inside the screen, may move there.)
-  const flippable = lanes && stageW ? steps.filter((_, i) => { const lane = lanes[i]; if (!lane || lane.wrap) return false; const reach = 62 * .3; return flip(lane.side) === 'right' ? lane.x + reach + lane.maxTab <= stageW - 6 : lane.x - reach - lane.maxTab >= 6; }).map(st => st.id).join('|') : '';
-  const onBlocked = (ids: string[]) => {
-    const ok = flippable.split('|'), tabs = ids.filter(id => id.startsWith('tab:')).map(id => id.slice(4)).filter(id => ok.includes(id));
-    if (!tabs.length || !baseLaneKey) return;
-    setFlipped(f => { const have = f.key === baseLaneKey ? f.ids : [], add = tabs.filter(id => !have.includes(id)); return add.length ? {key: baseLaneKey, ids: [...have, ...add]} : f; });
-  };
   let index = 0;
   return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined}>
-    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} minBow={flow.minBow} obstacles={flow.obstacles} onBlocked={onBlocked}/> : <PathLine geo={geo} segments={segments}/>)}
+    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} ribbon={flow.ribbon} obstacles={flow.obstacles}/> : <PathLine geo={geo} segments={segments}/>)}
     {phoneLayout && <span ref={probe} className="orbit-tab-measure" aria-hidden="true"/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;

@@ -28,9 +28,11 @@
   .path-stage[data-variant=orbit] { --dot-size: 62px; --label-gap: 12px; --label-font: 14px; --zigi-h: min(92px, 26cqi); --zigi-min: 80px; }
   /* Session AG Polish (owner Part 2): a long, airy journey on a phone — about 170 px from node to node (AG: 96), each
      orbit's banner in a clear band of its own, so no tab, ZIGi or banner ever touches a neighbour. Session AG Polish 2:
-     about 178 px, so ZIGi's cheer has room above an edge node's tab now that the nodes use the whole width. */
-  .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 116px; padding-top: 72px; }
-  .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 76px; }
+     about 178 px, so ZIGi's cheer has room above an edge node's tab now that the nodes use the whole width. Owner
+     amendment 5 (ADR-031 K16): 16 px more between a planet and its orbit's nodes, so the smooth line has the height to
+     sweep from a planet to its first node, and from an orbit's last node to the next planet, without a tight bend. */
+  .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 116px; padding-top: 88px; }
+  .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 92px; }
   /* Each node stands in its lane (lib/path/phone-lanes.ts): its tab on one line with the free width, ZIGi's room on the
      other side. Before the first measure the wave places it, as before. */
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
