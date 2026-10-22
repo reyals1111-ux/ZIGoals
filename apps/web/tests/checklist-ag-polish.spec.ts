@@ -147,7 +147,7 @@ test('3: each orbit wears the Habits page\'s section banner — symbol, "… Orb
   const banners = page.locator('.path-stage .orbit-banner');
   await expect(banners).toHaveCount(3);
   await expect(page.locator('.path-stage').getByRole('heading', {level: 2})).toHaveText(['Morning Orbit', 'Afternoon Orbit', 'Evening Orbit']);
-  expect(await banners.evaluateAll(els => els.map(b => [b.classList.contains('habit-section'), b.querySelector('.habit-section-summary .habit-section-mark')?.textContent, !!b.querySelector('.habit-section-title .nebula-flow')]))).toEqual([[true, '☀', true], [true, '◐', true], [true, '☾', true]]);
+  expect(await banners.evaluateAll(els => els.map(b => [b.classList.contains(`habit-section-${b.closest('.path-section')!.getAttribute('data-section')}`), b.querySelector('.habit-section-summary .habit-section-mark')?.textContent, !!b.querySelector('.habit-section-title .nebula-flow')]))).toEqual([[true, '☀', true], [true, '◐', true], [true, '☾', true]]);
   // The count chip in the visible part, right after the title.
   const gap = await banners.first().evaluate(b => { const t = b.querySelector('.habit-section-title')!.getBoundingClientRect(), c = b.querySelector('.habit-section-count')!.getBoundingClientRect(); return {gap: c.left - t.right, text: b.querySelector('.habit-section-count [aria-hidden]')!.textContent}; });
   expect(gap.gap).toBeGreaterThanOrEqual(0); expect(gap.gap).toBeLessThanOrEqual(24); expect(gap.text).toBe('0 of 2');

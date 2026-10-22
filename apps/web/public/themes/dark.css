@@ -4770,7 +4770,7 @@
     }
     .checklist-celebration-ring:not(#\-) {
         fill: none;
-        stroke: #c9d6ff
+        stroke: #8fa6ff
     }
     .checklist-celebration-ring ellipse:not(#\-) {
         filter: drop-shadow(0 0 4px #9fb4ff99)
@@ -4824,12 +4824,6 @@
     .checklist-celebration-go:focus-visible:not(#\-) {
         outline-color: #ffffff
     }
-    .checklist-celebration-undo .aa-toast:not(#\-) {
-        background-image: none !important;
-        background-color: transparent !important;
-        border-color: currentcolor !important;
-        box-shadow: none !important
-    }
     :scope[data-theme=light] .checklist-celebration:not(#\-) {
         --checklist-celebration-ground: #f6f7fc
     }
@@ -4842,6 +4836,15 @@
     :scope[data-theme=light] .checklist-celebration-streak-rule:not(#\-) {
         background-image: none;
         background-color: #02041833
+    }
+    :scope[data-theme=light] .checklist-celebration-title:not(#\-) {
+        color: #10183a
+    }
+    :scope[data-theme=light] .checklist-celebration-line:not(#\-) {
+        color: #3b4566
+    }
+    :scope[data-theme=light] .checklist-celebration-lit:not(#\-) {
+        filter: drop-shadow(0 1px 1px #10183a59)
     }
     :scope[data-theme=dark] .checklist-celebration:not(#\-) {
         --checklist-celebration-ground: #000000
@@ -10382,11 +10385,17 @@
     .path-stage[data-variant=orbit] .orbit-banner:not(#\-) {
         border-color: currentcolor;
         background-image: none;
-        background-color: transparent
+        background-color: transparent;
+        box-shadow: none
     }
     .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary:not(#\-)::after {
         border-color: #bd9ffb22;
         background-image: linear-gradient(120deg, #0d061c33, #03030999);
+        background-color: transparent
+    }
+    :scope[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary:not(#\-)::after {
+        border-color: #bd9ffb40;
+        background-image: linear-gradient(120deg, #0d0528f0, #010213f5);
         background-color: transparent
     }
     .path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count:not(#\-) {

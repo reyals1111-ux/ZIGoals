@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useLayoutEffect, useRef, useState, type CSSProperties} from 'react';
+import {useLayoutEffect, useRef, useState, type CSSProperties} from 'react';
 import {useEscapeLayer} from './escape-layers';
 import {pushToastLayer} from '../ui/undo-toast';
 import {FlameMark} from './checklist-marks';
@@ -38,7 +38,8 @@ export default function DayCelebration({streak, grew = false, perfect, total, co
   const ref = useRef<HTMLDialogElement>(null), button = useRef<HTMLButtonElement>(null), toastSlot = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null);
   const [rest, setRest] = useState(false), [motion] = useState(() => !still());
   useEscapeLayer(true, onClose);
-  useEffect(() => {
+  // (Opened before the sequence below measures the stage: a closed dialog has no size.)
+  useLayoutEffect(() => {
     const d = ref.current; if (!d) return;
     const back = document.activeElement as HTMLElement | null;
     try { d.showModal(); } catch { /* shown in place */ }

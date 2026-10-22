@@ -110,10 +110,15 @@
    (components/orbit-path/orbit-banner.tsx; its rules in components/habits/habits-aa.css) — symbol, nebula title, count.
    Here: no box of its own, AG's fade (whole behind the symbol and title, misting away from about the middle), the count
    chip right after the title, and one light sweep along the band when the orbit completes. ---- */
-.path-stage[data-variant=orbit] .orbit-banner { position: relative; z-index: 2; box-sizing: border-box; width: 100%; max-width: 720px; margin-inline: auto; border: 0; border-radius: 22px; background: none; overflow: visible; isolation: isolate; }
+.path-stage[data-variant=orbit] .orbit-banner { position: relative; z-index: 2; box-sizing: border-box; width: 100%; max-width: 720px; margin-inline: auto; border: 0; border-radius: 22px; background: none; box-shadow: none; overflow: visible; isolation: isolate; }
 /* (The Habits section's own glass band, under its tint, faded the same way.) */
-.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { content: ''; position: absolute; inset: 0; z-index: -2; border-radius: inherit; pointer-events: none; border: 1px solid #bd9ffb22; background: linear-gradient(120deg, #2a1f4433, #12101f99);
-  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); }
+/* (The Habits section's summary rules, here without its card: the band's place and its tint, which mists away past the title.) */
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; isolation: isolate; border-radius: 22px; }
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { content: ''; position: absolute; inset: 0 -70% 0 0; z-index: -1; border-radius: inherit; pointer-events: none; }
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { content: ''; position: absolute; inset: 0 -70% 0 0; z-index: -2; border-radius: inherit; pointer-events: none; border: 1px solid #bd9ffb22; background: linear-gradient(120deg, #2a1f4433, #12101f99);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); }
+/* (By day the band keeps the night ground the nebula title needs, like the name tabs; it still mists away past the count.) */
+:root[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { border-color: #bd9ffb40; background: linear-gradient(120deg, #2a1f58f0, #0a1130f5); }
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { grid-template-columns: 34px auto auto; justify-content: start; cursor: default; }
 /* Its planet (owner Part 4) stands on the line at the banner's height, after the title and count; where the banner leaves
    it too little room (a narrow phone) it wraps under the banner, right-aligned, in a band of its own — still on the line. */
@@ -123,7 +128,7 @@
 .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { margin: 6px max(6px, 4%) 6px auto; }
 @media (max-width: 1179.98px) { .path-stage[data-variant=orbit] { --planet-size: 104px; } }
 @media (max-width: 640px) { .path-stage[data-variant=orbit] { --planet-size: 60px; } .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { margin: 2px 4px 2px auto; } }
-.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); mask-image: linear-gradient(90deg, #000 0, #000 40%, #0000 86%); }
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); }
 .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { white-space: nowrap; }
 .path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count { color: #ffffff; background: color-mix(in srgb, var(--banner) 30%, #0a113099); border-color: color-mix(in srgb, var(--banner) 60%, transparent); }
 /* (The Checklist uses the nebula palette only, request 1d: the morning's warm glow and the afternoon's pale sun take their

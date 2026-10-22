@@ -10,17 +10,17 @@ No new dependencies; one storage field only (`checklist.celebratedOn` in `zigoal
 |---|---|---|---|
 | 0 | Records (Alpha #46, verifier on #46, H62 correction), ADR-030, this file, Draft PR (#92) | done | `cc7e9a24` |
 | 1 | Nebula glyphs, more glyphs, matte unreached, no gold, the arc | done | `fb19d01b` |
-| 2b | Owner addition: the phone header's Checklist pill, the launcher's bold check | done | (this push) |
+| 2b | Owner addition: the phone header's Checklist pill, the launcher's bold check | done | `f01bf5d6` |
 | 2 | The phone layout | done | `c5104d1a`, fix `379f92d3` |
-| 3 | The Habits banners | done | (this push) |
-| 4 | Orbit planets | done | (this push) |
-| 5 | Pointer 9 on phones, Orbit consistency | done | (this push) |
-| 6 | Celebration: always fires (Tier 3 storage) and rebuilt | done | (this push) |
-| 7 | The List view | done | (this push) |
-| 8 | Extras (camera follow, ZIGi's greeting on an orbit, the flame, replay) | done | (this push) |
-| 9 | Themes, checks, finish | to do | — |
+| 3 | The Habits banners | done | `a5de5fb8` |
+| 4 | Orbit planets | done | `a5de5fb8` |
+| 5 | Pointer 9 on phones, Orbit consistency | done | `b9fe44f2` |
+| 6 | Celebration: always fires (Tier 3 storage) and rebuilt | done | `688d1dfa` (Tier 3), `17519c9c` |
+| 7 | The List view | done | `5360c3fd` |
+| 8 | Extras (camera follow, ZIGi's greeting on an orbit, the flame, replay) | done | `2fe53781` |
+| 9 | Themes, checks, finish | in progress | words `b6efd3e8`; the Light self-check fixes (this push) |
 
-## Captures used (self-check, scratchpad only): 3 of 20
+## Captures used (self-check, scratchpad only): 11 of 20 · fix rounds used: 2 of 2
 
 ## Next step
-Part 9: the self-check captures (Light planets at 1440 and 390 first, amendment 5), theme parity and the layout audit for /app/checklist, weights, frozen readers, check-secrets, the STATUS entry; then the PR out of Draft once CI is green.
+Part 9: weights, frozen readers, check-secrets, the CI result on this head (theme parity's "at 100% 0px" vs "at right top" rows on pages this PR does not touch fail only in this sandbox's Chromium), the STATUS entry; then the PR out of Draft once CI is green. No fix rounds left: anything else found goes to the STATUS entry as left for S1.

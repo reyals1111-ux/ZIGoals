@@ -24,13 +24,14 @@
 /* The composition: the ring of planets and orbs with ZIGi, the words, the streak chip, Continue. */
 .checklist-celebration-card { position: relative; z-index: 2; box-sizing: border-box; display: grid; justify-items: center; align-content: center; gap: 14px; width: min(520px, 100%); min-height: 100%; margin: 0 auto; padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(28px, env(safe-area-inset-bottom, 0px)); text-align: center; }
 .checklist-celebration-stage { position: relative; container-type: inline-size; width: min(440px, 92vw); aspect-ratio: 1 / .78; --rx: 42cqi; --ry: 16cqi; }
-.checklist-celebration-ring { position: absolute; left: 50%; top: 50%; width: 100cqi; height: 40cqi; translate: -50% -50%; overflow: visible; fill: none; stroke: #c9d6ff; stroke-width: .5; vector-effect: non-scaling-stroke; opacity: .55; z-index: 100; }
+.checklist-celebration-ring { position: absolute; left: 50%; top: 50%; width: 100cqi; height: 40cqi; translate: -50% -50%; overflow: visible; fill: none; stroke: #8fa6ff; stroke-width: .5; vector-effect: non-scaling-stroke; opacity: .7; z-index: 99; }
 .checklist-celebration-ring ellipse { vector-effect: non-scaling-stroke; stroke-width: 1.2px; filter: drop-shadow(0 0 4px #9fb4ff99); }
 .checklist-celebration-planet, .checklist-celebration-orb { position: absolute; left: 50%; top: 50%; will-change: transform; }
 .checklist-celebration-planet .orbit-planet { --planet-size: clamp(40px, 13.5cqi, 60px); }
 .checklist-celebration-orb { width: var(--orb, 14px); height: var(--orb, 14px); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 72%); box-shadow: 0 0 10px var(--c), 0 0 22px color-mix(in srgb, var(--c) 55%, transparent); }
-/* ZIGi cheers in the ring's heart, in front of everything: the clip while the sequence plays, the sharp still at rest. */
-.checklist-celebration-zigi { position: absolute; left: 50%; top: 50%; z-index: 160; width: clamp(160px, 46cqi, 200px); aspect-ratio: 480 / 632; translate: -50% -46%; }
+/* ZIGi cheers in the ring's heart — inside it: the far side of the ring passes behind it, the near side in front (depth 100);
+   the clip while the sequence plays, the sharp still at rest. */
+.checklist-celebration-zigi { position: absolute; left: 50%; top: 50%; z-index: 100; width: clamp(160px, 46cqi, 200px); aspect-ratio: 480 / 632; translate: -50% -46%; }
 .checklist-celebration-zigi img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 12px 18px #6b4dff59); }
 .checklist-celebration-zigi-clip { image-rendering: auto; }
 .checklist-celebration-zigi-still { opacity: 0; }
@@ -65,11 +66,13 @@
 /* The last tick's Undo under Continue, as a quiet text button. */
 .checklist-celebration-undo { position: relative; width: auto; height: auto; min-height: 44px; }
 .checklist-celebration-undo .aa-toast-region { position: static !important; transform: none !important; width: auto !important; }
-.checklist-celebration-undo .aa-toast { background: transparent !important; border: 0 !important; box-shadow: none !important; justify-content: center; font-size: 15px; }
 /* By day the words are ink; the ground is Light's mist (the sky component draws it), the hues the same. */
 :root[data-theme=light] .checklist-celebration { --checklist-celebration-ground: #f6f7fc; }
 :root[data-theme=light] .checklist-celebration-streak { color: #10183a; border-color: #6b6fa040; background: linear-gradient(135deg, #ffffffcc, #ffffff99 60%, #e9ecff99); }
 :root[data-theme=light] .checklist-celebration-streak-rule { background: #10183a33; }
+:root[data-theme=light] .checklist-celebration-title { color: #10183a; }
+:root[data-theme=light] .checklist-celebration-line { color: #3b4566; }
+:root[data-theme=light] .checklist-celebration-lit { filter: drop-shadow(0 1px 1px #10183a59); }
 :root[data-theme=dark] .checklist-celebration { --checklist-celebration-ground: #000000; }
 @media (max-width: 480px) { .checklist-celebration-card { gap: 12px; } .checklist-celebration-streak { min-height: 58px; font-size: 18px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; transition: none !important; } }
