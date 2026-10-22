@@ -64,3 +64,49 @@ test('2b: a planet lights when it is reached, plays its completion then, and goe
   await tick(page, 'Fictional two');
   await expect(page.locator('.orbit-flow-segment[data-segment$=">planet:afternoon"]')).toHaveAttribute('data-light', 'both');
 });
+
+test('3: the progress bar is the day\'s nodes — one segment each in its colour, lit with its node (out of order too), dimmed on Undo', async ({page}) => {
+  await open(page);
+  const bar = page.locator('.checklist-progress-bar');
+  await expect(bar).toHaveAttribute('role', 'progressbar');
+  await expect(bar).toHaveAttribute('aria-valuenow', '0');
+  await expect(bar).toHaveAttribute('aria-valuemax', '4');
+  const segs = bar.locator('.checklist-progress-seg');
+  await expect(segs).toHaveCount(4);
+  // In path order, each in its node's own colour.
+  const pairs = await page.evaluate(() => {
+    const dots = [...document.querySelectorAll<HTMLElement>('.path-stage .path-dot')].map(d => getComputedStyle(d).getPropertyValue('--node').trim());
+    const seg = [...document.querySelectorAll<HTMLElement>('.checklist-progress-seg')].map(s => getComputedStyle(s).getPropertyValue('--seg').trim());
+    return {dots, seg};
+  });
+  expect(pairs.seg).toEqual(pairs.dots);
+  // Neighbours flow into each other: each segment's right end is the mix its neighbour's left end starts from.
+  const joins = await segs.evaluateAll(els => els.map(e => [getComputedStyle(e).getPropertyValue('--seg-prev').trim(), getComputedStyle(e).getPropertyValue('--seg-next').trim()]));
+  for (let i = 1; i < joins.length; i++) expect(joins[i]![0], `segment ${i} starts from its neighbour`).toBe(pairs.seg[i - 1]);
+  await expect(bar.locator('.checklist-progress-spark')).toHaveCount(0);
+  // Out of order: the third item lights its own segment, at once with its node, and the sparkle rests at its end.
+  await tick(page, 'Fictional three');
+  await expect(segs.nth(2)).toHaveAttribute('data-lit', '');
+  await expect(page.locator('.path-step[data-state=done] .path-dot')).toHaveCount(1);
+  for (const i of [0, 1, 3]) await expect(segs.nth(i)).not.toHaveAttribute('data-lit', '');
+  await expect(bar).toHaveAttribute('aria-valuenow', '1');
+  await expect(bar.locator('.checklist-progress-shine')).toHaveCount(1);
+  const spark = await page.evaluate(() => { const b = document.querySelector('.checklist-progress-bar')!.getBoundingClientRect(), s = document.querySelector('.checklist-progress-spark')!.getBoundingClientRect(); return (s.left + s.width / 2 - b.left) / b.width; });
+  expect(Math.abs(spark - .75), 'the sparkle at the end of the lit segment').toBeLessThan(.04);
+  await expect.poll(() => segs.nth(2).evaluate(e => Number(getComputedStyle(e, '::after').opacity)), {message: 'lit in neon'}).toBe(1);
+  expect(await segs.nth(0).evaluate(e => Number(getComputedStyle(e, '::after').opacity)), 'matte until done').toBe(0);
+  // Undo dims it again.
+  await undo(page);
+  await expect(segs.nth(2)).not.toHaveAttribute('data-lit', '');
+  await expect(bar).toHaveAttribute('aria-valuenow', '0');
+  await expect(page.locator('.checklist-progress-line strong')).toHaveText('0 of 4 planets today');
+});
+
+test('3: under reduced motion a segment lights at once', async ({page}) => {
+  await page.emulateMedia({reducedMotion: 'reduce'});
+  await open(page);
+  await tick(page, 'Fictional one');
+  const seg = page.locator('.checklist-progress-seg').first();
+  await expect(seg).toHaveAttribute('data-lit', '');
+  expect(await seg.evaluate(e => [getComputedStyle(e, '::after').transitionDuration, Number(getComputedStyle(e, '::after').opacity)])).toEqual(['0s', 1]);
+});

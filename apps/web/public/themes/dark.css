@@ -4169,14 +4169,27 @@
     .checklist-close:focus-visible:not(#\-) {
         outline-color: currentColor
     }
-    .checklist-progress-bar:not(#\-) {
-        --glass-ink: linear-gradient(90deg, #23eaff, #459dff 30%, #9273ff 58%, #f06dff 82%, #ff74be);
-        --glass-glow: #ff9fdcd9
+    .checklist-progress-seg:not(#\-) {
+        --seg-a: color-mix(in srgb, var(--seg-prev) 50%, var(--seg));
+        --seg-b: color-mix(in srgb, var(--seg) 50%, var(--seg-next));
+        --seg-matte: color-mix(in srgb, var(--seg) 34%, #5a6276);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--seg-matte) 40%, transparent)
+    }
+    @supports (color: oklch(from red l c h)) {
+        .checklist-progress-seg:not(#\-) {
+            --seg-matte: oklch(from var(--seg) calc(l * .78) calc(c * .28) h)
+        }
+    }
+    .checklist-progress-seg:not(#\-)::after {
+        background-image: linear-gradient(90deg, var(--seg-a), var(--seg) 32%, var(--seg) 68%, var(--seg-b));
+        background-color: transparent;
+        box-shadow: 0 0 9px -2px color-mix(in srgb, var(--seg) 70%, transparent)
     }
     .checklist-progress-spark:not(#\-) {
         background-image: none;
         background-color: #ffffff;
-        filter: drop-shadow(0 0 6px #ffb3ea)
+        filter: drop-shadow(0 0 4px #ffb3eab3)
     }
     .checklist-progress-line:not(#\-) {
         color: var(--muted, #a4b2cd)

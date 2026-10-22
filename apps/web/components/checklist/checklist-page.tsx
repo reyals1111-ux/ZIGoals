@@ -1,8 +1,7 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
-import {GlassBar} from '../progress/glass-progress';
 import {zigiSignals} from '../zigi/bus';
 import {pushToastLayer} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
@@ -13,6 +12,9 @@ import {pathBefore} from '../../lib/checklist/return-path';
 import {checklistPath} from '../../lib/checklist/derive';
 import {planetDesigns} from '../../lib/path/planet-pick';
 import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
+import {pathSteps} from '../../lib/path/model';
+import {nebulaColour} from '../../lib/path/orbit-colours';
+import {ProgressSegments} from './progress-segments';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
 import {ListView} from './list-view';
@@ -121,6 +123,12 @@ export function ChecklistPage() {
   const streakDays = streak?.current ?? 0;
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
+  // Session AG Polish 2 (owner Part 3): the bar's segments — today's counted items in path order, in their nodes' colours.
+  const segments = useMemo(() => {
+    const c = checklistDisplayColours(state.record.data, state.dots);
+    const model = checklistPath(state.record.data, state.dots.map(d => ({...d, colour: c.get(d.id) ?? d.colour})), []);
+    return pathSteps(model).filter(s => s.counted !== false).map(s => ({id: s.id, colour: PATH_COLOURS[nebulaColour(s.colour)].token, lit: s.state === 'done'}));
+  }, [state.record.data, state.dots]);
   const [menu, setMenu] = useState(false);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
@@ -150,7 +158,7 @@ export function ChecklistPage() {
         <button type="button" className="checklist-close" aria-label="Close the Checklist" onClick={leave}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
         <div className="checklist-progress">
-          <GlassBar identity="checklist-progress" ready={loaded} className="checklist-progress-bar" value={total ? done / total : 0} role="progressbar" aria-label="Planets lit today" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-valuetext={progressText}><Shine at={done}/><span className="checklist-progress-spark" aria-hidden="true"/></GlassBar>
+          <ProgressSegments segments={segments} done={done} total={total} valueText={progressText} ready={loaded}/>
           <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
         <div className="checklist-view-switch" role="group" aria-label="View">
@@ -266,13 +274,6 @@ function CountUp({value}: {value: number}) {
   return <span className="checklist-count" data-pop={pop % 2 ? 'a' : pop ? 'b' : undefined} aria-hidden="true">{shown}</span>;
 }
 const motionOk = () => { try { return document.documentElement.dataset.appMotion !== 'off' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
-
-/** The bar's shine: one sweep each time the count grows (never on the first paint). */
-function Shine({at}: {at: number}) {
-  const seen = useRef<number | null>(null), [run, setRun] = useState(0);
-  useEffect(() => { if (seen.current !== null && at > seen.current) setRun(r => r + 1); seen.current = at; }, [at]);
-  return run ? <span key={run} className="checklist-progress-shine" aria-hidden="true"/> : null;
-}
 
 function ToolMark({name}: {name: 'edit' | 'options' | 'about' | 'replay'}) {
   return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'edit' ? <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/> : name === 'options' ? <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"/> : name === 'replay' ? <path d="M12 3.5l1.9 5.3 5.6.2-4.4 3.5 1.6 5.4L12 14.8l-4.7 3.1 1.6-5.4L4.5 9l5.6-.2zM19 3v3M17.5 4.5h3"/> : <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 16.8h.01"/>}</svg>;

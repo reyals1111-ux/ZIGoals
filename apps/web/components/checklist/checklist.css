@@ -80,16 +80,31 @@
 /* Session AG (pointer 12): the dashboard's heading — bigger, white into the nebula. */
 .checklist-title h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; white-space: nowrap; }
 .checklist-progress { grid-area: prog; display: grid; gap: 4px; min-width: 0; }
-.checklist-progress-bar { height: 18px; --glass-ink: linear-gradient(90deg, #23eaff, #459dff 30%, #9273ff 58%, #f06dff 82%, #ff74be); --glass-glow: #ff9fdcd9; }
+/* Session AG Polish 2 (ADR-031; owner Part 3, D-path 5, P 9): calmer — a slim glass track, a soft glow, and the fill
+   built from the day's nodes (components/checklist/progress-segments.tsx): one segment per item in path order, each in its
+   node's colour, its ends flowing into its neighbours' like the neon line; matte (the unreached node's faint tint) until
+   done, lit with its node; the sparkle at the end of the last lit segment. The segments are a theme island. */
+.checklist-progress-bar { height: 10px; }
+.checklist-progress-track { position: absolute; inset: 2px; display: flex; border-radius: inherit; pointer-events: none; }
+.checklist-progress-seg { --seg-a: color-mix(in srgb, var(--seg-prev) 50%, var(--seg)); --seg-b: color-mix(in srgb, var(--seg) 50%, var(--seg-next));
+  --seg-matte: color-mix(in srgb, var(--seg) 34%, #5a6276); position: relative; flex: 1 1 0; min-width: 0; background: color-mix(in srgb, var(--seg-matte) 40%, transparent); }
+@supports (color: oklch(from red l c h)) { .checklist-progress-seg { --seg-matte: oklch(from var(--seg) calc(l * .78) calc(c * .28) h); } }
+.checklist-progress-seg:first-child { border-radius: 999px 0 0 999px; }
+.checklist-progress-seg:last-child { border-radius: 0 999px 999px 0; }
+.checklist-progress-seg:only-child { border-radius: 999px; }
+.checklist-progress-seg::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--seg-a), var(--seg) 32%, var(--seg) 68%, var(--seg-b)); box-shadow: 0 0 9px -2px color-mix(in srgb, var(--seg) 70%, transparent); opacity: 0; transition: opacity 320ms ease; }
+.checklist-progress-seg[data-lit]::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .checklist-progress-seg::after, .checklist-progress-spark { transition: none !important; } }
+:root[data-app-motion=off] .checklist-progress-seg::after, :root[data-app-motion=off] .checklist-progress-spark { transition: none !important; }
 /* (A small four-point sparkle rides the bar's leading end, as in the owner's mockup.) */
-.checklist-progress-spark { position: absolute; top: 50%; left: calc(var(--glass-value, 0) * 100%); width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 6px #ffb3ea); transition: left var(--glass-fill-duration, 760ms) cubic-bezier(.2, .8, .3, 1); }
+.checklist-progress-spark { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; pointer-events: none; background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 4px #ffb3eab3); transition: left 420ms cubic-bezier(.2, .8, .3, 1); }
 .glass-track[data-empty] .checklist-progress-spark { display: none; }
 .checklist-progress-line { margin: 0; font-size: 15px; line-height: 1.25; color: var(--muted, #a4b2cd); overflow-wrap: anywhere; }
 .checklist-progress-line strong { color: var(--text, #f0f5ff); font-weight: 750; }
 .checklist-progress-line .eyebrow { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: 0; text-transform: none; color: var(--muted, #a4b2cd); }
 .checklist-perfect { color: var(--ring-emerald, #26e8bd); font-weight: 750; }
 :root[data-theme=light] .checklist-perfect { color: #0b7a62; }
-.checklist-progress-shine { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--glass-value, 0) * 100%); border-radius: inherit; overflow: hidden; pointer-events: none; }
+.checklist-progress-shine { position: absolute; top: 0; bottom: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 .checklist-progress-shine::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 46%; background: linear-gradient(100deg, #ffffff00, #ffffffe6 50%, #ffffff00); transform: translateX(-120%); animation: checklist-shine 900ms ease-in-out 420ms both; }
 @keyframes checklist-shine { from { transform: translateX(-120%); } to { transform: translateX(330%); } }
 .checklist-view-switch { grid-area: view; display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid #ffffff2b; background: #00000026; }
@@ -128,7 +143,7 @@
   .checklist-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .checklist-view-switch { display: none; }
   .checklist-progress { gap: 3px; }
-  .checklist-progress-bar { height: 14px; }
+  .checklist-progress-bar { height: 8px; }
   .checklist-progress-line { font-size: 14px; }
   .checklist-progress-line .eyebrow, .checklist-perfect { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .checklist-streak { min-height: 38px; padding: 0 8px 0 4px; font-size: 17px; gap: 2px; }
