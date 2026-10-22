@@ -15,8 +15,12 @@ import {useLayoutEffect, useState, type RefObject} from 'react';
 /** `r`: the dot's own radius, its layout size (round 4: the orbit look's comet leaves and reaches a planet at its rim). */
 export type PathPoint = {x: number; y: number; r?: number};
 /** `inset`: room from the stage's sides to the screen's (round 7: how far a name may reach past the stage). */
-export type PathGeometry = {w: number; h: number; points: Record<string, PathPoint>; inset?: {left: number; right: number}};
-const same = (a: PathGeometry, b: PathGeometry) => a.w === b.w && a.h === b.h && a.inset?.left === b.inset?.left && a.inset?.right === b.inset?.right && Object.keys(a.points).length === Object.keys(b.points).length && Object.entries(a.points).every(([id, p]) => b.points[id]?.x === p.x && b.points[id]?.y === p.y && b.points[id]?.r === p.r);
+export type PathGeometry = {w: number; h: number; points: Record<string, PathPoint>; inset?: {left: number; right: number};
+  /** Session AG Polish 2: boxes the phone's line keeps clear of (`data-path-box`: name tabs, banners), in the stage's coordinates. */
+  boxes?: Record<string, PathBox>};
+export type PathBox = {left: number; top: number; right: number; bottom: number};
+const sameBoxes = (a: PathGeometry['boxes'], b: PathGeometry['boxes']) => Object.keys(a ?? {}).length === Object.keys(b ?? {}).length && Object.entries(a ?? {}).every(([id, q]) => { const o = b?.[id]; return !!o && o.left === q.left && o.top === q.top && o.right === q.right && o.bottom === q.bottom; });
+const same = (a: PathGeometry, b: PathGeometry) => a.w === b.w && a.h === b.h && a.inset?.left === b.inset?.left && a.inset?.right === b.inset?.right && Object.keys(a.points).length === Object.keys(b.points).length && Object.entries(a.points).every(([id, p]) => b.points[id]?.x === p.x && b.points[id]?.y === p.y && b.points[id]?.r === p.r) && sameBoxes(a.boxes, b.boxes);
 const round = (n: number) => Math.round(n * 10) / 10;
 
 export function measurePath(stage: HTMLElement): PathGeometry {
@@ -26,8 +30,12 @@ export function measurePath(stage: HTMLElement): PathGeometry {
     // (`r`: the planet's own radius, its layout size — the next planet is drawn a size larger, which must not move anything.)
     if (id && r.width > 0) points[id] = {x: round(r.left + r.width / 2 - base.left), y: round(r.top + r.height / 2 - base.top), r: round((el.offsetWidth || Math.min(r.width, r.height)) / 2)};
   }
-  const vw = document.documentElement.clientWidth;
-  return {w: round(base.width), h: round(base.height), points, inset: {left: round(base.left), right: round(vw - base.right)}};
+  const vw = document.documentElement.clientWidth, boxes: Record<string, PathBox> = {};
+  for (const el of stage.querySelectorAll<HTMLElement>('[data-path-box]')) {
+    const id = el.dataset.pathBox, r = el.getBoundingClientRect();
+    if (id && r.width > 0) boxes[id] = {left: round(r.left - base.left), top: round(r.top - base.top), right: round(r.right - base.left), bottom: round(r.bottom - base.top)};
+  }
+  return {w: round(base.width), h: round(base.height), points, inset: {left: round(base.left), right: round(vw - base.right)}, ...(Object.keys(boxes).length ? {boxes} : {})};
 }
 
 export function usePathGeometry(stage: RefObject<HTMLElement | null>, key: string): PathGeometry | null {

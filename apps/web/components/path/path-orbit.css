@@ -27,8 +27,9 @@
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] { --dot-size: 62px; --label-gap: 12px; --label-font: 14px; --zigi-h: min(92px, 26cqi); --zigi-min: 80px; }
   /* Session AG Polish (owner Part 2): a long, airy journey on a phone — about 170 px from node to node (AG: 96), each
-     orbit's banner in a clear band of its own, so no tab, ZIGi or banner ever touches a neighbour. */
-  .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 104px; padding-top: 72px; }
+     orbit's banner in a clear band of its own, so no tab, ZIGi or banner ever touches a neighbour. Session AG Polish 2:
+     about 178 px, so ZIGi's cheer has room above an edge node's tab now that the nodes use the whole width. */
+  .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 116px; padding-top: 72px; }
   .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 76px; }
   /* Each node stands in its lane (lib/path/phone-lanes.ts): its tab on one line with the free width, ZIGi's room on the
      other side. Before the first measure the wave places it, as before. */
@@ -83,22 +84,30 @@
 .path-stage[data-variant=orbit] .path-step[data-next] .path-label.orbit-tab { color: #ffffff; border-color: color-mix(in srgb, var(--node) 72%, var(--node-dim)); }
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] .path-label.orbit-tab { max-width: min(170px, calc(50cqi + var(--toward, 1) * var(--reach, 0) * var(--swing) - var(--dot-size) * .3 - 8px)); white-space: normal; border-radius: 14px; padding: 4px 10px 5px; }
-  .path-stage[data-variant=orbit] .path-label.orbit-tab .path-label-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+  /* (Session AG Polish 2, owner Part 1d: before the lanes are measured a phone's tab wraps rather than clip — never "…".) */
+  .path-stage[data-variant=orbit] .path-label.orbit-tab .path-label-text { display: block; overflow: visible; }
+  .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab .path-label-text { overflow: visible; text-overflow: clip; }
   .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab { align-items: flex-start; }
   .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label.orbit-tab::before { margin-top: 6px; }
 }
 /* Session AG Polish (owner Part 2): with its lane a phone's tab is one line, as on a computer — two lines only where even
-   the leftmost lane is too narrow (`data-wrap`, 320 px), then the check and the words left-aligned together. */
+   the leftmost lane is too narrow (`data-wrap`, 320 px), then the check and the words left-aligned together.
+   Session AG Polish 2 (ADR-031 K3; owner Part 1d): the whole name always — the tab is as wide as its words (measured as
+   drawn), never capped, never cut with "…"; only a wrapping tab has a width to keep to, and it shows every line. */
 @media (max-width: 640px) {
-  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { max-width: var(--tab-max, 170px); white-space: nowrap; border-radius: 999px; }
-  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab .path-label-text { display: inline; overflow: hidden; text-overflow: ellipsis; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { max-width: none; white-space: nowrap; border-radius: 999px; overflow: visible; text-overflow: clip; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab .path-label-text { display: inline; overflow: visible; text-overflow: clip; }
+  .path-stage[data-variant=orbit][data-lanes] .path-step[data-state=done] .path-label.orbit-tab .path-label-text { overflow: visible; text-overflow: clip; }
   .path-stage[data-variant=orbit][data-lanes] .path-step[data-state=done] .path-label.orbit-tab { align-items: center; }
   .path-stage[data-variant=orbit][data-lanes] .path-step[data-state=done] .path-label.orbit-tab::before { margin-top: 0; margin-bottom: 3px; }
-  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-wrap] { white-space: normal; border-radius: 14px; text-align: start; }
-  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-wrap] .path-label-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-wrap] { max-width: var(--tab-max, 170px); white-space: normal; border-radius: 14px; text-align: start; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-wrap] .path-label-text { display: block; }
   .path-stage[data-variant=orbit][data-lanes] .path-step[data-state=done] .path-label.orbit-tab[data-wrap] { align-items: flex-start; justify-content: flex-start; }
   .path-stage[data-variant=orbit][data-lanes] .path-step[data-state=done] .path-label.orbit-tab[data-wrap]::before { margin-top: 6px; }
 }
+
+/* (The hidden probe a phone measures each name with: the tab's own font, one line.) */
+.orbit-tab-measure { position: absolute; left: 0; top: 0; z-index: -1; visibility: hidden; pointer-events: none; white-space: nowrap; font-size: var(--label-font, 14px); font-weight: 750; letter-spacing: -.005em; line-height: 1.25; contain: layout style; }
 
 /* The next node's one-word tag on its crown (START / NEXT), still: slim glass in its colour. */
 .path-next-tag { position: absolute; left: 50%; top: -16px; z-index: 5; translate: -50% 0; padding: 2px 9px 3px; border-radius: 999px; border: 1.5px solid var(--dot-next, #23eaff); background: var(--orbit-hue-disc-lo); color: #ffffff; font-size: 14px; line-height: 1.15; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 14px -2px color-mix(in srgb, var(--dot-next, #23eaff) 70%, transparent); pointer-events: none; }
@@ -128,7 +137,30 @@
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { flex: 0 1 auto; min-width: 0; }
 .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { margin: 6px max(6px, 4%) 6px auto; }
 @media (max-width: 1179.98px) { .path-stage[data-variant=orbit] { --planet-size: 104px; } }
-@media (max-width: 640px) { .path-stage[data-variant=orbit] { --planet-size: 60px; } .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { margin: 2px 4px 2px auto; } }
+/* Session AG Polish 2 (ADR-031 K4, K5; owner Parts 1b and 1c): on a phone the banner is the Habits banner's compact form —
+   the symbol beside "Morning Orbit" over its count chip, about half its former width — and the planet stands beside it,
+   at its height, as large as a computer's next to its node (88–100 px: about 1.5 × a 62 px node). Its sphere stands 12 px
+   from the stage's edge (a wide ring fades out at the edge); the banner's words lie above its ring layer, so a ring reaching
+   the banner's end passes behind them. */
+@media (max-width: 640px) {
+  .path-stage[data-variant=orbit] { --planet-size: clamp(88px, 26cqi, 100px); }
+  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; min-height: calc(var(--planet-size) + 10px); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 16px), #0000); mask-image: linear-gradient(90deg, #000 calc(100% - 16px), #0000); }
+  .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; z-index: 2; flex: none; grid-template-columns: 28px auto; grid-template-areas: "mark title" "mark count"; column-gap: 10px; row-gap: 5px; align-items: center; justify-items: start; min-height: 0; padding: 9px 12px 9px 10px; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { grid-area: mark; width: 28px; height: 28px; font-size: 14px; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { grid-area: title; font-size: 17px; line-height: 1.15; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-count { grid-area: count; font-size: 14px; line-height: 1.2; padding: 3px 10px; }
+  /* (The sphere 12 px from the stage's edge; a ring reaching past it softens away in the banner's last 16 px.) */
+  .path-stage[data-variant=orbit] .orbit-banner > .orbit-planet { position: absolute; z-index: 1; right: calc(12px - (var(--ex, 1) - 1) * var(--sphere) / 2); top: 50%; margin: 0; translate: 0 -50%; }
+}
+@media (max-width: 640px) {
+  /* (Its tint ends about 44 px after the count chip, well before the planet.) */
+  .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before, .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { inset: 0 -44px 0 0; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), #0000 100%); mask-image: linear-gradient(90deg, #000 calc(100% - 44px), #0000 100%); }
+}
+@media (max-width: 359.98px) {
+  .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { column-gap: 8px; padding: 8px 10px 8px 8px; grid-template-columns: 26px auto; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { width: 26px; height: 26px; font-size: 13px; }
+  .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { font-size: 16px; }
+}
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); }
 .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { white-space: nowrap; }
 .path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count { color: #ffffff; background: color-mix(in srgb, var(--banner) 30%, #0a113099); border-color: color-mix(in srgb, var(--banner) 60%, transparent); }
@@ -146,7 +178,6 @@
 .orbit-banner-sweep { position: absolute; inset: 0; z-index: 1; border-radius: inherit; overflow: hidden; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, #000 0, #000 46%, #0000 80%); mask-image: linear-gradient(90deg, #000 0, #000 46%, #0000 80%); }
 .orbit-banner-sweep::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 38%; background: linear-gradient(100deg, #ffffff00, #effcff59 45%, #c790f640 60%, #ffffff00); translate: -110% 0; animation: orbit-banner-sweep 1300ms cubic-bezier(.3, .6, .25, 1) 200ms both; }
 @keyframes orbit-banner-sweep { to { translate: 260% 0; } }
-@media (max-width: 640px) { .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { padding-inline: 10px 12px; gap: 10px; } }
 @media (prefers-reduced-motion: reduce) { .orbit-banner-sweep { display: none; } }
 :root[data-app-motion=off] .orbit-banner-sweep { display: none; }
 

@@ -90,7 +90,7 @@ export function OrbitPlanet({design, lit, just, point}: {design: PlanetDesign; l
     </svg>
     <span className="orbit-planet-sphere" data-path-point={point}>
       {/* eslint-disable-next-line @next/next/no-img-element -- the owner's own art, a small cut-out, lazily */}
-      <img src={design.sphere.src} srcSet={`${design.sphere.srcSm} 128w, ${design.sphere.src} 256w`} sizes="(max-width: 640px) 64px, 128px" width={256} height={256} alt="" loading="lazy" decoding="async"/>
+      <img src={design.sphere.src} srcSet={`${design.sphere.srcSm} 128w, ${design.sphere.src} 256w`} sizes="(max-width: 640px) 100px, 128px" width={256} height={256} alt="" loading="lazy" decoding="async"/>
     </span>
     <svg className="orbit-planet-front" viewBox={view} fill="none" focusable="false">
       {design.rings.map((r, i) => <Ring key={i} ring={r} far={false} filter={filter} just={just} index={i}/>)}

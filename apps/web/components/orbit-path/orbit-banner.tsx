@@ -18,10 +18,10 @@ import {OrbitPlanet} from './orbit-planet';
  */
 const KNOWN = new Set(['morning', 'afternoon', 'evening', 'anytime']);
 export const orbitTitle = (label: string) => `${label.replace(/\s*orbit\s*$/i, '').trim() || 'Your'} Orbit`;
-export function OrbitBanner({section, done, total, headingId, justComplete = false, planet = null}: {section: PathSection; done: number; total: number; headingId: string; justComplete?: boolean; planet?: PlanetDesign | null}) {
+export function OrbitBanner({section, done, total, headingId, justComplete = false, planet = null, box = false}: {section: PathSection; done: number; total: number; headingId: string; justComplete?: boolean; planet?: PlanetDesign | null; /** Session AG Polish 2: the phone's line keeps clear of the banner's words (`data-path-box`). */ box?: boolean}) {
   const complete = total > 0 && done === total, kind = KNOWN.has(section.id) ? section.id as keyof typeof SECTION_SYMBOLS : 'anytime';
   return <div className={`path-banner orbit-banner habit-section-${kind}`} data-colour={section.colour} data-complete={complete ? '' : undefined} data-just={justComplete ? '' : undefined} style={{'--banner': PATH_COLOURS[nebulaColour(section.colour)].token} as CSSProperties}>
-    <div className="habit-section-summary">
+    <div className="habit-section-summary" data-path-box={box ? `banner:${section.id}` : undefined}>
       <HabitSectionBannerParts symbol={SECTION_SYMBOLS[kind]} title={orbitTitle(section.label)} identity={`orbit-banner:${section.id}`} titleId={headingId} chevron={false}
         count={total ? complete ? 'Complete ✓' : `${done} of ${total}` : 'Nothing here yet'} spoken={total ? complete ? 'complete' : `${done} of ${total} done` : 'nothing here yet'}/>
       {justComplete && <span className="orbit-banner-sweep" aria-hidden="true"/>}

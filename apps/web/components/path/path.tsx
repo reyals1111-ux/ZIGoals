@@ -1,5 +1,5 @@
 'use client';
-import {Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
+import {Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import {milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
@@ -8,7 +8,7 @@ import {OrbitFinale, PathChest} from './path-milestone';
 import {PathDot} from './path-dot';
 import {PathLine} from './path-line';
 import {FlowLine} from '../orbit-path/flow-line';
-import {sidesFor, type FlowNode} from '../../lib/path/flow-geometry';
+import {sidesFor, type FlowBox, type FlowNode} from '../../lib/path/flow-geometry';
 import {PathBanner} from './path-section';
 import {OrbitBanner} from '../orbit-path/orbit-banner';
 import {planetDesigns} from '../../lib/path/planet-pick';
@@ -145,9 +145,41 @@ function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => 
 const PHONE_QUERY = '(max-width: 640px)';
 const subscribePhone = (l: () => void) => { const m = typeof window === 'undefined' ? null : window.matchMedia?.(PHONE_QUERY); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); };
 const usePhoneLayout = (on: boolean) => useSyncExternalStore(subscribePhone, () => on && !!window.matchMedia?.(PHONE_QUERY).matches, () => false);
-/** A name tab's one-line width on a phone: the words (14 px, 750) plus the tab's padding and border and the check's room —
- *  the check is always counted, so a tick never moves a node. */
-const phoneTabWidth = (label: string) => { const w = nameWidth(label, 14); return w === null ? label.length * 8.4 + 40 : Math.ceil(w) + 40; };
+/** A name tab's one-line width on a phone: the words as drawn plus the tab's padding (2 × 10) and border (2 × 1.5), the
+ *  check's room (10 + 1 + its 7 px gap) — always counted, so a tick never moves a node — and 6 px to spare. */
+const TAB_CHROME = 20 + 3 + 18 + 6;
+const phoneTabWidth = (label: string, measured?: number) => measured !== undefined ? Math.ceil(measured) + TAB_CHROME : (() => { const w = nameWidth(label, 14); return w === null ? label.length * 8.4 + TAB_CHROME : Math.ceil(w) + TAB_CHROME; })();
+/**
+ * Session AG Polish 2 (ADR-031 K3; owner Part 1d): each phone tab's words measured as the page draws them — a hidden probe
+ * in the stage with the tab's own font — on mount, once the web fonts are ready, as each font loads and on a resize. (AG
+ * Polish measured on a canvas once, before the font had settled, and cut the tab to exactly that width: "Wa…".)
+ */
+/** Each name's width on one line, as the probe draws it (the probe is emptied again after). */
+function measureLabels(probe: HTMLElement, labels: readonly string[]): number[] {
+  const w = labels.map(label => { probe.textContent = label; return Math.round(probe.getBoundingClientRect().width * 10) / 10; });
+  probe.textContent = '';
+  return w;
+}
+function useTabWidths(probe: RefObject<HTMLSpanElement | null>, labelsKey: string, on: boolean): number[] | null {
+  const [widths, setWidths] = useState<{key: string; w: number[]} | null>(null);
+  useLayoutEffect(() => {
+    const el = probe.current; if (!on || !el) return;
+    let live = true;
+    const measure = () => {
+      if (!live) return;
+      const w = measureLabels(el, labelsKey.split('\u0001'));
+      setWidths(p => p && p.key === labelsKey && p.w.join() === w.join() ? p : {key: labelsKey, w});
+    };
+    measure();
+    const fonts = typeof document === 'undefined' ? undefined : document.fonts;
+    fonts?.ready.then(measure, () => undefined);
+    fonts?.addEventListener?.('loadingdone', measure);
+    window.addEventListener('resize', measure);
+    const t = window.setTimeout(measure, 1500);
+    return () => { live = false; fonts?.removeEventListener?.('loadingdone', measure); window.removeEventListener('resize', measure); window.clearTimeout(t); };
+  }, [probe, labelsKey, on]);
+  return on && widths && widths.key === labelsKey ? widths.w : null;
+}
 /** Where the orbit look lands the next planet: this share of the screen's height between its bars. */
 const landAt = () => typeof window !== 'undefined' && window.innerWidth < 1180 ? .44 : .4;
 
@@ -181,16 +213,25 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const just = useJust(justIds, justIds.join('|'));
   // Session AG Polish (owner Part 2): on a phone each node stands in a lane chosen so its tab fits on one line and ZIGi
   // has room on the other side (lib/path/phone-lanes.ts); the lanes come from the width and the names alone.
-  const phoneLayout = usePhoneLayout(orbit), [laneKey, setLaneKey] = useState('');
+  const phoneLayout = usePhoneLayout(orbit), [laneKey, setLaneKey] = useState(''), probe = useRef<HTMLSpanElement>(null);
   const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}|${laneKey}`;
   const geo = usePathGeometry(stage, geometryKey);
-  const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0;
+  const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0, tabWidths = useTabWidths(probe, labelsKey, phoneLayout);
+  // (Session AG Polish 2: an orbit's first node travels from its orbit's planet, which stands at the right of its banner.)
+  const planetFrom = orbit && geo ? model.sections.map(sec => geo.points[`planet:${sec.id}`]?.x ?? null) : null;
+  const fromKey = planetFrom ? planetFrom.map(x => x === null ? '' : Math.round(x)).join(',') : '';
   const lanes: Lane[] | null = useMemo(() => {
-    if (!phoneLayout || !stageW) return null;
+    if (!phoneLayout || !stageW || !tabWidths) return null;
+    const labels = labelsKey.split('\u0001'), planetsAt = fromKey ? fromKey.split(',') : [];
+    let k = 0; const from: (number | null)[] = model.sections.flatMap((sec, si) => sec.steps.map((_, j) => { k++; return j === 0 && planetsAt[si] ? Number(planetsAt[si]) : null; }));
     // (ZIGi's width at rest on a phone: `--zigi-h: min(92px, 26cqi)` and its figure's 0.838 ratio.)
-    return phoneLanes(labelsKey.split('\u0001').map(phoneTabWidth), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838});
-  }, [phoneLayout, stageW, labelsKey]);
-  const nextLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
+    return phoneLanes(labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838, seed: model.id, from: k === labels.length ? from : undefined});
+  }, [phoneLayout, stageW, labelsKey, tabWidths, fromKey, model]);
+  // Owner amendment 1 (ADR-031): a tab the line still meets after its bounded tries moves to its node's other side, once.
+  const [flipped, setFlipped] = useState<{key: string; ids: string[]}>({key: '', ids: []});
+  const baseLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
+  const flips = flipped.key === baseLaneKey ? flipped.ids : [];
+  const nextLaneKey = baseLaneKey ? `${baseLaneKey}|${flips.join(',')}` : '';
   useLayoutEffect(() => { if (nextLaneKey !== laneKey) setLaneKey(nextLaneKey); }, [nextLaneKey, laneKey]);
 
   // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood. The orbit look cheers beside the
@@ -316,7 +357,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Session AG Polish (owner Part 4): each orbit's planet, by the colour of the node it spawns (lib/path/planet-pick.ts).
   const planets = useMemo(() => orbit ? planetDesigns(model.sections.map(s => s.steps[0]?.colour ?? null), model.id).map(id => id ? PLANET_DESIGNS[id] : null) : [], [orbit, model]);
   const nextAt = next ? steps.findIndex(x => x.id === next.id) : -1;
-  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(l => l.side), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? lanes[nextAt]!.side : flip(lanes[nextAt]!.side)) : 'right' as Side}
+  const laneSide = (i: number) => flips.includes(steps[i]?.id ?? '') ? flip(lanes![i]!.side) : lanes![i]!.side;
+  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map((_, i) => laneSide(i)), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? laneSide(nextAt) : flip(laneSide(nextAt))) : 'right' as Side}
     : orbit ? orbitSides(steps, swingOf, nextAt, geo) : null, labelSides = sides?.labels ?? null;
   // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
   const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheering?.id ?? ''}` : undefined;
@@ -335,16 +377,38 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
     if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
-    const vw = typeof window === 'undefined' ? 1440 : window.innerWidth, swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
-    return {nodes, travel, swing, tailTo: fin ? geo.h - 4 : null};
+    const vw = typeof window === 'undefined' ? 1440 : window.innerWidth;
+    // Session AG Polish 2 (owner Part 1a): on a phone the line swings as widely as the screen allows and every stretch
+    // bows, keeping clear of the name tabs and banners (each tab's reserved one-line width, so a tick never moves the line).
+    if (lanes && lanes.length === steps.length) {
+      const reach = 62 * .3, obstacles: FlowBox[] = [];
+      steps.forEach((st, i) => {
+        const p = geo.points[st.id], q = geo.boxes?.[`tab:${st.id}`], lane = lanes[i]!; if (!p || !q) return;
+        const side = sides?.labels[i] ?? lane.side, wide = lane.maxTab;
+        obstacles.push({id: `tab:${st.id}`, top: q.top, bottom: q.bottom, left: side === 'right' ? p.x + reach : p.x - reach - wide, right: side === 'right' ? p.x + reach + wide : p.x - reach});
+      });
+      for (const [id, q] of Object.entries(geo.boxes ?? {})) if (id.startsWith('banner:')) obstacles.push({id, ...q});
+      return {nodes, travel, swing: Math.min(150, geo.w * .4), minBow: geo.w * .18, obstacles, tailTo: fin ? geo.h - 4 : null};
+    }
+    const swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
+    return {nodes, travel, swing, minBow: undefined, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
   })() : null;
+  // (The tabs the line still meets after its tries: each moves to its node's other side, once per layout — never a loop.)
+  // (Only a tab whose whole name fits on its node's other side, on one line, inside the screen, may move there.)
+  const flippable = lanes && stageW ? steps.filter((_, i) => { const lane = lanes[i]; if (!lane || lane.wrap) return false; const reach = 62 * .3; return flip(lane.side) === 'right' ? lane.x + reach + lane.maxTab <= stageW - 6 : lane.x - reach - lane.maxTab >= 6; }).map(st => st.id).join('|') : '';
+  const onBlocked = (ids: string[]) => {
+    const ok = flippable.split('|'), tabs = ids.filter(id => id.startsWith('tab:')).map(id => id.slice(4)).filter(id => ok.includes(id));
+    if (!tabs.length || !baseLaneKey) return;
+    setFlipped(f => { const have = f.key === baseLaneKey ? f.ids : [], add = tabs.filter(id => !have.includes(id)); return add.length ? {key: baseLaneKey, ids: [...have, ...add]} : f; });
+  };
   let index = 0;
   return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined}>
-    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel}/> : <PathLine geo={geo} segments={segments}/>)}
+    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} minBow={flow.minBow} obstacles={flow.obstacles} onBlocked={onBlocked}/> : <PathLine geo={geo} segments={segments}/>)}
+    {phoneLayout && <span ref={probe} className="orbit-tab-measure" aria-hidden="true"/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
-        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
             const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
@@ -359,7 +423,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
-                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} data-path-box={lane ? `tab:${step.id}` : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane?.wrap ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
                   {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>

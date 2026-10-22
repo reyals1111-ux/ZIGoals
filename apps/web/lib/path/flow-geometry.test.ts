@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {flowSegments, rimPoint, sidesFor, type FlowNode} from './flow-geometry';
+import {bezierPoints, flowSegments, MAX_TRIES, rimPoint, sidesFor, type FlowNode} from './flow-geometry';
 
 const nodes = (n: number, w: number): FlowNode[] => Array.from({length: n}, (_, i) => {
   const side = i % 2 ? 'left' : 'right' as const, x = w / 2 + [0, .5, 1, .5, 0, -.5, -1, -.5][i % 8]! * w * .3;
@@ -58,5 +58,36 @@ describe('an orbit planet on the line (Session AG Polish, owner Part 4, referenc
   test('a lead-in into a planet that opens the path comes down onto its top', () => {
     const lead = flowSegments([planet, nodes[2]!], {w: 480, seed: 'p', swing: 120, leadFrom: 0}).find(s => s.kind === 'lead')!;
     expect([lead.x2, lead.y2]).toEqual([240, 240]);
+  });
+});
+
+describe('the phone\'s line (Session AG Polish 2, ADR-031; owner Part 1a and amendment 1)', () => {
+  const at = (id: string, x: number, y: number, side: 'left' | 'right'): FlowNode => ({id, x, y, r: 31, ...sidesFor(side), colour: '#23eaff', done: false});
+  // The longest piece of a stretch that stays inside a 4 px wide vertical band, as a share of the samples.
+  const straightest = (pts: {x: number}[]) => { let best = 0; for (let i = 0; i < pts.length; i++) { let lo = pts[i]!.x, hi = lo, j = i; while (j + 1 < pts.length) { const x = pts[j + 1]!.x; lo = Math.min(lo, x); hi = Math.max(hi, x); if (hi - lo > 4) break; j++; } best = Math.max(best, j - i); } return best / pts.length; };
+  const ctrl = (d: string) => { const n = numbers(d); return Array.from({length: n.length / 2}, (_, i) => ({x: n[2 * i]!, y: n[2 * i + 1]!})); };
+  test('a stretch whose ends line up still bows clearly (minBow) instead of dropping straight down', () => {
+    const ns = [at('a', 120, 100, 'right'), at('b', 190, 266, 'left')];
+    const plain = flowSegments(ns, {w: 366, seed: 'm', swing: 40}).find(s => s.kind === 'step')!, bowed = flowSegments(ns, {w: 366, seed: 'm', swing: 40, minBow: 66}).find(s => s.kind === 'step')!;
+    expect(straightest(bezierPoints(ctrl(bowed.d))), 'no straight vertical run over 40 %').toBeLessThanOrEqual(.4);
+    expect(straightest(bezierPoints(ctrl(bowed.d)))).toBeLessThanOrEqual(straightest(bezierPoints(ctrl(plain.d))));
+  });
+  test('it keeps clear of a tab when it can, within at most MAX_TRIES shapes', () => {
+    const ns = [at('a', 80, 100, 'right'), at('b', 280, 266, 'left')], tab = {id: 'tab:x', left: 120, right: 260, top: 150, bottom: 200};
+    const blocked = new Set<string>(), seg = flowSegments(ns, {w: 366, seed: 't', swing: 140, minBow: 66, obstacles: [tab], blocked}).find(s => s.kind === 'step')!;
+    const inside = bezierPoints(ctrl(seg.d)).some(p => p.x > tab.left - 6 && p.x < tab.right + 6 && p.y > tab.top - 6 && p.y < tab.bottom + 6);
+    expect(inside === blocked.has('tab:x'), 'either clear, or reported as blocked').toBe(true);
+    expect(MAX_TRIES).toBe(12);
+  });
+  test('where no shape clears an obstacle it stops after MAX_TRIES, draws the best one and reports the obstacle (never a loop)', () => {
+    const ns = [at('a', 80, 100, 'right'), at('b', 280, 266, 'left')], wall = {id: 'tab:wall', left: 0, right: 366, top: 170, bottom: 190};
+    const blocked = new Set<string>(), t0 = performance.now(), segs = flowSegments(ns, {w: 366, seed: 'w', swing: 140, minBow: 66, obstacles: [wall], blocked});
+    expect(performance.now() - t0, 'bounded').toBeLessThan(200);
+    expect(segs.filter(s => s.kind === 'step')).toHaveLength(1);
+    expect([...blocked]).toEqual(['tab:wall']);
+  });
+  test('a computer\'s line is unchanged by the phone\'s options being absent', () => {
+    const ns = nodes(6, 1000), a = flowSegments(ns, {w: 1000, seed: 'today', swing: 220}), b = flowSegments(ns, {w: 1000, seed: 'today', swing: 220, obstacles: []});
+    expect(b.map(s => s.d)).toEqual(a.map(s => s.d));
   });
 });
