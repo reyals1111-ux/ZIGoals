@@ -37,15 +37,14 @@
 .checklist-mist-b { right: -30vmax; top: 22vh; background: radial-gradient(closest-side, #f06dff33, #ff74be17 58%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
 .checklist-mist-c { left: -10vw; bottom: -42vmax; background: radial-gradient(closest-side, #26e8bd2e, #23eaff12 58%, #23eaff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
 @keyframes checklist-mist-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vmax, 4vmax, 0); } }
-/* The planet (pointer 11): the destination art's horizon rising low on the right, its night melting into the sky (screen);
-   only on a computer, where the sidebar already loads it. Below that, a small CSS planet in its style, behind the path. */
+/* The planet (pointer 11): the destination art's horizon rising low on the right, its night melting into the sky (screen).
+   Session AG Polish (pointer 9): phones and tablets show the same art (no CSS stand-in), low on the right behind the path,
+   from a small 640 px file (`srcset`), lazily. */
 .checklist-planet { position: absolute; right: -16vw; top: 58vh; display: none; width: min(62vw, 1000px); aspect-ratio: 1000 / 689; opacity: 1; mix-blend-mode: screen;
   -webkit-mask-image: linear-gradient(90deg, #0000 0, #000 34%), linear-gradient(180deg, #0000 0, #000 22%); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, #0000 0, #000 34%), linear-gradient(180deg, #0000 0, #000 22%); mask-composite: intersect; }
 .checklist-planet img { display: block; width: 100%; height: 100%; }
-.checklist-planet-small { position: absolute; right: -54px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); width: 168px; height: 168px; border-radius: 50%; opacity: .5;
-  background: radial-gradient(circle at 70% 26%, #b49bff66 0, #4f8dff2e 22%, #0a1236 52%, #040817 76%); box-shadow: inset 4px 6px 0 -2px #8fc8ff73, inset 10px 14px 24px -10px #c08bff99, 0 0 46px -8px #6b8dff66; }
-.checklist-planet-small::after { content: ''; position: absolute; left: -24%; right: -24%; top: 46%; height: 12%; border-radius: 50%; border: 2px solid #9fb7ff40; border-top-color: #9fb7ff12; rotate: -16deg; }
-@media (min-width: 1180px) { .checklist-planet { display: block; } .checklist-planet-small { display: none; } }
+.checklist-planet { display: block; }
+@media (max-width: 1179.98px) { .checklist-planet { right: -34vw; top: auto; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); width: max(112vw, 420px); opacity: .85; } }
 /* Nebula on a phone: the clouds sit in the path's own column. */
 @media (max-width: 767.98px) {
   .checklist-mist { width: 130vw; height: 130vw; filter: blur(28px); }
@@ -60,7 +59,6 @@
 :root[data-theme=light] .checklist-sky .checklist-mist-b { background: radial-gradient(closest-side, #fbe6f6, #fbe9f300); }
 :root[data-theme=light] .checklist-sky .checklist-mist-c { background: radial-gradient(closest-side, #e2f6fb, #e2f6fb00); }
 :root[data-theme=light] .checklist-planet { mix-blend-mode: normal; opacity: .9; }
-:root[data-theme=light] .checklist-planet-small { opacity: .6; }
 :root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .12; animation: none; }
 :root[data-theme=dark] .checklist-planet { opacity: .75; }
 
@@ -425,18 +423,19 @@
 .checklist-heat-weeks { grid-area: weeks; display: grid; grid-template-columns: repeat(12, var(--cell)); gap: 5px; margin: 0; padding: 0; list-style: none; color: #c5d3ea; font-size: 14px; white-space: nowrap; }
 .checklist-heat-weeks li:last-child { justify-self: end; }
 .checklist-heat-grid { grid-area: grid; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 5px; justify-content: start; }
-.checklist-heat-cell { width: var(--cell); height: var(--cell); border-radius: 5px; background: #ffffff0f; box-shadow: inset 0 0 0 1px #ffffff08; }
-.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--heat-some) 52%, #0a1130); }
-.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff)); box-shadow: 0 0 6px color-mix(in srgb, var(--heat-all) 45%, transparent); }
-.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%); box-shadow: 0 0 10px color-mix(in srgb, var(--heat-perfect) 75%, transparent); }
+.checklist-heat-cell { --c: #9273ff; width: var(--cell); height: var(--cell); border-radius: 5px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
+/* (Session AG Polish, pointer 11: the week's nebula hue, the state's intensity.) */
+.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
+.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
+.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 80%, transparent); }
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
 .checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
 .checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: #ffffff0f; box-shadow: inset 0 0 0 1px #ffffff14; }
-.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 52%, #0a1130); }
-.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff)); }
-.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%); box-shadow: 0 0 8px color-mix(in srgb, var(--heat-perfect) 70%, transparent); }
+.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
+.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
+.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
+.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 80%, transparent); }
 @media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat { --cell: 14px; } }
 @media (max-width: 767.98px) { .checklist-heat { --cell: 16px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
