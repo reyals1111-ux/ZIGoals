@@ -4259,6 +4259,12 @@
     .checklist-row-line:not(#\-) {
         border-bottom-color: #33333318
     }
+    .checklist-row-check:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
     .checklist-row-check:focus-visible:not(#\-) {
         outline-color: #333333
     }

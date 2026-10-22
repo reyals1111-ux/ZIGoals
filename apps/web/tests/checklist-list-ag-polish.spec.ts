@@ -26,9 +26,11 @@ test('sections per orbit in their node colour, rows with the node as checkbox, n
   const tones = await sections.evaluateAll(ss => ss.map(s => [getComputedStyle(s).getPropertyValue('--orbit').trim(), getComputedStyle(s.querySelector('.checklist-row-check')!).getPropertyValue('--node').trim()]));
   for (const [orbit, node] of tones) expect(orbit).toBe(node);
   const stretch = page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true});
-  expect(await stretch.evaluate(b => [b.classList.contains('orbit-node'), b.hasAttribute('data-lit'), [...b.querySelectorAll('svg.nebula-glyph stop')].map(s => s.getAttribute('stop-color'))])).toEqual([true, false, NEBULA_GLYPH_STOPS.map(s => s.hex)]);
-  const box = (await stretch.boundingBox())!;
-  expect(box.width).toBeGreaterThanOrEqual(34); expect(box.width).toBeLessThanOrEqual(36);
+  expect(await stretch.evaluate(b => [!!b.querySelector(':scope > .orbit-node'), b.hasAttribute('data-lit'), [...b.querySelectorAll('svg.nebula-glyph stop')].map(s => s.getAttribute('stop-color'))])).toEqual([true, false, NEBULA_GLYPH_STOPS.map(s => s.hex)]);
+  // The path's own node at 34 px, inside a 44 px touch target (the layout audit's rule).
+  const node = (await stretch.locator(':scope > .orbit-node').boundingBox())!, box = (await stretch.boundingBox())!;
+  expect(node.width).toBeGreaterThanOrEqual(34); expect(node.width).toBeLessThanOrEqual(36);
+  expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
   await stretch.click();
   const done = page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true});
   await expect(done).toHaveAttribute('data-lit', '');
@@ -62,6 +64,7 @@ test('keyboard: arrows move between rows, Space ticks, the context-menu key open
   // "+": the push-ups habit logs its usual amount in one tap (the real record, with Undo).
   const plus = page.getByRole('button', {name: new RegExp(`^Log \\d+ .* for ${TITLE.push}$`)});
   await expect(plus).toBeVisible();
+  expect((await plus.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await plus.click();
   await expect(page.locator('.aa-toast')).toContainText(TITLE.push);
   // The fold: a section folds and opens.

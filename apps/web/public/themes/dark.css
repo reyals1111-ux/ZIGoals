@@ -4474,10 +4474,16 @@
     .checklist-row-line:not(#\-) {
         border-bottom-color: #ffffff10
     }
-    .checklist-row-check.orbit-node:not(#\-) {
+    .checklist-row-check:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .checklist-row-node.orbit-node:not(#\-) {
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent)
     }
-    .checklist-row-check.orbit-node[data-lit]:not(#\-) {
+    .checklist-row-node.orbit-node[data-lit]:not(#\-) {
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 75%, transparent)
     }
     .checklist-row-check:focus-visible:not(#\-) {
@@ -10390,12 +10396,12 @@
     }
     .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary:not(#\-)::after {
         border-color: #bd9ffb22;
-        background-image: linear-gradient(120deg, #0d061c33, #03030999);
+        background-image: linear-gradient(120deg, #06031bc7, #030209c7);
         background-color: transparent
     }
     :scope[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary:not(#\-)::after {
         border-color: #bd9ffb40;
-        background-image: linear-gradient(120deg, #0d0528f0, #010213f5);
+        background-image: linear-gradient(120deg, #02010df7, #010213f7);
         background-color: transparent
     }
     .path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count:not(#\-) {
@@ -10405,11 +10411,19 @@
         border-color: color-mix(in srgb, var(--banner) 60%, transparent)
     }
     .path-stage[data-variant=orbit] .orbit-banner.habit-section-morning > .habit-section-summary:not(#\-)::before {
-        background-image: radial-gradient(circle at 34px 50%, #ff9ad255, transparent 70px), linear-gradient(100deg, #ff8fb033 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%);
+        background-image: radial-gradient(circle at 34px 50%, #ff9ad255, transparent 48px), linear-gradient(100deg, #ff8fb033 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%);
         background-color: transparent
     }
     .path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon > .habit-section-summary:not(#\-)::before {
-        background-image: radial-gradient(circle at 34px 50%, #c7f6ff55, transparent 70px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%);
+        background-image: radial-gradient(circle at 34px 50%, #c7f6ff55, transparent 48px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] .orbit-banner.habit-section-evening > .habit-section-summary:not(#\-)::before {
+        background-image: radial-gradient(circle at 34px 50%, #ff74be44, transparent 48px), linear-gradient(100deg, #ff6f8f33 0%, #b177f42e 34%, #15073a26 68%, transparent 95%);
+        background-color: transparent
+    }
+    .path-stage[data-variant=orbit] .orbit-banner.habit-section-anytime > .habit-section-summary:not(#\-)::before {
+        background-image: radial-gradient(circle at 34px 50%, #cfd9ff33, transparent 48px), radial-gradient(1px 1px at 62% 30%, #ffffff99, transparent), radial-gradient(1px 1px at 78% 62%, #ffffff88, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #ffffffaa, transparent), linear-gradient(100deg, #0c0d3140 0%, #05062030 50%, transparent 95%);
         background-color: transparent
     }
     .path-stage[data-variant=orbit] .orbit-banner.habit-section-morning .habit-section-mark:not(#\-) {

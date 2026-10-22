@@ -115,10 +115,11 @@
 /* (The Habits section's summary rules, here without its card: the band's place and its tint, which mists away past the title.) */
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; isolation: isolate; border-radius: 22px; }
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { content: ''; position: absolute; inset: 0 -70% 0 0; z-index: -1; border-radius: inherit; pointer-events: none; }
-.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { content: ''; position: absolute; inset: 0 -70% 0 0; z-index: -2; border-radius: inherit; pointer-events: none; border: 1px solid #bd9ffb22; background: linear-gradient(120deg, #2a1f4433, #12101f99);
+.path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { content: ''; position: absolute; inset: 0 -70% 0 0; z-index: -2; border-radius: inherit; pointer-events: none; border: 1px solid #bd9ffb22; background: linear-gradient(120deg, #1b1640c7, #0f0d1fc7);
   -webkit-mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); }
 /* (By day the band keeps the night ground the nebula title needs, like the name tabs; it still mists away past the count.) */
-:root[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { border-color: #bd9ffb40; background: linear-gradient(120deg, #2a1f58f0, #0a1130f5); }
+:root[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::after { border-color: #bd9ffb40; background: linear-gradient(120deg, #0d0b26f7, #0a1130f7); }
+:root[data-theme=light] .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { opacity: .65; }
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { grid-template-columns: 34px auto auto; justify-content: start; cursor: default; }
 /* Its planet (owner Part 4) stands on the line at the banner's height, after the title and count; where the banner leaves
    it too little room (a narrow phone) it wraps under the banner, right-aligned, in a band of its own — still on the line. */
@@ -131,10 +132,14 @@
 .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); mask-image: linear-gradient(90deg, #000 0, #000 58%, #0000 100%); }
 .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { white-space: nowrap; }
 .path-stage[data-variant=orbit] .orbit-banner[data-complete] .habit-section-count { color: #ffffff; background: color-mix(in srgb, var(--banner) 30%, #0a113099); border-color: color-mix(in srgb, var(--banner) 60%, transparent); }
+/* (Each glow stays round its symbol — 48 px, not the Habits page's 70 — so the gradient title keeps 3:1 over it.)
 /* (The Checklist uses the nebula palette only, request 1d: the morning's warm glow and the afternoon's pale sun take their
    nebula neighbours here — pink for the morning's gold, ice cyan for the afternoon's yellow; the Habits page keeps its own.) */
-.path-stage[data-variant=orbit] .orbit-banner.habit-section-morning > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #ff9ad255, transparent 70px), linear-gradient(100deg, #ff8fb033 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%); }
-.path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #c7f6ff55, transparent 70px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-morning > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #ff9ad255, transparent 48px), linear-gradient(100deg, #ff8fb033 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #c7f6ff55, transparent 48px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-evening > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #ff74be44, transparent 48px), linear-gradient(100deg, #ff6f8f33 0%, #b177f42e 34%, #3b2a7a26 68%, transparent 95%); }
+.path-stage[data-variant=orbit] .orbit-banner.habit-section-anytime > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #cfd9ff33, transparent 48px), radial-gradient(1px 1px at 62% 30%, #fff9, transparent), radial-gradient(1px 1px at 78% 62%, #fff8, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #fffa, transparent), linear-gradient(100deg, #2a2f6a40 0%, #1a1f4a30 50%, transparent 95%); }
+@media (forced-colors: active) { .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary::before { display: none; } }
 .path-stage[data-variant=orbit] .orbit-banner.habit-section-morning .habit-section-mark { color: #ffd6ec; background: radial-gradient(circle at 40% 35%, #ff9ad288, #ff8fb033); }
 .path-stage[data-variant=orbit] .orbit-banner.habit-section-afternoon .habit-section-mark { color: #d4f8ff; background: radial-gradient(circle at 40% 35%, #c7f6ff88, #39c6ff33); }
 /* Complete, once: a soft light sweeps along the band. */

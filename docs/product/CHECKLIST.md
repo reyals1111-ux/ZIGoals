@@ -1,4 +1,4 @@
-# The Checklist (Session AF, Part 7; ADR-028)
+# The Checklist (Session AF, Part 7; ADR-028; redesigned in Sessions AG and AG Polish, ADR-029 and ADR-030)
 
 Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (`docs/product/OWNER_REQUESTS_AF.md`).
 
@@ -15,6 +15,12 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   a name tab; unlit until done, lit once done), each in its own colour (a habit's card tone, else its own; no two
   neighbours alike), one flowing neon line tangent to every ring, light left-anchored orbit labels, slim timer cards with
   honest values, the dashboard's own sky, one of the app's planets, no chests (only the day's finale) and no XP.
+  **Session AG Polish (ADR-030):** every glyph in the nebula colour flow, with a wider name → glyph table; nodes not yet
+  done are matte (the next one too); no gold anywhere (a stored gold shows as pink); each orbit wears the Habits page's
+  own section banner ("Morning Orbit" …, the count right after the title) and has a planet from the owner's art on the
+  line (in at its top rim, out at its bottom rim), chosen by its first node's colour, matte until the orbit is complete,
+  then a one-time completion; on a phone the nodes stand about 170 px apart in lanes that keep every name on one line
+  where it fits, with ZIGi's room reserved; after a tick the next node glides into view.
 - **Ticking.** Any dot, in any order. The real record is written through each page's own functions: a habit check-in
   (Habits' Complete / Add), a goal step (the milestone's own tick), water, a diary entry, a weight (an upsert for the day),
   a night (start, then end), mindful minutes, a fast (start, then stop, with the linked habit's time as Health adds it).
@@ -30,7 +36,15 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   one into the history (counts only), and days never opened are sealed from the records for up to two weeks.
 - **Timers.** Sleep, Meditate, Fast and Focus (when a timed habit is on the path), always in reach: one tap starts the
   page's own timer, the next ends it, and the record lands on its page.
-- **Two views.** Path (default) and List (compact pills with an accent colour from the palette).
+- **Two views.** Path (default) and List. Session AG Polish: the List is Todoist-style — a section per orbit under a
+  banner in its first node's colour with its count and a fold; rows with the path's own node as the checkbox, a second
+  line (value, what it is, the time), a quick "+" for items logged more than once and ⋯ for details; done rows move into
+  a closed "Done · n" fold; "+ Add to … Orbit" opens Edit path with that orbit chosen; arrows, Space/Enter and the
+  context-menu key; swipe right on phones.
+- **The celebration (Session AG Polish).** Plays whenever today is complete, however it was finished (here, on a page,
+  from Today's card or ZIGi), once per day on this device (`checklist.celebratedOn`), the next time the Checklist is open
+  that day; "Replay today's celebration" in the menu. The day's planets and an orb per item settle into a ring around
+  ZIGi's celebrate clip on the theme's own sky; the real count, streak and Continue; reduced motion: the still.
 - **Feedback.** A soft bell only when sounds are on (off by default) and outside the quiet hours; a short vibration only
   where the device has one (iOS Safari has none, and Options says so).
 - **Nudges.** At most three gentle lines a day on Today's Checklist card (10:00, 15:00, 19:00), never in the quiet hours,
@@ -38,6 +52,8 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
 - **The launcher.** ZIGi's and the music button's twin, between Music and ZIGi on a computer; tucked into the edge with its
   arrow; switched off per device in Settings. Phones have no third floating button: More, Today's card and the Home Screen
   shortcut (`/app/checklist` in the manifest) lead to it (ADR-028 H68).
+  Session AG Polish (owner addition): a "Checklist" pill in the phone header (≤ 640 px) on every app page but the
+  Checklist, between the logo and "+", following the launcher's off setting; the launcher's mark is one bold nebula check.
 - **Themes.** Nebula: the star sky with a slow mist (the page's one loop, owner-approved); Light: white with a very light
   colour mist; Dark: black with a subtle mist. Dots, lines, banners, chests and timers are the same colours in all three.
   Session AG: the sky is the dashboard's own ground in each theme.
@@ -50,7 +66,8 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   apart), orbits, order, each item's default and last value. Loose and versioned.
 - `zigoals:checklist-days:v1` — the day history (counts and the Perfect-orbit flag) and today's tick receipts and custom
   ticks. Loose and versioned.
-- `zigoals:ui-prefs:v1`, group `checklist` — the launcher switch and fold, the view, the accent, sounds, vibration, nudges.
+- `zigoals:ui-prefs:v1`, group `checklist` — the launcher switch and fold, the view, the accent, sounds, vibration, nudges,
+  and (Session AG Polish) `celebratedOn`, the day whose celebration this device has played.
 - Never synced in Session AF (a guard test); shaped as an extras-sync section `checklist` so a later session can carry
   them: `healthItems` and today's receipts (which name Health entries) must stay device fields inside the Health consent.
 

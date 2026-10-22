@@ -57,10 +57,11 @@ export function ListView({state, onAdd}: {state: ChecklistState; onAdd?: (sectio
     const label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
     const kind = KIND_WORD[dot.kind] ?? '', time = done && dot.doneAt ? formatTime(dot.doneAt) : '';
     const sub = [dot.note, kind, time].filter(Boolean).join(' · ');
+    // (The node is the path's own, 34 px; its button is a 44 px touch target around it.)
     const face = <OrbitNodeFace glyph={orbitGlyph(dot)} just={just}/>, style = {'--node': colour, '--node-size': '34px'} as CSSProperties;
     const check = dot.intent === 'open' && dot.href
-      ? <Link className="checklist-row-check orbit-node" data-lit={done ? '' : undefined} href={dot.href} aria-label={label} data-step={dot.id} style={style}>{face}</Link>
-      : <button type="button" className="checklist-row-check orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined} aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} style={style} onClick={() => void press(dot, dot.intent ?? 'tick')}>{face}</button>;
+      ? <Link className="checklist-row-check" data-lit={done ? '' : undefined} href={dot.href} aria-label={label} data-step={dot.id} style={style}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></Link>
+      : <button type="button" className="checklist-row-check" data-lit={done ? '' : undefined} aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} style={style} onClick={() => void press(dot, dot.intent ?? 'tick')}><span className="checklist-row-node orbit-node" data-lit={done ? '' : undefined} data-just={just ? '' : undefined}>{face}</span></button>;
     const again = dot.intent === 'value' && dot.value && !done;
     const content = <>
       <div className="checklist-row-line">
