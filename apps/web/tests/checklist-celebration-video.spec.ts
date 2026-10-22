@@ -88,6 +88,24 @@ test('not ready within 1.5 s: the last frame and the words at once, and the clip
   await expect(party(page)).toHaveCount(0);
 });
 
+// (Owner amendment 2, found by CI's WebKit job on c5014b60: a clip that started and then never moved held the moment.)
+test('a clip that starts but stops moving: its last frame and the words within 1.5 s; Continue closes it', async ({page}) => {
+  test.setTimeout(60_000);
+  // play() resolves, but the clip never moves (a stalled decoder): its time stays where it was.
+  await page.addInitScript(() => { HTMLMediaElement.prototype.play = function () { return Promise.resolve(); }; });
+  await open(page);
+  for (const n of ['Fictional one', 'Fictional two', 'Fictional three']) await tick(page, n);
+  const dialog = party(page);
+  await expect(dialog).toHaveAttribute('data-phase', 'playing');
+  await expect(dialog).not.toHaveAttribute('data-words', '');
+  const t0 = Date.now();
+  await expect(dialog).toHaveAttribute('data-phase', 'rest', {timeout: 3000});
+  expect(Date.now() - t0, 'within about 1.5 s of standing still').toBeLessThan(2600);
+  await expect(dialog).toHaveAttribute('data-words', '');
+  await dialog.getByRole('button', {name: 'Continue'}).click();
+  await expect(party(page)).toHaveCount(0);
+});
+
 test('Save-Data: the still with the words, no clip fetched', async ({page}) => {
   await page.addInitScript(() => Object.defineProperty(navigator, 'connection', {value: {saveData: true}, configurable: true}));
   const clips = clipRequests(page);

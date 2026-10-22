@@ -15,8 +15,12 @@ async function settledMoment(page: Page) {
   await expect(dialog).toBeVisible();
   // Within 1.5 s (and a margin for the runner): playing, or resting on the still with the words.
   await expect.poll(async () => { const [phase, words] = await dialog.evaluate(d => [d.getAttribute('data-phase'), d.hasAttribute('data-words')]); return phase === 'playing' || (phase === 'rest' && words); }, {timeout: 2500}).toBe(true);
+  // (CI on c5014b60: the clip played in WebKit, and Continue — not shown, and not pressable, until the words come — could
+  // never be clicked. While it plays, a tap on the clip, as a person would tap, skips to its last frame with the words; a
+  // clip that stops moving shows them by itself within 1.5 s. Either way the words come, and Continue closes it.)
+  if (!await dialog.evaluate(d => d.hasAttribute('data-words'))) await dialog.click({position: {x: 40, y: 200}});
+  await expect(dialog).toHaveAttribute('data-words', '', {timeout: 2500});
   await dialog.getByRole('button', {name: 'Continue'}).click();
-  if (await party(page).count()) await dialog.getByRole('button', {name: 'Continue'}).click();
   await expect(party(page)).toHaveCount(0);
 }
 test('the celebration on a phone in WebKit: it plays or shows the still at once, and Continue closes it — the replay too', async ({page, browserName}, info) => {

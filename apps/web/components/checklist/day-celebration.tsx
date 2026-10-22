@@ -17,7 +17,8 @@ import './day-celebration.css';
  * - On a phone the clip fills the screen (cover, the subject centred); on a computer or a tablet it stands at full height
  *   in the middle, the sides filled by a blurred, darkened copy of the same frames (a small canvas mirror), so no hard edge.
  * - Not ready to play within 1.5 s, autoplay refused, a source failing, reduced motion, Motion Off or Save-Data: the
- *   last frame and the words at once, and the clip never starts late.
+ *   last frame and the words at once, and the clip never starts late. A clip that starts but stops moving for 1.5 s rests
+ *   on its last frame with the words too: the moment never hangs on a clip (owner amendment 2).
  * - A tap anywhere (or Space or Enter) before the words skips to the last frame with the words; Escape and Continue close
  *   it; focus is held inside and returns to the path; the title, line and streak are its name and description; the media
  *   is aria-hidden.
@@ -46,18 +47,30 @@ export default function DayCelebration({streak, grew = false, perfect, total, on
   useEffect(() => {
     const box = host.current; if (!decision.play || !box) return;
     const video = takeCelebrationVideo(); box.appendChild(video);
-    let started = false, over = false, frame = 0;
+    let started = false, over = false, frame = 0, watch = 0, lastTime = -1, lastMove = 0;
     const timers: number[] = [];
     const draw = () => {
       const c = mirror.current, x = c?.getContext('2d');
       if (x && c && video.readyState >= 2) { try { x.drawImage(video, 0, 0, c.width, c.height); } catch { /* not drawable yet */ } }
       if (!over && !video.paused && !video.ended) frame = requestAnimationFrame(draw);
     };
-    const finish = () => { if (over) return; over = true; cancelAnimationFrame(frame); setPhase('rest'); setWords(true); };
+    const finish = () => { if (over) return; over = true; cancelAnimationFrame(frame); window.clearInterval(watch); setPhase('rest'); setWords(true); };
     const stopLoading = () => { video.pause(); for (const s of [...video.querySelectorAll('source')]) s.remove(); video.removeAttribute('src'); try { video.load(); } catch { /* gone */ } };
     const start = () => {
       if (started || over) return; started = true;
-      video.play()?.then(() => { if (over) return; setPhase('playing'); frame = requestAnimationFrame(draw); }).catch(() => { finish(); stopLoading(); });
+      video.play()?.then(() => {
+        if (over) return; setPhase('playing'); frame = requestAnimationFrame(draw);
+        // (A clip that starts but stops moving — a stalled decoder or network — never holds the moment: READY_MS without
+        // progress and its last frame and the words show. The clip's own events are checked here too, should one not come.)
+        lastTime = video.currentTime; lastMove = performance.now();
+        watch = window.setInterval(() => {
+          if (over) return;
+          if (video.ended) { finish(); return; }
+          if (video.currentTime >= CELEBRATION_CLIP.uiAt) setWords(true);
+          if (video.currentTime !== lastTime) { lastTime = video.currentTime; lastMove = performance.now(); return; }
+          if (performance.now() - lastMove >= READY_MS) { video.pause(); finish(); }
+        }, 250);
+      }).catch(() => { finish(); stopLoading(); });
     };
     const onTime = () => { if (video.currentTime >= CELEBRATION_CLIP.uiAt) setWords(true); };
     const onEnded = () => finish();
@@ -67,7 +80,7 @@ export default function DayCelebration({streak, grew = false, perfect, total, on
     // (Not ready in time: the still and the words now, and the clip is let go — never a late start.)
     timers.push(window.setTimeout(() => { if (!started) { finish(); stopLoading(); } }, READY_MS));
     skip.current = () => { if (over) return; video.pause(); finish(); };
-    return () => { over = true; cancelAnimationFrame(frame); timers.forEach(t => window.clearTimeout(t)); video.removeEventListener('timeupdate', onTime); video.removeEventListener('ended', onEnded); video.removeEventListener('error', onError, true); video.removeEventListener('canplay', start); video.pause(); video.remove(); };
+    return () => { over = true; cancelAnimationFrame(frame); window.clearInterval(watch); timers.forEach(t => window.clearTimeout(t)); video.removeEventListener('timeupdate', onTime); video.removeEventListener('ended', onEnded); video.removeEventListener('error', onError, true); video.removeEventListener('canplay', start); video.pause(); video.remove(); };
     // one clip per opening
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
