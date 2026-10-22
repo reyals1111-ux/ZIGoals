@@ -43,6 +43,12 @@ test('a star on a habit puts it on the path; a tick writes the habit’s record;
   await expect.poll(() => entryToday(page, ID.stretch)).toMatchObject({count: 1, disposition: 'logged'});
   const receipts = await stored<{today: {ticks: {id: string}[]}}>(page, CHECKLIST_DAYS_KEY);
   expect(receipts?.today.ticks).toHaveLength(1);
+  // Session AG Polish 2 (ADR-031 K13), moved at equal strength: the day's only planet completes the day, so its
+  // celebration opens and holds the toast while it is open; Escape closes it and the same Undo is back.
+  const party = page.locator('dialog.checklist-celebration');
+  await expect(party).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(party).toHaveCount(0);
   await page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}).click();
   await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 planet today');
   await expect.poll(() => entryToday(page, ID.stretch)).toBeNull();
