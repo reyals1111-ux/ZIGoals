@@ -2,8 +2,9 @@
 // stage (no stage is renumbered). The lead appends CHECKLIST_STAGE to VERIFIER_STAGES and its sentinel to SENTINELS.
 //
 // Browser-local only, like the goal stage: a fictional habit named by a sentinel is created on Habits, starred for the
-// Checklist, ticked on /app/checklist (its habit record gains today's check-in through Habits' own change), then Undo puts
-// the record back (no entry for today). No wallet, no signature, nothing written to a server; every request the page makes
+// Checklist, ticked on /app/checklist (its habit record gains today's check-in through Habits' own change), the day's
+// celebration that this completes is closed (Session AG Polish 2: it holds the toast while open), then Undo puts the record
+// back (no entry for today). No wallet, no signature, nothing written to a server; every request the page makes
 // stays on the base (the verifier's GET-only and origin rules apply unchanged). `expect` is Playwright's, passed in by the
 // caller. No import.meta and no top-level await: the browser spec loads this file too.
 import assert from 'node:assert/strict';
@@ -59,6 +60,18 @@ export async function tickAndCheck(page, expect, title = CHECKLIST_SENTINELS.hab
   const {entry} = await habitEntryToday(page, title);
   assert(entry && entry.count >= 1, 'the habit record holds today\'s check-in');
 }
+/** Session AG Polish 2 (ADR-031 K13): the day's only planet completes the day, so its celebration opens (once a day on this
+ *  device) and holds the toast while it is open; Escape closes it and the toast comes back with its Undo. Where it does not
+ *  open (already played today in this browser), there is nothing to close. */
+export async function closeCelebration(page, expect) {
+  const party = page.locator('dialog.checklist-celebration');
+  const opened = await party.waitFor({state: 'visible', timeout: 10_000}).then(() => true, () => false);
+  if (opened) {
+    await page.keyboard.press('Escape');
+    await expect(party).toHaveCount(0);
+  }
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
+}
 /** Undo in the toast: the dot waits again and the habit's record is back as it was (no check-in today); Habits agrees. */
 export async function undoAndCheck(page, expect, base, title = CHECKLIST_SENTINELS.habit) {
   await page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}).click();
@@ -78,6 +91,7 @@ export async function checklistStage(page, {base, expect, report}) {
   const dot = await openChecklist(page, expect, base);
   await expect(dot).toBeVisible();
   await tickAndCheck(page, expect);
+  await closeCelebration(page, expect);
   await undoAndCheck(page, expect, base);
   if (report) report.checklist = {habit: 'fictional sentinel', ticked: true, undone: true};
   await page.waitForLoadState('networkidle');

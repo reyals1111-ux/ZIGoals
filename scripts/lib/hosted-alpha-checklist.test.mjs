@@ -44,6 +44,18 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(completion).toContain('`${day.status === "complete" ? "Undo completion for" : "Complete"} ${habit.title}`');
     expect(CHECKLIST_PATH).toBe('/app/checklist');
   });
+  // Session AG Polish 2 (ADR-031 K13): the tick completes the day, whose celebration holds the toast until it closes.
+  test('the celebration it closes before Undo is the app’s own: its dialog, closed by Escape, holding the toast while open', () => {
+    const party = read('../../apps/web/components/checklist/day-celebration.tsx'), toast = read('../../apps/web/components/ui/undo-toast.tsx');
+    expect(party).toContain('className="checklist-celebration"');
+    expect(party).toContain('useEscapeLayer(true, onClose);');
+    expect(party).toContain('const release = holdToast();');
+    expect(toast).toContain('export function holdToast(): () => void {');
+    expect(code).toContain("page.locator('dialog.checklist-celebration')");
+    expect(code).toContain("page.keyboard.press('Escape')");
+    expect(code.indexOf('await closeCelebration(page, expect);')).toBeGreaterThan(code.indexOf('await tickAndCheck(page, expect);'));
+    expect(code.indexOf('await closeCelebration(page, expect);')).toBeLessThan(code.indexOf('await undoAndCheck(page, expect, base);'));
+  });
   test('a done dot is named by its label, its note and "done" (the path engine’s words)', () => {
     expect(doneName('Verifier orbit sip 7f3e').test('Verifier orbit sip 7f3e: 1 time: done')).toBe(true);
     expect(doneName('Verifier orbit sip 7f3e').test('Verifier orbit sip 7f3e: done')).toBe(true);
