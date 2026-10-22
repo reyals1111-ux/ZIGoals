@@ -71,8 +71,17 @@ describe('Session AF Checklist keys (TIER 3 storage, ADR-028 H10): versioned, lo
 
 describe('the ui-prefs checklist group (display, device-only)', () => {
   test('defaults: launcher on, path view, sounds off, vibration and nudges on', () => {
-    expect(checklistPrefsOf({version: 1})).toEqual({launcher: true, folded: false, view: 'path', accent: 'cyan', sounds: false, haptics: true, nudges: true});
-    expect(checklistPrefsOf({version: 1, checklist: {launcher: false, folded: true, view: 'list', accent: 'gold', sounds: true, haptics: false, nudges: false}})).toEqual({launcher: false, folded: true, view: 'list', accent: 'gold', sounds: true, haptics: false, nudges: false});
+    expect(checklistPrefsOf({version: 1})).toEqual({launcher: true, folded: false, view: 'path', accent: 'cyan', sounds: false, haptics: true, nudges: true, celebratedOn: null});
+    expect(checklistPrefsOf({version: 1, checklist: {launcher: false, folded: true, view: 'list', accent: 'gold', sounds: true, haptics: false, nudges: false}})).toEqual({launcher: false, folded: true, view: 'list', accent: 'gold', sounds: true, haptics: false, nudges: false, celebratedOn: null});
+  });
+  test('Session AG Polish (TIER 3 storage): the day whose celebration played, read tolerantly; anything else is dropped', () => {
+    expect(checklistPrefsOf(uiPrefsSchema.parse({version: 1, checklist: {celebratedOn: '2026-10-22'}})).celebratedOn).toBe('2026-10-22');
+    for (const odd of ['22/10/2026', 20261022, '', 'yesterday', null]) expect(checklistPrefsOf(uiPrefsSchema.parse({version: 1, checklist: {celebratedOn: odd, launcher: false}}))).toMatchObject({celebratedOn: null, launcher: false});
+    // (An older build's schema — the group without the field — still reads the record whole.)
+    const {m, storage} = memory();
+    m.set(UI_PREFS.key, JSON.stringify({version: 1, theme: 'dark', checklist: {view: 'list', celebratedOn: '2026-10-22'}}));
+    const read = readDeviceRecord(storage, UI_PREFS);
+    expect(read.unreadable).toBe(false); expect(read.data.theme).toBe('dark'); expect(checklistPrefsOf(read.data)).toMatchObject({view: 'list', celebratedOn: '2026-10-22'});
   });
   test('a value this build cannot read never makes the whole record unreadable (the theme and the folds survive)', () => {
     const {m, storage} = memory();
