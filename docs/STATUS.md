@@ -20,6 +20,7 @@
 | 9 fix | Help: the new answer in the AF section's hash test; no internal words in the answer | 1 | `81eaaabf` | local, CI |
 | 2b fix | The pill in the header from the first paint, so it never shifts the header's icons after load (CI's `run11-layout-stability` on `/app/wealth`, phone: 0.105 against < 0.1 on `9e98adc0`) | 1 | `f1f9e033` | local, CI |
 | 9 fix | The Checklist specs seed on `/robots.txt` (no app code) instead of Settings, so WebKit has no request to cancel on the next navigation (`webkit-checklist:11` failed twice; ADR-030 J21) | 1 | `37434eb3` | local, CI, WebKit CI |
+| 2b fix | The pill fits a narrow phone as served (check alone below 375 px until measured) and no longer prefetches the Checklist (CI's WebKit job on `f82bb4b8`: `zigi-oneline-z:257`, `webkit-phone`; J22) | 1 | `a4b7dbf0` | local, CI, WebKit CI |
 
 ## What changed, pointer by pointer (reference 01) and per request
 - **1–4 Orbit banners:** the Habits page's own section banner (`HabitSectionBannerParts`, shared; the Habits page's markup unchanged, its specs and parity rows pass) with ☀ ◐ ☾ ✦, "Morning Orbit" … in the nebula flow, AG's fade, the count chip right after the title, "Complete ✓" with one light sweep. No box of its own; a night band behind the title in every theme.
@@ -64,6 +65,8 @@
 
 ## Known CI intermittents (this session)
 - `webkit-checklist:11` (WebKit, phone): failed on `961f32de` and `4322f55c` (passed on `9e98adc0`) with the shell's music, push and account reads on the seeding Settings page cancelled "due to access control checks". Investigated after the second failure: the seed now runs on a page with no app code (`37434eb3`, J21). Also on WebKit: `zigi-oneline-z:257` "WebKit encountered an internal error" on a `goto` (`9e98adc0`; ADR-025 E28's family, ZIGi code this PR does not touch).
+- On `f82bb4b8` WebKit found the pill's two faults (J22): the header spilled at 320 px before the script measured it (`zigi-oneline-z:257`), and the cancelled shell reads came up in `webkit-phone` too, so the cause was the pill's prefetch on every phone page, not the seed. Fixed in `a4b7dbf0`. Locally: the header fits as served and hydrated at 320/360/375/390 px; `phone-checklist-button`, `zigi-oneline-z`, `run11-layout-stability`, `pages-visibility`, and the two WebKit specs run in Chromium, 43 passed; `ui-evidence` forced colours passed.
+- `theme-parity-af` `/app/activity` (desktop, `4322f55c`): a 240 s timeout inside a scroll, the page not answering; passed on `961f32de` and locally (38 s).
 - `pnpm audit` (checks job, `4322f55c`): npm's advisories endpoint timed out three times; lint, types, unit and build had passed.
 - Canonical reproducibility "environment disagreement" (the reproducibility workflow's compare job): runner images differ, as listed by Session AF; not part of Milestone quality.
 - `scripts/run11/stage8-rehearsal/lock-switch-browser` (integration job, on `379f92d3`): timed out once waiting for the vault form's recovery secret, in account code this PR does not touch; passed on the next head.
