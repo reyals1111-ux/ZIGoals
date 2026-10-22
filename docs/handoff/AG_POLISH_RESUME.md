@@ -10,17 +10,17 @@ No new dependencies; one storage field only (`checklist.celebratedOn` in `zigoal
 |---|---|---|---|
 | 0 | Records (Alpha #46, verifier on #46, H62 correction), ADR-030, this file, Draft PR (#92) | done | `cc7e9a24` |
 | 1 | Nebula glyphs, more glyphs, matte unreached, no gold, the arc | done | `fb19d01b` |
-| 2b | Owner addition: the phone header's Checklist pill, the launcher's bold check | to do (after 2) | — |
-| 2 | The phone layout | done | this commit |
-| 3 | The Habits banners | to do | — |
-| 4 | Orbit planets | to do | — |
-| 5 | Pointer 9 on phones, Orbit consistency | to do | — |
-| 6 | Celebration: always fires (Tier 3 storage) and rebuilt | to do | — |
-| 7 | The List view | to do | — |
-| 8 | Extras | to do | — |
+| 2b | Owner addition: the phone header's Checklist pill, the launcher's bold check | done | (this push) |
+| 2 | The phone layout | done | `c5104d1a`, fix `379f92d3` |
+| 3 | The Habits banners | done | (this push) |
+| 4 | Orbit planets | done | (this push) |
+| 5 | Pointer 9 on phones, Orbit consistency | done | (this push) |
+| 6 | Celebration: always fires (Tier 3 storage) and rebuilt | done | (this push) |
+| 7 | The List view | done | (this push) |
+| 8 | Extras (camera follow, ZIGi's greeting on an orbit, the flame, replay) | done | (this push) |
 | 9 | Themes, checks, finish | to do | — |
 
-## Captures used (self-check, scratchpad only): 1 of 20
+## Captures used (self-check, scratchpad only): 3 of 20
 
 ## Next step
-Part 2b: `git stash pop` (`part2b`: the header pill, the bold check, the theme island) plus `tests/phone-checklist-button.spec.ts` (untracked). Then Part 3 (`components/habits/habit-section-banner.tsx` written, `habit-sections.tsx` uses it, uncommitted) and Part 4 (helper 2's assets are in `public/art/checklist/planets/`, `lib/path/planet-designs.ts`, `scripts/checklist/prepare-planets.py`, uncommitted).
+Part 9: the self-check captures (Light planets at 1440 and 390 first, amendment 5), theme parity and the layout audit for /app/checklist, weights, frozen readers, check-secrets, the STATUS entry; then the PR out of Draft once CI is green.

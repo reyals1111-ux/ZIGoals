@@ -3,8 +3,13 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AG (release `2026-10-session-ag-orbit-checklist`, ADR-029): the orbit Checklist. Each link opens its Help answer. */
+/** Session AG Polish (release `2026-10-session-ag-polish-checklist`, ADR-030): the Checklist, finished. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ag-polish', label: 'The Checklist, finished: a planet for every orbit and a celebration every day'},
+  {href: '/app/help#help-af-checklist', label: 'On a phone: your Checklist one tap away in the header'},
+];
+/** Session AG (release `2026-10-session-ag-orbit-checklist`, ADR-029); Session AG Polish followed it, so it leads "Earlier updates". */
+const SESSION_AG_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ag-orbit', label: 'The Checklist, redrawn: glowing planets on one flowing line'},
 ];
 /** Session AF (release `2026-10-session-af-wealth-unlocked`, ADR-028); Session AG followed it, so these lead "Earlier updates". */
@@ -141,6 +146,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AG_LINKS,
   ...SESSION_AF_LINKS,
   ...SESSION_AE_LINKS,
   ...SESSION_AD_LINKS,
