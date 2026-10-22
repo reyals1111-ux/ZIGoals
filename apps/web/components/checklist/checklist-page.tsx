@@ -10,11 +10,10 @@ import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {checklistPath} from '../../lib/checklist/derive';
-import {planetDesigns} from '../../lib/path/planet-pick';
-import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
 import {pathSteps} from '../../lib/path/model';
 import {nebulaColour} from '../../lib/path/orbit-colours';
 import {ProgressSegments} from './progress-segments';
+import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
 import {ListView} from './list-view';
@@ -118,6 +117,10 @@ export function ChecklistPage() {
     // Undo of the last tick from the celebration's toast: the day is not complete any more, so the celebration closes.
     if (!complete) setCelebrate(false);
   }, [loaded, state.prefsLoaded, state.date, summary, complete, prefs.celebratedOn, state]);
+  // Session AG Polish 2 (owner Part 7): the celebration's clip is never part of the first load — it starts loading only
+  // once the day is one item from complete and not yet celebrated today (or when the celebration opens).
+  const oneLeft = !!summary && summary.total > 0 && summary.total - summary.done === 1 && loaded && state.prefsLoaded && prefs.celebratedOn !== state.date;
+  useEffect(() => { if (oneLeft) primeCelebrationVideo(); }, [oneLeft]);
 
   // Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes here and the streak grows.
   const lit = !!streak?.todayComplete, wasLit = useRef<boolean | null>(null), [ignite, setIgnite] = useState(0);
@@ -217,7 +220,7 @@ export function ChecklistPage() {
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
     {sheet === 'quick' && !state.unreadable && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening quick add…</p>}><OrbitQuickAdd state={state} onClose={() => setSheet(null)} onAdded={id => { setSheet(null); setArrive(id); }}/></Suspense></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} {...celebrationBodies(state)} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
+    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>
@@ -225,15 +228,6 @@ export function ChecklistPage() {
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
   </dialog>;
-}
-
-/** The celebration's bodies: an orb for every item done today in its node's colour, and the day's orbit planets — the
- *  same designs the path shows (lib/path/planet-pick.ts, by each orbit's first node). */
-function celebrationBodies(state: ReturnType<typeof useChecklist>) {
-  const c = checklistDisplayColours(state.record.data, state.dots), colour = (d: (typeof state.dots)[number]) => c.get(d.id) ?? d.colour;
-  const model = checklistPath(state.record.data, state.dots.map(d => ({...d, colour: colour(d)})), []);
-  const planets = planetDesigns(model.sections.filter(s => s.steps.length).map(s => s.steps[0]!.colour), model.id).flatMap(id => id ? [PLANET_DESIGNS[id]] : []);
-  return {colours: state.dots.filter(d => d.counted && d.state === 'done').map(d => PATH_COLOURS[colour(d)].hex), planets};
 }
 
 /** A sheet over the path (Edit path, Options, About): a panel from the side on a computer, from the foot on a phone; the

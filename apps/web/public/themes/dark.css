@@ -4828,80 +4828,60 @@
 /*  components/checklist/day-celebration.css  */
 @scope (:root[data-theme=dark]) {
     :scope:not(#\-) {
-        --checklist-celebration-ground: #050a1e
+        --checklist-celebration-ground: #07041a;
+        --checklist-celebration-shade-0: #07041a00;
+        --checklist-celebration-shade-1: #07041a8c;
+        --checklist-celebration-shade-2: #07041ad9;
+        --checklist-celebration-shade-3: #07041af2
     }
     .checklist-celebration:not(#\-) {
         border-color: currentcolor;
         background-image: none;
         background-color: var(--checklist-celebration-ground);
-        color: var(--text, #f0f5ff)
+        color: #f4f8ff
     }
     .checklist-celebration:not(#\-)::backdrop {
         background-image: none;
-        background-color: #00010599
+        background-color: #000105cc
     }
-    .checklist-celebration-mists i:not(#\-) {
-        filter: blur(18px)
+    .checklist-celebration:focus:not(#\-) {
+        outline-color: currentcolor
     }
-    .checklist-celebration-mists i[data-m=a]:not(#\-) {
-        background-image: radial-gradient(closest-side, #9273ff70, #9273ff00);
+    .checklist-celebration .checklist-celebration-mirror:not(#\-) {
+        filter: blur(34px) brightness(.6) saturate(1.25)
+    }
+    .checklist-celebration .checklist-celebration-words:not(#\-) {
+        background-image: linear-gradient(180deg, var(--checklist-celebration-shade-0) 0, var(--checklist-celebration-shade-1) 34%, var(--checklist-celebration-shade-2) 70%, var(--checklist-celebration-shade-3) 100%);
         background-color: transparent
     }
-    .checklist-celebration-mists i[data-m=b]:not(#\-) {
-        background-image: radial-gradient(closest-side, #23eaff52, #23eaff00);
-        background-color: transparent
+    .checklist-celebration .checklist-celebration-title:not(#\-) {
+        color: #ffffff;
+        text-shadow: 0 2px 14px #07041ab3
     }
-    .checklist-celebration-mists i[data-m=c]:not(#\-) {
-        background-image: radial-gradient(closest-side, #f06dff45, #f06dff00);
-        background-color: transparent
-    }
-    .checklist-celebration-mists i[data-m=d]:not(#\-) {
-        background-image: radial-gradient(closest-side, #459dff4d, #459dff00);
-        background-color: transparent
-    }
-    .checklist-celebration-ring:not(#\-) {
-        fill: none;
-        stroke: #8fa6ff
-    }
-    .checklist-celebration-ring ellipse:not(#\-) {
-        filter: drop-shadow(0 0 4px #9fb4ff99)
-    }
-    .checklist-celebration-orb:not(#\-) {
-        background-image: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 72%);
-        background-color: transparent;
-        box-shadow: 0 0 10px var(--c), 0 0 22px color-mix(in srgb, var(--c) 55%, transparent)
-    }
-    .checklist-celebration-zigi img:not(#\-) {
-        filter: drop-shadow(0 12px 18px #6b4dff59)
-    }
-    .checklist-celebration-title:not(#\-) {
-        color: var(--text-strong, #ffffff)
-    }
-    .checklist-celebration-lit:not(#\-) {
+    .checklist-celebration .checklist-celebration-lit:not(#\-) {
         background-image: linear-gradient(100deg, #6fe6f6 0%, #8fa6ff 40%, #c790f6 72%, #f08bd6 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent;
-        color: #8fa6ff
+        color: #8fa6ff;
+        text-shadow: none;
+        filter: drop-shadow(0 2px 10px #07041a99)
     }
-    .checklist-celebration-line:not(#\-) {
-        color: var(--text-secondary, #c9d5ea)
+    .checklist-celebration .checklist-celebration-line:not(#\-) {
+        color: #e2e9f8;
+        text-shadow: 0 1px 8px #07041acc
     }
-    .checklist-celebration-streak:not(#\-) {
+    .checklist-celebration .checklist-celebration-streak:not(#\-) {
         border-color: #c9d6ff40;
-        background-image: linear-gradient(135deg, #ffffff1f, #ffffff08 60%, #9fb4ff14);
+        background-image: linear-gradient(135deg, #ffffff24, #ffffff0d 60%, #9fb4ff1a);
         background-color: transparent;
         box-shadow: inset 0 1px 0 #ffffff33, 0 10px 30px -16px #000a;
         color: #f4f8ff
     }
-    .checklist-celebration-streak-rule:not(#\-) {
+    .checklist-celebration .checklist-celebration-streak-rule:not(#\-) {
         background-image: none;
         background-color: #ffffff33
     }
-    .checklist-celebration-streak:not(#\-)::after {
-        background-image: linear-gradient(100deg, #ffffff00, #ffffff2e, #ffffff00);
-        background-color: transparent
-    }
-    .checklist-celebration-go:not(#\-) {
+    .checklist-celebration .checklist-celebration-go:not(#\-) {
         border-color: #ffffff3d;
         background-image: linear-gradient(100deg, #9273ff, #6f8dff 45%, #23d6ff);
         background-color: transparent;
@@ -4909,36 +4889,11 @@
         box-shadow: 0 0 24px -4px #8f7bffaa, inset 0 1px 0 #ffffff55;
         text-shadow: 0 1px 2px #1a0c5a66
     }
-    .checklist-celebration-go:hover:not(#\-) {
+    .checklist-celebration .checklist-celebration-go:hover:not(#\-) {
         box-shadow: 0 0 32px -2px #8fd7ffbb, inset 0 1px 0 #ffffff66
     }
-    .checklist-celebration-go:focus-visible:not(#\-) {
+    .checklist-celebration .checklist-celebration-go:focus-visible:not(#\-) {
         outline-color: #ffffff
-    }
-    :scope[data-theme=light] .checklist-celebration:not(#\-) {
-        --checklist-celebration-ground: #f6f7fc
-    }
-    :scope[data-theme=light] .checklist-celebration-streak:not(#\-) {
-        color: #10183a;
-        border-color: #6b6fa040;
-        background-image: linear-gradient(135deg, #ffffffcc, #ffffff99 60%, #e9ecff99);
-        background-color: transparent
-    }
-    :scope[data-theme=light] .checklist-celebration-streak-rule:not(#\-) {
-        background-image: none;
-        background-color: #02041833
-    }
-    :scope[data-theme=light] .checklist-celebration-title:not(#\-) {
-        color: #10183a
-    }
-    :scope[data-theme=light] .checklist-celebration-line:not(#\-) {
-        color: #3b4566
-    }
-    :scope[data-theme=light] .checklist-celebration-lit:not(#\-) {
-        filter: drop-shadow(0 1px 1px #10183a59)
-    }
-    :scope[data-theme=dark] .checklist-celebration:not(#\-) {
-        --checklist-celebration-ground: #000000
     }
     @media (forced-colors: active) {
         .checklist-celebration-go:not(#\-) {

@@ -22,12 +22,12 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 3 | Progress bar segments | done | `35ad3f53` |
 | 4 | Ambient sky | done | `92ce3825` |
 | 5 | Quick add | done | `5527be1b` |
-| 6 | List view | done | this commit |
-| 7 | Celebration video | — | — |
+| 6 | List view | done | `a73cb962` |
+| 7 | Celebration video | done | this commit |
 | 8 | Consistency colours | — | — |
 | 9 | Themes, checks, finish | — | — |
 
-## Captures used (self-check, scratchpad only): 2 of 20 · fix rounds used: 0 of 2
+## Captures used (self-check, scratchpad only): 4 of 20 · fix rounds used: 0 of 2
 
 ## Next step
-Part 7 (the celebration video).
+Part 8 (the consistency colours).

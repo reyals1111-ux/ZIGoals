@@ -252,17 +252,19 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   expect(await page.evaluate(() => (window as unknown as {__last: string[]}).__last), 'the last tick: every name shown, ZIGi facing its planet').toEqual([]);
   await expect(party.getByRole('button', {name: 'Continue'})).toBeFocused();
   expect(await party.evaluate(d => d.matches(':modal'))).toBe(true);
-  // The last tick's Undo stays in reach over the celebration.
-  await expect(party.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
-  // Round 4: a full-screen moment — ZIGi large (160 px on a phone, 200 on a computer), cheering, in front of the trophy.
-  await party.locator('.checklist-celebration-zigi').evaluate(el => Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => undefined))));
-  const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
-  expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
-  expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
-  // (Session AG Polish, owner Part 6b, moved: ZIGi cheers with its celebrate figure — the animated clip, then its sharp still.)
-  expect(zigi.src).toMatch(/F009-celebrate/);
+  // Session AG Polish 2 (owner Part 7), moved: no Undo over the celebration — the last tick's toast waits for Continue.
+  await expect(page.locator('.aa-toast')).toHaveCount(0);
+  // Round 4, moved (Session AG Polish 2): a full-screen moment — the owner's clip (or its last frame) at the screen's full
+  // height (the whole screen on a phone), in front of the path.
+  const media = await party.locator('.checklist-celebration-media').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint(innerWidth / 2, innerHeight * .4); return {h: r.height, w: r.width, vh: innerHeight, vw: innerWidth, front: !!hit && !!hit.closest('dialog.checklist-celebration'), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
+  expect(media.h, 'the full height').toBeGreaterThanOrEqual(media.vh - 1);
+  if (media.vw <= 640) expect(media.w, 'the whole width on a phone').toBeGreaterThanOrEqual(media.vw - 1);
+  expect(media.front, 'in front of the path').toBe(true);
+  expect(media.src).toMatch(/13-celebration-last-frame\.webp$/);
   await party.getByRole('button', {name: 'Continue'}).click();
+  if (await party.count()) await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}), 'the toast is back').toBeVisible();
   await expect(overlay(page)).toBeVisible();
   // Round 7 (L3b; the iteration-6 frames showed ZIGi over the trophy planet on the last tick): at the day's end ZIGi
   // stands beside the trophy, 12 px clear of it and of everything else on the path; round 8: its arm toward the trophy.

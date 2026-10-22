@@ -4555,101 +4555,11 @@
 /*  components/checklist/day-celebration.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-progress-seg, .checklist-progress-spark, .checklist-quick-preview, .checklist-row-tab) {
     :scope:not(#\-) {
-        --checklist-celebration-ground: #050a1e
-    }
-    .checklist-celebration-mists i:not(#\-) {
-        filter: blur(18px)
-    }
-    .checklist-celebration-mists i[data-m=a]:not(#\-) {
-        background-image: radial-gradient(closest-side, #9273ff70, #9273ff00);
-        background-color: transparent
-    }
-    .checklist-celebration-mists i[data-m=b]:not(#\-) {
-        background-image: radial-gradient(closest-side, #23eaff52, #23eaff00);
-        background-color: transparent
-    }
-    .checklist-celebration-mists i[data-m=c]:not(#\-) {
-        background-image: radial-gradient(closest-side, #f06dff45, #f06dff00);
-        background-color: transparent
-    }
-    .checklist-celebration-mists i[data-m=d]:not(#\-) {
-        background-image: radial-gradient(closest-side, #459dff4d, #459dff00);
-        background-color: transparent
-    }
-    .checklist-celebration-ring:not(#\-) {
-        fill: none;
-        stroke: #8fa6ff
-    }
-    .checklist-celebration-ring ellipse:not(#\-) {
-        filter: drop-shadow(0 0 4px #9fb4ff99)
-    }
-    .checklist-celebration-orb:not(#\-) {
-        background-image: radial-gradient(circle at 35% 30%, #242424 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 72%);
-        background-color: transparent;
-        box-shadow: 0 0 10px var(--c), 0 0 22px color-mix(in srgb, var(--c) 55%, transparent)
-    }
-    .checklist-celebration-zigi img:not(#\-) {
-        filter: drop-shadow(0 12px 18px #6b4dff59)
-    }
-    .checklist-celebration-title:not(#\-) {
-        color: var(--text-strong, #0f0f0f)
-    }
-    .checklist-celebration-lit:not(#\-) {
-        background-image: linear-gradient(100deg, #02707b 0%, #4e5fb2 40%, #814bab 72%, #9f418a 100%);
-        background-color: transparent;
-        -webkit-text-fill-color: transparent;
-        color: #8fa6ff
-    }
-    .checklist-celebration-line:not(#\-) {
-        color: var(--text-secondary, #080f1c)
-    }
-    .checklist-celebration-streak:not(#\-) {
-        border-color: #28315160;
-        background-image: linear-gradient(135deg, #2424241f, #24242408 60%, #9fb4ff14);
-        background-color: transparent;
-        box-shadow: inset 0 1px 0 #9e9e9e1c, 0 10px 30px -16px #3d3d3d44;
-        color: #0d0f14
-    }
-    .checklist-celebration-streak-rule:not(#\-) {
-        background-image: none;
-        background-color: #24242433
-    }
-    .checklist-celebration-streak:not(#\-)::after {
-        background-image: linear-gradient(100deg, #24242400, #2424242e, #24242400);
-        background-color: transparent
-    }
-    .checklist-celebration-go:not(#\-) {
-        border-color: #3333335c;
-        background-image: linear-gradient(100deg, #9273ff, #6f8dff 45%, #23d6ff);
-        background-color: transparent;
-        color: #ffffff;
-        box-shadow: 0 0 24px -4px #8f7bffaa, inset 0 1px 0 #9e9e9e2f;
-        text-shadow: 0 1px 2px #383a5729
-    }
-    .checklist-celebration-go:hover:not(#\-) {
-        box-shadow: 0 0 32px -2px #8fd7ffbb, inset 0 1px 0 #9e9e9e38
-    }
-    .checklist-celebration-go:focus-visible:not(#\-) {
-        outline-color: #333333
-    }
-    :scope[data-theme=light] .checklist-celebration-streak:not(#\-) {
-        color: #10183a;
-        border-color: #6b6fa040;
-        background-image: linear-gradient(135deg, #242424cc, #24242499 60%, #21233199);
-        background-color: transparent
-    }
-    :scope[data-theme=light] .checklist-celebration-streak-rule:not(#\-) {
-        background-image: none;
-        background-color: #eef1fb33
-    }
-    :scope[data-theme=light] .checklist-celebration-title:not(#\-) {
-        color: #10183a
-    }
-    :scope[data-theme=light] .checklist-celebration-line:not(#\-) {
-        color: #3b4566
-    }
-    :scope[data-theme=light] .checklist-celebration-lit:not(#\-) {
-        filter: drop-shadow(0 1px 1px #333c5824)
+        --checklist-celebration-ground: #07041a;
+        --checklist-celebration-shade-0: #07041a00;
+        --checklist-celebration-shade-1: #07041a8c;
+        --checklist-celebration-shade-2: #07041ad9;
+        --checklist-celebration-shade-3: #07041af2
     }
     @media (forced-colors: active) {
         .checklist-celebration-go:not(#\-) {
