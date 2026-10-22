@@ -12,7 +12,8 @@
 .phone-checklist-pill .checklist-mark { flex: none; }
 .phone-checklist-pill:hover::before { transition-delay: 70ms; box-shadow: 0 0 18px #23eaff40, 0 5px 20px #f06dff40, inset 0 1px 3px #8ddfff4d; }
 .phone-checklist-pill:active { transform: scale(.96); }
-.phone-checklist-pill:focus-visible { outline: none; }
+/* (A transparent outline the eye never sees, which forced colours paint in the system's own colour: the focus stays visible there, where box-shadows are dropped.) */
+.phone-checklist-pill:focus-visible { outline: 2px solid transparent; outline-offset: -2px; }
 .phone-checklist-pill:focus-visible::before { box-shadow: 0 0 0 2px #050a1e, 0 0 0 4.5px #8fe9ff, 0 5px 18px #00112d69; }
 .phone-checklist-pill[data-compact] { padding: 0; width: 44px; justify-content: center; }
 .phone-checklist-pill[data-compact]::before { inset: 4px; }

@@ -4876,7 +4876,7 @@
         box-shadow: 0 0 18px #23eaff40, 0 5px 20px #f06dff40, inset 0 1px 3px #8ddfff4d
     }
     .phone-checklist-pill:focus-visible:not(#\-) {
-        outline-color: currentcolor
+        outline-color: transparent
     }
     .phone-checklist-pill:focus-visible:not(#\-)::before {
         box-shadow: 0 0 0 2px #050a1e, 0 0 0 4.5px #8fe9ff, 0 5px 18px #00112d69
