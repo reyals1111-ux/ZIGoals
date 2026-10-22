@@ -1,4 +1,83 @@
-# Session AG — "The orbit Checklist" (ADR-029, Parts 0–7) (2026-10-21, [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91), ready for review, not merged, not deployed)
+# Session AG Polish — The Checklist, finished (ADR-030, Parts 0–9) (2026-10-21/22, [PR #92](https://github.com/reyals1111-ux/ZIGoals/pull/92), not merged, not deployed)
+**Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3101, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = CI's required WebKit job only (no WebKit locally). No paid service, no secret, no deploy, no new dependency.
+**Base:** `main` `98a29b4` (Alpha #46). **Rules (owner):** the brief; the approved plan with five amendments (the flame stays orange; the Habits page untouched; celebration safety; the celebration on each theme's own sky; Light planet captures) and one addition (the phone header's Checklist pill, the launcher's bold check). Decisions without asking: ADR-030 J1–J20. Resume file: `docs/handoff/AG_POLISH_RESUME.md`. Self-check: 15 of 20 scratchpad captures (none committed), 2 fix rounds.
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: Alpha #46 (run 48, VERIFIED, version `ae7cd3b3`, rollback `7c69e106` #45, floor #32), Session AG merged and deployed, the hosted verifier on #46, the H62 correction, ADR-030, the resume file, Draft PR | 1 | `cc7e9a24` | owner-reported |
+| 1 | Nebula glyphs, 29 more glyphs and the name → glyph map, matte unreached nodes, no gold, the progress arc concentric | 1 | `fb19d01b`, fix `379f92d3` | local, CI |
+| 2 | The phone layout: ~170 px pitch, smart lanes with one-line tabs, ZIGi's reserved slot, the slim dock | 1 | `c5104d1a` | local, CI |
+| 2b | Owner addition: the phone header's Checklist pill; one bold nebula check in the launcher | 1 | `f01bf5d6` | local, CI |
+| 3–4 | The Habits banners on the orbits; the orbit planets from the owner's art 04–10 on the line | 1 | `a5de5fb8` | local, CI |
+| 5 | Pointer 9 on phones (the same destination art, 16 kB); Orbit consistency in the nebula flow | 1 | `b9fe44f2` | local, CI |
+| 6 | The celebration: always fires, once per day per device; rebuilt (refs 17–20) | 3 / 1 | `688d1dfa` (TIER 3 storage), `17519c9c` | local, CI |
+| 7 | The List view, Todoist-style | 1 | `5360c3fd` | local, CI |
+| 8 | Extras: camera follow, ZIGi's greeting on an orbit, the flame ignites, the replay | 1 | `2fe53781` | local, CI |
+| 9 | Words (What's new, Help, search), the Light self-check fixes, the layout audit's fixes, this entry | 1 | `b6efd3e8` `6eebfcd0` `961f32de` `7c30c7ac` `7c83b298`, this commit | local, CI, WebKit CI |
+| — | Owner request (22 Oct): the phone header's "+" drawn at 36 px (the logo's height) inside its 44 px target, the pill's glass the same | 1 | `31b374c7` | local, CI |
+| 2b fix | The pill's keyboard focus visible in forced colours (a transparent outline the system paints; CI's `ui-evidence` forced-colours test on a phone found it on `961f32de`) | 1 | `8f93c8c4` | local, CI |
+| 9 fix | Help: the new answer in the AF section's hash test; no internal words in the answer | 1 | `81eaaabf` | local, CI |
+| 2b fix | The pill in the header from the first paint, so it never shifts the header's icons after load (CI's `run11-layout-stability` on `/app/wealth`, phone: 0.105 against < 0.1 on `9e98adc0`) | 1 | `f1f9e033` | local, CI |
+| 9 fix | The Checklist specs seed on `/robots.txt` (no app code) instead of Settings, so WebKit has no request to cancel on the next navigation (`webkit-checklist:11` failed twice; ADR-030 J21) | 1 | `37434eb3` | local, CI, WebKit CI |
+| 2b fix | The pill fits a narrow phone as served (check alone below 375 px until measured) and no longer prefetches the Checklist (CI's WebKit job on `f82bb4b8`: `zigi-oneline-z:257`, `webkit-phone`; J22) | 1 | `a4b7dbf0` | local, CI, WebKit CI |
+
+## What changed, pointer by pointer (reference 01) and per request
+- **1–4 Orbit banners:** the Habits page's own section banner (`HabitSectionBannerParts`, shared; the Habits page's markup unchanged, its specs and parity rows pass) with ☀ ◐ ☾ ✦, "Morning Orbit" … in the nebula flow, AG's fade, the count chip right after the title, "Complete ✓" with one light sweep. No box of its own; a night band behind the title in every theme.
+- **5–8 Planets:** each orbit opens with a planet from the owner's art (04–10), on the line at its banner: the line ends at the planet's top rim and resumes at its bottom rim, never across it. The design follows the first node's hue (cyan 05, blue 06, magenta 07, purple 09, teal 04/08/10 rotating, pink 07 or 09). Matte until the orbit is complete, then a one-time ~3 s completion (moons behind and in front of the sphere, a light along each ring, 09's neon orbits tracing, mist and glow); lit and still on reload and under reduced motion. Rings, orbits and moons' paths are SVG from measured ellipses (correct occlusion, clean on Light).
+- **9 Destination art:** phones and tablets show the computer's art from a 640 px copy, melting away round, left out of the List view.
+- **10 No gold:** the Checklist's palette is nebula only; a stored gold shows as pink (never rewritten); the finale is violet. The streak flame stays warm orange (amendment 1).
+- **11 Orbit consistency:** each week's hue flows cyan → blue → violet → magenta; Nothing faint glass, Some dim, All full, Perfect full with a glow; the same legend.
+- **Glyphs:** every node's glyph is stroked in the nebula gradient (path, List, Today's card, the celebration), 29 new glyphs, a keyword-first map ("Play Piano" → piano, "Vitamins & Creatine" → pill), unit-tested.
+- **Matte nodes:** not yet done = grey-tinted matte ring (≥ 3:1), dimmed glyph, coloured tab; the next node too (J7).
+- **Arc:** root cause: the default sheet's 14 px larger box with the orbit sheet's 2 px inset; now the ring's own box and track; tested at 320/375/390/430/768/1440.
+- **Phone layout:** ~170 px from node to node (AG 96), lanes so names fit on one line (two only at 320 px for the longest), ZIGi beside the next node or above a long name, never over anything; a 58–64 px dock that never covers the end.
+- **Phone header pill (owner addition):** "Checklist" with the nebula check between the logo and "+", ≤ 640 px, 44 px, "Open the Checklist", the check alone where the header has no room (360 px with the wallet shortcut); absent on the Checklist; follows the launcher's off setting. The desktop launcher keeps its circle with one bold nebula check. At the owner's later request the header's "+" circle and the pill's glass are drawn at 36 px, the logo's height, inside their unchanged 44 px targets (J20).
+- **Celebration:** plays whenever today is complete, by any route, immediately or the next time the Checklist opens that day, once per day per device; Undo and the same tick never replay it; "Replay today's celebration" in the menu. Rebuilt on the theme's own sky: mists bloom, the day's planets rise and settle in a ring with an orb per item, ZIGi's F009-celebrate clip then its still (one constant), "All N planets lit!", the honest line, the streak chip with the orange flame, Continue; ~4.5 s then still; Escape and Continue close it.
+- **List:** a section per orbit (banner in its first node's colour, count, fold), rows with the 34 px node inside a 44 px checkbox, a second line, "+" and ⋯, "Done · n", "+ Add to … Orbit" with that orbit preset, keyboard and swipe.
+- **Extras:** camera follow, ZIGi's F002 greeting during an orbit's cheer, the top bar's flame ignites once.
+
+## Tier 3, in plain words (risk → rollback)
+- **Storage (`688d1dfa`):** one optional field, `checklist.celebratedOn` (YYYY-MM-DD) in `zigoals:ui-prefs:v1`: the day this device last played the celebration. Additive and loose (older builds ignore it; a bad value reads as unset); exported and erased with the UI preferences; never synced. Risk: at worst the celebration plays once more or once less on a day. Rollback: revert the commit (the field is then ignored). Frozen readers #37–#44 PASS.
+- **Verifier:** unchanged. `hosted-checklist-stage` (stage 10) passes as it is; no `TIER 3 (verifier)` commit.
+- Nothing in auth, sync, CSP, headers, Workers, wallets, signing or the deploy workflow changed.
+
+## Weights (gzip -6 of the scripts each page loads; production build of `7c30c7ac`; budgets never raised)
+`/app/checklist` 479.2 kB of its 492.0 kB line (AG 466.5 kB). The shell 407.2 of 447.0 kB; every page within its line. Planet images (all layers): 04 14.6 kB, 05 8.1, 06 16.1, 07 16.5, 08 13.7, 09 10.2, 10 13.0 (cap 60 kB each); the phone destination copy 15.6 kB.
+
+## Tests and assertions changed (deliberate; none weakened)
+- `checklist-overlay-af`: the opening screen's density 6 → 4 nodes on a computer and 2 on a phone (the longer phone journey and each orbit's planet band, owner Parts 2 and 4); ZIGi's rest check gains the "above a long name" slot (12 px clear of node and name, within 60 px); the celebration's ZIGi is F009-celebrate.
+- `path-engine`: the line's segment list includes each planet (in at its top rim, out at its bottom rim); headings read "… Orbit"; the count reads from the Habits banner's count; two lit segments after an orbit.
+- `checklist-fixtures` (`37434eb3`): `seedChecklist` writes the storage on `/robots.txt` instead of `/app/settings` (no app code runs there, so nothing is in flight when the test navigates on); no assertion changed (J21).
+- `checklist`: the List rows' name class and "Morning Orbit". `whats-new` (positions +1), `zigi-help-settings` (the release id): moved with the release. `help-page` (`81eaaabf`): the AF section's hash test lists the new "What’s new in the Checklist?" answer (28 answers) and checks its words, as AG did for its own.
+- Unit: `lib/timeline/build.test.ts` (a stored gold shows as pink), `lib/path/orbit-colours.test.ts` (no gold), `lib/checklist/schema.test.ts` (the new field).
+- New: `checklist-ag-polish` (nebula glyph gradient, matte rings ≥ 3:1, no gold hue except the flame, the arc at six widths, banners, planets by hue and lit state, the line's rims), `checklist-phone-ag-polish` (320–430: no overlap, no sideways scroll, ≥ 44 px, the pitch, one-line tabs), `phone-checklist-button` (320/375/390/430, opens the Checklist, no overflow, absent on desktop, the launcher's check), `checklist-celebration-ag-polish` (tap, stepper, List, a day finished elsewhere, reload, once per day, replay, reduced motion, theme parity), `checklist-list-ag-polish` (sections, 44 px targets, Done fold, keyboard, "+", add preset); unit `phone-lanes`, `planet-designs` (≤ 60 kB), `planet-pick`, `flow-geometry` (top/bottom rims), `glyphs` (the map).
+
+## Evidence
+- Local, production build of `f1f9e033`: layout shift on a phone, four loads each: `/app` ≤ 0.0012, `/app/health` and `/app/wealth` 0 or 0.054 (the game bar and footer, as before this PR; the header 0); `run11-layout-stability`, `phone-checklist-button`, `pages-visibility` passed; `ui-evidence`'s forced-colours test passed alone (it timed out once at its 45 s limit while sharing the machine).
+- Local, production build of `8f93c8c4`: `ui-evidence` (forced colours, every main page, focus visible) and `phone-checklist-button` 23 passed.
+- Local, production build of `31b374c7`: `phone-checklist-button`, `pages-visibility`, `checklist-themes` and the header's theme-parity rows (`/app/goals`, `/app/health`, `/app/settings`, `/app/checklist`) passed; `logo-quickadd-goals-header`'s two brand-film tests fail here only (this Chromium plays no video; CLAUDE.md) and pass in CI.
+- Local, production build of `7c30c7ac`: the Checklist specs (`checklist-list-ag-polish`, `checklist-celebration-ag-polish`, `checklist-ag-polish`, `checklist-themes`, `checklist`, `checklist-phone-ag-polish`, `path-engine`) 50 passed; `checklist-overlay-af`, `hosted-checklist-stage` and the `/app/checklist` theme-parity rows 26 passed. On `6eebfcd0`: Showcase (`showcase-today-aa`, `showcase-export-guard`), `phone-checklist-button`, `whats-new`, `zigi-help-settings` 51 passed; `habits-aa` passed.
+- Layout audit `/app/checklist` (path, List, Edit path, empty; 320/390/768/1440; Nebula, Light, Dark; touch at 768/1024): clean after the Part 9 fixes (J19); lowest gradient word 3.58:1.
+- Theme parity: the `/app/checklist` rows pass. Rows on `/app`, `/app/habits`, `/app/journey` and `/app/wealth/calculator` (pages this PR does not change) fail only in this sandbox's Chromium, which writes a gradient position as "100% 0px" in one theme and "right top" in the other; CI's Chrome passes them.
+- Unit: the suite passes except files that fail in this sandbox on `main` too (Node 22, ICU: pre-run11-setup, run11/domain-review-race, visual-format ja-JP, vault/finance-homes, staking/execute's 60 s timer) and pass in CI. Typecheck and lint green (warnings only); theme sheets `--check`; check-secrets passed; frozen readers #37–#44 PASS.
+- CI: Milestone quality on `961f32de`: checks (lint, types, unit, build, audit, secret scan), integration (with the page weight budgets), contract and the Alpha gate green. On `b6efd3e8`-era heads the unit job would have met the search entry's apostrophe (fixed in `961f32de`, found locally). The run on the final head (browser shards and the required WebKit job) is on the PR.
+
+## Known CI intermittents (this session)
+- `webkit-checklist:11` (WebKit, phone): failed on `961f32de` and `4322f55c` (passed on `9e98adc0`) with the shell's music, push and account reads on the seeding Settings page cancelled "due to access control checks". Investigated after the second failure: the seed now runs on a page with no app code (`37434eb3`, J21). Also on WebKit: `zigi-oneline-z:257` "WebKit encountered an internal error" on a `goto` (`9e98adc0`; ADR-025 E28's family, ZIGi code this PR does not touch).
+- On `f82bb4b8` WebKit found the pill's two faults (J22): the header spilled at 320 px before the script measured it (`zigi-oneline-z:257`), and the cancelled shell reads came up in `webkit-phone` too, so the cause was the pill's prefetch on every phone page, not the seed. Fixed in `a4b7dbf0`. Locally: the header fits as served and hydrated at 320/360/375/390 px; `phone-checklist-button`, `zigi-oneline-z`, `run11-layout-stability`, `pages-visibility`, and the two WebKit specs run in Chromium, 43 passed; `ui-evidence` forced colours passed.
+- `theme-parity-af` `/app/activity` (desktop, `4322f55c`): a 240 s timeout inside a scroll, the page not answering; passed on `961f32de` and locally (38 s).
+- `pnpm audit` (checks job, `4322f55c`): npm's advisories endpoint timed out three times; lint, types, unit and build had passed.
+- Canonical reproducibility "environment disagreement" (the reproducibility workflow's compare job): runner images differ, as listed by Session AF; not part of Milestone quality.
+- `scripts/run11/stage8-rehearsal/lock-switch-browser` (integration job, on `379f92d3`): timed out once waiting for the vault form's recovery secret, in account code this PR does not touch; passed on the next head.
+
+## Left for S1 and the owner
+- **S1:** Earn's Start-here path in the new style (AF12) with `components/orbit-path/*` and the planets; the rest of the phone's one-tap row around the header pill (AF8: Music, Earn, ZIGi); the `/api/push` 503s in the verifier (AF7); the landing's staking and signing claims.
+- **Owner:** the branches `review/session-ag-polish-refs` and `review/session-ag-refs` can be deleted after this PR merges. ZIGi's arms-up cheer from Studio-4 is a one-line swap in `components/checklist/celebration-zigi.ts`.
+
+---
+
+# Session AG — "The orbit Checklist" (ADR-029, Parts 0–7) (2026-10-21, [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91), merged into `main` as `98a29b4` and deployed as Alpha #46)
 **Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3100, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = CI's required WebKit job only (no WebKit locally). No paid service, no secret, no deploy, no new dependency.
 **Base:** `main` `8778497` (Alpha #45). **Rules (owner):** the brief; the approved plan with seven amendments (ADR-029 "Owner decisions": no review captures, a scratchpad-only self-check, "Goal" only for a set goal, a verifier change in its own Tier 3 commit, the words updated, the planet lazily, the deadline). Decisions without asking: ADR-029 I1–I13. Resume file: `docs/handoff/AG_RESUME.md`.
 
@@ -261,6 +340,21 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #46 — 2026-10-21, `98a29b4` live
+Recorded by Session AG Polish (2026-10-22).
+- **Source:** `98a29b43c025c9e8916a76f88bc1a013d1cd60e0`, `main` after [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91) (Merge #91, Session AG, "The orbit Checklist", ADR-029), merged 2026-10-21 18:54:00 UTC. Verified: git.
+- **CI:** Milestone quality #1108 ([run 39656861876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39656861876)) on `98a29b4` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 48 ([run 39665883370](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39665883370)), dispatched 2026-10-21 19:55:50 UTC from `main`, exact source `98a29b4`; finished 20:23:39 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 4 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `ae7cd3b3-04a1-469a-8312-22c3257c8eb0`; rollback `7c69e106-ef03-4848-ab52-a08d2a67ad3e` (#45). Owner-reported.
+- **What went live:** Session AG (ADR-029) on top of AF (#45).
+- **Release identity:** live #46, previous #45. **Rollback floor:** stays #32.
+- **Hosted verifier on #46 (owner-reported, 2026-10-21 22:56 UTC, `EXPECTED_COMMIT=98a29b4…`):** all 10 stages PASS; overall FAIL only because four `/api/push` 503 answers were not counted as the Alpha's designed "not configured" answer (the two `/api/private-account` 503s were). Recorded only; the fix belongs to S1 (AF7). No site bug.
+- **Correction to ADR-028 H62 (owner-reported):** H62 lists `landing/index.html` among the places the public-safety sentence changed, but that file is byte-identical in #44, #45 and #46. The owner's landing redeploy on 21 Oct (version `5397cf67-dd5e-4344-bc1c-d71537768a6f`, rollback `057ee6b3-8e95-4db0-ad79-14b69f4c7794`) therefore changed nothing. The landing's staking and signing claims are fixed later, in S1 (not in Session AG Polish).
+- **Record note:** run number 48 is Alpha #46 (the run number runs two ahead of the Alpha count).
 
 ---
 
@@ -6633,11 +6727,15 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-21 for the [Alpha deploy #45](#alpha-deploy-45--2026-10-21-8778497-live) record near the top of this file (recorded by Session AG). Rollback floor: #32.
+Updated 2026-10-22 for the [Alpha deploy #46](#alpha-deploy-46--2026-10-21-98a29b4-live) record near the top of this file (recorded by Session AG Polish). Rollback floor: #32.
+- Deployed source `98a29b43c025c9e8916a76f88bc1a013d1cd60e0`, `main` after [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91) (Merge #91, Session AG). Verified: Actions API.
+- CI: Milestone quality #1108 ([run 39656861876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39656861876)) on `98a29b4`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 48 ([run 39665883370](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39665883370)), exact source `98a29b4`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `ae7cd3b3-04a1-469a-8312-22c3257c8eb0`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `7c69e106-ef03-4848-ab52-a08d2a67ad3e` (#45). Owner-reported.
+
+Previous release identity (#45, 2026-10-21, recorded by Session AG):
 - Deployed source `8778497abc105d798b6d6c237698616a0b5eedc5`, `main` after [PR #90](https://github.com/reyals1111-ux/ZIGoals/pull/90) (Merge #90, Session AF). Verified: Actions API.
-- CI: Milestone quality #1100 ([run 39550378826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39550378826)) on `8778497`: success (attempt 1). Verified: Actions API.
-- Deployment: Manual Alpha deployment, run number 47 ([run 39558146080](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39558146080)), exact source `8778497`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
-- Alpha Worker `zigoals-alpha`: live version `7c69e106-ef03-4848-ab52-a08d2a67ad3e`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `24d86173-c7ac-457c-affd-b35ecd02b6ac` (#44). Owner-reported.
+- Alpha Worker `zigoals-alpha`: version `7c69e106-ef03-4848-ab52-a08d2a67ad3e`; rollback `24d86173-c7ac-457c-affd-b35ecd02b6ac` (#44). Owner-reported.
 
 Previous release identity (#42, 2026-10-16, recorded by Session AD):
 - Deployed source `61204c3fb1e959763ecbe81ef402c76990ad1f14`, `main` after [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87) (Merge #87, Session AC). Verified: Actions API.

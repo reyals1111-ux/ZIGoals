@@ -37,15 +37,18 @@
 .checklist-mist-b { right: -30vmax; top: 22vh; background: radial-gradient(closest-side, #f06dff33, #ff74be17 58%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
 .checklist-mist-c { left: -10vw; bottom: -42vmax; background: radial-gradient(closest-side, #26e8bd2e, #23eaff12 58%, #23eaff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
 @keyframes checklist-mist-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vmax, 4vmax, 0); } }
-/* The planet (pointer 11): the destination art's horizon rising low on the right, its night melting into the sky (screen);
-   only on a computer, where the sidebar already loads it. Below that, a small CSS planet in its style, behind the path. */
+/* The planet (pointer 11): the destination art's horizon rising low on the right, its night melting into the sky (screen).
+   Session AG Polish (pointer 9): phones and tablets show the same art (no CSS stand-in), low on the right behind the path,
+   from a small 640 px file (`srcset`), lazily. */
 .checklist-planet { position: absolute; right: -16vw; top: 58vh; display: none; width: min(62vw, 1000px); aspect-ratio: 1000 / 689; opacity: 1; mix-blend-mode: screen;
   -webkit-mask-image: linear-gradient(90deg, #0000 0, #000 34%), linear-gradient(180deg, #0000 0, #000 22%); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, #0000 0, #000 34%), linear-gradient(180deg, #0000 0, #000 22%); mask-composite: intersect; }
 .checklist-planet img { display: block; width: 100%; height: 100%; }
-.checklist-planet-small { position: absolute; right: -54px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); width: 168px; height: 168px; border-radius: 50%; opacity: .5;
-  background: radial-gradient(circle at 70% 26%, #b49bff66 0, #4f8dff2e 22%, #0a1236 52%, #040817 76%); box-shadow: inset 4px 6px 0 -2px #8fc8ff73, inset 10px 14px 24px -10px #c08bff99, 0 0 46px -8px #6b8dff66; }
-.checklist-planet-small::after { content: ''; position: absolute; left: -24%; right: -24%; top: 46%; height: 12%; border-radius: 50%; border: 2px solid #9fb7ff40; border-top-color: #9fb7ff12; rotate: -16deg; }
-@media (min-width: 1180px) { .checklist-planet { display: block; } .checklist-planet-small { display: none; } }
+.checklist-planet { display: block; }
+/* (The List is a working view of rows of words: the art stays the path's backdrop.) */
+.checklist-overlay[data-view=list] .checklist-planet { display: none; }
+@media (max-width: 1179.98px) { .checklist-planet { right: -34vw; top: auto; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); width: max(112vw, 420px); opacity: .85; } }
+/* (On a phone or a tablet the art melts away on every side, round, so no edge of the picture shows on Light's white sky.) */
+@media (max-width: 1179.98px) { .checklist-planet { -webkit-mask-image: radial-gradient(farthest-side at 60% 62%, #000 42%, #0000 100%); mask-image: radial-gradient(farthest-side at 60% 62%, #000 42%, #0000 100%); -webkit-mask-composite: source-over; mask-composite: add; } }
 /* Nebula on a phone: the clouds sit in the path's own column. */
 @media (max-width: 767.98px) {
   .checklist-mist { width: 130vw; height: 130vw; filter: blur(28px); }
@@ -60,7 +63,6 @@
 :root[data-theme=light] .checklist-sky .checklist-mist-b { background: radial-gradient(closest-side, #fbe6f6, #fbe9f300); }
 :root[data-theme=light] .checklist-sky .checklist-mist-c { background: radial-gradient(closest-side, #e2f6fb, #e2f6fb00); }
 :root[data-theme=light] .checklist-planet { mix-blend-mode: normal; opacity: .9; }
-:root[data-theme=light] .checklist-planet-small { opacity: .6; }
 :root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .12; animation: none; }
 :root[data-theme=dark] .checklist-planet { opacity: .75; }
 
@@ -82,7 +84,7 @@
 /* (A small four-point sparkle rides the bar's leading end, as in the owner's mockup.) */
 .checklist-progress-spark { position: absolute; top: 50%; left: calc(var(--glass-value, 0) * 100%); width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 6px #ffb3ea); transition: left var(--glass-fill-duration, 760ms) cubic-bezier(.2, .8, .3, 1); }
 .glass-track[data-empty] .checklist-progress-spark { display: none; }
-.checklist-progress-line { margin: 0; font-size: 15px; line-height: 1.25; color: var(--muted, #a4b2cd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-progress-line { margin: 0; font-size: 15px; line-height: 1.25; color: var(--muted, #a4b2cd); overflow-wrap: anywhere; }
 .checklist-progress-line strong { color: var(--text, #f0f5ff); font-weight: 750; }
 .checklist-progress-line .eyebrow { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: 0; text-transform: none; color: var(--muted, #a4b2cd); }
 .checklist-perfect { color: var(--ring-emerald, #26e8bd); font-weight: 750; }
@@ -178,7 +180,7 @@
 @keyframes checklist-timer-lit { 0% { transform: scale(.9); filter: drop-shadow(0 0 0 var(--timer)); } 45% { transform: scale(1.12); filter: drop-shadow(0 0 16px var(--timer)) brightness(1.5); } 100% { transform: none; } }
 .checklist-timer-text { display: grid; gap: 2px; min-width: 0; }
 .checklist-timer-text strong { font-size: 18px; line-height: 1.2; font-weight: 750; letter-spacing: -.01em; }
-.checklist-timer-text small { max-width: 100%; font-size: 15px; line-height: 1.3; color: #c9d5ec; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-timer-text small { max-width: 100%; font-size: 15px; line-height: 1.3; color: #c9d5ec; overflow-wrap: anywhere; }
 .checklist-timer-text small b { color: color-mix(in srgb, var(--timer) 78%, #ffffff); font-weight: 700; }
 :root[data-theme=light] .checklist-timer-text small b { color: color-mix(in srgb, var(--timer) 50%, #0b1430); }
 .checklist-timers-message { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 14px; background: #050a1ef2; color: #eef4ff; font-size: 15px; }
@@ -223,6 +225,29 @@
   .path-dock-jump:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
   :root[data-keyboard=open] .checklist-timers-wrap { display: none; }
 }
+/* Session AG Polish (owner Part 2): a phone's foot dock is one slim row — 48 px chips (44 px with the icon beside the word
+   from 420 px), the bar 64 / 58 px tall — so the path keeps most of the screen; the path's end scrolls clear of it and of
+   the toast's row. */
+@media (max-width: 640px) {
+  .checklist-dock { height: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(112px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay .checklist-timers .checklist-timer { min-height: 48px; padding: 3px 4px; gap: 1px; border-radius: 14px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 22px; height: 22px; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring svg { width: 19px; height: 19px; }
+  .checklist-jump-slot { bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .path-dock-jump { width: 50px; height: 50px; }
+  :root .checklist-toast-slot .aa-toast-region { bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-timers-message { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay { scroll-padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-shell { padding-bottom: calc(136px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 420px) and (max-width: 640px) {
+  .checklist-dock { height: calc(58px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 6px; min-height: 44px; padding: 0 8px; text-align: start; }
+  .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }
+  :root .checklist-toast-slot .aa-toast-region { bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay:has(.checklist-toast-slot .aa-toast) .checklist-dock { height: calc(106px + env(safe-area-inset-bottom, 0px)); }
+}
 @media (min-width: 641px) and (max-width: 1179.98px) {
   .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: auto minmax(0, 1fr); justify-items: start; gap: 8px; padding: 4px 12px; text-align: start; }
   .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: start; }
@@ -245,7 +270,7 @@
    out there, so the words keep their room). */
 @media (max-width: 767.98px) {
   :root .checklist-toast-slot .aa-toast { min-height: 44px; max-height: 44px; padding: 0 4px 0 14px; border-radius: 16px; }
-  :root .checklist-toast-slot .aa-toast > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  :root .checklist-toast-slot .aa-toast > span { display: block; overflow-wrap: anywhere; }
   :root .checklist-toast-slot .aa-toast > .aa-toast-undo { min-height: 44px; margin-block: -1px; padding: 0 14px; }
   :root .checklist-toast-slot .aa-toast-close { display: none; }
 }
@@ -296,26 +321,60 @@
 
 /* The List view: themed by the chosen accent (the owner's Todoist Wear OS reference): a filled accent pill, then each orbit's
    name and its single-line rows, accent-tinted; each check in the item's own colour and mark. */
-.checklist-list-view { --accent: var(--pillar-habits, #23eaff); display: grid; gap: 10px; max-width: 640px; margin: 0 auto; }
-.checklist-list-add { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--accent); color: #04101f; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 50%, #040a1e), 0 12px 26px -14px var(--accent); }
-.checklist-list-add span { font-size: 24px; line-height: 1; margin-top: -2px; }
-.checklist-list-add:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 50%, #040a1e); }
-.checklist-list-add:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.checklist-list { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
-.checklist-list-orbit { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 10px 4px 0; color: var(--muted, #a4b2cd); font-size: 14px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
-.checklist-list-orbit h3 { margin: 0; font: inherit; color: var(--text, #f0f5ff); }
-.checklist-pill { border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent); background: color-mix(in srgb, var(--accent) 12%, #0a1230); }
-.checklist-pill:has(.checklist-pill-panel) { border-radius: 26px; }
-.checklist-pill[data-counted=no] { opacity: .78; }
-.checklist-pill-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 56px; padding: 6px 18px 6px 8px; }
-.checklist-pill-check { --item: var(--accent); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2.5px solid var(--item); background: color-mix(in srgb, var(--item) 16%, transparent); color: var(--item); cursor: pointer; text-decoration: none; }
-.checklist-pill-check[data-state=done] { background: var(--item); color: #04101f; box-shadow: 0 0 16px color-mix(in srgb, var(--item) 55%, transparent); }
-.checklist-pill-check[data-state=running] { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--item) 40%, transparent); }
-.checklist-pill-check:focus-visible { outline: 3px solid var(--item); outline-offset: 3px; }
-.checklist-pill-text { display: grid; min-width: 0; }
-.checklist-pill-label { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.checklist-pill[data-state=done] .checklist-pill-label { color: var(--muted, #a4b2cd); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent); text-decoration-thickness: 2px; }
-.checklist-pill-panel { padding: 0 12px 12px; }
+/* The List view (Session AG Polish, owner Part 7): Todoist's calm in our design — sections per orbit under a banner in the
+   orbit's own node colour, rows with the path's own node as the checkbox, a second line, "+" and ⋯, a "Done · n" fold and
+   "+ Add to … Orbit". The node, its colour and glyph are the theme island's (the same in every theme); the words follow the
+   theme. */
+.checklist-list-view { display: grid; gap: 22px; max-width: 680px; margin: 0 auto; padding-bottom: 12px; }
+.checklist-list-section { --orbit: #9273ff; display: grid; gap: 6px; }
+.checklist-list-banner { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) auto 44px; align-items: center; gap: 10px; min-height: 52px; padding: 4px 4px 4px 16px; border-radius: 18px; }
+.checklist-list-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(100deg, color-mix(in srgb, var(--orbit) 34%, #0a1130e6) 0, color-mix(in srgb, var(--orbit) 16%, #0a113099) 46%, transparent 92%); box-shadow: inset 2px 0 0 color-mix(in srgb, var(--orbit) 70%, transparent); }
+.checklist-list-banner h3 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: #f4f8ff; overflow-wrap: anywhere; }
+.checklist-list-count { padding: 4px 11px; border-radius: 999px; background: color-mix(in srgb, var(--orbit) 22%, #0a113099); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--orbit) 45%, transparent); color: #e7efff; font-size: 14px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.checklist-list-fold { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #dfe9fb; font-size: 22px; cursor: pointer; }
+.checklist-list-fold span { display: inline-block; transform: rotate(90deg); transition: transform 180ms ease; }
+.checklist-list-fold[aria-expanded=false] span { transform: none; }
+.checklist-list-fold:focus-visible { outline: 3px solid var(--orbit); outline-offset: -2px; }
+.checklist-list { list-style: none; display: grid; gap: 2px; margin: 0; padding: 0; }
+.checklist-row { border-radius: 16px; }
+.checklist-row:hover { background: #ffffff08; transition: background-color 120ms ease 70ms; }
+.checklist-row[data-counted=no] { opacity: .78; }
+.checklist-row-line { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; align-items: center; gap: 10px; min-height: 60px; padding: 4px 4px 4px 6px; border-bottom: 1px solid #ffffff10; }
+.checklist-row-check { position: relative; display: grid; place-items: center; width: 44px; height: 44px; min-width: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; justify-self: center; -webkit-tap-highlight-color: transparent; --node-size: 34px; }
+.checklist-row-node { width: 34px; height: 34px; min-width: 34px; pointer-events: none; }
+.checklist-row-node.orbit-node { box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent); }
+.checklist-row-node.orbit-node[data-lit] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 75%, transparent); }
+.checklist-row-node .orbit-node-glyph svg { width: 18px; height: 18px; }
+.checklist-row-check:focus-visible { outline: 3px solid #ffffff; outline-offset: 0; }
+.checklist-row-text { display: grid; gap: 2px; min-width: 0; }
+.checklist-row-name { font-size: 16px; font-weight: 700; color: var(--text, #f0f5ff); overflow-wrap: anywhere; }
+.checklist-row-sub { font-size: 14px; color: var(--text-secondary, #b7c8de); overflow-wrap: anywhere; }
+.checklist-row[data-state=done] .checklist-row-name { color: var(--muted, #a4b2cd); }
+.checklist-row-plus { min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent); background: color-mix(in srgb, var(--orbit) 14%, transparent); color: var(--text, #f0f5ff); font: inherit; font-size: 14px; font-weight: 750; cursor: pointer; white-space: nowrap; }
+.checklist-row-plus::after { content: ''; position: absolute; }
+.checklist-row-plus:focus-visible, .checklist-row-more:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
+.checklist-row-more { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted, #a4b2cd); cursor: pointer; }
+.checklist-row-more:hover, .checklist-row-more[aria-expanded=true] { background: #ffffff12; color: var(--text, #f0f5ff); }
+.checklist-row-panel { padding: 4px 8px 12px 60px; }
+@media (max-width: 420px) { .checklist-row-unit { display: none; } .checklist-row-panel { padding-left: 8px; } }
+.checklist-list-done { margin-top: 2px; }
+.checklist-list-done > summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 999px; list-style: none; color: var(--text-secondary, #b7c8de); font-size: 15px; font-weight: 700; cursor: pointer; }
+.checklist-list-done > summary::-webkit-details-marker { display: none; }
+.checklist-list-done > summary::before { content: ''; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform 180ms ease; }
+.checklist-list-done[open] > summary::before { transform: rotate(45deg); }
+.checklist-list-done > summary:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
+.checklist-list-add { justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: color-mix(in srgb, var(--orbit) 55%, #ffffff); font: inherit; font-size: 15px; font-weight: 750; cursor: pointer; }
+.checklist-list-add span { font-size: 22px; line-height: 1; margin-top: -2px; }
+.checklist-list-add:hover { background: #ffffff0d; transition-delay: 70ms; }
+.checklist-list-add:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
+:root[data-theme=light] .checklist-list-banner::before { background: linear-gradient(100deg, color-mix(in srgb, var(--orbit) 26%, #ffffffe6) 0, color-mix(in srgb, var(--orbit) 12%, #ffffffb3) 46%, transparent 92%); }
+:root[data-theme=light] .checklist-list-banner h3 { color: #0b1430; }
+:root[data-theme=light] .checklist-list-count { color: #1d2547; background: color-mix(in srgb, var(--orbit) 14%, #ffffffcc); }
+:root[data-theme=light] .checklist-list-fold { color: #23264d; }
+:root[data-theme=light] .checklist-list-add { color: color-mix(in srgb, var(--orbit) 45%, #10183a); }
+:root[data-theme=light] .checklist-row-line { border-bottom-color: #10183a14; }
+:root[data-theme=light] .checklist-row-check:focus-visible { outline-color: #10183a; }
+@media (prefers-reduced-motion: reduce) { .checklist-list-fold span, .checklist-list-done > summary::before { transition: none; } }
 
 /* Options and Edit path (inside their sheets). */
 .checklist-options, .checklist-edit, .checklist-about { display: grid; gap: 12px; width: 100%; box-sizing: border-box; }
@@ -402,18 +461,19 @@
 .checklist-heat-weeks { grid-area: weeks; display: grid; grid-template-columns: repeat(12, var(--cell)); gap: 5px; margin: 0; padding: 0; list-style: none; color: #c5d3ea; font-size: 14px; white-space: nowrap; }
 .checklist-heat-weeks li:last-child { justify-self: end; }
 .checklist-heat-grid { grid-area: grid; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 5px; justify-content: start; }
-.checklist-heat-cell { width: var(--cell); height: var(--cell); border-radius: 5px; background: #ffffff0f; box-shadow: inset 0 0 0 1px #ffffff08; }
-.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--heat-some) 52%, #0a1130); }
-.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff)); box-shadow: 0 0 6px color-mix(in srgb, var(--heat-all) 45%, transparent); }
-.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%); box-shadow: 0 0 10px color-mix(in srgb, var(--heat-perfect) 75%, transparent); }
+.checklist-heat-cell { --c: #9273ff; width: var(--cell); height: var(--cell); border-radius: 5px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
+/* (Session AG Polish, pointer 11: the week's nebula hue, the state's intensity.) */
+.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
+.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
+.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 80%, transparent); }
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
 .checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
 .checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: #ffffff0f; box-shadow: inset 0 0 0 1px #ffffff14; }
-.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 52%, #0a1130); }
-.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, var(--heat-all), color-mix(in srgb, var(--heat-all) 50%, #9273ff)); }
-.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff, var(--heat-perfect) 45%); box-shadow: 0 0 8px color-mix(in srgb, var(--heat-perfect) 70%, transparent); }
+.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
+.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
+.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
+.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 80%, transparent); }
 @media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat { --cell: 14px; } }
 @media (max-width: 767.98px) { .checklist-heat { --cell: 16px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
@@ -421,3 +481,12 @@
 :root[data-app-motion=off] .checklist-page *:not(.checklist-mist) { transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .checklist-page *, .checklist-page *::before, .checklist-page *::after { animation: none !important; } }
 :root[data-app-motion=off] .checklist-page *, :root[data-app-motion=off] .checklist-page *::before, :root[data-app-motion=off] .checklist-page *::after { animation: none !important; }
+
+/* Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes and the streak grows (its warm
+   orange stays, owner amendment 1). */
+.checklist-streak[data-ignite=a] .checklist-flame { animation: checklist-ignite-a 1000ms cubic-bezier(.2, .9, .3, 1.3) both; }
+.checklist-streak[data-ignite=b] .checklist-flame { animation: checklist-ignite-b 1000ms cubic-bezier(.2, .9, .3, 1.3) both; }
+@keyframes checklist-ignite-a { 0% { transform: scale(.5); filter: brightness(.6); } 55% { transform: scale(1.3); filter: brightness(1.5) drop-shadow(0 0 8px #ff9f6e); } 100% { transform: none; filter: none; } }
+@keyframes checklist-ignite-b { 0% { transform: scale(.5); filter: brightness(.6); } 55% { transform: scale(1.3); filter: brightness(1.5) drop-shadow(0 0 8px #ff9f6e); } 100% { transform: none; filter: none; } }
+@media (prefers-reduced-motion: reduce) { .checklist-streak[data-ignite] .checklist-flame { animation: none; } }
+:root[data-app-motion=off] .checklist-streak[data-ignite] .checklist-flame { animation: none; }

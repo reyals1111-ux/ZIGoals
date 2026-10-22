@@ -11,16 +11,15 @@ export function FlameMark({lit}: {lit: boolean}) {
 }
 
 /**
- * The Checklist's mark (P7.19): a rounded square holding three dots on a path and a check, in the music note's nebula
- * gradient (#63e7ff → #826cff → #c664ff → #ff74be). `draw` marks the check that draws once on the first view in a visit.
+ * The Checklist's mark (P7.19). Session AG Polish (owner addition, 22 Oct): one clear, bold check in the nebula gradient
+ * (#63e7ff → #826cff → #c664ff → #ff74be), centred — the earlier rounded box with dots and a small check read poorly at
+ * the launcher's size. The launcher keeps its circle; the phone header's pill and Today's card wear the same check.
+ * `draw` marks the check that draws once on the first view in a visit.
  */
 export function ChecklistMark({size = 30, draw = false}: {size?: number; draw?: boolean}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   return <svg className="checklist-mark" data-draw={draw || undefined} viewBox="0 0 32 32" width={size} height={size} aria-hidden="true" focusable="false">
-    <defs><linearGradient id={`ck-${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#63e7ff"/><stop offset=".38" stopColor="#826cff"/><stop offset=".7" stopColor="#c664ff"/><stop offset="1" stopColor="#ff74be"/></linearGradient></defs>
-    <rect x="3.5" y="3.5" width="25" height="25" rx="8" fill="none" stroke={`url(#ck-${id})`} strokeWidth="2.2"/>
-    <circle cx="10" cy="11" r="2.2" fill={`url(#ck-${id})`}/><circle cx="10" cy="21" r="2.2" fill={`url(#ck-${id})`} opacity=".7"/>
-    <path d="M10 13.4v5.2" stroke={`url(#ck-${id})`} strokeWidth="1.4" strokeLinecap="round" opacity=".6"/>
-    <path className="checklist-mark-check" d="m15.2 16.4 3.3 3.3 6.3-7.2" fill="none" stroke={`url(#ck-${id})`} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" pathLength={1}/>
+    <defs><linearGradient id={`ck-${id}`} gradientUnits="userSpaceOnUse" x1="5" y1="7" x2="27" y2="25"><stop offset="0" stopColor="#63e7ff"/><stop offset=".38" stopColor="#826cff"/><stop offset=".7" stopColor="#c664ff"/><stop offset="1" stopColor="#ff74be"/></linearGradient></defs>
+    <path className="checklist-mark-check" d="M6.5 16.8 12.9 23.2 25.5 9.2" fill="none" stroke={`url(#ck-${id})`} strokeWidth="4.2" strokeLinecap="round" strokeLinejoin="round" pathLength={1}/>
   </svg>;
 }

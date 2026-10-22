@@ -1,5 +1,5 @@
 'use client';
-import {Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
+import {Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
@@ -10,8 +10,12 @@ import {PathLine} from './path-line';
 import {FlowLine} from '../orbit-path/flow-line';
 import {sidesFor, type FlowNode} from '../../lib/path/flow-geometry';
 import {PathBanner} from './path-section';
+import {OrbitBanner} from '../orbit-path/orbit-banner';
+import {planetDesigns} from '../../lib/path/planet-pick';
+import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
 import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
 import {usePathGeometry, type PathGeometry} from './use-path-geometry';
+import {phoneLanes, type Lane} from '../../lib/path/phone-lanes';
 import './path.css';
 
 /**
@@ -65,6 +69,8 @@ export type PathProps = {
 /** The orbit look's finale node: where the line ends (Session AG). */
 const FINALE_POINT = 'finale:end';
 const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
+/** Session AG Polish (owner Part 8): ZIGi's greeting clip, played during the cheer that completes an orbit. */
+const ORBIT_CHEER_CLIP = '/brand/figures/zigi/origami-nebula/F002-greeting.anim.webp';
 /** After a tick that completes an orbit, the path glides on to the next planet once the orbit's celebration has played. */
 const ORBIT_LAND_AFTER_MS = 1400;
 /** The element that scrolls the path (the full-screen Checklist's own layer), or null for the page. */
@@ -135,6 +141,13 @@ function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => 
   return {labels, full, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
 }
 
+/** Session AG Polish (owner Part 2): the phone's own layout below 641 px (the orbit sheet's phone breakpoint). */
+const PHONE_QUERY = '(max-width: 640px)';
+const subscribePhone = (l: () => void) => { const m = typeof window === 'undefined' ? null : window.matchMedia?.(PHONE_QUERY); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); };
+const usePhoneLayout = (on: boolean) => useSyncExternalStore(subscribePhone, () => on && !!window.matchMedia?.(PHONE_QUERY).matches, () => false);
+/** A name tab's one-line width on a phone: the words (14 px, 750) plus the tab's padding and border and the check's room —
+ *  the check is always counted, so a tick never moves a node. */
+const phoneTabWidth = (label: string) => { const w = nameWidth(label, 14); return w === null ? label.length * 8.4 + 40 : Math.ceil(w) + 40; };
 /** Where the orbit look lands the next planet: this share of the screen's height between its bars. */
 const landAt = () => typeof window !== 'undefined' && window.innerWidth < 1180 ? .44 : .4;
 
@@ -166,8 +179,19 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const completeIds = orbit ? model.sections.filter(s => { const p = sectionProgress(s); return p.total > 0 && p.done === p.total; }).map(s => `s:${s.id}`) : [];
   const justIds = [...doneIds, ...reachedIds, ...completeIds];
   const just = useJust(justIds, justIds.join('|'));
-  const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}`;
+  // Session AG Polish (owner Part 2): on a phone each node stands in a lane chosen so its tab fits on one line and ZIGi
+  // has room on the other side (lib/path/phone-lanes.ts); the lanes come from the width and the names alone.
+  const phoneLayout = usePhoneLayout(orbit), [laneKey, setLaneKey] = useState('');
+  const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}|${laneKey}`;
   const geo = usePathGeometry(stage, geometryKey);
+  const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0;
+  const lanes: Lane[] | null = useMemo(() => {
+    if (!phoneLayout || !stageW) return null;
+    // (ZIGi's width at rest on a phone: `--zigi-h: min(92px, 26cqi)` and its figure's 0.838 ratio.)
+    return phoneLanes(labelsKey.split('\u0001').map(phoneTabWidth), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838});
+  }, [phoneLayout, stageW, labelsKey]);
+  const nextLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
+  useLayoutEffect(() => { if (nextLaneKey !== laneKey) setLaneKey(nextLaneKey); }, [nextLaneKey, laneKey]);
 
   // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood. The orbit look cheers beside the
   // planet just ticked (celebrating when it completes an orbit), then goes on to stand by the next one.
@@ -209,15 +233,19 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     // (Read here, in the same commit as the new next planet: the `just` marks only arrive a render later.)
     const before = orbitsDone.current, finished = before !== null && completeIds.some(id => !before.includes(id)); orbitsDone.current = completeIds;
     const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
+    // Session AG Polish (owner Part 8, camera follow): after an orbit completes the path glides on toward the next orbit's
+    // planet when the next node opens that orbit; after any other tick the next node comes to the upper third.
+    const gate = finished ? model.sections.find(sec => sec.steps[0]?.id === next.id) : undefined;
+    const target = (gate && stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(`planet:${gate.id}`)}"]`)) || el;
     const scroller = scrollerOf(s);
     const go = (glide: boolean) => {
       // (The part of the scroller a sticky bar does not cover: its scroll-padding-top, as the browser's own scrolling reads it.)
       const box = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight}, cs = scroller ? getComputedStyle(scroller) : null;
       const pad = cs ? parseFloat(cs.scrollPaddingTop) || 0 : 0, padBottom = cs ? parseFloat(cs.scrollPaddingBottom) || 0 : 0;
-      const r = el.getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad - padBottom};
-      const at = (r.top + r.height / 2 - view.top) / view.height;
-      if (glide && at >= .12 && at <= .7) return;
-      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * landAt();
+      const r = (glide ? target : el).getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad - padBottom};
+      const at = (r.top + r.height / 2 - view.top) / view.height, aim = glide ? (target === el ? .33 : .3) : landAt();
+      if (glide && at >= .15 && at <= .45) return;
+      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * aim;
       (scroller ?? window).scrollTo({top: Math.max(0, top), behavior: glide && entranceAllowed() ? 'smooth' : 'auto'});
     };
     if (!landed.current) { landed.current = true; go(false); return; }
@@ -253,7 +281,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       const b = bubble.current, s = stage.current; if (!b || !s) return;
       const r = b.getBoundingClientRect(), box = s.getBoundingClientRect();
       const whole = r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.top >= box.top && r.bottom <= box.bottom;
-      const covers = [...s.querySelectorAll('.path-banner, .path-chest, .path-end, .path-panel')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
+      const covers = [...s.querySelectorAll('.path-banner, .orbit-planet, .path-chest, .path-end, .path-panel')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
       setJumpClear(whole && !covers);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
@@ -285,43 +313,54 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Round 3: the comet runs on from the planet just ticked to the next one; with no such stretch (the next is elsewhere), along
   // the stretch the tick lit.
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
-  const sides = orbit ? orbitSides(steps, swingOf, next ? steps.findIndex(x => x.id === next.id) : -1, geo) : null, labelSides = sides?.labels ?? null;
+  // Session AG Polish (owner Part 4): each orbit's planet, by the colour of the node it spawns (lib/path/planet-pick.ts).
+  const planets = useMemo(() => orbit ? planetDesigns(model.sections.map(s => s.steps[0]?.colour ?? null), model.id).map(id => id ? PLANET_DESIGNS[id] : null) : [], [orbit, model]);
+  const nextAt = next ? steps.findIndex(x => x.id === next.id) : -1;
+  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(l => l.side), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? lanes[nextAt]!.side : flip(lanes[nextAt]!.side)) : 'right' as Side}
+    : orbit ? orbitSides(steps, swingOf, nextAt, geo) : null, labelSides = sides?.labels ?? null;
   // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
   const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheering?.id ?? ''}` : undefined;
   const endTrophy = orbit && milestones.some(m => m.at === 'end' && m.afterStepId);
   // Session AG (owner pointers 1–5): the orbit look's one flowing line through every node in path order, in on each node's
   // name side and out on the other, on to the day's finale; a tick sends a light along the stretch it lit.
   const flow = orbit && geo ? (() => {
-    const nodes: FlowNode[] = steps.flatMap((st, i) => { const p = geo.points[st.id]; return p ? [{id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'}] : []; });
+    // (An orbit's planet comes before its first node: the line flows into its top and out of its bottom — reference 03.)
+    const opens = new Map(model.sections.map((sec, si) => [sec.steps[0]?.id ?? '', {sec, si}]));
+    const nodes: FlowNode[] = steps.flatMap((st, i) => {
+      const p = geo.points[st.id], gate = opens.get(st.id), out: FlowNode[] = [];
+      if (gate && planets[gate.si]) { const q = geo.points[`planet:${gate.sec.id}`], pr = sectionProgress(gate.sec); if (q) out.push({id: `planet:${gate.sec.id}`, x: q.x, y: q.y, r: q.r ?? 40, inSide: 'top', outSide: 'bottom', colour: PATH_COLOURS[st.colour].token, done: pr.total > 0 && pr.done === pr.total}); }
+      if (p) out.push({id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'});
+      return out;
+    });
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
-    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.gold.token, done: anchor.mood === 'done'});
+    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
     const vw = typeof window === 'undefined' ? 1440 : window.innerWidth, swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
     return {nodes, travel, swing, tailTo: fin ? geo.h - 4 : null};
   })() : null;
   let index = 0;
-  return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined}>
+  return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined}>
     {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel}/> : <PathLine geo={geo} segments={segments}/>)}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
-        <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading} meter={orbit} justComplete={just.has(`s:${section.id}`)}/>
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
-            const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
+            const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
             // (The name's room: toward the path's middle it has the wave's reach to spare, away from it the reach is lost.)
             const toward = !orbit || offset === 0 ? 0 : (offset > 0) === (side === 'left') ? 1 : -1;
             const all = chestsAfter.get(step.id) ?? [];
             // The orbit look: a chest rides this planet's node (no row of its own); the day's trophy keeps its row at the end.
             const riding = orbit ? all.filter(m => m.at !== 'end') : [], chests = orbit ? all.filter(m => m.at === 'end') : all;
             return <Fragment key={step.id}>
-              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--toward': toward, '--step-colour': PATH_COLOURS[step.colour].token} : {})} as CSSProperties}>
+              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--toward': toward, '--step-colour': PATH_COLOURS[step.colour].token} : {}), ...(lane ? {'--lane-x': `${Math.round((lane.x - stageW / 2) * 10) / 10}px`} : {})} as CSSProperties}>
                 <div className="path-node">
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
-                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} fit={zigiFit}/>}
+                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}

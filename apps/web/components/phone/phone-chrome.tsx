@@ -33,6 +33,7 @@ import { entranceAllowed } from "../use-entrance";
 import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
 import { useVisualViewportInsets } from "./use-visual-viewport";
 import { useSheetDrag } from "./use-sheet-drag";
+import { PhoneChecklistButton } from "../checklist/phone-checklist-button";
 
 /**
  * The phone shell (Session E): a top bar with the page's identity, Quick add and Settings, and a glass tab bar whose More
@@ -139,6 +140,8 @@ export function PhoneTopBar() {
         : <Link className="phone-home" href={homeHref(view)} aria-label="ZIGoals home"><LogoMark /><LogoIntro host="phone" /></Link>}
       <p className="phone-title" aria-hidden="true">{route.title}</p>
       <div className="phone-actions">
+        {/* Session AG Polish (owner addition, 22 Oct): the phone's one-tap way into the Checklist, between the logo and "+". */}
+        <PhoneChecklistButton />
         {isShown(view, "quick-add") && <QuickAdd triggerClassName="phone-quick-add" />}
         <SearchButton className="phone-search" />
         <OfflinePill />

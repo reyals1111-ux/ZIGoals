@@ -36,7 +36,9 @@ export const uiPrefsSchema = z.looseObject({
    * Checklist button (the page stays reachable); `folded` tucks it into the screen's edge; `view` is "path" (default) or
    * "list"; `accent` is the List view's colour (a path colour id); `sounds` (off by default), `haptics` and `nudges` (on
    * by default). Each value is read tolerantly: a value this build cannot read is dropped on the next write, never makes
-   * the whole record unreadable.
+   * the whole record unreadable. Session AG Polish (TIER 3 storage, ADR-030): `celebratedOn` is the day (YYYY-MM-DD) whose
+   * celebration this device has played, so a finished day celebrates once per device however it was finished; older
+   * builds ignore it (the group is a loose object), and it is exported and erased with the rest of these preferences.
    */
   checklist: z.looseObject({
     launcher: z.boolean().optional().catch(undefined),
@@ -46,6 +48,7 @@ export const uiPrefsSchema = z.looseObject({
     sounds: z.boolean().optional().catch(undefined),
     haptics: z.boolean().optional().catch(undefined),
     nudges: z.boolean().optional().catch(undefined),
+    celebratedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
   }).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
@@ -64,8 +67,8 @@ export type GameWidget = typeof GAME_WIDGETS[number];
 export const gameWidgetsOf = (prefs: UiPrefs): GameWidget[] => [...new Set((prefs.today?.gameWidgets ?? []).filter((id): id is GameWidget => (GAME_WIDGETS as readonly string[]).includes(id)))];
 /** Session AF (L3): the Checklist's display choices with their defaults (launcher on, path view, cyan accent, sounds off,
  *  vibration and nudges on). */
-export type ChecklistPrefs = {launcher: boolean; folded: boolean; view: 'path' | 'list'; accent: string; sounds: boolean; haptics: boolean; nudges: boolean};
+export type ChecklistPrefs = {launcher: boolean; folded: boolean; view: 'path' | 'list'; accent: string; sounds: boolean; haptics: boolean; nudges: boolean; celebratedOn: string | null};
 export const checklistPrefsOf = (prefs: UiPrefs): ChecklistPrefs => {
   const c = prefs.checklist ?? {};
-  return {launcher: c.launcher !== false, folded: c.folded === true, view: c.view === 'list' ? 'list' : 'path', accent: typeof c.accent === 'string' && c.accent ? c.accent : 'cyan', sounds: c.sounds === true, haptics: c.haptics !== false, nudges: c.nudges !== false};
+  return {launcher: c.launcher !== false, folded: c.folded === true, view: c.view === 'list' ? 'list' : 'path', accent: typeof c.accent === 'string' && c.accent ? c.accent : 'cyan', sounds: c.sounds === true, haptics: c.haptics !== false, nudges: c.nudges !== false, celebratedOn: typeof c.celebratedOn === 'string' ? c.celebratedOn : null};
 };

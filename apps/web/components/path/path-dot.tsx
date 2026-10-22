@@ -27,7 +27,7 @@ export function PathDot({step, intent, just, expanded, onPress, orbit}: {step: P
   // its line glyph — unlit until done, lit once done (the glyph stays; the name tab carries the check). A tick blooms the ring.
   const inner = orbit ? <>
     <OrbitNodeFace glyph={step.state === 'locked' ? 'lock' : step.glyph ?? 'star'} just={just}/>
-    {step.partial !== undefined && !done && step.state !== 'locked' && <svg className="path-dot-ring" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle cx="20" cy="20" r="18.5" pathLength={1}/></svg>}
+    {step.partial !== undefined && !done && step.state !== 'locked' && <svg className="path-dot-ring" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle cx="20" cy="20" r="19.4" pathLength={1}/></svg>}
   </> : <>
     <span className="path-dot-core"><PathGlyph name={done ? 'check' : step.state === 'locked' ? 'lock' : step.glyph ?? 'sparkle'}/></span>
     {step.partial !== undefined && !done && step.state !== 'locked' && <svg className="path-dot-ring" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><circle cx="20" cy="20" r="18.5" pathLength={1}/></svg>}

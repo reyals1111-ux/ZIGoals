@@ -1,5 +1,6 @@
 import type {CSSProperties} from 'react';
 import {PATH_COLOURS} from '../../lib/path/colours';
+import {nebulaColour} from '../../lib/path/orbit-colours';
 import type {PathSection} from '../../lib/path/model';
 
 /**
@@ -14,7 +15,7 @@ import type {PathSection} from '../../lib/path/model';
  */
 export function PathBanner({section, index, done, total, headingId, meter = false, justComplete = false}: {section: PathSection; index: number; done: number; total: number; headingId: string; meter?: boolean; justComplete?: boolean}) {
   const complete = total > 0 && done === total;
-  return <div className="path-banner" data-colour={section.colour} data-complete={complete ? '' : undefined} data-just={meter && justComplete ? '' : undefined} style={{'--banner': PATH_COLOURS[section.colour].token, ...(meter ? {'--share': total ? done / total : 0} : {})} as CSSProperties}>
+  return <div className="path-banner" data-colour={section.colour} data-complete={complete ? '' : undefined} data-just={meter && justComplete ? '' : undefined} style={{'--banner': PATH_COLOURS[meter ? nebulaColour(section.colour) : section.colour].token, ...(meter ? {'--share': total ? done / total : 0} : {})} as CSSProperties}>
     <span className="path-banner-planet" aria-hidden="true"><i/></span>
     <span className="path-banner-text">
       <span className="path-banner-eyebrow">{section.eyebrow ?? `Orbit ${index + 1}`}</span>

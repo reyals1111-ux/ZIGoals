@@ -10,6 +10,9 @@ import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {pathBefore} from '../../lib/checklist/return-path';
+import {checklistPath} from '../../lib/checklist/derive';
+import {planetDesigns} from '../../lib/path/planet-pick';
+import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
 import {ListView} from './list-view';
@@ -26,10 +29,6 @@ const OptionsSheet = lazy(() => import('./options-sheet').then(m => ({default: m
 const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({default: m.HistoryHeatmap})));
 const DayCelebration = lazy(() => import('./day-celebration'));
 
-/** The day's full-screen celebration plays once a day in this tab (a reload never replays it). */
-const CELEBRATED = 'zigoals-checklist-celebrated';
-const celebratedOn = (date: string) => { try { return sessionStorage.getItem(CELEBRATED) === date; } catch { return true; } };
-const markCelebrated = (date: string) => { try { sessionStorage.setItem(CELEBRATED, date); } catch { /* it may play again in this tab */ } };
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
  *  which the path never runs under; the jump button moves into it there. */
@@ -68,7 +67,7 @@ function cameFromTheApp(): boolean {
 export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
-  const [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
+  const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), phone = useMedia(PHONE), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
@@ -88,23 +87,36 @@ export function ChecklistPage() {
   }, [router]);
   const onEscape = useCallback(() => { if (!escapeTop()) leave(); }, [leave]);
 
-  // A validated moment for ZIGi when half the dots, then all of them, are lit on this page (once each per day); the
-  // moment all are lit by a tick here (never on opening a day already complete), the day's celebration, once a day.
+  // A validated moment for ZIGi when half the dots, then all of them, are lit on this page (once each per day).
   const moments = useRef<{date: string | null; half: boolean; all: boolean}>({date: null, half: false, all: false});
   useEffect(() => {
     if (!summary || !state.date || summary.total === 0) return;
     if (moments.current.date !== state.date) moments.current = {date: state.date, half: summary.done * 2 >= summary.total, all: summary.done === summary.total};
     else {
       if (!moments.current.half && summary.done * 2 >= summary.total) { moments.current.half = true; zigiSignals.emitValidated('checklist_half'); }
-      if (!moments.current.all && summary.done === summary.total) {
-        moments.current.all = true; zigiSignals.emitValidated('checklist_complete');
-        if (!celebratedOn(state.date)) { markCelebrated(state.date); setCelebrate(true); }
-      }
-      // Undo of the last tick from the celebration's toast: the day is not complete any more, so the celebration closes.
-      if (summary.done < summary.total) setCelebrate(false);
+      if (!moments.current.all && summary.done === summary.total) { moments.current.all = true; zigiSignals.emitValidated('checklist_complete'); }
     }
   }, [summary, state.date]);
+  // Session AG Polish (ADR-030 J5; owner Part 6a): the day's celebration always plays once the day is complete, however it
+  // was completed — a tap, the value stepper, a timer, the List, ZIGi, or Today's card and a habit's page while the
+  // Checklist was closed (then the next time it opens that day) — once per day on this device (`checklist.celebratedOn`
+  // in the UI preferences). Undoing the last tick and ticking it again the same day does not replay it; the menu's
+  // "Replay today's celebration" does. Read only once everything has loaded, so a store still loading never plays it.
+  const shownFor = useRef<string | null>(null), [replay, setReplay] = useState(false);
+  const complete = !!summary && summary.total > 0 && summary.done === summary.total;
+  useEffect(() => {
+    if (!loaded || !state.prefsLoaded || !state.date || !summary || summary.total === 0) return;
+    if (complete && prefs.celebratedOn !== state.date && shownFor.current !== state.date) {
+      shownFor.current = state.date; setReplay(false); setCelebrate(true);
+      state.setPrefs({celebratedOn: state.date});
+    }
+    // Undo of the last tick from the celebration's toast: the day is not complete any more, so the celebration closes.
+    if (!complete) setCelebrate(false);
+  }, [loaded, state.prefsLoaded, state.date, summary, complete, prefs.celebratedOn, state]);
 
+  // Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes here and the streak grows.
+  const lit = !!streak?.todayComplete, wasLit = useRef<boolean | null>(null), [ignite, setIgnite] = useState(0);
+  useEffect(() => { if (!loaded) return; if (wasLit.current === false && lit) setIgnite(n => n + 1); wasLit.current = lit; }, [lit, loaded]);
   const total = summary?.total ?? 0, done = summary?.done ?? 0, empty = loaded && state.dots.length === 0;
   const streakDays = streak?.current ?? 0;
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
@@ -145,7 +157,7 @@ export function ChecklistPage() {
           <button type="button" aria-label="Path" aria-pressed={prefs.view === 'path'} onClick={() => state.setPrefs({view: 'path'})}><ViewMark name="path"/></button>
           <button type="button" aria-label="List" aria-pressed={prefs.view === 'list'} onClick={() => state.setPrefs({view: 'list'})}><ViewMark name="list"/></button>
         </div>
-        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
+        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
@@ -157,6 +169,7 @@ export function ChecklistPage() {
             <button type="button" aria-expanded={sheet === 'edit'} onClick={() => open('edit')}><ToolMark name="edit"/>Edit path</button>
             <button type="button" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
             <button type="button" aria-expanded={sheet === 'about'} onClick={() => open('about')}><ToolMark name="about"/>How it works</button>
+            {complete && <button type="button" onClick={() => { setMenu(false); setReplay(true); setCelebrate(true); }}><ToolMark name="replay"/>Replay today’s celebration</button>}
           </div>}
         </div>
       </div>
@@ -168,7 +181,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={() => setSheet('edit')}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
+          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -186,9 +199,9 @@ export function ChecklistPage() {
     </div>
 
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
-    {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
+    {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} perfect={!!summary?.perfect} total={total} colours={(() => { const c = checklistDisplayColours(state.record.data, state.dots); return state.dots.filter(d => d.counted).map(d => PATH_COLOURS[c.get(d.id) ?? d.colour].hex); })()} onClose={() => setCelebrate(false)}/></Suspense>}
+    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} {...celebrationBodies(state)} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>
@@ -196,6 +209,15 @@ export function ChecklistPage() {
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
   </dialog>;
+}
+
+/** The celebration's bodies: an orb for every item done today in its node's colour, and the day's orbit planets — the
+ *  same designs the path shows (lib/path/planet-pick.ts, by each orbit's first node). */
+function celebrationBodies(state: ReturnType<typeof useChecklist>) {
+  const c = checklistDisplayColours(state.record.data, state.dots), colour = (d: (typeof state.dots)[number]) => c.get(d.id) ?? d.colour;
+  const model = checklistPath(state.record.data, state.dots.map(d => ({...d, colour: colour(d)})), []);
+  const planets = planetDesigns(model.sections.filter(s => s.steps.length).map(s => s.steps[0]!.colour), model.id).flatMap(id => id ? [PLANET_DESIGNS[id]] : []);
+  return {colours: state.dots.filter(d => d.counted && d.state === 'done').map(d => PATH_COLOURS[colour(d)].hex), planets};
 }
 
 /** A sheet over the path (Edit path, Options, About): a panel from the side on a computer, from the foot on a phone; the
@@ -252,8 +274,8 @@ function Shine({at}: {at: number}) {
   return run ? <span key={run} className="checklist-progress-shine" aria-hidden="true"/> : null;
 }
 
-function ToolMark({name}: {name: 'edit' | 'options' | 'about'}) {
-  return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'edit' ? <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/> : name === 'options' ? <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"/> : <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 16.8h.01"/>}</svg>;
+function ToolMark({name}: {name: 'edit' | 'options' | 'about' | 'replay'}) {
+  return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'edit' ? <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/> : name === 'options' ? <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"/> : name === 'replay' ? <path d="M12 3.5l1.9 5.3 5.6.2-4.4 3.5 1.6 5.4L12 14.8l-4.7 3.1 1.6-5.4L4.5 9l5.6-.2zM19 3v3M17.5 4.5h3"/> : <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 16.8h.01"/>}</svg>;
 }
 function ViewMark({name}: {name: 'path' | 'list'}) {
   return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'path' ? <><circle cx="8" cy="5" r="2.6"/><circle cx="16" cy="12" r="2.6"/><circle cx="8" cy="19" r="2.6"/><path d="M10.2 6.4 13.8 10.6M13.8 13.4 10.2 17.6"/></> : <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>}</svg>;
@@ -261,7 +283,7 @@ function ViewMark({name}: {name: 'path' | 'list'}) {
 
 /** Session AF (crit1): the empty path's picture: five faint dots in the path's own colours on a dashed flow line, so an
  *  empty Checklist shows what it becomes. Decorative only (aria-hidden), still, the same in every theme. */
-const GHOST_DOTS: [number, number, string][] = [[24, 62, 'var(--pillar-habits, #23eaff)'], [92, 26, 'var(--brand-blue, #459dff)'], [160, 46, 'var(--brand-magenta, #f06dff)'], [228, 70, 'var(--pillar-goals, #9273ff)'], [296, 32, 'var(--pillar-wealth, #ffd27a)']];
+const GHOST_DOTS: [number, number, string][] = [[24, 62, 'var(--pillar-habits, #23eaff)'], [92, 26, 'var(--brand-blue, #459dff)'], [160, 46, 'var(--brand-magenta, #f06dff)'], [228, 70, 'var(--pillar-goals, #9273ff)'], [296, 32, 'var(--ring-emerald, #26e8bd)']];
 function GhostPath() {
   const id = useId().replace(/:/g, '');
   return <svg className="checklist-ghost-path" viewBox="0 0 320 96" aria-hidden="true" focusable="false">

@@ -35,9 +35,11 @@
 @supports (color: oklch(from red l c h)) {
   .today-checklist-dots > li:not([data-state=done], [data-state=running], [data-next], [data-counted=no]) { --orb-mid: oklch(from var(--dot) calc(l * .76) calc(c * .86) h); --orb-rim: oklch(from var(--dot) calc(l * .88) c h); }
 }
-/* The next planet: a glowing world with its mark, its name, and Continue into the path. */
+/* The next planet: its node with its mark, its name, and Continue into the path. */
 .today-checklist-next { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
-.today-checklist-planet { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; color: #04101f; background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 40%, #ffffff) 0, var(--dot) 48%, color-mix(in srgb, var(--dot) 70%, #0b1030) 100%); box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--dot) 55%, #050818), 0 0 0 4px color-mix(in srgb, var(--dot) 22%, transparent), 0 0 26px color-mix(in srgb, var(--dot) 55%, transparent); }
+/* Session AG Polish (request 1a): the next planet is the path's own node — dark glass, its ring in the item's colour, the
+   nebula glyph inside (components/orbit-path/orbit-node.css; the same in every theme). */
+.today-checklist-planet.orbit-node { --node-size: 52px; width: 52px; height: 52px; }
 .today-checklist-next .today-checklist-line { display: grid; gap: 1px; min-width: 0; }
 .today-checklist-cue { font-size: 14px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #a4b2cd); }
 .today-checklist-next strong { color: var(--text, #f0f5ff); font-size: 17px; line-height: 1.25; overflow-wrap: anywhere; }

@@ -1,100 +1,80 @@
-/* Session AF (L3b): the day's full-screen celebration. A night island (scripts/themes/build-themes.mjs ISLANDS): the same
-   cosmic moment in Nebula, Light and Dark. The finale node rises, a supernova ring, a shooting star and a twinkle play once
-   (Session AG: no confetti, no XP), ZIGi celebrates; the
-   card's words stay on the night. Reduced motion and Motion Off: the same card, still. Transform and opacity only. */
-:root { --checklist-ink-celebration-a: #1b1550; --checklist-ink-celebration-b: #070b22; --checklist-ink-celebration-card: #0b1233f2; }
-.checklist-celebration { position: fixed; inset: 0; z-index: 2147483001; box-sizing: border-box; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 16px; border: 0; display: grid; place-items: center; overflow: hidden auto; color: #f2f6ff; background: radial-gradient(80% 60% at 50% 38%, var(--checklist-ink-celebration-a), var(--checklist-ink-celebration-b) 72%); }
-.checklist-celebration::backdrop { background: #02040dcc; }
-.checklist-celebration-burst { position: fixed; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; }
-/* Round 3: a gold-to-violet glow, with soft white-gold rays over it at a quarter strength at most. */
-.checklist-celebration-glow { position: absolute; left: -48vmax; top: -48vmax; width: 96vmax; height: 96vmax; border-radius: 50%; background: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%); animation: checklist-glow-in 1400ms ease-out both; }
-@keyframes checklist-glow-in { from { opacity: 0; transform: scale(.5); } }
-.checklist-celebration-glow { background: radial-gradient(closest-side, #ffd27a59 0, #23eaff38 24%, #9273ff40 48%, #f06dff1f 70%, #9273ff00 100%); }
-/* Session AG (owner Part 6): a supernova ring expanding from the finale, twice; a shooting star sweeping across; a short
-   twinkle of stars — once each, transform and opacity only. */
-.checklist-celebration-nova { position: absolute; left: -90px; top: -90px; width: 180px; height: 180px; border-radius: 50%; border: 3px solid #fff3d6; box-shadow: 0 0 30px #ffd27a, inset 0 0 26px #23eaff99, 0 0 80px #9273ff80; opacity: 0; animation: checklist-nova 1500ms cubic-bezier(.15, .7, .3, 1) 160ms both; }
-.checklist-celebration-nova-2 { border-color: #9ff6ff; box-shadow: 0 0 24px #23eaff, 0 0 60px #f06dff80; animation-delay: 420ms; animation-duration: 1800ms; }
-@keyframes checklist-nova { 0% { opacity: 1; transform: scale(.2); } 60% { opacity: .55; } 100% { opacity: 0; transform: scale(5.5); } }
-.checklist-celebration-comet { position: fixed; left: -20vw; top: 14vh; z-index: 1; width: 22vw; height: 3px; border-radius: 3px; pointer-events: none; background: linear-gradient(90deg, #ffffff00, #9ff6ff99 60%, #ffffff); box-shadow: 0 0 12px #9ff6ff; rotate: 16deg; opacity: 0; animation: checklist-comet 1300ms cubic-bezier(.4, .05, .4, 1) 700ms both; }
-.checklist-celebration-comet::after { content: ''; position: absolute; right: -5px; top: -4px; width: 11px; height: 11px; border-radius: 50%; background: #ffffff; box-shadow: 0 0 14px 4px #9ff6ff; }
-@keyframes checklist-comet { 0% { opacity: 0; transform: translateX(0); } 12% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(140vw); } }
-.checklist-celebration-twinkle { position: fixed; inset: 0; pointer-events: none; }
-.checklist-celebration-twinkle i { position: absolute; width: var(--s, 10px); height: var(--s, 10px); background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 4px #9ff6ff); opacity: 0; animation: checklist-twinkle 1100ms ease-out var(--t, 400ms) both; }
-@keyframes checklist-twinkle { 0% { opacity: 0; transform: scale(.2) rotate(0deg); } 40% { opacity: 1; transform: scale(1.15) rotate(30deg); } 100% { opacity: 0; transform: scale(.6) rotate(60deg); } }
-.checklist-celebration-card { position: relative; display: grid; justify-items: center; gap: 12px; width: min(460px, 100%); padding: 28px 24px 26px; border-radius: 32px; border: 1px solid #ffd27a59; background: var(--checklist-ink-celebration-card); box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40; text-align: center; animation: checklist-card-in 640ms cubic-bezier(.2, .9, .25, 1.15) both; }
-@keyframes checklist-card-in { from { opacity: 0; transform: translateY(30px) scale(.9); } }
-.checklist-celebration-stage { position: relative; display: grid; place-items: center; width: 220px; height: 170px; margin-top: -86px; }
-.checklist-celebration-trophy { width: 150px; height: 150px; box-sizing: border-box; border-width: 3px; filter: drop-shadow(0 0 24px #ffd27a99); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
-@keyframes checklist-trophy-rise { from { opacity: 0; transform: translateY(40px) scale(.6) rotate(-10deg); } }
-/* ZIGi large and in front of the trophy (never behind its ring), celebrating. */
-.checklist-celebration-zigi { position: absolute; z-index: 2; right: -96px; bottom: 2px; width: 122px; height: 160px; filter: drop-shadow(0 12px 18px #0009); animation: checklist-zigi-hop 760ms cubic-bezier(.2, .9, .25, 1.3) 380ms both; }
-.checklist-celebration-zigi .zigi { width: 100%; height: 100%; }
-@keyframes checklist-zigi-hop { from { opacity: 0; transform: translateY(26px) scale(.8); } }
-.checklist-celebration-planets { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
-.checklist-celebration-planets li { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, var(--c) 45%, color-mix(in srgb, var(--c) 60%, #050a1e)); box-shadow: 0 0 12px var(--c); animation: checklist-planet-pop 420ms cubic-bezier(.2, .9, .25, 1.4) calc(500ms + var(--i) * 90ms) both; }
-@keyframes checklist-planet-pop { from { opacity: 0; transform: scale(.2); } }
-.checklist-celebration-eyebrow { margin: 0; color: #ffd27a; font-size: 14px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.checklist-celebration h2 { margin: 0; font-size: clamp(30px, 6vw, 40px); line-height: 1.08; letter-spacing: -.02em; }
-.checklist-celebration-line { margin: 0; font-size: 16px; color: #c9d5ee; }
-.checklist-celebration-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 4px 0 6px; padding: 0; list-style: none; }
-.checklist-celebration-stats li { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 16px 0 10px; border-radius: 999px; border: 1px solid #ffffff26; background: #ffffff0f; font-size: 15px; color: #dfe8fb; }
-.checklist-celebration-stats strong { font-size: 24px; font-weight: 850; color: #ffffff; }
-.checklist-celebration-stats .checklist-flame { width: 28px; height: 28px; }
-.checklist-celebration-go { min-width: 200px; min-height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: linear-gradient(100deg, #23eaff, #9273ff 55%, #ff74be); color: #050b1f; font: inherit; font-size: 17px; font-weight: 850; letter-spacing: .02em; cursor: pointer; box-shadow: 0 5px 0 #4b3aa8, 0 16px 30px -12px #9273ffaa; }
-.checklist-celebration-go:active { transform: translateY(4px); box-shadow: 0 1px 0 #4b3aa8; }
-.checklist-celebration-go:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
-@media (max-width: 480px) { .checklist-celebration-zigi { right: -64px; bottom: 4px; width: 107px; height: 140px; } .checklist-celebration-stage { width: 170px; height: 140px; translate: -34px 0; } .checklist-celebration-trophy { width: 140px; height: 140px; } }
-@media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; } }
-:root[data-app-motion=off] :is(.checklist-celebration *) { animation: none !important; }
-/* (The still frame: the supernova's ring at rest around the finale and the stars shining; the shooting star is not drawn.) */
-@media (prefers-reduced-motion: reduce) { .checklist-celebration-nova { opacity: .4; transform: scale(1.7); } .checklist-celebration-nova-2 { opacity: .22; transform: scale(2.6); } .checklist-celebration-twinkle i { opacity: .75; } .checklist-celebration-comet { display: none; } }
-:root[data-app-motion=off] .checklist-celebration-nova { opacity: .4; transform: scale(1.7); }
-:root[data-app-motion=off] .checklist-celebration-nova-2 { opacity: .22; transform: scale(2.6); }
-:root[data-app-motion=off] .checklist-celebration-twinkle i { opacity: .75; }
-:root[data-app-motion=off] .checklist-celebration-comet { display: none; }
-/* L3b round 2: a bigger card on a wide screen; the day's planets as small worlds. */
-@media (min-width: 1024px) { .checklist-celebration-card { width: 560px; padding: 34px 32px 30px; } .checklist-celebration h2 { font-size: 46px; } }
-.checklist-celebration-planets { gap: 10px; margin: 6px 0 2px; }
-/* On a phone a day of eight planets keeps them on one row, and the streak and the XP sit side by side. */
-@media (max-width: 480px) {
-  .checklist-celebration-card { padding-inline: 20px; }
-  .checklist-celebration-planets { gap: 6px; }
-  .checklist-celebration-planets li { width: 32px; height: 32px; }
-  .checklist-celebration-stats { gap: 8px; }
-  .checklist-celebration-stats li { gap: 5px; padding: 0 12px 0 8px; font-size: 14px; }
-  .checklist-celebration-stats strong { font-size: 22px; }
-}
-/* The last tick's Undo, under Continue: the toast lent to the celebration, shown as a quiet text button (its words stay for
-   screen readers; it closes with the celebration). */
-:root .checklist-celebration .checklist-celebration-undo { position: static; width: auto; height: auto; }
-:root .checklist-celebration .checklist-celebration-undo .aa-toast-region { position: static; left: auto; right: auto; bottom: auto; width: auto; transform: none; }
-:root .checklist-celebration .checklist-celebration-undo .aa-toast { display: flex; justify-content: center; min-height: 0; max-height: none; padding: 0; border: 0; background: none; box-shadow: none; animation: none; }
-:root .checklist-celebration .checklist-celebration-undo .aa-toast > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-:root .checklist-celebration .checklist-celebration-undo .aa-toast-close { display: none; }
-:root .checklist-celebration .checklist-celebration-undo .aa-toast-undo { min-height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: none; color: #c9d5ee; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
-:root .checklist-celebration .checklist-celebration-undo .aa-toast-undo:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }
-/* Round 4: a full-screen moment, not a card — the trophy high with ZIGi large in front of it, the day's planets, big streak
-   and XP tiles, and Continue near the foot, so no third of the screen is left empty. */
-.checklist-celebration { display: block; padding: 0; }
-.checklist-celebration-card { box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(620px, 100%); min-height: 100%; margin: 0 auto; padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(18px, env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 0; background: none; box-shadow: none; }
-.checklist-celebration-stage { width: 100%; height: clamp(220px, 34vh, 330px); margin-top: 0; display: flex; align-items: flex-end; justify-content: center; translate: none; }
-.checklist-celebration-trophy { width: clamp(160px, 23vh, 230px); height: clamp(160px, 23vh, 230px); translate: -36px 0; }
-.checklist-celebration-zigi { left: calc(50% - 8px); right: auto; bottom: -8px; width: auto; height: clamp(176px, 26vh, 230px); aspect-ratio: .762; }
-@media (min-width: 768px) { .checklist-celebration-zigi { height: clamp(212px, 30vh, 260px); } .checklist-celebration-trophy { width: clamp(180px, 25vh, 240px); height: clamp(180px, 25vh, 240px); } }
-.checklist-celebration-zigi .zigi { display: block; width: 100%; height: 100%; }
-.checklist-celebration-zigi .zigi img { width: 100%; height: 100%; object-fit: contain; animation: checklist-zigi-cheer 1100ms cubic-bezier(.3, .7, .4, 1) 600ms 2 both; }
-@keyframes checklist-zigi-cheer { 0%, 100% { transform: none; } 25% { transform: translateY(-18px) rotate(-3deg); } 50% { transform: none; } 70% { transform: translateY(-10px) rotate(2deg); } }
-.checklist-celebration h2 { font-size: clamp(32px, 7vw, 48px); }
-.checklist-celebration-stats { display: grid; grid-template-columns: minmax(0, 200px); justify-content: center; gap: 12px; width: 100%; max-width: 440px; margin: 4px 0 0; }
-/* (Session AG: the streak alone — no XP tile — stands in the middle.) */
-.checklist-celebration-trophy .orbit-node-glyph svg { width: 62px; height: 62px; }
-.checklist-celebration-stats li { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 112px; padding: 12px 10px; border-radius: 24px; border: 1px solid #ffffff2b; background: linear-gradient(160deg, #ffffff1c, #ffffff08); font-size: 15px; }
-.checklist-celebration-stats li > svg, .checklist-celebration-stats .checklist-flame { width: 32px; height: 32px; }
-.checklist-celebration-stats strong { font-size: 44px; line-height: 1.05; }
-.checklist-celebration-spacer { flex: 1 1 auto; min-height: 4px; }
-.checklist-celebration-go { width: 100%; max-width: 440px; min-height: 56px; font-size: 18px; }
-@media (max-width: 480px) {
-  .checklist-celebration-stats li { padding: 10px 8px; font-size: 14px; }
-  .checklist-celebration-stats strong { font-size: 40px; }
-  .checklist-celebration-planets li { width: 30px; height: 30px; }
-}
+/* Session AG Polish (ADR-030; owner Part 6b, references 17–20): the day's celebration, rebuilt — on the Checklist's own
+   sky in the current theme (owner amendment 4: Nebula's starfield, Light's mist, Dark's black sky), with the same hues,
+   planets and motion in every theme. Mists bloom once; the planets and orbs move by the component's one orchestrated
+   sequence (transform and opacity, components/checklist/day-celebration.tsx); the rest is one-time CSS. Reduced motion and
+   Motion Off: the final composition, still. */
+:root { --checklist-celebration-ground: #050a1e; }
+.checklist-celebration { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden auto; background: var(--checklist-celebration-ground); color: var(--text, #f0f5ff); }
+.checklist-celebration::backdrop { background: #02061499; }
+.checklist-celebration-sky { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.checklist-celebration-sky .checklist-sky { position: absolute; }
+/* Nebula mists blooming softly into view (cyan, blue, violet, magenta): one drift, then rest. */
+.checklist-celebration-mists { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.checklist-celebration-mists i { position: absolute; width: 90vmax; height: 60vmax; border-radius: 50%; opacity: .55; filter: blur(18px); }
+.checklist-celebration-mists i[data-m=a] { left: -40vmax; top: -10vmax; background: radial-gradient(closest-side, #9273ff70, #9273ff00); }
+.checklist-celebration-mists i[data-m=b] { right: -42vmax; top: 4vmax; background: radial-gradient(closest-side, #23eaff52, #23eaff00); }
+.checklist-celebration-mists i[data-m=c] { left: -30vmax; bottom: -28vmax; background: radial-gradient(closest-side, #f06dff45, #f06dff00); }
+.checklist-celebration-mists i[data-m=d] { right: -36vmax; bottom: -24vmax; background: radial-gradient(closest-side, #459dff4d, #459dff00); }
+.checklist-celebration[data-motion] .checklist-celebration-mists i { animation: celebration-mist 2600ms cubic-bezier(.25, .6, .3, 1) both; }
+.checklist-celebration[data-motion] .checklist-celebration-mists i[data-m=b] { animation-delay: 150ms; }
+.checklist-celebration[data-motion] .checklist-celebration-mists i[data-m=c] { animation-delay: 300ms; }
+.checklist-celebration[data-motion] .checklist-celebration-mists i[data-m=d] { animation-delay: 450ms; }
+@keyframes celebration-mist { 0% { opacity: 0; transform: scale(.7) translate(-4vmax, 2vmax); } 100% { opacity: .55; transform: none; } }
+
+/* The composition: the ring of planets and orbs with ZIGi, the words, the streak chip, Continue. */
+.checklist-celebration-card { position: relative; z-index: 2; box-sizing: border-box; display: grid; justify-items: center; align-content: center; gap: 14px; width: min(520px, 100%); min-height: 100%; margin: 0 auto; padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(28px, env(safe-area-inset-bottom, 0px)); text-align: center; }
+.checklist-celebration-stage { position: relative; container-type: inline-size; width: min(440px, 92vw); aspect-ratio: 1 / .78; --rx: 42cqi; --ry: 16cqi; }
+.checklist-celebration-ring { position: absolute; left: 50%; top: 50%; width: 100cqi; height: 40cqi; translate: -50% -50%; overflow: visible; fill: none; stroke: #8fa6ff; stroke-width: .5; vector-effect: non-scaling-stroke; opacity: .7; z-index: 99; }
+.checklist-celebration-ring ellipse { vector-effect: non-scaling-stroke; stroke-width: 1.2px; filter: drop-shadow(0 0 4px #9fb4ff99); }
+.checklist-celebration-planet, .checklist-celebration-orb { position: absolute; left: 50%; top: 50%; will-change: transform; }
+.checklist-celebration-planet .orbit-planet { --planet-size: clamp(40px, 13.5cqi, 60px); }
+.checklist-celebration-orb { width: var(--orb, 14px); height: var(--orb, 14px); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 72%); box-shadow: 0 0 10px var(--c), 0 0 22px color-mix(in srgb, var(--c) 55%, transparent); }
+/* ZIGi cheers in the ring's heart — inside it: the far side of the ring passes behind it, the near side in front (depth 100);
+   the clip while the sequence plays, the sharp still at rest. */
+.checklist-celebration-zigi { position: absolute; left: 50%; top: 50%; z-index: 100; width: clamp(160px, 46cqi, 200px); aspect-ratio: 480 / 632; translate: -50% -46%; }
+.checklist-celebration-zigi img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 12px 18px #6b4dff59); }
+.checklist-celebration-zigi-clip { image-rendering: auto; }
+.checklist-celebration-zigi-still { opacity: 0; }
+.checklist-celebration-zigi[data-rest] .checklist-celebration-zigi-still, .checklist-celebration:not([data-motion]) .checklist-celebration-zigi-still { opacity: 1; transition: opacity 420ms ease; }
+.checklist-celebration[data-motion] .checklist-celebration-zigi { animation: celebration-zigi 900ms cubic-bezier(.2, .9, .25, 1.2) 400ms both; }
+@keyframes celebration-zigi { from { opacity: 0; transform: translateY(18px) scale(.9); } to { opacity: 1; transform: none; } }
+.checklist-celebration-title { margin: 6px 0 0; font-size: clamp(30px, 8vw, 40px); line-height: 1.12; font-weight: 850; letter-spacing: -.02em; color: var(--text-strong, #ffffff); }
+.checklist-celebration-lit { background: linear-gradient(100deg, #6fe6f6 0%, #8fa6ff 40%, #c790f6 72%, #f08bd6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #8fa6ff; }
+.checklist-celebration-line { margin: 0; font-size: 16px; line-height: 1.4; color: var(--text-secondary, #c9d5ea); }
+.checklist-celebration[data-motion] :is(.checklist-celebration-title, .checklist-celebration-line, .checklist-celebration-streak, .checklist-celebration-go) { animation: celebration-rise 700ms cubic-bezier(.2, .8, .3, 1) both; }
+.checklist-celebration[data-motion] .checklist-celebration-title { animation-delay: 2600ms; }
+.checklist-celebration[data-motion] .checklist-celebration-line { animation-delay: 2800ms; }
+.checklist-celebration[data-motion] .checklist-celebration-streak { animation-delay: 3100ms; }
+.checklist-celebration[data-motion] .checklist-celebration-go { animation-delay: 3400ms; }
+@keyframes celebration-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+/* The streak: a glass chip with the warm flame (owner amendment 1), a thin rule, the real streak. */
+.checklist-celebration-streak { position: relative; display: inline-flex; align-items: center; gap: 14px; min-width: min(320px, 100%); min-height: 64px; box-sizing: border-box; margin: 4px 0 0; padding: 8px 22px; border-radius: 20px; overflow: hidden;
+  border: 1px solid #c9d6ff40; background: linear-gradient(135deg, #ffffff1f, #ffffff08 60%, #9fb4ff14); box-shadow: inset 0 1px 0 #ffffff33, 0 10px 30px -16px #000a; color: #f4f8ff; font-size: 19px; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.checklist-celebration-streak strong { font-weight: 800; }
+.checklist-celebration-streak .checklist-flame { width: 30px; height: 30px; }
+.checklist-celebration-streak-rule { width: 1px; align-self: stretch; margin: 6px 0; background: #ffffff33; }
+.checklist-celebration-streak::after { content: ''; position: absolute; top: -40%; bottom: -40%; width: 30%; left: 70%; background: linear-gradient(100deg, #ffffff00, #ffffff2e, #ffffff00); rotate: 18deg; pointer-events: none; }
+/* (The flame ignites once when the streak has just grown.) */
+.checklist-celebration-streak[data-grew] .checklist-celebration-flame { animation: celebration-ignite 900ms cubic-bezier(.2, .9, .3, 1.3) 3300ms both; }
+@keyframes celebration-ignite { 0% { transform: scale(.4); filter: brightness(.5); opacity: .3; } 55% { transform: scale(1.25); filter: brightness(1.5) drop-shadow(0 0 10px #ff9f6e); opacity: 1; } 100% { transform: none; filter: none; } }
+.checklist-celebration-flame { display: grid; place-items: center; }
+/* Continue: the nebula button. */
+.checklist-celebration-go { min-width: min(320px, 100%); min-height: 56px; margin-top: 4px; padding: 0 28px; border-radius: 18px; border: 1px solid #ffffff3d; background: linear-gradient(100deg, #9273ff, #6f8dff 45%, #23d6ff); color: #ffffff; font: inherit; font-size: 19px; font-weight: 800; cursor: pointer; box-shadow: 0 0 24px -4px #8f7bffaa, inset 0 1px 0 #ffffff55; text-shadow: 0 1px 2px #1a0c5a66; }
+.checklist-celebration-go:hover { transition-delay: 70ms; box-shadow: 0 0 32px -2px #8fd7ffbb, inset 0 1px 0 #ffffff66; }
+.checklist-celebration-go:active { transform: scale(.98); }
+.checklist-celebration-go:focus-visible { outline: 3px solid #ffffff; outline-offset: 3px; }
+/* The last tick's Undo under Continue, as a quiet text button. */
+.checklist-celebration-undo { position: relative; width: auto; height: auto; min-height: 44px; }
+.checklist-celebration-undo .aa-toast-region { position: static !important; transform: none !important; width: auto !important; }
+/* By day the words are ink; the ground is Light's mist (the sky component draws it), the hues the same. */
+:root[data-theme=light] .checklist-celebration { --checklist-celebration-ground: #f6f7fc; }
+:root[data-theme=light] .checklist-celebration-streak { color: #10183a; border-color: #6b6fa040; background: linear-gradient(135deg, #ffffffcc, #ffffff99 60%, #e9ecff99); }
+:root[data-theme=light] .checklist-celebration-streak-rule { background: #10183a33; }
+:root[data-theme=light] .checklist-celebration-title { color: #10183a; }
+:root[data-theme=light] .checklist-celebration-line { color: #3b4566; }
+:root[data-theme=light] .checklist-celebration-lit { filter: drop-shadow(0 1px 1px #10183a59); }
+:root[data-theme=dark] .checklist-celebration { --checklist-celebration-ground: #000000; }
+@media (max-width: 480px) { .checklist-celebration-card { gap: 12px; } .checklist-celebration-streak { min-height: 58px; font-size: 18px; } }
+@media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; transition: none !important; } }
+:root[data-app-motion=off] .checklist-celebration :is(*, *::before, *::after) { animation: none !important; transition: none !important; }
+@media (forced-colors: active) { .checklist-celebration-mists, .checklist-celebration-orb { display: none; } .checklist-celebration-go { border: 2px solid ButtonText; } }

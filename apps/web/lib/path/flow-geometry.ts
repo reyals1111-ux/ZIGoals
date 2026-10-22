@@ -14,7 +14,8 @@ import {stableHash} from './orbit-colours';
  * - Every point stays inside the column (`gutter` from each side): the page never scrolls sideways.
  * Computed when the path is measured (mount, resize, fonts), never per frame.
  */
-export type FlowSide = 'left' | 'right';
+/** A node's side point; an orbit's planet (Session AG Polish, owner Part 4) takes the line in at its top and lets it out at its bottom. */
+export type FlowSide = 'left' | 'right' | 'top' | 'bottom';
 export type FlowNode = {id: string; x: number; y: number; r: number; inSide: FlowSide; outSide: FlowSide; colour: string; done: boolean};
 export type FlowSegment = {id: string; from: string | null; to: string | null; kind: 'step' | 'lead' | 'tail'; d: string;
   /** The gradient runs from (x1, y1) in `fromColour` to (x2, y2) in `toColour`. */
@@ -26,10 +27,11 @@ export function seeded(seed: string): () => number {
   let a = stableHash(seed) || 1;
   return () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
-const sign = (s: FlowSide) => s === 'right' ? 1 : -1;
+const sign = (s: FlowSide) => s === 'right' ? 1 : s === 'left' ? -1 : 0;
 const f = (n: number) => (Math.round(n * 10) / 10).toString();
-/** The point on a node's ring where the line meets it: its left or right side. */
-export const rimPoint = (n: Pick<FlowNode, 'x' | 'y' | 'r'>, side: FlowSide) => ({x: n.x + sign(side) * n.r, y: n.y});
+/** The point on a node's ring where the line meets it: its left or right side (a planet: its top or bottom). The line is
+ *  never drawn across a planet: it ends at the top rim and starts again at the bottom rim, heading straight down. */
+export const rimPoint = (n: Pick<FlowNode, 'x' | 'y' | 'r'>, side: FlowSide) => side === 'top' ? {x: n.x, y: n.y - n.r} : side === 'bottom' ? {x: n.x, y: n.y + n.r} : {x: n.x + sign(side) * n.r, y: n.y};
 
 export function flowSegments(nodes: readonly FlowNode[], o: FlowOptions): FlowSegment[] {
   const g = o.gutter ?? 8, clampX = (x: number) => Math.min(o.w - g, Math.max(g, x)), out: FlowSegment[] = [];
@@ -38,7 +40,7 @@ export function flowSegments(nodes: readonly FlowNode[], o: FlowOptions): FlowSe
   // The lead-in: from above the first orbit's label, down into the first node's ring on its name's side.
   if (o.leadFrom !== null && o.leadFrom !== undefined && o.leadFrom < first.y - first.r) {
     const r = seeded(`${o.seed}|lead|${first.id}`), p3 = rimPoint(first, first.inSide), s = sign(first.inSide);
-    const sx = clampX(p3.x + s * o.swing * (.25 + r() * .35)), dy = p3.y - o.leadFrom;
+    const sx = clampX(p3.x + (s || (r() < .5 ? -1 : 1)) * o.swing * (.25 + r() * .35)), dy = p3.y - o.leadFrom;
     out.push({id: `lead:${first.id}`, from: null, to: first.id, kind: 'lead', d: `M${f(sx)} ${f(o.leadFrom)} C${f(sx)} ${f(o.leadFrom + dy * .55)} ${f(p3.x)} ${f(p3.y - dy * .55)} ${f(p3.x)} ${f(p3.y)}`,
       x1: sx, y1: o.leadFrom, x2: p3.x, y2: p3.y, fromColour: first.colour, toColour: first.colour, fromLit: false, toLit: first.done});
   }
@@ -46,7 +48,7 @@ export function flowSegments(nodes: readonly FlowNode[], o: FlowOptions): FlowSe
     const a = nodes[i]!, b = nodes[i + 1]!, p0 = rimPoint(a, a.outSide), p3 = rimPoint(b, b.inSide), dy = p3.y - p0.y;
     const id = `${a.id}>${b.id}`, base = {id, from: a.id, to: b.id, kind: 'step' as const, x1: p0.x, y1: p0.y, x2: p3.x, y2: p3.y, fromColour: a.colour, toColour: b.colour, fromLit: a.done, toLit: b.done};
     if (dy <= 1) { out.push({...base, d: `M${f(p0.x)} ${f(p0.y)} L${f(p3.x)} ${f(p3.y)}`}); continue; }
-    const r = seeded(`${o.seed}|${id}`), turn = .38 + r() * .24, amp = o.swing * (.35 + r() * .65), sa = sign(a.outSide), same = a.outSide === b.inSide;
+    const r = seeded(`${o.seed}|${id}`), turn = .38 + r() * .24, amp = o.swing * (.35 + r() * .65), sa = sign(a.outSide), same = sa !== 0 && a.outSide === b.inSide;
     // Same side: bow out past both rims on that side. Across: swing through the middle, a little off it either way.
     const mx = clampX(same ? (sa > 0 ? Math.max(p0.x, p3.x) : Math.min(p0.x, p3.x)) + sa * amp * .55 : p0.x + (p3.x - p0.x) * turn + (r() - .5) * amp * .5), my = p0.y + dy * turn;
     // (The tangent at the waypoint: nearly upright for a bow, along the swing for a crossing.)
@@ -58,7 +60,7 @@ export function flowSegments(nodes: readonly FlowNode[], o: FlowOptions): FlowSe
   // The tail: on past the last node (to the day's finale), fading out.
   if (o.tailTo !== null && o.tailTo !== undefined && o.tailTo > last.y + last.r) {
     const r = seeded(`${o.seed}|tail|${last.id}`), p0 = rimPoint(last, last.outSide), s = sign(last.outSide), dy = o.tailTo - p0.y;
-    const ex = clampX(p0.x + s * o.swing * (.15 + r() * .3));
+    const ex = clampX(p0.x + (s || 1) * o.swing * (.15 + r() * .3));
     out.push({id: `tail:${last.id}`, from: last.id, to: null, kind: 'tail', d: `M${f(p0.x)} ${f(p0.y)} C${f(p0.x)} ${f(p0.y + dy * .5)} ${f(ex)} ${f(o.tailTo - dy * .45)} ${f(ex)} ${f(o.tailTo)}`,
       x1: p0.x, y1: p0.y, x2: ex, y2: o.tailTo, fromColour: last.colour, toColour: last.colour, fromLit: last.done, toLit: false});
   }

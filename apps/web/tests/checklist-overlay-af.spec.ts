@@ -259,7 +259,8 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
   expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
   expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
-  expect(zigi.src).toMatch(/F006-presenting-large/);
+  // (Session AG Polish, owner Part 6b, moved: ZIGi cheers with its celebrate figure — the animated clip, then its sharp still.)
+  expect(zigi.src).toMatch(/F009-celebrate/);
   await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
@@ -331,7 +332,12 @@ const restFacts = (page: Page) => page.evaluate(() => {
   // nearest clear place is just past the name — how far past it, from the name's far edge.)
   const between = l.bottom > fig.top && l.top < fig.bottom && (left ? l.right <= d.left + 1 && l.left >= fig.right - 1 : l.left >= d.right - 1 && l.right <= fig.left + 1);
   const pastName = between ? (left ? l.left - fig.right : fig.left - l.right) : null;
-  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked, gap, pastName};
+  // (Session AG Polish, owner Part 2: where a long name leaves no room on its node's other side on a phone, ZIGi's slot is
+  // above that name — `data-zigi-slot="above"` — and the clearances below are read from the node and the name instead.)
+  const slot = document.querySelector('[data-next] .path-label')!.getAttribute('data-zigi-slot');
+  const apart = (a: {left: number; right: number; top: number; bottom: number}, o: {left: number; right: number; top: number; bottom: number}) => Math.max(o.left - a.right, a.left - o.right, o.top - a.bottom, a.top - o.bottom);
+  const clearNode = apart(fig, {left: d.left - e, right: d.right + e, top: d.top - e, bottom: d.bottom + e}), clearName = apart(fig, l);
+  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked, gap, pastName, slot, clearNode, clearName};
 });
 /** Round 9 (L3b; the iteration-8 frames: at the top of a cheer's hop ZIGi's head met the descenders of a name, and a sparkle
  *  sat on a name — the round-7 and round-8 checks read ZIGi at rest and its moves only, never the hop's own frames, nor the
@@ -378,8 +384,17 @@ async function expectRest(page: Page, width: number, when: string) {
   expect(f.h, `${width}px, ${when}: ZIGi's figure at rest ${least} px or more`).toBeGreaterThanOrEqual(least);
   if (width < 641) expect(f.edge, `${width}px, ${when}: ZIGi 16 px or more from the screen's edges`).toBeGreaterThanOrEqual(16);
   expect(f.mirrored, `${width}px, ${when}: ZIGi faces the next planet`).toBe(f.left);
-  expect(f.points, `${width}px, ${when}: ZIGi points at the next planet, its arm through the planet's body`).toBe(true);
   expect(f.nameGap, `${width}px, ${when}: the next node's name tab attached to it`).toBe(0);
+  if (f.slot === 'above') {
+    // Session AG Polish (owner Part 2, moved): a name too long to leave ZIGi room on the node's other side keeps to one
+    // line, and ZIGi stands above it — 12 px or more clear of the node and of the name, and near them (within 60 px).
+    expect(f.clearNode, `${width}px, ${when}: ZIGi clear of the next node`).toBeGreaterThanOrEqual(12);
+    expect(f.clearName, `${width}px, ${when}: ZIGi clear of the next node's name`).toBeGreaterThanOrEqual(12);
+    expect(Math.min(f.clearNode, f.clearName), `${width}px, ${when}: ZIGi beside them`).toBeLessThanOrEqual(60);
+    test.info().annotations.push({type: 'zigi-gap', description: `${width}px ${when}: above the name, ${Math.round(f.clearNode)} from the node, ${Math.round(f.clearName)} from the name`});
+    return;
+  }
+  expect(f.points, `${width}px, ${when}: ZIGi points at the next planet, its arm through the planet's body`).toBe(true);
   // Gate C test audit (new, after every tick and under reduced motion, not only on opening): ZIGi's figure stays beside the
   // next planet — 12 px clear of its ring and no further than the measured rests (1440: 91, 768: 60, 390: 27 px from the
   // ring) plus 8 px or so: 100 on a computer, 68 on a tablet, 36 on a phone.
@@ -487,7 +502,10 @@ test('a learning path’s density: six planets or more on the opening screen, be
     return [...document.querySelectorAll('.path-step .path-dot')].filter(d => { const r = d.getBoundingClientRect(); return Math.min(r.bottom, foot) - Math.max(r.top, top) >= r.height / 2; }).length;
   });
   // (Round 4, raised: six — one more than iteration 3's five, from the one-row top bar and the chests beside their planets.)
-  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(6);
+  // Session AG Polish (owner Parts 2 and 4, moved): a phone's path is a long, airy journey — about 170 px from node to
+  // node, scrolled more — and each orbit now opens with its planet in a band of its own, so the opening screen holds four
+  // or more nodes on a computer and two or more on a phone (the planets on it besides).
+  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(mobile ? 2 : 4);
   if (mobile) {
     // The foot bar is opaque and holds the timers: nothing of the path is drawn over it.
     // (Round 4: the bar holds the timers' own chips, each 44 px or more.)

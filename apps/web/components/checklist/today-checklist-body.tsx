@@ -9,8 +9,8 @@ import {checklistPath} from '../../lib/checklist/derive';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {nextStep, normalisePath, pathSteps} from '../../lib/path/model';
-import {itemGlyph} from '../../lib/checklist/glyphs';
-import {PathGlyph} from '../path/path-glyphs';
+import {orbitGlyph} from '../../lib/checklist/glyphs';
+import {OrbitNodeFace} from '../orbit-path/orbit-node';
 import {useChecklist} from './use-checklist';
 import {ChecklistMark, FlameMark} from './checklist-marks';
 
@@ -59,7 +59,7 @@ export default function TodayChecklistBody() {
         <span className="sr-only">{step.label}: {step.state === 'done' ? 'done' : step.counted === false ? 'not counted today' : 'not done yet'}{next?.id === step.id ? ' (next)' : ''}</span>
       </li>)}</ol>}
       {next ? <div className="today-checklist-next" style={{'--dot': PATH_COLOURS[next.colour].token} as CSSProperties}>
-        <span className="today-checklist-planet" aria-hidden="true"><PathGlyph name={nextDot ? itemGlyph(nextDot) : next.glyph ?? 'sparkle'} size={24}/></span>
+        <span className="today-checklist-planet orbit-node" style={{'--node': PATH_COLOURS[next.colour].token} as CSSProperties} aria-hidden="true"><OrbitNodeFace glyph={nextDot ? orbitGlyph(nextDot) : next.glyph ?? 'star'}/></span>
         <p className="today-checklist-line"><span className="today-checklist-cue">Next<span className="sr-only">:</span> </span><strong data-next-step={next.id}>{next.label}</strong></p>
         <Link className="primary today-checklist-continue" href={CHECKLIST_ROUTE} onClick={seen} data-nudge={slot ? '' : undefined}>Continue</Link>
       </div> : <p className="today-checklist-line">{summary.total && summary.done >= summary.total ? 'All planets lit. See you tomorrow.' : summary.total ? 'Nothing to tick here now: open your path.' : 'Every planet rests today.'}</p>}

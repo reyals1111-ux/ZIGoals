@@ -1,6 +1,6 @@
 'use client';
 import {type ReactNode, useEffect, useId, useState} from 'react';
-import {NebulaFlow} from '../nebula-flow';
+import {HabitSectionBannerParts} from './habit-section-banner';
 import {SECTION_SYMBOLS, openSection, type HabitSection, type TimeSection} from '../../lib/habits-extras/sections';
 import {setSectionFold} from '../../lib/habits-extras/store';
 import type {HabitExtrasState} from './use-habit-extras';
@@ -28,7 +28,7 @@ export function HabitSections({sections, extras, hour, render, compact = false, 
         </section>;
       }
       return <details key={section.id} className={`habit-section habit-section-${section.id}`} data-now={section.id === first || undefined} open={open} onToggle={e => { const next = e.currentTarget.open; setTouched(t => ({...t, [section.id]: next})); if (extras?.loaded && !extras.unreadable && !compact) { try { extras.update(r => setSectionFold(r, section.id, !next)); } catch { /* the fold is a convenience */ } } }}>
-        <summary className="habit-section-summary"><span className="habit-section-mark" aria-hidden="true">{SECTION_SYMBOLS[section.id]}</span><h2 className="habit-section-title"><NebulaFlow identity={`habit-section:${section.id}${compact ? ':compact' : ''}`}>{section.label}</NebulaFlow></h2><span className="habit-section-count"><span aria-hidden="true">{section.due ? `${section.done} / ${section.due}` : empty ? 'empty' : 'none due'}</span><span className="sr-only">{section.due ? `${section.done} of ${section.due} due habits complete` : empty ? 'no habits here' : 'none due today'}</span></span><span className="habit-section-chevron" aria-hidden="true">›</span></summary>
+        <summary className="habit-section-summary"><HabitSectionBannerParts symbol={SECTION_SYMBOLS[section.id]} title={section.label} identity={`habit-section:${section.id}${compact ? ':compact' : ''}`} count={section.due ? `${section.done} / ${section.due}` : empty ? 'empty' : 'none due'} spoken={section.due ? `${section.done} of ${section.due} due habits complete` : empty ? 'no habits here' : 'none due today'}/></summary>
         {empty ? <p className="habit-section-empty">{section.id === 'anytime' ? 'Nothing here yet.' : `No ${section.label.toLowerCase()} habit yet.`}{onNew && <> <button type="button" className="text-link" onClick={() => onNew(section.id)}>Add one</button></>}</p> : render(section)}
       </details>;
     })}

@@ -11,7 +11,7 @@ export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
  * the persona decisions (ADR-019). Session AA-Cloud bumps it for pages in order, Goals, the calculator, search and the
  * Life review (ADR-021). Same key and schema: an earlier build reads the id as one more dismissed string.
  */
-export const WHATS_NEW_RELEASE = '2026-10-session-ag-orbit-checklist'; // Session AG (ADR-029): the orbit Checklist. Before it: '2026-10-session-af-wealth-unlocked'; // Session AF (ADR-028): wealth, unlocked — Earn, staking in your own wallet, wallets and Add money, governance, the Checklist, ZIGi's new skills, My universe, the Day timeline and Stories
+export const WHATS_NEW_RELEASE = '2026-10-session-ag-polish-checklist'; // Session AG Polish (ADR-030): the Checklist, finished. Before it: '2026-10-session-ag-orbit-checklist'; // Session AG (ADR-029): the orbit Checklist. Before that: '2026-10-session-af-wealth-unlocked'; // Session AF (ADR-028): wealth, unlocked — Earn, staking in your own wallet, wallets and Add money, governance, the Checklist, ZIGi's new skills, My universe, the Day timeline and Stories
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;

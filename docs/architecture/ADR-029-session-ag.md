@@ -1,6 +1,6 @@
 # ADR-029: Session AG, "The orbit Checklist": session decisions
 
-Status: **Done, in review** (PR #91, not merged, not deployed) on `feature/session-ag-checklist-orbit`, from `main` `8778497` (Merge #90, Session AF; live as Alpha #45), in a cloud session. This record holds the owner's decisions at plan approval and every decision the session took without asking (by the project rules and the safest option). Resume point: `docs/handoff/AG_RESUME.md`.
+Status: **Done, merged and deployed** (PR #91, merged into `main` as `98a29b4`, live as Alpha #46) on `feature/session-ag-checklist-orbit`, from `main` `8778497` (Merge #90, Session AF; live as Alpha #45), in a cloud session. This record holds the owner's decisions at plan approval and every decision the session took without asking (by the project rules and the safest option). Resume point: `docs/handoff/AG_RESUME.md`.
 
 ## Owner decisions (2026-10-21, plan approval)
 - **The brief:** Session AG, a focused visual redesign of the Checklist's Path view (pointers 1–12 on the owner's reference 01; references 02–12 on the orphan branch `review/session-ag-refs`, used as references only, never committed here or shipped). Non-negotiables 1–8 as written: additive behaviour, no storage key or format change, honest numbers, one-time motion, three-theme parity, readability and touch, no new dependencies or Tier 3 areas beyond the named ones, and Earn's Start-here left as it is.

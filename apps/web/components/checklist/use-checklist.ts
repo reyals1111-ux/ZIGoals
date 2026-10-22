@@ -127,7 +127,7 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
     return run(plan);
   }, [ctxFor, dots, fasting.data.sessions, focusHabit, run]);
 
-  const setPrefs = useCallback((patch: Partial<ChecklistPrefs>) => { try { prefsRecord.update(p => ({...p, checklist: {...(p.checklist ?? {}), ...patch}})); return true; } catch { return false; } }, [prefsRecord]);
+  const setPrefs = useCallback((patch: Partial<Omit<ChecklistPrefs, 'celebratedOn'>> & {celebratedOn?: string}) => { try { prefsRecord.update(p => ({...p, checklist: {...(p.checklist ?? {}), ...patch}})); return true; } catch { return false; } }, [prefsRecord]);
 
   // ZIGi's live surface while the Checklist is open (lib/checklist/commands.ts).
   useEffect(() => {
@@ -141,7 +141,7 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
     });
   }, [commands, loaded, date, dots, tick, timer, record]);
 
-  return {loaded, date, dayZone, record, days, dots, summary, streak, prefs, setPrefs, quiet, gameOn, tick, timer, undoLast, canUndo, announce,
+  return {loaded, date, dayZone, record, days, dots, summary, streak, prefs, setPrefs, prefsLoaded: prefsRecord.loaded && !prefsRecord.unreadable, quiet, gameOn, tick, timer, undoLast, canUndo, announce,
     stores: {habits, health, sleep, meditation, fasting, platform}, focusHabit, unreadable: record.unreadable || days.unreadable};
 }
 export type ChecklistState = ReturnType<typeof useChecklist>;
