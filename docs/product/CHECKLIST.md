@@ -1,4 +1,4 @@
-# The Checklist (Session AF, Part 7; ADR-028; redesigned in Sessions AG and AG Polish, ADR-029 and ADR-030)
+# The Checklist (Session AF, Part 7; ADR-028; redesigned in Sessions AG, AG Polish and AG Polish 2, ADR-029 to ADR-031)
 
 Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (`docs/product/OWNER_REQUESTS_AF.md`).
 
@@ -21,6 +21,20 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   line (in at its top rim, out at its bottom rim), chosen by its first node's colour, matte until the orbit is complete,
   then a one-time completion; on a phone the nodes stand about 170 px apart in lanes that keep every name on one line
   where it fits, with ZIGi's room reserved; after a tick the next node glides into view.
+  **Session AG Polish 2 (ADR-031):** every planet lights when it is reached — the day's first with the first tick in its
+  orbit, each next one once everything in the orbit before it is done — and plays its one-time completion then; Undo
+  makes it matte again ("Complete ✓" still waits for the whole orbit). On a phone the path uses the whole width: seeded
+  lanes across the screen with every name whole on one line (only a very long one may wrap, on the narrowest phones), each
+  orbit's banner on one row ("0/5", "✓ Done"; the full words for screen readers) beside its planet (88–100 px; 84 px under
+  360 px), and the line one smooth ribbon like the computer's — one curve per stretch, leaning through each node toward its
+  name and leaving every ring in the direction it came in, at most one S-turn, no bend tighter than 42 px, never bent
+  around a name or a banner (the lanes keep it clear).
+- **The progress bar (Session AG Polish 2).** One segment per counted item, in path order and in the path's own colours,
+  joined by gradients; a segment lights the moment its item is ticked (out of order too) and dims on Undo; the sparkle sits
+  at the end of the last lit segment; "5 of 13 planets today · Thu 22 Oct" beside it, unchanged.
+- **The sky (Session AG Polish 2).** A few stars twinkle and, now and then, a shooting star crosses it — the page's one loop,
+  owner-approved; never under reduced motion or Motion Off, and paused while the tab is hidden, the celebration, a sheet or
+  the menu is open.
 - **Ticking.** Any dot, in any order. The real record is written through each page's own functions: a habit check-in
   (Habits' Complete / Add), a goal step (the milestone's own tick), water, a diary entry, a weight (an upsert for the day),
   a night (start, then end), mindful minutes, a fast (start, then stop, with the linked habit's time as Health adds it).
@@ -40,11 +54,25 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   banner in its first node's colour with its count and a fold; rows with the path's own node as the checkbox, a second
   line (value, what it is, the time), a quick "+" for items logged more than once and ⋯ for details; done rows move into
   a closed "Done · n" fold; "+ Add to … Orbit" opens Edit path with that orbit chosen; arrows, Space/Enter and the
-  context-menu key; swipe right on phones.
+  context-menu key; swipe right on phones. Session AG Polish 2: the List wears the path's own banners (symbol, title, count,
+  the short fade), and its rows are the path's: its node at the path's own size as the check, its name tab running right
+  like a step — dark until done, filled in the node's colour once done.
+- **Quick add (Session AG Polish 2).** "+" in the top bar (beside "⋯") opens a sheet: a name, its orbit, how it counts (once
+  a day, a number with its unit, or minutes), its days and a colour, with the node it becomes shown live. "Add to my orbit"
+  creates a real habit through the Habits page's own create (category "Checklist", the orbit as its time of day) and stars
+  it into that orbit; the toast links to it on Habits. Undo removes both while the habit is untouched, else only the star
+  ("Removed from your orbit · the habit stays on Habits").
 - **The celebration (Session AG Polish).** Plays whenever today is complete, however it was finished (here, on a page,
   from Today's card or ZIGi), once per day on this device (`checklist.celebratedOn`), the next time the Checklist is open
   that day; "Replay today's celebration" in the menu. The day's planets and an orb per item settle into a ring around
   ZIGi's celebrate clip on the theme's own sky; the real count, streak and Continue; reduced motion: the still.
+  Session AG Polish 2: the moment is the owner's own film (ZIGi with the day's planets orbiting; WebM, then MP4), fetched
+  only once the day is one item away, never in the first load. It plays once, muted and inline — full screen on a phone,
+  full height with blurred sides from 641 px — and rests on its last frame; our words fade in over it at about 7.3 s (the
+  real count, the honest line or the Perfect-orbit line, the streak, Continue). A tap, Space or Enter skips to its end;
+  Escape and Continue close it. Not ready within 1.5 s, refused, failing, stalled for 1.5 s, or under reduced motion,
+  Motion Off or Save-Data: the last frame and the words at once. No Undo while it is open: the toast waits and comes back
+  for the time it had left. The same in every theme.
 - **Feedback.** A soft bell only when sounds are on (off by default) and outside the quiet hours; a short vibration only
   where the device has one (iOS Safari has none, and Options says so).
 - **Nudges.** At most three gentle lines a day on Today's Checklist card (10:00, 15:00, 19:00), never in the quiet hours,
@@ -56,7 +84,9 @@ Today's path of starred dots, at `/app/checklist`. Owner requests P7.1–P7.24 (
   Checklist, between the logo and "+", following the launcher's off setting; the launcher's mark is one bold nebula check.
 - **Themes.** Nebula: the star sky with a slow mist (the page's one loop, owner-approved); Light: white with a very light
   colour mist; Dark: black with a subtle mist. Dots, lines, banners, chests and timers are the same colours in all three.
-  Session AG: the sky is the dashboard's own ground in each theme.
+  Session AG: the sky is the dashboard's own ground in each theme. Session AG Polish 2: the history's four states are
+  fixed neon colours in every theme (nothing: an empty glass cell with a faint teal outline; some: purple; all: cyan;
+  perfect: magenta with a soft glow), and the legend's swatches are cells themselves.
 - **Motion.** One-time: a dot fills and bursts once, its line lights once, a chest opens once, ZIGi's move plays once per
   state (Session AG: a node's ring blooms once and a light runs along its line once; the day's celebration is a supernova
   ring, a shooting star and a twinkle, once — no confetti). Under reduced motion and Motion Off every state is a still.

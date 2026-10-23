@@ -1,8 +1,7 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
-import {GlassBar} from '../progress/glass-progress';
 import {zigiSignals} from '../zigi/bus';
 import {pushToastLayer} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
@@ -11,13 +10,16 @@ import {PATH_COLOURS} from '../../lib/path/colours';
 import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {checklistPath} from '../../lib/checklist/derive';
-import {planetDesigns} from '../../lib/path/planet-pick';
-import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
+import {pathSteps} from '../../lib/path/model';
+import {nebulaColour} from '../../lib/path/orbit-colours';
+import {ProgressSegments} from './progress-segments';
+import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
 import {ListView} from './list-view';
 import {CornerTimers} from './corner-timers';
 import {ChecklistSky} from './checklist-sky';
+import {AmbientSky} from './ambient-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
 import {escapeTop, useEscapeLayer} from './escape-layers';
@@ -28,6 +30,8 @@ const EditPath = lazy(() => import('./edit-path').then(m => ({default: m.EditPat
 const OptionsSheet = lazy(() => import('./options-sheet').then(m => ({default: m.OptionsSheet})));
 const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({default: m.HistoryHeatmap})));
 const DayCelebration = lazy(() => import('./day-celebration'));
+// Session AG Polish 2 (owner Part 5): the quick-add form, its own chunk too.
+const OrbitQuickAdd = lazy(() => import('./orbit-quick-add').then(m => ({default: m.OrbitQuickAdd})));
 
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
@@ -67,7 +71,7 @@ function cameFromTheApp(): boolean {
 export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
-  const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
+  const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
   const narrow = useMedia(NARROW), phone = useMedia(PHONE), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
@@ -113,6 +117,10 @@ export function ChecklistPage() {
     // Undo of the last tick from the celebration's toast: the day is not complete any more, so the celebration closes.
     if (!complete) setCelebrate(false);
   }, [loaded, state.prefsLoaded, state.date, summary, complete, prefs.celebratedOn, state]);
+  // Session AG Polish 2 (owner Part 7): the celebration's clip is never part of the first load — it starts loading only
+  // once the day is one item from complete and not yet celebrated today (or when the celebration opens).
+  const oneLeft = !!summary && summary.total > 0 && summary.total - summary.done === 1 && loaded && state.prefsLoaded && prefs.celebratedOn !== state.date;
+  useEffect(() => { if (oneLeft) primeCelebrationVideo(); }, [oneLeft]);
 
   // Session AG Polish (owner Part 8): the top bar's flame ignites once when the day completes here and the streak grows.
   const lit = !!streak?.todayComplete, wasLit = useRef<boolean | null>(null), [ignite, setIgnite] = useState(0);
@@ -121,6 +129,12 @@ export function ChecklistPage() {
   const streakDays = streak?.current ?? 0;
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
+  // Session AG Polish 2 (owner Part 3): the bar's segments — today's counted items in path order, in their nodes' colours.
+  const segments = useMemo(() => {
+    const c = checklistDisplayColours(state.record.data, state.dots);
+    const model = checklistPath(state.record.data, state.dots.map(d => ({...d, colour: c.get(d.id) ?? d.colour})), []);
+    return pathSteps(model).filter(s => s.counted !== false).map(s => ({id: s.id, colour: PATH_COLOURS[nebulaColour(s.colour)].token, lit: s.state === 'done'}));
+  }, [state.record.data, state.dots]);
   const [menu, setMenu] = useState(false);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
@@ -144,13 +158,15 @@ export function ChecklistPage() {
       leave();
     }}>
     <ChecklistSky/>
+    {/* Session AG Polish 2 (owner Part 4): now and then a twinkle, rarely a shooting star — resting while anything is open over the path. */}
+    <AmbientSky paused={celebrate || sheet !== null || menu}/>
     {/* The top bar (Session AG, pointer 12): close, the title, today's progress and date, the view, the streak, the menu — no XP. */}
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">
         <button type="button" className="checklist-close" aria-label="Close the Checklist" onClick={leave}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
         <div className="checklist-progress">
-          <GlassBar identity="checklist-progress" ready={loaded} className="checklist-progress-bar" value={total ? done / total : 0} role="progressbar" aria-label="Planets lit today" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-valuetext={progressText}><Shine at={done}/><span className="checklist-progress-spark" aria-hidden="true"/></GlassBar>
+          <ProgressSegments segments={segments} done={done} total={total} valueText={progressText} ready={loaded}/>
           <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
         <div className="checklist-view-switch" role="group" aria-label="View">
@@ -158,6 +174,8 @@ export function ChecklistPage() {
           <button type="button" aria-label="List" aria-pressed={prefs.view === 'list'} onClick={() => state.setPrefs({view: 'list'})}><ViewMark name="list"/></button>
         </div>
         <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
+        {/* Session AG Polish 2 (owner Part 5, pointer D-path 11): quick add where "⋯" stood; "⋯" moves to the far right. */}
+        <button type="button" className="checklist-plus-button" aria-label="Quick add to your Checklist" aria-expanded={sheet === 'quick'} onClick={() => { setMenu(false); setSheet(s => s === 'quick' ? null : 'quick'); }}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
@@ -181,7 +199,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
+          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -201,7 +219,8 @@ export function ChecklistPage() {
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} {...celebrationBodies(state)} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
+    {sheet === 'quick' && !state.unreadable && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening quick add…</p>}><OrbitQuickAdd state={state} onClose={() => setSheet(null)} onAdded={id => { setSheet(null); setArrive(id); }}/></Suspense></Sheet>}
+    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>
@@ -209,15 +228,6 @@ export function ChecklistPage() {
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
   </dialog>;
-}
-
-/** The celebration's bodies: an orb for every item done today in its node's colour, and the day's orbit planets — the
- *  same designs the path shows (lib/path/planet-pick.ts, by each orbit's first node). */
-function celebrationBodies(state: ReturnType<typeof useChecklist>) {
-  const c = checklistDisplayColours(state.record.data, state.dots), colour = (d: (typeof state.dots)[number]) => c.get(d.id) ?? d.colour;
-  const model = checklistPath(state.record.data, state.dots.map(d => ({...d, colour: colour(d)})), []);
-  const planets = planetDesigns(model.sections.filter(s => s.steps.length).map(s => s.steps[0]!.colour), model.id).flatMap(id => id ? [PLANET_DESIGNS[id]] : []);
-  return {colours: state.dots.filter(d => d.counted && d.state === 'done').map(d => PATH_COLOURS[colour(d)].hex), planets};
 }
 
 /** A sheet over the path (Edit path, Options, About): a panel from the side on a computer, from the foot on a phone; the
@@ -266,13 +276,6 @@ function CountUp({value}: {value: number}) {
   return <span className="checklist-count" data-pop={pop % 2 ? 'a' : pop ? 'b' : undefined} aria-hidden="true">{shown}</span>;
 }
 const motionOk = () => { try { return document.documentElement.dataset.appMotion !== 'off' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
-
-/** The bar's shine: one sweep each time the count grows (never on the first paint). */
-function Shine({at}: {at: number}) {
-  const seen = useRef<number | null>(null), [run, setRun] = useState(0);
-  useEffect(() => { if (seen.current !== null && at > seen.current) setRun(r => r + 1); seen.current = at; }, [at]);
-  return run ? <span key={run} className="checklist-progress-shine" aria-hidden="true"/> : null;
-}
 
 function ToolMark({name}: {name: 'edit' | 'options' | 'about' | 'replay'}) {
   return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'edit' ? <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/> : name === 'options' ? <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"/> : name === 'replay' ? <path d="M12 3.5l1.9 5.3 5.6.2-4.4 3.5 1.6 5.4L12 14.8l-4.7 3.1 1.6-5.4L4.5 9l5.6-.2zM19 3v3M17.5 4.5h3"/> : <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 16.8h.01"/>}</svg>;

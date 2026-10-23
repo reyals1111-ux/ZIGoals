@@ -66,12 +66,24 @@
 :root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .12; animation: none; }
 :root[data-theme=dark] .checklist-planet { opacity: .75; }
 
+/* Session AG Polish 2 (ADR-031 K10; owner Part 4, D-path 12): the ambient sky — a twinkle now and then, a shooting star every
+   25–45 s (components/checklist/ambient-sky.tsx) — over the sky and behind everything else, moved by transform and opacity only. */
+.checklist-ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; contain: strict; }
+.checklist-ambient i { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; opacity: 0; background: var(--tw, #ffffff); clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); filter: drop-shadow(0 0 3px var(--tw, #ffffff)); will-change: transform, opacity; }
+.checklist-ambient b { position: absolute; left: -200px; top: -1px; width: 200px; height: 2px; opacity: 0; border-radius: 2px; transform-origin: 100% 50%; background: linear-gradient(90deg, #ffffff00, color-mix(in srgb, var(--tw, #dff9ff) 55%, transparent) 62%, var(--tw, #dff9ff) 94%, #ffffff); filter: drop-shadow(0 0 4px var(--tw, #dff9ff)); will-change: transform, opacity; }
+@media (prefers-reduced-motion: reduce) { .checklist-ambient { display: none; } }
+:root[data-app-motion=off] .checklist-ambient { display: none; }
+@media (forced-colors: active) { .checklist-ambient { display: none; } }
+
 /* The top bar: one row (close, the title, today's progress and date, the view, the streak, the menu; no XP since Session AG); on a
    phone the title is said, not shown, and the view lives in the menu. */
 .checklist-topbar { position: sticky; top: 0; z-index: 20; padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px; background: linear-gradient(180deg, #050a1ef2, #050a1ee6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff17; box-shadow: 0 12px 30px -24px #000; }
 /* Round 4: what scrolls under the bar fades into it instead of being cut. */
 .checklist-topbar::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 26px; background: linear-gradient(180deg, #050a1ed9, #050a1e00); pointer-events: none; }
-.checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto 44px; grid-template-areas: "close title prog view streak menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+.checklist-topbar-row { display: grid; grid-template-columns: 44px auto minmax(0, 1fr) auto auto 44px 44px; grid-template-areas: "close title prog view streak plus menu"; align-items: center; column-gap: 12px; max-width: 1240px; margin: 0 auto; }
+/* Session AG Polish 2 (owner Part 5, D-path 11): on a computer the bar spans the shell's own width, so "⋯" stands at the far
+   right, over the timers' right edge, and quick add's "+" where "⋯" stood. */
+@media (min-width: 1180px) { .checklist-topbar { padding-inline: 24px; } .checklist-topbar-row { max-width: 1352px; } }
 .checklist-close { grid-area: close; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; box-shadow: 0 3px 0 #00000059; }
 .checklist-close:hover { background: #ffffff1f; }
 .checklist-close:active { transform: translateY(2px); box-shadow: 0 1px 0 #00000059; }
@@ -80,16 +92,31 @@
 /* Session AG (pointer 12): the dashboard's heading — bigger, white into the nebula. */
 .checklist-title h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; white-space: nowrap; }
 .checklist-progress { grid-area: prog; display: grid; gap: 4px; min-width: 0; }
-.checklist-progress-bar { height: 18px; --glass-ink: linear-gradient(90deg, #23eaff, #459dff 30%, #9273ff 58%, #f06dff 82%, #ff74be); --glass-glow: #ff9fdcd9; }
+/* Session AG Polish 2 (ADR-031; owner Part 3, D-path 5, P 9): calmer — a slim glass track, a soft glow, and the fill
+   built from the day's nodes (components/checklist/progress-segments.tsx): one segment per item in path order, each in its
+   node's colour, its ends flowing into its neighbours' like the neon line; matte (the unreached node's faint tint) until
+   done, lit with its node; the sparkle at the end of the last lit segment. The segments are a theme island. */
+.checklist-progress-bar { height: 10px; }
+.checklist-progress-track { position: absolute; inset: 2px; display: flex; border-radius: inherit; pointer-events: none; }
+.checklist-progress-seg { --seg-a: color-mix(in srgb, var(--seg-prev) 50%, var(--seg)); --seg-b: color-mix(in srgb, var(--seg) 50%, var(--seg-next));
+  --seg-matte: color-mix(in srgb, var(--seg) 34%, #5a6276); position: relative; flex: 1 1 0; min-width: 0; background: color-mix(in srgb, var(--seg-matte) 40%, transparent); }
+@supports (color: oklch(from red l c h)) { .checklist-progress-seg { --seg-matte: oklch(from var(--seg) calc(l * .78) calc(c * .28) h); } }
+.checklist-progress-seg:first-child { border-radius: 999px 0 0 999px; }
+.checklist-progress-seg:last-child { border-radius: 0 999px 999px 0; }
+.checklist-progress-seg:only-child { border-radius: 999px; }
+.checklist-progress-seg::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--seg-a), var(--seg) 32%, var(--seg) 68%, var(--seg-b)); box-shadow: 0 0 9px -2px color-mix(in srgb, var(--seg) 70%, transparent); opacity: 0; transition: opacity 320ms ease; }
+.checklist-progress-seg[data-lit]::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .checklist-progress-seg::after, .checklist-progress-spark { transition: none !important; } }
+:root[data-app-motion=off] .checklist-progress-seg::after, :root[data-app-motion=off] .checklist-progress-spark { transition: none !important; }
 /* (A small four-point sparkle rides the bar's leading end, as in the owner's mockup.) */
-.checklist-progress-spark { position: absolute; top: 50%; left: calc(var(--glass-value, 0) * 100%); width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 6px #ffb3ea); transition: left var(--glass-fill-duration, 760ms) cubic-bezier(.2, .8, .3, 1); }
+.checklist-progress-spark { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; pointer-events: none; background: #ffffff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 4px #ffb3eab3); transition: left 420ms cubic-bezier(.2, .8, .3, 1); }
 .glass-track[data-empty] .checklist-progress-spark { display: none; }
 .checklist-progress-line { margin: 0; font-size: 15px; line-height: 1.25; color: var(--muted, #a4b2cd); overflow-wrap: anywhere; }
 .checklist-progress-line strong { color: var(--text, #f0f5ff); font-weight: 750; }
 .checklist-progress-line .eyebrow { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: 0; text-transform: none; color: var(--muted, #a4b2cd); }
 .checklist-perfect { color: var(--ring-emerald, #26e8bd); font-weight: 750; }
 :root[data-theme=light] .checklist-perfect { color: #0b7a62; }
-.checklist-progress-shine { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--glass-value, 0) * 100%); border-radius: inherit; overflow: hidden; pointer-events: none; }
+.checklist-progress-shine { position: absolute; top: 0; bottom: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 .checklist-progress-shine::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 46%; background: linear-gradient(100deg, #ffffff00, #ffffffe6 50%, #ffffff00); transform: translateX(-120%); animation: checklist-shine 900ms ease-in-out 420ms both; }
 @keyframes checklist-shine { from { transform: translateX(-120%); } to { transform: translateX(330%); } }
 .checklist-view-switch { grid-area: view; display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid #ffffff2b; background: #00000026; }
@@ -107,6 +134,10 @@
 @keyframes checklist-pop-b { 0% { transform: scale(1); } 35% { transform: scale(1.4) translateY(-2px); } 100% { transform: none; } }
 /* The menu: Edit path, Options, How it works. */
 .checklist-menu-wrap { grid-area: menu; position: relative; }
+.checklist-plus-button { grid-area: plus; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; }
+.checklist-plus-button:hover { background: #ffffff1f; transition: background-color 120ms ease 70ms; }
+.checklist-plus-button[aria-expanded=true] { border-color: #9273ffb3; background: #9273ff33; }
+.checklist-plus-button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 .checklist-menu-button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; }
 .checklist-menu-button[aria-expanded=true] { border-color: #9273ffb3; background: #9273ff33; }
 .checklist-menu-button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
@@ -124,11 +155,11 @@
    the title is said, not shown; the date is in the menu's place too, for screen readers it stays in the line). */
 @media (max-width: 767.98px) {
   .checklist-topbar { padding: max(6px, env(safe-area-inset-top, 0px)) 10px 6px; }
-  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto 44px; grid-template-areas: "close prog streak menu"; column-gap: 8px; }
+  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto 44px 44px; grid-template-areas: "close prog streak plus menu"; column-gap: 8px; }
   .checklist-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .checklist-view-switch { display: none; }
   .checklist-progress { gap: 3px; }
-  .checklist-progress-bar { height: 14px; }
+  .checklist-progress-bar { height: 8px; }
   .checklist-progress-line { font-size: 14px; }
   .checklist-progress-line .eyebrow, .checklist-perfect { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .checklist-streak { min-height: 38px; padding: 0 8px 0 4px; font-size: 17px; gap: 2px; }
@@ -327,11 +358,12 @@
    theme. */
 .checklist-list-view { display: grid; gap: 22px; max-width: 680px; margin: 0 auto; padding-bottom: 12px; }
 .checklist-list-section { --orbit: #9273ff; display: grid; gap: 6px; }
-.checklist-list-banner { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) auto 44px; align-items: center; gap: 10px; min-height: 52px; padding: 4px 4px 4px 16px; border-radius: 18px; }
-.checklist-list-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(100deg, color-mix(in srgb, var(--orbit) 34%, #0a1130e6) 0, color-mix(in srgb, var(--orbit) 16%, #0a113099) 46%, transparent 92%); box-shadow: inset 2px 0 0 color-mix(in srgb, var(--orbit) 70%, transparent); }
-.checklist-list-banner h3 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: #f4f8ff; overflow-wrap: anywhere; }
-.checklist-list-count { padding: 4px 11px; border-radius: 999px; background: color-mix(in srgb, var(--orbit) 22%, #0a113099); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--orbit) 45%, transparent); color: #e7efff; font-size: 14px; font-weight: 750; font-variant-numeric: tabular-nums; }
-.checklist-list-fold { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #dfe9fb; font-size: 22px; cursor: pointer; }
+/* Session AG Polish 2 (ADR-031 K12; owner Part 6a, D-list 1–4): each section opens with the path's own Habits banner (its
+   symbol, the nebula title, the count, the short fade; components/orbit-path/orbit-banner.tsx) and its fold. */
+.checklist-list-banner { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.checklist-list-banner > .orbit-banner { flex: 1 1 auto; min-width: 0; max-width: none; margin: 0; }
+.checklist-list-banner > .orbit-banner > .habit-section-summary { min-width: 0; }
+.checklist-list-fold { display: grid; place-items: center; flex: none; width: 44px; min-width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #dfe9fb; font-size: 22px; cursor: pointer; }
 .checklist-list-fold span { display: inline-block; transform: rotate(90deg); transition: transform 180ms ease; }
 .checklist-list-fold[aria-expanded=false] span { transform: none; }
 .checklist-list-fold:focus-visible { outline: 3px solid var(--orbit); outline-offset: -2px; }
@@ -339,23 +371,36 @@
 .checklist-row { border-radius: 16px; }
 .checklist-row:hover { background: #ffffff08; transition: background-color 120ms ease 70ms; }
 .checklist-row[data-counted=no] { opacity: .78; }
-.checklist-row-line { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; align-items: center; gap: 10px; min-height: 60px; padding: 4px 4px 4px 6px; border-bottom: 1px solid #ffffff10; }
-.checklist-row-check { position: relative; display: grid; place-items: center; width: 44px; height: 44px; min-width: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; justify-self: center; -webkit-tap-highlight-color: transparent; --node-size: 34px; }
-.checklist-row-node { width: 34px; height: 34px; min-width: 34px; pointer-events: none; }
-.checklist-row-node.orbit-node { box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent); }
-.checklist-row-node.orbit-node[data-lit] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 85%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 75%, transparent); }
-.checklist-row-node .orbit-node-glyph svg { width: 18px; height: 18px; }
-.checklist-row-check:focus-visible { outline: 3px solid #ffffff; outline-offset: 0; }
+/* Session AG Polish 2 (ADR-031 K12; owner Part 6b, D-list 5–11): each row is the path's own node at the path's own size
+   (80 px on a computer, 72 on a tablet, 62 on a phone) and the path's name tab running from the node's right-centre to the
+   right, longer, like a step — dark glass with white words and a coloured edge; once done filled in the node's colour with
+   dark words and a check — the second line inside it; the "+8000 steps" chip and ⋯ on the right. */
+.checklist-list-view { --row-node: 80px; --row-plus: 128px; }
+.checklist-row-plus { justify-self: end; max-width: 100%; }
+@media (max-width: 1179.98px) { .checklist-list-view { --row-node: 72px; } }
+@media (max-width: 640px) { .checklist-list-view { --row-node: 62px; --row-plus: auto; } }
+/* (The "+" chip's column is one width on every row from 641 px, so the tabs end together, as a list's steps do.) */
+.checklist-row-line { display: grid; grid-template-columns: var(--row-node) minmax(0, 1fr) var(--row-plus, auto) 44px; align-items: center; column-gap: 8px; min-height: calc(var(--row-node) + 14px); padding: 7px 4px 7px 6px; }
+.checklist-row-check { --node-size: var(--row-node); position: relative; z-index: 2; display: grid; place-items: center; width: var(--row-node); height: var(--row-node); min-width: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.checklist-row-node { width: var(--row-node); height: var(--row-node); min-width: var(--row-node); pointer-events: none; }
+.checklist-row-check:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
 .checklist-row-text { display: grid; gap: 2px; min-width: 0; }
-.checklist-row-name { font-size: 16px; font-weight: 700; color: var(--text, #f0f5ff); overflow-wrap: anywhere; }
-.checklist-row-sub { font-size: 14px; color: var(--text-secondary, #b7c8de); overflow-wrap: anywhere; }
-.checklist-row[data-state=done] .checklist-row-name { color: var(--muted, #a4b2cd); }
+.checklist-row-tab { position: relative; z-index: 1; align-self: center; margin-left: calc(var(--row-node) * -.3 - 8px); padding: 8px 16px 9px calc(var(--row-node) * .3 + 14px); border-radius: 22px; border: 1.5px solid color-mix(in srgb, var(--node, #23eaff) 72%, #5d6680); background: linear-gradient(180deg, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 6px 16px -8px #000c; transition: background-color 320ms ease, border-color 320ms ease; }
+.checklist-row-name { font-size: 16px; line-height: 1.25; font-weight: 750; color: #f0f5ff; overflow-wrap: anywhere; }
+.checklist-row-sub { font-size: 14px; line-height: 1.3; color: #c3cfe6; overflow-wrap: anywhere; }
+.checklist-row-tab[data-lit] { border-color: var(--node); background: linear-gradient(135deg, color-mix(in srgb, var(--node) 72%, #ffffff), var(--node)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--orbit-hue-rim) 70%, transparent), 0 0 18px -4px color-mix(in srgb, var(--node) 70%, transparent); }
+.checklist-row-tab[data-lit] .checklist-row-name { display: flex; align-items: center; gap: 7px; color: #06102a; }
+.checklist-row-tab[data-lit] .checklist-row-name::before { content: ''; flex: none; width: 10px; height: 5px; margin: 0 0 3px 1px; border-left: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; rotate: -45deg; }
+.checklist-row-tab[data-lit] .checklist-row-sub { color: #0b1738; }
+@media (prefers-reduced-motion: reduce) { .checklist-row-tab { transition: none; } }
+:root[data-app-motion=off] .checklist-row-tab { transition: none; }
+@media (forced-colors: active) { .checklist-row-tab { border-color: CanvasText; } }
 .checklist-row-plus { min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent); background: color-mix(in srgb, var(--orbit) 14%, transparent); color: var(--text, #f0f5ff); font: inherit; font-size: 14px; font-weight: 750; cursor: pointer; white-space: nowrap; }
 .checklist-row-plus::after { content: ''; position: absolute; }
 .checklist-row-plus:focus-visible, .checklist-row-more:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
 .checklist-row-more { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted, #a4b2cd); cursor: pointer; }
 .checklist-row-more:hover, .checklist-row-more[aria-expanded=true] { background: #ffffff12; color: var(--text, #f0f5ff); }
-.checklist-row-panel { padding: 4px 8px 12px 60px; }
+.checklist-row-panel { padding: 4px 8px 12px calc(var(--row-node) + 14px); }
 @media (max-width: 420px) { .checklist-row-unit { display: none; } .checklist-row-panel { padding-left: 8px; } }
 .checklist-list-done { margin-top: 2px; }
 .checklist-list-done > summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 999px; list-style: none; color: var(--text-secondary, #b7c8de); font-size: 15px; font-weight: 700; cursor: pointer; }
@@ -367,17 +412,39 @@
 .checklist-list-add span { font-size: 22px; line-height: 1; margin-top: -2px; }
 .checklist-list-add:hover { background: #ffffff0d; transition-delay: 70ms; }
 .checklist-list-add:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
-:root[data-theme=light] .checklist-list-banner::before { background: linear-gradient(100deg, color-mix(in srgb, var(--orbit) 26%, #ffffffe6) 0, color-mix(in srgb, var(--orbit) 12%, #ffffffb3) 46%, transparent 92%); }
-:root[data-theme=light] .checklist-list-banner h3 { color: #0b1430; }
-:root[data-theme=light] .checklist-list-count { color: #1d2547; background: color-mix(in srgb, var(--orbit) 14%, #ffffffcc); }
 :root[data-theme=light] .checklist-list-fold { color: #23264d; }
 :root[data-theme=light] .checklist-list-add { color: color-mix(in srgb, var(--orbit) 45%, #10183a); }
-:root[data-theme=light] .checklist-row-line { border-bottom-color: #10183a14; }
 :root[data-theme=light] .checklist-row-check:focus-visible { outline-color: #10183a; }
 @media (prefers-reduced-motion: reduce) { .checklist-list-fold span, .checklist-list-done > summary::before { transition: none; } }
 
 /* Options and Edit path (inside their sheets). */
 .checklist-options, .checklist-edit, .checklist-about { display: grid; gap: 12px; width: 100%; box-sizing: border-box; }
+/* Session AG Polish 2 (ADR-031 K11; owner Part 5): the quick-add sheet — the node it becomes, live, then the short form in
+   glass chips (44 px each), the nebula "Add to my orbit". The preview keeps the path's night colours in every theme. */
+.checklist-quick, .checklist-quick-form { display: grid; gap: 14px; }
+.checklist-quick-preview { display: flex; align-items: center; min-width: 0; padding: 16px 12px; border-radius: 22px; border: 1px solid #ffffff14; background: radial-gradient(120% 150% at 0% 0%, color-mix(in srgb, var(--node) 22%, transparent), transparent 62%), linear-gradient(180deg, #0a1130e6, #0a113080); }
+.checklist-quick-node { --node-size: 62px; position: relative; z-index: 1; flex: none; width: 62px; height: 62px; }
+.checklist-quick-tab { min-width: 0; margin-left: -12px; padding: 6px 14px 7px 20px; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--node) 72%, #5d6680); background: linear-gradient(180deg, var(--orbit-hue-disc-hi), var(--orbit-hue-disc-lo)); color: #f0f5ff; font-size: 15px; line-height: 1.25; font-weight: 750; overflow-wrap: anywhere; }
+.checklist-quick-name, .checklist-quick-group > legend, .checklist-quick-row label { padding: 0; font-size: 14px; font-weight: 750; letter-spacing: .01em; color: var(--muted, #a4b2cd); }
+.checklist-quick-input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; font-size: 16px; border-radius: 14px; }
+.checklist-quick-group { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.checklist-quick-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.checklist-quick-chip, .checklist-quick-swatch { position: relative; display: inline-flex; }
+.checklist-quick-chip > input, .checklist-quick-swatch > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.checklist-quick-chip > span { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #ffffff26; background: #ffffff0d; color: var(--text, #f0f5ff); font-size: 15px; font-weight: 700; transition: background-color 160ms ease, border-color 160ms ease; }
+.checklist-quick-chip:hover > span { background: #ffffff17; transition-delay: 70ms; }
+.checklist-quick-chip > input:checked + span { border-color: #9273ffcc; background: linear-gradient(100deg, #23eaff33, #9273ff4d); box-shadow: inset 0 0 0 1px #9273ff99; }
+.checklist-quick-chip > input:focus-visible + span, .checklist-quick-swatch > input:focus-visible + span { outline: 3px solid currentColor; outline-offset: 2px; }
+.checklist-quick-days .checklist-quick-chip > span { min-width: 44px; justify-content: center; padding: 0 10px; }
+.checklist-quick-swatch > span { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #ffffff26; background: radial-gradient(circle, var(--swatch) 0 12px, transparent 13px); }
+.checklist-quick-swatch > input:checked + span { border-color: var(--swatch); box-shadow: 0 0 14px -2px var(--swatch); }
+.checklist-quick-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 12px; }
+.checklist-quick-error { margin: 0; color: #ffb1c1; font-size: 14px; font-weight: 650; }
+:root[data-theme=light] .checklist-quick-error { color: #b4174a; }
+.checklist-quick-go { min-height: 48px; font-size: 16px; }
+.checklist-quick-fine { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .checklist-quick-chip > span { transition: none; } }
+
 .checklist-options-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .checklist-options-head h2 { margin: 0; font-size: 24px; }
 .checklist-options-head button { min-height: 44px; }
@@ -461,19 +528,17 @@
 .checklist-heat-weeks { grid-area: weeks; display: grid; grid-template-columns: repeat(12, var(--cell)); gap: 5px; margin: 0; padding: 0; list-style: none; color: #c5d3ea; font-size: 14px; white-space: nowrap; }
 .checklist-heat-weeks li:last-child { justify-self: end; }
 .checklist-heat-grid { grid-area: grid; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 5px; justify-content: start; }
-.checklist-heat-cell { --c: #9273ff; width: var(--cell); height: var(--cell); border-radius: 5px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
+/* Session AG Polish 2 (ADR-031 K14; owner Part 8): one fixed neon colour per state, the legend's swatches being cells too. */
+.checklist-heat-cell { width: var(--cell); height: var(--cell); border-radius: 5px; background: #ffffff08; box-shadow: inset 0 0 0 1.5px #26e8bd8c; }
 /* (Session AG Polish, pointer 11: the week's nebula hue, the state's intensity.) */
-.checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
-.checklist-heat-cell[data-level=all] { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
-.checklist-heat-cell[data-level=perfect] { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 80%, transparent); }
+.checklist-heat-cell[data-level=some] { background: #9273ff; box-shadow: none; }
+.checklist-heat-cell[data-level=all] { background: #23eaff; box-shadow: none; }
+.checklist-heat-cell[data-level=perfect] { background: #f06dff; box-shadow: 0 0 8px #f06dffb3; }
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
 .checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
 .checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
-.checklist-heat-legend li::before { content: ''; width: 14px; height: 14px; border-radius: 4px; background: color-mix(in srgb, var(--c) 6%, #ffffff08); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 26%, #ffffff12); }
-.checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--c) 46%, #0a1130); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
-.checklist-heat-legend li[data-level=all]::before { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 82%, #ffffff), var(--c)); box-shadow: none; }
-.checklist-heat-legend li[data-level=perfect]::before { background: radial-gradient(circle at 35% 30%, #ffffff 0, color-mix(in srgb, var(--c) 70%, #ffffff) 30%, var(--c) 70%); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 80%, transparent); }
+.checklist-heat-legend .checklist-heat-swatch { --cell: 14px; flex: none; }
 @media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat { --cell: 14px; } }
 @media (max-width: 767.98px) { .checklist-heat { --cell: 16px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }

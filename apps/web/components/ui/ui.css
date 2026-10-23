@@ -77,6 +77,9 @@
 :root .aa-toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 16px; border: 1px solid #7fc6e655; background: linear-gradient(135deg, #0e2036f5, #1d1a3cf5); box-shadow: 0 12px 40px #0009; color: var(--text-strong); font-size: 15px; animation: aa-toast-in 180ms ease-out; }
 :root .aa-toast > span { flex: 1; min-width: 0; }
 :root .aa-toast-undo { min-height: 44px; padding: 8px 16px; border-radius: 12px; border: 1px solid #8fe6f466; background: #12314aa0; color: #b9f1fb; font: inherit; font-weight: 700; cursor: pointer; }
+/* (Session AG Polish 2: a link after the message — the Checklist's quick add, "Edit on Habits" — a 44 px target.) */
+:root .aa-toast-link { display: inline-flex; align-items: center; min-height: 44px; margin-block: -12px; color: #b9f1fb; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+:root .aa-toast-link:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 6px; }
 :root .aa-toast-close { min-width: 44px; min-height: 44px; border: 0; border-radius: 12px; background: none; color: var(--text-meta); font-size: 22px; cursor: pointer; }
 @keyframes aa-toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { :root .aa-toast { animation: none; } }

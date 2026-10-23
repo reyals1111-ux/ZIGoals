@@ -80,7 +80,10 @@ export function labelBox(l: Element): Box {
   const glide = l.getAnimations().find(a => (a as CSSTransition).transitionProperty === 'translate'), end = glide ? parseFloat(String((glide.effect as KeyframeEffect | null)?.getKeyframes().at(-1)?.translate ?? '')) : NaN;
   // (Round 9: and wherever it passes on the way there — the whole of its glide.)
   const shift = (Number.isFinite(end) ? end : now) - now;
-  return {left: r.left + Math.min(0, shift), top: r.top, right: r.right + Math.max(0, shift), bottom: r.bottom};
+  // (Session AG Polish 2: a phone's tab not yet done keeps the room its check takes once it is — so a tick that grows the
+  // tab never brings it onto ZIGi standing past its end.)
+  const grow = l.matches('.orbit-tab[data-path-box]') && l.closest('.path-step')?.getAttribute('data-state') !== 'done' ? 22 : 0, toLeft = l.getAttribute('data-side') === 'left';
+  return {left: r.left + Math.min(0, shift) - (toLeft ? grow : 0), top: r.top, right: r.right + Math.max(0, shift) + (toLeft ? 0 : grow), bottom: r.bottom};
 }
 /** What ZIGi must stay clear of on the path (its own parts aside). */
 export function zigiObstacles(stage: Element, except: Element[]): Box[] {

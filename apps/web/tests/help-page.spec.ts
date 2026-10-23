@@ -386,7 +386,7 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
 // ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
 test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
-  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'ag-orbit', 'ag-polish', 'af-checklist-timers', 'af-checklist-launcher'];
+  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'ag-orbit', 'ag-polish', 'ag2-quick-add', 'ag2-planets', 'ag2-progress', 'ag2-celebration', 'af-checklist-timers', 'af-checklist-launcher'];
   const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
@@ -422,6 +422,11 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     ['ag-orbit', 'the Checklist no longer adds XP'],
     // (Session AG Polish, moved with its release: its answer joins this section and opens from its hash the same way.)
     ['ag-polish', 'once a day on this device'],
+    // (Session AG Polish 2, ADR-031: its four answers join this section and open from their hashes the same way.)
+    ['ag2-quick-add', 'once it has changed, Undo only takes it off your orbit and the habit stays on Habits'],
+    ['ag2-planets', 'each next planet lights once everything in the orbit before it is done'],
+    ['ag2-progress', 'A segment lights the moment you tick its item, even out of order'],
+    ['ag2-celebration', 'you see its last frame at once'],
     ['af-checklist-timers', 'the whole night lands on Health'],
     ['af-checklist-launcher', 'Your path stays on this device: it is not synced yet'],
   ] as const) {

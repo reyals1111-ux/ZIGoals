@@ -93,7 +93,7 @@ test('nodes (76–88 px on a computer, 58–68 px on a phone, the next one a siz
   }
   // Session AG (owner pointer 2), moved at equal strength: one name per node, now a tab attached to it where the footer's
   // badge sits — overlapping its ring on its lower side, below its centre — one line from a tablet up and two at most on a
-  // phone (a clean ellipsis past that), 14 px or more, with the full name in its title.
+  // phone (Session AG Polish 2: never an ellipsis, ADR-031), 14 px or more, with the full name in its title.
   const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(), cx = (dot.left + dot.right) / 2, cy = (dot.top + dot.bottom) / 2; return {bubble: e.classList.contains('path-label-bubble'), tab: e.classList.contains('orbit-tab'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), title: e.getAttribute('title'), label: text.textContent, attached: r.left < dot.right && r.right > dot.left && r.top < dot.bottom && r.bottom > dot.top, below: r.top > cy, aside: e.getAttribute('data-side') === 'right' ? r.left > cx && r.right > dot.right : r.right < cx && r.left < dot.left}; }));
   expect(names.filter(n => n.bubble)).toHaveLength(0);
   for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); expect(n.tab, 'a name tab').toBe(true); expect(n.title, 'the full name in its title').toBe(n.label); }
@@ -252,17 +252,19 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   expect(await page.evaluate(() => (window as unknown as {__last: string[]}).__last), 'the last tick: every name shown, ZIGi facing its planet').toEqual([]);
   await expect(party.getByRole('button', {name: 'Continue'})).toBeFocused();
   expect(await party.evaluate(d => d.matches(':modal'))).toBe(true);
-  // The last tick's Undo stays in reach over the celebration.
-  await expect(party.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
-  // Round 4: a full-screen moment — ZIGi large (160 px on a phone, 200 on a computer), cheering, in front of the trophy.
-  await party.locator('.checklist-celebration-zigi').evaluate(el => Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => undefined))));
-  const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
-  expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
-  expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
-  // (Session AG Polish, owner Part 6b, moved: ZIGi cheers with its celebrate figure — the animated clip, then its sharp still.)
-  expect(zigi.src).toMatch(/F009-celebrate/);
+  // Session AG Polish 2 (owner Part 7), moved: no Undo over the celebration — the last tick's toast waits for Continue.
+  await expect(page.locator('.aa-toast')).toHaveCount(0);
+  // Round 4, moved (Session AG Polish 2): a full-screen moment — the owner's clip (or its last frame) at the screen's full
+  // height (the whole screen on a phone), in front of the path.
+  const media = await party.locator('.checklist-celebration-media').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint(innerWidth / 2, innerHeight * .4); return {h: r.height, w: r.width, vh: innerHeight, vw: innerWidth, front: !!hit && !!hit.closest('dialog.checklist-celebration'), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
+  expect(media.h, 'the full height').toBeGreaterThanOrEqual(media.vh - 1);
+  if (media.vw <= 640) expect(media.w, 'the whole width on a phone').toBeGreaterThanOrEqual(media.vw - 1);
+  expect(media.front, 'in front of the path').toBe(true);
+  expect(media.src).toMatch(/13-celebration-last-frame\.webp$/);
   await party.getByRole('button', {name: 'Continue'}).click();
+  if (await party.count()) await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
+  await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}), 'the toast is back').toBeVisible();
   await expect(overlay(page)).toBeVisible();
   // Round 7 (L3b; the iteration-6 frames showed ZIGi over the trophy planet on the last tick): at the day's end ZIGi
   // stands beside the trophy, 12 px clear of it and of everything else on the path; round 8: its arm toward the trophy.
@@ -594,7 +596,7 @@ test('a tick moves nothing but its own node: every name keeps its place, the new
   }
 });
 
-test('a long name keeps to two lines at most on a phone, with a clean ellipsis and its full name in its title — also once its node is the next one', async ({page}, info) => {
+test('a long name shows whole on a phone — one line, never an ellipsis, its full name in its title — also once its node is the next one', async ({page}, info) => {
   // Round 7 (L3b; the iteration-6 frames cut a long name to "… breathwork 15…" on a phone).
   test.skip(info.project.name !== 'mobile', 'a phone');
   test.setTimeout(90_000);
@@ -604,18 +606,20 @@ test('a long name keeps to two lines at most on a phone, with a clean ellipsis a
   await page.setViewportSize({width: 390, height: 844});
   await open(page, {path: r});
   const name = page.locator('.path-label', {hasText: 'Starlight & breathwork 15 minutes'});
-  // Session AG (owner pointer 2, AF15), moved: past two lines a name ends in an ellipsis (no word cut mid-line, no third
-  // line), and its full name stays in its title and its node's name.
-  const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight), cs = getComputedStyle(t); return {clamped: t.scrollHeight > t.clientHeight + 1 ? cs.webkitLineClamp === '2' || cs.getPropertyValue('line-clamp') === '2' : true, lines: Math.round(t.getBoundingClientRect().height / lh), title: l.getAttribute('title'), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
+  // Session AG Polish 2 (ADR-031; owner Part 1d), moved at greater strength: AG's "two lines at most, then a clean ellipsis"
+  // becomes the whole name, on one line at 390 px (two only at 320 px, where it cannot fit), never cut, never "…"; its full
+  // name stays in its title and its node's name.
+  const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight), cs = getComputedStyle(t); return {cut: t.scrollWidth > t.clientWidth + 1 || t.scrollHeight > t.clientHeight + 1 || cs.textOverflow === 'ellipsis' && cs.overflow !== 'visible' || (cs.webkitLineClamp !== 'none' && cs.webkitLineClamp !== ''), text: t.textContent, lines: Math.round(t.getBoundingClientRect().height / lh), title: l.getAttribute('title'), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
   const before = await whole();
-  expect(before.clamped, 'a clean ellipsis where it is cut').toBe(true);
+  expect(before.cut, 'nothing cut, no ellipsis').toBe(false);
+  expect(before.text, 'the whole name shows').toBe('Starlight & breathwork 15 minutes');
   expect(before.title, 'the full name in its title').toBe('Starlight & breathwork 15 minutes');
-  expect(before.lines, 'two lines at most').toBeLessThanOrEqual(2);
+  expect(before.lines, 'one line at 390 px').toBe(1);
   for (const n of [1, 2, 3, 4, 5, 6, 7]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
   await zigiAtRest(page);
   await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight & breathwork 15 minutes');
   const after = await whole();
-  expect(after.clamped, 'a clean ellipsis where it is cut, as the next node\'s name').toBe(true);
+  expect(after.cut, 'nothing cut as the next node\'s name').toBe(false);
   expect(after.lines, 'the same lines').toBe(before.lines);
   expect(after.left, 'on the screen').toBeGreaterThanOrEqual(0); expect(after.right, 'on the screen').toBeLessThanOrEqual(after.vw);
   await expectRest(page, 390, 'beside the long name\'s planet');

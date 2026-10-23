@@ -1,5 +1,7 @@
 # First Manual Alpha deploy on wrangler 4.144.0: owner checklist
 
+> **Session AG Polish 2 (2026-10-23): the pin is now 4.148.0** (owner-approved, with OpenNext Cloudflare 1.20.12 and Next.js 16.4.2). The same checks apply to the first Manual Alpha deploy after that PR: the build log shows `⛅️ wrangler 4.148.0`. Its deploy output, API requests and upload metadata are unchanged from 4.147.0 (fixtures in `scripts/fixtures/wrangler-output/4.148.0/`).
+>
 > **Session S (2026-10-04): the pin is now 4.147.0.** The same checks apply to the first Manual Alpha deploy after that PR: the build log shows `⛅️ wrangler 4.147.0`; the deploy output and upload requests are unchanged from 4.144.0 (`scripts/fixtures/wrangler-output/4.147.0/`, captured offline); the Alpha bundle is byte-identical. Since 4.145.0 `wrangler login` asks for extra K2 scopes. In the ops checkout, `wrangler --version` must print 4.147.0.
 
 Use this for the **first** Manual Alpha deployment after [PR #50](https://github.com/reyals1111-ux/ZIGoals/pull/50) merges (wrangler 4.131.1 → 4.144.0). Everything else follows [MANUAL_ALPHA_WORKFLOW.md](../deployment/MANUAL_ALPHA_WORKFLOW.md) as usual. Nothing in the workflow file changed; only the pinned wrangler did.
@@ -55,7 +57,7 @@ The Stage 4 private configs and dry runs were made from an ops checkout with wra
 ```sh
 git switch main && git pull --ff-only
 pnpm install --frozen-lockfile
-pnpm --filter @zigoals/web exec wrangler --version   # must print 4.147.0 (the pin since Session S; 4.144.0 when written)
+pnpm --filter @zigoals/web exec wrangler --version   # must print 4.148.0 (the pin since Session AG Polish 2; 4.147.0 from Session S, 4.144.0 when written)
 node scripts/run11/activation-check.mjs --private
 ```
 Then repeat the Stage 7 local dry runs with the new wrangler before approving anything. The private Workers **do** use Durable Objects, so 4.144.0 sends the `code_update_strategy` above with their deployments; see "DO migrations and bindings" in [WRANGLER_UPGRADE_ASSESSMENT.md](WRANGLER_UPGRADE_ASSESSMENT.md). Their first deployment creates new Workers, so no live instance exists to defer to.

@@ -14,6 +14,8 @@ and `scripts/wrangler-cli-surface.test.mjs` read them.
 
 Captured 2026-09-30 with wrangler 4.131.1 (before) and 4.144.0 (after), Node 24.19.0. Paths and timestamps are left as written.
 
+`4.148.0/` was captured on 2026-10-23 (Session AG Polish 2, owner-approved upgrade) the same way, Node 22.22.0 in the cloud sandbox: the same three deploys (with and without `--secrets-file`, and with workers.dev on). Its API requests and both upload metadata files are byte-identical to 4.147.0's, the deploy entry has the same keys and types, and the Alpha `worker.js` that 4.147.0 and 4.148.0 bundle from the same `.open-next` (next 16.4.2) is byte-identical. The Alpha dry run is that build: 734 asset files, 21,570.34 KiB / gzip 4,642.53 KiB, the same four bindings.
+
 `4.147.0/` was captured on 2026-10-04 (Session S) the same way.
 - `mock-api-requests-workers-dev.txt` came from a scratch copy of `capture/` with `workers_dev: true` and the mock reporting workers.dev enabled.
 - `upload-metadata-no-secrets-file.json` is the same deploy without `--secrets-file`, which is how the Alpha deploys since Session S. It shows that Wrangler still sends `keep_bindings: ["secret_text", "secret_key"]`, so a Worker's existing secrets are kept.

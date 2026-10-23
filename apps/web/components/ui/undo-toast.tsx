@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {createPortal} from 'react-dom';
 
@@ -7,7 +8,12 @@ import {createPortal} from 'react-dom';
  * politely, never stealing focus; it stays 8 s, and as long as the pointer or focus is on it. Undo runs the action's own
  * reverse once and then says what happened. Motion: a short fade, none under reduced motion or Motion Off (CSS).
  */
-export type UndoToast = {message: string; undo?: () => Promise<unknown> | unknown; undone?: string};
+export type UndoToast = {message: string; undo?: () => Promise<unknown> | unknown; undone?: string;
+  /** Session AG Polish 2: a link after the message (the Checklist's quick add: "Edit on Habits"). */
+  link?: {href: string; label: string}};
+/** Session AG Polish 2: an Undo that knows best what it did resolves to `{undone}`, said instead of the toast's own words. */
+export type UndoResult = {undone: string};
+const saidBy = (out: unknown): string | null => out && typeof out === 'object' && typeof (out as UndoResult).undone === 'string' ? (out as UndoResult).undone : null;
 type Shown = UndoToast & {id: number};
 let current: Shown | null = null, seq = 0;
 const listeners = new Set<() => void>();
@@ -26,6 +32,20 @@ export function hideToast(id?: number) {
   emit();
 }
 const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
+
+/**
+ * Session AG Polish 2 (owner Part 7): a moment that must not show an Undo (the Checklist's day celebration) holds the toast:
+ * it is hidden and its time stands still until the hold is released, then it shows again for the time it had left.
+ */
+let holds = 0;
+const holdListeners = new Set<() => void>();
+export function holdToast(): () => void {
+  holds++; for (const l of holdListeners) l();
+  let released = false;
+  return () => { if (released) return; released = true; holds = Math.max(0, holds - 1); for (const l of holdListeners) l(); };
+}
+const subscribeHold = (l: () => void) => { holdListeners.add(l); return () => { holdListeners.delete(l); }; };
+const TOAST_MS = 8000;
 
 /**
  * Session AF (L3b): a full-screen layer drawn in the browser's top layer (the Checklist, a modal dialog) leaves everything
@@ -48,21 +68,26 @@ const subscribeLayer = (l: () => void) => { layerListeners.add(l); return () => 
 export function UndoToastHost() {
   const toast = useSyncExternalStore(subscribe, () => current, () => null);
   const target = useSyncExternalStore(subscribeLayer, () => layer, () => null);
+  const hidden = useSyncExternalStore(subscribeHold, () => holds > 0, () => false);
   const [busy, setBusy] = useState(false), [held, setHeld] = useState(false);
-  const timer = useRef<number | undefined>(undefined);
+  const timer = useRef<number | undefined>(undefined), left = useRef<{id: number; ms: number}>({id: 0, ms: TOAST_MS});
   useEffect(() => {
     window.clearTimeout(timer.current);
-    if (!toast || held || busy) return;
+    if (!toast || held || busy || hidden) return;
     const id = toast.id;
-    timer.current = window.setTimeout(() => hideToast(id), 8000);
-    return () => window.clearTimeout(timer.current);
-  }, [toast, held, busy]);
+    // (A new toast has its full time; one shown again after a hold has what it had left; after a pointer or focus rests on
+    // it, its full time again, as before.)
+    if (left.current.id !== id) left.current = {id, ms: TOAST_MS};
+    const start = performance.now(), ms = left.current.ms;
+    timer.current = window.setTimeout(() => hideToast(id), ms);
+    return () => { window.clearTimeout(timer.current); if (left.current.id === id) left.current = {id, ms: holds > 0 ? Math.max(1200, ms - (performance.now() - start)) : TOAST_MS}; };
+  }, [toast, held, busy, hidden]);
   const undo = useCallback(async () => {
     if (!toast?.undo) return;
     setBusy(true);
     try {
-      await toast.undo();
-      showToast({message: toast.undone ?? 'Undone.'});
+      const out = await toast.undo();
+      showToast({message: saidBy(out) ?? toast.undone ?? 'Undone.'});
     } catch (e) {
       showToast({message: e instanceof Error && e.message ? `Could not undo: ${e.message}` : 'Could not undo this change.'});
     } finally {
@@ -70,8 +95,8 @@ export function UndoToastHost() {
     }
   }, [toast]);
   const region = <div className="aa-toast-region" role="status" aria-live="polite">
-    {toast && <div className="aa-toast" key={toast.id} onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
-      <span>{toast.message}</span>
+    {toast && !hidden && <div className="aa-toast" key={toast.id} onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
+      <span>{toast.message}{toast.link && <> · <Link className="aa-toast-link" href={toast.link.href} onClick={() => hideToast(toast.id)}>{toast.link.label}</Link></>}</span>
       {toast.undo && <button type="button" className="aa-toast-undo" disabled={busy} onClick={() => void undo()}>Undo</button>}
       <button type="button" className="aa-toast-close" aria-label="Close message" onClick={() => hideToast(toast.id)}>×</button>
     </div>}

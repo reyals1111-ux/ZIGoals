@@ -1,14 +1,14 @@
 'use client';
-import {Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
+import {Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject} from 'react';
 import {createPortal} from 'react-dom';
-import {milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
+import {isDone, milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathSection, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {OrbitFinale, PathChest} from './path-milestone';
 import {PathDot} from './path-dot';
 import {PathLine} from './path-line';
 import {FlowLine} from '../orbit-path/flow-line';
-import {sidesFor, type FlowNode} from '../../lib/path/flow-geometry';
+import {sidesFor, type FlowBox, type FlowNode} from '../../lib/path/flow-geometry';
 import {PathBanner} from './path-section';
 import {OrbitBanner} from '../orbit-path/orbit-banner';
 import {planetDesigns} from '../../lib/path/planet-pick';
@@ -64,6 +64,8 @@ export type PathProps = {
   variant?: 'default' | 'orbit';
   /** Where the "Jump to next" button goes instead of riding the path (see above). */
   jumpDock?: HTMLElement | null;
+  /** Session AG Polish 2 (owner Part 5): a step just added — the path brings it into view and it blooms once. */
+  arrive?: string | null;
 };
 
 /** The orbit look's finale node: where the line ends (Session AG). */
@@ -141,13 +143,62 @@ function orbitSides(steps: {id: string; label: string}[], swing: (i: number) => 
   return {labels, full, zigi: nextAt >= 0 && nextAt < steps.length ? flip(labels[nextAt]!) : 'right'};
 }
 
+/**
+ * Session AG Polish 2 (ADR-031 K6; owner Part 2b, pointers D-path 7–10): which orbit planets have been reached. The day's
+ * first planet (the first orbit with nodes) as soon as any node of its own orbit is done; every later planet once every
+ * node before it — every counted node of the orbit before it (all of them, where that orbit counts none) — is done. Undo
+ * that un-reaches a planet returns it to matte. The banner's "Complete ✓" still means its own orbit is complete.
+ */
+export function planetsReached(sections: readonly PathSection[]): boolean[] {
+  let before: PathSection | null = null;
+  return sections.map(sec => {
+    if (!sec.steps.length) return false;
+    const prev = before; before = sec;
+    if (!prev) return sec.steps.some(isDone);
+    const counted = prev.steps.filter(s => s.counted !== false);
+    return (counted.length ? counted : prev.steps).every(isDone);
+  });
+}
+
 /** Session AG Polish (owner Part 2): the phone's own layout below 641 px (the orbit sheet's phone breakpoint). */
 const PHONE_QUERY = '(max-width: 640px)';
 const subscribePhone = (l: () => void) => { const m = typeof window === 'undefined' ? null : window.matchMedia?.(PHONE_QUERY); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); };
 const usePhoneLayout = (on: boolean) => useSyncExternalStore(subscribePhone, () => on && !!window.matchMedia?.(PHONE_QUERY).matches, () => false);
-/** A name tab's one-line width on a phone: the words (14 px, 750) plus the tab's padding and border and the check's room —
- *  the check is always counted, so a tick never moves a node. */
-const phoneTabWidth = (label: string) => { const w = nameWidth(label, 14); return w === null ? label.length * 8.4 + 40 : Math.ceil(w) + 40; };
+/** A name tab's one-line width on a phone: the words as drawn plus the tab's padding (2 × 10) and border (2 × 1.5), the
+ *  check's room (10 + 1 + its 7 px gap) — always counted, so a tick never moves a node — and 6 px to spare. */
+const TAB_CHROME = 20 + 3 + 18 + 6;
+const phoneTabWidth = (label: string, measured?: number) => measured !== undefined ? Math.ceil(measured) + TAB_CHROME : (() => { const w = nameWidth(label, 14); return w === null ? label.length * 8.4 + TAB_CHROME : Math.ceil(w) + TAB_CHROME; })();
+/**
+ * Session AG Polish 2 (ADR-031 K3; owner Part 1d): each phone tab's words measured as the page draws them — a hidden probe
+ * in the stage with the tab's own font — on mount, once the web fonts are ready, as each font loads and on a resize. (AG
+ * Polish measured on a canvas once, before the font had settled, and cut the tab to exactly that width: "Wa…".)
+ */
+/** Each name's width on one line, as the probe draws it (the probe is emptied again after). */
+function measureLabels(probe: HTMLElement, labels: readonly string[]): number[] {
+  const w = labels.map(label => { probe.textContent = label; return Math.round(probe.getBoundingClientRect().width * 10) / 10; });
+  probe.textContent = '';
+  return w;
+}
+function useTabWidths(probe: RefObject<HTMLSpanElement | null>, labelsKey: string, on: boolean): number[] | null {
+  const [widths, setWidths] = useState<{key: string; w: number[]} | null>(null);
+  useLayoutEffect(() => {
+    const el = probe.current; if (!on || !el) return;
+    let live = true;
+    const measure = () => {
+      if (!live) return;
+      const w = measureLabels(el, labelsKey.split('\u0001'));
+      setWidths(p => p && p.key === labelsKey && p.w.join() === w.join() ? p : {key: labelsKey, w});
+    };
+    measure();
+    const fonts = typeof document === 'undefined' ? undefined : document.fonts;
+    fonts?.ready.then(measure, () => undefined);
+    fonts?.addEventListener?.('loadingdone', measure);
+    window.addEventListener('resize', measure);
+    const t = window.setTimeout(measure, 1500);
+    return () => { live = false; fonts?.removeEventListener?.('loadingdone', measure); window.removeEventListener('resize', measure); window.clearTimeout(t); };
+  }, [probe, labelsKey, on]);
+  return on && widths && widths.key === labelsKey ? widths.w : null;
+}
 /** Where the orbit look lands the next planet: this share of the screen's height between its bars. */
 const landAt = () => typeof window !== 'undefined' && window.innerWidth < 1180 ? .44 : .4;
 
@@ -168,7 +219,7 @@ function useJust(ids: string[], key: string): Set<string> {
   return just;
 }
 
-export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null}: PathProps) {
+export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null, arrive = null}: PathProps) {
   const orbit = variant === 'orbit', swingOf = orbit ? orbitOffset : snakeOffset;
   const model = useMemo(() => normalisePath(raw), [raw]);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, ''), stage = useRef<HTMLDivElement>(null);
@@ -177,19 +228,30 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const doneIds = steps.filter(s => s.state === 'done').map(s => s.id), reachedIds = milestones.filter(m => m.reached).map(m => `m:${m.id}`);
   // The orbit look also celebrates an orbit the moment its last dot is done (once; `s:<id>`).
   const completeIds = orbit ? model.sections.filter(s => { const p = sectionProgress(s); return p.total > 0 && p.done === p.total; }).map(s => `s:${s.id}`) : [];
-  const justIds = [...doneIds, ...reachedIds, ...completeIds];
+  // Session AG Polish 2 (owner Part 2b): each orbit's planet lights once it is reached (`p:<id>`, its completion plays then).
+  const reached = orbit ? planetsReached(model.sections) : [], reachedPlanetIds = model.sections.filter((_, si) => reached[si]).map(s => `p:${s.id}`);
+  const justIds = [...doneIds, ...reachedIds, ...completeIds, ...reachedPlanetIds];
   const just = useJust(justIds, justIds.join('|'));
   // Session AG Polish (owner Part 2): on a phone each node stands in a lane chosen so its tab fits on one line and ZIGi
   // has room on the other side (lib/path/phone-lanes.ts); the lanes come from the width and the names alone.
-  const phoneLayout = usePhoneLayout(orbit), [laneKey, setLaneKey] = useState('');
+  const phoneLayout = usePhoneLayout(orbit), [laneKey, setLaneKey] = useState(''), probe = useRef<HTMLSpanElement>(null);
   const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}|${laneKey}`;
   const geo = usePathGeometry(stage, geometryKey);
-  const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0;
+  const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0, tabWidths = useTabWidths(probe, labelsKey, phoneLayout);
+  // (Session AG Polish 2: an orbit's first node travels from its orbit's planet, which stands at the right of its banner.)
+  // (Owner amendment 5: the path's last node goes on to the day's finale, after the planets.)
+  const planetFrom = orbit && geo ? [...model.sections.map(sec => geo.points[`planet:${sec.id}`]?.x ?? null), geo.points[FINALE_POINT]?.x ?? null] : null;
+  const fromKey = planetFrom ? planetFrom.map(x => x === null ? '' : Math.round(x)).join(',') : '';
   const lanes: Lane[] | null = useMemo(() => {
-    if (!phoneLayout || !stageW) return null;
+    if (!phoneLayout || !stageW || !tabWidths) return null;
+    const labels = labelsKey.split('\u0001'), planetsAt = fromKey ? fromKey.split(',') : [];
+    // (An orbit's first node comes from its planet; its last node goes on to the next planet, the last of all to the
+    // day's finale — owner amendment 5.)
+    let k = 0; const from: (number | null)[] = [], to: (number | null)[] = [];
+    model.sections.forEach((sec, si) => sec.steps.forEach((_, j) => { k++; from.push(j === 0 && planetsAt[si] ? Number(planetsAt[si]) : null); to.push(j === sec.steps.length - 1 && planetsAt[si + 1] ? Number(planetsAt[si + 1]) : null); }));
     // (ZIGi's width at rest on a phone: `--zigi-h: min(92px, 26cqi)` and its figure's 0.838 ratio.)
-    return phoneLanes(labelsKey.split('\u0001').map(phoneTabWidth), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838});
-  }, [phoneLayout, stageW, labelsKey]);
+    return phoneLanes(labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838, seed: model.id, ...(k === labels.length ? {from, to} : {})});
+  }, [phoneLayout, stageW, labelsKey, tabWidths, fromKey, model]);
   const nextLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
   useLayoutEffect(() => { if (nextLaneKey !== laneKey) setLaneKey(nextLaneKey); }, [nextLaneKey, laneKey]);
 
@@ -298,6 +360,22 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     el.focus({preventScroll: true});
   }, [next, orbit]);
 
+  // Session AG Polish 2 (owner Part 5): a step just added through quick add comes into view (as "Jump to next" brings the
+  // next one) and blooms once, as a tick's ring does (none under reduced motion and Motion Off). Once per added step.
+  const arrived = useRef<string | null>(null);
+  useEffect(() => {
+    if (!arrive || arrived.current === arrive || !measured) return;
+    const s = stage.current, el = s?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(arrive)}"]`); if (!s || !el) return;
+    arrived.current = arrive;
+    const sc = scrollerOf(s);
+    if (sc) { const box = sc.getBoundingClientRect(), cs = getComputedStyle(sc), pad = parseFloat(cs.scrollPaddingTop) || 0, padB = parseFloat(cs.scrollPaddingBottom) || 0, r = el.getBoundingClientRect(); sc.scrollTo({top: Math.max(0, sc.scrollTop + r.top + r.height / 2 - box.top - pad - (box.height - pad - padB) * landAt()), behavior: entranceAllowed() ? 'smooth' : 'auto'}); }
+    else el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
+    if (!entranceAllowed()) return;
+    el.setAttribute('data-arrive', '');
+    const t = window.setTimeout(() => el.removeAttribute('data-arrive'), 1300);
+    return () => { window.clearTimeout(t); el.removeAttribute('data-arrive'); };
+  }, [arrive, measured, geometryKey]);
+
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const dots = [...(stage.current?.querySelectorAll<HTMLElement>('button.path-dot, a.path-dot') ?? [])], at = dots.indexOf(event.target as HTMLElement);
     if (at < 0) return;
@@ -328,23 +406,38 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const opens = new Map(model.sections.map((sec, si) => [sec.steps[0]?.id ?? '', {sec, si}]));
     const nodes: FlowNode[] = steps.flatMap((st, i) => {
       const p = geo.points[st.id], gate = opens.get(st.id), out: FlowNode[] = [];
-      if (gate && planets[gate.si]) { const q = geo.points[`planet:${gate.sec.id}`], pr = sectionProgress(gate.sec); if (q) out.push({id: `planet:${gate.sec.id}`, x: q.x, y: q.y, r: q.r ?? 40, inSide: 'top', outSide: 'bottom', colour: PATH_COLOURS[st.colour].token, done: pr.total > 0 && pr.done === pr.total}); }
+      if (gate && planets[gate.si]) { const q = geo.points[`planet:${gate.sec.id}`]; if (q) out.push({id: `planet:${gate.sec.id}`, x: q.x, y: q.y, r: q.r ?? 40, inSide: 'top', outSide: 'bottom', colour: PATH_COLOURS[st.colour].token, done: !!reached[gate.si]}); }
       if (p) out.push({id: st.id, x: p.x, y: p.y, r: p.r ?? 40, ...sidesFor(labelSides?.[i] ?? 'right'), colour: PATH_COLOURS[st.colour].token, done: st.state === 'done'});
       return out;
     });
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
-    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
+    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done', ...(lanes ? {upright: true} : {})});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
-    const vw = typeof window === 'undefined' ? 1440 : window.innerWidth, swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
-    return {nodes, travel, swing, tailTo: fin ? geo.h - 4 : null};
+    const vw = typeof window === 'undefined' ? 1440 : window.innerWidth;
+    // Session AG Polish 2, owner amendment 5 (ADR-031 K16): on a phone the line is one smooth ribbon across the whole
+    // width, leaning through each node toward its tab; the tabs (at their reserved one-line width, so a tick never moves the
+    // line) and the banners only choose among its clean curves — it never bends around them.
+    if (lanes && lanes.length === steps.length) {
+      const reach = 62 * .3, obstacles: FlowBox[] = [];
+      steps.forEach((st, i) => {
+        const p = geo.points[st.id], q = geo.boxes?.[`tab:${st.id}`], lane = lanes[i]!; if (!p || !q) return;
+        const wide = lane.maxTab;
+        obstacles.push({id: `tab:${st.id}`, top: q.top, bottom: q.bottom, left: lane.side === 'right' ? p.x + reach : p.x - reach - wide, right: lane.side === 'right' ? p.x + reach + wide : p.x - reach});
+      });
+      for (const [id, q] of Object.entries(geo.boxes ?? {})) if (id.startsWith('banner:')) obstacles.push({id, ...q});
+      return {nodes, travel, swing: Math.min(150, geo.w * .4), ribbon: true, obstacles, tailTo: fin ? geo.h - 4 : null};
+    }
+    const swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
+    return {nodes, travel, swing, ribbon: false, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
   })() : null;
   let index = 0;
   return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined}>
-    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel}/> : <PathLine geo={geo} segments={segments}/>)}
+    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} ribbon={flow.ribbon} obstacles={flow.obstacles}/> : <PathLine geo={geo} segments={segments}/>)}
+    {phoneLayout && <span ref={probe} className="orbit-tab-measure" aria-hidden="true"/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
-        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
             const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
@@ -359,7 +452,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
-                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} data-path-box={lane ? `tab:${step.id}` : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane?.wrap ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
                   {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>

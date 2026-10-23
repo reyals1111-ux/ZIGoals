@@ -148,6 +148,8 @@ const STATES = [
   // The Checklist redesign (ccb1ab67) keeps Edit path, and on a phone the View switch, in the Checklist's menu (⋯).
   {name: 'checklist-list', path: '/app/checklist', steps: async p => { if (!await p.getByRole('group', {name: 'View'}).isVisible()) await click(p, btn(p, 'Checklist menu')); await click(p, p.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List', exact: true})); }},
   {name: 'checklist-edit', path: '/app/checklist', steps: async p => { await click(p, btn(p, 'Checklist menu')); await click(p, btn(p, 'Edit path')); }},
+  // Session AG Polish 2 (ADR-031): the quick-add sheet (and, last of all, the day's celebration — see the end of this list).
+  {name: 'checklist-quick-add', path: '/app/checklist', steps: async p => click(p, btn(p, 'Quick add to your Checklist'))},
   {name: 'governance', path: '/app/governance'},
   {name: 'add-money', path: '/app/wealth/add-money'},
   {name: 'add-money-back', path: '/app/wealth/add-money/back'},
@@ -178,6 +180,21 @@ const STATES = [
   {name: 'empty-timeline', path: '/app/timeline', fresh: true},
   {name: 'empty-stories', path: '/app/stories', fresh: true},
   {name: 'empty-review', path: '/app/review', fresh: true},
+  // Session AG Polish 2 (ADR-031): the day's celebration at rest with its words — a new device with one item, done today and
+  // not yet celebrated; a tap skips the film to its last frame. Last, so the day it seeds reaches no other new-device state.
+  {name: 'checklist-celebration', path: '/app/checklist', fresh: true, steps: async p => {
+    await p.evaluate(() => {
+      const d = new Date(), today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      localStorage.setItem('zigoals:checklist:v1', JSON.stringify({version: 1, items: [{id: 'ck_audit-1', kind: 'custom', label: 'Fictional evening walk', colour: 'cyan', section: 'evening', addedAt: '2026-01-01T00:00:00.000Z'}], healthItems: [], order: ['ck_audit-1']}));
+      localStorage.setItem('zigoals:checklist-days:v1', JSON.stringify({version: 1, days: {}, today: {date: today, ticks: [], custom: ['ck_audit-1'], nudged: []}}));
+    });
+    await p.reload({waitUntil: 'domcontentloaded'});
+    const party = p.locator('dialog.checklist-celebration');
+    await party.waitFor({state: 'visible', timeout: 15000});
+    if (!await party.evaluate(d => d.hasAttribute('data-words'))) await party.click({position: {x: 30, y: 120}});
+    await p.locator('dialog.checklist-celebration[data-words]').waitFor({timeout: 5000});
+    await p.waitForTimeout(700);
+  }},
 ];
 
 // ---- stress (item 3): the Showcase's own records, rewritten in place to the hard cases ----
@@ -217,7 +234,8 @@ function inspect() {
   const hasOwnText = el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   // With a modal dialog or sheet open, only it is checked (the page behind is dimmed and inert). Fixed and sticky chrome
   // (the bars, the dock) is the frame content scrolls under: it is hidden from the screenshot and left out of overlaps.
-  const modal = [...document.querySelectorAll('dialog')].find(d => d.open && d.matches(':modal')) ?? document.querySelector('.phone-sheet[open], [role="dialog"][aria-modal="true"]');
+  // (Session AG Polish 2: the last modal opened is the one on top — the Checklist's celebration over the Checklist.)
+  const modal = [...document.querySelectorAll('dialog')].filter(d => d.open && d.matches(':modal')).at(-1) ?? document.querySelector('.phone-sheet[open], [role="dialog"][aria-modal="true"]');
   // The Checklist's sheets (Edit path, Options, About) slide over its path inside its own dialog, behind a scrim: with one
   // open, only the sheet is checked, as with any other sheet (Gate C: the path's names behind it read 1.3:1 on the sheet).
   const scope = (modal ?? document).querySelector('.checklist-sheet-panel') ?? modal ?? document.body;

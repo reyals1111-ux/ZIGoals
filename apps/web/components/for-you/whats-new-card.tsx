@@ -3,12 +3,19 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AG Polish (release `2026-10-session-ag-polish-checklist`, ADR-030): the Checklist, finished. Each link opens its Help answer. */
+/** Session AG Polish 2 (release `2026-10-session-ag-polish-2-checklist`, ADR-031): the Checklist's final pass. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ag2-quick-add', label: 'Quick add: “+” puts a new habit on your Checklist in one step'},
+  {href: '/app/help#help-ag2-planets', label: 'Each orbit’s planet lights up the moment you reach it'},
+  {href: '/app/help#help-ag2-progress', label: 'A progress bar made of your day’s own planets'},
+  {href: '/app/help#help-ag2-celebration', label: 'Finish your day with a short film and your streak'},
+];
+/** Session AG Polish (release `2026-10-session-ag-polish-checklist`, ADR-030); Session AG Polish 2 followed it, so these lead "Earlier updates". */
+const SESSION_AG_POLISH_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ag-polish', label: 'The Checklist, finished: a planet for every orbit and a celebration every day'},
   {href: '/app/help#help-af-checklist', label: 'On a phone: your Checklist one tap away in the header'},
 ];
-/** Session AG (release `2026-10-session-ag-orbit-checklist`, ADR-029); Session AG Polish followed it, so it leads "Earlier updates". */
+/** Session AG (release `2026-10-session-ag-orbit-checklist`, ADR-029); Session AG Polish followed it, so it led "Earlier updates" (now after AG Polish's). */
 const SESSION_AG_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ag-orbit', label: 'The Checklist, redrawn: glowing planets on one flowing line'},
 ];
@@ -146,6 +153,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AG_POLISH_LINKS,
   ...SESSION_AG_LINKS,
   ...SESSION_AF_LINKS,
   ...SESSION_AE_LINKS,
