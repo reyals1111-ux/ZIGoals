@@ -28,10 +28,11 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 7 | Celebration video | done | `e30840fe` (by a staging slip only the old ZIGi constant's removal) + `ff28406e` (its files) |
 | 8 | Consistency colours | done | `5a2de36e` |
 | 1b′ | Owner's change (22 Oct): the phone banner on one row (amendment 4, K15) | done | `c5014b60` |
-| 1a′ | Owner's change (22 Oct): the phone line as one smooth ribbon (amendment 5, K16) | done | this commit |
-| 9 | Themes, checks, finish | — | — |
+| 1a′ | Owner's change (22 Oct): the phone line as one smooth ribbon (amendment 5, K16) | done | `56ca315b`, fix `a76d7772` |
+| 7 fixes | Tests moved for the held toast; the verifier's stage 10 (TIER 3); the stalled-clip watchdog | done | `26b0dccc`, `e2e65e72`, `2c0155be` |
+| 9 | Words, themes, audit states and fixes, K17; STATUS last | in progress | `9e7da376` `c42ffea3` `e8ecea4c` `3308804e` `b0904004` |
 
-## Captures used (self-check, scratchpad only): 6 of 20 (the 390 px capture for amendment 5 comes next) · fix rounds used: 0 of 2
+## Captures used (self-check, scratchpad only): 7 of 20 · fix rounds used: 1 of 2 (the layout audit's three fixes)
 
 ## Next step
-Part 9 (themes, checks, words, STATUS — the STATUS entry must record amendments 4 (the one-row banner) and 5 (the smooth phone line) as owner decisions). Scratch files to delete before the end: `apps/web/tests/zz-scratch-*.spec.ts`, `apps/web/lib/path/zz-scratch.test.ts`.
+Part 9: the layout audit's four passes (Nebula, Light, Dark, touch) on the production build of `b0904004`; the remaining captures (390 Light, 320, 1440 path half lit, 1440 List, quick add phone and computer, the celebration's end frame phone and computer); then the STATUS entry (draft in the scratchpad: parts, pointers, Tier 3, weights, tests; must record amendments 4 and 5 as owner decisions), CI green, PR out of Draft, the report. Scratch files to delete before the end: `apps/web/tests/zz-scratch-*.spec.ts`, `apps/web/lib/path/zz-scratch.test.ts`.
