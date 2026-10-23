@@ -1,4 +1,16 @@
-# Session AG Polish 2 — The Checklist's final pass (ADR-031, Parts 0–9) (2026-10-22/23, [PR #93](https://github.com/reyals1111-ux/ZIGoals/pull/93); not merged, not deployed)
+# Session AG Polish 3 — The Checklist's last polish, phone line first (ADR-032) (2026-10-23/24; in progress, not merged, not deployed)
+**Base:** `main` `261f32a` (Alpha #48). **Rules (owner):** the brief, the approved plan, and five owner amendments (23 Oct, ADR-032), each an owner decision:
+1. The legend: "Some orbits" = at least one item done but not all; "All orbits" = every item done; "Nothing" = none.
+2. No visible jump when the phone path first opens.
+3. Computers and tablets unchanged; the new spacing applies on phones only.
+4. ZIGi's box on phones never overlaps the line, a node, a name tab or the NEXT badge.
+5. Deadline unchanged: Sun 25 Oct 10:00 UTC.
+
+Decisions: `docs/architecture/ADR-032-session-ag-polish-3.md`. Resume file: `docs/handoff/AG_POLISH_3_RESUME.md`. This entry is completed by the session's last commit.
+
+---
+
+# Session AG Polish 2 — The Checklist's final pass (ADR-031, Parts 0–9) (2026-10-22/23, [PR #93](https://github.com/reyals1111-ux/ZIGoals/pull/93), merged into `main` as `261f32a` and deployed as Alpha #48)
 **Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3101, Playwright Chromium standing in for the Chrome channel (it plays the WebM clip), at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = its required WebKit job (iPhone 15 and Desktop Safari projects). Never "Safari on an iPhone". No paid service, no secret, no deploy, no new direct dependency; three owner-approved toolchain upgrades (`next` 16.4.2, wrangler 4.148.0, `@opennextjs/cloudflare` 1.20.12).
 **Base:** `main` `b0fe242` (Alpha #47). **Rules (owner):** the brief; the approved plan; five owner amendments, each an owner decision — (1) a bounded obstacle retry for the phone line (later replaced by 5), (2) the celebration and its replay in CI's WebKit job on a phone, (3) quick-add Undo removes the habit only while it is untouched, (4) the phone orbit banner on ONE row (22 Oct, after Part 8; ADR-031 K15), (5) the phone line one smooth ribbon like the computer's (22 Oct, before Part 9; ADR-031 K16); after the session's report (23 Oct), approval of `next` 16.3.8 → 16.4.2 alone, then of wrangler 4.147.0 → 4.148.0 and `@opennextjs/cloudflare` 1.20.7 → 1.20.12 when 16.4.2 broke the packaged Alpha (ADR-031 K19). Decisions: `docs/architecture/ADR-031-session-ag-polish-2.md` (K1–K19). Resume file: `docs/handoff/AG_POLISH_2_RESUME.md`. Self-check: 16 of 20 scratchpad captures (none committed), 1 of 2 fix rounds.
 
@@ -428,6 +440,21 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #48 — 2026-10-23, `261f32a` live
+Recorded by Session AG Polish 3 (2026-10-23).
+- **Source:** `261f32afc01244bf09208d8882b1b6b73141009e`, `main` after [PR #93](https://github.com/reyals1111-ux/ZIGoals/pull/93) (Merge #93, Session AG Polish 2, "The Checklist's final pass", ADR-031), merged 2026-10-23 10:03:53 UTC. Verified: git.
+- **CI:** Milestone quality #1149 ([run 39936408273](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39936408273)) on `261f32a` (push to `main`): success on attempt 1. Verified: Actions API.
+- **A failed run first, nothing deployed:** Manual Alpha deployment run number 50 ([run 39943188787](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39943188787)), dispatched 2026-10-23 11:01:36 UTC from `main` on `261f32a`, failed in "Deployment config and regression gates" before building: `apps/web/lib/staking/execute.test.ts:116` hit its 60 s timeout and `scripts/run11/domain-review-race.test.mjs:41` failed with "fetch failed". Both passed on the same SHA in Milestone quality #1149 above; both are known intermittents. Nothing was built or deployed. Verified: Actions API (conclusion); owner-reported (causes).
+- **Deployment:** Manual Alpha deployment, run number 51 ([run 39945520241](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39945520241)), dispatched 2026-10-23 11:21:38 UTC from `main`, exact source `261f32a`; finished 11:40:23 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; live prices `VERIFIED`. Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `5c0b7920-4195-4884-934b-252941c93a55`; rollback `f0aca295-23cd-420e-83cc-c668bb61ddad` (#47). Owner-reported.
+- **Versions:** Next.js 16.4.2, wrangler 4.148.0, OpenNext Cloudflare 1.20.12 (ADR-031 K19). Owner-reported.
+- **What went live:** Session AG Polish 2 (ADR-031) on top of AG Polish (#47).
+- **Release identity:** live #48, previous #47. **Rollback floor:** stays #32.
+- **Record note:** run number 51 is Alpha #48 — with the failed run 50, the run number now runs three ahead of the Alpha count.
 
 ---
 
