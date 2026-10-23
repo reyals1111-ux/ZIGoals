@@ -31,11 +31,12 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
   // Session AG Polish (owner Part 4, moved at equal strength): each orbit's planet stands on the line before its first
   // node — the line enters the planet at its top rim and leaves from its bottom rim (reference 03), straight down at both.
   expect(geometry.map(s => s.id)).toEqual(['planet:morning>ck_fixture-1', 'ck_fixture-1>ck_fixture-2', 'ck_fixture-2>planet:afternoon', 'planet:afternoon>ck_fixture-3', 'ck_fixture-3>planet:evening', 'planet:evening>ck_fixture-4', 'ck_fixture-4>finale:end']);
-  // Session AG Polish 2, owner amendment 5 (ADR-031 K16), moved at equal strength for a phone only (≤ 640 px): there the
-  // line is one smooth ribbon that leans through each node toward its name, so each stretch still leaves and enters each
-  // ring exactly on its rim (within 2 px) and tangent to it (a node's: its direction at a right angle to the radius,
-  // within 5°; a planet's: on a course through its centre — it passes behind it), heading downward, and it leaves each
-  // ring in the very direction the stretch before came in (within 5°). A computer's line is checked as before.
+  // Session AG Polish 3 (ADR-032; owner Part 1), moved for a phone only (≤ 640 px): there the line is the computer's river,
+  // flowing THROUGH each node (under it), so each stretch still leaves and enters each ring exactly on its rim (within
+  // 2 px), heading downward; a planet straight down at its top and bottom rims (within 5°: top-in, bottom-out), the finale
+  // tangent to its ring as before; and through a node the river goes on within 60° of the way it came (owner Part 1.1 —
+  // it meets a node's ring wherever it flows, so the ribbon's "tangent to the node's ring, on within 5°" is gone; at a
+  // planet still within 5°). A computer's line is checked as before.
   const phone = (page.viewportSize()?.width ?? 1440) <= 640;
   const unit = (v: number[]) => { const l = Math.hypot(v[0]!, v[1]!) || 1; return [v[0]! / l, v[1]! / l]; };
   for (const [i, s] of geometry.entries()) {
@@ -46,11 +47,12 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
       for (const [p, dir, c, id, what] of [[s.start, s.startDir, s.from, fromId!, 'leaves'], [s.end, s.endDir, s.to, toId!, 'enters']] as const) {
         expect(Math.abs(Math.hypot(p[0]! - c.x, p[1]! - c.y) - c.r), `${s.id}: ${what} its ring on its rim`).toBeLessThan(2);
         const t = unit([...dir]), rad = unit([p[0]! - c.x, p[1]! - c.y]);
-        expect(Math.abs(id.startsWith('planet:') ? t[0]! * rad[1]! - t[1]! * rad[0]! : t[0]! * rad[0]! + t[1]! * rad[1]!), `${s.id}: ${what} it tangentially`).toBeLessThan(Math.sin(5 * Math.PI / 180));
+        if (id.startsWith('planet:')) expect(Math.abs(t[0]!), `${s.id}: ${what} the planet straight down`).toBeLessThan(Math.sin(5 * Math.PI / 180));
+        if (id === 'finale:end') expect(Math.abs(t[0]! * rad[0]! + t[1]! * rad[1]!), `${s.id}: ${what} the finale tangentially`).toBeLessThan(Math.sin(5 * Math.PI / 180));
         expect(t[1]!, `${s.id}: heading downward`).toBeGreaterThan(0);
       }
       const after = geometry[i + 1];
-      if (after) { const a = unit([...s.endDir]), b = unit([...after.startDir]); expect(Math.acos(Math.min(1, a[0]! * b[0]! + a[1]! * b[1]!)) * 180 / Math.PI, `${s.id} → ${after.id}: on in the direction it came`).toBeLessThan(5); }
+      if (after) { const a = unit([...s.endDir]), b = unit([...after.startDir]); expect(Math.acos(Math.min(1, a[0]! * b[0]! + a[1]! * b[1]!)) * 180 / Math.PI, `${s.id} → ${after.id}: on in the direction it came`).toBeLessThan(toId!.startsWith('planet:') ? 5 : 60); }
       continue;
     }
     expect(fromId!.startsWith('planet:') ? rim(s.start, s.from, false) : side(s.start, s.from), `${s.id}: leaves its ring at a side point (a planet: its bottom rim)`).toBeLessThan(2);

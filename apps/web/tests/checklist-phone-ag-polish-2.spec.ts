@@ -6,10 +6,10 @@ import {seedChecklist, settled} from './checklist-fixtures';
 /**
  * Session AG Polish 2 (ADR-031; owner Part 1, references 03–06): the phone path. With twelve items and long names, at
  * 320, 375, 390 and 430 px:
- * - 1a the line flows like the computer's (owner amendment 5, ADR-031 K16): each stretch ONE cubic Bézier whose curvature
- *   changes sign at most once, never a radius under 40 px, leaving each ring in the direction it came in (under 5°) and
- *   meeting each node's ring tangentially; neighbours travel across the width (on average 30 % of the stage or more); no
- *   near-straight vertical run over 40 % of a stretch; the line inside the stage and over no tab, node, planet or banner;
+ * - 1a the line is the computer's river (Session AG Polish 3, ADR-032; it replaced amendment 5's ribbon): each stretch ONE
+ *   cubic Bézier, never upward, never a radius under 40 px × width / 390, through each node within 60° of the way it came,
+ *   top-in and bottom-out at each planet; the nodes reach both outer thirds; the line inside the stage and over no tab, node,
+ *   planet or banner;
  * - 1b/1c each orbit's planet stands beside its compact banner, at its height, at least 1.4 × a node;
  * - 1d every name shows whole — never cut, never "…" — and no tab covers the line, a node, a planet, a banner or ZIGi;
  * - 1e ZIGi touches no node, tab, planet or banner; nothing scrolls sideways.
@@ -87,41 +87,34 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     await open(page);
   });
 
-  test('1a: the line flows across the width — wide and short sweeps, every stretch bent, inside the stage', async ({page}) => {
+  // Session AG Polish 3 (ADR-032; owner Part 1), moved: the ribbon's rules (one cubic leaning through each ring, tangent
+  // to it, on within 5°, mean travel ≥ 30 %, no near-vertical run) are replaced by the owner's river rules — the line flows
+  // THROUGH each node, meeting its ring wherever it flows: each stretch one cubic, never upward, no radius under
+  // 40 px × width / 390, on within 60° through a node, top-in and bottom-out at a planet, over no tab, node, planet or
+  // banner, inside the stage; the nodes reach both outer thirds in short steps and wide sweeps.
+  test('1a: the river across the width — every stretch smooth and downward, through each node, over nothing', async ({page}) => {
     const m = await measure(page);
     expect(m.sideways, 'no sideways scroll').toBeLessThanOrEqual(0);
-    const xs = m.steps.map(s => (s.dot.left + s.dot.right) / 2), travel = xs.slice(1).map((x, i) => Math.abs(x - xs[i]!));
-    const mean = travel.reduce((a, b) => a + b, 0) / travel.length;
-    expect(mean / m.stage.w, `mean sideways travel ${Math.round(mean)} px of ${Math.round(m.stage.w)}`).toBeGreaterThanOrEqual(.3);
-    expect(new Set(travel.map(t => Math.round(t / 12))).size, 'wide and short sweeps, not one step size').toBeGreaterThan(2);
+    const xs = m.steps.map(s => (s.dot.left + s.dot.right) / 2 - m.stage.left), travel = xs.slice(1).map((x, i) => Math.abs(x - xs[i]!));
+    expect(Math.min(...xs), 'a node in the left third').toBeLessThan(m.stage.w / 3);
+    expect(Math.max(...xs), 'a node in the right third').toBeGreaterThan(m.stage.w * 2 / 3);
+    expect(new Set(travel.map(t => Math.round(t / 12))).size, 'short steps and wide sweeps, not one step size').toBeGreaterThan(2);
     expect(m.segments.length, 'a stretch between each two neighbours and each planet').toBeGreaterThanOrEqual(NAMES.length);
-    const straight: string[] = [], outside: string[] = [];
-    for (const s of m.segments) {
-      // The longest run of the stretch that stays within a 4 px wide vertical band: a near-straight vertical piece.
-      let longest = 0;
-      for (let i = 0; i < s.pts.length; i++) { let lo = s.pts[i]!.x, hi = lo, j = i; while (j + 1 < s.pts.length) { const x = s.pts[j + 1]!.x; lo = Math.min(lo, x); hi = Math.max(hi, x); if (hi - lo > 4) break; j++; } longest = Math.max(longest, j - i); }
-      if (longest / s.len > .4) straight.push(`${s.id}: ${Math.round(longest)} of ${Math.round(s.len)} px`);
-      if (s.pts.some(q => q.x < m.stage.left - .5 || q.x > m.stage.right + .5)) outside.push(s.id);
-    }
-    expect(straight, 'no stretch with a straight vertical run over 40 % of it').toEqual([]);
+    const outside: string[] = [];
+    for (const s of m.segments) if (s.pts.some(q => q.x < m.stage.left - .5 || q.x > m.stage.right + .5)) outside.push(s.id);
     expect(outside, 'the line inside the stage').toEqual([]);
-    // Owner amendment 5: each stretch one smooth curve — one cubic, at most one S-turn, no radius under 40 px.
-    const FLAT = 1 / 3000, shape: string[] = [], tight: string[] = [], turns: string[] = [], joins: string[] = [], rings: string[] = [], over: string[] = [];
+    const least = 40 * width / 390 - .5, shape: string[] = [], tight: string[] = [], up: string[] = [], joins: string[] = [], rings: string[] = [], over: string[] = [];
     const curves = m.flow.map(s => ({...s, ...pieces(s.d)}));
     for (const s of curves) {
-      if (s.kind === 'step' && s.cmds !== 'MC') shape.push(`${s.id}: ${s.cmds}`);
-      if (s.cmds !== 'MC' && s.cmds !== 'ML') shape.push(`${s.id}: ${s.cmds}`);
-      let flips = 0, last = 0, least = Infinity;
+      if (s.cmds !== 'MC' && !(s.kind !== 'step' && s.cmds === 'ML')) shape.push(`${s.id}: ${s.cmds}`);
+      let low = -Infinity, r = Infinity;
       for (let i = 0; i <= 400; i++) {
-        const {v, a} = bezier(s.c, i / 400), speed = Math.hypot(v.x, v.y);
+        const {p, v, a} = bezier(s.c, i / 400), speed = Math.hypot(v.x, v.y);
+        if (p.y < low - 1) { up.push(s.id); break; } low = Math.max(low, p.y);
         if (speed < 1e-6) continue;
-        const k = (v.x * a.y - v.y * a.x) / speed ** 3;
-        if (k) least = Math.min(least, 1 / Math.abs(k));
-        if (Math.abs(k) >= FLAT) { if (last && Math.sign(k) !== last) flips++; last = Math.sign(k); }
+        const k = (v.x * a.y - v.y * a.x) / speed ** 3; if (k) r = Math.min(r, 1 / Math.abs(k));
       }
-      if (least < 40) tight.push(`${s.id}: ${Math.round(least)} px`);
-      if (flips > 1) turns.push(`${s.id}: ${flips}`);
-      // Over nothing: no banner, no tab, no ring but its own two (sampled each 1 %).
+      if (r < least) tight.push(`${s.id}: ${Math.round(r)} px`);
       const [from, to] = s.kind === 'step' ? s.id.split('>') : s.kind === 'lead' ? ['', s.id.slice(5)] : [s.id.slice(5), ''];
       for (let i = 2; i <= 98; i++) {
         const {p} = bezier(s.c, i / 100);
@@ -129,24 +122,22 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
         for (const [id, q] of Object.entries(m.rings)) if (id !== from && id !== to && Math.hypot(p.x - q.x, p.y - q.y) < q.r + 2) over.push(`${s.id} over ${id}`);
       }
     }
-    // Tangent through every ring: each stretch leaves a ring in the direction the one before came in (under 5°), touching a
-    // node's ring at a right angle to its radius; a planet's course runs on through its centre (it passes behind it).
+    // Each end on its ring's rim; through a node on within 60° of the way it came; a planet straight down at both rims.
     for (let i = 0; i + 1 < curves.length; i++) {
       const a = curves[i]!, b = curves[i + 1]!, end = a.c[3]!, before = a.c[2]!.x === end.x && a.c[2]!.y === end.y ? a.c[1]! : a.c[2]!, start = b.c[0]!, after = b.c[1]!.x === start.x && b.c[1]!.y === start.y ? b.c[2]! : b.c[1]!;
-      const tin = unit({x: end.x - before.x, y: end.y - before.y}), tout = unit({x: after.x - start.x, y: after.y - start.y}), at = a.kind === 'lead' ? a.id.slice(5) : a.id.split('>')[1]!;
-      if (angle(tin, tout) >= 5) joins.push(`${at}: ${angle(tin, tout).toFixed(1)}°`);
+      const tin = unit({x: end.x - before.x, y: end.y - before.y}), tout = unit({x: after.x - start.x, y: after.y - start.y}), at = a.kind === 'lead' ? a.id.slice(5) : a.id.split('>')[1]!, planet = at.startsWith('planet:');
+      if (angle(tin, tout) > (planet ? 5 : 60)) joins.push(`${at}: ${angle(tin, tout).toFixed(1)}°`);
       const q = m.rings[at]; if (!q) continue;
       for (const [p, t] of [[end, tin], [start, tout]] as const) {
         if (Math.abs(Math.hypot(p.x - q.x, p.y - q.y) - q.r) > 1.5) rings.push(`${at}: the line meets it ${Math.round(Math.hypot(p.x - q.x, p.y - q.y) - q.r)} px off its rim`);
-        const radial = unit({x: p.x - q.x, y: p.y - q.y}), cross = Math.abs(t.x * radial.y - t.y * radial.x);
-        if (at.startsWith('planet:') ? cross > Math.sin(5 * Math.PI / 180) : Math.abs(t.x * radial.x + t.y * radial.y) > Math.sin(5 * Math.PI / 180)) rings.push(`${at}: ${at.startsWith('planet:') ? 'its course misses its centre' : 'not tangent to its ring'}`);
+        if (planet && Math.abs(t.x) > Math.sin(5 * Math.PI / 180)) rings.push(`${at}: not straight down at its rim`);
       }
     }
     expect(shape, 'each stretch one cubic Bézier').toEqual([]);
-    expect(turns, 'at most one S-turn per stretch').toEqual([]);
-    expect(tight, 'no radius of curvature under 40 px').toEqual([]);
-    expect(joins, 'the line leaves each ring in the direction it came in').toEqual([]);
-    expect(rings, 'tangent to each node\'s ring, through each planet\'s centre').toEqual([]);
+    expect(up, 'never climbing back up').toEqual([]);
+    expect(tight, `no radius of curvature under ${least.toFixed(1)} px`).toEqual([]);
+    expect(joins, 'one stream through each node (within 60°), straight down through each planet').toEqual([]);
+    expect(rings, 'each end on its ring\'s rim, top-in and bottom-out at a planet').toEqual([]);
     expect([...new Set(over)], 'the line over no tab, node, planet or banner').toEqual([]);
   });
 

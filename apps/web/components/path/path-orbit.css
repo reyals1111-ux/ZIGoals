@@ -33,9 +33,16 @@
      sweep from a planet to its first node, and from an orbit's last node to the next planet, without a tight bend. */
   .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 116px; padding-top: 88px; }
   .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 92px; }
-  /* Each node stands in its lane (lib/path/phone-lanes.ts): its tab on one line with the free width, ZIGi's room on the
-     other side. Before the first measure the wave places it, as before. */
+  /* Session AG Polish 3 (ADR-032; owner Part 1, amendments 2 and 3): the river (lib/path/phone-river.ts). Each node stands
+     at its place across the width and each space varies (`--lane-gap` above a node, `--orbit-gap` above a banner,
+     `--finale-gap` above the finale) — phones only. Until the river is laid out and measured the path is not shown at all,
+     so nothing appears in a wrong place and then jumps; nothing fades in (it simply shows, settled). */
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-steps { gap: 0; padding-top: 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-step { margin-top: var(--lane-gap, 116px); }
+  .path-stage[data-variant=orbit][data-lanes] .path-section + .path-section { margin-top: var(--orbit-gap, 92px); }
+  .path-stage[data-variant=orbit][data-lanes] .path-finale { margin-top: var(--finale-gap, 36px); }
+  .path-stage[data-variant=orbit]:not([data-ready]) { visibility: hidden; }
 }
 .path-stage[data-variant=orbit] .path-node { z-index: 1; }
 .path-stage[data-variant=orbit] .path-banner { z-index: 2; }

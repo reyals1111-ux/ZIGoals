@@ -38,8 +38,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 ## Parts
 | Part | What | State | Commits |
 |---|---|---|---|
-| 0 | Records (Alpha #48, AG Polish 2 merged and deployed, run 50 failed before building), ADR-032, this file, Draft PR | in progress | |
-| 1 | The phone river | pending | |
+| 0 | Records (Alpha #48, AG Polish 2 merged and deployed, run 50 failed before building), ADR-032, this file, Draft PR ([#94](https://github.com/reyals1111-ux/ZIGoals/pull/94)) | done | `a5e7a7b2` |
+| 1 | The phone river (ADR-032 L4–L9) | done | this commit |
 | 2 | No square behind planets | pending | |
 | 3 | Progress bar removed | pending | |
 | 4 | List view | pending | |
@@ -49,7 +49,7 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 8 | Governance hidden by default (TIER 3) | pending | |
 | Finish | STATUS entry, CI, out of Draft | pending | |
 
-## Captures used (self-check, scratchpad only): 0 of 10 · fix rounds used: 0 of 1
+## Captures used (self-check, scratchpad only): 5 of 10 · fix rounds used: 0 of 1
 
 ## Next step
-Part 1: write `lib/path/phone-river.ts` with its property test, then wire it into `components/path/path.tsx`.
+Part 2: the square behind lit planets. Measure first (phone and computer, three themes), then fix the cause; add the asset alpha test and the halo spec.

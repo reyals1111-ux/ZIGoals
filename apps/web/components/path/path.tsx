@@ -15,7 +15,7 @@ import {planetDesigns} from '../../lib/path/planet-pick';
 import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
 import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
 import {usePathGeometry, type PathGeometry} from './use-path-geometry';
-import {phoneLanes, type Lane} from '../../lib/path/phone-lanes';
+import {phoneRiver, riverMinRadius, RIVER, type RiverLayout} from '../../lib/path/phone-river';
 import './path.css';
 
 /**
@@ -199,6 +199,20 @@ function useTabWidths(probe: RefObject<HTMLSpanElement | null>, labelsKey: strin
   }, [probe, labelsKey, on]);
   return on && widths && widths.key === labelsKey ? widths.w : null;
 }
+/** Session AG Polish 3 (owner amendment 2): whether the page's web fonts have settled (the names' widths are then final). */
+function useFontsReady(on: boolean): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!on || ready) return;
+    const fonts = typeof document === 'undefined' ? undefined : document.fonts;
+    if (!fonts || fonts.status === 'loaded') { setReady(true); return; }
+    let live = true;
+    fonts.ready.then(() => { if (live) setReady(true); }, () => { if (live) setReady(true); });
+    const t = window.setTimeout(() => { if (live) setReady(true); }, 1200);
+    return () => { live = false; window.clearTimeout(t); };
+  }, [on, ready]);
+  return ready;
+}
 /** Where the orbit look lands the next planet: this share of the screen's height between its bars. */
 const landAt = () => typeof window !== 'undefined' && window.innerWidth < 1180 ? .44 : .4;
 
@@ -232,28 +246,46 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const reached = orbit ? planetsReached(model.sections) : [], reachedPlanetIds = model.sections.filter((_, si) => reached[si]).map(s => `p:${s.id}`);
   const justIds = [...doneIds, ...reachedIds, ...completeIds, ...reachedPlanetIds];
   const just = useJust(justIds, justIds.join('|'));
-  // Session AG Polish (owner Part 2): on a phone each node stands in a lane chosen so its tab fits on one line and ZIGi
-  // has room on the other side (lib/path/phone-lanes.ts); the lanes come from the width and the names alone.
+  // Session AG Polish (owner Part 4): each orbit's planet, by the colour of the node it spawns (lib/path/planet-pick.ts).
+  const planets = useMemo(() => orbit ? planetDesigns(model.sections.map(s => s.steps[0]?.colour ?? null), model.id).map(id => id ? PLANET_DESIGNS[id] : null) : [], [orbit, model]);
+  // Session AG Polish 3 (ADR-032; owner Part 1): on a phone the path is the computer's river (lib/path/phone-river.ts): each
+  // node's place, the side its tab hangs and the space above it come from the width, the names and the planets alone.
   const phoneLayout = usePhoneLayout(orbit), [laneKey, setLaneKey] = useState(''), probe = useRef<HTMLSpanElement>(null);
   const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}|${laneKey}`;
   const geo = usePathGeometry(stage, geometryKey);
   const labelsKey = steps.map(s => s.label).join('\u0001'), stageW = geo?.w ?? 0, tabWidths = useTabWidths(probe, labelsKey, phoneLayout);
-  // (Session AG Polish 2: an orbit's first node travels from its orbit's planet, which stands at the right of its banner.)
-  // (Owner amendment 5: the path's last node goes on to the day's finale, after the planets.)
-  const planetFrom = orbit && geo ? [...model.sections.map(sec => geo.points[`planet:${sec.id}`]?.x ?? null), geo.points[FINALE_POINT]?.x ?? null] : null;
-  const fromKey = planetFrom ? planetFrom.map(x => x === null ? '' : Math.round(x)).join(',') : '';
-  const lanes: Lane[] | null = useMemo(() => {
-    if (!phoneLayout || !stageW || !tabWidths) return null;
-    const labels = labelsKey.split('\u0001'), planetsAt = fromKey ? fromKey.split(',') : [];
-    // (An orbit's first node comes from its planet; its last node goes on to the next planet, the last of all to the
-    // day's finale — owner amendment 5.)
-    let k = 0; const from: (number | null)[] = [], to: (number | null)[] = [];
-    model.sections.forEach((sec, si) => sec.steps.forEach((_, j) => { k++; from.push(j === 0 && planetsAt[si] ? Number(planetsAt[si]) : null); to.push(j === sec.steps.length - 1 && planetsAt[si + 1] ? Number(planetsAt[si + 1]) : null); }));
+  // (The planets' size and where each banner's words end, as drawn: neither moves with the river's spaces.)
+  const planetR = orbit && geo ? model.sections.map(sec => geo.points[`planet:${sec.id}`]?.r).find(r => r !== undefined) ?? null : null;
+  const wordsKey = orbit && geo ? model.sections.map(sec => Math.round(geo.boxes?.[`banner:${sec.id}`]?.right ?? 0)).join(',') : '';
+  // (The first screen's foot, in the stage's own coordinates: the river keeps at most four nodes on it.)
+  const [viewFoot, setViewFoot] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const s = stage.current; if (!phoneLayout || !s) return;
+    const sc = scrollerOf(s), pad = sc ? parseFloat(getComputedStyle(sc).scrollPaddingBottom) || 0 : 0;
+    const foot = Math.round(window.innerHeight - pad - (s.getBoundingClientRect().top + (sc ? sc.scrollTop : window.scrollY)));
+    setViewFoot(v => v === foot ? v : foot);
+  }, [phoneLayout, stageW]);
+  // (The river depends on the path's shape alone — its orbits, ids, names and planets — never on a tick.)
+  const shapeKey = `${model.id}|${model.sections.map((sec, si) => `${sec.id}:${planets[si] ? 1 : 0}:${sec.steps.map(st => st.id).join(',')}`).join('|')}`;
+  const river: RiverLayout | null = useMemo(() => {
+    if (!phoneLayout || !stageW || !tabWidths || !planetR) return null;
+    const labels = labelsKey.split('\u0001'), words = wordsKey ? wordsKey.split(',').map(Number) : [];
     // (ZIGi's width at rest on a phone: `--zigi-h: min(92px, 26cqi)` and its figure's 0.838 ratio.)
-    return phoneLanes(labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), {w: stageW, node: 62, zigi: Math.min(92, stageW * .26) * .838, seed: model.id, ...(k === labels.length ? {from, to} : {})});
-  }, [phoneLayout, stageW, labelsKey, tabWidths, fromKey, model]);
-  const nextLaneKey = lanes ? lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}`).join(',') : '';
+    return phoneRiver({w: stageW, vw: typeof window === 'undefined' ? stageW + 24 : window.innerWidth, seed: model.id, tabs: labels.map((l, i) => phoneTabWidth(l, tabWidths[i])),
+      orbits: model.sections.map(sec => sec.steps.length), planets: model.sections.map((_, si) => !!planets[si]), planetR, words: words.map(x => x || Math.min(214, stageW * .6)),
+      zigi: Math.min(92, stageW * .26) * .838, ids: steps.map(st => st.id), orbitIds: model.sections.map(sec => sec.id),
+      ...(viewFoot ? {view: {top: RIVER.stageTop + 2 * planetR + RIVER.bannerPad, bottom: viewFoot}} : {})});
+    // `shapeKey` carries the model's shape; its states (a tick) never re-lay the river
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneLayout, stageW, labelsKey, tabWidths, planetR, wordsKey, viewFoot, shapeKey]);
+  const lanes = river && river.lanes.length === steps.length ? river.lanes : null;
+  const nextLaneKey = lanes ? `${lanes.map(l => `${Math.round(l.x)}${l.side[0]}${l.wrap ? 'w' : ''}${l.gap}`).join(',')}|${river!.orbitGaps.join(',')}|${river!.finaleGap}` : '';
   useLayoutEffect(() => { if (nextLaneKey !== laneKey) setLaneKey(nextLaneKey); }, [nextLaneKey, laneKey]);
+  // Owner amendment 2 (ADR-032): on a phone the path shows only once its river is laid out and measured — never first in a
+  // wrong place and then a jump. (The fonts first, so the names' widths do not move anything after; a fallback after 2 s.)
+  const fontsReady = useFontsReady(phoneLayout), [late, setLate] = useState(false);
+  useEffect(() => { if (!phoneLayout) return; const t = window.setTimeout(() => setLate(true), 2000); return () => window.clearTimeout(t); }, [phoneLayout]);
+  const ready = !phoneLayout || late || (!!lanes && fontsReady && laneKey === nextLaneKey && geo?.key === geometryKey);
 
   // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood. The orbit look cheers beside the
   // planet just ticked (celebrating when it completes an orbit), then goes on to stand by the next one.
@@ -291,7 +323,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // next one would otherwise slip off the top).
   const landed = useRef(false), measured = geo !== null, orbitsDone = useRef<string[] | null>(null), orbitsKey = completeIds.join('|');
   useEffect(() => {
-    if (!orbit || !measured || !next) return;
+    // (Owner amendment 2: on a phone, only once the river has settled.)
+    if (!orbit || !measured || !next || !ready) return;
     // (Read here, in the same commit as the new next planet: the `just` marks only arrive a render later.)
     const before = orbitsDone.current, finished = before !== null && completeIds.some(id => !before.includes(id)); orbitsDone.current = completeIds;
     const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
@@ -313,7 +346,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     if (!landed.current) { landed.current = true; go(false); return; }
     // (A tick that completes an orbit waits for its celebration on the banner before the path moves on.)
     const t = window.setTimeout(() => go(true), finished ? ORBIT_LAND_AFTER_MS : 300); return () => window.clearTimeout(t);
-  }, [orbit, measured, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orbit, measured, ready, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Jump to next": wanted while the next dot is out of view (always, where the browser cannot tell).
   const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);
@@ -391,8 +424,6 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // Round 3: the comet runs on from the planet just ticked to the next one; with no such stretch (the next is elsewhere), along
   // the stretch the tick lit.
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
-  // Session AG Polish (owner Part 4): each orbit's planet, by the colour of the node it spawns (lib/path/planet-pick.ts).
-  const planets = useMemo(() => orbit ? planetDesigns(model.sections.map(s => s.steps[0]?.colour ?? null), model.id).map(id => id ? PLANET_DESIGNS[id] : null) : [], [orbit, model]);
   const nextAt = next ? steps.findIndex(x => x.id === next.id) : -1;
   const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(l => l.side), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? lanes[nextAt]!.side : flip(lanes[nextAt]!.side)) : 'right' as Side}
     : orbit ? orbitSides(steps, swingOf, nextAt, geo) : null, labelSides = sides?.labels ?? null;
@@ -414,29 +445,29 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done', ...(lanes ? {upright: true} : {})});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
     const vw = typeof window === 'undefined' ? 1440 : window.innerWidth;
-    // Session AG Polish 2, owner amendment 5 (ADR-031 K16): on a phone the line is one smooth ribbon across the whole
-    // width, leaning through each node toward its tab; the tabs (at their reserved one-line width, so a tick never moves the
-    // line) and the banners only choose among its clean curves — it never bends around them.
-    if (lanes && lanes.length === steps.length) {
-      const reach = 62 * .3, obstacles: FlowBox[] = [];
+    // Session AG Polish 3 (ADR-032; owner Part 1): on a phone the line is the river through every node, under it, clear of
+    // the tabs (at their reserved one-line width, so a tick never moves the line) and the banners' words and tint.
+    if (lanes) {
+      const obstacles: FlowBox[] = [];
       steps.forEach((st, i) => {
         const p = geo.points[st.id], q = geo.boxes?.[`tab:${st.id}`], lane = lanes[i]!; if (!p || !q) return;
-        const wide = lane.maxTab;
+        const wide = lane.maxTab, reach = RIVER.tabReach;
         obstacles.push({id: `tab:${st.id}`, top: q.top, bottom: q.bottom, left: lane.side === 'right' ? p.x + reach : p.x - reach - wide, right: lane.side === 'right' ? p.x + reach + wide : p.x - reach});
       });
-      for (const [id, q] of Object.entries(geo.boxes ?? {})) if (id.startsWith('banner:')) obstacles.push({id, ...q});
-      return {nodes, travel, swing: Math.min(150, geo.w * .4), ribbon: true, obstacles, tailTo: fin ? geo.h - 4 : null};
+      for (const [id, q] of Object.entries(geo.boxes ?? {})) if (id.startsWith('banner:')) obstacles.push({id, ...q, right: q.right + RIVER.fade});
+      return {nodes, travel, swing: 0, river: {minRadius: riverMinRadius(vw)}, obstacles, tailTo: fin ? geo.h - 4 : null};
     }
     const swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
-    return {nodes, travel, swing, ribbon: false, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
+    return {nodes, travel, swing, river: undefined, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
   })() : null;
   let index = 0;
-  return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined}>
-    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} ribbon={flow.ribbon} obstacles={flow.obstacles}/> : <PathLine geo={geo} segments={segments}/>)}
+  return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined} data-ready={phoneLayout && ready ? '' : undefined}
+    style={lanes ? {'--finale-gap': `${river!.finaleGap}px`} as CSSProperties : undefined}>
+    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} river={flow.river} obstacles={flow.obstacles}/> : <PathLine geo={geo} segments={segments}/>)}
     {phoneLayout && <span ref={probe} className="orbit-tab-measure" aria-hidden="true"/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
-      return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
+      return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading} style={lanes ? {'--orbit-gap': `${river!.orbitGaps[si] ?? 0}px`} as CSSProperties : undefined}>
         {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
@@ -447,7 +478,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
             // The orbit look: a chest rides this planet's node (no row of its own); the day's trophy keeps its row at the end.
             const riding = orbit ? all.filter(m => m.at !== 'end') : [], chests = orbit ? all.filter(m => m.at === 'end') : all;
             return <Fragment key={step.id}>
-              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--toward': toward, '--step-colour': PATH_COLOURS[step.colour].token} : {}), ...(lane ? {'--lane-x': `${Math.round((lane.x - stageW / 2) * 10) / 10}px`} : {})} as CSSProperties}>
+              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--toward': toward, '--step-colour': PATH_COLOURS[step.colour].token} : {}), ...(lane ? {'--lane-x': `${Math.round((lane.x - stageW / 2) * 10) / 10}px`, '--lane-gap': `${lane.gap}px`} : {})} as CSSProperties}>
                 <div className="path-node">
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
