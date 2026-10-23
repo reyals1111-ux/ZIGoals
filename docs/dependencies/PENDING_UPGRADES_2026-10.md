@@ -22,6 +22,8 @@ Evidence labels:
 
 ## 1. Wrangler 4.144.0 → 4.146.0 (after Stage 7)
 
+> **Done in Session AG Polish 2 (2026-10-23, owner-approved): wrangler 4.148.0**, the lowest version that OpenNext Cloudflare 1.20.12 accepts (`^4.148.0`); 1.20.12 is the first OpenNext release that bundles Next.js 16.4's `preview-props.json`. workerd 1.20261001.1 → 1.20261006.1 and miniflare 5.20261006.0-alpha. Deploy output, API requests and upload metadata match 4.147.0 (fixtures in `scripts/fixtures/wrangler-output/4.148.0/`); the Alpha `worker.js` from the same build is byte-identical; `worker-runtime.d.ts` and the coordinator's `worker-configuration.d.ts` were regenerated (additive). The changelog was not read (no web research that session). Evidence in STATUS (Session AG Polish 2).
+>
 > **Done in Session S (2026-10-04): wrangler 4.147.0**, the only 4.147.x on npm, published 2026-10-02 11:30 UTC. Following the plan below:
 > - 4.147.0 adds only container and workflows-CLI changes, on top of 4.145–4.146 below; miniflare and workerd stay as in 4.146.0;
 > - the CLI surface is unchanged, and deploy output and upload requests match 4.144.0 (fixtures in `scripts/fixtures/wrangler-output/4.147.0/`);

@@ -31,7 +31,7 @@ git checkout --detach <release SHA>
 git rev-parse HEAD                                 # read only: prints the release SHA
 node scripts/doctor.mjs                            # read only: Node 24.19.0, pnpm 11.19.0
 pnpm install --frozen-lockfile --ignore-scripts
-pnpm --filter @zigoals/web exec wrangler --version # read only: the pinned version (4.147.0 after Session S)
+pnpm --filter @zigoals/web exec wrangler --version # read only: the pinned version (4.148.0 after Session AG Polish 2)
 ```
 - **The private env file lives outside the checkout:** `~/.config/zigoals/acctest.env`, mode 600.
 - `build:alpha` refuses to run while any `.env*` other than `.env.example` is in `apps/web` or the checkout root.

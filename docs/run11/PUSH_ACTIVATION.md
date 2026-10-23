@@ -19,7 +19,7 @@ PR's build. Push stays off on the live Alpha until you activate it.
 ## Prerequisites
 - Stage 4 is done: the six private copies exist and `node scripts/run11/activation-check.mjs --private` passes. `--push` reads the private app copy (for the name prefix) and the private sync copy (for the origins) and refuses without them.
 - The private app Worker and the private sync Worker are deployed (Stage 7) and sign-in works: push needs a signed-in account, and the app route confirms every session with private sync before it forwards anything.
-- Node 24.19.0 and pnpm 11.19.0 (`pnpm run doctor`); the pinned wrangler 4.147.0 through `pnpm --filter @zigoals/web exec wrangler`; your Cloudflare login for that shell, as in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md) "One-time setup", step 4.
+- Node 24.19.0 and pnpm 11.19.0 (`pnpm run doctor`); the pinned wrangler 4.148.0 through `pnpm --filter @zigoals/web exec wrangler`; your Cloudflare login for that shell, as in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md) "One-time setup", step 4.
 - Run every command from the checkout root. `pnpm --filter @zigoals/web exec` runs wrangler inside `apps/web`, so config paths are written as `"$PWD/…"`.
 - About 45 minutes at the desk, plus step 6 on the iPhone.
 
@@ -171,7 +171,7 @@ pnpm --filter @zigoals/web exec wrangler delete --config "$PUSH_CONFIG"
 ```
 **After (read only):** `pnpm --filter @zigoals/web exec wrangler deployments list --config "$PUSH_CONFIG"` answers that the Worker does not exist (**UNVERIFIED:** the exact wording).
 
-- `wrangler delete` ("Delete a Worker from Cloudflare") and `wrangler secret delete` ("Delete a secret from a Worker") exist in the pinned wrangler 4.147.0 (their `--help`, read locally 2026-10-08); their effect on a real account is **UNVERIFIED:** not yet observed. The dashboard (Workers & Pages) does the same by hand, as the recovery rehearsal's teardown does.
+- `wrangler delete` ("Delete a Worker from Cloudflare") and `wrangler secret delete` ("Delete a secret from a Worker") exist in the pinned wrangler 4.148.0 (their `--help`, read locally 2026-10-23; 4.147.0 on 2026-10-08); their effect on a real account is **UNVERIFIED:** not yet observed. The dashboard (Workers & Pages) does the same by hand, as the recovery rehearsal's teardown does.
 - Delete the app secrets first, then the Worker. The other way round, the devices' daily refresh fails quietly in between (nothing is shown; the setting stays).
 - A service worker a device registered stays until that person turns push off or clears site data. It has no `fetch` handler and no cache, so it changes nothing in the app.
 - The key file and its Bitwarden copy can stay for a later activation. A new activation after deleting them starts at step 1.
