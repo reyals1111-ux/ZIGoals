@@ -14,14 +14,13 @@ import {stableHash} from './orbit-colours';
  * - Every point stays inside the column (`gutter` from each side): the page never scrolls sideways.
  * Computed when the path is measured (mount, resize, fonts), never per frame.
  *
- * Session AG Polish 3 (ADR-032): a phone draws the river of lib/path/phone-river.ts instead (Session AG Polish 2's ribbon is
- * gone); a computer's line is exactly the one here, unchanged (lib/path/flow-desktop-digest.test.ts pins it).
+ * Session AG Polish 3 (ADR-032 L13, owner amendment 7): a phone draws this same line, with the phone's swing, through the
+ * stations lib/path/phone-river.ts places (Session AG Polish 2's ribbon is gone); a computer's line is exactly the one here,
+ * unchanged (lib/path/flow-desktop-digest.test.ts pins it).
  */
 /** A node's side point; an orbit's planet (Session AG Polish, owner Part 4) takes the line in at its top and lets it out at its bottom. */
 export type FlowSide = 'left' | 'right' | 'top' | 'bottom';
-export type FlowNode = {id: string; x: number; y: number; r: number; inSide: FlowSide; outSide: FlowSide; colour: string; done: boolean;
-  /** Phones (the river): the line passes this node straight down, whatever its neighbours (the day's finale). */
-  upright?: boolean};
+export type FlowNode = {id: string; x: number; y: number; r: number; inSide: FlowSide; outSide: FlowSide; colour: string; done: boolean};
 export type FlowSegment = {id: string; from: string | null; to: string | null; kind: 'step' | 'lead' | 'tail'; d: string;
   /** The gradient runs from (x1, y1) in `fromColour` to (x2, y2) in `toColour`. */
   x1: number; y1: number; x2: number; y2: number; fromColour: string; toColour: string; fromLit: boolean; toLit: boolean};

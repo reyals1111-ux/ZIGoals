@@ -139,8 +139,14 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     const aimBand = Math.max(14, body * .5);
     const seen = lastSeen.get(stage), prev = seen && performance.now() - seen.at < RECENT_MS ? seen : null;
     // (Round 8: a cheer keeps clear of its own planet's name too — no name is ever hidden for it.)
-    const others = zigiObstacles(stage, [el]), line = zigiLine(stage, cy);
-    const onLine = (b: Box) => line.reduce((sum, o) => sum + overlap(b, o, LINE_CLEAR), 0);
+    // (The line's points sorted by height, so each place reads only the points beside it: a tick never waits on ZIGi.)
+    const others = zigiObstacles(stage, [el]), line = zigiLine(stage, cy).sort((p, q) => p.top - q.top);
+    const onLine = (b: Box) => {
+      let lo = 0, hi = line.length, sum = 0;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (line[m]!.bottom + LINE_CLEAR < b.top) lo = m + 1; else hi = m; }
+      for (let i = Math.max(0, lo - 2); i < line.length && line[i]!.top - LINE_CLEAR <= b.bottom; i++) sum += overlap(b, line[i]!, LINE_CLEAR);
+      return sum;
+    };
     // (A cheer's figure as it hops: wider and taller by its squash and stretch — round 9: the iteration-8 hop met a name.)
     const swept = (b: Box): Box => cheer ? {left: b.left - (b.right - b.left) * SQUASH / 2, right: b.right + (b.right - b.left) * SQUASH / 2, top: b.top - (b.bottom - b.top) * SQUASH, bottom: b.bottom} : b;
     // (At rest its arm — held out at 31 % of its height — must point at this planet, through its body. Where it passes above

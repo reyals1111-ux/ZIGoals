@@ -27,6 +27,7 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
    - The stations alternate across the width: every 3 in a row reach both outer thirds, never 3 in one half.
    - The first screen at 390 × 844 spans ≥ 65 % with ≥ 2 turns and stations on both sides.
    - The tests must make 06 fail. A visual gate comes before Part 2. Report the numbers here.
+7. **(MAJOR, after Part 2) River v3.** Every path had become the same zig-zag, so amendment 6's alternation rules go. The phone tries the computer's own line first; variety becomes a hard rule (seeded drifts, sweeps ≥ 45 %, bows and swings; node x across the width; spaces ≈ 90–200 px). Variety tests replace amendment 6's; a strict zig-zag and 06 fail them. A visual gate (at most 2 fix rounds) comes before the next part.
 
 ## Plan summary
 - **Part 0:** records.
@@ -45,7 +46,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 |---|---|---|---|
 | 0 | Records (Alpha #48, AG Polish 2 merged and deployed, run 50 failed before building), ADR-032, this file, Draft PR ([#94](https://github.com/reyals1111-ux/ZIGoals/pull/94)) | done | `a5e7a7b2` |
 | 1 | The phone river (ADR-032 L4–L9), first try | superseded by 1 v2 | `0aaebc83`, scratch spec removed `9761a2a8` |
-| 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | done | `cb271c8c` |
+| 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | superseded by 1 v3 | `cb271c8c` |
+| 1 v3 | River v3, owner amendment 7 (ADR-032 L13): the computer's `flowSegments` on the phone, a seeded walk for the nodes | done | this commit |
 | 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | this commit |
 | 3 | Progress bar removed | pending | |
 | 4 | List view | pending | |
@@ -55,26 +57,21 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 8 | Governance hidden by default (TIER 3) | pending | |
 | Finish | STATUS entry, CI, out of Draft | pending | |
 
-## River v2, the visual gate (owner amendment 6; scratchpad captures, compared side by side with reference 05)
-The three sample paths of `tests/checklist-phone-ag-polish-3.spec.ts`, as drawn on the page (dev server, Chromium). Each first screen shows nodes on the left and right with the line swinging across; none shows nodes on one side or a near-vertical line.
-- **long** (13 items, four orbits):
-  - 390 × 844: the first screen's line spans 69 % (62–314 px of 366).
-    - Per stretch: planet→1 68 %, 1→2 51 %, 2→3 46 %, 3→4 43 %, 4→5 39 %, 5→planet 55 %, planet→6 62 %, 6→7 53 %, 7→8 46 %, 8→planet 61 %, planet→9 72 %, 9→10 60 %, 10→11 49 %, 11→planet 60 %, planet→12 68 %, 12→13 57 %, 13→finale 34 %.
-  - 360 × 780: the first screen spans 70 % (54–288 of 336).
-    - Per stretch: 68, 49, 42, 50, 44, 58, 63, 55, 48, 61, 64, 57, 51, 62, 63, 49, 36 %.
-- **short** (6 short names, one orbit):
-  - 390: the first screen spans 72 % (49–314). Per stretch: 65, 49, 39, 45, 39, 40, 35 %.
-  - 360: 71 % (50–288). Per stretch: 63, 49, 43, 57, 47, 44, 35 %.
-- **two** (3 + 2 items over two orbits):
-  - 390: the first screen spans 72 % (49–314). Per stretch: 65, 49, 39, 59, 71, 57, 33 %.
-  - 360: 71 % (51–288). Per stretch: 63, 49, 43, 65, 65, 51, 35 %.
-- Every stretch is ≥ 30 % (the owner's floor). Each first screen shows three whole nodes (left, right, left) plus the planet at the right.
+## River v3 (owner amendment 7): what the literal port needed to change, and why (ADR-032 L13)
+- **Kept as is:** the line. A phone draws the computer's `flowSegments` itself, unchanged (side points, straight down; same side → a bow past both rims, across → a swing through the middle; seeded per stretch), with the phone's swing min(150, 0.4 × the column) = 146 px at 390. A unit test checks the model's line equals it.
+- **Changed — node placement.** The computer's 8-step wave moves each node half a swing: five fixed places in a phone's column, and no neighbour more than 73 px across, so no sweep could ever happen (the variety rules fail by construction). The phone walks instead: seeded places across the column on both name sides, each stretch drawn by `flowSegments` and judged by its own shape, the plan's kind first (every run of five holds each kind; the first run a drift, a sweep and a bow).
+- **Changed — the finale** takes the line in at its top on a phone (it stands mid-column under the river).
+- **Dropped on a phone — the lead-in and the tail:** the first planet's top is 7 px down, and the tail in the 70 px under the finale would bend tighter than 40 px for every seeded amplitude.
+- **Added — the phone's needs:** heights grown 8 px at a time where a stretch breaks a rule (radius, column, clearances); room on a node's way out for its next stretch's seeded bow (long names hang toward the middle, so the line leaves toward the near edge); one step of backtracking; seeding by the path id and its node ids (the path id itself is the constant `checklist-today`); the first screen's three nodes from their least height, a compact retry and the six first-run orders tried until the first two screens show a drift, a sweep and a bow; the spaces spread 62 px in every orbit of four or more.
+- **Measured** (240 seeded paths): drift 44 %, sweep 21 %, bow 20 %, swing 15 % of stretches; the fullest 20 % band 39 % of nodes; spacing p10/median/p90 126/169/256 px; no hard-rule break; first screen 3–4 at 390 on every qualifying path, 3 at 360 on 19 of 20.
+- **Visual gate:** 390 × 844 and 360 × 780, the three sample paths, beside reference 05. Fix round 1 (of 2): bows looked like gentle S's because their two nodes stood far apart; bows now take the nearest place below and count only from 16 px past the rims. After it each sample is a different river with a short drift, a long sweep and a visible loop in its first two screens.
+- **Found on the way:** ZIGi's line check took about a second per tick on a phone and cut the tick's travelling light short (now reads only the line points beside each place); `checklist-overlay-af` 421 moved to Gate C's "past the name" rule where the node's own tab stands between it and ZIGi; `path-engine` test 1 on a phone now runs the computer's stricter check.
 
-## Captures used (self-check, scratchpad only): Part 1 v1: 5; the river v2 gate (amendment 6 lifts the cap for Part 1 only): 15 · fix rounds used: 0 of 1
+## Captures used (self-check, scratchpad only): Part 1 v1: 5; the river v2 gate (amendment 6 lifts the cap for Part 1 only): 15; the river v3 gate (amendment 7): 36 (three samples × two sizes × two screens, three times) · fix rounds: v3 gate 1 of 2
 
 ## Open items found on the way
 - **CI audit (not this branch's):** since about 2026-10-23, `pnpm audit --prod --audit-level high` fails on every branch, `main` included, on GHSA-mrhx-c7xc-m3w5: zod < 4.6.6, the app's own pin 4.6.5 and walletconnect → ox → abitype. The fix is the patch release, zod 4.6.5 → 4.6.6. It is a dependency change, so it waits for the owner (asked in the session chat).
-- **Part 1 follow-ups seen in CI run 1151 (river v1) and again locally on v2:** `checklist-overlay-af` on phones: 421 (ZIGi beside the next planet, ≤ 36 px) and 527 (ZIGi's cheer after a tick). Locally also 561 (the travel light's segment id after a tick) and 52 (X/Escape back to Today, dev server only so far). Next to fix.
+- `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 
 ## Next step
-Fix the Part 1 follow-ups above, then Part 3 (remove `ProgressSegments`).
+Part 3: remove `ProgressSegments` (its CSS, theme rules, tests); header controls at 44 px or more.

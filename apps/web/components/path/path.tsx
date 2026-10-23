@@ -8,14 +8,14 @@ import {OrbitFinale, PathChest} from './path-milestone';
 import {PathDot} from './path-dot';
 import {PathLine} from './path-line';
 import {FlowLine} from '../orbit-path/flow-line';
-import {sidesFor, type FlowBox, type FlowNode} from '../../lib/path/flow-geometry';
+import {sidesFor, type FlowNode} from '../../lib/path/flow-geometry';
 import {PathBanner} from './path-section';
 import {OrbitBanner} from '../orbit-path/orbit-banner';
 import {planetDesigns} from '../../lib/path/planet-pick';
 import {PLANET_DESIGNS} from '../../lib/path/planet-designs';
 import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
 import {usePathGeometry, type PathGeometry} from './use-path-geometry';
-import {phoneRiver, riverMinRadius, RIVER, type RiverLayout} from '../../lib/path/phone-river';
+import {phoneRiver, RIVER, type RiverLayout} from '../../lib/path/phone-river';
 import './path.css';
 
 /**
@@ -442,28 +442,21 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       return out;
     });
     const fin = geo.points[FINALE_POINT], last = nodes.at(-1);
-    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, inSide: last.outSide, outSide: last.inSide, colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done', ...(lanes ? {upright: true} : {})});
+    // (On a phone the finale, in the column's middle, takes the line in at its top: lib/path/phone-river.ts.)
+    if (fin && last) nodes.push({id: FINALE_POINT, x: fin.x, y: fin.y, r: fin.r ?? 40, ...(lanes ? {inSide: 'top', outSide: 'bottom'} as const : {inSide: last.outSide, outSide: last.inSide}), colour: PATH_COLOURS.purple.token, done: anchor.mood === 'done'});
     const travel = new Set(nodes.flatMap((n, i) => just.has(n.id) ? [nodes[i + 1] ? `${n.id}>${nodes[i + 1]!.id}` : `tail:${n.id}`] : []));
     const vw = typeof window === 'undefined' ? 1440 : window.innerWidth;
-    // Session AG Polish 3 (ADR-032; owner Part 1): on a phone the line is the river through every node, under it, clear of
-    // the tabs (at their reserved one-line width, so a tick never moves the line) and the banners' words and tint.
-    if (lanes) {
-      const obstacles: FlowBox[] = [];
-      steps.forEach((st, i) => {
-        const p = geo.points[st.id], q = geo.boxes?.[`tab:${st.id}`], lane = lanes[i]!; if (!p || !q) return;
-        const wide = lane.maxTab, reach = RIVER.tabReach;
-        obstacles.push({id: `tab:${st.id}`, top: q.top, bottom: q.bottom, left: lane.side === 'right' ? p.x + reach : p.x - reach - wide, right: lane.side === 'right' ? p.x + reach + wide : p.x - reach});
-      });
-      for (const [id, q] of Object.entries(geo.boxes ?? {})) if (id.startsWith('banner:')) obstacles.push({id, ...q, right: q.right + RIVER.fade});
-      return {nodes, travel, swing: 0, river: {minRadius: riverMinRadius(vw)}, obstacles, tailTo: fin ? geo.h - 4 : null};
-    }
+    // Session AG Polish 3 (ADR-032 L13; owner amendment 7): on a phone the line is the computer's own, with the phone's swing,
+    // where the river placed the nodes — no lead-in (the first planet opens the stage) and no tail (in the phone's 70 px under
+    // the finale it would turn tighter than the least radius).
+    if (lanes && river) return {nodes, travel, swing: river.swing, leadFrom: null, tailTo: null};
     const swing = vw < 641 ? Math.min(60, geo.w * .165) : vw < 1180 ? Math.min(150, geo.w * .2) : Math.min(220, geo.w * .22);
-    return {nodes, travel, swing, river: undefined, obstacles: undefined, tailTo: fin ? geo.h - 4 : null};
+    return {nodes, travel, swing, leadFrom: 0, tailTo: fin ? geo.h - 4 : null};
   })() : null;
   let index = 0;
   return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined} data-lanes={lanes ? '' : undefined} data-ready={phoneLayout && ready ? '' : undefined}
     style={lanes ? {'--finale-gap': `${river!.finaleGap}px`} as CSSProperties : undefined}>
-    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={0} tailTo={flow.tailTo} travel={flow.travel} river={flow.river} obstacles={flow.obstacles}/> : <PathLine geo={geo} segments={segments}/>)}
+    {geo && (flow ? <FlowLine w={geo.w} h={geo.h} nodes={flow.nodes} seed={model.id} swing={flow.swing} leadFrom={flow.leadFrom} tailTo={flow.tailTo} travel={flow.travel}/> : <PathLine geo={geo} segments={segments}/>)}
     {phoneLayout && <span ref={probe} className="orbit-tab-measure" aria-hidden="true"/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
