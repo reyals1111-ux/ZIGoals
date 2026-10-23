@@ -30,9 +30,9 @@ Part 0 records · 1 phone path (lanes v2 across the full width, DOM-measured tab
 | 1b′ | Owner's change (22 Oct): the phone banner on one row (amendment 4, K15) | done | `c5014b60` |
 | 1a′ | Owner's change (22 Oct): the phone line as one smooth ribbon (amendment 5, K16) | done | `56ca315b`, fix `a76d7772` |
 | 7 fixes | Tests moved for the held toast; the verifier's stage 10 (TIER 3); the stalled-clip watchdog | done | `26b0dccc`, `e2e65e72`, `2c0155be` |
-| 9 | Words, themes, audit states and fixes, K17; STATUS last | in progress | `9e7da376` `c42ffea3` `e8ecea4c` `3308804e` `b0904004` |
+| 9 | Words, themes, audit states and fixes, K17; the STATUS entry | done | `9e7da376` `c42ffea3` `e8ecea4c` `3308804e` `b0904004` `5e5a9e81`, STATUS last |
 
-## Captures used (self-check, scratchpad only): 7 of 20 · fix rounds used: 1 of 2 (the layout audit's three fixes)
+## Captures used (self-check, scratchpad only): 16 of 20 · fix rounds used: 1 of 2 (the layout audit's three fixes)
 
 ## Next step
-Part 9: the layout audit's four passes (Nebula, Light, Dark, touch) on the production build of `b0904004`; the remaining captures (390 Light, 320, 1440 path half lit, 1440 List, quick add phone and computer, the celebration's end frame phone and computer); then the STATUS entry (draft in the scratchpad: parts, pointers, Tier 3, weights, tests; must record amendments 4 and 5 as owner decisions), CI green, PR out of Draft, the report. Scratch files to delete before the end: `apps/web/tests/zz-scratch-*.spec.ts`, `apps/web/lib/path/zz-scratch.test.ts`.
+Every part is done and the STATUS entry is in. CI's `pnpm audit --prod --audit-level high` is red on every branch, `main` included, from three Next.js advisories published 2026-10-23 (fixed only in 16.4.1+; this app pins 16.3.8): the owner decides on `next` 16.3.8 → 16.4.2 (STATUS, "Left for S1 and the owner"). Until then the PR stays in Draft; with the bump approved: its own `TIER 3 (dependencies)` commit, the full gate, CI green, then out of Draft. Never merge or deploy. Scratch files: deleted.
