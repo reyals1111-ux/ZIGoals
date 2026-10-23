@@ -127,7 +127,7 @@ Follow Session D's 4.144.0 method (STATUS, "Part 2 — wrangler 4.144.0 (details
   - **Migration:** a codemod exists: `npx @next/codemod@canary middleware-to-proxy .`
 
   Moving therefore also moves our CSP-nonce middleware **from the edge runtime to the Node.js runtime**.
-- **OpenNext Cloudflare 1.20.7 (pinned; npm `latest`):**
+- **OpenNext Cloudflare 1.20.7 (pinned then; npm `latest` then).** *Session AG Polish 2 (2026-10-23, owner-approved): the pin is now 1.20.12, the first release that bundles Next.js 16.4's `.next/server/preview-props.json` (1.20.7 threw on it, so the packaged Alpha answered 500 on every route). Whether Node middleware support became stable since was not checked (no web research that session); `middleware.ts` stays.*
   - Node.js middleware (`proxy.ts`) support arrived in **1.20.3** (#1309). It is bundled into a Workers-compatible `middleware/handler.mjs` and is **"experimental and requires the `nodejs_compat` compatibility flag"** (changelog).
   - 1.20.3 also fixed every proxied request failing on Next 16.3's dynamic instrumentation `require` (#1359).
   - Earlier releases errored out on a Node middleware (1.x, #978).
