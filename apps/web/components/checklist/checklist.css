@@ -177,6 +177,13 @@
 .checklist-stage { min-width: 0; }
 .checklist-stage .checklist-path { max-width: 700px; margin: 0 auto; }
 .checklist-side { display: grid; gap: 14px; align-content: start; min-width: 0; }
+/* Session AG Polish 3 (ADR-032 L12; owner Part 2): below the computer layout the shell spans the whole screen — its content
+   keeps the same 720 px column, centred by padding instead of margins — and cuts sideways there, at the screen's edge, a
+   planet's ring, glow or mist that runs past it, so nothing scrolls sideways and nothing boxes the planet. (A cut, not a
+   scroll box: the sticky top bar and the page's scrolling are unchanged.) */
+@media (max-width: 1179.98px) {
+  .checklist-shell { max-width: none; padding-inline: max(12px, calc((100% - 696px) / 2)); overflow-x: clip; }
+}
 /* Round 3: on a computer the path takes the whole left of the screen (a wider wave, its names and ZIGi in the room the
    empty left column wasted) and the timers and the history stand at the right, with the toast under them. */
 @media (min-width: 1180px) {

@@ -45,8 +45,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 |---|---|---|---|
 | 0 | Records (Alpha #48, AG Polish 2 merged and deployed, run 50 failed before building), ADR-032, this file, Draft PR ([#94](https://github.com/reyals1111-ux/ZIGoals/pull/94)) | done | `a5e7a7b2` |
 | 1 | The phone river (ADR-032 L4–L9), first try | superseded by 1 v2 | `0aaebc83`, scratch spec removed `9761a2a8` |
-| 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | done | this commit |
-| 2 | No square behind planets | pending | |
+| 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | done | `cb271c8c` |
+| 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | this commit |
 | 3 | Progress bar removed | pending | |
 | 4 | List view | pending | |
 | 5 | Legend | pending | |
@@ -72,5 +72,9 @@ The three sample paths of `tests/checklist-phone-ag-polish-3.spec.ts`, as drawn 
 
 ## Captures used (self-check, scratchpad only): Part 1 v1: 5; the river v2 gate (amendment 6 lifts the cap for Part 1 only): 15 · fix rounds used: 0 of 1
 
+## Open items found on the way
+- **CI audit (not this branch's):** since about 2026-10-23, `pnpm audit --prod --audit-level high` fails on every branch, `main` included, on GHSA-mrhx-c7xc-m3w5: zod < 4.6.6, the app's own pin 4.6.5 and walletconnect → ox → abitype. The fix is the patch release, zod 4.6.5 → 4.6.6. It is a dependency change, so it waits for the owner (asked in the session chat).
+- **Part 1 follow-ups seen in CI run 1151 (river v1) and again locally on v2:** `checklist-overlay-af` on phones: 421 (ZIGi beside the next planet, ≤ 36 px) and 527 (ZIGi's cheer after a tick). Locally also 561 (the travel light's segment id after a tick) and 52 (X/Escape back to Today, dev server only so far). Next to fix.
+
 ## Next step
-Part 2: the square behind lit planets. Measure first (phone and computer, three themes), then fix the cause; add the asset alpha test and the halo spec.
+Fix the Part 1 follow-ups above, then Part 3 (remove `ProgressSegments`).

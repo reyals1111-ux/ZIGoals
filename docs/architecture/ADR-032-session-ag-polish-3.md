@@ -135,3 +135,17 @@ Status: **In progress** on `feature/session-ag-polish-3`, from `main` `261f32a` 
   - *The node count:* 3–4 whole nodes at 390 × 844 for every qualifying path. At 360 × 780 at least 2, and 3 in at least 90 % (measured: all but 2 of the qualifying paths over 960 layouts).
     - The owner's amendment puts the swing first, and a swing across a 336 px column needs about 180 px of height at a 37 px least radius.
     - Paths whose first three names are longer than ~58 % of the stage stay excluded (L6).
+- **L12 — The square behind lit planets (owner Part 2): the cause and the fix.**
+  - *Cause, measured in the browser* (the lit planet's ancestors' computed styles, then pixels): the orbit banner had `overflow-x: clip` with its 22 px rounded corners.
+    - Chromium honours `overflow-clip-margin` only when both axes clip, so the phone's 12 px margin never applied. The cut fell on the banner's own edge: 12 px short of the screen's edge on a phone (x = 378 of 390), and at the banner's end on a computer (x = 960–962 at 1440), straight through the planet's glow (1.9 × the sphere) and mist (2.1–2.8 ×).
+    - Ruled out: the wrappers carry no background, border, backdrop filter or mask; the planet's filter (`saturate`/`brightness`) makes no box of its own.
+  - *Fix:* the banners no longer clip anything. Below the computer layout (< 1180 px) the Checklist's shell spans the whole screen and cuts sideways there, at the screen's edge itself, with no rounded corners. Its content keeps the same 720 px column, now centred by padding instead of margins.
+    - Measured at 320 to 1600 px: the stage, the side column and the planets stand exactly where they stood. No sideways scroll on the page or the dialog.
+    - It is a cut (`clip`), not a scroll box, so the sticky top bar and the page's scrolling are unchanged.
+    - From 1180 px the planet stands well inside the screen (its mist ends at 1022 of 1440), so nothing needs cutting there.
+  - *The files:* every planet file (spheres, the phones' small spheres, moons) had alpha up to 25 of 255 on its outer pixel at the middle of each side. The disc's feather reached the "1-px transparent margin" its own script describes, leaving a tiny straight cut on the limb.
+    - The originals are not in the repository, so each file's lossless alpha chunk was rewritten with that ring cleared. The lossy colour chunk is byte for byte the same, and every file got smaller.
+    - `scripts/checklist/prepare-planets.py` now clears that ring too.
+  - *Tests:* `tests/checklist-planet-halo.spec.ts`.
+    - A lit planet is photographed with the line, tabs, ZIGi and twinkles hidden (Motion Off), and fails on a long straight run of same-way brightness steps outside the planet's art and the banner's band. Phone 390 × 844 and computer 1440 × 900, in Nebula, Light and Dark. It fails before the fix (x = 378 on the phone, run 99–103 px; x = 960–962 on the computer) and passes after.
+    - Every planet file must have alpha 0 on its four borders, decoded by the browser (no new dependency).

@@ -152,7 +152,7 @@
 /* Its planet (owner Part 4) stands on the line at the banner's height, after the title and count; where the banner leaves
    it too little room (a narrow phone) it wraps under the banner, right-aligned, in a band of its own — still on the line. */
 .path-stage[data-variant=orbit] { --planet-size: 128px; }
-:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; max-width: min(100%, 860px); overflow-x: clip; overflow-clip-margin: 0px; }
+:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; max-width: min(100%, 860px); }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary { flex: 0 1 auto; min-width: 0; }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .orbit-planet { margin: 6px max(6px, 4%) 6px auto; }
 @media (max-width: 1179.98px) { .path-stage[data-variant=orbit] { --planet-size: 104px; } }
@@ -161,11 +161,15 @@
    check alone under 360 px; the whole said in words) — reaching into the shell's left margin, and the planet stands beside
    it at its height, as large as a computer's next to its node (88–100 px: about 1.5 × a 62 px node; 84 px under 360 px),
    4 px from the stage's edge; a wide ring runs on to the screen's edge, where it is cut sideways only (never its soft mist,
-   which a mask had boxed); the banner's words lie above its ring layer, so a ring reaching the banner's end passes behind. */
+   which a mask had boxed); the banner's words lie above its ring layer, so a ring reaching the banner's end passes behind.
+   Session AG Polish 3 (ADR-032 L12; owner Part 2): the banner no longer clips anything. Its sideways clip (with its 22 px
+   rounded corners) cut the glow and the mist into a box beside the planet — on a phone 12 px short of the screen's edge,
+   because a clip margin only works when both axes clip, and on a computer at the banner's end. The page's shell does
+   that cut now, at the screen's edge itself (checklist.css). */
 .orbit-banner .habit-section-count-short { display: none; }
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] { --planet-size: clamp(88px, 26cqi, 100px); }
-  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; box-sizing: border-box; width: calc(100% + 6px); max-width: none; min-height: calc(var(--planet-size) + 10px); margin-left: -6px; padding: 4px 0; overflow-x: clip; overflow-clip-margin: 12px; }
+  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; box-sizing: border-box; width: calc(100% + 6px); max-width: none; min-height: calc(var(--planet-size) + 10px); margin-left: -6px; padding: 4px 0; }
   .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; z-index: 2; flex: none; grid-template-columns: 26px auto auto; column-gap: 8px; align-items: center; min-height: 0; padding: 7px 10px 7px 6px; white-space: nowrap; }
   .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { width: 26px; height: 26px; font-size: 13px; }
   .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { font-size: 16px; line-height: 1.2; }
