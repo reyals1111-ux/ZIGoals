@@ -1,28 +1,28 @@
 import {seeded, type FlowBox, type FlowNode, type FlowSegment} from './flow-geometry';
 
 /**
- * Session AG Polish 3 (ADR-032 L4–L8; owner Part 1, references 02 and 05): the phone's Path as the computer's river.
- * Pure (no React, no DOM).
+ * Session AG Polish 3 (ADR-032 L4–L10, owner amendment 6; owner Part 1, references 02, 05 and 06): the phone's Path as the
+ * computer's river. Pure (no React, no DOM).
  *
- * Reference 01's rule — in at the top of each ring, along it, out at the bottom — is gone on phones. The line is one smooth
- * river that flows THROUGH each node, under it (the node hides the join), so it meets the ring wherever the flow crosses
- * it. Through a node the curve keeps one direction (C1 at the node's centre), so it reads as one stream; the visible ends
- * are cut exactly at the rings, and the turn hidden under a node stays within 60°. Planets keep top-in, bottom-out (they
- * sit level with their banners) and the day's finale keeps its upright pass, as before.
+ * Reference 01's rule (in at the top of each ring, along it, out at the bottom) is gone on phones, and so is the session's
+ * first try (reference 06: nodes stacked down one side, a near-vertical wiggle). As on the computer (`flowSegments`), the
+ * beauty is in the line BETWEEN nodes: every stretch flows through a seeded waypoint — its own amplitude, side and turning
+ * height — as two cubics joined smoothly (C1), so it visibly swings sideways and back, a big S from node to node. The line
+ * flows THROUGH each node, under it (the node hides the join): it meets the ring wherever the flow crosses it and keeps one
+ * direction there (C1 at the centre), leaning away from the node's name tab; the visible ends are cut exactly at the rings
+ * and the turn hidden under a node stays within 60°. Planets keep top-in, bottom-out; the finale its upright pass.
  *
  * Two parts:
- * - `riverSegments`: the line through measured stations (planets, nodes, the finale), as the computer's FlowSegments
- *   (one cubic per stretch, the same ids, colours and lit ends). For each node a few directions are tried around the way
- *   its neighbours lie, and for each stretch a few handle lengths; the best whole line is found at once (a Viterbi pass over
- *   the nodes' choices), keeping every rule: never upward, no radius under `minRadius`, inside the column, 6 px clear of
- *   every other ring, planet, name tab and banner, and the turn under a node small. Never a loop, never Math.random.
- * - `phoneRiver`: where each node stands (its x, the side its tab hangs, the space above it) and the spaces above each
- *   banner and the finale, seeded from the path's id. Each orbit flows out of its planet in a leftward sweep; then runs of
- *   short steps and wide sweeps toward the side with room, now and then the other way, turning in the outer thirds, so the
- *   whole width is used. Each tab hangs on the side the line comes from (above it) — the computer's own rule — and the line
- *   leaves on the other side. The spaces start from a seeded palette (some close, some far) plus a share of the sideways
- *   travel, and only where a stretch would break a rule is its space widened (a bounded pass). The model's own line is the
- *   one `riverSegments` draws from the measured page, so the unit tests check the line the phone shows.
+ * - `riverLine`/`riverSegments`: the line through measured stations (planets, nodes, the finale), as FlowSegments (two C1
+ *   cubics per stretch, the same ids, colours and lit ends as the computer's). For each node a few directions, for each
+ *   stretch a few waypoints and handle lengths, tried in a fixed order until every rule holds: never upward, no radius under
+ *   `minRadius`, inside the column, 6 px clear of every other ring, planet, name tab and banner, the turn under a node
+ *   small, a sideways swing of at least 30 % of the column, bowing out beside its chord. Never a loop, never Math.random.
+ * - `phoneRiver`: where each node stands, the side its tab hangs and the space above it, seeded from the path's id. Nodes
+ *   alternate across the width — left third, right third, now and then the middle — so every three in a row reach both
+ *   outer thirds and never three stand in one half; each tab hangs on the side the line comes from; the spaces start from
+ *   a seeded palette and widen only where a stretch needs the room for its swing. The model's own line is the one
+ *   `riverSegments` draws from the measured page, so the unit tests check the line the phone shows.
  * The lanes come from the width, the names and the planets alone — never from which node is next: a tick moves nothing.
  */
 type Pt = {x: number; y: number};
@@ -46,13 +46,17 @@ export const RIVER = {
   /** The day's finale (a 68 px node in the middle) and the room under it to the stage's foot (its words, the padding). */
   finaleR: 34, finaleFoot: 74,
   clearance: 6,
+  /** Owner amendment 6: each stretch swings sideways at least this share of the column, and bows out beside its chord. */
+  swing: .3, bow: .05,
 } as const;
 /** The least radius of curvature on the phone's line: 40 px at 390 px, scaled with the width (owner Part 1.3). */
 export const riverMinRadius = (vw: number) => 40 * vw / 390;
-/** The most the line may turn under one node (each half; the owner's limit is 60° in all). */
+/** The most the line may turn under one node, each side (so at most 60° in all, the owner's limit). */
 const HALF_TURN = 30 * Math.PI / 180;
 const f = (n: number) => (Math.round(n * 10) / 10).toString();
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const DEG = Math.PI / 180;
+
 
 // ---- Cubic Bézier helpers ----
 export function bez(c: Cubic, t: number) {
@@ -74,18 +78,28 @@ export function subCubic(c: Cubic, t0: number, t1: number): Cubic {
   return t1 < 1 ? split(right, (t1 - t0) / (1 - t0))[0] : right;
 }
 const angleBetween = (a: Pt, b: Pt) => { const la = Math.hypot(a.x, a.y) || 1, lb = Math.hypot(b.x, b.y) || 1; return Math.acos(clamp((a.x * b.x + a.y * b.y) / la / lb, -1, 1)); };
+const unit = (v: Pt): Pt => { const l = Math.hypot(v.x, v.y) || 1; return {x: v.x / l, y: v.y / l}; };
+/** The least radius of curvature along a cubic (sampled). */
+export function curveRadius(c: Cubic, n = 48): number {
+  let m = Infinity;
+  for (let i = 0; i <= n; i++) { const {v, a} = bez(c, i / n), s = Math.hypot(v.x, v.y); if (s < 1e-9) continue; const k = Math.abs(v.x * a.y - v.y * a.x) / s ** 3; if (k > 0) m = Math.min(m, 1 / k); }
+  return m;
+}
 
 // ---- The line ----
 type Station = {id: string; free: boolean; c: Pt; r: number; entry: Pt; exit: Pt; tab: 'left' | 'right' | null; colour: string; done: boolean; badge: FlowBox | null};
 export type RiverOptions = {w: number; seed: string; minRadius: number; obstacles?: readonly FlowBox[]; clearance?: number; gutter?: number; leadFrom?: number | null; tailTo?: number | null};
-type Eval = {hard: number; soft: number; ctrl: Cubic; t0: number; t1: number};
+/** A stretch's waypoint: `u` along the way across, `tau` down the height, `off` sideways (px). */
+type Way = {u: number; tau: number; off: number};
+type Eval = {hard: number; soft: number; vis: [Cubic, Cubic]};
+type Ctx = {w: number; g: number; minR: number; need: number; rings: readonly Station[]; boxes: readonly FlowBox[]};
 
 function stationOf(n: FlowNode): Station {
   const common = {id: n.id, c: {x: n.x, y: n.y}, r: n.r, colour: n.colour, done: n.done};
   if (n.inSide === 'top' || n.inSide === 'bottom') return {...common, free: false, entry: {x: n.x, y: n.y - n.r}, exit: {x: n.x, y: n.y + n.r}, tab: null, badge: null};
   // (The finale passes upright, in at its side point and out at the other, as before.)
   if (n.upright) { const s = n.inSide === 'right' ? 1 : -1; return {...common, free: false, entry: {x: n.x + s * n.r, y: n.y}, exit: {x: n.x - s * n.r, y: n.y}, tab: null, badge: null}; }
-  // (A node: through its centre. Its NEXT tag would sit above it — the line rather passes beside that.)
+  // (A node: through its centre. Its NEXT tag sits above it — the line rather passes beside that.)
   return {...common, free: true, entry: common.c, exit: common.c, tab: n.inSide === 'right' ? 'right' : 'left', badge: {id: `badge:${n.id}`, left: n.x - 30, right: n.x + 30, top: n.y - n.r - 15, bottom: n.y - n.r + 7}};
 }
 
@@ -99,122 +113,144 @@ function ringT(c: Cubic, centre: Pt, r: number, from: 'start' | 'end'): number {
   return from === 'start' ? hi : lo;
 }
 
-/** The handles' lengths (shares of the stretch), nearest the middle first: the first clean pair is kept. */
-const HANDLES = [.3, .42, .56, .7];
-const PAIRS = HANDLES.flatMap(a => HANDLES.map(b => [a, b] as const)).sort((p, q) => Math.abs(p[0] - .42) + Math.abs(p[1] - .42) - Math.abs(q[0] - .42) - Math.abs(q[1] - .42));
-/** One stretch from A (leaving in `da`) to B (arriving in `db`): its best cubic and how well it keeps the rules. */
-type Ctx = {w: number; g: number; minR: number; need: number; rings: readonly Station[]; boxes: readonly FlowBox[]};
+/**
+ * One stretch from A (leaving in `da`) to B (arriving in `db`) through the waypoint `wp` — the computer's own shape: two
+ * cubics joined at the waypoint with one tangent there (along the swing), the control points always going down.
+ */
+function shape(A: Station, B: Station, da: Pt, db: Pt, wp: Way, k: number): [Cubic, Cubic] {
+  const p0 = A.exit, p3 = B.entry, dx = p3.x - p0.x, dy = p3.y - p0.y;
+  const M = {x: p0.x + dx * wp.u + wp.off, y: p0.y + dy * wp.tau};
+  // (The tangent at the waypoint: from where the line heads out of A to where it heads into B — the swing.)
+  const a = {x: p0.x + da.x * dy * .3, y: p0.y + da.y * dy * .3}, b = {x: p3.x - db.x * dy * .3, y: p3.y - db.y * dy * .3};
+  const t = unit({x: b.x - a.x, y: Math.max(b.y - a.y, dy * .2)});
+  const L1 = Math.hypot(M.x - p0.x, M.y - p0.y), L2 = Math.hypot(p3.x - M.x, p3.y - M.y);
+  // (Never upward: in each piece the control points keep going down.)
+  const fit = (room: number, u1: number, u2: number, p: number, q: number): [number, number] => { const used = u1 * p + u2 * q; if (used <= room * .98 || used <= 0) return [p, q]; const s = room * .98 / used; return [p * s, q * s]; };
+  const [h1, h2] = fit(M.y - p0.y, da.y, t.y, k * L1, k * L1), [h3, h4] = fit(p3.y - M.y, t.y, db.y, k * L2, k * L2);
+  return [[p0, {x: p0.x + da.x * h1, y: p0.y + da.y * h1}, {x: M.x - t.x * h2, y: M.y - t.y * h2}, M], [M, {x: M.x + t.x * h3, y: M.y + t.y * h3}, {x: p3.x - db.x * h4, y: p3.y - db.y * h4}, p3]];
+}
+
+/** How a stretch keeps the rules (`hard`, 0 when all hold) and how good it is otherwise (`soft`). */
+function judge(A: Station, B: Station, da: Pt, db: Pt, pieces: [Cubic, Cubic], ctx: Ctx, rings: readonly Station[], boxes: readonly FlowBox[]): Eval {
+  let hard = 0;
+  const [c1, c2] = pieces;
+  if (A.free && Math.hypot(c1[3].x - A.c.x, c1[3].y - A.c.y) < A.r + 4) hard += 500;
+  if (B.free && Math.hypot(c2[0].x - B.c.x, c2[0].y - B.c.y) < B.r + 4) hard += 500;
+  if (c1[3].y - c1[0].y < 2 || c2[3].y - c2[0].y < 2) hard += 500;
+  const t0 = A.free ? ringT(c1, A.c, A.r, 'start') : 0, t1 = B.free ? ringT(c2, B.c, B.r, 'end') : 1;
+  const vis: [Cubic, Cubic] = [subCubic(c1, t0, 1), subCubic(c2, 0, t1)];
+  const pts: Pt[] = [];
+  let minR = Infinity, rise = false, out = 0, ring = 0, box = 0, badge = 0, lo = Infinity, hi = -Infinity;
+  for (const [q, piece] of vis.entries()) {
+    const L = Math.hypot(piece[3].x - piece[0].x, piece[3].y - piece[0].y) + Math.hypot(piece[1].x - piece[0].x, piece[1].y - piece[0].y) * .5;
+    const n = Math.min(48, Math.max(14, Math.ceil(L / 8)));
+    for (let i = q ? 1 : 0; i <= n; i++) {
+      const t = i / n, {p, v, a} = bez(piece, t), speed = Math.hypot(v.x, v.y);
+      pts.push(p); lo = Math.min(lo, p.x); hi = Math.max(hi, p.x);
+      if (v.y < -1e-6) rise = true;
+      out = Math.max(out, ctx.g - p.x, p.x - (ctx.w - ctx.g));
+      if (speed > 1e-9) { const kk = Math.abs(v.x * a.y - v.y * a.x) / speed ** 3; if (kk > 0) minR = Math.min(minR, 1 / kk); }
+      const first = q === 0 && i === 0, last = q === 1 && i === n;
+      // (Its own two rings: once out, it never comes back in; a planet it leaves or reaches: never across it.)
+      if (!first) ring = Math.max(ring, A.r - (A.free ? .5 : .6) - Math.hypot(p.x - A.c.x, p.y - A.c.y));
+      if (!last) ring = Math.max(ring, B.r - (B.free ? .5 : .6) - Math.hypot(p.x - B.c.x, p.y - B.c.y));
+      for (const o of rings) ring = Math.max(ring, o.r + ctx.need - Math.hypot(p.x - o.c.x, p.y - o.c.y));
+      for (const o of boxes) {
+        const ddx = Math.max(o.left - p.x, 0, p.x - o.right), ddy = Math.max(o.top - p.y, 0, p.y - o.bottom);
+        const d = ddx || ddy ? Math.hypot(ddx, ddy) : -Math.min(p.x - o.left, o.right - p.x, p.y - o.top, o.bottom - p.y);
+        box = Math.max(box, ctx.need - d);
+      }
+      if (B.badge && !last) { const o = B.badge; if (p.x > o.left - 3 && p.x < o.right + 3 && p.y > o.top - 3 && p.y < o.bottom + 3) badge++; }
+    }
+  }
+  if (rise) hard += 400;
+  if (out > 0) hard += 200 + out * 20;
+  // (A margin of 1 px: the curve is sampled, and its tightest point may lie between two samples.)
+  if (minR < ctx.minR + 1) hard += (ctx.minR + 1 - minR) * 8;
+  if (ring > .4) hard += ring * 12;
+  if (box > .4) hard += box * 12;
+  if (A.free) { const tA = angleBetween(da, bez(vis[0], 0).v); if (tA > HALF_TURN) hard += (tA - HALF_TURN) / DEG * 4; }
+  if (B.free) { const tB = angleBetween(db, bez(vis[1], 1).v); if (tB > HALF_TURN) hard += (tB - HALF_TURN) / DEG * 4; }
+  // (Owner amendment 6: a visible swing of at least 30 % of the column, bowing out beside its chord.)
+  const swing = ctx.w * RIVER.swing + 2;
+  if (hi - lo < swing) hard += (swing - (hi - lo)) * 2;
+  const s = pts[0]!, e = pts.at(-1)!, cl = Math.hypot(e.x - s.x, e.y - s.y) || 1;
+  let dev = 0; for (const p of pts) dev = Math.max(dev, Math.abs((p.x - s.x) * (e.y - s.y) - (p.y - s.y) * (e.x - s.x)) / cl);
+  if (dev < ctx.w * RIVER.bow + 1) hard += (ctx.w * RIVER.bow + 1 - dev) * 2;
+  return {hard, soft: badge * 3, vis};
+}
+
 /** Stretches already worked out, by their shape relative to where they start (the layout's rounds move whole runs of
  *  stations up or down together, so most stretches recur exactly). Bounded; cleared when full. */
 const CACHE = new Map<string, Eval>();
 const k1 = (n: number) => Math.round(n * 10);
-function evalStretch(A: Station, B: Station, da: Pt, db: Pt, ctx: Ctx): Eval {
-  const p0 = A.exit, p3 = B.entry;
-  const lo = Math.min(p0.y, p3.y) - 40, hi = Math.max(p0.y, p3.y) + 40;
-  const rings = ctx.rings.filter(q => q !== A && q !== B && q.c.y + q.r > lo && q.c.y - q.r < hi);
+const HANDLES = [.42, .58];
+function evalStretch(A: Station, B: Station, da: Pt, db: Pt, ways: readonly Way[], ctx: Ctx): Eval {
+  const p0 = A.exit, p3 = B.entry, lo = Math.min(p0.y, p3.y) - 40, hi = Math.max(p0.y, p3.y) + 40;
+  const lx = Math.min(p0.x, p3.x) - ctx.w, hx = Math.max(p0.x, p3.x) + ctx.w;
+  const rings = ctx.rings.filter(q => q !== A && q !== B && q.c.y + q.r > lo && q.c.y - q.r < hi && q.c.x > lx && q.c.x < hx);
   const boxes = ctx.boxes.filter(q => q.bottom > lo && q.top < hi);
   const key = [A.free ? 1 : 0, A.r, B.free ? 1 : 0, B.r, k1(p0.x), k1(p3.x), k1(p3.y - p0.y), k1(da.x * 100), k1(da.y * 100), k1(db.x * 100), k1(db.y * 100), ctx.w, ctx.g, k1(ctx.minR), ctx.need, B.badge ? 1 : 0,
-    rings.map(q => `${k1(q.c.x)},${k1(q.c.y - p0.y)},${q.r}`).join(';'), boxes.map(q => `${k1(q.left)},${k1(q.right)},${k1(q.top - p0.y)},${k1(q.bottom - p0.y)}`).join(';')].join('|');
+    ways.map(q => `${k1(q.u)},${k1(q.tau)},${k1(q.off)}`).join(';'), rings.map(q => `${k1(q.c.x)},${k1(q.c.y - p0.y)},${q.r}`).join(';'), boxes.map(q => `${k1(q.left)},${k1(q.right)},${k1(q.top - p0.y)},${k1(q.bottom - p0.y)}`).join(';')].join('|');
+  const move = (e: Eval, dy: number): Eval => ({...e, vis: e.vis.map(c => c.map(q => ({x: q.x, y: q.y + dy}))) as unknown as [Cubic, Cubic]});
   const hit = CACHE.get(key);
-  const move = (e: Eval, dy: number): Eval => ({...e, ctrl: e.ctrl.map(q => ({x: q.x, y: q.y + dy})) as unknown as Cubic});
   if (hit) return move(hit, p0.y);
-  const e = solveStretch(A, B, da, db, ctx, rings, boxes);
-  if (CACHE.size > 40_000) CACHE.clear();
-  CACHE.set(key, move(e, -p0.y));
-  return e;
-}
-function solveStretch(A: Station, B: Station, da: Pt, db: Pt, ctx: Ctx, rings: readonly Station[], boxes: readonly FlowBox[]): Eval {
-  const p0 = A.exit, p3 = B.entry, L = Math.hypot(p3.x - p0.x, p3.y - p0.y) || 1, dy = p3.y - p0.y;
   let best: Eval | null = null;
-  for (const [ka, kb] of PAIRS) {
-    // (Never upward: the control points keep going down, so the curve does too.)
-    let a = ka * L, b = kb * L;
-    const room = dy * .98, used = a * da.y + b * db.y;
-    if (used > room && used > 0) { const k = room / used; a *= k; b *= k; }
-    const ctrl: Cubic = [p0, {x: p0.x + da.x * a, y: p0.y + da.y * a}, {x: p3.x - db.x * b, y: p3.y - db.y * b}, p3];
-    const t0 = A.free ? ringT(ctrl, A.c, A.r, 'start') : 0, t1 = B.free ? ringT(ctrl, B.c, B.r, 'end') : 1;
-    let hard = 0, soft = 0;
-    if (t1 - t0 < .02) hard += 500;
-    // (Samples about every 8 px along the stretch, so no corner of a tab slips between two of them.)
-    const n = Math.min(72, Math.max(24, Math.ceil(L / 8)));
-    let minR = Infinity, rise = 0, out = 0, ring = 0, box = 0, badge = 0;
-    for (let i = 0; i <= n; i++) {
-      const t = t0 + (t1 - t0) * i / n, {p, v, a: acc} = bez(ctrl, t), speed = Math.hypot(v.x, v.y);
-      if (v.y < -1e-6) rise = Math.max(rise, -v.y);
-      out = Math.max(out, ctx.g - p.x, p.x - (ctx.w - ctx.g));
-      if (speed > 1e-9) { const k = Math.abs(v.x * acc.y - v.y * acc.x) / speed ** 3; if (k > 0) minR = Math.min(minR, 1 / k); }
-      // (Its own two rings: once out, it never comes back in.)
-      if (i > 0 && A.free) ring = Math.max(ring, A.r - .5 - Math.hypot(p.x - A.c.x, p.y - A.c.y));
-      if (i < n && B.free) ring = Math.max(ring, B.r - .5 - Math.hypot(p.x - B.c.x, p.y - B.c.y));
-      // (A planet it leaves or reaches: never across it.)
-      if (i > 0 && !A.free) ring = Math.max(ring, A.r - .6 - Math.hypot(p.x - A.c.x, p.y - A.c.y));
-      if (i < n && !B.free) ring = Math.max(ring, B.r - .6 - Math.hypot(p.x - B.c.x, p.y - B.c.y));
-      for (const q of rings) ring = Math.max(ring, q.r + ctx.need - Math.hypot(p.x - q.c.x, p.y - q.c.y));
-      for (const q of boxes) {
-        const dx = Math.max(q.left - p.x, 0, p.x - q.right), dyy = Math.max(q.top - p.y, 0, p.y - q.bottom);
-        const d = dx || dyy ? Math.hypot(dx, dyy) : -Math.min(p.x - q.left, q.right - p.x, p.y - q.top, q.bottom - p.y);
-        box = Math.max(box, ctx.need - d);
-      }
-      if (B.badge && i < n) { const q = B.badge; if (p.x > q.left - 3 && p.x < q.right + 3 && p.y > q.top - 3 && p.y < q.bottom + 3) badge++; }
-    }
-    if (rise > 0) hard += 400;
-    if (out > 0) hard += 200 + out * 20;
-    // (A margin of 1 px: the curve is sampled, and its tightest point may lie between two samples.)
-    if (minR < ctx.minR + 1) hard += (ctx.minR + 1 - minR) * 8;
-    if (ring > .4) hard += ring * 12;
-    if (box > .4) hard += box * 12;
-    // (The turn hidden under each node: half of it each side, so the whole stays within 60°.)
-    if (A.free) { const tA = angleBetween(da, bez(ctrl, t0).v); if (tA > HALF_TURN) hard += (tA - HALF_TURN) * 180 / Math.PI * 4; }
-    if (B.free) { const tB = angleBetween(db, bez(ctrl, t1).v); if (tB > HALF_TURN) hard += (tB - HALF_TURN) * 180 / Math.PI * 4; }
-    // (Soft: past a node's NEXT tag rather than under it, and handles near the middle of the grid.)
-    soft += badge * 3 + Math.abs(ka - .42) * 2 + Math.abs(kb - .42) * 2;
-    if (!best || hard < best.hard || (hard === best.hard && soft < best.soft)) best = {hard, soft, ctrl, t0, t1};
-    if (hard === 0 && !badge) break;
-    // (A pair of directions far from keeping the rules with the middle handles is not worth the other lengths.)
-    if (best.hard > 120) break;
+  search: for (const wp of ways) for (const k of HANDLES) {
+    const e = judge(A, B, da, db, shape(A, B, da, db, wp, k), ctx, rings, boxes);
+    if (!best || e.hard < best.hard || (e.hard === best.hard && e.soft < best.soft)) best = e;
+    if (e.hard === 0 && e.soft === 0) break search;
   }
+  if (CACHE.size > 40_000) CACHE.clear();
+  CACHE.set(key, move(best!, -p0.y));
   return best!;
 }
 
 /**
- * The directions a node may take the line through it, best first. The first is the river's own: the way its neighbours lie
- * (from the station before to the one after), turned by a seeded meander that alternates side from node to node — so each
- * stretch bows out like the computer's line, one way and then the other (reference 05), never the same bow twice. Then
- * gentler meanders, the plain course, and a few turns either side. Never more than 12° toward the node's tab, so the line
- * leaves on the other side; planets and the finale pass straight down.
+ * The directions a node may take the line through it, best first: leaning away from its name tab (toward the side the
+ * river swings on to), seeded 8–20° off upright; then gentler, upright, steeper, and a little the other way — never more
+ * than 12° toward the tab. Planets and the finale pass straight down.
  */
-function candidates(prev: Pt | null, S: Station, next: Pt | null, meander: number): Pt[] {
+function candidates(S: Station, lean: number): Pt[] {
   if (!S.free) return [{x: 0, y: 1}];
-  const from = prev ?? {x: S.c.x, y: S.c.y - 120}, to = next ?? {x: S.c.x, y: S.c.y + 120};
-  const deg = Math.PI / 180, base = clamp(Math.atan2(to.x - from.x, Math.max(1, to.y - from.y)), -62 * deg, 62 * deg);
-  const lo = S.tab === 'left' ? -12 * deg : -64 * deg, hi = S.tab === 'right' ? 12 * deg : 64 * deg;
-  const seen = new Set<number>(), out: Pt[] = [];
-  for (const d of [meander, meander * .5, 0, 18, -18, 34, -34]) {
-    const t = clamp(base + d * deg, lo, hi), key = Math.round(t / deg);
+  const lo = S.tab === 'left' ? -12 * DEG : -64 * DEG, hi = S.tab === 'right' ? 12 * DEG : 64 * DEG, seen = new Set<number>(), out: Pt[] = [];
+  for (const t0 of [lean, 0, lean * 2, -lean * .6]) {
+    const t = clamp(t0, lo, hi), key = Math.round(t / DEG);
     if (seen.has(key)) continue; seen.add(key);
     out.push({x: Math.sin(t), y: Math.cos(t)});
   }
-  if (!seen.has(0)) out.push({x: 0, y: 1});
   return out;
 }
+/**
+ * A stretch's waypoints, best first. Where its ends already lie a third of the column apart, its own seeded waypoint swings
+ * a little to one side; where they lie closer, the waypoint swings out far enough for the stretch to cover 30 % of the
+ * column — to the side the bows take in turn, else the other.
+ */
+function waysFor(seed: string, id: string, w: number, side: number, A: Station, B: Station): Way[] {
+  const r = seeded(`${seed}|bow|${id}`), u = .4 + r() * .2, tau = .42 + r() * .16, dx = Math.abs(B.entry.x - A.exit.x);
+  const need = Math.max(0, w * RIVER.swing + 16 - dx + (A.free ? A.r * .4 : 0) + (B.free ? B.r * .4 : 0)), amp = Math.max(need, (.08 + r() * .08) * w) * side;
+  return [{u, tau, off: amp}, {u, tau, off: -amp}, {u: .5, tau: .5, off: amp * 1.4}, {u: .5, tau: .5, off: -amp * 1.4}, {u: .5, tau: .5, off: amp * .5}];
+}
 
-export type RiverResult = {segments: FlowSegment[]; bad: string[]};
+export type RiverResult = {segments: FlowSegment[]; bad: string[]; hard: Record<string, number>};
 /**
  * The phone's river through `nodes` (in path order: an orbit's planet before its nodes, the finale last), drawn under them.
- * Each node takes its first choice (the meander); a stretch that breaks a rule tries its two nodes' other choices, keeping
- * the pair that leaves it and its neighbours cleanest — two rounds at most, never a loop. `bad` names the stretches (`a>b`)
- * still breaking a rule: the layout widens their space and draws again.
+ * Each node takes its first direction and each stretch its first waypoint that keeps every rule; a stretch that cannot
+ * tries its two nodes' other directions, keeping the pair that leaves it and its neighbours cleanest — two rounds at
+ * most, never a loop. `bad` names the stretches (`a>b`) still breaking a rule: the layout widens their space and draws
+ * again.
  */
 export function riverLine(nodes: readonly FlowNode[], o: RiverOptions): RiverResult {
-  const g = o.gutter ?? 8, need = o.clearance ?? RIVER.clearance, S = nodes.map(stationOf), out: FlowSegment[] = [], bad: string[] = [];
-  if (!S.length) return {segments: out, bad};
-  const ctx = {w: o.w, g, minR: o.minRadius, need, rings: S, boxes: o.obstacles ?? []};
-  // (The meander: 20–38°, its side alternating node to node, seeded from the path.)
-  const r0 = seeded(`${o.seed}|meander`), flip = r0() < .5 ? 1 : -1;
-  let k = 0;
-  const C = S.map((s, i) => { const m = s.free ? (k++ % 2 ? 1 : -1) * flip * (20 + seeded(`${o.seed}|meander|${s.id}`)() * 18) : 0; return candidates(i ? S[i - 1]!.exit : null, s, S[i + 1]?.entry ?? null, m); });
+  const g = o.gutter ?? 8, need = o.clearance ?? RIVER.clearance, S = nodes.map(stationOf), out: FlowSegment[] = [], bad: string[] = [], hard: Record<string, number> = {};
+  if (!S.length) return {segments: out, bad, hard};
+  const ctx: Ctx = {w: o.w, g, minR: o.minRadius, need, rings: S, boxes: o.obstacles ?? []};
+  // (Each node leans away from its tab, 8–20°, seeded; each stretch bows to a side that alternates, now and then the same.)
+  const C = S.map(s => candidates(s, s.free ? (s.tab === 'left' ? 1 : -1) * (16 + seeded(`${o.seed}|lean|${s.id}`)() * 12) * DEG : 0));
+  const rs = seeded(`${o.seed}|bows`);
+  let side = rs() < .5 ? 1 : -1;
+  const W = S.slice(1).map((s, i) => { if (rs() >= .2) side = -side; return waysFor(o.seed, `${S[i]!.id}>${s.id}`, o.w, side, S[i]!, s); });
   const pick: number[] = S.map(() => 0);
-  const stretch = (i: number, ka = pick[i]!, kb = pick[i + 1]!) => evalStretch(S[i]!, S[i + 1]!, C[i]![ka]!, C[i + 1]![kb]!, ctx);
+  const stretch = (i: number, ka = pick[i]!, kb = pick[i + 1]!) => evalStretch(S[i]!, S[i + 1]!, C[i]![ka]!, C[i + 1]![kb]!, W[i]!, ctx);
   let E = S.slice(1).map((_, i) => stretch(i));
   for (let round = 0; round < 2; round++) {
     let changed = false;
@@ -222,7 +258,7 @@ export function riverLine(nodes: readonly FlowNode[], o: RiverOptions): RiverRes
       if (E[i]!.hard === 0) continue;
       const near = [i - 1, i, i + 1].filter(j => j >= 0 && j < E.length);
       let best: {hard: number; rank: number; ka: number; kb: number} | null = null;
-      pairs: for (let ka = 0; ka < C[i]!.length; ka++) for (let kb = 0; kb < C[i + 1]!.length; kb++) {
+      pairs: for (let ka = 0; ka < Math.min(3, C[i]!.length); ka++) for (let kb = 0; kb < Math.min(3, C[i + 1]!.length); kb++) {
         const hard = near.reduce((t, j) => t + stretch(j, j === i + 1 ? kb : j === i ? ka : pick[j]!, j === i - 1 ? ka : j === i ? kb : pick[j + 1]!).hard, 0), rank = ka + kb;
         if (!best || hard < best.hard || (hard === best.hard && rank < best.rank)) best = {hard, rank, ka, kb};
         if (hard === 0) break pairs;
@@ -236,21 +272,22 @@ export function riverLine(nodes: readonly FlowNode[], o: RiverOptions): RiverRes
   }
   E = S.slice(1).map((_, i) => stretch(i));
   const dirs = S.map((_, i) => C[i]![pick[i]!]!);
-  const seg = (s: Station, e: Station, c: Cubic, kind: FlowSegment['kind'], from: string | null, to: string | null, fromColour: string, toColour: string, fromLit: boolean, toLit: boolean): FlowSegment =>
-    ({id: kind === 'lead' ? `lead:${e.id}` : kind === 'tail' ? `tail:${s.id}` : `${s.id}>${e.id}`, from, to, kind, d: `M${f(c[0].x)} ${f(c[0].y)} C${f(c[1].x)} ${f(c[1].y)} ${f(c[2].x)} ${f(c[2].y)} ${f(c[3].x)} ${f(c[3].y)}`,
-      x1: c[0].x, y1: c[0].y, x2: c[3].x, y2: c[3].y, fromColour, toColour, fromLit, toLit});
+  const pathOf = (cs: readonly Cubic[]) => `M${f(cs[0]![0].x)} ${f(cs[0]![0].y)}${cs.map(c => ` C${f(c[1].x)} ${f(c[1].y)} ${f(c[2].x)} ${f(c[2].y)} ${f(c[3].x)} ${f(c[3].y)}`).join('')}`;
+  const seg = (s: Station, e: Station, cs: readonly Cubic[], kind: FlowSegment['kind'], from: string | null, to: string | null, fromColour: string, toColour: string, fromLit: boolean, toLit: boolean): FlowSegment => {
+    const a = cs[0]![0], b = cs.at(-1)![3];
+    return {id: kind === 'lead' ? `lead:${e.id}` : kind === 'tail' ? `tail:${s.id}` : `${s.id}>${e.id}`, from, to, kind, d: pathOf(cs), x1: a.x, y1: a.y, x2: b.x, y2: b.y, fromColour, toColour, fromLit, toLit};
+  };
   // The lead-in: from above, down into the first station along its course.
   const first = S[0]!, d0 = dirs[0]!;
   if (o.leadFrom !== null && o.leadFrom !== undefined && o.leadFrom < first.entry.y - (first.free ? first.r : 0) - 1) {
     const dy = first.entry.y - o.leadFrom, sx = clamp(first.entry.x - d0.x / d0.y * dy * .5, g, o.w - g);
     const ctrl: Cubic = [{x: sx, y: o.leadFrom}, {x: sx, y: o.leadFrom + dy * .45}, {x: first.entry.x - d0.x * dy * .45, y: first.entry.y - d0.y * dy * .45}, first.entry];
-    const vis = first.free ? subCubic(ctrl, 0, ringT(ctrl, first.c, first.r, 'end')) : ctrl;
-    out.push(seg(first, first, vis, 'lead', null, first.id, first.colour, first.colour, false, first.done));
+    out.push(seg(first, first, [first.free ? subCubic(ctrl, 0, ringT(ctrl, first.c, first.r, 'end')) : ctrl], 'lead', null, first.id, first.colour, first.colour, false, first.done));
   }
   for (let i = 0; i + 1 < S.length; i++) {
     const a = S[i]!, b = S[i + 1]!, e = E[i]!;
-    if (e.hard > 0) bad.push(`${a.id}>${b.id}`);
-    out.push(seg(a, b, subCubic(e.ctrl, e.t0, e.t1), 'step', a.id, b.id, a.colour, b.colour, a.done, b.done));
+    if (e.hard > 0) { bad.push(`${a.id}>${b.id}`); hard[`${a.id}>${b.id}`] = e.hard; }
+    out.push(seg(a, b, e.vis, 'step', a.id, b.id, a.colour, b.colour, a.done, b.done));
   }
   // The tail: on from the last station in the direction it leaves, settling upright, fading out.
   const last = S.at(-1)!, dl = dirs.at(-1)!;
@@ -263,15 +300,9 @@ export function riverLine(nodes: readonly FlowNode[], o: RiverOptions): RiverRes
       vis = last.free ? subCubic(ctrl, ringT(ctrl, last.c, last.r, 'start'), 1) : ctrl;
       if (curveRadius(vis) >= o.minRadius) break;
     }
-    out.push(seg(last, last, vis!, 'tail', last.id, null, last.colour, last.colour, last.done, false));
+    out.push(seg(last, last, [vis!], 'tail', last.id, null, last.colour, last.colour, last.done, false));
   }
-  return {segments: out, bad};
-}
-/** The least radius of curvature along a cubic (sampled). */
-export function curveRadius(c: Cubic, n = 48): number {
-  let m = Infinity;
-  for (let i = 0; i <= n; i++) { const {v, a} = bez(c, i / n), s = Math.hypot(v.x, v.y); if (s < 1e-9) continue; const k = Math.abs(v.x * a.y - v.y * a.x) / s ** 3; if (k > 0) m = Math.min(m, 1 / k); }
-  return m;
+  return {segments: out, bad, hard};
 }
 /** The phone's line as FlowLine draws it. */
 export const riverSegments = (nodes: readonly FlowNode[], o: RiverOptions): FlowSegment[] => riverLine(nodes, o).segments;
@@ -299,7 +330,7 @@ export type RiverInput = {
   finale?: boolean;
   /** The first screen in the stage's own coordinates (from the first banner's foot to the timer row): at most four nodes in it. */
   view?: {top: number; bottom: number};
-  /** The nodes' and orbits' own ids (the line's meander is seeded by them, so the model draws exactly the page's line). */
+  /** The nodes' and orbits' own ids (the line is seeded by them, so the model draws exactly the page's line). */
   ids?: readonly string[]; orbitIds?: readonly string[];
 };
 export type RiverLayout = {
@@ -309,7 +340,7 @@ export type RiverLayout = {
   /** The space above the finale. */
   finaleGap: number;
   /** The model the lanes were checked on: every station, the boxes the line keeps clear of, its line, the stage's height. */
-  nodes: FlowNode[]; boxes: FlowBox[]; segments: FlowSegment[]; bad: string[]; h: number;
+  nodes: FlowNode[]; boxes: FlowBox[]; segments: FlowSegment[]; bad: string[]; hard: Record<string, number>; h: number;
   /** Per orbit: its banner's top and foot (stage px). */
   banners: {top: number; bottom: number}[];
 };
@@ -317,110 +348,138 @@ export type RiverLayout = {
 /** The day's finale's id on the path (components/path/path.tsx `FINALE_POINT`). */
 export const FINALE = 'finale:end';
 /** Rounds of widening a space where a stretch breaks a rule, and how far any space may grow. */
-const ROUNDS = 22, GROW = 16, MAX_GAP = 360;
+const ROUNDS = 22, GROW = 40, MAX_GAP = 400;
+/** Where a node stands across the width: the left third, the right third, or the middle. */
+type Zone = 'L' | 'C' | 'R';
+
+/**
+ * The zones, node by node, as the cheapest sequence that keeps the rules (a small dynamic programme over the last two
+ * stations): along the river's stations — the nodes, and each orbit's planet, which stands in the right third — every three
+ * in a row hold the left third and the right third, so the river crosses the width again and again and never three
+ * stations stand in one half. Costs: a swing across the width 0; into or out of the middle 1.5 (it needs a bow to cover
+ * 30 % of the column); the same zone twice in a row 6 (a bow out and back on one side, the dearest in height; 12 among
+ * the path's first three nodes); the middle
+ * among the path's first three nodes 6 more (the first screen wants its swings wide), and only where the name fits there
+ * on one line, never beside a planet; a node in the right third just before or after a planet (under it) 50; and a
+ * seeded nudge of up to 1 per
+ * choice, so paths differ. Exact and bounded: 9 states × 3 choices per station.
+ */
+function zonesFor(stations: readonly ('planet' | number)[], middleOk: readonly boolean[], rnd: () => number): Zone[] {
+  const Z: Zone[] = ['L', 'C', 'R'], n = stations.length;
+  if (!n) return [];
+  const nudge = stations.map(() => Z.map(() => rnd()));
+  const near = (i: number) => stations[i - 1] === 'planet' || stations[i + 1] === 'planet';
+  const cost = (i: number, zone: Zone, prev: Zone | null) => {
+    const st = stations[i]!;
+    if (st === 'planet') return zone === 'R' ? 0 : Infinity;
+    // (A swing across is free; into or out of the middle it needs a bow; on one side, a bow out and back — the dearest.)
+    const swing = prev === null ? 0 : prev === zone ? (st < 3 ? 12 : 6) : prev === 'C' || zone === 'C' ? 1.5 : 0;
+    // (Beside a planet a node stands in the left third: from the right third it would sit under the planet, and from the
+    // middle its swing to the planet would be too short.)
+    return (zone === 'C' && (!middleOk[st] || near(i)) ? Infinity : 0) + swing + (near(i) && zone === 'R' ? 50 : 0) + (zone === 'C' && st < 3 ? 6 : 0) + nudge[i]![Z.indexOf(zone)]!;
+  };
+  const pickOne = (i: number) => Z.reduce((x, y) => cost(i, y, null) < cost(i, x, null) ? y : x);
+  let z: Zone[];
+  if (n === 1) z = [pickOne(0)];
+  else {
+    // (best[a][b]: the least cost of a sequence ending with zones a, b; from[i][a][b]: the zone before a.)
+    let best = Z.map(x => Z.map(y => cost(0, x, null) + cost(1, y, x)));
+    const from: number[][][] = [];
+    for (let i = 2; i < n; i++) {
+      const next = Z.map(() => Z.map(() => Infinity)), back = Z.map(() => Z.map(() => 0));
+      Z.forEach((x, ix) => Z.forEach((y, iy) => Z.forEach((c, ic) => {
+        if (![x, y, c].includes('L') || ![x, y, c].includes('R')) return;
+        const v = best[ix]![iy]! + cost(i, c, y);
+        if (v < next[iy]![ic]!) { next[iy]![ic] = v; back[iy]![ic] = ix; }
+      })));
+      best = next; from.push(back);
+    }
+    let ia = 0, ib = 0, m = Infinity;
+    best.forEach((row, x) => row.forEach((v, y) => { if (v < m) { m = v; ia = x; ib = y; } }));
+    z = [Z[ia]!, Z[ib]!];
+    for (let i = n - 1; i >= 2; i--) { const prev = from[i - 2]![ia]![ib]!; z.unshift(Z[prev]!); ib = ia; ia = prev; }
+    // (Where every sequence breaks a rule — a lone planet between two one-node orbits, say — left and right in turn.)
+    if (m === Infinity) z = stations.map((st, i) => st === 'planet' ? 'R' : i % 2 ? 'R' : 'L');
+  }
+  return z.filter((_, i) => stations[i] !== 'planet');
+}
 
 export function phoneRiver(input: RiverInput): RiverLayout {
-  // (Where a stretch still breaks a rule once its space has grown, its lower node is pulled a third of the way back toward
-  // the station above it — a shorter sweep — and the layout runs again: twice at most.)
-  const pulls = new Map<number, number>();
-  let out = layoutOnce(input, pulls);
-  for (let attempt = 0; attempt < 2 && out.bad.length; attempt++) {
-    let pulled = false;
-    for (const id of out.bad) { const i = out.nodes.filter(q => q.inSide === 'left' || q.inSide === 'right').filter(q => !q.upright).findIndex(q => q.id === id.slice(id.indexOf('>') + 1)); if (i >= 0 && (pulls.get(i) ?? 0) < .6) { pulls.set(i, (pulls.get(i) ?? 0) + .3); pulled = true; } }
-    if (!pulled) break;
-    out = layoutOnce(input, pulls);
-  }
-  return out;
-}
-function layoutOnce(input: RiverInput, pulls: ReadonlyMap<number, number>): RiverLayout {
   const {w, seed, tabs, orbits, planetR} = input, vw = input.vw ?? w + 24, R = RIVER.r, n = tabs.length;
   const xmin = RIVER.margin + R + RIVER.halo, xmax = Math.max(xmin, w - xmin);
   const rnd = seeded(`${seed}|phone-river|${Math.round(w)}`);
   const planetX = w - RIVER.planetEdge - planetR;
   const hasPlanet = (s: number) => input.planets?.[s] ?? true;
   const fitsOn = (x: number, side: 'left' | 'right', tab: number) => side === 'right' ? x + RIVER.tabReach + tab <= w - RIVER.margin : x - RIVER.tabReach - tab >= RIVER.margin;
-  const lanes: RiverLane[] = [];
-  // 1. Where each node stands and the side its tab hangs.
-  let prevX: number | null = null, dir = -1, k = 0, run = 0, left = false, right = false;
+  const nodeIds = tabs.map((_, i) => input.ids?.[i] ?? `n${i}`), planetIds = orbits.map((_, s) => `planet:${input.orbitIds?.[s] ?? s}`);
+  // 1. The zones: who opens an orbit out of its planet, who closes one before the next planet, who may stand in the middle.
+  const opens: boolean[] = [], closes: boolean[] = [], stations: ('planet' | number)[] = [];
   orbits.forEach((count, s) => {
-    const start = hasPlanet(s) ? planetX : prevX ?? w * .7;
-    for (let j = 0; j < count; j++, k++) {
-      const from = j === 0 ? start : prevX!;
-      let x: number;
-      // (Out of its planet, a leftward sweep — a short one that stays in the right third, or a wide one across; then runs
-      // of short steps and now and then a wide sweep, turning where a run meets an edge, now and then sooner.)
-      if (j === 0) { x = from - (rnd() < .5 ? .08 + rnd() * .12 : .42 + rnd() * .18) * w; dir = -1; run = 1; }
-      else {
-        // (The path's first few nodes take short steps, so the first screen holds three or four of them; a run toward an
-        // outer third the path has not reached yet sweeps wide more often.)
-        const early = k < 3, unreached = dir < 0 ? !left : !right;
-        let wide = rnd() < (early ? .12 : unreached ? .6 : .28), step = wide ? (.3 + rnd() * .16) * w : (.12 + rnd() * .1) * w;
-        // (A run turns at an edge, and now and then sooner — but only once it has reached that side's outer third; from an
-        // edge the river sweeps wide, back across the width.)
-        const room = dir < 0 ? from - xmin : xmax - from, outer = dir < 0 ? from < w / 3 : from > w * 2 / 3;
-        if (room < step * .6 || (outer && run >= 1 && rnd() < .3)) { dir = -dir; run = 0; if (Math.min(from - xmin, xmax - from) < .12 * w && !wide) { wide = true; step = (.32 + rnd() * .14) * w; } }
-        x = from + dir * step; run++;
-      }
-      // (An orbit's last node, with another planet after it: a third to a half of the width left of that planet, so the
-      // line sweeps up and over into the planet's top.)
-      const nextPlanet = j === count - 1 && s + 1 < orbits.length && orbits.slice(s + 1).some(c => c > 0) && hasPlanet(orbits.findIndex((c, i) => i > s && c > 0));
-      if (nextPlanet && (planetX - x < .3 * w || planetX - x > .62 * w)) x = planetX - (.32 + rnd() * .22) * w;
-      x = clamp(x, xmin, xmax);
-      // (Near the path's end, a path of four or more that has not yet reached an outer third goes there now.)
-      if (n >= 4 && n - k <= 2 && !nextPlanet && (!right || !left)) { x = !right ? Math.max(x, w * 2 / 3 + 8 + rnd() * .1 * w) : Math.min(x, w / 3 - 8 - rnd() * .1 * w); dir = x > from ? 1 : -1; x = clamp(x, xmin, xmax); }
-      const pull = pulls.get(k); if (pull) x = clamp(from + (x - from) * (1 - pull), xmin, xmax);
-      // 2. The tab hangs on the side the line comes from (above it), so the line leaves on the other side. A name too long
-      //    for that side hangs on the other where it fits there (the line then leaves downward and passes under it);
-      //    else the node moves on along the run until the whole name fits on one line.
-      const tab = tabs[k]!;
-      let side: 'left' | 'right' = Math.abs(from - x) < 6 ? (x < w / 2 ? 'right' : 'left') : from > x ? 'right' : 'left';
-      const other = (q: 'left' | 'right') => q === 'right' ? 'left' : 'right';
-      if (!fitsOn(x, side, tab)) {
-        // (Not before a planet: the line must sweep up and over into it, and a tab on that side would be in its way.)
-        if (!nextPlanet && fitsOn(x, other(side), tab)) side = other(side);
-        else {
-          const step = side === 'right' ? -2 : 2;
-          let y = x; while (y >= xmin && y <= xmax && !fitsOn(y, side, tab)) y += step;
-          if (y >= xmin && y <= xmax) x = y;
-          else { let z = x; while (z >= xmin && z <= xmax && !fitsOn(z, other(side), tab)) z -= step; if (z >= xmin && z <= xmax) { x = z; side = other(side); } }
-        }
-      }
+    const next = orbits.findIndex((c, i) => i > s && c > 0);
+    if (count > 0 && hasPlanet(s)) stations.push('planet');
+    for (let j = 0; j < count; j++) { stations.push(opens.length); opens.push(j === 0 && hasPlanet(s)); closes.push(j === count - 1 && next > 0 && hasPlanet(next)); }
+  });
+  const third = w / 3, cLo = third + 8, cHi = w - third - 8;
+  const middleOk = tabs.map(tab => fitsOn(cHi, 'left', tab) || fitsOn(cLo, 'right', tab));
+  const zones = zonesFor(stations, middleOk, rnd);
+  // 2. Where in its zone each node stands, and its tab: on the side the line comes from (above it), else the other side,
+  //    else (a name too long even there) wrapped at the edge — the node keeps its zone, the swing comes first.
+  const lanes: RiverLane[] = [];
+  let prevX = hasPlanet(0) ? planetX : w / 2;
+  orbits.forEach((count, s) => {
+    for (let j = 0; j < count; j++) {
+      const k = lanes.length, zone = zones[k]!, tab = tabs[k]!, from = j === 0 && hasPlanet(s) ? planetX : prevX;
+      // (Toward the outer edge of its third, so the river reaches across the whole width.)
+      // (An orbit's first node out of its planet stands toward the outer edge — the planet's sweep spans the width; the others in
+      // their third, toward its inner part, where each swing across costs the least height.)
+      const span = third - 6 - xmin, [za, zb] = opens[k] ? [0, .35] : [.3, 1];
+      const [lo, hi] = zone === 'L' ? [xmin + span * za, xmin + span * zb] : zone === 'R' ? [xmax - span * zb, xmax - span * za] : [cLo, cHi];
+      const top = closes[k] ? Math.max(lo, Math.min(hi, planetX - .38 * w)) : hi;
+      let x = lo + rnd() * Math.max(0, top - lo);
+      const entry: 'left' | 'right' = Math.abs(from - x) < 6 ? (x < w / 2 ? 'right' : 'left') : from > x ? 'right' : 'left', other = entry === 'right' ? 'left' : 'right';
+      let side: 'left' | 'right' = entry;
+      // (A long name moves its node within its zone, toward the edge that gives its tab room.)
+      const room = (sd: 'left' | 'right') => sd === 'right' ? clamp(w - RIVER.margin - RIVER.tabReach - tab, lo, top) : clamp(RIVER.margin + RIVER.tabReach + tab, lo, top);
+      if (!fitsOn(x, side, tab)) { const y = room(side); if (fitsOn(y, side, tab)) x = y; else { const z = room(other); if (fitsOn(z, other, tab)) { x = z; side = other; } } }
       let wrap = false, maxTab = tab, lines = 1;
       if (!fitsOn(x, side, tab)) {
         // (Too long for one line even at the edge: it wraps there, every line shown — never "…".)
-        side = x <= w / 2 ? 'right' : 'left'; x = side === 'right' ? xmin : xmax;
+        x = side === 'right' ? lo : top;
         maxTab = Math.max(80, side === 'right' ? w - RIVER.margin - x - RIVER.tabReach : x - RIVER.tabReach - RIVER.margin);
         wrap = true; lines = Math.ceil(tab / maxTab);
       }
       const zigiRoom = side === 'right' ? x - R - RIVER.halo - 10 - input.zigi >= RIVER.margin : x + R + RIVER.halo + 10 + input.zigi <= w - RIVER.margin;
       lanes.push({x: Math.round(x * 10) / 10, side, wrap, maxTab, lines, zigi: zigiRoom ? 'side' : 'above', gap: 0});
-      prevX = x; if (x < w / 3) left = true; if (x > w * 2 / 3) right = true;
+      prevX = x;
     }
   });
-  // 3. The spaces: a seeded palette (close, medium, far) plus a share of the sideways travel.
-  // (Each orbit goes through the palette in a seeded order, so any four spaces in a row hold a close one and a far one.)
-  const PALETTE = [42, 58, 74, 98];
-  let at = 0; prevX = null;
-  orbits.forEach((count, s) => {
-    const order = [0, 1, 2, 3].map(q => ({q, r: rnd()})).sort((a, b) => a.r - b.r).map(x => x.q);
-    for (let j = 0; j < count; j++, at++) {
-      const from = j === 0 ? (hasPlanet(s) ? planetX : prevX ?? w / 2) : prevX!, dx = Math.abs(lanes[at]!.x - from);
-      lanes[at]!.gap = j === 0 ? 44 + rnd() * 20 + dx * .1 : PALETTE[order[(j - 1) % 4]!]! + rnd() * 10 + dx * .12;
-      prevX = lanes[at]!.x;
-    }
-  });
-  const orbitGaps = orbits.map((_, s) => s === 0 ? 0 : 58 + rnd() * 24);
-  let finaleGap = 36;
+  // 3. The spaces: each orbit goes through a palette in a seeded order (so any four in a row hold a close one and a far
+  //    one), plus a share of the sideways travel; then widened only where a stretch needs the room for its swing.
+  const PALETTE = [52, 74, 96, 122];
+  {
+    let at = 0, px = planetX;
+    orbits.forEach((count, s) => {
+      const order = [0, 1, 2, 3].map(q => ({q, r: rnd()})).sort((a, b) => a.r - b.r).map(x => x.q);
+      for (let j = 0; j < count; j++, at++) {
+        const from = j === 0 && hasPlanet(s) ? planetX : px, dx = Math.abs(lanes[at]!.x - from);
+        // (A swing across needs its height: about half its width, less the node itself.)
+        // (The path's first three nodes start from the close end of the palette: the first screen should hold three.)
+        const base = j === 0 ? 46 + rnd() * 20 : at < 3 ? PALETTE[order[(j - 1) % 4]! % 2]! + rnd() * 10 : PALETTE[order[(j - 1) % 4]!]! + rnd() * 10;
+        lanes[at]!.gap = Math.max(base, dx * .55 - 20);
+        px = lanes[at]!.x;
+      }
+    });
+  }
+  const orbitGaps = orbits.map((_, s) => s === 0 ? 0 : 62 + rnd() * 24);
+  let finaleGap = 40;
   const minR = riverMinRadius(vw), wantFinale = input.finale ?? true;
-  const nodeIds = tabs.map((_, i) => input.ids?.[i] ?? `n${i}`), planetIds = orbits.map((_, s) => `planet:${input.orbitIds?.[s] ?? s}`);
-  // 4. The model, its line, and the spaces widened where a stretch breaks a rule (a bounded pass).
   let model = build();
   for (let round = 0; round < ROUNDS && model.bad.length; round++) {
     let grew = false;
     for (const id of model.bad) {
-      // (Wider sweeps take bigger steps of room.)
-      const from = id.slice(0, id.indexOf('>')), to = id.slice(id.indexOf('>') + 1), i = nodeIds.indexOf(to), s = planetIds.indexOf(to);
-      const a = model.nodes.find(q => q.id === from), b = model.nodes.find(q => q.id === to), more = GROW + (a && b ? Math.abs(b.x - a.x) * .06 : 0);
+      const to = id.slice(id.indexOf('>') + 1), i = nodeIds.indexOf(to), s = planetIds.indexOf(to);
+      // (The further a stretch is from keeping the rules, the more room it is given at once.)
+      const more = clamp(6 + (model.hard[id] ?? 0) * .25, 8, GROW);
       if (i >= 0) { if (lanes[i]!.gap < MAX_GAP) { lanes[i]!.gap += more; grew = true; } }
       else if (s >= 0) { if (orbitGaps[s]! < MAX_GAP) { orbitGaps[s]! += more; grew = true; } }
       else if (to === FINALE && finaleGap < MAX_GAP) { finaleGap += more; grew = true; }
@@ -428,22 +487,41 @@ function layoutOnce(input: RiverInput, pulls: ReadonlyMap<number, number>): Rive
     if (!grew) break;
     model = build();
   }
-  // (In an orbit of five or more, some spaces close and some far: where the palette and the rules happened to give one
-  // pitch, one of its later spaces opens up — kept only if the line still keeps every rule.)
+  // (In an orbit of five or more, some spaces close and some far: where the rules happened to give one pitch, one of its
+  // spaces opens up — kept only if the line still keeps every rule.)
   {
     let i0 = 0;
     for (const count of orbits) {
       const gaps = lanes.slice(i0 + 1, i0 + count).map(l => l.gap);
       if (gaps.length >= 4 && Math.max(...gaps) - Math.min(...gaps) < 32) {
-        const first = Math.floor(rnd() * (count - 1));
-        tries: for (const more of [36, 52]) for (let t = 0; t < count - 1; t++) {
-          const at = i0 + 1 + (first + t) % (count - 1);
+        // (The widest space opens further, or the closest closes in — either way the spread grows.)
+        const order = gaps.map((g, q) => ({g, at: i0 + 1 + q})).sort((a, b) => b.g - a.g).map(x => x.at);
+        tries: for (const more of [36, -28, 52, -40, 72]) for (let t = 0; t < order.length; t++) {
+          const at = more > 0 ? order[t]! : order[order.length - 1 - t]!;
           lanes[at]!.gap += more;
           const trial = build();
-          if (trial.bad.length > model.bad.length) lanes[at]!.gap -= more; else { model = trial; break tries; }
+          if (trial.bad.some(b => !model.bad.includes(b))) lanes[at]!.gap -= more; else { model = trial; break tries; }
         }
       }
       i0 += count;
+    }
+  }
+  // (Three whole nodes on a phone's first screen where the third just misses it: the first three spaces give back what the
+  // rules let them, 6 px at a time, at most 60 px in all — kept only while the line keeps every rule.)
+  if (input.view && (orbits[0] ?? 0) >= 3) {
+    const third3 = () => model.nodes.find(q => q.id === nodeIds[2])!.y + R - input.view!.bottom;
+    let over = third3(), budget = 60;
+    while (over > 0 && over <= 60 && budget > 0) {
+      let done = false;
+      for (const at of [1, 2, 0]) {
+        if (lanes[at]!.gap < 40) continue;
+        lanes[at]!.gap -= 6;
+        const trial = build();
+        if (trial.bad.length <= model.bad.length && !trial.bad.some(b => !model.bad.includes(b))) { model = trial; done = true; break; }
+        lanes[at]!.gap += 6;
+      }
+      if (!done) break;
+      budget -= 6; over = third3();
     }
   }
   // (And no more than four nodes on a phone's first screen, where the caller says where that ends: the fifth moves down
@@ -483,13 +561,13 @@ function layoutOnce(input: RiverInput, pulls: ReadonlyMap<number, number>): Rive
       nodes.push({id: FINALE, x: w / 2, y: fy, r: RIVER.finaleR, inSide: lastSide, outSide: lastSide === 'left' ? 'right' : 'left', colour: '#9273ff', done: false, upright: true});
     }
     const h = y + RIVER.finaleFoot;
-    const {segments, bad} = riverLine(nodes, {w, seed, minRadius: minR, obstacles: boxes, leadFrom: 0, tailTo: wantFinale ? h - 4 : null});
+    const {segments, bad, hard} = riverLine(nodes, {w, seed, minRadius: minR, obstacles: boxes, leadFrom: 0, tailTo: wantFinale ? h - 4 : null});
     // (And a node never stands on the tab of the node above it.)
     for (let q = 1; q < n; q++) {
       const a = nodes.find(x => x.id === nodeIds[q])!, t = boxes.find(b => b.id === `tab:${nodeIds[q - 1]}`)!;
       const dx = Math.max(t.left - a.x, 0, a.x - t.right), dy = Math.max(t.top - a.y, 0, a.y - t.bottom);
-      if (Math.hypot(dx, dy) < R + RIVER.halo + 4 && !bad.some(b => b.endsWith(`>${nodeIds[q]}`))) bad.push(`${nodeIds[q - 1]}>${nodeIds[q]}`);
+      if (Math.hypot(dx, dy) < R + RIVER.halo + 4 && !bad.some(b => b.endsWith(`>${nodeIds[q]}`))) { bad.push(`${nodeIds[q - 1]}>${nodeIds[q]}`); hard[`${nodeIds[q - 1]}>${nodeIds[q]}`] = 40; }
     }
-    return {nodes, boxes, segments, bad, h, banners};
+    return {nodes, boxes, segments, bad, hard, h, banners};
   }
 }

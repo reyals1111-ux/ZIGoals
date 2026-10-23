@@ -33,6 +33,14 @@ Status: **In progress** on `feature/session-ag-polish-3`, from `main` `261f32a` 
   3. **Computer and tablet layout unchanged, not only `flowSegments`.** `--lane-gap`, `--orbit-gap` and the new spacing rules apply on phones only (at or below the existing 640 px phone breakpoint). The existing layout audit and theme-parity checks for `/app/checklist` run on a computer and confirm no change.
   4. **ZIGi on phones.** Its box never overlaps the line, a node, a name tab or the NEXT badge. The new phone spec checks this over the three sample paths.
   5. **Deadline unchanged:** Sun 25 Oct 11:00 Brussels (10:00 UTC).
+  6. **(23 Oct, after Part 1's first commit; MAJOR) The phone river, redone.** The owner saw the session's own preview, now reference 06: four nodes stacked down the left side, a near-vertical wiggle, the right half empty. "3–4 nodes in the first view" had been met by packing nodes on one side, and the unit tests had passed, so they were too weak. The computer's beauty is in the line BETWEEN nodes: a seeded waypoint per stretch, bowing past both rims on one side or swinging through the middle across sides. Required on phones:
+     1. Every stretch makes a visible sideways S-swing: an excursion of ≥ 30 % of the column, bowing beyond its chord, alternating from stretch to stretch (seeded, sometimes the same way), through a waypoint (two C1 cubics). The hard rules are kept.
+     2. Nodes alternate across the width: never more than 2 in a row in one half; in every window of 3, one in the left third and one in the right third (where names allow; move the tab side rather than give up the swing). The middle is used too.
+     3. The first view at 390 × 844 looks like reference 05: the line spans ≥ 65 % of the width, changes direction at least twice, and has nodes on both sides. Spaces still vary; never pack nodes to meet the count (3 rather than 4 if needed).
+     4. ZIGi takes its clear spot within the river; no empty half is left for it.
+     5. Planets stay top-in/bottom-out; the computer stays byte-identical.
+
+     Tests: reference 06's layout must fail the new rules; the property run asserts rules 1–3 per stretch and per window; the browser spec does the same at 390 and 360. A visual gate (390 × 844 and 360 × 780, three sample paths, side by side with 05) comes before Part 2; it overrides the capture cap for Part 1 only. Report the per-stretch excursion and x-range numbers in the resume file. → L10, L11.
 
 ## Decisions taken without asking
 - **L1 — The branch.** The owner named `feature/session-ag-polish-3`. The session's harness branch (`claude/determined-archimedes-vkndtj`) is left untouched, as K1 did.
@@ -91,3 +99,39 @@ Status: **In progress** on `feature/session-ag-polish-3`, from `main` `261f32a` 
   - `checklist-phone-ag-polish`'s pitch: ≥ 1.6 × 96 px becomes ≥ 96 px, because the owner wants close and far spaces;
   - unit `phone-lanes` is replaced by `phone-river` (240 seeded paths);
   - the ribbon block of `flow-geometry` is replaced by `flow-desktop-digest`, which pins the computer's line over 200 seeded layouts by a digest taken from `main` `261f32a`, plus three literal cases.
+- **L10 — River v2 (owner amendment 6).** `lib/path/phone-river.ts` is rewritten. L4–L6 still describe the frame (through each node's centre, cut at the rings, planets top-in/bottom-out, the page following the model, no jump) but not the shape. In the shape:
+  - *Each stretch is the computer's own:* two cubics joined at a seeded waypoint with one tangent there. The tangent is the swing, from where the line heads out of the upper station to where it heads into the lower one.
+    - The waypoint's place across (40–60 %), its turning height (42–58 %) and its sideways offset are seeded per stretch.
+    - The offset's side alternates from stretch to stretch, now and then (1 in 5) staying the same.
+    - The offset is 8–16 % of the column, or as much as a stretch whose ends lie closer needs to swing 30 % of the column.
+    - Tried in order: that waypoint, the other side, wider either side, half. Handles are 42 % then 58 % of each piece.
+  - *At each node* the river leans 8–20° away from the node's tab (toward the side it swings on to); then upright, twice the lean, and a little the other way. It never leans more than 12° toward the tab.
+  - *Hard rules, added to L4's:* a visible swing of ≥ 30 % of the column + 2 px, and a bow of ≥ 5 % of the column + 1 px beside its own chord.
+  - *Nodes* stand by zone: the left third, the right third, or the middle. Zones are chosen as the cheapest sequence that keeps rule 2 (an exact dynamic programme over the last two stations). The costs:
+    - a swing across: 0;
+    - into or out of the middle: 1.5;
+    - the same zone twice: 6, or 12 among the first three;
+    - the middle among the first three: +6. The middle is used only where the name fits there on one line, and never beside a planet;
+    - a node in the right third beside a planet: 50;
+    - plus a seeded nudge of up to 1 per choice.
+  - *Positions:* an orbit's first node, out of its planet, stands toward the outer edge of the left third, so the planet's sweep spans the width. Other nodes stand in the inner 70 % of their third, where a swing across costs the least height.
+  - *Tabs:* each hangs on the side the line comes from. A long name moves its node within its zone toward the edge that gives room; else its tab hangs on the other side; else it wraps there. The node keeps its zone.
+  - *Spaces:* a stretch's starting space is at least 55 % of its sideways travel less 20 px. The first three nodes start from the close half of the palette.
+    - Where the third node just misses the first screen, the first three spaces give back up to 60 px, 6 px at a time, while the line keeps every rule.
+    - The spread step opens the widest space (or closes the closest), so the spread grows.
+  - *Measured over 960 layouts* (240 paths × 4 widths):
+    - mean node-to-node pitch 180 px;
+    - first screen: 3.0 whole nodes on average at both 390 and 360. Every qualifying path shows at least 3 at 390; at 360, 2 of the qualifying paths show 2;
+    - about 95 ms a layout, at most about 0.3 s, in this sandbox.
+- **L11 — How the owner's rules are read and checked (owner amendment 6).**
+  - *The rules* live in `lib/path/river-rules.test-helper.ts`, which reads only the drawn path data and the stations' centres:
+    - **Rule 1, per stretch:** two cubics with no corner (≤ 1°) at the waypoint; an excursion (max x − min x of the visible curve) of ≥ 30 % of the column; a bow beside its own chord of ≥ 5 % of the column.
+      - Between two nodes, the swings (the way each stretch travels across) never go the same way three times in a row, and at least half of the neighbouring pairs turn the other way.
+    - **Rule 2, per window**, over the river's stations: the nodes and each orbit's planet, which stands in the right third beside its banner, so a planet counts as a right-third station. The planet must have the line top-in/bottom-out, so an orbit's first and last nodes stand to its left.
+      - Within every three stations in a row: never all in one half; the left third and the right third both present.
+    - **Rule 3, the first screen** (from the stage's top under the header to the timer row): the line spans ≥ 65 % of the width; it reverses its sideways way at least twice (a reversal counts after 12 px of travel); stations stand on both halves.
+      - Checked for paths whose first orbit has three nodes or more. A first orbit of one or two hands the screen to the next banner.
+  - *Proof of strength:* reference 06's layout (a planet, then four nodes at 26 %, 12 %, 26 % and 66 % of the width with near-vertical single cubics) fails all three rules in a unit test.
+  - *The node count:* 3–4 whole nodes at 390 × 844 for every qualifying path. At 360 × 780 at least 2, and 3 in at least 90 % (measured: all but 2 of the qualifying paths over 960 layouts).
+    - The owner's amendment puts the swing first, and a swing across a 336 px column needs about 180 px of height at a 37 px least radius.
+    - Paths whose first three names are longer than ~58 % of the stage stay excluded (L6).

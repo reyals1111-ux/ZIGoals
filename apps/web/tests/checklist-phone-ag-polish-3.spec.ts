@@ -2,11 +2,16 @@ import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {seedChecklist, settled} from './checklist-fixtures';
+import {rule1, rule2, rule3, type Drawn} from '../lib/path/river-rules.test-helper';
+import type {FlowNode, FlowSegment} from '../lib/path/flow-geometry';
 
 /**
  * Session AG Polish 3 (ADR-032; owner Part 1 and amendments 2 and 4): the phone's river, on 390 × 844 and 360 × 780 phones
  * with three sample paths (thirteen items over four orbits with long names; six short ones in one orbit; two orbits of
  * three and two):
+ * - the owner's river rules (amendment 6), read from the drawn path data: each stretch two C1 cubics through a waypoint,
+ *   swinging sideways 30 % of the column or more and bowing beside its chord, the swings alternating; the stations
+ *   alternating across the width; and the first screen spanning 65 % of the width, swinging back across twice;
  * - the first screen, below the first orbit's banner and above the timer row, shows 3–4 whole nodes (at least 3 at 360);
  * - nothing jumps on the first open: the path shows only once it is laid out, and every node stands where it first
  *   showed a second later;
@@ -71,6 +76,28 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
     expect(river.hiddenBefore, 'never hidden again once shown').toBe(true);
     expect(river.first.length).toBe(PATHS[name].length);
     river.first.forEach((p, i) => { expect(Math.abs(p[0]! - river.later[i]![0]!), `node ${i} across`).toBeLessThanOrEqual(1); expect(Math.abs(p[1]! - river.later[i]![1]!), `node ${i} down`).toBeLessThanOrEqual(1); });
+  });
+
+  test('the owner\'s river: every stretch an S-swing of 30 % or more, stations alternating, the first screen swinging across (three sample paths)', async ({page}) => {
+    for (const name of ['long', 'short', 'two'] as const) {
+      await open(page, PATHS[name]);
+      const m = await page.evaluate(() => {
+        const svg = document.querySelector('.path-stage svg.orbit-flow')!, o = svg.getBoundingClientRect();
+        const segments = [...svg.querySelectorAll('.orbit-flow-segment')].map(g => {
+          const id = g.getAttribute('data-segment')!, kind = g.getAttribute('data-kind')!, [from, to] = kind === 'step' ? id.split('>') : kind === 'lead' ? [null, id.slice(5)] : [id.slice(5), null];
+          return {id, kind, from, to, d: g.querySelector('.orbit-flow-core')!.getAttribute('d')!};
+        });
+        const nodes = [...document.querySelectorAll<HTMLElement>('.path-stage [data-path-point]')].map(el => { const r = el.getBoundingClientRect(); return {id: el.dataset.pathPoint!, x: r.left + r.width / 2 - o.left, y: r.top + r.height / 2 - o.top, r: (el.offsetWidth || r.width) / 2}; });
+        const head = document.querySelector('.checklist-topbar')!.getBoundingClientRect().bottom, dock = document.querySelector('.checklist-dock')!.getBoundingClientRect().top;
+        return {w: o.width, segments, nodes, top: head - o.top, bottom: dock - o.top};
+      });
+      const nodes = m.nodes.map(n => ({...n, colour: '', done: false, inSide: n.id.startsWith('planet:') ? 'top' : 'left', outSide: n.id.startsWith('planet:') ? 'bottom' : 'right', ...(n.id === 'finale:end' ? {upright: true} : {})}) as FlowNode);
+      const segments = m.segments.map(q => ({...q, x1: 0, y1: 0, x2: 0, y2: 0, fromColour: '', toColour: '', fromLit: false, toLit: false}) as FlowSegment);
+      const d: Drawn = {w: m.w, vw: width, nodes, boxes: [], segments};
+      expect(rule1(d), `${name}: rule 1, per stretch`).toEqual([]);
+      expect(rule2(d), `${name}: rule 2, per window`).toEqual([]);
+      expect(rule3(d, Math.max(0, m.top), m.bottom), `${name}: rule 3, the first screen`).toEqual([]);
+    }
   });
 
   test('ZIGi stands clear of the line, every node, every name tab and the NEXT badge (three sample paths)', async ({page}) => {

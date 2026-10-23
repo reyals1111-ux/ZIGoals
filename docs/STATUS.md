@@ -5,6 +5,7 @@
 3. Computers and tablets unchanged; the new spacing applies on phones only.
 4. ZIGi's box on phones never overlaps the line, a node, a name tab or the NEXT badge.
 5. Deadline unchanged: Sun 25 Oct 10:00 UTC.
+6. (MAJOR, after Part 1's first commit) The phone river, redone. The session's own preview, now reference 06, stacked the nodes down one side with a near-vertical line. River v2 brings the computer's waypoint S-bows to every stretch (≥ 30 % of the column), alternates the stations across the width, makes the first screen span ≥ 65 % with two turns, and has tests that make 06 fail.
 
 Decisions: `docs/architecture/ADR-032-session-ag-polish-3.md`. Resume file: `docs/handoff/AG_POLISH_3_RESUME.md`. This entry is completed by the session's last commit.
 

@@ -22,6 +22,11 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 3. **Computers and tablets unchanged:** `--lane-gap`, `--orbit-gap` and the new spacing apply on phones only. Run the layout audit and the theme parity check on a computer.
 4. **ZIGi on phones:** its box never overlaps the line, a node, a tab or the NEXT badge. Checked in the new phone spec over three sample paths.
 5. **Deadline unchanged.**
+6. **(MAJOR, after Part 1's first commit) The phone river, redone (river v2).** Reference 06, the session's own preview, is wrong: nodes stacked down one side and a near-vertical line.
+   - Every stretch is an S-swing through a waypoint (two C1 cubics), swinging ≥ 30 % of the column and bowing beside its chord, the swings alternating.
+   - The stations alternate across the width: every 3 in a row reach both outer thirds, never 3 in one half.
+   - The first screen at 390 × 844 spans ≥ 65 % with ≥ 2 turns and stations on both sides.
+   - The tests must make 06 fail. A visual gate comes before Part 2. Report the numbers here.
 
 ## Plan summary
 - **Part 0:** records.
@@ -39,7 +44,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | Part | What | State | Commits |
 |---|---|---|---|
 | 0 | Records (Alpha #48, AG Polish 2 merged and deployed, run 50 failed before building), ADR-032, this file, Draft PR ([#94](https://github.com/reyals1111-ux/ZIGoals/pull/94)) | done | `a5e7a7b2` |
-| 1 | The phone river (ADR-032 L4–L9) | done | this commit |
+| 1 | The phone river (ADR-032 L4–L9), first try | superseded by 1 v2 | `0aaebc83`, scratch spec removed `9761a2a8` |
+| 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | done | this commit |
 | 2 | No square behind planets | pending | |
 | 3 | Progress bar removed | pending | |
 | 4 | List view | pending | |
@@ -49,7 +55,22 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 8 | Governance hidden by default (TIER 3) | pending | |
 | Finish | STATUS entry, CI, out of Draft | pending | |
 
-## Captures used (self-check, scratchpad only): 5 of 10 · fix rounds used: 0 of 1
+## River v2, the visual gate (owner amendment 6; scratchpad captures, compared side by side with reference 05)
+The three sample paths of `tests/checklist-phone-ag-polish-3.spec.ts`, as drawn on the page (dev server, Chromium). Each first screen shows nodes on the left and right with the line swinging across; none shows nodes on one side or a near-vertical line.
+- **long** (13 items, four orbits):
+  - 390 × 844: the first screen's line spans 69 % (62–314 px of 366).
+    - Per stretch: planet→1 68 %, 1→2 51 %, 2→3 46 %, 3→4 43 %, 4→5 39 %, 5→planet 55 %, planet→6 62 %, 6→7 53 %, 7→8 46 %, 8→planet 61 %, planet→9 72 %, 9→10 60 %, 10→11 49 %, 11→planet 60 %, planet→12 68 %, 12→13 57 %, 13→finale 34 %.
+  - 360 × 780: the first screen spans 70 % (54–288 of 336).
+    - Per stretch: 68, 49, 42, 50, 44, 58, 63, 55, 48, 61, 64, 57, 51, 62, 63, 49, 36 %.
+- **short** (6 short names, one orbit):
+  - 390: the first screen spans 72 % (49–314). Per stretch: 65, 49, 39, 45, 39, 40, 35 %.
+  - 360: 71 % (50–288). Per stretch: 63, 49, 43, 57, 47, 44, 35 %.
+- **two** (3 + 2 items over two orbits):
+  - 390: the first screen spans 72 % (49–314). Per stretch: 65, 49, 39, 59, 71, 57, 33 %.
+  - 360: 71 % (51–288). Per stretch: 63, 49, 43, 65, 65, 51, 35 %.
+- Every stretch is ≥ 30 % (the owner's floor). Each first screen shows three whole nodes (left, right, left) plus the planet at the right.
+
+## Captures used (self-check, scratchpad only): Part 1 v1: 5; the river v2 gate (amendment 6 lifts the cap for Part 1 only): 15 · fix rounds used: 0 of 1
 
 ## Next step
 Part 2: the square behind lit planets. Measure first (phone and computer, three themes), then fix the cause; add the asset alpha test and the halo spec.
