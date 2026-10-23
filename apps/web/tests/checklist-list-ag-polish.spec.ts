@@ -91,6 +91,9 @@ test('keyboard: arrows move between rows, Space ticks, the context-menu key open
   await expect(page.locator('.aa-toast')).toContainText(TITLE.push);
   // The fold: a section folds and opens.
   const morning = page.getByRole('button', {name: 'Fold Morning Orbit'});
+  // (Session AG Polish 2, Part 9: the layout audit found it squeezed to 37 px beside a phone's banner; at least 44 × 44.)
+  const fb = (await morning.boundingBox())!;
+  expect(Math.min(fb.width, fb.height), 'the fold a 44 px target').toBeGreaterThanOrEqual(44);
   await morning.click();
   await expect(page.getByRole('button', {name: 'Open Morning Orbit'})).toHaveAttribute('aria-expanded', 'false');
   await expect(page.getByRole('list', {name: 'Morning Orbit'})).toHaveCount(0);

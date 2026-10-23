@@ -233,7 +233,8 @@ function inspect() {
   const hasOwnText = el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   // With a modal dialog or sheet open, only it is checked (the page behind is dimmed and inert). Fixed and sticky chrome
   // (the bars, the dock) is the frame content scrolls under: it is hidden from the screenshot and left out of overlaps.
-  const modal = [...document.querySelectorAll('dialog')].find(d => d.open && d.matches(':modal')) ?? document.querySelector('.phone-sheet[open], [role="dialog"][aria-modal="true"]');
+  // (Session AG Polish 2: the last modal opened is the one on top — the Checklist's celebration over the Checklist.)
+  const modal = [...document.querySelectorAll('dialog')].filter(d => d.open && d.matches(':modal')).at(-1) ?? document.querySelector('.phone-sheet[open], [role="dialog"][aria-modal="true"]');
   // The Checklist's sheets (Edit path, Options, About) slide over its path inside its own dialog, behind a scrim: with one
   // open, only the sheet is checked, as with any other sheet (Gate C: the path's names behind it read 1.3:1 on the sheet).
   const scope = (modal ?? document).querySelector('.checklist-sheet-panel') ?? modal ?? document.body;

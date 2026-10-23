@@ -363,7 +363,7 @@
 .checklist-list-banner { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .checklist-list-banner > .orbit-banner { flex: 1 1 auto; min-width: 0; max-width: none; margin: 0; }
 .checklist-list-banner > .orbit-banner > .habit-section-summary { min-width: 0; }
-.checklist-list-fold { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #dfe9fb; font-size: 22px; cursor: pointer; }
+.checklist-list-fold { display: grid; place-items: center; flex: none; width: 44px; min-width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #dfe9fb; font-size: 22px; cursor: pointer; }
 .checklist-list-fold span { display: inline-block; transform: rotate(90deg); transition: transform 180ms ease; }
 .checklist-list-fold[aria-expanded=false] span { transform: none; }
 .checklist-list-fold:focus-visible { outline: 3px solid var(--orbit); outline-offset: -2px; }
