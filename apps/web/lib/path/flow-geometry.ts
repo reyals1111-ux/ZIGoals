@@ -14,9 +14,9 @@ import {stableHash} from './orbit-colours';
  * - Every point stays inside the column (`gutter` from each side): the page never scrolls sideways.
  * Computed when the path is measured (mount, resize, fonts), never per frame.
  *
- * Session AG Polish 3 (ADR-032 L13, owner amendment 7): a phone draws this same line, with the phone's swing, through the
- * stations lib/path/phone-river.ts places (Session AG Polish 2's ribbon is gone); a computer's line is exactly the one here,
- * unchanged (lib/path/flow-desktop-digest.test.ts pins it).
+ * Session AG Polish 3 (ADR-032 L20, owner amendment 8): a phone draws the computer's own line, computed here in a virtual
+ * computer column and scaled (lib/path/phone-scale.ts); a computer's line is exactly the one here, unchanged
+ * (lib/path/flow-desktop-digest.test.ts pins it).
  */
 /** A node's side point; an orbit's planet (Session AG Polish, owner Part 4) takes the line in at its top and lets it out at its bottom. */
 export type FlowSide = 'left' | 'right' | 'top' | 'bottom';
@@ -25,8 +25,6 @@ export type FlowSegment = {id: string; from: string | null; to: string | null; k
   /** The gradient runs from (x1, y1) in `fromColour` to (x2, y2) in `toColour`. */
   x1: number; y1: number; x2: number; y2: number; fromColour: string; toColour: string; fromLit: boolean; toLit: boolean};
 export type FlowOptions = {w: number; seed: string; swing: number; gutter?: number; leadFrom?: number | null; tailTo?: number | null};
-/** A box the phone's river keeps clear of (a name tab, a banner's words). */
-export type FlowBox = {id: string; left: number; top: number; right: number; bottom: number};
 
 /** A small seeded random source (mulberry32): the same seed gives the same numbers everywhere. */
 export function seeded(seed: string): () => number {

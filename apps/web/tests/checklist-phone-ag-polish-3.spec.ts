@@ -2,17 +2,15 @@ import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {seedChecklist, settled} from './checklist-fixtures';
-import {hard, kinds, type Drawn} from '../lib/path/river-rules.test-helper';
-import type {FlowNode, FlowSegment} from '../lib/path/flow-geometry';
+import {COMPUTER, phoneTransform} from '../lib/path/phone-scale';
 
 /**
- * Session AG Polish 3 (ADR-032; owner Part 1 and amendments 2 and 4): the phone's river, on 390 × 844 and 360 × 780 phones
- * with three sample paths (thirteen items over four orbits with long names; six short ones in one orbit; two orbits of
- * three and two):
- * - the river (owner amendment 7), read from the drawn path data: the hard rules (never upward, no radius under 40 px ×
- *   width/390, inside the column, clear of every other ring, name tab and banner, planets top-in and bottom-out); a drift,
- *   a sweep and a bow somewhere in the first two screens; and the three paths' first views different;
- * - the first screen, below the first orbit's banner and above the timer row, shows 3–4 whole nodes (at least 3 at 360);
+ * Session AG Polish 3 (ADR-032 L20; owner amendment 8, "phone = computer × scale", and amendments 2 and 4): the phone's
+ * path on 390 × 844 and 360 × 780 phones with sample paths (thirteen items over four orbits with long names; six short
+ * ones in one orbit; two orbits of three and two):
+ * - the drawn line equals the computer's own line — read from the real computer at 1440 × 900 — × the phone's scale,
+ *   point by point, with the computer's stroke widths and glow; every tab inside the column and over no part of the line;
+ *   every name whole;
  * - nothing jumps on the first open: the path shows only once it is laid out, and every node stands where it first
  *   showed a second later;
  * - ZIGi's box overlaps no point of the line, no node, no name tab and no NEXT badge;
@@ -62,14 +60,8 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
     await page.setViewportSize({width, height});
   });
 
-  for (const name of ['long', 'short'] as const) test(`the first screen shows ${width === 390 ? '3–4' : 'at least 3'} whole nodes, and nothing jumps on opening (${name})`, async ({page}) => {
+  for (const name of ['long', 'short'] as const) test(`nothing jumps on opening (${name})`, async ({page}) => {
     await open(page, PATHS[name]);
-    const view = await page.evaluate(() => {
-      const banner = document.querySelector('.path-stage .orbit-banner')!.getBoundingClientRect(), dock = document.querySelector('.checklist-dock')!.getBoundingClientRect();
-      return {seen: [...document.querySelectorAll('.path-stage .path-dot')].map(d => d.getBoundingClientRect()).filter(r => r.top >= banner.bottom - .5 && r.bottom <= dock.top + .5).length};
-    });
-    expect(view.seen, 'whole nodes between the first banner and the timer row').toBeGreaterThanOrEqual(3);
-    if (width === 390) expect(view.seen).toBeLessThanOrEqual(4);
     // Owner amendment 2: hidden until laid out, then never moving.
     await expect.poll(() => page.evaluate(() => (window as unknown as {__river: {later: unknown}}).__river.later !== null), {timeout: 5000}).toBe(true);
     const river = await page.evaluate(() => (window as unknown as {__river: {hiddenBefore: boolean; first: number[][]; later: number[][]}}).__river);
@@ -78,40 +70,39 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
     river.first.forEach((p, i) => { expect(Math.abs(p[0]! - river.later[i]![0]!), `node ${i} across`).toBeLessThanOrEqual(1); expect(Math.abs(p[1]! - river.later[i]![1]!), `node ${i} down`).toBeLessThanOrEqual(1); });
   });
 
-  test('the river: the hard rules; a drift, a sweep and a bow in the first two screens; three paths, three different first views (owner amendment 7)', async ({page}) => {
-    const firsts: string[] = [];
-    for (const name of ['long', 'short', 'two'] as const) {
-      await open(page, PATHS[name]);
-      const m = await page.evaluate(() => {
-        const svg = document.querySelector('.path-stage svg.orbit-flow')!, o = svg.getBoundingClientRect();
-        const rel = (r: DOMRect) => ({left: r.left - o.left, right: r.right - o.left, top: r.top - o.top, bottom: r.bottom - o.top});
-        const segments = [...svg.querySelectorAll('.orbit-flow-segment')].map(g => {
-          const id = g.getAttribute('data-segment')!, kind = g.getAttribute('data-kind')!, [from, to] = kind === 'step' ? id.split('>') : kind === 'lead' ? [null, id.slice(5)] : [id.slice(5), null];
-          return {id, kind, from, to, d: g.querySelector('.orbit-flow-core')!.getAttribute('d')!};
-        });
-        const nodes = [...document.querySelectorAll<HTMLElement>('.path-stage [data-path-point]')].map(el => { const r = el.getBoundingClientRect(); return {id: el.dataset.pathPoint!, x: r.left + r.width / 2 - o.left, y: r.top + r.height / 2 - o.top, r: (el.offsetWidth || r.width) / 2}; });
-        const boxes = [...[...document.querySelectorAll('.path-stage .orbit-tab')].map((t, i) => ({id: `tab ${i}`, ...rel(t.getBoundingClientRect())})),
-          ...[...document.querySelectorAll('.path-stage .orbit-banner > .habit-section-summary')].map((t, i) => ({id: `banner ${i}`, ...rel(t.getBoundingClientRect())}))];
-        const dock = document.querySelector('.checklist-dock')!.getBoundingClientRect().top;
-        return {w: o.width, segments, nodes, boxes, screen: dock - o.top};
-      });
-      // (Each station's sides, read from where the line meets it: left or right of its centre, or its top and bottom.)
-      const at = (d: string, end: boolean) => { const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number); return end ? {x: n.at(-2)!, y: n.at(-1)!} : {x: n[0]!, y: n[1]!}; };
-      const side = (p: {x: number; y: number}, n: {x: number; y: number}) => p.x < n.x - 2 ? 'left' : p.x > n.x + 2 ? 'right' : p.y < n.y ? 'top' : 'bottom';
-      const nodes = m.nodes.map(n => {
-        const into = m.segments.find(q => q.to === n.id), out = m.segments.find(q => q.from === n.id);
-        return {...n, colour: '', done: false, inSide: into ? side(at(into.d, true), n) : 'top', outSide: out ? side(at(out.d, false), n) : 'bottom'} as FlowNode;
-      });
-      const segments = m.segments.map(q => ({...q, x1: 0, y1: 0, x2: 0, y2: 0, fromColour: '', toColour: '', fromLit: false, toLit: false}) as FlowSegment);
-      const d: Drawn = {w: m.w, vw: width, nodes, boxes: m.boxes, segments};
-      expect(hard(d), `${name}: the hard rules`).toEqual([]);
-      // (The first two screens: the stretches that end there.)
-      const early = segments.filter(q => { const to = nodes.find(n => n.id === q.to); return !!to && to.y < 2 * m.screen; });
-      const seen = kinds({...d, segments: early});
-      for (const k of ['drift', 'sweep', 'bow'] as const) expect(seen, `${name}: a ${k} in the first two screens`).toContain(k);
-      firsts.push(kinds({...d, segments: segments.filter(q => { const to = nodes.find(n => n.id === q.to); return !!to && to.y < m.screen; })}).join(' '));
+  for (const name of ['long', 'short'] as const) test(`the line is the computer's own line × scale, at the computer's stroke; tabs inside the column and off the line; names whole (${name}; owner amendment 8)`, async ({page, browser}) => {
+    const readLine = () => {
+      const stage = document.querySelector<HTMLElement>('.path-stage[data-variant=orbit]')!, o = stage.getBoundingClientRect();
+      const segments = [...stage.querySelectorAll('.orbit-flow-segment')].map(g => ({id: g.getAttribute('data-segment')!, d: g.querySelector('.orbit-flow-core')!.getAttribute('d')!}));
+      const stroke = (sel: string) => getComputedStyle(stage.querySelector(sel)!).strokeWidth;
+      const planet = stage.querySelector<HTMLElement>('[data-path-point^="planet:"]')!, p = planet.getBoundingClientRect();
+      // (The line's points, every 2 px, and each tab's box, on the screen.)
+      const pts = [...stage.querySelectorAll<SVGPathElement>('.orbit-flow-core')].flatMap(path => { const n = path.getTotalLength(), m = path.getScreenCTM()!, out: {x: number; y: number}[] = []; for (let l = 0; l <= n; l += 2) { const q = path.getPointAtLength(l); out.push({x: q.x * m.a + m.e, y: q.y * m.d + m.f}); } return out; });
+      const tabs = [...stage.querySelectorAll<HTMLElement>('.orbit-tab')].map(t => { const r = t.getBoundingClientRect(), text = t.querySelector<HTMLElement>('.path-label-text')!; return {label: t.title, shown: text.textContent, left: r.left, right: r.right, top: r.top, bottom: r.bottom, cut: text.scrollWidth > text.clientWidth + 1}; });
+      return {w: o.width, segments, strokes: [stroke('.orbit-flow-core'), stroke('.orbit-flow-halo'), stroke('.orbit-flow-glow path')], blur: stage.querySelector('feGaussianBlur')!.getAttribute('stdDeviation'),
+        planetR: planet.offsetWidth / 2, planetY: p.top + p.height / 2 - o.top, pts, tabs, vw: innerWidth};
+    };
+    // The computer's own path: the real page at 1440 × 900 (its stage is the virtual column).
+    const desk = await browser.newContext({viewport: {width: 1440, height: 900}}), dp = await desk.newPage();
+    await seedChecklist(dp, {path: pathOf(PATHS[name])}); await dp.goto('/app/checklist'); await settled(dp);
+    await expect(dp.locator('.path-stage[data-settled]')).toHaveCount(1, {timeout: 15_000});
+    const computer = await dp.evaluate(readLine); await desk.close();
+    expect(computer.w, 'the virtual column is the computer\'s stage').toBe(COMPUTER.w);
+    await open(page, PATHS[name]);
+    const phone = await page.evaluate(readLine);
+    const {s, dx, dy} = phoneTransform(phone.w, computer.planetY, 2 * phone.planetR + 10);
+    expect(phone.segments.map(q => q.id), 'the same stretches').toEqual(computer.segments.map(q => q.id));
+    const nums = (d: string) => (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), off: string[] = [];
+    computer.segments.forEach((q, i) => { const a = nums(q.d), b = nums(phone.segments[i]!.d); if (a.length !== b.length) off.push(`${q.id}: ${a.length} vs ${b.length} numbers`); else a.forEach((v, k) => { const want = v * s + (k % 2 ? dy : dx); if (Math.abs(b[k]! - want) > .5) off.push(`${q.id}[${k}]: ${b[k]} vs ${want.toFixed(2)}`); }); });
+    expect(off, `the computer's line × ${s.toFixed(3)}`).toEqual([]);
+    expect(phone.strokes, 'the computer\'s stroke widths, never scaled down').toEqual(computer.strokes);
+    expect(phone.blur, 'the computer\'s glow').toBe(computer.blur);
+    for (const t of phone.tabs) {
+      expect(t.shown, `${t.label}: the whole name`).toBe(t.label); expect(t.cut, `${t.label}: nothing cut`).toBe(false);
+      expect(t.left, `${t.label}: inside the column`).toBeGreaterThanOrEqual(0); expect(t.right).toBeLessThanOrEqual(phone.vw);
     }
-    expect(new Set(firsts).size, `three first views: ${firsts.join(' | ')}`).toBe(3);
+    const under = phone.tabs.filter(t => phone.pts.some(q => q.x > t.left + 1 && q.x < t.right - 1 && q.y > t.top + 1 && q.y < t.bottom - 1)).map(t => t.label);
+    expect(under, 'no tab over the line').toEqual([]);
   });
 
   test('ZIGi stands clear of the line, every node, every name tab and the NEXT badge (three sample paths)', async ({page}) => {

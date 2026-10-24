@@ -33,15 +33,18 @@
      sweep from a planet to its first node, and from an orbit's last node to the next planet, without a tight bend. */
   .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 116px; padding-top: 88px; }
   .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 92px; }
-  /* Session AG Polish 3 (ADR-032; owner Part 1, amendments 2 and 3): the river (lib/path/phone-river.ts). Each node stands
-     at its place across the width and each space varies (`--lane-gap` above a node, `--orbit-gap` above a banner,
-     `--finale-gap` above the finale) — phones only. Until the river is laid out and measured the path is not shown at all,
-     so nothing appears in a wrong place and then jumps; nothing fades in (it simply shows, settled). */
+  /* Session AG Polish 3 (ADR-032 L20; owner amendment 8): phone = computer × scale (lib/path/phone-scale.ts). Each node,
+     each orbit's banner (centred on its planet) and the finale stand exactly where the computer's own layout, scaled to
+     the phone's column, puts them (`--lane-x`/`--lane-y`, `--banner-top`/`--planet-x`, `--finale-x`/`--finale-y`, the
+     stage's `--stage-h`) — phones only. Until laid out and measured the path is not shown at all, so nothing appears in a
+     wrong place and then jumps; nothing fades in (it simply shows, settled). */
+  .path-stage[data-variant=orbit][data-lanes] { height: var(--stage-h); padding: 0; }
+  .path-stage[data-variant=orbit][data-lanes] :is(.path-section, .path-steps) { position: static; margin: 0; padding: 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-step { position: absolute; left: 0; right: 0; top: calc(var(--lane-y, 0px) - var(--dot-size) / 2); margin: 0; }
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
-  .path-stage[data-variant=orbit][data-lanes] .path-steps { gap: 0; padding-top: 0; }
-  .path-stage[data-variant=orbit][data-lanes] .path-step { margin-top: var(--lane-gap, 116px); }
-  .path-stage[data-variant=orbit][data-lanes] .path-section + .path-section { margin-top: var(--orbit-gap, 92px); }
-  .path-stage[data-variant=orbit][data-lanes] .path-finale { margin-top: var(--finale-gap, 36px); }
+  .path-stage[data-variant=orbit][data-lanes] .orbit-banner { position: absolute; left: 0; top: var(--banner-top, 0px); }
+  .path-stage[data-variant=orbit][data-lanes] .orbit-banner > .orbit-planet { right: auto; left: calc(var(--planet-x, 0px) + 6px); translate: -50% -50%; }
+  .path-stage[data-variant=orbit][data-lanes] .path-finale { position: absolute; left: var(--finale-x, 50%); top: calc(var(--finale-y, 0px) - var(--dot-size) * .55); margin: 0; translate: -50% 0; }
   .path-stage[data-variant=orbit]:not([data-ready]) { visibility: hidden; }
 }
 .path-stage[data-variant=orbit] .path-node { z-index: 1; }
