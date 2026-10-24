@@ -27,7 +27,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
    - The stations alternate across the width: every 3 in a row reach both outer thirds, never 3 in one half.
    - The first screen at 390 × 844 spans ≥ 65 % with ≥ 2 turns and stations on both sides.
    - The tests must make 06 fail. A visual gate comes before Part 2. Report the numbers here.
-8. **(24 Oct, FINAL METHOD) Phone = computer × scale** (replaces 6 and 7): the computer's own layout and line in a virtual 976 px column, × s into the phone's column; readable pieces on top; tests and a 4-capture gate. See ADR-032 L20.
+9. **(24 Oct) Line first, nodes on the line** (replaces 6–8): see ADR-032 L21.
+8. **(24 Oct, rejected by 9) Phone = computer × scale** (replaces 6 and 7): the computer's own layout and line in a virtual 976 px column, × s into the phone's column; readable pieces on top; tests and a 4-capture gate. See ADR-032 L20.
 7. **(MAJOR, after Part 2) River v3.** Every path had become the same zig-zag, so amendment 6's alternation rules go. The phone tries the computer's own line first; variety becomes a hard rule (seeded drifts, sweeps ≥ 45 %, bows and swings; node x across the width; spaces ≈ 90–200 px). Variety tests replace amendment 6's; a strict zig-zag and 06 fail them. A visual gate (at most 2 fix rounds) comes before the next part.
 
 ## Plan summary
@@ -56,7 +57,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | `f1deb358` |
 | 7 | Earn dock off by default (TIER 3, ADR-032 L18): `dockShown === true`; a stored choice kept; rollback = revert, nothing stored changes | done | this commit |
 | 8 | Governance hidden by default (TIER 3, ADR-032 L2, L19): `governanceShown` in the device-only Earn preferences; the switch after Chess; frozen readers #37–#48 pass | done | `dd9569c5` |
-| 1 (×s) | Owner amendment 8: phone = computer × scale (ADR-032 L20); the river deleted | done; density checks reported to the owner | WIP `5ea2a1d9`, `93247d09`, tests moved + STATUS: the final commit |
+| 1 (×s) | Owner amendment 8: phone = computer × scale (ADR-032 L20) | rejected by amendment 9, removed | `5ea2a1d9`, `93247d09`, `5ca5d46c` |
+| 1 (river) | Owner amendment 9: line first, nodes on the line (ADR-032 L21) | done; gate passed (fix round 1 of 2) | WIP `b543c6ce`, this commit |
 | Finish | STATUS entry written; CI and out of Draft wait on the owner's density decision and "bump zod" | partly | the final commit |
 
 ## River v3 (owner amendment 7): what the literal port needed to change, and why (ADR-032 L13)
@@ -77,4 +79,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `scripts/frozen-readers.mjs` run without `--out` drops its first SHA argument (`i !== outAt + 1` with `outAt = -1`); pre-existing, not changed here. Pass `--out` (or list the SHAs after it).
 
 ## Next step
-Owner decisions: (1) phone density — accept overlaps on phones (move the listed assertions), a larger scale, or smaller phone pieces (STATUS, "Known CI intermittents and open items"); (2) "bump zod" for the audit. Then CI green, out of Draft, report.
+Finish (amendment 9): zod 4.5 → 4.6.6 exactly (TIER 3, dependency; frozen readers #37–#48; storage/settings unit tests); the computer's layout audit and theme parity for /app/checklist; the STATUS entry; CI green; out of Draft; report.
