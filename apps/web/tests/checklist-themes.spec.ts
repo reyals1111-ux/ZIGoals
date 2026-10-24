@@ -26,10 +26,8 @@ const paint = async (page: Page) => { await page.locator('.path-stage').evaluate
     stops: [...document.querySelectorAll('.orbit-flow linearGradient stop')].map(s => `${getComputedStyle(s).stopColor} ${getComputedStyle(s).stopOpacity}`),
     planet: css('.path-banner-planet', ['background-image']),
     timerRing: css('.checklist-timer[data-kind=sleep] .checklist-timer-ring', ['color']),
-    // Session AG Polish 2 (ADR-031, Part 9): the progress bar's segments (lit and matte), its sparkle, and the orbit banners.
-    litSeg: css('.checklist-progress-seg[data-lit]', ['background-image', 'background-color', 'box-shadow', 'opacity']),
-    matteSeg: css('.checklist-progress-seg:not([data-lit])', ['background-image', 'background-color', 'box-shadow', 'opacity']),
-    spark: css('.checklist-progress-spark', ['background-image', 'box-shadow']),
+    // Session AG Polish 2 (ADR-031, Part 9): the orbit banners. (Session AG Polish 3, owner Part 3: the progress bar, whose
+    // segments and sparkle were read here too, is gone.)
     banner: css('.path-stage .orbit-banner .habit-section-summary', ['background-image', 'border-top-color', 'color']),
     bannerTitle: css('.path-stage .orbit-banner .habit-section-title', ['color', 'background-image']),
     bannerCount: css('.path-stage .orbit-banner .habit-section-count', ['color', 'background-color', 'border-top-color']),

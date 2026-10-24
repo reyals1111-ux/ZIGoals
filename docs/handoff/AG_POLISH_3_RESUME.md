@@ -47,9 +47,9 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 0 | Records (Alpha #48, AG Polish 2 merged and deployed, run 50 failed before building), ADR-032, this file, Draft PR ([#94](https://github.com/reyals1111-ux/ZIGoals/pull/94)) | done | `a5e7a7b2` |
 | 1 | The phone river (ADR-032 L4–L9), first try | superseded by 1 v2 | `0aaebc83`, scratch spec removed `9761a2a8` |
 | 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | superseded by 1 v3 | `cb271c8c` |
-| 1 v3 | River v3, owner amendment 7 (ADR-032 L13): the computer's `flowSegments` on the phone, a seeded walk for the nodes | done | this commit |
-| 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | this commit |
-| 3 | Progress bar removed | pending | |
+| 1 v3 | River v3, owner amendment 7 (ADR-032 L13): the computer's `flowSegments` on the phone, a seeded walk for the nodes | done | `ca4012bd` |
+| 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | `c4811e6c` |
+| 3 | Progress bar removed; top-bar controls 44 px or more (ADR-032 L14) | done | this commit |
 | 4 | List view | pending | |
 | 5 | Legend | pending | |
 | 6 | Footer line | pending | |
@@ -74,4 +74,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 
 ## Next step
-Part 3: remove `ProgressSegments` (its CSS, theme rules, tests); header controls at 44 px or more.
+Part 4: the List view — ticked rows always shown (no "Done · n" folds), the banner fold kept, banners and rows in one column (phone and computer).

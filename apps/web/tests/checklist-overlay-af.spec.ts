@@ -175,7 +175,6 @@ test('a tick: the node lights (its ring blooms, its tab fills with a check), a l
   const stageOf = () => page.locator('.path-zigi').evaluate((z: HTMLElement) => { const s = z.closest('.path-stage')!.getBoundingClientRect(), r = z.parentElement!.getBoundingClientRect(); return {x: r.left + z.offsetLeft - s.left, y: r.top + z.offsetTop - s.top}; });
   const cheered = await stageOf();
   await expect(done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-zigi[data-cheer]')).toHaveCount(1);
-  await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
   expect(moving, 'the tick plays').toBeGreaterThan(5);
   // Then the bloom and the light are gone and the node rests, lit.
