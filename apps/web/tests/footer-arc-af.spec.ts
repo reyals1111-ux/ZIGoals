@@ -2,7 +2,8 @@ import {expect, test} from '@playwright/test';
 
 /**
  * Session AF (L5a, Part 10.8): the footer finale's line from Health into "= Wealth" is one organic, tapered ribbon —
- * magenta, pink, then the gold of "= Wealth", with a soft glow — at every width from 320 to 1920 px; phones get it too
+ * magenta, pink, then the gold of "= Wealth" (Session AG Polish 3: along its way, gold only from just before the crest), with
+ * a soft glow — at every width from 320 to 1920 px; phones get it too
  * (beneath the stacked steps, up the right edge, into the word). It lies inside the banner's stage, ends at the word's
  * right end, and is at rest (nothing moving) once the finale is done; with Motion Off it is simply there.
  */
@@ -38,7 +39,9 @@ test.describe('the footer ribbon at every width', () => {
         expect(p.fill).toMatch(/^url\(#/);
         expect(p.stroke).toBe('none');
         expect(p.glow).toBe(true);
-        expect(p.stops).toEqual(['#f06dff', '#ff8fd0', '#ffd27a', '#ffd27a']);
+        // Session AG Polish 3 (owner Part 6), moved: the colour follows the way — the rise magenta into pink, the way back pink
+        // up to just before the crest, then gold into the word (lib/footer-ribbon.test.ts places the stops).
+        expect(p.stops).toEqual(p.part === 'rise' ? ['#f06dff', '#ff8fd0'] : ['#ff8fd0', '#ff8fd0', '#ffd27a', '#ffd27a']);
         // Inside the banner's stage at this width.
         expect(p.box.l).toBeGreaterThanOrEqual(read.stage.l - 0.5);
         expect(p.box.r).toBeLessThanOrEqual(read.stage.r + 0.5);

@@ -17,7 +17,9 @@ export type PathPoint = {x: number; y: number; r?: number};
 /** `inset`: room from the stage's sides to the screen's (round 7: how far a name may reach past the stage). */
 export type PathGeometry = {w: number; h: number; points: Record<string, PathPoint>; inset?: {left: number; right: number};
   /** Session AG Polish 2: boxes the phone's line keeps clear of (`data-path-box`: name tabs, banners), in the stage's coordinates. */
-  boxes?: Record<string, PathBox>};
+  boxes?: Record<string, PathBox>;
+  /** Session AG Polish 3: the key this geometry was measured under (the phone's river shows once it matches its layout). */
+  key?: string};
 export type PathBox = {left: number; top: number; right: number; bottom: number};
 const sameBoxes = (a: PathGeometry['boxes'], b: PathGeometry['boxes']) => Object.keys(a ?? {}).length === Object.keys(b ?? {}).length && Object.entries(a ?? {}).every(([id, q]) => { const o = b?.[id]; return !!o && o.left === q.left && o.top === q.top && o.right === q.right && o.bottom === q.bottom; });
 const same = (a: PathGeometry, b: PathGeometry) => a.w === b.w && a.h === b.h && a.inset?.left === b.inset?.left && a.inset?.right === b.inset?.right && Object.keys(a.points).length === Object.keys(b.points).length && Object.entries(a.points).every(([id, p]) => b.points[id]?.x === p.x && b.points[id]?.y === p.y && b.points[id]?.r === p.r) && sameBoxes(a.boxes, b.boxes);
@@ -44,7 +46,7 @@ export function usePathGeometry(stage: RefObject<HTMLElement | null>, key: strin
     const el = stage.current; if (!el) return;
     let live = true;
     el.removeAttribute('data-settled');
-    const measure = () => { if (!live) return; const next = measurePath(el); setGeo(g => g && same(g, next) ? g : next); };
+    const measure = () => { if (!live) return; const next = measurePath(el); setGeo(g => g && same(g, next) && g.key === key ? g : {...next, key}); };
     measure();
     // The stage, and each orbit and chest inside it: a banner that shrinks while a chest grows (a font settling) moves
     // the dots without changing the stage's own size.

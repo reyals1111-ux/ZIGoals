@@ -1,29 +1,33 @@
 import {describe, expect, test} from 'vitest';
 import {NAV_GROUP_START, NAV_ITEMS, navGroupOf} from '../../components/app-nav';
 import {pagesSchema, type Pages} from './schema';
-import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, FOLLOWS_PAGE, defaultView, everythingView, groupStarts, homeHref, hrefShown, isShown, pageIdForHref, pageIdForPath, phoneTabs, sameView, showEverything, startHref, startPage, viewOf, visiblePages, withChoice, withStart} from './visibility';
+import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, FOLLOWS_PAGE, defaultView, everythingView, groupStarts, homeHref, hrefShown, isShown, pageIdForHref, pageIdForPath, phoneTabs, sameView, showEverything, startHref, startPage, viewOf, visiblePages, withChoice, withStart, type DeviceShown} from './visibility';
 
 const AT = '2026-10-07T10:00:00.000Z', LATER = '2026-10-07T11:00:00.000Z';
 const empty = (): Pages => ({version: 1, items: {}});
 const hide = (...ids: Parameters<typeof withChoice>[1][]) => ids.reduce((p, id) => withChoice(p, id, false, AT), empty());
-const nav = (pages: Pages | undefined, showcase = false) => NAV_ITEMS.filter(([href]) => hrefShown(viewOf(pages, showcase), href));
+const nav = (pages: Pages | undefined, showcase = false, device: DeviceShown = {}) => NAV_ITEMS.filter(([href]) => hrefShown(viewOf(pages, showcase), href, device));
 const labels = (items: readonly (readonly [string, string, ...unknown[]])[]) => items.map(item => item[1]);
 
 describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
-  test('nothing chosen: exactly today\'s navigation, Chess and the music player hidden; Showcase shows everything', () => {
+  test('nothing chosen: exactly today\'s navigation, Chess, Governance and the music player hidden; Showcase shows every page but Governance', () => {
     expect(viewOf(undefined)).toEqual({version: 1, hidden: ['chess', 'music']});
     expect(viewOf(undefined, true)).toEqual({version: 1, hidden: []});
     // Session W Part 14: Chess is a page now; hidden by default, so the default navigation is exactly the one before it.
-    const everyday = NAV_ITEMS.filter(([href]) => href !== '/app/chess');
-    expect(everyday).toHaveLength(NAV_ITEMS.length - 1);
+    // Session AG Polish 3 (ADR-032 L19, owner Part 8; deliberate): Governance is hidden too, in the Showcase as well, until
+    // this device's switch shows it.
+    const everyday = NAV_ITEMS.filter(([href]) => href !== '/app/chess' && href !== '/app/governance');
+    expect(everyday).toHaveLength(NAV_ITEMS.length - 2);
     expect(nav(undefined)).toEqual(everyday);
-    expect(nav(undefined, true)).toEqual(NAV_ITEMS);
+    expect(nav(undefined, true)).toEqual(NAV_ITEMS.filter(([href]) => href !== '/app/governance'));
+    expect(nav(undefined, true, {governance: true})).toEqual(NAV_ITEMS);
+    expect(nav(undefined, false, {governance: true})).toEqual(NAV_ITEMS.filter(([href]) => href !== '/app/chess'));
     expect(groupStarts(NAV_ITEMS, navGroupOf)).toEqual(NAV_GROUP_START);
     const {tabs, more} = phoneTabs(everyday);
     // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More (from the top bar) holds the rest.
     expect(labels(tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health', 'Wealth']);
     // Session AF (ADR-028, L1): Earn opens the money group, so it leads More.
-    expect(labels(more)).toEqual(['Earn', 'Markets', 'Staking', 'Governance', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
+    expect(labels(more)).toEqual(['Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
     expect(groupStarts(more, navGroupOf)).toEqual(new Map([['/app/ecosystem', 3]]));
     expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Earn', 'Markets', 'Staking', 'Governance', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings', 'Help']);
     expect(startHref(viewOf(undefined))).toBe('/app');
@@ -82,8 +86,12 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
   });
   test('Session AF (H98): Earn has no switch of its own and follows Wealth\'s; no other page moves with it', () => {
     expect(FOLLOWS_PAGE).toEqual({'/app/earn': 'wealth', '/app/governance': 'staking'});
-    expect(hrefShown(viewOf(hide('staking')), '/app/governance')).toBe(false);
-    expect(hrefShown(viewOf(undefined), '/app/governance')).toBe(true);
+    // Session AG Polish 3 (ADR-032 L19, owner Part 8): Governance needs this device's switch on and Staking shown.
+    expect(hrefShown(viewOf(hide('staking')), '/app/governance', {governance: true})).toBe(false);
+    expect(hrefShown(viewOf(undefined), '/app/governance', {governance: true})).toBe(true);
+    expect(hrefShown(viewOf(undefined), '/app/governance')).toBe(false);
+    expect(hrefShown(viewOf(undefined, true), '/app/governance', {governance: false})).toBe(false);
+    expect(pageIdForHref('/app/governance')).toBeNull();
     expect(pageIdForHref('/app/earn')).toBeNull();
     expect(hrefShown(viewOf(undefined), '/app/earn')).toBe(true);
     expect(hrefShown(viewOf(hide('wealth')), '/app/earn')).toBe(false);

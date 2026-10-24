@@ -7,7 +7,8 @@ import {TITLE, seedChecklist, settled} from './checklist-fixtures';
  * Session AG Polish (ADR-030 J14; owner Part 7): the List view, Todoist-style in our design. One section per orbit under a
  * banner in the orbit's node colour (no planets), with its count and a fold; rows with the path's own node as the
  * checkbox (matte, then lit; the nebula glyph), a second line, "+" for items taking several check-ins and ⋯; done rows
- * move into "Done · n"; "+ Add to … Orbit" opens Edit path with that orbit chosen; the keyboard moves, ticks and opens ⋯.
+ * stay in place (Session AG Polish 3, owner Part 4: no "Done · n" fold); banners and rows share one column; "+ Add to …
+ * Orbit" opens Edit path with that orbit chosen; the keyboard moves, ticks and opens ⋯.
  */
 async function open(page: Page) {
   await seedChecklist(page, {extra: {[UI_PREFS_KEY]: JSON.stringify({version: 1, checklist: {view: 'list'}})}});
@@ -16,7 +17,7 @@ async function open(page: Page) {
   await expect(page.locator('.checklist-list-view')).toBeVisible();
 }
 
-test('sections per orbit in their node colour, rows with the node as checkbox, no planets; a tick lights it and moves it into "Done · n"', async ({page}) => {
+test('sections per orbit in their node colour, rows with the node as checkbox, no planets; a tick lights it where it stands', async ({page}) => {
   await open(page);
   const sections = page.locator('.checklist-list-section');
   await expect(sections).toHaveCount(3);
@@ -56,12 +57,14 @@ test('sections per orbit in their node colour, rows with the node as checkbox, n
   expect(after.lit).toBe(true);
   expect(after.ink, 'dark words').toBe('rgb(6, 16, 42)');
   expect(after.bg).not.toBe(before.bg);
-  // A moment later it moves into the morning's "Done · 1" fold (closed), and the toast keeps Undo.
-  const fold = sections.first().locator('details.checklist-list-done');
-  await expect(fold.locator('summary')).toHaveText('Done · 1');
-  await expect(done).toBeHidden();
-  await fold.locator('summary').click();
+  // Session AG Polish 3 (owner Part 4, reference 03 pointers 1–3), moved: the ticked row stays where it is, in its orbit, in
+  // the done look — no "Done · n" fold, nothing hidden, the order unchanged, also a while later — and the toast keeps Undo.
+  const order = () => sections.first().locator('.checklist-row .checklist-row-name').allTextContents();
+  const before3 = await order();
+  await page.waitForTimeout(1500);
   await expect(done).toBeVisible();
+  expect(await order()).toEqual(before3);
+  await expect(page.locator('details.checklist-list-done, .checklist-list-done')).toHaveCount(0);
   await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
   // A row's second line says what it is.
   await expect(sections.nth(1).locator('.checklist-row-sub').first()).toContainText('Habit');
@@ -107,3 +110,20 @@ test('"+ Add to Evening Orbit" opens Edit path with Evening chosen and its name 
   await expect(edit.getByRole('textbox', {name: 'What to do'})).toBeFocused();
   await expect(edit.getByRole('radiogroup', {name: 'Orbit'}).getByRole('radio', {checked: true})).toHaveText(/Evening/);
 });
+
+test('banners and rows share one column: the banner starts at the rows\' node circle and its fold stands in the rows\' ⋯ column (Session AG Polish 3, owner Part 4)', async ({page}) => {
+  await open(page);
+  const facts = await page.locator('.checklist-list-section').evaluateAll(ss => ss.map(s => {
+    const r = (sel: string) => s.querySelector(sel)!.getBoundingClientRect();
+    const tint = r('.orbit-banner > .habit-section-summary'), fold = r('.checklist-list-fold'), node = r('.checklist-row-check');
+    // (Every row's ⋯, wherever it has a "+" or not.)
+    const mores = [...s.querySelectorAll('.checklist-row-more')].map(m => m.getBoundingClientRect());
+    return {tint: tint.left, node: node.left, foldL: fold.left, foldR: fold.right, mores: mores.map(m => ({l: m.left, r: m.right}))};
+  }));
+  expect(facts.length).toBe(3);
+  for (const f of facts) {
+    expect(Math.abs(f.tint - f.node), 'the banner starts at the node circle').toBeLessThanOrEqual(1);
+    for (const m of f.mores) { expect(Math.abs(m.l - f.foldL), 'the fold in the ⋯ column').toBeLessThanOrEqual(1); expect(Math.abs(m.r - f.foldR)).toBeLessThanOrEqual(1); }
+  }
+});
+

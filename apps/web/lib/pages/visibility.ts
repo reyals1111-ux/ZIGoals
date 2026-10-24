@@ -65,8 +65,15 @@ export function pageIdForHref(href: string): PageId | null {
  * Wealth group, so it shows and hides with Wealth; a new page id would change the strict synced settings format.
  */
 export const FOLLOWS_PAGE: Readonly<Record<string, PageId>> = {'/app/earn': 'wealth', '/app/governance': 'staking'};
+/**
+ * Session AG Polish 3 (ADR-032 L2, L19; owner Part 8): choices kept on this device beside the synced ones. Governance is
+ * hidden until the person shows it (new people and the Showcase too): its switch is `governanceShown` in the device-only
+ * Earn preferences, never an id in the synced pages format, which builds #37–#47 would refuse. It still follows Staking.
+ */
+export type DeviceShown = {governance?: boolean};
 /** Whether a navigation destination shows: Settings (and every address that is no page, like Help) always does. */
-export function hrefShown(view: PagesView, href: string): boolean {
+export function hrefShown(view: PagesView, href: string, device: DeviceShown = {}): boolean {
+  if (href === '/app/governance' && device.governance !== true) return false;
   const id = pageIdForHref(href) ?? FOLLOWS_PAGE[href] ?? null;
   return id === null || (AVAILABLE_PAGES.includes(id) && isShown(view, id));
 }

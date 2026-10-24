@@ -65,50 +65,21 @@ test('2b: a planet lights when it is reached, plays its completion then, and goe
   await expect(page.locator('.orbit-flow-segment[data-segment$=">planet:afternoon"]')).toHaveAttribute('data-light', 'both');
 });
 
-test('3: the progress bar is the day\'s nodes — one segment each in its colour, lit with its node (out of order too), dimmed on Undo', async ({page}) => {
+test('3 (Session AG Polish 3, owner Part 3: the progress bar removed): reaching the orbits is the tracker — no bar, the words count the day, and the top bar\'s controls are 44 px or more', async ({page}, info) => {
   await open(page);
-  const bar = page.locator('.checklist-progress-bar');
-  await expect(bar).toHaveAttribute('role', 'progressbar');
-  await expect(bar).toHaveAttribute('aria-valuenow', '0');
-  await expect(bar).toHaveAttribute('aria-valuemax', '4');
-  const segs = bar.locator('.checklist-progress-seg');
-  await expect(segs).toHaveCount(4);
-  // In path order, each in its node's own colour.
-  const pairs = await page.evaluate(() => {
-    const dots = [...document.querySelectorAll<HTMLElement>('.path-stage .path-dot')].map(d => getComputedStyle(d).getPropertyValue('--node').trim());
-    const seg = [...document.querySelectorAll<HTMLElement>('.checklist-progress-seg')].map(s => getComputedStyle(s).getPropertyValue('--seg').trim());
-    return {dots, seg};
-  });
-  expect(pairs.seg).toEqual(pairs.dots);
-  // Neighbours flow into each other: each segment's right end is the mix its neighbour's left end starts from.
-  const joins = await segs.evaluateAll(els => els.map(e => [getComputedStyle(e).getPropertyValue('--seg-prev').trim(), getComputedStyle(e).getPropertyValue('--seg-next').trim()]));
-  for (let i = 1; i < joins.length; i++) expect(joins[i]![0], `segment ${i} starts from its neighbour`).toBe(pairs.seg[i - 1]);
-  await expect(bar.locator('.checklist-progress-spark')).toHaveCount(0);
-  // Out of order: the third item lights its own segment, at once with its node, and the sparkle rests at its end.
-  await tick(page, 'Fictional three');
-  await expect(segs.nth(2)).toHaveAttribute('data-lit', '');
-  await expect(page.locator('.path-step[data-state=done] .path-dot')).toHaveCount(1);
-  for (const i of [0, 1, 3]) await expect(segs.nth(i)).not.toHaveAttribute('data-lit', '');
-  await expect(bar).toHaveAttribute('aria-valuenow', '1');
-  await expect(bar.locator('.checklist-progress-shine')).toHaveCount(1);
-  const spark = await page.evaluate(() => { const b = document.querySelector('.checklist-progress-bar')!.getBoundingClientRect(), s = document.querySelector('.checklist-progress-spark')!.getBoundingClientRect(); return (s.left + s.width / 2 - b.left) / b.width; });
-  expect(Math.abs(spark - .75), 'the sparkle at the end of the lit segment').toBeLessThan(.04);
-  await expect.poll(() => segs.nth(2).evaluate(e => Number(getComputedStyle(e, '::after').opacity)), {message: 'lit in neon'}).toBe(1);
-  expect(await segs.nth(0).evaluate(e => Number(getComputedStyle(e, '::after').opacity)), 'matte until done').toBe(0);
-  // Undo dims it again.
-  await undo(page);
-  await expect(segs.nth(2)).not.toHaveAttribute('data-lit', '');
-  await expect(bar).toHaveAttribute('aria-valuenow', '0');
+  // (The bar, its segments and its sparkle are gone; the words stay, and on a computer the date beside them.)
+  await expect(page.locator('.checklist-topbar [role=progressbar], .checklist-progress-bar, .checklist-progress-seg, .checklist-progress-spark')).toHaveCount(0);
   await expect(page.locator('.checklist-progress-line strong')).toHaveText('0 of 4 planets today');
-});
-
-test('3: under reduced motion a segment lights at once', async ({page}) => {
-  await page.emulateMedia({reducedMotion: 'reduce'});
-  await open(page);
-  await tick(page, 'Fictional one');
-  const seg = page.locator('.checklist-progress-seg').first();
-  await expect(seg).toHaveAttribute('data-lit', '');
-  expect(await seg.evaluate(e => [getComputedStyle(e, '::after').transitionDuration, Number(getComputedStyle(e, '::after').opacity)])).toEqual(['0s', 1]);
+  if (info.project.name !== 'mobile') await expect(page.locator('.checklist-progress-line .eyebrow')).toBeVisible();
+  await tick(page, 'Fictional three');
+  await expect(page.locator('.checklist-progress-line strong')).toHaveText('1 of 4 planets today');
+  await undo(page);
+  await expect(page.locator('.checklist-progress-line strong')).toHaveText('0 of 4 planets today');
+  // (Close, the view, the streak, quick add and the menu, where shown: 44 × 44 px or more.)
+  const sizes = await page.evaluate(() => [...document.querySelectorAll('.checklist-topbar :is(.checklist-close, .checklist-streak, .checklist-plus-button, .checklist-menu-button, .checklist-view-switch button)')]
+    .map(e => ({name: e.getAttribute('aria-label') ?? e.className.toString(), r: e.getBoundingClientRect()})).filter(x => x.r.width > 0).map(x => ({name: x.name, w: x.r.width, h: x.r.height})));
+  expect(sizes.length).toBeGreaterThanOrEqual(4);
+  for (const s of sizes) { expect(s.w, `${s.name}: wide enough`).toBeGreaterThanOrEqual(44); expect(s.h, `${s.name}: tall enough`).toBeGreaterThanOrEqual(44); }
 });
 
 test('4: the ambient sky twinkles behind everything, rests while the tab is hidden or the menu is open, and is off under reduced motion and Motion Off', async ({page}) => {
@@ -144,23 +115,42 @@ test('4: under reduced motion the sky is still — no twinkle, no shooting star'
   await expect(page.locator('.checklist-ambient i, .checklist-ambient b')).toHaveCount(0);
 });
 
-test('8: orbit consistency — one neon colour per state, each legend swatch exactly its cells, ≥ 3:1 on the panel', async ({page}) => {
-  // Twelve weeks with every state: a Perfect orbit, all planets, some planets and nothing.
+test('8 (Session AG Polish 3, owner Part 5 and amendment 1): orbit consistency in three states on one row — Nothing, Some orbits, All orbits (a Perfect orbit counts as All) — one neon colour each, each legend swatch exactly its cells, the same words in the legend, the cells\' titles and for screen readers, ≥ 3:1 on the panel', async ({page}, info) => {
+  // Twelve weeks with every state: a Perfect orbit (now All), all, some and nothing.
   const day = (back: number) => { const d = new Date(); d.setDate(d.getDate() - back); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const days = {version: 1, days: {[day(3)]: {total: 4, done: 4, perfect: true}, [day(4)]: {total: 4, done: 4}, [day(5)]: {total: 4, done: 2}, [day(6)]: {total: 4, done: 0}}};
+  // (The narrowest phone: the legend still one row.)
+  if (info.project.name === 'mobile') await page.setViewportSize({width: 320, height: 700});
   await seedChecklist(page, {path: smallDay(), extra: {'zigoals:checklist-days:v1': JSON.stringify(days)}});
   await page.goto('/app/checklist'); await settled(page);
   await expect(page.locator('dialog.checklist-overlay')).toHaveAttribute('data-loaded');
   const fold = page.locator('details.checklist-history-fold');
   if (await fold.count() && await fold.isVisible()) await fold.locator('summary').click();
-  await expect(page.locator('.checklist-heat-legend .checklist-heat-swatch')).toHaveCount(4);
+  const legend = page.locator('.checklist-heat-legend li');
+  await expect(legend).toHaveText(['Nothing', 'Some orbits', 'All orbits']);
+  await expect(page.locator('.checklist-heat-grid .checklist-heat-cell[data-level=perfect]')).toHaveCount(0);
+  // One row: every item on the same line, inside the panel.
+  const row = await legend.evaluateAll(ls => { const p = ls[0]!.closest('.checklist-history')!.getBoundingClientRect(); return {tops: ls.map(l => Math.round(l.getBoundingClientRect().top)), right: Math.max(...ls.map(l => l.getBoundingClientRect().right)), panel: p.right}; });
+  expect(new Set(row.tops).size, 'one row').toBe(1);
+  expect(row.right, 'inside the panel').toBeLessThanOrEqual(row.panel + .5);
+  // The words: each cell's title and the screen-reader list begin with its legend words, and they say what they mean.
+  const titles = await page.locator('.checklist-heat-grid .checklist-heat-cell').evaluateAll(cs => cs.map(c => [c.getAttribute('data-level'), c.getAttribute('title')] as const));
+  for (const [level, title] of titles) {
+    if (level === 'future') continue;
+    expect(title, `${level}: its title begins with its legend words`).toContain({none: 'Nothing', some: 'Some orbits', all: 'All orbits'}[level as 'none' | 'some' | 'all']!);
+  }
+  expect(titles.filter(([l]) => l === 'all').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('All orbits — all 4 items done')]));
+  expect(titles.filter(([l]) => l === 'some').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Some orbits — 2 of 4 items done')]));
+  expect(titles.filter(([l]) => l === 'none').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Nothing — none of 4 items done')]));
+  expect(titles.filter(([l]) => l === 'all')).toHaveLength(2);
+  await expect(page.locator('.checklist-history .sr-only li').first()).toContainText(/Some orbits|All orbits/);
   const facts = await page.locator('.checklist-history').evaluate(h => {
     const look = (el: Element) => { const s = getComputedStyle(el); return {bg: s.backgroundColor, img: s.backgroundImage, shadow: s.boxShadow}; };
     const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number);
     const lum = ([r, g, b]: number[]) => [r, g, b].map(v => { v! /= 255; return v! <= .03928 ? v! / 12.92 : ((v! + .055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i]!, 0);
     const plate = rgb(getComputedStyle(h).backgroundColor);
     const out: Record<string, {swatch: unknown; cell: unknown; contrast: number}> = {};
-    for (const level of ['none', 'some', 'all', 'perfect']) {
+    for (const level of ['none', 'some', 'all']) {
       const sw = h.querySelector(`.checklist-heat-swatch[data-level=${level}]`)!, cell = h.querySelector(`.checklist-heat-grid .checklist-heat-cell[data-level=${level}]`);
       // (What shows of each state on the panel: its fill, or for Nothing its teal outline, over the panel.)
       const shown = level === 'none' ? rgb(getComputedStyle(sw).boxShadow) : rgb(getComputedStyle(sw).backgroundColor);
@@ -174,6 +164,5 @@ test('8: orbit consistency — one neon colour per state, each legend swatch exa
     expect(f.swatch, `${level}: the legend swatch is exactly its cells`).toEqual(f.cell);
     expect(f.contrast, `${level}: ≥ 3:1 on the panel`).toBeGreaterThanOrEqual(3);
   }
-  expect(facts.none!.swatch, 'Nothing and Some clearly different').not.toEqual(facts.some!.swatch);
-  expect(new Set(Object.values(facts).map(f => JSON.stringify(f.swatch))).size, 'four distinct states').toBe(4);
+  expect(new Set(Object.values(facts).map(f => JSON.stringify(f.swatch))).size, 'three distinct states').toBe(3);
 });

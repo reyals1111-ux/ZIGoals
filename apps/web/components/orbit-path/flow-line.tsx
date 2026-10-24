@@ -1,6 +1,6 @@
 'use client';
 import {useId, useMemo, type CSSProperties} from 'react';
-import {flowSegments, type FlowBox, type FlowNode} from '../../lib/path/flow-geometry';
+import {flowSegments, type FlowNode, type FlowSegment} from '../../lib/path/flow-geometry';
 import './flow-line.css';
 
 /**
@@ -12,19 +12,18 @@ import './flow-line.css';
  * above and a tail runs on past the last one, fading out. `travel`: stretches a tick has just lit — a light runs along
  * each once (CSS; never under reduced motion or Motion Off, where the lit state shows at once). Decorative.
  */
-export type FlowLineProps = {w: number; h: number; nodes: FlowNode[]; seed: string; swing: number; leadFrom?: number | null; tailTo?: number | null; travel?: ReadonlySet<string>;
-  /** Session AG Polish 2, owner amendment 5 (phones): the smooth ribbon, and the boxes it keeps clear of (tabs, banners). */
-  ribbon?: boolean; obstacles?: readonly FlowBox[]};
+/** Session AG Polish 3 (ADR-032 L21; owner amendment 9): a phone passes `segments`, its river cut at each ring
+ *  (lib/path/phone-wave.ts), and draws them with the computer's strokes, glow, gradients and light. */
+export type FlowLineProps = {w: number; h: number; nodes: FlowNode[]; seed: string; swing: number; leadFrom?: number | null; tailTo?: number | null; travel?: ReadonlySet<string>; segments?: readonly FlowSegment[]};
 /** How strongly an unlit end shows (the dim, switched-off version of its colour). */
 const DIM = .26;
-export function FlowLine({w, h, nodes, seed, swing, leadFrom = null, tailTo = null, travel, ribbon = false, obstacles}: FlowLineProps) {
+export function FlowLine({w, h, nodes, seed, swing, leadFrom = null, tailTo = null, travel, segments}: FlowLineProps) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const key = nodes.map(n => `${n.id}:${Math.round(n.x)}:${Math.round(n.y)}:${n.r}:${n.inSide}:${n.outSide}${n.upright ? ':u' : ''}`).join('|');
-  const boxKey = obstacles?.map(q => `${q.id}:${Math.round(q.left)}:${Math.round(q.top)}:${Math.round(q.right)}:${Math.round(q.bottom)}`).join('|') ?? '';
+  const key = nodes.map(n => `${n.id}:${Math.round(n.x)}:${Math.round(n.y)}:${n.r}:${n.inSide}:${n.outSide}`).join('|');
   // (The curves follow the measured layout only: a tick changes the light, never the line.)
-  const shapes = useMemo(() => flowSegments(nodes.map(n => ({...n, done: false})), {w, seed, swing, leadFrom, tailTo, ...(ribbon ? {ribbon, ...(obstacles?.length ? {obstacles} : {})} : {})}),
+  const shapes = useMemo(() => segments ?? flowSegments(nodes.map(n => ({...n, done: false})), {w, seed, swing, leadFrom, tailTo}),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key, w, seed, swing, leadFrom, tailTo, ribbon, boxKey]);
+    [key, w, seed, swing, leadFrom, tailTo, segments]);
   const lit = new Map(nodes.map(n => [n.id, n.done])), colour = new Map(nodes.map(n => [n.id, n.colour]));
   const glow = `orbit-flow-glow-${uid}`;
   return <svg className="path-line orbit-flow" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" focusable="false">

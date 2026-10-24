@@ -6,10 +6,10 @@ import {seedChecklist, settled} from './checklist-fixtures';
 /**
  * Session AG Polish 2 (ADR-031; owner Part 1, references 03–06): the phone path. With twelve items and long names, at
  * 320, 375, 390 and 430 px:
- * - 1a the line flows like the computer's (owner amendment 5, ADR-031 K16): each stretch ONE cubic Bézier whose curvature
- *   changes sign at most once, never a radius under 40 px, leaving each ring in the direction it came in (under 5°) and
- *   meeting each node's ring tangentially; neighbours travel across the width (on average 30 % of the stage or more); no
- *   near-straight vertical run over 40 % of a stretch; the line inside the stage and over no tab, node, planet or banner;
+ * - 1a the line is the computer's river (Session AG Polish 3, ADR-032; it replaced amendment 5's ribbon): each stretch two
+ *   cubics joined smoothly at a waypoint (owner amendment 6), never upward, never a radius under 40 px × width / 390, through each node within 60° of the way it came,
+ *   top-in and bottom-out at each planet; the nodes reach both outer thirds; the line inside the stage and over no tab, node,
+ *   planet or banner;
  * - 1b/1c each orbit's planet stands beside its compact banner, at its height, at least 1.4 × a node;
  * - 1d every name shows whole — never cut, never "…" — and no tab covers the line, a node, a planet, a banner or ZIGi;
  * - 1e ZIGi touches no node, tab, planet or banner; nothing scrolls sideways.
@@ -20,22 +20,7 @@ const NAMES: [string, string][] = [
   ['Journal three lines before bed', 'evening'], ['Stretch', 'evening'], ['No sugar today', 'evening'],
   ['Learn Spanish', 'anytime'], ['Save €10 for the trip', 'anytime'],
 ];
-/** A cubic Bézier's point, velocity and acceleration (the test's own, independent of the app's geometry). */
 type Pt = {x: number; y: number};
-function bezier(c: Pt[], t: number) {
-  const u = 1 - t, [a, b, d, e] = c as [Pt, Pt, Pt, Pt];
-  return {p: {x: u ** 3 * a.x + 3 * u * u * t * b.x + 3 * u * t * t * d.x + t ** 3 * e.x, y: u ** 3 * a.y + 3 * u * u * t * b.y + 3 * u * t * t * d.y + t ** 3 * e.y},
-    v: {x: 3 * u * u * (b.x - a.x) + 6 * u * t * (d.x - b.x) + 3 * t * t * (e.x - d.x), y: 3 * u * u * (b.y - a.y) + 6 * u * t * (d.y - b.y) + 3 * t * t * (e.y - d.y)},
-    a: {x: 6 * u * (d.x - 2 * b.x + a.x) + 6 * t * (e.x - 2 * d.x + b.x), y: 6 * u * (d.y - 2 * b.y + a.y) + 6 * t * (e.y - 2 * d.y + b.y)}};
-}
-/** A stretch's path data as its pieces: `M x y C …` (one cubic) or `M x y L x y` (straight). */
-function pieces(d: string): {cmds: string; c: Pt[]} {
-  const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), c: Pt[] = [];
-  for (let i = 0; i + 1 < n.length; i += 2) c.push({x: n[i]!, y: n[i + 1]!});
-  return {cmds: d.replace(/[^A-Za-z]/g, ''), c: c.length === 2 ? [c[0]!, c[0]!, c[1]!, c[1]!] : c};
-}
-const unit = (v: Pt) => { const l = Math.hypot(v.x, v.y) || 1; return {x: v.x / l, y: v.y / l}; };
-const angle = (a: Pt, b: Pt) => Math.acos(Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y))) * 180 / Math.PI;
 function longPath(): Checklist {
   let r = emptyChecklist(), n = 0;
   for (const [label, section] of NAMES) r = addCustom(r, {label, colour: 'cyan', section}, {id: `ck_phone2-${++n}`, at: new Date(Date.UTC(2026, 0, 1, 0, 0, n))});
@@ -87,69 +72,8 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     await open(page);
   });
 
-  test('1a: the line flows across the width — wide and short sweeps, every stretch bent, inside the stage', async ({page}) => {
-    const m = await measure(page);
-    expect(m.sideways, 'no sideways scroll').toBeLessThanOrEqual(0);
-    const xs = m.steps.map(s => (s.dot.left + s.dot.right) / 2), travel = xs.slice(1).map((x, i) => Math.abs(x - xs[i]!));
-    const mean = travel.reduce((a, b) => a + b, 0) / travel.length;
-    expect(mean / m.stage.w, `mean sideways travel ${Math.round(mean)} px of ${Math.round(m.stage.w)}`).toBeGreaterThanOrEqual(.3);
-    expect(new Set(travel.map(t => Math.round(t / 12))).size, 'wide and short sweeps, not one step size').toBeGreaterThan(2);
-    expect(m.segments.length, 'a stretch between each two neighbours and each planet').toBeGreaterThanOrEqual(NAMES.length);
-    const straight: string[] = [], outside: string[] = [];
-    for (const s of m.segments) {
-      // The longest run of the stretch that stays within a 4 px wide vertical band: a near-straight vertical piece.
-      let longest = 0;
-      for (let i = 0; i < s.pts.length; i++) { let lo = s.pts[i]!.x, hi = lo, j = i; while (j + 1 < s.pts.length) { const x = s.pts[j + 1]!.x; lo = Math.min(lo, x); hi = Math.max(hi, x); if (hi - lo > 4) break; j++; } longest = Math.max(longest, j - i); }
-      if (longest / s.len > .4) straight.push(`${s.id}: ${Math.round(longest)} of ${Math.round(s.len)} px`);
-      if (s.pts.some(q => q.x < m.stage.left - .5 || q.x > m.stage.right + .5)) outside.push(s.id);
-    }
-    expect(straight, 'no stretch with a straight vertical run over 40 % of it').toEqual([]);
-    expect(outside, 'the line inside the stage').toEqual([]);
-    // Owner amendment 5: each stretch one smooth curve — one cubic, at most one S-turn, no radius under 40 px.
-    const FLAT = 1 / 3000, shape: string[] = [], tight: string[] = [], turns: string[] = [], joins: string[] = [], rings: string[] = [], over: string[] = [];
-    const curves = m.flow.map(s => ({...s, ...pieces(s.d)}));
-    for (const s of curves) {
-      if (s.kind === 'step' && s.cmds !== 'MC') shape.push(`${s.id}: ${s.cmds}`);
-      if (s.cmds !== 'MC' && s.cmds !== 'ML') shape.push(`${s.id}: ${s.cmds}`);
-      let flips = 0, last = 0, least = Infinity;
-      for (let i = 0; i <= 400; i++) {
-        const {v, a} = bezier(s.c, i / 400), speed = Math.hypot(v.x, v.y);
-        if (speed < 1e-6) continue;
-        const k = (v.x * a.y - v.y * a.x) / speed ** 3;
-        if (k) least = Math.min(least, 1 / Math.abs(k));
-        if (Math.abs(k) >= FLAT) { if (last && Math.sign(k) !== last) flips++; last = Math.sign(k); }
-      }
-      if (least < 40) tight.push(`${s.id}: ${Math.round(least)} px`);
-      if (flips > 1) turns.push(`${s.id}: ${flips}`);
-      // Over nothing: no banner, no tab, no ring but its own two (sampled each 1 %).
-      const [from, to] = s.kind === 'step' ? s.id.split('>') : s.kind === 'lead' ? ['', s.id.slice(5)] : [s.id.slice(5), ''];
-      for (let i = 2; i <= 98; i++) {
-        const {p} = bezier(s.c, i / 100);
-        for (const b of [...m.local.banners, ...m.local.tabs]) if (p.x > b.left + 1 && p.x < b.right - 1 && p.y > b.top + 1 && p.y < b.bottom - 1) over.push(`${s.id} over ${'id' in b ? `${b.id}'s tab` : 'a banner'}`);
-        for (const [id, q] of Object.entries(m.rings)) if (id !== from && id !== to && Math.hypot(p.x - q.x, p.y - q.y) < q.r + 2) over.push(`${s.id} over ${id}`);
-      }
-    }
-    // Tangent through every ring: each stretch leaves a ring in the direction the one before came in (under 5°), touching a
-    // node's ring at a right angle to its radius; a planet's course runs on through its centre (it passes behind it).
-    for (let i = 0; i + 1 < curves.length; i++) {
-      const a = curves[i]!, b = curves[i + 1]!, end = a.c[3]!, before = a.c[2]!.x === end.x && a.c[2]!.y === end.y ? a.c[1]! : a.c[2]!, start = b.c[0]!, after = b.c[1]!.x === start.x && b.c[1]!.y === start.y ? b.c[2]! : b.c[1]!;
-      const tin = unit({x: end.x - before.x, y: end.y - before.y}), tout = unit({x: after.x - start.x, y: after.y - start.y}), at = a.kind === 'lead' ? a.id.slice(5) : a.id.split('>')[1]!;
-      if (angle(tin, tout) >= 5) joins.push(`${at}: ${angle(tin, tout).toFixed(1)}°`);
-      const q = m.rings[at]; if (!q) continue;
-      for (const [p, t] of [[end, tin], [start, tout]] as const) {
-        if (Math.abs(Math.hypot(p.x - q.x, p.y - q.y) - q.r) > 1.5) rings.push(`${at}: the line meets it ${Math.round(Math.hypot(p.x - q.x, p.y - q.y) - q.r)} px off its rim`);
-        const radial = unit({x: p.x - q.x, y: p.y - q.y}), cross = Math.abs(t.x * radial.y - t.y * radial.x);
-        if (at.startsWith('planet:') ? cross > Math.sin(5 * Math.PI / 180) : Math.abs(t.x * radial.x + t.y * radial.y) > Math.sin(5 * Math.PI / 180)) rings.push(`${at}: ${at.startsWith('planet:') ? 'its course misses its centre' : 'not tangent to its ring'}`);
-      }
-    }
-    expect(shape, 'each stretch one cubic Bézier').toEqual([]);
-    expect(turns, 'at most one S-turn per stretch').toEqual([]);
-    expect(tight, 'no radius of curvature under 40 px').toEqual([]);
-    expect(joins, 'the line leaves each ring in the direction it came in').toEqual([]);
-    expect(rings, 'tangent to each node\'s ring, through each planet\'s centre').toEqual([]);
-    expect([...new Set(over)], 'the line over no tab, node, planet or banner').toEqual([]);
-  });
-
+  // Session AG Polish 3 (ADR-032 L21; owner amendment 9), moved: the line's own rules are the river's now (line first, nodes
+  // on the line), which checklist-phone-ag-polish-3 checks from the drawn path data.
   test('1b–1e: whole names, planets beside their banners, nothing overlapping, tabs clear of the line', async ({page}) => {
     const m = await measure(page);
     expect(m.steps).toHaveLength(NAMES.length);
@@ -160,8 +84,8 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
       if (!s.wrap) expect(s.tab.h, `${s.id}: one line`).toBeLessThan(s.lineH * 2);
       expect(s.tab.left, `${s.id}: on screen`).toBeGreaterThanOrEqual(0); expect(s.tab.right).toBeLessThanOrEqual(width);
     }
-    // Only a very long name on the narrowest phone may wrap (owner Part 1d).
-    if (width >= 375) expect(m.steps.filter(s => s.wrap).map(s => s.label), 'one line each').toEqual([]);
+    // (Session AG Polish 3, owner amendment 9, moved: was "only a very long name at 320 px may wrap" — a tab wraps to two
+    // lines only as its last resort, at any width; every name above is still whole.)
     const node = Math.min(...m.steps.map(s => s.dot.w));
     for (const b of m.banners) {
       expect(b.sphere, 'every orbit has its planet').not.toBeNull();

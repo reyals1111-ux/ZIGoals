@@ -12,7 +12,7 @@ One folder per planet id (`04` … `10`):
 
 | File | What it is |
 | --- | --- |
-| `sphere.webp` | 256×256, the planet's sphere alone on full transparency: an exact anti-aliased disc (diameter 254 px, ~1.25 px feathered edge) with its own surface and rim light. There is no starfield and no halo. Where a ring crossed in front of the sphere in the art, that strip has been retouched out, because the ring is drawn again in SVG. |
+| `sphere.webp` | 256×256, the planet's sphere alone on full transparency: an exact anti-aliased disc (diameter 254 px, ~1.25 px feathered edge, a 1-px margin that is fully clear: alpha 0 all round the file's edge) with its own surface and rim light. There is no starfield and no halo. Where a ring crossed in front of the sphere in the art, that strip has been retouched out, because the ring is drawn again in SVG. |
 | `sphere-sm.webp` | The same sphere at 128×128 (diameter 126 px). |
 | `moon-1.webp`, `moon-2.webp` | Moons as anti-aliased discs at 2× their display size next to a 128-px sphere. Planets 04 and 07 have one moon, 08 has two, the others have none. |
 
@@ -27,6 +27,8 @@ One folder per planet id (`04` … `10`):
 | 10 | green-teal sphere, wide banded ring | sphere, sphere-sm |
 
 Each planet's files total under 17 kB.
+
+Session AG Polish 3 (owner Part 2): the feather had reached the file's edge at the middle of each side (alpha up to 25 of 255). Every file's 1-px edge was cleared by rewriting only its lossless alpha chunk; the colour data is byte for byte the same. The script now keeps that edge clear, and `apps/web/tests/checklist-planet-halo.spec.ts` checks every file.
 
 ## Rings, orbits, moons and mist are drawn in code
 

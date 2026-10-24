@@ -92,6 +92,27 @@ export function zigiObstacles(stage: Element, except: Element[]): Box[] {
     .map(o => o.classList.contains('path-dot') ? ringBox(o) : o.classList.contains('path-label') ? labelBox(o) : o.getBoundingClientRect())
     .filter(r => r.right - r.left > 2 && r.bottom - r.top > 2);
 }
+/**
+ * Session AG Polish 3 (owner amendment 4, ADR-032): on a phone ZIGi's box never overlaps the line either. The drawn line's
+ * points, every 8 px along each stretch, within `range` px of a height (client coordinates); none on a computer, where
+ * ZIGi may still stand in front of the line as before.
+ */
+export function zigiLine(stage: Element, cy: number, range = 300): Box[] {
+  if (!stage.matches('[data-lanes]')) return [];
+  const svg = stage.querySelector<SVGSVGElement>('svg.orbit-flow'), out: Box[] = [];
+  if (!svg) return out;
+  const o = svg.getBoundingClientRect();
+  for (const path of svg.querySelectorAll<SVGPathElement>('.orbit-flow-segment .orbit-flow-core')) {
+    const len = typeof path.getTotalLength === 'function' ? path.getTotalLength() : 0;
+    for (let at = 0; at <= len; at += 8) {
+      const p = path.getPointAtLength(Math.min(at, len)), x = o.left + p.x, y = o.top + p.y;
+      if (Math.abs(y - cy) <= range) out.push({left: x - 3, right: x + 3, top: y - 3, bottom: y + 3});
+    }
+  }
+  return out;
+}
+/** How far ZIGi keeps from the line (px). */
+const LINE_CLEAR = 5;
 const overlap = (a: Box, b: Box, grow: number) => Math.max(0, Math.min(a.right, b.right + grow) - Math.max(a.left, b.left - grow)) * Math.max(0, Math.min(a.bottom, b.bottom + grow) - Math.max(a.top, b.top - grow));
 const GAPS = [13, 15, 18, 21, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 65, 70, 76, 82, 88, 94, 100, 110, 120, 145, 175], SHIFTS = Array.from({length: 107}, (_, i) => (i % 2 ? -1 : 1) * Math.ceil(i / 2) * 3), SCALES = [1, .985, .96, .92, .88, .85, .82, .8, .75, .7, .65, .6], SIZE = 500, NEAR = 60, STAY = 40, ARM = .31;
 /** What a place costs where ZIGi's arm would not point at its planet: at a planet already done, at one still to come, at nothing. */
@@ -118,7 +139,14 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     const aimBand = Math.max(14, body * .5);
     const seen = lastSeen.get(stage), prev = seen && performance.now() - seen.at < RECENT_MS ? seen : null;
     // (Round 8: a cheer keeps clear of its own planet's name too — no name is ever hidden for it.)
-    const others = zigiObstacles(stage, [el]);
+    // (The line's points sorted by height, so each place reads only the points beside it: a tick never waits on ZIGi.)
+    const others = zigiObstacles(stage, [el]), line = zigiLine(stage, cy).sort((p, q) => p.top - q.top);
+    const onLine = (b: Box) => {
+      let lo = 0, hi = line.length, sum = 0;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (line[m]!.bottom + LINE_CLEAR < b.top) lo = m + 1; else hi = m; }
+      for (let i = Math.max(0, lo - 2); i < line.length && line[i]!.top - LINE_CLEAR <= b.bottom; i++) sum += overlap(b, line[i]!, LINE_CLEAR);
+      return sum;
+    };
     // (A cheer's figure as it hops: wider and taller by its squash and stretch — round 9: the iteration-8 hop met a name.)
     const swept = (b: Box): Box => cheer ? {left: b.left - (b.right - b.left) * SQUASH / 2, right: b.right + (b.right - b.left) * SQUASH / 2, top: b.top - (b.bottom - b.top) * SQUASH, bottom: b.bottom} : b;
     // (At rest its arm — held out at 31 % of its height — must point at this planet, through its body. Where it passes above
@@ -142,7 +170,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
       const gapsFor = (side: Side) => [...GAPS, ...near.map(o => side === 'left' ? ring.left - o.left + CLEAR + .5 : o.right + CLEAR + .5 - ring.right).filter(g => g >= 13 && g <= 175)];
       for (const s of [side, side === 'left' ? 'right' : 'left'] as Side[]) for (const gap of gapsFor(s)) for (const dy of dys) {
         const left = s === 'right' ? ring.right + gap : ring.left - gap - w, top = cy + dy - h / 2, box = {left, top, right: left + w, bottom: top + h};
-        const hit = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
+        const near0 = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), hit = near0 > 0 ? near0 + 1 : onLine(swept(box)), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
         // (Near and level with its planet, then full size, then the open side of the wave, and pointing at it.)
         const cost = (hit > 0 || out > 0 ? 1e6 + hit + out * 1000 : 0) + gap * 1.4 + Math.abs(dy) * 1 + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s) + (h < least - .5 ? SMALL : 0);
         if (!best || cost < best.cost) best = {box, side: s, scale, cost};
@@ -158,7 +186,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
     if (prev) {
       const box = {left: sb.left + prev.x, top: sb.top + prev.y, right: sb.left + prev.x + prev.w, bottom: sb.top + prev.y + prev.h}, scale = prev.h / h0;
       const s: Side | null = box.left >= ring.right ? 'right' : box.right <= ring.left ? 'left' : null, gap = s === 'right' ? box.left - ring.right : ring.left - box.right;
-      const hit = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
+      const near0 = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), hit = near0 > 0 ? near0 + 1 : onLine(swept(box)), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
       const clear = !!s && hit === 0 && out === 0, keep = clear && cheer && (again || (gap <= 140 && box.top < ring.bottom && box.bottom > ring.top));
       if (keep || (clear && gap <= NEAR && box.top < ring.bottom && box.bottom > ring.top && scale <= 1.001 && scale >= best.scale - .02)) {
         const cost = gap * 1.4 + Math.abs((box.top + box.bottom) / 2 - cy) + (s === side ? 0 : 24) + (1 - scale) * SIZE + aim(box, s) + (prev.h < least - .5 ? SMALL : 0);

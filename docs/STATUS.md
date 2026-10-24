@@ -1,4 +1,67 @@
-# Session AG Polish 2 — The Checklist's final pass (ADR-031, Parts 0–9) (2026-10-22/23, [PR #93](https://github.com/reyals1111-ux/ZIGoals/pull/93); not merged, not deployed)
+# Session AG Polish 3 — The Checklist's last polish, phone line first (ADR-032, Parts 0–8) (2026-10-23/24, [PR #94](https://github.com/reyals1111-ux/ZIGoals/pull/94), Draft; not merged, not deployed)
+**Evidence labels:** unit = vitest from the repository root; local = the cloud sandbox, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time, against the dev server (`LOCAL_DEMO`, :3101) or a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`, :3102); gate = scratchpad captures compared with the owner's references, never committed; CI = Milestone quality on the PR head; WebKit CI = its WebKit jobs. No paid service, no secret, no deploy, no new dependency; no wallet, signing, contract, key, auth, sync, CSP, Workers or deploy-workflow change.
+**Base:** `main` `261f32a` (Alpha #48). **Rules (owner):** the brief, the approved plan, and eight owner amendments (23–24 Oct, ADR-032), each an owner decision:
+1. The legend: "Some orbits" = at least one item done but not all; "All orbits" = every item done; "Nothing" = none.
+2. No visible jump when the phone path first opens.
+3. Computers and tablets unchanged; the new spacing applies on phones only.
+4. ZIGi's box on phones never overlaps the line, a node, a name tab or the NEXT badge.
+5. Deadline unchanged: Sun 25 Oct 10:00 UTC.
+6. (MAJOR, after Part 1's first commit) The phone river, redone: reference 06, the session's own preview, stacked the nodes down one side; river v2 brought the computer's waypoint S-bows to every stretch and alternated the stations. Superseded by 7.
+7. (MAJOR, 24 Oct) River v3: every path read as the same generic zig-zag, so amendment 6's alternation rules went. The phone tries the computer's own line first (`flowSegments`, unchanged), and variety becomes a hard requirement: seeded drifts, sweeps (≥ 45 %), bows and swings, node x across the width, spaces about 90–200 px; variety tests replace amendment 6's; a strict zig-zag and reference 06 fail them; a visual gate before the next part. Superseded by 8.
+8. (FINAL METHOD, 24 Oct, after Part 8) Phone = computer × scale: the computer's own layout and line in a virtual computer column measured at 1440 × 900, every x and y × one scale; the phone's nodes, tabs (flip, then wrap) and one-row banners on top; the computer's stroke and glow; replaces 6 and 7.
+
+Decisions: `docs/architecture/ADR-032-session-ag-polish-3.md` (L1–L20). Resume file: `docs/handoff/AG_POLISH_3_RESUME.md`. Self-check captures (scratchpad): Part 1 v1 5, the river v2 gate 15, the river v3 gate 36, the amendment 8 gate 4 of 4; fix rounds: the v3 gate 1 of 2, the amendment 8 gate 1 of 1.
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: AG Polish 2 merged (`261f32a`, PR #93); run 50 failed before building (nothing deployed); run 51 deployed Alpha #48, VERIFIED (version `5c0b7920`, rollback `f0aca295` #47, floor #32); ADR-032, the resume file, Draft PR | 1 | `a5e7a7b2` | owner-reported |
+| 1 (× s) | Phone = computer × scale (owner amendment 8, L20): the computer's own layout (pinned to the real computer at 1440 × 900 within 0.05 px) and its own line in a virtual 976 px column, × s (0.47 at 390 px) into the phone's column, with the computer's strokes and glow; the phone's nodes, tabs and banners on top; the river deleted | 1 | WIP `5ea2a1d9`, `93247d09`, tests and this entry: this commit (superseded tries: v1 `0aaebc83`, `9761a2a8`; v2 `cb271c8c`; v3 `ca4012bd`) | unit, local (dev), gate |
+| 2 | No square behind planets (L12): the banner's rounded sideways clip cut the glow and mist; the shell cuts at the screen's edge now; every planet file's edge alpha cleared | 1 | `c4811e6c` | unit, local (production), CI |
+| 3 | The progress bar removed (L14): the words and the date stay; top-bar controls 44 px or more | 1 | `6c831d5c` | local (production), CI |
+| 4 | The List (L15): ticked rows stay in place (no "Done · n"); banners and rows in one column, the fold in the ⋯ column | 1 | `528fb58a`, typecheck fix `f08bec4c` | local, CI |
+| 5 | The legend (L16): Nothing, Some orbits, All orbits on one row (Perfect merged into All); the same words in the cells' titles and for screen readers | 1 | `675f127a` | local, CI |
+| 6 | The footer's Health → "= Wealth" line (L17): one smooth river (C1 quarter turns and runs, radius ≥ 40 px × width/390), magenta and pink to just before the crest, then warm gold | 1 | `f1deb358` | unit, local, gate, CI |
+| 7 | The Earn dock off by default (L18) | 3 (stored preference default) | `793c6e69` | unit, local, CI |
+| 8 | Governance hidden by default; its switch in Your pages & buttons, on this device (L2, L19) | 3 (stored preference) | `dd9569c5` | unit, frozen readers, local (production), CI |
+| Finish | This entry | 1 | this commit | — |
+
+## Tier 3, in plain words (risk → rollback)
+- **Part 7, `793c6e69` (stored preference default):** `earnPrefsOf` reads `dockShown === true` (was `!== false`). New people, the Showcase and anyone who never chose get no Earn dock on a computer; a stored choice either way is kept. *Risk:* someone who used the dock without ever touching its switch loses it until they turn it on in Settings → Earn. *Rollback:* revert the commit; nothing stored changes.
+- **Part 8, `dd9569c5` (stored preference):** Governance's switch is `governanceShown` in the device-only, loose `zigoals:earn-prefs:v1`, never an id in the synced settings v3 `pages` record (its strict `partialRecord` would make builds #37–#47 refuse the whole record; measured, L2). *Risk:* someone who used Governance from the menus finds it gone until they show it (Earn still links to it). *Rollback:* revert the commit; every build without it ignores the field, so nothing stored changes. *Proof:* `scripts/frozen-readers.mjs` passes on #37–#44 (no Earn reader there) and on #45 `8778497`, #46 `98a29b4`, #47 `b0fe242` and #48 `261f32a` (read, the field kept).
+
+## Tests and assertions changed (deliberate; none weakened)
+- **The phone path (Part 1, owner amendment 8):** the river's modules and tests are deleted (`phone-river`, its rules helper; amendment 6's and 7's tests). New `lib/path/phone-scale.test.ts` (200 seeded paths × 320/360/390/430: nodes, planets, the finale and every line path point = the computer's × s within 0.5 px; lanes at the scaled centres; the line inside the column; the virtual computer pinned to the real one measured at 1440 × 900); `checklist-phone-ag-polish-3` rewritten for 390 × 844 and 360 × 780 (the drawn line = the real computer's line, loaded at 1440 × 900, × s point by point; the computer's stroke widths and glow; tabs inside the column and off the line; names whole; no jump; ZIGi clear; the timer row); moved with the method: `path-engine` test 1 on a phone (each end at the computer's side point × s), `checklist-phone-ag-polish` (the pitch is the computer's 114 px × s, was ≥ 96 px; a tab may wrap at any width, its whole name shown), `checklist-phone-ag-polish-2` (its river test 1a removed; "only a long name at 320 may wrap" removed); `checklist-overlay-af` (tabs attached to their node; the ring bound only when nothing stands between); the computer's `flow-desktop-digest` unchanged.
+- **Planets (Part 2):** new `checklist-planet-halo` (no straight brightness cut outside a lit planet, phone and computer × Nebula, Light, Dark; every planet file clear at its edges).
+- **Progress bar (Part 3):** its tests removed with it (`checklist-ag-polish-2` Part 3 and the reduced-motion segment test, the segment and sparkle reads in `checklist-themes`, the shine in `checklist-overlay-af`); `checklist-ag-polish-2` test 3 now checks no bar, the words after a tick and its Undo, the date on a computer and 44 px controls.
+- **The List (Part 4):** `checklist-list-ag-polish` — "a ticked row moves into Done · n" → "stays in place, order unchanged"; a new alignment test (banner and rows share their left and right edges within 1 px; the chevron in the ⋯ column).
+- **The legend (Part 5):** `checklist-ag-polish-2` test 8 (three states, one row at 320, the words, swatch = cell, ≥ 3:1); `checklist`'s cell title.
+- **The footer (Part 6):** `lib/footer-ribbon.test.ts` rewritten (tangents within 1° at every join, least radius, start on the line's tangent, crest, end, colour stops); `footer-arc-af` checks its colours per piece.
+- **The Earn dock (Part 7):** `records.test` (off by default, a choice kept); `earn-dock` gains the default-off test and turns the dock on before its computer tests.
+- **Governance (Part 8):** `visibility.test` and `pages-visibility` (a new Governance test; the Showcase list without it; "Show everything again" turns it on); `brand-nav-polish`, `page-marks` (group gaps re-indexed, 15 tab stops, tablet rows 5 · 4 · 6) and `phone-shell` lists lose Governance; the switch count + 1.
+
+## Evidence
+- Unit (vitest): `lib/path` 44 (the 200-path × 4-width scale test, the measured computer pin, the computer's digest), `lib/footer-ribbon` 5, `lib/earn` and `lib/pages` and the frozen fixtures 187, the theme builder 17; typecheck and lint clean (warnings only, as on `main`); theme sheets `--check` clean.
+- Frozen readers (`scripts/frozen-readers.mjs`) with the Earn preferences holding `governanceShown`: #37–#44 (no Earn reader: the key is ignored) and #45 `8778497`, #46 `98a29b4`, #47 `b0fe242`, #48 `261f32a` (read, the field kept): all pass.
+- Local, production build of the Part 8 tree: page weights all within their lines (`/app/checklist` 469.2 of 492 kB); 42 of 90 Part 8 browser specs (`brand-nav-polish`, `page-marks`, `phone-shell`, `pages-visibility`, `governance`, `earn-path`, `earn-dock`, `money-launcher-lane-af`) passed with none failed before the run was stopped for amendment 8; on the dev server `pages-visibility` 25, `earn-dock`/`money-launcher-lane-af`/`help-page` 43 passed. Dev-server-only failures seen and checked against `main`'s code: `governance` (a proposals read made twice by React's development mode) and `brand-nav-polish` 155 (the hero star's timing); both pass in CI on `main`.
+- Earlier parts (production builds): the path, overlay and halo specs 56 passed after river v3; the Part 3 specs 48; the footer 36 + 6 on the dev server.
+- Part 1 (× s), dev server, Playwright Chromium: the virtual computer equals the real one at 1440 × 900 (every node, planet and the finale within 0.05 px; the line's path data to 0.1 px). On phones 15 of 22 path specs pass, including the drawn line = the real computer's line × s point by point, the computer's strokes and glow, names whole, no jump, ZIGi clear and the timer row. Seven fail on density (below).
+- Gate (amendment 8): 390 × 844, the 13-item and 6-item paths beside reference 05 — the computer's winding S with its loops, smaller; 4 captures, 1 fix round (tabs had sat under the next node).
+- CI: Milestone quality runs on the pushed head (see the PR); not green while the density checks below fail and while `pnpm audit` fails on every branch (zod, below).
+
+## Weights (gzip -6; budgets never raised)
+Production build of the Part 8 tree: `/app/checklist` 469.2 kB of its 492.0 kB line, the shell 394.8 of 447.0 kB, all 21 pages within their lines.
+
+## Known CI intermittents and open items
+- **Phone density (owner decision needed; assertions kept, not weakened).** At the measured scale (s = 0.47 at 390 px, 0.43 at 360, 0.39 at 320) the phone's readable pieces (62 px nodes, 14 px tabs, the one-row banner) are larger than the scaled picture, so some checks written for the earlier, airier phone layouts fail: a tab touching a neighbour's node (`checklist-phone-ag-polish-2` 1b–1e at 320–430 px, `checklist-phone-ag-polish` at 320), the first node over its banner's box at 320, a tab near its own node's icon at 320 (`path-engine` 82), and at 360 px one tab of the 13-item path over the line (amendment 8's own browser check). The owner's choice: accept these overlaps on phones (and move those assertions), or a larger scale (a narrower band or virtual column, e.g. the 0.65–0.7 the owner expected), or smaller phone pieces.
+- **CI audit (not this branch's):** since about 2026-10-23 `pnpm audit --prod --audit-level high` fails on every branch, `main` included, on GHSA-mrhx-c7xc-m3w5 (zod < 4.6.6: the app's pin 4.6.5 and walletconnect → ox → abitype); the fix is zod 4.6.5 → 4.6.6, a dependency change, waiting for the owner's "bump zod".
+- **Not done:** amendment 3's computer layout audit and theme-parity run (computers and tablets are unchanged by design: the computer's layout code is untouched and its line digest pinned); the full CI wait and taking the PR out of Draft (blocked by the two items above).
+- `scripts/frozen-readers.mjs` without `--out` drops its first SHA argument (pre-existing; not changed).
+- The branch `review/session-ag-polish-3-refs` can be deleted after this PR merges.
+
+---
+
+# Session AG Polish 2 — The Checklist's final pass (ADR-031, Parts 0–9) (2026-10-22/23, [PR #93](https://github.com/reyals1111-ux/ZIGoals/pull/93), merged into `main` as `261f32a` and deployed as Alpha #48)
 **Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`) on :3101, Playwright Chromium standing in for the Chrome channel (it plays the WebM clip), at most 2 workers, builds and browser runs one at a time; CI = Milestone quality on the PR head; WebKit CI = its required WebKit job (iPhone 15 and Desktop Safari projects). Never "Safari on an iPhone". No paid service, no secret, no deploy, no new direct dependency; three owner-approved toolchain upgrades (`next` 16.4.2, wrangler 4.148.0, `@opennextjs/cloudflare` 1.20.12).
 **Base:** `main` `b0fe242` (Alpha #47). **Rules (owner):** the brief; the approved plan; five owner amendments, each an owner decision — (1) a bounded obstacle retry for the phone line (later replaced by 5), (2) the celebration and its replay in CI's WebKit job on a phone, (3) quick-add Undo removes the habit only while it is untouched, (4) the phone orbit banner on ONE row (22 Oct, after Part 8; ADR-031 K15), (5) the phone line one smooth ribbon like the computer's (22 Oct, before Part 9; ADR-031 K16); after the session's report (23 Oct), approval of `next` 16.3.8 → 16.4.2 alone, then of wrangler 4.147.0 → 4.148.0 and `@opennextjs/cloudflare` 1.20.7 → 1.20.12 when 16.4.2 broke the packaged Alpha (ADR-031 K19). Decisions: `docs/architecture/ADR-031-session-ag-polish-2.md` (K1–K19). Resume file: `docs/handoff/AG_POLISH_2_RESUME.md`. Self-check: 16 of 20 scratchpad captures (none committed), 1 of 2 fix rounds.
 
@@ -428,6 +491,21 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #48 — 2026-10-23, `261f32a` live
+Recorded by Session AG Polish 3 (2026-10-23).
+- **Source:** `261f32afc01244bf09208d8882b1b6b73141009e`, `main` after [PR #93](https://github.com/reyals1111-ux/ZIGoals/pull/93) (Merge #93, Session AG Polish 2, "The Checklist's final pass", ADR-031), merged 2026-10-23 10:03:53 UTC. Verified: git.
+- **CI:** Milestone quality #1149 ([run 39936408273](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39936408273)) on `261f32a` (push to `main`): success on attempt 1. Verified: Actions API.
+- **A failed run first, nothing deployed:** Manual Alpha deployment run number 50 ([run 39943188787](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39943188787)), dispatched 2026-10-23 11:01:36 UTC from `main` on `261f32a`, failed in "Deployment config and regression gates" before building: `apps/web/lib/staking/execute.test.ts:116` hit its 60 s timeout and `scripts/run11/domain-review-race.test.mjs:41` failed with "fetch failed". Both passed on the same SHA in Milestone quality #1149 above; both are known intermittents. Nothing was built or deployed. Verified: Actions API (conclusion); owner-reported (causes).
+- **Deployment:** Manual Alpha deployment, run number 51 ([run 39945520241](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39945520241)), dispatched 2026-10-23 11:21:38 UTC from `main`, exact source `261f32a`; finished 11:40:23 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; live prices `VERIFIED`. Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `5c0b7920-4195-4884-934b-252941c93a55`; rollback `f0aca295-23cd-420e-83cc-c668bb61ddad` (#47). Owner-reported.
+- **Versions:** Next.js 16.4.2, wrangler 4.148.0, OpenNext Cloudflare 1.20.12 (ADR-031 K19). Owner-reported.
+- **What went live:** Session AG Polish 2 (ADR-031) on top of AG Polish (#47).
+- **Release identity:** live #48, previous #47. **Rollback floor:** stays #32.
+- **Record note:** run number 51 is Alpha #48 — with the failed run 50, the run number now runs three ahead of the Alpha count.
 
 ---
 

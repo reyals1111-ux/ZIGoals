@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useId, useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {entranceAllowed} from '../use-entrance';
-import {RIBBON_WIDTH, phoneAnchors, ribbon, wideAnchors} from '../../lib/footer-ribbon';
+import {RIBBON_WIDTH, phoneArc, ribbon, wideArc, type Paint} from '../../lib/footer-ribbon';
 
 /**
  * Session AB-Design Phase 2 → Session AD (ADR-026 Part 1) → Session AE (Part 2, ADR-027): the footer's constellation line
@@ -9,7 +9,9 @@ import {RIBBON_WIDTH, phoneAnchors, ribbon, wideAnchors} from '../../lib/footer-
  * step nodes (Goals → Habits → Health); on phones, where the steps stack, it runs down through them. Session AF (L5a,
  * Part 10.8): from Health one organic ribbon (lib/footer-ribbon.ts) — tapered, magenta to pink to the gold of "= Wealth",
  * with a soft glow — runs on past Health, turns and sweeps back into "= Wealth"; on phones it runs beneath the steps, up
- * the right edge and into the word (it supersedes ADR-027 G22's "phones keep the banner without the arc").
+ * the right edge and into the word (it supersedes ADR-027 G22's "phones keep the banner without the arc"). Session AG
+ * Polish 3 (ADR-032 L17, owner Part 6): one smooth river with no corners, on the line's own tangent out of Health, its
+ * colour along the way — magenta and pink up to just before the crest, then warm gold into the word.
  *
  * The first time the banner is seen in a visit (≥ 35 % in view; the session flag below), one sequence of about 6–7 s:
  * the line draws Goals → Habits → Health, each word appearing with its bubble; the arc rises and returns to "= Wealth"; as
@@ -96,11 +98,11 @@ function playFlare(layer: HTMLElement, frame: NonNullable<ReturnType<typeof foot
 }
 
 type Box = {l: number; t: number; w: number; h: number};
-type Geo = {w: number; h: number; d: string; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box; end?: Pt}[]; arcY: [number, number]; burst: Pt | null; twinkles: Pt[]};
+type Geo = {w: number; h: number; d: string; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box; end?: Pt; paint: Paint}[]; burst: Pt | null; twinkles: Pt[]};
 /** The room a piece's box keeps around the ribbon, so its glow is never cut. */
 const ARC_PAD = 22;
 const pathOf = (segs: Seg[]) => `M${f(segs[0]![0].x)} ${f(segs[0]![0].y)}` + segs.map(s => ` C${f(s[1].x)} ${f(s[1].y)} ${f(s[2].x)} ${f(s[2].y)} ${f(s[3].x)} ${f(s[3].y)}`).join('');
-const sameGeo = (a: Geo, b: Geo) => a.w === b.w && a.h === b.h && a.d === b.d && a.arcs.map(x => x.d).join() === b.arcs.map(x => x.d).join() && a.twinkles.length === b.twinkles.length;
+const sameGeo = (a: Geo, b: Geo) => a.w === b.w && a.h === b.h && a.d === b.d && a.arcs.map(x => x.d + JSON.stringify(x.paint)).join() === b.arcs.map(x => x.d + JSON.stringify(x.paint)).join() && a.twinkles.length === b.twinkles.length;
 
 export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivElement | null>; footer: RefObject<HTMLElement | null>}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, ''), starLayer = useRef<HTMLDivElement>(null);
@@ -117,8 +119,11 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       const wr = root.querySelector<HTMLElement>('[data-footer-wealth]')?.getBoundingClientRect();
       const wealth = wr && wr.width > 0 ? {x: wr.right - base.left + (stacked ? 6 : 8), y: wr.top - base.top + wr.height * .56} : null;
       // The ribbon: from Health's node (wider screens) or from the foot of the line under it, beneath the steps (phones).
-      const steps = el.querySelector<HTMLElement>('.site-footer-steps')?.getBoundingClientRect(), last = nodes[2]!, foot = segs.at(-1)![3];
-      const rb = !wealth ? null : stacked ? ribbon(phoneAnchors(foot, (steps ? steps.bottom - base.top : foot.y) + 12, wealth, base.width), RIBBON_WIDTH.phone, ARC_PAD, base.width - 6) : ribbon(wideAnchors(last, wealth, base.width), RIBBON_WIDTH.wide, ARC_PAD);
+      const steps = el.querySelector<HTMLElement>('.site-footer-steps')?.getBoundingClientRect(), last = nodes[2]!, tail = segs.at(-1)!, foot = tail[3];
+      // (Out of Health on the line's own tangent: the way the last piece of the line arrives.)
+      const dir = {x: tail[3].x - tail[2].x, y: tail[3].y - tail[2].y};
+      const arc = !wealth ? null : stacked ? phoneArc(foot, dir, (steps ? steps.bottom - base.top : foot.y) + 12, wealth, base.width) : wideArc(last, dir, wealth, base.width);
+      const rb = !wealth || !arc ? null : ribbon(arc.segs, stacked ? RIBBON_WIDTH.phone : RIBBON_WIDTH.wide, ARC_PAD, arc.crest, arc.r);
       const {T0, REVEAL, ARC_RISE, ARC_RETURN, WEALTH_AFTER, FLARE_AFTER, PHONE_ARC} = FOOTER_TIMING, extent = stacked ? base.height : base.width;
       const arrive = nodes.map(n => T0 + REVEAL * Math.min(1, Math.max(0, (stacked ? n.y : n.x) / extent)));
       const touch = rb && !stacked ? arrive[2]! + ARC_RISE + ARC_RETURN : arrive[2]! + WEALTH_AFTER;
@@ -134,7 +139,7 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       // The rim stars that twinkle, mapped from the artwork into the stage.
       const art = root.querySelector<HTMLElement>('.site-footer-art'), frame = art ? footerArtFrame(art, el) : null;
       const twinkles = frame ? FOOTER_RIM_STARS.map(([x, y]) => { const [px, py] = frame.map(x, y); return {x: px, y: py}; }).filter(p => p.x > 4 && p.x < base.width - 4 && p.y > -200) : [];
-      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), stars, stacked, arcs: rb ? rb.pieces.map((d, i) => ({d, box: rb.boxes[i]!, end: i === 1 ? rb.end : undefined})) : [], arcY: [rb?.samples[0]!.y ?? last.y, rb?.top ?? 0], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
+      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), stars, stacked, arcs: rb ? rb.pieces.map((d, i) => ({d, box: rb.boxes[i]!, end: i === 1 ? rb.end : undefined, paint: rb.paint[i]!})) : [], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
       // Same geometry → same state object (no re-render, so nothing resizes inside a ResizeObserver delivery).
       setGeo(g => g && sameGeo(g, next) ? g : next);
     };
@@ -176,11 +181,11 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
   }, [flare, footer, stage]);
   if (!geo) return null;
   const grad = `sf-g-${id}`, arcGrad = `sf-a-${id}`, glow = `sf-glow-${id}`;
-  // The ribbon's colour runs from Health's magenta at its start, through pink, to the gold of "= Wealth" at its height
-  // (bottom to top in the stage): the descent into the word stays gold, so it blends into the word's own warm end.
-  const arcSvg = (d: string, box: Box, i: number, end?: Pt) => <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false" style={{left: `${f(-box.l)}px`, top: `${f(-box.t)}px`}}>
+  // Session AG Polish 3 (owner Part 6): the ribbon's colour follows its way — Health's magenta into pink up to the turn,
+  // pink on up to just before the crest, then the warm gold of "= Wealth" for the last stretch into the word.
+  const arcSvg = (d: string, box: Box, i: number, paint: Paint, end?: Pt) => <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false" style={{left: `${f(-box.l)}px`, top: `${f(-box.t)}px`}}>
     <defs>
-      <linearGradient id={`${arcGrad}-${i}`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={f(geo.arcY[0])} y2={f(geo.arcY[1])}><stop offset="0" stopColor="#f06dff"/><stop offset=".45" stopColor="#ff8fd0"/><stop offset=".86" stopColor="#ffd27a"/><stop offset="1" stopColor="#ffd27a"/></linearGradient>
+      <linearGradient id={`${arcGrad}-${i}`} gradientUnits="userSpaceOnUse" x1={f(paint.x1)} y1={f(paint.y1)} x2={f(paint.x2)} y2={f(paint.y2)}>{paint.stops.map(([o, c], k) => <stop key={k} offset={o.toFixed(3)} stopColor={c}/>)}</linearGradient>
       <filter id={`${glow}-${i}`} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation={geo.stacked ? 3.5 : 6}/></filter>
       <filter id={`${glow}-${i}-dot`} x="-300%" y="-300%" width="700%" height="700%"><feGaussianBlur stdDeviation="4"/></filter>
     </defs>
@@ -201,7 +206,7 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
         {geo.stars.map((s, i) => <circle key={i} className="site-footer-star" cx={f(s.x)} cy={f(s.y)} r={i % 3 ? 1.3 : 1.9}/>)}
       </svg>
     </div></div>
-    {geo.arcs.map((a, i) => <div key={i} className="site-footer-arc" data-part={i ? 'return' : 'rise'} data-phone={geo.stacked || undefined} aria-hidden="true" style={{left: `${f(a.box.l)}px`, top: `${f(a.box.t)}px`, width: `${f(a.box.w)}px`, height: `${f(a.box.h)}px`}}><div className="site-footer-arc-in">{arcSvg(a.d, a.box, i, a.end)}</div></div>)}
+    {geo.arcs.map((a, i) => <div key={i} className="site-footer-arc" data-part={i ? 'return' : 'rise'} data-phone={geo.stacked || undefined} aria-hidden="true" style={{left: `${f(a.box.l)}px`, top: `${f(a.box.t)}px`, width: `${f(a.box.w)}px`, height: `${f(a.box.h)}px`}}><div className="site-footer-arc-in">{arcSvg(a.d, a.box, i, a.paint, a.end)}</div></div>)}
     {geo.burst && <div className="site-footer-burst" aria-hidden="true" style={{left: `${f(geo.burst.x)}px`, top: `${f(geo.burst.y)}px`}}><i/><i/><i/><i/><i/></div>}
     {geo.twinkles.map((t, i) => <span key={i} className="site-footer-twinkle" data-twinkle={i} aria-hidden="true" style={{left: `${f(t.x)}px`, top: `${f(t.y)}px`}}/>)}
   </>;
