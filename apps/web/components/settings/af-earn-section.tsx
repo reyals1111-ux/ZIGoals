@@ -18,7 +18,7 @@ export function AfEarnSection() {
   const write = (run: () => void) => { try { run(); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   return <div className="af-checklist-setting af-earn-setting">
     <label className="af-checklist-setting-row"><input type="checkbox" role="switch" checked={usable && p.dockShown} disabled={!usable} onChange={e => write(() => prefs.update(r => setEarnPref(r, {dockShown: e.target.checked})))}/>
-      <span><strong>Earn dock — on this device</strong><small>A round button on the right edge, above music, that fans out the ecosystem apps. Computers only; on a phone the apps are at the top of the Earn page and in More.</small></span>
+      <span><strong>Earn dock — on this device</strong><small>Off until you turn it on. A round button on the right edge, above music, that fans out the ecosystem apps. Computers only; on a phone the apps are at the top of the Earn page and in More.</small></span>
     </label>
     <label className="af-checklist-setting-row"><input type="checkbox" role="switch" checked={usable && p.dockFolded} disabled={!usable || !p.dockShown} onChange={e => write(() => prefs.update(r => setEarnPref(r, {dockFolded: e.target.checked})))}/>
       <span><strong>Keep the Earn dock tucked into the edge</strong><small>A small tab at the edge brings it back.</small></span>

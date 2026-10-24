@@ -71,7 +71,11 @@ describe('loose readers', () => {
     expect(() => markStep(EARN_PATH.empty(), '../x', true)).toThrow();
   });
   it('display choices default to shown, dock shown, not folded', () => {
-    expect(earnPrefsOf(EARN_PREFS.empty())).toEqual({pageShown: true, dockShown: true, dockFolded: false, dockOrder: []});
+    // Session AG Polish 3 (owner Part 7, TIER 3): the dock is off unless chosen; a stored choice either way is kept.
+    expect(earnPrefsOf(EARN_PREFS.empty())).toEqual({pageShown: true, dockShown: false, dockFolded: false, dockOrder: []});
+    expect(earnPrefsOf({version: 1, dockShown: true})).toMatchObject({dockShown: true});
+    expect(earnPrefsOf({version: 1, dockShown: false})).toMatchObject({dockShown: false});
+    expect(earnPrefsOf({version: 1, dockFolded: true})).toMatchObject({dockShown: false, dockFolded: true});
     expect(earnPrefsOf(setEarnPref({version: 1, extra: 1} as never, {dockShown: false}))).toMatchObject({dockShown: false, pageShown: true});
     expect(setEarnPref({version: 1, extra: 1} as never, {dockFolded: true})).toEqual({version: 1, extra: 1, dockFolded: true});
     expect(() => setEarnPref(EARN_PREFS.empty(), {dockOrder: Array.from({length: 13}, (_, i) => `a${i}`)})).toThrow();

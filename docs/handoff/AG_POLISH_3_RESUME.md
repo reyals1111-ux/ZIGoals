@@ -52,8 +52,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 3 | Progress bar removed; top-bar controls 44 px or more (ADR-032 L14) | done | `6c831d5c` |
 | 4 | List view: ticked rows stay in place; banners and rows in one column (ADR-032 L15) | done | `528fb58a`, typecheck fix `f08bec4c` |
 | 5 | Legend: Nothing, Some orbits, All orbits on one row; the same words everywhere (ADR-032 L16) | done | `675f127a` |
-| 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | this commit |
-| 7 | Earn dock off by default (TIER 3) | pending | |
+| 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | `f1deb358` |
+| 7 | Earn dock off by default (TIER 3, ADR-032 L18): `dockShown === true`; a stored choice kept; rollback = revert, nothing stored changes | done | this commit |
 | 8 | Governance hidden by default (TIER 3) | pending | |
 | Finish | STATUS entry, CI, out of Draft | pending | |
 
@@ -74,4 +74,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 
 ## Next step
-Part 7: the Earn dock off by default (TIER 3, stored preference default): `earnPrefsOf` → `dockShown === true`; an explicit stored choice kept; the phone's Earn strip unchanged.
+Part 8: Governance hidden by default (TIER 3, stored preference): `governanceShown` in the device-only, loose `zigoals:earn-prefs:v1` (ADR-032 L2); `hrefShown('/app/governance')` needs Staking shown and `governanceShown`; a switch in Settings → Your pages & buttons beside Chess; the route and its links keep working; frozen readers #37–#47 on a fixture with the field.

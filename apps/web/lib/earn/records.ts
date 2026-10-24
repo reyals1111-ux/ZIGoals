@@ -81,9 +81,11 @@ export function recordLesson(record: EarnAcademy, lessonId: string, change: {rea
 }
 
 // ---- Display choices ----
-/** Missing fields are the defaults: the page shown, the dock shown on computers, not folded. */
+/** Missing fields are the defaults: the page shown, the dock hidden, not folded. Session AG Polish 3 (ADR-032 L18, owner Part 7;
+ *  `TIER 3 (stored preference default)`): the Earn dock is off unless the person turns it on in Settings — new people, the
+ *  Showcase and anyone who never chose; a choice already stored (`dockShown: true` or `false`) is kept as it is. */
 export function earnPrefsOf(record: EarnPrefs): {pageShown: boolean; dockShown: boolean; dockFolded: boolean; dockOrder: string[]} {
-  return {pageShown: record.pageShown !== false, dockShown: record.dockShown !== false, dockFolded: record.dockFolded === true, dockOrder: record.dockOrder ?? []};
+  return {pageShown: record.pageShown !== false, dockShown: record.dockShown === true, dockFolded: record.dockFolded === true, dockOrder: record.dockOrder ?? []};
 }
 export function setEarnPref(record: EarnPrefs, change: Partial<Pick<EarnPrefs, 'pageShown' | 'dockShown' | 'dockFolded' | 'dockOrder'>>): EarnPrefs {
   return earnPrefsSchema.parse({...record, ...change});
