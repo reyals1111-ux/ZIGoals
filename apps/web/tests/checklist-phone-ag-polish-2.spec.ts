@@ -21,8 +21,6 @@ const NAMES: [string, string][] = [
   ['Learn Spanish', 'anytime'], ['Save €10 for the trip', 'anytime'],
 ];
 type Pt = {x: number; y: number};
-const unit = (v: Pt) => { const l = Math.hypot(v.x, v.y) || 1; return {x: v.x / l, y: v.y / l}; };
-const angle = (a: Pt, b: Pt) => Math.acos(Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y))) * 180 / Math.PI;
 function longPath(): Checklist {
   let r = emptyChecklist(), n = 0;
   for (const [label, section] of NAMES) r = addCustom(r, {label, colour: 'cyan', section}, {id: `ck_phone2-${++n}`, at: new Date(Date.UTC(2026, 0, 1, 0, 0, n))});
@@ -86,8 +84,8 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
       if (!s.wrap) expect(s.tab.h, `${s.id}: one line`).toBeLessThan(s.lineH * 2);
       expect(s.tab.left, `${s.id}: on screen`).toBeGreaterThanOrEqual(0); expect(s.tab.right).toBeLessThanOrEqual(width);
     }
-    // Only a very long name on the narrowest phone may wrap (owner Part 1d).
-    if (width >= 375) expect(m.steps.filter(s => s.wrap).map(s => s.label), 'one line each').toEqual([]);
+    // (Session AG Polish 3, owner amendment 8, moved: was "only a very long name at 320 px may wrap" — a tab may wrap as its
+    // last resort at any width; every name above is still whole.)
     const node = Math.min(...m.steps.map(s => s.dot.w));
     for (const b of m.banners) {
       expect(b.sphere, 'every orbit has its planet').not.toBeNull();

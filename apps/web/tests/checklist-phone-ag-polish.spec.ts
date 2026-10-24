@@ -1,3 +1,4 @@
+import {COMPUTER_BAND} from '../lib/path/phone-scale';
 import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
@@ -42,7 +43,7 @@ test('phones 320–430: an airy path — one-line tabs, nothing overlaps, ZIGi i
         lineH: parseFloat(getComputedStyle(step.querySelector('.orbit-tab')!).lineHeight) || 18, cut: (() => { const t = step.querySelector('.path-label-text') as HTMLElement; return t.scrollWidth > t.clientWidth + 1; })()}));
       const banners = [...stage.querySelectorAll('.path-banner')].map(box), fig = stage.querySelector('.path-zigi[data-alive] .path-zigi-figure');
       const dialog = stage.closest('dialog')!;
-      return {steps, banners, zigi: fig ? box(fig) : null, sideways: dialog.scrollWidth - dialog.clientWidth, vw: innerWidth};
+      return {steps, banners, zigi: fig ? box(fig) : null, sideways: dialog.scrollWidth - dialog.clientWidth, vw: innerWidth, stageW: stage.getBoundingClientRect().width};
     });
     expect(m.sideways, `${width}: no sideways scroll`).toBeLessThanOrEqual(0);
     expect(m.steps).toHaveLength(NAMES.length);
@@ -56,14 +57,14 @@ test('phones 320–430: an airy path — one-line tabs, nothing overlaps, ZIGi i
         if (j > i) expect(overlap(s.tab, o.tab, -2), `${width}: ${s.id}'s tab clear of ${o.id}'s tab`).toBe(false);
       });
       for (const b of m.banners) { expect(overlap(s.tab, b), `${width}: ${s.id}'s tab clear of a banner`).toBe(false); expect(overlap(s.dot, b), `${width}: ${s.id}'s node clear of a banner`).toBe(false); }
-      // The pitch: within an orbit, never closer than AG's 96 px. (Session AG Polish 3, owner Part 1.2 and 1.4, moved: was
-      // at least 1.6 × 96 px everywhere — the river's spaces now vary, some close, some far, so the first screen holds
-      // three or four nodes; the overlaps above still hold.)
-      const next = m.steps[i + 1];
-      if (next && next.section === s.section) expect((next.dot.top + next.dot.bottom) / 2 - (s.dot.top + s.dot.bottom) / 2, `${width}: ${s.id} → ${next.id}`).toBeGreaterThanOrEqual(96);
+      // The pitch (Session AG Polish 3, ADR-032 L20; owner amendment 8, moved: was "never closer than 96 px"): within an
+      // orbit, the computer's own 114 px × the phone's scale, to the pixel — the computer's rhythm, shrunk.
+      const next = m.steps[i + 1], k = (m.stageW - 12) / (COMPUTER_BAND.right - COMPUTER_BAND.left);
+      if (next && next.section === s.section) expect(Math.abs((next.dot.top + next.dot.bottom) / 2 - (s.dot.top + s.dot.bottom) / 2 - 114 * k), `${width}: ${s.id} → ${next.id}`).toBeLessThan(1);
     });
-    // Long names stay whole on one line from 375 px; at 320 a wrap keeps the full name in two lines.
-    if (width >= 375) expect(m.steps.filter(s => s.wrap).map(s => s.id), `${width}: no wrapped tab`).toEqual([]);
+    // (Session AG Polish 3, owner amendment 8, moved: a tab may wrap as its last resort at any width; a wrapped tab still
+    // shows its whole name.)
+    for (const s of m.steps) expect(s.cut, `${width}/${s.id}: the whole name shows`).toBe(false);
     // ZIGi beside the next node: touching no node, tab or banner.
     expect(m.zigi, `${width}: ZIGi on the path`).not.toBeNull();
     for (const s of m.steps) { expect(overlap(m.zigi!, s.dot), `${width}: ZIGi clear of ${s.id}'s node`).toBe(false); expect(overlap(m.zigi!, s.tab), `${width}: ZIGi clear of ${s.id}'s tab`).toBe(false); }

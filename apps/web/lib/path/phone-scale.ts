@@ -125,6 +125,8 @@ export function phoneScale(input: ScaleInput): PhoneScale {
       const c = PHONE.clear, grown = {l: box.l - c, t: box.t - c, r: box.r + c, b: box.b + c};
       // (The column first, then a ring or a banner's words, then the line: a point of it under the tab.)
       let n = box.l < PHONE.margin - .5 || box.r > input.w - PHONE.margin + .5 ? 1e5 : 0;
+      // (Its own node: the tab may start inside the ring, never over the glyph in its middle.)
+      if (Math.max(box.l - node.x, 0, node.x - box.r) ** 2 + Math.max(box.t - node.y, 0, node.y - box.b) ** 2 < 18 ** 2) n += 1e3;
       for (const ring of rings) if (ring.id !== st.id && Math.max(grown.l - ring.x, 0, ring.x - grown.r) ** 2 + Math.max(grown.t - ring.y, 0, ring.y - grown.b) ** 2 < ring.r ** 2) n += 1e3;
       for (const w of words) if (hits(grown, w)) n += 1e3;
       for (const p of line) if (p.x > grown.l && p.x < grown.r && p.y > grown.t && p.y < grown.b) n += 1;

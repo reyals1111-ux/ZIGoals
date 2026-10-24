@@ -1,3 +1,4 @@
+import {COMPUTER_BAND} from '../lib/path/phone-scale';
 import {expect, test} from '@playwright/test';
 import {TITLE, seedChecklist, settled} from './checklist-fixtures';
 
@@ -35,14 +36,19 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
   // the phone's swing), so a phone is checked as a computer is — at greater strength than the river's check it replaces
   // (rims within 2 px, on within 60°): each stretch leaves and enters at a side point (a planet: its bottom and top rims),
   // straight down at both. On a phone the finale, in the column's middle, takes the line in at its top rim, straight down.
-  const phone = (page.viewportSize()?.width ?? 1440) <= 640;
+  // Session AG Polish 3 (ADR-032 L20; owner amendment 8), moved at equal strength: a phone's line is the computer's line × s,
+  // so its ends are the computer's side points (a planet's rims) × s — the computer's radii × s about each drawn centre,
+  // inside the phone's larger node, which is drawn over them; the finale as on a computer.
+  const phone = (page.viewportSize()?.width ?? 1440) <= 640, stageW = await stage.evaluate(el => el.getBoundingClientRect().width);
+  const k = phone ? (stageW - 12) / (COMPUTER_BAND.right - COMPUTER_BAND.left) : 1;
   for (const s of geometry) {
-    const side = (p: number[], c: {x: number; y: number; r: number}) => Math.min(Math.hypot(p[0]! - (c.x - c.r), p[1]! - c.y), Math.hypot(p[0]! - (c.x + c.r), p[1]! - c.y));
-    const rim = (p: number[], c: {x: number; y: number; r: number}, top: boolean) => Math.hypot(p[0]! - c.x, p[1]! - (c.y + (top ? -c.r : c.r)));
     const [fromId, toId] = s.id.split('>');
-    const topIn = toId!.startsWith('planet:') || (phone && toId === 'finale:end');
-    expect(fromId!.startsWith('planet:') ? rim(s.start, s.from, false) : side(s.start, s.from), `${s.id}: leaves its ring at a side point (a planet: its bottom rim)`).toBeLessThan(2);
-    expect(topIn ? rim(s.end, s.to, true) : side(s.end, s.to), `${s.id}: enters its ring at a side point (a planet: its top rim)`).toBeLessThan(2);
+    const radius = (id: string, c: {r: number}) => phone ? (id.startsWith('planet:') ? 64 : id === 'finale:end' ? 44 : 40) * k : c.r;
+    const side = (p: number[], c: {x: number; y: number; r: number}, id: string) => Math.min(Math.hypot(p[0]! - (c.x - radius(id, c)), p[1]! - c.y), Math.hypot(p[0]! - (c.x + radius(id, c)), p[1]! - c.y));
+    const rim = (p: number[], c: {x: number; y: number; r: number}, top: boolean, id: string) => Math.hypot(p[0]! - c.x, p[1]! - (c.y + (top ? -radius(id, c) : radius(id, c))));
+    const topIn = toId!.startsWith('planet:');
+    expect(fromId!.startsWith('planet:') ? rim(s.start, s.from, false, fromId!) : side(s.start, s.from, fromId!), `${s.id}: leaves its ring at a side point (a planet: its bottom rim)`).toBeLessThan(2);
+    expect(topIn ? rim(s.end, s.to, true, toId!) : side(s.end, s.to, toId!), `${s.id}: enters its ring at a side point (a planet: its top rim)`).toBeLessThan(2);
     expect(Math.abs(s.startDir[0]!), `${s.id}: leaves straight down`).toBeLessThan(.2); expect(s.startDir[1]!).toBeGreaterThan(0);
     expect(Math.abs(s.endDir[0]!), `${s.id}: arrives straight down`).toBeLessThan(.2); expect(s.endDir[1]!).toBeGreaterThan(0);
   }

@@ -56,8 +56,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | `f1deb358` |
 | 7 | Earn dock off by default (TIER 3, ADR-032 L18): `dockShown === true`; a stored choice kept; rollback = revert, nothing stored changes | done | this commit |
 | 8 | Governance hidden by default (TIER 3, ADR-032 L2, L19): `governanceShown` in the device-only Earn preferences; the switch after Chess; frozen readers #37–#48 pass | done | `dd9569c5` |
-| 1 (×s) | Owner amendment 8: phone = computer × scale (ADR-032 L20); the river deleted | done (one 360 px tab over the line, reported) | WIP `5ea2a1d9`, this commit |
-| Finish | STATUS entry, CI, out of Draft | pending | |
+| 1 (×s) | Owner amendment 8: phone = computer × scale (ADR-032 L20); the river deleted | done; density checks reported to the owner | WIP `5ea2a1d9`, `93247d09`, tests moved + STATUS: the final commit |
+| Finish | STATUS entry written; CI and out of Draft wait on the owner's density decision and "bump zod" | partly | the final commit |
 
 ## River v3 (owner amendment 7): what the literal port needed to change, and why (ADR-032 L13)
 - **Kept as is:** the line. A phone draws the computer's `flowSegments` itself, unchanged (side points, straight down; same side → a bow past both rims, across → a swing through the middle; seeded per stretch), with the phone's swing min(150, 0.4 × the column) = 146 px at 390. A unit test checks the model's line equals it.
@@ -77,4 +77,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `scripts/frozen-readers.mjs` run without `--out` drops its first SHA argument (`i !== outAt + 1` with `outAt = -1`); pre-existing, not changed here. Pass `--out` (or list the SHAs after it).
 
 ## Next step
-Finish: run `checklist-phone-ag-polish-2`, `path-engine`, `checklist-overlay-af` on phones and fix what the new layout breaks; the STATUS entry (eight amendments; Tier 3 with rollback; evidence; the one open tab); push; CI; out of Draft; report.
+Owner decisions: (1) phone density — accept overlaps on phones (move the listed assertions), a larger scale, or smaller phone pieces (STATUS, "Known CI intermittents and open items"); (2) "bump zod" for the audit. Then CI green, out of Draft, report.
