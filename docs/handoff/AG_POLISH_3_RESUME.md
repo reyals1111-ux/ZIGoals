@@ -51,8 +51,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | `c4811e6c` |
 | 3 | Progress bar removed; top-bar controls 44 px or more (ADR-032 L14) | done | `6c831d5c` |
 | 4 | List view: ticked rows stay in place; banners and rows in one column (ADR-032 L15) | done | `528fb58a`, typecheck fix `f08bec4c` |
-| 5 | Legend: Nothing, Some orbits, All orbits on one row; the same words everywhere (ADR-032 L16) | done | this commit |
-| 6 | Footer line | pending | |
+| 5 | Legend: Nothing, Some orbits, All orbits on one row; the same words everywhere (ADR-032 L16) | done | `675f127a` |
+| 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | this commit |
 | 7 | Earn dock off by default (TIER 3) | pending | |
 | 8 | Governance hidden by default (TIER 3) | pending | |
 | Finish | STATUS entry, CI, out of Draft | pending | |
@@ -74,4 +74,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 
 ## Next step
-Part 6: the footer's Health → "= Wealth" line — magenta/pink to just before the crest, then warm gold; one smooth S with no corners (radius ≥ 40 × w/390); a tangent-continuity test (`components/footer/footer-path.tsx`, `lib/footer-ribbon.ts`).
+Part 7: the Earn dock off by default (TIER 3, stored preference default): `earnPrefsOf` → `dockShown === true`; an explicit stored choice kept; the phone's Earn strip unchanged.
