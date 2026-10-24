@@ -10,7 +10,7 @@ import {EARN_ACADEMY_KEY, EARN_PATH_KEY, EARN_PREFS_KEY} from '../af-earn-keys';
  *
  *   zigoals:earn-path:v1     {version: 1, steps?: {[stepId]: {done?, at?}}, todayCard?: 'auto' | 'dismissed', visited?: string[]}
  *   zigoals:earn-academy:v1  {version: 1, lessons?: {[lessonId]: {read?, score?, passedAt?, attempts?}}}
- *   zigoals:earn-prefs:v1    {version: 1, pageShown?, dockShown?, dockFolded?, dockOrder?: string[]}
+ *   zigoals:earn-prefs:v1    {version: 1, pageShown?, dockShown?, dockFolded?, dockOrder?: string[], governanceShown?}
  */
 const id = z.string().regex(/^[a-z0-9][a-z0-9-]{0,47}$/);
 const stamp = z.iso.datetime({offset: true});
@@ -40,6 +40,8 @@ export const earnPrefsSchema = z.looseObject({
   dockShown: z.boolean().optional(),
   dockFolded: z.boolean().optional(),
   dockOrder: z.array(id).max(MAX_DOCK).optional(),
+  /** Session AG Polish 3 (ADR-032 L2, L19; owner Part 8): Governance in the navigation, on this device (absent: hidden). */
+  governanceShown: z.boolean().optional(),
 });
 export type EarnPrefs = z.infer<typeof earnPrefsSchema>;
 export const EARN_PREFS: DeviceRecordSpec<EarnPrefs> = {key: EARN_PREFS_KEY, schema: earnPrefsSchema, empty: () => ({version: 1 as const})};
@@ -81,12 +83,14 @@ export function recordLesson(record: EarnAcademy, lessonId: string, change: {rea
 }
 
 // ---- Display choices ----
-/** Missing fields are the defaults: the page shown, the dock hidden, not folded. Session AG Polish 3 (ADR-032 L18, owner Part 7;
- *  `TIER 3 (stored preference default)`): the Earn dock is off unless the person turns it on in Settings — new people, the
- *  Showcase and anyone who never chose; a choice already stored (`dockShown: true` or `false`) is kept as it is. */
-export function earnPrefsOf(record: EarnPrefs): {pageShown: boolean; dockShown: boolean; dockFolded: boolean; dockOrder: string[]} {
-  return {pageShown: record.pageShown !== false, dockShown: record.dockShown === true, dockFolded: record.dockFolded === true, dockOrder: record.dockOrder ?? []};
+/** Missing fields are the defaults: the page shown, the dock hidden, not folded, Governance hidden. Session AG Polish 3 (ADR-032
+ *  L18, owner Part 7; `TIER 3 (stored preference default)`): the Earn dock is off unless the person turns it on in Settings —
+ *  new people, the Showcase and anyone who never chose; a choice already stored (`dockShown: true` or `false`) is kept as it
+ *  is. (L19, owner Part 8; `TIER 3 (stored preference)`): Governance leaves the navigation until the person shows it under
+ *  Your pages & buttons; its page and every link to it keep working. */
+export function earnPrefsOf(record: EarnPrefs): {pageShown: boolean; dockShown: boolean; dockFolded: boolean; dockOrder: string[]; governanceShown: boolean} {
+  return {pageShown: record.pageShown !== false, dockShown: record.dockShown === true, dockFolded: record.dockFolded === true, dockOrder: record.dockOrder ?? [], governanceShown: record.governanceShown === true};
 }
-export function setEarnPref(record: EarnPrefs, change: Partial<Pick<EarnPrefs, 'pageShown' | 'dockShown' | 'dockFolded' | 'dockOrder'>>): EarnPrefs {
+export function setEarnPref(record: EarnPrefs, change: Partial<Pick<EarnPrefs, 'pageShown' | 'dockShown' | 'dockFolded' | 'dockOrder' | 'governanceShown'>>): EarnPrefs {
   return earnPrefsSchema.parse({...record, ...change});
 }

@@ -54,7 +54,7 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 5 | Legend: Nothing, Some orbits, All orbits on one row; the same words everywhere (ADR-032 L16) | done | `675f127a` |
 | 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | `f1deb358` |
 | 7 | Earn dock off by default (TIER 3, ADR-032 L18): `dockShown === true`; a stored choice kept; rollback = revert, nothing stored changes | done | this commit |
-| 8 | Governance hidden by default (TIER 3) | pending | |
+| 8 | Governance hidden by default (TIER 3, ADR-032 L2, L19): `governanceShown` in the device-only Earn preferences; the switch after Chess; frozen readers #37–#48 pass | done | this commit |
 | Finish | STATUS entry, CI, out of Draft | pending | |
 
 ## River v3 (owner amendment 7): what the literal port needed to change, and why (ADR-032 L13)
@@ -72,6 +72,7 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 ## Open items found on the way
 - **CI audit (not this branch's):** since about 2026-10-23, `pnpm audit --prod --audit-level high` fails on every branch, `main` included, on GHSA-mrhx-c7xc-m3w5: zod < 4.6.6, the app's own pin 4.6.5 and walletconnect → ox → abitype. The fix is the patch release, zod 4.6.5 → 4.6.6. It is a dependency change, so it waits for the owner (asked in the session chat).
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
+- `scripts/frozen-readers.mjs` run without `--out` drops its first SHA argument (`i !== outAt + 1` with `outAt = -1`); pre-existing, not changed here. Pass `--out` (or list the SHAs after it).
 
 ## Next step
-Part 8: Governance hidden by default (TIER 3, stored preference): `governanceShown` in the device-only, loose `zigoals:earn-prefs:v1` (ADR-032 L2); `hrefShown('/app/governance')` needs Staking shown and `governanceShown`; a switch in Settings → Your pages & buttons beside Chess; the route and its links keep working; frozen readers #37–#47 on a fixture with the field.
+Finish: the STATUS entry (parts and commits, Tier 3 commits with their rollback, evidence types, "not merged, not deployed"); a production build with the focused specs; amendment 3's layout audit and theme parity on a computer; push; full CI green on the final head (known intermittents one re-run); the PR out of Draft; the short report.

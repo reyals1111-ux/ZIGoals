@@ -78,7 +78,7 @@
 @media(max-width:900px) { .app-nav a[data-group-start="3"] { grid-column-start:1; } }
 /* Session AF Gate C (design critique): the tablet header's grid read 8, then 2, then 6 (the money group broke across two
    rows), and "Your Financial Orbit" showed only at these widths. Each group now has its own row, the columns as many as
-   the largest group (`--nav-cols`, set by app-nav.tsx), so the rows read 5 · 5 · 6 in the Showcase and no item stands
+   the largest group (`--nav-cols`, set by app-nav.tsx), so the rows read 5 · 4 · 6 in the Showcase (Governance hidden since Session AG Polish 3) and no item stands
    alone; the tagline stays where the computer and the phone keep it (the phone's More sheet). */
 @media (min-width: 541px) and (max-width: 900px) {
   :root .app-nav { grid-template-columns: repeat(var(--nav-cols, 6), minmax(0, 1fr)); }

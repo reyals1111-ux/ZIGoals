@@ -6,9 +6,15 @@ import {isPhone, mainNav, openMore} from './phone-nav';
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 const SETTINGS = 'zigoals:settings:v1', MIRROR = 'zigoals:pages-view:v1', AT = '2026-10-07T09:00:00.000Z';
 // Session AF (ADR-028 H98): Earn follows Wealth's switch, so it is listed only where Wealth is.
-const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Governance', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
-/** Every page, Chess included (Session W Part 14): what "Show everything again" and the Showcase show. */
+// Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until this device's switch shows it.
+const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
+/** Every page, Chess included (Session W Part 14): what "Show everything again" shows (Governance too, on this device). */
 const EVERY = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Governance', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings'];
+/** The Showcase: every page but Governance (Session AG Polish 3, owner Part 8: hidden in the Showcase too). */
+const SHOWCASE = EVERY.filter(label => label !== 'Governance');
+/** A list with Governance in its place, after Staking. */
+const withGovernance = (labels: string[]) => { const at = labels.indexOf('Staking') + 1; return [...labels.slice(0, at), 'Governance', ...labels.slice(at)]; };
+const PREFS = 'zigoals:earn-prefs:v1';
 /** Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. */
 const withChecklist = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, 'Checklist'] : [...labels.slice(0, at), 'Checklist', ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
@@ -76,7 +82,8 @@ test('every switch sits on its name\'s row, before the name, at its full size', 
   await seed(page, {[SETTINGS]: settingsWith()});
   await page.goto('/app/settings');
   const rows = section(page).locator('label.pages-switch');
-  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length);
+  // (Session AG Polish 3: and Governance's switch on this device, after Chess.)
+  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 1);
   const placed = await rows.evaluateAll(labels => labels.map(label => {
     const input = label.querySelector('input')!.getBoundingClientRect(), name = label.querySelector('span')!.getBoundingClientRect();
     return {name: label.textContent, beside: input.right <= name.left && Math.abs(input.top + input.height / 2 - (name.top + name.height / 2)) < 6, size: `${Math.round(input.width)}x${Math.round(input.height)}`};
@@ -163,12 +170,15 @@ test('"Show everything again" asks first: Cancel changes nothing; confirming sho
   await confirm.getByRole('button', {name: 'Cancel', exact: true}).click();
   await expect(reset).toBeFocused();
   expect(await page.evaluate(k => localStorage.getItem(k), SETTINGS)).toBe(before);
+  expect(await stored(page, PREFS)).toBeNull();
   await reset.click();
   await card.getByRole('button', {name: 'Show everything', exact: true}).click();
   await expect(card.getByRole('status')).toHaveText('Every page and button shows again.');
   const record = await stored(page, SETTINGS);
   for (const id of [...AVAILABLE_PAGES, ...AVAILABLE_BUTTONS]) expect(record.pages.items[id].v).toBe('shown');
   expect(record.pages.start.id).toBe('habits');
+  // (Session AG Polish 3: Governance too, by its switch on this device.)
+  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: true});
   await expectNav(page, EVERY);
 });
 
@@ -194,18 +204,72 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
   await expect(page.getByTestId('ai-launcher')).toBeVisible();
 });
 
-test('Showcase shows every page and keeps a choice in the tab, never in this device\'s storage', async ({page}) => {
+test('Showcase shows every page but Governance and keeps a choice in the tab, never in this device\'s storage', async ({page}) => {
   await seed(page, {});
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await expectNav(page, EVERY, true);
+  await expectNav(page, SHOWCASE, true);
   await page.goto('/app/settings');
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await section(page).getByRole('switch', {name: 'Activity', exact: true}).click();
   await expect(section(page)).toContainText('In Showcase these choices last for this tab only.');
-  await expectNav(page, EVERY.filter(label => label !== 'Activity'), true);
+  await expectNav(page, SHOWCASE.filter(label => label !== 'Activity'), true);
+  // Governance's switch keeps its choice in the tab too.
+  await section(page).getByRole('switch', {name: 'Governance', exact: true}).click();
+  await expect(section(page).getByRole('status')).toHaveText('Governance shows on this device.');
+  await expectNav(page, withGovernance(SHOWCASE.filter(label => label !== 'Activity')), true);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
+});
+
+// Session AG Polish 3 (ADR-032 L2, L19; owner Part 8): Governance leaves the navigation until the person shows it. Its switch
+// sits after Chess and keeps the choice on this device (the loose Earn preferences), never in the synced settings, whose
+// strict pages format builds #37–#47 would refuse with an id they do not know. It still follows Staking, and the page and
+// Earn's links to it keep working.
+test('Governance: hidden by default; its switch after Chess shows it on this device, after Staking; the page and its links keep working', async ({page}) => {
+  await seed(page, {[SETTINGS]: settingsWith()});
+  await page.goto('/app/governance');
+  await expect(page.getByRole('heading', {level: 1, name: 'Governance'})).toBeVisible();
+  await expect(page.getByRole('region', {name: 'Hidden page'})).toHaveCount(0);
+  await expectNav(page, ALL);
+  await page.goto('/app/settings');
+  const card = section(page), governance = card.getByRole('switch', {name: 'Governance', exact: true});
+  await expect(governance).not.toBeChecked();
+  const names = (await card.locator('fieldset.pages-switches').first().locator('label.pages-switch').allTextContents()).map(name => name.trim());
+  expect(names.indexOf('Chess')).toBeGreaterThan(0);
+  expect(names.indexOf('Governance')).toBe(names.indexOf('Chess') + 1);
+  await expect(card.getByText('On this device. It shows while Staking shows; Earn links to it either way.', {exact: true})).toBeVisible();
+  const synced = await page.evaluate(k => localStorage.getItem(k), SETTINGS);
+  await governance.click();
+  await expect(card.getByRole('status')).toHaveText('Governance shows on this device.');
+  await expect(governance).toBeChecked();
+  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: true});
+  // Nothing synced changes, and the device mirror of the synced choice stays as it was.
+  expect(await page.evaluate(k => localStorage.getItem(k), SETTINGS)).toBe(synced);
+  expect(await page.evaluate(k => localStorage.getItem(k), MIRROR)).toBeNull();
+  await expectNav(page, withGovernance(ALL));
+  await expect(card.locator('.pages-preview .sr-only')).toContainText('Staking, Governance, Portfolio');
+  await page.reload();
+  await expectNav(page, withGovernance(ALL));
+  // It follows Staking: hidden with it, back with it.
+  const staking = section(page).getByRole('switch', {name: 'Staking', exact: true});
+  await staking.click();
+  await expect(section(page).getByRole('status')).toHaveText('Staking is hidden. You can show it again here at any time.');
+  await expectNav(page, ALL.filter(label => label !== 'Staking'));
+  await staking.click();
+  await expect(section(page).getByRole('status')).toHaveText('Staking shows again.');
+  await expectNav(page, withGovernance(ALL));
+  await section(page).getByRole('switch', {name: 'Governance', exact: true}).click();
+  await expect(section(page).getByRole('status')).toHaveText('Governance is hidden. You can show it again here at any time.');
+  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: false});
+  await expectNav(page, ALL);
+  // Hidden, its page still opens from Earn.
+  await page.goto('/app/earn');
+  const open = page.locator('main a[href="/app/governance"]:visible').first();
+  await expect(open).toBeVisible();
+  await open.click();
+  await page.waitForURL('**/app/governance');
+  await expect(page.getByRole('heading', {level: 1, name: 'Governance'})).toBeVisible();
 });
 
 test('a focused navigation entry that disappears hands focus to the page', async ({page}) => {

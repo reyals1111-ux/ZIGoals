@@ -1,10 +1,13 @@
 'use client';
 import './pages-settings.css';
 import Link from 'next/link';
-import {useRef, useState} from 'react';
+import {Fragment, useRef, useState} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {useShowcase} from '../showcase-controls';
 import {useLauncherRecord} from '../ai/use-launcher-record';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {EARN_PREFS, earnPrefsOf, setEarnPref} from '../../lib/earn/records';
+import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {NAV_ITEMS} from '../app-nav';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 import {settingsGroupIn} from '../../lib/vault/w-homes';
@@ -22,10 +25,13 @@ const NOTES: Partial<Record<VisibilityId, string>> = {
  * Settings → "Your pages & buttons" (Session W Part 2, owner decision W4): a switch per page and button, the start page,
  * a preview of the sidebar and the phone tab bar, and "Show everything again". Each switch saves at once as a stamped
  * choice in settings v3 `pages` (synced with the settings, docs/product/SYNC_HOMES.md); Settings and Help have no switch.
+ * Session AG Polish 3 (ADR-032 L2, L19; owner Part 8): Governance's switch sits after Chess and is kept on this device
+ * (`governanceShown` in `zigoals:earn-prefs:v1`), never in the synced pages format; it is off until the person turns it on.
  */
 export function PagesSettings() {
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
-  const showcase = useShowcase(), launcher = useLauncherRecord();
+  const showcase = useShowcase(), launcher = useLauncherRecord(), prefs = useDeviceRecord(EARN_PREFS);
+  const governance = earnPrefsOf(prefs.data).governanceShown, prefsUsable = prefs.loaded && !prefs.unreadable;
   const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [confirming, setConfirming] = useState(false);
   const resetButton = useRef<HTMLButtonElement>(null);
   const ready = settings.loaded && !settings.error;
@@ -35,8 +41,13 @@ export function PagesSettings() {
     return updateSettingsGroup('pages', change).then(() => setMessage({text: done}), (error: unknown) => setMessage({text: error instanceof Error ? error.message : 'Could not save.', failed: true}));
   };
   const toggle = (id: VisibilityId, label: string, on: boolean) => void save(pages => withChoice(pages, id, on, new Date().toISOString()), on ? `${label} shows again.` : `${label} is hidden. You can show it again here at any time.`);
+  const showGovernance = (on: boolean) => {
+    setMessage(null);
+    try { prefs.update(r => setEarnPref(r, {governanceShown: on})); setMessage({text: on ? 'Governance shows on this device.' : 'Governance is hidden. You can show it again here at any time.'}); }
+    catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
+  };
   const visible = visiblePages(view), start = startPage(view);
-  const nav = NAV_ITEMS.filter(([href]) => hrefShown(view, href)), {tabs, more} = phoneTabs(nav);
+  const nav = NAV_ITEMS.filter(([href]) => hrefShown(view, href, {governance})), {tabs, more} = phoneTabs(nav);
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
   // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
   const summary = `Sidebar: ${nav.map(([, label]) => label).join(', ')}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
@@ -47,10 +58,19 @@ export function PagesSettings() {
       <div className="pages-settings-grid">
         <fieldset className="pages-switches">
           <legend>Pages</legend>
-          {AVAILABLE_PAGES.map(id => <label key={id} className="pages-switch">
-            <input type="checkbox" role="switch" checked={isShown(view, id)} onChange={e => toggle(id, PAGE_LABEL[id], e.currentTarget.checked)}/>
-            <span>{PAGE_LABEL[id]}</span>
-          </label>)}
+          {AVAILABLE_PAGES.map(id => <Fragment key={id}>
+            <label className="pages-switch">
+              <input type="checkbox" role="switch" checked={isShown(view, id)} onChange={e => toggle(id, PAGE_LABEL[id], e.currentTarget.checked)}/>
+              <span>{PAGE_LABEL[id]}</span>
+            </label>
+            {id === 'chess' && <div className="pages-switch-row">
+              <label className="pages-switch">
+                <input type="checkbox" role="switch" checked={prefsUsable && governance} disabled={!prefsUsable} aria-describedby="pages-note-governance" onChange={e => showGovernance(e.currentTarget.checked)}/>
+                <span>Governance</span>
+              </label>
+              <small className="pages-switch-note" id="pages-note-governance">On this device. It shows while Staking shows; Earn links to it either way.</small>
+            </div>}
+          </Fragment>)}
         </fieldset>
         <fieldset className="pages-switches">
           <legend>Buttons</legend>
@@ -83,7 +103,7 @@ export function PagesSettings() {
       {confirming ? <div className="pages-reset-confirm" role="group" aria-labelledby="pages-reset-question">
         <p id="pages-reset-question">Show every page and button again? Your start page stays as it is.</p>
         <div className="actions">
-          <button type="button" className="primary" autoFocus onClick={() => { setConfirming(false); void save(pages => showEverything(pages, new Date().toISOString()), 'Every page and button shows again.').then(() => resetButton.current?.focus()); }}>Show everything</button>
+          <button type="button" className="primary" autoFocus onClick={() => { setConfirming(false); try { prefs.update(r => setEarnPref(r, {governanceShown: true})); } catch { /* this device refused: Governance stays as it was */ } void save(pages => showEverything(pages, new Date().toISOString()), 'Every page and button shows again.').then(() => resetButton.current?.focus()); }}>Show everything</button>
           <button type="button" className="quiet" onClick={() => { setConfirming(false); requestAnimationFrame(() => resetButton.current?.focus()); }}>Cancel</button>
         </div>
       </div> : <button ref={resetButton} type="button" className="secondary" onClick={() => setConfirming(true)}>Show everything again</button>}

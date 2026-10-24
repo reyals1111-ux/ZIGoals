@@ -8,7 +8,7 @@ import '../checklist/checklist-setting.css';
 
 /**
  * Session AF chunk 2 (Part 5: P5.3, P1.30; ADR-028 H27, H72): the Earn switches on this device — the lead mounts it in
- * Settings beside "Your pages & buttons". The Earn dock (on by default; computers only, phones have the Earn page's strip
+ * Settings beside "Your pages & buttons". The Earn dock (off until turned on since Session AG Polish 3, ADR-032 L18; computers only, phones have the Earn page's strip
  * and More), whether it sits tucked into the screen's edge, and Today's Earn card. Display choices in
  * `zigoals:earn-prefs:v1` and the Today card's choice in `zigoals:earn-path:v1`; never in the synced pages record.
  */
