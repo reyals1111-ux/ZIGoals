@@ -43,7 +43,7 @@ export function turtle(start: Pt, heading: number, moves: readonly Move[]): {seg
     if ('line' in m) {
       if (m.line > 1e-6) { const u = {x: Math.cos(h), y: Math.sin(h)}, q = {x: p.x + u.x * m.line, y: p.y + u.y * m.line}; segs.push([p, {x: p.x + u.x * m.line / 3, y: p.y + u.y * m.line / 3}, {x: p.x + u.x * m.line * 2 / 3, y: p.y + u.y * m.line * 2 / 3}, q]); p = q; }
     } else {
-      const parts = Math.max(1, Math.ceil(Math.abs(m.turn) / (Math.PI / 2) - 1e-9)), step = m.turn / parts, s = Math.sign(m.turn) || 1;
+      const parts = Math.max(1, Math.ceil(Math.abs(m.turn) / (Math.PI / 2) - 1e-9)), step = m.turn / parts, s = m.turn < 0 ? -1 : 1;
       for (let i = 0; i < parts; i++) {
         const n0 = {x: -Math.sin(h) * s, y: Math.cos(h) * s}, c = {x: p.x + n0.x * m.r, y: p.y + n0.y * m.r}, h1 = h + step, n1 = {x: -Math.sin(h1) * s, y: Math.cos(h1) * s};
         const q = {x: c.x - n1.x * m.r, y: c.y - n1.y * m.r}, k = 4 / 3 * Math.tan(Math.abs(step) / 4) * m.r;
