@@ -115,23 +115,42 @@ test('4: under reduced motion the sky is still — no twinkle, no shooting star'
   await expect(page.locator('.checklist-ambient i, .checklist-ambient b')).toHaveCount(0);
 });
 
-test('8: orbit consistency — one neon colour per state, each legend swatch exactly its cells, ≥ 3:1 on the panel', async ({page}) => {
-  // Twelve weeks with every state: a Perfect orbit, all planets, some planets and nothing.
+test('8 (Session AG Polish 3, owner Part 5 and amendment 1): orbit consistency in three states on one row — Nothing, Some orbits, All orbits (a Perfect orbit counts as All) — one neon colour each, each legend swatch exactly its cells, the same words in the legend, the cells\' titles and for screen readers, ≥ 3:1 on the panel', async ({page}, info) => {
+  // Twelve weeks with every state: a Perfect orbit (now All), all, some and nothing.
   const day = (back: number) => { const d = new Date(); d.setDate(d.getDate() - back); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const days = {version: 1, days: {[day(3)]: {total: 4, done: 4, perfect: true}, [day(4)]: {total: 4, done: 4}, [day(5)]: {total: 4, done: 2}, [day(6)]: {total: 4, done: 0}}};
+  // (The narrowest phone: the legend still one row.)
+  if (info.project.name === 'mobile') await page.setViewportSize({width: 320, height: 700});
   await seedChecklist(page, {path: smallDay(), extra: {'zigoals:checklist-days:v1': JSON.stringify(days)}});
   await page.goto('/app/checklist'); await settled(page);
   await expect(page.locator('dialog.checklist-overlay')).toHaveAttribute('data-loaded');
   const fold = page.locator('details.checklist-history-fold');
   if (await fold.count() && await fold.isVisible()) await fold.locator('summary').click();
-  await expect(page.locator('.checklist-heat-legend .checklist-heat-swatch')).toHaveCount(4);
+  const legend = page.locator('.checklist-heat-legend li');
+  await expect(legend).toHaveText(['Nothing', 'Some orbits', 'All orbits']);
+  await expect(page.locator('.checklist-heat-grid .checklist-heat-cell[data-level=perfect]')).toHaveCount(0);
+  // One row: every item on the same line, inside the panel.
+  const row = await legend.evaluateAll(ls => { const p = ls[0]!.closest('.checklist-history')!.getBoundingClientRect(); return {tops: ls.map(l => Math.round(l.getBoundingClientRect().top)), right: Math.max(...ls.map(l => l.getBoundingClientRect().right)), panel: p.right}; });
+  expect(new Set(row.tops).size, 'one row').toBe(1);
+  expect(row.right, 'inside the panel').toBeLessThanOrEqual(row.panel + .5);
+  // The words: each cell's title and the screen-reader list begin with its legend words, and they say what they mean.
+  const titles = await page.locator('.checklist-heat-grid .checklist-heat-cell').evaluateAll(cs => cs.map(c => [c.getAttribute('data-level'), c.getAttribute('title')] as const));
+  for (const [level, title] of titles) {
+    if (level === 'future') continue;
+    expect(title, `${level}: its title begins with its legend words`).toContain({none: 'Nothing', some: 'Some orbits', all: 'All orbits'}[level as 'none' | 'some' | 'all']!);
+  }
+  expect(titles.filter(([l]) => l === 'all').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('All orbits — all 4 items done')]));
+  expect(titles.filter(([l]) => l === 'some').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Some orbits — 2 of 4 items done')]));
+  expect(titles.filter(([l]) => l === 'none').map(([, t]) => t)).toEqual(expect.arrayContaining([expect.stringContaining('Nothing — none of 4 items done')]));
+  expect(titles.filter(([l]) => l === 'all')).toHaveLength(2);
+  await expect(page.locator('.checklist-history .sr-only li').first()).toContainText(/Some orbits|All orbits/);
   const facts = await page.locator('.checklist-history').evaluate(h => {
     const look = (el: Element) => { const s = getComputedStyle(el); return {bg: s.backgroundColor, img: s.backgroundImage, shadow: s.boxShadow}; };
     const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number);
     const lum = ([r, g, b]: number[]) => [r, g, b].map(v => { v! /= 255; return v! <= .03928 ? v! / 12.92 : ((v! + .055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [.2126, .7152, .0722][i]!, 0);
     const plate = rgb(getComputedStyle(h).backgroundColor);
     const out: Record<string, {swatch: unknown; cell: unknown; contrast: number}> = {};
-    for (const level of ['none', 'some', 'all', 'perfect']) {
+    for (const level of ['none', 'some', 'all']) {
       const sw = h.querySelector(`.checklist-heat-swatch[data-level=${level}]`)!, cell = h.querySelector(`.checklist-heat-grid .checklist-heat-cell[data-level=${level}]`);
       // (What shows of each state on the panel: its fill, or for Nothing its teal outline, over the panel.)
       const shown = level === 'none' ? rgb(getComputedStyle(sw).boxShadow) : rgb(getComputedStyle(sw).backgroundColor);
@@ -145,6 +164,5 @@ test('8: orbit consistency — one neon colour per state, each legend swatch exa
     expect(f.swatch, `${level}: the legend swatch is exactly its cells`).toEqual(f.cell);
     expect(f.contrast, `${level}: ≥ 3:1 on the panel`).toBeGreaterThanOrEqual(3);
   }
-  expect(facts.none!.swatch, 'Nothing and Some clearly different').not.toEqual(facts.some!.swatch);
-  expect(new Set(Object.values(facts).map(f => JSON.stringify(f.swatch))).size, 'four distinct states').toBe(4);
+  expect(new Set(Object.values(facts).map(f => JSON.stringify(f.swatch))).size, 'three distinct states').toBe(3);
 });

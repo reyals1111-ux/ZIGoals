@@ -4541,16 +4541,6 @@
         background-color: #ffffff12;
         color: var(--text, #f0f5ff)
     }
-    .checklist-list-done > summary:not(#\-) {
-        color: var(--text-secondary, #b7c8de)
-    }
-    .checklist-list-done > summary:not(#\-)::before {
-        border-right-color: currentColor;
-        border-bottom-color: currentColor
-    }
-    .checklist-list-done > summary:focus-visible:not(#\-) {
-        outline-color: var(--orbit)
-    }
     .checklist-list-add:not(#\-) {
         border-color: currentcolor;
         background-image: none;
@@ -4760,11 +4750,6 @@
         background-image: none;
         background-color: #23eaff;
         box-shadow: none
-    }
-    .checklist-heat-cell[data-level=perfect]:not(#\-) {
-        background-image: none;
-        background-color: #f06dff;
-        box-shadow: 0 0 8px #f06dffb3
     }
     .checklist-heat-cell[data-level=future]:not(#\-) {
         background-image: none;

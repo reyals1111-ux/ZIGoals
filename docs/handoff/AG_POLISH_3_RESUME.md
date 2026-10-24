@@ -50,8 +50,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 1 v3 | River v3, owner amendment 7 (ADR-032 L13): the computer's `flowSegments` on the phone, a seeded walk for the nodes | done | `ca4012bd` |
 | 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | `c4811e6c` |
 | 3 | Progress bar removed; top-bar controls 44 px or more (ADR-032 L14) | done | `6c831d5c` |
-| 4 | List view: ticked rows stay in place; banners and rows in one column (ADR-032 L15) | done | this commit |
-| 5 | Legend | pending | |
+| 4 | List view: ticked rows stay in place; banners and rows in one column (ADR-032 L15) | done | `528fb58a`, typecheck fix `f08bec4c` |
+| 5 | Legend: Nothing, Some orbits, All orbits on one row; the same words everywhere (ADR-032 L16) | done | this commit |
 | 6 | Footer line | pending | |
 | 7 | Earn dock off by default (TIER 3) | pending | |
 | 8 | Governance hidden by default (TIER 3) | pending | |
@@ -74,4 +74,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 
 ## Next step
-Part 5: the orbit consistency legend — three states on one row (Nothing, Some orbits, All orbits; Perfect into All), the same words in the label, the cell titles and for screen readers (amendment 1); no wrap at 320.
+Part 6: the footer's Health → "= Wealth" line — magenta/pink to just before the crest, then warm gold; one smooth S with no corners (radius ≥ 40 × w/390); a tangent-continuity test (`components/footer/footer-path.tsx`, `lib/footer-ribbon.ts`).

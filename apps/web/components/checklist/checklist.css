@@ -517,11 +517,11 @@
 /* (Session AG Polish, pointer 11: the week's nebula hue, the state's intensity.) */
 .checklist-heat-cell[data-level=some] { background: #9273ff; box-shadow: none; }
 .checklist-heat-cell[data-level=all] { background: #23eaff; box-shadow: none; }
-.checklist-heat-cell[data-level=perfect] { background: #f06dff; box-shadow: 0 0 8px #f06dffb3; }
 .checklist-heat-cell[data-level=future] { background: transparent; box-shadow: inset 0 0 0 1px #ffffff10; }
 .checklist-heat-cell[data-today] { outline: 2px solid #ffffff; outline-offset: 1px; }
-.checklist-heat-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
-.checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; }
+/* Session AG Polish 3 (owner Part 5): three states on ONE row, down to a 320 px phone. */
+.checklist-heat-legend { list-style: none; display: flex; flex-wrap: nowrap; gap: 14px; margin: 0; padding: 0; color: #c5d3ea; font-size: 14px; }
+.checklist-heat-legend li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .checklist-heat-legend .checklist-heat-swatch { --cell: 14px; flex: none; }
 @media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat { --cell: 14px; } }
 @media (max-width: 767.98px) { .checklist-heat { --cell: 16px; } }
