@@ -118,12 +118,12 @@ test('banners and rows share one column: the banner starts at the rows\' node ci
     const tint = r('.orbit-banner > .habit-section-summary'), fold = r('.checklist-list-fold'), node = r('.checklist-row-check');
     // (Every row's ⋯, wherever it has a "+" or not.)
     const mores = [...s.querySelectorAll('.checklist-row-more')].map(m => m.getBoundingClientRect());
-    return {tint: tint.left, node: node.left, foldL: fold.left, foldR: fold.right, mores: mores.map(m => [m.left, m.right])};
+    return {tint: tint.left, node: node.left, foldL: fold.left, foldR: fold.right, mores: mores.map(m => ({l: m.left, r: m.right}))};
   }));
   expect(facts.length).toBe(3);
   for (const f of facts) {
     expect(Math.abs(f.tint - f.node), 'the banner starts at the node circle').toBeLessThanOrEqual(1);
-    for (const [l, r] of f.mores) { expect(Math.abs(l - f.foldL), 'the fold in the ⋯ column').toBeLessThanOrEqual(1); expect(Math.abs(r - f.foldR)).toBeLessThanOrEqual(1); }
+    for (const m of f.mores) { expect(Math.abs(m.l - f.foldL), 'the fold in the ⋯ column').toBeLessThanOrEqual(1); expect(Math.abs(m.r - f.foldR)).toBeLessThanOrEqual(1); }
   }
 });
 
