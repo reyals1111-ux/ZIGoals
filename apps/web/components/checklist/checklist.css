@@ -346,8 +346,11 @@
 .checklist-list-section { --orbit: #9273ff; display: grid; gap: 6px; }
 /* Session AG Polish 2 (ADR-031 K12; owner Part 6a, D-list 1–4): each section opens with the path's own Habits banner (its
    symbol, the nebula title, the count, the short fade; components/orbit-path/orbit-banner.tsx) and its fold. */
-.checklist-list-banner { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.checklist-list-banner > .orbit-banner { flex: 1 1 auto; min-width: 0; max-width: none; margin: 0; }
+/* Session AG Polish 3 (owner Part 4, reference 03 pointers 7–9): banners and rows share one column — the banner's tint
+   starts at the rows' node circle (the row's 6 px inset), and its fold chevron stands at its right end in the rows' ⋯
+   column (the row's last 44 px, 4 px in from its end). */
+.checklist-list-banner { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0 4px 0 0; }
+.checklist-list-banner > .orbit-banner { flex: 1 1 auto; min-width: 0; max-width: none; margin: 0; padding-left: 6px; }
 .checklist-list-banner > .orbit-banner > .habit-section-summary { min-width: 0; }
 .checklist-list-fold { display: grid; place-items: center; flex: none; width: 44px; min-width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #dfe9fb; font-size: 22px; cursor: pointer; }
 .checklist-list-fold span { display: inline-block; transform: rotate(90deg); transition: transform 180ms ease; }
@@ -384,16 +387,11 @@
 .checklist-row-plus { min-height: 44px; min-width: 44px; padding: 0 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--orbit) 50%, transparent); background: color-mix(in srgb, var(--orbit) 14%, transparent); color: var(--text, #f0f5ff); font: inherit; font-size: 14px; font-weight: 750; cursor: pointer; white-space: nowrap; }
 .checklist-row-plus::after { content: ''; position: absolute; }
 .checklist-row-plus:focus-visible, .checklist-row-more:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
-.checklist-row-more { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted, #a4b2cd); cursor: pointer; }
+.checklist-row-plus { grid-column: 3; }
+.checklist-row-more { grid-column: 4; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted, #a4b2cd); cursor: pointer; }
 .checklist-row-more:hover, .checklist-row-more[aria-expanded=true] { background: #ffffff12; color: var(--text, #f0f5ff); }
 .checklist-row-panel { padding: 4px 8px 12px calc(var(--row-node) + 14px); }
 @media (max-width: 420px) { .checklist-row-unit { display: none; } .checklist-row-panel { padding-left: 8px; } }
-.checklist-list-done { margin-top: 2px; }
-.checklist-list-done > summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 999px; list-style: none; color: var(--text-secondary, #b7c8de); font-size: 15px; font-weight: 700; cursor: pointer; }
-.checklist-list-done > summary::-webkit-details-marker { display: none; }
-.checklist-list-done > summary::before { content: ''; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform 180ms ease; }
-.checklist-list-done[open] > summary::before { transform: rotate(45deg); }
-.checklist-list-done > summary:focus-visible { outline: 3px solid var(--orbit); outline-offset: 2px; }
 .checklist-list-add { justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: color-mix(in srgb, var(--orbit) 55%, #ffffff); font: inherit; font-size: 15px; font-weight: 750; cursor: pointer; }
 .checklist-list-add span { font-size: 22px; line-height: 1; margin-top: -2px; }
 .checklist-list-add:hover { background: #ffffff0d; transition-delay: 70ms; }
@@ -401,7 +399,7 @@
 :root[data-theme=light] .checklist-list-fold { color: #23264d; }
 :root[data-theme=light] .checklist-list-add { color: color-mix(in srgb, var(--orbit) 45%, #10183a); }
 :root[data-theme=light] .checklist-row-check:focus-visible { outline-color: #10183a; }
-@media (prefers-reduced-motion: reduce) { .checklist-list-fold span, .checklist-list-done > summary::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .checklist-list-fold span { transition: none; } }
 
 /* Options and Edit path (inside their sheets). */
 .checklist-options, .checklist-edit, .checklist-about { display: grid; gap: 12px; width: 100%; box-sizing: border-box; }

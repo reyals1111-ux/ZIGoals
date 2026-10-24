@@ -22,8 +22,8 @@ import type {ChecklistState} from './use-checklist';
  * path's own node as its checkbox (34 px; matte until done, lit once done, the nebula glyph, the ring's bloom on a tick),
  * the name, a second line with the real value, what it is (a habit, a goal, Health, your own) and the time it was done;
  * on the right a compact "+" for items that take more than one check-in (it logs the usual amount) and ⋯ for its
- * details and stepper. A done row moves, a moment after its bloom, into the section's "Done · n" fold; Undo stays in the
- * toast. "+ Add to Morning Orbit" ends each section (Edit path's own item form, that orbit chosen). Keyboard: the arrow
+ * details and stepper. Session AG Polish 3 (owner Part 4): a done row stays where it is, in its orbit, in the done look
+ * (no "Done · n" fold, nothing hidden); Undo stays in the toast. "+ Add to Morning Orbit" ends each section (Edit path's own item form, that orbit chosen). Keyboard: the arrow
  * keys move between rows, Space or Enter ticks, the context-menu key (or Shift+F10) opens ⋯. A phone swipes a row right
  * to tick it (the app's own swipe row). The same colours, glyphs and states as the path.
  */
@@ -35,8 +35,8 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
   const colours = checklistDisplayColours(state.record.data, state.dots);
   const sections = useMemo(() => sectionsOf(state.record.data), [state.record.data]);
   const groups = sections.map(s => ({id: s.id, label: s.label, dots: state.dots.filter(d => d.section === s.id)})).filter(g => g.dots.length);
-  const [folded, setFolded] = useState<Record<string, boolean>>({}), [doneOpen, setDoneOpen] = useState<Record<string, boolean>>({});
-  // (A row just ticked stays in place for its bloom, then moves into the fold.)
+  const [folded, setFolded] = useState<Record<string, boolean>>({});
+  // (A row just ticked blooms once.)
   const [recent, setRecent] = useState<ReadonlySet<string>>(() => new Set()), seenDone = useRef<Set<string> | null>(null);
   const doneKey = state.dots.filter(d => d.state === 'done').map(d => d.id).join('|');
   useEffect(() => {
@@ -94,7 +94,7 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
     {groups.map(g => {
       const counted = g.dots.filter(d => d.counted), doneN = counted.filter(d => d.state === 'done').length, first = g.dots[0]!, tone = PATH_COLOURS[colours.get(first.id) ?? first.colour].token;
       const banner: PathSection = {id: g.id, label: g.label, colour: colours.get(first.id) ?? first.colour, steps: []};
-      const open = !folded[g.id], waiting = g.dots.filter(d => d.state !== 'done' || recent.has(d.id)), finished = g.dots.filter(d => d.state === 'done' && !recent.has(d.id)), title = orbitTitle(g.label);
+      const open = !folded[g.id], title = orbitTitle(g.label);
       return <section key={g.id} className="checklist-list-section" data-section={g.id} aria-labelledby={`list-${g.id}`} style={{'--orbit': tone} as CSSProperties}>
         {/* Session AG Polish 2 (owner Part 6a, D-list 1–4): the path's Habits banner — symbol, nebula title, count, the short fade — and the fold. */}
         <div className="checklist-list-banner">
@@ -102,11 +102,7 @@ export function ListView({state, onAdd, arrive = null}: {state: ChecklistState; 
           <button type="button" className="checklist-list-fold" aria-expanded={open} aria-label={`${open ? 'Fold' : 'Open'} ${title}`} onClick={() => setFolded(f => ({...f, [g.id]: open}))}><span aria-hidden="true">›</span></button>
         </div>
         {open && <>
-          <ul className="checklist-list" aria-label={title}>{waiting.map(row)}</ul>
-          {finished.length > 0 && <details className="checklist-list-done" open={!!doneOpen[g.id]} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; setDoneOpen(d => ({...d, [g.id]: o})); }}>
-            <summary>Done · {finished.length}</summary>
-            <ul className="checklist-list" aria-label={`${title}, done`}>{finished.map(row)}</ul>
-          </details>}
+          <ul className="checklist-list" aria-label={title}>{g.dots.map(row)}</ul>
           {onAdd && <button type="button" className="checklist-list-add" onClick={() => onAdd(g.id)}><span aria-hidden="true">+</span> Add to {title}</button>}
         </>}
       </section>;

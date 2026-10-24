@@ -49,8 +49,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 1 v2 | River v2, owner amendment 6 (ADR-032 L10–L11) | superseded by 1 v3 | `cb271c8c` |
 | 1 v3 | River v3, owner amendment 7 (ADR-032 L13): the computer's `flowSegments` on the phone, a seeded walk for the nodes | done | `ca4012bd` |
 | 2 | No square behind planets (ADR-032 L12): the banner's rounded sideways clip cut the glow and the mist; the shell cuts at the screen's edge now; every planet file's edge is clear | done | `c4811e6c` |
-| 3 | Progress bar removed; top-bar controls 44 px or more (ADR-032 L14) | done | this commit |
-| 4 | List view | pending | |
+| 3 | Progress bar removed; top-bar controls 44 px or more (ADR-032 L14) | done | `6c831d5c` |
+| 4 | List view: ticked rows stay in place; banners and rows in one column (ADR-032 L15) | done | this commit |
 | 5 | Legend | pending | |
 | 6 | Footer line | pending | |
 | 7 | Earn dock off by default (TIER 3) | pending | |
@@ -74,4 +74,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 
 ## Next step
-Part 4: the List view — ticked rows always shown (no "Done · n" folds), the banner fold kept, banners and rows in one column (phone and computer).
+Part 5: the orbit consistency legend — three states on one row (Nothing, Some orbits, All orbits; Perfect into All), the same words in the label, the cell titles and for screen readers (amendment 1); no wrap at 320.
