@@ -27,6 +27,7 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
    - The stations alternate across the width: every 3 in a row reach both outer thirds, never 3 in one half.
    - The first screen at 390 × 844 spans ≥ 65 % with ≥ 2 turns and stations on both sides.
    - The tests must make 06 fail. A visual gate comes before Part 2. Report the numbers here.
+8. **(24 Oct, FINAL METHOD) Phone = computer × scale** (replaces 6 and 7): the computer's own layout and line in a virtual 976 px column, × s into the phone's column; readable pieces on top; tests and a 4-capture gate. See ADR-032 L20.
 7. **(MAJOR, after Part 2) River v3.** Every path had become the same zig-zag, so amendment 6's alternation rules go. The phone tries the computer's own line first; variety becomes a hard rule (seeded drifts, sweeps ≥ 45 %, bows and swings; node x across the width; spaces ≈ 90–200 px). Variety tests replace amendment 6's; a strict zig-zag and 06 fail them. A visual gate (at most 2 fix rounds) comes before the next part.
 
 ## Plan summary
@@ -54,7 +55,8 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 | 5 | Legend: Nothing, Some orbits, All orbits on one row; the same words everywhere (ADR-032 L16) | done | `675f127a` |
 | 6 | Footer line: one smooth river (C1 quarter turns and runs, radius ≥ 40 × w/390), magenta and pink to just before the crest, then gold (ADR-032 L17) | done | `f1deb358` |
 | 7 | Earn dock off by default (TIER 3, ADR-032 L18): `dockShown === true`; a stored choice kept; rollback = revert, nothing stored changes | done | this commit |
-| 8 | Governance hidden by default (TIER 3, ADR-032 L2, L19): `governanceShown` in the device-only Earn preferences; the switch after Chess; frozen readers #37–#48 pass | done | this commit |
+| 8 | Governance hidden by default (TIER 3, ADR-032 L2, L19): `governanceShown` in the device-only Earn preferences; the switch after Chess; frozen readers #37–#48 pass | done | `dd9569c5` |
+| 1 (×s) | Owner amendment 8: phone = computer × scale (ADR-032 L20); the river deleted | done (one 360 px tab over the line, reported) | WIP `5ea2a1d9`, this commit |
 | Finish | STATUS entry, CI, out of Draft | pending | |
 
 ## River v3 (owner amendment 7): what the literal port needed to change, and why (ADR-032 L13)
@@ -75,4 +77,4 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `scripts/frozen-readers.mjs` run without `--out` drops its first SHA argument (`i !== outAt + 1` with `outAt = -1`); pre-existing, not changed here. Pass `--out` (or list the SHAs after it).
 
 ## Next step
-Finish: the STATUS entry (parts and commits, Tier 3 commits with their rollback, evidence types, "not merged, not deployed"); a production build with the focused specs; amendment 3's layout audit and theme parity on a computer; push; full CI green on the final head (known intermittents one re-run); the PR out of Draft; the short report.
+Finish: run `checklist-phone-ag-polish-2`, `path-engine`, `checklist-overlay-af` on phones and fix what the new layout breaks; the STATUS entry (eight amendments; Tier 3 with rollback; evidence; the one open tab); push; CI; out of Draft; report.

@@ -37,13 +37,15 @@ export const COMPUTER_SWING = Math.min(220, COMPUTER.w * .22);
  *  and 0.55 × the swing), to the planets' right edge plus 8 px. */
 export const COMPUTER_BAND = {left: COMPUTER.w / 2 - COMPUTER_SWING * 1.55 - COMPUTER.dot / 2, right: COMPUTER.planetRight + 8};
 /** The phone's own readable pieces: its node, a tab's place and height, the finale's node, the column's margin. */
-export const PHONE = {dot: 62, tabTop: 62 * .2, tabReach: 62 * .3, tabLine: 28.5, tabLineStep: 17.5, finaleNode: 62 * 1.1, finaleFoot: 110, margin: 6, clear: 3};
+export const PHONE = {dot: 62, tabTop: 62 * .2, tabDys: [62 * .2, -14, -42, 40], tabOuts: [0, 18, 36, 54], tabReach: 62 * .3, tabLine: 28.5, tabLineStep: 17.5, finaleNode: 62 * 1.1, finaleFoot: 110, margin: 6, clear: 0};
 
 export type ScaleOrbit = {id: string; /** the planet's box width in spheres (`--ex`), or null where the orbit has no planet */ planet: number | null; steps: {id: string; side: 'left' | 'right'}[]};
 export type ScaleInput = {/** the phone stage's width */ w: number; seed: string; orbits: ScaleOrbit[]; finale: boolean;
   /** the phone planet's sphere radius, each tab's one-line width, where each banner's words end */
   planetR: number; tabs: number[]; words: number[]};
-export type PhoneLane = {x: number; y: number; side: 'left' | 'right'; wrap: boolean; maxTab: number; lines: number; zigi: 'side' | 'above'};
+/** `tabDy`: the tab's top below the node's centre (its usual place is 0.2 of a node; a tab may move up beside it);
+ *  `tabOut`: how much further out from the node than usual it starts. */
+export type PhoneLane = {x: number; y: number; side: 'left' | 'right'; wrap: boolean; maxTab: number; lines: number; zigi: 'side' | 'above'; tabDy: number; tabOut: number};
 export type PhoneScale = {s: number; dx: number; dy: number; h: number; nodes: FlowNode[]; segments: FlowSegment[]; lanes: PhoneLane[];
   banners: {top: number; planetX: number | null}[]; finale: {x: number; y: number} | null};
 
@@ -114,25 +116,28 @@ export function phoneScale(input: ScaleInput): PhoneScale {
   const steps = input.orbits.flatMap(o => o.steps);
   const lanes: PhoneLane[] = steps.map((st, i) => {
     const node = nodes.find(n => n.id === st.id)!, tab = input.tabs[i] ?? 120, other: 'left' | 'right' = st.side === 'left' ? 'right' : 'left';
-    const boxOf = (side: 'left' | 'right', width: number, lines: number): Box => {
-      const t = node.y + PHONE.tabTop, b = t + PHONE.tabLine + (lines - 1) * PHONE.tabLineStep;
-      return side === 'right' ? {l: node.x + PHONE.tabReach, t, r: node.x + PHONE.tabReach + width, b} : {l: node.x - PHONE.tabReach - width, t, r: node.x - PHONE.tabReach, b};
+    const boxOf = (side: 'left' | 'right', width: number, lines: number, dy: number, out: number): Box => {
+      const t = node.y + dy, b = t + PHONE.tabLine + (lines - 1) * PHONE.tabLineStep, reach = PHONE.tabReach + out;
+      return side === 'right' ? {l: node.x + reach, t, r: node.x + reach + width, b} : {l: node.x - reach - width, t, r: node.x - reach, b};
     };
-    const room = (side: 'left' | 'right') => side === 'right' ? input.w - PHONE.margin - node.x - PHONE.tabReach : node.x - PHONE.tabReach - PHONE.margin;
+    const room = (side: 'left' | 'right', out: number) => side === 'right' ? input.w - PHONE.margin - node.x - PHONE.tabReach - out : node.x - PHONE.tabReach - out - PHONE.margin;
     const fault = (box: Box) => {
       const c = PHONE.clear, grown = {l: box.l - c, t: box.t - c, r: box.r + c, b: box.b + c};
-      let n = box.l < PHONE.margin - .5 || box.r > input.w - PHONE.margin + .5 ? 100 : 0;
-      for (const ring of rings) if (ring.id !== st.id && Math.max(grown.l - ring.x, 0, ring.x - grown.r) ** 2 + Math.max(grown.t - ring.y, 0, ring.y - grown.b) ** 2 < ring.r ** 2) n += 10;
-      for (const w of words) if (hits(grown, w)) n += 10;
+      // (The column first, then a ring or a banner's words, then the line: a point of it under the tab.)
+      let n = box.l < PHONE.margin - .5 || box.r > input.w - PHONE.margin + .5 ? 1e5 : 0;
+      for (const ring of rings) if (ring.id !== st.id && Math.max(grown.l - ring.x, 0, ring.x - grown.r) ** 2 + Math.max(grown.t - ring.y, 0, ring.y - grown.b) ** 2 < ring.r ** 2) n += 1e3;
+      for (const w of words) if (hits(grown, w)) n += 1e3;
       for (const p of line) if (p.x > grown.l && p.x < grown.r && p.y > grown.t && p.y < grown.b) n += 1;
       return n;
     };
-    const options = ([{side: st.side, wrap: false}, {side: other, wrap: false}, {side: st.side, wrap: true}, {side: other, wrap: true}] as const).map(o => {
-      const max = o.wrap ? Math.max(80, Math.floor(room(o.side))) : tab, lines = o.wrap ? Math.max(1, Math.ceil(tab / max)) : 1;
-      return {...o, maxTab: o.wrap ? max : tab, lines, fault: fault(boxOf(o.side, o.wrap ? Math.min(tab, max) : tab, lines))};
-    });
+    // (In order: the computer's side, the other side, then each wrapped; each at its usual height, then beside the node's
+    // middle, then higher — the first that is clear, else the least in the way.)
+    const options = ([{side: st.side, wrap: false}, {side: other, wrap: false}, {side: st.side, wrap: true}, {side: other, wrap: true}] as const).flatMap(o => PHONE.tabOuts.flatMap(out => PHONE.tabDys.map(dy => {
+      const max = o.wrap ? Math.max(80, Math.floor(room(o.side, out))) : tab, lines = o.wrap ? Math.max(1, Math.ceil(tab / max)) : 1;
+      return {...o, dy, out, maxTab: o.wrap ? max : tab, lines, fault: fault(boxOf(o.side, o.wrap ? Math.min(tab, max) : tab, lines, dy, out))};
+    })));
     const pick = options.find(o => o.fault === 0) ?? options.reduce((a, b) => b.fault < a.fault ? b : a);
-    return {x: node.x, y: node.y, side: pick.side, wrap: pick.wrap && pick.lines > 1, maxTab: pick.maxTab, lines: pick.lines, zigi: 'side'};
+    return {x: node.x, y: node.y, side: pick.side, wrap: pick.wrap && pick.lines > 1, maxTab: pick.maxTab, lines: pick.lines, zigi: 'side', tabDy: pick.dy, tabOut: pick.out};
   });
   const h = Math.max(Y(layout.h), fin ? fin.y + PHONE.finaleFoot : 0, ...lanes.map(l => l.y + R + 40));
   return {s, dx, dy, h, nodes, segments, lanes, banners, finale: fin ? {x: fin.x, y: fin.y} : null};

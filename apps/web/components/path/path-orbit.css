@@ -40,8 +40,11 @@
      wrong place and then jumps; nothing fades in (it simply shows, settled). */
   .path-stage[data-variant=orbit][data-lanes] { height: var(--stage-h); padding: 0; }
   .path-stage[data-variant=orbit][data-lanes] :is(.path-section, .path-steps) { position: static; margin: 0; padding: 0; }
-  .path-stage[data-variant=orbit][data-lanes] .path-step { position: absolute; left: 0; right: 0; top: calc(var(--lane-y, 0px) - var(--dot-size) / 2); margin: 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-step { position: absolute; left: 0; right: 0; top: calc(var(--lane-y, 0px) - var(--dot-size) / 2); margin: 0; z-index: calc(2 + var(--stack, 0)); }
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { top: calc(50% + var(--tab-dy, 12.4px)); }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=right] { left: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=left] { right: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
   .path-stage[data-variant=orbit][data-lanes] .orbit-banner { position: absolute; left: 0; top: var(--banner-top, 0px); }
   .path-stage[data-variant=orbit][data-lanes] .orbit-banner > .orbit-planet { right: auto; left: calc(var(--planet-x, 0px) + 6px); translate: -50% -50%; }
   .path-stage[data-variant=orbit][data-lanes] .path-finale { position: absolute; left: var(--finale-x, 50%); top: calc(var(--finale-y, 0px) - var(--dot-size) * .55); margin: 0; translate: -50% 0; }
