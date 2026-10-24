@@ -12,8 +12,8 @@ import './flow-line.css';
  * above and a tail runs on past the last one, fading out. `travel`: stretches a tick has just lit — a light runs along
  * each once (CSS; never under reduced motion or Motion Off, where the lit state shows at once). Decorative.
  */
-/** Session AG Polish 3 (ADR-032 L20; owner amendment 8): a phone passes `segments`, the computer's own line × scale
- *  (lib/path/phone-scale.ts), and draws them with the same strokes, glow, gradients and light. */
+/** Session AG Polish 3 (ADR-032 L21; owner amendment 9): a phone passes `segments`, its river cut at each ring
+ *  (lib/path/phone-wave.ts), and draws them with the computer's strokes, glow, gradients and light. */
 export type FlowLineProps = {w: number; h: number; nodes: FlowNode[]; seed: string; swing: number; leadFrom?: number | null; tailTo?: number | null; travel?: ReadonlySet<string>; segments?: readonly FlowSegment[]};
 /** How strongly an unlit end shows (the dim, switched-off version of its colour). */
 const DIM = .26;

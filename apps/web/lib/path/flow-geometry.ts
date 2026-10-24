@@ -14,8 +14,8 @@ import {stableHash} from './orbit-colours';
  * - Every point stays inside the column (`gutter` from each side): the page never scrolls sideways.
  * Computed when the path is measured (mount, resize, fonts), never per frame.
  *
- * Session AG Polish 3 (ADR-032 L20, owner amendment 8): a phone draws the computer's own line, computed here in a virtual
- * computer column and scaled (lib/path/phone-scale.ts); a computer's line is exactly the one here, unchanged
+ * Session AG Polish 3 (ADR-032 L21, owner amendment 9): a phone draws its own river (lib/path/phone-wave.ts: the line first,
+ * the nodes on it) with this line's look; a computer's line is exactly the one here, unchanged
  * (lib/path/flow-desktop-digest.test.ts pins it).
  */
 /** A node's side point; an orbit's planet (Session AG Polish, owner Part 4) takes the line in at its top and lets it out at its bottom. */

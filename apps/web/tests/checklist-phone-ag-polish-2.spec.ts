@@ -72,8 +72,8 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     await open(page);
   });
 
-  // Session AG Polish 3 (ADR-032 L20; owner amendment 8), moved: the line's own rules (river v2/v3) are gone — on a phone
-  // the line IS the computer's line × scale, which checklist-phone-ag-polish-3 checks point by point.
+  // Session AG Polish 3 (ADR-032 L21; owner amendment 9), moved: the line's own rules are the river's now (line first, nodes
+  // on the line), which checklist-phone-ag-polish-3 checks from the drawn path data.
   test('1b–1e: whole names, planets beside their banners, nothing overlapping, tabs clear of the line', async ({page}) => {
     const m = await measure(page);
     expect(m.steps).toHaveLength(NAMES.length);
@@ -84,8 +84,8 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
       if (!s.wrap) expect(s.tab.h, `${s.id}: one line`).toBeLessThan(s.lineH * 2);
       expect(s.tab.left, `${s.id}: on screen`).toBeGreaterThanOrEqual(0); expect(s.tab.right).toBeLessThanOrEqual(width);
     }
-    // (Session AG Polish 3, owner amendment 8, moved: was "only a very long name at 320 px may wrap" — a tab may wrap as its
-    // last resort at any width; every name above is still whole.)
+    // (Session AG Polish 3, owner amendment 9, moved: was "only a very long name at 320 px may wrap" — a tab wraps to two
+    // lines only as its last resort, at any width; every name above is still whole.)
     const node = Math.min(...m.steps.map(s => s.dot.w));
     for (const b of m.banners) {
       expect(b.sphere, 'every orbit has its planet').not.toBeNull();
