@@ -32,6 +32,8 @@ export const checklistItemSchema = z.looseObject({
   section: z.string().max(40).optional(),
   defaultValue: z.number().finite().optional(),
   lastValue: z.number().finite().optional(),
+  /** Session AG Polish 3 (ADR-032 L23; TIER 3, stored format): the person's own one word on the path (≤ 12 letters shown). */
+  pathLabel: z.string().max(40).optional(),
   addedAt: STAMP,
 });
 export const checklistHealthItemSchema = z.looseObject({
@@ -47,6 +49,8 @@ export const checklistHealthItemSchema = z.looseObject({
   defaultValue: z.number().finite().optional(),
   lastValue: z.number().finite().optional(),
   unit: z.string().max(12).optional(),
+  /** Session AG Polish 3 (ADR-032 L23; TIER 3, stored format): the person's own one word on the path (≤ 12 letters shown). */
+  pathLabel: z.string().max(40).optional(),
   addedAt: STAMP,
 });
 export const checklistSectionSchema = z.looseObject({id: z.string().min(1).max(40), label: z.string().max(60), colour: WORD});

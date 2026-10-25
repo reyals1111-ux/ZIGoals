@@ -94,8 +94,10 @@ export function frozenFixture() {
   // builds #40–#47 read it with the field kept (and ignored on screen), #37–#39 have no reader.
   records[EARN_PREFS_KEY] = JSON.stringify({version: 1, pageShown: true, dockShown: true, dockFolded: false, governanceShown: true});
   checks.push({key: EARN_PREFS_KEY, module: './earn/records', spec: 'EARN_PREFS', expect: {dockShown: true, governanceShown: true}});
-  records[CHECKLIST_KEY] = JSON.stringify({version: 1, items: [{id: 'c1', kind: 'custom', label: 'Fictional piano 15 minutes', colour: 'gold', section: 'evening', addedAt: '2026-10-17T07:00:00.000Z'}]});
-  checks.push({key: CHECKLIST_KEY, module: './checklist/schema', spec: 'CHECKLIST', expect: {version: 1}});
+  records[CHECKLIST_KEY] = JSON.stringify({version: 1, items: [{id: 'c1', kind: 'custom', label: 'Fictional piano 15 minutes', colour: 'gold', section: 'evening', addedAt: '2026-10-17T07:00:00.000Z', pathLabel: 'Piano'}]});
+  // Session AG Polish 3 (owner amendment 10; TIER 3 stored format): an item's one word on the path, `pathLabel`, kept and
+  // ignored by every older build (its items are loose records).
+  checks.push({key: CHECKLIST_KEY, module: './checklist/schema', spec: 'CHECKLIST', expect: {version: 1, 'items.0.pathLabel': 'Piano'}});
   records[CHECKLIST_DAYS_KEY] = JSON.stringify({version: 1, days: {'2026-10-17': {total: 6, done: 6, perfect: true}}});
   checks.push({key: CHECKLIST_DAYS_KEY, module: './checklist/schema', spec: 'CHECKLIST_DAYS', expect: {'days.2026-10-17.perfect': true}});
   // Session AF (L2a): native staking's choices and journal (fictional address and hash).
