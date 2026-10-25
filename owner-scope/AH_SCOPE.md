@@ -280,7 +280,7 @@ Overlaps: where a picklist-2 row says "overlaps 20 Oct item X", the two are ONE 
   - the `zigi-memory` navigation stall;
   - `zigi-accept-correct:260` in Asia/Tokyo;
   - Canonical reproducibility failing on mismatched runner images. → S1
-- **AF1 / AF2 note (owner, 25 Oct):** the public IDs come AFTER this session. Prepare everything so the IDs only need to be filled in (config keys, empty-state copy, tests with placeholder-free fixtures); never invent or commit an ID.
+- **Owner, 25 Oct 22:37:** AF1, AF2 (need the owner's IDs) and AF9 (hero header stays as it is) are OUT of Session AH. Ignore their rows above.
 
 ## D. Roadmap items in scope
 - **RM4** Landing upgrade (E), `www` → apex redirect, and switching off the landing Worker's workers.dev/preview URLs. The session builds; the owner deploys locally. Also covers **F4** (landing 1.6 MB). → S1
