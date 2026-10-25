@@ -64,7 +64,15 @@ it('retains both image versions without mutating either build or weakening envir
   expect([left, right]).toEqual(originals);
   expect(verifyCandidate({ expectedCommit: commit, manifest: result, wasm })).toBe(true);
 });
-it.each(['policy', 'platform', 'arch', 'imageOS', 'rust', 'cargo', 'node', 'binaryen', 'validator', 'target', 'flags', 'locale', 'timezone', 'osRelease'])('rejects critical environment disagreement: %s even with permitted image drift', field => {
+// Session AH Part 2 (AF16): the kernel comes with the runner image. With image drift it may differ (both builds retained);
+// on the same image a different kernel is still an environment disagreement.
+it('accepts a different kernel only together with a different runner image', () => {
+  const drift = build('build-b'); drift.builds[0].runner.imageVersion = '20260907.300.1'; drift.environment.osRelease = '7.0.0-1017-azure';
+  expect(compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: drift, wasm } }).status).toBe('REPRODUCIBLE');
+  const same = build('build-b'); same.environment.osRelease = '7.0.0-1017-azure';
+  expect(() => compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: same, wasm } })).toThrow('environment disagreement');
+});
+it.each(['policy', 'platform', 'arch', 'imageOS', 'rust', 'cargo', 'node', 'binaryen', 'validator', 'target', 'flags', 'locale', 'timezone'])('rejects critical environment disagreement: %s even with permitted image drift', field => {
   const other = build('build-b'); other.builds[0].runner.imageVersion = '20260907.300.1';
   other.environment[field] = 'different';
   expect(() => compareBuilds({ expectedCommit: commit, left: { manifest: build('build-a'), wasm }, right: { manifest: other, wasm } })).toThrow();

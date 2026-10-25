@@ -67,7 +67,14 @@ export function compareBuilds({ expectedCommit, left, right }) {
   verifyBuild({ expectedCommit, ...right });
   if (left.manifest.status !== 'BUILD_VERIFIED' || right.manifest.status !== 'BUILD_VERIFIED') fail('Compare requires single-build evidence');
   if (!left.wasm.equals(right.wasm)) fail('Independent Wasm bytes differ');
-  for (const field of ['source', 'environment', 'artifact']) if (!isDeepStrictEqual(left.manifest[field], right.manifest[field])) fail(`${field} disagreement`);
+  for (const field of ['source', 'artifact']) if (!isDeepStrictEqual(left.manifest[field], right.manifest[field])) fail(`${field} disagreement`);
+  // Session AH Part 2 (AF16): the kernel (`osRelease`) ships with the hosted runner image. Two legs on different image
+  // versions (retained per build) may report different kernels — CI run 39445348581: 7.0.0-1017-azure on 20261018.339.1
+  // against 6.17.0-1022-azure on 20261012.334.1, identical Wasm bytes. On the same image the kernel must still match, and
+  // every other environment field (compiler, toolchain, flags, platform, image OS, locale, zone) must always match.
+  const {osRelease: leftKernel, ...leftEnvironment} = left.manifest.environment, {osRelease: rightKernel, ...rightEnvironment} = right.manifest.environment;
+  const sameImage = left.manifest.builds[0]?.runner?.imageVersion === right.manifest.builds[0]?.runner?.imageVersion;
+  if (!isDeepStrictEqual(leftEnvironment, rightEnvironment) || (leftKernel !== rightKernel && sameImage) || typeof leftKernel !== 'string' || typeof rightKernel !== 'string') fail('environment disagreement');
   const result = { ...structuredClone(left.manifest), status: 'REPRODUCIBLE', independentBuildCount: 2, builds: [...structuredClone(left.manifest.builds), ...structuredClone(right.manifest.builds)] };
   verifyCandidate({ expectedCommit, manifest: result, wasm: left.wasm });
   return result;
