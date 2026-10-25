@@ -33,8 +33,8 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Part 2 later: quick-add early tap, ADR M8–M10 (`e6bade8e`).
 
 ## Next step
-- Part 2 done (closing rows in ADR-033); check CI on `e6bade8e`+ when next needed.
-- Part 3 (data safety): start with the "already fixed" check of DS1–DS9, A1–A7, J2 against main and the Showcase.
+- Part 3 in progress. Done: DS1 (already safe; spec `ah-multitab`), DS4 (`9dab86af`), DS5 (`3bc64a6d`). Next: DS3, DS2, DS6, DS7, DS8, DS9, A7, J2; then the Part 3 ADR rows.
+- Shared pieces made in Part 3: `components/ui/confirm-inline.tsx` (in-place confirm), `lib/undo-removal.ts` + `components/ui/remove-with-undo.ts` (labelled Undo for removals), `tests/ah-helpers.ts`.
 
 ## Open decisions
 - None.
