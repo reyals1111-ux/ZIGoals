@@ -10,7 +10,7 @@ Read this first when resuming (fresh workspace or after a pause). Then CLAUDE.md
 5. Continue at "Next step" below.
 
 ## The plan (approved 25 Oct, with eight owner amendments in ADR-033)
-Parts in order: 0 records/RM8 · 1 security deps · 2 CI stability · 3 data safety · 4 numbers · 5 forms/limits · 6 Health + workouts · 7 Habits · 8 Goals · 9 Wealth/Markets/Portfolio · 10 Staking/Earn/Governance · 11 Today/first run · 12 Settings/Help/Activity · 13 layout/a11y/themes/speed · 14 competitor features · 15 landing/launch · 16 final sweeps · finish (STATUS last, CI green, out of Draft).
+Parts in order (Part 17 added by the owner on 25 Oct: the Health journal date drives the whole Health page + the date bar; last, before the final STATUS commit and CI round): 0 records/RM8 · 1 security deps · 2 CI stability · 3 data safety · 4 numbers · 5 forms/limits · 6 Health + workouts · 7 Habits · 8 Goals · 9 Wealth/Markets/Portfolio · 10 Staking/Earn/Governance · 11 Today/first run · 12 Settings/Help/Activity · 13 layout/a11y/themes/speed · 14 competitor features · 15 landing/launch · 16 final sweeps · finish (STATUS last, CI green, out of Draft).
 Each part starts with the "already fixed" check for its own rows (amendment 2) and closes every finding ID per row (amendment 1).
 Shared modules: one net worth, one price service, one rounding, one count per thing, one plausibility-limits module, inline field errors, confirm-or-undo.
 
@@ -29,8 +29,11 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Never `pkill -f <pattern>` with the plain pattern: it kills the calling shell (exit 144). Use `pkill -f "[n]ext-server"`.
 - Production server: `cd apps/web && TZ=UTC npx next start --hostname 127.0.0.1 --port 3100` in the background; weights `node scripts/check-weight-budget.mjs http://127.0.0.1:3100`.
 
+- Part 2 so far: `9b1dd80f` staking execute test, `ba33c973` doProbe content-length (domain-review-race), AF7 verifier (TIER 3), `75766fec` AF6, `6966c04d` source-pinning + pagehide save, `6055f5ab` layout-fixes/J055/motion/parity.
+- CI failure catalogue from AG Polish 3's 13 failed runs: `<scratchpad>/blocks/` and `<scratchpad>/logs/` (lost in a fresh workspace; the list is in ADR-033 M8 once written).
+
 ## Next step
-- Part 2: CI stability (execute.test.ts:116 first; it reproduced under full-suite load).
+- Part 2 remaining: the WebKit cancelled-request class (webkit-smoke:39, webkit-phone:27: /api/music-config, /api/push, /api/private-account, /api/earn/chain, /api/earn/oroswap "due to access control checks"); AF16 (zigi-memory:171 navigation stall, ZIGi box empty after fill in zigi-memory-af:51 / zigi-safety:46, zigi-accept-correct:260 Tokyo, canonical reproducibility); run9-2-product:30 (not seen in 13 runs; TO13 family).
 
 ## Open decisions
 - None.

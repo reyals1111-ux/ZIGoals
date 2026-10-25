@@ -20,6 +20,21 @@ Status: **In progress** on `feature/session-ah-polish`, from `main` `f13abb0` (M
 7. **RM6 PR-review Action:** `pull_request` only (never `pull_request_target`), never on forks, least-privilege permissions, the secret never echoed, a clean skip without it.
 8. **CO11 notification actions and any service-worker or manifest change:** TIER 3 (PWA), with rollback.
 
+## Owner amendment "Health journal date" (2026-10-25, during Part 2; pre-approved)
+Part 17, the last part before the final STATUS commit and the final CI round: **one chosen day drives the whole Health page.**
+1. **Behaviour (a bug today).** Changing the Journal date (← / →, the date itself, "Today") switches the WHOLE page to that day: quick counters (the owner's example: on 22 Oct the counters still showed 25 Oct's values, "Today in your Health journal · 25 Oct 2026"), water, food, meals, sleep, weight, measurements, meditation, fasting, workouts (DE8) and every other day-based widget.
+   - Logging while a past day is selected logs to THAT day, clearly labelled ("Logging for Thu 22 Oct"). Future days can't be logged.
+   - Trends and summaries over many days stay as they are, but mark the selected day.
+   - A widget stored only as "today" gets per-day storage, additively (TIER 3 (stored format), frozen readers #37–#49), keeping today's values.
+   - Deep links `?date=YYYY-MM-DD` (with C9's `?tab=`) open that day.
+   - Tests: switching days shows that day's counters and values; logging on a past day stays on that day; Today returns.
+2. **The date bar:** more interactive and visually stunning, never taller than now.
+   - ← / → as nebula-gradient buttons (≥ 44 px, liquid-glass hover without pointer tracking, focus rings).
+   - "Today" a real pill button in the nebula style, hidden or disabled when today is selected.
+   - The date in ONE English format (VA8; e.g. "Thu 22 Oct" with a small "3 days ago" / "Yesterday" / "Today" hint); tapping it opens a date picker. (The owner's screenshot shows the native field in the device's language, "22 okt 2026", beside English copy.)
+   - Phones: swipe left/right on the bar changes the day. Keyboard: ← / → when the bar is focused.
+   - A one-time subtle change animation, off under reduced motion and Motion Off; theme parity in Nebula, Light and Dark.
+
 ## Decisions taken without asking
 - **M1 — The branch.** The owner named `feature/session-ah-polish`; the harness branch `claude/wizardly-albattani-zc9cco` stays untouched, as L1 and K1 did.
 - **M2 — The sandbox runs Node 22.22.0 against the project's 24.19.0.** As in AG Polish 2 and 3, a handful of unit files fail only here (`pre-run11-setup`, `run11/domain-review-race`, `visual-format` ja-JP, `vault/finance-homes`); CI on Node 24 is the judge for them. The Chrome channel points at the preinstalled Playwright Chromium (153) locally only.
