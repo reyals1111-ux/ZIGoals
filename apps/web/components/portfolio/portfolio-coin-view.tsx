@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../ui/remove-with-undo';
 import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
@@ -52,6 +53,11 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
     setError(''); setMessage('');
     try { store.update(change); setMessage(done); return true; } catch (cause) { setError(cause instanceof HoldingsBelowZero || cause instanceof PortfolioUnreadable ? cause.message : storageMessageOr(cause, fallback)); return false; }
   };
+  // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
+  const removeTx = (portfolioId: string, tid: string) => {
+    setError(''); setMessage('');
+    removeWithUndo<PortfolioData>(change => store.update(change), data => removeTransaction(data, portfolioId, tid), 'Transaction removed.', 'The transaction is back.').catch(cause => setError(cause instanceof HoldingsBelowZero || cause instanceof PortfolioUnreadable ? cause.message : storageMessageOr(cause, 'The transaction was not removed.')));
+  };
   // The Showcase's fixture line, drawn to the moment the page opened (labelled; nothing is asked).
   const [opened] = useState(() => Date.now()), showcaseUsd = store.showcase && currency === 'USD';
   // A coin the Showcase does not hold has no fixture line: the chart says so instead of drawing one.
@@ -82,7 +88,7 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
         <div><dt>Unrealized result</dt><dd>{Number(held.quantity) === 0 ? '—' : position.unrealized === undefined ? 'Unknown' : formatSignedMoney(position.unrealized, currency)}</dd></div>
         <div><dt>Realized result</dt><dd>{position.realized === undefined ? 'Unknown' : formatSignedMoney(position.realized, currency)}</dd>{position.realized === undefined && <small>A sale of coins whose cost was unknown.</small>}</div>
       </dl> : <p>You have no {coin.symbol} in {portfolio.name} yet.</p>}
-      {list.length > 0 && <TransactionList portfolio={portfolio} list={list} names={new Map([[key!, coin]])} onRemove={tid => run(data => removeTransaction(data, portfolio.id, tid), 'Transaction removed.', 'The transaction was not removed.')} />}
+      {list.length > 0 && <TransactionList portfolio={portfolio} list={list} names={new Map([[key!, coin]])} onRemove={tid => removeTx(portfolio.id, tid)} />}
       <TransactionForm key={portfolio.id} portfolio={portfolio} run={run} coin={coin} />
     </section>}
     {!portfolio && <section className="panel"><h2>No portfolio yet</h2><p>Create a portfolio on the <Link href="/app/portfolio">Portfolio page</Link> to record {coin.symbol}.</p></section>}

@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../ui/remove-with-undo';
 import {Suspense, lazy, useState} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
@@ -58,6 +59,11 @@ export function PortfolioView() {
     setError(''); setMessage('');
     try { store.update(change, options); setMessage(done); return true; } catch (cause) { setError(failure(cause, fallback)); return false; }
   };
+  // Session AH Part 3 (A5/DS5, BUG-032): removing a transaction offers a labelled Undo that puts it back.
+  const removeTx = (portfolioId: string, tid: string) => {
+    setError(''); setMessage('');
+    removeWithUndo<import('../../lib/portfolio/schema').PortfolioData>(change => store.update(change), data => removeTransaction(data, portfolioId, tid), 'Transaction removed.', 'The transaction is back.').catch(cause => setError(failure(cause, 'The transaction was not removed.')));
+  };
   const undoRecord = async (record: ImportRecord) => {
     setError(''); setMessage('');
     try { store.update(data => undoImport(record, {portfolio: data}).portfolio!); } catch (cause) { throw Error(cause instanceof UndoRefused ? cause.message : failure(cause, 'The import was not undone.')); }
@@ -86,7 +92,7 @@ export function PortfolioView() {
           <button type="button" className="primary" aria-expanded={creating || !store.data.portfolios.length} onClick={() => setCreating(!creating)}>+ New portfolio</button>
         </nav>
         {(creating || !store.data.portfolios.length) && <CreatePortfolio onCreate={input => { const id = crypto.randomUUID(); if (run(data => createPortfolio(data, {...input, id, createdAt: new Date().toISOString()}), `${input.name.trim()} created.`, 'This portfolio was not created.')) { setSelectedId(id); setCreating(false); } }} />}
-        {selected && <PortfolioPanel key={selected.id} portfolio={selected} marketOf={market.of} attribution={!store.showcase && market.priced} run={run} showcase={store.showcase} />}
+        {selected && <PortfolioPanel key={selected.id} portfolio={selected} marketOf={market.of} attribution={!store.showcase && market.priced} run={run} removeTx={removeTx} showcase={store.showcase} />}
         <PortfolioWatch showcase={store.showcase} />
         <CoinSearch portfolioId={selected?.id} />
         <PortfolioFiles data={store.data} showcase={store.showcase} onImport={data => run(() => data, 'Portfolios replaced from the file.', 'The file was not imported.')} importing={importing} onImportCsv={() => setImporting(!importing)} />
@@ -134,7 +140,7 @@ function CreatePortfolio({onCreate}: {onCreate: (input: {name: string; kind: Por
   </form>;
 }
 
-function PortfolioPanel({portfolio, marketOf, attribution, run, showcase}: {portfolio: Portfolio; marketOf: (coin: PortfolioCoin) => CoinMarket; attribution: boolean; run: Run; showcase: boolean}) {
+function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, removeTx}: {portfolio: Portfolio; marketOf: (coin: PortfolioCoin) => CoinMarket; attribution: boolean; run: Run; showcase: boolean; removeTx: (portfolioId: string, tid: string) => void}) {
   const [sort, setSort] = useState<'value' | 'name' | 'result'>('value'), [renaming, setRenaming] = useState(false), [removing, setRemoving] = useState(false);
   // Session AB-Design (owner request 27): Coins / Analysis / Insights, one view at a time; nothing is removed.
   const [tab, setTab] = useState<'coins' | 'analysis' | 'insights'>('coins');
@@ -153,7 +159,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase}: {port
       <div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
         {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
-        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => run(data => removeTransaction(data, portfolio.id, id), 'Transaction removed.', 'The transaction was not removed.')} />
+        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} />
         {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
         {showcase && <p className="fine portfolio-attribution">Showcase fixture prices, not market data.</p>}
       </div>
@@ -161,7 +167,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase}: {port
         <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <AllocationDonut portfolio={portfolio} rows={rows} />}</div>
       </div>
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
-        <AllTransactions portfolio={portfolio} onRemove={id => run(data => removeTransaction(data, portfolio.id, id), 'Transaction removed.', 'The transaction was not removed.')} />
+        <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} />
         <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
       </div>
     </>}

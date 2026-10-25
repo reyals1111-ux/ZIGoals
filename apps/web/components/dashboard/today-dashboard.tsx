@@ -1,4 +1,6 @@
 'use client';
+import {removedItems,reinsertItems} from '../../lib/undo-removal';
+import {showToast} from '../ui/undo-toast';
 import {TodayWeek} from '../bottom-sections';
 import Link from 'next/link';
 import {Suspense,cloneElement,isValidElement,lazy,useEffect,useMemo,useRef,useState,type ReactElement,type ReactNode} from 'react';
@@ -153,7 +155,9 @@ export function TodayDashboard(){
  const meta=(id:DashboardBuiltinId)=>DASHBOARD_BUILTINS.find(b=>b.id===id)!;
  async function change(update:(s:DashboardSettings)=>DashboardSettings,message='Layout saved on this device.'){
   setBusy(true);setError('');
-  try{await settings.update(update);setStatus(message);}catch(e){setError(e instanceof Error?e.message:'Could not save the layout.');throw e;}finally{setBusy(false);}
+  // Session AH Part 3 (DS5): a change that only removed something (a widget) offers a labelled Undo in the app's toast.
+  let before:DashboardSettings|undefined,after:DashboardSettings|undefined;
+  try{await settings.update(s=>{const next=update(s);before=s;after=next;return next;});const removed=before===undefined?null:removedItems(before,after);if(removed)showToast({message,undone:'Put back on Today.',undo:()=>settings.update(s=>reinsertItems(s,removed))});else setStatus(message);}catch(e){setError(e instanceof Error?e.message:'Could not save the layout.');throw e;}finally{setBusy(false);}
  }
  const apply=(update:(s:DashboardSettings)=>DashboardSettings,message?:string)=>void change(update,message).catch(()=>{});
  const itemId=(ref:DashboardItemRef)=>`dashboard-item-${ref.kind}-${ref.id}`;

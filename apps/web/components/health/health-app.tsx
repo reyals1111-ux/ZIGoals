@@ -1,4 +1,6 @@
 "use client";
+import { removedItems, reinsertItems } from "../../lib/undo-removal";
+import { showToast } from "../ui/undo-toast";
 import { ProgressSlot } from "../progress/slot";
 import { HealthTrends } from "../bottom-sections";
 import { useHealthToday } from "./use-health-today";
@@ -203,7 +205,10 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const perform: Perform = async (updater, success, after) => {
     if (saving.current) return;
     saving.current = true; setBusy(true); setError(""); setMessage(""); unmark();
-    try { await update(updater); setMessage(success); after?.(); }
+    // Session AH Part 3 (DS5): a save that only removed items (water, a diary row, a food, a weight…) offers a labelled
+    // Undo in the app's one toast, which puts exactly those items back into the latest record (lib/undo-removal.ts).
+    let before: HealthData | undefined, saved: HealthData | undefined;
+    try { await update(latest => { const next = updater(latest); before = latest; saved = next; return next; }); const removed = before === undefined ? null : removedItems(before, saved); if (removed) showToast({message: success, undone: "Put back.", undo: () => update(latest => reinsertItems(latest, removed))}); else setMessage(success); after?.(); }
     catch (error) { setError(updateRefusalMessage(error, "Could not save this change. Check your entries and available browser storage, then try again.")); }
     finally { saving.current = false; setBusy(false); }
   };

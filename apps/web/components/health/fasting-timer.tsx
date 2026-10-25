@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../ui/remove-with-undo';
 import {useState} from 'react';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, elapsedMs, fastingHistory, formatFast, logFastToHabit, removeFast, startFast, stopFast} from '../../lib/fasting/engine';
 import type {HealthData} from '../../lib/health';
@@ -72,6 +73,6 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
     </div>}
     {fasting.data.sessions.some(s => s.stoppedBy === 'limit' && !result) && !running && history[0]?.session.stoppedBy === 'limit' && <p className="fine" role="status">This fast was stopped automatically at {MAX_HOURS} hours.</p>}
     {result && <p role="status">{result}</p>}{error && <p role="alert">{error}</p>}
-    {history.length > 0 && <div className="fasting-history"><h3>Recent fasts</h3><ul>{history.map(row => <li key={row.session.id}><span>{formatDate(row.day)} · {row.hours.toFixed(1)} h · target {row.session.targetHours} h · {row.session.stoppedBy === 'limit' ? `stopped at ${MAX_HOURS} h` : 'stopped by you'}{isShowcase() && row.session.id.startsWith('fast_showcase') ? ' · Showcase example' : ''}</span><button type="button" className="quiet" aria-label={`Remove the fast of ${formatDate(row.day)}`} onClick={() => { setError(''); fasting.update(current => removeFast(current, row.session.id)).catch(e => setError(saveFailureMessage(e))); }}>Remove</button></li>)}</ul></div>}
+    {history.length > 0 && <div className="fasting-history"><h3>Recent fasts</h3><ul>{history.map(row => <li key={row.session.id}><span>{formatDate(row.day)} · {row.hours.toFixed(1)} h · target {row.session.targetHours} h · {row.session.stoppedBy === 'limit' ? `stopped at ${MAX_HOURS} h` : 'stopped by you'}{isShowcase() && row.session.id.startsWith('fast_showcase') ? ' · Showcase example' : ''}</span><button type="button" className="quiet" aria-label={`Remove the fast of ${formatDate(row.day)}`} onClick={() => { setError(''); /* Session AH Part 3 (DS5, M-136): a labelled Undo puts the fast back. */ removeWithUndo(fasting.update, current => removeFast(current, row.session.id), `The fast of ${formatDate(row.day)} is removed.`, 'The fast is back.').catch(e => setError(saveFailureMessage(e))); }}>Remove</button></li>)}</ul></div>}
   </section>;
 }
