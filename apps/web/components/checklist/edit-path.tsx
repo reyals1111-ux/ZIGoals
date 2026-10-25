@@ -9,6 +9,7 @@ import type {DerivedDot} from '../../lib/checklist/derive';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {PathGlyph} from '../path/path-glyphs';
 import {itemGlyph} from '../../lib/checklist/glyphs';
+import {PATH_LABEL_MAX, cleanPathLabel, suggestPathLabel} from '../../lib/checklist/path-label';
 import type {ChecklistState} from './use-checklist';
 
 /**
@@ -93,6 +94,9 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
         {openRow === item.id && <div className="checklist-edit-controls">
           <div className="checklist-edit-orbit-choice" role="radiogroup" aria-label={`Orbit of ${label}`}>{sections.map(s => <button key={s.id} type="button" role="radio" aria-checked={s.id === section} onClick={() => { if (s.id !== section) write(r => updateItem(r, item.id, {section: s.id}), `${label} moved to ${s.label}.`); }}>{s.label.replace(/ orbit$/i, '')}</button>)}</div>
           <fieldset className="checklist-edit-colours"><legend className="sr-only">Colour of {label}</legend><div className="checklist-swatches">{CHECKLIST_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name={`colour-${item.id}`} checked={colour === id} onChange={() => write(r => updateItem(r, item.id, {colour: id}), `${label} is ${PATH_COLOURS[id].label.toLowerCase()} now.`)}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
+          {/* Session AG Polish 3 (ADR-032 L23; owner amendment 10): the one word this item shows on the path. Empty keeps the
+              suggestion from its name; the List and the details keep the full name. */}
+          <label className="field checklist-edit-short">Name on the path<input key={item.pathLabel ?? ''} defaultValue={item.pathLabel ?? ''} maxLength={PATH_LABEL_MAX} placeholder={suggestPathLabel(label)} autoComplete="off" spellCheck={false} aria-describedby={`short-hint-${item.id}`} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }} onBlur={e => { const word = cleanPathLabel(e.target.value); if (word !== (item.pathLabel ?? '')) write(r => updateItem(r, item.id, {pathLabel: word || null}), `${label} shows as ${word || suggestPathLabel(label)} on the path.`); }}/><small id={`short-hint-${item.id}`} className="fine">One word, {PATH_LABEL_MAX} letters at most.</small></label>
           <div className="checklist-edit-actions">
             <button type="button" className="quiet" aria-label={`Move ${label} up`} disabled={mate === 0} onClick={() => write(r => moveWithinSection(r, item.id, -1), `${label} moved up in ${orbitLabel}.`)}>↑</button>
             <button type="button" className="quiet" aria-label={`Move ${label} down`} disabled={mate === mates.length - 1} onClick={() => write(r => moveWithinSection(r, item.id, 1), `${label} moved down in ${orbitLabel}.`)}>↓</button>

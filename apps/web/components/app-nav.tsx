@@ -8,6 +8,8 @@ import { AppIcon } from "./app-icon";
 import { entranceAllowed } from "./use-entrance";
 import { usePagesView } from "./pages/use-pages-view";
 import { groupStarts, hrefShown } from "../lib/pages/visibility";
+import { EARN_PREFS, earnPrefsOf } from "../lib/earn/records";
+import { useDeviceRecord } from "./ai/use-device-record";
 
 /**
  * The single source of navigation order and grouping, for the desktop sidebar, the tablet header and the phone More sheet
@@ -27,6 +29,7 @@ export const NAV_GROUPS = [
     ["/app/markets", "Markets", "activity"],
     ["/app/staking", "Staking", "future"],
     // Session AF (L2a): proposals in plain words and your vote, beside Staking; it follows Staking's switch (H98's rule).
+    // Session AG Polish 3 (ADR-032 L19): hidden until shown under Your pages & buttons (a switch on this device).
     ["/app/governance", "Governance", "governance"],
     ["/app/portfolio", "Portfolio", "portfolio"],
   ],
@@ -49,9 +52,9 @@ export const navGroupOf = (href: string) => (NAV_GROUPS.findIndex(group => group
  * group's first visible one; with nothing hidden this is exactly NAV_ITEMS and NAV_GROUP_START.
  */
 export function useVisibleNav() {
-  const view = usePagesView(), extras = useNavExtras();
+  const view = usePagesView(), extras = useNavExtras(), governance = earnPrefsOf(useDeviceRecord(EARN_PREFS).data).governanceShown;
   // Session AA-Cloud: entries another lane registers (components/nav-extras.ts) sit before Settings, in its group.
-  const shown = NAV_ITEMS.filter(([href]) => hrefShown(view, href)) as readonly (readonly [string, string, string])[];
+  const shown = NAV_ITEMS.filter(([href]) => hrefShown(view, href, { governance })) as readonly (readonly [string, string, string])[];
   const at = shown.findIndex(([href]) => href === '/app/settings');
   const items = (extras.length ? [...shown.slice(0, at < 0 ? shown.length : at), ...extras.filter(([href]) => !shown.some(([h]) => h === href)), ...shown.slice(at < 0 ? shown.length : at)] : shown) as typeof NAV_ITEMS;
   return { items, starts: groupStarts(items, navGroupOf), view };

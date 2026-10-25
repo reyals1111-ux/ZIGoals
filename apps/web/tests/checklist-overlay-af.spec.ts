@@ -4,6 +4,7 @@ import {MOTION_PREFERENCE_KEY} from '../components/use-entrance';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
 import {TITLE, seedChecklist, settled, stored} from './checklist-fixtures';
+import {suggestPathLabel} from '../lib/checklist/path-label';
 import {navLink} from './phone-nav';
 
 /**
@@ -96,7 +97,7 @@ test('nodes (76–88 px on a computer, 58–68 px on a phone, the next one a siz
   // phone (Session AG Polish 2: never an ellipsis, ADR-031), 14 px or more, with the full name in its title.
   const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(), cx = (dot.left + dot.right) / 2, cy = (dot.top + dot.bottom) / 2; return {bubble: e.classList.contains('path-label-bubble'), tab: e.classList.contains('orbit-tab'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), title: e.getAttribute('title'), label: text.textContent, attached: r.left < dot.right && r.right > dot.left && r.top < dot.bottom && r.bottom > dot.top, below: r.top > cy, aside: e.getAttribute('data-side') === 'right' ? r.left > cx && r.right > dot.right : r.right < cx && r.left < dot.left}; }));
   expect(names.filter(n => n.bubble)).toHaveLength(0);
-  for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); expect(n.tab, 'a name tab').toBe(true); expect(n.title, 'the full name in its title').toBe(n.label); }
+  for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); expect(n.tab, 'a name tab').toBe(true); expect(n.label, 'its one word on the path (owner amendment 10)').toBe(suggestPathLabel(n.title ?? '')); expect(n.title, 'the full name in its title').toBeTruthy(); }
   for (const n of names) { expect(n.attached, `${n.label}: attached to its node`).toBe(true); expect(n.below, `${n.label}: on the node's lower side`).toBe(true); expect(n.aside, `${n.label}: toward its side`).toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
   const tag = await page.locator('[data-next] .path-next-tag').evaluate(el => { const r = el.getBoundingClientRect(), d = el.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(); return {text: el.textContent, onCrown: r.top < d.top && r.bottom > d.top - 2, centred: Math.abs((r.left + r.right) / 2 - (d.left + d.right) / 2) <= 2}; });
   expect(tag.text, 'one word').toMatch(/^(Next|Start)$/);
@@ -175,7 +176,6 @@ test('a tick: the node lights (its ring blooms, its tab fills with a check), a l
   const stageOf = () => page.locator('.path-zigi').evaluate((z: HTMLElement) => { const s = z.closest('.path-stage')!.getBoundingClientRect(), r = z.parentElement!.getBoundingClientRect(); return {x: r.left + z.offsetLeft - s.left, y: r.top + z.offsetTop - s.top}; });
   const cheered = await stageOf();
   await expect(done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-zigi[data-cheer]')).toHaveCount(1);
-  await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
   expect(moving, 'the tick plays').toBeGreaterThan(5);
   // Then the bloom and the light are gone and the node rests, lit.
@@ -332,7 +332,9 @@ const restFacts = (page: Page) => page.evaluate(() => {
   const gap = left ? (d.left - e) - fig.right : fig.left - (d.right + e);
   // (Gate C, CI's Linux fonts: where the next planet's name stands between the ring and ZIGi, level with the figure, ZIGi's
   // nearest clear place is just past the name — how far past it, from the name's far edge.)
-  const between = l.bottom > fig.top && l.top < fig.bottom && (left ? l.right <= d.left + 1 && l.left >= fig.right - 1 : l.left >= d.right - 1 && l.right <= fig.left + 1);
+  // (Session AG Polish 3, ADR-032 L13: a name tab attached to its node — overlapping the ring, as on a phone's river — stands
+  // between them too where its far edge reaches past the ring toward ZIGi.)
+  const between = l.bottom > fig.top && l.top < fig.bottom && (left ? l.left < d.left - 1 && l.left >= fig.right - 1 && l.right <= d.right + 1 : l.right > d.right + 1 && l.right <= fig.left + 1 && l.left >= d.left - 1);
   const pastName = between ? (left ? l.left - fig.right : fig.left - l.right) : null;
   // (Session AG Polish, owner Part 2: where a long name leaves no room on its node's other side on a phone, ZIGi's slot is
   // above that name — `data-zigi-slot="above"` — and the clearances below are read from the node and the name instead.)
@@ -407,7 +409,9 @@ async function expectRest(page: Page, width: number, when: string) {
   if (f.pastName !== null) {
     expect(f.pastName, `${width}px, ${when}: ZIGi just past the next planet's name`).toBeGreaterThanOrEqual(12);
     expect(f.pastName, `${width}px, ${when}: ZIGi just past the next planet's name`).toBeLessThanOrEqual(36);
-  } else expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 36);
+  // Session AG Polish 3, OWNER DECISION (after the 10d checkpoint; ADR-032 L26): on a phone ZIGi may rest up to 72 px
+  // from the next node (was 36) — the computer's loops now take the room right beside a node. Nothing else is changed.
+  } else expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 72);
   test.info().annotations.push({type: 'zigi-gap', description: `${width}px ${when}: ${Math.round(f.gap)}${f.pastName === null ? '' : ` (${Math.round(f.pastName)} past the name)`}`});
 }
 /** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */
@@ -444,7 +448,10 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   const wide = page.viewportSize()!.width >= 1180;
   // Gate C test audit (tightened): the computer's bound is the landing's measured distance (78 px from the ring at 1280 px,
   // the figure as drawn) plus 8 px of play, not 104.
-  expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 86 : 36);
+  // Session AG Polish 3 (ADR-032 L13), moved at equal strength: on a phone's river the next node's own name tab can stand
+  // between it and ZIGi (the name hangs toward the column's middle, where ZIGi has room); there ZIGi's nearest clear place
+  // is just past the name, and `expectRest` below holds it 12–36 px past the name — Gate C's rule, unchanged.
+  if ((await restFacts(page)).pastName === null) expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 86 : 36);
   test.info().annotations.push({type: 'zigi-landing', description: `${page.viewportSize()!.width}px: ${Math.round(beside)}`});
   const sight = await page.evaluate(() => {
     const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
@@ -605,19 +612,20 @@ test('a long name shows whole on a phone — one line, never an ellipsis, its fu
   sections.forEach((section, i) => { r = addCustom(r, {label: i === 7 ? 'Starlight & breathwork 15 minutes' : `Fictional star ${i + 1}`, colour: 'teal', section}, {id: `ck_fixture-${i + 1}`, at: new Date(Date.now() - (10 - i) * 86_400_000)}); });
   await page.setViewportSize({width: 390, height: 844});
   await open(page, {path: r});
-  const name = page.locator('.path-label', {hasText: 'Starlight & breathwork 15 minutes'});
+  const name = page.locator('.path-label[title="Starlight & breathwork 15 minutes"]');
   // Session AG Polish 2 (ADR-031; owner Part 1d), moved at greater strength: AG's "two lines at most, then a clean ellipsis"
   // becomes the whole name, on one line at 390 px (two only at 320 px, where it cannot fit), never cut, never "…"; its full
   // name stays in its title and its node's name.
   const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight), cs = getComputedStyle(t); return {cut: t.scrollWidth > t.clientWidth + 1 || t.scrollHeight > t.clientHeight + 1 || cs.textOverflow === 'ellipsis' && cs.overflow !== 'visible' || (cs.webkitLineClamp !== 'none' && cs.webkitLineClamp !== ''), text: t.textContent, lines: Math.round(t.getBoundingClientRect().height / lh), title: l.getAttribute('title'), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
   const before = await whole();
   expect(before.cut, 'nothing cut, no ellipsis').toBe(false);
-  expect(before.text, 'the whole name shows').toBe('Starlight & breathwork 15 minutes');
+  expect(before.text, 'its one word on the path, whole (owner amendment 10)').toBe('Starlight');
   expect(before.title, 'the full name in its title').toBe('Starlight & breathwork 15 minutes');
   expect(before.lines, 'one line at 390 px').toBe(1);
   for (const n of [1, 2, 3, 4, 5, 6, 7]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
   await zigiAtRest(page);
-  await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight & breathwork 15 minutes');
+  await expect(page.locator('[data-next] .path-label')).toHaveAttribute('title', 'Starlight & breathwork 15 minutes');
+  await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight');
   const after = await whole();
   expect(after.cut, 'nothing cut as the next node\'s name').toBe(false);
   expect(after.lines, 'the same lines').toBe(before.lines);

@@ -70,8 +70,16 @@ describe('loose readers', () => {
     expect(v.visited?.at(-1)).toBe('s-29');
     expect(() => markStep(EARN_PATH.empty(), '../x', true)).toThrow();
   });
-  it('display choices default to shown, dock shown, not folded', () => {
-    expect(earnPrefsOf(EARN_PREFS.empty())).toEqual({pageShown: true, dockShown: true, dockFolded: false, dockOrder: []});
+  it('display choices default to the page shown, the dock hidden, not folded, Governance hidden', () => {
+    // Session AG Polish 3 (owner Part 7, TIER 3): the dock is off unless chosen; a stored choice either way is kept.
+    expect(earnPrefsOf(EARN_PREFS.empty())).toEqual({pageShown: true, dockShown: false, dockFolded: false, dockOrder: [], governanceShown: false});
+    // (Owner Part 8, TIER 3: Governance in the navigation only once this device's switch shows it; the record stays loose.)
+    expect(earnPrefsOf({version: 1, governanceShown: true})).toMatchObject({governanceShown: true, dockShown: false});
+    expect(setEarnPref({version: 1, dockShown: true, later: 'x'} as never, {governanceShown: true})).toEqual({version: 1, dockShown: true, later: 'x', governanceShown: true});
+    expect(EARN_PREFS.schema.safeParse({version: 1, governanceShown: 'yes'}).success).toBe(false);
+    expect(earnPrefsOf({version: 1, dockShown: true})).toMatchObject({dockShown: true});
+    expect(earnPrefsOf({version: 1, dockShown: false})).toMatchObject({dockShown: false});
+    expect(earnPrefsOf({version: 1, dockFolded: true})).toMatchObject({dockShown: false, dockFolded: true});
     expect(earnPrefsOf(setEarnPref({version: 1, extra: 1} as never, {dockShown: false}))).toMatchObject({dockShown: false, pageShown: true});
     expect(setEarnPref({version: 1, extra: 1} as never, {dockFolded: true})).toEqual({version: 1, extra: 1, dockFolded: true});
     expect(() => setEarnPref(EARN_PREFS.empty(), {dockOrder: Array.from({length: 13}, (_, i) => `a${i}`)})).toThrow();

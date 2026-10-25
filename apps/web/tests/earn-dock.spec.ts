@@ -6,14 +6,31 @@ import {earnRoutes, seedShowcase} from './earn-fixtures';
  * twin on top of the right-edge stack; pressing it fans out round buttons for the live ecosystem apps (once per opening,
  * still under reduced motion), each opening its section of the Earn page, with the person's own position as a badge
  * where it can be read; it tucks into the edge and comes back; Settings switches it off on this device. On a phone there
- * is no floating dock: the apps are a strip at the top of the Earn page.
+ * is no floating dock: the apps are a strip at the top of the Earn page. Session AG Polish 3 (owner Part 7, TIER 3): the
+ * dock is off unless the person turns it on in Settings — the Showcase and anyone who never chose see none; the tests
+ * below turn it on first.
  */
 const read = (page: Page, sel: string) => page.locator(sel).evaluate(el => { const s = getComputedStyle(el), r = el.getBoundingClientRect(); return {w: Math.round(r.width), h: Math.round(r.height), radius: s.borderRadius, background: s.backgroundImage, shadow: s.boxShadow}; });
 
 test.describe('on a computer', () => {
   test.beforeEach(async ({page}, info) => { test.skip(info.project.name !== 'desktop', 'Phones get no floating dock (H68)'); await seedShowcase(page); });
 
+  test('off by default (the Showcase, never chosen); Settings → Earn turns it on, kept on this device', async ({page}) => {
+    await earnRoutes(page);
+    await page.goto('/app');
+    await expect(page.locator('.ai-launcher-button')).toBeVisible();
+    await expect(page.locator('.earn-dock-button, .earn-dock-edge')).toHaveCount(0);
+    await page.goto('/app/settings');
+    const on = page.getByRole('switch', {name: /^Earn dock — on this device/});
+    await expect(on).not.toBeChecked();
+    await on.check();
+    expect(JSON.parse((await page.evaluate(() => localStorage.getItem('zigoals:earn-prefs:v1')))!)).toMatchObject({version: 1, dockShown: true});
+    await page.goto('/app');
+    await expect(page.getByRole('button', {name: 'Open the Earn dock: ways to earn'})).toBeVisible();
+  });
+
   test('ZIGi’s twin on top of the stack; the fan opens each app’s section; Escape closes it; it tucks away and comes back', async ({page}) => {
+    await page.evaluate(() => localStorage.setItem('zigoals:earn-prefs:v1', JSON.stringify({version: 1, dockShown: true})));
     await earnRoutes(page);
     await page.goto('/app');
     const dock = page.getByRole('button', {name: 'Open the Earn dock: ways to earn'});
@@ -42,7 +59,7 @@ test.describe('on a computer', () => {
     // Tucked into the edge, then back; the choice is kept on this device.
     await page.getByRole('button', {name: 'Tuck the Earn dock away'}).click();
     await expect(page.getByRole('button', {name: 'Show the Earn dock'})).toBeVisible();
-    expect(JSON.parse((await page.evaluate(() => localStorage.getItem('zigoals:earn-prefs:v1')))!)).toMatchObject({version: 1, dockFolded: true});
+    expect(JSON.parse((await page.evaluate(() => localStorage.getItem('zigoals:earn-prefs:v1')))!)).toMatchObject({version: 1, dockShown: true, dockFolded: true});
     await page.getByRole('button', {name: 'Show the Earn dock'}).click();
     await expect(page.getByRole('button', {name: 'Open the Earn dock: ways to earn'})).toBeVisible();
   });
@@ -50,6 +67,7 @@ test.describe('on a computer', () => {
   test('a badge shows the person’s own real stake; reduced motion keeps the fan still; off in Settings, no dock', async ({page}) => {
     const address = 'zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx';
     await page.evaluate(a => localStorage.setItem('zigoals:linked-wallets:v1', JSON.stringify({version: 1, wallets: [{id: 'w1', kind: 'cosmos', wallet: 'keplr', label: 'My Keplr', address: a, addedAt: '2026-10-18T08:00:00.000Z'}]})), address);
+    await page.evaluate(() => localStorage.setItem('zigoals:earn-prefs:v1', JSON.stringify({version: 1, dockShown: true})));
     await earnRoutes(page);
     const base = {network: 'zigchain-1', account: address, asset: 'ZIG', denom: 'azig', decimals: 18, verification: 'VERIFIED_READ_ONLY', sync: 'CURRENT', observedAt: '2026-10-19T00:00:00.000Z', provenance: 'https://api.zigchain.com · block 13048320', notes: '', risk: '', executionAuthority: 'NONE', providerId: 'native-zig'};
     await page.route(url => url.pathname === '/api/positions', route => route.fulfill({json: {positions: [{...base, id: `zigchain-1:${address}:stake:a`, sourceType: 'NATIVE_STAKING', quantity: '120000000000000000000', principal: '120000000000000000000', liquidity: 'BONDED'}]}}));

@@ -270,7 +270,8 @@ test.describe('Today', () => {
     r = addCustom(r, {label: 'Fictional morning note', colour: 'cyan', section: 'morning'}, {id: 'ck_fixture-b', at: new Date(Date.now() - 86_400_000)});
     await seedChecklist(page, {path: r});
     await page.goto('/app/checklist'); await settled(page);
-    const pathNext = await page.locator('[data-next] .path-label-text').textContent();
+    // (Owner amendment 10: the path's tab shows one word; its full name is the tab's title.)
+    const pathNext = await page.locator('[data-next] .path-label').getAttribute('title');
     expect(pathNext).toBe('Fictional morning note');
     await page.goto('/app'); await settled(page);
     const card = page.locator('.today-checklist-card');

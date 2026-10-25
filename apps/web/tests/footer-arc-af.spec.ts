@@ -2,7 +2,8 @@ import {expect, test} from '@playwright/test';
 
 /**
  * Session AF (L5a, Part 10.8): the footer finale's line from Health into "= Wealth" is one organic, tapered ribbon —
- * magenta, pink, then the gold of "= Wealth", with a soft glow — at every width from 320 to 1920 px; phones get it too
+ * magenta, pink, then the gold of "= Wealth" (Session AG Polish 3: along its way, gold only in its last stretch), with
+ * a soft glow — at every width from 320 to 1920 px; phones get it too
  * (beneath the stacked steps, up the right edge, into the word). It lies inside the banner's stage, ends at the word's
  * right end, and is at rest (nothing moving) once the finale is done; with Motion Off it is simply there.
  */
@@ -29,7 +30,8 @@ test.describe('the footer ribbon at every width', () => {
         });
         const end = f.querySelector('.site-footer-arc[data-part=return] circle')!.getBoundingClientRect();
         const steps = f.querySelector('.site-footer-steps')!.getBoundingClientRect();
-        return {steps: {b: steps.bottom}, stage: {l: stage.left, r: stage.right, t: stage.top, b: stage.bottom}, word: {r: word.right, t: word.top, b: word.bottom}, health: {cx: health.left + health.width / 2, cy: health.top + health.height / 2, r: health.right}, end: {x: end.left + end.width / 2, y: end.top + end.height / 2}, pieces, stacked: !!f.querySelector('.site-footer-reveal[data-stacked]')};
+        const line1 = f.querySelector('.site-footer-line1')!.getBoundingClientRect();
+        return {line1: {b: line1.bottom}, steps: {b: steps.bottom}, stage: {l: stage.left, r: stage.right, t: stage.top, b: stage.bottom}, word: {r: word.right, t: word.top, b: word.bottom}, health: {cx: health.left + health.width / 2, cy: health.top + health.height / 2, r: health.right}, end: {x: end.left + end.width / 2, y: end.top + end.height / 2}, pieces, stacked: !!f.querySelector('.site-footer-reveal[data-stacked]')};
       });
       expect(read.stacked).toBe(width < 768);
       for (const p of read.pieces) {
@@ -38,7 +40,9 @@ test.describe('the footer ribbon at every width', () => {
         expect(p.fill).toMatch(/^url\(#/);
         expect(p.stroke).toBe('none');
         expect(p.glow).toBe(true);
-        expect(p.stops).toEqual(['#f06dff', '#ff8fd0', '#ffd27a', '#ffd27a']);
+        // Session AG Polish 3 (owner Part 6), moved: the colour follows the way — the rise magenta into pink, the way back pink
+        // up to just before the crest, then gold into the word (lib/footer-ribbon.test.ts places the stops).
+        expect(p.stops).toEqual(p.part === 'rise' ? ['#f06dff', '#ff8fd0'] : ['#ff8fd0', '#ff8fd0', '#ffd27a', '#ffd27a']);
         // Inside the banner's stage at this width.
         expect(p.box.l).toBeGreaterThanOrEqual(read.stage.l - 0.5);
         expect(p.box.r).toBeLessThanOrEqual(read.stage.r + 0.5);
@@ -57,10 +61,12 @@ test.describe('the footer ribbon at every width', () => {
         expect(rise!.box.b).toBeGreaterThan(read.steps.b); // beneath the stacked steps
         expect(back!.box.r).toBeGreaterThan(read.stage.r - 24); // up the right edge
       } else {
-        // Wider screens: from Health's node, on past it to the right, back over and into the word.
+        // Wider screens: from Health's node, on past it to the right, then up and to the left into the word. Session AG
+        // Polish 3 (owner addition after the 10d OK, ADR-032 L27), moved deliberately: the line no longer climbs over a
+        // crest above the word — a river with soft curls, never above the "Goals · Habits · Health" line.
         expect(Math.abs(rise!.box.l - read.health.cx)).toBeLessThanOrEqual(4);
         expect(rise!.box.r).toBeGreaterThan(read.health.r + 20);
-        expect(back!.box.t).toBeLessThan(read.word.t + 10);
+        expect(back!.box.t, 'never above the "Goals · Habits · Health" line').toBeGreaterThanOrEqual(read.line1.b - 1);
       }
     });
   }

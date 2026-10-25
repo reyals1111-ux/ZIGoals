@@ -301,6 +301,9 @@ def render_disc(img: np.ndarray, centre, radius_fn, size: int, ss: int = 3) -> I
     c1 = np.arange(size) + 0.5 - size / 2.0
     X1, Y1 = np.meshgrid(c1, c1)
     alpha = np.clip(0.5 + (R - np.hypot(X1, Y1)) / FEATHER, 0, 1)
+    # (Session AG Polish 3, owner Part 2: the feather reached the file's edge at the middle of each side, alpha up to 25 of
+    # 255 — a tiny straight cut. The 1-px margin is kept fully clear, as the files say.)
+    alpha[0, :] = alpha[-1, :] = alpha[:, 0] = alpha[:, -1] = 0
     rgba = np.dstack([np.clip(rgb, 0, 255), alpha * 255]).round().astype(np.uint8)
     return Image.fromarray(rgba, 'RGBA')
 

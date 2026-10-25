@@ -30,7 +30,8 @@ import {withEarlierHabit,withEarlierSeason} from './insights/showcase';
 import {CALCULATOR_KEY} from './compound/store';
 import {CHECKLIST_DAYS_KEY,CHECKLIST_KEY} from './af-checklist-keys';
 import {checklistDaysSchema,emptyChecklist} from './checklist/schema';
-import {addCustom,addFavourite} from './checklist/store';
+import {addCustom,addFavourite,updateItem} from './checklist/store';
+import {suggestPathLabel} from './checklist/path-label';
 import {showcaseCalculator} from './compound/showcase';
 import {LIFE_REVIEW_KEY} from './life-review/store';
 import {showcaseLifeReview} from './life-review/showcase';
@@ -183,6 +184,8 @@ export function showcaseChecklist(records:Record<string,string>,day?:string):Rec
   for(const section of ['morning','afternoon','evening'] as const){const habit=habits.find(h=>h.timeOfDay===section);if(habit){path=addFavourite(path,{kind:'habit',habitId:habit.id},{id:`ck_showcase-${++n}`,at:at(n),section});starred++;}}
   if(!starred)return {}; // no Showcase habits to star: no path at all
   path=addCustom(path,{label:'Read ten pages',colour:'gold',section:'evening'},{id:`ck_showcase-${++n}`,at:at(n)});
+  // Session AG Polish 3 (owner amendment 10): each item's one word on the path, chosen as the person's own would be.
+  for(const item of [...path.items,...path.healthItems]){const name=item.label??habits.find(h=>h.id===(item as {ref?:{habitId?:string}}).ref?.habitId)?.title??(item.kind==='health'?(item as {input?:string}).input??'':'');path=updateItem(path,item.id,{pathLabel:suggestPathLabel(name)});}
   const out:Record<string,string>={[CHECKLIST_KEY]:JSON.stringify(path)};
   if(day){
    const total=path.order.length,days:Record<string,{total:number;done:number;perfect?:boolean}>={};

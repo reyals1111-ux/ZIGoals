@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
+import {STEPS_COLOURS, stepsPaint} from '../footer-ribbon';
 import {PAGE_PATH_COLOUR, PATH_COLOURS, PATH_COLOUR_IDS, PATH_NEON_STOPS, isPathColour, pathColour} from './colours';
 import {litSegments, milestoneState, nextStep, normalisePath, pathProblems, pathProgress, pathSegments, pathSteps, sectionProgress, snakeOffset, orbitOffset, stepAriaLabel, stepIntent, withStepState, zigiAnchor, type PathModel, type PathStep} from './model';
 
@@ -44,7 +45,13 @@ describe('palette', () => {
   test('the neon line is the footer banner main line', () => {
     expect(PATH_NEON_STOPS.map(s => s.hex)).toEqual(['#9273ff', '#23eaff', '#ff74be', '#f06dff']);
     const footer = readFileSync(fileURLToPath(new URL('../../components/footer/footer-path.tsx', import.meta.url)), 'utf8');
-    expect(footer).toContain('<stop offset="0" stopColor="#9273ff"/><stop offset=".45" stopColor="#23eaff"/><stop offset=".8" stopColor="#ff74be"/><stop offset="1" stopColor="#f06dff"/>');
+    // Session AG Polish 3 (ADR-032 L27; owner footer addition, ref 09 pointer 1), moved: the footer's steps gradient is no
+    // longer written out in footer-path.tsx — it comes from `stepsPaint` (lib/footer-ribbon.ts), the same four stops at
+    // the same offsets on a computer (a phone runs them down the stacked steps), and the footer draws its stops.
+    expect(STEPS_COLOURS).toEqual(PATH_NEON_STOPS.map(s => s.hex));
+    expect(stepsPaint([{x: 100, y: 50}, {x: 400, y: 50}, {x: 700, y: 50}], {x: 760, y: 50}, false, 900).stops).toEqual([[0, '#9273ff'], [.45, '#23eaff'], [.8, '#ff74be'], [1, '#f06dff']]);
+    expect(footer).toContain('stepsPaint(');
+    expect(footer).toContain('{geo.paint.stops.map(([o, c], k) => <stop key={k} offset={o.toFixed(3)} stopColor={c}/>)}');
   });
 });
 

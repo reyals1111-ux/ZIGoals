@@ -1,18 +1,12 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
 import {zigiSignals} from '../zigi/bus';
 import {pushToastLayer} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
-import {PATH_COLOURS} from '../../lib/path/colours';
-import {checklistDisplayColours} from '../../lib/checklist/display-colours';
 import {pathBefore} from '../../lib/checklist/return-path';
-import {checklistPath} from '../../lib/checklist/derive';
-import {pathSteps} from '../../lib/path/model';
-import {nebulaColour} from '../../lib/path/orbit-colours';
-import {ProgressSegments} from './progress-segments';
 import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
@@ -129,12 +123,6 @@ export function ChecklistPage() {
   const streakDays = streak?.current ?? 0;
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
-  // Session AG Polish 2 (owner Part 3): the bar's segments — today's counted items in path order, in their nodes' colours.
-  const segments = useMemo(() => {
-    const c = checklistDisplayColours(state.record.data, state.dots);
-    const model = checklistPath(state.record.data, state.dots.map(d => ({...d, colour: c.get(d.id) ?? d.colour})), []);
-    return pathSteps(model).filter(s => s.counted !== false).map(s => ({id: s.id, colour: PATH_COLOURS[nebulaColour(s.colour)].token, lit: s.state === 'done'}));
-  }, [state.record.data, state.dots]);
   const [menu, setMenu] = useState(false);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
@@ -160,13 +148,13 @@ export function ChecklistPage() {
     <ChecklistSky/>
     {/* Session AG Polish 2 (owner Part 4): now and then a twinkle, rarely a shooting star — resting while anything is open over the path. */}
     <AmbientSky paused={celebrate || sheet !== null || menu}/>
-    {/* The top bar (Session AG, pointer 12): close, the title, today's progress and date, the view, the streak, the menu — no XP. */}
+    {/* The top bar (Session AG, pointer 12): close, the title, today's count and date, the view, the streak, the menu — no XP. */}
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">
         <button type="button" className="checklist-close" aria-label="Close the Checklist" onClick={leave}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
         <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
+        {/* Session AG Polish 3 (owner Part 3): no progress bar — reaching the orbits is the tracker; the words stay. */}
         <div className="checklist-progress">
-          <ProgressSegments segments={segments} done={done} total={total} valueText={progressText} ready={loaded}/>
           <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
         <div className="checklist-view-switch" role="group" aria-label="View">

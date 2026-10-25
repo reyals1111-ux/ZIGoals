@@ -33,9 +33,26 @@
      sweep from a planet to its first node, and from an orbit's last node to the next planet, without a tight bend. */
   .path-stage[data-variant=orbit] .path-steps { --swing: min(60px, 16.5cqi); gap: 116px; padding-top: 88px; }
   .path-stage[data-variant=orbit] .path-section + .path-section { margin-top: 92px; }
-  /* Each node stands in its lane (lib/path/phone-lanes.ts): its tab on one line with the free width, ZIGi's room on the
-     other side. Before the first measure the wave places it, as before. */
+  /* Session AG Polish 3 (ADR-032 L20; owner amendment 8): phone = computer × scale (lib/path/phone-scale.ts). Each node,
+     each orbit's banner (centred on its planet) and the finale stand exactly where the computer's own layout, scaled to
+     the phone's column, puts them (`--lane-x`/`--lane-y`, `--banner-top`/`--planet-x`, `--finale-x`/`--finale-y`, the
+     stage's `--stage-h`) — phones only. Until laid out and measured the path is not shown at all, so nothing appears in a
+     wrong place and then jumps; nothing fades in (it simply shows, settled). */
+  .path-stage[data-variant=orbit][data-lanes] { height: var(--stage-h); padding: 0; }
+  .path-stage[data-variant=orbit][data-lanes] :is(.path-section, .path-steps) { position: static; margin: 0; padding: 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-step { position: absolute; left: 0; right: 0; top: calc(var(--lane-y, 0px) - var(--dot-size) / 2); margin: 0; z-index: calc(2 + var(--stack, 0)); }
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { top: calc(50% + var(--tab-dy, 12.4px)); }
+  /* (Amendment 10c: a tab just under its node may lean toward a side, by --tab-out.) */
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=below] { left: 50%; right: auto; translate: calc(-50% + var(--tab-out, 0px)) 0; }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=right] { left: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=left] { right: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
+  .path-stage[data-variant=orbit][data-lanes] .orbit-banner { position: absolute; left: 0; top: var(--banner-top, 0px); }
+  /* (Owner amendment 10: on a phone each banner is a compact pill just round its words — the tint ends at the count.) */
+  .path-stage[data-variant=orbit][data-lanes] .orbit-banner { --banner-fade: 0px; }
+  .path-stage[data-variant=orbit][data-lanes] .orbit-banner > .orbit-planet { right: auto; left: calc(var(--planet-x, 0px) + 6px); translate: -50% -50%; }
+  .path-stage[data-variant=orbit][data-lanes] .path-finale { position: absolute; left: var(--finale-x, 50%); top: calc(var(--finale-y, 0px) - var(--dot-size) * .55); margin: 0; translate: -50% 0; }
+  .path-stage[data-variant=orbit]:not([data-ready]) { visibility: hidden; }
 }
 .path-stage[data-variant=orbit] .path-node { z-index: 1; }
 .path-stage[data-variant=orbit] .path-banner { z-index: 2; }
@@ -145,7 +162,7 @@
 /* Its planet (owner Part 4) stands on the line at the banner's height, after the title and count; where the banner leaves
    it too little room (a narrow phone) it wraps under the banner, right-aligned, in a band of its own — still on the line. */
 .path-stage[data-variant=orbit] { --planet-size: 128px; }
-:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; max-width: min(100%, 860px); overflow-x: clip; overflow-clip-margin: 0px; }
+:is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; max-width: min(100%, 860px); }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .habit-section-summary { flex: 0 1 auto; min-width: 0; }
 :is(.path-stage[data-variant=orbit], .checklist-list-view) .orbit-banner > .orbit-planet { margin: 6px max(6px, 4%) 6px auto; }
 @media (max-width: 1179.98px) { .path-stage[data-variant=orbit] { --planet-size: 104px; } }
@@ -154,11 +171,15 @@
    check alone under 360 px; the whole said in words) — reaching into the shell's left margin, and the planet stands beside
    it at its height, as large as a computer's next to its node (88–100 px: about 1.5 × a 62 px node; 84 px under 360 px),
    4 px from the stage's edge; a wide ring runs on to the screen's edge, where it is cut sideways only (never its soft mist,
-   which a mask had boxed); the banner's words lie above its ring layer, so a ring reaching the banner's end passes behind. */
+   which a mask had boxed); the banner's words lie above its ring layer, so a ring reaching the banner's end passes behind.
+   Session AG Polish 3 (ADR-032 L12; owner Part 2): the banner no longer clips anything. Its sideways clip (with its 22 px
+   rounded corners) cut the glow and the mist into a box beside the planet — on a phone 12 px short of the screen's edge,
+   because a clip margin only works when both axes clip, and on a computer at the banner's end. The page's shell does
+   that cut now, at the screen's edge itself (checklist.css). */
 .orbit-banner .habit-section-count-short { display: none; }
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] { --planet-size: clamp(88px, 26cqi, 100px); }
-  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; box-sizing: border-box; width: calc(100% + 6px); max-width: none; min-height: calc(var(--planet-size) + 10px); margin-left: -6px; padding: 4px 0; overflow-x: clip; overflow-clip-margin: 12px; }
+  .path-stage[data-variant=orbit] .orbit-banner { position: relative; flex-wrap: nowrap; box-sizing: border-box; width: calc(100% + 6px); max-width: none; min-height: calc(var(--planet-size) + 10px); margin-left: -6px; padding: 4px 0; }
   .path-stage[data-variant=orbit] .orbit-banner > .habit-section-summary { position: relative; z-index: 2; flex: none; grid-template-columns: 26px auto auto; column-gap: 8px; align-items: center; min-height: 0; padding: 7px 10px 7px 6px; white-space: nowrap; }
   .path-stage[data-variant=orbit] .orbit-banner .habit-section-mark { width: 26px; height: 26px; font-size: 13px; }
   .path-stage[data-variant=orbit] .orbit-banner .habit-section-title { font-size: 16px; line-height: 1.2; }

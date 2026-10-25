@@ -1,4 +1,5 @@
 import {isPathColour, pathColour, type PathColour} from '../path/colours';
+import {cleanPathLabel} from './path-label';
 import {checklistSchema, knownInput, knownKind, type Checklist, type ChecklistHealthItem, type ChecklistItem, type ChecklistSection, type HealthInput} from './schema';
 
 /**
@@ -97,7 +98,7 @@ export function customToHabit(record: Checklist, id: string, habitId: string): C
   if (isFavourite(record, {kind: 'habit', habitId})) return removeItem(record, id);
   return save({...record, items: record.items.map(i => i.id === id ? {...i, kind: 'habit', ref: {habitId}, colour: undefined} : i)});
 }
-export type ItemPatch = {label?: string; colour?: string | null; section?: string; defaultValue?: number | null};
+export type ItemPatch = {label?: string; colour?: string | null; section?: string; defaultValue?: number | null; pathLabel?: string | null};
 export function updateItem(record: Checklist, id: string, patch: ItemPatch): Checklist {
   const item = findItem(record, id); if (!item) throw new ChecklistError(ITEM_MISSING_MESSAGE);
   if (patch.label !== undefined && item.kind === 'custom') { const label = patch.label.trim(); if (!label || label.length > MAX_LABEL) throw new ChecklistError(CUSTOM_LABEL_MESSAGE); }
@@ -108,6 +109,8 @@ export function updateItem(record: Checklist, id: string, patch: ItemPatch): Che
     if (patch.colour === null) delete next.colour; else if (patch.colour !== undefined && isPathColour(patch.colour)) next.colour = patch.colour;
     if (patch.section !== undefined) next.section = sectionOrDefault(record, patch.section);
     if (patch.defaultValue === null) delete next.defaultValue; else if (patch.defaultValue !== undefined && Number.isFinite(patch.defaultValue)) next.defaultValue = patch.defaultValue;
+    // (The word on the path: one word, 12 letters; null or empty takes it off, so the suggestion shows again.)
+    if (patch.pathLabel !== undefined) { const w = patch.pathLabel === null ? '' : cleanPathLabel(patch.pathLabel); if (w) (next as {pathLabel?: string}).pathLabel = w; else delete (next as {pathLabel?: string}).pathLabel; }
     return next;
   };
   return save({...record, items: record.items.map(apply), healthItems: record.healthItems.map(apply)});

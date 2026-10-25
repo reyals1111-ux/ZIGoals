@@ -1,4 +1,5 @@
 import {habitDay, habitRuleOn, latestHabitRule, measurementUnit, type HabitData} from '../habits';
+import {pathLabelOf} from './path-label';
 import {HEALTH_MEALS, type HealthData} from '../health';
 import {dailyData, waterSummary} from '../health-daily';
 import type {Platform} from '../positions';
@@ -209,7 +210,7 @@ export function checklistMilestones(game: {on: boolean; dayXp: number; badge?: s
 /** The path engine's model of today's path: the person's orbits in their order (empty orbits left out), dots in order. */
 export function checklistPath(record: Checklist, dots: DerivedDot[], milestones: PathMilestone[]): PathModel {
   const sections = sectionsOf(record).map(section => ({id: section.id, label: section.label, colour: pathColour(section.colour, 'cyan'), steps: dots.filter(d => d.section === section.id).map((d): PathStep => ({
-    id: d.id, label: d.label, colour: d.colour, state: d.state, glyph: d.glyph, ...(d.note ? {note: d.writesFor ? `${d.note} · for ${d.writesFor}` : d.note} : d.writesFor ? {note: `for ${d.writesFor}`} : {}),
+    id: d.id, label: d.label, short: pathLabelOf(d.item, d.label), colour: d.colour, state: d.state, glyph: d.glyph, ...(d.note ? {note: d.writesFor ? `${d.note} · for ${d.writesFor}` : d.note} : d.writesFor ? {note: `for ${d.writesFor}`} : {}),
     ...(d.intent === 'open' && d.href ? {href: d.href, intent: 'open' as const} : d.intent ? {intent: d.intent} : {}), ...(d.value ? {value: d.value} : {}), ...(d.partial ? {partial: d.partial} : {}), ...(d.doneAt ? {doneAt: d.doneAt} : {}), ...(d.counted ? {} : {counted: false}),
   }))})).filter(s => s.steps.length);
   return {id: 'checklist-today', label: "Today's path", sections, milestones};

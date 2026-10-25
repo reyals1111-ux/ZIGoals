@@ -1,3 +1,4 @@
+import {PHONE} from '../lib/path/phone-scale';
 import {expect, test} from '@playwright/test';
 import {TITLE, seedChecklist, settled} from './checklist-fixtures';
 
@@ -31,30 +32,24 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
   // Session AG Polish (owner Part 4, moved at equal strength): each orbit's planet stands on the line before its first
   // node — the line enters the planet at its top rim and leaves from its bottom rim (reference 03), straight down at both.
   expect(geometry.map(s => s.id)).toEqual(['planet:morning>ck_fixture-1', 'ck_fixture-1>ck_fixture-2', 'ck_fixture-2>planet:afternoon', 'planet:afternoon>ck_fixture-3', 'ck_fixture-3>planet:evening', 'planet:evening>ck_fixture-4', 'ck_fixture-4>finale:end']);
-  // Session AG Polish 2, owner amendment 5 (ADR-031 K16), moved at equal strength for a phone only (≤ 640 px): there the
-  // line is one smooth ribbon that leans through each node toward its name, so each stretch still leaves and enters each
-  // ring exactly on its rim (within 2 px) and tangent to it (a node's: its direction at a right angle to the radius,
-  // within 5°; a planet's: on a course through its centre — it passes behind it), heading downward, and it leaves each
-  // ring in the very direction the stretch before came in (within 5°). A computer's line is checked as before.
+  // Session AG Polish 3 (ADR-032 L13; owner Part 1 and amendment 7): a phone's line is the computer's own (flowSegments, with
+  // the phone's swing), so a phone is checked as a computer is — at greater strength than the river's check it replaces
+  // (rims within 2 px, on within 60°): each stretch leaves and enters at a side point (a planet: its bottom and top rims),
+  // straight down at both. On a phone the finale, in the column's middle, takes the line in at its top rim, straight down.
+  // Session AG Polish 3 (ADR-032 L20; owner amendment 8), moved at equal strength: a phone's line is the computer's line × s,
+  // so its ends are the computer's side points (a planet's rims) × s — the computer's radii × s about each drawn centre,
+  // inside the phone's larger node, which is drawn over them; the finale as on a computer.
   const phone = (page.viewportSize()?.width ?? 1440) <= 640;
-  const unit = (v: number[]) => { const l = Math.hypot(v[0]!, v[1]!) || 1; return [v[0]! / l, v[1]! / l]; };
-  for (const [i, s] of geometry.entries()) {
-    const side = (p: number[], c: {x: number; y: number; r: number}) => Math.min(Math.hypot(p[0]! - (c.x - c.r), p[1]! - c.y), Math.hypot(p[0]! - (c.x + c.r), p[1]! - c.y));
-    const rim = (p: number[], c: {x: number; y: number; r: number}, top: boolean) => Math.hypot(p[0]! - c.x, p[1]! - (c.y + (top ? -c.r : c.r)));
+  for (const s of geometry) {
     const [fromId, toId] = s.id.split('>');
-    if (phone) {
-      for (const [p, dir, c, id, what] of [[s.start, s.startDir, s.from, fromId!, 'leaves'], [s.end, s.endDir, s.to, toId!, 'enters']] as const) {
-        expect(Math.abs(Math.hypot(p[0]! - c.x, p[1]! - c.y) - c.r), `${s.id}: ${what} its ring on its rim`).toBeLessThan(2);
-        const t = unit([...dir]), rad = unit([p[0]! - c.x, p[1]! - c.y]);
-        expect(Math.abs(id.startsWith('planet:') ? t[0]! * rad[1]! - t[1]! * rad[0]! : t[0]! * rad[0]! + t[1]! * rad[1]!), `${s.id}: ${what} it tangentially`).toBeLessThan(Math.sin(5 * Math.PI / 180));
-        expect(t[1]!, `${s.id}: heading downward`).toBeGreaterThan(0);
-      }
-      const after = geometry[i + 1];
-      if (after) { const a = unit([...s.endDir]), b = unit([...after.startDir]); expect(Math.acos(Math.min(1, a[0]! * b[0]! + a[1]! * b[1]!)) * 180 / Math.PI, `${s.id} → ${after.id}: on in the direction it came`).toBeLessThan(5); }
-      continue;
-    }
-    expect(fromId!.startsWith('planet:') ? rim(s.start, s.from, false) : side(s.start, s.from), `${s.id}: leaves its ring at a side point (a planet: its bottom rim)`).toBeLessThan(2);
-    expect(toId!.startsWith('planet:') ? rim(s.end, s.to, true) : side(s.end, s.to), `${s.id}: enters its ring at a side point (a planet: its top rim)`).toBeLessThan(2);
+    // (Session AG Polish 3, owner amendments 10b and 10c, moved at equal strength: a phone's line is drawn on the phone's own
+    // rings — a node's 31 px, its planet as drawn, the finale's 34.1 px — no longer the computer's × s.)
+    const radius = (id: string, c: {r: number}) => phone ? (id.startsWith('planet:') ? c.r : id === 'finale:end' ? PHONE.finaleNode / 2 : PHONE.dot / 2) : c.r;
+    const side = (p: number[], c: {x: number; y: number; r: number}, id: string) => Math.min(Math.hypot(p[0]! - (c.x - radius(id, c)), p[1]! - c.y), Math.hypot(p[0]! - (c.x + radius(id, c)), p[1]! - c.y));
+    const rim = (p: number[], c: {x: number; y: number; r: number}, top: boolean, id: string) => Math.hypot(p[0]! - c.x, p[1]! - (c.y + (top ? -radius(id, c) : radius(id, c))));
+    const topIn = toId!.startsWith('planet:');
+    expect(fromId!.startsWith('planet:') ? rim(s.start, s.from, false, fromId!) : side(s.start, s.from, fromId!), `${s.id}: leaves its ring at a side point (a planet: its bottom rim)`).toBeLessThan(2);
+    expect(topIn ? rim(s.end, s.to, true, toId!) : side(s.end, s.to, toId!), `${s.id}: enters its ring at a side point (a planet: its top rim)`).toBeLessThan(2);
     expect(Math.abs(s.startDir[0]!), `${s.id}: leaves straight down`).toBeLessThan(.2); expect(s.startDir[1]!).toBeGreaterThan(0);
     expect(Math.abs(s.endDir[0]!), `${s.id}: arrives straight down`).toBeLessThan(.2); expect(s.endDir[1]!).toBeGreaterThan(0);
   }
