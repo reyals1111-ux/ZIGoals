@@ -15,7 +15,10 @@ test('visible hero and Goal ring move once per visit and settle on real values',
    // Session U Part 4: the middle is read by seeking this very animation to half its duration and back, at once. A
    // 200 ms timer could fire after the end on a loaded runner (run 36865907188), when the "mid" equalled the end.
    const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===(event as AnimationEvent).animationName);
-   if(animation){const timing=animation.effect!.getComputedTiming(),held=animation.currentTime;animation.currentTime=Number(timing.delay??0)+Number(timing.duration)/2;sample.mid=value();animation.currentTime=held;}
+   // Session AH Part 2: the start is read the same way (the animation sought to its first frame and back): on a loaded
+   // runner the animationstart event can be handled after the animation has ended, when the live value already
+   // equalled the end (run 40218118627).
+   if(animation){const timing=animation.effect!.getComputedTiming(),held=animation.currentTime;animation.currentTime=Number(timing.delay??0);sample.start=value();animation.currentTime=Number(timing.delay??0)+Number(timing.duration)/2;sample.mid=value();animation.currentTime=held;}
    target.addEventListener('animationend',()=>{sample.end=value();},{once:true});
   },true);
  });

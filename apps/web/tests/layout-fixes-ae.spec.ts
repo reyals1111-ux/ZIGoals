@@ -33,14 +33,19 @@ for (const demo of ['Showcase', 'a new device'] as const)
     for (const width of [1024, 1280, 900]) {
       await page.setViewportSize({width, height: 768});
       const found = await page.evaluate(async () => {
-        const frame = () => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+        // Session AH Part 2: two frames, or 250 ms when a loaded runner delays frames (the evaluate never resolved once);
+        // every rectangle below is read synchronously after the scroll, so the measure does not depend on the frames.
+        const frame = () => new Promise(done => { const t = setTimeout(done, 250); requestAnimationFrame(() => requestAnimationFrame(() => { clearTimeout(t); done(undefined); })); });
         const launchers = [...document.querySelectorAll('[data-testid="ai-launcher"] :is(button, a, .ai-launcher-ring), .music-launcher-stack button')]
           .filter(el => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden'; });
         const rail = document.querySelector('.today-rail')!, cards = [...rail.querySelectorAll('.placed-module > :not(.dashboard-builtin-options)')];
-        const words = () => cards.flatMap(card => { const out: {card: string; text: string; r: DOMRect}[] = []; const walk = document.createTreeWalker(card, NodeFilter.SHOW_TEXT); let n: Node | null;
+        // The visible text nodes, collected once per width (the walk and the style reads were the slow part of each step);
+        // their rectangles are read again at every scroll position.
+        const texts = cards.flatMap(card => { const out: {card: string; text: string; range: Range}[] = []; const walk = document.createTreeWalker(card, NodeFilter.SHOW_TEXT); let n: Node | null;
           while ((n = walk.nextNode())) { const t = n.textContent!.trim(), el = n.parentElement!; if (!t || el.closest('.sr-only, [hidden], [aria-hidden="true"]') || getComputedStyle(el).visibility === 'hidden') continue;
-            const range = document.createRange(); range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) out.push({card: card.className.split(' ')[0] ?? '', text: t.slice(0, 40), r}); }
+            const range = document.createRange(); range.selectNodeContents(n); out.push({card: card.className.split(' ')[0] ?? '', text: t.slice(0, 40), range}); }
           return out; });
+        const words = () => texts.flatMap(({card, text, range}) => [...range.getClientRects()].filter(r => r.width > 1 && r.height > 1).map(r => ({card, text, r})));
         const hits = new Set<string>(), top = rail.getBoundingClientRect().top + scrollY, bottom = top + rail.getBoundingClientRect().height;
         for (let y = Math.max(0, top - innerHeight); y <= bottom; y += 40) {
           scrollTo(0, y); await frame();

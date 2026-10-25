@@ -202,6 +202,9 @@ test('first week: Portfolio\'s favourites card on a new device is the styled car
 test('J055: a Goal created offline is saved, and the wizard says so instead of leaving for the browser\'s offline page', async ({page}) => {
   await page.goto('/app/goals/new');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  // Session AH Part 2: a person goes offline on a page that has loaded; a radio ticked before hydration was checked by
+  // the browser alone and never opened the currency step (taps before hydration are TO13, tests/ah-early-taps.spec.ts).
+  await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
   await page.context().setOffline(true);
   await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
   await page.getByLabel('Goal name', {exact: true}).fill('Fictional offline plan');
