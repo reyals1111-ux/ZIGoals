@@ -21,10 +21,16 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - ≤ 20 self-check captures (scratchpad only). Used: 0.
 
 ## Done
-- Part 0: records (Alpha #49, AG Polish 3 merged), ADR-033, this file.
+- Part 0: records (Alpha #49, AG Polish 3 merged), ADR-033, this file, Draft PR #95, RM8 (M4; QA2-04 fixed `dd4dc885`).
+- Part 1: `c117baf9` vitest 5.0.3, `a0a1fab4` vite 8.3.3, `bfe62b3d` glob 10.5.0, body-parser 2.4.0, undici 7.30.1/8.12.2; frozen-readers #37–#49 (M6). `pnpm audit` clean.
+
+## Sandbox notes
+- Full unit suite here: 81 files fail on `main` too (M2, M7); compare failure sets with `<scratchpad>/fail-main.txt` (regenerate on a fresh workspace by running the suite on `main`).
+- Never `pkill -f <pattern>` with the plain pattern: it kills the calling shell (exit 144). Use `pkill -f "[n]ext-server"`.
+- Production server: `cd apps/web && TZ=UTC npx next start --hostname 127.0.0.1 --port 3100` in the background; weights `node scripts/check-weight-budget.mjs http://127.0.0.1:3100`.
 
 ## Next step
-- Open the Draft PR; RM8 verify-then-do; then Part 1.
+- Part 2: CI stability (execute.test.ts:116 first; it reproduced under full-suite load).
 
 ## Open decisions
 - None.
