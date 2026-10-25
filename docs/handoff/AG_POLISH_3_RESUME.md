@@ -95,8 +95,15 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - Browser (dev): phone spec 12/12; of the 10 earlier failures 9 pass; `checklist-overlay-af` 532 fails (ZIGi 60 px from the next node after a tick, bound 36: the restored loop leaving that node takes ZIGi's place).
 - 13-item path: 390 sy 1.00, room 8 px (1 node), 8 of 10 node stretches loops; 360 sy 1.00, room 80 + 8 px, 7 loops. Captures `a10d-*.png` (scratchpad).
 
+## Owner OK on 10d, the footer, and the finish (25 Oct): state
+- `8eeaa503`: fix 1 (planet stretches nearly above or below their planet sweep to the inner side; L26) and fix 2 (ZIGi on phones up to 72 px from the next node, owner decision).
+- `a873b9f3`, `4dac076a`: the footer — on the computer a river out of "= Wealth" down to Health, three growing bends, one C2 spline, gold only in its first stretch (L27, L28); on the phone the frame kept and the steps line joining it at Health in the same colour and width.
+- `18473e53`: the line under a tab, read finely (L29): found by `checklist-phone-ag-polish-2` 1d; the layout's checks read the line ~1 px apart and keep 0.7 px out of a tab; the approved 13-item path unchanged and pinned; also `Math.sign(` (staking guard) and the footer colour check moved to `stepsPaint`.
+- Local, production build of `18473e53`: the Checklist and phone specs 155 passed, the footer 38, theme parity 2; the computer layout audit unchanged in Nebula and Dark, Light with one new finding (an owner item in STATUS).
+- The last commit is the STATUS entry; then CI on the final head (one re-run per known intermittent) and the PR out of Draft.
+
 ## Next step
-After the 10d checkpoint: wait for the owner. On "OK": lint, typecheck, focused tests; STATUS (final commit); CI green; out of Draft; short report. On corrections: apply only those, the same 3 captures again, wait again.
+Wait for the owner. Never merge, enable auto-merge or deploy. On corrections: apply only those, record them in ADR-032 and STATUS.
 
 ## Earlier next step (superseded)
 Owner decisions: (1) phone density — accept overlaps on phones (move the listed assertions), a larger scale, or smaller phone pieces (STATUS, "Known CI intermittents and open items"); (2) "bump zod" for the audit. Then CI green, out of Draft, report.
