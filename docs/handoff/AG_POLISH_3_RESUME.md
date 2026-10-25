@@ -89,8 +89,14 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - Unit (200 seeded paths × 320/360/390/430): every overlap, line and spread check passes; 10b's line fails them (clamp + kink, planet-stretch wiggles). Phone spec: 12 passed (dev server).
 - Next: the browser specs on a production build (:3102), then exactly 3 captures in Nebula (390 × 844 first open; 390 × 844 at Afternoon/Evening; 360 × 780 first open) with the check numbers, then STOP for the owner.
 
+## Owner correction 10d (25 Oct): state
+- Commit `2939d1db`: node → node = the computer's own stretches (loops, swings) at 10b's strength on 10c's places, never clamped (shrink or mirror to fit, still a loop); planet stretches one sweep; no bump under 14 px; the name's side moves inward at edge nodes (the line comes in on it); tabs only on the node's lower side (the START badge is clear).
+- Unit (200 × 320/360/390/430): every overlap, line and spread check passes; 2564 loops compared with 10b, none weaker (778 drawn smaller or mirrored to fit); 3146 of 10b's loops are swings now (edge nodes' names inward); loops 4873 vs 10b's 6488 of 12084 node stretches.
+- Browser (dev): phone spec 12/12; of the 10 earlier failures 9 pass; `checklist-overlay-af` 532 fails (ZIGi 60 px from the next node after a tick, bound 36: the restored loop leaving that node takes ZIGi's place).
+- 13-item path: 390 sy 1.00, room 8 px (1 node), 8 of 10 node stretches loops; 360 sy 1.00, room 80 + 8 px, 7 loops. Captures `a10d-*.png` (scratchpad).
+
 ## Next step
-After the 10c checkpoint: wait for the owner. On "OK": lint, typecheck, focused tests; STATUS (final commit); CI green; out of Draft; short report. On corrections: apply only those, the same 3 captures again, wait again.
+After the 10d checkpoint: wait for the owner. On "OK": lint, typecheck, focused tests; STATUS (final commit); CI green; out of Draft; short report. On corrections: apply only those, the same 3 captures again, wait again.
 
 ## Earlier next step (superseded)
 Owner decisions: (1) phone density — accept overlaps on phones (move the listed assertions), a larger scale, or smaller phone pieces (STATUS, "Known CI intermittents and open items"); (2) "bump zod" for the audit. Then CI green, out of Draft, report.
