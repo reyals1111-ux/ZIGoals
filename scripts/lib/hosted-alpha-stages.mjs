@@ -306,14 +306,19 @@ export function setAsideNotConfigured(report, base, answerOf) {
  * Session AF Part 11 A3 (ADR-028 H5/H70): requests the verifier's own navigations abort (Next link prefetches and RSC
  * fetches cancelled when a stage navigates; a page's own fetch cut off by the next goto) are recorded as a count, not as
  * findings. A failed request is "aborted by a navigation" only when its error is net::ERR_ABORTED and it is a Next
- * prefetch or RSC fetch, or it failed within 2 s of a main-frame navigation; everything else still counts.
- * Each failedRequests entry carries `at` (ms) and `rsc` (a prefetch or RSC request); `navigations` is the list of
+ * prefetch or RSC fetch, or it failed within 2 s of a main-frame navigation, or it started before a main-frame navigation and
+ * failed after that navigation began (Session AH, AF7); everything else still counts.
+ * Each failedRequests entry carries `at` (ms), `startedAt` (ms, when the request was sent) and `rsc` (a prefetch or RSC
+ * request); `navigations` is the list of
  * main-frame navigation times (ms).
  */
 export const NAVIGATION_WINDOW_MS = 2000;
 export function classifyFailedRequests(report, navigations) {
   const nearNavigation = at => typeof at === 'number' && navigations.some(t => Math.abs(at - t) <= NAVIGATION_WINDOW_MS);
-  const aborted = entry => entry.failure?.errorText === 'net::ERR_ABORTED' && (entry.rsc === true || nearNavigation(entry.at));
+  // Session AH Part 2 (AF7): a request that started before a main-frame navigation and failed after it began was cut
+  // off by that navigation, however late the browser reports the failure (one /api/push failed 2.1 s after its goto).
+  const spanned = entry => typeof entry.startedAt === 'number' && typeof entry.at === 'number' && navigations.some(t => entry.startedAt <= t && t <= entry.at);
+  const aborted = entry => entry.failure?.errorText === 'net::ERR_ABORTED' && (entry.rsc === true || nearNavigation(entry.at) || spanned(entry));
   const set = report.failedRequests.filter(aborted);
   report.abortedByNavigation = {count: set.length, urls: set.map(entry => entry.url)};
   report.failedRequests = report.failedRequests.filter(entry => !aborted(entry));

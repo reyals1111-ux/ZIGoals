@@ -172,12 +172,17 @@ test("A3: requests the verifier's own navigations abort are a count; a real fail
     r("https://alpha.zigoals.app/app?_rsc=x", "net::ERR_FAILED", nav, true),                           // not an abort: counts
     r("https://alpha.zigoals.app/_next/static/chunk.js", "net::ERR_CONNECTION_RESET", nav, false),      // counts
     { url: "https://alpha.zigoals.app/x", failure: null, at: nav, rsc: false },                       // no failure text: counts
+    // Session AH (AF7): sent before the goto, reported 2.1 s after it — cut off by that navigation.
+    { url: "https://alpha.zigoals.app/api/push?late", failure: { errorText: "net::ERR_ABORTED" }, at: nav + NAVIGATION_WINDOW_MS + 100, startedAt: nav - 300, rsc: false },
+    // Sent after the goto and aborted later, far from any navigation: a real failure, it counts.
+    { url: "https://alpha.zigoals.app/api/push?own", failure: { errorText: "net::ERR_ABORTED" }, at: nav + NAVIGATION_WINDOW_MS + 100, startedAt: nav + 50, rsc: false },
   ] };
   classifyFailedRequests(report, [nav]);
-  expect(report.abortedByNavigation).toEqual({ count: 3, urls: [
-    "https://alpha.zigoals.app/app/activity?_rsc=abc", "https://alpha.zigoals.app/api/private-account?action=status", "https://alpha.zigoals.app/api/push",
+  expect(report.abortedByNavigation).toEqual({ count: 4, urls: [
+    "https://alpha.zigoals.app/app/activity?_rsc=abc", "https://alpha.zigoals.app/api/private-account?action=status", "https://alpha.zigoals.app/api/push", "https://alpha.zigoals.app/api/push?late",
   ] });
-  expect(report.failedRequests).toHaveLength(4);
+  expect(report.failedRequests).toHaveLength(5);
+  expect(report.failedRequests.map(entry => entry.url)).toContain("https://alpha.zigoals.app/api/push?own");
   expect(isRscRequest("https://alpha.zigoals.app/app?_rsc=1")).toBe(true);
   expect(isRscRequest("https://alpha.zigoals.app/app", { "next-router-prefetch": "1" })).toBe(true);
   expect(isRscRequest("https://alpha.zigoals.app/app", { rsc: "1" })).toBe(true);
