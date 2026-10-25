@@ -13946,6 +13946,17 @@
         color: var(--text-secondary, #c9d6ea)
     }
 }
+/*  components/ui/confirm-inline.css  */
+@scope (:root[data-theme=dark]) {
+    .confirm-inline:not(#\-) {
+        border-color: var(--edge-soft);
+        background-image: none;
+        background-color: var(--surface-1)
+    }
+    .confirm-inline[data-tone="danger"]:not(#\-) {
+        border-color: color-mix(in srgb, var(--edge-soft) 50%, #ff6b8a 50%)
+    }
+}
 /*  components/universe/extras-setting.css  */
 @scope (:root[data-theme=dark]) {
     .af-extras-row:not(#\-) {
