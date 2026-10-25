@@ -58,7 +58,8 @@ test('each kind becomes a real habit in its orbit and on the Habits page; the to
   expect(tick!.rules[0]).toMatchObject({measurement: {kind: 'boolean'}, target: 1, schedule: {kind: 'daily'}});
   await expect(toast.getByRole('link', {name: 'Edit on Habits'})).toHaveAttribute('href', `/app/habits#habit-${tick!.id}`);
   // On the path, in its orbit, brought into view.
-  const node = page.locator('.path-section[data-section=evening] .path-step', {hasText: 'Fictional evening walk'});
+  // (Owner amendment 10: the tab shows one word; the full name is its title.)
+  const node = page.locator('.path-section[data-section=evening] .path-step', {has: page.locator('.path-label[title="Fictional evening walk"]')});
   await expect(node).toHaveCount(1);
   await expect(node.locator('.path-dot')).toBeInViewport();
   // A number with its unit; minutes on chosen days.

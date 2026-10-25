@@ -1,4 +1,4 @@
-import {COMPUTER_BAND} from '../lib/path/phone-scale';
+import {PHONE} from '../lib/path/phone-scale';
 import {expect, test} from '@playwright/test';
 import {TITLE, seedChecklist, settled} from './checklist-fixtures';
 
@@ -39,11 +39,12 @@ test('dots, the line tangent to every ring, orbit labels, the finale, ZIGi by th
   // Session AG Polish 3 (ADR-032 L20; owner amendment 8), moved at equal strength: a phone's line is the computer's line × s,
   // so its ends are the computer's side points (a planet's rims) × s — the computer's radii × s about each drawn centre,
   // inside the phone's larger node, which is drawn over them; the finale as on a computer.
-  const phone = (page.viewportSize()?.width ?? 1440) <= 640, stageW = await stage.evaluate(el => el.getBoundingClientRect().width);
-  const k = phone ? (stageW - 12) / (COMPUTER_BAND.right - COMPUTER_BAND.left) : 1;
+  const phone = (page.viewportSize()?.width ?? 1440) <= 640;
   for (const s of geometry) {
     const [fromId, toId] = s.id.split('>');
-    const radius = (id: string, c: {r: number}) => phone ? (id.startsWith('planet:') ? 64 : id === 'finale:end' ? 44 : 40) * k : c.r;
+    // (Session AG Polish 3, owner amendments 10b and 10c, moved at equal strength: a phone's line is drawn on the phone's own
+    // rings — a node's 31 px, its planet as drawn, the finale's 34.1 px — no longer the computer's × s.)
+    const radius = (id: string, c: {r: number}) => phone ? (id.startsWith('planet:') ? c.r : id === 'finale:end' ? PHONE.finaleNode / 2 : PHONE.dot / 2) : c.r;
     const side = (p: number[], c: {x: number; y: number; r: number}, id: string) => Math.min(Math.hypot(p[0]! - (c.x - radius(id, c)), p[1]! - c.y), Math.hypot(p[0]! - (c.x + radius(id, c)), p[1]! - c.y));
     const rim = (p: number[], c: {x: number; y: number; r: number}, top: boolean, id: string) => Math.hypot(p[0]! - c.x, p[1]! - (c.y + (top ? -radius(id, c) : radius(id, c))));
     const topIn = toId!.startsWith('planet:');

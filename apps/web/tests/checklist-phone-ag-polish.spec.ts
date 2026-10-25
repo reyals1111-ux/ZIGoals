@@ -1,4 +1,3 @@
-import {COMPUTER_BAND} from '../lib/path/phone-scale';
 import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
@@ -43,7 +42,8 @@ test('phones 320–430: an airy path — one-line tabs, nothing overlaps, ZIGi i
         lineH: parseFloat(getComputedStyle(step.querySelector('.orbit-tab')!).lineHeight) || 18, cut: (() => { const t = step.querySelector('.path-label-text') as HTMLElement; return t.scrollWidth > t.clientWidth + 1; })()}));
       const banners = [...stage.querySelectorAll('.path-banner')].map(box), fig = stage.querySelector('.path-zigi[data-alive] .path-zigi-figure');
       const dialog = stage.closest('dialog')!;
-      return {steps, banners, zigi: fig ? box(fig) : null, sideways: dialog.scrollWidth - dialog.clientWidth, vw: innerWidth, stageW: stage.getBoundingClientRect().width};
+      const room = Object.fromEntries(((stage as HTMLElement).dataset.room ?? '').split(',').filter(Boolean).map(x => { const i = x.lastIndexOf(':'); return [x.slice(0, i), Number(x.slice(i + 1))]; }));
+      return {steps, banners, zigi: fig ? box(fig) : null, sideways: dialog.scrollWidth - dialog.clientWidth, vw: innerWidth, stageW: stage.getBoundingClientRect().width, sy: Number((stage as HTMLElement).dataset.sy), room: room as Record<string, number>};
     });
     expect(m.sideways, `${width}: no sideways scroll`).toBeLessThanOrEqual(0);
     expect(m.steps).toHaveLength(NAMES.length);
@@ -58,9 +58,11 @@ test('phones 320–430: an airy path — one-line tabs, nothing overlaps, ZIGi i
       });
       for (const b of m.banners) { expect(overlap(s.tab, b), `${width}: ${s.id}'s tab clear of a banner`).toBe(false); expect(overlap(s.dot, b), `${width}: ${s.id}'s node clear of a banner`).toBe(false); }
       // The pitch (Session AG Polish 3, ADR-032 L20; owner amendment 8, moved: was "never closer than 96 px"): within an
-      // orbit, the computer's own 114 px × the phone's scale, to the pixel — the computer's rhythm, shrunk.
-      const next = m.steps[i + 1], k = (m.stageW - 12) / (COMPUTER_BAND.right - COMPUTER_BAND.left);
-      if (next && next.section === s.section) expect(Math.abs((next.dot.top + next.dot.bottom) / 2 - (s.dot.top + s.dot.bottom) / 2 - 114 * k), `${width}: ${s.id} → ${next.id}`).toBeLessThan(1);
+      // orbit, the computer's own 114 px × the phone's scale, to the pixel — the computer's rhythm, shrunk. Owner amendments
+      // 10 and 10c, moved at equal strength: down, the scale is sy (2 × the width's scale to 1), plus the room added locally
+      // above the next node, if any.
+      const next = m.steps[i + 1];
+      if (next && next.section === s.section) expect(Math.abs((next.dot.top + next.dot.bottom) / 2 - (s.dot.top + s.dot.bottom) / 2 - 114 * m.sy - (m.room[next.id!] ?? 0)), `${width}: ${s.id} → ${next.id}`).toBeLessThan(1);
     });
     // (Session AG Polish 3, owner amendment 8, moved: a tab may wrap as its last resort at any width; a wrapped tab still
     // shows its whole name.)

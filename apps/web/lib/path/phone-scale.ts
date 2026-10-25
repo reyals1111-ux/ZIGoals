@@ -42,17 +42,20 @@ export const PHONE = {dot: 62, tabTop: 62 * .2, tabDys: [62 * .2, -14, -42, 40, 
   /** Owner amendment 10c: the band an orbit's nodes span (20–80 % of the width), a tab's greatest gap from its own ring,
    *  the line's gutter, and the room added locally (a step, and at most) where no tab spot is clear. */
   band: [.2, .8] as const, hug: 4, gutter: 8, roomStep: 8, roomRounds: 40,
-  /** a tab leaning under its node ends this far past the node's middle on the side it leans from */ belowEdge: 12};
+  /** Under its node (its top 4 px into the ring's foot): a tab may start at the node's middle (1 px past it) or, for a
+   *  long word on a narrow phone, 12 px before it — the inner edges, from the middle, on the tab's own side. */
+  underDy: 62 / 2 - 4, underEdges: [1, -12]};
 
 export type ScaleOrbit = {id: string; /** the planet's box width in spheres (`--ex`), or null where the orbit has no planet */ planet: number | null; steps: {id: string; side: 'left' | 'right'}[]};
 export type ScaleInput = {/** the phone stage's width */ w: number; seed: string; orbits: ScaleOrbit[]; finale: boolean;
   /** the phone planet's sphere radius, each tab's one-line width, where each banner's pill ends and its height */
   planetR: number; tabs: number[]; words: number[]; pillH?: number};
-/** `tabDy`: the tab's top below the node's centre (its usual place is 0.2 of a node; a tab may move up beside it);
+/** `tabDy`: the tab's top below the node's centre (its usual place is 0.2 of a node; always on the node's lower side);
  *  `tabOut`: how much further out from the node than usual it starts. */
 export type PhoneLane = {x: number; y: number; side: 'left' | 'right' | 'below'; wrap: boolean; maxTab: number; lines: number; zigi: 'side' | 'above'; tabDy: number; tabOut: number};
 export type PhoneScale = {sx: number; sy: number; /** across: the path's scale (orbits of 1–2 nodes) and each orbit's own */ kx: number; kxs: number[]; dx: number; dy: number;
-  /** room added locally above a station (owner amendment 10c), in px */ room: Record<string, number>; h: number; nodes: FlowNode[]; segments: FlowSegment[]; lanes: PhoneLane[];
+  /** room added locally above a station (owner amendment 10c), in px */ room: Record<string, number>;
+  /** stretches drawn smaller than seeded, or mirrored, to fit the column (owner amendment 10d) */ fitted: string[]; h: number; nodes: FlowNode[]; segments: FlowSegment[]; lanes: PhoneLane[];
   banners: {top: number; planetX: number | null}[]; pills: {l: number; t: number; r: number; b: number}[]; finale: {x: number; y: number} | null;
   /** what still breaks an overlap check at the greatest sy (none in a good layout) */ faults: string[]};
 
@@ -170,6 +173,12 @@ export function phoneScale(input: ScaleInput): PhoneScale {
   delete out.asks; delete out.badness;
   return out;
 }
+/** The line's swing (owner amendment 10d): amendment 10b's — the computer's swing stretched as 10b stretched the path, its
+ *  outermost node centres 42 px in from the column's edges — so the computer's loops keep their strength. */
+export function lineSwing(w: number, xs: readonly number[]): number {
+  const lo = Math.min(...xs), hi = Math.max(...xs);
+  return COMPUTER_SWING * (xs.length && hi - lo > 1e-6 ? (w - 2 * (PHONE.dot / 2 + PHONE.edge)) / (hi - lo) : (PHONE.band[1] - PHONE.band[0]) * w / (2 * COMPUTER_SWING));
+}
 /** Across (owner amendment 10c): each orbit of three nodes or more maps its own computer node range onto 20–80 % of the
  *  width, keeping the computer's order; an orbit of one or two keeps the computer's place (its wave onto the same band). */
 export function phoneAcross(w: number, orbits: readonly number[][]): {kx: number; kxs: number[]; at: (orbit: number, x: number) => number} {
@@ -195,8 +204,21 @@ function build(input: ScaleInput, sy: number, room: Record<string, number>): Pho
   const total = carried, Y = (y: number, k: number) => y * sy + dy + k;
   const across = phoneAcross(input.w, stepIds.map(ids => ids.map(id => layout.nodes.find(n => n.id === id)!.x))), px = input.w - 4 - input.planetR;
   // (Planets at the right, as on Alpha #48, level with their banner; the finale mid-column; the nodes across each orbit.)
-  const nodes = layout.nodes.map((n, i) => ({...n, x: n.id.startsWith('planet:') ? px : n.id === 'finale:end' ? input.w / 2 : across.at(orbitOf.get(n.id)!, n.x), y: Y(n.y, shift[i]!),
+  const placed0 = layout.nodes.map((n, i) => ({...n, x: n.id.startsWith('planet:') ? px : n.id === 'finale:end' ? input.w / 2 : across.at(orbitOf.get(n.id)!, n.x), y: Y(n.y, shift[i]!),
     r: n.id.startsWith('planet:') ? input.planetR : n.id === 'finale:end' ? PHONE.finaleNode / 2 : R}));
+  // The name's side (owner amendment 10d): the computer's, where the one-word tab fits beside the node on that side; else
+  // the other side (a node at the column's edge, its name toward the middle). The computer's rule then holds on the
+  // phone too: the line comes in on the name's side and leaves on the other, and the finale takes it in where the last
+  // node lets it out.
+  const stepList = input.orbits.flatMap(o => o.steps), nameSide = new Map<string, 'left' | 'right'>();
+  stepList.forEach((st, i) => {
+    const n = placed0.find(q => q.id === st.id)!, tab = input.tabs[i] ?? 120, fits = (sd: 'left' | 'right') => sd === 'right' ? n.x + PHONE.tabReach + tab <= input.w - PHONE.margin : n.x - PHONE.tabReach - tab >= PHONE.margin;
+    const other = st.side === 'left' ? 'right' : 'left';
+    nameSide.set(st.id, fits(st.side) || !fits(other) ? st.side : other);
+  });
+  const nodes = placed0.map(n => nameSide.has(n.id) ? {...n, ...sidesFor(nameSide.get(n.id)!)} : n);
+  const lastStep = [...nodes].reverse().find(n => nameSide.has(n.id)), finIdx = nodes.findIndex(n => n.id === 'finale:end');
+  if (finIdx >= 0 && lastStep) nodes[finIdx] = {...nodes[finIdx]!, inSide: lastStep.outSide, outSide: lastStep.inSide};
   const h = Y(layout.h, total), fin = nodes.find(n => n.id === 'finale:end') ?? null;
   // (Each banner moves with its planet; an orbit without one, with the room carried to its first node.)
   const banners = input.orbits.map((o, si) => {
@@ -205,7 +227,8 @@ function build(input: ScaleInput, sy: number, room: Record<string, number>): Pho
     return {top: Y(layout.bannerMids[si]!, k) - bh / 2, planetX: pi >= 0 ? nodes[pi]!.x : null};
   });
   const pills: Box4[] = banners.map((b, si) => ({l: 0, t: b.top + bh / 2 - pill / 2, r: input.words[si] ?? 0, b: b.top + bh / 2 + pill / 2}));
-  const segments = phoneLine(nodes, {w: input.w, seed: input.seed, swing: COMPUTER_SWING * across.kx, gutter: PHONE.gutter, leadFrom: 0, tailTo: fin ? h - 4 : null, avoid: pills});
+  const fitted = new Set<string>(), swing = lineSwing(input.w, layout.nodes.filter(n => orbitOf.has(n.id) && !n.id.startsWith('planet:')).map(n => n.x));
+  const segments = phoneLine(nodes, {w: input.w, seed: input.seed, swing, gutter: PHONE.gutter, leadFrom: 0, tailTo: fin ? h - 4 : null, avoid: pills, fitted});
   const bySeg = segments.map(sg => ({sg, pts: linePointsOf([sg])})), line = bySeg.flatMap(x => x.pts);
   const rings = nodes.map(n => ({id: n.id, x: n.x, y: n.y, r: n.r}));
   const steps = input.orbits.flatMap(o => o.steps), placed: (Box4 & {id: string; node: {x: number; y: number}})[] = [], asks = new Set<string>();
@@ -215,7 +238,7 @@ function build(input: ScaleInput, sy: number, room: Record<string, number>): Pho
   // the usual height, beside the node's middle, higher or lower — or just under it — the first clear of the column's edge,
   // every ring, the banners, the line and the tabs before it; else the least in the way, and room is asked for there.
   const lanes: PhoneLane[] = steps.map((st, i) => {
-    const node = nodes.find(n => n.id === st.id)!, tab = input.tabs[i] ?? 120, other: 'left' | 'right' = st.side === 'left' ? 'right' : 'left';
+    const node = nodes.find(n => n.id === st.id)!, tab = input.tabs[i] ?? 120, own = nameSide.get(st.id)!, other: 'left' | 'right' = own === 'left' ? 'right' : 'left';
     const boxOf = (side: PhoneLane['side'], dyy: number, out: number): Box4 => {
       const t = node.y + dyy, b = t + PHONE.tabLine, reach = PHONE.tabReach + out;
       return side === 'below' ? {l: node.x + out - tab / 2, t, r: node.x + out + tab / 2, b} : side === 'right' ? {l: node.x + reach, t, r: node.x + reach + tab, b} : {l: node.x - reach - tab, t, r: node.x - reach, b};
@@ -226,17 +249,24 @@ function build(input: ScaleInput, sy: number, room: Record<string, number>): Pho
     const faultOf = (box: Box4) => {
       let n = box.l < PHONE.margin - .5 || box.r > input.w - PHONE.margin + .5 ? 1e5 : 0;
       if (Math.max(box.l - node.x, 0, node.x - box.r) ** 2 + Math.max(box.t - node.y, 0, node.y - box.b) ** 2 < 18 ** 2) n += 1e3;
+      // (The node's glyph, as the path's own check reads it: 0.35 of the node either side, from 0.35 above its middle to 0.07
+      // below — 0.37 here, for the next node's larger size.)
+      if (box.l < node.x + PHONE.dot * .37 && box.r > node.x - PHONE.dot * .37 && box.t < node.y + PHONE.dot * .074 && box.b > node.y - PHONE.dot * .37) n += 1e3;
       for (const ring of rings) if (ring.id !== st.id && Math.max(box.l - ring.x, 0, ring.x - box.r) ** 2 + Math.max(box.t - ring.y, 0, ring.y - box.b) ** 2 < ring.r ** 2) n += 1e3;
       for (const p of pills) if (hits(box, p)) n += 1e3;
       for (const t of placed) if (hits(box, t)) n += 1e3;
       for (const p of near) if (p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b) n += 1;
       return n;
     };
-    // (Just under the node: centred, or leaning toward either side so the line leaving its rim passes clear of it — for a
-    // long word beside a node mid-column on a narrow phone, where neither side holds it. `out` is then the lean in px.)
-    const lean = Math.max(0, tab / 2 - PHONE.belowEdge);
-    const options = [...([st.side, other] as const).flatMap(side => PHONE.tabOuts.flatMap(out => PHONE.tabDys.map(dyy => ({side: side as PhoneLane['side'], dy: dyy, out})))),
-      ...[0, -lean, lean].map(out => ({side: 'below' as const, dy: R + 2, out}))].filter(o => hugs(boxOf(o.side, o.dy, o.out))).map(o => ({...o, fault: faultOf(boxOf(o.side, o.dy, o.out))}));
+    // (The spots, all on the node's lower side — never beside its crown, where the NEXT badge sits (owner amendment 10c):
+    // the usual height, then lower, on the computer's side and then the other; then slid in under the node, from its
+    // middle — clear of the line leaving the other rim — or, for a long word on a narrow phone, from 12 px before it.)
+    // (And, where the line leaves the node on the tab's side, the usual spot 4 px off the ring, so the line runs between.)
+    const sides = [own, other] as const, lower = PHONE.tabDys.filter(d => d > 0), off = R + PHONE.hug - PHONE.tabReach;
+    const options = [...sides.flatMap(side => lower.flatMap(dyy => PHONE.tabOuts.map(out => ({side: side as PhoneLane['side'], dy: dyy, out})))),
+      ...PHONE.underEdges.flatMap(edge => sides.map(side => ({side: side as PhoneLane['side'], dy: PHONE.underDy, out: edge - PHONE.tabReach}))),
+      ...sides.flatMap(side => lower.map(dyy => ({side: side as PhoneLane['side'], dy: dyy, out: off})))]
+      .filter(o => hugs(boxOf(o.side, o.dy, o.out))).map(o => ({...o, fault: faultOf(boxOf(o.side, o.dy, o.out))}));
     const pick = options.find(o => o.fault === 0) ?? options.reduce((a, b) => b.fault < a.fault ? b : a);
     const box = boxOf(pick.side, pick.dy, pick.out);
     badness += pick.fault;
@@ -252,5 +282,5 @@ function build(input: ScaleInput, sy: number, room: Record<string, number>): Pho
   const lineBad = segments.flatMap(sg => { const bad = lineFaults([sg], input.w, PHONE.gutter); if (bad.length && sg.to) asks.add(sg.to); return bad; });
   const faults = [...phoneFaults({w: input.w, nodes: rings.filter(n => !n.id.startsWith('planet:')), planets: rings.filter(n => n.id.startsWith('planet:')), tabs: placed, pills, line}), ...lineBad];
   const stageH = Math.max(h, fin ? fin.y + PHONE.finaleFoot : 0, ...lanes.map(l => l.y + R + 40));
-  return {sx, sy, kx: across.kx, kxs: across.kxs, room: {...room}, dx, dy, h: stageH, nodes, segments, lanes, banners, pills, finale: fin ? {x: fin.x, y: fin.y} : null, faults, asks: [...asks], badness};
+  return {sx, sy, kx: across.kx, kxs: across.kxs, room: {...room}, dx, dy, h: stageH, nodes, segments, lanes, banners, pills, finale: fin ? {x: fin.x, y: fin.y} : null, faults, fitted: [...fitted], asks: [...asks], badness};
 }

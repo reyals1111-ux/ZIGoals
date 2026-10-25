@@ -1,30 +1,30 @@
 import {rimPoint, seeded, type FlowNode, type FlowSegment} from './flow-geometry';
 
 /**
- * Session AG Polish 3 (ADR-032 L24; owner amendment 10c, the checkpoint reply): the phone's line. The computer's own
- * logic — a node takes the line in on its name's side and lets it out on the other, heading straight down; on the same
- * side a stretch bows out past both rims, across it swings over; a planet takes it in at its top and lets it out at its
- * bottom; each stretch's turning height and amplitude seeded from its two ids — drawn so that on a phone:
- * - no curve point is ever clamped to the gutter: a bow that would leave the column shrinks smoothly until it fits, or
- *   turns to the side with room; a lead-in or tail that would leave it is mirrored;
- * - every stretch is ONE calm curve (one cubic) or ONE deliberate loop (two cubics joined C1 at the loop's apex, curving
- *   the same way on both sides of the join): at most 2 curvature sign changes, inflections 60 px of arc apart or more,
- *   no bump under 14 px, joins within 1°;
- * - nothing runs within 2° of upright for more than 24 px, except into or out of a planet.
- * Each stretch's candidates are tried in the computer's order (its own kind, its seeded amplitude, then smaller, then the
- * other side, then a plain swing) and the first that passes every check is drawn. Pure; computed when the path is laid out.
+ * Session AG Polish 3 (ADR-032 L24, L25; owner amendments 10c and 10d): the phone's line.
+ * - Node → node: the computer's own stretch (`flowSegments`' construction: in on the name's side and out on the other,
+ *   heading straight down; on the same side a loop bowing out past both rims through a seeded waypoint, across a swing
+ *   through a waypoint near the middle; its turning height, amplitude and offset seeded from the two ids), at amendment
+ *   10b's strength (the swing stretched as 10b stretched the path), on the phone's node places (10c) — but never
+ *   clamped: where a loop would leave the column it shrinks smoothly until it fits, or bows to the side with room; it
+ *   stays a loop, never flattened against the gutter.
+ * - Planet → first node and last node → planet: one smooth sweep (one cubic), upright at the planet's rim (10c).
+ * - Everywhere: no bump under 14 px (no micro-wiggle) and no straight run within 2° of upright for more than 24 px,
+ *   except into or out of a planet; every point inside the column.
+ * Each stretch's candidates are tried in order — the computer's own first — and the first that passes is drawn. Pure.
  */
 type V = {x: number; y: number};
 export type Cubic = [V, V, V, V];
 export type LineOptions = {w: number; seed: string; swing: number; gutter: number; leadFrom: number | null; tailTo: number | null;
-  /** boxes the line must not cross (the banners' pills) */ avoid?: {l: number; t: number; r: number; b: number}[]};
+  /** boxes the line must not cross (the banners' pills) */ avoid?: {l: number; t: number; r: number; b: number}[];
+  /** stretch ids drawn smaller than seeded, or mirrored, to fit (filled in) */ fitted?: Set<string>};
 
 const f = (n: number) => (Math.round(n * 10) / 10).toString();
 const sideSign = (s: FlowNode['outSide']) => s === 'right' ? 1 : s === 'left' ? -1 : 0;
 const isPlanet = (id: string | null) => !!id && id.startsWith('planet:');
 const RAD = Math.PI / 180;
-/** The owner's numbers (amendment 10c). */
-export const LINE_RULES = {signChanges: 2, inflectionGap: 60, bump: 14, join: 1, upright: 2, uprightRun: 24};
+/** The owner's numbers (amendments 10c, 10d). */
+export const LINE_RULES = {bump: 14, join: 1, upright: 2, uprightRun: 24};
 
 export const pathD = (pieces: readonly Cubic[]) => pieces.length ? `M${f(pieces[0]![0].x)} ${f(pieces[0]![0].y)}${pieces.map(c => ` C${f(c[1].x)} ${f(c[1].y)} ${f(c[2].x)} ${f(c[2].y)} ${f(c[3].x)} ${f(c[3].y)}`).join('')}` : '';
 /** The cubics of path data written as `M x y C … C …` (an `L` stretch reads as one straight cubic). */
@@ -40,13 +40,13 @@ const d2 = (c: Cubic, t: number): V => ({x: 6 * (1 - t) * (c[2].x - 2 * c[1].x +
 const curv = (c: Cubic, t: number) => { const v = d1(c, t), a = d2(c, t), s = Math.hypot(v.x, v.y); return s < 1e-9 ? 0 : (v.x * a.y - v.y * a.x) / (s * s * s); };
 /** A stretch sampled finely: points, arc length, curvature and the angle from upright at each sample. */
 function sample(pieces: readonly Cubic[], per = 64) {
-  const pts: {x: number; y: number; s: number; k: number; up: number; piece: number}[] = [];
+  const pts: {x: number; y: number; s: number; k: number; up: number}[] = [];
   let s = 0, prev: V | null = null;
   pieces.forEach((c, pi) => {
     for (let j = pi ? 1 : 0; j <= per; j++) {
       const t = j / per, p = at(c, t), v = d1(c, t), sp = Math.hypot(v.x, v.y);
       if (prev) s += Math.hypot(p.x - prev.x, p.y - prev.y);
-      pts.push({x: p.x, y: p.y, s, k: curv(c, t), up: sp < 1e-9 ? 0 : Math.asin(Math.min(1, Math.abs(v.x) / sp)) / RAD, piece: pi});
+      pts.push({x: p.x, y: p.y, s, k: curv(c, t), up: sp < 1e-9 ? 0 : Math.asin(Math.min(1, Math.abs(v.x) / sp)) / RAD});
       prev = p;
     }
   });
@@ -56,23 +56,29 @@ function sample(pieces: readonly Cubic[], per = 64) {
 export function linePointsOf(segments: readonly {d: string}[], per = 24): V[] {
   return segments.flatMap(sg => piecesOf(sg.d).flatMap((c, i) => Array.from({length: per + (i ? 0 : 1)}, (_, j) => at(c, (j + (i ? 1 : 0)) / per))));
 }
+/** A loop's reach (owner amendment 10d): how far its waypoint — where its two cubics join — stands out past both of its
+ *  ends, sideways; 0 for a stretch of one cubic or a swing between its ends. */
+export function excursion(d: string): number {
+  const pieces = piecesOf(d);
+  if (pieces.length < 2) return 0;
+  const p = pieces[0]![0], q = pieces.at(-1)![3], m = pieces[0]![3];
+  return Math.max(0, m.x - Math.max(p.x, q.x), Math.min(p.x, q.x) - m.x);
+}
 
 /**
- * The owner's line checks for one stretch (amendment 10c), each returning what breaks it: at most 2 cubics; joins within
- * 1° and curving the same way; at most 2 curvature sign changes; inflections 60 px of arc apart; no bump (the arc between
- * two inflections) under 14 px from its chord; no run within 2° of upright longer than 24 px unless it starts or ends at a
- * planet; every point inside the column's gutter (so nothing was clamped: a clamped point would sit on the gutter's edge
- * in an upright run, which the run check catches).
+ * The owner's line checks (amendments 10c, 10d) for one stretch, each returning what breaks it: no bump (the arc between
+ * two inflections) under 14 px from its chord; joins within 1°; no run within 2° of upright longer than 24 px unless it
+ * starts or ends at a planet; a planet's stretch one cubic, upright at the planet's rim; every point inside the column.
  */
 export function stretchFaults(sg: Pick<FlowSegment, 'id' | 'from' | 'to' | 'd'>, w: number, gutter: number): string[] {
   const pieces = piecesOf(sg.d), out: string[] = [];
   if (!pieces.length) return out;
-  if (pieces.length > 2) out.push(`${sg.id}: ${pieces.length} cubic pieces`);
+  if ((isPlanet(sg.from) || isPlanet(sg.to)) && pieces.length !== 1) out.push(`${sg.id}: a planet's stretch in ${pieces.length} pieces`);
+  if (isPlanet(sg.from) && Math.abs(pieces[0]![1].x - pieces[0]![0].x) > .05) out.push(`${sg.id}: not upright out of its planet`);
+  if (isPlanet(sg.to) && Math.abs(pieces.at(-1)![2].x - pieces.at(-1)![3].x) > .05) out.push(`${sg.id}: not upright into its planet`);
   for (let i = 1; i < pieces.length; i++) {
     const a = d1(pieces[i - 1]!, 1), b = d1(pieces[i]!, 0), ang = Math.abs(Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y)) / RAD;
     if (ang > LINE_RULES.join) out.push(`${sg.id}: a join turns ${ang.toFixed(1)}°`);
-    const ka = curv(pieces[i - 1]!, 1), kb = curv(pieces[i]!, 0);
-    if (Math.abs(ka) > 1e-4 && Math.abs(kb) > 1e-4 && Math.sign(ka) !== Math.sign(kb)) out.push(`${sg.id}: a join changes its curving`);
   }
   const pts = sample(pieces), eps = 2e-4;
   // (Inflections: where the curvature's sign flips, ignoring stretches flatter than a 5000 px radius.)
@@ -84,9 +90,7 @@ export function stretchFaults(sg: Pick<FlowSegment, 'id' | 'from' | 'to' | 'd'>,
     if (last && sgn !== last) { let j = i - 1; while (j > 0 && Math.abs(pts[j]!.k) <= eps) j--; flips.push((pts[i]!.s + pts[j]!.s) / 2); }
     last = sgn;
   }
-  if (flips.length > LINE_RULES.signChanges) out.push(`${sg.id}: ${flips.length} curvature sign changes`);
   for (let i = 1; i < flips.length; i++) {
-    if (flips[i]! - flips[i - 1]! < LINE_RULES.inflectionGap) out.push(`${sg.id}: inflections ${Math.round(flips[i]! - flips[i - 1]!)} px apart`);
     const a = pts.find(p => p.s >= flips[i - 1]!)!, b = pts.find(p => p.s >= flips[i]!)!, L = Math.hypot(b.x - a.x, b.y - a.y) || 1;
     const amp = Math.max(...pts.filter(p => p.s >= a.s && p.s <= b.s).map(p => Math.abs((b.x - a.x) * (a.y - p.y) - (a.x - p.x) * (b.y - a.y)) / L));
     if (amp < LINE_RULES.bump) out.push(`${sg.id}: a bump of ${amp.toFixed(1)} px`);
@@ -110,21 +114,18 @@ export function stretchFaults(sg: Pick<FlowSegment, 'id' | 'from' | 'to' | 'd'>,
 /** The whole line's faults (every stretch). */
 export const lineFaults = (segments: readonly Pick<FlowSegment, 'id' | 'from' | 'to' | 'd'>[], w: number, gutter: number) => segments.flatMap(sg => stretchFaults(sg, w, gutter));
 
-/** The least radius of curvature on a stretch (a calm curve has no tight hook). */
-function leastRadius(pieces: readonly Cubic[]) { return Math.min(...sample(pieces, 48).map(p => Math.abs(p.k) < 1e-9 ? Infinity : 1 / Math.abs(p.k))); }
-
 // The shapes. P and Q are the stretch's ends, both heading straight down.
-/** One calm swing: one cubic, its turn at `turn` of the drop. */
-function swing(P: V, Q: V, turn: number): Cubic[] {
+/** One smooth sweep: one cubic, its turn at `turn` of the drop (a planet's stretch). */
+function sweep(P: V, Q: V, turn: number): Cubic[] {
   const dy = Q.y - P.y, h = .6;
   return [[P, {x: P.x, y: P.y + dy * h * 2 * turn}, {x: Q.x, y: Q.y - dy * h * 2 * (1 - turn)}, Q]];
 }
-/** One loop: out past both ends on side `s` by `A`, its apex at `turn` of the drop; two cubics joined C1 at the apex. */
-function bow(P: V, Q: V, s: number, A: number, turn: number): Cubic[] {
-  const dy = Q.y - P.y, M = {x: (s > 0 ? Math.max(P.x, Q.x) : Math.min(P.x, Q.x)) + s * A, y: P.y + dy * turn};
-  const tx = (Q.x - P.x) * .15, len = Math.hypot(tx, dy) || 1, u = {x: tx / len, y: dy / len};
-  const h1 = M.y - P.y, h2 = Q.y - M.y, l1 = h1 * .5, l2 = h2 * .5;
-  return [[P, {x: P.x, y: P.y + h1 * .5}, {x: M.x - u.x * l1, y: M.y - u.y * l1}, M], [M, {x: M.x + u.x * l2, y: M.y + u.y * l2}, {x: Q.x, y: Q.y - h2 * .5}, Q]];
+/** The computer's own stretch (`flowSegments`), unclamped, through its waypoint `mx` at `turn` of the drop. */
+function computerStretch(P: V, Q: V, same: boolean, mx: number, turn: number): Cubic[] {
+  const dy = Q.y - P.y, my = P.y + dy * turn;
+  const tx = (Q.x - P.x) * (same ? .15 : .9), len = Math.hypot(tx, dy) || 1, ux = tx / len, uy = dy / len;
+  const l1 = (my - P.y) * .5, l2 = (Q.y - my) * .5, M = {x: mx, y: my};
+  return [[P, {x: P.x, y: P.y + (my - P.y) * .62}, {x: mx - ux * l1, y: my - uy * l1}, M], [M, {x: mx + ux * l2, y: my + uy * l2}, {x: Q.x, y: Q.y - (Q.y - my) * .62}, Q]];
 }
 
 /** Whether a stretch's curve stays clear of every ring it does not end at, its own rings and the boxes to avoid. */
@@ -143,48 +144,57 @@ export function phoneLine(stations: readonly FlowNode[], o: LineOptions): FlowSe
   const out: FlowSegment[] = [], g = o.gutter, inside = (x: number) => x >= g + 1 && x <= o.w - g - 1;
   const first = stations[0], last = stations.at(-1);
   if (!first || !last) return out;
-  // Pick the first candidate that passes every check and stays clear; else the one with the fewest faults.
-  const choose = (id: string, from: string | null, to: string | null, cands: Cubic[][]) => {
-    let best: {d: string; n: number} | null = null;
-    for (const c of cands) {
+  // Pick the first candidate inside the column (never touching the gutter's edge: nothing is clamped) that passes every
+  // check and stays clear; else the one with the fewest faults. `tag` marks a candidate smaller than seeded, or mirrored.
+  const choose = (id: string, from: string | null, to: string | null, cands: {c: Cubic[]; fitted: boolean}[]) => {
+    let best: {d: string; n: number; fitted: boolean} | null = null;
+    for (const {c, fitted} of cands) {
       if (!c.every(p => p.every(q => inside(q.x)))) continue;
-      const d = pathD(c), faults = stretchFaults({id, from, to, d}, o.w, g).length + (clear(c, stations, from, to, o.avoid) ? 0 : 1) + (leastRadius(c) < 12 ? 1 : 0);
-      if (!faults) return d;
-      if (!best || faults < best.n) best = {d, n: faults};
+      const d = pathD(c), faults = stretchFaults({id, from, to, d}, o.w, g).length + (clear(c, stations, from, to, o.avoid) ? 0 : 1);
+      if (!faults) { if (fitted) o.fitted?.add(id); return d; }
+      if (!best || faults < best.n) best = {d, n: faults, fitted};
     }
-    return best?.d ?? pathD(cands.at(-1)!);
+    if (best?.fitted) o.fitted?.add(id);
+    return best?.d ?? pathD(cands.at(-1)!.c);
   };
-  // The lead-in: from the top down into the first station, from the side the computer's seed picks — or the other.
+  // The lead-in: the computer's, from the top down into the first station — mirrored or shorter where it would leave.
   if (o.leadFrom !== null && o.leadFrom < first.y - first.r) {
     const r = seeded(`${o.seed}|lead|${first.id}`), Q = rimPoint(first, first.inSide), s0 = sideSign(first.inSide) || (r() < .5 ? -1 : 1), k = .25 + r() * .35;
-    const cands = [s0, -s0].flatMap(s => [1, .7, .45].map(m => { const x = Q.x + s * o.swing * k * m, P = {x, y: o.leadFrom!}, dy = Q.y - P.y; return [[P, {x, y: P.y + dy * .55}, {x: Q.x, y: Q.y - dy * .55}, Q]] as Cubic[]; }));
-    out.push({id: `lead:${first.id}`, from: null, to: first.id, kind: 'lead', d: choose(`lead:${first.id}`, null, first.id, cands), x1: cands[0]![0]![0].x, y1: o.leadFrom, x2: Q.x, y2: Q.y, fromColour: first.colour, toColour: first.colour, fromLit: false, toLit: first.done});
-    const sg = out.at(-1)!, p = piecesOf(sg.d)[0]![0]; sg.x1 = p.x;
+    const cands = [s0, -s0].flatMap(s => [1, .8, .6, .4].map(m => { const x = Q.x + s * o.swing * k * m, P = {x, y: o.leadFrom!}, dy = Q.y - P.y; return {c: [[P, {x, y: P.y + dy * .55}, {x: Q.x, y: Q.y - dy * .55}, Q]] as Cubic[], fitted: m < 1 || s !== s0}; }));
+    const d = choose(`lead:${first.id}`, null, first.id, cands), p = piecesOf(d)[0]![0];
+    out.push({id: `lead:${first.id}`, from: null, to: first.id, kind: 'lead', d, x1: p.x, y1: o.leadFrom, x2: Q.x, y2: Q.y, fromColour: first.colour, toColour: first.colour, fromLit: false, toLit: first.done});
   }
   for (let i = 0; i + 1 < stations.length; i++) {
     const a = stations[i]!, b = stations[i + 1]!, P = rimPoint(a, a.outSide), Q = rimPoint(b, b.inSide), id = `${a.id}>${b.id}`;
     const base = {id, from: a.id, to: b.id, kind: 'step' as const, x1: P.x, y1: P.y, x2: Q.x, y2: Q.y, fromColour: a.colour, toColour: b.colour, fromLit: a.done, toLit: b.done};
     if (Q.y - P.y <= 1) { out.push({...base, d: `M${f(P.x)} ${f(P.y)} L${f(Q.x)} ${f(Q.y)}`}); continue; }
-    const r = seeded(`${o.seed}|${id}`), turn = .38 + r() * .24, amp = o.swing * (.35 + r() * .65), lean = r() < .5 ? -1 : 1, sa = sideSign(a.outSide);
+    // (The computer's seeds, in its order: the turning height, the amplitude, the swing's offset.)
+    const r = seeded(`${o.seed}|${id}`), turn = .38 + r() * .24, amp = o.swing * (.35 + r() * .65), off = r() - .5, sa = sideSign(a.outSide);
+    if (isPlanet(a.id) || isPlanet(b.id)) {
+      // A planet's stretch: one smooth sweep, its turn the computer's, then a little higher or lower.
+      out.push({...base, d: choose(id, a.id, b.id, [turn, .5, .4, .6].map((t, k) => ({c: sweep(P, Q, t), fitted: k > 0})))});
+      continue;
+    }
     const same = sa !== 0 && a.outSide === b.inSide;
-    // (A bow's side: the computer's for a same-side stretch; for a crossing that needs one, the seeded lean.)
-    const bowSide = same ? sa : lean, room = (s: number) => s > 0 ? o.w - g - Math.max(P.x, Q.x) : Math.min(P.x, Q.x) - g;
-    // (A bow's amplitude: the seeded one; where the drop is tall, as much more as keeps its apex from running upright
-    // (a parabola's apex stays within 2° of upright over 0.035 × H² / A px); then smaller, smoothly, to fit the column.)
-    const bows = (s: number) => {
-      const fitIn = room(s) - 2, A0 = Math.min(amp * .55, fitIn), H = Math.max(turn, 1 - turn) * (Q.y - P.y), tall = Math.min(fitIn, H * H * .035 / (LINE_RULES.uprightRun * .8));
-      // (Larger before smaller: a loop under about 28 px leaves a bump under 14 px.)
-      const larger = [1.25, 1.5, 1.8, 2.2].map(m => A0 * m).filter(A => A <= fitIn);
-      return [...(tall > A0 ? [tall, (tall + A0) / 2] : []), A0, ...larger, ...(fitIn > A0 * 2.2 ? [fitIn] : []), ...[.85, .7, .55, .4].map(m => A0 * m)].filter(A => A >= 8).map(A => bow(P, Q, s, A, turn));
-    };
-    const calm = swing(P, Q, turn);
-    const cands = same ? [...bows(bowSide), calm, ...bows(-bowSide)] : [calm, ...bows(bowSide), ...bows(-bowSide)];
+    let cands: {c: Cubic[]; fitted: boolean}[];
+    if (same) {
+      // A loop: past both rims on its side by the computer's 0.55 × amplitude; else smaller, smoothly, to fit; else the
+      // same loop on the side with room; larger only where a seeded loop would leave a bump under 14 px or a straight run.
+      const end = (s: number) => s > 0 ? Math.max(P.x, Q.x) : Math.min(P.x, Q.x), A = amp * .55;
+      const loops = (s: number, mirrored: boolean) => [1, .9, .8, .7, .6, .5, .4, 1.2, 1.4, 1.7].map(m => ({c: computerStretch(P, Q, true, end(s) + s * A * m, turn), fitted: mirrored || m < 1}));
+      cands = [...loops(sa, false), ...loops(-sa, true)];
+    } else {
+      // A swing: through the computer's waypoint near the middle; where that wobbles (a bump under 14 px) or runs upright,
+      // the same swing bowed deliberately wider its own way, then the other way; last, one smooth sweep.
+      const mid = P.x + (Q.x - P.x) * turn, dir = off < 0 ? -1 : 1, px = (k: number) => ({c: computerStretch(P, Q, false, mid + k * amp * .5, turn), fitted: Math.abs(k) < Math.abs(off) - 1e-9 || (k !== 0 && Math.sign(k) !== dir)});
+      cands = [...[off, dir * .6, dir * .8, dir * 1.05, -dir * .6, -dir * .8, -dir * 1.05, dir * 1.4, -dir * 1.4, dir * 1.8, -dir * 1.8].map(px), {c: sweep(P, Q, turn), fitted: true}];
+    }
     out.push({...base, d: choose(id, a.id, b.id, cands)});
   }
-  // The tail: on past the last station, to the seeded side — or the other — fading out.
+  // The tail: the computer's, on past the last station, fading out — mirrored or shorter where it would leave.
   if (o.tailTo !== null && o.tailTo > last.y + last.r) {
     const r = seeded(`${o.seed}|tail|${last.id}`), P = rimPoint(last, last.outSide), s0 = sideSign(last.outSide) || 1, k = .15 + r() * .3, dy = o.tailTo - P.y;
-    const cands = [s0, -s0].flatMap(s => [1, .7, .45].map(m => { const ex = P.x + s * o.swing * k * m; return [[P, {x: P.x, y: P.y + dy * .5}, {x: ex, y: o.tailTo! - dy * .45}, {x: ex, y: o.tailTo!}]] as Cubic[]; }));
+    const cands = [s0, -s0].flatMap(s => [1, .8, .6, .4].map(m => { const ex = P.x + s * o.swing * k * m; return {c: [[P, {x: P.x, y: P.y + dy * .5}, {x: ex, y: o.tailTo! - dy * .45}, {x: ex, y: o.tailTo!}]] as Cubic[], fitted: m < 1 || s !== s0}; }));
     const d = choose(`tail:${last.id}`, last.id, null, cands), end = piecesOf(d)[0]![3];
     out.push({id: `tail:${last.id}`, from: last.id, to: null, kind: 'tail', d, x1: P.x, y1: P.y, x2: end.x, y2: end.y, fromColour: last.colour, toColour: last.colour, fromLit: last.done, toLit: false});
   }
