@@ -2,16 +2,19 @@ import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {seedChecklist, settled} from './checklist-fixtures';
-import {COMPUTER, phoneAcross, phoneTransform, syRange} from '../lib/path/phone-scale';
+import {COMPUTER, PHONE, phoneAcross, phoneTransform, syRange} from '../lib/path/phone-scale';
+import {lineFaults, piecesOf} from '../lib/path/phone-line';
 
 /**
  * Session AG Polish 3 (ADR-032 L20; owner amendment 8, "phone = computer × scale", and amendments 2 and 4): the phone's
  * path on 390 × 844 and 360 × 780 phones with sample paths (thirteen items over four orbits with long names; six short
  * ones in one orbit; two orbits of three and two):
- * - every node is the computer's own — read from the real computer at 1440 × 900 — with x stretched by one kx per path
- *   (its outermost rings 8–14 px from the edges) and y × sy, sy in [2 × sx, 1] (amendments 10, 10b); the line meets
- *   each ring on its rim with the computer's stroke widths and glow; each tab one short word on one line, inside the
- *   column and over nothing (no line, ring, tab, banner or planet); no node within 10 px of another;
+ * - every node is the computer's own — read from the real computer at 1440 × 900 — with each orbit of three nodes or
+ *   more spread over 20–80 % of the width in the computer's order and y × sy, sy in [2 × sx, 1], plus any room added
+ *   locally (amendments 10, 10c); the spread checks hold in orbits of four or more; the line meets each ring on its rim,
+ *   is never clamped and passes the owner's line checks (lib/path/phone-line.ts), with the computer's stroke widths and
+ *   glow; each tab one short word on one line, touching its node, inside the column and over nothing (no line, ring,
+ *   tab, banner or planet); no node within 10 px of another;
  * - nothing jumps on the first open: the path shows only once it is laid out, and every node stands where it first
  *   showed a second later;
  * - ZIGi's box overlaps no point of the line, no node, no name tab and no NEXT badge;
@@ -71,12 +74,13 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
     river.first.forEach((p, i) => { expect(Math.abs(p[0]! - river.later[i]![0]!), `node ${i} across`).toBeLessThanOrEqual(1); expect(Math.abs(p[1]! - river.later[i]![1]!), `node ${i} down`).toBeLessThanOrEqual(1); });
   });
 
-  for (const name of ['long', 'short'] as const) test(`every node is the computer's × (kx, sy); the line meets each ring at the computer's stroke; one short word per tab, inside the column and over nothing (${name}; owner amendments 8, 10, 10b)`, async ({page, browser}) => {
+  for (const name of ['long', 'short'] as const) test(`every orbit across the width, taller; a calm line, never clamped, at the computer's stroke; one short word per tab, touching its node, over nothing (${name}; owner amendments 8, 10, 10b, 10c)`, async ({page, browser}) => {
     const readPath = () => {
       const stage = document.querySelector<HTMLElement>('.path-stage[data-variant=orbit]')!, o = stage.getBoundingClientRect();
       const centre = (el: Element) => { const r = el.getBoundingClientRect(); return {x: r.left + r.width / 2 - o.left, y: r.top + r.height / 2 - o.top, r: r.width / 2}; };
       const nodes = [...stage.querySelectorAll('.path-dot')].map(d => ({id: d.getAttribute('data-step')!, ...centre(d)}));
       const planets = [...stage.querySelectorAll('[data-path-point^="planet:"]')].map(centre);
+      const finale = stage.querySelector('[data-path-point="finale:end"]'), fin = finale ? centre(finale) : null;
       const segments = [...stage.querySelectorAll('.orbit-flow-segment')].map(g => ({id: g.getAttribute('data-segment')!, d: g.querySelector('.orbit-flow-core')!.getAttribute('d')!}));
       const stroke = (sel: string) => getComputedStyle(stage.querySelector(sel)!).strokeWidth;
       // (The line's points every 2 px, each tab's box and each banner's pill, on the stage.)
@@ -84,7 +88,8 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
       const box = (el: Element) => { const r = el.getBoundingClientRect(); return {l: r.left - o.left, r: r.right - o.left, t: r.top - o.top, b: r.bottom - o.top}; };
       const tabs = [...stage.querySelectorAll<HTMLElement>('.orbit-tab')].map(t => { const text = t.querySelector<HTMLElement>('.path-label-text')!; return {label: t.title, shown: text.textContent ?? '', ...box(t), lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), cut: text.scrollWidth > text.clientWidth + 1}; });
       const pills = [...stage.querySelectorAll('[data-path-box^="banner:"]')].map(box);
-      return {w: o.width, sy: Number(stage.dataset.sy), kx: Number(stage.dataset.kx), nodes, planets, segments, strokes: [stroke('.orbit-flow-core'), stroke('.orbit-flow-halo'), stroke('.orbit-flow-glow path')],
+      const room = Object.fromEntries((stage.dataset.room ?? '').split(',').filter(Boolean).map(x => { const i = x.lastIndexOf(':'); return [x.slice(0, i), Number(x.slice(i + 1))]; }));
+      return {w: o.width, sy: Number(stage.dataset.sy), kx: Number(stage.dataset.kx), room, nodes, planets, fin, segments, strokes: [stroke('.orbit-flow-core'), stroke('.orbit-flow-halo'), stroke('.orbit-flow-glow path')],
         blur: stage.querySelector('feGaussianBlur')!.getAttribute('stdDeviation'), planetR: planets[0]!.r, planetY: planets[0]!.y, pts, tabs, pills};
     };
     // The computer's own path: the real page at 1440 × 900 (its stage is the virtual column).
@@ -95,39 +100,59 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
     expect(computer.w, 'the virtual column is the computer\'s stage').toBe(COMPUTER.w);
     await open(page, PATHS[name]);
     const phone = await page.evaluate(readPath);
-    // Down (amendment 10): y × sy, sy at least twice the width's scale and at most 1. Across (10b): one stretch kx per path.
-    const {sx, dy} = phoneTransform(phone.w, phone.sy, computer.planetY, Math.max(phone.planetR + 5, phone.planetR));
+    // Down (amendment 10): y × sy, sy at least twice the width's scale and at most 1, plus any room added locally (10c,
+    // only at sy = 1) carried to everything after it. Across (10c): each orbit of three nodes or more onto 20–80 % of the
+    // width in the computer's order; orbits of one or two keep the computer's place.
+    const {sx, dy} = phoneTransform(phone.w, phone.sy, computer.planetY, phone.planetR + 5);
     expect(phone.sy, 'sy ≥ 2 × sx').toBeGreaterThanOrEqual(syRange(phone.w).min - 1e-4); expect(phone.sy, 'sy ≤ 1').toBeLessThanOrEqual(1);
     expect(sx, 'sx fits the width').toBeGreaterThan(0);
-    const across = phoneAcross(phone.w, computer.nodes.map(n => n.x));
-    expect(Math.abs(phone.kx - across.kx), 'kx').toBeLessThanOrEqual(1e-3);
+    if (Object.keys(phone.room).length) expect(phone.sy, 'room only where sy = 1 is not enough').toBe(1);
+    const sections = ['morning', 'afternoon', 'evening', 'anytime'].filter(sec => PATHS[name].some(([, s2]) => s2 === sec));
+    const orbitIds = sections.map(sec => PATHS[name].map(([, s2], i) => s2 === sec ? `ck_river-${i + 1}` : null).filter((x): x is string => !!x));
+    const cx = new Map(computer.nodes.map(n => [n.id, n])), across = phoneAcross(phone.w, orbitIds.map(ids => ids.map(id => cx.get(id)!.x)));
     const off: string[] = [];
-    computer.nodes.forEach((c, i) => {
-      const p = phone.nodes[i]!;
-      if (p.id !== c.id) off.push(`node ${i}: ${p.id} vs ${c.id}`);
-      if (Math.abs(p.x - across.at(c.x)) > .5) off.push(`${c.id} across: ${p.x.toFixed(1)} vs ${across.at(c.x).toFixed(1)}`);
-      if (Math.abs(p.y - (c.y * phone.sy + dy)) > .5) off.push(`${c.id} down: ${p.y.toFixed(1)} vs ${(c.y * phone.sy + dy).toFixed(1)}`);
+    let carried = 0;
+    orbitIds.forEach((ids, oi) => {
+      carried += phone.room[`planet:${sections[oi]}`] ?? 0;
+      for (const id of ids) {
+        carried += phone.room[id] ?? 0;
+        const c = cx.get(id)!, p = phone.nodes.find(n => n.id === id)!;
+        if (Math.abs(p.x - across.at(oi, c.x)) > .5) off.push(`${id} across: ${p.x.toFixed(1)} vs ${across.at(oi, c.x).toFixed(1)}`);
+        if (Math.abs(p.y - (c.y * phone.sy + dy + carried)) > .5) off.push(`${id} down: ${p.y.toFixed(1)} vs ${(c.y * phone.sy + dy + carried).toFixed(1)}`);
+      }
+      const xs = ids.map(id => phone.nodes.find(n => n.id === id)!.x);
+      if (ids.length >= 3 && (Math.abs(Math.min(...xs) - .2 * phone.w) > .5 || Math.abs(Math.max(...xs) - .8 * phone.w) > .5)) off.push(`${sections[oi]}: ${Math.min(...xs).toFixed(1)}–${Math.max(...xs).toFixed(1)}, not 20–80 % of ${phone.w}`);
+      // (The spread checks, for orbits of four nodes or more; 0.5 px for the drawn positions' rounding.)
+      if (ids.length >= 4) {
+        if (Math.max(...xs) - Math.min(...xs) < .6 * phone.w - .5) off.push(`${sections[oi]}: spans under 60 %`);
+        if (!xs.some(x => x <= .25 * phone.w + .5 || x >= .75 * phone.w - .5)) off.push(`${sections[oi]}: no node in an outer 25 %`);
+        if (!xs.some(x => x >= .3 * phone.w - .5 && x <= .7 * phone.w + .5)) off.push(`${sections[oi]}: no node in the middle 40 %`);
+      }
     });
-    expect(off, `the computer's nodes × (kx ${phone.kx}, sy ${phone.sy})`).toEqual([]);
-    const xs = phone.nodes.map(n => n.x), r = phone.nodes[0]!.r;
-    expect(Math.min(...xs) - r, 'the leftmost ring 8–14 px from the edge').toBeGreaterThanOrEqual(8); expect(Math.min(...xs) - r).toBeLessThanOrEqual(14);
-    expect(phone.w - Math.max(...xs) - r, 'the rightmost ring 8–14 px from the edge').toBeGreaterThanOrEqual(8); expect(phone.w - Math.max(...xs) - r).toBeLessThanOrEqual(14);
-    // The line: the computer's own stretches, meeting each ring on its rim; the computer's stroke widths and glow.
+    expect(off, `the computer's nodes, each orbit across the width, × sy ${phone.sy}`).toEqual([]);
+    // The line (10c): the computer's stretches, each starting and ending on a ring, every control point inside the gutter
+    // (never clamped), and the owner's line checks; the computer's stroke widths and glow.
     expect(phone.segments.map(q => q.id), 'the same stretches').toEqual(computer.segments.map(q => q.id));
-    const rings = [...phone.nodes, ...phone.planets], ends: string[] = [];
+    // (Each ring at the layout's own radius: the next node is drawn a size larger, its line meets the usual ring.)
+    const rings = [...phone.nodes.map(n => ({...n, r: PHONE.dot / 2})), ...phone.planets, ...(phone.fin ? [{...phone.fin, r: PHONE.finaleNode / 2}] : [])], ends: string[] = [];
     for (const q of phone.segments) {
       const n = (q.d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), at = [{x: n[0]!, y: n[1]!, end: 'start'}, {x: n.at(-2)!, y: n.at(-1)!, end: 'end'}];
       for (const e of at) if (!(q.id.startsWith('lead:') && e.end === 'start') && !(q.id.startsWith('tail') && e.end === 'end') && !rings.some(g => Math.abs(Math.hypot(e.x - g.x, e.y - g.y) - g.r) <= 1.5)) ends.push(`${q.id} ${e.end}`);
     }
     expect(ends, 'every stretch starts and ends on a ring').toEqual([]);
-    expect(phone.pts.every(q => q.x >= 0 && q.x <= phone.w), 'the line inside the column').toBe(true);
+    const segs = phone.segments.map(q => ({...q, from: q.id.startsWith('lead:') ? null : q.id.split('>')[0]!.replace(/^tail:/, ''), to: q.id.startsWith('tail:') ? null : q.id.replace(/^lead:/, '').split('>').at(-1)!}));
+    expect(lineFaults(segs, phone.w, PHONE.gutter), 'the owner\'s line checks').toEqual([]);
+    expect(segs.flatMap(q => piecesOf(q.d).flat()).filter(q => q.x < PHONE.gutter + .5 || q.x > phone.w - PHONE.gutter - .5), 'never clamped onto the gutter').toEqual([]);
     expect(phone.strokes, 'the computer\'s stroke widths, never scaled down').toEqual(computer.strokes);
     expect(phone.blur, 'the computer\'s glow').toBe(computer.blur);
-    // Amendment 10, step 4: one short word on each tab (12 letters at most), the full name in its title; one line.
-    for (const t of phone.tabs) {
+    // Amendment 10, step 4: one short word on each tab (12 letters at most), the full name in its title; one line; and
+    // (10c) touching its own node: 4 px at most from its ring.
+    phone.tabs.forEach((t, i) => {
       expect(t.shown, `${t.label}: one word`).toMatch(/^\S{1,12}$/); expect(t.cut, `${t.label}: nothing cut`).toBe(false); expect(t.lines, `${t.label}: one line`).toBe(1);
       expect(t.l, `${t.label}: inside the column`).toBeGreaterThanOrEqual(0); expect(t.r).toBeLessThanOrEqual(phone.w);
-    }
+      const n = phone.nodes[i]!, gap = Math.hypot(Math.max(t.l - n.x, 0, n.x - t.r), Math.max(t.t - n.y, 0, n.y - t.b)) - n.r;
+      expect(gap, `${t.label}: touching its node`).toBeLessThanOrEqual(PHONE.hug + .5);
+    });
     expect(phone.tabs.map(t => t.label), 'the full names stay in the titles').toEqual(PATHS[name].map(([label]) => label));
     // Amendment 10, step 5: the overlap checks.
     const faults: string[] = [], hit = (a: {l: number; r: number; t: number; b: number}, b: {l: number; r: number; t: number; b: number}) => a.l < b.r - 1 && a.r > b.l + 1 && a.t < b.b - 1 && a.b > b.t + 1;
@@ -144,6 +169,7 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
       for (const p of phone.pills) if (ringHit(p, n)) faults.push(`${n.id} over a banner`);
       for (const p of phone.planets) if (Math.hypot(n.x - p.x, n.y - p.y) < n.r + p.r) faults.push(`${n.id} over a planet`);
     });
+    for (const p of phone.pills) if (phone.pts.some(q => q.x > p.l + 1 && q.x < p.r - 1 && q.y > p.t + 1 && q.y < p.b - 1)) faults.push('the line over a banner');
     expect(faults, 'nothing overlaps').toEqual([]);
   });
 

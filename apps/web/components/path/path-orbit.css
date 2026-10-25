@@ -43,7 +43,8 @@
   .path-stage[data-variant=orbit][data-lanes] .path-step { position: absolute; left: 0; right: 0; top: calc(var(--lane-y, 0px) - var(--dot-size) / 2); margin: 0; z-index: calc(2 + var(--stack, 0)); }
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
   .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { top: calc(50% + var(--tab-dy, 12.4px)); }
-  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=below] { left: 50%; right: auto; translate: -50% 0; }
+  /* (Amendment 10c: a tab just under its node may lean toward a side, by --tab-out.) */
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=below] { left: 50%; right: auto; translate: calc(-50% + var(--tab-out, 0px)) 0; }
   .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=right] { left: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
   .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=left] { right: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
   .path-stage[data-variant=orbit][data-lanes] .orbit-banner { position: absolute; left: 0; top: var(--banner-top, 0px); }

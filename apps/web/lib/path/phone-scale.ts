@@ -1,5 +1,6 @@
 import {orbitOffset} from './model';
 import {flowSegments, sidesFor, type FlowNode, type FlowSegment} from './flow-geometry';
+import {lineFaults, linePointsOf, phoneLine} from './phone-line';
 
 /**
  * Session AG Polish 3 (ADR-032 L20; owner amendment 8, "phone = computer × scale"): the phone's path IS the computer's
@@ -37,7 +38,11 @@ export const COMPUTER_SWING = Math.min(220, COMPUTER.w * .22);
  *  and 0.55 × the swing), to the planets' right edge plus 8 px. */
 export const COMPUTER_BAND = {left: COMPUTER.w / 2 - COMPUTER_SWING * 1.55 - COMPUTER.dot / 2, right: COMPUTER.planetRight + 8};
 /** The phone's own readable pieces: its node, a tab's place and height, the finale's node, the column's margin. */
-export const PHONE = {dot: 62, tabTop: 62 * .2, tabDys: [62 * .2, -14, -42, 40, 26, -28, 54], tabOuts: [0, 18, 36, 54], edge: 11, tabReach: 62 * .3, tabLine: 28.5, tabLineStep: 17.5, finaleNode: 62 * 1.1, finaleFoot: 110, margin: 6, clear: 0};
+export const PHONE = {dot: 62, tabTop: 62 * .2, tabDys: [62 * .2, -14, -42, 40, 26, -28, 54], tabOuts: [0, 18, 36, 54], edge: 11, tabReach: 62 * .3, tabLine: 28.5, tabLineStep: 17.5, finaleNode: 62 * 1.1, finaleFoot: 110, margin: 6, clear: 0,
+  /** Owner amendment 10c: the band an orbit's nodes span (20–80 % of the width), a tab's greatest gap from its own ring,
+   *  the line's gutter, and the room added locally (a step, and at most) where no tab spot is clear. */
+  band: [.2, .8] as const, hug: 4, gutter: 8, roomStep: 8, roomRounds: 40,
+  /** a tab leaning under its node ends this far past the node's middle on the side it leans from */ belowEdge: 12};
 
 export type ScaleOrbit = {id: string; /** the planet's box width in spheres (`--ex`), or null where the orbit has no planet */ planet: number | null; steps: {id: string; side: 'left' | 'right'}[]};
 export type ScaleInput = {/** the phone stage's width */ w: number; seed: string; orbits: ScaleOrbit[]; finale: boolean;
@@ -46,7 +51,8 @@ export type ScaleInput = {/** the phone stage's width */ w: number; seed: string
 /** `tabDy`: the tab's top below the node's centre (its usual place is 0.2 of a node; a tab may move up beside it);
  *  `tabOut`: how much further out from the node than usual it starts. */
 export type PhoneLane = {x: number; y: number; side: 'left' | 'right' | 'below'; wrap: boolean; maxTab: number; lines: number; zigi: 'side' | 'above'; tabDy: number; tabOut: number};
-export type PhoneScale = {sx: number; sy: number; kx: number; dx: number; dy: number; h: number; nodes: FlowNode[]; segments: FlowSegment[]; lanes: PhoneLane[];
+export type PhoneScale = {sx: number; sy: number; /** across: the path's scale (orbits of 1–2 nodes) and each orbit's own */ kx: number; kxs: number[]; dx: number; dy: number;
+  /** room added locally above a station (owner amendment 10c), in px */ room: Record<string, number>; h: number; nodes: FlowNode[]; segments: FlowSegment[]; lanes: PhoneLane[];
   banners: {top: number; planetX: number | null}[]; pills: {l: number; t: number; r: number; b: number}[]; finale: {x: number; y: number} | null;
   /** what still breaks an overlap check at the greatest sy (none in a good layout) */ faults: string[]};
 
@@ -123,93 +129,128 @@ export function phoneFaults(sc: PhoneScene): string[] {
   for (const b of sc.pills) if (sc.line.some(p => inside(b, p))) out.push('the line over a banner');
   return out;
 }
-/** The owner's spread checks (amendment 10b): in every orbit of four nodes or more the centres span 60 % of the width or
- *  more; somewhere a node in an outer 25 % and one in the middle 40 %. */
+/** The owner's spread checks (amendments 10b, 10c), for each orbit of four nodes or more: its centres span 60 % of the
+ *  width or more, one stands in an outer 25 % and one in the middle 40 %. (1e-6 px: floating point only.) */
 export function phoneSpread(w: number, orbits: readonly number[][]): string[] {
-  const out: string[] = [], all = orbits.flat();
-  orbits.forEach((xs, o) => { if (xs.length >= 4 && Math.max(...xs) - Math.min(...xs) < .6 * w) out.push(`orbit ${o}: its nodes span ${Math.round((Math.max(...xs) - Math.min(...xs)) / w * 100)} % of the width`); });
-  if (all.length && !all.some(x => x < .25 * w || x > .75 * w)) out.push('no node in an outer 25 %');
-  if (all.length && !all.some(x => x >= .3 * w && x <= .7 * w)) out.push('no node in the middle 40 %');
+  const out: string[] = [];
+  orbits.forEach((xs, o) => {
+    if (xs.length < 4) return;
+    const span = Math.max(...xs) - Math.min(...xs);
+    if (span < .6 * w - 1e-6) out.push(`orbit ${o}: its nodes span ${Math.round(span / w * 100)} % of the width`);
+    if (!xs.some(x => x <= .25 * w + 1e-6 || x >= .75 * w - 1e-6)) out.push(`orbit ${o}: no node in an outer 25 %`);
+    if (!xs.some(x => x >= .3 * w - 1e-6 && x <= .7 * w + 1e-6)) out.push(`orbit ${o}: no node in the middle 40 %`);
+  });
   return out;
 }
-/** Points along path data, `per` to each cubic. */
-export function linePoints(segments: readonly {d: string}[], per = 24): Pt[] {
-  const out: Pt[] = [];
-  for (const sg of segments) {
-    const n = (sg.d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
-    for (let i = 2; i + 5 < n.length; i += 6) for (let j = 0; j <= per; j++) {
-      const t = j / per, u = 1 - t;
-      out.push({x: u ** 3 * n[i - 2]! + 3 * u * u * t * n[i]! + 3 * u * t * t * n[i + 2]! + t ** 3 * n[i + 4]!, y: u ** 3 * n[i - 1]! + 3 * u * u * t * n[i + 1]! + 3 * u * t * t * n[i + 3]! + t ** 3 * n[i + 5]!});
-    }
-  }
-  return out;
-}
-
 /**
- * The phone's path: the computer's layout and line × (sx, sy) — sx fits the width, sy is the least in [2 × sx, 1] at
- * which every overlap check passes (owner amendment 10) — with the phone's readable pieces placed on top.
+ * The phone's path: the computer's layout × (kx, sy) — sy the least value in [2 × sx, 1] at which every check passes
+ * (owner amendment 10); across, each orbit of three nodes or more spans 20–80 % of the width, smaller orbits keep the
+ * computer's place (10c) — its line drawn by the phone's own rules (lib/path/phone-line.ts), its readable pieces on top.
+ * Where even sy = 1 leaves a tab with no clear spot (a narrow phone), room is added locally: the gap above the station the
+ * line comes into there (and below the node) grows 8 px at a time, and the line is drawn again over it, until every check passes (10c).
  */
 export function phoneScale(input: ScaleInput): PhoneScale {
   const {min, max} = syRange(input.w);
-  let last: PhoneScale | null = null;
+  let last: ReturnType<typeof build> | null = null;
   for (let sy = min; sy <= max + 1e-9; sy = Math.min(max, sy + .02)) {
-    last = build(input, sy);
+    last = build(input, sy, {});
     if (!last.faults.length || sy >= max) break;
   }
-  return last!;
+  const room: Record<string, number> = {};
+  // (It stops as soon as every check passes, or after 16 rounds that bring neither fewer faults nor less of the line under
+  // the tabs: room that does not help is taken back.)
+  let best = last!, stale = 0;
+  for (let round = 0; round < PHONE.roomRounds && last!.faults.length && last!.asks.length && stale < 16; round++) {
+    for (const id of last!.asks) room[id] = (room[id] ?? 0) + PHONE.roomStep;
+    last = build(input, max, room);
+    if (last.faults.length < best.faults.length || (last.faults.length === best.faults.length && last.badness < best.badness)) { best = last; stale = 0; } else stale++;
+  }
+  last = best;
+  const out: PhoneScale & {asks?: string[]; badness?: number} = {...last};
+  delete out.asks; delete out.badness;
+  return out;
 }
-/** Across (owner amendment 10b): one stretch per path, the computer's leftmost and rightmost node centres mapped so their
- *  rings stand 11 px from the column's edges; every other node keeps its proportional place in the computer's order. */
-export function phoneAcross(w: number, xs: readonly number[]): {kx: number; at: (x: number) => number} {
-  const lo = Math.min(...xs), hi = Math.max(...xs), inner = w - 2 * (PHONE.dot / 2 + PHONE.edge);
-  if (!xs.length || hi - lo < 1e-6) return {kx: 0, at: () => w / 2};
-  const kx = inner / (hi - lo), mid = (lo + hi) / 2;
-  return {kx, at: x => w / 2 + (x - mid) * kx};
+/** Across (owner amendment 10c): each orbit of three nodes or more maps its own computer node range onto 20–80 % of the
+ *  width, keeping the computer's order; an orbit of one or two keeps the computer's place (its wave onto the same band). */
+export function phoneAcross(w: number, orbits: readonly number[][]): {kx: number; kxs: number[]; at: (orbit: number, x: number) => number} {
+  const [b0, b1] = PHONE.band, kx = (b1 - b0) * w / (2 * COMPUTER_SWING), kxs: number[] = [];
+  const maps = orbits.map(xs => {
+    const lo = Math.min(...xs), hi = Math.max(...xs);
+    if (xs.length >= 3 && hi - lo > 1e-6) { const k = (b1 - b0) * w / (hi - lo); kxs.push(k); return (x: number) => b0 * w + (x - lo) * k; }
+    kxs.push(kx);
+    return (x: number) => w / 2 + (x - COMPUTER.w / 2) * kx;
+  });
+  return {kx, kxs, at: (o, x) => maps[o]!(x)};
 }
-function build(input: ScaleInput, sy: number): PhoneScale {
+type Box4 = {l: number; t: number; r: number; b: number};
+function build(input: ScaleInput, sy: number, room: Record<string, number>): PhoneScale & {asks: string[]; badness: number} {
   const layout = computerLayout(input.orbits, input.finale), bh = 2 * input.planetR + 10, pill = input.pillH ?? 40;
   const {sx, dx, dy} = phoneTransform(input.w, sy, layout.bannerMids[0] ?? 0, Math.max(bh / 2, input.planetR));
-  const Y = (y: number) => y * sy + dy;
-  const R = PHONE.dot / 2, isNode = (id: string) => !id.startsWith('planet:') && id !== 'finale:end';
-  const across = phoneAcross(input.w, layout.nodes.filter(n => isNode(n.id)).map(n => n.x)), px = input.w - 4 - input.planetR;
-  // (Planets at the right, as on Alpha #48, level with their banner; the finale mid-column; the nodes stretched across.)
-  const nodes = layout.nodes.map(n => ({...n, x: n.id.startsWith('planet:') ? px : n.id === 'finale:end' ? input.w / 2 : across.at(n.x), y: Y(n.y),
+  const R = PHONE.dot / 2;
+  // (Which orbit each station belongs to, and the room added above each, carried down to everything after it.)
+  const orbitOf = new Map<string, number>(), stepIds = input.orbits.map(o => o.steps.map(st => st.id));
+  input.orbits.forEach((o, oi) => { orbitOf.set(`planet:${o.id}`, oi); for (const st of o.steps) orbitOf.set(st.id, oi); });
+  let carried = 0;
+  const shift = layout.nodes.map(n => (carried += room[n.id] ?? 0));
+  const total = carried, Y = (y: number, k: number) => y * sy + dy + k;
+  const across = phoneAcross(input.w, stepIds.map(ids => ids.map(id => layout.nodes.find(n => n.id === id)!.x))), px = input.w - 4 - input.planetR;
+  // (Planets at the right, as on Alpha #48, level with their banner; the finale mid-column; the nodes across each orbit.)
+  const nodes = layout.nodes.map((n, i) => ({...n, x: n.id.startsWith('planet:') ? px : n.id === 'finale:end' ? input.w / 2 : across.at(orbitOf.get(n.id)!, n.x), y: Y(n.y, shift[i]!),
     r: n.id.startsWith('planet:') ? input.planetR : n.id === 'finale:end' ? PHONE.finaleNode / 2 : R}));
-  // The line: the computer's own flowSegments on the phone's stations — its seed, sides, bows and swings — with its swing
-  // stretched as the nodes are, inside an 8 px gutter.
-  const h = Y(layout.h), fin = nodes.find(n => n.id === 'finale:end') ?? null;
-  const segments = flowSegments(nodes, {w: input.w, seed: input.seed, swing: COMPUTER_SWING * across.kx, gutter: 8, leadFrom: 0, tailTo: fin ? h - 4 : null});
-  const banners = input.orbits.map((o, si) => ({top: Y(layout.bannerMids[si]!) - bh / 2, planetX: nodes.find(n => n.id === `planet:${o.id}`)?.x ?? null}));
-  const pills: Box[] = banners.map((b, si) => ({l: 0, t: b.top + bh / 2 - pill / 2, r: input.words[si] ?? 0, b: b.top + bh / 2 + pill / 2}));
-  const line = linePoints(segments);
+  const h = Y(layout.h, total), fin = nodes.find(n => n.id === 'finale:end') ?? null;
+  // (Each banner moves with its planet; an orbit without one, with the room carried to its first node.)
+  const banners = input.orbits.map((o, si) => {
+    const pi = layout.nodes.findIndex(n => n.id === `planet:${o.id}`), fi = layout.nodes.findIndex(n => n.id === o.steps[0]?.id);
+    const k = pi >= 0 ? shift[pi]! : fi > 0 ? shift[fi - 1]! : 0;
+    return {top: Y(layout.bannerMids[si]!, k) - bh / 2, planetX: pi >= 0 ? nodes[pi]!.x : null};
+  });
+  const pills: Box4[] = banners.map((b, si) => ({l: 0, t: b.top + bh / 2 - pill / 2, r: input.words[si] ?? 0, b: b.top + bh / 2 + pill / 2}));
+  const segments = phoneLine(nodes, {w: input.w, seed: input.seed, swing: COMPUTER_SWING * across.kx, gutter: PHONE.gutter, leadFrom: 0, tailTo: fin ? h - 4 : null, avoid: pills});
+  const bySeg = segments.map(sg => ({sg, pts: linePointsOf([sg])})), line = bySeg.flatMap(x => x.pts);
   const rings = nodes.map(n => ({id: n.id, x: n.x, y: n.y, r: n.r}));
-  const steps = input.orbits.flatMap(o => o.steps), placed: (Box & {id: string; node: Pt})[] = [];
-  // The tabs, one line each: on the computer's side, else the other, at the usual height, beside the node's middle, higher
-  // or lower, and up to 54 px further out — the first clear of the column's edge, every ring, the banners, the line and
-  // the tabs before it; else the least in the way (and the next sy is tried).
+  const steps = input.orbits.flatMap(o => o.steps), placed: (Box4 & {id: string; node: {x: number; y: number}})[] = [], asks = new Set<string>();
+  let badness = 0;
+  const nextOf = (id: string) => nodes[nodes.findIndex(n => n.id === id) + 1]?.id ?? null;
+  // The tabs, one line each, touching their own ring (4 px at most from it): on the computer's side, else the other, at
+  // the usual height, beside the node's middle, higher or lower — or just under it — the first clear of the column's edge,
+  // every ring, the banners, the line and the tabs before it; else the least in the way, and room is asked for there.
   const lanes: PhoneLane[] = steps.map((st, i) => {
     const node = nodes.find(n => n.id === st.id)!, tab = input.tabs[i] ?? 120, other: 'left' | 'right' = st.side === 'left' ? 'right' : 'left';
-    const boxOf = (side: 'left' | 'right' | 'below', dyy: number, out: number): Box => {
+    const boxOf = (side: PhoneLane['side'], dyy: number, out: number): Box4 => {
       const t = node.y + dyy, b = t + PHONE.tabLine, reach = PHONE.tabReach + out;
-      return side === 'below' ? {l: node.x - tab / 2, t, r: node.x + tab / 2, b} : side === 'right' ? {l: node.x + reach, t, r: node.x + reach + tab, b} : {l: node.x - reach - tab, t, r: node.x - reach, b};
+      return side === 'below' ? {l: node.x + out - tab / 2, t, r: node.x + out + tab / 2, b} : side === 'right' ? {l: node.x + reach, t, r: node.x + reach + tab, b} : {l: node.x - reach - tab, t, r: node.x - reach, b};
     };
-    const faultOf = (box: Box) => {
+    // (Only the line near this node can touch its tab: a tab spans at most 54 px above and 62 px below its centre.)
+    const near = line.filter(p => Math.abs(p.y - node.y) < 90);
+    const hugs = (box: Box4) => Math.hypot(Math.max(box.l - node.x, 0, node.x - box.r), Math.max(box.t - node.y, 0, node.y - box.b)) - R <= PHONE.hug;
+    const faultOf = (box: Box4) => {
       let n = box.l < PHONE.margin - .5 || box.r > input.w - PHONE.margin + .5 ? 1e5 : 0;
       if (Math.max(box.l - node.x, 0, node.x - box.r) ** 2 + Math.max(box.t - node.y, 0, node.y - box.b) ** 2 < 18 ** 2) n += 1e3;
       for (const ring of rings) if (ring.id !== st.id && Math.max(box.l - ring.x, 0, ring.x - box.r) ** 2 + Math.max(box.t - ring.y, 0, ring.y - box.b) ** 2 < ring.r ** 2) n += 1e3;
       for (const p of pills) if (hits(box, p)) n += 1e3;
       for (const t of placed) if (hits(box, t)) n += 1e3;
-      for (const p of line) if (p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b) n += 1;
+      for (const p of near) if (p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b) n += 1;
       return n;
     };
-    // (Last, centred just under the node: where a narrow phone leaves too little room on either side.)
-    const options = [...([st.side, other] as const).flatMap(side => PHONE.tabOuts.flatMap(out => PHONE.tabDys.map(dyy => ({side: side as PhoneLane['side'], dy: dyy, out, fault: faultOf(boxOf(side, dyy, out))})))),
-      ...[R + 6, R + 18].map(dyy => ({side: 'below' as const, dy: dyy, out: 0, fault: faultOf(boxOf('below', dyy, 0))}))];
+    // (Just under the node: centred, or leaning toward either side so the line leaving its rim passes clear of it — for a
+    // long word beside a node mid-column on a narrow phone, where neither side holds it. `out` is then the lean in px.)
+    const lean = Math.max(0, tab / 2 - PHONE.belowEdge);
+    const options = [...([st.side, other] as const).flatMap(side => PHONE.tabOuts.flatMap(out => PHONE.tabDys.map(dyy => ({side: side as PhoneLane['side'], dy: dyy, out})))),
+      ...[0, -lean, lean].map(out => ({side: 'below' as const, dy: R + 2, out}))].filter(o => hugs(boxOf(o.side, o.dy, o.out))).map(o => ({...o, fault: faultOf(boxOf(o.side, o.dy, o.out))}));
     const pick = options.find(o => o.fault === 0) ?? options.reduce((a, b) => b.fault < a.fault ? b : a);
-    placed.push({...boxOf(pick.side, pick.dy, pick.out), id: st.id, node});
+    const box = boxOf(pick.side, pick.dy, pick.out);
+    badness += pick.fault;
+    if (pick.fault) {
+      // (Room where it helps: above the station each stretch in the way comes into, and below this node — so the line
+      // leaving it drops further before it swings under its tab.)
+      const through = bySeg.filter(x => x.pts.some(p => p.x > box.l && p.x < box.r && p.y > box.t && p.y < box.b)).map(x => x.sg.to ?? x.sg.from!);
+      for (const id of [...through, nextOf(st.id)]) if (id) asks.add(id);
+    }
+    placed.push({...box, id: st.id, node});
     return {x: node.x, y: node.y, side: pick.side, wrap: false, maxTab: tab, lines: 1, zigi: 'side', tabDy: pick.dy, tabOut: pick.out};
   });
-  const faults = phoneFaults({w: input.w, nodes: rings.filter(n => !n.id.startsWith('planet:')), planets: rings.filter(n => n.id.startsWith('planet:')), tabs: placed, pills, line});
+  const lineBad = segments.flatMap(sg => { const bad = lineFaults([sg], input.w, PHONE.gutter); if (bad.length && sg.to) asks.add(sg.to); return bad; });
+  const faults = [...phoneFaults({w: input.w, nodes: rings.filter(n => !n.id.startsWith('planet:')), planets: rings.filter(n => n.id.startsWith('planet:')), tabs: placed, pills, line}), ...lineBad];
   const stageH = Math.max(h, fin ? fin.y + PHONE.finaleFoot : 0, ...lanes.map(l => l.y + R + 40));
-  return {sx, sy, kx: across.kx, dx, dy, h: stageH, nodes, segments, lanes, banners, pills, finale: fin ? {x: fin.x, y: fin.y} : null, faults};
+  return {sx, sy, kx: across.kx, kxs: across.kxs, room: {...room}, dx, dy, h: stageH, nodes, segments, lanes, banners, pills, finale: fin ? {x: fin.x, y: fin.y} : null, faults, asks: [...asks], badness};
 }
