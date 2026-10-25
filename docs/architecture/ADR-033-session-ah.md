@@ -61,6 +61,12 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M9 — Reproducibility and the kernel (AF16).** The two canonical legs failed "environment disagreement" whenever they ran on different runner images, because the kernel (`osRelease`) comes with the image (run 39445348581: 7.0.0-1017-azure on 20261018.339.1 against 6.17.0-1022-azure on 20261012.334.1, identical Wasm). The image version was already per-build provenance; now a kernel difference passes only together with an image difference, and on the same image it still fails. Bytes, source, compiler, toolchain, flags and the other environment fields stay exact. A deliberate assertion change, TIER 3 (CI, release reproducibility), listed in STATUS.
 - **M10 — Taps before hydration (TO13 family).** Specs that interact right after a load wait for `html[data-app-hydrated]` only where their subject is something else (J055: going offline); taps before hydration are fixed in the app in Part 11 (TO13) with their own spec.
 
+- **M11 — DS1 needs no stored revision stamp (amendment 3).** The "already fixed" check found every write path applying its change to the latest stored record under a lock (`usePrivateStore` → `updatePrivateStore`, device records, the legacy ledger), the Goal details form letting untouched fields follow the stored Goal (Session X J054), and habit edits carrying the habit's fingerprint (`checkChange`, "This Habit changed while you were editing"). A two-tab spec proves it (`tests/ah-multitab.spec.ts`). So no stamp was added and amendment 3's stored-format change did not arise. The Showcase is per tab by design and says so ("kept in this tab only"); a duplicated tab starts as a copy (M-142).
+- **M12 — The old "Export Goal Data".** It holds local simulation Goal plans only; on a device without them it exported `{"goals":{}}` (BUG-036). It now shows only when there are such plans; "Export everything" is the one export otherwise. "Import Goal Data" stays (an older file may still need it). The hosted verifier's stage 4 creates a simulation Goal first, so it still finds the button.
+- **M13 — A second weight of the day (DS7).** `weights` allows one reading per date in every build's schema (a second would make older builds refuse the Health record), so "Keep both" stores the second as a timed weight measurement, the record's existing kind for readings with a time (already in the weights CSV). No format change.
+- **M14 — Back closes a dialog (DS9).** `useBackCloses` adds one history entry while a sheet, modal or Quick add is open, copying the page's own history state so the router sees the same page; closing it otherwise takes the entry back out, except when a link inside it was followed (that would undo the navigation; found by the hosted verifier's goal stage).
+- **M15 — Undo after a Showcase reset (DS4) and Health removals (DS5).** The reset keeps the replaced generation in the tab's sessionStorage until the next load, reset or exit (about 290 KB). Removals are said once, in the app's one toast with "Undo" (the page's own status line no longer repeats them; three specs read the toast now).
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 
@@ -88,3 +94,19 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | AF16 | Fixed | ZIGi box empty after a fill, zigi-memory's navigation stall, zigi-accept-correct in Tokyo (`ea7aaca9`); canonical reproducibility (`b1cdba48`, M9); WebKit cancelled fetches (`05173f41`) |
 | AF7 | Fixed | TIER 3 (verifier): a request cut off by a navigation counts as aborted however late it is reported; the 503 answers were already named items |
 | AF6 | Fixed | `75766fec`; #418 reproduced on the old build, gone on ten pages |
+
+### Part 3 — Data safety
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| DS1 / A1 | Already fixed (evidence) | BUG-075, N-081: two-tab spec 6 of 6 (`bce3ac48`), M11. M-142: the Showcase is per tab by design, stated in its sheet |
+| DS2 | Fixed | T-110, T-116, M-134 (`749e2d75`): the ten-minute rule, naps, the greeting by hour; adapter unit tests |
+| DS3 / A6 | Fixed | BUG-021, BUG-053, L-009, L-010, B-062, D-022, L-062 (`749e2d75`; nap wording `3bc64a6d`): every overlap refused, new or edited; "last night is already logged" |
+| DS4 / A4 | Fixed | BUG-061, D-087, B-081, M-141, D-031 (`9dab86af`): confirm in place, a secondary button, Undo once. D-031's "Undo next to Undo import" is HE9 (Part 6) |
+| DS5 | Fixed | N-043, D-047, B-117, T-115, T-138, M-104, B-083, M-131, M-136, M-115, D-104 (`3bc64a6d`): Undo or confirm on every removal; already present on milestones (M-104), history reversal (a review sheet). M-115 (a streak freeze) is HA7 (Part 7). T-138 (a measurement) has no delete yet: HE6 (Part 6) adds it with Undo |
+| A5 | Fixed (Remove) | BUG-032 (`3bc64a6d`): a transaction's Remove has Undo. Editing a transaction is WE2 (Part 9) |
+| DS6 / A2 | Fixed | BUG-036, M-007, N-042, N-033, M-008 (`749e2d75`): Portfolio in the export, its CSV, README with row counts, the old export only with its plans (M12). M-008 ("Help says every record"): Help's words, SE1 (Part 12) |
+| DS7 | Fixed | N-057 (`749e2d75`): "Keep both" (M13) |
+| DS8 | Fixed | L-006, M-004, N-049 (`749e2d75`): hints beside the disabled Restore; the Showcase states up front what works on your own records |
+| DS9 / A3 | Fixed | BUG-076/077, M-070, D-206, T-077 (`749e2d75`): Back closes dialogs first (M14); the wizard's draft survives a reload |
+| A7 | Fixed | BUG-042 (`749e2d75`): `plainErrorMessage`; the rest of the raw messages are VA1 (Part 5) |
+| J2 | Fixed (package) | The DS rows above |
