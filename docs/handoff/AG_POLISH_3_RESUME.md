@@ -84,8 +84,13 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - Measured over 200 seeded paths: sy chosen 0.93 at 390 and 1.00 at 430 with no overlap fault; at 320 px 131 paths (247 faults) and at 360 px 58 paths (70 faults) still have a tab over the line even at sy = 1. Spread: 102 orbits per width span < 60 % (one kx per path keeps the computer's half-wave orbits narrow); 5 tiny paths have no node in an outer 25 % or in the middle 40 %. Reported at the checkpoint, not loosened.
 - Checkpoint captures (scratchpad only): `a10-a-first-open.png`, `a10-b-afternoon-evening.png` (390 × 844, Nebula, the 13-item path; sy 0.9291, kx 0.6567).
 
+## Amendment 10c (the owner's checkpoint reply): state
+- Commit `83f3e75f`: per-orbit 20–80 % mapping; the phone's own line (`lib/path/phone-line.ts`, never clamped, ≤ 2 cubics a stretch, the owner's line checks); tabs touching their ring (an under-node tab may lean); local room where even sy = 1 leaves a tab no clear spot. ADR-032 L21–L24.
+- Unit (200 seeded paths × 320/360/390/430): every overlap, line and spread check passes; 10b's line fails them (clamp + kink, planet-stretch wiggles). Phone spec: 12 passed (dev server).
+- Next: the browser specs on a production build (:3102), then exactly 3 captures in Nebula (390 × 844 first open; 390 × 844 at Afternoon/Evening; 360 × 780 first open) with the check numbers, then STOP for the owner.
+
 ## Next step
-Waiting for the owner's reply to the amendment 10/10b checkpoint. On "OK": lint, typecheck, focused tests; STATUS and ADR-032 (final commit); CI green; out of Draft; short report. On corrections: apply only those, the same 2 captures again, wait again.
+After the 10c checkpoint: wait for the owner. On "OK": lint, typecheck, focused tests; STATUS (final commit); CI green; out of Draft; short report. On corrections: apply only those, the same 3 captures again, wait again.
 
 ## Earlier next step (superseded)
 Owner decisions: (1) phone density — accept overlaps on phones (move the listed assertions), a larger scale, or smaller phone pieces (STATUS, "Known CI intermittents and open items"); (2) "bump zod" for the audit. Then CI green, out of Draft, report.
