@@ -30,10 +30,11 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Production server: `cd apps/web && TZ=UTC npx next start --hostname 127.0.0.1 --port 3100` in the background; weights `node scripts/check-weight-budget.mjs http://127.0.0.1:3100`.
 
 - Part 2 so far: `9b1dd80f` staking execute test, `ba33c973` doProbe content-length (domain-review-race), AF7 verifier (TIER 3), `75766fec` AF6, `6966c04d` source-pinning + pagehide save, `6055f5ab` layout-fixes/J055/motion/parity.
-- CI failure catalogue from AG Polish 3's 13 failed runs: `<scratchpad>/blocks/` and `<scratchpad>/logs/` (lost in a fresh workspace; the list is in ADR-033 M8 once written).
+- Part 2 later: quick-add early tap, ADR M8–M10 (`e6bade8e`).
 
 ## Next step
-- Part 2 remaining: the WebKit cancelled-request class (webkit-smoke:39, webkit-phone:27: /api/music-config, /api/push, /api/private-account, /api/earn/chain, /api/earn/oroswap "due to access control checks"); AF16 (zigi-memory:171 navigation stall, ZIGi box empty after fill in zigi-memory-af:51 / zigi-safety:46, zigi-accept-correct:260 Tokyo, canonical reproducibility); run9-2-product:30 (not seen in 13 runs; TO13 family).
+- Part 2 done (closing rows in ADR-033); check CI on `e6bade8e`+ when next needed.
+- Part 3 (data safety): start with the "already fixed" check of DS1–DS9, A1–A7, J2 against main and the Showcase.
 
 ## Open decisions
 - None.
