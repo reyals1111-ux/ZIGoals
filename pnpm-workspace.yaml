@@ -36,3 +36,9 @@ overrides:
   # vulnerable, 8.3.3 is the first fixed patch. Remove once the lock resolves
   # >=8.3.3 without it.
   "vite": 8.3.3
+  # Session AH Part 1, audit fix (GHSA-5j98-mcp5-4vw2, high; the glob CLI's
+  # -c/--cmd only): @node-minify/core 9.0.2 (through @opennextjs/aws, build
+  # tooling) pins glob to exactly 10.3.3; no 10.3.x or 10.4.x fix exists, 10.5.0
+  # is the first fixed release (same major). Remove once @node-minify/core pins
+  # >=10.5.0.
+  "@node-minify/core>glob": 10.5.0
