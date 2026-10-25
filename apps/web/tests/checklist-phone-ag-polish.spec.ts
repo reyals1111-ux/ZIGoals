@@ -1,3 +1,4 @@
+import {COMPUTER_BAND} from '../lib/path/phone-scale';
 import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
@@ -56,13 +57,13 @@ test('phones 320–430: an airy path — one-line tabs, nothing overlaps, ZIGi i
         if (j > i) expect(overlap(s.tab, o.tab, -2), `${width}: ${s.id}'s tab clear of ${o.id}'s tab`).toBe(false);
       });
       for (const b of m.banners) { expect(overlap(s.tab, b), `${width}: ${s.id}'s tab clear of a banner`).toBe(false); expect(overlap(s.dot, b), `${width}: ${s.id}'s node clear of a banner`).toBe(false); }
-      // The pitch (Session AG Polish 3, ADR-032 L21; owner amendment 9, moved at greater strength: was "never closer than
-      // AG's 96 px"): within an orbit, a node's diameter + 46 px or more down the page.
-      const next = m.steps[i + 1];
-      if (next && next.section === s.section) expect((next.dot.top + next.dot.bottom) / 2 - (s.dot.top + s.dot.bottom) / 2, `${width}: ${s.id} → ${next.id}`).toBeGreaterThanOrEqual(s.dot.w + 46 - .5);
+      // The pitch (Session AG Polish 3, ADR-032 L20; owner amendment 8, moved: was "never closer than 96 px"): within an
+      // orbit, the computer's own 114 px × the phone's scale, to the pixel — the computer's rhythm, shrunk.
+      const next = m.steps[i + 1], k = (m.stageW - 12) / (COMPUTER_BAND.right - COMPUTER_BAND.left);
+      if (next && next.section === s.section) expect(Math.abs((next.dot.top + next.dot.bottom) / 2 - (s.dot.top + s.dot.bottom) / 2 - 114 * k), `${width}: ${s.id} → ${next.id}`).toBeLessThan(1);
     });
-    // (Session AG Polish 3, owner amendment 9, moved: a tab wraps to two lines only as its last resort, at any width — when
-    // no clear spot exists even with its node slid along the river; a wrapped tab still shows its whole name.)
+    // (Session AG Polish 3, owner amendment 8, moved: a tab may wrap as its last resort at any width; a wrapped tab still
+    // shows its whole name.)
     for (const s of m.steps) expect(s.cut, `${width}/${s.id}: the whole name shows`).toBe(false);
     // ZIGi beside the next node: touching no node, tab or banner.
     expect(m.zigi, `${width}: ZIGi on the path`).not.toBeNull();
