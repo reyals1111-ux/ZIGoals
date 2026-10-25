@@ -51,8 +51,34 @@ Part 17, the last part before the final STATUS commit and the final CI round: **
 - **M6 — `scripts/frozen-readers.mjs`.** Its default list now runs #37–#49 (#45 `8778497`, #46 `98a29b4`, #47 `b0fe242`, #48 `261f32a`, #49 `f13abb0` added), and without `--out` it no longer drops its first SHA argument (the open item AG Polish 3 recorded).
 - **M7 — Node 22's `createRequire` (the sandbox).** 76 of the unit files that fail here (`scripts/run10/*-runtime`, `scripts/run11/*`) load Miniflare through `createRequire(apps/web/node_modules/wrangler/package.json)`. Node 22 resolves from the symlinked path, where pnpm puts no `miniflare`; CI's Node 24 passes them. The same files fail on `main` here; nothing changed for them.
 
+- **M8 — Part 2, how the intermittents were found.** A helper read every failed job of AG Polish 3's 13 failed Milestone quality runs (24–25 Oct; 58 jobs, logs whole) and catalogued each failure with its error; the reproducibility failures were read from run 39445348581's own artifacts. Each fix names its CI evidence in its commit. Not intermittents: the Checklist geometry failures, `path-engine`, `checklist-quick-add` and the staking guard's `Math.sign(` were AG Polish 3's work in progress, green on its final head. One-offs with no cause found (`hosted-verifier-order:16`, `page-marks:96`, WebKit's "internal error" / "Target crashed" in four ZIGi specs) are WebKit or runner instability; they stay under the one-re-run rule.
+- **M9 — Reproducibility and the kernel (AF16).** The two canonical legs failed "environment disagreement" whenever they ran on different runner images, because the kernel (`osRelease`) comes with the image (run 39445348581: 7.0.0-1017-azure on 20261018.339.1 against 6.17.0-1022-azure on 20261012.334.1, identical Wasm). The image version was already per-build provenance; now a kernel difference passes only together with an image difference, and on the same image it still fails. Bytes, source, compiler, toolchain, flags and the other environment fields stay exact. A deliberate assertion change, TIER 3 (CI, release reproducibility), listed in STATUS.
+- **M10 — Taps before hydration (TO13 family).** Specs that interact right after a load wait for `html[data-app-hydrated]` only where their subject is something else (J055: going offline); taps before hydration are fixed in the app in Part 11 (TO13) with their own spec.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 
 ## Closing table (every ID in the brief's index)
 Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or not possible (reason).
+
+### Part 0 and 1
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| RM8 | Done | Timezone phases 3–4 done before AH; QA2-04 fixed (`dd4dc885`); `@2x` renamed before AH (`37ca600`); Portfolio sync done before AH (`c043105`); full coin search present (ranking is WE1); passkey/Face ID: not possible here (needs the owner's iPhone, ADR-008 option 2) — M4 |
+| M2 (picklist) | Done | The per-part "already fixed" checks (amendment 2) |
+| Scope E | Done | 16 advisories cleared in 5 commits (M3, M5); `pnpm audit` full and prod clean |
+| AF14 | Done | vite 8.3.3 (`a0a1fab4`) |
+
+### Part 2
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| Scope F: `execute.test.ts:116` | Fixed | `9b1dd80f`; reproduced under CPU stress (60 s timeout), passes in < 2 s under the same stress |
+| Scope F: `domain-review-race:41` | Fixed | `ba33c973`; cause "invalid content-length header" in the DO probe; 20 probe files 77 passed |
+| Scope F: `run9-2-product:30` | Fixed | Quick add's early tap (this part's last commit); 8 of 8 repeated |
+| Scope F: `run10-source-pinning:69` | Fixed | `6966c04d`; the spec waits for the save; the app starts a waiting save on pagehide |
+| Scope F: WebKit cancelled-request class | Fixed | `05173f41`; tests/webkit-cancelled.ts; the five fetch sites handle their rejections |
+| Scope F: `layout-fixes-ae:24`, `session-x-findings:202`, `run10-motion:5`, `theme-parity-af` | Fixed | `6055f5ab` |
+| Scope F: the deploy gate's unit tests | Fixed | The two deploy-blocking unit intermittents above; the deploy workflow unchanged |
+| AF16 | Fixed | ZIGi box empty after a fill, zigi-memory's navigation stall, zigi-accept-correct in Tokyo (`ea7aaca9`); canonical reproducibility (`b1cdba48`, M9); WebKit cancelled fetches (`05173f41`) |
+| AF7 | Fixed | TIER 3 (verifier): a request cut off by a navigation counts as aborted however late it is reported; the 503 answers were already named items |
+| AF6 | Fixed | `75766fec`; #418 reproduced on the old build, gone on ten pages |
