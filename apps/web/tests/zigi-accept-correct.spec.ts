@@ -57,7 +57,9 @@ async function send(page: Page, text: string) {
   // the box held right after the fill and at the end, and how often a message box was mounted (diagnostic only).
   const filled = await box.inputValue().catch(() => '?'), mounts = () => page.evaluate(() => (window as unknown as {__composerMounts?: {n: number}}).__composerMounts?.n ?? -1);
   const mountedBefore = await mounts();
-  try { await expect(sendButton).toBeEnabled({timeout: 15_000}); }
+  // Session AH Part 2 (AF16): a fill that lands while the composer re-renders can be reset to empty; the text is filled
+  // again until the box holds it and Send is enabled (as tests/zigi-af.ts's fillComposer), the diagnostic kept.
+  try { await expect(async () => { if (await box.inputValue() !== text) await box.fill(text); await expect(box).toHaveValue(text, {timeout: 1_000}); await expect(sendButton).toBeEnabled({timeout: 1_000}); }).toPass({timeout: 15_000}); }
   catch (error) { throw new Error(`Send stayed disabled: right after the fill the box held ${JSON.stringify(filled)}, now ${JSON.stringify(await box.inputValue().catch(() => '?'))}; message boxes mounted ${mountedBefore} before, ${await mounts()} now. ${(error as Error).message.split('\n')[0]}`); }
   await sendButton.click();
   await expect(panel(page).locator('.ai-card').last()).toBeVisible();
@@ -258,7 +260,6 @@ for (const zone of ZONES) {
     const cases = zone === 'UTC' ? CASES : CASES.filter(c => c.daySensitive);
     for (const c of cases) {
       test(`${c.kind}: accepted means the record is exactly right, and Undo puts it back`, async ({page}, info) => {
-        const ctx: Ctx = {zone, today: dayIn(zone), yesterday: dayIn(zone, -1)};
         await server(page, [...(c.setup ?? []).map(s => s.reply), c.reply, c.reply]);
         await seed(page);
         await page.goto(c.page);
@@ -271,6 +272,9 @@ for (const zone of ZONES) {
         await card.getByRole('button', {name: /^(Add|Remember)$/}).click();
         await expect(card).toHaveClass(/ai-card-added/);
         const after = await snapshot(page);
+        // Session AH Part 2 (AF16, Asia/Tokyo): the zone's day is read right after the action, not at the test's start, so a
+        // run that crosses midnight in the zone checks the day the app logged to.
+        const ctx: Ctx = {zone, today: dayIn(zone), yesterday: dayIn(zone, -1)};
         c.check(after, before, ctx);
         const actions = after[AI_ACTIONS_KEY].actions; expect(actions.length).toBe((before[AI_ACTIONS_KEY]?.actions ?? []).length + 1);
         await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: /^Undo/}).click();

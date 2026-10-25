@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {CARE_LABEL, CARE_NOTES, carefulNote} from '../lib/ai/safety';
 import {SAFETY_RULES} from '../lib/ai/context/specialists';
+import {fillComposer} from './zigi-af';
 
 /**
  * Session V Part 11, careful mode through the real panel: a message that touches a sensitive health topic shows ZIGi's
@@ -50,12 +51,12 @@ test('with an AI: a risky message shows the note made on the device and goes in 
   await openChat(page);
   const box = page.getByLabel('Message to your AI');
   // Phase 2 (P2.2b): a lookup, not a plan — a plan answered without a card gets the one repair round, a second request this count is not about.
-  await box.fill('Tell me about a calm week, please.');
+  await fillComposer(page, 'Tell me about a calm week, please.', box);
   await send(page);
   await expect.poll(() => bodies.length).toBe(1);
   expect(systemOf(bodies[0]!)).toContain(SAFETY_RULES); expect(systemOf(bodies[0]!)).not.toContain('Careful mode:');
   await expect(panel(page).getByRole('note', {name: CARE_LABEL})).toHaveCount(0);
-  await box.fill('How can I lose 10 kg in 2 weeks?');
+  await fillComposer(page, 'How can I lose 10 kg in 2 weeks?', box);
   await send(page);
   await expect.poll(() => bodies.length).toBe(2);
   expect(systemOf(bodies[1]!)).toContain(carefulNote('rapid-weight-loss'));

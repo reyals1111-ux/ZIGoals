@@ -79,7 +79,17 @@ export const speak = (page: Page, words: string) => page.evaluate(t => (window a
 export const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).first().click(); await expect(panel(page)).toBeVisible(); }
 export const box = (page: Page) => panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
-export const say = async (page: Page, text: string) => { await box(page).fill(text); await panel(page).locator('.ai-composer button[type=submit]').click(); };
+/**
+ * Session AH Part 2 (AF16, WebKit "ZIGi box empty after a fill"): a fill that lands while the composer re-renders can be
+ * reset to empty, and Send then stays disabled until the test times out. The text is filled until the box holds it and
+ * Send is enabled (up to 15 s), then sent once.
+ */
+export async function fillComposer(page: Page, text: string, field = box(page)) {
+  const submit = panel(page).locator('.ai-composer button[type=submit]');
+  await expect(async () => { await field.fill(text); await expect(field).toHaveValue(text, {timeout: 1_000}); await expect(submit).toBeEnabled({timeout: 1_000}); }).toPass({timeout: 15_000});
+  return submit;
+}
+export const say = async (page: Page, text: string) => { await (await fillComposer(page, text)).click(); };
 export const lastLocal = (page: Page) => panel(page).locator('.ai-turn-local').last();
 export const stored = (page: Page, key: string, where: 'local' | 'session' = 'local') => page.evaluate(([k, w]) => { const v = (w === 'session' ? sessionStorage : localStorage).getItem(k!); return v === null ? null : JSON.parse(v) as Record<string, any>; }, [key, where] as const); // eslint-disable-line @typescript-eslint/no-explicit-any
 /** For you's cards can arrive a moment after the region; "Show more" is opened until the card is there. */
