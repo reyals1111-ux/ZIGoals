@@ -258,6 +258,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // (The planets' size and where each banner's words end, as drawn: neither moves with the layout.)
   const planetR = orbit && geo ? model.sections.map(sec => geo.points[`planet:${sec.id}`]?.r).find(r => r !== undefined) ?? null : null;
   const wordsKey = orbit && geo ? model.sections.map(sec => Math.round(geo.boxes?.[`banner:${sec.id}`]?.right ?? 0)).join(',') : '';
+  // (Each phone banner is a pill just round its words: its height, as drawn.)
+  const pillH = orbit && geo ? Math.round(Math.max(0, ...model.sections.map(sec => { const b = geo.boxes?.[`banner:${sec.id}`]; return b ? b.bottom - b.top : 0; }))) || 40 : 40;
   // (The layout depends on the path's shape alone — its orbits, ids, names and planets — never on a tick.)
   const finaleOn = orbit && milestones.some(m => m.at === 'end' && m.afterStepId);
   const shapeKey = `${model.id}|${finaleOn}|${model.sections.map((sec, si) => `${sec.id}:${planets[si]?.id ?? ''}:${sec.steps.map(st => st.id).join(',')}`).join('|')}`;
@@ -269,11 +271,11 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const virtual = computerLayout(orbits, finaleOn), at = new Map(virtual.nodes.map(n => [n.id, n]));
     const computerSides = orbitSides(steps, swingOf, -1, {w: 976, h: virtual.h, points: Object.fromEntries(steps.map(st => [st.id, {x: at.get(st.id)!.x, y: at.get(st.id)!.y, r: 40}])), inset: {left: 44, right: 420}}).labels;
     let k = 0;
-    return phoneScale({w: stageW, seed: model.id, finale: finaleOn, planetR, tabs: labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), words: words.map(x => x || Math.min(214, stageW * .6)),
+    return phoneScale({w: stageW, seed: model.id, finale: finaleOn, planetR, pillH, tabs: labels.map((l, i) => phoneTabWidth(l, tabWidths[i])), words: words.map(x => x || Math.min(214, stageW * .6)),
       orbits: orbits.map(o => ({...o, steps: o.steps.map(st => ({...st, side: computerSides[k++] ?? 'right'}))}))});
     // `shapeKey` carries the model's shape; its states (a tick) never re-lay the path
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phoneLayout, stageW, labelsKey, tabWidths, planetR, wordsKey, shapeKey]);
+  }, [phoneLayout, stageW, labelsKey, tabWidths, planetR, wordsKey, pillH, shapeKey]);
   const lanes = scaled && scaled.lanes.length === steps.length ? scaled.lanes : null;
   const nextLaneKey = lanes ? `${lanes.map(l => `${Math.round(l.x)}:${Math.round(l.y)}${l.side[0]}${l.wrap ? 'w' : ''}${l.tabDy}:${l.tabOut}`).join(',')}|${scaled!.banners.map(b => Math.round(b.top)).join(',')}|${Math.round(scaled!.h)}` : '';
   useLayoutEffect(() => { if (nextLaneKey !== laneKey) setLaneKey(nextLaneKey); }, [nextLaneKey, laneKey]);
@@ -421,7 +423,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // the stretch the tick lit.
   const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
   const nextAt = next ? steps.findIndex(x => x.id === next.id) : -1;
-  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(l => l.side), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? lanes[nextAt]!.side : flip(lanes[nextAt]!.side)) : 'right' as Side}
+  // (A phone tab centred under its node counts as the right side for ZIGi and a riding chest.)
+  const laneSide = (l: {side: 'left' | 'right' | 'below'}): Side => l.side === 'below' ? 'right' : l.side;
+  const sides = lanes && lanes.length === steps.length ? {labels: lanes.map(laneSide), full: lanes.map(() => false), zigi: nextAt >= 0 ? (lanes[nextAt]!.zigi === 'above' ? laneSide(lanes[nextAt]!) : flip(laneSide(lanes[nextAt]!))) : 'right' as Side}
     : orbit ? orbitSides(steps, swingOf, nextAt, geo) : null, labelSides = sides?.labels ?? null;
   // ZIGi measures its surroundings again whenever the path's layout or its own planet changes.
   const zigiFit = orbit && geo ? `${geometryKey}|${geo.w}|${geo.h}|${zigiAt ?? ''}|${cheering?.id ?? ''}` : undefined;
@@ -470,7 +474,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, arrive: isNext && onward.length > 0}} : {})}/>
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
-                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} data-path-box={lane ? `tab:${step.id}` : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane?.wrap ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {}), ...(lane ? {'--tab-dy': `${lane.tabDy}px`, '--tab-out': `${lane.tabOut}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={lane?.side ?? side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} data-path-box={lane ? `tab:${step.id}` : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane?.wrap ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {}), ...(lane ? {'--tab-dy': `${lane.tabDy}px`, '--tab-out': `${lane.tabOut}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
                   {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>

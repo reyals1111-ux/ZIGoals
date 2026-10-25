@@ -1,13 +1,16 @@
 import {describe, expect, it} from 'vitest';
 import {seeded} from './flow-geometry';
-import {COMPUTER, COMPUTER_BAND, computerLayout, computerLine, phoneScale, phoneTransform, type ScaleOrbit} from './phone-scale';
+import {COMPUTER, COMPUTER_SWING, computerLayout, computerLine, phoneAcross, phoneScale, phoneSpread, phoneTransform, syRange, type ScaleOrbit} from './phone-scale';
+import {flowSegments} from './flow-geometry';
 
 /**
- * Session AG Polish 3 (ADR-032 L20; owner amendment 8): the phone's path IS the computer's path × scale. Over 200 seeded
- * paths (1–4 orbits of 1–12 nodes, planets plain or ringed, tab sides either way) at phones of 320, 360, 390 and 430 px,
- * every node, planet, finale and every point of the line's path data equals the computer's own × s (with the one shift
- * into the phone's column) within 0.5 px, and each node's place on the page (its lane) is exactly its scaled centre.
- * The virtual computer itself is pinned to the real computer measured at 1440 × 900.
+ * Session AG Polish 3 (ADR-032 L20, L22; owner amendments 8 and 10): the phone's path IS the computer's path × (sx, sy) —
+ * sx fits the width, sy is the least value in [2 × sx, 1] at which every overlap check passes. Over 200 seeded paths
+ * (1–4 orbits of 1–12 nodes, planets plain or ringed, tab sides either way, one-word names) at phones of 320, 360, 390
+ * and 430 px: every node, planet, finale and every point of the line's path data equals the computer's own × (sx, sy)
+ * (with the one shift into the phone's column) within 0.5 px; each node's place on the page is exactly its scaled centre;
+ * and the owner's overlap checks pass — no tab over a ring, the line, another tab or the column's edge, no node within
+ * 10 px of another, nothing over a banner or a planet. The virtual computer is pinned to the real one at 1440 × 900.
  */
 const nums = (d: string) => (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
 function samplePath(seed: number): {orbits: ScaleOrbit[]; finale: boolean; tabs: number[]; words: number[]} {
@@ -16,51 +19,45 @@ function samplePath(seed: number): {orbits: ScaleOrbit[]; finale: boolean; tabs:
   let k = 0;
   for (let o = 0; o < count; o++) {
     const n = 1 + Math.floor(r() * 12);
-    orbits.push({id: `o${o}`, planet: r() < .15 ? null : r() < .5 ? 1 : 1.48, steps: Array.from({length: n}, () => { tabs.push(70 + Math.floor(r() * 160)); return {id: `n${++k}`, side: r() < .5 ? 'left' : 'right'}; })});
+    // (A one-word name on the path: up to 12 letters at 14 px, plus the tab's 47 px of padding, border and check room.)
+    orbits.push({id: `o${o}`, planet: r() < .5 ? 1 : 1.48, steps: Array.from({length: n}, () => { tabs.push(47 + Math.ceil((3 + Math.floor(r() * 10)) * 8.6)); return {id: `n${++k}`, side: r() < .5 ? 'left' : 'right'}; })});
     words.push(150 + Math.floor(r() * 70));
   }
   return {orbits, finale: r() < .9, tabs, words};
 }
 
-describe('phone = computer × scale (owner amendment 8)', () => {
-  it('every node, planet, finale and line point is the computer\'s own × s, within 0.5 px, at 320, 360, 390 and 430 px', () => {
-    const outside: string[] = [];
+describe('the phone path: the computer\'s path, taller and stretched across (owner amendments 8, 10 and 10b)', () => {
+  it('y is the computer\'s × sy (2 × sx ≤ sy ≤ 1); x stretches the computer\'s own order across; the line is the computer\'s flowSegments on those places; every overlap check passes; at 320, 360, 390 and 430 px', () => {
+    const faults: string[] = [], spread: string[] = [];
     for (let seed = 0; seed < 200; seed++) {
-      const p = samplePath(seed), layout = computerLayout(p.orbits, p.finale), line = computerLine(layout, `seed-${seed}`);
+      const p = samplePath(seed), layout = computerLayout(p.orbits, p.finale);
       for (const vw of [320, 360, 390, 430]) {
-        const w = vw - 24, planetR = 44, got = phoneScale({w, seed: `seed-${seed}`, planetR, ...p});
-        const {s, dx, dy} = phoneTransform(w, layout.bannerMids[0]!, 2 * planetR + 10);
-        expect(got.s).toBe(s);
-        expect(s, 'one scale: the phone column over the band the computer draws in').toBeCloseTo((w - 12) / (COMPUTER_BAND.right - COMPUTER_BAND.left), 9);
+        const w = vw - 24, planetR = 44, got = phoneScale({w, seed: `seed-${seed}`, planetR, pillH: 40, ...p}), sy = got.sy;
+        const {dy} = phoneTransform(w, sy, layout.bannerMids[0]!, planetR + 5);
+        expect(sy, 'down: at least twice across, at most the computer\'s own').toBeGreaterThanOrEqual(syRange(w).min - 1e-9); expect(sy).toBeLessThanOrEqual(1);
+        const isNode = (id: string) => !id.startsWith('planet:') && id !== 'finale:end', across = phoneAcross(w, layout.nodes.filter(n => isNode(n.id)).map(n => n.x));
         layout.nodes.forEach((n, i) => {
           const q = got.nodes[i]!;
           expect(q.id).toBe(n.id);
-          expect(Math.abs(q.x - (n.x * s + dx)), `${seed}@${vw} ${n.id} x`).toBeLessThan(.5);
-          expect(Math.abs(q.y - (n.y * s + dy)), `${seed}@${vw} ${n.id} y`).toBeLessThan(.5);
+          expect(Math.abs(q.y - (n.y * sy + dy)), `${seed}@${vw} ${n.id} y`).toBeLessThan(.5);
+          if (isNode(n.id)) expect(Math.abs(q.x - across.at(n.x)), `${seed}@${vw} ${n.id} x`).toBeLessThan(.5);
         });
-        expect(got.segments.map(sg => sg.id)).toEqual(line.map(sg => sg.id));
-        line.forEach((sg, i) => {
-          const a = nums(sg.d), b = nums(got.segments[i]!.d);
-          expect(b).toHaveLength(a.length);
-          a.forEach((v, j) => expect(Math.abs(b[j]! - (v * s + (j % 2 ? dy : dx))), `${seed}@${vw} ${sg.id}[${j}]`).toBeLessThan(.5));
-        });
-        // (Where the page puts each node: its lane is its scaled centre; a tab may move, a node never.)
+        // (The outermost rings 8–14 px from the column's edges, where the path's nodes stand apart at all.)
+        const xs = got.nodes.filter(n => isNode(n.id)).map(n => n.x);
+        if (Math.max(...xs) - Math.min(...xs) > 1) { expect(Math.min(...xs) - 31).toBeGreaterThanOrEqual(8); expect(Math.min(...xs) - 31).toBeLessThanOrEqual(14); expect(w - Math.max(...xs) - 31).toBeGreaterThanOrEqual(8); expect(w - Math.max(...xs) - 31).toBeLessThanOrEqual(14); }
+        // (The line: exactly the computer's flowSegments on these stations, its swing stretched as the nodes are.)
+        const fin = got.nodes.find(n => n.id === 'finale:end');
+        const again = flowSegments(got.nodes, {w, seed: `seed-${seed}`, swing: COMPUTER_SWING * got.kx, gutter: 8, leadFrom: 0, tailTo: fin ? layout.h * sy + dy - 4 : null});
+        expect(got.segments.map(sg => sg.d)).toEqual(again.map(sg => sg.d));
         const steps = p.orbits.flatMap(o => o.steps);
         got.lanes.forEach((lane, i) => { const n = got.nodes.find(q => q.id === steps[i]!.id)!; expect(lane.x).toBe(n.x); expect(lane.y).toBe(n.y); });
-        // (Inside the column: every point of every curve — the lead-in's start excepted, which rises out of nothing, fully
-        // transparent, and is clipped at the stage's edge — and the stage tall enough for all of it.)
-        for (const sg of got.segments) {
-          const n = nums(sg.d);
-          for (let i = 2; i + 5 < n.length; i += 6) for (let t = 0; t <= 1; t += 1 / 32) {
-            const u = 1 - t, x = u ** 3 * n[i - 2]! + 3 * u * u * t * n[i]! + 3 * u * t * t * n[i + 2]! + t ** 3 * n[i + 4]!, y = u ** 3 * n[i - 1]! + 3 * u * u * t * n[i + 1]! + 3 * u * t * t * n[i + 3]! + t ** 3 * n[i + 5]!;
-            if ((sg.kind !== 'lead' || t > .5) && (x < -.5 || x > w + .5)) outside.push(`${seed}@${vw} ${sg.id} x ${x.toFixed(1)}`);
-            if (y > got.h + .5) outside.push(`${seed}@${vw} ${sg.id} y ${y.toFixed(1)} below the stage`);
-          }
-        }
+        for (const e of got.faults) faults.push(`${seed}@${vw} (sy ${sy.toFixed(2)}): ${e}`);
+        let k = 0; for (const e of phoneSpread(w, p.orbits.map(o => o.steps.map(() => got.lanes[k++]!.x)))) spread.push(`${seed}@${vw}: ${e}`);
       }
     }
-    expect(outside, 'the line inside the column and the stage').toEqual([]);
-  }, 120_000);
+    const group = (list: string[]) => { const kinds = new Map<string, number>(); for (const f of list) { const key = f.replace(/^\d+@(\d+)( \(sy [\d.]+\))?: /, '$1 ').replace(/n\d+|o\d+|orbit \d+|\d+ %/g, '#'); kinds.set(key, (kinds.get(key) ?? 0) + 1); } return [...kinds].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([key, n]) => `${n}× ${key}`); };
+    expect({overlap: group(faults), spread: group(spread)}, `${faults.length} overlap faults, ${spread.length} spread faults`).toEqual({overlap: [], spread: []});
+  }, 240_000);
   it('the virtual computer is the real one: the Checklist at 1440 × 900, measured (13 items in four orbits, two planets ringed)', () => {
     const sides = ['left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left', 'right', 'left'] as const;
     let k = 0;

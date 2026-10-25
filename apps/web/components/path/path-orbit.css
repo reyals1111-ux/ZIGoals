@@ -43,9 +43,12 @@
   .path-stage[data-variant=orbit][data-lanes] .path-step { position: absolute; left: 0; right: 0; top: calc(var(--lane-y, 0px) - var(--dot-size) / 2); margin: 0; z-index: calc(2 + var(--stack, 0)); }
   .path-stage[data-variant=orbit][data-lanes] .path-node { translate: var(--lane-x, 0px) 0; }
   .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab { top: calc(50% + var(--tab-dy, 12.4px)); }
+  .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=below] { left: 50%; right: auto; translate: -50% 0; }
   .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=right] { left: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
   .path-stage[data-variant=orbit][data-lanes] .path-label.orbit-tab[data-side=left] { right: calc(50% + var(--dot-size) * .3 + var(--tab-out, 0px)); }
   .path-stage[data-variant=orbit][data-lanes] .orbit-banner { position: absolute; left: 0; top: var(--banner-top, 0px); }
+  /* (Owner amendment 10: on a phone each banner is a compact pill just round its words — the tint ends at the count.) */
+  .path-stage[data-variant=orbit][data-lanes] .orbit-banner { --banner-fade: 0px; }
   .path-stage[data-variant=orbit][data-lanes] .orbit-banner > .orbit-planet { right: auto; left: calc(var(--planet-x, 0px) + 6px); translate: -50% -50%; }
   .path-stage[data-variant=orbit][data-lanes] .path-finale { position: absolute; left: var(--finale-x, 50%); top: calc(var(--finale-y, 0px) - var(--dot-size) * .55); margin: 0; translate: -50% 0; }
   .path-stage[data-variant=orbit]:not([data-ready]) { visibility: hidden; }
