@@ -28,6 +28,9 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
    - The first screen at 390 × 844 spans ≥ 65 % with ≥ 2 turns and stations on both sides.
    - The tests must make 06 fail. A visual gate comes before Part 2. Report the numbers here.
 8. **(24 Oct, FINAL METHOD) Phone = computer × scale** (replaces 6 and 7): the computer's own layout and line in a virtual 976 px column, × s into the phone's column; readable pieces on top; tests and a 4-capture gate. See ADR-032 L20.
+9. **(25 Oct) Line first, nodes on the line** — reverted by amendment 10 (`d96cf81d`, `3575bd5c`).
+10. **(25 Oct, FINAL phone path fix; replaces 9)** Amendment 8's path again, with sy in [2 × sx, 1] (the least value at which every overlap check passes), compact pill banners, one short word per node (phone and computer; `pathLabel`, TIER 3 stored format) and the owner's overlap checks at 320/360/390/430. Checkpoint: 2 captures at 390 × 844 in Nebula, then STOP for the owner.
+10b. **Stretch the nodes sideways:** x = phone centre + (computer x − computer centre) × kx, one kx per path, outermost rings 8–14 px from the edges; the line = the computer's `flowSegments` on the phone's stations (swing × kx, 8 px gutter); span checks (≥ 60 % per orbit of ≥ 4 nodes; a node in an outer 25 % and one in the middle 40 %).
 7. **(MAJOR, after Part 2) River v3.** Every path had become the same zig-zag, so amendment 6's alternation rules go. The phone tries the computer's own line first; variety becomes a hard rule (seeded drifts, sweeps ≥ 45 %, bows and swings; node x across the width; spaces ≈ 90–200 px). Variety tests replace amendment 6's; a strict zig-zag and 06 fail them. A visual gate (at most 2 fix rounds) comes before the next part.
 
 ## Plan summary
@@ -76,5 +79,13 @@ Branch `feature/session-ag-polish-3` from `main` `261f32a` (Alpha #48). One PR, 
 - `checklist-overlay-af` 52 (X and Escape back to Today) fails on the dev server only; it passes on a production build (and passed in CI).
 - `scripts/frozen-readers.mjs` run without `--out` drops its first SHA argument (`i !== outAt + 1` with `outAt = -1`); pre-existing, not changed here. Pass `--out` (or list the SHAs after it).
 
+## Amendments 10/10b: state (25 Oct)
+- Commits: `42826d50` (geometry WIP), `40b86d96` (TIER 3 stored format: `pathLabel`; frozen readers #37–#48: 12 × 33 read), `5cf8ebfd` (short words on the tabs, the "Name on the path" field, Showcase words, specs moved).
+- Measured over 200 seeded paths: sy chosen 0.93 at 390 and 1.00 at 430 with no overlap fault; at 320 px 131 paths (247 faults) and at 360 px 58 paths (70 faults) still have a tab over the line even at sy = 1. Spread: 102 orbits per width span < 60 % (one kx per path keeps the computer's half-wave orbits narrow); 5 tiny paths have no node in an outer 25 % or in the middle 40 %. Reported at the checkpoint, not loosened.
+- Checkpoint captures (scratchpad only): `a10-a-first-open.png`, `a10-b-afternoon-evening.png` (390 × 844, Nebula, the 13-item path; sy 0.9291, kx 0.6567).
+
 ## Next step
+Waiting for the owner's reply to the amendment 10/10b checkpoint. On "OK": lint, typecheck, focused tests; STATUS and ADR-032 (final commit); CI green; out of Draft; short report. On corrections: apply only those, the same 2 captures again, wait again.
+
+## Earlier next step (superseded)
 Owner decisions: (1) phone density — accept overlaps on phones (move the listed assertions), a larger scale, or smaller phone pieces (STATUS, "Known CI intermittents and open items"); (2) "bump zod" for the audit. Then CI green, out of Draft, report.
