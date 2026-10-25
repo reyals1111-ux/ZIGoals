@@ -70,6 +70,22 @@ describe('the sleep engine', () => {
     expect(s.nights).toHaveLength(1);
     expect(() => saveNight(s, {kind: 'night', start: Date.parse('2026-12-02T00:00:00Z'), end: Date.parse('2026-12-02T07:00:00Z'), timeZone: BXL}, at('2026-12-01T00:00:00Z'))).toThrow('A night cannot end in the future.');
   });
+  // Session AH Part 3 (DS3/A6, BUG-021, BUG-053, L-009, L-010): nothing lies over anything else, new or edited.
+  test('a nap over a night, a night over a nap, a nap over a nap, or anything over a running night is refused', () => {
+    const later = at('2026-12-01T00:00:00Z');
+    let s = night(emptySleep(), '2026-10-01', '23:00', '07:00');
+    const nap = (from: string, to: string, id?: string) => saveNight(s, {id, kind: 'nap', start: instantAt('2026-10-02', from, BXL), end: instantAt('2026-10-02', to, BXL), timeZone: BXL}, later);
+    expect(() => nap('06:00', '06:45')).toThrow('This overlaps the night that ended on Oct 2, 2026.');
+    s = nap('14:00', '14:30');
+    expect(() => nap('14:15', '14:45')).toThrow('This overlaps the nap that ended on Oct 2, 2026.');
+    expect(() => night(s, '2026-10-02', '13:00', '15:00')).toThrow('This overlaps the nap that ended on Oct 2, 2026.');
+    // Editing the nap onto the night is refused too; editing it in its own time is fine.
+    const napId = s.nights.find(n => n.kind === 'nap')!.id;
+    expect(() => nap('06:30', '07:30', napId)).toThrow('This overlaps the night');
+    expect(nap('15:00', '15:20', napId).nights).toHaveLength(2);
+    const running = startNight(emptySleep(), at('2026-10-05T21:00:00Z'), BXL, 'health_sleep-aaaaaaaa-0009');
+    expect(() => saveNight(running, {kind: 'nap', start: Date.parse('2026-10-05T22:00:00Z'), end: Date.parse('2026-10-05T22:30:00Z'), timeZone: BXL}, at('2026-10-05T23:00:00Z'))).toThrow('This overlaps the night that is still running. End that one first.');
+  });
   test('the series leaves days without a night empty (never zero); averages count logged nights only', () => {
     let s = emptySleep();
     s = night(s, '2026-10-01', '23:00', '07:00', {latencyMin: 0, awakeMin: 0, quality: 4});

@@ -42,7 +42,7 @@ test('one ZIP with everything.json and nine CSVs; nothing written on view or by 
   const {name, bytes, section} = await download(page);
   expect(name).toBe('zigoals-export-2026-09-15.zip');
   const entries = readStoredZip(bytes);
-  expect(entries.map(e => e.name)).toEqual(['everything.json', ...CSV_FILES]);
+  expect(entries.map(e => e.name)).toEqual(['everything.json', 'README.txt', ...CSV_FILES]) /* Session AH (DS6): README.txt says each file's rows */;
   const json = JSON.parse(new TextDecoder().decode(entries[0]!.data));
   expect(json.format).toBe('zigoals-everything');
   expect(json.modules.habits).toEqual(JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABITS_KEY))!));
@@ -86,5 +86,5 @@ test('Showcase: the file name says showcase-demo', async ({page}) => {
   await page.goto('/app/settings');
   const {name, bytes} = await download(page);
   expect(name).toBe('zigoals-showcase-demo-export-2026-09-15.zip');
-  expect(readStoredZip(bytes).map(e => e.name)).toEqual(['everything.json', ...CSV_FILES]);
+  expect(readStoredZip(bytes).map(e => e.name)).toEqual(['everything.json', 'README.txt', ...CSV_FILES]) /* Session AH (DS6): README.txt says each file's rows */;
 });

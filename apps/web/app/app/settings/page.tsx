@@ -22,7 +22,7 @@ import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
 import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
 import { shortAccount } from "../../../lib/diagnostics";
@@ -63,6 +63,8 @@ function SettingsGroup({id, title, children}: {id: string; title: string; childr
 export default function Settings() {
   const s = useGoals();
   const [backup, setBackup] = useState("");
+  const [legacyPlans, setLegacyPlans] = useState(false);
+  useEffect(() => { try { setLegacyPlans(s.loaded && !!s.owner && Object.keys(loadMetadata(getAppStorage(), s.chain, s.owner).goals ?? {}).length > 0); } catch { setLegacyPlans(false); } }, [s.loaded, s.owner, s.chain]);
   function exportData() {
     try {
       const data = loadMetadata(getAppStorage(), s.chain, s.owner);
@@ -105,7 +107,10 @@ export default function Settings() {
         <ExportEverything/>
         <SwitchImport/>
         <div className="detail-grid">
-          <section className="panel">
+          {/* Session AH Part 3 (DS6/A2, BUG-036, M-007): this older format holds local simulation Goal plans only; with
+              none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export
+              everything" above is the one export for everything else. */}
+          {legacyPlans && <section className="panel">
             <h2>Export Goal Data</h2>
             <p>
               Save a private backup of your goal names, targets, dates and
@@ -126,7 +131,7 @@ export default function Settings() {
             >
               Export Goal Data
             </button>
-          </section>
+          </section>}
           <section className="panel">
             <h2>Import Goal Data</h2>
             <p>

@@ -1,6 +1,7 @@
 'use client';
 import {removedItems,reinsertItems} from '../../lib/undo-removal';
 import {showToast} from '../ui/undo-toast';
+import {useBackCloses} from '../use-back-closes';
 import {TodayWeek} from '../bottom-sections';
 import Link from 'next/link';
 import {Suspense,cloneElement,isValidElement,lazy,useEffect,useMemo,useRef,useState,type ReactElement,type ReactNode} from 'react';
@@ -92,7 +93,7 @@ import {WalletCard} from '../wallet/wallet-card';
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
 const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your financial progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
- const ref=useRef<HTMLDialogElement>(null);
+ const ref=useRef<HTMLDialogElement>(null);useBackCloses(true,onClose);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null,dialog=ref.current;dialog?.showModal();return()=>{dialog?.close();previous?.focus();};},[]);
  return <dialog ref={ref} className="dashboard-dialog" aria-label={title} onCancel={onClose}><header><h2>{title}</h2><button className="secondary" type="button" onClick={onClose} aria-label="Close customization">Close</button></header>{children}</dialog>;
 }

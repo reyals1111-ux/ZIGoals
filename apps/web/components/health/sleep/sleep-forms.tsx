@@ -2,7 +2,8 @@
 import {showToast} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {SLEEP_TAGS, type SleepNight} from '../../../lib/sleep/schema';
-import {saveNight, setSleepGoal} from '../../../lib/sleep/engine';
+import {nightDay, saveNight, setSleepGoal} from '../../../lib/sleep/engine';
+import {formatTime} from '../../../lib/visual-format';
 import {addDays, formatMinutes, instantAt, wallClock} from '../../../lib/zone-time';
 import type {SleepStore} from './use-sleep';
 import {zigiSignals} from '../../zigi/bus';
@@ -49,13 +50,18 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
       const wakeDay = String(form.get('wakeDate') ?? ''), first = !night && input.kind === 'night' && !store.sleep.nights.some(n => n.end !== null && wallClock(Date.parse(n.end), zone).date === wakeDay);
       await store.update(s => saveNight(s, input, new Date()));
       if (!night) zigiSignals.emitValidated(first ? 'first_sleep_logged' : 'health_log_recorded');
-      onDone(night ? 'Night updated.' : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.');
+      // Session AH Part 3 (DS3, L-009): a nap is called a nap when it is edited too.
+      onDone(night ? (input.kind === 'nap' ? 'Nap updated.' : 'Night updated.') : input.kind === 'nap' ? 'Nap saved.' : 'Night saved.');
     }
     catch (err) { setError(message(err)); }
     finally { setBusy(false); }
   }
   const today = store.today;
-  return <form className="sleep-form" onSubmit={submit} aria-label={night ? 'Edit this night' : 'Log a night or a nap'} noValidate>
+  // Session AH Part 3 (DS3, L-062): the new-night form says when last night is already logged, instead of offering the
+  // same 23:00–07:00 again (saving it would be refused as an overlap).
+  const logged = night ? undefined : store.sleep.nights.find(n => n.kind === 'night' && n.end !== null && nightDay(n) === today);
+  return <form className="sleep-form" onSubmit={submit} aria-label={night ? (night.kind === 'nap' ? 'Edit this nap' : 'Edit this night') : 'Log a night or a nap'} noValidate>
+    {logged && <p className="fine" role="note">Last night is already logged, {formatTime(logged.start, {timeZone: logged.timeZone})}–{formatTime(logged.end!, {timeZone: logged.timeZone})}. Edit it from the list below, or log a nap or another night here.</p>}
     <fieldset className="sleep-kind"><legend>What are you logging?</legend>
       {(['night', 'nap'] as const).map(kind => <label key={kind}><input type="radio" name="kind" value={kind} defaultChecked={(night?.kind ?? 'night') === kind}/><span>{kind === 'night' ? 'A night' : 'A nap'}</span></label>)}
     </fieldset>

@@ -44,6 +44,16 @@ export function endNight(s: Sleep, id: string, at: Date): Sleep {
   const now = at.toISOString();
   return parse({...s, nights: s.nights.map(n => n.id === id ? {...n, end: now, updatedAt: now} : n)});
 }
+/**
+ * Session AH Part 3 (DS2, M-134): the greeting when a sleep ends, by the local time of day where it ended ("Good morning"
+ * said at 1:51 PM before).
+ */
+export function wakeGreeting(atMs: number, zone: string): 'Good morning.' | 'Good afternoon.' | 'Good evening.' {
+  const hour = Math.floor(wallClock(atMs, zone).minutes / 60);
+  return hour >= 4 && hour < 12 ? 'Good morning.' : hour >= 12 && hour < 18 ? 'Good afternoon.' : 'Good evening.';
+}
+/** A sleep stopped sooner than this is not saved (Session AH Part 3, DS2): a second tap moments after the first. */
+export const SHORTEST_SLEEP_MS = 10 * 60_000;
 /** A daytime sleep shorter than three hours (starting 09:00–19:59 where it was lived) is a nap; anything else a night. */
 export function napOrNight(startMs: number, endMs: number, zone: string): 'night' | 'nap' {
   const hour = Math.floor(wallClock(startMs, zone).minutes / 60);
@@ -56,9 +66,13 @@ export function saveNight(s: Sleep, input: NightInput, at: Date): Sleep {
   const now = at.toISOString(), held = input.id ? s.nights.find(n => n.id === input.id) : undefined;
   if (input.id && !held) throw Error('This night is no longer here.');
   if (input.end > at.getTime() + MIN) throw Error('A night cannot end in the future.');
-  if (input.kind === 'night') {
-    const clash = s.nights.find(n => n.id !== input.id && n.kind === 'night' && n.end !== null && overlaps({start: input.start, end: input.end}, {start: Date.parse(n.start), end: Date.parse(n.end)}));
-    if (clash) throw Error(`This overlaps the night that ended on ${formatDate(nightDay(clash)!)}. Edit that one instead.`);
+  // Session AH Part 3 (DS3/A6, BUG-021, BUG-053, L-009, L-010, B-062, D-022, L-062): nothing the person sleeps can lie
+  // over anything else they logged — a nap over a night, a night over a nap, or either over a night still running —
+  // whether it is new or edited.
+  const clash = s.nights.find(n => n.id !== input.id && overlaps({start: input.start, end: input.end}, {start: Date.parse(n.start), end: n.end === null ? at.getTime() : Date.parse(n.end)}));
+  if (clash) {
+    const what = clash.kind === 'nap' ? 'nap' : 'night';
+    throw Error(clash.end === null ? `This overlaps the ${what} that is still running. End that one first.` : `This overlaps the ${what} that ended on ${formatDate(nightDay(clash)!)}. Edit that one instead.`);
   }
   const tags = input.tags?.map(t => t.trim()).filter(Boolean);
   const night = sleepNightSchema.parse({

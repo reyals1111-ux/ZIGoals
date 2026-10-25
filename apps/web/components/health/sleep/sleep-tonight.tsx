@@ -1,6 +1,6 @@
 'use client';
 import {useState, type FormEvent} from 'react';
-import {endNight, inBedMinutes, runningNights, startNight} from '../../../lib/sleep/engine';
+import {SHORTEST_SLEEP_MS, deleteNight, endNight, inBedMinutes, runningNights, startNight, wakeGreeting} from '../../../lib/sleep/engine';
 import {MAX_NIGHT_MINUTES, type SleepNight} from '../../../lib/sleep/schema';
 import {formatMinutes, instantAt, wallClock} from '../../../lib/zone-time';
 import type {SleepStore} from './use-sleep';
@@ -41,12 +41,18 @@ export function SleepTonight({store, onDone}: {store: SleepStore; onDone: (text:
     setBusy(true); setError('');
     try { await store.update(change); onDone(done); } catch (err) { setError(message(err)); } finally { setBusy(false); }
   }
+  function wakeUp(night: SleepNight) {
+    const now = new Date();
+    if (now.getTime() - Date.parse(night.start) < SHORTEST_SLEEP_MS) void act(s => s.nights.some(n => n.id === night.id) ? deleteNight(s, night.id) : s, 'Stopped after less than ten minutes, so nothing was saved.');
+    else void act(s => endNight(s, night.id, now), `${wakeGreeting(now.getTime(), night.timeZone)} Your night is saved.`);
+  }
   return <div className="sleep-tonight">
     {!tonight ? <button type="button" className="primary" disabled={busy} onClick={() => void act(s => startNight(s, new Date(), store.zone), 'Good night. Tap “I woke up” in the morning.')}>I’m going to bed</button>
       : stale ? <EndAt store={store} night={tonight} onDone={onDone}/>
       : <>
         <p className="sleep-running">In bed since {formatTime(tonight.start, {timeZone: tonight.timeZone})} · {formatMinutes(inBedMinutes(tonight, store.now))}</p>
-        <button type="button" className="primary" disabled={busy} onClick={() => void act(s => endNight(s, tonight.id, new Date()), 'Good morning. Your night is saved.')}>I woke up</button>
+        {/* Session AH Part 3 (DS2): the greeting follows the hour; moments after "I'm going to bed" nothing is saved. */}
+        <button type="button" className="primary" disabled={busy} onClick={() => wakeUp(tonight)}>I woke up</button>
       </>}
     {extra.map(night => <EndAt key={night.id} store={store} night={night} onDone={onDone}/>)}
     {error && <p role="alert">{error}</p>}

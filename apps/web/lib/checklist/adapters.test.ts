@@ -106,6 +106,23 @@ describe('a tick writes the real record through its page’s own function, and U
     const reopened = run(s2, end.undo).sleep.nights;
     expect(reopened.map(n => [n.start, n.end])).toEqual([['2026-10-17T22:10:00.000Z', null]]);
   });
+  // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments later saves nothing, a short daytime sleep is a
+  // nap, and the words follow the local time of day.
+  test('sleep: stopped within ten minutes nothing is saved (Undo resumes it); a daytime sleep is a nap; the greeting follows the hour', () => {
+    const at = (iso: string) => new Date(iso);
+    const s0 = stores(), s1 = run(s0, sleepPlan(dot(s0, 'Sleep'), ctx({now: at('2026-10-18T13:51:00.000Z')})).writes);
+    const quick = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T13:52:00.000Z'), snapshot: {sleep: s1.sleep}})), s2 = run(s1, quick.writes);
+    expect(s2.sleep.nights).toEqual([]);
+    expect(quick.message).toBe('Stopped after less than ten minutes, so nothing was saved.');
+    expect(run(s2, quick.undo).sleep.nights.map(n => [n.start, n.end])).toEqual([['2026-10-18T13:51:00.000Z', null]]);
+    const nap = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T14:31:00.000Z'), snapshot: {sleep: s1.sleep}})), s3 = run(s1, nap.writes);
+    expect(s3.sleep.nights.map(n => [n.kind, n.end])).toEqual([['nap', '2026-10-18T14:31:00.000Z']]);
+    expect(nap.message).toBe('Good afternoon. Your nap is saved on Health.');
+    const n0 = run(s0, sleepPlan(dot(s0, 'Sleep'), ctx({now: at('2026-10-17T22:10:00.000Z')})).writes);
+    const morning = planTick(dot(n0, 'Sleep'), ctx({now: at('2026-10-18T06:40:00.000Z'), snapshot: {sleep: n0.sleep}}));
+    expect(morning.message).toBe('Good morning. Your night is saved on Health.');
+    expect(run(n0, morning.writes).sleep.nights.map(n => n.kind)).toEqual(['night']);
+  });
   test('fasting: start with the target, stop as Health does; Undo of the stop restarts it from its start', () => {
     const s0 = stores(), start = fastPlan(dot(s0, 'Fast'), ctx({now: new Date('2026-10-17T20:00:00.000Z')})), s1 = run(s0, start.writes);
     expect(s1.fasting.sessions.map(f => [f.startedAt, f.endedAt, f.targetHours])).toEqual([['2026-10-17T20:00:00.000Z', null, 16]]);

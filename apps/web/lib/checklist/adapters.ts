@@ -2,7 +2,7 @@ import {habitCalendarDay, habitDataSchema, habitRuleOn, logHabitValue, setHabitE
 import {logHealthItem, newHealthId, removeHealthItem, saveWeight, type HealthData} from '../health';
 import {addWater, removeWater} from '../health-daily';
 import type {Platform} from '../positions';
-import {deleteNight, endNight, runningNights, startNight} from '../sleep/engine';
+import {SHORTEST_SLEEP_MS, deleteNight, endNight, napOrNight, runningNights, startNight, wakeGreeting} from '../sleep/engine';
 import type {Sleep} from '../sleep/schema';
 import {addSession, deleteSession, newSessionId, saveManual} from '../meditation/engine';
 import {emptyMeditationRun, type Meditation, type MeditationRun} from '../meditation/schema';
@@ -127,9 +127,16 @@ function healthPlan(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'value')
 export function sleepPlan(dot: DerivedDot | null, ctx: TickContext): TickPlan {
   const running = ctx.snapshot?.sleep ? runningNights(ctx.snapshot.sleep)[0] : undefined;
   if (running) {
-    const original = {start: running.start, timeZone: running.timeZone}, r = dot ? receiptWrites(dot, ctx, {kind: 'sleep', id: running.id}) : null;
-    return {writes: [w('sleep', s => endNight(s, running.id, ctx.now)), ...(r ? [r.apply] : [])], undo: [w('sleep', s => { const held = s.nights.find(n => n.id === running.id); const without = held ? deleteNight(s, running.id) : s; return startNight(without, new Date(original.start), original.timeZone); }), ...(r ? [r.undo] : [])],
-      message: 'Good morning. Your night is saved on Health.', undone: 'The night is running again.', done: true, signal: 'checklist_tick'};
+    const original = {start: running.start, timeZone: running.timeZone}, resume = w('sleep', s => { const held = s.nights.find(n => n.id === running.id); const without = held ? deleteNight(s, running.id) : s; return startNight(without, new Date(original.start), original.timeZone); });
+    // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments after the first never saves a near-empty night
+    // (it used to stand in for last night's 7 h 17 min); under ten minutes the sleep is simply stopped, with an Undo.
+    const startMs = Date.parse(running.start), endMs = ctx.now.getTime();
+    if (endMs - startMs < SHORTEST_SLEEP_MS) return {writes: [w('sleep', s => s.nights.some(n => n.id === running.id) ? deleteNight(s, running.id) : s)], undo: [resume], message: 'Stopped after less than ten minutes, so nothing was saved.', undone: 'The sleep is running again.', done: false, signal: 'checklist_tick'};
+    // A short daytime sleep is a nap (lib/sleep/engine.ts napOrNight), and the words follow the local time of day.
+    const kind = napOrNight(startMs, endMs, running.timeZone), greeting = wakeGreeting(endMs, ctx.zone);
+    const r = dot ? receiptWrites(dot, ctx, {kind: 'sleep', id: running.id}) : null;
+    return {writes: [w('sleep', s => { const ended = endNight(s, running.id, ctx.now); return kind === 'nap' ? {...ended, nights: ended.nights.map(n => n.id === running.id ? {...n, kind: 'nap' as const} : n)} : ended; }), ...(r ? [r.apply] : [])], undo: [resume, ...(r ? [r.undo] : [])],
+      message: kind === 'nap' ? `${greeting} Your nap is saved on Health.` : `${greeting} Your night is saved on Health.`, undone: kind === 'nap' ? 'The nap is running again.' : 'The night is running again.', done: kind === 'night', signal: 'checklist_tick'};
   }
   const id = `health_sleep-${crypto.randomUUID()}`;
   return {writes: [w('sleep', s => startNight(s, ctx.now, ctx.zone, id))], undo: [w('sleep', s => s.nights.some(n => n.id === id) ? deleteNight(s, id) : s)], message: 'Sleep started. Tap again when you wake.', undone: 'Sleep not started.', done: false, signal: 'checklist_tick'};

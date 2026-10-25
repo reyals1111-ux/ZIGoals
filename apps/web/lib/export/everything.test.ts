@@ -78,9 +78,13 @@ describe('T4 export everything', () => {
     expect(plain.name).toBe('zigoals-export-2026-10-01.zip');
     expect(buildEverythingZip(collected, {date: '2026-10-01', showcase: true, now: NOW}).name).toBe('zigoals-showcase-demo-export-2026-10-01.zip');
     const entries = readStoredZip(plain.bytes);
-    expect(entries.map(e => e.name)).toEqual(['everything.json', ...CSV_FILES]);
+    // Session AH Part 3 (DS6): README.txt follows everything.json (each file's rows; header-only files say so).
+    expect(entries.map(e => e.name)).toEqual(['everything.json', 'README.txt', ...CSV_FILES]);
     expect(JSON.parse(new TextDecoder().decode(entries[0]!.data))).toEqual(collected.json);
-    expect(new TextDecoder().decode(entries[4]!.data)).toBe(collected.csv['check-ins.csv']);
+    expect(new TextDecoder().decode(entries[5]!.data)).toBe(collected.csv['check-ins.csv']);
+    const readme = new TextDecoder().decode(entries[1]!.data);
+    expect(readme).toMatch(/check-ins\.csv: \d+ rows/);
+    expect(readme).toContain('moods.csv: no rows, nothing recorded yet');
   });
   test('readEverything reads every key as stored and writes nothing', async () => {
     const {records} = buildShowcase('2026-09-20');
@@ -148,4 +152,17 @@ describe('Gate C security read: the copy leaves out what the device keeps only f
     expect(collected.json.device.goalExtras).toEqual({version: 1, areas: [], goals: {'private:1': {area: 'health', why: 'kept'}}, habitAreas: {[live.id]: 'health'}});
     expect(JSON.stringify(collected.json)).not.toContain('a deleted goal reason');
   });
+});
+
+// Session AH Part 3 (DS6, N-042): Portfolio's transactions are a table of their own in the export.
+test('portfolio-transactions.csv: one row per trade or transfer, with its portfolio and coin', async () => {
+  const {showcasePortfolios} = await import('../portfolio/showcase');
+  const {PORTFOLIO_KEY} = await import('../portfolio/schema');
+  const data = showcasePortfolios('2026-09-20'), count = data.portfolios.reduce((n, p) => n + p.transactions.length, 0);
+  const collected = collectEverything({[PORTFOLIO_KEY]: JSON.stringify(data)}, APP);
+  const lines = collected.csv['portfolio-transactions.csv'].split('\r\n');
+  expect(lines).toHaveLength(count + 1);
+  expect(lines[0]).toContain('"portfolio_id","portfolio_name"');
+  const first = data.portfolios[0]!, tx = first.transactions[0]!;
+  expect(lines.some(l => l.includes(`"${tx.id}"`) && l.includes(`"${first.name}"`))).toBe(true);
 });
