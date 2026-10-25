@@ -1,6 +1,6 @@
 import {orbitOffset} from './model';
 import {flowSegments, sidesFor, type FlowNode, type FlowSegment} from './flow-geometry';
-import {lineFaults, linePointsOf, phoneLine} from './phone-line';
+import {lineFaults, linePointsOf, phoneLine, planetSweep} from './phone-line';
 
 /**
  * Session AG Polish 3 (ADR-032 L20; owner amendment 8, "phone = computer × scale"): the phone's path IS the computer's
@@ -152,11 +152,11 @@ export function phoneSpread(w: number, orbits: readonly number[][]): string[] {
  * Where even sy = 1 leaves a tab with no clear spot (a narrow phone), room is added locally: the gap above the station the
  * line comes into there (and below the node) grows 8 px at a time, and the line is drawn again over it, until every check passes (10c).
  */
-export function phoneScale(input: ScaleInput): PhoneScale {
+export function phoneScale(input: ScaleInput, opts: {planetSweeps?: boolean} = {}): PhoneScale {
   const {min, max} = syRange(input.w);
   let last: ReturnType<typeof build> | null = null;
   for (let sy = min; sy <= max + 1e-9; sy = Math.min(max, sy + .02)) {
-    last = build(input, sy, {});
+    last = build(input, sy, {}, opts);
     if (!last.faults.length || sy >= max) break;
   }
   const room: Record<string, number> = {};
@@ -165,7 +165,7 @@ export function phoneScale(input: ScaleInput): PhoneScale {
   let best = last!, stale = 0;
   for (let round = 0; round < PHONE.roomRounds && last!.faults.length && last!.asks.length && stale < 16; round++) {
     for (const id of last!.asks) room[id] = (room[id] ?? 0) + PHONE.roomStep;
-    last = build(input, max, room);
+    last = build(input, max, room, opts);
     if (last.faults.length < best.faults.length || (last.faults.length === best.faults.length && last.badness < best.badness)) { best = last; stale = 0; } else stale++;
   }
   last = best;
@@ -192,7 +192,7 @@ export function phoneAcross(w: number, orbits: readonly number[][]): {kx: number
   return {kx, kxs, at: (o, x) => maps[o]!(x)};
 }
 type Box4 = {l: number; t: number; r: number; b: number};
-function build(input: ScaleInput, sy: number, room: Record<string, number>): PhoneScale & {asks: string[]; badness: number} {
+function build(input: ScaleInput, sy: number, room: Record<string, number>, opts: {planetSweeps?: boolean} = {}): PhoneScale & {asks: string[]; badness: number} {
   const layout = computerLayout(input.orbits, input.finale), bh = 2 * input.planetR + 10, pill = input.pillH ?? 40;
   const {sx, dx, dy} = phoneTransform(input.w, sy, layout.bannerMids[0] ?? 0, Math.max(bh / 2, input.planetR));
   const R = PHONE.dot / 2;
@@ -281,6 +281,10 @@ function build(input: ScaleInput, sy: number, room: Record<string, number>): Pho
   });
   const lineBad = segments.flatMap(sg => { const bad = lineFaults([sg], input.w, PHONE.gutter); if (bad.length && sg.to) asks.add(sg.to); return bad; });
   const faults = [...phoneFaults({w: input.w, nodes: rings.filter(n => !n.id.startsWith('planet:')), planets: rings.filter(n => n.id.startsWith('planet:')), tabs: placed, pills, line}), ...lineBad];
+  // (Owner fix 1 after the 10d checkpoint: a planet's stretch whose node stands nearly above or below it sweeps gently to
+  // the inner side — drawn last, only where it crosses nothing, so every place above stays exactly as it is.)
+  const avoid = [...pills, ...placed.map(t => ({l: t.l, t: t.t, r: t.r, b: t.b}))];
+  const drawn = opts.planetSweeps === false ? segments : segments.map(sg => { const d = planetSweep(sg, nodes, {w: input.w, gutter: PHONE.gutter, seed: input.seed, avoid}); return d ? {...sg, d} : sg; });
   const stageH = Math.max(h, fin ? fin.y + PHONE.finaleFoot : 0, ...lanes.map(l => l.y + R + 40));
-  return {sx, sy, kx: across.kx, kxs: across.kxs, room: {...room}, dx, dy, h: stageH, nodes, segments, lanes, banners, pills, finale: fin ? {x: fin.x, y: fin.y} : null, faults, fitted: [...fitted], asks: [...asks], badness};
+  return {sx, sy, kx: across.kx, kxs: across.kxs, room: {...room}, dx, dy, h: stageH, nodes, segments: drawn, lanes, banners, pills, finale: fin ? {x: fin.x, y: fin.y} : null, faults, fitted: [...fitted], asks: [...asks], badness};
 }

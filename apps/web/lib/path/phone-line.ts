@@ -73,7 +73,9 @@ export function excursion(d: string): number {
 export function stretchFaults(sg: Pick<FlowSegment, 'id' | 'from' | 'to' | 'd'>, w: number, gutter: number): string[] {
   const pieces = piecesOf(sg.d), out: string[] = [];
   if (!pieces.length) return out;
-  if ((isPlanet(sg.from) || isPlanet(sg.to)) && pieces.length !== 1) out.push(`${sg.id}: a planet's stretch in ${pieces.length} pieces`);
+  // (A planet's stretch: one sweep — one cubic, or, where its node stands nearly above or below the planet, one gentle
+  // bow of two C1 cubics out to the inner side; never a swing's two pieces.)
+  if ((isPlanet(sg.from) || isPlanet(sg.to)) && (pieces.length > 2 || (pieces.length === 2 && !(excursion(sg.d) > 0)))) out.push(`${sg.id}: a planet's stretch in ${pieces.length} pieces`);
   if (isPlanet(sg.from) && Math.abs(pieces[0]![1].x - pieces[0]![0].x) > .05) out.push(`${sg.id}: not upright out of its planet`);
   if (isPlanet(sg.to) && Math.abs(pieces.at(-1)![2].x - pieces.at(-1)![3].x) > .05) out.push(`${sg.id}: not upright into its planet`);
   for (let i = 1; i < pieces.length; i++) {
@@ -137,6 +139,48 @@ function clear(pieces: readonly Cubic[], stations: readonly FlowNode[], a: strin
     if (pts.some(p => Math.hypot(p.x - n.x, p.y - n.y) < need)) return false;
   }
   return !(avoid ?? []).some(bx => pts.some(p => p.x > bx.l + 1 && p.x < bx.r - 1 && p.y > bx.t + 1 && p.y < bx.b - 1));
+}
+
+/** Where a node stands nearly above or below its planet: closer across than this share of the width (owner, 10d OK). */
+export const PLANET_NEAR = .25;
+/** A planet sweep's tightest bend, at least (px): never a hook — about the computer's own loops' (their tenth
+ *  percentile on the phone is 7 px). */
+export const PLANET_SWEEP_RADIUS = 8;
+/**
+ * Owner fix 1 after the 10d checkpoint: a planet's stretch whose node stands nearly above or below the planet never drops
+ * straight down. It sweeps gently out to the inner side, its waypoint 15–20 % of the width past its ends (seeded), and
+ * into the planet's top (or out of its bottom) upright. Drawn only where it passes every line check and crosses nothing
+ * — no ring, banner or tab (`avoid`) — so the layout around it stays exactly as it was; else the sweep as it was.
+ */
+export function planetSweep(sg: FlowSegment, stations: readonly FlowNode[], o: {w: number; gutter: number; seed: string; avoid: LineOptions['avoid']}): string | null {
+  const a = stations.find(n => n.id === sg.from), b = stations.find(n => n.id === sg.to);
+  if (!a || !b || sg.kind !== 'step' || isPlanet(a.id) === isPlanet(b.id)) return null;
+  const planet = isPlanet(a.id) ? a : b, node = planet === a ? b : a;
+  if (Math.abs(node.x - planet.x) >= PLANET_NEAR * o.w) return null;
+  const pieces = piecesOf(sg.d), P = pieces[0]![0], Q = pieces.at(-1)![3], s = planet.x > o.w / 2 ? -1 : 1;
+  const r = seeded(`${o.seed}|planet-sweep|${sg.id}`), turn = .4 + r() * .2, share = .15 + r() * .05;
+  // (A gentle bow: upright at both ends and at its waypoint, each half one even S. Its seeded reach and turn, then the
+  // turn lower or higher — under the node's own tab, or above the next one's — the gentlest that fits first.)
+  const bowAt = (f: number, t: number, k: number): Cubic[] => {
+    const M = {x: (s < 0 ? Math.min(P.x, Q.x) : Math.max(P.x, Q.x)) + s * f * o.w, y: P.y + (Q.y - P.y) * t}, h1 = (M.y - P.y) * k, h2 = (Q.y - M.y) * k;
+    return [[P, {x: P.x, y: P.y + h1}, {x: M.x, y: M.y - h1}, M], [M, {x: M.x, y: M.y + h2}, {x: Q.x, y: Q.y - h2}, Q]];
+  };
+  // (Where the node's own tab, just under it on the inner side, leaves no room for 15–20 %, the widest sweep that passes
+  // beside the tab instead: 13, 11, 9, 7 or 5 % — never a straight drop, never a moved tab.)
+  const sweepsAt = (shares: number[]) => shares.flatMap(f => [turn, .5, .6, .4, .68, .32, .76, .24].flatMap(t => [.5, .56, .62].map(k => bowAt(f, t, k)))).map(c => ({c, r: leastRadius(c)})).filter(x => x.r >= PLANET_SWEEP_RADIUS).sort((x, y) => y.r - x.r);
+  for (const {c} of [...sweepsAt([share, .175, .15, .2]), ...sweepsAt([.13]), ...sweepsAt([.11]), ...sweepsAt([.09]), ...sweepsAt([.07]), ...sweepsAt([.05])]) {
+    if (!c.every(p => p.every(q => q.x >= o.gutter + 1 && q.x <= o.w - o.gutter - 1))) continue;
+    const d = pathD(c);
+    if (stretchFaults({...sg, d}, o.w, o.gutter).length || !clear(c, stations, a.id, b.id, o.avoid)) continue;
+    return d;
+  }
+  return null;
+}
+/** The tightest bend on a stretch (its least radius of curvature, px). */
+export function leastRadius(pieces: readonly Cubic[]): number {
+  let m = Infinity;
+  for (const c of pieces) for (let j = 0; j <= 48; j++) { const k = Math.abs(curv(c, j / 48)); if (k > 1e-9) m = Math.min(m, 1 / k); }
+  return m;
 }
 
 /** The phone's line over its stations (planets, nodes, the finale), in the computer's format. */

@@ -409,7 +409,9 @@ async function expectRest(page: Page, width: number, when: string) {
   if (f.pastName !== null) {
     expect(f.pastName, `${width}px, ${when}: ZIGi just past the next planet's name`).toBeGreaterThanOrEqual(12);
     expect(f.pastName, `${width}px, ${when}: ZIGi just past the next planet's name`).toBeLessThanOrEqual(36);
-  } else expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 36);
+  // Session AG Polish 3, OWNER DECISION (after the 10d checkpoint; ADR-032 L26): on a phone ZIGi may rest up to 72 px
+  // from the next node (was 36) — the computer's loops now take the room right beside a node. Nothing else is changed.
+  } else expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 72);
   test.info().annotations.push({type: 'zigi-gap', description: `${width}px ${when}: ${Math.round(f.gap)}${f.pastName === null ? '' : ` (${Math.round(f.pastName)} past the name)`}`});
 }
 /** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */

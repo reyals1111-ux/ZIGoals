@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {flowSegments, seeded} from './flow-geometry';
 import {COMPUTER, COMPUTER_SWING, PHONE, computerLayout, computerLine, lineSwing, phoneAcross, phoneScale, phoneSpread, phoneTransform, syRange, type ScaleOrbit} from './phone-scale';
-import {excursion, lineFaults, phoneLine, piecesOf, stretchFaults} from './phone-line';
+import {PLANET_NEAR, PLANET_SWEEP_RADIUS, excursion, leastRadius, lineFaults, phoneLine, piecesOf, stretchFaults} from './phone-line';
 
 /**
  * Session AG Polish 3 (ADR-032 L20, L22, L24; owner amendments 8, 10, 10b and 10c): the phone's path is the computer's
@@ -35,7 +35,7 @@ function samplePath(seed: number): {orbits: ScaleOrbit[]; finale: boolean; tabs:
 
 describe('the phone path: the computer\'s layout across the whole width, taller, with the computer\'s loops (owner amendments 8, 10, 10b, 10c, 10d)', () => {
   it('stations where the computer\'s layout × (kx, sy) puts them (plus any local room); a line never clamped that passes the owner\'s line checks; tabs touching their node; every overlap and spread check passes; at 320, 360, 390 and 430 px', () => {
-    const faults: string[] = [], spread: string[] = [], loops: number[] = [];
+    const faults: string[] = [], spread: string[] = [], loops: number[] = [], sweeps = {drawn: 0, narrow: 0, kept: [] as string[]};
     let turned = 0;
     for (let seed = 0; seed < 200; seed++) {
       const p = samplePath(seed), layout = computerLayout(p.orbits, p.finale), steps = p.orbits.flatMap(o => o.steps);
@@ -65,7 +65,23 @@ describe('the phone path: the computer\'s layout across the whole width, taller,
         const fin = got.nodes.find(n => n.id === 'finale:end');
         const nodeXs = layout.nodes.filter(n => !n.id.startsWith('planet:') && n.id !== 'finale:end').map(n => n.x), swing = lineSwing(w, nodeXs);
         const again = phoneLine(got.nodes, {w, seed: `seed-${seed}`, swing, gutter: PHONE.gutter, leadFrom: 0, tailTo: fin ? layout.h * sy + dy + Object.values(got.room).reduce((x, y) => x + y, 0) - 4 : null, avoid: got.pills});
-        expect(got.segments.map(sg => sg.d), `${at}: the same line`).toEqual(again.map(sg => sg.d));
+        // (Owner fix 1 after the 10d checkpoint: the same line, except a planet's stretch whose node stands nearly above
+        // or below the planet, which sweeps out to the inner side by 15–20 % of the width — and nothing else moves.)
+        const plain = phoneScale({w, seed: `seed-${seed}`, planetR, pillH: 40, ...p}, {planetSweeps: false});
+        expect({sy: plain.sy, room: plain.room, lanes: plain.lanes, nodes: plain.nodes, banners: plain.banners, h: plain.h}, `${at}: fix 1 moves nothing`).toEqual({sy: got.sy, room: got.room, lanes: got.lanes, nodes: got.nodes, banners: got.banners, h: got.h});
+        expect(plain.segments.map(sg => sg.d), `${at}: the same line before fix 1`).toEqual(again.map(sg => sg.d));
+        got.segments.forEach((sg, k) => {
+          const a = got.nodes.find(n => n.id === sg.from), b = got.nodes.find(n => n.id === sg.to), planet = [a, b].find(n => n?.id.startsWith('planet:')), node = planet === a ? b : a;
+          const near = !!planet && !!node && !node.id.startsWith('planet:') && Math.abs(node.x - planet.x) < PLANET_NEAR * w;
+          if (sg.d === again[k]!.d) { if (near) sweeps.kept.push(`${at} ${sg.id}`); return; }
+          expect(near, `${at} ${sg.id}: only a planet's nearly-aligned stretch changes`).toBe(true);
+          const c = piecesOf(sg.d), m = c[0]![3], P = c[0]![0], Q = c.at(-1)![3], inner = planet!.x > w / 2 ? -1 : 1, reach = inner < 0 ? Math.min(P.x, Q.x) - m.x : m.x - Math.max(P.x, Q.x);
+          // (15–20 % of the width; 5–13 % only where the node's own tab leaves no room, and never a bend under 8 px.)
+          expect(reach, `${at} ${sg.id}: out to the inner side`).toBeGreaterThanOrEqual(.05 * w - .1); expect(reach).toBeLessThanOrEqual(.2 * w + .1);
+          expect(leastRadius(c), `${at} ${sg.id}: a gentle sweep`).toBeGreaterThanOrEqual(PLANET_SWEEP_RADIUS - .05);
+          if (reach < .15 * w - .1) sweeps.narrow++;
+          sweeps.drawn++;
+        });
         // (A clamped point sits exactly on the gutter's edge; the phone's line keeps 2 px inside it, or is mirrored.)
         for (const sg of got.segments) for (const c of piecesOf(sg.d)) for (const q of c) if (q.x < PHONE.gutter + .05 || q.x > w - PHONE.gutter - .05) faults.push(`${at}: ${sg.id} clamped or outside (${q.x})`);
         // (Owner amendment 10d: the loops as strong as amendment 10b's on the same seeds — each loop's waypoint as far past
@@ -108,6 +124,10 @@ describe('the phone path: the computer\'s layout across the whole width, taller,
     const group = (list: string[]) => { const kinds = new Map<string, number>(); for (const f of list) { const key = f.replace(/^\d+@(\d+)( \(sy [\d.]+\))?: /, '$1 ').replace(/n\d+|o\d+|orbit \d+|planet:\w+|finale:end|-?\d+(\.\d+)?/g, '#'); kinds.set(key, (kinds.get(key) ?? 0) + 1); } return [...kinds].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([key, n]) => `${n}× ${key}`); };
     expect({overlap: group(faults), spread: group(spread)}, `${faults.length} faults, ${spread.length} spread faults`).toEqual({overlap: [], spread: []});
     expect(loops.length, 'loops compared with 10b').toBeGreaterThan(500);
+    // (Where a node's own tab, just under it on the inner side, leaves no gentle sweep — 8 px or more of bend — on a
+    // 320 or 360 px phone, the computer's sweep stays: 7 of 1067 here, none at 390 or 430; ADR-032 L26.)
+    expect(sweeps.kept.filter(k => !/@(320|360) /.test(k)), `planet stretches nearly aligned: ${sweeps.drawn} swept to the inner side; none left at 390 or 430`).toEqual([]);
+    expect(sweeps.kept.length, `kept at 320/360: ${sweeps.kept.join(', ')}`).toBeLessThanOrEqual(Math.floor((sweeps.drawn + sweeps.kept.length) / 100));
     console.info(`loops compared with 10b: ${loops.length}; 10b loops that are swings here: ${turned}`);
   }, 840_000);
 
@@ -136,7 +156,8 @@ describe('the phone path: the computer\'s layout across the whole width, taller,
     expect(one('M100 0 C100 31 64.4 30.9 61.3 50 C58.2 69.1 100 69 100 100'), 'a loop').toEqual([]);
     expect(one('M358 0 C358 40 358 60 358 100 C358 140 200 160 200 200').join(), 'a straight run down the edge').toMatch(/within 2° of upright/);
     expect(one('M358 0 C358 40 358 60 358 100', 'planet:x', 'b'), 'straight out of a planet is allowed').toEqual([]);
-    expect(one('M300 0 C300 40 200 60 200 100 C200 140 300 160 300 200', 'planet:x', 'b').join(), 'a planet\'s stretch is one sweep').toMatch(/planet's stretch in 2 pieces/);
+    expect(one('M300 0 C300 40 250 60 250 100 C250 140 200 160 200 200', 'planet:x', 'b').join(), 'a planet\'s stretch is one sweep, never a swing\'s two pieces').toMatch(/planet's stretch in 2 pieces/);
+    expect(one('M300 0 C300 40 230 60 230 100 C230 140 300 160 300 200', 'planet:x', 'b'), 'or one gentle bow out to its side').toEqual([]);
     expect(one('M300 0 C320 40 200 60 200 100', 'planet:x', 'b').join(), 'upright out of its planet').toMatch(/not upright out of its planet/);
     expect(one('M100 0 C100 50 130 50 130 100 C140 150 100 150 100 200').join(), 'a kinked join').toMatch(/join turns/);
     expect(one('M100 0 C100 20 120 20 120 40 C120 60 104 60 104 80 C104 100 160 120 160 200').join(), 'a micro-wiggle').toMatch(/bump of/);
