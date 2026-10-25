@@ -1,3 +1,4 @@
+import {webkitCancelled} from './webkit-cancelled';
 import {expect, test, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
@@ -77,7 +78,8 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
   }
   // Session Z-Local (owner decision, 2026-10-11): Goals' nested routes (/app/goals/<id>, /app/goals/new) prefetch too; the same shape and moment, two segments deep.
   // Session AB-Design Phase 2 (ADR-024): a phone goal card shows its "Open Goal →" link (/app/goals/tracked/<id>), three segments deep; same shape and moment.
-  const prefetchCancel = (e: {at: number; message: string}) => /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
+  // The router's prefetches and the page's own /api fetches that a navigation cancelled (ADR-017 S64; tests/webkit-cancelled.ts).
+  const prefetchCancel = (e: {at: number; message: string}) => webkitCancelled(e, navigations);
   const real = errors.filter(e => !prefetchCancel(e)).map(e => e.message);
   console.log(`webkit-smoke: ${errors.length - real.length} page error(s) were WebKit's cancelled router prefetches (ADR-017 S64); ${real.length} other`);
   expect(real, `page errors (WebKit's rejected router prefetches excluded by shape and moment, S64)${roLoops.length ? `; ResizeObserver deliveries before each loop error: ${roLoops.join(' ;; ')}` : ''}`).toEqual([]);
