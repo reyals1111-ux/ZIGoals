@@ -103,24 +103,50 @@ export function phoneArc(foot: Pt, dir: Pt, below: number, wealth: Pt, w: number
 }
 
 /**
- * Session AG Polish 3 (ADR-032 L27; owner addition after the 10d OK, references 07 and 08): the COMPUTER's footer line is a
- * free-flowing river — no longer one giant loop out to the right with corners at its top (07). From Health's node it
- * leaves on the steps' own tangent, rises a little to the right of Health, then meanders up and to the left in two soft
- * curls and comes into the right end of "= Wealth" from the right (08, an approximate guide). Smooth everywhere: C1
- * Hermite cubics through its waypoints, every join one tangent, no bend tighter than 30 px, no bump under 14 px, never
- * crossing itself; at least 120 px from the bright star at the planet's top right, never above the "Goals · Habits ·
- * Health" line (`ceiling`), inside the stage. Its waypoints are tried from a small grid, the first that passes wins.
+ * Session AG Polish 3 (ADR-032 L27, L28; owner footer fix after the 10d OK, reference 08): the COMPUTER's footer line is a
+ * river flowing OUT of "= Wealth" down to Health, its bends growing as it goes. A gently descending baseline from the end
+ * point beside the word to Health (arriving at the ring's upper-right side on the steps' own tangent); along it three
+ * meander bends alternating sides, about 20–30, 45–60 and 75–95 px (in proportion where Health stands nearer the word),
+ * each longer than the one before, the first starting right at the word; drawn as ONE curvature-continuous (C2) cubic
+ * spline through the word's end, the bends' apexes and Health — no kink, no hook, no flat run. Bounds: below the "Goals · Habits · Health"
+ * line, 30 px or more right of the tagline where it passes it, 120 px or more from the planet's bright star, above the
+ * step labels, inside the stage. The ribbon is drawn from Health (the pieces reversed), so the reveal and its timing are
+ * unchanged.
  */
-export const RIVER_RULES = {radius: 30, bump: 14, star: 120, join: 1} as const;
-export type RiverRoom = {star: Pt; ceiling: number};
-/** Every way a river can fail the owner's rules (amendment after 10d): bends, bumps, joins, crossings, star, ceiling, stage. */
-export function riverFaults(segs: readonly Seg[], w: number, room: RiverRoom): string[] {
-  const out: string[] = [], pts: {p: Pt; k: number; s: number}[] = [];
+/** Health's ring on a computer: its node's radius (86 px across). */
+const RING = 43;
+export const RIVER_RULES = {radius: 30, narrowRadius: 12, bump: 14, star: 120, join: 1, flat: 60, flatRadius: 1000, tagline: 30} as const;
+export type RiverRoom = {star: Pt; ceiling: number; tagline?: {l: number; r: number; t: number; b: number}; floor?: number};
+const unit = (v: Pt): Pt => { const l = Math.hypot(v.x, v.y) || 1; return {x: v.x / l, y: v.y / l}; };
+/** A clamped C2 cubic spline through `P` (chord-length parameter), leaving along `d0` and arriving along `dn`. */
+export function c2Spline(P: readonly Pt[], d0: Pt, dn: Pt): Seg[] {
+  const n = P.length - 1, h = P.slice(1).map((p, i) => Math.max(1e-6, Math.hypot(p.x - P[i]!.x, p.y - P[i]!.y)));
+  const D: Pt[] = P.map(() => ({x: 0, y: 0})); D[0] = unit(d0); D[n] = unit(dn);
+  if (n >= 2) {
+    // (The tridiagonal system for the inner derivatives — the C2 condition at each inner point — solved per axis.)
+    const m = n - 1, a: number[] = [], b: number[] = [], c: number[] = [], rx: number[] = [], ry: number[] = [];
+    for (let k = 1; k < n; k++) {
+      const h0 = h[k - 1]!, h1 = h[k]!;
+      a.push(h1); b.push(2 * (h0 + h1)); c.push(h0);
+      rx.push(3 * (h0 * (P[k + 1]!.x - P[k]!.x) / h1 + h1 * (P[k]!.x - P[k - 1]!.x) / h0)); ry.push(3 * (h0 * (P[k + 1]!.y - P[k]!.y) / h1 + h1 * (P[k]!.y - P[k - 1]!.y) / h0));
+    }
+    rx[0]! -= a[0]! * D[0]!.x; ry[0]! -= a[0]! * D[0]!.y; rx[m - 1]! -= c[m - 1]! * D[n]!.x; ry[m - 1]! -= c[m - 1]! * D[n]!.y;
+    for (let k = 1; k < m; k++) { const w = a[k]! / b[k - 1]!; b[k]! -= w * c[k - 1]!; rx[k]! -= w * rx[k - 1]!; ry[k]! -= w * ry[k - 1]!; }
+    const X: number[] = Array(m).fill(0), Y: number[] = Array(m).fill(0);
+    X[m - 1] = rx[m - 1]! / b[m - 1]!; Y[m - 1] = ry[m - 1]! / b[m - 1]!;
+    for (let k = m - 2; k >= 0; k--) { X[k] = (rx[k]! - c[k]! * X[k + 1]!) / b[k]!; Y[k] = (ry[k]! - c[k]! * Y[k + 1]!) / b[k]!; }
+    for (let k = 1; k < n; k++) D[k] = {x: X[k - 1]!, y: Y[k - 1]!};
+  }
+  return P.slice(0, -1).map((p, i) => [p, {x: p.x + D[i]!.x * h[i]! / 3, y: p.y + D[i]!.y * h[i]! / 3}, {x: P[i + 1]!.x - D[i + 1]!.x * h[i]! / 3, y: P[i + 1]!.y - D[i + 1]!.y * h[i]! / 3}, P[i + 1]!] as Seg);
+}
+/** Every way a river can fail the owner's rules: bends, bumps, flat runs, joins, crossings, star, bounds, stage. */
+export function riverFaults(segs: readonly Seg[], w: number, room: RiverRoom, o: {radius?: number; early?: boolean} = {}): string[] {
+  const out: string[] = [], pts: {p: Pt; k: number; s: number}[] = [], minR = o.radius ?? RIVER_RULES.radius;
   let s = 0, prev: Pt | null = null;
   segs.forEach((sg, i) => {
     if (i) { const a = {x: sg[0].x - segs[i - 1]![2].x, y: sg[0].y - segs[i - 1]![2].y}, b = {x: sg[1].x - sg[0].x, y: sg[1].y - sg[0].y}, ang = Math.abs(Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y)) * 180 / Math.PI; if (ang > RIVER_RULES.join) out.push(`join ${i} turns ${ang.toFixed(1)}°`); }
-    for (let j = i ? 1 : 0; j <= 48; j++) {
-      const t = j / 48, u = 1 - t, p = at(sg, t);
+    for (let j = i ? 1 : 0; j <= 24; j++) {
+      const t = j / 24, u = 1 - t, p = at(sg, t);
       const v = {x: 3 * u * u * (sg[1].x - sg[0].x) + 6 * u * t * (sg[2].x - sg[1].x) + 3 * t * t * (sg[3].x - sg[2].x), y: 3 * u * u * (sg[1].y - sg[0].y) + 6 * u * t * (sg[2].y - sg[1].y) + 3 * t * t * (sg[3].y - sg[2].y)};
       const a2 = {x: 6 * u * (sg[2].x - 2 * sg[1].x + sg[0].x) + 6 * t * (sg[3].x - 2 * sg[2].x + sg[1].x), y: 6 * u * (sg[2].y - 2 * sg[1].y + sg[0].y) + 6 * t * (sg[3].y - 2 * sg[2].y + sg[1].y)};
       const sp = Math.hypot(v.x, v.y), k = sp > 1e-9 ? (v.x * a2.y - v.y * a2.x) / sp ** 3 : 0;
@@ -128,8 +154,25 @@ export function riverFaults(segs: readonly Seg[], w: number, room: RiverRoom): s
       pts.push({p, k, s}); prev = p;
     }
   });
+  // (The bounds first — the cheapest — then the shape.)
+  const P = pts.map(q => q.p);
+  const near = Math.min(...P.map(p => Math.hypot(p.x - room.star.x, p.y - room.star.y)));
+  if (near < RIVER_RULES.star) out.push(`${near.toFixed(0)} px from the star`);
+  if (P.some(p => p.y < room.ceiling - .5)) out.push('above the "Goals · Habits · Health" line');
+  const tag = room.tagline;
+  if (tag && P.some(p => p.y >= tag.t && p.y <= tag.b && p.x > tag.l && p.x < tag.r + RIVER_RULES.tagline)) out.push('less than 30 px right of the tagline');
+  if (room.floor !== undefined && P.some(p => p.y > room.floor!)) out.push('down among the step labels');
+  if (P.some(p => p.x < 8 || p.x > w - 8)) out.push('outside the stage');
+  if (o.early && out.length) return out;
   const least = Math.min(...pts.map(q => Math.abs(q.k) > 1e-9 ? 1 / Math.abs(q.k) : Infinity));
-  if (least < RIVER_RULES.radius) out.push(`a bend of ${least.toFixed(1)} px`);
+  if (least < minR) out.push(`a bend of ${least.toFixed(1)} px`);
+  // (Flat runs: curvature about nothing — a radius over 1000 px — for more than 60 px of arc.)
+  let from = -1;
+  for (let i = 0; i <= pts.length; i++) {
+    const flat = i < pts.length && Math.abs(pts[i]!.k) < 1 / RIVER_RULES.flatRadius;
+    if (flat && from < 0) from = i;
+    if (!flat && from >= 0) { const len = pts[i - 1]!.s - pts[from]!.s; if (len > RIVER_RULES.flat) out.push(`a flat run of ${Math.round(len)} px`); from = -1; }
+  }
   // (Bumps: the arc between two inflections, its greatest distance from their chord.)
   const flips: number[] = [];
   let last = 0;
@@ -139,57 +182,87 @@ export function riverFaults(segs: readonly Seg[], w: number, room: RiverRoom): s
     const amp = Math.max(...pts.slice(flips[i - 1]!, flips[i]! + 1).map(q => Math.abs((b.x - a.x) * (a.y - q.p.y) - (a.x - q.p.x) * (b.y - a.y)) / L));
     if (amp < RIVER_RULES.bump) out.push(`a bump of ${amp.toFixed(1)} px`);
   }
-  // (Never crossing itself: no two pieces of the sampled line, apart, meet.)
-  const P = pts.map(q => q.p), cross = (a: Pt, b: Pt, c: Pt, d: Pt) => { const o = (p: Pt, q: Pt, r: Pt) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x); return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0; };
-  for (let i = 0; i + 1 < P.length; i++) for (let j = i + 3; j + 1 < P.length; j++) if (cross(P[i]!, P[i + 1]!, P[j]!, P[j + 1]!)) { out.push('crosses itself'); i = P.length; break; }
-  const near = Math.min(...P.map(p => Math.hypot(p.x - room.star.x, p.y - room.star.y)));
-  if (near < RIVER_RULES.star) out.push(`${near.toFixed(0)} px from the star`);
-  if (P.some(p => p.y < room.ceiling - .5)) out.push('above the "Goals · Habits · Health" line');
-  if (P.some(p => p.x < 8 || p.x > w - 8)) out.push('outside the stage');
+  if (o.early && out.length) return out;
+  // (Never crossing itself: no two pieces of the line, sampled every few px, apart, meet.)
+  const Q = P.filter((_, i) => i % 3 === 0 || i === P.length - 1), cross = (a: Pt, b: Pt, c: Pt, d: Pt) => { const f = (p: Pt, q: Pt, r: Pt) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x); return f(a, b, c) * f(a, b, d) < 0 && f(c, d, a) * f(c, d, b) < 0; };
+  outer: for (let i = 0; i + 1 < Q.length; i++) for (let j = i + 2; j + 1 < Q.length; j++) if (cross(Q[i]!, Q[i + 1]!, Q[j]!, Q[j + 1]!)) { out.push('crosses itself'); break outer; }
   return out;
 }
+/** Points along a cubic, and the arc length up to each. */
+function arcTable(seg: Seg, n = 200) { const pts: Pt[] = [], len: number[] = []; let L = 0, q = seg[0]; for (let i = 0; i <= n; i++) { const p = at(seg, i / n); if (i) L += Math.hypot(p.x - q.x, p.y - q.y); pts.push(p); len.push(L); q = p; } return {pts, len, L}; }
 /**
- * The computer's river: from Health (`last`) on the steps' tangent (`dir`) to the end of "= Wealth" (`wealth`), built as
- * a turtle walks — circular turns (radius 40 px or more) and straight runs, every join one tangent: on past Health a
- * little, the first curl (a turn up and back to the left), a run, the second curl (a soft S: up a little, then level
- * again), a run, and into the word from the right. Two of the runs are solved so it lands exactly on the word; the
- * turns and radii are tried from a grid, gentlest first.
+ * The computer's river (owner footer fix): out of "= Wealth" (`wealth`) down to Health (`last`, reached along the steps'
+ * tangent `dir`). Along the baseline a wave of three half-waves — the bends — its phase growing so each bend is `grow` times
+ * longer than the one before, its amplitude passing smoothly through the three bends' sizes, starting right at the word and
+ * crossing the baseline again at Health, where the baseline is turned so the river arrives on the steps' own tangent;
+ * sampled and drawn as one C2 cubic spline. Returns its pieces FROM HEALTH (as the ribbon draws them), where the gold gives way to
+ * pink (`goldFrom`, the end of the first bend), the bends' measured amplitudes (from the word) and what still breaks a rule.
  */
-export function wideRiver(last: Pt, dir: Pt, wealth: Pt, w: number, room: RiverRoom): {segs: Seg[]; goldFrom: number; faults: string[]} {
-  const h0 = Math.atan2(dir.y, dir.x), D = Math.PI / 180, endHeading = Math.PI + 8 * D;
-  let best: {segs: Seg[]; goldFrom: number; faults: string[]} | null = null;
-  for (const r1 of [60, 50, 70, 42]) for (const lean of [8, 0, 16, -6]) for (const s2 of [38, 30, 48, 60, 75, 90]) for (const r2 of [70, 90, 55, 45, 110]) for (const lead of [24, 8, 44]) {
-    // (Headings: out of Health on h0; after the first curl, left and a little down (`lean`); the S turns up by s2 and back.)
-    const hA = Math.PI + lean * D, turn1 = -(2 * Math.PI - (hA - h0)) % (2 * Math.PI), hB = hA + s2 * D, turn3 = endHeading - hB;
-    const moves = (L1: number, L2: number): Move[] => [{line: lead}, {turn: turn1, r: r1}, {line: L1}, {turn: s2 * D, r: r2}, {line: L2}, {turn: turn3, r: r2}, {line: 16}];
-    const p00 = turtle(last, h0, moves(0, 0)).end, p10 = turtle(last, h0, moves(1, 0)).end, p01 = turtle(last, h0, moves(0, 1)).end;
-    const u1 = {x: p10.x - p00.x, y: p10.y - p00.y}, u2 = {x: p01.x - p00.x, y: p01.y - p00.y}, det = u1.x * u2.y - u1.y * u2.x;
-    if (Math.abs(det) < 1e-6) continue;
-    const ex = wealth.x - p00.x, ey = wealth.y - p00.y, L1 = (ex * u2.y - ey * u2.x) / det, L2 = (u1.x * ey - u1.y * ex) / det;
-    if (L1 < 10 || L2 < 10) continue;
-    const t = turtle(last, h0, moves(L1, L2)), segs = t.segs, faults = riverFaults(segs, w, room);
-    if (Math.max(...segs.flatMap(sg => [0, .25, .5, .75, 1].map(q => at(sg, q).x))) < last.x + 64) faults.push('not past Health to the right');
-    const cand = {segs, goldFrom: t.marks[4]!.x, faults};
-    if (!faults.length) return cand;
-    if (!best || faults.length < best.faults.length) best = cand;
+type River = {segs: Seg[]; goldFrom: number; bends: number[]; faults: string[]};
+const rivers = new Map<string, River>();
+export function wideRiver(last: Pt, dir: Pt, wealth: Pt, w: number, room: RiverRoom): River {
+  // (The same stage, measured again — a resize that changes nothing — reuses its river.)
+  const key = JSON.stringify([last, dir, wealth, w, room].map(v => JSON.parse(JSON.stringify(v, (_, x) => typeof x === 'number' ? Math.round(x * 2) / 2 : x))));
+  const known = rivers.get(key);
+  if (known) return known;
+  const made = makeRiver(last, dir, wealth, w, room);
+  if (rivers.size > 32) rivers.clear();
+  rivers.set(key, made);
+  return made;
+}
+function makeRiver(last: Pt, dir: Pt, wealth: Pt, w: number, room: RiverRoom): River {
+  const into = unit({x: -dir.x, y: -dir.y}), D0 = Math.hypot(last.x - wealth.x, last.y - wealth.y);
+  let best: River | null = null;
+  const AMPS = [[25, 52, 85], [22, 48, 80], [28, 56, 90], [20, 45, 75], [30, 60, 95]] as const;
+  // (The bends' sizes are the owner's at a computer's usual stage, Health 290 px or more from the word; nearer, in proportion
+  // — and on the narrowest stages, where the tagline ends beside Health, smaller still if that is what fits.)
+  const scale = Math.min(1, D0 / 290);
+  type Try = {drop: number; grow: number; k1: number; k2: number; first: number; amps0: readonly number[]; shrink: number};
+  // (First the variants that suit the measured stages — 1920, 1440, 1280, 1024 and 768 px windows — then the grid.)
+  const tries: Try[] = [[1, .45, 1.2, .9, .6, 3], [1, .45, 1.3, .6, .85, 3], [.8, .45, 1.25, .9, .6, 1], [1, .3, 1.1, .9, .6, 3], [.8, 0, 1.6, 1, .8, 0], [1, -.1, 1.6, 1, .8, 1], [1, -.1, 1.8, 1, .8, 1]]
+    .map(([shrink, drop, grow, k1, k2, a]) => ({shrink: shrink!, drop: drop!, grow: grow!, k1: k1!, k2: k2!, first: -1, amps0: AMPS[a!]!}));
+  for (const shrink of scale < 1 ? [1, .8, .6] : [1]) for (const drop of [.45, .5, .3, .55, .12, 0, -.1]) for (const grow of [1.3, 1.25, 1.4, 1.5, 1.2, 1.1, 1.6, 1.8]) for (const [k1, k2] of [[.5, .7], [.6, .85], [.4, .6], [.5, 1], [.7, 1], [.6, 1.4], [.9, .6], [1, .8], [1.1, 1]] as const) for (const first of [-1, 1]) for (const amps0 of [AMPS[3], AMPS[1], AMPS[0]]) tries.push({drop, grow, k1, k2, first, amps0, shrink});
+  // (Two passes in one: bends of 30 px or more; else — a narrow stage — the roundest variant found, its tightest bend 12 px
+  // or more, looking at most 120 variants past the first that passes and 600 in all.)
+  let round: (River & {r: number}) | null = null, since = 0, tried = 0;
+  for (const {drop, grow, k1, k2, first, amps0, shrink} of tries) {
+    const amps = amps0.map(a => a * scale * shrink), g3 = grow ** 3;
+    const lag = (f: number) => { const x = f / Math.PI, [a0, a1, a2] = amps; return a0! * (x - 1.5) * (x - 2.5) / 2 - a1! * (x - .5) * (x - 2.5) + a2! * (x - .5) * (x - 1.5) / 2; };
+    // The baseline: out of the word to the right, gently down, and into Health from its upper right — turned so that, with
+    // the wave crossing it there, the river itself comes into Health exactly on the steps' tangent (two passes settle it).
+    let arrive = into, base: Seg = [wealth, wealth, last, last], tab = arcTable(base, 4), S = 1;
+    for (let pass = 0; pass < 3; pass++) {
+      base = [wealth, {x: wealth.x + k1 * D0, y: wealth.y + drop * k1 * D0}, {x: last.x - arrive.x * k2 * D0, y: last.y - arrive.y * k2 * D0}, last];
+      tab = arcTable(base, 240); S = tab.L;
+      const slope = -first * lag(3 * Math.PI) * Math.PI * (g3 - 1) / (S * Math.log(grow) * g3), turn = -Math.atan(slope);
+      arrive = {x: into.x * Math.cos(turn) - into.y * Math.sin(turn), y: into.x * Math.sin(turn) + into.y * Math.cos(turn)};
+    }
+    const atLen = (l: number) => { let k = tab.len.findIndex(v => v >= l); if (k < 1) k = 1; const f = (l - tab.len[k - 1]!) / Math.max(1e-6, tab.len[k]! - tab.len[k - 1]!); const a = tab.pts[k - 1]!, b = tab.pts[k]!; return {p: {x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f}, t: unit({x: b.x - a.x, y: b.y - a.y})}; };
+    // (Phase: the k-th bend from S·(g^k − 1)/(g³ − 1) to S·(g^(k+1) − 1)/(g³ − 1). Amplitude: a smooth quadratic through the
+    // three bends' sizes at their middles.)
+    const phase = (l: number) => Math.PI * Math.log(1 + l * (g3 - 1) / S) / Math.log(grow);
+    const cut = (k: number) => S * (grow ** k - 1) / (g3 - 1);
+    const C = (l: number): Pt => { const {p, t} = atLen(l), f = phase(l), o = first * lag(f) * Math.sin(f); return {x: p.x - t.y * o, y: p.y + t.x * o}; };
+    const N = 24, pts = Array.from({length: N + 1}, (_, k) => k === N ? last : k === 0 ? wealth : C(S * k / N));
+    const d0 = unit({x: C(1).x - wealth.x, y: C(1).y - wealth.y});
+    const fromWealth = c2Spline(pts, d0, into);
+    // (The pieces from Health: each reversed, in reverse order.)
+    const segs = fromWealth.map(sg => [sg[3], sg[2], sg[1], sg[0]] as Seg).reverse();
+    const faults = Math.max(...pts.map(q => q.x)) < last.x + RING + 4 ? ['not past Health\'s ring on its right'] : riverFaults(segs, w, room, {radius: RIVER_RULES.narrowRadius, early: true});
+    if (faults.length) { if (!best || faults.length < best.faults.length) best = {segs, goldFrom: 0, bends: [], faults}; if ((round && ++since > 120) || ++tried > 600) break; continue; }
+    // (Each bend's amplitude as drawn: the farthest the river strays from the baseline within its span.)
+    const bends = [0, 1, 2].map(k => Math.max(...Array.from({length: 61}, (_, j) => { const l = cut(k) + (cut(k + 1) - cut(k)) * j / 60, q = C(l), b = atLen(l).p; return Math.hypot(q.x - b.x, q.y - b.y); })));
+    if (!(bends[0]! < bends[1]! && bends[1]! < bends[2]!)) faults.push('bends not growing');
+    const cand = {segs, goldFrom: atLen(cut(1)).p.x, bends, faults};
+    if (faults.length) { if (!best || faults.length < best.faults.length) best = cand; if ((round && ++since > 120) || ++tried > 600) break; continue; }
+    const r = Math.min(...segs.flatMap(sg => Array.from({length: 25}, (_, j) => { const t = j / 24, u = 1 - t, v = {x: 3 * u * u * (sg[1].x - sg[0].x) + 6 * u * t * (sg[2].x - sg[1].x) + 3 * t * t * (sg[3].x - sg[2].x), y: 3 * u * u * (sg[1].y - sg[0].y) + 6 * u * t * (sg[2].y - sg[1].y) + 3 * t * t * (sg[3].y - sg[2].y)}, a2 = {x: 6 * u * (sg[2].x - 2 * sg[1].x + sg[0].x) + 6 * t * (sg[3].x - 2 * sg[2].x + sg[1].x), y: 6 * u * (sg[2].y - 2 * sg[1].y + sg[0].y) + 6 * t * (sg[3].y - 2 * sg[2].y + sg[1].y)}, k = Math.abs(v.x * a2.y - v.y * a2.x) / Math.hypot(v.x, v.y) ** 3; return k > 1e-9 ? 1 / k : Infinity; })));
+    if (r >= RIVER_RULES.radius) return cand;
+    if (!round || r > round.r) round = {...cand, r};
+    // (A narrow stage: a bend of 20 px or more is round enough to stop at; else look 150 variants further at most.)
+    if (++since > 120 || ++tried > 600) break;
   }
-  // (A narrow stage — the word close above Health — leaves no room for the second curl's S at 14 px: one curl, then one
-  // smooth sweep into the word.)
-  for (const r1 of [60, 50, 70, 42]) for (const lean of [8, 0, 16, -6, 24, -14, 32]) for (const r2 of [90, 70, 110, 55, 140]) for (const lead of [24, 8, 44]) {
-    const hA = Math.PI + lean * D, turn1 = -(2 * Math.PI - (hA - h0)) % (2 * Math.PI), turn2 = endHeading - hA;
-    const moves = (L1: number, L2: number): Move[] => [{line: lead}, {turn: turn1, r: r1}, {line: L1}, {turn: turn2, r: r2}, {line: L2}];
-    const p00 = turtle(last, h0, moves(0, 0)).end, p10 = turtle(last, h0, moves(1, 0)).end, p01 = turtle(last, h0, moves(0, 1)).end;
-    const u1 = {x: p10.x - p00.x, y: p10.y - p00.y}, u2 = {x: p01.x - p00.x, y: p01.y - p00.y}, det = u1.x * u2.y - u1.y * u2.x;
-    if (Math.abs(det) < 1e-6) continue;
-    const ex = wealth.x - p00.x, ey = wealth.y - p00.y, L1 = (ex * u2.y - ey * u2.x) / det, L2 = (u1.x * ey - u1.y * ex) / det;
-    if (L1 < 10 || L2 < 10) continue;
-    const t = turtle(last, h0, moves(L1, L2)), segs = t.segs, faults = riverFaults(segs, w, room);
-    if (Math.max(...segs.flatMap(sg => [0, .25, .5, .75, 1].map(q => at(sg, q).x))) < last.x + 64) faults.push('not past Health to the right');
-    const cand = {segs, goldFrom: t.marks[2]!.x - .4 * (t.marks[2]!.x - wealth.x), faults};
-    if (!faults.length) return cand;
-    if (!best || faults.length < best.faults.length) best = cand;
-  }
-  return best ?? {segs: [], goldFrom: wealth.x, faults: ['no river fits']};
+  if (round) return {segs: round.segs, goldFrom: round.goldFrom, bends: round.bends, faults: round.faults};
+  return best!;
 }
 
 /** The ribbon's width at t (0 at the start, 1 at the end): thin, widest a little before the middle, thin again. */

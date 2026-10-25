@@ -24,15 +24,19 @@ function leastRadius(segs: readonly Seg[]) {
 }
 /** Wider screens: the stage's width, Health's node, the line's tangent into it (Habits → Health), the word's end. */
 // (Session AG Polish 3, owner addition after the 10d OK: with the bright star's place and the bottom of the "Goals · Habits ·
-// Health" line, measured at 1440 × 900, 1920 × 1080, 1280 × 720, 1024 × 800 and 768 × 1024.)
+// Health" line, measured at 1440 × 900, 1920 × 1080, 1280 × 720, 1024 × 800, 768 × 1024, 1366 × 768 and 1536 × 864.)
 const WIDE = [
-  {w: 1172, health: {x: 961, y: 376}, dir: {x: .38 * 375, y: -30}, wealth: {x: 719, y: 208}, star: {x: 1029, y: 111}, ceiling: 170},
-  {w: 1188, health: {x: 969, y: 420}, dir: {x: .38 * 375, y: -30}, wealth: {x: 753, y: 224}, star: {x: 1211, y: 155}, ceiling: 178},
-  {w: 1012, health: {x: 851, y: 354}, dir: {x: .38 * 345, y: -30}, wealth: {x: 622, y: 197}, star: {x: 891, y: 97}, ceiling: 164},
-  {w: 782, health: {x: 612, y: 326}, dir: {x: .38 * 221, y: -30}, wealth: {x: 492, y: 175}, star: {x: 693, y: 71}, ceiling: 146},
-  {w: 716, health: {x: 557, y: 326}, dir: {x: .38 * 199, y: -30}, wealth: {x: 459, y: 175}, star: {x: 636, y: 65}, ceiling: 146},
+  {w: 1172, health: {x: 961, y: 376}, dir: {x: .38 * 375, y: -30}, wealth: {x: 719, y: 208}, star: {x: 1029, y: 111}, ceiling: 170, tagline: {l: 412, r: 760, t: 250, b: 272}, floor: 427},
+  {w: 1188, health: {x: 969, y: 420}, dir: {x: .38 * 375, y: -30}, wealth: {x: 753, y: 224}, star: {x: 1211, y: 155}, ceiling: 178, tagline: {l: 420, r: 768, t: 272, b: 293}, floor: 471},
+  {w: 1012, health: {x: 851, y: 354}, dir: {x: .38 * 345, y: -30}, wealth: {x: 622, y: 197}, star: {x: 891, y: 97}, ceiling: 164, tagline: {l: 332, r: 680, t: 236, b: 258}, floor: 405},
+  {w: 782, health: {x: 612, y: 326}, dir: {x: .38 * 221, y: -30}, wealth: {x: 492, y: 175}, star: {x: 693, y: 71}, ceiling: 146, tagline: {l: 217, r: 565, t: 210, b: 231}, floor: 377},
+  {w: 716, health: {x: 557, y: 326}, dir: {x: .38 * 199, y: -30}, wealth: {x: 459, y: 175}, star: {x: 636, y: 65}, ceiling: 146, tagline: {l: 184, r: 532, t: 210, b: 231}, floor: 377},
+  // (Owner footer fix, L28: also 1366 × 768 and 1536 × 864, between the stages above.)
+  {w: 1098, health: {x: 923, y: 366}, dir: {x: .38 * 360, y: -30}, wealth: {x: 674, y: 203}, star: {x: 965, y: 105}, ceiling: 167, tagline: {l: 375, r: 723, t: 244, b: 265}, floor: 417},
+  {w: 1188, health: {x: 969, y: 389}, dir: {x: .38 * 375, y: -30}, wealth: {x: 737, y: 214}, star: {x: 1072, y: 120}, ceiling: 173, tagline: {l: 420, r: 768, t: 258, b: 280}, floor: 440},
 ];
-const river = (c: typeof WIDE[number]) => wideRiver(c.health, c.dir, c.wealth, c.w, {star: c.star, ceiling: c.ceiling});
+const room = (c: typeof WIDE[number]) => ({star: c.star, ceiling: c.ceiling, tagline: c.tagline, floor: c.floor});
+const river = (c: typeof WIDE[number]) => wideRiver(c.health, c.dir, c.wealth, c.w, room(c));
 /** Phones: the stage's width, the foot of the line under Health and its tangent, the steps' foot + 12, the word's end. */
 const PHONE = [
   {w: 358, foot: {x: 38, y: 498}, dir: {x: 10, y: 20}, below: 506, wealth: {x: 271, y: 145}},
@@ -47,28 +51,35 @@ describe('the footer ribbon (Session AG Polish 3, owner Part 6)', () => {
       expect(leastRadius(segs), `${c.w}: its tightest turn`).toBeGreaterThanOrEqual(footerMinRadius(c.w) - .5);
     }
   });
-  // Session AG Polish 3 (ADR-032 L27; owner addition after the 10d OK, references 07 and 08), moved deliberately: the
-  // computer's line is no longer one loop out to the right over a crest (07) but a river with soft curls (08).
-  it('computers: a free-flowing river — out of Health on the steps\' tangent, past Health to the right, up and to the left in soft curls, into the right end of "= Wealth"; C1 joins, no bend under 30 px, no bump under 14 px, never crossing itself, 120 px from the bright star, never above the "Goals · Habits · Health" line', () => {
+  // Session AG Polish 3 (ADR-032 L27, L28; owner footer fix after the 10d OK, reference 08), moved deliberately: the
+  // computer's line is no longer one loop out to the right over a crest (07), nor two generic curves, but a river flowing
+  // out of "= Wealth" down to Health, its bends growing.
+  it('computers: a river out of "= Wealth" down to Health — three bends alternating sides, growing bend by bend; one C2 spline; no flat run over 60 px, no bump under 14 px, never crossing itself; inside its bounds; from the word\'s end, into Health on the steps\' tangent', () => {
     for (const c of WIDE) {
-      const {segs, faults} = river(c);
-      expect(faults, `${c.w}: the owner's river rules`).toEqual([]);
-      expect(riverFaults(segs, c.w, {star: c.star, ceiling: c.ceiling})).toEqual([]);
-      for (let i = 1; i < segs.length; i++) expect(deg(tangentIn(segs[i - 1]!), tangentOut(segs[i]!)), `${c.w}: join ${i}`).toBeLessThan(RIVER_RULES.join);
-      expect(leastRadius(segs), `${c.w}: its tightest bend`).toBeGreaterThanOrEqual(RIVER_RULES.radius - .01);
+      const {segs, bends, faults} = river(c);
+      expect(faults, `${c.w}: the owner's rules`).toEqual([]);
+      // (Bends of 30 px or more where the stage allows — every computer window from 1280 px; 12 px or more on the 1024
+      // and 768 px windows, where Health stands close under the word: L28.)
+      expect(riverFaults(segs, c.w, room(c), {radius: c.w >= 1000 ? RIVER_RULES.radius : RIVER_RULES.narrowRadius}), `${c.w}: bends, flats, bumps, crossings, bounds`).toEqual([]);
+      expect(bends[0]!, `${c.w}: the bends grow`).toBeLessThan(bends[1]!); expect(bends[1]!).toBeLessThan(bends[2]!);
+      if (c.w >= 1100) { expect(bends[0]!).toBeGreaterThanOrEqual(19); expect(bends[0]!).toBeLessThanOrEqual(31); expect(bends[1]!).toBeGreaterThanOrEqual(44); expect(bends[1]!).toBeLessThanOrEqual(61); expect(bends[2]!).toBeGreaterThanOrEqual(74); expect(bends[2]!).toBeLessThanOrEqual(96); }
+      // (C2: at every join one tangent and one curvature.)
+      const curvature = (sg: Seg, t: number) => { const u = 1 - t, v = {x: 3 * u * u * (sg[1].x - sg[0].x) + 6 * u * t * (sg[2].x - sg[1].x) + 3 * t * t * (sg[3].x - sg[2].x), y: 3 * u * u * (sg[1].y - sg[0].y) + 6 * u * t * (sg[2].y - sg[1].y) + 3 * t * t * (sg[3].y - sg[2].y)}, a = {x: 6 * u * (sg[2].x - 2 * sg[1].x + sg[0].x) + 6 * t * (sg[3].x - 2 * sg[2].x + sg[1].x), y: 6 * u * (sg[2].y - 2 * sg[1].y + sg[0].y) + 6 * t * (sg[3].y - 2 * sg[2].y + sg[1].y)}; return (v.x * a.y - v.y * a.x) / Math.hypot(v.x, v.y) ** 3; };
+      for (let i = 1; i < segs.length; i++) {
+        expect(deg(tangentIn(segs[i - 1]!), tangentOut(segs[i]!)), `${c.w}: join ${i}, one tangent`).toBeLessThan(RIVER_RULES.join);
+        expect(Math.abs(curvature(segs[i - 1]!, 1) - curvature(segs[i]!, 0)), `${c.w}: join ${i}, one curvature`).toBeLessThan(2e-3);
+      }
+      // (From Health on the steps' tangent — the river comes into Health continuing the steps' line — to the word's end.)
       expect(segs[0]![0]).toEqual(c.health);
-      expect(deg(tangentOut(segs[0]!), c.dir), `${c.w}: continues the steps' line out of Health`).toBeLessThan(1);
+      expect(deg(tangentOut(segs[0]!), c.dir), `${c.w}: tangent-continuous at Health`).toBeLessThan(1);
       const end = segs.at(-1)![3];
-      expect(Math.hypot(end.x - c.wealth.x, end.y - c.wealth.y), `${c.w}: ends at the word`).toBeLessThan(.5);
-      expect(tangentIn(segs.at(-1)!).x, `${c.w}: comes into the word from the right`).toBeLessThan(0);
+      expect(Math.hypot(end.x - c.wealth.x, end.y - c.wealth.y), `${c.w}: starts at the end of "= Wealth"`).toBeLessThan(.5);
       const xs = segs.flatMap(sg => Array.from({length: 17}, (_, k) => at(sg, k / 16)));
-      expect(Math.max(...xs.map(p => p.x)), `${c.w}: past Health's node (43 px) to the right first`).toBeGreaterThan(c.health.x + 43 + 20);
+      expect(Math.max(...xs.map(p => p.x)), `${c.w}: past Health's ring on its upper right`).toBeGreaterThan(c.health.x + 43);
       expect(Math.min(...xs.map(p => Math.hypot(p.x - c.star.x, p.y - c.star.y))), `${c.w}: clear of the star`).toBeGreaterThanOrEqual(RIVER_RULES.star);
-      expect(Math.min(...xs.map(p => p.y)), `${c.w}: never above the slogan's line`).toBeGreaterThanOrEqual(c.ceiling - .5);
-      // (Its curls: from 1012 px the way bends left, right and left again — two curls; narrower stages have room for one.)
-      const turns = segs.map(sg => { const a = tangentOut(sg), b = tangentIn(sg); return Math.sign(a.x * b.y - a.y * b.x); }).filter(Boolean);
-      const bends = 1 + turns.slice(1).filter((t, k) => t !== turns[k]).length;
-      expect(bends, `${c.w}: soft curls`).toBeGreaterThanOrEqual(c.w >= 1000 ? 3 : 1);
+      expect(Math.min(...xs.map(p => p.y)), `${c.w}: below the slogan's line`).toBeGreaterThanOrEqual(c.ceiling - .5);
+      expect(Math.max(...xs.map(p => p.y)), `${c.w}: above the step labels`).toBeLessThanOrEqual(c.floor);
+      expect(xs.filter(p => p.y >= c.tagline.t && p.y <= c.tagline.b && p.x > c.tagline.l && p.x < c.tagline.r + 30), `${c.w}: 30 px right of the tagline`).toEqual([]);
     }
   });
   it('phones: from the foot of the line under Health, beneath the steps, up the right edge and down into the word, inside the stage', () => {
@@ -85,15 +96,15 @@ describe('the footer ribbon (Session AG Polish 3, owner Part 6)', () => {
       expect(Math.max(...rb.widths)).toBeLessThanOrEqual(4.21);
     }
   });
-  it('its colour follows its way: magenta from Health into pink, pink all the way to the last stretch, gold only there into the word', () => {
+  it('its colour: gold only in the first stretch out of "= Wealth", fading into pink, then magenta and pink into Health', () => {
     for (const c of WIDE) {
       const r = river(c), rb = ribbon(r.segs, RIBBON_WIDTH.wide, 10, null, 0, r.goldFrom), [rise, back] = rb.paint;
       expect(rise.stops).toEqual([[0, RIBBON_COLOURS.magenta], [1, RIBBON_COLOURS.pink]]);
       expect(back.stops.map(s => s[1])).toEqual([RIBBON_COLOURS.pink, RIBBON_COLOURS.pink, RIBBON_COLOURS.gold, RIBBON_COLOURS.gold]);
       // (Along the way back, x runs from the turn to the word: pink up to the last stretch, gold full before the word.)
       const xAt = (o: number) => back.x1 + (back.x2 - back.x1) * o, pinkTo = xAt(back.stops[1]![0]), goldAt = xAt(back.stops[2]![0]);
-      expect(Math.abs(pinkTo - r.goldFrom), `${c.w}: pink up to the last stretch`).toBeLessThan(1);
-      expect(goldAt, `${c.w}: gold in the last stretch`).toBeLessThan(r.goldFrom);
+      expect(Math.abs(pinkTo - r.goldFrom), `${c.w}: pink up to the end of the first bend`).toBeLessThan(1);
+      expect(goldAt, `${c.w}: gold only in the first stretch out of the word`).toBeLessThan(r.goldFrom);
       expect(goldAt).toBeGreaterThan(rb.end.x);
       expect(back.x1).toBeGreaterThan(back.x2);
     }

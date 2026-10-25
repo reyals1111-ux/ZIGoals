@@ -122,11 +122,15 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       const steps = el.querySelector<HTMLElement>('.site-footer-steps')?.getBoundingClientRect(), last = nodes[2]!, tail = segs.at(-1)!, foot = tail[3];
       // (Out of Health on the line's own tangent: the way the last piece of the line arrives.)
       const dir = {x: tail[3].x - tail[2].x, y: tail[3].y - tail[2].y};
-      // (Computers, owner addition after the 10d OK: a river with soft curls, 120 px or more from the planet's bright star and
-      // never above the "Goals · Habits · Health" line. Phones: the frame, its shape kept.)
+      // (Computers, owner footer fix: a river flowing out of "= Wealth" down to Health, its bends growing — lib/footer-ribbon.ts.
+      // Phones: the frame, its shape kept.)
       const art = root.querySelector<HTMLElement>('.site-footer-art'), frame = art ? footerArtFrame(art, el) : null;
       const starAt = frame ? frame.map(FOOTER_ART.star[0], FOOTER_ART.star[1]) : null, line1 = root.querySelector<HTMLElement>('.site-footer-line1')?.getBoundingClientRect();
-      const room = {star: starAt ? {x: starAt[0], y: starAt[1]} : {x: -1e4, y: -1e4}, ceiling: line1 ? line1.bottom - base.top : -1e4};
+      const tag = root.querySelector<HTMLElement>('.site-footer-tagline')?.getBoundingClientRect(), labels = [...el.querySelectorAll<HTMLElement>('.site-footer-steps strong')].map(e => e.getBoundingClientRect().top - base.top);
+      // (Its bounds, owner footer fix: below the "Goals · Habits · Health" line, 30 px right of the tagline where it passes it,
+      // 120 px from the planet's bright star, 8 px above the step labels.)
+      const room = {star: starAt ? {x: starAt[0], y: starAt[1]} : {x: -1e4, y: -1e4}, ceiling: line1 ? line1.bottom - base.top : -1e4,
+        ...(tag ? {tagline: {l: tag.left - base.left, r: tag.right - base.left, t: tag.top - base.top, b: tag.bottom - base.top}} : {}), ...(labels.length ? {floor: Math.min(...labels) - 8} : {})};
       const river = !wealth || stacked ? null : wideRiver(last, dir, wealth, base.width, room);
       const arc = !wealth ? null : stacked ? phoneArc(foot, dir, (steps ? steps.bottom - base.top : foot.y) + 12, wealth, base.width) : null;
       const rb = !wealth ? null : arc ? ribbon(arc.segs, RIBBON_WIDTH.phone, ARC_PAD, arc.crest, arc.r) : river && river.segs.length ? ribbon(river.segs, RIBBON_WIDTH.wide, ARC_PAD, null, 0, river.goldFrom) : null;
