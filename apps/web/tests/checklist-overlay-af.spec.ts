@@ -4,6 +4,7 @@ import {MOTION_PREFERENCE_KEY} from '../components/use-entrance';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
 import {TITLE, seedChecklist, settled, stored} from './checklist-fixtures';
+import {suggestPathLabel} from '../lib/checklist/path-label';
 import {navLink} from './phone-nav';
 
 /**
@@ -96,7 +97,7 @@ test('nodes (76–88 px on a computer, 58–68 px on a phone, the next one a siz
   // phone (Session AG Polish 2: never an ellipsis, ADR-031), 14 px or more, with the full name in its title.
   const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(), cx = (dot.left + dot.right) / 2, cy = (dot.top + dot.bottom) / 2; return {bubble: e.classList.contains('path-label-bubble'), tab: e.classList.contains('orbit-tab'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), title: e.getAttribute('title'), label: text.textContent, attached: r.left < dot.right && r.right > dot.left && r.top < dot.bottom && r.bottom > dot.top, below: r.top > cy, aside: e.getAttribute('data-side') === 'right' ? r.left > cx && r.right > dot.right : r.right < cx && r.left < dot.left}; }));
   expect(names.filter(n => n.bubble)).toHaveLength(0);
-  for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); expect(n.tab, 'a name tab').toBe(true); expect(n.title, 'the full name in its title').toBe(n.label); }
+  for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); expect(n.tab, 'a name tab').toBe(true); expect(n.label, 'its one word on the path (owner amendment 10)').toBe(suggestPathLabel(n.title ?? '')); expect(n.title, 'the full name in its title').toBeTruthy(); }
   for (const n of names) { expect(n.attached, `${n.label}: attached to its node`).toBe(true); expect(n.below, `${n.label}: on the node's lower side`).toBe(true); expect(n.aside, `${n.label}: toward its side`).toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
   const tag = await page.locator('[data-next] .path-next-tag').evaluate(el => { const r = el.getBoundingClientRect(), d = el.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(); return {text: el.textContent, onCrown: r.top < d.top && r.bottom > d.top - 2, centred: Math.abs((r.left + r.right) / 2 - (d.left + d.right) / 2) <= 2}; });
   expect(tag.text, 'one word').toMatch(/^(Next|Start)$/);
@@ -609,19 +610,20 @@ test('a long name shows whole on a phone — one line, never an ellipsis, its fu
   sections.forEach((section, i) => { r = addCustom(r, {label: i === 7 ? 'Starlight & breathwork 15 minutes' : `Fictional star ${i + 1}`, colour: 'teal', section}, {id: `ck_fixture-${i + 1}`, at: new Date(Date.now() - (10 - i) * 86_400_000)}); });
   await page.setViewportSize({width: 390, height: 844});
   await open(page, {path: r});
-  const name = page.locator('.path-label', {hasText: 'Starlight & breathwork 15 minutes'});
+  const name = page.locator('.path-label[title="Starlight & breathwork 15 minutes"]');
   // Session AG Polish 2 (ADR-031; owner Part 1d), moved at greater strength: AG's "two lines at most, then a clean ellipsis"
   // becomes the whole name, on one line at 390 px (two only at 320 px, where it cannot fit), never cut, never "…"; its full
   // name stays in its title and its node's name.
   const whole = () => name.evaluate(l => { const t = l.querySelector<HTMLElement>('.path-label-text')!, lh = parseFloat(getComputedStyle(t).lineHeight), cs = getComputedStyle(t); return {cut: t.scrollWidth > t.clientWidth + 1 || t.scrollHeight > t.clientHeight + 1 || cs.textOverflow === 'ellipsis' && cs.overflow !== 'visible' || (cs.webkitLineClamp !== 'none' && cs.webkitLineClamp !== ''), text: t.textContent, lines: Math.round(t.getBoundingClientRect().height / lh), title: l.getAttribute('title'), right: l.getBoundingClientRect().right, left: l.getBoundingClientRect().left, vw: innerWidth}; });
   const before = await whole();
   expect(before.cut, 'nothing cut, no ellipsis').toBe(false);
-  expect(before.text, 'the whole name shows').toBe('Starlight & breathwork 15 minutes');
+  expect(before.text, 'its one word on the path, whole (owner amendment 10)').toBe('Starlight');
   expect(before.title, 'the full name in its title').toBe('Starlight & breathwork 15 minutes');
   expect(before.lines, 'one line at 390 px').toBe(1);
   for (const n of [1, 2, 3, 4, 5, 6, 7]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
   await zigiAtRest(page);
-  await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight & breathwork 15 minutes');
+  await expect(page.locator('[data-next] .path-label')).toHaveAttribute('title', 'Starlight & breathwork 15 minutes');
+  await expect(page.locator('[data-next] .path-label')).toHaveText('Starlight');
   const after = await whole();
   expect(after.cut, 'nothing cut as the next node\'s name').toBe(false);
   expect(after.lines, 'the same lines').toBe(before.lines);

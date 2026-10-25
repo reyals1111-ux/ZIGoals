@@ -23,6 +23,9 @@ export type StepValue = {current: number | null; unit: string; suggested: number
 export type PathStep = {
   id: string;
   label: string;
+  /** Session AG Polish 3 (owner amendment 10): the one short word its tab shows on the path; `label` stays its full name
+   *  (the dot's accessible name, the tab's title, the List). */
+  short?: string;
   /** A short second line: "500 ml", "logged for 17 Oct", "Not today", "Detected". */
   note?: string;
   colour: PathColour;

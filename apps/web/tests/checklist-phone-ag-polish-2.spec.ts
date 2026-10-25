@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {seedChecklist, settled} from './checklist-fixtures';
+import {suggestPathLabel} from '../lib/checklist/path-label';
 
 /**
  * Session AG Polish 2 (ADR-031; owner Part 1, references 03–06): the phone path. With twelve items and long names, at
@@ -78,7 +79,7 @@ for (const width of [320, 375, 390, 430]) test.describe(`a ${width} px phone`, (
     const m = await measure(page);
     expect(m.steps).toHaveLength(NAMES.length);
     for (const s of m.steps) {
-      expect(s.shown, `${s.id}: the whole name`).toBe(s.label);
+      expect(s.shown, `${s.id}: its one word on the path, whole (owner amendment 10)`).toBe(suggestPathLabel(s.label));
       expect(s.cut, `${s.id} (${s.label}): nothing cut`).toBe(false);
       expect(s.ellipsis, `${s.id} (${s.label}): no ellipsis`).toBe(false);
       if (!s.wrap) expect(s.tab.h, `${s.id}: one line`).toBeLessThan(s.lineH * 2);

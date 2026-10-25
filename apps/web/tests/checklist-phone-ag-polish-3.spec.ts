@@ -2,15 +2,16 @@ import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {seedChecklist, settled} from './checklist-fixtures';
-import {COMPUTER, phoneTransform} from '../lib/path/phone-scale';
+import {COMPUTER, phoneAcross, phoneTransform, syRange} from '../lib/path/phone-scale';
 
 /**
  * Session AG Polish 3 (ADR-032 L20; owner amendment 8, "phone = computer × scale", and amendments 2 and 4): the phone's
  * path on 390 × 844 and 360 × 780 phones with sample paths (thirteen items over four orbits with long names; six short
  * ones in one orbit; two orbits of three and two):
- * - the drawn line equals the computer's own line — read from the real computer at 1440 × 900 — × the phone's scale,
- *   point by point, with the computer's stroke widths and glow; every tab inside the column and over no part of the line;
- *   every name whole;
+ * - every node is the computer's own — read from the real computer at 1440 × 900 — with x stretched by one kx per path
+ *   (its outermost rings 8–14 px from the edges) and y × sy, sy in [2 × sx, 1] (amendments 10, 10b); the line meets
+ *   each ring on its rim with the computer's stroke widths and glow; each tab one short word on one line, inside the
+ *   column and over nothing (no line, ring, tab, banner or planet); no node within 10 px of another;
  * - nothing jumps on the first open: the path shows only once it is laid out, and every node stands where it first
  *   showed a second later;
  * - ZIGi's box overlaps no point of the line, no node, no name tab and no NEXT badge;
@@ -70,39 +71,80 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
     river.first.forEach((p, i) => { expect(Math.abs(p[0]! - river.later[i]![0]!), `node ${i} across`).toBeLessThanOrEqual(1); expect(Math.abs(p[1]! - river.later[i]![1]!), `node ${i} down`).toBeLessThanOrEqual(1); });
   });
 
-  for (const name of ['long', 'short'] as const) test(`the line is the computer's own line × scale, at the computer's stroke; tabs inside the column and off the line; names whole (${name}; owner amendment 8)`, async ({page, browser}) => {
-    const readLine = () => {
+  for (const name of ['long', 'short'] as const) test(`every node is the computer's × (kx, sy); the line meets each ring at the computer's stroke; one short word per tab, inside the column and over nothing (${name}; owner amendments 8, 10, 10b)`, async ({page, browser}) => {
+    const readPath = () => {
       const stage = document.querySelector<HTMLElement>('.path-stage[data-variant=orbit]')!, o = stage.getBoundingClientRect();
+      const centre = (el: Element) => { const r = el.getBoundingClientRect(); return {x: r.left + r.width / 2 - o.left, y: r.top + r.height / 2 - o.top, r: r.width / 2}; };
+      const nodes = [...stage.querySelectorAll('.path-dot')].map(d => ({id: d.getAttribute('data-step')!, ...centre(d)}));
+      const planets = [...stage.querySelectorAll('[data-path-point^="planet:"]')].map(centre);
       const segments = [...stage.querySelectorAll('.orbit-flow-segment')].map(g => ({id: g.getAttribute('data-segment')!, d: g.querySelector('.orbit-flow-core')!.getAttribute('d')!}));
       const stroke = (sel: string) => getComputedStyle(stage.querySelector(sel)!).strokeWidth;
-      const planet = stage.querySelector<HTMLElement>('[data-path-point^="planet:"]')!, p = planet.getBoundingClientRect();
-      // (The line's points, every 2 px, and each tab's box, on the screen.)
-      const pts = [...stage.querySelectorAll<SVGPathElement>('.orbit-flow-core')].flatMap(path => { const n = path.getTotalLength(), m = path.getScreenCTM()!, out: {x: number; y: number}[] = []; for (let l = 0; l <= n; l += 2) { const q = path.getPointAtLength(l); out.push({x: q.x * m.a + m.e, y: q.y * m.d + m.f}); } return out; });
-      const tabs = [...stage.querySelectorAll<HTMLElement>('.orbit-tab')].map(t => { const r = t.getBoundingClientRect(), text = t.querySelector<HTMLElement>('.path-label-text')!; return {label: t.title, shown: text.textContent, left: r.left, right: r.right, top: r.top, bottom: r.bottom, cut: text.scrollWidth > text.clientWidth + 1}; });
-      return {w: o.width, segments, strokes: [stroke('.orbit-flow-core'), stroke('.orbit-flow-halo'), stroke('.orbit-flow-glow path')], blur: stage.querySelector('feGaussianBlur')!.getAttribute('stdDeviation'),
-        planetR: planet.offsetWidth / 2, planetY: p.top + p.height / 2 - o.top, pts, tabs, vw: innerWidth};
+      // (The line's points every 2 px, each tab's box and each banner's pill, on the stage.)
+      const pts = [...stage.querySelectorAll<SVGPathElement>('.orbit-flow-core')].flatMap(path => { const n = path.getTotalLength(), m = path.getScreenCTM()!, out: {x: number; y: number}[] = []; for (let l = 0; l <= n; l += 2) { const q = path.getPointAtLength(l); out.push({x: q.x * m.a + m.e - o.left, y: q.y * m.d + m.f - o.top}); } return out; });
+      const box = (el: Element) => { const r = el.getBoundingClientRect(); return {l: r.left - o.left, r: r.right - o.left, t: r.top - o.top, b: r.bottom - o.top}; };
+      const tabs = [...stage.querySelectorAll<HTMLElement>('.orbit-tab')].map(t => { const text = t.querySelector<HTMLElement>('.path-label-text')!; return {label: t.title, shown: text.textContent ?? '', ...box(t), lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), cut: text.scrollWidth > text.clientWidth + 1}; });
+      const pills = [...stage.querySelectorAll('[data-path-box^="banner:"]')].map(box);
+      return {w: o.width, sy: Number(stage.dataset.sy), kx: Number(stage.dataset.kx), nodes, planets, segments, strokes: [stroke('.orbit-flow-core'), stroke('.orbit-flow-halo'), stroke('.orbit-flow-glow path')],
+        blur: stage.querySelector('feGaussianBlur')!.getAttribute('stdDeviation'), planetR: planets[0]!.r, planetY: planets[0]!.y, pts, tabs, pills};
     };
     // The computer's own path: the real page at 1440 × 900 (its stage is the virtual column).
     const desk = await browser.newContext({viewport: {width: 1440, height: 900}}), dp = await desk.newPage();
     await seedChecklist(dp, {path: pathOf(PATHS[name])}); await dp.goto('/app/checklist'); await settled(dp);
     await expect(dp.locator('.path-stage[data-settled]')).toHaveCount(1, {timeout: 15_000});
-    const computer = await dp.evaluate(readLine); await desk.close();
+    const computer = await dp.evaluate(readPath); await desk.close();
     expect(computer.w, 'the virtual column is the computer\'s stage').toBe(COMPUTER.w);
     await open(page, PATHS[name]);
-    const phone = await page.evaluate(readLine);
-    const {s, dx, dy} = phoneTransform(phone.w, computer.planetY, 2 * phone.planetR + 10);
+    const phone = await page.evaluate(readPath);
+    // Down (amendment 10): y × sy, sy at least twice the width's scale and at most 1. Across (10b): one stretch kx per path.
+    const {sx, dy} = phoneTransform(phone.w, phone.sy, computer.planetY, Math.max(phone.planetR + 5, phone.planetR));
+    expect(phone.sy, 'sy ≥ 2 × sx').toBeGreaterThanOrEqual(syRange(phone.w).min - 1e-4); expect(phone.sy, 'sy ≤ 1').toBeLessThanOrEqual(1);
+    expect(sx, 'sx fits the width').toBeGreaterThan(0);
+    const across = phoneAcross(phone.w, computer.nodes.map(n => n.x));
+    expect(Math.abs(phone.kx - across.kx), 'kx').toBeLessThanOrEqual(1e-3);
+    const off: string[] = [];
+    computer.nodes.forEach((c, i) => {
+      const p = phone.nodes[i]!;
+      if (p.id !== c.id) off.push(`node ${i}: ${p.id} vs ${c.id}`);
+      if (Math.abs(p.x - across.at(c.x)) > .5) off.push(`${c.id} across: ${p.x.toFixed(1)} vs ${across.at(c.x).toFixed(1)}`);
+      if (Math.abs(p.y - (c.y * phone.sy + dy)) > .5) off.push(`${c.id} down: ${p.y.toFixed(1)} vs ${(c.y * phone.sy + dy).toFixed(1)}`);
+    });
+    expect(off, `the computer's nodes × (kx ${phone.kx}, sy ${phone.sy})`).toEqual([]);
+    const xs = phone.nodes.map(n => n.x), r = phone.nodes[0]!.r;
+    expect(Math.min(...xs) - r, 'the leftmost ring 8–14 px from the edge').toBeGreaterThanOrEqual(8); expect(Math.min(...xs) - r).toBeLessThanOrEqual(14);
+    expect(phone.w - Math.max(...xs) - r, 'the rightmost ring 8–14 px from the edge').toBeGreaterThanOrEqual(8); expect(phone.w - Math.max(...xs) - r).toBeLessThanOrEqual(14);
+    // The line: the computer's own stretches, meeting each ring on its rim; the computer's stroke widths and glow.
     expect(phone.segments.map(q => q.id), 'the same stretches').toEqual(computer.segments.map(q => q.id));
-    const nums = (d: string) => (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), off: string[] = [];
-    computer.segments.forEach((q, i) => { const a = nums(q.d), b = nums(phone.segments[i]!.d); if (a.length !== b.length) off.push(`${q.id}: ${a.length} vs ${b.length} numbers`); else a.forEach((v, k) => { const want = v * s + (k % 2 ? dy : dx); if (Math.abs(b[k]! - want) > .5) off.push(`${q.id}[${k}]: ${b[k]} vs ${want.toFixed(2)}`); }); });
-    expect(off, `the computer's line × ${s.toFixed(3)}`).toEqual([]);
+    const rings = [...phone.nodes, ...phone.planets], ends: string[] = [];
+    for (const q of phone.segments) {
+      const n = (q.d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number), at = [{x: n[0]!, y: n[1]!, end: 'start'}, {x: n.at(-2)!, y: n.at(-1)!, end: 'end'}];
+      for (const e of at) if (!(q.id.startsWith('lead:') && e.end === 'start') && !(q.id.startsWith('tail') && e.end === 'end') && !rings.some(g => Math.abs(Math.hypot(e.x - g.x, e.y - g.y) - g.r) <= 1.5)) ends.push(`${q.id} ${e.end}`);
+    }
+    expect(ends, 'every stretch starts and ends on a ring').toEqual([]);
+    expect(phone.pts.every(q => q.x >= 0 && q.x <= phone.w), 'the line inside the column').toBe(true);
     expect(phone.strokes, 'the computer\'s stroke widths, never scaled down').toEqual(computer.strokes);
     expect(phone.blur, 'the computer\'s glow').toBe(computer.blur);
+    // Amendment 10, step 4: one short word on each tab (12 letters at most), the full name in its title; one line.
     for (const t of phone.tabs) {
-      expect(t.shown, `${t.label}: the whole name`).toBe(t.label); expect(t.cut, `${t.label}: nothing cut`).toBe(false);
-      expect(t.left, `${t.label}: inside the column`).toBeGreaterThanOrEqual(0); expect(t.right).toBeLessThanOrEqual(phone.vw);
+      expect(t.shown, `${t.label}: one word`).toMatch(/^\S{1,12}$/); expect(t.cut, `${t.label}: nothing cut`).toBe(false); expect(t.lines, `${t.label}: one line`).toBe(1);
+      expect(t.l, `${t.label}: inside the column`).toBeGreaterThanOrEqual(0); expect(t.r).toBeLessThanOrEqual(phone.w);
     }
-    const under = phone.tabs.filter(t => phone.pts.some(q => q.x > t.left + 1 && q.x < t.right - 1 && q.y > t.top + 1 && q.y < t.bottom - 1)).map(t => t.label);
-    expect(under, 'no tab over the line').toEqual([]);
+    expect(phone.tabs.map(t => t.label), 'the full names stay in the titles').toEqual(PATHS[name].map(([label]) => label));
+    // Amendment 10, step 5: the overlap checks.
+    const faults: string[] = [], hit = (a: {l: number; r: number; t: number; b: number}, b: {l: number; r: number; t: number; b: number}) => a.l < b.r - 1 && a.r > b.l + 1 && a.t < b.b - 1 && a.b > b.t + 1;
+    const ringHit = (b: {l: number; r: number; t: number; b: number}, c: {x: number; y: number; r: number}) => Math.max(b.l - c.x, 0, c.x - b.r) ** 2 + Math.max(b.t - c.y, 0, c.y - b.b) ** 2 < (c.r - 1) ** 2;
+    phone.tabs.forEach((t, i) => {
+      if (phone.pts.some(q => q.x > t.l + 1 && q.x < t.r - 1 && q.y > t.t + 1 && q.y < t.b - 1)) faults.push(`${t.shown}: over the line`);
+      phone.nodes.forEach((n, k) => { if (k !== i && ringHit(t, n)) faults.push(`${t.shown}: over ${n.id}'s ring`); });
+      for (const p of phone.planets) if (ringHit(t, p)) faults.push(`${t.shown}: over a planet`);
+      for (const p of phone.pills) if (hit(t, p)) faults.push(`${t.shown}: over a banner`);
+      for (const u of phone.tabs.slice(i + 1)) if (hit(t, u)) faults.push(`${t.shown}: over ${u.shown}`);
+    });
+    phone.nodes.forEach((n, i) => {
+      for (const m of phone.nodes.slice(i + 1)) if (Math.hypot(n.x - m.x, n.y - m.y) < n.r + m.r + 10 - .5) faults.push(`${n.id} within 10 px of ${m.id}`);
+      for (const p of phone.pills) if (ringHit(p, n)) faults.push(`${n.id} over a banner`);
+      for (const p of phone.planets) if (Math.hypot(n.x - p.x, n.y - p.y) < n.r + p.r) faults.push(`${n.id} over a planet`);
+    });
+    expect(faults, 'nothing overlaps').toEqual([]);
   });
 
   test('ZIGi stands clear of the line, every node, every name tab and the NEXT badge (three sample paths)', async ({page}) => {
