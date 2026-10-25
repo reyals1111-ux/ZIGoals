@@ -1,6 +1,6 @@
 # ADR-032: Session AG Polish 3, "The Checklist's last polish (phone line first)": session decisions
 
-Status: **In progress** on `feature/session-ag-polish-3`, from `main` `261f32a` (Merge #93, Session AG Polish 2; live as Alpha #48), in a cloud session. This record holds the owner's decisions at plan approval, the owner's amendments, and every decision the session took without asking (by the project rules and the safest option). Resume point: `docs/handoff/AG_POLISH_3_RESUME.md`.
+Status: **Done, merged and deployed** (PR #94, merged into `main` as `f13abb0`, live as Alpha #49) on `feature/session-ag-polish-3`, from `main` `261f32a` (Merge #93, Session AG Polish 2; live as Alpha #48), in a cloud session. This record holds the owner's decisions at plan approval, the owner's amendments, and every decision the session took without asking (by the project rules and the safest option). Resume point: `docs/handoff/AG_POLISH_3_RESUME.md`.
 
 ## Owner decisions (2026-10-23, plan approval)
 - **The brief:** Session "AG Polish 3", the Checklist's last polish, in priority order:

@@ -1,4 +1,11 @@
-# Session AG Polish 3 — The Checklist's last polish, phone line first (ADR-032, Parts 0–8 and the owner's amendments) (2026-10-23/25, [PR #94](https://github.com/reyals1111-ux/ZIGoals/pull/94); not merged, not deployed)
+# Session AH — The Big Polish (ADR-033) (2026-10-25 onward, `feature/session-ah-polish`; in progress, not merged, not deployed)
+**Base:** `main` `f13abb0` (Alpha #49). **Rules (owner):** the brief (Parts 0–16, the complete ID index, the non-negotiables), the approved plan, and eight owner amendments (25 Oct, ADR-033): (1) close every finding ID per row, not only the row; (2) the "already fixed" check runs at the start of each part for that part's rows; (3) DS1's revision stamp additive, TIER 3 (stored format), frozen readers #37–#49; (4) the device lock optional, off by default, never locking anyone out of their own data; (5) Health auto-ticks never double-count; (6) no FX source → the currency switch hides; (7) the PR-review Action on `pull_request` only, never forks, least privilege, a clean skip without its secret; (8) notification actions and service-worker/manifest changes TIER 3 (PWA).
+
+Decisions: `docs/architecture/ADR-033-session-ah.md` (M1…). Resume file: `docs/handoff/AH_RESUME.md`. This entry is completed by the session's last commit.
+
+---
+
+# Session AG Polish 3 — The Checklist's last polish, phone line first (ADR-032, Parts 0–8 and the owner's amendments) (2026-10-23/25, [PR #94](https://github.com/reyals1111-ux/ZIGoals/pull/94), merged into `main` as `f13abb0` and deployed as Alpha #49)
 **Evidence labels:** unit = vitest from the repository root; local = the cloud sandbox, Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`, :3102) unless "dev" (`LOCAL_DEMO`, :3101); gate = scratchpad captures shown to the owner, never committed; CI = Milestone quality on the PR head. No paid service, no secret, no deploy; one owner-approved dependency patch (zod 4.6.6); no wallet, signing, contract, key, auth, sync, CSP, Workers or deploy-workflow change.
 **Base:** `main` `261f32a` (Alpha #48). **Rules (owner):** the brief, the approved plan, and the owner's amendments (23–25 Oct), each an owner decision recorded in ADR-032 (owner decisions 1–7, then in the log): (1) legend meanings; (2) no jump on first open; (3) computers and tablets unchanged; (4) ZIGi clear on phones; (5) the deadline; (6) river v2 and (7) river v3 — both replaced by (8) phone = computer × scale; (9) line first, nodes on the line — reverted by (10) amendment 8's path again, taller, pill banners, one short word per node, the overlap checks; (10b) stretched across; (10c) every orbit 20–80 %, a calm unclamped line, tabs touching their node, local room; (10d) the computer's loops back on 10c's places; the **owner OK on 10d** ("this is the look; protect it") with fix 1 (planet stretches nearly above or below their planet sweep to the inner side) and fix 2 (ZIGi on phones up to 72 px from the next node, owner decision); the **footer addition** (a river on the computer, the phone's join at Health) and the **footer fix** (the computer's line a river out of "= Wealth" down to Health, its bends growing).
 
@@ -488,6 +495,19 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #49 — 2026-10-25, `f13abb0` live
+Recorded by Session AH (2026-10-25).
+- **Source:** `f13abb0b3b3af447e5a122af8a1ad1a76ab1530e`, `main` after [PR #94](https://github.com/reyals1111-ux/ZIGoals/pull/94) (Merge #94, Session AG Polish 3, "The Checklist's last polish, phone line first", ADR-032), merged 2026-10-25 20:24:04 UTC. Verified: git, GitHub API.
+- **CI:** Milestone quality #1182 ([run 40230587730](https://github.com/reyals1111-ux/ZIGoals/actions/runs/40230587730)) on `f13abb0` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 52 ([run 40234061145](https://github.com/reyals1111-ux/ZIGoals/actions/runs/40234061145)), dispatched 2026-10-25 21:08:18 UTC from `main`, exact source `f13abb0`; finished 21:20:35 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED` after 3 reads; live prices `VERIFIED`. Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `5595578f-b41a-43c9-9057-7850a1e47b27`; rollback `5c0b7920-4195-4884-934b-252941c93a55` (#48). Owner-reported.
+- **What went live:** Session AG Polish 3 (ADR-032) on top of AG Polish 2 (#48).
+- **Release identity:** live #49, previous #48. **Rollback floor:** stays #32.
+- **Record note:** run number 52 is Alpha #49; the run number still runs three ahead of the Alpha count.
 
 ---
 
