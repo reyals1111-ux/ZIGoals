@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useId, useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {entranceAllowed} from '../use-entrance';
-import {RIBBON_WIDTH, phoneArc, ribbon, wideArc, type Paint} from '../../lib/footer-ribbon';
+import {RIBBON_WIDTH, STEPS_STROKE, phoneArc, ribbon, stepsPaint, wideRiver, type Paint} from '../../lib/footer-ribbon';
 
 /**
  * Session AB-Design Phase 2 → Session AD (ADR-026 Part 1) → Session AE (Part 2, ADR-027): the footer's constellation line
@@ -98,11 +98,11 @@ function playFlare(layer: HTMLElement, frame: NonNullable<ReturnType<typeof foot
 }
 
 type Box = {l: number; t: number; w: number; h: number};
-type Geo = {w: number; h: number; d: string; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box; end?: Pt; paint: Paint}[]; burst: Pt | null; twinkles: Pt[]};
+type Geo = {w: number; h: number; d: string; paint: Paint; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box; end?: Pt; paint: Paint}[]; burst: Pt | null; twinkles: Pt[]};
 /** The room a piece's box keeps around the ribbon, so its glow is never cut. */
 const ARC_PAD = 22;
 const pathOf = (segs: Seg[]) => `M${f(segs[0]![0].x)} ${f(segs[0]![0].y)}` + segs.map(s => ` C${f(s[1].x)} ${f(s[1].y)} ${f(s[2].x)} ${f(s[2].y)} ${f(s[3].x)} ${f(s[3].y)}`).join('');
-const sameGeo = (a: Geo, b: Geo) => a.w === b.w && a.h === b.h && a.d === b.d && a.arcs.map(x => x.d + JSON.stringify(x.paint)).join() === b.arcs.map(x => x.d + JSON.stringify(x.paint)).join() && a.twinkles.length === b.twinkles.length;
+const sameGeo = (a: Geo, b: Geo) => a.w === b.w && a.h === b.h && a.d === b.d && JSON.stringify(a.paint) === JSON.stringify(b.paint) && a.arcs.map(x => x.d + JSON.stringify(x.paint)).join() === b.arcs.map(x => x.d + JSON.stringify(x.paint)).join() && a.twinkles.length === b.twinkles.length;
 
 export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivElement | null>; footer: RefObject<HTMLElement | null>}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, ''), starLayer = useRef<HTMLDivElement>(null);
@@ -122,8 +122,15 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       const steps = el.querySelector<HTMLElement>('.site-footer-steps')?.getBoundingClientRect(), last = nodes[2]!, tail = segs.at(-1)!, foot = tail[3];
       // (Out of Health on the line's own tangent: the way the last piece of the line arrives.)
       const dir = {x: tail[3].x - tail[2].x, y: tail[3].y - tail[2].y};
-      const arc = !wealth ? null : stacked ? phoneArc(foot, dir, (steps ? steps.bottom - base.top : foot.y) + 12, wealth, base.width) : wideArc(last, dir, wealth, base.width);
-      const rb = !wealth || !arc ? null : ribbon(arc.segs, stacked ? RIBBON_WIDTH.phone : RIBBON_WIDTH.wide, ARC_PAD, arc.crest, arc.r);
+      // (Computers, owner addition after the 10d OK: a river with soft curls, 120 px or more from the planet's bright star and
+      // never above the "Goals · Habits · Health" line. Phones: the frame, its shape kept.)
+      const art = root.querySelector<HTMLElement>('.site-footer-art'), frame = art ? footerArtFrame(art, el) : null;
+      const starAt = frame ? frame.map(FOOTER_ART.star[0], FOOTER_ART.star[1]) : null, line1 = root.querySelector<HTMLElement>('.site-footer-line1')?.getBoundingClientRect();
+      const room = {star: starAt ? {x: starAt[0], y: starAt[1]} : {x: -1e4, y: -1e4}, ceiling: line1 ? line1.bottom - base.top : -1e4};
+      const river = !wealth || stacked ? null : wideRiver(last, dir, wealth, base.width, room);
+      const arc = !wealth ? null : stacked ? phoneArc(foot, dir, (steps ? steps.bottom - base.top : foot.y) + 12, wealth, base.width) : null;
+      const rb = !wealth ? null : arc ? ribbon(arc.segs, RIBBON_WIDTH.phone, ARC_PAD, arc.crest, arc.r) : river && river.segs.length ? ribbon(river.segs, RIBBON_WIDTH.wide, ARC_PAD, null, 0, river.goldFrom) : null;
+      const linePaint = stepsPaint(nodes, foot, stacked, base.width);
       const {T0, REVEAL, ARC_RISE, ARC_RETURN, WEALTH_AFTER, FLARE_AFTER, PHONE_ARC} = FOOTER_TIMING, extent = stacked ? base.height : base.width;
       const arrive = nodes.map(n => T0 + REVEAL * Math.min(1, Math.max(0, (stacked ? n.y : n.x) / extent)));
       const touch = rb && !stacked ? arrive[2]! + ARC_RISE + ARC_RETURN : arrive[2]! + WEALTH_AFTER;
@@ -137,9 +144,8 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       // Constellation stars: small points beside the line, between the nodes.
       const stars = segs.flatMap((s, i) => i === 0 ? [] : [.33, .66].map(t => { const p = at(s, t); return {x: p.x + (i % 2 ? 7 : -7), y: p.y + (t < .5 ? -8 : 9)}; }));
       // The rim stars that twinkle, mapped from the artwork into the stage.
-      const art = root.querySelector<HTMLElement>('.site-footer-art'), frame = art ? footerArtFrame(art, el) : null;
       const twinkles = frame ? FOOTER_RIM_STARS.map(([x, y]) => { const [px, py] = frame.map(x, y); return {x: px, y: py}; }).filter(p => p.x > 4 && p.x < base.width - 4 && p.y > -200) : [];
-      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), stars, stacked, arcs: rb ? rb.pieces.map((d, i) => ({d, box: rb.boxes[i]!, end: i === 1 ? rb.end : undefined, paint: rb.paint[i]!})) : [], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
+      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), paint: linePaint, stars, stacked, arcs: rb ? rb.pieces.map((d, i) => ({d, box: rb.boxes[i]!, end: i === 1 ? rb.end : undefined, paint: rb.paint[i]!})) : [], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
       // Same geometry → same state object (no re-render, so nothing resizes inside a ResizeObserver delivery).
       setGeo(g => g && sameGeo(g, next) ? g : next);
     };
@@ -198,11 +204,11 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
     <div className="site-footer-reveal" data-stacked={geo.stacked || undefined} aria-hidden="true"><div className="site-footer-reveal-in">
       <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false">
         <defs>
-          <linearGradient id={grad} gradientUnits="userSpaceOnUse" x1="0" x2={f(geo.w)} y1="0" y2="0"><stop offset="0" stopColor="#9273ff"/><stop offset=".45" stopColor="#23eaff"/><stop offset=".8" stopColor="#ff74be"/><stop offset="1" stopColor="#f06dff"/></linearGradient>
+          <linearGradient id={grad} gradientUnits="userSpaceOnUse" x1={f(geo.paint.x1)} x2={f(geo.paint.x2)} y1={f(geo.paint.y1)} y2={f(geo.paint.y2)}>{geo.paint.stops.map(([o, c], k) => <stop key={k} offset={o.toFixed(3)} stopColor={c}/>)}</linearGradient>
           <filter id={glow} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
         </defs>
         <path className="site-footer-path site-footer-path-glow" d={geo.d} fill="none" stroke={`url(#${grad})`} strokeWidth="7" strokeLinecap="round" filter={`url(#${glow})`}/>
-        <path className="site-footer-path" d={geo.d} fill="none" stroke={`url(#${grad})`} strokeWidth="2" strokeLinecap="round"/>
+        <path className="site-footer-path" d={geo.d} fill="none" stroke={`url(#${grad})`} strokeWidth={STEPS_STROKE} strokeLinecap="round"/>
         {geo.stars.map((s, i) => <circle key={i} className="site-footer-star" cx={f(s.x)} cy={f(s.y)} r={i % 3 ? 1.3 : 1.9}/>)}
       </svg>
     </div></div>
