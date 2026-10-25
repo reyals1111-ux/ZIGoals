@@ -21,7 +21,10 @@ import {zigiSignals} from '../zigi/bus';
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 const plain = (value: number) => formatNumber(value, { maximumFractionDigits: 9 });
 function afterPaint(run: () => void) {
-  let done = false; const once = () => { if (!done) { done = true; run(); } };
+  // Session AH Part 2: a reload, a navigation or a closed tab inside that frame starts the waiting save at once
+  // (pagehide), so a tap that already shows is not dropped on the way out.
+  let done = false; const once = () => { if (!done) { done = true; window.removeEventListener("pagehide", once); run(); } };
+  window.addEventListener("pagehide", once);
   requestAnimationFrame(() => setTimeout(once, 0)); setTimeout(once, 100);
 }
 export function HabitCompletion({part='both',  habit, store, compact = false }: {/** Session AB-Design (owner request 20): the card shows the counter first and keeps the form behind its expander. */ part?: 'both' | 'controls' | 'quick-log';  habit: Habit; store: HabitCardStore; compact?: boolean }) {

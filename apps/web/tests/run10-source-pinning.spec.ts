@@ -83,6 +83,9 @@ test('a bound Habit updates its Today summary and card after the source changes'
  const source=page.locator('.habit-card').filter({hasText:'Fictional daily reading'});
  await source.getByRole('button',{name:/^Add one to/}).click();
  await expect(source.locator('.habit-count strong')).toHaveText('1');
+ // Session AH Part 2: the card paints first and saves right after; wait for the saved record, not the paint, before
+ // leaving the page (the test went to Today before the save landed and read 0).
+ await expect.poll(()=>page.evaluate(key=>{try{return (JSON.parse(localStorage.getItem(key)!) as {habits:{entries:{count:number}[]}[]}).habits[0]!.entries.map(e=>e.count);}catch{return [];}},HABITS_KEY)).toEqual([1]);
  await page.goto('/app');
  await openTodayWidgets(page);
  // One page is singular (Session G, QA-28); "1 pages" no longer matches.
