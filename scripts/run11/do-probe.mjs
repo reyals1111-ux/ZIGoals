@@ -23,6 +23,10 @@ export async function doProbe(mf,name=DO_PROBE){
    const source=typeof input==='string'||input instanceof URL?null:input,url=new URL(source?source.url:String(input));
    const method=(init.method??source?.method??'GET').toUpperCase(),headers=new Headers(init.headers??source?.headers);
    headers.set('x-do-probe-name',id.name);
+   // The body is re-sent as bytes, so fetch sets its own length. A forwarded content-length (or transfer-encoding)
+   // from the incoming request made undici refuse the request ("invalid content-length header", reported as
+   // "fetch failed") whenever it disagreed with the bytes sent (Session AH Part 2; domain-review-race:41).
+   headers.delete('content-length');headers.delete('transfer-encoding');
    const body=['GET','HEAD'].includes(method)?undefined:init.body!==undefined?init.body:source?await source.arrayBuffer():undefined;
    return fetch(new URL(url.pathname+url.search,base),{method,headers,body,redirect:'manual',signal:init.signal});
   }}),
