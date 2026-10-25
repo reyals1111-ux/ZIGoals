@@ -52,9 +52,14 @@ function sample(pieces: readonly Cubic[], per = 64) {
   });
   return pts;
 }
-/** Each line point sampled for the overlap checks (tabs, banners), `per` to a cubic. */
-export function linePointsOf(segments: readonly {d: string}[], per = 24): V[] {
-  return segments.flatMap(sg => piecesOf(sg.d).flatMap((c, i) => Array.from({length: per + (i ? 0 : 1)}, (_, j) => at(c, (j + (i ? 1 : 0)) / per))));
+/** How many samples a cubic needs to lie at most 1 px apart (its control polygon is never shorter than the curve). */
+const densePer = (c: Cubic, least = 24) => Math.max(least, Math.ceil(Math.hypot(c[1].x - c[0].x, c[1].y - c[0].y) + Math.hypot(c[2].x - c[1].x, c[2].y - c[1].y) + Math.hypot(c[3].x - c[2].x, c[3].y - c[2].y)));
+/** A stretch's points at most 1 px apart. */
+const densePoints = (pieces: readonly Cubic[]): V[] => pieces.flatMap((c, i) => { const per = densePer(c); return Array.from({length: per + (i ? 0 : 1)}, (_, j) => at(c, (j + (i ? 1 : 0)) / per)); });
+/** Each line point sampled for the overlap checks (tabs, banners): at most 1 px apart, as the browser's checks read the
+ *  drawn line (every 1 px of its length) — coarser samples let a tab's corner sit between two of them. */
+export function linePointsOf(segments: readonly {d: string}[]): V[] {
+  return segments.flatMap(sg => densePoints(piecesOf(sg.d)));
 }
 /** A loop's reach (owner amendment 10d): how far its waypoint — where its two cubics join — stands out past both of its
  *  ends, sideways; 0 for a stretch of one cubic or a swing between its ends. */
@@ -138,7 +143,9 @@ function clear(pieces: readonly Cubic[], stations: readonly FlowNode[], a: strin
     const own = n.id === a || n.id === b, need = own ? n.r - .6 : n.r + 4;
     if (pts.some(p => Math.hypot(p.x - n.x, p.y - n.y) < need)) return false;
   }
-  return !(avoid ?? []).some(bx => pts.some(p => p.x > bx.l + 1 && p.x < bx.r - 1 && p.y > bx.t + 1 && p.y < bx.b - 1));
+  if (!avoid?.length) return true;
+  const fine = densePoints(pieces);
+  return !avoid.some(bx => fine.some(p => p.x > bx.l + 1 && p.x < bx.r - 1 && p.y > bx.t + 1 && p.y < bx.b - 1));
 }
 
 /** Where a node stands nearly above or below its planet: closer across than this share of the width (owner, 10d OK). */
@@ -230,7 +237,7 @@ export function phoneLine(stations: readonly FlowNode[], o: LineOptions): FlowSe
     } else {
       // A swing: through the computer's waypoint near the middle; where that wobbles (a bump under 14 px) or runs upright,
       // the same swing bowed deliberately wider its own way, then the other way; last, one smooth sweep.
-      const mid = P.x + (Q.x - P.x) * turn, dir = off < 0 ? -1 : 1, px = (k: number) => ({c: computerStretch(P, Q, false, mid + k * amp * .5, turn), fitted: Math.abs(k) < Math.abs(off) - 1e-9 || (k !== 0 && Math.sign(k) !== dir)});
+      const mid = P.x + (Q.x - P.x) * turn, dir = off < 0 ? -1 : 1, px = (k: number) => ({c: computerStretch(P, Q, false, mid + k * amp * .5, turn), fitted: Math.abs(k) < Math.abs(off) - 1e-9 || (k !== 0 && (k < 0 ? -1 : 1) !== dir)});
       cands = [...[off, dir * .6, dir * .8, dir * 1.05, -dir * .6, -dir * .8, -dir * 1.05, dir * 1.4, -dir * 1.4, dir * 1.8, -dir * 1.8].map(px), {c: sweep(P, Q, turn), fitted: true}];
     }
     out.push({...base, d: choose(id, a.id, b.id, cands)});

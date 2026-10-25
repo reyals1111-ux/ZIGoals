@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {flowSegments, seeded} from './flow-geometry';
-import {COMPUTER, COMPUTER_SWING, PHONE, computerLayout, computerLine, lineSwing, phoneAcross, phoneScale, phoneSpread, phoneTransform, syRange, type ScaleOrbit} from './phone-scale';
-import {PLANET_NEAR, PLANET_SWEEP_RADIUS, excursion, leastRadius, lineFaults, phoneLine, piecesOf, stretchFaults} from './phone-line';
+import {COMPUTER, COMPUTER_SWING, PHONE, computerLayout, computerLine, lineSwing, phoneAcross, phoneScale, phoneSpread, phoneTransform, syRange, type ScaleInput, type ScaleOrbit} from './phone-scale';
+import {PLANET_NEAR, PLANET_SWEEP_RADIUS, excursion, leastRadius, lineFaults, linePointsOf, phoneLine, piecesOf, stretchFaults, type Cubic} from './phone-line';
 
 /**
  * Session AG Polish 3 (ADR-032 L20, L22, L24; owner amendments 8, 10, 10b and 10c): the phone's path is the computer's
@@ -182,5 +182,32 @@ describe('the phone path: the computer\'s layout across the whole width, taller,
     const line = computerLine(computerLayout(orbits, true), 'checklist-today');
     expect(line[0]!.d).toBe('M747.8 0 C747.8 11 805.2 9 805.2 20');
     expect(line[1]!.d).toBe('M805.2 148 C805.2 170.6 631.2 179.9 613.6 184.5 C590.6 190.5 448 202.5 448 232');
+  });
+
+  // Session AG Polish 3 (finish, ADR-032 L29): the overlap checks read the line at most about 1 px apart, as the browser's
+  // checks read the drawn line, and keep it 0.7 px out of every tab's box (the browser's check allows 1 px). Two layouts
+  // as the page builds them (inputs measured in Chromium): the 13-item test path at 375 px, where the line had passed a
+  // tab's corner between two coarse samples; and the owner's approved 13-item path at 390 × 844 and 360 × 780 (the 10d
+  // captures), which stays exactly as approved.
+  it('the line never under a tab, read finely (the 375 px test path); the approved 13-item path unchanged at 390 and 360', () => {
+    const tabBoxes = (got: ReturnType<typeof phoneScale>, tabs: readonly number[]) => got.lanes.map((l, j) => { const tab = tabs[j]!, t = l.y + l.tabDy, reach = PHONE.tabReach + l.tabOut; return l.side === 'below' ? {l: l.x + l.tabOut - tab / 2, t, r: l.x + l.tabOut + tab / 2, b: t + PHONE.tabLine} : l.side === 'right' ? {l: l.x + reach, t, r: l.x + reach + tab, b: t + PHONE.tabLine} : {l: l.x - reach - tab, t, r: l.x - reach, b: t + PHONE.tabLine}; });
+    // (Every 0.25 px of the line, independently of the layout's own sampling.)
+    const fine = (d: string) => piecesOf(d).flatMap((c: Cubic) => Array.from({length: 2001}, (_, j) => { const t = j / 2000, u = 1 - t; return {x: u * u * u * c[0].x + 3 * u * u * t * c[1].x + 3 * u * t * t * c[2].x + t * t * t * c[3].x, y: u * u * u * c[0].y + 3 * u * u * t * c[1].y + 3 * u * t * t * c[2].y + t * t * t * c[3].y}; }));
+    const test375: ScaleInput = {"w":351,"seed":"checklist-today","finale":true,"planetR":45.5,"pillH":40,"tabs":[108,88,82,108,105,81,85,99,99,97,88,102,81],"words":[200,213,197,200],"orbits":[{"id":"morning","planet":1,"steps":[{"id":"ck_phone2-1","side":"left"},{"id":"ck_phone2-2","side":"right"},{"id":"ck_phone2-3","side":"left"},{"id":"ck_phone2-4","side":"right"},{"id":"ck_phone2-5","side":"left"}]},{"id":"afternoon","planet":1.482,"steps":[{"id":"ck_phone2-6","side":"right"},{"id":"ck_phone2-7","side":"left"},{"id":"ck_phone2-8","side":"right"}]},{"id":"evening","planet":1,"steps":[{"id":"ck_phone2-9","side":"left"},{"id":"ck_phone2-10","side":"right"},{"id":"ck_phone2-11","side":"left"}]},{"id":"anytime","planet":1.7519999999999998,"steps":[{"id":"ck_phone2-12","side":"right"},{"id":"ck_phone2-13","side":"left"}]}]};
+    const got = phoneScale(test375), boxes = tabBoxes(got, test375.tabs);
+    expect(got.faults).toEqual([]);
+    const under = got.segments.flatMap(sg => boxes.flatMap((b, j) => fine(sg.d).some(p => p.x > b.l + 1 && p.x < b.r - 1 && p.y > b.t + 1 && p.y < b.b - 1) ? [`${sg.id} under ${got.lanes[j]!.x.toFixed(0)},${got.lanes[j]!.y.toFixed(0)}'s tab`] : []));
+    expect(under, "the browser's own check (1 px), on the line read every 0.25 px").toEqual([]);
+    expect(linePointsOf([{d: 'M39.2 1102 C39.2 1167.2 303.4 1155.2 311.6 1207.2'}]).some(p => p.x > 88.8 && p.x < 173.8 && p.y > 1114.4 && p.y < 1142.9), 'read finely, the corner it had clipped is seen').toBe(true);
+    // (The owner's approved path, as captured at the 10d checkpoint and in the final report.)
+    const approved: {input: ScaleInput; sy: number; room: Record<string, number>; digest: string}[] = [
+      {input: {"w":366,"seed":"checklist-today","finale":true,"planetR":47.5,"pillH":40,"tabs":[108,88,82,108,105,81,85,99,99,97,88,102,81],"words":[200,213,197,200],"orbits":[{"id":"morning","planet":1,"steps":[{"id":"ck_river-1","side":"left"},{"id":"ck_river-2","side":"right"},{"id":"ck_river-3","side":"left"},{"id":"ck_river-4","side":"right"},{"id":"ck_river-5","side":"left"}]},{"id":"afternoon","planet":1.482,"steps":[{"id":"ck_river-6","side":"right"},{"id":"ck_river-7","side":"left"},{"id":"ck_river-8","side":"right"}]},{"id":"evening","planet":1,"steps":[{"id":"ck_river-9","side":"left"},{"id":"ck_river-10","side":"right"},{"id":"ck_river-11","side":"left"}]},{"id":"anytime","planet":1.47,"steps":[{"id":"ck_river-12","side":"right"},{"id":"ck_river-13","side":"left"}]}]}, sy: 1, room: {'ck_river-10': 8}, digest: '325a6eec'},
+      {input: {"w":336,"seed":"checklist-today","finale":true,"planetR":44,"pillH":40,"tabs":[108,88,82,108,105,81,85,99,99,97,88,102,81],"words":[200,213,197,200],"orbits":[{"id":"morning","planet":1,"steps":[{"id":"ck_river-1","side":"left"},{"id":"ck_river-2","side":"right"},{"id":"ck_river-3","side":"left"},{"id":"ck_river-4","side":"right"},{"id":"ck_river-5","side":"left"}]},{"id":"afternoon","planet":1.482,"steps":[{"id":"ck_river-6","side":"right"},{"id":"ck_river-7","side":"left"},{"id":"ck_river-8","side":"right"}]},{"id":"evening","planet":1,"steps":[{"id":"ck_river-9","side":"left"},{"id":"ck_river-10","side":"right"},{"id":"ck_river-11","side":"left"}]},{"id":"anytime","planet":1.47,"steps":[{"id":"ck_river-12","side":"right"},{"id":"ck_river-13","side":"left"}]}]}, sy: 1, room: {'ck_river-8': 80, 'ck_river-10': 8}, digest: 'e4d5b84e'},
+    ];
+    for (const {input, sy, room, digest} of approved) {
+      const a = phoneScale(input);
+      expect(a.sy).toBe(sy); expect(a.room).toEqual(room);
+      expect(a.segments.map(sg => `${sg.id} ${sg.d}`).join('|').split('').reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0, 2166136261).toString(16), 'its line, stretch by stretch').toBe(digest);
+    }
   });
 });

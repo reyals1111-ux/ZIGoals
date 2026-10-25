@@ -121,7 +121,9 @@ export function phoneFaults(sc: PhoneScene): string[] {
     for (const n of sc.nodes) if (ringHit(t, n.id === t.id ? {x: n.x, y: n.y, r: 18} : n)) out.push(`${t.id}'s tab over ${n.id === t.id ? 'its own glyph' : `${n.id}'s ring`}`);
     for (const p of sc.planets) if (ringHit(t, p)) out.push(`${t.id}'s tab over a planet`);
     for (const p of sc.pills) if (hits(t, p)) out.push(`${t.id}'s tab over a banner`);
-    if (sc.line.some(p => inside(t, p))) out.push(`${t.id}'s tab over the line`);
+    // (The line keeps 0.7 px out of the tab's box — 0.3 px more than the browser's check, which reads the drawn line every
+    // 1 px and allows 1 px: the drawn tab and line can differ from these by a fraction of a pixel.)
+    if (sc.line.some(p => p.x > t.l + .7 && p.x < t.r - .7 && p.y > t.t + .7 && p.y < t.b - .7)) out.push(`${t.id}'s tab over the line`);
     for (const u of sc.tabs.slice(i + 1)) if (hits({l: t.l + 1, t: t.t + 1, r: t.r - 1, b: t.b - 1}, u)) out.push(`${t.id}'s tab over ${u.id}'s`);
   });
   sc.nodes.forEach((n, i) => {
