@@ -42,3 +42,8 @@ overrides:
   # is the first fixed release (same major). Remove once @node-minify/core pins
   # >=10.5.0.
   "@node-minify/core>glob": 10.5.0
+  # Session AH Part 1, audit fix (GHSA-27r3-jxmh-p828, high): express 5.2.1
+  # (through @opennextjs/aws, build and local tooling) declares body-parser
+  # ^2.2.1 and the lock holds 2.3.0; no 2.3.x fix exists, 2.4.0 is the first
+  # fixed release. Remove once the lock resolves >=2.4.0 without it.
+  "express>body-parser": 2.4.0
