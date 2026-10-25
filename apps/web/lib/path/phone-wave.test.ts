@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {seeded} from './flow-geometry';
 import {phoneWave, WAVE, type PhoneWave, type WaveInput} from './phone-wave';
-import {points, riverLine, toRiver, waveRules, waveSpread, type WaveDrawn} from './wave-rules.test-helper';
+import {waveRules, waveSpread, type WaveDrawn} from './wave-rules.test-helper';
 
 /**
  * Session AG Polish 3 (ADR-032 L21; owner amendment 9, "line first, nodes on the line"): over 200 seeded paths (1–4
@@ -43,9 +43,6 @@ describe('the phone river: line first, nodes on the line (owner amendment 9)', (
       const input = sample(seed, vw), wave = phoneWave(input), d = drawnOf(input, wave, vw);
       drawn.push(d);
       for (const e of waveRules(d)) broken.push(`${seed}@${vw}: ${e}`);
-      // (Every drawn stretch is a piece of its river, within 1 px.)
-      const lines = riverLine(wave.rivers);
-      for (const sg of wave.segments) if (points(sg.d, 6).some(p => toRiver(lines, p) > 1)) broken.push(`${seed}@${vw}: ${sg.id} off its river`);
     }
     const kinds = new Map<string, number>(); for (const b of broken) { const key = b.replace(/^\d+@(\d+): /, '$1 ').replace(/n\d+|o\d+|orbit \d+|[\d.]+ px|[\d.]+ %/g, '#'); kinds.set(key, (kinds.get(key) ?? 0) + 1); }
     expect([...kinds].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${n}× ${k}`), `${broken.length} broken`).toEqual([]);

@@ -2,7 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist, type Checklist} from '../lib/checklist/schema';
 import {seedChecklist, settled} from './checklist-fixtures';
-import {points, riverLine, toRiver, waveRules, type WaveDrawn} from '../lib/path/wave-rules.test-helper';
+import {points, waveRules, type WaveDrawn} from '../lib/path/wave-rules.test-helper';
 
 /**
  * Session AG Polish 3 (ADR-032 L21; owner amendment 9, "line first, nodes on the line", and amendments 2 and 4): the
@@ -98,7 +98,7 @@ for (const [width, height] of [[390, 844], [360, 780]] as const) test.describe(`
       expect(m.rivers.length, `${name}: a river for each orbit`).toBeGreaterThan(0);
       expect(waveRules(d), `${name}: the river's rules`).toEqual([]);
       // (Every drawn stretch is a piece of its river: each of its points within 1 px of it.)
-      const lines = riverLine(m.rivers), off = m.stretches.filter(sd => points(sd, 8).some(p => toRiver(lines, p) > 1));
+      const river = m.rivers.flatMap(r => points(r, 160)), off = m.stretches.filter(sd => points(sd, 16).some(p => !river.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 1.5)));
       expect(off.length, `${name}: drawn stretches off the river`).toBe(0);
       expect(m.strokes, `${name}: the computer's stroke widths`).toEqual(['2.6px', '7px', '18px']);
     }

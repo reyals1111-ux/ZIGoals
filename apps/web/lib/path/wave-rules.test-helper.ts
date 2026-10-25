@@ -23,17 +23,6 @@ const acc = (c: C, t: number) => { const u = 1 - t; return {x: 6 * u * (c[2].x -
 export function points(d: string, per = 48): Pt[] { const out: Pt[] = []; cubics(d).forEach((c, i) => { for (let j = i ? 1 : 0; j <= per; j++) out.push(at(c, j / per)); }); return out; }
 const flat = (v: Pt) => Math.abs(v.y) <= .05 * Math.abs(v.x) && Math.abs(v.x) > 1e-6;
 
-/** A river's polyline, finely sampled (each river runs down the page, so its points come in height order). */
-export function riverLine(rivers: readonly string[]): Pt[][] { return rivers.map(r => points(r, 96)); }
-/** The distance from a point to the rivers: to the nearest piece of their polylines, found by height. */
-export function toRiver(lines: readonly Pt[][], q: Pt): number {
-  let m = Infinity;
-  for (const p of lines) {
-    let lo = 0, hi = p.length; while (lo < hi) { const k = (lo + hi) >> 1; if (p[k]!.y < q.y - 40) lo = k + 1; else hi = k; }
-    for (let i = Math.max(1, lo); i < p.length && p[i - 1]!.y <= q.y + 40; i++) { const a = p[i - 1]!, b = p[i]!, vx = b.x - a.x, vy = b.y - a.y, l = vx * vx + vy * vy, t = l ? Math.max(0, Math.min(1, ((q.x - a.x) * vx + (q.y - a.y) * vy) / l)) : 0; m = Math.min(m, Math.hypot(a.x + vx * t - q.x, a.y + vy * t - q.y)); }
-  }
-  return m;
-}
 /** The rules, per path. */
 export function waveRules(d: WaveDrawn): string[] {
   const out: string[] = [], k = d.vw / 390, minR = 40 * k - .5;
@@ -65,9 +54,10 @@ export function waveRules(d: WaveDrawn): string[] {
   });
   // The nodes: on the river, far enough apart down the page, never near another ring; spaces that vary.
   const all = d.rivers.flatMap(r => points(r, 96));
-  const lines = riverLine(d.rivers);
+  // (The distance from a point to the river: to the nearest piece of its sampled polyline.)
+  const toRiver = (q: Pt) => { let m = Infinity; for (const r of d.rivers) { const p = points(r, 96); for (let i = 1; i < p.length; i++) { const a = p[i - 1]!, b = p[i]!, vx = b.x - a.x, vy = b.y - a.y, l = vx * vx + vy * vy, t = l ? Math.max(0, Math.min(1, ((q.x - a.x) * vx + (q.y - a.y) * vy) / l)) : 0; m = Math.min(m, Math.hypot(a.x + vx * t - q.x, a.y + vy * t - q.y)); } } return m; };
   d.nodes.forEach((n, i) => {
-    if (toRiver(lines, n) > 1) out.push(`${n.id}: not on the river`);
+    if (toRiver(n) > 1) out.push(`${n.id}: not on the river`);
     const prev = d.nodes[i - 1];
     if (prev && n.y - prev.y < 2 * n.r + 46 - .5) out.push(`${prev.id} → ${n.id}: ${Math.round(n.y - prev.y)} px apart, under ${2 * n.r + 46}`);
     for (const m of d.nodes.slice(i + 1)) if (Math.hypot(m.x - n.x, m.y - n.y) < n.r + m.r + 12 - .5) out.push(`${n.id} within 12 px of ${m.id}`);

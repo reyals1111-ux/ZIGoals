@@ -125,7 +125,7 @@ function build(input: WaveInput, attempt: number): PhoneWave {
     if (!orbit.steps.length) { y += bh + 8; return; }
     if (orbit.planet) { stations.push(node(`planet:${orbit.id}`, px, mid, planetR)); rings.push({x: px, y: mid, r: planetR}); }
     const r = seeded(`${input.seed}|wave|${orbit.id}|${attempt}`), start: Pt = {x: px, y: mid + (orbit.planet ? planetR : bh / 2)};
-    const gapOf = () => WAVE.apexGap[0] + (WAVE.apexGap[1] - WAVE.apexGap[0]) * Math.sqrt(r());
+    const gapOf = () => WAVE.apexGap[0] + (WAVE.apexGap[1] - WAVE.apexGap[0]) * Math.cbrt(r());
     // The river, swing by swing: from the planet's bottom, straight down, away to the left.
     const cubics: Cubic[] = [], apexes: (Pt & {side: 'left' | 'right'})[] = [];
     // Each swing: a sweep across that ends heading straight down at its outermost point, then a quarter turn of radius
@@ -152,15 +152,7 @@ function build(input: WaveInput, attempt: number): PhoneWave {
     const along: S[] = [];
     let closed = false;
     const extend = () => { if (closed) return; const before = cubics.length; addSwing(); for (let c = before; c < cubics.length; c++) { const cu = cubics[c]!; for (let i = along.length ? 1 : 0; i <= 64; i++) { const p = at(cu, i / 64), prev = along.at(-1); along.push({...p, s: prev ? prev.s + Math.hypot(p.x - prev.x, p.y - prev.y) : 0, c, t: i / 64}); } } };
-    // (A point at an arc length: between its two samples, on the curve itself.)
-    const pointAt = (s: number): S => {
-      while (!closed && along.at(-1)!.s < s) extend();
-      if (s >= along.at(-1)!.s) return along.at(-1)!;
-      if (s <= 0) return along[0]!;
-      let lo = 0, hi = along.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (along[m]!.s < s) lo = m; else hi = m; }
-      const a = along[lo]!, b = along[hi]!, f = b.s > a.s ? (s - a.s) / (b.s - a.s) : 0, ta = a.c === b.c ? a.t : 0, t = ta + (b.t - ta) * f;
-      return {...at(cubics[b.c]!, t), s, c: b.c, t};
-    };
+    const pointAt = (s: number): S => { while (!closed && along.at(-1)!.s < s) extend(); if (s >= along.at(-1)!.s) return along.at(-1)!; let lo = 0, hi = along.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (along[m]!.s < s) lo = m; else hi = m; } return along[hi]!; };
     extend(); extend();
     const swing = along.at(-1)!.s / 2;
     // The nodes on the river.
