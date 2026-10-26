@@ -36,7 +36,7 @@
   /* The phone's top bar carries the logo, Quick add and search here. */
   :root .app-sidebar :is(.brand, .sidebar-actions):not(#\-) { display: none; }
 }
-@media (min-width: 768px) and (max-width: 900px) {
+@media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) {
   :root:root { --rail-bar: 64px; scroll-padding-top: calc(var(--rail-bar) + 12px); }
   :root .app-sidebar::before {
     content: ""; position: fixed; top: 0; left: var(--rail-w); right: 0; height: var(--rail-bar); z-index: 0; pointer-events: none;
