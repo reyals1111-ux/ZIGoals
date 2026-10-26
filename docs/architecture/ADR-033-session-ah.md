@@ -135,7 +135,7 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | TR11 | Fixed | B-006, B-014, B-113, B-137, B-183, B-184, B-200, M-056, D-235, B-114, M-082, L-040, M-080 (`cdb6f967`, M22); status derives from saved allocations (lib/goal-summary.ts), and the counts read it (TR6); a reversal says why progress stays |
 | TR12 / B6 | Fixed | B-058, N-037, N-011, N-073, D-084, D-156, D-227, T-086, D-234, B-038, M-049, B-092, BUG-004, BUG-073, BUG-040 (`6dc444a0`): "Target reached" only on a crossing; rows under their own day; "4 milestones", not "4 ZIG"; Showcase labels only on examples |
 | TR13 | Fixed | M-078, M-084, M-027 (`0dc8ae4d`, `1e8946ad`): Life review values with live quotes through the one net worth; the counts agree |
-| TR14 | Fixed | B-010, B-021, N-029, L-057, B-099, B-123, B-156, B-045, B-056, B-043, B-044, L-058, B-130, B-131, B-129, B-155, B-046 (TR14 commit, M21): every assumption beside the result, months, no figure while a field is wrong, the exact target and plan into a goal, the scenario count shown |
+| TR14 | Fixed | B-010, B-021, N-029, L-057, B-099, B-123, B-156, B-045, B-056, B-043, B-044, L-058, B-130, B-131, B-129, B-155, B-046 (`521dba16`, M21): every assumption beside the result, months, no figure while a field is wrong, the exact target and plan into a goal, the scenario count shown |
 | B3, B9 | Part 5 | Limits and the water cap are VA2/VA3 (one limits module) |
 | B4 | Fixed | BUG-063, BUG-085 (`0dc8ae4d`): Today and Wealth read one net worth |
 | J1 | Fixed (package) | The TR and B rows above |
