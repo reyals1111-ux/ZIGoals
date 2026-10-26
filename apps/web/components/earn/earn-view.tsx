@@ -21,6 +21,7 @@ import {OroswapSection} from './oroswap-section';
 import {SafetyBlock} from './safety-block';
 import {StartHereSection} from './start-here-section';
 import {useEarnWallets, usePositionReads, useStakingFacts, walletReads} from './use-earn-positions';
+import {useEarnShares} from './your-shares';
 import {useEarnLive, useMinuteClock} from './use-earn-live';
 import {ValdoraSection} from './valdora-section';
 import {ValidatorsSection} from './validators-section';
@@ -47,7 +48,7 @@ export function EarnView() {
   const chain = useEarnLive('chain'), valdora = useEarnLive('valdora'), oroswap = useEarnLive('oroswap'), llama = useEarnLive('defillama'), validators = useEarnLive('validators');
   const vaults = useEarnLive('vaults'), measured = useEarnLive('measured');
   const wallets = useEarnWallets(), {journal} = useStakingFacts();
-  const reads = usePositionReads(wallets, journal);
+  const reads = usePositionReads(wallets, journal), shares = useEarnShares(wallets);
   const facts: StartFacts = useMemo(() => ({linked: wallets.filter(w => w.via === 'linked').length, connected: wallets.filter(w => w.via !== 'linked').length, journal, reads: walletReads(reads)}), [wallets, journal, reads]);
   const live = useMemo(() => ({chain, oroswap}), [chain, oroswap]);
   const chips = useMemo(() => EARN_SECTIONS.filter(s => !('when' in s) || wallets.length > 0).map(s => ({id: s.id, label: s.label})), [wallets.length]);
@@ -68,8 +69,8 @@ export function EarnView() {
         <SectionBoundary id="start-here" title="Start here"><StartHereSection facts={facts} live={live}/></SectionBoundary>
         <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><NativeSection chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><ValdoraSection valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
-        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><VaultsSection vaults={vaults} valdora={valdora} now={now}/></SectionBoundary>
-        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><OroswapSection oroswap={oroswap} llama={llama} now={now}/></SectionBoundary>
+        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><VaultsSection vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>
+        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><OroswapSection oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary>
         <SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><NawaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="defa" title="Invoice finance pools: DeFa"><DefaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><PermapodSection llama={llama} now={now}/></SectionBoundary>
