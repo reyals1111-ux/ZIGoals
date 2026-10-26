@@ -161,5 +161,9 @@ test('Meet ZIGi shows the studio\'s art for every state with what it means in pl
     expect(src, state).toContain('/brand/figures/zigi/origami-nebula/');
   }
   await expect(page.getByRole('article', {name: 'Celebrate', exact: true})).toContainText('A moment the app confirmed');
-  await expect(page.getByRole('article', {name: 'Reading your data', exact: true})).toContainText('Wears the thinking clip');
+  /* Assertion changed (Session AH TO9, D-249/M-030, equal strength): no studio notes on the page ("Wears the thinking
+     clip"); the card says what the state means in plain words instead. */
+  const reading = page.getByRole('article', {name: 'Reading your data', exact: true});
+  await expect(reading).toContainText('Looking at your records.');
+  await expect(reading).not.toContainText('clip');
 });

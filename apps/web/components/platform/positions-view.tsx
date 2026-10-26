@@ -76,7 +76,7 @@ export function PositionsView(){
  const unallocated=observedZig.reduce((n,p)=>n+BigInt(rescaleUnits(allocationBalance(store.data,p.id).unallocated,p.decimals,18)),0n).toString();
  async function read(event:FormEvent){event.preventDefault();setError('');setMessage('');
  // Session AH (ST8, L-019): the address is checked here first; a mistyped one is named as such and nothing is stored for it.
- if(!publicZigAddress.safeParse(account.trim()).success){setError('This is not a ZIGChain address. A public ZIG address starts with zig1 and is 42 characters long; check it and try again. Nothing was read or saved.');return;}
+ if(!publicZigAddress.safeParse(account.trim()).success){setError('Could not verify public positions: this is not a ZIGChain address. A public ZIG address starts with zig1 and is 42 characters long; check it and try again. Nothing was read or saved.');return;}
  setBusy(true);try{
   const data=await readPublicPositions(mode,account.trim());await store.update(s=>({...replaceObservation(s,network,account.trim(),data),watchScope:{network,account:account.trim()}}));setMessage('Public snapshot saved. No wallet authority requested.');setSheet(null);
  }catch(cause){if(cause instanceof PositionReadRefused){setError(cause.message);return;}try{await store.update(s=>markObservationError(s,network,account.trim()));}catch{/* A storage failure must not replace the preserved record. */}setError('Could not verify public positions at one block height. Check the address and network availability. Previous quantities are preserved; a failed refresh needs review.');}finally{setBusy(false);}}
