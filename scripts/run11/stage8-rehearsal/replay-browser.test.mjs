@@ -10,6 +10,7 @@
 // (scripts/run11/sync-lost-ack*.test.*); it is not repeated here.
 import {test,expect} from 'vitest';
 import {BROWSER,accountUi,anyCodeProvider,launchChrome,privateWorkers,reviewOrigin,routeAccount} from './harness.mjs';
+import {typeGoalName} from '../goal-name.mjs';
 
 /** The head (catalog) record id (apps/web/lib/vault/cloud-sync.ts). */
 const HEAD='00000000-0000-4000-8000-000000000001';
@@ -29,7 +30,7 @@ async function openGoal(page,ui,name){
 }
 async function createValueGoal(page,ui,name){
  await ui.go('Goals');await page.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();
- await page.getByLabel('Goal name',{exact:true}).fill(name);await page.getByRole('radio',{name:'Value',exact:true}).check();
+ await typeGoalName(page,name);await page.getByRole('radio',{name:'Value',exact:true}).check();
  await page.getByLabel('Target amount',{exact:true}).fill('1000');
  for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →',exact:true}).click();
  await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();

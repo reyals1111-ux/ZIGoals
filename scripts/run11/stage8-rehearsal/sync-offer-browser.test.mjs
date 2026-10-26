@@ -7,6 +7,7 @@
 import {test,expect} from 'vitest';
 import {armSyncCompletion} from '../sync-completion.mjs';
 import {ACCOUNTS,BROWSER,accountUi,anyCodeProvider,launchChrome,privateWorkers,reviewOrigin,routeAccount,sessionToken,workerRecords} from './harness.mjs';
+import {typeGoalName} from '../goal-name.mjs';
 
 const TURN_ON='Turn on encrypted sync (recommended)',HEALTH='Also sync my Health records (optional)';
 
@@ -33,7 +34,7 @@ test.runIf(BROWSER)('the offer turns sync on through the existing controls; Goal
   expect(await pa.getByRole('button',{name:TURN_ON}).count()).toBe(0);
 
   // Records in every section, Health without consent.
-  await ua.go('Goals');await pa.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();await pa.getByLabel('Goal name',{exact:true}).fill(GOAL);await pa.getByRole('radio',{name:'Project',exact:true}).check();await pa.getByLabel('Milestones, one per line').fill('Start');for(let i=0;i<3;i++)await pa.getByRole('button',{name:'Continue →'}).click();await pa.getByRole('button',{name:'Create goal',exact:true}).click();await pa.getByTestId('tracked-progress').waitFor();
+  await ua.go('Goals');await pa.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();await typeGoalName(pa,GOAL);await pa.getByRole('radio',{name:'Project',exact:true}).check();await pa.getByLabel('Milestones, one per line').fill('Start');for(let i=0;i<3;i++)await pa.getByRole('button',{name:'Continue →'}).click();await pa.getByRole('button',{name:'Create goal',exact:true}).click();await pa.getByTestId('tracked-progress').waitFor();
   await ua.go('Habits');await pa.getByRole('button',{name:'+ New habit',exact:true}).click();await pa.getByLabel('Start from template').selectOption('read');await pa.getByLabel('Habit title',{exact:true}).fill(HABIT);await pa.getByRole('button',{name:'Create habit',exact:true}).click();await pa.getByRole('article',{name:HABIT,exact:true}).waitFor();
   await ua.go('Today');await pa.getByRole('button',{name:'Customize Today',exact:true}).click();await pa.getByRole('button',{name:'Add widget',exact:true}).click();const editor=pa.getByRole('dialog',{name:'Add a widget'});await editor.getByRole('group',{name:'Choose a metric'}).getByRole('button',{name:'Water today',exact:true}).click();await editor.getByText('Title and display size').click();await editor.getByLabel('Card title (optional)').fill(WIDGET);await editor.getByRole('button',{name:'Save widget'}).click();await pa.getByRole('article',{name:WIDGET,exact:true}).waitFor();
   await ua.go('Health');await pa.getByRole('button',{name:'Add 250 mL',exact:true}).click();await water(pa).getByText('250 mL recorded',{exact:false}).waitFor();

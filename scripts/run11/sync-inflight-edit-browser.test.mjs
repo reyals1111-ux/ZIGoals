@@ -7,6 +7,7 @@ import {privateAccountRequest} from '../../apps/web/lib/server/private-account';
 import {createPrivateMiniflare,fixtureToken,workerAnswer} from './private-runtime.mjs';
 import {armSyncCompletion} from './sync-completion.mjs';
 import {createRequestLog} from './sync-diagnostics.mjs';
+import {typeGoalName} from './goal-name.mjs';
 const require=createRequire(new URL('../../apps/web/package.json',import.meta.url)),{chromium}=require('@playwright/test');
 const A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const identity=header=>JSON.parse(Buffer.from(header.slice(7).split('.')[1],'base64url').toString()).sub;
@@ -28,7 +29,7 @@ async function runtime(){
   const enroll=async()=>{await signIn('a@example.invalid');await page.getByRole('button',{name:'Create encrypted account vault',exact:true}).click();const recovery=await page.getByLabel('New vault recovery secret',{exact:true}).inputValue();await page.getByLabel('I saved this vault recovery secret separately.').check();const created=await armSyncCompletion(page);await page.getByRole('button',{name:'Confirm and create vault',exact:true}).click();await created();return recovery;};
   const unlock=async recovery=>{await signIn('a@example.invalid');await page.getByLabel('Vault recovery secret',{exact:true}).fill(recovery);const synced=await armSyncCompletion(page);await page.getByRole('button',{name:'Unlock account vault',exact:true}).click();await synced();};
   // Client-side navigation only: a reload would lock the in-memory vault session.
-  const createGoal=async name=>{await page.getByRole('link',{name:'Goals',exact:true}).first().click();await page.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();await page.getByLabel('Goal name',{exact:true}).fill(name);await page.getByRole('radio',{name:'Project',exact:true}).check();await page.getByLabel('Milestones, one per line').fill('Start');for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →'}).click();await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();};
+  const createGoal=async name=>{await page.getByRole('link',{name:'Goals',exact:true}).first().click();await page.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();await typeGoalName(page,name);await page.getByRole('radio',{name:'Project',exact:true}).check();await page.getByLabel('Milestones, one per line').fill('Start');for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →'}).click();await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();};
   const hasGoals=async names=>{await page.getByRole('link',{name:'Goals',exact:true}).first().click();for(const name of names)await page.getByRole('heading',{name,exact:true}).waitFor();};
   const settled=()=>page.waitForFunction(success=>document.querySelector('[aria-label="Encrypted account sync"]')?.textContent?.includes(success)&&[...document.querySelectorAll('button')].some(b=>b.textContent==='Sync now'&&!b.disabled),SUCCESS);
   const settings=()=>page.getByRole('link',{name:'Settings',exact:true}).first().click();

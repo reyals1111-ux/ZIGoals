@@ -3,6 +3,7 @@
 // Evidence screenshots mask every recovery-secret field (Session U Part 6, FIX_PLAN D6; apps/web/tests/safe-screenshot.ts).
 import {expect} from 'vitest';
 import {armSyncCompletion} from './sync-completion.mjs';
+import {typeGoalName} from './goal-name.mjs';
 /** Session AB-Design (ADR-024 D2): on a phone Settings is a row of the More sheet (top-bar More); the desktop sidebar link is unchanged. */
 export async function openSettings(page){const more=page.locator('.phone-more-top');if(await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name:'Settings',exact:true}).click();}else await page.getByRole('link',{name:'Settings',exact:true}).first().click();}
 // A sync wait needs a completion counted after armPackagedSync(page) was called just before the
@@ -17,7 +18,7 @@ export async function armPackagedSync(page){await armSyncCompletion(page);return
 export async function waitPackagedSync(page,mark){await page.waitForFunction(m=>window.__zigoalsSyncCompletions>m&&[...document.querySelectorAll('button')].some(b=>b.textContent==='Sync now'&&!b.disabled),mark);await page.getByRole('region',{name:'Encrypted account sync',exact:true}).getByText(/Account records synced and acknowledged/).waitFor();}
 export async function createPackagedRecords(page){
  await page.getByRole('link',{name:'Today',exact:true}).first().click();await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
- await page.getByLabel('Goal name',{exact:true}).fill('Packaged fictional Goal');await page.getByRole('radio',{name:'Value',exact:true}).check();await page.getByLabel('Target amount',{exact:true}).fill('2000');await page.getByRole('button',{name:'Continue →'}).click();
+ await typeGoalName(page,'Packaged fictional Goal');await page.getByRole('radio',{name:'Value',exact:true}).check();await page.getByLabel('Target amount',{exact:true}).fill('2000');await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByLabel('Add a contribution plan').check();await page.getByLabel('Planned amount',{exact:true}).fill('100');await page.getByLabel('Contribution asset',{exact:true}).fill('USD');await page.getByRole('button',{name:'Continue →'}).click();await page.getByLabel('Create supporting Habit',{exact:true}).check();await page.getByRole('button',{name:'Continue →'}).click();await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();
 // The overview always shows the target ("of $2,000"), so the funded amount alone proved nothing: wait for the sheet to
 // close after the save and for its "Goal funded." status, then for the current value (CI on f725ade clicked Wealth
