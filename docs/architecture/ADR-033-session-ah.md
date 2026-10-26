@@ -67,6 +67,14 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M14 — Back closes a dialog (DS9).** `useBackCloses` adds one history entry while a sheet, modal or Quick add is open, copying the page's own history state so the router sees the same page; closing it otherwise takes the entry back out, except when a link inside it was followed (that would undo the navigation; found by the hosted verifier's goal stage).
 - **M15 — Undo after a Showcase reset (DS4) and Health removals (DS5).** The reset keeps the replaced generation in the tab's sessionStorage until the next load, reset or exit (about 290 KB). Removals are said once, in the app's one toast with "Undo" (the page's own status line no longer repeats them; three specs read the toast now).
 
+- **M16 — One price service, one valuation, one net worth (TR1–TR3, TR5, TR8, TR13).** Every page asks the shared quote service, the Showcase too; the Showcase holds the quotes it loaded when it opened (`setFrozenPrices`: never stale, labelled "Showcase price"), so its values never drift per reload. One valuation rule (lib/wealth.ts, lib/positions.ts): a newer market quote replaces a stored snapshot that is not the person's own; a MANUAL value stays, with the market value beside it. One net worth (`netWorthTotal`) values holdings as Wealth does and names the ones without a value.
+- **M17 — Quantities to 8 decimals in lists (TR4).** `formatQuantity` cuts to 8 decimals with "≈" and keeps the exact value in the title; prices round by size (`formatPrice`).
+- **M18 — A part-logged habit day completes from Health (TR9/HA2, amendment 5).** H7 said a part-logged day meant "the person already acted"; TR9 reports exactly that as the bug (4 of 8 glasses with 2.2 L logged). The tick now sets the day to its target (never adds), Undo still keeps it off for the day and a full tap still wins (H7 spec updated). A new habit in steps, mL or meditation minutes starts with that link filled in. The Showcase keeps one linked habit: more would make viewing it write records.
+- **M19 — No currency switch while nothing converts (TR7, amendment 6).** The headline, Allocated, Available and Today's ring lead with the currency that holds the largest total; others stay in their chip ("coming later"). Today's wallet card shows ZIG only (practice money and testnet ZIG have no market value). Stored choices (`baseCurrency`, the wallet `display`) are kept unread; wallet holdings and Add money still ask real quotes in the person's currency.
+- **M20 — One count per thing (TR6/B5).** lib/numbers/counts.ts: a check-in is a scheduled habit day completed (once per habit); habits due today leave out a skipped (rest) day; active and finished Goals come from each Goal's derived status plus average goals (Today, the goals widget, Goals, the Hall, Journey); live-priced assets follow Wealth's rule (Markets' "Manual assets"); Journey and Stories say "assets tracked".
+- **M21 — Calculator months (TR14), additive.** `months` (0–11) is an optional field after the whole years in the calculator's device record (`zigoals:calculator:v1`, loose; older builds ignore it). A plan stays at least one year so every saved scenario still reads in #37–#49. A rate from Earn is added once a year and the banner says so.
+- **M22 — "Ahead" needs the target by its date (TR11).** Ahead of the plan's schedule is not ahead of the Goal: a shortfall or a later finish reads "Behind". The Showcase's Emergency fund (ahead of schedule, $5,000 short) now has a later date and a plan that reaches it, so the Showcase still shows every status honestly.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 
@@ -110,3 +118,25 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | DS9 / A3 | Fixed | BUG-076/077, M-070, D-206, T-077 (`749e2d75`): Back closes dialogs first (M14); the wizard's draft survives a reload |
 | A7 | Fixed | BUG-042 (`749e2d75`): `plainErrorMessage`; the rest of the raw messages are VA1 (Part 5) |
 | J2 | Fixed (package) | The DS rows above |
+
+### Part 4 — Numbers you can trust
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| TR1 | Fixed | B-002, BUG-085, M-041, M-077, N-149, N-181, B-049 (`0dc8ae4d`, M16): BTC/ETH valued from live quotes in the one net worth; the unvalued holdings are named. ZIGi reads the same modules later (lane rule) |
+| TR2 | Fixed | B-004, B-015, B-050, B-153, D-001, D-095, D-243, L-030, L-047, L-012, N-054, N-122, N-194, N-026, T-024, T-038, T-092, T-117, M-051, D-200, N-055, B-041, D-262 (`0dc8ae4d`): "Current" only within 15 minutes; the Showcase holds its loaded quotes ("Showcase price"), so nothing drifts per reload |
+| TR3 / B1 | Fixed | BUG-006, BUG-059, N-008, T-091, B-042, D-155, D-245 (`0dc8ae4d`, `05037e8b`): Portfolio reads the same quotes as every page |
+| TR4 / B2 | Fixed | BUG-007, BUG-028, B-013, B-039, M-010, M-086, T-090, D-147, D-053, N-025, N-193, D-215, D-195 (`0dc8ae4d`, M17) |
+| TR5 / B7 | Fixed | B-008, B-007, N-196, BUG-074 (`0dc8ae4d`): your value and the market value side by side |
+| TR6 / B5 | Fixed | BUG-031, BUG-041, BUG-062, BUG-044, B-009, B-098, B-116, M-085, D-238, D-239, D-246, M-081, M-083, N-091, B-097, M-055, B-012 (`1e8946ad`, M20); tests/ah-numbers.spec.ts checks five pages agree |
+| TR7 | Fixed (hidden, amendment 6) | N-030, B-040, D-214, L-085, B-034, B-150, D-057, D-201, L-078, M-121 (`9e865423`, M19) |
+| TR8 | Fixed | B-110, B-111, B-154, M-079, B-103, L-029 (`0dc8ae4d`): one valuation rule for the ZIG reserve on every page |
+| TR9 / B8 / HA2 | Fixed | N-168, N-202, N-036, N-077, N-169, N-015, N-086, B-163, D-220, N-056, B-147, B-191, T-087, L-021, M-037, D-106, B-079, M-038, BUG-043 (`7abfbfda`, M18): part-logged days complete from Health once; "over target" on the rings |
+| TR10 | Fixed | B-011, N-058, N-120, L-070, M-039, D-142, L-081, B-073, B-194 (`1b5d218a`): one weekly rate (least squares, 28 days), one decimal in kg and lb, the latest reading beside the trend |
+| TR11 | Fixed | B-006, B-014, B-113, B-137, B-183, B-184, B-200, M-056, D-235, B-114, M-082, L-040, M-080 (`cdb6f967`, M22); status derives from saved allocations (lib/goal-summary.ts), and the counts read it (TR6); a reversal says why progress stays |
+| TR12 / B6 | Fixed | B-058, N-037, N-011, N-073, D-084, D-156, D-227, T-086, D-234, B-038, M-049, B-092, BUG-004, BUG-073, BUG-040 (`6dc444a0`): "Target reached" only on a crossing; rows under their own day; "4 milestones", not "4 ZIG"; Showcase labels only on examples |
+| TR13 | Fixed | M-078, M-084, M-027 (`0dc8ae4d`, `1e8946ad`): Life review values with live quotes through the one net worth; the counts agree |
+| TR14 | Fixed | B-010, B-021, N-029, L-057, B-099, B-123, B-156, B-045, B-056, B-043, B-044, L-058, B-130, B-131, B-129, B-155, B-046 (TR14 commit, M21): every assumption beside the result, months, no figure while a field is wrong, the exact target and plan into a goal, the scenario count shown |
+| B3, B9 | Part 5 | Limits and the water cap are VA2/VA3 (one limits module) |
+| B4 | Fixed | BUG-063, BUG-085 (`0dc8ae4d`): Today and Wealth read one net worth |
+| J1 | Fixed (package) | The TR and B rows above |
+
