@@ -46,12 +46,14 @@ test('without a wallet: practice proposals in plain words, the open one first, i
   await expect(tally.getByRole('img')).toHaveAttribute('aria-label', 'Yes 83.33%, No 13.88%, Abstain 2.77%, No with veto 0%');
   await expect(tally).toContainText('To pass, at least 33.4% of all staked ZIG must vote (the quorum), Yes must be more than 51% of the votes that are not Abstain, and No with veto must stay at or below 33.4% of all votes (above it, the deposit is burned). These are the chain’s own numbers.');
   await expect(tally).toContainText('If voting ended now it would pass: Yes is above 51% of the votes that are not Abstain. Turnout so far: 36% of staked ZIG.');
-  await expect(open).toContainText('Voting period10 minutes on this network');
+  await expect(open).toContainText('Voting period10 minutes for this proposal'); // Session AH (ST7): its own voting period
   // An ended proposal: its final votes and its own state; a text proposal says nothing changes by itself.
   const ended = view.locator('article[data-proposal="119"]');
   await expect(ended).toContainText('Rejected · Proposal #119');
   await expect(ended).toContainText('A text proposal: it asks a question or signals an intent. Nothing on the chain changes by itself if it passes.');
-  await expect(ended).toContainText('Why it did not passproposal did not get enough votes to pass');
+  await expect(ended).toContainText('The chain’s own reasonproposal did not get enough votes to pass');
+  // Session AH (ST7, L-043): Rejected with 100 % Yes is explained in words before the chain's own reason.
+  await expect(ended).toContainText('Why Rejected with mostly YesA proposal also needs enough of all staked ZIG to vote (the quorum, above).');
   await expect(view.locator('article[data-proposal="121"]')).toContainText('Repairs an expired connection to another chain (IBC).');
   await expect(view.locator('article[data-proposal="118"]')).toContainText('Upgrades ZIGChain’s software: every validator switches to a new version at a set block.');
   // The proposer's words are apart, closed, and labelled as theirs.
@@ -89,7 +91,7 @@ test('the real network asks the first-real confirm, then reads zigchain-1: the r
   await expect(latest).toContainText('Adds addresses to the list allowed to upload smart contracts.');
   await expect(latest.getByRole('region', {name: 'Final votes'}).getByRole('img')).toHaveAttribute('aria-label', 'Yes 100%, No 0%, Abstain 0%, No with veto 0%');
   await expect(latest).toContainText('Deposit10,000 ZIG');
-  await expect(latest).toContainText('Voting period4 days on this network');
+  await expect(latest).toContainText('Voting period4 days for this proposal'); // Session AH (ST7): its own voting period
   await expect(view.locator('article[data-proposal="39"]')).toContainText('Spends ZIG from the community pool.');
   expect(asked.map(u => u.searchParams.get('network'))).toEqual(['zig-test-2', 'zigchain-1']);
   // The choice is kept on this device: a reload opens the real network again, with no second confirm.

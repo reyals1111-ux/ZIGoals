@@ -91,10 +91,20 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M35 — Hide amounts and since-last-visit are device-only display aids (WE19, WE22).** "Hide amounts" blurs the person's own figures and value charts (market prices stay) for screenshots; screen readers still read the figures to their owner. "Since your last visit" keeps one value per portfolio on this device, only when every holding is priced and current, never in the Showcase; it is erased with the account and not exported (it is only a comparison point, not a record). Both keys are registered in lib/ah-device-keys.ts, which also fixes Part 6's gap: workouts are now erased with the account and make a device "not new".
 - **M36 — Recorded, not built, in Part 9.** WE16: the catalog route answers `no-store` and is rebuilt on request; its size is the full coin list the search needs offline (a split catalog is a later speed item, Part 13 F3 notes it). WE17/J11 price alerts tied to Goals need push delivery (CO11, Part 14) to be useful; the watchlist exists. WE20: reading a linked wallet into Portfolio is the next step after AF's Wealth tracking; Portfolio's records are hand-entered by design (ADR-013) and a wallet import changes that rule. J15: reward, income and airdrop types need a stored-format version (the transaction kind is a strict enum, so older builds would refuse the records); later, with a frozen-reader plan. WE21's FIFO/LIFO lots: later (the label is fixed now). J14's read-only exchange sync: needs exchange API keys and egress; later.
 
+- **M37 — AF3 reads balances, not an address-bearing smart query.** On zigchain-1 (checked 2026-10-26) OroSwap's LP tokens and the four USDC vaults' shares are bank denoms the pool or vault mints (`pair.liquidity_token`; `denom_metadata.denom`). So `/api/earn/shares` (`TIER 3 (egress routes)`) asks the same two mainnet LCDs as the other Earn routes for one public address's balance of eight pinned denoms, at one block, with the positions relay's limits (60 s answer per address, 10 reads a minute per client, 120 per server), nothing stored or logged, mainnet only. Your part is worked out on the device from the pool's and vault's own public figures. LP tokens staked in a farm are not in the wallet and the section says so.
+- **M38 — Earn's path keeps its own look (AF12).** The owner asked Earn's Start-here to match the Checklist's path. The Checklist's orbit look carries motion the owner allowed in the Checklist only (ADR-028 L3b), and the Checklist path is protected. So Earn keeps its path, with the same names as the Checklist ("Start here, complete", "Academy, complete") and an "Ahead" mark on an end chest not yet reached. Earn's index is one row everywhere, with ‹ › buttons (ST6). A full orbit look for Earn waits for the owner's choice on that motion.
+- **M39 — Recorded in Part 10.**
+  - I5: "integrated" for Ramp/Banxa appears only in ZIGi's copy, which this session must not touch (lane rule); recorded for the ZIGi lane.
+  - "Sells nothing" stays: the provider sells and ZIGoals has no partner identifier set up with either.
+  - ZIGi's "OUR SUGGESTION" (ST5) is ZIGi copy too, recorded for the same lane.
+  - Earn's "as of" times stay in UTC, named, as its "23:59 UTC" deadlines are (Session AF Gate C); the "estimate, variable" label is what ST2 asked for.
+  - The landing's staking line goes with Part 15.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
 - Part 9: a negative price and dates before 1990 were already refused (transaction schema and `dateIssue`); archiving an asset already had a toast; Markets already had Owned and Favourites filters (WE13); market 503s already say "Price refresh is unavailable. Last-good values stay visible with their timestamps." (F5, BUG-069).
+- Part 10: practice/real staking was already decided and built (owner, 18 Oct; Staking signs in Keplr after a one-time confirm); Earn already read the unbonding time live and showed "unavailable" without a fallback; Governance was already hidden by default and offered no vote in the Showcase.
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
@@ -271,3 +281,20 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | J14 | Fixed (duplicates) | `8a7e9727`; exchange sync later (M36) |
 | J15 | Later (recorded) | M36 |
 | F5 | Already fixed | BUG-069: the "Price refresh is unavailable" notice with last-good values (wealth-view) |
+
+### Part 10 — Staking, Earn, Governance
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| DE1 | Fixed (wording) | B-005, B-022, B-136, N-198, N-201, T-001, C-001–C-004 (`facc2b0f`): Settings, the More sheet and the labels say practice and real as decided; the landing is Part 15 |
+| ST1 / AF4 | Fixed | B-005, B-012, B-022, B-136, D-258, N-028, B-052 (`facc2b0f`); AF4 "What's this?" on the wallet card's Testnet label |
+| ST2 / I4 | Fixed | L-056, B-053, B-048, M-059, T-022, D-168 (`facc2b0f`): "estimate, variable" on every chain APR; the unbonding explainer uses the pinned constant the review checks; UTC kept (M39) |
+| ST3 | Fixed | N-027, N-198, N-201, B-065, L-042, D-082, T-129 (`facc2b0f`): the scenario works without a wallet and in the Showcase |
+| ST4 | Fixed | D-002, D-152, D-182, D-193, L-018, T-076, N-028, Denver S-04 (`facc2b0f`) |
+| ST5 / I2 / I3 | Fixed | D-060, D-099, D-150, D-146, B-054, B-084, D-092, D-153 (`e194278a` TIER 3 verifier, `facc2b0f`); ZIGi's "OUR SUGGESTION" recorded (M39) |
+| ST6 / AF12 | Fixed (index, chest) | D-149, D-123, N-199, D-098 (`facc2b0f`, M38) |
+| ST7 | Fixed | T-075, T-107, M-052, D-154, L-043, B-112, D-014, D-169 (`facc2b0f`) |
+| ST8 | Fixed | L-019 (`facc2b0f`) |
+| ST9 | Fixed | B-174, D-217 (`facc2b0f`): Earn listed (it follows Wealth); the sidebar summary includes the Checklist |
+| ST10 | Fixed | Tokyo (`facc2b0f`): "Verify, don't trust" on Staking and in Help |
+| I5 | Recorded | M39 |
+| AF3 | Fixed | ADR-028 H134 (M37; the `TIER 3 (egress routes)` commit) |
