@@ -2,7 +2,7 @@
 /* Full reload is intentional: dispose all normal/scoped store hooks when changing data profiles. */
 /* eslint-disable @next/next/no-location-assign-relative-destination */
 import {useState,useSyncExternalStore} from 'react';
-import {isShowcase,showcaseDay,loadShowcase,resetShowcase,exitShowcase} from '../lib/showcase';
+import {isShowcase,loadShowcase,resetShowcase,exitShowcase} from '../lib/showcase';
 import {useGoals} from './goal-provider';
 import {ConfirmInline} from './ui/confirm-inline';
 /** Session AH Part 3 (DS4): the words of the reset confirmation, shared by Settings and the Showcase chip. */

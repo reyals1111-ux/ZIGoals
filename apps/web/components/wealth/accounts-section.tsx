@@ -11,6 +11,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import type {LayoutAttrs} from '../layout-edit';
 import {usePlatform} from '../platform/use-platform';
 import {useMarketQuotes} from '../platform/use-market-quotes';
+import {useEvidenceNow} from '../platform/use-evidence-now';
 import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
 import {useFieldErrors} from '../field-errors';
 import {formatDate} from '../../lib/visual-format';
@@ -52,11 +53,11 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   function change(fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) {
     try { accounts.update(fn); setMessage(words); setError(''); if (undo) showToast({message: words, undo: () => accounts.update(undo.fn), undone: undo.done}); return true; } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved on this device.'); return false; }
   }
-  const market = useMarketQuotes(wealthMarketRequests(platform.data));
+  const market = useMarketQuotes(wealthMarketRequests(platform.data)), now = useEvidenceNow(platform.data, market.now);
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
   if (accounts.unreadable) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p role="alert">Your accounts on this device could not be read. Their bytes are kept; nothing was changed.</p></section>;
   // Session AH Part 4 (TR1): holdings valued exactly as Wealth values them (live quotes included), one net worth.
-  const items = accounts.data.items, worth = netWorthTotal(accounts.data, today, holdingsOf(wealthOverview(platform.data, market.now || Date.now(), market.quotes).rows)), history = netWorthHistory(accounts.data, today);
+  const items = accounts.data.items, worth = netWorthTotal(accounts.data, today, holdingsOf(wealthOverview(platform.data, now, market.quotes).rows)), history = netWorthHistory(accounts.data, today);
   const active = items.filter(a => !a.archivedAt), archived = items.filter(a => a.archivedAt);
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
