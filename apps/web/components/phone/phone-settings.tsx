@@ -17,7 +17,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Backups & restore", "Encrypted download and module copies", "private-vault"],
     ["Privacy & storage", "What stays in this browser", "privacy"],
     ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"],
-    ["Import from other apps", "Apple Health, Fitbit, Samsung, Oura, Loop", "switch-import"],
+    ["Import from other apps", "Apple Health, Samsung, Oura, Loop", "switch-import"],
   ] },
   { title: "Your app", rows: [
     ["Showcase tour", "Fictional demo data in separate storage", "showcase"],

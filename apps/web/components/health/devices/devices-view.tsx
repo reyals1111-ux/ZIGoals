@@ -23,7 +23,7 @@ import {formatDate} from '../../../lib/visual-format';
  * platform. A Bluetooth heart-rate monitor or scale works here where the browser has Web Bluetooth (Chrome or Edge on a
  * computer, Chrome on Android) and the page was loaded as Health; accounts at Oura, Withings, Polar and Strava need
  * ZIGoals' own registration and stay "needs setup" until the owner configures them; Apple Health, Health Connect,
- * Fitbit and Garmin offer no web access, so their path is the importer. Nothing here runs until the person asks.
+ * Garmin offers no web access, so its path is the importer; Fitbit's old connection has ended (Session AH, RM7). Nothing here runs until the person asks.
  */
 const LB = 0.45359237;
 export default function DevicesView() {
@@ -49,7 +49,7 @@ export default function DevicesView() {
       <ul className="devices-platforms">
         <li><strong>Apple Health (iPhone, Apple Watch)</strong><p>No web access: Apple keeps Health on your devices. Export it from the Health app and import the file.</p></li>
         <li><strong>Health Connect (Android)</strong><p>No web access: Health Connect keeps data on the phone. Import from the app that writes to it, such as Samsung Health or Google Health.</p></li>
-        <li><strong>Fitbit</strong><p>Fitbit&apos;s web access is ending (support stopped 30 September 2026, turned off 30 October 2026) and Google&apos;s new Health API takes no new projects. Export with Google Takeout and import it.</p></li>
+        <li><strong>Fitbit</strong><p>Fitbit&apos;s old connection ended on 30 October 2026, so ZIGoals no longer connects to or imports from Fitbit. What you brought in before stays in your Health journal, readable and exportable.</p></li>
         <li><strong>Garmin</strong><p>Garmin&apos;s Health API is for approved businesses, and its export layout is unpublished, so ZIGoals does not read it yet. Garmin Connect can share your data with Apple Health or Health Connect.</p></li>
       </ul>
       <p><Link className="text-link" href="/app/settings#switch-import">Settings → Switch to ZIGoals →</Link></p>

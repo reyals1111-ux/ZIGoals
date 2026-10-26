@@ -18,7 +18,7 @@ export type ReadOutcome =
   | {kind: 'health'; plan: ImportPlan}
   | {kind: 'habits'; plan: HabitsPlan}
   | {kind: 'refused'; format: ImportFormat | null; message: string; meals?: boolean};
-export const NOT_RECOGNISED = 'ZIGoals does not recognise this export. It reads exports from Apple Health, Fitbit / Google Health, Samsung Health, Oura and Loop Habit Tracker; choose the file or folder exactly as the app saved it.';
+export const NOT_RECOGNISED = 'ZIGoals does not recognise this export. It reads exports from Apple Health, Samsung Health, Oura and Loop Habit Tracker; choose the file or folder exactly as the app saved it.';
 const appleCandidates = (files: readonly ImportFile[]) => files.filter(f => /\.xml$/i.test(f.path) && !/(^|\/)(export_cda\.xml|clinical-records\/|workout-routes\/)/i.test(f.path)).sort((a, b) => b.size - a.size);
 export async function detectFormat(files: readonly ImportFile[]): Promise<{format: ImportFormat; apple?: ImportFile} | {format: null; legacyFitbit?: boolean}> {
   if (files.some(f => isLoopHabits(f.path)) && files.some(f => /\/Checkmarks\.csv$/.test(f.path) || /(^|\/)Checkmarks\.csv$/.test(f.path))) return {format: 'loop'};

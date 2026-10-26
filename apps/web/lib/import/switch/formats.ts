@@ -15,9 +15,12 @@ export const FORMATS: readonly FormatInfo[] = [
   {id: 'apple-health', label: 'Apple Health', state: 'reads', basis: 'Apple documents the data types, units and sleep values; the file carries its own layout (DTD).',
     steps: 'On your iPhone: Health → your picture → Export All Health Data → share the export.zip to this device.',
     reads: 'Sleep with stages, mindful minutes, steps, workouts, active and resting energy, resting heart rate, a daily heart-rate summary, weight.'},
-  {id: 'fitbit', label: 'Fitbit / Google Health', state: 'reads', basis: 'The CSV files come with Google\'s own README describing every column.',
-    steps: 'Google Takeout → select Google Health (or Fitbit) → export. Choose every ZIP it sends.',
-    reads: 'Sleep with stages, steps, resting heart rate, a daily heart-rate summary, weight.'},
+  // Session AH Part 6 (RM7, owner 25 Oct): Fitbit's old connection ends on 30 October 2026, so ZIGoals no longer imports
+  // from Fitbit and builds nothing new on it. Records brought in before stay readable and exportable (lib/import/switch/fitbit.ts
+  // keeps its reader for that history's tests only).
+  {id: 'fitbit', label: 'Fitbit', state: 'off', basis: 'Fitbit\'s old connection has ended.',
+    steps: 'Not offered any more.',
+    reads: 'Nothing new.', offReason: 'Fitbit\'s old connection ended on 30 October 2026, so ZIGoals no longer imports from Fitbit. Anything you brought in before stays in your Health journal, readable and in Export everything.'},
   {id: 'samsung', label: 'Samsung Health', state: 'reads', basis: 'The columns are the Samsung Health SDK\'s documented fields.',
     steps: 'Samsung Health → ⋮ → Settings → Download personal data. Choose the "Samsung Health" folder it saves (or a ZIP of it).',
     reads: 'Sleep with stages, steps (all devices together), a daily heart-rate summary, weight.'},

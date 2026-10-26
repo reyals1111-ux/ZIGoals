@@ -137,7 +137,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["w-sleep", "How does Sleep work, and what is sleep debt?"],
   ["w-meditation", "What does Meditation keep?"],
   ["w-sounds", "Where do the focus sounds come from?"],
-  ["w-import", "Can I bring my data from Apple Health, Fitbit or other apps?"],
+  ["w-import", "Can I bring my data from Apple Health or other apps?"],
   ["w-devices", "Can I connect my watch, ring or scale?"],
   ["w-quick", "What are the quick buttons in the diary?"],
   ["w-habits", "What are challenges and stacks?"],

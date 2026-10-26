@@ -177,7 +177,8 @@ describe('detection and the formats that are not read', () => {
   test('each export is recognised by its files; Garmin is recognised and refused with the reason; meals go to Import meals', async () => {
     expect((await readFiles(filesOf(SAMSUNG), ctx)).kind).toBe('health');
     expect((await readFiles(filesOf(OURA), ctx)).kind).toBe('health');
-    expect((await readFiles(filesOf(FITBIT), ctx)).kind).toBe('health');
+    // Assertion changed (Session AH RM7, owner): a Fitbit export is recognised and refused with the reason; nothing new is read.
+    { const fitbit = await readFiles(filesOf(FITBIT), ctx); expect(fitbit).toMatchObject({kind: 'refused', format: 'fitbit'}); expect(fitbit.kind === 'refused' && fitbit.message).toMatch(/Fitbit's old connection ended on 30 October 2026/); }
     expect((await readFiles(filesOf(LOOP), ctx)).kind).toBe('habits');
     expect(await readFiles(filesOf(GARMIN), ctx)).toMatchObject({kind: 'refused', format: 'garmin', message: expect.stringMatching(/Garmin does not publish the layout/)});
     expect(await readFiles(filesOf({'File-Export-2026/Nutrition-Summary-2026-01-01-to-2026-10-01.csv': 'Date,Meal,Calories\n'}), ctx)).toMatchObject({kind: 'refused', format: 'myfitnesspal', meals: true});
