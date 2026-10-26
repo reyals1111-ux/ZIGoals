@@ -1,0 +1,54 @@
+# Session AH (RM6; TIER 3 CI; ADR-033 M49): an advisory review of a pull request's diff through the Anthropic API,
+# posted as one comment. Owner rules (amendment 7): pull_request only (never pull_request_target), never for a fork's
+# pull request, least privilege, the secret never printed, and a clean skip without it. It needs the repository secret
+# ANTHROPIC_API_KEY and the repository variable PR_REVIEW_MODEL (a model id); without either the job ends green with a
+# one-line note. It uses only an action this repository already pins (actions/checkout) and Node's own fetch.
+# Rollback: delete this file and scripts/pr-review/.
+name: PR review (advisory)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Skip cleanly without the secret or the model
+        id: gate
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          HAS_MODEL: ${{ vars.PR_REVIEW_MODEL != '' }}
+        run: |
+          if [ "$HAS_KEY" = "true" ] && [ "$HAS_MODEL" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR review skipped: the ANTHROPIC_API_KEY secret or the PR_REVIEW_MODEL variable is not set."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.gate.outputs.run == 'true'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Review the diff
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_REVIEW_MODEL: ${{ vars.PR_REVIEW_MODEL }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: node scripts/pr-review/review.mjs
