@@ -9345,6 +9345,17 @@
         color: var(--accent-cyan, #9ee8f8) !important
     }
 }
+/*  components/hide-amounts.css  */
+@scope (:root[data-theme=dark]) {
+    :scope[data-hide-amounts="on"] :is(
+  .wealth-total-headline, .split-figure, .wealth-total-other, .accounts-worth-net, .accounts-row-balance strong,
+  .owned-value, .portfolio-totals dd, .portfolio-tx-amount, .portfolio-since-value, .portfolio-coin-results, .wallet-holding-amount,
+  .wallet-holdings-total, .wallet-totals, .goal-value, .dashboard-metric-value, .dashboard-widget-preview-value,
+  .staking-amount, .stake-card-value, .earn-value, [data-private-amount]
+):not(#\-), :scope[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg:not(#\-) {
+        filter: blur(7px)
+    }
+}
 /*  components/import/import.css  */
 @scope (:root[data-theme=dark]) {
     .import-step-heading:not(#\-) {
@@ -13035,6 +13046,9 @@
         .portfolio-holdings-section .data-table tbody > tr.data-detail-row > td:not(#\-) {
             border-color: currentcolor
         }
+    }
+    .portfolio-transactions li[data-direction="in"] .portfolio-tx-amount:not(#\-) {
+        color: #7ee2b8
     }
 }
 /*  components/portfolio/value-chart.css  */

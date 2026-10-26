@@ -1,4 +1,5 @@
 'use client';
+import {LAST_VISIT_KEY, readVisits, sinceChange, visitStep, type Seen} from '../../lib/portfolio/last-visit';
 import {TransactionForm, type Run} from './transaction-form';
 import Link from 'next/link';
 import {useEffect, useMemo, useState, Fragment} from 'react';
@@ -36,8 +37,29 @@ export function PortfolioSummary({portfolio, totals, day, allTime, stale}: {port
     <div><dt>{totals.unpriced && totals.unpriced < totals.held ? 'Known value' : 'Value'}</dt><dd>{!totals.held ? 'Nothing held yet' : totals.unpriced === totals.held ? 'Unknown' : formatMoney(totals.knownValue, currency)}</dd>{totals.unpriced > 0 && <small>{totals.unpriced} {totals.unpriced === 1 ? 'coin has' : 'coins have'} no price yet and {totals.unpriced === 1 ? 'is' : 'are'} not counted.</small>}{stale && <small>Includes prices that need a refresh.</small>}</div>
     <div><dt>24h change</dt><dd data-direction={direction(day.value)}>{day.value === undefined ? 'Unknown' : `${formatSignedMoney(day.value, currency)}${day.pct !== undefined ? ` (${percent(day.pct)})` : ''}`}</dd><small>{day.value === undefined ? (totals.held ? 'No 24h change is known for what you hold.' : 'Of what you hold now.') : day.counted < day.held ? `Of what you hold now: ${day.counted} of ${day.held} coins have a 24h change.` : 'Of what you hold now.'}</small></div>
     <div><dt>All-time result</dt><dd data-direction={direction(allTime.value)}>{allTime.value === undefined ? 'Unknown' : `${formatSignedMoney(allTime.value, currency)}${allTime.pct !== undefined ? ` (${percent(allTime.pct)})` : ''}`}</dd><small>{allTime.value !== undefined ? `Realized ${formatSignedMoney(allTime.realized!, currency)} · unrealized ${formatSignedMoney(allTime.unrealized!, currency)}` : allTime.reason === 'price' ? 'Needs a price for every coin you hold.' : allTime.reason === 'cost' ? 'A transfer in without a price has no known cost.' : 'From your transactions.'}</small></div>
-    <div><dt>Cost basis</dt><dd>{!totals.held ? '—' : totals.costKnown ? formatMoney(totals.cost, currency) : 'Unknown'}</dd>{totals.held > 0 && !totals.costKnown && <small>A transfer in without a price has no known cost.</small>}</div>
+    <div><dt>Cost basis</dt><dd>{!totals.held ? '—' : totals.costKnown ? formatMoney(totals.cost, currency) : 'Unknown'}</dd>{totals.held > 0 && !totals.costKnown && <small>A transfer in without a price has no known cost.</small>}{/* Session AH (WE21, T-050) */}{totals.held > 0 && totals.costKnown && <small>Average cost: what you paid, averaged over your buys (lots are not tracked).</small>}</div>
   </dl>;
+}
+
+/**
+ * Session AH (WE22, N-082): the change since your last visit, from a device-only note (lib/portfolio/last-visit.ts). Only
+ * with every held coin priced and current, never in the Showcase; the change includes what you bought or sold in between.
+ */
+export function SinceLastVisit({portfolio, value, ready}: {portfolio: Portfolio; value: string; ready: boolean}) {
+  const [compare, setCompare] = useState<Seen | undefined>(undefined);
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      const visits = readVisits(localStorage.getItem(LAST_VISIT_KEY)), step = visitStep(visits[portfolio.id], {at: Date.now(), value, currency: portfolio.currency});
+      setCompare(step.compare);
+      if (step.next) localStorage.setItem(LAST_VISIT_KEY, JSON.stringify({...visits, [portfolio.id]: step.next}));
+    } catch { setCompare(undefined); }
+    // Once per visit: a price tick after the first known value does not move "last visit".
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, portfolio.id, portfolio.currency]);
+  if (!ready || !compare) return null;
+  const change = sinceChange(compare, value);
+  return <p className="portfolio-since" data-testid="portfolio-since">Since your last visit ({formatDateTime(new Date(compare.at).toISOString())}): <strong className="portfolio-since-value" data-direction={direction(change.value)}>{formatSignedMoney(change.value, portfolio.currency)}{change.pct !== undefined ? ` (${percent(change.pct)})` : ''}</strong>. <small>Includes anything you bought or sold since.</small></p>;
 }
 
 function PriceCell({price, currency}: {price?: Price; currency: string}) {
@@ -134,8 +156,8 @@ export function AllTransactions({portfolio, onRemove, run}: {portfolio: Portfoli
 }
 export function TransactionList({portfolio, list, names, onRemove, run}: {portfolio: Portfolio; list: PortfolioTransaction[]; names: Map<string, PortfolioCoin>; onRemove: (id: string) => void; run?: Run}) {
   const currency = portfolio.currency, [editing, setEditing] = useState<string | null>(null);
-  return <ol className="portfolio-transactions">{list.map(t => <li key={t.id}>
-    <span><strong>{TX_LABEL[t.kind]}</strong> {formatExactNumber(t.quantity)} {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
+  return <ol className="portfolio-transactions">{list.map(t => <li key={t.id} data-direction={t.kind === 'buy' || t.kind === 'transfer-in' ? 'in' : 'out'}>
+    {/* Session AH (J17): what came in reads "+", in green; what went out "−" */}<span><strong>{TX_LABEL[t.kind]}</strong> <span className="portfolio-tx-amount">{t.kind === 'buy' || t.kind === 'transfer-in' ? '+' : '−'}{formatExactNumber(t.quantity)}</span> {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
     <small><time dateTime={t.date}>{formatDate(t.date)}</time>{t.note ? ` · ${t.note}` : ''}</small>
     {/* Session AH (WE2, N-146): a recorded transaction can be corrected, not only removed */}{run && names.get(t.coin) && <button type="button" className="quiet" aria-expanded={editing === t.id} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>}<button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
     {run && editing === t.id && names.get(t.coin) && <TransactionForm portfolio={portfolio} run={run} coin={names.get(t.coin)} edit={{transaction: t, onDone: () => setEditing(null)}} />}

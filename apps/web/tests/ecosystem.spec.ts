@@ -8,6 +8,9 @@ test("ecosystem research is readable without connecting a wallet", async ({ page
   await (await navLink(page, "Ecosystem")).click();
   await expect(page.getByRole("heading", { name: "Explore the ZIGChain ecosystem." })).toBeVisible();
   await page.locator(".ecosystem-tools > summary").click();
+  // Session AH (WE15): mainnet first, the test network's homepages still there and labelled.
+  await expect(page.getByRole("link", { name: "Open Range ↗", exact: true })).toHaveAttribute("href", "https://app.range.org/zigchain/general");
+  await expect(page.getByRole("link", { name: "Open ZIGScan ↗", exact: true })).toHaveAttribute("href", "https://zigscan.org/");
   await expect(page.getByRole("link", { name: "Open Range testnet ↗" })).toHaveAttribute("href", "https://app.range.org/zigchain-testnet/general");
   await expect(page.getByRole("link", { name: "Open ZIGScan testnet ↗" })).toHaveAttribute("href", "https://testnet.zigscan.org/");
   const noble = page.locator(".ecosystem-project").filter({has:page.getByRole("heading",{name:"Noble",exact:true})});

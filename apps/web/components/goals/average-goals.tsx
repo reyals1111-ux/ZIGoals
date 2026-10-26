@@ -48,7 +48,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
   const t = templateId ? templateById(templateId) : undefined, preset = t?.average;
   const store = useAverageGoals(), extras = useGoalExtras(), router = useRouter(), id = useId();
   const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
-  const [target, setTarget] = useState(preset ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
+  const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
   const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState('');
   function save(e: React.FormEvent) {
     e.preventDefault(); setError('');
@@ -69,9 +69,10 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
     <label className="field"><span>Measure</span><select value={metric} onChange={e => { const m = e.target.value as AverageMetric; setMetric(m); setUnit(AVERAGE_METRICS[m].unit); }}>{(Object.keys(AVERAGE_METRICS) as AverageMetric[]).map(m => <option key={m} value={m}>{AVERAGE_METRICS[m].label}{AVERAGE_METRICS[m].source === 'health' ? ' (from Health)' : ''}</option>)}</select></label>
     <div className="average-goal-row">
       <label className="field"><span>Keep it</span><select value={direction} onChange={e => setDirection(e.target.value as 'at-least' | 'at-most')}><option value="at-least">At least</option><option value="at-most">At most</option></select></label>
-      <label className="field"><span>Target</span><input inputMode="decimal" value={target} onChange={e => setTarget(e.target.value)} /></label>
+      <label className="field"><span>Target</span><input inputMode="decimal" value={target} onChange={e => setTarget(e.target.value)} aria-describedby={preset?.askTarget ? `${id}-own-target` : undefined} /></label>
       <label className="field"><span>Unit</span><input value={unit} maxLength={30} onChange={e => setUnit(e.target.value)} /></label>
     </div>
+    {preset?.askTarget && <p className="fine" id={`${id}-own-target`}>Write your own cap per day, in your currency. Log what you spend on the goal’s page each day; a day with no spending is a 0.</p>}
     <fieldset className="average-windows"><legend>Over the last</legend>{WINDOWS.map(w => <label key={w}><input type="radio" name={`${id}-window`} checked={windowDays === w} onChange={() => setWindow(w)} /><span>{w} days</span></label>)}</fieldset>
     {error && <p role="alert">{error}</p>}
     <p className="fine">Kept on this device and, with an account, in your encrypted sync. A day without a value is left out of the average, never counted as zero.</p>

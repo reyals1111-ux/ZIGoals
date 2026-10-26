@@ -8835,6 +8835,17 @@
         color: var(--accent-cyan-ink) !important
     }
 }
+/*  components/hide-amounts.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    :scope[data-hide-amounts="on"] :is(
+  .wealth-total-headline, .split-figure, .wealth-total-other, .accounts-worth-net, .accounts-row-balance strong,
+  .owned-value, .portfolio-totals dd, .portfolio-tx-amount, .portfolio-since-value, .portfolio-coin-results, .wallet-holding-amount,
+  .wallet-holdings-total, .wallet-totals, .goal-value, .dashboard-metric-value, .dashboard-widget-preview-value,
+  .staking-amount, .stake-card-value, .earn-value, [data-private-amount]
+):not(#\-), :scope[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg:not(#\-) {
+        filter: blur(7px)
+    }
+}
 /*  components/import/import.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .import-step-heading:not(#\-) {
@@ -12212,6 +12223,9 @@
             border-color: currentcolor
         }
     }
+    .portfolio-transactions li[data-direction="in"] .portfolio-tx-amount:not(#\-) {
+        color: #096a4c
+    }
 }
 /*  components/portfolio/value-chart.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -13627,6 +13641,8 @@
 :root[data-theme=light] .staking-card:not(#\-) { background-image: linear-gradient(110deg, #f3f5faf2, #eef1f8e6), var(--cosmic-horizon); }
 /* A project without a logo shows its initials on the same tile as a logo (by day a light tile): its letters are ink. */
 :root[data-theme=light] .ecosystem-initials:not(#\-) { color: #1c2333; }
+/* Session AH (WE15, D-157, B-122): official site icons are mostly light marks; in Light their tile keeps the dark ground so none is blank. */
+:root[data-theme=light] .ecosystem-logo:not(#\-) { background-color: #101a2c; border-color: #27334973; }
 /* apps/web/themes/light.ah-habits.css */
 /* Session AH (HA15; D-178, D-192): the 30-day heatmap in Light: an empty day is a clear outlined cell, each level darker
    than the last, every number on its own background at 4.5:1 or more. */

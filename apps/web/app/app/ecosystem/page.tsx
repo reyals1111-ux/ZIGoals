@@ -1,5 +1,5 @@
 import "../../../components/life-pages.css";
-import { explorers, hubLinks } from "@zigoals/ecosystem-registry/links";
+import { explorers, hubLinks, mainnetExplorers } from "@zigoals/ecosystem-registry/links";
 import { EcosystemDirectory } from "../../../components/ecosystem-directory";
 import { idleStrategy } from "@zigoals/strategy-types";
 import { StrategyTransparency } from "../../../components/strategy-transparency";
@@ -19,8 +19,9 @@ export default function EcosystemPage() {
           Use an explorer to inspect public activity. ZIGoals separately checks
           known transaction receipts.
         </p>
+        {/* Session AH (WE15, M-117, B-093): ZIGChain mainnet first; the test network's homepages stay, labelled, for practice. */}
         <div className="actions">
-          {explorers.map((p) => (
+          {mainnetExplorers.map((p) => (
             <a
               key={p.id}
               className="secondary"
@@ -28,14 +29,24 @@ export default function EcosystemPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Open {p.name} testnet ↗
+              Open {p.name} ↗
             </a>
           ))}
         </div>
         <p className="fine">
-          ZIGScan detail links appear on known records. Range detail routes are
-          still unconfirmed; its official testnet homepage is available here.
-          Neither explorer is a complete ZIGoals history service.
+          Test network (practice):{" "}
+          {explorers.map((p, i) => (
+            <span key={p.id}>
+              {i > 0 && " · "}
+              <a href={p.homepage} target="_blank" rel="noopener noreferrer">
+                Open {p.name} testnet ↗
+              </a>
+            </span>
+          ))}
+        </p>
+        <p className="fine">
+          Detail links appear on known records. Neither explorer is a complete
+          ZIGoals history service.
         </p>
       </section>
       <section

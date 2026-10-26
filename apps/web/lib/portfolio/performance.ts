@@ -38,6 +38,32 @@ export function realizedResults(portfolio: Pick<Portfolio, 'transactions'>): Map
   return new Map([...state].map(([coin, s]) => [coin, s.realized?.toFixed()]));
 }
 
+/** One sale with its result (Session AH, WE18): proceeds, the average cost it took, the fee and the result; unknown cost stays unknown. */
+export type RealizedSale = {kind: 'sell' | 'transfer-fee'; date: string; coin: string; quantity: string; proceeds: string; fee: string; cost?: string; result?: string};
+/** Every sale in date order, with the same average-cost arithmetic as realizedResults; a fee on a transfer out is its own row, so the rows add up to the realized result. */
+export function realizedSales(portfolio: Pick<Portfolio, 'transactions'>): RealizedSale[] {
+  const state = new Map<string, {quantity: Dec; cost: Dec | null}>(), sales: RealizedSale[] = [];
+  for (const t of ordered(portfolio.transactions)) {
+    const s = state.get(t.coin) ?? {quantity: new D(0), cost: new D(0)}, quantity = new D(t.quantity);
+    if (t.kind === 'buy' || t.kind === 'transfer-in') {
+      s.cost = s.cost !== null && t.price !== undefined ? s.cost.plus(quantity.times(t.price)).plus(t.fee ?? 0) : null;
+      s.quantity = s.quantity.plus(quantity);
+    } else {
+      if (quantity.greaterThan(s.quantity)) throw new HoldingsBelowZero(t.coin, t.date);
+      const remaining = s.quantity.minus(quantity);
+      const kept = s.cost === null ? null : s.quantity.isZero() ? new D(0) : s.cost.times(remaining).dividedBy(s.quantity), share = s.cost === null ? null : s.cost.minus(kept!);
+      if (t.kind === 'sell') {
+        const proceeds = quantity.times(t.price!), fee = new D(t.fee ?? 0);
+        sales.push({kind: 'sell', date: t.date, coin: t.coin, quantity: quantity.toFixed(), proceeds: proceeds.toFixed(), fee: fee.toFixed(), cost: share?.toFixed(), result: share === null ? undefined : proceeds.minus(fee).minus(share).toFixed()});
+      } else if (t.fee !== undefined) sales.push({kind: 'transfer-fee', date: t.date, coin: t.coin, quantity: quantity.toFixed(), proceeds: '0', fee: new D(t.fee).toFixed(), cost: '0', result: new D(t.fee).negated().toFixed()});
+      s.cost = remaining.isZero() ? new D(0) : kept;
+      s.quantity = remaining;
+    }
+    state.set(t.coin, s);
+  }
+  return sales;
+}
+
 /** Everything that came in at a known cost (buys and priced transfers in, with their fees); unknown with any unpriced transfer in. */
 export function investedTotal(portfolio: Pick<Portfolio, 'transactions'>): string | undefined {
   let total = new D(0);

@@ -1,4 +1,5 @@
 'use client';
+import {HideAmountsToggle} from '../hide-amounts';
 import {ProgressSlot} from '../progress/slot';
 import {WealthTotal,ONE_CURRENCY_LATER} from './wealth-total';
 import {splitWealthTotals} from '../../lib/wealth-total';
@@ -22,7 +23,7 @@ import './wealth.css';
 import './wealth-product.css';
 import './wealth-design-fixes.css';
 import './intelligence.css';
-import {Suspense,lazy,useState,type ComponentType,type CSSProperties} from 'react';
+import {Suspense,lazy,useEffect,useState,type ComponentType,type CSSProperties} from 'react';
 import type {LayoutAttrs} from '../layout-edit';
 /**
  * Phase 2 (weights, never a raised budget): Wealth's sections below the fold load as their own chunks. Each stays one
@@ -73,7 +74,7 @@ import {OrbitArt} from '../header-art/orbit-art';
 import {WealthGlyph} from '../header-art/glyphs/wealth';
 import {EmptyState} from '../ui/empty-state';
 import {assetQuantity,plainUnit} from './asset-quantity';
-import { formatDate, formatDateTime, formatExactNumber, formatQuantity } from '../../lib/visual-format';
+import { formatDate, formatDateTime, formatExactNumber, formatQuantity, formatTime } from '../../lib/visual-format';
 import { formatUnits } from '@zigoals/chain-config';
 import {wealthMoney} from './wealth-money';
 import {ShowcaseTag} from '../ui/showcase-tag';
@@ -84,6 +85,9 @@ export function WealthView(){
  const store=usePlatform(),[adding,setAdding]=useState(false),[importing,setImporting]=useState(false),[filter,setFilter]=useState('All'),[error,setError]=useState('');
  // W3: holdings from a CSV, with the undo ledger of this device.
  const imports=useImportUndo();const undoRecord=async(record:ImportRecord)=>{await store.update(s=>undoImport(record,{platform:s}).platform!);imports.forget(record.id);};const requests=uniqueMarketRequests([...wealthMarketRequests(store.data),...store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt&&(p.marketRef.kind!=='rwa'||(p.quoteCurrency??'USD')==='USD')?[{marketRef:p.marketRef,currency:p.quoteCurrency??'USD' as const}]:[])]),market=useMarketQuotes(requests);useValuationHistory(store,market);
+ // Session AH (WE4, D-096): a refresh you asked for says how it went, beside its button.
+ const [asked,setAsked]=useState(false),[refreshNote,setRefreshNote]=useState('');
+ useEffect(()=>{if(!asked||market.loading)return;setAsked(false);setRefreshNote(market.error?'Prices could not be refreshed. The last good values stay, with their times.':`Prices updated at ${formatTime(new Date().toISOString())}.`);},[asked,market.loading,market.error]);
  const insights=useMarketInsights(/* Session AH (WE11, B-085): only the holdings priced from the market; a manually valued one sends nothing */store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt&&isLivePriced(p)?[p.marketRef]:[])),showcase=useShowcase(),phone=usePhoneActive(),holdings=usePhoneShowAll(4),classes=usePhoneShowAll(4);
  const now=useEvidenceNow(store.data,market.now),overview=wealthOverview(store.data,now,market.quotes);
  if(!store.loaded)return <div className="dashboard"><h1>Your Wealth</h1><p>Loading your private wealth…</p></div>;
@@ -104,8 +108,8 @@ export function WealthView(){
  const total=<div className="wealth-hero-total" role="group" aria-label={overview.incomplete?'Known tracked wealth':'Total tracked wealth'}>{overview.subtotals.some(s=>s.currency==='USD'||s.currency==='EUR')&&<PinToToday label="Tracked wealth" choices={overview.subtotals.filter(s=>s.currency==='USD'||s.currency==='EUR').map(s=>({kind:'wealth' as const,metric:s.currency,label:`${s.currency} wealth`}))}/>}<span>{overview.incomplete?'KNOWN TRACKED WEALTH':'TOTAL TRACKED WEALTH'}</span><WealthTotal identity="wealth-total" subtotals={overview.subtotals} empty={overview.rows.length?'Needs valuation':'Start your wealth story'}/><small>{overview.rows.length}{` ${plural(overview.rows.length,'asset')} · `}{automatic.length} automatic · {overview.rows.length-automatic.length} manual</small>{/* Session AF Gate C (design critique 2): what this total counts and its date, beside net worth (accounts too) and the chart (recorded totals on past dates). */}{overview.rows.length>0&&<small className="wealth-total-scope">Your valued holdings on {formatDate(now)}. Net worth, in Accounts, debts &amp; net worth, adds accounts and takes off debts.</small>}{overview.subtotals.length>1&&<p className="wealth-total-fx">Currency totals stay separate. No FX assumed. {ONE_CURRENCY_LATER}</p>}</div>;
  return <LayoutPage page="wealth"><div className="dashboard wealth-workspace wealth-product"><ActionIntent value="asset" onAction={()=>setAdding(true)}/>
  {/* Session AB-Design Phase 2 (ADR-024 P5; critique 8): the shared pillar header, unboxed like the other three; the totals follow in their own card with the holdings' two tools ("Manage assets", "Refresh prices"), moved from the header, never removed. */}
- <PillarHero pillar="wealth" titleId="wealth-title" className="wealth-heading" eyebrow="Your financial orbit" title="Wealth, with every source in view." lede="Everything you own. Everything you’re working toward. One clear view." about="wealth" buttons={<button className="primary" onClick={()=>setAdding(true)}>+ Add asset</button>} art={<OrbitArt glyph={WealthGlyph} tone="wealth" spin={-34}/>}/>
- <section className="wealth-hero wealth-summary panel" aria-label="Your wealth in one view"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/>{total}<div className="wealth-summary-side"><dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl><div className="wealth-summary-tools"><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>void market.refresh()} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button></div><p className="fine">Private tracking · no funds move.</p></div></section>
+ <PillarHero pillar="wealth" titleId="wealth-title" className="wealth-heading" eyebrow="Your financial orbit" title="Wealth, with every source in view." lede="Everything you own. Everything you’re working toward. One clear view." about="wealth" buttons={<><button className="primary" onClick={()=>setAdding(true)}>+ Add asset</button><HideAmountsToggle className="secondary"/></>} art={<OrbitArt glyph={WealthGlyph} tone="wealth" spin={-34}/>}/>
+ <section className="wealth-hero wealth-summary panel" aria-label="Your wealth in one view"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/>{total}<div className="wealth-summary-side"><dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl><div className="wealth-summary-tools"><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>{setAsked(true);setRefreshNote('');void market.refresh();}} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button></div>{refreshNote&&<p className="fine wealth-refresh-note" role="status">{refreshNote}</p>}<p className="fine">Private tracking · no funds move.</p></div></section>
  {market.error&&<p className="notice" role="status">Price refresh is unavailable. Last-good values stay visible with their timestamps.</p>}
  <ImportBanner imports={imports} kind="wealth" onUndo={undoRecord}/>
  <LayoutRegion region="body" items={phoneOrder(phone,[

@@ -40,7 +40,7 @@ export function EcosystemCard({entry, open, onToggle}: {entry: DirectoryEntry; o
     </header>
     <p className="ecosystem-description">{entry.description}<small><a href={entry.descriptionSource} {...external}>Description source ↗</a></small></p>
     <div className="ecosystem-labels"><span>{entry.inclusion}</span><span>{p.phase === 'READ_ONLY' ? 'Read-only links' : 'Research only'}</span></div>
-    <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span>Website unavailable in this review</span>}</div>
+    <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span className="fine">No checked website link yet</span>}</div>
     <div className="ecosystem-details" id={detailsId} role="region" aria-labelledby={titleId} hidden={!open}>
       <p className="ecosystem-today"><strong>In ZIGoals today:</strong> research only — no connection to your money.</p>
       <section><h3>About</h3><p>{entry.description} <a href={entry.descriptionSource} {...external}>Description source ↗</a></p><p>{entry.inclusion}. <a href={entry.inclusionSource} {...external}>Inclusion evidence ↗</a></p></section>

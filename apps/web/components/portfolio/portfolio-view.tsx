@@ -1,13 +1,13 @@
 'use client';
 import {removeWithUndo} from '../ui/remove-with-undo';
-import {Suspense, lazy, useState} from 'react';
+import {Suspense, lazy, useId, useState} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
 import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
 import {PortfolioGlyph} from '../header-art/glyphs/portfolio';
 import {usePortfolios} from './use-portfolios';
 import {usePortfolioMarket, type CoinMarket} from './use-portfolio-market';
-import {AllTransactions, AllocationDonut, CoinSearch, HoldingsTable, KIND_LABEL, PortfolioSummary, rowsFor} from './portfolio-sections';
+import {AllTransactions, AllocationDonut, CoinSearch, HoldingsTable, KIND_LABEL, PortfolioSummary, SinceLastVisit, rowsFor} from './portfolio-sections';
 import {PortfolioValueChart} from './value-chart';
 import {TransactionForm, type Run} from './transaction-form';
 import {Watchlist} from '../platform/watchlist';
@@ -19,6 +19,8 @@ import {storageMessageOr} from '../../lib/storage-error-copy';
 import {type Portfolio, type PortfolioCoin, type PortfolioCurrency} from '../../lib/portfolio/schema';
 import {HoldingsBelowZero, holdings, portfolioTotals} from '../../lib/portfolio/math';
 import {allTimeResult, dayChange} from '../../lib/portfolio/performance';
+import {realizedGainsCsv} from '../../lib/portfolio/realized-csv';
+import {HideAmountsToggle} from '../hide-amounts';
 import {PortfolioUnreadable, createPortfolio, deletePortfolio, exportPortfolios, parsePortfolioImport, removeTransaction, renamePortfolio} from '../../lib/portfolio/store';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
@@ -79,6 +81,7 @@ export function PortfolioView() {
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="portfolio-eyebrow">On this device</NebulaFlow></p>
       <h1 id="portfolio-title"><NebulaFlow identity="portfolio-title">Portfolio</NebulaFlow></h1>
       <p className="page-lede">Keep track of coins you hold, or a portfolio you are only considering. It stays apart from your Wealth and Goals.</p>
+      <div className="portfolio-hero-tools"><HideAmountsToggle className="secondary"/></div>
       {store.showcase && <p className="portfolio-note" role="note">{market.priced ? 'Showcase: a fictional portfolio, priced with the market prices this Showcase loaded when it opened (the same on every page, kept for this tab). Its 24h and 7-day lines are examples.' : 'Showcase: a fictional portfolio with fixture prices. These are not market prices.'}</p>}
       {noPrices && <p className="portfolio-note" role="status">No live price is available right now. Values and results stay unknown until one is.</p>}
       <HeaderArtCorner><OrbitArt glyph={PortfolioGlyph} tone="wealth" spin={36}/></HeaderArtCorner>
@@ -158,6 +161,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     {renaming && <form className="portfolio-inline-form" aria-label="Rename portfolio" onSubmit={event => { event.preventDefault(); const name = String(new FormData(event.currentTarget).get('name') ?? ''); if (name.trim() && run(data => renamePortfolio(data, portfolio.id, name), 'Portfolio renamed.', 'The new name was not saved.')) setRenaming(false); }}><label className="field"><span>New name</span><input name="name" required maxLength={80} defaultValue={portfolio.name} /></label><button className="secondary" type="submit">Save name</button></form>}
     {removing && <div className="portfolio-confirm" role="alertdialog" aria-label="Delete portfolio"><p>Delete “{portfolio.name}” and its {portfolio.transactions.length} transactions from this device? Export it first to keep a copy.</p><div className="actions"><button type="button" className="secondary" onClick={() => run(data => deletePortfolio(data, portfolio.id), 'Portfolio deleted.', 'The portfolio was not deleted.')}>Delete portfolio</button><button type="button" className="quiet" onClick={() => setRemoving(false)}>Keep it</button></div></div>}
     <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
+    {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
     {rows.length > 0 && <>
       <div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
@@ -180,13 +184,19 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
 
 function PortfolioFiles({data, showcase, onImport, importing, onImportCsv}: {data: import('../../lib/portfolio/schema').PortfolioData; showcase: boolean; onImport: (data: import('../../lib/portfolio/schema').PortfolioData) => boolean; importing: boolean; onImportCsv: () => void}) {
   const [pending, setPending] = useState<import('../../lib/portfolio/schema').PortfolioData | null>(null), [problem, setProblem] = useState('');
-  const download = () => { const url = URL.createObjectURL(new Blob([exportPortfolios(data)], {type: 'application/json'})); const link = document.createElement('a'); link.href = url; link.download = exportFileName(`zigoals-portfolio-${localDate()}.json`, showcase); link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+  const save = (text: string, type: string, name: string) => { const url = URL.createObjectURL(new Blob([text], {type})); const link = document.createElement('a'); link.href = url; link.download = exportFileName(name, showcase); link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+  const download = () => save(exportPortfolios(data), 'application/json', `zigoals-portfolio-${localDate()}.json`);
+  // Session AH (WE18): realised gains per year, from real portfolios only.
+  const id = useId(), hasSales = data.portfolios.some(p => p.kind === 'real' && p.transactions.some(t => t.kind === 'sell'));
+  const gains = () => { try { save(realizedGainsCsv(data), 'text/csv', `zigoals-realised-gains-${localDate()}.csv`); } catch (error) { setProblem(plainErrorMessage(error, 'The realised gains file could not be made. Nothing was changed.')); } };
   return <section className="panel portfolio-files" aria-label="Portfolio file">
     <h2>Keep a copy</h2>
     <p>Export your portfolios as a file, or replace them from one. The file holds only Portfolio.</p>
     <div className="actions"><button type="button" className="secondary" disabled={!data.portfolios.length} onClick={download}>Export portfolios</button>
+      <button type="button" className="secondary" disabled={!hasSales} aria-describedby={`${id}-gains`} onClick={gains}>Realised gains by year (CSV)</button>
       <button type="button" className="secondary" aria-expanded={importing} onClick={onImportCsv}>Import transactions from a CSV</button>
       <label className="secondary portfolio-file-input">Import from a file<input type="file" accept="application/json,.json" onChange={async event => { setProblem(''); setPending(null); const file = event.target.files?.[0]; event.target.value = ''; if (!file) return; try { setPending(parsePortfolioImport(await file.text())); } catch (error) { setProblem(plainErrorMessage(error, 'The file was not imported. Nothing was changed.')); } }} /></label></div>
+    <p className="fine" id={`${id}-gains`}>Realised gains: each sale in your real portfolios with its average cost and result, and a total per year, for your accountant. {hasSales ? 'Check it against your own records; it is not tax advice.' : 'It opens once a real portfolio has a sale.'}</p>
     {problem && <p role="alert">{problem}</p>}
     {pending && <div className="portfolio-confirm" role="alertdialog" aria-label="Replace portfolios"><p>Replace all {data.portfolios.length} portfolios on this device with the {pending.portfolios.length} in this file?</p><div className="actions"><button type="button" className="secondary" onClick={() => { if (onImport(pending)) setPending(null); }}>Replace my portfolios</button><button type="button" className="quiet" onClick={() => setPending(null)}>Cancel</button></div></div>}
   </section>;

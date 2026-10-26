@@ -1,4 +1,5 @@
 'use client';
+import {useRememberedChoice} from '../ui/use-remembered-choice';
 import {showToast} from '../ui/undo-toast';
 import {ProgressSlot} from '../progress/slot';
 import {ValueSources} from '../bottom-sections';
@@ -33,7 +34,7 @@ const VIEWS=['All markets','Owned','Favourites','Crypto','Stablecoins','Stocks',
 const LAYOUTS=[{value:'cards',label:'Cards'},{value:'table',label:'Table'}] as const;
 const SORTS={listed:'As listed',name:'Name','change24h':'24h change',marketCap:'Market cap'} as const;
 export function MarketsView(){
- const store=usePlatform(),[layout,setLayout]=useState<'cards'|'table'>('cards'),[sort,setSort]=useState<keyof typeof SORTS>('listed'),[filter,setFilter]=useState('All markets'),[query,setQuery]=useState(''),[adding,setAdding]=useState(false),[error,setError]=useState(''),[page,setPage]=useState(0),[selectedRefs,setSelectedRefs]=useState<MarketAssetRef[]|null>(null);
+ const store=usePlatform(),[layout,setLayout]=useRememberedChoice<'cards'|'table'>('markets-layout','cards',['cards','table']),[sort,setSort]=useState<keyof typeof SORTS>('listed'),[filter,setFilter]=useState('All markets'),[query,setQuery]=useState(''),[adding,setAdding]=useState(false),[error,setError]=useState(''),[page,setPage]=useState(0),[selectedRefs,setSelectedRefs]=useState<MarketAssetRef[]|null>(null);
  const known=marketUniverse(store.data),rows:MarketRow[]=[...known,...FEATURED_MARKETS.filter(a=>!known.some(r=>r.key===marketRefKey(a.ref))).map(a=>({...a,key:marketRefKey(a.ref),category:marketCategory(a.ref,a.symbol),favourite:false,positionIds:[]}))];
  // Search filters local identities only. Acquisition changes on explicit views/pages or loading prices.
  const acquiredRefs=selectedRefs??(store.loaded?rows.slice(0,PAGE_SIZE).map(r=>r.ref):[]),acquiredKeys=new Set(acquiredRefs.map(marketRefKey));

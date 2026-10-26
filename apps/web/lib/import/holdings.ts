@@ -2,7 +2,7 @@ import {isMoneyCurrency} from '../visual-format';
 import {isVerifiedAsset} from '../market-assets';
 import {addTransaction, checkHistories, removeTransaction} from '../portfolio/store';
 import {coinKey, type PortfolioCoin, type PortfolioData, type PortfolioTransaction} from '../portfolio/schema';
-import {HoldingsBelowZero} from '../portfolio/math';
+import {HoldingsBelowZero, PortfolioDecimal} from '../portfolio/math';
 import {MANUAL_SOURCES, manualSourcePosition, type ManualSource} from '../manual-source';
 import {platformSchema, saveManualPosition, type Platform} from '../positions';
 import type {MarketCatalogAsset} from '../market-assets';
@@ -61,6 +61,18 @@ export function planTransactionImport({rows, mapping, numberStyle, dateFormat, t
     plan.ready.push({row, coinText, coin: resolved, kind, quantity, ...(price !== null ? {price} : {}), ...(fee !== null ? {fee} : {}), date, note: cell(cells, mapping, 'note').slice(0, 500)});
   });
   return plan;
+}
+/**
+ * Session AH (J14): rows that look like a transaction the portfolio already has (the same coin, type, date, quantity and
+ * price), so importing the same file twice does not double a history. Repeats inside one file are left alone: two equal buys
+ * on one day can be real. The person decides; the panel skips them by default.
+ */
+export function duplicateRows(portfolio: {transactions: readonly PortfolioTransaction[]} | undefined, ready: readonly ReadyTransaction[]): Set<number> {
+  const same = (a?: string, b?: string) => a === undefined || b === undefined ? a === b : new PortfolioDecimal(a).equals(b);
+  const found = new Set<number>();
+  if (!portfolio) return found;
+  for (const r of ready) if (portfolio.transactions.some(t => t.coin === coinKey(r.coin.ref) && t.kind === r.kind && t.date === r.date && same(t.quantity, r.quantity) && same(t.price, r.price))) found.add(r.row);
+  return found;
 }
 export const transactionImportId = (importId: string, row: number) => `imp_${importId}_${row}`;
 /** The coins a portfolio did not list before an import: named in the undo ledger as `coin:<key>`, so Undo can drop them again. */

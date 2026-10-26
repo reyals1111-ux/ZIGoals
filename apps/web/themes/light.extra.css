@@ -48,3 +48,5 @@
 :root[data-theme=light] .staking-card:not(#\-) { background-image: linear-gradient(110deg, #f3f5faf2, #eef1f8e6), var(--cosmic-horizon); }
 /* A project without a logo shows its initials on the same tile as a logo (by day a light tile): its letters are ink. */
 :root[data-theme=light] .ecosystem-initials:not(#\-) { color: #1c2333; }
+/* Session AH (WE15, D-157, B-122): official site icons are mostly light marks; in Light their tile keeps the dark ground so none is blank. */
+:root[data-theme=light] .ecosystem-logo:not(#\-) { background-color: #101a2c; border-color: #27334973; }

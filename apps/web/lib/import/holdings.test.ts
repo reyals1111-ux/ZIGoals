@@ -4,7 +4,7 @@ import {guessMapping, TRANSACTION_FIELDS, HOLDINGS_FIELDS} from '../csv/mapping'
 import {emptyPortfolioData, type PortfolioCoin} from '../portfolio/schema';
 import {createPortfolio, readPortfolios, updatePortfolios} from '../portfolio/store';
 import {emptyPlatform, platformSchema} from '../positions';
-import {addedCoinIds, applyHoldingsImport, applyTransactionImport, manualCategory, planHoldingsImport, planTransactionImport, resolveCoinWith, undoImport, UndoRefused, WEALTH_UNDO_REFUSED} from './holdings';
+import {addedCoinIds, applyHoldingsImport, duplicateRows, applyTransactionImport, manualCategory, planHoldingsImport, planTransactionImport, resolveCoinWith, undoImport, UndoRefused, WEALTH_UNDO_REFUSED} from './holdings';
 import {IMPORT_UNDO_KEY, MAX_IMPORT_RECORDS, emptyImportUndo} from './undo-schema';
 import {forgetImport, liveImports, readImportUndo, recordImport, startOverImportUndo, updateImportUndo} from './undo-store';
 
@@ -47,6 +47,16 @@ describe('transactions', () => {
     // ... and two unknown ones stay a list for the person to choose from.
     const twins = resolveCoinWith([{ref: {kind: 'coin', provider: 'coingecko', id: 'zzz-1'}, name: 'One ZZZ', symbol: 'ZZZ'}, {ref: {kind: 'coin', provider: 'coingecko', id: 'zzz-2'}, name: 'Other ZZZ', symbol: 'ZZZ'}], [])('ZZZ');
     expect(Array.isArray(twins) && twins.length).toBe(2);
+  });
+  test('J14: importing the same file again finds every row already there (same coin, type, date, quantity, price); a changed row is new', () => {
+    const data = createPortfolio(emptyPortfolioData(), {id: 'p1', name: 'Long-term', kind: 'real', currency: 'USD', createdAt: AT});
+    const plan = planTransactionImport({rows: parsed.rows, mapping, numberStyle: 'point', dateFormat: 'iso', today: TODAY, resolveCoin: resolve, choices: {doge: 'skip'}});
+    expect(duplicateRows(data.portfolios[0], plan.ready).size).toBe(0);
+    const once = applyTransactionImport(data, 'p1', plan.ready, {importId: IMPORT, at: AT});
+    expect([...duplicateRows(once.portfolios[0], plan.ready)]).toEqual([1, 2, 3]);
+    const changed = planTransactionImport({rows: [['2026-09-01', 'Buy', 'BTC', '0.50', '60000', '10', 'first'], ['2026-09-01', 'Buy', 'BTC', '0.6', '60000', '', '']], mapping, numberStyle: 'point', dateFormat: 'iso', today: TODAY, resolveCoin: resolve});
+    expect([...duplicateRows(once.portfolios[0], changed.ready)]).toEqual([1]);
+    expect(duplicateRows(undefined, plan.ready).size).toBe(0);
   });
   test('apply: ids per row, the coin list extended once, atomic on a sale below zero', () => {
     const data = createPortfolio(emptyPortfolioData(), {id: 'p1', name: 'Long-term', kind: 'real', currency: 'USD', createdAt: AT});

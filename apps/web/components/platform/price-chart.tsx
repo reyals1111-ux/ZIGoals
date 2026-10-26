@@ -1,4 +1,6 @@
 'use client';
+import {useRememberedChoice} from '../ui/use-remembered-choice';
+import {HISTORY_DAYS} from '../../lib/market-history';
 import {useEffect,useId,useMemo,useRef,useState,type CSSProperties} from 'react';
 import type {MarketAssetRef} from '../../lib/market-assets';
 import {availableHistoryRanges,createMarketHistoryCache,fetchPublicMarketHistory,formatHistoryValue,historyIsStale,historyPointsForRange,historyRequestSchema,RWA_HISTORY_UNAVAILABLE,validLocalHistory,type ChartHistoryRange,type HistoryPoint,type MarketHistoryResult} from '../../lib/market-history';
@@ -20,7 +22,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
  const [state,setState]=useState<{key:string;result:MarketHistoryResult}|null>(null);
  const [loadingKey,setLoadingKey]=useState<string|null>(null);
  const [now,setNow]=useState(()=>Date.now());
- const [range,setRange]=useState<ChartHistoryRange>('all');
+ const [range,setRange]=useRememberedChoice<ChartHistoryRange>('price-chart-range','all',['all',...Object.keys(HISTORY_DAYS)] as ChartHistoryRange[]);
  const [inspectedAt,setInspectedAt]=useState<string|null>(null);
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),30000);return ()=>clearInterval(timer);},[]);
  useEffect(()=>{

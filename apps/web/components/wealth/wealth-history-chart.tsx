@@ -1,4 +1,5 @@
 'use client';
+import {useRememberedChoice} from '../ui/use-remembered-choice';
 import {useId, useMemo, useState} from 'react';
 import {ASSET_COLORS, type WealthHistory} from '../../lib/wealth';
 import {wealthMoney} from '../platform/wealth-money';
@@ -29,7 +30,7 @@ const money = (value: string, currency: string) => wealthMoney(BigInt(value), cu
  * lines and areas are visual guides between them, never added data. The draw plays once (reduced motion: none).
  */
 export function WealthHistoryChart({history, showcase}: {history: WealthHistory; showcase: boolean}) {
-  const id = useId(), [range, setRange] = useState<(typeof RANGES)[number][0]>('All'), [active, setActive] = useState<number | null>(null);
+  const id = useId(), [range, setRange] = useRememberedChoice<(typeof RANGES)[number][0]>('wealth-history-range', 'All', RANGES.map(r => r[0])), [active, setActive] = useState<number | null>(null);
   const ref = useEntrance<HTMLElement>(`wealth-history:${history.currency}`, history.points.length > 1);
   // Phase 2, Part 4: drawn at its measured width, so the axis labels stay a real 14 px on every screen (chart-kit).
   const [plot, W] = useChartWidth(640, 280);
