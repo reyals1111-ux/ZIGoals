@@ -11485,6 +11485,9 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--space-purple) 15%,transparent)
     }
+    .asset-unverified:not(#\-) {
+        color: #f2c46d
+    }
 }
 /*  components/platform/evidence-chart.css  */
 @scope (:root[data-theme=dark]) {

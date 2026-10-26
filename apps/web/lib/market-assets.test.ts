@@ -25,3 +25,12 @@ it('accepts live catalog provider IDs beginning with punctuation and assets with
 it('deduplicates large position collections before enforcing the unique market bound',async()=>{
  const {uniqueMarketRequests}=await import('./market-assets');const request={marketRef:{provider:'coingecko' as const,kind:'coin' as const,id:'bitcoin'},currency:'USD' as const};expect(uniqueMarketRequests(Array.from({length:1000},()=>request))).toEqual([request]);expect(uniqueMarketRequests(Array.from({length:1000},(_,i)=>({...request,marketRef:{...request.marketRef,id:`asset-${i}`}})))).toHaveLength(1000);
 });
+
+it('Session AH (WE1): "bitcoin" is Bitcoin, never a token that took BITCOIN as its ticker; well-known assets come first', async () => {
+  const {isVerifiedAsset} = await import('./market-assets');
+  const coin = (id: string, name: string, symbol: string) => ({ref: {provider: 'coingecko' as const, kind: 'coin' as const, id}, name, symbol});
+  const catalog = [coin('harrypotterobamasonic10inu', 'HarryPotterObamaSonic10Inu (ETH)', 'BITCOIN'), coin('bitcoin', 'Bitcoin', 'BTC'), coin('gold-coin-x', 'GOL', 'gold'), coin('tether-gold', 'Tether Gold', 'XAUT'), coin('pax-gold', 'PAX Gold', 'PAXG')];
+  expect(searchMarketAssets('bitcoin', catalog).map(a => a.ref.id)).toEqual(['bitcoin', 'harrypotterobamasonic10inu']);
+  expect(searchMarketAssets('gold', catalog).map(a => a.ref.id).slice(0, 2).sort()).toEqual(['pax-gold', 'tether-gold']);
+  expect(isVerifiedAsset(catalog[0]!.ref)).toBe(false); expect(isVerifiedAsset(catalog[1]!.ref)).toBe(true);
+});
