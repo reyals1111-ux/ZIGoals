@@ -3949,7 +3949,11 @@
         outline-color: #75e2ef
     }
     .pin-to-today-status:not(#\-) {
-        color: #aee5d8
+        color: #aee5d8;
+        background-image: none;
+        background-color: #01030ef2;
+        border-color: #7fc8ff2e;
+        box-shadow: 0 8px 24px #0008
     }
 }
 /*  components/charts/charts.css  */
@@ -11668,6 +11672,12 @@
     }
     .goal-milestone-note:not(#\-) {
         border-color: #a6c1fa33
+    }
+}
+/*  components/platform/goal-finished.css  */
+@scope (:root[data-theme=dark]) {
+    .goal-finished:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent)
     }
 }
 /*  components/platform/intelligence.css  */

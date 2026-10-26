@@ -1,0 +1,7 @@
+/* Session AH (GO7): the "Goal reached" card. One soft glow when it appears; none under reduced motion or Motion Off. */
+.goal-finished { border-color: color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent); }
+.goal-finished h2 { margin: 4px 0 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion="off"]) .goal-finished { animation: goal-finished-glow 1.6s ease-out 1; }
+}
+@keyframes goal-finished-glow { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); } to { box-shadow: 0 0 0 18px transparent; } }
