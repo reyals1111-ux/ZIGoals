@@ -31,9 +31,12 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 
 - Part 2 so far: `9b1dd80f` staking execute test, `ba33c973` doProbe content-length (domain-review-race), AF7 verifier (TIER 3), `75766fec` AF6, `6966c04d` source-pinning + pagehide save, `6055f5ab` layout-fixes/J055/motion/parity.
 - Part 2 later: quick-add early tap, ADR M8–M10 (`e6bade8e`).
+- Part 3: DS1 (already safe; `ah-multitab`), DS4, DS5, DS2, DS3, DS6, DS7, DS8, DS9, A7, J2 (M11–M15).
 
 ## Next step
-- Part 3 in progress. Done: DS1 (already safe; spec `ah-multitab`), DS4 (`9dab86af`), DS5 (`3bc64a6d`). Next: DS3, DS2, DS6, DS7, DS8, DS9, A7, J2; then the Part 3 ADR rows.
+- Part 3 done (`9dab86af`, `3bc64a6d`, `749e2d75`; ADR rows `3038f6c0`).
+- Part 4 in progress. Done (`0dc8ae4d`, `bfd6d7fd`, `05037e8b`): TR1, TR2, TR3, TR4, TR5, TR8, TR13, B1, B2, B4, B7 (one valuation rule, one net worth with unvalued holdings named, the Showcase holds loaded quotes as "Showcase price", `formatQuantity` ≤ 8 dp). Next: TR7 (hide the currency switch, "coming later"), TR6/B5, TR9/B8 + HA2, TR10, TR11, TR12/B6, TR14; then ADR M16/M17 and the Part 4 rows.
+- CI: a later push never cancels a PR run (ci.yml concurrency); later pushes queue.
 - Shared pieces made in Part 3: `components/ui/confirm-inline.tsx` (in-place confirm), `lib/undo-removal.ts` + `components/ui/remove-with-undo.ts` (labelled Undo for removals), `tests/ah-helpers.ts`.
 
 ## Open decisions

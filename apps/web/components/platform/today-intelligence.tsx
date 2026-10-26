@@ -1,5 +1,6 @@
 'use client';
-import {WealthTotal,useBaseCurrency,wealthMoney} from './wealth-total';
+import {WealthTotal,wealthMoney} from './wealth-total';
+import {splitWealthTotals} from '../../lib/wealth-total';
 import {PillarMark} from '../pillars';
 import {waterSummary} from '../../lib/health-daily';
 import {nutritionSummaryText} from "../../lib/health";
@@ -23,7 +24,7 @@ import {NebulaFlow} from '../nebula-flow';
 import { formatDate, formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
 export function TodayIntelligence({sources,habitsReady,healthReady,module='all'}:{sources:DashboardSources;habitsReady:boolean;healthReady:boolean;module?:'all'|'life'|'attention'|'funding'|'needs-attention'|'watchlist'}){
- const {platform,quotes,now}=sources,base=useBaseCurrency();
+ const {platform,quotes,now}=sources;
  const today=sources.habits.timeZone?habitCalendarDay(sources.habits,new Date(now)):sources.today;
  const wealth=wealthOverview(platform,now,quotes);
  const goal=[...platform.goals].filter(g=>g.status!=='closed'&&g.type!=='PROJECT').sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||Number(a.status==='completed')-Number(b.status==='completed'))[0];
@@ -36,14 +37,15 @@ export function TodayIntelligence({sources,habitsReady,healthReady,module='all'}
  const attention=wealth.rows.filter(r=>r.stale||r.value===undefined||r.balance.deficit!=='0').length;
  // Session AB-Design Phase 2 (ADR-024 P7): the four rings. Goals: the average funded share of active Goals whose value is
  // known (unknown is left out, never counted as zero). Health: today's food and water against their targets, each capped
- // at 100 %. Wealth: the share of tracked wealth allocated to Goals, in the base currency only (never converted).
+ // at 100 %. Wealth: the share of tracked wealth allocated to Goals, in the headline currency only (never converted).
  const activeGoals=platform.goals.filter(g=>g.status==='active');
  const known=activeGoals.map(g=>goalProgress(platform,g.id,now,quotes)).filter(p=>valuationBound(p).bound!=='unavailable').map(p=>Math.min(100,Number(p.progressPct)));
  const goalsPct=known.length?known.reduce((a,b)=>a+b,0)/known.length:null;
  const water=healthReady?waterSummary(sources.health,sources.healthDate):undefined;
  const healthShares=[...(healthReady&&sources.health.targets.kcal?[Math.min(1,(nutrition?.nutrients.kcal??0)/sources.health.targets.kcal)]:[]),...(water&&water.targetMl?[Math.min(1,water.millilitres/water.targetMl)]:[])];
  const healthPct=healthShares.length?healthShares.reduce((a,b)=>a+b,0)/healthShares.length*100:null;
- const baseTotal=wealth.subtotals.find(t=>t.currency===base)??wealth.subtotals[0];
+ // Session AH (TR7): the ring reads the same currency as the headline beside it (the largest total; nothing converted).
+ const baseTotal=splitWealthTotals(wealth.subtotals).primary;
  const wealthPct=baseTotal&&baseTotal.value>0n?Number(baseTotal.allocated*10000n/baseTotal.value)/100:null;
 
  const status=pulse?.status==='NO_PLAN'?'No plan':pulse?.status==='REVIEW'?'Needs review':pulse?.status==='COMPLETED'?'Complete':pulse?.status.replaceAll('_',' ').toLowerCase();

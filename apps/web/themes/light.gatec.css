@@ -16,7 +16,6 @@
 /* Earn's "You keep the keys" tag: white, not a tinted fill, its words a deep gold (Nebula's gold edge unchanged). */
 :root[data-theme=light] .earn-tag[data-tone=keys]:not(#\-) { background: #ffffff; color: #7a4f00; }
 /* Wealth's chosen base currency: white with ink words (the generator had made a beige pill); its gold edge as in Nebula. */
-:root[data-theme=light] .wealth-base-switch > button[aria-pressed="true"]:not(#\-) { background: #ffffff; color: #0d0f15; }
 /* Add money's choice rings: a visible ring by day and a chosen ring that meets 3:1 (WCAG 1.4.11); the cyan itself is
    too faint on white for a state. */
 :root[data-theme=light] .add-money-tile button:not(#\-)::after { border-color: #6b7a93; }
