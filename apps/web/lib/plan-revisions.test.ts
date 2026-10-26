@@ -96,3 +96,21 @@ describe('immutable plans and Goal milestones',()=>{
   expect(platformSchema.parse(JSON.parse(JSON.stringify(reopened))).goals[0]!.lifecycle).toEqual(reopened.goals[0]!.lifecycle);
  });
 });
+
+// Session AH (TR12, B-058): a save writes "Target reached" only for the Goal that crossed its target in it. A change to a
+// holding that another Goal shares does not give that other Goal (already at its target, from an older record without the
+// step) a new event dated today.
+describe('no Target reached for a Goal that did not cross in this save',()=>{
+ it('a shared holding changes; the Goal already at its target gets no new completion',()=>{
+  const p=positionSchema.parse({id:'p',providerId:'manual',sourceType:'MANUAL',network:'manual',account:'local',asset:'USD',denom:'USD',quantity:'200000',decimals:2,verification:'MANUAL',observedAt:at,liquidity:'LIQUID',provenance:'User entry',valuation:{value:'200000',currency:'USD',decimals:2,source:'MANUAL',observedAt:at}});
+  const two=privateGoalSchema.parse({...goal(),id:'2',name:'Already there'});
+  const base:Platform={...emptyPlatform(),goals:[goal(),two],positions:[p],allocations:[{goalId:'2',positionId:'p',quantity:'100000'}]};
+  const before:Platform={...base,goals:base.goals.map(g=>({...g,lifecycle:undefined}))};
+  const grown={...p,quantity:'250000',valuation:{...p.valuation!,value:'250000'}};
+  const after=recordGoalChanges(before,{...before,positions:[grown],allocations:[...before.allocations,{goalId:'1',positionId:'p',quantity:'50000'}]},now);
+  expect(after.goals.find(g=>g.id==='2')!.lifecycle?.filter(e=>e.kind==='completed')??[]).toEqual([]);
+  // The Goal that does cross in a save still gets its step.
+  const crossed=recordGoalChanges(after,{...after,allocations:after.allocations.map(a=>a.goalId==='1'?{...a,quantity:'100000'}:a)},now+1);
+  expect(crossed.goals.find(g=>g.id==='1')!.lifecycle?.filter(e=>e.kind==='completed')).toHaveLength(1);
+ });
+});

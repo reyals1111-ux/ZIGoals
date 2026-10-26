@@ -476,13 +476,13 @@ export function scheduleLabel(schedule: HabitRule["schedule"]): string {
 }
 export function measurementUnit(rule: HabitRule): string { return rule.measurement.kind === "boolean" ? "" : rule.measurement.unit; }
 export function smartDoneValue(rule: HabitRule): number { return rule.type === "build" ? rule.target : 0; }
-export function getHabitActivities(data: HabitData): { id: string; category: "HABIT"; title: string; detail: string; at: string; href: string }[] {
+export function getHabitActivities(data: HabitData): { id: string; category: "HABIT"; title: string; detail: string; at: string; day: string; href: string }[] {
   return data.habits.flatMap((habit) => habit.entries.filter((entry) => {
     if (entry.disposition !== "logged") return false;
     const rule = habitRuleOn(habit, entry.date);
     return !!rule && (rule.type !== "build" || entry.count > 0);
   }).map((entry) => {
     const rule = habitRuleOn(habit, entry.date)!; const outcome = individualSuccess(rule, entry.count) ? "completed" : "logged";
-    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, href: "/app/habits" };
+    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, day: entry.date, href: "/app/habits" };
   })).sort((a, b) => b.at.localeCompare(a.at));
 }

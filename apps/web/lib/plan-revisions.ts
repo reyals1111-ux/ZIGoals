@@ -98,7 +98,10 @@ export function captureGoalLifecycle(before:Platform,after:Platform,now:number,q
   if(old&&(old.target!==g.target||old.targetDate!==g.targetDate)&&JSON.stringify(old.lifecycle)===JSON.stringify(g.lifecycle)){cycle++;add('target_changed');}
   if(old&&old.status!=='closed'&&g.status==='closed'&&JSON.stringify(old.lifecycle)===JSON.stringify(g.lifecycle))add('closed');
   const observed=before===after||!old||evidence(before,old)!==evidence(after,g);
-  if(observed&&g.status!=='closed'&&!events.some(e=>e.kind==='completed'&&e.cycle===cycle)){
+  // Session AH (TR12, B-058): a save records "Target reached" only for a Goal that crossed its target in it. Funding one
+  // Goal can change a holding another Goal shares; that other Goal, already at its target before, gets no new event.
+  const wasReached=()=>{if(!old||before===after||cycle!==(events.at(-1)?.cycle??0)||events.length!==(g.lifecycle?.length??0))return false;try{const b=goalProgress(before,g.id,now,quotes);return !b.requiresReview&&BigInt(b.current)>=BigInt(b.target);}catch{return false;}};
+  if(observed&&g.status!=='closed'&&!events.some(e=>e.kind==='completed'&&e.cycle===cycle)&&!wasReached()){
    const p=goalProgress(after,g.id,now,quotes);
    if(!p.requiresReview&&BigInt(p.current)>=BigInt(p.target))add('completed',{current:p.current,evidence:p.breakdown.map(b=>{const position=after.positions.find(x=>x.id===b.positionId)!;return {positionId:b.positionId,quantity:b.quantity,positionQuantity:position.quantity,quantityDecimals:position.decimals,counted:b.counted,observedAt:position.observedAt,provenance:position.provenance,valuation:position.valuation,quote:b.valuation?.quote};})});
   }

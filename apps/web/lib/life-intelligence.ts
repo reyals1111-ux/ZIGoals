@@ -50,6 +50,17 @@ export function activityPresentation(event: { category: string; title: string; d
 }
 
 /** The day an event belongs to, in the journal's zone when one is chosen (as Habits and Health count days), else the device's. */
+/** Session AH (TR12, D-227): an event's day — the record's own day when it has one (a meal logged today for yesterday sits
+ * under yesterday), else the day of its time in the journal zone. */
+export function activityDay(event: { at: string; day?: string }) {
+  if (event.day) return event.day;
+  const zone = journalTimeZone(), time = Date.parse(event.at);
+  return Number.isFinite(time) ? (zone ? wallClock(time, zone).date : localDate(new Date(time))) : event.at.slice(0, 10);
+}
+export function activityDayHeading(day: string, today?: string) {
+  const zone = journalTimeZone(), now = today ?? (zone ? wallClock(Date.now(), zone).date : localDate());
+  return formatRelativeDay(day, now, { weekday: true });
+}
 export function activityDateHeading(at: string, today?: string) {
   const zone = journalTimeZone(), day = (ms: number) => zone ? wallClock(ms, zone).date : localDate(new Date(ms));
   const time = Date.parse(at);
