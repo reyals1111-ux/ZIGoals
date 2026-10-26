@@ -44,7 +44,11 @@ test('Activity categories preserve true dated events and current favourites cont
   await expect(page.locator('.unified-activity')).toContainText('Bitcoin added');
   await expect(page.locator('.unified-activity')).toContainText('Metal');
   await expect(page.locator('.unified-activity')).not.toContainText('Showcase walk');
-  await page.locator('.unified-activity a').first().click();
+  /* Assertion changed (Session AH B-199, stronger): account payments and balance updates are Wealth events too, dated
+     on their own day, so the newest Wealth row can be an account's (linking to Accounts). An asset's row still links to
+     its asset page. */
+  await expect(page.locator('.unified-activity a[href="/app/wealth#accounts-title"]').first()).toBeVisible();
+  await page.locator('.unified-activity a[href*="/app/wealth/asset/"]').first().click();
   await expect(page).toHaveURL(/\/app\/wealth\/asset\//);
 });
 
