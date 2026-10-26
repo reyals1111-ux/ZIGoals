@@ -58,7 +58,9 @@ test('HE7: each wrong custom fasting target says what is wrong, and nothing star
   await page.goto('/app/health'); await hydrated(page);
   const timer = page.getByRole('region', {name: 'Fasting timer', exact: true});
   // On a phone the module is folded until a fast runs.
-  if (!await timer.isVisible()) await page.locator('.phone-fold-toggle').filter({hasText: 'Fasting timer'}).first().click();
+  const fold = page.locator('.phone-fold-toggle').filter({hasText: 'Fasting timer'}).first();
+  await expect(timer.or(fold).first()).toBeVisible();
+  if (!await timer.isVisible()) await fold.click();
   await timer.getByRole('button', {name: 'Custom', exact: true}).click();
   const target = timer.getByLabel(/^Target hours/), start = timer.getByRole('button', {name: 'Start fast', exact: true});
   for (const [typed, said] of [['', 'Enter a target in whole hours.'], ['16.5', 'Enter whole hours, like 16.'], ['30', 'Choose a target from 1 to 18 hours.']] as const) {

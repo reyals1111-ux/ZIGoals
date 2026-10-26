@@ -12,8 +12,11 @@ test('log a workout: add an exercise, log and tick a set, rest, finish; the minu
   await freshDevice(page);
   await page.goto('/app/health'); await hydrated(page);
   const enter = page.getByRole('link', {name: 'Log your first workout'});
-  // On a phone the card sits in its fold.
-  if (!await enter.isVisible()) await page.getByRole('button', {name: 'Workouts', exact: true}).click();
+  // On a phone the card sits in its fold. The card says "Opening your workout log…" until the log has loaded, so wait
+  // for the link or the fold before choosing.
+  const fold = page.getByRole('button', {name: 'Workouts', exact: true});
+  await expect(enter.or(fold).first()).toBeVisible();
+  if (!await enter.isVisible()) await fold.click();
   await enter.click();
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Train with a plan.');
   await page.getByRole('button', {name: 'Start an empty workout'}).click();
