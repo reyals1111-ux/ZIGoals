@@ -14,9 +14,10 @@ import {useMarketQuotes} from '../platform/use-market-quotes';
 import {useEvidenceNow} from '../platform/use-evidence-now';
 import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
 import {useFieldErrors} from '../field-errors';
-import {formatDate} from '../../lib/visual-format';
 import './accounts.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
+import {moneyUnitsIssue, within} from '../../lib/limits/plausibility';
 
 /**
  * Accounts, debts and net worth (Session W Part 12; Wealth's "wealth:accounts" section). Balances are the person's own,
@@ -27,7 +28,7 @@ import {plainErrorMessage} from '../../lib/plain-error';
  */
 export const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
-const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
+const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); within(moneyUnitsIssue(value, 2)); /* Session AH (VA2, B3) */ if (value < 0n) throw Error('Enter the amount as a positive number; a debt’s balance is what is owed.'); return {value, decimals: 2, date}; };
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
   const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate();
@@ -52,7 +53,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   }, [handed, accounts.loaded, accounts.unreadable, accounts.data.items]);
   // Session AA-Cloud Part 6: archiving and removing also offer Undo in the shared toast.
   function change(fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) {
-    try { accounts.update(fn); setMessage(words); setError(''); if (undo) showToast({message: words, undo: () => accounts.update(undo.fn), undone: undo.done}); return true; } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved on this device.'); return false; }
+    try { accounts.update(fn); setMessage(words); setError(''); if (undo) showToast({message: words, undo: () => accounts.update(undo.fn), undone: undo.done}); return true; } catch (cause) { /* Session AH (VA7): never the last success beside the error */ setMessage(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
   }
   const market = useMarketQuotes(wealthMarketRequests(platform.data)), now = useEvidenceNow(platform.data, market.now);
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
@@ -134,7 +135,7 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
     </form>}
     {debt && b && b.value > 0n && <details className="accounts-payoff"><summary>When would it be paid off?</summary>
       {a.ratePercent ? <><label className="field">Monthly payment ({a.currency}){usual ? `, usual: ${moneyText(usual)}` : ''}<input inputMode="decimal" value={monthly} onChange={e => setMonthly(e.target.value)} placeholder={usual ? moneyText(usual) : 'for example 250'} /></label>
-        {Number.isFinite(monthlyNumber) && <p role="status">{months === null ? `At ${a.ratePercent} % a year this payment does not cover the interest, or it would take more than 100 years.` : months !== undefined ? `At your rate of ${a.ratePercent} % a year and ${monthlyNumber} ${a.currency} a month: paid off in about ${months} ${months === 1 ? 'month' : 'months'}, around ${addLocalDays(today, Math.round(months * 30.44))}.` : ''}</p>}
+        {Number.isFinite(monthlyNumber) && <p role="status">{months === null ? `At ${formatNumber(Number(a.ratePercent))} % a year this payment does not cover the interest, or it would take more than 100 years.` : months !== undefined ? `At your rate of ${formatNumber(Number(a.ratePercent))} % a year and ${formatMoney(String(monthlyNumber), a.currency)} a month: paid off in about ${months} ${months === 1 ? 'month' : 'months'}, around ${formatDate(addLocalDays(today, Math.round(months * 30.44)))}.` : ''}</p>}
         <p className="fine">Your own rate and payment, worked out here; not a figure from your lender.</p></>
         : <p className="fine">Add your yearly rate (Edit) to see when it would be paid off. ZIGoals never assumes a rate.</p>}
     </details>}

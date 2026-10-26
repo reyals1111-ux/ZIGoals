@@ -64,3 +64,13 @@ export function feeWarning(fee: number, trade: number): string | null {
 export function recordDayIssue(date: string): string | null {
   return !/^\d{4}-\d{2}-\d{2}$/.test(date) ? 'Choose a date.' : date < LIMITS.earliestDate ? 'Choose a date from 1990 on.' : null;
 }
+/** Base units (`decimals` places) of an asset quantity: at most 18 digits before the decimal point (some tokens are held
+ * in the trillions; 27-digit quantities were saved). */
+export function quantityUnitsIssue(units: bigint, decimals: number): string | null {
+  return units < 10n ** 18n * 10n ** BigInt(decimals) ? null : 'Enter a quantity with at most 18 digits before the decimal point.';
+}
+/** Base units of a money value: at most a trillion. */
+export function moneyUnitsIssue(units: bigint, decimals: number): string | null {
+  return units <= BigInt(LIMITS.amountMax) * 10n ** BigInt(decimals) ? null : 'Enter an amount up to a trillion.';
+}
+

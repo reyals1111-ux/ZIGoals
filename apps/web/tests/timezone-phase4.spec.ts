@@ -30,12 +30,25 @@ test('Settings → Your time zone: saving writes it once (settings v2), Habits f
   await expect(section).toContainText('Not written down yet: your days follow this device (America/New_York).');
   await section.getByLabel('Your time zone', {exact: true}).fill('Not/AZone');
   await section.getByRole('button', {name: 'Save my time zone', exact: true}).click();
-  await expect(section.getByRole('alert')).toHaveText('Choose an IANA time zone name, for example Europe/Brussels.');
+  // Assertion changed (Session AH VA10, C8; stronger): the refusal names what was typed and what to pick; a fixed offset
+  // is explained with places; a name in the wrong case is saved as the list writes it.
+  await expect(section.getByRole('alert')).toHaveText('“Not/AZone” is not a time zone name. Pick one from the list, for example Europe/Brussels.');
   expect((await stored(page, SETTINGS)).schemaVersion).toBe(1);
-  await section.getByLabel('Your time zone', {exact: true}).fill('Asia/Tokyo');
+  await section.getByLabel('Your time zone', {exact: true}).fill('UTC+13');
+  await section.getByRole('button', {name: 'Save my time zone', exact: true}).click();
+  await expect(section.getByRole('alert')).toContainText('UTC+13 is a fixed offset, with no daylight-saving rules. Choose the place instead');
+  expect((await stored(page, SETTINGS)).schemaVersion).toBe(1);
+  await section.getByLabel('Your time zone', {exact: true}).fill('asia/tokyo');
   await section.getByRole('button', {name: 'Save my time zone', exact: true}).click();
   await expect(section.getByRole('status')).toHaveText('Your time zone is saved. Past entries keep their dates.');
   expect(await stored(page, SETTINGS)).toMatchObject({schemaVersion: 2, journalTimeZone: 'Asia/Tokyo'});
+  await expect(section).toContainText('Your days follow Asia/Tokyo.');
+  // Back to the device's own zone (Session AH VA10).
+  await section.getByRole('button', {name: 'Follow this device (America/New_York)', exact: true}).click();
+  await expect(section).toContainText('Not written down yet: your days follow this device (America/New_York).');
+  expect((await stored(page, SETTINGS)).journalTimeZone).toBeUndefined();
+  await section.getByLabel('Your time zone', {exact: true}).fill('Asia/Tokyo');
+  await section.getByRole('button', {name: 'Save my time zone', exact: true}).click();
   await expect(section).toContainText('Your days follow Asia/Tokyo.');
   await page.goto('/app/habits');
   // In #main: while the streamed page swaps in, React's hidden server copy (div#S:0) can briefly hold a second one.

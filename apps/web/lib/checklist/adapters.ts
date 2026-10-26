@@ -14,6 +14,8 @@ import {discardHabitTimer, finishHabitTimer, startHabitTimer} from '../habit-tim
 import {addReceipt, dropReceipt, setCustomDone} from './day';
 import {mealAt, type DerivedDot} from './derive';
 import type {ChecklistDays} from './schema';
+import {formatDate} from '../visual-format';
+import { unitFor } from '../plural';
 
 /**
  * Ticking a dot writes the real record through its page's own functions (Session AF, L3; P7.10): a habit check-in
@@ -66,7 +68,7 @@ function habitPlan(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'value'):
   const r = receiptWrites(dot, ctx, {kind: 'habit', id: `${id}:${day}`});
   if (intent === 'value') {
     const v = valueOf(dot, ctx), unit = dot.value?.unit ?? '';
-    return {writes: [w('habits', d => { capture(d); return logHabitValue(d, id, day, v, {mode: 'add'}); }), r.apply], undo: [w('habits', d => restoreHabitDay(d, id, day, previous)), r.undo], message: `${v} ${unit} added to ${dot.label}`.replace(/\s+/g, ' ').trim() + (day !== ctx.date ? ` (for ${day}).` : '.'), undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};
+    return {writes: [w('habits', d => { capture(d); return logHabitValue(d, id, day, v, {mode: 'add'}); }), r.apply], undo: [w('habits', d => restoreHabitDay(d, id, day, previous)), r.undo], message: `${v} ${unitFor(v, unit)} added to ${dot.label}`.replace(/\s+/g, ' ').trim() + (day !== ctx.date ? ` (for ${formatDate(day)}).` : '.'), undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};
   }
   return {writes: [w('habits', d => { capture(d); const habit = d.habits.find(h => h.id === id); if (!habit) throw new TickRefused('This habit is no longer on Habits.'); const rule = habitRuleOn(habit, day); if (!rule) throw new TickRefused('This habit is not active today.'); return logHabitValue(d, id, day, smartDoneValue(rule)); }), r.apply],
     undo: [w('habits', d => restoreHabitDay(d, id, day, previous)), r.undo], message: `${dot.label} logged for ${forDay(day, ctx.date)}.`, undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};

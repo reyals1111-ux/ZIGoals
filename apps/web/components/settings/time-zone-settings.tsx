@@ -7,7 +7,7 @@ import {ZoneField} from '../zone-field';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, withJournalZone} from '../../lib/dashboard-settings';
 import {clearHabitTimezone, saveHabitTimezone} from '../../lib/habits';
 import {dailyData, saveHealthPreferences} from '../../lib/health-daily';
-import {timeZoneSchema} from '../../lib/time-zone-schema';
+import {readZoneInput} from '../../lib/time-zone-input';
 import {useDeviceZone} from '../use-device-zone';
 import {plainErrorMessage} from '../../lib/plain-error';
 
@@ -24,7 +24,8 @@ export function TimeZoneSettings() {
   const device = useDeviceZone(), journal = settings.data.journalTimeZone ?? null;
   const habitsZone = habits.data.timeZone ?? null, healthZone = dailyData(health.data).preferences.timezone;
   const ready = settings.loaded && !settings.error;
-  const zoneFrom = (form: HTMLFormElement, name: string) => { const parsed = timeZoneSchema.safeParse(String(new FormData(form).get(name) ?? '').trim()); if (!parsed.success) throw Error('Choose an IANA time zone name, for example Europe/Brussels.'); return parsed.data; };
+  // Session AH (VA10, C8): a typed name is matched whatever its case; an offset or a made-up name says why and what to pick.
+  const zoneFrom = (form: HTMLFormElement, name: string) => { const read = readZoneInput(String(new FormData(form).get(name) ?? '')); if ('error' in read) throw Error(read.error); return read.zone; };
   async function run(work: () => Promise<unknown>, done: string) {
     try { await work(); setMessage({text: done}); } catch (error) { setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}); }
   }
@@ -37,6 +38,8 @@ export function TimeZoneSettings() {
     {ready && <form className="platform-form" onSubmit={saveJournal}>
       <ZoneField name="journalZone" label="Your time zone" defaultValue={journal ?? device ?? ''}/>
       <button className="secondary" type="submit">Save my time zone</button>
+      {/* Session AH (VA10, B-175): back to the device's own zone. */}
+      {journal && <button className="text-link" type="button" onClick={() => void run(() => settings.update(s => withJournalZone(s, null)), 'Your days follow this device again. Past entries keep their dates.')}>Follow this device{device ? ` (${device})` : ''}</button>}
     </form>}
     <p className="fine">Saving it keeps every device on the same days. A change never moves a past entry, and a Goal plan keeps the zone it was made with.</p>
     {ready && habits.loaded && !habits.error && health.loaded && !health.error && <details className="time-zone-overrides">

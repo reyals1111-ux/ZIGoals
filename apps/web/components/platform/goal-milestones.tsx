@@ -19,6 +19,7 @@ import {amount} from './common';
 import {formatDate} from '../../lib/visual-format';
 import {StarToggle} from '../checklist/star-toggle';
 import {plainErrorMessage} from '../../lib/plain-error';
+import { plural } from '../../lib/plural';
 
 /**
  * A Goal's milestones (Session W Part 11): each with an optional target value (where the Goal keeps it) and target date
@@ -49,10 +50,10 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
       <button type="button" className="quiet" onClick={() => seen(fresh)}>Thanks</button>
     </div>}
     {fresh.length > 1 && <div className="goal-milestone-note" role="group" aria-label={`${fresh.length} milestones reached or done`}>
-      <p>{fresh.length} milestones of {goal.name} are reached or done: {fresh.map(s => `“${s.m.title}”`).join(', ')}.</p>
+      <p>{fresh.length} {plural(fresh.length, 'milestone')} of {goal.name} {fresh.length === 1 ? 'is' : 'are'} reached or done: {fresh.map(s => `“${s.m.title}”`).join(', ')}.</p>
       <button type="button" className="quiet" onClick={() => seen(fresh)}>Thanks</button>
     </div>}
-    {goal.milestones.length > 0 && <div className="goal-milestone-track" role="img" aria-label={project ? `${goal.milestones.filter(m => m.done).length} of ${goal.milestones.length} milestones done` : `Progress ${Math.round(share * 100)} % of the target; milestones at ${marks.map(k => `${Math.round(k.at * 100)} %`).join(', ') || 'no set values'}`}>
+    {goal.milestones.length > 0 && <div className="goal-milestone-track" role="img" aria-label={project ? `${goal.milestones.filter(m => m.done).length} of ${goal.milestones.length} ${plural(goal.milestones.length, 'milestone')} done` : `Progress ${Math.round(share * 100)} % of the target; milestones at ${marks.map(k => `${Math.round(k.at * 100)} %`).join(', ') || 'no set values'}`}>
       <GlassBar identity={`goal-milestones:${goal.id}`} className="goal-milestone-bar" value={Math.min(1, share)} />
       {project ? goal.milestones.map((m, i) => <i key={m.id} className="goal-milestone-mark" style={{left: `${((i + 1) / goal.milestones.length) * 100}%`}} data-done={m.done || undefined} />)
         : marks.map(k => <i key={k.id} className="goal-milestone-mark" style={{left: `${k.at * 100}%`}} data-done={current >= BigInt(goal.milestones.find(m => m.id === k.id)!.target!) || undefined} title={k.title} />)}

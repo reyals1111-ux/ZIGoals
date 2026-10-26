@@ -88,7 +88,7 @@ function habitDot(item: ChecklistItem, base: Base, s: DeriveSources, date: strin
   const state: StepState = day.status === 'complete' ? 'done' : running ? 'running' : 'undone';
   const progress = day.status === 'partial' && day.target > 0 ? Math.min(.99, Math.max(.01, day.count / day.target)) : undefined;
   const note = day.status === 'complete' ? (rule.type === 'quit' ? 'Stayed clear' : rule.measurement.kind === 'boolean' ? undefined : `${formatNumber(day.count)} ${unitFor(day.count, measurementUnit(rule))}`.trim())
-    : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${formatNumber(day.count)} of ${formatNumber(day.target)} ${measurementUnit(rule)}`.trim() : undefined;
+    : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${formatNumber(day.count)} of ${formatNumber(day.target)} ${unitFor(day.target, measurementUnit(rule))}`.trim() : undefined;
   return {...dot, state, counted: true, ...(progress ? {partial: progress} : {}), ...(note ? {note} : {}), ...(value ? {value, intent: 'value'} : {intent: 'tick'}), ...(state === 'done' && entry ? {doneAt: entry.updatedAt} : {})};
 }
 

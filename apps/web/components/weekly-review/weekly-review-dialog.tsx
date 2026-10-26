@@ -9,6 +9,7 @@ import '../coach/guide.css';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import './weekly-review.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {unitFor} from '../../lib/plural';
 
 type Step = {field: ReviewNoteField; title: string; lines: ReactNode[]; fine?: string; placeholder?: string};
 const count = (n: number, one: string, many: string) => n === 0 ? `no ${many}` : `${formatNumber(n)} ${n === 1 ? one : many}`;
@@ -18,7 +19,7 @@ export function reviewSteps(summary: WeekSummary, financial: boolean, formatWeal
   const steps: Step[] = [
     {field: 'wentWell', title: 'What went well', lines: [`${count(w.habitCheckIns, 'habit check-in', 'habit check-ins')} · ${count(w.healthEntries, 'Health entry', 'Health entries')} · ${count(w.goalContributions, 'Goal contribution', 'Goal contributions')} this week`, ...(w.bestDay ? [`Your fullest day was ${formatDate(w.bestDay, {weekday: true})}.`] : [])]},
     {field: 'goals', title: 'Goals', lines: summary.goals.length ? summary.goals.map(g => `${g.name} · ${g.fundingHealth}${g.nextContributionDate ? ` · next ${formatDate(g.nextContributionDate)}` : ''} · ${g.progress}`) : ['No active goals.']},
-    {field: 'habits', title: 'Habits', lines: summary.habits.length ? summary.habits.map(h => `${h.title} · ${h.done} of ${h.scheduled}${h.skipped ? ` (${h.skipped} skipped)` : ''} · streak ${formatNumber(h.streak)} ${h.unit}`) : ['No habits were scheduled this week.']},
+    {field: 'habits', title: 'Habits', lines: summary.habits.length ? summary.habits.map(h => `${h.title} · ${h.done} of ${h.scheduled}${h.skipped ? ` (${h.skipped} skipped)` : ''} · streak ${formatNumber(h.streak)} ${unitFor(h.streak, h.unit)}`) : ['No habits were scheduled this week.']},
     {field: 'health', title: 'Health', lines: summary.health.length ? summary.health : ['Nothing in the Health journal this week.'], fine: 'Counts of your own entries. Not advice.'},
   ];
   if (financial && summary.wealth) steps.push({field: 'wealth', title: 'Wealth', lines: [`Known tracked wealth: ${summary.wealth.subtotals.length ? summary.wealth.subtotals.map(formatWealth).join(' · ') : 'nothing tracked yet'}`, `${count(summary.wealth.attention, 'asset needs', 'assets need')} attention`, `${count(summary.wealth.contributions, 'contribution', 'contributions')} this week`]});

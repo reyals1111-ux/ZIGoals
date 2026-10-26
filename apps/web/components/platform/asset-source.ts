@@ -1,6 +1,7 @@
 import {parseAmountInput} from '../../lib/amount-input';
 import {marketAssetRefSchema,type MarketCatalogAsset} from '../../lib/market-assets';
 import {ASSET_CLASSES,positionSchema,type AssetClass,type Position} from '../../lib/positions';
+import {quantityUnitsIssue,within} from '../../lib/limits/plausibility';
 
 /** Session AD (weights): split from asset-search.tsx unchanged, so the picker can load the search itself on demand. */
 export type AutomaticSourceInput={
@@ -19,6 +20,7 @@ export function automaticSourcePosition(input:AutomaticSourceInput,id=crypto.ran
  if(input.asset.ref.kind==='rwa'&&input.currency!=='USD')throw Error('CoinGecko tokenized RWA references are available in USD only.');
  const marketRef=marketAssetRefSchema.parse(input.asset.ref),quantity=parseAmountInput(input.quantity,18);
  if(quantity<=0n)throw Error('Enter a positive quantity.');
+ within(quantityUnitsIssue(quantity,18)); // Session AH (VA2, B3: 27-digit assets)
  const asset=(input.asset.symbol.trim()||input.asset.name.trim()||input.asset.ref.id).slice(0,30).toUpperCase();
  return positionSchema.parse({
   id,providerId:input.asset.name.trim().slice(0,250),sourceType:'MANUAL',network:'manual',account:'local',

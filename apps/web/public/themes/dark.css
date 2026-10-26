@@ -13946,6 +13946,32 @@
         border-color: color-mix(in srgb, var(--edge-soft) 50%, #ff6b8a 50%)
     }
 }
+/*  components/ui/length-counter.css  */
+@scope (:root[data-theme=dark]) {
+    .length-counter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--surface-1, #010412) 92%, transparent);
+        color: var(--text-secondary, #c9d6ea);
+        box-shadow: 0 0 0 1px #8fb6ff33
+    }
+    .length-counter[data-near]:not(#\-) {
+        color: var(--warning-text, #ffd27a)
+    }
+    :scope[data-theme=light] .length-counter:not(#\-) {
+        background-image: none;
+        background-color: #ffffff;
+        color: #3b4659;
+        box-shadow: 0 0 0 1px #0d0f1526
+    }
+    :scope[data-theme=light] .length-counter[data-near]:not(#\-) {
+        color: #7a4d00
+    }
+    @media (forced-colors: active) {
+        .length-counter:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+}
 /*  components/universe/extras-setting.css  */
 @scope (:root[data-theme=dark]) {
     .af-extras-row:not(#\-) {

@@ -2,6 +2,7 @@
 import {type Habit} from '../../lib/habits';
 import {byWeek, byWeekday, usualSaveTime, WEEKDAY_NAMES, WEEKS} from '../../lib/habits-v2/stats';
 import {formatClock, formatDate} from '../../lib/visual-format';
+import { plural } from '../../lib/plural';
 
 /**
  * A habit's patterns (Session W Part 10), inside its "Consistency & trends": days done by weekday and by week over the
@@ -21,6 +22,6 @@ export function HabitPatterns({habit, today, zone}: {habit: Habit; today: string
     </div>
     <details className="habit-weeks-table"><summary>The weeks as a table</summary><table><caption>Days done of days scheduled, by week</caption><thead><tr><th scope="col">Week of</th><th scope="col">Done</th><th scope="col">Scheduled</th></tr></thead>
       <tbody>{weeks.map(w => <tr key={w.weekStart}><th scope="row">{formatDate(w.weekStart, {year: false})}</th><td>{w.done}</td><td>{w.scheduled}</td></tr>)}</tbody></table></details>
-    {usual && <p className="fine">Check-ins are usually saved around <strong>{formatClock(usual.clock)}</strong> (from when {usual.n} check-ins of the last 60 days were saved, which can be later than the habit itself).</p>}
+    {usual && <p className="fine">Check-ins are usually saved around <strong>{formatClock(usual.clock)}</strong> (from when {usual.n} {plural(usual.n, 'check-in')} of the last 60 days {usual.n === 1 ? 'was' : 'were'} saved, which can be later than the habit itself).</p>}
   </div>;
 }

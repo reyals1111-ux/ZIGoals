@@ -18,6 +18,7 @@ import { isPinned, setPinned, waterButtons } from "../../lib/health-quick/quick"
 import { WaterButtonsEditor } from "./quick-log";
 import { zigiSignals } from "../zigi/bus";
 import { StarToggle } from "../checklist/star-toggle";
+import {LIMITS} from '../../lib/limits/plausibility';
 // Session AC (one Water card): the ring stays its own small chunk, as it was at the top of the Diary.
 const WaterRingFigure = lazy(() => import("./water-ring").then(m => ({ default: m.WaterRingFigure })));
 // The app spells it "favourite" everywhere else (Markets, Portfolio); the stored mode name is unchanged. Session X P2.1.
@@ -50,7 +51,8 @@ export function WaterJournal({ data, date, perform, invalid }: Props) {
   const entryDate = editing?.date ?? date;
   function save(value: string, as: WaterEntry["unit"] = unit) {
     try {
-      const amountMilli = parseHealthNumber(value, 1000, 1, 10_000_000);
+      // Session AH (VA3, C3): the one water limit, in the unit of the entry.
+      const amountMilli = parseHealthNumber(value, 1000, 1, as === 'ml' ? LIMITS.waterEntryMl * 1000 : Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ) * 1000, as === 'ml' ? 'mL' : 'fl oz');
       operation.current ??= newHealthId();
       const draft = { id: operation.current, date: entryDate, amountMilli, unit: as };
       void perform(latest => editing ? editWater(latest, editing.id, draft, now()) : addWater(latest, draft, now()), editing ? "Water entry corrected." : "Water recorded.", () => { operation.current = null; setAmount(""); setEditing(null); if (!editing) zigiSignals.emitValidated('health_log_recorded'); });

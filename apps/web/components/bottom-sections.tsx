@@ -18,6 +18,7 @@ import { formatDate, formatNumber, formatPlainDecimal, formatWeekday, progressPr
 import {ML_PER_US_FL_OZ,type WaterUnit} from '../lib/health-units';
 import {healthGroupIn} from '../lib/vault/w-homes';
 import {assetCounts} from '../lib/numbers/counts';
+import { unitFor } from '../lib/plural';
 
 const dayLabel=(date:string)=>({weekday:formatWeekday(date),day:Number(date.slice(8))});
 function Shell({id,eyebrow,title,lede,children,layout,className=''}:{id:string;eyebrow:string;title:ReactNode;lede?:ReactNode;children:ReactNode;layout:LayoutAttrs;className?:string}){
@@ -66,7 +67,7 @@ export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:
  return <Shell layout={layout} id="bottom-habit-rhythm" eyebrow="YOUR RHYTHM" title={<>Consistency by weekday.</>} lede="Check-ins recorded over the last four weeks, and your best streaks.">
   <div className="bottom-two">
    <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} ${plural(d.checkins,'check-in')}`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>
-   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {s.unit}</strong><small>Now {s.current} {s.unit}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
+   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {unitFor(s.best,s.unit)}</strong><small>Now {s.current} {unitFor(s.current,s.unit)}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
   </div>
   {!r.total&&<p className="bottom-note">No check-ins in the last four weeks yet.</p>}
  </Shell>;

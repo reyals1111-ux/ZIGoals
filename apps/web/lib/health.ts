@@ -206,13 +206,15 @@ function decimalComma(value: string, scale: 1 | 1000): string {
   return normalizeDecimalInput(value);
 }
 /** Parse decimal form values without exponent syntax, implicit defaults, or lost precision. */
-export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number): number {
+/** Session AH (C2, C3, BUG-084): the refusal names the range and, when given, the unit ("Enter 1 to 5,000 mL."). */
+export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number, unit = ""): number {
+  const range = `Enter ${formatNumber(min / scale, { maximumFractionDigits: 3 })} to ${formatNumber(max / scale, { maximumFractionDigits: 3 })}${unit ? ` ${unit}` : ""}.`;
   const value = decimalComma(raw.trim(), scale);
   const pattern = scale === 1 ? /^\d+$/ : /^\d+(?:\.\d{1,3})?$/;
-  if (!pattern.test(value) || value.length > 18) throw new Error("Enter a number within the displayed range.");
+  if (!pattern.test(value) || value.length > 18) throw new Error(range);
   const [whole = "0", fraction = ""] = value.split(".");
   const result = BigInt(whole) * BigInt(scale) + (scale === 1000 ? BigInt(fraction.padEnd(3, "0")) : 0n);
-  if (result < BigInt(min) || result > BigInt(max)) throw new Error("Enter a number within the displayed range.");
+  if (result < BigInt(min) || result > BigInt(max)) throw new Error(range);
   return Number(result);
 }
 export const formatHealthGrams = (mg: number|null) => formatNutrient(mg,1000);

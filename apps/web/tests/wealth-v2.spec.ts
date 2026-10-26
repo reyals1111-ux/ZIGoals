@@ -26,6 +26,7 @@ async function seed(page: Page, extra: Record<string, string> = {}, time = `${TO
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
 
+// Session AH (VA8): the payment reads as money (€100.00), as the rest of Wealth writes it; assertions moved with it.
 test('accounts and debts: net worth per currency with Wealth\'s valued holding as its own line; a payoff from the person\'s own rate', async ({page}) => {
   await seed(page);
   await page.goto('/app/wealth');
@@ -55,7 +56,7 @@ test('accounts and debts: net worth per currency with Wealth\'s valued holding a
   const loan = section.locator('.accounts-row').filter({hasText: 'Fictional car loan'});
   await loan.locator('summary', {hasText: 'When would it be paid off?'}).click();
   await loan.getByLabel(/Monthly payment/).fill('100');
-  await expect(loan.getByRole('status')).toContainText('At your rate of 6 % a year and 100 EUR a month: paid off in about 13 months');
+  await expect(loan.getByRole('status')).toContainText('At your rate of 6 % a year and €100.00 a month: paid off in about 13 months');
   await loan.getByRole('button', {name: 'Record a payment on Fictional car loan', exact: true}).click();
   await loan.getByRole('form', {name: 'Payment on Fictional car loan'}).getByLabel(/Payment/).fill('100');
   await loan.getByRole('form', {name: 'Payment on Fictional car loan'}).getByRole('button', {name: 'Save', exact: true}).click();
@@ -110,7 +111,7 @@ test('Showcase: fictional accounts and debts show net worth and a payoff; nothin
   await expect(section).toContainText('SHOWCASE DATA · fictional bank');
   const loan = section.locator('.accounts-row').filter({hasText: 'Car loan'});
   await loan.locator('summary', {hasText: 'When would it be paid off?'}).click();
-  await expect(loan.getByRole('status')).toContainText('At your rate of 5.9 % a year and 300 USD a month');
+  await expect(loan.getByRole('status')).toContainText('At your rate of 5.9 % a year and $300.00 a month');
   expect(await page.evaluate(() => localStorage.getItem('zigoals:accounts:v1'))).toBeNull();
   expect(outside).toEqual([]);
 });

@@ -25,6 +25,7 @@ import { CONTRACT_ADDRESS } from "../../../../lib/wallet";
 import { NebulaFlow } from "../../../../components/nebula-flow";
 import {formatDateTime,formatPlainDecimal} from "../../../../lib/visual-format";
 import { plainErrorMessage } from "../../../../lib/plain-error";
+import { formatDate } from "../../../../lib/visual-format";
 export default function GoalDetail({
   params,
 }: {
@@ -111,7 +112,7 @@ export default function GoalDetail({
  <details className="goal-actions"><summary aria-label="Goal actions">…</summary><div className="panel"><button className="quiet" onClick={()=>void preference({pinned:!ui.pinned})}>{ui.pinned?'Unpin Goal':'Pin Goal'}</button><button className="quiet" onClick={()=>void preference({locked:!ui.locked})}>{ui.locked?'Unlock editing':'Lock editing'}</button><button className="quiet" disabled={!!ui.locked} onClick={()=>setRemove(true)}>Remove Goal from ZIGoals</button></div></details>
  <div className="goal-detail-heading"><p className="eyebrow">{summary.type} · {summary.source}</p><h1><NebulaFlow identity={`goal-title-${summary.name}`}>{summary.name}</NebulaFlow></h1><span className="badge">{summary.status}</span></div>
  <div className="goal-detail-progress"><GoalProgressRing goalId={id} name={summary.name} progressPct={summary.progressPct} bound={summary.progressBound}/><div><p className="eyebrow">{summary.heldAsset?'Simulated ZIG held':'Current progress'}</p><strong className="goal-detail-current">{displayAmount(current,summary.heldAsset??summary.currency)}</strong><p>{summary.target?`of ${displayAmount(summary.target,summary.currency)}`:'Recover your private plan'}</p>{summary.valuationLabel&&<p className="fine valuation-state">{summary.valuationLabel}</p>}</div></div>
- <dl className="goal-detail-facts"><div><dt>Remaining</dt><dd>{summary.heldAsset?'Unknown':summary.remaining?displayAmount(summary.remaining,summary.currency):'Review plan'}</dd></div><div><dt>Funding Wealth</dt><dd>{summary.fundingHealth}</dd></div><div><dt>Target date</dt><dd>{summary.targetDate??'Your own pace'}</dd></div></dl>
+ <dl className="goal-detail-facts"><div><dt>Remaining</dt><dd>{summary.heldAsset?'Unknown':summary.remaining?displayAmount(summary.remaining,summary.currency):'Review plan'}</dd></div><div><dt>Funding Wealth</dt><dd>{summary.fundingHealth}</dd></div><div><dt>Target date</dt><dd>{summary.targetDate?formatDate(summary.targetDate):'Your own pace'}</dd></div></dl>
  <p className="fine">{s.mode==='local'?'Simulation only — no real funds.':'Legacy Goal Manager record.'} Your Goal organizes your plan. New Goals can use wealth where it already exists.</p>
  </section>
  {/* Session AA-Cloud Part 2: the goal's plan, area, vision and sub-goals (G2–G5); a simulation goal has no recorded pace. */}

@@ -1,0 +1,6 @@
+/* Session AH (VA4): the focused field's character count, fixed beside it (nothing moves). */
+.length-counter { position: fixed; z-index: 60; min-width: 88px; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--surface-1, #0b1630) 92%, transparent); color: var(--text-secondary, #c9d6ea); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; pointer-events: none; box-shadow: 0 0 0 1px #8fb6ff33; }
+.length-counter[data-near] { color: var(--warning-text, #ffd27a); }
+:root[data-theme=light] .length-counter { background: #ffffff; color: #3b4659; box-shadow: 0 0 0 1px #0d0f1526; }
+:root[data-theme=light] .length-counter[data-near] { color: #7a4d00; }
+@media (forced-colors: active) { .length-counter { border: 1px solid CanvasText; } }

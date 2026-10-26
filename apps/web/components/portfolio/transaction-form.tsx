@@ -7,13 +7,14 @@ import {readDecimal} from '../../lib/portfolio/math';
 import {addTransaction} from '../../lib/portfolio/store';
 import type {Portfolio, PortfolioCoin, PortfolioData, PortfolioTransaction} from '../../lib/portfolio/schema';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {amountIssue, dateIssue, feeWarning, LIMITS} from '../../lib/limits/plausibility';
 
 export type Run = (change: (data: PortfolioData) => PortfolioData, done: string, fallback: string) => boolean;
 /** Record a buy, sell or transfer (Session I; Session W Part 15: a coin's page presets its coin and skips the picker). */
 export function TransactionForm({portfolio, run, coin: preset}: {portfolio: Portfolio; run: Run; coin?: PortfolioCoin}) {
   const today = localDate();
   const [picked, setCoin] = useState<PortfolioCoin | null>(null), [kind, setKind] = useState<PortfolioTransaction['kind']>('buy');
-  const [quantity, setQuantity] = useState(''), [price, setPrice] = useState(''), [fee, setFee] = useState(''), [date, setDate] = useState(today), [note, setNote] = useState(''), [problem, setProblem] = useState('');
+  const [feeChecked, setFeeChecked] = useState<string | null>(null), [quantity, setQuantity] = useState(''), [price, setPrice] = useState(''), [fee, setFee] = useState(''), [date, setDate] = useState(today), [note, setNote] = useState(''), [problem, setProblem] = useState('');
   // The form, and with it the coin list request, appears only once the reader opens it.
   const [open, setOpen] = useState(!portfolio.transactions.length && !preset);
   const coin = preset ?? picked, transfer = kind === 'transfer-in' || kind === 'transfer-out';
@@ -27,6 +28,13 @@ export function TransactionForm({portfolio, run, coin: preset}: {portfolio: Port
     if (!transfer && p === null) return setProblem('A buy or a sell needs its price per coin.');
     if (fee.trim() && f === null) return setProblem('Enter the fee as a number, or leave it empty.');
     if (date > today) return setProblem('Choose today or an earlier date.');
+    // Session AH (VA2, B3; B-182, B-195, B-199): the shared limits — no trillion-coin buy, no 1900 date — and a fee larger than
+    // the trade asks once before it is kept.
+    for (const v of [q, p, f]) if (v !== null) { const issue = amountIssue(Number(v)); if (issue) return setProblem(issue); }
+    if (q && p && Number(q) * Number(p) > LIMITS.amountMax) return setProblem('That trade is worth more than a trillion. Check the quantity and the price.');
+    { const issue = dateIssue(date, today); if (issue) return setProblem(issue); }
+    const feeNote = q && p && f ? feeWarning(Number(f), Number(q) * Number(p)) : null;
+    if (feeNote && feeChecked !== f) { setFeeChecked(f); return setProblem(`${feeNote} Save again to keep it.`); }
     if (run(data => addTransaction(data, portfolio.id, coin, {id: crypto.randomUUID(), kind, quantity: q!, ...(p === null ? {} : {price: p}), ...(f === null ? {} : {fee: f}), date, note: note.trim(), createdAt: new Date().toISOString()}), `${TX_LABEL[kind]} of ${coin.symbol} recorded.`, 'The transaction was not saved.')) { setQuantity(''); setPrice(''); setFee(''); setNote(''); }
   }
   return <details className="portfolio-add" open={open} onToggle={event => setOpen(event.currentTarget.open)}>

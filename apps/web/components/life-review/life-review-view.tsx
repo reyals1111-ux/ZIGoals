@@ -28,6 +28,7 @@ import {SectionHeading} from '../ui/section-heading';
 import {showToast} from '../ui/undo-toast';
 import {formatDay} from '../goals/format';
 import './life-review.css';
+import { unitFor } from '../../lib/plural';
 
 /**
  * The Life review (Session AA-Cloud Part 5, S2): a week or a month across Goals, Habits, Health and Wealth, beside the
@@ -104,7 +105,7 @@ export function LifeReviewView() {
         </section>
         <section className="panel life-chapter" data-pillar="habits" data-chapter="2" aria-labelledby="life-review-streaks">
           <SectionHeading id="life-review-streaks" pillar="habits" eyebrow="Chapter 2 · Habits" title="Streaks" level={3} />
-          {review.streaks.length ? <ul className="life-list">{review.streaks.map(s => <li key={s.title}><strong>{s.title}</strong><span>{s.streak} {s.unit}</span></li>)}</ul> : <p className="life-none">No streak running yet.</p>}
+          {review.streaks.length ? <ul className="life-list">{review.streaks.map(s => <li key={s.title}><strong>{s.title}</strong><span>{s.streak} {unitFor(s.streak, s.unit)}</span></li>)}</ul> : <p className="life-none">No streak running yet.</p>}
         </section>
         <section className="panel life-chapter" data-pillar="health" data-chapter="3" aria-labelledby="life-review-health">
           <SectionHeading id="life-review-health" pillar="health" eyebrow="Chapter 3 · Health" title="Trends" level={3} />

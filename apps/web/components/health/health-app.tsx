@@ -82,6 +82,7 @@ import { LoadBoundary } from "../load-boundary";
 import {Skeleton} from "../ui/skeleton";
 import {useScrollEdges} from '../ui/use-scroll-edges';
 import { StarToggle } from '../checklist/star-toggle';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
@@ -230,7 +231,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     marked.current = fields; fields[0]?.focus(); return fields.length;
   };
   // A name with nothing visible gets its own message (QA-32); every other refusal keeps the fields message.
-  const invalid = (cause?: unknown) => { const name = cause instanceof Error && cause.message === INVISIBLE_NAME, count = mark(name); setError(name ? cause.message : count ? "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings." : "Check the numbers: enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings."); };
+  const invalid = (cause?: unknown) => { const name = cause instanceof Error && cause.message === INVISIBLE_NAME, count = mark(name); /* Session AH (C2, C3): the reason itself when the app wrote one (a limit, a range with its unit) */ const said = cause instanceof Error && (cause.name === "LimitError" || /^Enter |^Choose /.test(cause.message)) ? plainErrorMessage(cause, "") : ""; setError(name ? cause.message : said ? said : count ? "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings." : "Check the numbers: enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings."); };
   const summary = dailyHealthSummary(data, date);
   const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => chooseDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") chooseDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => chooseDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => chooseDate(today)}>Today</button></div>;
   return <LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>

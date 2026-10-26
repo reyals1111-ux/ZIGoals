@@ -4,6 +4,7 @@ import {useChartWidth} from '../charts/use-chart-width';
 import {ChartDefs, ChartLegend} from '../charts/chart-kit';
 import {forecastWords, type Forecast, type ForecastPoint, addDays, daysBetween} from '../../lib/goal-forecast';
 import {formatDay} from './format';
+import { plural } from '../../lib/plural';
 
 /**
  * G1 on the goal page: the pace forecast in words ("At this pace: about 14 March", always labelled an estimate) and a
@@ -18,7 +19,7 @@ export function GoalForecastCard({forecast, points, current, target, today, unit
     <p className="goal-forecast-detail">{words.detail}</p>
     {note && <p className="fine">{note}</p>}
     {points.length >= 2 && target > 0 && <ForecastChart forecast={forecast} points={points} current={current} target={target} today={today} unit={unit} />}
-    {forecast.state === 'estimate' && forecast.perDay !== undefined && <p className="fine">Your recorded pace: about {unit(forecast.perDay * 30)} every 30 days, from {forecast.points} records over {forecast.spanDays} days. Growth is not assumed.</p>}
+    {forecast.state === 'estimate' && forecast.perDay !== undefined && <p className="fine">Your recorded pace: about {unit(forecast.perDay * 30)} every 30 days, from {forecast.points} {plural(forecast.points, 'record')} over {forecast.spanDays} {plural(forecast.spanDays, 'day')}. Growth is not assumed.</p>}
   </section>;
 }
 
