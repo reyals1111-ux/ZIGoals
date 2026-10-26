@@ -63,7 +63,7 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   await seedShowcase(page);
   await earnRoutes(page);
   await page.goto('/app/earn');
-  await expect(page.locator('main h1').first()).toHaveText('Make your money work');
+  await expect(page.locator('main h1').first()).toHaveText('Ways to earn on ZIGChain');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
   await page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => undefined);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);

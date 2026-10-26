@@ -14,7 +14,7 @@ test('live figures carry their source and age; every outgoing link is a verified
   const requests = await earnRoutes(page);
   await page.goto('/app/earn');
   await expect(page).toHaveTitle(/^Earn · ZIGoals/);
-  await expect(page.locator('main h1').first()).toHaveText('Make your money work');
+  await expect(page.locator('main h1').first()).toHaveText('Ways to earn on ZIGChain');
   for (const id of ['native-apr', 'native-bonded', 'native-unbonding', 'valdora-rate', 'valdora-fee', 'valdora-minimum', 'oroswap-zig-usdc', 'oroswap-farms', 'valdora-llama-tvl']) {
     const figure = page.locator(`[data-live-figure="${id}"]`);
     await expect(figure, id).toHaveAttribute('data-state', 'ok');

@@ -56,8 +56,8 @@ export function EarnView() {
   const calculatorHref = rate ? `/app/wealth/calculator?${new URLSearchParams({from: 'earn', rate: rounded(fixed(rate) * 100n, 2), label: 'illustration'})}` : null;
   return <GuideProvider>
     <div className="dashboard earn-page">
-      <PageHeader className="page-heading earn-hero" titleId="earn-title" eyebrow="Wealth · Earn" title="Make your money work"
-        lede="Every live way to earn on ZIGChain, in plain words, with numbers read live from their own sources. You choose and you sign in your own wallet; ZIGoals shows the way and never holds your keys."
+      <PageHeader className="page-heading earn-hero" titleId="earn-title" eyebrow="Wealth · Earn" title="Ways to earn on ZIGChain"
+        lede="The ways to earn on ZIGChain that ZIGoals reads, in plain words, with figures read live from their own sources. Information, not advice: you decide, and you sign in your own wallet; ZIGoals never holds your keys."
         actions={<><a className="primary" href="#start-here">Start here</a> <a className="secondary" href="#safety">Safety first</a></>}
         art={<OrbitArt glyph={EarnGlyph} tone="wealth" spin={-24}/>}/>
       <p className="earn-hero-note fine">Options are listed in the order the network is built, not by how much they pay. Nothing here is advice or a promise of returns.</p>

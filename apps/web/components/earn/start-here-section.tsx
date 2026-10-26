@@ -27,7 +27,7 @@ export function StartHereSection({facts, live}: {facts: StartFacts; live: StartL
   };
   const showToday = () => { try { record.update(setTodayCard('auto')); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   return <section id="start-here" className="earn-start panel" aria-labelledby="start-here-title" data-done={done}>
-    <SectionHeading id="start-here-title" eyebrow="New here? Start here" title="From no wallet to your first stake"
+    <SectionHeading id="start-here-title" eyebrow="New here? Start here" title="How staking works, step by step"
       lede="Six steps, about 30 minutes in all, on the apps’ own pages and in your own wallet. Press a dot for its guide. ZIGoals ticks what it can see and never signs for you."/>
     <p className="earn-start-progress" aria-live="polite"><b>{done} of 6 steps done</b>{next ? <> · next: {STEP_WORDS[next.id].label}</> : ' · all done'}</p>
     {ready
