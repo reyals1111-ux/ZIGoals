@@ -27,7 +27,7 @@ Decisions: `docs/architecture/ADR-033-session-ah.md` (M1–M53, the "already fix
 | 17 | Owner addition 1: the Journal date drives the whole Health page; `?date=` links; the date bar (no stored-format change) (M51) | 1 | `e77ea8e7` | unit, local, CI |
 | 18 | Owner addition 2: the Checklist top bar, the phone top bar without the page name, quick counters typed in place (M53) | 1 | `a0416ba6` | unit, local, CI |
 | Records | Owner amendments and additions recorded, resume file along the way | 1 | `3f08028e`, `7354f620`, `5e320d47`, `126674c1`, `a980249b` | — |
-| Finish | Two specs wait for a Health card to load; this entry | 1 | `745be930`, this commit | local |
+| Finish | Two specs wait for a Health card to load; a quick counter's count is a named status again (CI 1235: `zigi-a11y-pass:43` on Chrome and WebKit); this entry | 1 | `745be930`, `ab6d1927`, this commit | local, CI |
 
 ## Tier 3, in plain words (risk → rollback)
 - **Dependencies (Part 1):** `c117baf9` vitest 5.0.3, `a0a1fab4` vite 8.3.3, `bfe62b3d` glob 10.5.0, `b461524b` body-parser 2.4.0, `96e616f3` undici 7.30.1 / 8.12.2 (exact pnpm overrides for transitive packages). *Risk:* test, build and preview tooling; nothing stored. *Rollback:* revert the one commit (pin and lockfile together).
@@ -45,6 +45,7 @@ Each change is named in its commit message and in ADR-033 (M-entries). The specs
 - **Frozen readers:** #37 `32cb9c5` … #49 `f13abb0`: 13 releases × 33 records, all read or ignored.
 - **Browser (production build of the Part 18 code):** theme parity (`theme-parity-af`) 55 passed, 1 skipped; the 16 Session AH specs with `page-marks` and `phone-shell` 151 passed, 6 skipped, 1 failed: a race in `ah-workouts` (it checked a card once while the card was still loading), fixed at its cause in `745be930`, then `ah-workouts` 8/8 and `ah-health` 10/10. Each part's focused suites are listed in its commit and in ADR-033.
 - **Gate (scratchpad, never committed):** about 14 captures.
+- **After CI 1235:** its only failure (`zigi-a11y-pass:43`, the counter's status name, in Chrome shard 3 and 6 and both WebKit shards) fixed in `ab6d1927`; on a fresh production build `zigi-a11y-pass`, `ah-part18`, `counters-compact`, `ah-health-day` and `ui-design-pass` 108 passed, 14 skipped.
 - **CI:** Milestone quality on this head — the result is on the PR (one re-run per known intermittent).
 
 ## Weights (gzip -6; budgets never raised)
