@@ -53,3 +53,17 @@ test('C9: every Health view answers to ?tab=', async ({page}) => {
   await page.goto('/app/health?tab=planner'); await hydrated(page);
   await expect(page.getByRole('button', {name: 'Planner', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('HE7: each wrong custom fasting target says what is wrong, and nothing starts', async ({page}) => {
+  await page.goto('/app/health'); await hydrated(page);
+  const timer = page.getByRole('region', {name: 'Fasting timer', exact: true});
+  // On a phone the module is folded until a fast runs.
+  if (!await timer.isVisible()) await page.locator('.phone-fold-toggle').filter({hasText: 'Fasting timer'}).first().click();
+  await timer.getByRole('button', {name: 'Custom', exact: true}).click();
+  const target = timer.getByLabel(/^Target hours/), start = timer.getByRole('button', {name: 'Start fast', exact: true});
+  for (const [typed, said] of [['', 'Enter a target in whole hours.'], ['16.5', 'Enter whole hours, like 16.'], ['30', 'Choose a target from 1 to 18 hours.']] as const) {
+    await target.fill(typed); await start.click();
+    await expect(timer.getByRole('alert')).toHaveText(said);
+  }
+  await expect(timer.getByRole('button', {name: 'Stop fast'})).toHaveCount(0);
+});

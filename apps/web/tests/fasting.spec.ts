@@ -69,7 +69,7 @@ test('a fast is stopped automatically at 24 hours, and the page never praises a 
   await timer.getByRole('button', {name: 'Start fast', exact: true}).click();
   await expect(timer.locator('.fasting-clock')).toContainText('of 16 h');
   await page.clock.fastForward(17 * 3_600_000);
-  await expect(timer.locator('.fasting-clock')).toHaveText('Target reached · 16 h 00 min of 16 h');
+  await expect(timer.locator('.fasting-clock')).toHaveText('Target reached · 17 h 00 min of 16 h'); // Session AH (HE7, L-061): the clock counts past the target
   await timer.getByRole('button', {name: 'Stop fast', exact: true}).click();
   await expect(timer.getByRole('status')).toContainText('Stopped at 17 h 00 min. Your target was 16 h.');
   const text = (await timer.textContent())!.toLowerCase();

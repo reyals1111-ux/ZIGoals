@@ -34,11 +34,13 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Part 3: DS1 (already safe; `ah-multitab`), DS4, DS5, DS2, DS3, DS6, DS7, DS8, DS9, A7, J2 (M11–M15).
 - Part 4: TR1–TR14, B1, B2, B4–B8, J1, HA2 (M16–M22).
 - Part 5: VA1–VA10, C1–C3, C8, B3, B9 (M23–M25).
+- Part 6: DE8 `0425bd79`, HE1/HE2 `8120ec92`, RM7 `fb21c2b8`, HE3–HE14 + C9 + C11 `2361b562` and the fasting messages (M26–M28). J8 already fixed; HE4/J5/L4 owner step; HE10 → Part 13; HE11 layout → Part 18.
 
 ## Next step
-- Part 5 done: `cd216935`, `24da254e` (M23–M25). Before every push: full unit suite (compare with `<scratchpad>/fail-main.txt`: finance-homes, visual-format ja-JP, pre-run11-setup fail only here), typecheck, lint, theme check.
-- Next: Part 6 (DE8 workouts first; HE1–HE14, HE4/J5/L4, C9, C11, J8, RM7). Start with the "already fixed" check; one helper may research Strong/Hevy/JEFIT/Fitbod/NTC.
-- Shared modules: `lib/numbers/counts.ts`, `lib/limits/plausibility.ts`, `lib/plain-error.ts`, `lib/time-zone-input.ts`, `components/ui/length-counter.tsx`, `components/ui/confirm-inline.tsx`, `lib/undo-removal.ts`, `tests/ah-helpers.ts`.
+- Part 6 done (M26–M28). Before every push: full unit suite (sandbox-only failures: finance-homes, visual-format ja-JP, pre-run11-setup), typecheck (NODE_OPTIONS=--max-old-space-size=8192), lint, theme check, focused browser specs against a production build on :3101.
+- Next: Part 7 Habits (HA1–HA18, C6, C7, J3, J9; F6 sort/pagination on Habits). Start with the "already fixed" check for its rows.
+- Carried: HE10 into Part 13 (LA1); HE11's counter layout (dash for no data, '+' hover, long names) into Part 18.
+- Shared modules: `lib/numbers/counts.ts`, `lib/limits/plausibility.ts` (now with `foodIssue`), `lib/plain-error.ts`, `lib/time-zone-input.ts`, `components/ui/length-counter.tsx`, `components/ui/confirm-inline.tsx`, `lib/undo-removal.ts`, `lib/workouts/*`, `tests/ah-helpers.ts`.
 
 ## Open decisions
 - None.

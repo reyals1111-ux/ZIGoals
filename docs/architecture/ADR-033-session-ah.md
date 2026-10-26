@@ -78,9 +78,13 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M23 — Limits on the writes, not the records (VA2–VA4).** lib/limits/plausibility.ts guards the write functions (Health, Habits, the Checklist, Portfolio, manual assets, accounts), so every entry point shares it and a record saved before keeps reading. Stored length limits stay per record (a goal name 80, a habit title 100): raising one would make older builds refuse the record, lowering one would make this build refuse old ones. Instead every limited field shows its count while focused. Day bounds at the write layer are 1990 on only; future days are refused by the page in its journal zone (a clock bound would refuse a backup from a device ahead).
 - **M24 — Errors are sentences (VA1, C1, C2, C3).** `plainErrorMessage` turns a schema issue into a short sentence or the form's own fallback; 74 forms outside ZIGi use it. Where a page shows results far from the button (the Goal page), the result also shows in the app's one toast; a confirm takes the focus where it opens.
 - **M25 — Time zones as typed (VA10, C8).** A typed zone is matched to the browser's own list whatever its case; a fixed offset is explained with places that have it today (no offset is stored: it has no daylight-saving rules).
+- **M26 — Workouts in their own device record (DE8).** A new device-only key `zigoals:workouts:v1` (TIER 3 stored format, frozen readers #37–#49 pass): older builds never read it, so nothing they hold changes. A finished workout adds one exercise-minutes entry to the Health journal (the habit and Today links already read those), so no Health schema field was added. Patterns follow Strong, Hevy and JEFIT (sets of weight × reps with last time beside each, a rest timer, personal bests by estimated one-rep max, routines, repeat last); a new set copies the one before, and finishing asks before leaving unticked sets out.
+- **M27 — Food plausibility on the forms, not the stored food (HE5).** The label check (≤ 900 kcal per 100 g, macros within the serving, < 10,000 kcal a serving) runs where a person types a food (the food editor and quick add). saveFood itself stays as it was, so imports, older records and test fixtures keep reading; imports have their own row-level refusals.
+- **M28 — Fitbit is off, not deleted (RM7).** The owner's note: no Fitbit build. The import choice is shown as off with the reason, records already brought in stay in the journal and in Export everything, and Help says plainly that the old connection ended. Barcode (HE4/J5/L4): the lookup path is built and tested with a fixture; turning it on is the owner's step (deploy the food Worker with FOOD_USER_AGENT and bind it). A second free source (USDA FoodData Central) needs an API key, which is a secret the owner holds: recorded, not added.
 
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
+- Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
 ## Closing table (every ID in the brief's index)
 Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or not possible (reason).
@@ -159,3 +163,25 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | VA10 / C8 | Fixed | B-067, B-069, B-068, B-175, B-176, N-131, BUG-035 (`24da254e`, M25) |
 | C3 | Fixed | BUG-084 (`24da254e`): the range and unit in the message; Health shows the reason |
 
+### Part 6 — Health and workouts
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| DE8 | Fixed | N-083, N-084, N-085 (`0425bd79`, M26): workouts with exercises, sets, reps, weight (kg/lb), distance or time, notes; per-exercise history and bests; routines; rest timer (still under reduced motion); minutes reach Health and its habits; export, restore and the Showcase. `tests/ah-workouts.spec.ts`, `lib/workouts/engine.test.ts` |
+| HE1 | Fixed | N-105, B-001, B-016, B-164, M-009, M-099, N-050, N-128 (`8120ec92`): Today's water tap on a new profile saves, and says so only when saved |
+| HE2 | Fixed | D-094, L-046, M-054, M-097, B-100, N-035, B-088 (`8120ec92`): the coach asks first, steps at most 15 %, rescales macros, never below 1,200 kcal, has Undo, and says nothing from implausible data |
+| HE3 | Fixed | N-006, D-120, D-199, D-144, L-062, B-166 (`2361b562`): the log form under Tonight, full width; saves show the toast; the card shows the running night |
+| HE4 / J5 / L4 | Owner step (recorded) | B-086, T-002, T-010: the barcode path is built and tested (`run11-food-unknown.spec.ts`); activation needs the food Worker deployed with FOOD_USER_AGENT (M28). It stays free |
+| HE5 | Fixed | D-089, T-133, M-130, L-036, D-046, D-023, D-163, N-072, N-141, Denver S-13 (`2361b562`, M27) |
+| HE6 | Fixed | D-075, T-138, L-054, B-120, N-121 (`2361b562`) |
+| HE7 | Fixed | L-061, M-136, B-063, B-064 (`2361b562`, and the next commit): the clock counts past the target and names its day; a Checklist stop under 10 min saves no 0.0 h fast (Undo resumes it); each wrong custom target has its own sentence |
+| HE8 | Fixed | L-071, B-119 (`2361b562`): meals carry no time, so no late-eating claim; insights count same-day entries only |
+| HE9 | Fixed | D-010, L-037, B-121, M-141, Denver S-01 (`2361b562`) |
+| HE10 | Moved to Part 13 (LA1) | D-115…D-222 listed there |
+| HE11 | Fixed (names); layout in Part 18 | B-169 (`2361b562`); D-011, D-222, T-097, N-084, N-118, B-168 are the counter layout Part 18 rebuilds |
+| HE12 | Fixed | N-060, B-117, D-048 (`2361b562`); removal already had the toast's Undo (Part 3) |
+| HE13 | Fixed | B-078, M-135 (`2361b562`) |
+| HE14 | Fixed | L-038, T-139, B-090 (`2361b562`) |
+| C9 | Fixed | BUG-080 (`2361b562`): `?tab=` and `#` for every view; `tests/ah-health.spec.ts` |
+| C11 | Fixed | BUG-066 (`2361b562`): quick add; `tests/ah-health.spec.ts`, `lib/health.test.ts` |
+| J8 | Already fixed | Session W (quick-log.tsx: per-meal copy yesterday, recent / frequent / favorites) |
+| RM7 | Fixed | The owner's note (`fb21c2b8`, M28) |

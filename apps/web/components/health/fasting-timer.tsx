@@ -30,9 +30,11 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
     try {
       // Session Y Part 2 follow-up: the fast starts when the person taps Start, not when its save gets its turn (a slow
       // or busy storage ran the updater later, and the fast began then; fasting.spec.ts:66 in CI on c40475e).
+      // Session AH (HE7, B-064): each wrong custom target gets its own sentence.
+      if (preset === 'custom') { const t = custom.trim(); if (!t) throw new RangeError('Enter a target in whole hours.'); if (!/^\d+$/.test(t)) throw new RangeError('Enter whole hours, like 16.'); if (Number(t) < 1 || Number(t) > MAX_CUSTOM_HOURS) throw new RangeError(`Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.`); }
       const hours = preset === 'custom' ? readFormNumber(custom, {min: 1, max: MAX_CUSTOM_HOURS, whole: true}) : preset, at = new Date();
       await fasting.update(current => startFast(current, {id: `fast_${crypto.randomUUID()}`, now: at, targetHours: hours, timeZone: zone, ...(habitId ? {habitId} : {})}));
-    } catch (e) { setError(e instanceof Error && /target|running|full/.test(e.message) ? e.message : preset === 'custom' ? 'Choose a target up to 18 hours.' : saveFailureMessage(e)); }
+    } catch (e) { setError(e instanceof RangeError || (e instanceof Error && /target|running|full/.test(e.message)) ? e.message : preset === 'custom' ? `Choose a target from 1 to ${MAX_CUSTOM_HOURS} hours.` : saveFailureMessage(e)); }
   }
   async function stop() {
     if (!running) return; setError(''); setResult('');
