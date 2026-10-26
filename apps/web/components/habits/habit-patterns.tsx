@@ -3,17 +3,20 @@ import {type Habit} from '../../lib/habits';
 import {byWeek, byWeekday, usualSaveTime, WEEKDAY_NAMES, WEEKS} from '../../lib/habits-v2/stats';
 import {formatClock, formatDate} from '../../lib/visual-format';
 import { plural } from '../../lib/plural';
+import {habitStrength} from '../../lib/habits-v2/strength';
 
 /**
  * A habit's patterns (Session W Part 10), inside its "Consistency & trends": days done by weekday and by week over the
- * last 12 weeks (a bar per week with its numbers in a table), and when check-ins are usually saved. Plain counts, no
- * score; rest days and unscheduled days count for nothing either way.
+ * last 12 weeks (a bar per week with its numbers in a table), and when check-ins are usually saved. Plain counts; rest
+ * days and unscheduled days count for nothing either way. Session AH (L2): above them, one strength figure with how it is
+ * worked out in plain words (lib/habits-v2/strength.ts).
  */
 const pct = (done: number, scheduled: number) => scheduled ? Math.round(done / scheduled * 100) : null;
 export function HabitPatterns({habit, today, zone}: {habit: Habit; today: string; zone: string}) {
-  const days = byWeekday(habit, today), weeks = byWeek(habit, today), usual = usualSaveTime(habit, zone, today);
+  const days = byWeekday(habit, today), weeks = byWeek(habit, today), usual = usualSaveTime(habit, zone, today), strength = habitStrength(habit, today);
   if (!days.some(d => d.scheduled) && !usual) return <p className="fine">Patterns appear after a few scheduled days.</p>;
   return <div className="habit-patterns">
+    {strength && <p className="habit-strength"><strong>Strength {strength.score}</strong> <span className="fine">of 100, from {strength.days} scheduled {plural(strength.days, 'day')} in the last 90. Each one moves it a tenth of the way toward done or not done, so one miss dents it and never resets it; skipped and rest days don&rsquo;t count.</span></p>}
     <h3>By weekday · last {WEEKS} weeks</h3>
     <ul className="habit-weekdays">{days.map(d => <li key={d.weekday}><span>{WEEKDAY_NAMES[d.weekday]!.slice(0, 3)}</span><strong>{d.scheduled ? `${d.done} of ${d.scheduled}` : '—'}</strong></li>)}</ul>
     <h3>By week</h3>

@@ -50,3 +50,6 @@
 :root[data-theme=light] .workouts-tick[aria-pressed="true"] { background: #16865c; color: #fff; }
 :root[data-theme=light] .workouts-problem p { color: #a3123a; }
 @media (forced-colors: active) { .workouts-tick[aria-pressed="true"] { outline: 2px solid CanvasText; } }
+/* Session AH (L1): the progression line above the history table. */
+.workouts-progress-line { margin: 12px 0 0; color: var(--brand-cyan, #6fe6f6); }
+.workouts-progress-line svg { display: block; width: 100%; max-width: 420px; height: 72px; }

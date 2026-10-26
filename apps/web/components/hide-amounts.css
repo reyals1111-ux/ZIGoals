@@ -3,7 +3,8 @@
   .wealth-total-headline, .split-figure, .wealth-total-other, .accounts-worth-net, .accounts-row-balance strong,
   .owned-value, .portfolio-totals dd, .portfolio-tx-amount, .portfolio-since-value, .portfolio-coin-results, .wallet-holding-amount,
   .wallet-holdings-total, .wallet-totals, .goal-value, .dashboard-metric-value, .dashboard-widget-preview-value,
-  .staking-amount, .stake-card-value, .earn-value, [data-private-amount]
+  .staking-amount, .stake-card-value, .earn-value, [data-private-amount],
+  .wealth-history-readout strong, .wealth-history-change, .wealth-history-why
 ), :root[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg {
   filter: blur(7px);
   user-select: none;

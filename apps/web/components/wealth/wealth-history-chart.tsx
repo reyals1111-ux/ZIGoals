@@ -9,6 +9,7 @@ import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
 import './wealth-history-chart.css';
 import {ShowcaseTag} from '../ui/showcase-tag';
+import {whyChanged} from '../../lib/wealth-why/why-changed';
 
 // Session AF Gate C (design critique 1, 3): the classes in Wealth's one colour map (lib/wealth.ts), the same as the composition's
 // ring and the class cards; only a record saved without a class is "Other".
@@ -53,9 +54,12 @@ export function WealthHistoryChart({history, showcase}: {history: WealthHistory;
   const dates = [start, start + (last - start) / 2, last];
   const shown = active ?? points.length - 1, p = points[shown]!;
   const change = BigInt(points.at(-1)!.value) - BigInt(points[0]!.value);
+  // Session AH (CO6): why the chosen record differs from the one before it, by asset class, from recorded values only.
+  const why = shown > 0 ? whyChanged(points[shown - 1]!, p) : null;
+  const signed = (v: bigint) => `${v > 0n ? '+' : v < 0n ? '−' : ''}${money((v < 0n ? -v : v).toString(), history.currency)}`;
   return <figure ref={ref} className="wealth-history-chart" aria-label={`${history.currency} recorded tracked wealth`}>
     <div className="wealth-history-tools" role="group" aria-label="Range">{RANGES.map(([label]) => <button key={label} type="button" className="quiet" aria-pressed={range === label} onClick={() => { setRange(label); setActive(null); }}>{label}</button>)}</div>
-    <div className="wealth-history-readout" aria-live="polite"><strong>{money(p.value, history.currency)}</strong>{/* Session AF Gate C (design critique 2): this figure is the recorded total on a date, not today's tracked wealth. */}<span>Recorded total on {formatDateTime(p.at)}{active === null ? ' · the latest record' : ''}</span><span className="wealth-history-change" data-direction={change > 0n ? 'up' : change < 0n ? 'down' : undefined}>{change >= 0n ? '+' : ''}{money(change.toString(), history.currency)} over this range</span></div>
+    <div className="wealth-history-readout" aria-live="polite"><strong>{money(p.value, history.currency)}</strong>{/* Session AF Gate C (design critique 2): this figure is the recorded total on a date, not today's tracked wealth. */}<span>Recorded total on {formatDateTime(p.at)}{active === null ? ' · the latest record' : ''}</span><span className="wealth-history-change" data-direction={change > 0n ? 'up' : change < 0n ? 'down' : undefined}>{change >= 0n ? '+' : ''}{money(change.toString(), history.currency)} over this range</span>{why && <span className="wealth-history-why">Since {formatDate(points[shown - 1]!.at)}: {why.moves.length ? why.moves.map(m => `${m.name} ${signed(m.delta)}`).join(' · ') + (why.others ? ` · ${why.others} more ${why.others === 1 ? 'class' : 'classes'}` : '') : why.total === 0n ? 'no change' : `total ${signed(why.total)}`}</span>}</div>
     <div className="wealth-history-plot" ref={plot}><svg className="wealth-history-svg" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`${points.length} recorded values from ${formatDateTime(points[0]!.at)} to ${formatDateTime(points.at(-1)!.at)}`} onMouseLeave={() => setActive(null)}>
       <defs>{bands.map(b => <linearGradient key={b.c} id={`${id}-${b.ci}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={b.color} stopOpacity=".55"/><stop offset="1" stopColor={b.color} stopOpacity=".06"/></linearGradient>)}<linearGradient id={`${id}-line`} x1="0" x2="1"><stop offset="0" stopColor="#23eaff"/><stop offset=".5" stopColor="#9273ff"/><stop offset="1" stopColor="#f06dff"/></linearGradient></defs>
       <ChartGrid ticks={ticks.map(t => ({y: t.yy, label: compactMoney(t.v)}))} left={L} right={W - R}/>

@@ -10,7 +10,7 @@ import {newHealthId, removeHealthItem, saveActivity} from '../../../lib/health';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {formatDate, formatNumber, formatTime} from '../../../lib/visual-format';
 import {plural} from '../../../lib/plural';
-import {addCustomExercise, addExercise, addSet, discardWorkout, doneSets, durationMinutes, exerciseHistory, finished, finishWorkout, inProgress, lastEntryFor, moveExercise, removeExercise, removeSet, removeTemplate, removeWorkout, renameWorkout, saveTemplate, setExerciseNote, setReady, setRest, startWorkout, updateSet, volumeKg, weekSummary, withActivity, type PersonalBest} from '../../../lib/workouts/engine';
+import {addCustomExercise, addExercise, addSet, discardWorkout, doneSets, durationMinutes, exerciseHistory, finished, oneRepMax, finishWorkout, inProgress, lastEntryFor, moveExercise, removeExercise, removeSet, removeTemplate, removeWorkout, renameWorkout, saveTemplate, setExerciseNote, setReady, setRest, startWorkout, updateSet, volumeKg, weekSummary, withActivity, type PersonalBest} from '../../../lib/workouts/engine';
 import {allExercises, searchExercises, type LibraryExercise} from '../../../lib/workouts/library';
 import {CATEGORIES, MEASURES, SET_KINDS, type ExerciseEntry, type Measure, type Workout, type WorkoutSet, type Workouts} from '../../../lib/workouts/schema';
 import {clock, fromUnit, readClock, setText, toUnit, weightShown} from './units';
@@ -228,6 +228,24 @@ function SaveRoutine({workout, onSave, compact = false}: {workout: Workout; onSa
   </form>;
 }
 
+/**
+ * Session AH (L1, as Multi's progression view): each session's best set, oldest to newest, as one line (estimated
+ * one-rep max for weighted lifts; reps, time or distance otherwise), with the first and latest values written beside it
+ * and the whole line described in words. Derived from the saved workouts; nothing is stored.
+ */
+function ProgressLine({h, unit}: {h: NonNullable<ReturnType<typeof exerciseHistory>>; unit: 'kg' | 'lb'}) {
+  const value = (s: (typeof h.sessions)[number]) => { const b = s.best; if (!b) return null; if (h.measure === 'weight-reps') return b.weightKg !== undefined && b.reps ? oneRepMax(b.weightKg, Math.min(b.reps, 12)) : null; if (h.measure === 'reps') return b.reps ?? null; if (h.measure === 'time') return b.seconds ?? null; return b.distanceKm ?? null; };
+  const points = [...h.sessions].reverse().slice(-20).map(s => ({date: s.date, v: value(s)})).filter((p): p is {date: string; v: number} => typeof p.v === 'number' && p.v > 0);
+  if (points.length < 2) return null;
+  const shown = (v: number) => h.measure === 'weight-reps' ? weightShown(v, unit) : h.measure === 'time' ? clock(v) : h.measure === 'reps' ? `${v} reps` : `${formatNumber(v, {maximumFractionDigits: 2})} km`;
+  const W = 300, H = 72, lo = Math.min(...points.map(p => p.v)), hi = Math.max(...points.map(p => p.v)), span = hi - lo || 1;
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${(i / (points.length - 1) * (W - 8) + 4).toFixed(1)} ${(H - 6 - (p.v - lo) / span * (H - 12)).toFixed(1)}`).join(' ');
+  const first = points[0]!, last = points.at(-1)!;
+  return <figure className="workouts-progress-line">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${h.measure === 'weight-reps' ? 'Estimated one-rep max' : 'Best set'} over ${points.length} sessions: ${shown(first.v)} on ${formatDate(first.date)}, ${shown(last.v)} on ${formatDate(last.date)}; highest ${shown(hi)}.`}><path d={d} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/></svg>
+    <figcaption className="fine">{`Progress, session by session (${h.measure === 'weight-reps' ? 'estimated one-rep max' : 'best set'}): ${shown(first.v)} on ${formatDate(first.date)} → ${shown(last.v)} on ${formatDate(last.date)}`}</figcaption>
+  </figure>;
+}
 function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; value: string; onChange: (v: string) => void}) {
   const done = useMemo(() => [...new Set(finished(w).flatMap(x => x.exercises.map(e => e.exerciseId)))], [w]);
   if (!done.length) return null;
@@ -244,6 +262,7 @@ function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; uni
       {h.farthestKm !== null && <div><dt>Farthest</dt><dd>{formatNumber(h.farthestKm, {maximumFractionDigits: 2})} km</dd></div>}
       <div><dt>Sessions</dt><dd>{h.sessions.length}</dd><small>last {formatDate(h.sessions[0]!.date)}</small></div>
     </dl>
+    <ProgressLine h={h} unit={unit}/>
     <table className="workouts-history-table"><caption className="sr-only">{h.name}, last sessions</caption><thead><tr><th scope="col">Date</th><th scope="col">Best set</th><th scope="col">Sets</th>{h.measure === 'weight-reps' && <th scope="col">Volume</th>}</tr></thead>
       <tbody>{h.sessions.slice(0, 10).map(s => <tr key={s.workoutId}><th scope="row">{formatDate(s.date)}</th><td>{s.best ? setText(h.measure, s.best, unit) : '—'}</td><td>{s.sets.length}</td>{h.measure === 'weight-reps' && <td>{weightShown(s.volumeKg, unit)}</td>}</tr>)}</tbody></table></>}
   </section>;
