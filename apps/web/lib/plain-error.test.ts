@@ -16,3 +16,16 @@ describe('plainErrorMessage (Session AH, A7/VA1)', () => {
     expect(plainErrorMessage(undefined, fallback)).toBe(fallback);
   });
 });
+
+// Session AH Part 5 (VA1, C1, C2): a schema issue becomes a short sentence when one fits.
+describe('issue sentences', () => {
+  const fallback = 'Check the form.';
+  it('lengths, empty fields and number bounds read as sentences; the app\'s own refine messages stay', () => {
+    expect(plainErrorMessage(z.object({title: z.string().max(100)}).safeParse({title: 'x'.repeat(101)}).error, fallback)).toBe('Use at most 100 characters.');
+    expect(plainErrorMessage(z.string().min(1).safeParse('').error, fallback)).toBe('This can’t be empty.');
+    expect(plainErrorMessage(z.number().positive().safeParse(0).error, fallback)).toBe('Enter an amount above zero.');
+    expect(plainErrorMessage(z.number().max(400).safeParse(720).error, fallback)).toBe('Enter 400 or less.');
+    expect(plainErrorMessage(z.string().refine(v => v === 'a', 'Choose a listed currency.').safeParse('b').error, fallback)).toBe('Choose a listed currency.');
+    expect(plainErrorMessage(z.object({a: z.string()}).safeParse({a: 1}).error, fallback)).toBe(fallback);
+  });
+});

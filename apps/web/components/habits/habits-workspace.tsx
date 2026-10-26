@@ -67,6 +67,7 @@ import { habitArea } from "../../lib/habits-extras/store";
 import "./habits-aa.css";
 import { ProgressSlot } from "../game/slot-local";
 import {Skeleton} from '../ui/skeleton';
+import {plainErrorMessage} from "../../lib/plain-error";
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
@@ -203,7 +204,7 @@ export function HabitsWorkspace() {
   async function undoDeleteForGood() {
     if (!deletedHabit) return;
     const { deleted, title } = deletedHabit; setDeletedHabit(null);
-    try { await store.undoDelete(deleted); setMessage(`“${title}” is back in Archived.`); } catch (error) { setMessage(error instanceof Error ? error.message : "Undo was not applied."); }
+    try { await store.undoDelete(deleted); setMessage(`“${title}” is back in Archived.`); } catch (error) { setMessage(plainErrorMessage(error, "Undo was not applied.")); }
   }
   const cardEntry = (habit: Habit) => {
         const privateGoal = habit.goalLink?.chainId === "private" && habit.goalLink.owner === "local" ? platform.data.goals.find((goal) => goal.id === habit.goalLink!.goalId) : undefined;

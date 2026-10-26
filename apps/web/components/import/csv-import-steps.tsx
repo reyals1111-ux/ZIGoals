@@ -8,6 +8,7 @@ import type {ImportRecord} from '../../lib/import/undo-schema';
 import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
 import './import.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * The shared pieces of the CSV import panels (Session P, PR 3, W3 and I1): the file step, the column matching step,
@@ -100,7 +101,7 @@ export function ImportBanner({imports, kind, onUndo}: {imports: ImportUndoStore;
   if (!record) return null;
   return <div role="status" className="import-banner">
     <p>{record.label}.</p>
-    <div className="actions"><button type="button" className="quiet" disabled={busy} onClick={() => { setBusy(true); setError(''); onUndo(record).catch(e => setError(e instanceof Error ? e.message : 'The import was not undone.')).finally(() => setBusy(false)); }}>Undo</button><button type="button" className="quiet" aria-label="Dismiss this notice" disabled={busy} onClick={() => { try { imports.dismiss(record.id); } catch (e) { setError(e instanceof Error ? e.message : 'Could not dismiss.'); } }}>Dismiss</button></div>
+    <div className="actions"><button type="button" className="quiet" disabled={busy} onClick={() => { setBusy(true); setError(''); onUndo(record).catch(e => setError(plainErrorMessage(e, 'The import was not undone.'))).finally(() => setBusy(false)); }}>Undo</button><button type="button" className="quiet" aria-label="Dismiss this notice" disabled={busy} onClick={() => { try { imports.dismiss(record.id); } catch (e) { setError(plainErrorMessage(e, 'Could not dismiss.')); } }}>Dismiss</button></div>
     {error && <p role="alert">{error}</p>}
   </div>;
 }
@@ -110,11 +111,11 @@ export function RecentImports({imports, kind, onUndo}: {imports: ImportUndoStore
   const [busy, setBusy] = useState<string | null>(null), [error, setError] = useState(''), [confirm, setConfirm] = useState(false);
   const rows = imports.live.filter(r => r.kind === kind);
   if (imports.unreadable) return <div className="import-recent"><p className="fine">Your recent imports on this device could not be read, so there is nothing to undo here. Imports still work.</p>
-    {confirm ? <div className="actions"><button type="button" className="secondary" onClick={() => { try { imports.startOver(); setConfirm(false); } catch (e) { setError(e instanceof Error ? e.message : 'Could not start over.'); } }}>Replace the unreadable note</button><button type="button" className="quiet" onClick={() => setConfirm(false)}>Keep it</button></div> : <button type="button" className="quiet" onClick={() => setConfirm(true)}>Start over…</button>}
+    {confirm ? <div className="actions"><button type="button" className="secondary" onClick={() => { try { imports.startOver(); setConfirm(false); } catch (e) { setError(plainErrorMessage(e, 'Could not start over.')); } }}>Replace the unreadable note</button><button type="button" className="quiet" onClick={() => setConfirm(false)}>Keep it</button></div> : <button type="button" className="quiet" onClick={() => setConfirm(true)}>Start over…</button>}
     {error && <p role="alert">{error}</p>}</div>;
   if (!rows.length) return null;
   return <section className="import-recent" aria-label="Recent imports"><h4>Recent imports</h4>
-    <ul>{rows.map(r => <li key={r.id}><span>{r.label} · {formatDate(r.at)}</span><button type="button" className="quiet" disabled={busy !== null} onClick={() => { setBusy(r.id); setError(''); onUndo(r).catch(e => setError(e instanceof Error ? e.message : 'The import was not undone.')).finally(() => setBusy(null)); }}>{busy === r.id ? 'Undoing…' : 'Undo'}</button></li>)}</ul>
+    <ul>{rows.map(r => <li key={r.id}><span>{r.label} · {formatDate(r.at)}</span><button type="button" className="quiet" disabled={busy !== null} onClick={() => { setBusy(r.id); setError(''); onUndo(r).catch(e => setError(plainErrorMessage(e, 'The import was not undone.'))).finally(() => setBusy(null)); }}>{busy === r.id ? 'Undoing…' : 'Undo'}</button></li>)}</ul>
     <p className="fine">An import can be undone for seven days, as long as none of its records was changed.</p>
     {error && <p role="alert">{error}</p>}
   </section>;

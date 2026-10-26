@@ -4,9 +4,10 @@ import {usePrivateStore} from '../use-private-store';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 import {CHESS_CACHE, type ChessSite} from '../../lib/skills/chess/schema';
-import {ChessSiteError, readChesscom, readLichess, sitePausedFor} from '../../lib/skills/chess/api';
+import {readChesscom, readLichess, sitePausedFor} from '../../lib/skills/chess/api';
 import {chessOf, mergeRead} from '../../lib/skills/chess/engine';
 import {isShowcase} from '../../lib/showcase-storage';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Chess's state on a page (Session W Part 14): the person's choices (settings v3 `chess`), what the sites said (the
@@ -31,7 +32,7 @@ export function useChess(auto: keyof typeof AUTO_AGE_MS | null = null) {
       try {
         const read = site === 'chesscom' ? await readChesscom(username) : await readLichess(username);
         cache.update(current => mergeRead(current, read));
-      } catch (error) { next[site] = error instanceof ChessSiteError || error instanceof Error ? error.message : 'Not updated.'; }
+      } catch (error) { next[site] = plainErrorMessage(error, 'Not updated.'); }
     }
     setErrors(next); setBusy(false);
   }, [showcase, chess, busy, cache]);

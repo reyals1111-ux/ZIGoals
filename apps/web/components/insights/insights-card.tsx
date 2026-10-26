@@ -11,6 +11,7 @@ import {isShowcase} from '../../lib/showcase-storage';
 import {useHealthToday} from '../health/use-health-today';
 import {useInsights} from './use-insights';
 import './insights.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /** The cards Today would show, so the "For you" area can decide whether this card exists at all. */
 export function useInsightCards({habits, health, links}: {habits: HabitData; health: HealthData; links?: HabitHealthLinks}) {
@@ -24,7 +25,7 @@ export function InsightsCard({cards, insights, today}: ReturnType<typeof useInsi
   if (!cards.length) return null;
   const dismiss = (card: InsightCard, index: number) => {
     setError('');
-    try { insights.dismiss(card.id, today); } catch (e) { setError(e instanceof Error ? e.message : 'This card could not be dismissed on this device.'); return; }
+    try { insights.dismiss(card.id, today); } catch (e) { setError(plainErrorMessage(e, 'This card could not be dismissed on this device.')); return; }
     const next = document.getElementById(`insight-${cards[index + 1]?.id ?? cards[index - 1]?.id ?? ''}`);
     (next ?? heading.current)?.focus();
   };
@@ -37,7 +38,7 @@ export function InsightsCard({cards, insights, today}: ReturnType<typeof useInsi
         <p>With the first: {formatNumber(card.detail.withA.yes)} of {formatNumber(card.detail.withA.total)} days. Without: {formatNumber(card.detail.withoutA.yes)} of {formatNumber(card.detail.withoutA.total)} days.</p>
         {card.detail.threshold && <p>{formatNumber(card.detail.threshold.value)} steps is {card.detail.threshold.source === 'target' ? 'your step target.' : 'your usual: the middle of your recorded days.'}</p>}
         <p>Paired by {card.detail.pairedBy}.</p><p>Counts of your own records. Not a cause, not advice.</p>
-        {insights.unreadable && <p><button type="button" className="quiet" onClick={() => { try { insights.startOver(); setError(''); } catch (e) { setError(e instanceof Error ? e.message : 'Could not start over.'); } }}>Start over…</button> Your saved dismissals on this device could not be read; this replaces them and keeps the old bytes as a recovery copy.</p>}
+        {insights.unreadable && <p><button type="button" className="quiet" onClick={() => { try { insights.startOver(); setError(''); } catch (e) { setError(plainErrorMessage(e, 'Could not start over.')); } }}>Start over…</button> Your saved dismissals on this device could not be read; this replaces them and keeps the old bytes as a recovery copy.</p>}
       </details>
       <button type="button" className="quiet" aria-label={`Dismiss: ${card.sentence}`} onClick={() => dismiss(card, index)}>Dismiss</button></div>
     </article>)}

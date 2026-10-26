@@ -1,4 +1,5 @@
 import { csvSafeCell } from './export/csv-safe';
+import {recordDayIssue, waterDayIssue, waterEntryIssue, within, ML_PER_US_FL_OZ} from './limits/plausibility';
 import {journalTimeZone} from './journal-zone';
 import {formatDate, formatNumber} from './visual-format';
 import {additionalNutrients,groceryEditSchema} from './health';
@@ -138,6 +139,8 @@ export function saveGroceryNotes(data: HealthData, groceryNotes: string): Health
 export function addWater(data: HealthData, draft: Pick<WaterEntry, "id" | "date" | "amountMilli" | "unit">, at: string): HealthData {
   const item = waterSchema.parse({ ...draft, createdAt: at, updatedAt: at });
   const state = dailyData(data);
+  // Session AH (VA3, B9): one water limit for every entry point, in millilitres after fl oz are converted.
+  if (!state.waterOperations.includes(item.id)) checkWater(state.water, item);
   if (state.waterOperations.includes(item.id)) {
     const old = state.water.find(w => w.id === item.id);
     if (old && (old.amountMilli !== item.amountMilli || old.date !== item.date || old.unit !== item.unit)) throw Error("Water operation already accepted. Use Edit to correct it.");
@@ -145,9 +148,15 @@ export function addWater(data: HealthData, draft: Pick<WaterEntry, "id" | "date"
   }
   return changeDaily(data, { ...state, water: [...state.water, item], waterOperations: [...state.waterOperations, item.id] });
 }
+const waterMl = (w: Pick<WaterEntry, "amountMilli" | "unit">) => w.amountMilli / 1000 * (w.unit === "ml" ? 1 : ML_PER_US_FL_OZ);
+function checkWater(others: readonly WaterEntry[], next: Pick<WaterEntry, "date" | "amountMilli" | "unit">) {
+  within(waterEntryIssue(waterMl(next))); within(recordDayIssue(next.date));
+  within(waterDayIssue(others.filter(w => w.date === next.date).reduce((sum, w) => sum + waterMl(w), 0) + waterMl(next)));
+}
 export function editWater(data: HealthData, id: string, patch: Pick<WaterEntry, "date" | "amountMilli" | "unit">, at: string): HealthData {
   const state = dailyData(data);
   if (!state.water.some(w => w.id === id)) throw Error("Water entry unavailable.");
+  checkWater(state.water.filter(w => w.id !== id), patch);
   return changeDaily(data, { ...state, water: state.water.map(w => w.id === id ? { ...w, ...patch, updatedAt: at } : w) });
 }
 export function removeWater(data: HealthData, id: string): HealthData { return changeDaily(data, { ...dailyData(data), water: dailyData(data).water.filter(w => w.id !== id) }); }

@@ -34,6 +34,7 @@ import type {Attestation} from '../../lib/staking/attestation';
 import type {Grant} from '../../lib/staking/grants';
 import {WhatsThis} from '../earn/whats-this';
 import './staking.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Session AF (ADR-028 H46, H47, H60–H63, H87; L2 design §4): stake, unstake, move and claim on the Staking page, a lazy
@@ -238,7 +239,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       setOtherError({action: next.action, message: cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign|practice badge|Ledger|Nothing to sign/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message});
     } finally { setQuoting(false); }
   }, [wallet, quoting]);
-  const revokeGrant = (grant: Grant) => { if (!wallet || !grant.msgTypeUrl) return; try { void reviewOther({action: 'revoke', messages: [revoke({granter: wallet.address, grantee: grant.grantee, msgTypeUrl: grant.msgTypeUrl})]}); } catch (cause) { setOtherError({action: 'revoke', message: cause instanceof Error ? cause.message : 'This permission cannot be revoked here.'}); } };
+  const revokeGrant = (grant: Grant) => { if (!wallet || !grant.msgTypeUrl) return; try { void reviewOther({action: 'revoke', messages: [revoke({granter: wallet.address, grantee: grant.grantee, msgTypeUrl: grant.msgTypeUrl})]}); } catch (cause) { setOtherError({action: 'revoke', message: plainErrorMessage(cause, 'This permission cannot be revoked here.')}); } };
   const reviewBadge = (badge: Attestation) => { if (!wallet) return; void reviewOther({action: 'attest', messages: [attest({address: wallet.address})], memo: badge.memo, attestation: {kind: badge.kind, note: badge.note, ...(badge.salt ? {salt: badge.salt} : {})}}); };
   useEffect(() => { if (expired && quote && !progress) void (quote.action === 'sweep' && sweep.current ? reviewSweep(sweep.current.validator, sweep.current.amount) : (quote.action === 'revoke' || quote.action === 'attest') && other.current ? reviewOther(other.current) : review()); }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps -- re-quote once per expiry
   async function done(receipt: StakingReceipt) {

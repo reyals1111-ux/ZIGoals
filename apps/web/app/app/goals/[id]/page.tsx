@@ -24,6 +24,7 @@ import { HabitGoalLinks } from "../../../../components/habits/habit-goal-links";
 import { CONTRACT_ADDRESS } from "../../../../lib/wallet";
 import { NebulaFlow } from "../../../../components/nebula-flow";
 import {formatDateTime,formatPlainDecimal} from "../../../../lib/visual-format";
+import { plainErrorMessage } from "../../../../lib/plain-error";
 export default function GoalDetail({
   params,
 }: {
@@ -100,7 +101,7 @@ export default function GoalDetail({
         throw Error("Enter an amount greater than zero.");
       void s.prepare({ kind, id, amount });
     } catch (e) {
-      s.setError(e instanceof Error ? e.message : String(e));
+      s.setError(plainErrorMessage(e, 'That did not work. Nothing was changed.'));
     }
   }
   return <div className="dashboard platform-workspace goal-detail-workspace" data-tone={visualTone(id)}>

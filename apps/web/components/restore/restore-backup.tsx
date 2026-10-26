@@ -8,6 +8,7 @@ import type {RestoreOutcome} from '../../lib/restore/apply';
 import {useVaultControls} from '../vault-sync-controls';
 import {formatDate} from '../../lib/visual-format';
 import './restore-backup.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): Settings → Your data → "Restore from a backup". The
@@ -47,7 +48,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
   }, []);
   if (showcase) return <p className="notice">You are in the Showcase. Return to your own data to restore a backup.</p>;
 
-  async function run(work: () => Promise<void>) { if (busy) return; setBusy(true); setError(''); try { await work(); } catch (e) { setError(e instanceof Error ? e.message : 'The backup could not be read. Nothing was changed.'); } finally { setBusy(false); } }
+  async function run(work: () => Promise<void>) { if (busy) return; setBusy(true); setError(''); try { await work(); } catch (e) { setError(plainErrorMessage(e, 'The backup could not be read. Nothing was changed.')); } finally { setBusy(false); } }
   const open = (file: File | undefined) => run(async () => {
     setPreview(null); setOutcome(null); setNotes([]); setUndone(''); setConfirm(false); setModes({});
     if (!file) return;

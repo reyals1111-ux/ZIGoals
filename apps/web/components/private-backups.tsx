@@ -17,6 +17,7 @@ const NEWEST: Record<ShowcaseModule, number> = { platform: CURRENT_VERSIONS.fina
 
 import { useHabits } from "./habits/use-habits";
 import { useHealth } from "./health/use-health";
+import {plainErrorMessage} from "../lib/plain-error";
 
 type BackupStore = { importLimit:number; loaded: boolean; error: string; exportData: () => Promise<string>; importData: (raw: string) => Promise<void>; refresh: () => void };
 function ModuleBackup<T>({ name, module, schema, store, describe }: { name: string; module: ShowcaseModule; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string }) {
@@ -67,7 +68,7 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
       await store.importData(raw);
       setRaw(""); setSummary(""); setConfirmed(false); setDemo(false); setDemoConfirmed(false);
       setMessage(`${name} restored. Previous stored bytes were preserved in a local recovery record.`);
-    } catch (error) { setError(error instanceof Error ? error.message : "Restore failed. Existing data was preserved."); }
+    } catch (error) { setError(plainErrorMessage(error, "Restore failed. Existing data was preserved.")); }
     finally { setBusy(false); }
   }
   return <section className="panel module-backup" aria-label={`${name} backup`}>

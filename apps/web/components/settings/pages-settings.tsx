@@ -14,6 +14,7 @@ import {settingsGroupIn} from '../../lib/vault/w-homes';
 import {updateSettingsGroup} from '../../lib/w-homes-store';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, BUTTON_LABEL, PAGE_LABEL, hrefShown, isShown, phoneTabs, showEverything, startPage, viewOf, visiblePages, withChoice, withStart} from '../../lib/pages/visibility';
 import type {PageId, Pages, VisibilityId} from '../../lib/pages/schema';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const NOTES: Partial<Record<VisibilityId, string>> = {
   'quick-add': 'In the sidebar, the phone top bar and on Today.',
@@ -38,7 +39,7 @@ export function PagesSettings() {
   const view = viewOf(ready ? settingsGroupIn(settings.data, 'pages') : undefined, showcase);
   const save = (change: (pages: Pages) => Pages, done: string) => {
     setMessage(null);
-    return updateSettingsGroup('pages', change).then(() => setMessage({text: done}), (error: unknown) => setMessage({text: error instanceof Error ? error.message : 'Could not save.', failed: true}));
+    return updateSettingsGroup('pages', change).then(() => setMessage({text: done}), (error: unknown) => setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}));
   };
   const toggle = (id: VisibilityId, label: string, on: boolean) => void save(pages => withChoice(pages, id, on, new Date().toISOString()), on ? `${label} shows again.` : `${label} is hidden. You can show it again here at any time.`);
   const showGovernance = (on: boolean) => {

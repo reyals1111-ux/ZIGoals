@@ -6,6 +6,7 @@ import {localDate} from '../../lib/local-date';
 import {readDecimal} from '../../lib/portfolio/math';
 import {addTransaction} from '../../lib/portfolio/store';
 import type {Portfolio, PortfolioCoin, PortfolioData, PortfolioTransaction} from '../../lib/portfolio/schema';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 export type Run = (change: (data: PortfolioData) => PortfolioData, done: string, fallback: string) => boolean;
 /** Record a buy, sell or transfer (Session I; Session W Part 15: a coin's page presets its coin and skips the picker). */
@@ -19,7 +20,7 @@ export function TransactionForm({portfolio, run, coin: preset}: {portfolio: Port
   function submit(event: FormEvent) {
     event.preventDefault(); setProblem('');
     let q: string | null, p: string | null, f: string | null;
-    try { q = readDecimal(quantity); p = price.trim() ? readDecimal(price) : null; f = fee.trim() ? readDecimal(fee) : null; } catch (error) { setProblem(error instanceof Error ? error.message : 'Check the amounts.'); return; }
+    try { q = readDecimal(quantity); p = price.trim() ? readDecimal(price) : null; f = fee.trim() ? readDecimal(fee) : null; } catch (error) { setProblem(plainErrorMessage(error, 'Check the amounts.')); return; }
     if (!coin) return setProblem('Choose a coin.');
     if (!q || !/[1-9]/.test(q)) return setProblem('Enter a quantity above zero.');
     if (price.trim() && p === null) return setProblem('Enter the price per coin as a number, or leave it empty for a transfer.');

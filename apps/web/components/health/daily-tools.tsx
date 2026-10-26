@@ -27,7 +27,7 @@ export type HealthPerform = (updater: (latest: HealthData) => HealthData, messag
 type Props = { data: HealthData; date: string; perform: HealthPerform; invalid: (cause?: unknown) => void };
 const now = () => new Date().toISOString();
 function DateField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label className="field"><span>{label}</span><input type="date" min="1900-01-01" max="2199-12-31" value={value} onChange={e => onChange(e.target.value)} required /></label>;
+  return <label className="field"><span>{label}</span><input type="date" min="1990-01-01" max="2199-12-31" value={value} onChange={e => onChange(e.target.value)} required /></label>;
 }
 function MealField({ label, value, onChange, all = false }: { label: string; value: string; onChange: (value: string) => void; all?: boolean }) {
   return <label className="field"><span>{label}</span><select value={value} onChange={e => onChange(e.target.value)}>{all && <option>All</option>}{HEALTH_MEALS.map(m => <option key={m}>{m}</option>)}</select></label>;

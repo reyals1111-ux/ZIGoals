@@ -10,6 +10,7 @@ import {BreathingVisual} from './breathing-visual';
 import {MoodPicker} from './meditation-forms';
 import type {MeditationStore} from './use-meditation';
 import {zigiSignals} from '../../zigi/bus';
+import {plainErrorMessage} from '../../../lib/plain-error';
 
 type WakeLockSentinel = {release(): Promise<void>};
 /** Keeps the screen on while `active`, where the browser offers it; asks again when the page comes back into view. */
@@ -74,7 +75,7 @@ export function MeditationSession({store, run, onDone}: {store: MeditationStore;
       zigiSignals.emitValidated('meditation_finished');
       write(() => emptyMeditationRun());
       onDone(`Saved: ${ended.seconds >= 60 ? minutesText(Math.round(ended.seconds / 60)) : `${ended.seconds} s`}.`);
-    } catch (err) { setError(err instanceof Error ? err.message : 'Could not save. Try again.'); }
+    } catch (err) { setError(plainErrorMessage(err, 'Could not save. Try again.')); }
     finally { setBusy(false); }
   }
   function letGo() { write(() => emptyMeditationRun()); onDone('The session was not saved.'); }

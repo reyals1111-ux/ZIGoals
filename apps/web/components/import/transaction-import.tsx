@@ -13,6 +13,7 @@ import {saveFailureMessage, storageUiCode} from '../../lib/storage-error-copy';
 import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const loadCatalog = createCatalogLoader();
 const OPTIONS: SetupOptions = {fields: TRANSACTION_FIELDS, numberFields: ['quantity', 'price', 'fee'], dateField: 'date'};
@@ -61,7 +62,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
   </section>;
   return <section className="panel import-panel" aria-label="Import transactions">
     <h2>Import transactions</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="portfolio" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-target"><legend>Into portfolio</legend>

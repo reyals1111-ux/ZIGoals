@@ -8,6 +8,7 @@ import {GUIDE_LABEL} from '../../lib/coach/copy';
 import '../coach/guide.css';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import './weekly-review.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 type Step = {field: ReviewNoteField; title: string; lines: ReactNode[]; fine?: string; placeholder?: string};
 const count = (n: number, one: string, many: string) => n === 0 ? `no ${many}` : `${formatNumber(n)} ${n === 1 ? one : many}`;
@@ -38,7 +39,7 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus(); }, [index]);
   const step = steps[index]!;
-  const save = async (fn: typeof onSaveNotes) => { setError(''); try { await fn(notes); return true; } catch (e) { setError(e instanceof Error ? e.message : 'Your words were not saved on this device.'); return false; } };
+  const save = async (fn: typeof onSaveNotes) => { setError(''); try { await fn(notes); return true; } catch (e) { setError(plainErrorMessage(e, 'Your words were not saved on this device.')); return false; } };
   const body = <div className="weekly-review" aria-label="Your week">
     <p className="eyebrow">Your week · {formatDate(weekStart)} – {formatDate(weekEnd)}</p>
     <p className="weekly-review-step">Step {index + 1} of {steps.length}</p>

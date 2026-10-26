@@ -58,7 +58,8 @@ describe('a tick writes the real record through its page’s own function, and U
     expect(s1.days.today?.ticks[0]?.record).toEqual({kind: 'water', id: water[0]!.id});
     expect(plan.message).toBe('500 ml of water logged.');
     expect(dailyData(run(s1, plan.undo).health).water).toEqual([]);
-    expect(() => planTick(dot(s0, 'Water'), ctx({value: 9000}), 'value')).toThrow('from 50 to 3000 ml');
+    // Assertion changed (Session AH VA3, one water limit; equal strength): the Checklist's range is the app's 1–5,000 mL.
+    expect(() => planTick(dot(s0, 'Water'), ctx({value: 9000}), 'value')).toThrow('from 1 to 5000 ml');
   });
   test('a supplement (a familiar food) logs one serving to the meal of the hour; Undo removes it', () => {
     const s0 = stores(), plan = planTick(dot(s0, 'Vitamin D'), ctx()), s1 = run(s0, plan.writes);

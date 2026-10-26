@@ -9,6 +9,7 @@ import { HealthLinkField, healthLinkDraft, healthLinkFromDraft, suggestedHealthL
 import type { HabitHealthLinkV4 as HabitHealthLink } from "../../lib/habit-health-links/schema";
 import type { ExerciseCounter } from "../../lib/health-counters";
 import { useFieldErrors } from "../field-errors";
+import {plainErrorMessage} from "../../lib/plain-error";
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };
 type MeasurementKind = HabitRule["measurement"]["kind"];
@@ -105,19 +106,19 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
     // Typed numbers follow Health's decimal-comma rule; each refusal names its field.
     let targetValue = 0, every = 2, times = 1, count = 30, failed = "";
     try {
-      const field = (label: string, read: () => number) => { try { return read(); } catch (e) { failed = ({ "Target value": "target", "Repeat every (days)": "interval", "Times per period": "frequency", "Completion count": "endCount" } as Record<string, string>)[label] ?? ""; throw new Error(`${label}: ${e instanceof Error ? e.message : "Enter a number."}`); } };
+      const field = (label: string, read: () => number) => { try { return read(); } catch (e) { failed = ({ "Target value": "target", "Repeat every (days)": "interval", "Times per period": "frequency", "Completion count": "endCount" } as Record<string, string>)[label] ?? ""; throw new Error(`${label}: ${plainErrorMessage(e, "Enter a number.")}`); } };
       if (type !== "quit") targetValue = field("Target value", () => readFormNumber(target, { min: type === "build" && wholeTarget ? 1 : 0, max: 1_000_000_000, whole: wholeTarget, positive: type === "build" }));
       if (scheduleKind === "interval") every = field("Repeat every (days)", () => readFormNumber(interval, { min: 2, max: 365, whole: true }));
       if (scheduleKind === "frequency") times = field("Times per period", () => readFormNumber(frequency, { min: 1, max: frequencyMaximum, whole: true }));
       if (endKind === "completions") count = field("Completion count", () => readFormNumber(endCount, { min: 1, max: 100_000, whole: true }));
-    } catch (e) { fe.fail(e instanceof Error ? e.message : "Check the numbers in this habit.", ...(failed ? [failed] : [])); return; }
+    } catch (e) { fe.fail(plainErrorMessage(e, "Check the numbers in this habit."), ...(failed ? [failed] : [])); return; }
     const endCondition = endKind === "date" ? { kind: "date" as const, date: endDate } : endKind === "completions" ? { kind: "completions" as const, count } : endKind === "goal" && goalLink ? { kind: "goal" as const, goal: goalLink } : { kind: "none" as const };
     const parsed = habitInputSchema.safeParse({ title, category, description, notes, goalLink, type, measurement: measurementValue(), target: targetValue, targetPeriod: scheduleKind === "frequency" ? "day" : targetPeriod, schedule: scheduleValue(every, times), timeOfDay, endCondition, stackAfterId: stackAfterId || undefined });
     if (!parsed.success) { setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
     // The Health link is checked after the habit itself, so its message names its own field; a quit or limit habit has none.
     let link: HabitHealthLink | null = null;
-    if (type === "build" && !healthLinksUnreadable) { try { link = healthLinkFromDraft(shownLink, waterUnit); } catch (e) { setError(`Done automatically from Health: ${e instanceof Error ? e.message : "Check the link."}`); return; } }
-    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected,reminderTime,healthLinksUnreadable?undefined:link); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
+    if (type === "build" && !healthLinksUnreadable) { try { link = healthLinkFromDraft(shownLink, waterUnit); } catch (e) { setError(`Done automatically from Health: ${plainErrorMessage(e, "Check the link.")}`); return; } }
+    setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected,reminderTime,healthLinksUnreadable?undefined:link); } catch(e) { setError(plainErrorMessage(e, "Your habit was not saved. Check the storage message and try again.")); } finally { setBusy(false); }
   }
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
     <div className="habit-section-heading"><div><p className="eyebrow">Set your cadence</p><h2 id={`${formId}-heading`}>{habit ? "Edit habit" : "Create a habit"}</h2></div>{onIdeas ? <button type="button" className="secondary habit-ideas-button" onClick={onIdeas}>Start from an idea</button> : <span aria-hidden="true" className="habit-spark">✦</span>}</div>

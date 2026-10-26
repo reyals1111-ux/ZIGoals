@@ -17,6 +17,7 @@ import {SleepScoreCard} from '../sleep-score-card';
 import './sleep.css';
 import {sourceName} from '../../../lib/health-sources';
 import {formatClock, formatDate, formatTime} from '../../../lib/visual-format';
+import {plainErrorMessage} from '../../../lib/plain-error';
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -40,7 +41,7 @@ export default function SleepView() {
   async function remove(id: string) {
     // Session AH Part 3 (DS3, L-009/L-010): a nap is called a nap.
     const kind = store.sleep.nights.find(n => n.id === id)?.kind;
-    try { await store.update(s => deleteNight(s, id)); setConfirm(null); setNote(kind === 'nap' ? 'The nap is deleted.' : 'The night is deleted.'); } catch (error) { setNote(error instanceof Error ? error.message : 'Could not delete.'); }
+    try { await store.update(s => deleteNight(s, id)); setConfirm(null); setNote(kind === 'nap' ? 'The nap is deleted.' : 'The night is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
   }
   return <div className="sleep-view">
     <div className="page-heading header-art-host"><div>

@@ -6,6 +6,7 @@ import {healthGoalIssue, type HealthGoal, type HealthGoalMeasure} from '../../li
 import type {HealthGoalDraft} from '../../lib/health-goals/store';
 import type {ExerciseCounter} from '../../lib/health-counters';
 import {INVISIBLE_NAME, isInvisibleName} from '../../lib/visible-text';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 export type HealthUnits = {weightUnit: 'kg' | 'lb'; waterUnit: 'ml' | 'fl-oz-us'};
 const MEASURES: {value: HealthGoalMeasure; label: string}[] = [{value: 'steps', label: 'Steps per day'}, {value: 'water', label: 'Water days'}, {value: 'exercise', label: 'Exercise counter'}, {value: 'activeMinutes', label: 'Active minutes'}, {value: 'weight', label: 'Weight'}];
@@ -43,9 +44,9 @@ export function HealthGoalCreator({goal, counters, units, today, onSave, onCance
       draft = {name: name.trim(), measure, direction: measure === 'weight' ? direction : 'at-least', target: parsedTarget, unit, window: windowKind === 'by' ? {kind: 'by', date: byDate} : {kind: 'rolling', weeks: rolling}, ...(measure === 'exercise' ? {exerciseId} : {}), ...(notes.trim() ? {notes: notes.trim()} : {})};
       const issue = healthGoalIssue({version: 1, id: goal?.id ?? '00000000-0000-4000-8000-000000000000', status: 'active', createdAt: new Date(0).toISOString(), updatedAt: new Date(0).toISOString(), ...draft});
       if (issue) throw Error(issue);
-    } catch (e) { setError(e instanceof Error ? e.message : 'Check the goal.'); return; }
+    } catch (e) { setError(plainErrorMessage(e, 'Check the goal.')); return; }
     setBusy(true); setError('');
-    try { await onSave(draft); } catch (e) { setError(e instanceof Error ? e.message : 'The health goal was not saved.'); } finally { setBusy(false); }
+    try { await onSave(draft); } catch (e) { setError(plainErrorMessage(e, 'The health goal was not saved.')); } finally { setBusy(false); }
   }
   return <section className="panel health-goal-creator" aria-labelledby="health-goal-creator-title">
     <div className="habit-section-heading"><div><p className="eyebrow">Your body, your measure</p><h2 id="health-goal-creator-title">{goal ? 'Edit health goal' : 'New health goal'}</h2></div></div>

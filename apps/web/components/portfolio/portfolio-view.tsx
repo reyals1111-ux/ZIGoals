@@ -30,6 +30,7 @@ import {UndoRefused, undoImport} from '../../lib/import/holdings';
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import './portfolio.css';
 import {useDefaultCurrency} from '../../lib/default-currency';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const NO_COINS: PortfolioCoin[] = [];
 /** Messages a reader can act on; storage refusals keep their Part 5 code. */
@@ -185,7 +186,7 @@ function PortfolioFiles({data, showcase, onImport, importing, onImportCsv}: {dat
     <p>Export your portfolios as a file, or replace them from one. The file holds only Portfolio.</p>
     <div className="actions"><button type="button" className="secondary" disabled={!data.portfolios.length} onClick={download}>Export portfolios</button>
       <button type="button" className="secondary" aria-expanded={importing} onClick={onImportCsv}>Import transactions from a CSV</button>
-      <label className="secondary portfolio-file-input">Import from a file<input type="file" accept="application/json,.json" onChange={async event => { setProblem(''); setPending(null); const file = event.target.files?.[0]; event.target.value = ''; if (!file) return; try { setPending(parsePortfolioImport(await file.text())); } catch (error) { setProblem(error instanceof Error ? error.message : 'The file was not imported. Nothing was changed.'); } }} /></label></div>
+      <label className="secondary portfolio-file-input">Import from a file<input type="file" accept="application/json,.json" onChange={async event => { setProblem(''); setPending(null); const file = event.target.files?.[0]; event.target.value = ''; if (!file) return; try { setPending(parsePortfolioImport(await file.text())); } catch (error) { setProblem(plainErrorMessage(error, 'The file was not imported. Nothing was changed.')); } }} /></label></div>
     {problem && <p role="alert">{problem}</p>}
     {pending && <div className="portfolio-confirm" role="alertdialog" aria-label="Replace portfolios"><p>Replace all {data.portfolios.length} portfolios on this device with the {pending.portfolios.length} in this file?</p><div className="actions"><button type="button" className="secondary" onClick={() => { if (onImport(pending)) setPending(null); }}>Replace my portfolios</button><button type="button" className="quiet" onClick={() => setPending(null)}>Cancel</button></div></div>}
   </section>;

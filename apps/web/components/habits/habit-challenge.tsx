@@ -7,6 +7,7 @@ import {zigiSignals} from '../zigi/bus';
 import {useDeviceRecord} from '../ai/use-device-record';
 import type {HabitCardStore} from './use-habits';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * A habit's challenge on its card (Session W Part 10): the day it is on and the days done while it runs; when it has
@@ -28,7 +29,7 @@ export function ChallengeFinished({habit, store}: {habit: Habit; store: HabitCar
   const seen = () => notes.update(n => ({...n, seen: {...n.seen, [challengeNoteId(habit, c)]: store.today}}));
   return <div className="habit-challenge-done" role="group" aria-label={`${habit.title} challenge ended`}>
     <p>{finishedWords(habit, c)}</p>
-    <div className="actions"><button type="button" className="secondary" disabled={busy} onClick={async () => { setBusy(true); setError(''); try { await store.update(data => keepGoing(data, habit.id)); seen(); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Not saved.'); } finally { setBusy(false); } }}>Keep going (no end date)</button>
+    <div className="actions"><button type="button" className="secondary" disabled={busy} onClick={async () => { setBusy(true); setError(''); try { await store.update(data => keepGoing(data, habit.id)); seen(); } catch (cause) { setError(plainErrorMessage(cause, 'Not saved.')); } finally { setBusy(false); } }}>Keep going (no end date)</button>
       <button type="button" className="quiet" disabled={busy} onClick={() => { try { seen(); } catch { setError('Not saved on this device.'); } }}>Let it rest</button></div>
     {error && <p role="alert">{error}</p>}
   </div>;
@@ -36,7 +37,7 @@ export function ChallengeFinished({habit, store}: {habit: Habit; store: HabitCar
 export function ChallengeControls({habit, store}: {habit: Habit; store: HabitCardStore}) {
   const c = challengeOf(habit, store.today), [days, setDays] = useState(String(CHALLENGE_DAYS.usual)), [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [error, setError] = useState('');
   const active = latestHabitRule(habit).state === 'active';
-  async function run(change: Parameters<HabitCardStore['update']>[0], words: string) { setBusy(true); setError(''); setMessage(''); try { await store.update(change); setMessage(words); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Not saved.'); } finally { setBusy(false); } }
+  async function run(change: Parameters<HabitCardStore['update']>[0], words: string) { setBusy(true); setError(''); setMessage(''); try { await store.update(change); setMessage(words); } catch (cause) { setError(plainErrorMessage(cause, 'Not saved.')); } finally { setBusy(false); } }
   return <details className="habit-details habit-challenge"><summary>Challenge</summary>
     {c && !c.finished ? <><p>Day {c.dayNumber} of {c.days}, from {formatDate(c.start)} to {formatDate(c.end)}: done on {c.done} of {c.scheduled} scheduled {c.scheduled === 1 ? 'day' : 'days'} so far. Rest days don’t count either way.</p>
       <button type="button" className="quiet" disabled={busy} onClick={() => void run(data => keepGoing(data, habit.id), 'The challenge’s end date is gone; the habit carries on.')}>Carry on without an end date</button></>

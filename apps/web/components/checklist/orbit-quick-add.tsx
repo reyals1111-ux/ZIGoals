@@ -14,6 +14,7 @@ import {HABIT_TONE_COLOURS} from '../../lib/path/orbit-colours';
 import {PATH_COLOURS, type PathColour} from '../../lib/path/colours';
 import type {HabitInput} from '../../lib/habits';
 import type {ChecklistState} from './use-checklist';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Session AG Polish 2 (ADR-031 K11; owner Part 5, pointer D-path 11): the Checklist's own quick add — a short "in between"
@@ -57,7 +58,7 @@ export function OrbitQuickAdd({state, onClose, onAdded}: {state: ChecklistState;
     try {
       if (kind === 'number') { value = readFormNumber(target, {min: 1, max: 1_000_000_000, whole: true, positive: true}); measurement = {kind: 'count', unit: unit.trim().slice(0, 24) || 'times'}; }
       if (kind === 'minutes') { value = readFormNumber(minutes, {min: 0, max: 1_000_000_000, positive: true}); measurement = {kind: 'duration', unit: 'minutes'}; }
-    } catch (e) { found[kind] = e instanceof Error ? e.message : 'Check the number.'; }
+    } catch (e) { found[kind] = plainErrorMessage(e, 'Check the number.'); }
     if (!every && !days.length) found.days = 'Choose at least one day.';
     setErrors(found);
     if (Object.keys(found).length) { (document.getElementById(`${uid}-${Object.keys(found)[0]}`) as HTMLElement | null)?.focus(); return; }

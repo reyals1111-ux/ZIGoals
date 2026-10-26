@@ -2,6 +2,7 @@ import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
 import { formatDate } from "./visual-format";
+import { minutesIssue, within } from "./limits/plausibility";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -319,6 +320,9 @@ export function logHabitValue(data: HabitData, id: string, rawDate: string, rawV
   return replaceHabit(data, id, (habit) => {
     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
     if (rule!.measurement.kind === "count" && !Number.isInteger(value)) throw new Error("Count values must be whole numbers.");
+    // Session AH (VA2: 100,000 minutes a day were saved): a minutes habit holds at most a day (1,440) on its day; an hours
+    // habit (a fast can end two on one day, each over a day long) at most a week (168). The added total counts.
+    if (rule!.measurement.kind === "duration") { const prior = habit.entries.find(e => e.date === date)?.count ?? 0, total = options.mode === "add" ? prior + value : value; within(rule!.measurement.unit === "hours" ? (total <= 168 ? null : "Enter at most 168 hours (a week) for one day.") : minutesIssue(total)); }
     const previous = habit.entries.find((item) => item.date === date); const count = valueSchema.parse(options.mode === "add" ? addValues(previous?.count ?? 0, value) : value);
     const entry = entrySchema.parse({ date, count, disposition: "logged", note: options.note ?? previous?.note ?? "", mood: options.mood ?? previous?.mood, updatedAt: now.toISOString() });
     return { ...habit, updatedAt: now.toISOString(), entries: [...habit.entries.filter((item) => item.date !== date), entry].sort((a, b) => a.date.localeCompare(b.date)) };

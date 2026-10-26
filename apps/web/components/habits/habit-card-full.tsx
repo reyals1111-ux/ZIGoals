@@ -55,13 +55,14 @@ function targetCopy(habit: Habit,today:string) {
 }
 
 import {HabitCompletion} from './habit-completion';
+import {plainErrorMessage} from "../../lib/plain-error";
 
 function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore }) {
   const [month, setMonth] = useState(store.today.slice(0, 7)); const [selectedDate, setSelectedDate] = useState(store.today); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState("");
   const first = `${month}-01`; const gridStart = addLocalDays(first, -((localWeekday(first) + 6) % 7)); const day = habitDay(habit, selectedDate, store.today); const rule = habitRuleOn(habit, selectedDate) ?? latestHabitRule(habit);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget); const mood = String(form.get("mood")) as "energized" | "good" | "neutral" | "difficult" | "calm" | "";
-    let count: number; try { count = readFormNumber(String(form.get("count")), { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setMessage(""); setError(e instanceof Error ? e.message : "Enter a number."); return; }
+    let count: number; try { count = readFormNumber(String(form.get("count")), { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setMessage(""); setError(plainErrorMessage(e, "Enter a number.")); return; }
     setBusy(true); setMessage(""); setError(""); try { await store.setCount(habit.id, selectedDate, count, String(form.get("note")), mood || undefined); setMessage("Day saved."); } catch (error) { setError(storageMessageOr(error, "This day could not be saved. Choose a scheduled active day up to today.")); } finally { setBusy(false); }
   }
   async function mark(status: "skipped" | "failed") { setBusy(true); setMessage(""); setError(""); try { await store.markDay(habit.id, selectedDate, status, day.note); setMessage(status === "skipped" ? "Day skipped." : "Day marked failed."); } catch (error) { setError(storageMessageOr(error, "This day could not be changed.")); } finally { setBusy(false); } }

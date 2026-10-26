@@ -48,6 +48,7 @@ import { isAccountLocked } from "../../lib/account-session";
 import { currentInstallContext } from "../../lib/install/platform";
 import { GlassBar } from "../progress/glass-progress";
 import { BullGlyph, ButterflyGlyph, HeartGlyph, LotusGlyph } from "../footer/pillar-glyphs";
+import {plainErrorMessage} from "../../lib/plain-error";
 
 /**
  * The first-run welcome v2 (Session W Part 3; Session E's flow before it): ZIGi says hello, the person picks what they
@@ -133,7 +134,7 @@ export function OnboardingFlow() {
       if (done.goalId) { const goalId = done.goalId; await platform.update(data => data.goals.some(g => g.id === goalId) ? deletePrivateGoal(data, goalId) : data); }
       if (done.widgetIds.length) { await updateSettings(getAppStorage(), latest => done.widgetIds.reduce((acc, id) => acc.widgets.some(w => w.id === id) ? removeWidget(acc, id) : acc, latest)); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
       const next = updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, r => ({...r, undone: true})); setSetupDone(next);
-    } catch (e) { setError(e instanceof Error ? e.message : "The setup was not undone."); } finally { setUndoBusy(false); }
+    } catch (e) { setError(plainErrorMessage(e, "The setup was not undone.")); } finally { setUndoBusy(false); }
   }
   function skip() { markOnboardingSeen(window.localStorage); router.push("/app"); }
   const toggle = <T,>(list: T[], value: T) => list.includes(value) ? list.filter(v => v !== value) : [...list, value];

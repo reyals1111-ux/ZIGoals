@@ -8,6 +8,7 @@ import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {APP_VERSION_LABEL, FEEDBACK_ADDRESS} from '../../lib/feedback';
 import {MAX_NOTE, POINT_TELL, POINT_TELL_KEY, addPin, clearPins, describeTarget, editPin, pinPath, pinsMailto, pinsText, removePin, restorePin, type Pin, type PointTell as Record} from '../../lib/point-tell/store';
 import './point-tell.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Session AB-Cloud Part 6 (ADR-023 C23): Point & tell. A small button (above the music button; above the tab bar on
@@ -38,7 +39,7 @@ export function PointTell() {
   }, []);
   const write = useCallback((change: (r: Record) => Record): boolean => {
     try { const next = updateDeviceRecord(getAppStorage(), POINT_TELL, change); setRecord(next); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: POINT_TELL_KEY})); return true; }
-    catch (error) { setMessage(error instanceof Error ? error.message : 'The note was not saved.'); return false; }
+    catch (error) { setMessage(plainErrorMessage(error, 'The note was not saved.')); return false; }
   }, []);
 
   // Picking: the page does not receive the tap; the part under it is described instead. Our own controls stay usable.

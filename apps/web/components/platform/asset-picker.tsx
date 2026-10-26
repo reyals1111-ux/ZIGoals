@@ -15,6 +15,7 @@ import {AssetIcon} from './financial-ui';
 import {useMarketInsights} from './use-market-insights';
 import {marketRequestKey} from '../../lib/market-assets';
 import {shownAmount} from './common';
+import {plainErrorMessage} from '../../lib/plain-error';
 const categories=['Existing assets','Crypto','Stablecoins','Stocks','ETFs','Precious metals','Cash','Property','Custom'];
 /** Values another part of the app hands to the manual form (ZIGi's pre-fill, ADR-012): shown as defaults the person reviews and saves. */
 export type AssetDraft={category:string;name:string;quantity:string;currency:string;value?:string;symbol?:string;notes?:string};
@@ -29,7 +30,7 @@ export function AssetPicker({positions=[],onExisting,onDraft,onFavourite,initial
   if(automatic&&selected)p=automaticSourcePosition({asset:selected,assetClass:(category==='ETFs'?'Stocks':category==='Precious metals'?'Precious Metals':category) as AssetClass,quantity:get('quantity'),currency:currency as 'USD'|'EUR',notes:get('notes')});
   else p=manualSourcePosition({category:(category==='Custom'?'Custom asset':category==='ETFs'?'Stocks':category) as ManualSource['category'],name:get('name')||`${currency} Cash`,quantity:get('quantity'),currency,symbol:get('symbol'),metal:get('metal'),unit:get('unit'),value:get('value'),notes:get('notes')});
   onDraft?.(p);
- }catch(e){setError(e instanceof Error?e.message:'Check the asset details.');}}
+ }catch(e){setError(plainErrorMessage(e, 'Check the asset details.'));}}
  return <div className="asset-picker"><div className="picker-intro"><h3>{onFavourite?'Markets you care about':'Choose an asset'}</h3><p>{onFavourite?'Follow a price without adding it to your wealth.':'Use an asset you already track, or add something new.'}</p></div><div className="picker-tabs" role="group" aria-label="Asset categories">{categories.filter(c=>onDraft||onFavourite||c==='Existing assets').filter(c=>c!=='Existing assets'||!!onExisting).filter(c=>!onFavourite||!['Existing assets','Cash','Property','Custom'].includes(c)).map(c=><button type="button" key={c} aria-pressed={category===c} onClick={()=>choose(c)}>{c}</button>)}</div>
  {category==='Existing assets'?<div className="picker-existing">{positions.filter(p=>!p.archivedAt).map(p=><button key={p.id} type="button" onClick={()=>onExisting?.(p)}><AssetIcon symbol={p.asset} kind={p.assetClass} logoUrl={p.marketRef?insights.results[marketRequestKey({marketRef:p.marketRef,currency:'USD'})]?.insight?.logoUrl:null}/><span><strong>{p.providerId}</strong><small>{shownAmount(p.quantity,p.decimals)} {p.asset} · {p.valuation?.source==='MANUAL'||p.valuationMode==='manual'?'Manual value':p.marketRef&&p.valuationMode==='automatic'?'Automatic price':p.valuation?'Recorded value':'Needs valuation'}</small></span></button>)}{!positions.filter(p=>!p.archivedAt).length&&<p>No assets yet. Choose a category to add your first.</p>}</div>:<>
  {automatic&&(AssetSearch?<AssetSearch category={category} selected={selected} onSelect={a=>{setSelected(a);setCurrency('USD');}} onManual={()=>setManual(true)}/>:<p className="fine" aria-live="polite">Loading the market search…</p>)}

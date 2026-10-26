@@ -340,7 +340,7 @@ function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEnt
   const [date, setDate] = useState(entry.date);
   const [meal, setMeal] = useState(entry.meal);
   return <FormBox title="Edit diary entry" onSubmit={e => { e.preventDefault(); try { const quantityMilli = parseHealthNumber(quantity, 1000, 1, 1_000_000); void perform(latest => editDiaryEntry(latest, entry.id, { date, meal, quantityMilli }, new Date().toISOString()), "Diary entry updated.", close); } catch (cause) { invalid(cause); } }}>
-    <div className="health-form-grid"><label className="field"><span>Entry date</span><input type="date" required min="1900-01-01" max="2199-12-31" value={date} onChange={e => setDate(e.target.value)} /></label><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={quantity} onChange={setQuantity} step="0.001" /></div><p className="fine">Corrections use the nutrition originally saved with this entry.</p><div className="actions"><button className="primary" type="submit">Save entry</button><button className="quiet" type="button" onClick={close}>Cancel</button></div>
+    <div className="health-form-grid"><label className="field"><span>Entry date</span><input type="date" required min="1990-01-01" max="2199-12-31" value={date} onChange={e => setDate(e.target.value)} /></label><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={quantity} onChange={setQuantity} step="0.001" /></div><p className="fine">Corrections use the nutrition originally saved with this entry.</p><div className="actions"><button className="primary" type="submit">Save entry</button><button className="quiet" type="button" onClick={close}>Cancel</button></div>
   </FormBox>;
 }
 

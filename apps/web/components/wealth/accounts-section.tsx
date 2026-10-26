@@ -16,6 +16,7 @@ import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
 import {useFieldErrors} from '../field-errors';
 import {formatDate} from '../../lib/visual-format';
 import './accounts.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Accounts, debts and net worth (Session W Part 12; Wealth's "wealth:accounts" section). Balances are the person's own,
@@ -98,7 +99,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
     field = 'currency'; if (!/^[A-Z]{3}$/.test(currency)) throw Error('Use a three-letter currency code, for example EUR.');
     field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
     onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
-  } catch (cause) { fe.fail(cause instanceof Error ? cause.message : 'Check the account.', ...(field ? [field] : [])); } }}>
+  } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>
     <label className="field">Kind<select value={kind} onChange={e => setKind(e.target.value as AccountKind)}><optgroup label="What you own">{ASSET_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup><optgroup label="What you owe">{DEBT_KINDS.map(k => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</optgroup></select></label>
     <label className="field">Name<input name="name" required maxLength={80} placeholder={isDebtKind(kind) ? 'For example, car loan' : 'For example, savings account'} /></label>
     <label className="field">Currency<input name="currency" required maxLength={3} defaultValue="EUR" autoCapitalize="characters" {...fe.field('currency')} /></label>
@@ -119,7 +120,7 @@ function AccountRow({account: a, today, open, setOpen, change, prefill}: {accoun
     <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small></div>
     <div className="accounts-row-balance">{b ? <><strong>{show(b, a.currency)}</strong><small>{debt ? 'owed' : 'balance'} on {formatDate(b.date)}</small></> : <small>No balance yet</small>}</div>
     <div className="actions"><button type="button" className="quiet" aria-label={`Update the balance of ${a.name}`} onClick={() => setOpen(open === 'balance' ? null : 'balance')}>Update balance</button>{debt && <button type="button" className="quiet" aria-label={`Record a payment on ${a.name}`} onClick={() => setOpen(open === 'payment' ? null : 'payment')}>Record a payment</button>}<button type="button" className="quiet" aria-label={`Edit ${a.name}`} onClick={() => setOpen(open === 'edit' ? null : 'edit')}>Edit</button></div>
-    {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today)); if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(cause instanceof Error ? cause.message : 'Check the amount.', 'amount'); } }}>
+    {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today)); if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the amount.'), 'amount'); } }}>
       <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" required defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount')} /></label>
       <label className="field">On<input name="date" type="date" defaultValue={open === 'balance' && prefill ? prefill.date : today} max={today} /></label>
       <button type="submit" className="secondary">Save</button>

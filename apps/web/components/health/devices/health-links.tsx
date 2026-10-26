@@ -13,6 +13,7 @@ import {linkConfig, type LinkConfig} from '../../../lib/health-link/client';
 import {ReconnectRequired, syncLink} from '../../../lib/health-link/sync';
 import {finishLink, syncedHealth, unlink} from '../../../lib/health-link/flow';
 import {removeLinkedRecords} from '../../../lib/health-link/mappers';
+import {plainErrorMessage} from '../../../lib/plain-error';
 
 /**
  * Health → Devices → Linked accounts (Session W Part 8). Off unless this build says NEXT_PUBLIC_HEALTH_LINK=on and the
@@ -77,7 +78,7 @@ function LiveLinks() {
           void sync(p, scope, true);
         } catch (error) { set(p, {state: 'idle', error: error instanceof Error && error.message ? error.message : 'The connection did not finish.'}); }
       }
-      try { setConfig(await linkConfig(scope)); } catch (error) { setProblem(error instanceof Error ? error.message : 'Linked accounts are unavailable right now.'); return; }
+      try { setConfig(await linkConfig(scope)); } catch (error) { setProblem(plainErrorMessage(error, 'Linked accounts are unavailable right now.')); return; }
       let synced: Record<string, number> = {}; try { synced = JSON.parse(sessionStorage.getItem(SYNCED_KEY) ?? '{}') as Record<string, number>; } catch { synced = {}; }
       for (const p of LINK_PROVIDERS) {
         if (!(await hasTokens(scope, p.id))) continue;

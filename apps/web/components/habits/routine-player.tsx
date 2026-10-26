@@ -13,6 +13,7 @@ import {zigiSignals} from '../zigi/bus';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import type {HabitsStore} from './use-habits';
 import type {HabitExtrasState} from './use-habit-extras';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /** Phase 2, Part 6 (owner request 32): ZIGi guides the routine in a fixed line per moment — plain words, no model call. */
 function Guide({line, state = 'encouraging'}: {line: string; state?: string}) {
@@ -52,7 +53,7 @@ export function RoutinePlayer({headId, store, extras, onClose}: {headId: string;
       const next = advanceRun(mine, current.habit.id, outcome, new Date());
       record.update(r => ({...r, run: next}));
       if (runFinished(routine!, next)) { try { zigiSignals.emitValidated('routine_finished'); } catch { /* decoration */ } }
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'This step was not saved.'); } finally { setBusy(false); }
+    } catch (cause) { setError(plainErrorMessage(cause, 'This step was not saved.')); } finally { setBusy(false); }
   }
   function leave(clear: boolean) { if (clear) { try { record.update(r => ({...r, run: null})); } catch { /* kept */ } } onClose(); }
   if (!mine) return <section className="routine-player" aria-label={routine.title}><p role="status">Starting {routine.title}…</p></section>;

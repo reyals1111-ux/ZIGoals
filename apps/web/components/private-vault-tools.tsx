@@ -19,6 +19,7 @@ import {LOCAL_LEDGER_KEY,LOCAL_PLANS_KEY,exportLocalSimulation,isOmittedLocalSim
 import {futureEntriesMessage} from './legacy-restore-clock';
 import {storageLockKey} from '../lib/showcase-storage';
 import { formatDate, formatNumber } from '../lib/visual-format';
+import {plainErrorMessage} from '../lib/plain-error';
 type Domain='finance'|'habits'|'health'|'settings';
 type Section=Domain|'simulation';
 export function PrivateVaultTools(){
@@ -31,7 +32,7 @@ export function PrivateVaultTools(){
  const [restored,setRestored]=useState<Section[]>([]);
  const moduleLabel=(section:Section)=>inventory.find(item=>item.domain===section)?.label??section;
  useEffect(()=>{const clear=()=>{setGenerated(null);setSaved(false);setPreview(null);setFile('');setSecret('');setConfirm(false);setHealthConsent(false);setMessage('');setError('');setRestored([]);};window.addEventListener(ACCOUNT_CHANGE,clear);return()=>window.removeEventListener(ACCOUNT_CHANGE,clear);},[]);
- async function run(work:()=>Promise<void>){if(busy)return;setBusy(true);setError('');setMessage('');try{await work();}catch(e){setError(e instanceof Error?e.message:'Operation failed. Existing records were preserved.');}finally{setBusy(false);}}
+ async function run(work:()=>Promise<void>){if(busy)return;setBusy(true);setError('');setMessage('');try{await work();}catch(e){setError(plainErrorMessage(e, 'Operation failed. Existing records were preserved.'));}finally{setBusy(false);}}
  async function upgrade(){
   if(isShowcase())throw Error('Return to your data before changing private storage.');if(domain==='simulation')throw Error('Select a module to upgrade.');const storage=getAppStorage();
   if(domain==='finance')await enableDurableStore(storage,PLATFORM_KEY,platformSchema,emptyPlatform);

@@ -11,6 +11,7 @@ import {updateSettingsGroup} from '../../lib/w-homes-store';
 import {useSpotifyClientId} from './music-config';
 import {openMusicPlayer} from './music-events';
 import {useSpotify} from './use-spotify';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Settings → Music (Session W Part 20): whether the player shows (the same switch as Your pages & buttons), the mini-bar,
@@ -21,7 +22,7 @@ export function MusicSettings() {
   const shown = isShown(usePagesView(), 'music'), showcase = useShowcase(), prefs = useDeviceRecord(MUSIC), config = useSpotifyClientId();
   const spotify = useSpotify({clientId: config.clientId, active: false}), [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null);
   const showPlayer = () => updateSettingsGroup('pages', pages => withChoice(pages, 'music', true, new Date().toISOString()))
-    .then(() => setMessage({text: 'The music player shows again.'}), (error: unknown) => setMessage({text: error instanceof Error ? error.message : 'Could not save.', failed: true}));
+    .then(() => setMessage({text: 'The music player shows again.'}), (error: unknown) => setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}));
   const mini = (on: boolean) => { try { prefs.update(m => ({...m, mini: on})); setMessage({text: on ? 'The mini-bar takes the music button’s place on this device.' : 'The round music button is back on this device.'}); } catch (error) { setMessage({text: `Not saved on this device. ${deviceSettingFailureMessage(error)}`, failed: true}); } };
   const spotifyState = showcase ? 'The Showcase connects nothing.' : !config.loaded ? 'Checking…' : !config.clientId ? 'Not set up on this site yet: its owner needs to register a Spotify app first.' : !spotify.scope ? 'Unlock your account to connect Spotify.' : spotify.connected ? 'Connected on this device.' : spotify.connected === false ? 'Not connected.' : 'Checking…';
   return <section className="panel music-settings" id="music" aria-labelledby="music-settings-title">

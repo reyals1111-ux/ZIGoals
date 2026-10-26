@@ -13,6 +13,7 @@ import {unitFor} from "../../lib/plural";
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabitHealthLinks} from "./use-habit-health-links";
 import {zigiSignals} from '../zigi/bus';
+import {plainErrorMessage} from "../../lib/plain-error";
 
 /**
  * The check-in control of a habit card (Session AA-Local Gate A, ADR-022 B41): its own small module, so Today, the Habits
@@ -82,7 +83,7 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
   }
   function settled() { const queue = checkIns.current; queue.saving = false; queue.shown = null; setPending(null); setBusy(false); }
   // Typed values follow Health's decimal-comma rule ("0,5" is 0.5; "1,234" is refused with a reason).
-  function typed() { try { return readFormNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(e instanceof Error ? e.message : "Enter a number."); return null; } }
+  function typed() { try { return readFormNumber(manual, { max: 1_000_000_000, whole: rule.measurement.kind === "count" }); } catch (e) { setError(plainErrorMessage(e, "Enter a number.")); return null; } }
   async function saveManual(event: FormEvent) { event.preventDefault(); const value = typed(); if (value !== null) await run(() => store.setValue(habit.id, store.today, value)); }
   async function addManual() { const value = typed(); if (value !== null) await run(() => store.addValue(habit.id, store.today, value)); }
   if (!day.scheduled) return part === 'quick-log' ? null : <span className={`habit-status habit-day-${day.status}`}>{statusLabel[day.status]}</span>;

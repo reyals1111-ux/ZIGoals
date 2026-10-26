@@ -307,9 +307,7 @@ function useGoalState() {
       } catch (error) {
         if (!stopped) {
           const warning =
-            error instanceof Error
-              ? error.message
-              : "Transaction history is unavailable. Stored data was preserved.";
+            plainErrorMessage(error, "Transaction history is unavailable. Stored data was preserved.");
           // Only merge warnings after this scope has loaded its own history.
           // A first-load failure must replace any previous account's warnings.
           const resetWarnings = firstLoad;
@@ -536,7 +534,7 @@ function useGoalState() {
         });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(plainErrorMessage(e, 'That did not work. Nothing was changed.'));
     } finally {
       actionBusy.current = false;
       setBusy(false);

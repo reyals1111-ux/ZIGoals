@@ -9,6 +9,7 @@ import {clearHabitTimezone, saveHabitTimezone} from '../../lib/habits';
 import {dailyData, saveHealthPreferences} from '../../lib/health-daily';
 import {timeZoneSchema} from '../../lib/time-zone-schema';
 import {useDeviceZone} from '../use-device-zone';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * "Your time zone" (Session W Part 17, owner decision W2, TIMEZONE_PHASE4_DECISIONS.md T2-A): one journal zone for every
@@ -25,7 +26,7 @@ export function TimeZoneSettings() {
   const ready = settings.loaded && !settings.error;
   const zoneFrom = (form: HTMLFormElement, name: string) => { const parsed = timeZoneSchema.safeParse(String(new FormData(form).get(name) ?? '').trim()); if (!parsed.success) throw Error('Choose an IANA time zone name, for example Europe/Brussels.'); return parsed.data; };
   async function run(work: () => Promise<unknown>, done: string) {
-    try { await work(); setMessage({text: done}); } catch (error) { setMessage({text: error instanceof Error ? error.message : 'Could not save.', failed: true}); }
+    try { await work(); setMessage({text: done}); } catch (error) { setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}); }
   }
   const saveJournal = (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); const form = e.currentTarget; void run(async () => { const zone = zoneFrom(form, 'journalZone'); await settings.update(s => withJournalZone(s, zone)); }, 'Your time zone is saved. Past entries keep their dates.'); };
   const saveHabits = (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); const form = e.currentTarget; void run(async () => { const zone = zoneFrom(form, 'habitsZone'); await habits.update(d => saveHabitTimezone(d, zone)); }, 'Habits now use their own time zone.'); };

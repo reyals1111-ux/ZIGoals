@@ -18,6 +18,7 @@ import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {getAccountScope} from '../../lib/account-session';
 import {isShowcase} from '../../lib/showcase-storage';
 import './health-aa.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const H = 120, PAD = {top: 10, right: 8, bottom: 22, left: 40};
 function MiniChart({title, points, unit, id}: {title: string; points: {date: string; value: number}[]; unit: string; id: string}) {
@@ -60,11 +61,11 @@ function ProgressPhotos({photos, today}: {photos: ReturnType<typeof useDeviceRec
   async function add(file: File) {
     setBusy(true); setError('');
     try { const {blob, type} = await compressImage(file); const id = `photo_${crypto.randomUUID()}`; await putPhotoBlob(scope, id, blob); try { photos.update(r => addPhotoEntry(r, {id, date, pose, bytes: blob.size, type, at: new Date().toISOString()})); } catch (e) { await deletePhotoBlob(scope, id); throw e; } }
-    catch (e) { setError(e instanceof Error ? e.message : 'The photo was not saved.'); } finally { setBusy(false); }
+    catch (e) { setError(plainErrorMessage(e, 'The photo was not saved.')); } finally { setBusy(false); }
   }
   // Session AH Part 3 (DS5): a photo's image is deleted from this device for good, so removing one asks first, in place.
   const [removing, setRemoving] = useState<string | null>(null);
-  async function remove(id: string) { setRemoving(null); try { photos.update(r => removePhotoEntry(r, id)); await deletePhotoBlob(scope, id); setPicked(p => p.filter(x => x !== id)); } catch (e) { setError(e instanceof Error ? e.message : 'The photo was not removed.'); } }
+  async function remove(id: string) { setRemoving(null); try { photos.update(r => removePhotoEntry(r, id)); await deletePhotoBlob(scope, id); setPicked(p => p.filter(x => x !== id)); } catch (e) { setError(plainErrorMessage(e, 'The photo was not removed.')); } }
   const pair = picked.map(id => list.find(p => p.id === id)).filter((p): p is PhotoEntry => !!p);
   return <section className="panel health-aa-card" aria-labelledby="photos-title"><p className="eyebrow">On this device only</p><h2 id="photos-title"><NebulaFlow identity="photos-title">Progress photos</NebulaFlow></h2>
     <form className="health-photo-add" aria-label="Add a progress photo" onSubmit={e => e.preventDefault()}><label className="field"><span>Photo</span><input type="file" accept="image/*" disabled={busy} onChange={e => { const f = e.target.files?.[0]; if (f) void add(f); e.target.value = ''; }} /></label><label className="field"><span>Pose</span><select value={pose} onChange={e => setPose(e.target.value as PhotoEntry['pose'])}><option value="front">Front</option><option value="side">Side</option><option value="back">Back</option><option value="other">Other</option></select></label><label className="field"><span>Date</span><input type="date" max={today} value={date} onChange={e => setDate(e.target.value)} /></label></form>

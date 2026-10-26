@@ -14,6 +14,7 @@ import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
 import {GRADIENT_CSS, VisionArt} from './vision-art';
 import './goals.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const now = () => new Date().toISOString();
 const AREA_COLORS = ['#7fd8c9', '#a3b5ff', '#f5c97a', '#f39ccf', '#8fdcf4', '#d2a6f6', '#ffb09e', '#b9e88f'];
@@ -64,7 +65,7 @@ function AreaAndVision({goalKey, name, extras}: {goalKey: string; name: string; 
     <fieldset className="area-chips" disabled={!extras.writable}><legend>Life area</legend>
       {areas.map(a => <label key={a.id} className="area-chip" style={{'--area': a.color} as React.CSSProperties}><input type="radio" name={`${groupId}-area`} checked={extra?.area === a.id} onChange={() => extras.change(goalKey, x => setGoalArea(x, goalKey, a.id, now()), `${name} is in ${a.label} now.`)} /><span>{a.label}</span></label>)}
       {extra?.area && <button type="button" className="text-link" onClick={() => extras.change(goalKey, x => setGoalArea(x, goalKey, null, now()), 'Area cleared.')}>No area</button>}
-      {adding ? <form className="area-add" onSubmit={e => { e.preventDefault(); try { let created = ''; extras.change(goalKey, x => { const r = addCustomArea(x, label, AREA_COLORS[x.areas.length % AREA_COLORS.length]!); created = r.id; return setGoalArea(r.extras, goalKey, r.id, now()); }, `Area “${label.trim()}” added.`); void created; setAdding(false); setLabel(''); } catch (err) { showToast({message: err instanceof Error ? err.message : 'That area could not be added.'}); } }}>
+      {adding ? <form className="area-add" onSubmit={e => { e.preventDefault(); try { let created = ''; extras.change(goalKey, x => { const r = addCustomArea(x, label, AREA_COLORS[x.areas.length % AREA_COLORS.length]!); created = r.id; return setGoalArea(r.extras, goalKey, r.id, now()); }, `Area “${label.trim()}” added.`); void created; setAdding(false); setLabel(''); } catch (err) { showToast({message: plainErrorMessage(err, 'That area could not be added.')}); } }}>
         <label className="field"><span>New area</span><input value={label} maxLength={30} onChange={e => setLabel(e.target.value)} placeholder="For example: Garden" /></label>
         <button className="secondary" disabled={!label.trim()}>Add</button><button type="button" className="quiet" onClick={() => setAdding(false)}>Cancel</button>
       </form> : <button type="button" className="text-link" onClick={() => setAdding(true)}>+ Your own area</button>}

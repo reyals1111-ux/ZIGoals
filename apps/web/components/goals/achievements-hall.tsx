@@ -13,6 +13,7 @@ import {VisionArt} from './vision-art';
 import {formatDay} from './format';
 import './goals.css';
 import {useUnifiedGoals} from '../use-unified-goals';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * G7, the Hall of achievements: finished goals as a wall of cards (the day, how long it took, the area, the story), each
@@ -39,7 +40,7 @@ function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vi
       const blob = await drawShareCard({eyebrow: a.areaLabel ? `Achievement · ${a.areaLabel}` : 'Achievement', title: a.name, lines: [a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished', durationWords(a.days), ...(a.story ? [`“${a.story}”`] : [])]});
       const how = await shareOrSave(blob, `${a.name.replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40) || 'achievement'}.png`, a.name);
       showToast({message: how === 'saved' ? 'Image saved to your device.' : 'Image ready to share.'});
-    } catch (e) { showToast({message: e instanceof Error ? e.message : 'The image could not be made.'}); }
+    } catch (e) { showToast({message: plainErrorMessage(e, 'The image could not be made.')}); }
     finally { setBusy(false); }
   }
   return <li className="hall-card" style={color ? {'--area': color} as React.CSSProperties : undefined}>

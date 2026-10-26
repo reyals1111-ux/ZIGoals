@@ -20,6 +20,7 @@ import {amountWithUnit} from '../../lib/asset-unit';
 import { formatDate } from '../../lib/visual-format';
 import { localDate } from '../../lib/local-date';
 import {ShowcaseTag} from '../ui/showcase-tag';
+import {plainErrorMessage} from '../../lib/plain-error';
 const display=(value:string,goal:PrivateGoal)=>formatSignedGoalAmount(value.startsWith('-'),amount(value.replace(/^-/,''),goal.decimals),goal.asset);
 export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{data:Platform;goal:PrivateGoal;quotes:readonly MarketQuote[];now:number;update:(fn:(s:Platform)=>Platform)=>Promise<void>;disabled?:boolean}){
  const showcase=useShowcase(),device=useDeviceZone();
@@ -38,7 +39,7 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
  ];
  const incomeSeries:EvidenceSeries[]=[{label:'Recorded income',kind:'cumulative',color:'#bca1f8',points:contributionSeries.income}];
  const canEdit=!disabled&&!goal.locked&&goal.status!=='closed'&&!busy;
- async function reverse(id:string){setBusy(true);setError('');try{await update(s=>reverseContribution(s,id,crypto.randomUUID(),new Date().toISOString(),'Explicit user reversal'));setMessage('History reversal recorded. The original entry is retained; asset balances and allocations are unchanged, so progress stays the same until you release the allocation.');}catch(e){setError(e instanceof Error?e.message:'Could not reverse contribution.');}finally{setBusy(false);}}
+ async function reverse(id:string){setBusy(true);setError('');try{await update(s=>reverseContribution(s,id,crypto.randomUUID(),new Date().toISOString(),'Explicit user reversal'));setMessage('History reversal recorded. The original entry is retained; asset balances and allocations are unchanged, so progress stays the same until you release the allocation.');}catch(e){setError(plainErrorMessage(e, 'Could not reverse contribution.'));}finally{setBusy(false);}}
  // QA-38: with sources that have no value yet, these figures are a lower bound (or unavailable when none has one).
  const bound=valuationBound(goalProgress(data,goal.id,now,quotes)).bound;
  const max=health?[BigInt(health.actual),BigInt(health.plannedThroughToday),1n].reduce((a,b)=>a>b?a:b):1n;

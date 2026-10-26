@@ -10,6 +10,7 @@ import type {HealthData} from '../../lib/health';
 import './exercise-counters.css';
 import {updateRefusalMessage} from '../../lib/storage-error-copy';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 type Update=(updater:(h:HealthData)=>HealthData)=>Promise<void>;
 const PATHS:Record<ExerciseIcon,ReactNode>={
@@ -33,7 +34,7 @@ function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children
 }
 function CounterEditor({initial,gradient,onSave,onClose}:{initial?:ExerciseCounter;gradient:string;onSave:(name:string,icon:ExerciseIcon)=>Promise<void>;onClose:()=>void}){
  const [name,setName]=useState(initial?.name??''),[icon,setIcon]=useState<ExerciseIcon>(initial?.icon??'run'),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- return <Dialog title={initial?`Edit ${initial.name}`:'Add a counter'} onClose={onClose}><form className="exercise-editor" onSubmit={async event=>{event.preventDefault();setBusy(true);setError('');try{await onSave(name,icon);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this counter.');}finally{setBusy(false);}}}>
+ return <Dialog title={initial?`Edit ${initial.name}`:'Add a counter'} onClose={onClose}><form className="exercise-editor" onSubmit={async event=>{event.preventDefault();setBusy(true);setError('');try{await onSave(name,icon);onClose();}catch(e){setError(plainErrorMessage(e, 'Could not save this counter.'));}finally{setBusy(false);}}}>
   <label className="field"><span>Counter name</span><input value={name} maxLength={40} required onChange={event=>setName(event.target.value)} placeholder="Planks, burpees, lunges…"/></label>
   <fieldset className="exercise-icon-choices"><legend>Icon</legend>{EXERCISE_ICONS.map(choice=><label key={choice} className="exercise-icon-choice"><input type="radio" name="exercise-icon" value={choice} checked={icon===choice} onChange={()=>setIcon(choice)}/><span><ExerciseIconGlyph icon={choice} gradient={gradient} size={28}/><small>{EXERCISE_ICON_LABELS[choice]}</small></span></label>)}</fieldset>
   {error&&<p role="alert">{error}</p>}

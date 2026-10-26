@@ -1,4 +1,5 @@
 import {bodyMeasurementSchema} from "./body-measurement-schema";
+import {kcalTargetIssue, minutesIssue, recordDayIssue, stepsIssue, weightIssue, within} from "./limits/plausibility";
 import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
 import * as z from "zod";
@@ -256,16 +257,20 @@ export function removeHealthItem(data: HealthData, collection: "foods" | "recipe
   return healthSchema.parse({ ...data, [collection]: data[collection].filter(item => item.id !== id) });
 }
 export function setHealthTargets(data: HealthData, targets: HealthTargets): HealthData {
+  within(kcalTargetIssue(targets.kcal)); // Session AH (VA2)
   return healthSchema.parse({ ...data, targets: targetsSchema.parse(targets) });
 }
 const weightDraftSchema = weightSchema.pick({ id: true, date: true, grams: true });
 export function saveWeight(data: HealthData, draft: z.infer<typeof weightDraftSchema>, at: string): HealthData {
   const parsed = weightDraftSchema.parse(draft);
+  within(weightIssue(parsed.grams)); within(recordDayIssue(parsed.date)); // Session AH (VA2: 1,000 kg and 5 kg were saved; 1900 and 2199)
   const old = data.weights.find(w => w.date === parsed.date);
   const weight = { ...parsed, id: old?.id ?? parsed.id, createdAt: old?.createdAt ?? at, updatedAt: at };
   return healthSchema.parse({ ...data, weights: upsert(data.weights, weight) });
 }
 export function saveActivity(data: HealthData, draft: Pick<HealthActivity, "id" | "date" | "name" | "steps" | "minutes">, at: string): HealthData {
+  // Session AH (VA2): steps and minutes a day can hold.
+  within(stepsIssue(draft.steps)); within(minutesIssue(draft.minutes)); within(recordDayIssue(draft.date));
   const old = data.activity.find(a => a.id === draft.id);
   const item = activitySchema.parse({ ...draft, createdAt: old?.createdAt ?? at, updatedAt: at });
   return healthSchema.parse({ ...data, activity: upsert(data.activity, item) });

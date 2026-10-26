@@ -18,6 +18,7 @@ import {AmbientPlayer} from '../../audio/ambient-player';
 import '../sleep/sleep.css';
 import './meditation.css';
 import {sourceName} from '../../../lib/health-sources';
+import {plainErrorMessage} from '../../../lib/plain-error';
 
 const KIND_WORDS: Record<Session['kind'], string> = {timer: 'Sitting', breathing: 'Breathing', manual: 'Mindful minutes', import: 'Imported'};
 const sessionLine = (s: Session) => {
@@ -43,7 +44,7 @@ export default function MeditationView() {
   const summary = meditationSummary(meditation, today), weeks = weeklyBars(meditation, today, 8);
   const recent = [...meditation.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 14);
   async function remove(id: string) {
-    try { await store.update(m => deleteSession(m, id)); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(error instanceof Error ? error.message : 'Could not delete.'); }
+    try { await store.update(m => deleteSession(m, id)); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
   }
   return <div className="meditation-view">
     <div className="page-heading header-art-host"><div>

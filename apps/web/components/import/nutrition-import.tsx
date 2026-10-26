@@ -8,6 +8,7 @@ import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHead
 import {detectNutritionPreset, type NutritionPreset} from '../../lib/import/nutrition-presets';
 import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const OPTIONS: SetupOptions = {fields: NUTRITION_FIELDS, numberFields: ['quantity', 'servingAmount', 'kcal', 'protein', 'carbs', 'fat'], dateField: 'date'};
 const REQUIRED = ['date', 'food'];
@@ -47,7 +48,7 @@ export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: 
   </section>;
   return <section className="import-panel" aria-label="Import meals">
     <h2>Import meals</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { let next = setupFromText(f.text, OPTIONS); const found = detectNutritionPreset(next.parsed.header); if (found) next = withGuesses({...next, mapping: found.mapping}, OPTIONS, {numbers: true, dates: true}); setPreset(found); setSetup(next); setFile(f); setMealMap({}); setBasis('serving'); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { let next = setupFromText(f.text, OPTIONS); const found = detectNutritionPreset(next.parsed.header); if (found) next = withGuesses({...next, mapping: found.mapping}, OPTIONS, {numbers: true, dates: true}); setPreset(found); setSetup(next); setFile(f); setMealMap({}); setBasis('serving'); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="nutrition" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" />{preset && <p className="notice import-preset" role="status">{preset.note}</p>}<MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-basis"><legend>Nutrient values are per</legend>

@@ -18,6 +18,7 @@ import {GlassBar} from '../progress/glass-progress';
 import {amount} from './common';
 import {formatDate} from '../../lib/visual-format';
 import {StarToggle} from '../checklist/star-toggle';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * A Goal's milestones (Session W Part 11): each with an optional target value (where the Goal keeps it) and target date
@@ -57,7 +58,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
         : marks.map(k => <i key={k.id} className="goal-milestone-mark" style={{left: `${k.at * 100}%`}} data-done={current >= BigInt(goal.milestones.find(m => m.id === k.id)!.target!) || undefined} title={k.title} />)}
     </div>}
     {states.length ? <ul className="goal-milestone-list">{states.map(({m, state, date}) => { const row = <>
-      {editing === m.id ? <form className="platform-form goal-milestone-edit" aria-label={`Edit milestone ${m.title}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')); const date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {id: x.id, title, done: x.done, ...(target ? {target} : {})} : x))); saveDate(m.id, date); setEditing(null); }); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the milestone.'); } }}>
+      {editing === m.id ? <form className="platform-form goal-milestone-edit" aria-label={`Edit milestone ${m.title}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')); const date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {id: x.id, title, done: x.done, ...(target ? {target} : {})} : x))); saveDate(m.id, date); setEditing(null); }); } catch (cause) { setError(plainErrorMessage(cause, 'Check the milestone.')); } }}>
         <label className="field">Milestone<input name="title" defaultValue={m.title} maxLength={100} required /></label>
         {!project && <label className="field">Value ({goal.asset}, optional)<input name="target" inputMode="decimal" defaultValue={m.target ? amount(m.target, goal.decimals) : ''} /></label>}
         <label className="field">Target date (optional, this device)<input name="date" type="date" defaultValue={date ?? ''} /></label>
@@ -71,7 +72,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
         {!closed && <button type="button" className="quiet" aria-label={`Edit milestone ${m.title}`} onClick={() => setEditing(m.id)}>Edit</button>}
       </div>}
     </>; const done = () => void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done: true} : x)))); return phone ? <Suspense key={m.id} fallback={<li>{row}</li>}><SwipeRow as="li" label={m.title} nameRow={false} completeLabel="Done" onComplete={!closed && !m.done ? done : undefined}>{row}</SwipeRow></Suspense> : <li key={m.id}>{row}</li>; })}</ul> : <p>No milestones yet.</p>}
-    {!closed && <form className="platform-form goal-milestone-add" aria-label="Add a milestone" onSubmit={e => { e.preventDefault(); const form = e.currentTarget, f = new FormData(form); try { const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')), id = crypto.randomUUID(), date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => [...list, {id, title, done: false, ...(target ? {target} : {})}])); if (date) saveDate(id, date); form.reset(); }); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the milestone.'); } }}>
+    {!closed && <form className="platform-form goal-milestone-add" aria-label="Add a milestone" onSubmit={e => { e.preventDefault(); const form = e.currentTarget, f = new FormData(form); try { const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')), id = crypto.randomUUID(), date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => [...list, {id, title, done: false, ...(target ? {target} : {})}])); if (date) saveDate(id, date); form.reset(); }); } catch (cause) { setError(plainErrorMessage(cause, 'Check the milestone.')); } }}>
       <label className="field">New milestone<input name="title" maxLength={100} required /></label>
       {!project && <label className="field">Value ({goal.asset}, optional)<input name="target" inputMode="decimal" /></label>}
       <label className="field">Target date (optional, this device)<input name="date" type="date" /></label>

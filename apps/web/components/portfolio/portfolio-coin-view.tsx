@@ -22,6 +22,7 @@ import {realizedResults} from '../../lib/portfolio/performance';
 import {PortfolioUnreadable, removeTransaction} from '../../lib/portfolio/store';
 import {showcasePrices} from '../../lib/portfolio/showcase';
 import './portfolio.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const loadCatalog = createCatalogLoader();
 const DAY = 86400000;
@@ -107,7 +108,7 @@ function FavouriteToggle({coin}: {coin: PortfolioCoin}) {
   const key = marketRefKey(coin.ref), favourite = platform.data.watchlist.some(f => marketRefKey(f.ref) === key), full = !favourite && platform.data.watchlist.length >= 8;
   return <section className="panel portfolio-favourite" aria-label="Favourite markets">
     <p>{favourite ? `${coin.name} is one of your favourite markets.` : full ? 'You already follow eight favourite markets, the most there can be. Remove one on Markets to follow this coin.' : 'Follow this coin among your favourite markets on Markets, Wealth and Portfolio.'}</p>
-    <button type="button" className="secondary" disabled={busy || full} onClick={() => { setBusy(true); setProblem(''); void platform.update(s => favourite ? removeFavourite(s, key) : addFavourite(s, {ref: coin.ref, name: coin.name, symbol: coin.symbol})).catch(e => setProblem(e instanceof Error ? e.message : 'Could not update favourites.')).finally(() => setBusy(false)); }}>{favourite ? 'Remove from favourites' : 'Add to favourites'}</button>
+    <button type="button" className="secondary" disabled={busy || full} onClick={() => { setBusy(true); setProblem(''); void platform.update(s => favourite ? removeFavourite(s, key) : addFavourite(s, {ref: coin.ref, name: coin.name, symbol: coin.symbol})).catch(e => setProblem(plainErrorMessage(e, 'Could not update favourites.'))).finally(() => setBusy(false)); }}>{favourite ? 'Remove from favourites' : 'Add to favourites'}</button>
     {problem && <p role="alert">{problem}</p>}
   </section>;
 }

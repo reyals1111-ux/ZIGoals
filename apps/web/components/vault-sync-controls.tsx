@@ -41,6 +41,7 @@ import type {ExtrasOutcome} from '../lib/vault/extras-sync';
 export type SectionSync={at:string;merged:boolean};
 export type ExtrasStatus={state:'off'}|{state:'synced';outcomes:ExtrasOutcome[];at:string}|{state:'error';message:string}|{state:'removed'}|{state:'deleted-elsewhere'};
 import {ZIGI_STORE_EVENT} from '../lib/ai/store/keys';
+import {plainErrorMessage} from '../lib/plain-error';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean;device:DeviceBinding|null};
 type Sealed={key:CryptoKey;sealed:SealedRoot;deviceKey:CryptoKey;forgets:number|null};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
@@ -106,7 +107,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   if(running.current){const pending=automaticRun.current;if(automatic||!pending||waiting.current)return;waiting.current=true;const selected=session.current;try{await pending;}finally{waiting.current=false;}if(running.current||session.current!==selected)return;}
   const operation=Symbol('vault operation');running.current=operation;setBusy(true);setError('');
   let ended=()=>{};const run=automatic?new Promise<void>(resolve=>{ended=resolve;}):null;if(run)automaticRun.current=run;
-  try{await work();}catch(e){if(running.current!==operation)return;if(e instanceof StaleDeviceError)dropStale();if(e instanceof OlderVaultError||e instanceof OlderCloudError)setVaultGone('older');if(pauseOnError)auto.current=false;setError(e instanceof Error?e.message:'Sync was not confirmed. Local records were preserved.');setMessage(pauseOnError?'Needs attention. Automatic sync paused.':'Recovery copy was not prepared. The sync queue was unchanged.');}finally{if(running.current===operation){running.current=null;setBusy(false);}if(run){if(automaticRun.current===run)automaticRun.current=null;ended();}}
+  try{await work();}catch(e){if(running.current!==operation)return;if(e instanceof StaleDeviceError)dropStale();if(e instanceof OlderVaultError||e instanceof OlderCloudError)setVaultGone('older');if(pauseOnError)auto.current=false;setError(plainErrorMessage(e, 'Sync was not confirmed. Local records were preserved.'));setMessage(pauseOnError?'Needs attention. Automatic sync paused.':'Recovery copy was not prepared. The sync queue was unchanged.');}finally{if(running.current===operation){running.current=null;setBusy(false);}if(run){if(automaticRun.current===run)automaticRun.current=null;ended();}}
  }
  // Settings' AccountAccess calls this once it verified the account; a remembered device then opens without the secret.
  // A quiet call (a reopen on this device) keeps a failed manifest read to itself instead of pausing sync.
@@ -200,13 +201,13 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   const storage=getAppStorage(),attempt=()=>syncPortfolio({transport:portfolioTransport(selected.account,fence),key:selected.key,manifest:selected.manifest,storage,fence,choice});
   try{const outcome=await reconcileOnce(attempt,fence);
    fence();if(outcome.state==='deleted')choosePortfolioSync(storage,false);setPortfolio(outcome);setPortfolioAt(formatTime(new Date()));}
-  catch(error){fence();setPortfolio({state:'error',message:error instanceof Error?error.message:'Portfolio sync was not confirmed. Your Portfolio on this device was preserved.'});}
+  catch(error){fence();setPortfolio({state:'error',message:plainErrorMessage(error, 'Portfolio sync was not confirmed. Your Portfolio on this device was preserved.')});}
  }
  function portfolioSession(){const selected=session.current;if(!selected)throw Error('Unlock your vault before syncing.');const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Vault locked. Sync result was not applied.');};return {selected,fence};}
  async function syncPortfolioNow(choice?:'keep-device'|'keep-cloud'){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();await runPortfolio(selected,fence,choice);});});}
  async function deletePortfolioCloud(){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage();
   try{await deletePortfolioCopy({transport:portfolioTransport(selected.account,fence),manifest:selected.manifest,storage,fence});fence();choosePortfolioSync(storage,false);setPortfolio({state:'removed'});}
-  catch(error){fence();setPortfolio({state:'error',message:error instanceof Error?error.message:'The Portfolio copy was not deleted.'});}});});}
+  catch(error){fence();setPortfolio({state:'error',message:plainErrorMessage(error, 'The Portfolio copy was not deleted.')});}});});}
  /**
   * Session AB-Cloud Part 2 ([TIER 3] (sync), ADR-023 C1–C5): the encrypted extras sections, after the account's sections and
   * the Portfolio, under the same lock. On unless the person turned them off on this device (owner decision); the Health
@@ -223,7 +224,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    // Removed from the cloud on another device ("Remove from the cloud"): this device stops too and keeps its records.
    if(outcomes.some(o=>o.state==='deleted'&&o.section!=='health')){m.writeExtrasChoice(storage,{...m.readExtrasChoice(storage),enabled:false});await bases.clear();setExtras({state:'deleted-elsewhere'});return;}
    setExtras({state:'synced',outcomes,at:formatTime(new Date())});
-  }catch(error){fence();if(error instanceof m.ExtrasChangedDuringSync){followUp.current=true;return;}setExtras({state:'error',message:error instanceof Error?error.message:'Extras sync was not confirmed. Your records on this device were preserved.'});}
+  }catch(error){fence();if(error instanceof m.ExtrasChangedDuringSync){followUp.current=true;return;}setExtras({state:'error',message:plainErrorMessage(error, 'Extras sync was not confirmed. Your records on this device were preserved.')});}
  }
  async function setExtrasEnabled(on:boolean){
   const storage=getAppStorage(),m=await extrasModule();
@@ -234,7 +235,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  }
  async function removeExtrasCloud(){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage(),m=await extrasModule();
   try{await m.deleteExtrasCopies({transport:m.extrasTransport(selected.account,fence),manifest:selected.manifest,storage,bases:m.indexedDbBases(selected.account),fence});fence();setExtras({state:'removed'});}
-  catch(error){fence();setExtras({state:'error',message:error instanceof Error?error.message:'The extras’ encrypted copy was not deleted.'});}});});}
+  catch(error){fence();setExtras({state:'error',message:plainErrorMessage(error, 'The extras’ encrypted copy was not deleted.')});}});});}
  async function sync(automatic=false){await guarded(async()=>{
   const selected=session.current;if(!selected)throw Error('Unlock your vault before syncing.');const healthPermission=selected.health;
   syncing.current=true;followUp.current=false;try{

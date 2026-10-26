@@ -7,6 +7,7 @@ import {applyAutoCompletion, autoCheckInMarker, autoCompletions} from '../../lib
 import {recordAutoCheckIn} from '../../lib/habit-health-links/store';
 import {useJournalZone} from '../use-journal-zone';
 import {everyHalfMinute} from '../half-minute';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 // A refused automatic check-in is said once on its habit's card and retried on the next run (H7, "Hook").
 const notices = new Map<string, string>();
@@ -60,7 +61,7 @@ export function useAutoCheckIns({habits, health}: {habits: Pick<HabitsStore, 'da
             if (changed) await updateLinks(current => recordAutoCheckIn(current, autoCheckInMarker(item, new Date())));
             setNotice(item.habitId, null);
           } catch (error) {
-            setNotice(item.habitId, `This habit could not be ticked off automatically. ${error instanceof Error ? error.message : 'Try again later.'}`);
+            setNotice(item.habitId, `This habit could not be ticked off automatically. ${plainErrorMessage(error, 'Try again later.')}`);
           }
         }
       })().finally(() => { running.current = false; });

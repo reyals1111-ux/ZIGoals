@@ -5,6 +5,7 @@ import {GUIDE_LABEL} from '../../lib/coach/copy';
 import type {Nudge} from '../../lib/coach/guide';
 import {isShowcase} from '../../lib/showcase-storage';
 import './guide.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Today's Guide card (ADR-011): one nudge a day from the person's own records, always labelled. "Not today" hides
@@ -18,7 +19,7 @@ export function GuideCard({nudge, today, onNotToday}: {nudge: Nudge; today: stri
     <p className="guide-body">{nudge.body}{isShowcase() && <> <span className="fine">Showcase example.</span></>}</p>
     <div className="actions">
       {nudge.action && <Link className="secondary" href={nudge.action.href}>{nudge.action.label}</Link>}
-      <button type="button" className="quiet" onClick={() => { setError(''); try { onNotToday(nudge.id, today); } catch (e) { setError(e instanceof Error ? e.message : 'This note could not be hidden on this device.'); } }}>Not today</button>
+      <button type="button" className="quiet" onClick={() => { setError(''); try { onNotToday(nudge.id, today); } catch (e) { setError(plainErrorMessage(e, 'This note could not be hidden on this device.')); } }}>Not today</button>
       <Link className="guide-off" href="/app/settings#guide">Turn off the Guide</Link>
     </div>
     {error && <p role="alert">{error}</p>}
