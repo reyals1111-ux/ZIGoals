@@ -189,9 +189,19 @@ async function landing(page, {origins, expect, report, output}) {
   const cta = page.getByRole('link', {name: 'Launch Alpha', exact: false}).first();
   assert.equal(await cta.getAttribute('href'), origins.alpha + '/app'); assert.equal(await cta.getAttribute('target'), '_blank');
   assert.match(await cta.getAttribute('rel'), /noopener/); assert.match(await cta.getAttribute('rel'), /noreferrer/);
-  await expect(page.locator('.alpha-status')).toHaveText('Public Alpha / Financial execution disabled');
-  await expect(page.getByText('Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed.', {exact: false})).toBeVisible();
-  await expect(page.getByText('Independent project · Not affiliated with ZIGChain · Financial execution disabled', {exact: false})).toBeVisible();
+  // Session AH (MO5; TIER 3 verifier): the landing's honesty lines changed with the staking decision of 18 Oct. The apex is
+  // deployed separately by the owner, so until it is redeployed it keeps the earlier lines: exactly one of the two known
+  // sets must be there in full (each states that the Goal Manager contract is not deployed). Drop the first set after
+  // the landing redeploy.
+  const sets = [
+    {status: 'Public Alpha / Financial execution disabled', alpha: 'Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed.', independence: 'Independent project · Not affiliated with ZIGChain · Financial execution disabled'},
+    {status: 'Public Alpha / Nothing moves unless you sign', alpha: 'ZIGoals never holds keys. The Goal Manager contract is not deployed, so Goals never move funds.', independence: 'Independent project · Not affiliated with ZIGChain · Nothing moves unless you sign'},
+  ];
+  const shown = ((await page.locator('.alpha-status').textContent()) ?? '').replace(/\s+/g, ' ').trim();
+  const set = sets.find(s => s.status === shown);
+  assert.ok(set, `landing status line is neither known set: "${shown}"`);
+  await expect(page.getByText(set.alpha, {exact: false})).toBeVisible();
+  await expect(page.getByText(set.independence, {exact: false})).toBeVisible();
   report.landingLinks = await page.locator('a').evaluateAll(nodes => nodes.map(a => ({text: a.textContent.trim(), href: a.href, target: a.target, rel: a.rel})));
   for (const url of ['https://x.com/ZIGoals', 'https://x.com/ZIGFluencer', 'https://github.com/reyals1111-ux/ZIGoals']) assert(report.landingLinks.some(a => a.href === url));
   await recordLayouts(page, report, 'landing'); await page.screenshot({path: output + '/landing.png', fullPage: true});
