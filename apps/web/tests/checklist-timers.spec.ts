@@ -22,6 +22,9 @@ async function openTimers(page: Page) {
 const fasts = async (page: Page) => (await stored<{sessions: {endedAt: string | null}[]}>(page, FASTING_KEY))?.sessions ?? (await stored<Health>(page, HEALTH_STORAGE_KEY))?.fasting?.sessions ?? [];
 
 test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next ends it on its page', async ({page}) => {
+  // Session AH (DS2): a sleep ended within ten minutes saves nothing (its own toast offers Undo), so the night here runs
+  // eleven minutes on the page's clock; time otherwise flows as before.
+  await page.clock.install();
   await seedChecklist(page);
   await page.goto('/app/checklist');
   await openTimers(page);
@@ -31,7 +34,7 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await timer(page, 'Sleep').click();
   await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.sleep?.nights.map(n => n.end)).toEqual([null]);
-  await page.waitForTimeout(1100);
+  await page.clock.fastForward('11:00');
   await timer(page, 'Sleep').click();
   await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'false');
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.sleep?.nights.every(n => typeof n.end === 'string')).toBe(true);
