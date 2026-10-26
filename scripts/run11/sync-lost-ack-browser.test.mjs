@@ -15,7 +15,9 @@ async function createValueGoal(page,ui,name){
  await page.getByLabel('Goal name',{exact:true}).fill(name);await page.getByRole('radio',{name:'Value',exact:true}).check();
  await page.getByLabel('Target amount',{exact:true}).fill('1000');
  for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →',exact:true}).click();
- await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();
+ await page.getByRole('button',{name:'Create goal',exact:true}).click();
+ // Session AH: a stall says where the page was and what it said (CI runs 1212 and 1215 stalled here once each).
+ await page.getByTestId('tracked-progress').waitFor().catch(async e=>{const said=await page.locator('[role=alert],[role=status]').allInnerTexts().catch(()=>[]);throw Error(`${e.message}\nat ${page.url()}; said: ${said.join(' | ').slice(0,600)}`);});
 }
 async function unlockAfterReload(page,ui,recovery){
  await ui.access().getByRole('button',{name:'Check account status',exact:true}).click();

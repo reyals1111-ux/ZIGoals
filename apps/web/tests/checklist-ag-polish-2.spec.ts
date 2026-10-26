@@ -88,8 +88,10 @@ test('4: the ambient sky twinkles behind everything, rests while the tab is hidd
   await expect(sky).toHaveAttribute('data-ambient', 'running');
   expect(await sky.evaluate(el => { const cs = getComputedStyle(el), shell = document.querySelector('.checklist-shell')!; return [cs.position, cs.pointerEvents, cs.zIndex, !!(el.compareDocumentPosition(shell) & Node.DOCUMENT_POSITION_FOLLOWING)]; }), 'fixed, behind the path and its words').toEqual(['fixed', 'none', '0', true]);
   // A twinkle within a few seconds: transform and opacity only.
-  await expect.poll(() => sky.evaluate(el => el.getAnimations({subtree: true}).length), {timeout: 9000}).toBeGreaterThan(0);
-  const props = await sky.evaluate(el => [...new Set(el.getAnimations({subtree: true}).flatMap(a => (a.effect as KeyframeEffect).getKeyframes().flatMap(k => Object.keys(k).filter(p => !['offset', 'easing', 'composite', 'computedOffset'].includes(p)))))].sort());
+  // Session AH (CI runs 1208 and 1215, mobile): a short twinkle could end between seeing it and reading it; the
+  // properties are now read in the same moment the twinkle is seen, and that snapshot is what is checked.
+  let props: string[] = [];
+  await expect.poll(async () => (props = await sky.evaluate(el => [...new Set(el.getAnimations({subtree: true}).flatMap(a => (a.effect as KeyframeEffect).getKeyframes().flatMap(k => Object.keys(k).filter(p => !['offset', 'easing', 'composite', 'computedOffset'].includes(p)))))].sort())).length, {timeout: 9000}).toBeGreaterThan(0);
   expect(props).toEqual(['opacity', 'transform']);
   // The tab hidden: it rests, and nothing keeps running.
   await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {value: 'hidden', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });

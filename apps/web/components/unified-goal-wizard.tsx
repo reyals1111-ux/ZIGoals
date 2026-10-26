@@ -90,7 +90,10 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName}:
  // a calculator prefill or a shared name, and cleared when the Goal is saved or on "Start over".
  const DRAFT_KEY='zigoals:draft:goal-wizard:v1';
  const [draftBack,setDraftBack]=useState(false),draftRead=useRef(false);
- useEffect(()=>{if(draftRead.current)return;draftRead.current=true;if(templateId||calculator||sharedName||positionId)return;try{const d=JSON.parse(sessionStorage.getItem(DRAFT_KEY)??'null') as Record<string,string>|null;if(!d||typeof d!=='object')return;
+ useEffect(()=>{if(draftRead.current)return;draftRead.current=true;if(templateId||calculator||sharedName||positionId)return;
+  // A draft never replaces what is already typed (text typed while the page was still loading is the person's latest word).
+  if([...document.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('.unified-wizard input[type=text], .unified-wizard input:not([type]), .unified-wizard textarea')].some(el=>el.value.trim()))return;
+  try{const d=JSON.parse(sessionStorage.getItem(DRAFT_KEY)??'null') as Record<string,string>|null;if(!d||typeof d!=='object')return;
   if(typeof d.name==='string')setName(d.name.slice(0,100));if(d.type==='QUANTITY'||d.type==='VALUE'||d.type==='PROJECT')setType(d.type);for(const [k,set] of [['target',setTarget],['date',setDate],['notes',setNotes],['milestones',setMilestones],['asset',setAsset]] as const)if(typeof d[k]==='string')set(d[k]!.slice(0,2000));
   if(typeof d.category==='string')setCategory(d.category as GoalMetadata['category']);setDraftBack(true);/* it opens on the first step, with what was typed */}catch{/* no draft */}},[templateId,calculator,sharedName,positionId]);
  useEffect(()=>{if(!draftRead.current)return;try{if(savedId||!(name||target||notes||date||milestones||assetInput))sessionStorage.removeItem(DRAFT_KEY);else sessionStorage.setItem(DRAFT_KEY,JSON.stringify({name,type,target,date,notes,milestones,category,asset:assetInput}));}catch{/* the draft stays in memory only */}},[name,type,target,date,notes,milestones,category,assetInput,savedId]);
@@ -160,7 +163,7 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName}:
   const id=savedId||BigInt('0x'+crypto.randomUUID().replaceAll('-','')).toString();
   let goal=draft(id);const template=contributionTemplate(goal,habits.today);
   if(withHabit&&template){habitId.current ||= crypto.randomUUID();goal={...goal,plan:{...goal.plan!,habitId:habitId.current}};}
-  await store.update(data=>data.goals.some(g=>g.id===id)?data:preparePrivate(data,goal));setSavedId(id);committedId=id;
+  await store.update(data=>data.goals.some(g=>g.id===id)?data:preparePrivate(data,goal));setSavedId(id);committedId=id;/* CI runs 1210–1215: the draft goes with the save itself, never left for an effect the next page may outrun */try{sessionStorage.removeItem(DRAFT_KEY);}catch{/* no draft store */}
   if(withHabit&&template)await habits.update(data=>data.habits.some(h=>h.id===habitId.current)?data:createHabit(data,template,new Date(),habitId.current));
   if(area||libraryTemplate)try{const at=new Date().toISOString(),key=`private:${id}`;if(extras.writable)extras.update(x=>{let next=area?setGoalArea(x,key,area,at):x;if(libraryTemplate)next=setGoalTemplate(next,key,libraryTemplate.id,at);return next;});}catch{/* the goal is saved; its area can be chosen on its page */}
   const chosen=(libraryTemplate?.habits??[]).filter(h=>templateHabits.includes(h.title));
