@@ -170,7 +170,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
         <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <AllocationDonut portfolio={portfolio} rows={rows} />}</div>
       </div>
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
-        <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} />
+        <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} run={run} />
         <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
       </div>
     </>}

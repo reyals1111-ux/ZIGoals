@@ -51,7 +51,7 @@ test('one class map: the ETF reads ETFs everywhere it is classed, with one share
   // The chart's legend classes the ETF the same way, in the same colour as the composition's.
   await expect(page.locator('.wealth-history-legend').first()).toContainText('ETFs');
   // Each total says what it counts and its date.
-  await expect(page.locator('.wealth-hero-total .wealth-total-scope')).toHaveText(/^Your valued holdings on .+2026\. Net worth, below, adds accounts and takes off debts\.$/);
+  await expect(page.locator('.wealth-hero-total .wealth-total-scope')).toHaveText(/^Your valued holdings on .+2026\. Net worth, in Accounts, debts & net worth, adds accounts and takes off debts\.$/); // Session AH (WE10): never "below", which a phone folds away
   await expect(page.getByRole('article', {name: 'Net worth in USD'}).locator('.accounts-worth-scope')).toHaveText(/^Accounts \+ holdings − debts, on .+2026$/);
   await expect(page.locator('.wealth-history-readout').first()).toContainText(/Recorded total on .+ · the latest record/);
 });
@@ -62,7 +62,9 @@ test('plain units: a property and a custom asset in words, and no reference pric
   const home = card(page, 'Riverside apartment'), camera = card(page, 'Collectible camera'), cash = card(page, 'USD cash reserve');
   await expect(home.locator('.owned-value span')).toHaveText('1 property');
   await expect(home.locator('.owned-asset-heading p')).toHaveText('Property');
-  await expect(home.locator('.holding-unit-price small').first()).toHaveText('per property');
+  // Session AH (WE14, D-148): a property, like cash, has no market reference price (it read "per property: Unavailable").
+  await expect(home.locator('.holding-unit-price')).toHaveCount(0);
+  await expect(camera.locator('.holding-unit-price')).toHaveCount(0);
   await expect(camera.locator('.owned-value span')).toHaveText('1 item');
   await expect(camera.locator('.owned-asset-heading p')).toHaveText('Custom');
   await expect(cash.locator('.holding-unit-price')).toHaveCount(0);

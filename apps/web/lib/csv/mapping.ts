@@ -3,8 +3,15 @@ export type FieldSpec = {id: string; label: string; synonyms: readonly string[];
 export const normalizeHeader = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '');
 export function guessMapping(header: readonly string[], fields: readonly FieldSpec[]): Partial<Record<string, number>> {
   const normalized = header.map(normalizeHeader), used = new Set<number>(), mapping: Partial<Record<string, number>> = {};
+  // Session AH (WE3, N-099): a column named exactly as a field ("coin", "price") is that field first, before any
+  // synonym claims it (our own export has "currency" before "coin", and "currency" is a synonym of Coin).
   for (const field of fields) {
-    const names = [field.id, ...field.synonyms].map(normalizeHeader);
+    const index = normalized.findIndex((h, i) => !used.has(i) && h === normalizeHeader(field.id));
+    if (index >= 0) { mapping[field.id] = index; used.add(index); }
+  }
+  for (const field of fields) {
+    if (mapping[field.id] !== undefined) continue;
+    const names = field.synonyms.map(normalizeHeader);
     const index = normalized.findIndex((h, i) => !used.has(i) && h.length > 0 && names.includes(h));
     if (index >= 0) { mapping[field.id] = index; used.add(index); }
   }

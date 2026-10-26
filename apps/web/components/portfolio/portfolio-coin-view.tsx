@@ -89,7 +89,7 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
         <div><dt>Unrealized result</dt><dd>{Number(held.quantity) === 0 ? '—' : position.unrealized === undefined ? 'Unknown' : formatSignedMoney(position.unrealized, currency)}</dd></div>
         <div><dt>Realized result</dt><dd>{position.realized === undefined ? 'Unknown' : formatSignedMoney(position.realized, currency)}</dd>{position.realized === undefined && <small>A sale of coins whose cost was unknown.</small>}</div>
       </dl> : <p>You have no {coin.symbol} in {portfolio.name} yet.</p>}
-      {list.length > 0 && <TransactionList portfolio={portfolio} list={list} names={new Map([[key!, coin]])} onRemove={tid => removeTx(portfolio.id, tid)} />}
+      {list.length > 0 && <TransactionList portfolio={portfolio} list={list} names={new Map([[key!, coin]])} onRemove={tid => removeTx(portfolio.id, tid)} run={run} />}
       <TransactionForm key={portfolio.id} portfolio={portfolio} run={run} coin={coin} />
     </section>}
     {!portfolio && <section className="panel"><h2>No portfolio yet</h2><p>Create a portfolio on the <Link href="/app/portfolio">Portfolio page</Link> to record {coin.symbol}.</p></section>}

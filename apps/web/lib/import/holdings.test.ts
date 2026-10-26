@@ -42,7 +42,10 @@ describe('transactions', () => {
   test('resolveCoin: exact symbol, then name; the featured coins stand in without a catalog; several matches are a list', () => {
     expect(resolve('btc')).toEqual(BTC); expect(resolve('Bitcoin Cash')).toMatchObject({symbol: 'BCH'}); expect(resolve('DOGE')).toBeNull();
     expect(resolveCoinWith(null, [BTC])('btc')).toEqual(BTC); expect(resolveCoinWith(null, [BTC])('ETH')).toBeNull();
-    const twins = resolveCoinWith([{ref: BTC.ref, name: 'Bitcoin', symbol: 'BTC'}, {ref: {kind: 'coin', provider: 'coingecko', id: 'btc-2'}, name: 'Other BTC', symbol: 'BTC'}], [])('BTC');
+    // Session AH (WE3, T-100): of two coins sharing a ticker, the well-known one is meant ("BTC" is Bitcoin) ...
+    expect(resolveCoinWith([{ref: BTC.ref, name: 'Bitcoin', symbol: 'BTC'}, {ref: {kind: 'coin', provider: 'coingecko', id: 'btc-2'}, name: 'Other BTC', symbol: 'BTC'}], [])('BTC')).toMatchObject({ref: BTC.ref});
+    // ... and two unknown ones stay a list for the person to choose from.
+    const twins = resolveCoinWith([{ref: {kind: 'coin', provider: 'coingecko', id: 'zzz-1'}, name: 'One ZZZ', symbol: 'ZZZ'}, {ref: {kind: 'coin', provider: 'coingecko', id: 'zzz-2'}, name: 'Other ZZZ', symbol: 'ZZZ'}], [])('ZZZ');
     expect(Array.isArray(twins) && twins.length).toBe(2);
   });
   test('apply: ids per row, the coin list extended once, atomic on a sale below zero', () => {
@@ -77,7 +80,7 @@ describe('holdings', () => {
     const file = parseCsv('Name,Symbol,Quantity,Category,Value,Currency\nGold,XAU,2,Precious metals,,EUR\nApple,AAPL,10,Stocks,1500,USD\nBank,,500,Cash,,EUR\nOdd,,1,Custom,,EURO\n'), m = guessMapping(file.header, HOLDINGS_FIELDS);
     const plan = planHoldingsImport({rows: file.rows, mapping: m, numberStyle: 'point'});
     expect(plan.ready.map(r => [r.row, r.input.category, r.input.name, r.input.value])).toEqual([[1, 'Precious metals', 'Gold', undefined], [2, 'Stocks', 'Apple', '1500'], [3, 'Cash', 'Bank', undefined]]);
-    expect(plan.refused).toEqual([{row: 4, reason: 'Row 4: the currency must be three letters, for example EUR.'}]);
+    expect(plan.refused).toEqual([{row: 4, reason: 'Row 4: “EURO” is not a currency code; use one such as EUR, USD or GBP.'}]);
     expect(manualCategory('crypto')).toBe('Crypto'); expect(manualCategory('ETF')).toBe('Stocks'); expect(manualCategory('')).toBe('Custom asset'); expect(manualCategory('stablecoin')).toBe('Stablecoins');
     const platform = applyHoldingsImport(emptyPlatform(), plan.ready, {importId: IMPORT, at: AT});
     expect(platform.positions.map(p => [p.id, p.assetClass, p.valuation?.value])).toEqual([[`imp_${IMPORT}_1`, 'Precious Metals', undefined], [`imp_${IMPORT}_2`, 'Stocks', '150000'], [`imp_${IMPORT}_3`, 'Cash', '50000']]);
@@ -117,3 +120,11 @@ describe('the undo ledger', () => {
     expect(readPortfolios(storage).data).toEqual(emptyPortfolioData()); void updatePortfolios;
   });
 });
+
+test('Session AH (WE3): a name a spreadsheet would run as a formula is refused with its reason; an exact column name wins over a synonym', async () => {
+  const {guessMapping, TRANSACTION_FIELDS} = await import('../csv/mapping');
+  expect(guessMapping(['date', 'kind', 'currency', 'coin', 'quantity'], TRANSACTION_FIELDS)).toMatchObject({coin: 3, date: 0, quantity: 4});
+  const {parseCsv} = await import('../csv/parse');
+  expect(() => parseCsv('PK\u0003\u0004binary')).toThrow(/^This file is not CSV text/);
+});
+

@@ -29,6 +29,9 @@ export function detectDelimiter(text: string): CsvDelimiter {
 }
 export function parseCsv(input: string, options: {delimiter?: CsvDelimiter} = {}): ParsedCsv {
   if (new TextEncoder().encode(input).length > MAX_CSV_BYTES) throw Error(CSV_TOO_LARGE);
+  // Session AH (WE3, B-087): a spreadsheet or another binary file is said plainly, never read as a header.
+  const head = input.slice(0, 4096);
+  if (head.includes('\u0000') || (head.match(/\uFFFD/g)?.length ?? 0) > 3 || head.startsWith('PK\u0003\u0004')) throw Error('This file is not CSV text (a spreadsheet or another binary file). Save it as CSV (comma-separated values) first, then choose it again.');
   const text = input.replace(/^﻿/, ''), delimiter = options.delimiter ?? detectDelimiter(text), warnings: string[] = [], records: string[][] = [];
   let field = '', row: string[] = [], quoted = false, i = 0;
   const endField = () => { row.push(field); field = ''; }, endRow = () => { endField(); records.push(row); row = []; };

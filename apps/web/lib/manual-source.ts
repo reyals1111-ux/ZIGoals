@@ -1,3 +1,4 @@
+import {isMoneyCurrency} from './visual-format';
 import {parseAmountInput} from './amount-input';
 import {visibleName} from './visible-text';
 import {positionSchema} from './positions';
@@ -7,7 +8,7 @@ export type ManualSource={category:typeof MANUAL_SOURCES[number];name:string;qua
 /** User-entered evidence only. Prices are per entered unit; no pegs or FX inferred. */
 export function manualSourcePosition(input:ManualSource,id=crypto.randomUUID(),observedAt=new Date().toISOString()){
  const currency=input.currency.trim().toUpperCase();
- if(!/^[A-Z]{3}$/.test(currency))throw Error('Enter a three-letter valuation currency.');
+ /* Session AH (WE6, L-015): a real currency, from the list the browser knows, never an invented code */if(!isMoneyCurrency(currency))throw Error(`“${currency}” is not a currency code. Choose one such as USD, EUR or GBP.`);
  if(input.category==='Property'&&!input.value)throw Error('Enter the current property value.');
  const quantity=parseAmountInput(input.quantity||(['Custom asset','Property'].includes(input.category)?'1':''),18);
  if(quantity<=0n)throw Error('Enter a positive quantity.');

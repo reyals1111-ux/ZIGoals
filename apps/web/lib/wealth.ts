@@ -157,7 +157,8 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];
   const subtotals=currencies.map(currency=>{const members=items.filter(r=>r.currency===currency&&r.value!==undefined);return {currency,value:members.reduce((n,r)=>n+r.value!,0n),allocated:members.reduce((n,r)=>n+r.allocatedValue!,0n),unallocated:members.reduce((n,r)=>n+r.unallocatedValue!,0n)};});
-  return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1};
+  // Session AH (WE5, B-032): why a total is incomplete, kept apart: a value missing, or more than one currency.
+  return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1,missingValue:items.some(r=>r.value===undefined),mixedCurrencies:currencies.length>1};
  };
  return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.wealthClass===assetClass);return {assetClass,items,...summarize(items)};})};
 }

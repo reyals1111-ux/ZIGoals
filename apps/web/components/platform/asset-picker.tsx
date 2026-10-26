@@ -1,4 +1,5 @@
 'use client';
+import {isLivePriced} from '../../lib/numbers/counts';
 import {useEffect,useState,type FormEvent} from 'react';
 import type {MarketCatalogAsset} from '../../lib/market-assets';
 import type {Position,AssetClass} from '../../lib/positions';
@@ -23,7 +24,7 @@ export type AssetDraft={category:string;name:string;quantity:string;currency:str
 export function AssetPicker({positions=[],onExisting,onDraft,onFavourite,initialCategory='Crypto',initialDraft,initialCurrency='USD',submitLabel='Use this asset',emptyText}:{/** Session AH (GO3, D-027): what to say when none of the listed assets fits, while others exist */ emptyText?:string;positions?:Position[];onExisting?:(p:Position)=>void;onDraft?:(p:Position)=>void;onFavourite?:(a:MarketCatalogAsset)=>void;initialCategory?:string;initialDraft?:AssetDraft;initialCurrency?:string;submitLabel?:string}){
  const [,setSearchReady]=useState(!!AssetSearch);useEffect(()=>{let live=true;if(!AssetSearch)void searchLoaded.then(()=>{if(live)setSearchReady(true);});return()=>{live=false;};},[]);
  const [category,setCategory]=useState(initialDraft&&categories.includes(initialDraft.category)?initialDraft.category:initialCategory),[manual,setManual]=useState(!!initialDraft),[selected,setSelected]=useState<MarketCatalogAsset>(),[error,setError]=useState(''),[currency,setCurrency]=useState(initialDraft?.currency??initialCurrency),[name,setName]=useState<string>();
- const insights=useMarketInsights([...positions.flatMap(p=>p.marketRef?[p.marketRef]:[]),...(selected?[selected.ref]:[])]);
+ const insights=useMarketInsights([...positions.flatMap(p=>p.marketRef&&isLivePriced(p)?[p.marketRef]:[]),...(selected?[selected.ref]:[])]);/* Session AH (WE11) */
  const automatic=!manual&&!['Existing assets','Cash','Property','Custom'].includes(category);
  function choose(c:string){setCategory(c);setSelected(undefined);setError('');setManual(false);setName(undefined);}
  function create(e:FormEvent<HTMLFormElement>){e.preventDefault();setError('');try{const f=new FormData(e.currentTarget),get=(key:string)=>String(f.get(key)||'');let p:Position;

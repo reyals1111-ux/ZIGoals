@@ -1,4 +1,5 @@
 'use client';
+import {TransactionForm, type Run} from './transaction-form';
 import Link from 'next/link';
 import {useEffect, useMemo, useState, Fragment} from 'react';
 import {AssetIcon} from '../platform/financial-ui';
@@ -120,23 +121,24 @@ export function AllocationDonut({portfolio, rows}: {portfolio: Portfolio; rows: 
 }
 
 /** Every transaction, newest first, 20 at a time, with the coin filter; removing one asks nothing more (the history is checked). */
-export function AllTransactions({portfolio, onRemove}: {portfolio: Portfolio; onRemove: (id: string) => void}) {
+export function AllTransactions({portfolio, onRemove, run}: {portfolio: Portfolio; onRemove: (id: string) => void; run?: Run}) {
   const [coin, setCoin] = useState(''), [shown, setShown] = useState(20);
   const names = new Map(portfolio.coins.map(c => [coinKey(c.ref), c]));
   const list = ordered(portfolio.transactions.filter(t => !coin || t.coin === coin)).reverse();
   if (!portfolio.transactions.length) return null;
   return <section className="portfolio-all-transactions" aria-labelledby={`transactions-${portfolio.id}`}>
     <header className="portfolio-section-head"><h3 id={`transactions-${portfolio.id}`}>Transactions</h3><label className="field"><span>Coin</span><select value={coin} onChange={event => { setCoin(event.target.value); setShown(20); }}><option value="">All coins</option>{portfolio.coins.map(c => <option key={coinKey(c.ref)} value={coinKey(c.ref)}>{c.name}</option>)}</select></label></header>
-    <TransactionList portfolio={portfolio} list={list.slice(0, shown)} names={names} onRemove={onRemove} />
+    <TransactionList portfolio={portfolio} list={list.slice(0, shown)} names={names} onRemove={onRemove} run={run} />
     {list.length > shown && <button type="button" className="quiet" onClick={() => setShown(shown + 20)}>Show 20 more ({list.length - shown} left)</button>}
   </section>;
 }
-export function TransactionList({portfolio, list, names, onRemove}: {portfolio: Portfolio; list: PortfolioTransaction[]; names: Map<string, PortfolioCoin>; onRemove: (id: string) => void}) {
-  const currency = portfolio.currency;
+export function TransactionList({portfolio, list, names, onRemove, run}: {portfolio: Portfolio; list: PortfolioTransaction[]; names: Map<string, PortfolioCoin>; onRemove: (id: string) => void; run?: Run}) {
+  const currency = portfolio.currency, [editing, setEditing] = useState<string | null>(null);
   return <ol className="portfolio-transactions">{list.map(t => <li key={t.id}>
     <span><strong>{TX_LABEL[t.kind]}</strong> {formatExactNumber(t.quantity)} {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
     <small><time dateTime={t.date}>{formatDate(t.date)}</time>{t.note ? ` · ${t.note}` : ''}</small>
-    <button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
+    {/* Session AH (WE2, N-146): a recorded transaction can be corrected, not only removed */}{run && names.get(t.coin) && <button type="button" className="quiet" aria-expanded={editing === t.id} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>}<button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
+    {run && editing === t.id && names.get(t.coin) && <TransactionForm portfolio={portfolio} run={run} coin={names.get(t.coin)} edit={{transaction: t, onDone: () => setEditing(null)}} />}
   </li>)}</ol>;
 }
 

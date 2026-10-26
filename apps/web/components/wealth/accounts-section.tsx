@@ -1,4 +1,5 @@
 'use client';
+import {isMoneyCurrency} from '../../lib/visual-format';
 import {useEffect, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
 import {showToast} from '../ui/undo-toast';
@@ -17,7 +18,7 @@ import {useFieldErrors} from '../field-errors';
 import './accounts.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
-import {moneyUnitsIssue, within} from '../../lib/limits/plausibility';
+import {amountIssue, moneyUnitsIssue, within} from '../../lib/limits/plausibility';
 
 /**
  * Accounts, debts and net worth (Session W Part 12; Wealth's "wealth:accounts" section). Balances are the person's own,
@@ -97,7 +98,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors();
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
     const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = String(f.get('rate') ?? '').trim().replace(',', '.');
-    field = 'currency'; if (!/^[A-Z]{3}$/.test(currency)) throw Error('Use a three-letter currency code, for example EUR.');
+    field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a currency code. Use one such as EUR, USD or GBP.`);
     field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
     onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
   } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>
@@ -114,14 +115,19 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
 }
 function AccountRow({account: a, today, open, setOpen, change, prefill}: {account: Account; today: string; open: 'balance' | 'payment' | 'edit' | null; setOpen: (mode: 'balance' | 'payment' | 'edit' | null) => void; change: (fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) => boolean; prefill?: {amount: string; date: string}}) {
   const b = balanceOn(a), debt = isDebtKind(a.kind), usual = debt ? usualPayment(a, today) : null, [monthly, setMonthly] = useState(''), fe = useFieldErrors();
-  const monthlyNumber = monthly.trim() ? Number(monthly.replace(',', '.')) : usual ? Number(moneyText(usual)) : NaN;
+  // Session AH (WE7, B-152): the payoff calculator takes a payment above zero and up to a trillion, else it shows nothing.
+  const typedMonthly = monthly.trim() ? Number(monthly.replace(',', '.')) : NaN, monthlyBad = monthly.trim() !== '' && !(typedMonthly > 0 && !amountIssue(typedMonthly));
+  const monthlyNumber = monthly.trim() ? (monthlyBad ? NaN : typedMonthly) : usual ? Number(moneyText(usual)) : NaN;
   const months = debt && b && a.ratePercent && Number.isFinite(monthlyNumber) ? payoffMonths(Number(moneyText(b)), Number(a.ratePercent), monthlyNumber) : undefined;
   const now = () => new Date().toISOString();
   return <li className="accounts-row">
     <div className="accounts-row-main"><strong>{a.name}</strong><small>{KIND_LABEL[a.kind]}{a.institution ? ` · ${a.institution}` : ''}{a.ratePercent ? ` · ${a.ratePercent} % a year (your figure)` : ''}</small></div>
     <div className="accounts-row-balance">{b ? <><strong>{show(b, a.currency)}</strong><small>{debt ? 'owed' : 'balance'} on {formatDate(b.date)}</small></> : <small>No balance yet</small>}</div>
     <div className="actions"><button type="button" className="quiet" aria-label={`Update the balance of ${a.name}`} onClick={() => setOpen(open === 'balance' ? null : 'balance')}>Update balance</button>{debt && <button type="button" className="quiet" aria-label={`Record a payment on ${a.name}`} onClick={() => setOpen(open === 'payment' ? null : 'payment')}>Record a payment</button>}<button type="button" className="quiet" aria-label={`Edit ${a.name}`} onClick={() => setOpen(open === 'edit' ? null : 'edit')}>Edit</button></div>
-    {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today)); if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the amount.'), 'amount'); } }}>
+    {open && open !== 'edit' && <form key={open === 'balance' && prefill ? `prefill:${prefill.amount}:${prefill.date}` : open} className="platform-form accounts-inline" aria-label={open === 'balance' ? `New balance for ${a.name}` : `Payment on ${a.name}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const m = toMoney(String(f.get('amount')), String(f.get('date') || today));
+      // Session AH (WE7, L-067, B-199): a payment is above zero and never more than what is owed.
+      if (open === 'payment') { if (BigInt(m.value) <= 0n) throw Error('Enter a payment above zero.'); if (b && Number(moneyText(m)) > Number(moneyText(b))) throw Error(`That is more than the ${moneyText(b)} ${a.currency} owed. Enter the payment you made, up to the balance.`); }
+      if (change(g => open === 'balance' ? recordBalance(g, a.id, m, now()) : recordPayment(g, a.id, m, now()), open === 'balance' ? `${a.name}: balance saved for ${formatDate(m.date)}.` : `${a.name}: payment recorded for ${formatDate(m.date)}. Enter the new balance when your statement shows it.`)) setOpen(null); fe.clear(); } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the amount.'), 'amount'); } }}>
       <label className="field">{open === 'balance' ? (debt ? 'What you owe' : 'Balance') : 'Payment'} ({a.currency})<input name="amount" inputMode="decimal" required defaultValue={open === 'balance' ? prefill?.amount : undefined} {...fe.field('amount')} /></label>
       <label className="field">On<input name="date" type="date" defaultValue={open === 'balance' && prefill ? prefill.date : today} max={today} /></label>
       <button type="submit" className="secondary">Save</button>

@@ -1,3 +1,5 @@
+import {isMoneyCurrency} from '../visual-format';
+import {isVerifiedAsset} from '../market-assets';
 import {addTransaction, checkHistories, removeTransaction} from '../portfolio/store';
 import {coinKey, type PortfolioCoin, type PortfolioData, type PortfolioTransaction} from '../portfolio/schema';
 import {HoldingsBelowZero} from '../portfolio/math';
@@ -26,7 +28,10 @@ export function resolveCoinWith(catalog: readonly MarketCatalogAsset[] | null, f
   return text => {
     const query = text.trim().toLowerCase(); if (!query) return null;
     const bySymbol = coins.filter(c => c.symbol.toLowerCase() === query);
-    if (bySymbol.length === 1) return bySymbol[0]!; if (bySymbol.length > 1) return bySymbol;
+    if (bySymbol.length === 1) return bySymbol[0]!;
+    // Session AH (WE3, T-100): "BTC" is Bitcoin: of several coins with one ticker, the single well-known one is meant.
+    const known = bySymbol.filter(c => isVerifiedAsset(c.ref)); if (known.length === 1) return known[0]!;
+    if (bySymbol.length > 1) return bySymbol;
     const byName = coins.filter(c => c.name.toLowerCase() === query);
     return byName.length === 1 ? byName[0]! : byName.length > 1 ? byName : null;
   };
@@ -88,8 +93,10 @@ export function planHoldingsImport({rows, mapping, numberStyle}: {rows: readonly
   rows.forEach((cells, index) => {
     const row = index + 1, refuse = (reason: string) => plan.refused.push({row, reason: `Row ${row}: ${reason}`});
     const name = cell(cells, mapping, 'name'), currency = cell(cells, mapping, 'currency').toUpperCase();
+    // Session AH (WE3, L-072): a name that a spreadsheet would run as a formula is refused with the reason.
+    if (/^[=+\-@\t\r]/.test(name)) { plan.refused.push({row: index + 1, reason: `Row ${index + 1}: the name starts with “${name[0] === '\t' ? 'a tab' : name[0]}”, which a spreadsheet would run as a formula. Remove that first character.`}); return; }
     if (!name) return refuse('the name is blank.');
-    if (!/^[A-Z]{3}$/.test(currency)) return refuse('the currency must be three letters, for example EUR.');
+    if (!isMoneyCurrency(currency)) return refuse(`“${currency}” is not a currency code; use one such as EUR, USD or GBP.`);
     let quantity: string | null, value: string | null;
     try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch { return refuse('the quantity is not a number.'); }
     try { value = parseNumberCell(cell(cells, mapping, 'value'), numberStyle); } catch { return refuse('the value is not a number.'); }

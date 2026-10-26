@@ -71,3 +71,12 @@ it('uses equivalent ISO instants for tracking and archive history boundaries',()
  s=captureValuations(s,[],now+86400000);
  expect(wealthHistory(s)[0]!.points.map(point=>point.value)).toEqual(['25000','15000']);
 });
+
+it('Session AH (C12, WE6): a market asset already tracked is not added twice; an invented currency is refused', async () => {
+  const {automaticSourcePosition} = await import('../components/platform/asset-source');
+  const asset = {ref: {provider: 'coingecko' as const, kind: 'coin' as const, id: 'ethereum'}, name: 'Ethereum', symbol: 'ETH'};
+  const eth = () => automaticSourcePosition({asset, assetClass: 'Crypto', quantity: '1', currency: 'USD', notes: ''});
+  const s = saveAsset(base(), eth());
+  expect(() => saveAsset(s, eth())).toThrow('You already track ETH. Open it and change its quantity instead.');
+  expect(() => manualSourcePosition({category: 'Cash', name: 'Fictional cash', symbol: 'ZZZ', quantity: '1', currency: 'ZZZ', value: '5'}, 'zzz', new Date().toISOString())).toThrow(/is not a currency code/);
+});

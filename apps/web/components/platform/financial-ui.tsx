@@ -8,7 +8,9 @@ import './financial-ui.css';
 import {progressPresentation} from '../../lib/visual-format';
 import {ASSET_COLORS,ringSegments,type AssetMix} from '../../lib/wealth';
 import {GlassRing} from '../progress/glass-progress';
-export function AssetIcon({symbol,kind='Crypto',logoUrl}:{symbol:string;kind?:string;logoUrl?:string|null}){const [failed,setFailed]=useState('');const logo=logoUrl?.startsWith('/api/market-logo?url=')&&failed!==logoUrl?logoUrl:null;const fallback=kind==='ETFs'?'▦':kind==='Stocks'?'▥':kind==='Stablecoins'?'◎':kind==='Precious Metals'||kind==='Precious metals'?'△':kind==='Property'?'⌂':kind==='Custom'?'✧':kind==='Cash'?symbol==='EUR'?'€':'$':symbol==='BTC'?'₿':symbol==='ETH'?'Ξ':symbol.slice(0,3).toUpperCase();return <span className="asset-orb" data-kind={kind} aria-hidden="true">{logo?
+/** Session AH (WE6, B-076): a cash asset shows its own currency's sign (£ for GBP, ¥ for JPY), never "$" for all. */
+function cashGlyph(code:string){if(code==='EUR')return '€';if(code==='USD')return '$';try{const sign=new Intl.NumberFormat('en-GB',{style:'currency',currency:code,currencyDisplay:'narrowSymbol'}).formatToParts(0).find(p=>p.type==='currency')?.value;return sign&&sign.length<=2?sign:code.slice(0,1);}catch{return code.slice(0,1)||'¤';}}
+export function AssetIcon({symbol,kind='Crypto',logoUrl}:{symbol:string;kind?:string;logoUrl?:string|null}){const [failed,setFailed]=useState('');const logo=logoUrl?.startsWith('/api/market-logo?url=')&&failed!==logoUrl?logoUrl:null;const fallback=kind==='ETFs'?'▦':kind==='Stocks'?'▥':kind==='Stablecoins'?'◎':kind==='Precious Metals'||kind==='Precious metals'?'△':kind==='Property'?'⌂':kind==='Custom'?'✧':kind==='Cash'?cashGlyph(symbol):symbol==='BTC'?'₿':symbol==='ETH'?'Ξ':symbol.slice(0,3).toUpperCase();return <span className="asset-orb" data-kind={kind} aria-hidden="true">{logo?
  // The validated, same-origin raster proxy bounds bytes and host; no client provider credential.
  // eslint-disable-next-line @next/next/no-img-element
  <img src={logo} alt="" width={48} height={48} loading="lazy" onError={()=>setFailed(logo)}/>:fallback}</span>;}
