@@ -211,7 +211,9 @@ export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max
   const range = `Enter ${formatNumber(min / scale, { maximumFractionDigits: 3 })} to ${formatNumber(max / scale, { maximumFractionDigits: 3 })}${unit ? ` ${unit}` : ""}.`;
   const value = decimalComma(raw.trim(), scale);
   const pattern = scale === 1 ? /^\d+$/ : /^\d+(?:\.\d{1,3})?$/;
-  if (!pattern.test(value) || value.length > 18) throw new Error(range);
+  // A value that is not a number at all ("abc", the ambiguous "1,234") is a format problem, not a range one: the form
+  // marks the field and says how to write it; a readable number outside the range gets the range itself.
+  if (!pattern.test(value) || value.length > 18) throw new Error(`Not a number this field reads: digits only${scale === 1000 ? ", with up to three decimals" : ""}.`);
   const [whole = "0", fraction = ""] = value.split(".");
   const result = BigInt(whole) * BigInt(scale) + (scale === 1000 ? BigInt(fraction.padEnd(3, "0")) : 0n);
   if (result < BigInt(min) || result > BigInt(max)) throw new Error(range);

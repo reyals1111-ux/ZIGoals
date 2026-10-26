@@ -19,6 +19,8 @@ let current: Shown | null = null, seq = 0;
 const listeners = new Set<() => void>();
 const emit = () => { for (const l of listeners) l(); };
 
+/** The id of the latest toast shown (0 before any): a caller can tell whether its action already said something. */
+export function lastToastId(): number { return seq; }
 /** Shows a toast (replacing any other). Returns its id. */
 export function showToast(toast: UndoToast): number {
   current = {...toast, id: ++seq};

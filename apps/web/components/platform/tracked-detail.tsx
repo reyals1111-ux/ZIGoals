@@ -47,7 +47,7 @@ import {GoalMilestonesModule} from './goal-milestones';
 import {GoalOnTrack} from './goal-on-track';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {readZoneInput} from '../../lib/time-zone-input';
-import {showToast} from '../ui/undo-toast';
+import {lastToastId, showToast} from '../ui/undo-toast';
 // Session AF (L2b, Part 6, ADR-028 H8): Goal Vaults, their own chunk, inside the Goal's details (reads only once opened).
 const GoalVaultSection=lazy(()=>import('../goal-vaults/goal-vault-section'));
 export function GoalModule({id,title,description,children}:{id:string;title:string;description:string;children:ReactNode}){
@@ -97,7 +97,7 @@ export function TrackedDetail({id}:{id:string}){
  const rule=contributionHabit?latestHabitRule(contributionHabit):undefined;
  const habitDrift=!!contributionHabit&&(!template||contributionHabit.title!==template.title||contributionHabit.description!==template.description||!goalLinkMatches(contributionHabit.goalLink,template.goalLink!)||JSON.stringify(rule?.schedule)!==JSON.stringify(template.schedule)||rule?.state!==expectedHabitState||rule?.type!=='build'||JSON.stringify(rule?.measurement)!==JSON.stringify(template.measurement)||rule?.target!==template.target||rule?.targetPeriod!=='day'||JSON.stringify(rule?.endCondition)!==JSON.stringify(template.endCondition));
  const eligible=store.data.positions.filter(p=>!p.archivedAt&&(p.network==='manual'||p.network===goal.network)).filter(p=>goal.type==='VALUE'||goal.type==='REWARD'&&p.sourceType==='NATIVE_REWARDS'||goal.type==='QUANTITY'&&assetMatches(goal,p));
- async function run(action:()=>Promise<unknown>,control=false,formKey?:string){if(goal?.locked&&!control){setMessage('');setError('Unlock this Goal before editing.');return;}setBusy(true);setError('');setMessage('');try{await action();if(formKey)clearDraft(formKey);showToast({message:'Private Goal saved. No funds moved.'});/* Session AH (VA7): said once, in the toast */}catch(e){const text=plainErrorMessage(e, 'Could not save.');setError(text);/* Session AH (VA6, D-035): the result also shows where the person is, not only at the top of a long page. */showToast({message:text});}finally{setBusy(false);}}
+ async function run(action:()=>Promise<unknown>,control=false,formKey?:string){if(goal?.locked&&!control){setMessage('');setError('Unlock this Goal before editing.');return;}setBusy(true);setError('');setMessage('');const said=lastToastId();try{await action();if(formKey)clearDraft(formKey);/* Session AH (VA7): said once, in the toast; an action that showed its own (a removal with Undo) keeps it */if(lastToastId()===said)showToast({message:'Private Goal saved. No funds moved.'});}catch(e){const text=plainErrorMessage(e, 'Could not save.');setError(text);/* Session AH (VA6, D-035): the result also shows where the person is, not only at the top of a long page. */showToast({message:text});}finally{setBusy(false);}}
  async function savePlan(e:FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);await run(()=>{
   const asset=String(f.get('asset')).toUpperCase();const decimals=asset==='USD'||asset==='EUR'?2:18;
   // Session W Part 17 (T1-B): the plan's zone. A zone-less (UTC) plan stays zone-less unless another zone is chosen.

@@ -28,4 +28,12 @@ describe('issue sentences', () => {
     expect(plainErrorMessage(z.string().refine(v => v === 'a', 'Choose a listed currency.').safeParse('b').error, fallback)).toBe('Choose a listed currency.');
     expect(plainErrorMessage(z.object({a: z.string()}).safeParse({a: 1}).error, fallback)).toBe(fallback);
   });
+  it('a record from a newer build names its schemaVersion plainly', () => {
+    const newer = z.object({schemaVersion: z.literal(1)}).safeParse({schemaVersion: 9}).error;
+    expect(plainErrorMessage(newer, 'fallback')).toMatch(/^This file was made by a newer version of ZIGoals \(its schemaVersion/);
+    const versions = z.union([z.object({schemaVersion: z.literal(1), a: z.string()}), z.object({schemaVersion: z.literal(2), a: z.string()})]);
+    expect(plainErrorMessage(versions.safeParse({schemaVersion: 999, a: 'x'}).error, 'fallback')).toMatch(/newer version of ZIGoals/);
+    // A known version with another broken field is not called newer.
+    expect(plainErrorMessage(versions.safeParse({schemaVersion: 1, a: 3}).error, 'fallback')).not.toMatch(/newer version/);
+  });
 });

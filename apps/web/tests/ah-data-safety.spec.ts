@@ -33,6 +33,8 @@ test('DS9: Back closes Quick add and stays on the page; closing it with × leave
   await trigger.click();
   await page.getByRole('button', {name: 'Close Quick add'}).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  // × takes the dialog's own history entry back off; Back is pressed once that has happened (CI run 1210 raced it).
+  await expect.poll(() => page.evaluate(() => (history.state as {__zigoalsLayer?: unknown} | null)?.__zigoalsLayer ?? null)).toBeNull();
   await page.goBack();
   await expect(page).toHaveURL(/\/app\/goals$/);
 });
