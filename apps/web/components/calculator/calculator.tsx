@@ -24,9 +24,9 @@ import './calculator.css';
  */
 const AMOUNT = /^\d{1,13}(\.\d{1,2})?$/;
 const TONES = {higher: {tone: '#6fe6f6', dash: ''}, lower: {tone: '#ffc27a', dash: '8 5'}, earlier: {tone: '#f08bd6', dash: '2 5'}, custom: {tone: '#9ff0b5', dash: '12 4 3 4'}} as const;
-type Draft = {start: string; contribution: string; frequency: CompoundInput['frequency']; ratePercent: string; years: string; compounding: CompoundInput['compounding']; timing: CompoundInput['timing']; increasePercent: string; inflationPercent: string; currency: CompoundInput['currency']};
+type Draft = {start: string; contribution: string; frequency: CompoundInput['frequency']; ratePercent: string; years: string; months: string; compounding: CompoundInput['compounding']; timing: CompoundInput['timing']; increasePercent: string; inflationPercent: string; currency: CompoundInput['currency']};
 type Compare = {higher: boolean; lower: boolean; earlier: boolean; custom: string};
-const toDraft = (i: CompoundInput): Draft => ({start: i.start, contribution: i.contribution, frequency: i.frequency, compounding: i.compounding, timing: i.timing, currency: i.currency, ratePercent: String(i.ratePercent), years: String(i.years), increasePercent: String(i.increasePercent), inflationPercent: String(i.inflationPercent)});
+const toDraft = (i: CompoundInput): Draft => ({start: i.start, contribution: i.contribution, frequency: i.frequency, compounding: i.compounding, timing: i.timing, currency: i.currency, ratePercent: String(i.ratePercent), years: String(i.years), months: String(i.months ?? 0), increasePercent: String(i.increasePercent), inflationPercent: String(i.inflationPercent)});
 /**
  * An amount as typed, read as the rest of the app reads one (Gate C): a decimal comma ("99,50"), thousands written with
  * commas when they cannot be anything else ("1,000,000" or "2,000.50"), and "1,500" refused with the reason, because it
@@ -46,20 +46,32 @@ function parseDraft(d: Draft): {input?: CompoundInput; errors: Partial<Record<ke
   const errors: Partial<Record<keyof Draft, string>> = {};
   const num = (key: keyof Draft, v: string, min: number, max: number, int = false) => {
     const n = Number(v.replace(',', '.'));
-    if (v.trim() === '' || !Number.isFinite(n) || n < min || n > max || (int && !Number.isInteger(n))) { errors[key] = int ? `Whole years from ${min} to ${max}.` : `A number from ${min} to ${max}.`; return 0; }
+    if (v.trim() === '' || !Number.isFinite(n) || n < min || n > max || (int && !Number.isInteger(n))) { errors[key] = key === 'months' ? `Whole months from ${min} to ${max}.` : int ? `Whole years from ${min} to ${max}.` : `A number from ${min} to ${max}.`; return 0; }
     return Math.round(n * 100) / 100;
   };
   const amounts = {start: amountText(d.start), contribution: amountText(d.contribution)};
   for (const key of ['start', 'contribution'] as const) if (amounts[key].error) errors[key] = amounts[key].error;
   const ratePercent = num('ratePercent', d.ratePercent, -50, LIMITS.ratePercent), years = num('years', d.years, 1, LIMITS.years, true);
+  // Session AH (TR14): months after the whole years.
+  const months = (d.months ?? '0').trim() === '' ? 0 : num('months', d.months ?? '0', 0, 11, true);
+  if (!errors.months && years >= LIMITS.years && months > 0) errors.months = `Up to ${LIMITS.years} years in all.`;
   const increasePercent = num('increasePercent', d.increasePercent, 0, LIMITS.increasePercent), inflationPercent = num('inflationPercent', d.inflationPercent, 0, LIMITS.inflationPercent);
   if (Object.keys(errors).length) return {errors};
-  const parsed = compoundInputSchema.safeParse({...d, start: amounts.start.value, contribution: amounts.contribution.value, ratePercent, years, increasePercent, inflationPercent});
+  const parsed = compoundInputSchema.safeParse({...d, start: amounts.start.value, contribution: amounts.contribution.value, ratePercent, years, months, increasePercent, inflationPercent});
   return parsed.success ? {input: parsed.data, errors} : {errors: {start: 'These numbers cannot be calculated.'}};
 }
 function safeCompound(input: CompoundInput): CompoundResult | null {
   try { return compound(input); } catch { return null; }
 }
+/** "20 years" or "1 year 6 months". */
+const spanWords = (i: Pick<CompoundInput, 'years' | 'months'>) => `${i.years} ${i.years === 1 ? 'year' : 'years'}${i.months ? ` ${i.months} ${i.months === 1 ? 'month' : 'months'}` : ''}`;
+const PERIOD_WORDS = {weekly: 'every week', monthly: 'every month', yearly: 'every year'} as const, ADDED_WORDS = {yearly: 'once a year', quarterly: 'every quarter', monthly: 'every month', daily: 'every day'} as const;
+/** Every assumption behind a result, in one sentence. */
+export function assumptionsText(i: CompoundInput): string {
+  const m = (v: string) => formatMoney(v, i.currency);
+  return `Assumes ${m(i.start)} to start and ${m(i.contribution)} ${PERIOD_WORDS[i.frequency]}, at the ${i.timing} of each period${i.increasePercent > 0 ? `, raised ${i.increasePercent} % each year` : ', never raised'}; a ${i.ratePercent} % yearly return, added ${ADDED_WORDS[i.compounding]}; for ${spanWords(i)}; ${i.inflationPercent > 0 ? `${i.inflationPercent} % inflation for today’s money` : 'no inflation'}; no fees or taxes.`;
+}
+const addMonths = (day: string, months: number) => { if (!months) return day; const y = Number(day.slice(0, 4)), mo = Number(day.slice(5, 7)) - 1 + months, d = Number(day.slice(8, 10)); const year = y + Math.floor(mo / 12), month = mo % 12, last = new Date(Date.UTC(year, month + 1, 0)).getUTCDate(); return `${year}-${String(month + 1).padStart(2, '0')}-${String(Math.min(d, last)).padStart(2, '0')}`; };
 const addYears = (day: string, years: number) => `${Number(day.slice(0, 4)) + years}${day.slice(4, 10) === '-02-29' ? '-02-28' : day.slice(4, 10)}`;
 
 export function Calculator() {
@@ -76,8 +88,10 @@ export function Calculator() {
     queueMicrotask(() => {
       setRestored(true);
       const rate = earnCalculatorPrefill(window.location.search);
-      if (record.data.last) setDraft(rate ? {...toDraft(record.data.last), ratePercent: rate} : toDraft(record.data.last));
-      else if (rate) setDraft(d => ({...d, ratePercent: rate}));
+      // Session AH (TR14, B-010): Earn's rate is a simple yearly rate, so it is added once a year here (as if the rewards
+      // were restaked once a year), and the banner says so.
+      if (record.data.last) setDraft(rate ? {...toDraft(record.data.last), ratePercent: rate, compounding: 'yearly'} : toDraft(record.data.last));
+      else if (rate) setDraft(d => ({...d, ratePercent: rate, compounding: 'yearly'}));
       setIllustration(rate);
     });
   }, [record.loaded, record.data.last, restored]);
@@ -86,7 +100,9 @@ export function Calculator() {
   const [shown, setShown] = useState<CompoundInput>(DEFAULT_INPUT);
   if (parsed.input && parsed.input !== shown) setShown(parsed.input);
   const input = useDeferredValue(parsed.input ?? shown);
-  const result = useMemo(() => safeCompound(input), [input]);
+  // Session AH (TR14, B-123): no figures while a field is wrong (they were the last numbers that worked, and read as current).
+  const valid = parsed.input !== undefined;
+  const result = useMemo(() => valid ? safeCompound(input) : null, [input, valid]);
   const lines = useMemo<ChartLine[]>(() => {
     const out: ChartLine[] = [];
     for (const w of whatIfs(input)) {
@@ -127,22 +143,23 @@ export function Calculator() {
       showToast({message: `“${s.name}” removed.`, undo: () => record.update(current => restoreScenario(current, s, index)), undone: `“${s.name}” is back.`});
     } catch { showToast({message: 'The scenario could not be removed.'}); }
   };
-  const goalHref = result ? `/app/goals/new?${new URLSearchParams({from: 'calculator', name: `Grow to ${money(Math.floor(Number(result.final)).toFixed(2)).replace(/[.,]00(?=\D*$)/, '')}`.slice(0, 100), target: Math.floor(Number(result.final)).toString(), currency: input.currency, date: addYears(today, input.years), contribution: input.contribution, every: input.frequency})}` : '/app/goals/new';
+  const goalHref = result ? `/app/goals/new?${new URLSearchParams({from: 'calculator', name: `Grow to ${money(result.final)}`.slice(0, 100), target: result.final, currency: input.currency, date: addMonths(addYears(today, input.years), input.months ?? 0), contribution: input.contribution, every: input.frequency})}` : '/app/goals/new';
   const rows = result ? (allRows ? result.rows : result.rows.slice(0, 10)) : [];
   const busy = parsed.input !== undefined && input !== parsed.input;
 
   return <div className="calc">
-    {illustration && <p className="calc-illustration notice" role="status" style={{margin: "0 0 16px"}} data-earn-illustration={illustration}><b>Illustration, not a promise.</b> The yearly return starts at {illustration} %, ZIGChain’s native staking rate as the Earn page read it live (a simple yearly rate, not compounded). Rates move every block and nothing here is guaranteed. Change any field to use your own numbers.</p>}
-    {!result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
+    {illustration && <p className="calc-illustration notice" role="status" style={{margin: "0 0 16px"}} data-earn-illustration={illustration}><b>Illustration, not a promise.</b> The yearly return starts at {illustration} %, ZIGChain’s native staking rate as the Earn page read it live (a simple yearly rate). Here it is added to the balance once a year, as if you restaked the rewards each year; without restaking, growth is lower. Rates move every block and nothing here is guaranteed. Change any field to use your own numbers.</p>}
+    {!valid ? <section className="panel calc-results" aria-labelledby="calc-results-title"><h2 id="calc-results-title">Correct the marked field to see the estimate.</h2><p role="status">The figures come back as soon as every field is valid.</p></section> : !result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
       <section className={`calc-results panel${parsed.input ? '' : ' is-stale'}`} aria-labelledby="calc-results-title" aria-busy={busy}>
-        <SectionHeading id="calc-results-title" eyebrow={`After ${input.years} ${input.years === 1 ? 'year' : 'years'} · an estimate`} title="What it could grow to" />
-        {!parsed.input && <p className="calc-stale" role="status">These figures are from your last numbers that worked. Correct the marked field to update them.</p>}
+        <SectionHeading id="calc-results-title" eyebrow={`After ${spanWords(input)} · an estimate`} title="What it could grow to" />
         <dl className="calc-figures" aria-live="polite">
           <div className="calc-final"><dt>Estimated final value</dt><dd style={{'--chars': money(result.final).length} as import('react').CSSProperties}><CountUp text={money(result.final)}/></dd></div>
           <div><dt>You put in</dt><dd>{money(result.contributed)}</dd></div>
           <div><dt>Growth</dt><dd>{formatSignedMoney(result.growth, input.currency)}</dd></div>
           {result.realFinal && <div><dt>In today’s money</dt><dd>{money(result.realFinal)}</dd></div>}
         </dl>
+        {/* Session AH (TR14, B-021, N-029): every assumption behind the figures, beside them. */}
+        <p className="calc-assumptions" data-calc-assumptions>{assumptionsText(input)}</p>
         <p className="calc-estimate">An estimate; returns are not guaranteed. Real returns vary from year to year, and fees and taxes are not included.</p>
         <CalculatorChart result={result} start={input.start} currency={input.currency} lines={lines} />
         <fieldset className="calc-compare">
@@ -155,7 +172,7 @@ export function Calculator() {
         </ul>}
         <div className="calc-actions">
           <Link className="primary" href={goalHref}>Turn this into a goal</Link>
-          <p className="fine">Creates a Value goal with this result as its target and a date {input.years} {input.years === 1 ? 'year' : 'years'} from today. You can change everything before saving.</p>
+          <p className="fine">Creates a Value goal with this result as its target ({money(result.final)}), a date {spanWords(input)} from today and your {input.frequency} contribution as its plan.{input.increasePercent > 0 ? ' The plan keeps the first year’s contribution; the yearly raise is not carried over.' : ''} You can change everything before saving.</p>
         </div>
       </section>
 
@@ -174,6 +191,7 @@ export function Calculator() {
         <label className="calc-field calc-select"><span>How often</span><select value={draft.frequency} onChange={e => set('frequency', e.target.value as Draft['frequency'])}>{(Object.keys(FREQUENCY) as (keyof typeof FREQUENCY)[]).map(f => <option key={f} value={f}>{f === 'weekly' ? 'Every week' : f === 'monthly' ? 'Every month' : 'Every year'}</option>)}</select></label>
         <Slider label="Yearly return" unit="%" value={draft.ratePercent} error={parsed.errors.ratePercent} min={0} max={15} step={0.1} onChange={v => set('ratePercent', v)} hint="A return you assume each year, before inflation. The slider goes to 15 %; type any value from −50 to 100." />
         <Slider label="Years" unit="years" value={draft.years} error={parsed.errors.years} min={1} max={LIMITS.years} step={1} onChange={v => set('years', v)} hint={`From 1 to ${LIMITS.years} years.`} />
+        <Field label="And months" error={parsed.errors.months} unit="months" hint="0 to 11 months after the whole years."><input inputMode="numeric" autoComplete="off" value={draft.months} onChange={e => set('months', e.target.value)} /></Field>
         <label className="calc-field calc-select"><span>Interest added</span><select value={draft.compounding} onChange={e => set('compounding', e.target.value as Draft['compounding'])}>{(Object.keys(COMPOUNDING) as (keyof typeof COMPOUNDING)[]).map(c => <option key={c} value={c}>{c === 'yearly' ? 'Once a year' : c === 'quarterly' ? 'Every quarter' : c === 'monthly' ? 'Every month' : 'Every day'}</option>)}</select></label>
         <fieldset className="calc-field calc-timing"><legend>Contributions arrive</legend>{(['start', 'end'] as const).map(t => <label key={t}><input type="radio" name="calc-timing" checked={draft.timing === t} onChange={() => set('timing', t)} /><span>At the {t} of each period</span></label>)}</fieldset>
       </div>
@@ -198,7 +216,7 @@ export function Calculator() {
           <table>
             <caption className="sr-only">Year by year, an estimate in {input.currency}</caption>
             <thead><tr><th scope="col">Year</th><th scope="col">Put in that year</th><th scope="col">Put in so far</th><th scope="col">Growth so far</th><th scope="col">Balance</th>{result.realFinal && <th scope="col">In today’s money</th>}</tr></thead>
-            <tbody>{rows.map(r => <tr key={r.year}><th scope="row">{r.year}</th><td>{money(r.contributedThisYear)}</td><td>{money(r.contributed)}</td><td>{formatSignedMoney(r.growth, input.currency)}</td><td><strong>{money(r.balance)}</strong></td>{result.realFinal && <td>{r.real ? money(r.real) : '—'}</td>}</tr>)}</tbody>
+            <tbody>{rows.map(r => <tr key={r.year}><th scope="row">{r.months ? `${r.year} (${r.months} ${r.months === 1 ? 'month' : 'months'})` : r.year}</th><td>{money(r.contributedThisYear)}</td><td>{money(r.contributed)}</td><td>{formatSignedMoney(r.growth, input.currency)}</td><td><strong>{money(r.balance)}</strong></td>{result.realFinal && <td>{r.real ? money(r.real) : '—'}</td>}</tr>)}</tbody>
           </table>
         </div>
         {result.rows.length > 10 && <button type="button" className="secondary" aria-expanded={allRows} onClick={() => setAllRows(v => !v)}>{allRows ? 'Show the first 10 years' : `Show all ${result.rows.length} years`}</button>}
@@ -211,9 +229,11 @@ export function Calculator() {
         <label className="calc-field"><span>Name this scenario</span><input value={name} maxLength={60} placeholder={`Plan ${scenarios.length + 1}`} onChange={e => setName(e.target.value)} /></label>
         <button className="secondary" type="submit" disabled={!parsed.input || !record.loaded || record.unreadable}>Save scenario</button>
       </form>
+      {/* Session AH (TR14, B-155): the limit in view, before a save is refused. */}
+      {record.loaded && !record.unreadable && <p className="fine calc-saved-count" role="status">{scenarios.length} of {MAX_SCENARIOS} saved{scenarios.length >= MAX_SCENARIOS ? ' · remove one to save another (saving under an existing name replaces it)' : ''}</p>}
       {record.unreadable && <p className="notice" role="status">Saved scenarios on this device could not be read, so nothing is changed there.</p>}
       {scenarios.length ? <ul className="calc-scenarios">{scenarios.map(s => { const r = safeCompound(s.input); return <li key={s.id}>
-        <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {s.input.years} {s.input.years === 1 ? 'year' : 'years'}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
+        <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {spanWords(s.input)}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
         <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setIllustration(null); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
       </li>; })}</ul> : <p className="calc-empty">No saved scenarios yet. Save one to compare plans later.</p>}
     </section>

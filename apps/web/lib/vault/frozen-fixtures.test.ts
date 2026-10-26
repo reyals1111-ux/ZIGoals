@@ -62,7 +62,7 @@ export function frozenFixture() {
     const local = collectSection(storageA, section), other = structuredClone(local.records) as Record<string, {goals: Record<string, Record<string, unknown>>; scenarios?: {name: string}[]; answers?: Record<string, unknown>}>;
     const goals = other[GOAL_EXTRAS_KEY], first = goals ? Object.keys(goals.goals)[0] : undefined;
     if (goals && first) goals.goals[first] = {...goals.goals[first], cardArt: 'aurora-2', updatedAt: '2026-10-13T12:00:00.000Z'};
-    const scenario = other['zigoals:calculator:v1']?.scenarios?.[0]; if (scenario) scenario.name = 'Renamed on device B';
+    const scenario = other['zigoals:calculator:v1']?.scenarios?.[0]; if (scenario) { scenario.name = 'Renamed on device B'; /* Session AH (TR14, M21): the optional months field */ scenario.input.months = 6; }
     const coach = other['zigoals:health-coach:v1']; if (coach) coach.answers = {...coach.answers, '2026-10-12': {answer: 'keep', at: '2026-10-13T12:00:00.000Z'}};
     applySection(storageA, section, local, mergeSection(section, local.records, local.records, other));
     for (const r of section.records) if (a.has(r.spec.key) && r.spec.key !== GOAL_EXTRAS_KEY) { records[r.spec.key] = a.get(r.spec.key)!; checks.push({key: r.spec.key, ...FROZEN_READERS[r.spec.key]!}); }

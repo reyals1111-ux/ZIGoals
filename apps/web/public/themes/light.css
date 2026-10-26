@@ -3536,6 +3536,9 @@
         background-color: transparent;
         color: transparent
     }
+    :scope .calc-assumptions:not(#\-) {
+        color: var(--text-secondary)
+    }
     :scope .calc-estimate:not(#\-) {
         color: var(--text-secondary)
     }

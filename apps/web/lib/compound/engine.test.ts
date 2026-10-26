@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, test} from 'vitest';
 import Decimal from 'decimal.js';
 import {DEFAULT_INPUT, compound, milestoneWhen, periodRate, whatIfs, type CompoundInput} from './engine';
 
@@ -81,4 +81,15 @@ describe('compound interest (Session AA-Cloud Part 3), against closed-form value
     expect(() => compound({...base, start: '1.234'})).toThrow();
     expect(() => compound({...base, ratePercent: 101})).toThrow();
   });
+});
+
+// Session AH (TR14, B-099): months after the whole years, additive and optional.
+test('1 year and 6 months at 0 %: eighteen monthly contributions, one extra row marked with its months', () => {
+  const r = compound({...DEFAULT_INPUT, start: '1000', contribution: '100', ratePercent: 0, years: 1, months: 6});
+  expect(r.contributed).toBe('2800.00'); expect(r.final).toBe('2800.00');
+  expect(r.rows.map(x => [x.year, x.months])).toEqual([[1, undefined], [2, 6]]);
+  const yearly = compound({...DEFAULT_INPUT, start: '1000', contribution: '100', frequency: 'yearly', compounding: 'yearly', ratePercent: 10, years: 1, months: 6});
+  // A yearly contribution falls in no part year; the half year still grows: 1,000 × 1.1 + 100 = 1,200, then × 1.1^0.5.
+  expect(Number(yearly.final)).toBeCloseTo(1200 * Math.sqrt(1.1), 2);
+  expect(compound({...DEFAULT_INPUT, months: 0}).rows).toHaveLength(DEFAULT_INPUT.years);
 });

@@ -41,7 +41,8 @@ class FieldError extends Error{constructor(message:string,readonly field:string)
 /** "Turn this into a goal" from the calculator (Session AA-Cloud Part 3): only well-formed values are used. */
 export type CalculatorPrefill={name?:string;target?:string;currency?:string;date?:string;contribution?:string;every?:string};
 function calculatorGoal(c:CalculatorPrefill|undefined){
- if(!c||!/^\d{1,13}$/.test(c.target??'')||(c.currency!=='USD'&&c.currency!=='EUR'))return undefined;
+ // Session AH (TR14, B-130): the calculator's exact estimate, cents included (it was cut to whole units).
+ if(!c||!/^\d{1,13}(\.\d{1,2})?$/.test(c.target??'')||Number(c.target)<=0||(c.currency!=='USD'&&c.currency!=='EUR'))return undefined;
  const date=/^\d{4}-\d{2}-\d{2}$/.test(c.date??'')&&c.date!>localDate()?c.date:undefined,contribution=/^\d{1,13}(\.\d{1,2})?$/.test(c.contribution??'')&&Number(c.contribution)>0?c.contribution:undefined;
  const every=(['weekly','monthly','yearly'] as const).find(e=>e===c.every);
  return {name:(c.name??'').trim().slice(0,100)||`Grow to ${c.target} ${c.currency}`,target:c.target!,currency:c.currency,date,contribution,every};

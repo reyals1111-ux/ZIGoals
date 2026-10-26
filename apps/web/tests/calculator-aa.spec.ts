@@ -34,17 +34,19 @@ test('Wealth opens the calculator; results follow every change, exactly, and alw
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('textbox', {name: 'Years', exact: true})).toHaveValue('11');
   await expect(results(page).getByRole('definition').first()).toHaveText('$17,103.39');
-  // A field being corrected says why and keeps the last result.
+  // Assertion changed (Session AH TR14, B-123; stronger): a field being corrected says why, and no figure stays on screen
+  // (the last numbers that worked read as current); the result comes back with a valid field.
   await page.getByLabel('Starting amount').fill('12.345');
   await expect(page.getByRole('alert').filter({hasText: 'up to two decimals'})).toBeVisible();
-  await expect(results(page).getByRole('definition').first()).toHaveText('$17,103.39');
-  // Gate C: the kept figures say they are from the last numbers that worked.
-  await expect(results(page).getByRole('status').filter({hasText: 'from your last numbers that worked'})).toBeVisible();
+  await expect(page.getByRole('region', {name: 'Correct the marked field to see the estimate.'})).toBeVisible();
+  await expect(results(page)).toHaveCount(0);
+  await expect(page.locator('.calc-figures')).toHaveCount(0);
   // A comma reads as the rest of the app reads it: a decimal comma, thousands only when unambiguous, "1,500" asks.
   await page.getByLabel('Starting amount').fill('1,500');
   await expect(page.getByRole('alert').filter({hasText: 'could mean 1500 or 1.500'})).toBeVisible();
   await page.getByLabel('Starting amount').fill('10000,50');
-  await expect(results(page).getByRole('status').filter({hasText: 'from your last numbers that worked'})).toHaveCount(0);
+  await expect(results(page).getByRole('definition').first()).toBeVisible();
+  await expect(page.getByRole('region', {name: 'Correct the marked field to see the estimate.'})).toHaveCount(0);
   await page.getByLabel('Starting amount').fill('1,000,000');
   await expect(page.locator('.calc-error')).toHaveCount(0);
   // Read as a million: 1,000,000 × 1.05^11 = 1,710,339.358… (Gate C audit: the figure proves the parse).
@@ -105,7 +107,8 @@ test('Scenarios are kept on this device with Undo, and a result becomes a prefil
   const from = page.getByRole('region', {name: 'From the calculator'});
   await expect(from).toContainText('not a promise');
   await expect(page.getByRole('radio', {name: /^Value/})).toBeChecked();
-  await expect(page.getByLabel('Target amount')).toHaveValue('84919');
+  // Assertion changed (Session AH TR14, B-130; stronger): the estimate exactly, cents included (it was cut to 84919).
+  await expect(page.getByLabel('Target amount')).toHaveValue('84919.37');
   await expect(page.getByRole('radio', {name: 'USD · US dollar'})).toBeChecked();
 });
 
