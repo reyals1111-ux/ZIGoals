@@ -110,6 +110,6 @@ function CountField({name,count,onDay,error,onSet,onTyping}:{name:string;count:n
      onChange={e=>{setDraft(e.target.value);onTyping();}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();commit();}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();cancelled.current=true;setEditing(false);onTyping();requestAnimationFrame(()=>button.current?.focus());}}} onBlur={commit}/>
    :<button ref={button} type="button" className="exercise-count" aria-label={`${name} count, edit`} aria-describedby={error?errorId:undefined} data-empty={count===null||undefined} onClick={()=>{cancelled.current=false;setDraft(count===null?'':String(count));setEditing(true);}}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry {onDay}</span></>:String(count)}</button>}
   {error&&<span className="exercise-count-error" id={errorId} role="alert">{error}</span>}
-  <span className="exercise-count-live sr-only" aria-live="polite">{count===null?`No entry ${onDay}`:`${name} ${onDay}: ${count}`}</span>
+  <output className="exercise-count-live sr-only" aria-live="polite" aria-label={`${name} ${onDay}`}>{count===null?`No entry ${onDay}`:`${name} ${onDay}: ${count}`}</output>
  </span>;
 }
