@@ -12,7 +12,6 @@ import { AppIcon } from "./app-icon";
 import { activityPresentation, activityDateHeading, activityTimeZone } from "../lib/life-intelligence";
 import { dailyData, getWaterActivities } from "../lib/health-daily";
 import { useShowcase } from "./showcase-controls";
-import {shownAmount} from "./platform/common";
 import {formatUnits} from "@zigoals/chain-config";
 import {formatMoney, formatQuantity, isMoneyCurrency} from "../lib/visual-format";
 import {amountWithUnit} from "../lib/asset-unit";

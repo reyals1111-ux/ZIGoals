@@ -54,7 +54,6 @@ import {usePlatform} from './use-platform';
 import {useMarketQuotes} from './use-market-quotes';
 import {useValuationHistory} from './use-valuation-history';
 import {useEvidenceNow} from './use-evidence-now';
-import {shownAmount} from './common';
 import {wealthMarketRequests,wealthOverview,ASSET_COLORS} from '../../lib/wealth';
 import {SceneArt} from '../scene-art';
 import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';

@@ -115,7 +115,7 @@ export function LifeReviewView() {
         {financial && <section className="panel life-chapter" data-pillar="wealth" data-chapter="4" aria-labelledby="life-review-money">
           <SectionHeading id="life-review-money" pillar="wealth" eyebrow="Chapter 4 · Wealth" title="Tracked wealth, by currency" level={3} />
           {review.money.length ? <ul className="life-list">{review.money.map(m => <li key={m.currency}><strong>{m.currency}</strong><span>{m.change !== null ? `${formatSignedMoney(m.change, m.currency)} · ${formatMoney(m.start!, m.currency)} → ${formatMoney(m.end!, m.currency)}` : m.note}</span></li>)}</ul> : <p className="life-none">No recorded wealth values yet. Values recorded on Wealth show their change here, each in its own currency.</p>}
-          <p className="fine">What Wealth tracks, each currency on its own, never converted; today's figure is the one Wealth shows today. Accounts and debts are in Wealth's net worth. A missing value is never filled in.</p>
+          <p className="fine">What Wealth tracks, each currency on its own, never converted; today&rsquo;s figure is the one Wealth shows today. Accounts and debts are in Wealth&rsquo;s net worth. A missing value is never filled in.</p>
         </section>}
       </div>
 
