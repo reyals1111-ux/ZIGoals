@@ -36,7 +36,9 @@ for (const c of cases) test.describe(c.locale, () => {
     // Phase 2, Part 12 (deliberate, ADR-024 "Phase 2 — assertions changed"): the headline is the device's default currency
     // (AB-Cloud's defaultCurrency(): euro in the euro area), so in de-DE and nl-BE the euro total leads and US dollars are
     // the chip. As strict: the exact chip text and the panel's "not converted" line, per locale.
-    const [headline, other, otherCode] = c.base === "EUR" ? [c.euro, c.wealth, "USD"] : [c.wealth, c.euro, "EUR"];
+    // Assertion changed (Session AH TR7, owner amendment 6, ADR-033 M19; as strict): nothing converts, so no locale picks
+    // the headline any more — the largest total (US dollars in the Showcase) leads everywhere and the euro is the chip.
+    const [headline, other, otherCode] = [c.wealth, c.euro, "EUR"];
     await expect(total.locator('.wealth-total-headline').first()).toHaveText(headline.replace(/ /g, NBSP));
     await expect(total.locator('.wealth-other-chip-button').first()).toHaveText(`+ ${other.replace(/ /g, NBSP)} held in ${otherCode}`);
     await total.locator('.wealth-other-chip-button').first().click();
