@@ -402,6 +402,14 @@
     .unavailable-pill:not(#\-) {
         border-color: currentColor
     }
+    .workspace[aria-busy="true"]:not(#\-)::before {
+        background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
+        background-color: transparent
+    }
+    .settings-page .settings-sections a[aria-current]:not(#\-) {
+        color: inherit;
+        box-shadow: inset 0 -2px 0 currentColor
+    }
 }
 /*  app/visual-theme.css  */
 @scope (:root[data-theme=dark]) {
@@ -9330,6 +9338,9 @@
             outline-color: currentcolor
         }
     }
+    .workouts-progress-line:not(#\-) {
+        color: var(--brand-cyan, #6fe6f6)
+    }
 }
 /*  components/help/help.css  */
 @scope (:root[data-theme=dark]) {
@@ -9377,7 +9388,8 @@
   .wealth-total-headline, .split-figure, .wealth-total-other, .accounts-worth-net, .accounts-row-balance strong,
   .owned-value, .portfolio-totals dd, .portfolio-tx-amount, .portfolio-since-value, .portfolio-coin-results, .wallet-holding-amount,
   .wallet-holdings-total, .wallet-totals, .goal-value, .dashboard-metric-value, .dashboard-widget-preview-value,
-  .staking-amount, .stake-card-value, .earn-value, [data-private-amount]
+  .staking-amount, .stake-card-value, .earn-value, [data-private-amount],
+  .wealth-history-readout strong, .wealth-history-change, .wealth-history-why
 ):not(#\-), :scope[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg:not(#\-) {
         filter: blur(7px)
     }
@@ -13511,6 +13523,22 @@
     @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
         :scope:not([data-app-motion=off]) .app-sidebar[data-sky]:not(#\-) {
             --sky-y: var(--sky-rest, 0px)
+        }
+    }
+}
+/*  components/shell/tablet-rail.css  */
+@scope (:root[data-theme=dark]) {
+    @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) {
+        :scope .app-sidebar:not(#\-):not(#\-) {
+            border-bottom-color: currentcolor;
+            border-right-color: color-mix(in srgb, currentColor 14%, transparent)
+        }
+    }
+    @media (min-width: 768px) and (max-width: 900px) {
+        :scope .app-sidebar:not(#\-)::before {
+            background-image: inherit;
+            background-color: inherit;
+            border-bottom-color: color-mix(in srgb, currentColor 14%, transparent)
         }
     }
 }

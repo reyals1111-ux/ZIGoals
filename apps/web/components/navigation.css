@@ -110,3 +110,8 @@
   :root .app-sidebar .brand-logo { width: 85px; height: 96px; }
   :root .app-sidebar .app-nav { margin-top: 12px; gap: 0; }
 }
+/* Session AH (TO7, T-098, M-133): on Today the hero carries Quick add, so the tablet top bar's copy steps aside
+   (the rail's top bar is in shell/tablet-rail.css). */
+@media (min-width: 768px) and (max-width: 900px) {
+  :root:has(.today-hero .quick-add-trigger) .app-sidebar .sidebar-actions .quick-add-trigger { display: none; }
+}

@@ -402,6 +402,14 @@
     .unavailable-pill:not(#\-) {
         border-color: currentColor
     }
+    .workspace[aria-busy="true"]:not(#\-)::before {
+        background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
+        background-color: transparent
+    }
+    .settings-page .settings-sections a[aria-current]:not(#\-) {
+        color: inherit;
+        box-shadow: inset 0 -2px 0 currentColor
+    }
 }
 /*  app/visual-theme.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -8820,6 +8828,9 @@
             outline-color: currentcolor
         }
     }
+    .workouts-progress-line:not(#\-) {
+        color: var(--brand-cyan-ink)
+    }
 }
 /*  components/help/help.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -8867,7 +8878,8 @@
   .wealth-total-headline, .split-figure, .wealth-total-other, .accounts-worth-net, .accounts-row-balance strong,
   .owned-value, .portfolio-totals dd, .portfolio-tx-amount, .portfolio-since-value, .portfolio-coin-results, .wallet-holding-amount,
   .wallet-holdings-total, .wallet-totals, .goal-value, .dashboard-metric-value, .dashboard-widget-preview-value,
-  .staking-amount, .stake-card-value, .earn-value, [data-private-amount]
+  .staking-amount, .stake-card-value, .earn-value, [data-private-amount],
+  .wealth-history-readout strong, .wealth-history-change, .wealth-history-why
 ):not(#\-), :scope[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg:not(#\-) {
         filter: blur(7px)
     }
@@ -12690,6 +12702,22 @@
         }
     }
 }
+/*  components/shell/tablet-rail.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) {
+        :scope .app-sidebar:not(#\-):not(#\-) {
+            border-bottom-color: currentcolor;
+            border-right-color: color-mix(in srgb, currentColor 14%, transparent)
+        }
+    }
+    @media (min-width: 768px) and (max-width: 900px) {
+        :scope .app-sidebar:not(#\-)::before {
+            background-image: inherit;
+            background-color: inherit;
+            border-bottom-color: color-mix(in srgb, currentColor 14%, transparent)
+        }
+    }
+}
 /*  components/shell/theme-switch.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .theme-switch:not(#\-) {
@@ -13677,6 +13705,10 @@
 :root[data-theme=light] .habit-month-grid>span[data-level=many]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=many]:not(#\-) { background-color: #6f5aa8; border-color: #5a4890; color: #fff; }
 :root[data-theme=light] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=full]:not(#\-) { background-image: linear-gradient(135deg,#2f8fae,#5d55c4,#9a4fa8); color: #fff; }
 :root[data-theme=light] .habit-month-legend i:not(#\-) { border: 1px solid #8f9ab0; }
+/* apps/web/themes/light.ah-layout.css */
+/* Session AH (AF10, owner: "calm the ecosystem header by day"): by day the Ecosystem header's glows sit lower, so the
+   eyebrow's teal-to-mauve end reads clearly at phone widths (it fell to 3.2–3.7:1 on the mauve patch). */
+:root[data-theme=light] .ecosystem-intro:not(#\-) { background-image: radial-gradient(ellipse at 90% 0, #64377b1a, transparent 55%), radial-gradient(ellipse at 0 100%, #12516b1a, transparent 60%); }
 /* apps/web/themes/light.gatec.css */
 /* Session AF Gate C (design review 2, ADR-028 H137): Light's last half-flipped pieces, by hand. Every rule carries the
    sheet's one id of weight (:not(#\-)) and the theme root, so it wins over the generated rule it replaces. */

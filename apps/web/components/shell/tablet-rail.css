@@ -1,0 +1,54 @@
+/*
+ * Session AH (LA2, owner decision, 26 Oct; ADR-033 M46): from 541 to 900 px wide the navigation is the desktop
+ * sidebar in a compact form: a narrow rail on the left with each destination's icon and its short name under it, in
+ * the same order, groups and visibility (app-nav.tsx decides what shows), the current page marked as on a computer,
+ * scrollable when it does not fit, Settings and Help at its foot. Page content starts at the top, beside the rail; no
+ * navigation block sits above it. Computers (901 px and up) keep the sidebar; phones (540 px and less) keep the
+ * bottom bar; a phone turned sideways (coarse pointer, 500 px tall or less) keeps the phone's bars.
+ *  - 541–767 px: the phone's top bar stays (logo, Checklist, Quick add, search, More) and the rail replaces the
+ *    bottom bar.
+ *  - 768–900 px: the logo, Quick add and search form a slim top bar beside the rail.
+ * `:not(#\-)` lets these win over the phone and tablet rules without depending on stylesheet order.
+ */
+@media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) {
+  :root:root { --rail-w: 88px; --phone-tabs: 0px; }
+  :root .app-sidebar:not(#\-) {
+    display: flex; flex-direction: column; align-items: stretch; gap: 0;
+    position: fixed; top: 0; bottom: 0; left: 0; width: var(--rail-w); z-index: 44;
+    padding: 8px 6px calc(env(safe-area-inset-bottom, 0px) + 8px);
+    overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+    border-bottom: 0; border-right: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  }
+  :root .app-sidebar .app-nav:not(#\-) { display: flex; flex-direction: column; gap: 2px; flex: 1 0 auto; width: 100%; margin: 0; }
+  :root .app-sidebar .app-nav a:not(#\-) {
+    flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-height: 56px; padding: 6px 2px; font-size: 12px; line-height: 1.15; text-align: center; overflow-wrap: anywhere;
+  }
+  :root .app-sidebar .app-nav a[data-group-start]:not(:first-child):not(#\-) { margin-top: 10px; }
+  /* Settings and Help at the rail's foot (when the rail is taller than its links). */
+  :root .app-sidebar .app-nav a[href="/app/settings"]:not(#\-) { margin-top: auto; }
+  :root .app-sidebar :is(.product-descriptor, .sidebar-search, .sidebar-destination, .theme-switch-slot, .sidebar-star):not(#\-) { display: none; }
+  :root .app-content:not(#\-) { margin-left: var(--rail-w); }
+  :root .phone-tabbar:not(#\-) { display: none; }
+  :root .phone-topbar:not(#\-) { margin-left: var(--rail-w); }
+}
+@media (min-width: 541px) and (max-width: 767.98px) and (min-height: 501px), (min-width: 541px) and (max-width: 767.98px) and (pointer: fine) {
+  /* The phone's top bar carries the logo, Quick add and search here. */
+  :root .app-sidebar :is(.brand, .sidebar-actions):not(#\-) { display: none; }
+}
+@media (min-width: 768px) and (max-width: 900px) {
+  :root:root { --rail-bar: 64px; scroll-padding-top: calc(var(--rail-bar) + 12px); }
+  :root .app-sidebar::before {
+    content: ""; position: fixed; top: 0; left: var(--rail-w); right: 0; height: var(--rail-bar); z-index: 0; pointer-events: none;
+    background: inherit; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  }
+  :root .app-sidebar .brand:not(#\-) { position: fixed; top: 0; left: var(--rail-w); z-index: 1; height: var(--rail-bar); display: flex; flex-direction: row; align-items: center; gap: 8px; padding: 0 16px; }
+  :root .app-sidebar .brand .brand-logo:not(#\-) { width: 32px; height: 36px; margin: 0; }
+  :root .app-sidebar .brand .brand-wordmark:not(#\-) { font-size: 24px; }
+  :root .app-sidebar .sidebar-actions:not(#\-) { position: fixed; top: 0; right: 16px; z-index: 1; height: var(--rail-bar); display: flex; align-items: center; gap: 8px; padding: 0; }
+  :root .app-sidebar .sidebar-actions .quick-add-trigger:not(#\-) { width: auto; }
+  :root .app-content:not(#\-) { padding-top: var(--rail-bar); }
+  :root :is(.settings-page .settings-sections, .earn-chips, .checklist-topbar):not(#\-) { top: var(--rail-bar); }
+  /* Beside the rail a page header is narrower: its lede and its buttons each take the full width (as Wealth's do). */
+  :root .pillar-hero.has-art:not(#\-) { grid-template-areas: "eyebrow eyebrow art" "title title art" "lede lede art" "actions actions art"; }
+}

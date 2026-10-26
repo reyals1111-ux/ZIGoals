@@ -62,6 +62,22 @@ function SettingsGroup({id, title, children}: {id: string; title: string; childr
   const icon = GROUP_ICON[id];
   return <div className="settings-group" id={id} role="group" aria-labelledby={`${id}-title`}><p className="settings-group-title" id={`${id}-title`}>{icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}{title}</p>{children}</div>;
 }
+/** Session AH (SE3, D-088): the section tabs say which group is on screen (they had no state). */
+function SettingsSectionsNav() {
+  const [current, setCurrent] = useState('');
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const groups = SETTINGS_GROUPS.map(([id]) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+    const seen = new Map<string, boolean>();
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) seen.set(entry.target.id, entry.isIntersecting);
+      setCurrent(SETTINGS_GROUPS.map(([id]) => id).find(id => seen.get(id)) ?? '');
+    }, {rootMargin: '-30% 0px -60% 0px'});
+    for (const group of groups) observer.observe(group);
+    return () => observer.disconnect();
+  }, []);
+  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}</nav>;
+}
 export default function Settings() {
   const s = useGoals();
   const [backup, setBackup] = useState("");
@@ -98,7 +114,7 @@ export default function Settings() {
       </div>
       <PhoneSettingsList/>
       <KeepSettingsJump/>
-      <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id}>{title}</a>)}</nav>
+      <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
         <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>

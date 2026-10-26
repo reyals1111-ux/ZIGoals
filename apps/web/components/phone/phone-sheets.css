@@ -81,4 +81,8 @@
 @media (max-width: 767.98px) {
   :root dialog.dashboard-dialog > header, :root dialog.wealth-sheet > header { margin-inline: -16px; padding-inline: 16px; background: #101e35; }
   :root dialog.dashboard-dialog .dashboard-actions { margin-inline: -16px; padding: 12px 16px; background: #101e35; box-shadow: 0 -12px 20px -12px #000a; }
+  /* Session AH (WE10, B-151): a wealth sheet has no padding of its own (its header and body carry 18 px), so the
+     header already reaches both edges; the -16 px above pushed it past them (the title touched the edge and the
+     sheet scrolled sideways). */
+  :root dialog.wealth-sheet > header { margin-inline: 0; padding-inline: 18px; }
 }

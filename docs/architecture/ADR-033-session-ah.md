@@ -126,12 +126,36 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
   - SE9: the sidebar scrolled after switching to Light (N-039) did not reproduce at 360, 768 or 1440.
 - **M44 — SE14 device lock.** A 4–8 digit PIN, off by default, on this device only (amendment 4). The lock hides the screen; it never encrypts data. Three tries are free, then 30 s doubling to 5 min. "Forgot the PIN?" removes the lock after one minute, so local data is never out of reach. The PIN is stored as a PBKDF2-SHA-256 hash (120,000 rounds) in the device-only key `zigoals:device-lock:v1`; erase and export lists include it. Face ID and passkeys are not offered: WebAuthn without a server cannot prove much more than the PIN does, and it is not in the Alpha's scope.
 
+- **M45 — Part 13 measured before changing.** Probes on a production build, 18–20 routes, Showcase, at 375, 768 and 1280 px (and 1024 for clipping), three themes where colour mattered:
+  - At the end of every page, no control stays under a floating button or the phone tab bar (LA1, D2, HE10). No text is clipped in a card at 375, 768, 1024 or 1280 (HE10's coach line). Earlier sessions' launcher and padding work had fixed both.
+  - No unnamed field or button, no invalid `<dl>`, no nested controls (one focusable scroll area around a table is allowed) (LA7, E2, E3). The repeated "header" elements are card headers, not page landmarks.
+  - No text on a solid background under 4.5:1 on Health, Ecosystem, Habits, Today, Settings and Wealth in any theme (E1). Text on art or gradients was checked by eye.
+  - ZIGi's idle animation is no longer downloaded on first load (F1). The 533 KB file a first visit loads is the logo intro, an approved design that plays once.
+  - The phone top bar is already named and 44 px; the page title sits at 267 px with the Alpha notice, which can be dismissed (LA3).
+- **M46 — LA2: a rail on tablets (owner decision, 26 Oct; pre-approved).** The grouped header grid at the top of every page is gone. Computers (901 px and up) keep the sidebar, and phones (540 px and less) keep the bottom bar, both exactly as before. From 541 to 900 px the navigation is the sidebar in a compact form: an 88 px rail on the left with each destination's icon and its short name under it.
+  - The rail keeps the sidebar's order, groups and visibility (hidden pages stay hidden; Governance hidden by default) and marks the current page as on a computer. It scrolls when it doesn't fit, and Settings and Help sit at its foot. Each link is at least 44 px and keeps the sidebar's names for keyboard and screen readers.
+  - Page content starts at the top, beside the rail.
+  - The phone chrome ran up to 767 px in code. From 541 to 767 px the phone's top bar stays (logo, Checklist, Quick add, search, More) and the rail replaces the bottom bar. From 768 to 900 px the logo, Quick add and search form a 64 px top bar beside the rail; sticky bars (Settings' tabs, Earn's chips, the Checklist header) stick below it.
+  - A phone turned sideways (coarse pointer, 500 px tall or less) keeps the phone's bars.
+  - Checked at 541, 600, 768, 900 and 901 px on 20 routes: nothing scrolls sideways, and at a page's end nothing is under a floating button. Nebula, Light and Dark look the same in kind; motion is unchanged.
+  - page-marks.spec's tablet test now pins the rail: one column in the same order, groups apart, links ≥ 44 px, Settings and Help at the foot, content beside the rail and near the top, Quick add after Help in tab order. It replaces Session AF Gate C's "5 · 4 · 6" rows.
+  - The "2.5×" render did not reproduce; Next.js already sends `width=device-width, initial-scale=1`.
+- **M47 — Part 13 items recorded rather than changed.**
+  - LA5: Light's dark islands (the hero, Staking's card, the dock) are AF9 decisions that theme parity pins. The Ecosystem tiles were fixed in Part 9 and the Ecosystem glow in AF10.
+  - LA6: no text is smaller than 12 px except the "%" sign inside progress rings. Pages keep their own header icons (LA9).
+  - LA9: removing the page name from the phone top bar is Part 18. Each page keeps its approved header.
+  - E3: the Goal wizard's first step lists the ideas first; a skip link is later.
+  - F3: no change to cold load; the new loading outline covers the wait (LA8).
+  - AF15: the Habits time headings now measure well in all three themes. The Checklist name on a phone path is protected. The two stress-only Health import readings and the Academy name under the lesson bubble stay as the audits left them.
+  - SE3: the section tabs take 9–13 % of the screen (not 35 %) and now mark the group on screen. One "Backup & restore" card is later: the four cards do different jobs (export, protected copy, restore, import from another app), and their anchors and headings are pinned by specs.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
 - Part 9: a negative price and dates before 1990 were already refused (transaction schema and `dateIssue`); archiving an asset already had a toast; Markets already had Owned and Favourites filters (WE13); market 503s already say "Price refresh is unavailable. Last-good values stay visible with their timestamps." (F5, BUG-069).
 - Part 10: practice/real staking was already decided and built (owner, 18 Oct; Staking signs in Keplr after a one-time confirm); Earn already read the unbonding time live and showed "unavailable" without a fallback; Governance was already hidden by default and offered no vote in the Showcase.
 - Part 11: Today already had a week grid ("Your week") with today marked; the welcome already had "Explore the demo"; the wrap-up already showed after its time; Showcase weekly-review text is labelled SHOWCASE DATA and lives in the tab's Showcase only (TO4 e).
+- Part 13: LA1/D2/HE10 (nothing stays covered at a page's end), LA3, LA7's names and `<dl>`, E1, E2 and F1 were already fixed (M45).
 - Part 12: Help & diagnostics already had one contact per purpose (SE10, M43); the Permissions-Policy and manifest were already as intended (SE13, M43); Settings already showed the weekly-review day it saves.
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
@@ -363,3 +387,25 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | SE14 | Fixed | Tokyo (`799935f3`, M44); tests/ah-settings.spec.ts |
 | H5 | Fixed | BUG-068 (`799935f3`): a page that starts hidden says "off until you turn it on"; Help search |
 | RM5 | Moves to Part 15 | Friends pack goes with the launch documents |
+
+### Part 13 — Layout, accessibility, themes, speed
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| LA1 / D2 / HE10 | Already fixed | D-110, D-066, D-250, D-254, D-260, D-064, L-017, L-059, L-087, B-027, N-051, N-173, M-012, M-072, T-068, T-069, T-130, T-136, T-145, D-130, D-231, D-033; BUG-005/034/081; D-115…D-222: M45 |
+| LA2 | Fixed (owner decision) | D-065, D-261, D-263, T-146, T-148, Denver S-15: a rail from 541 to 900 px (M46). N-153, D-109, M-074: not reproduced (M46) |
+| LA3 | Already fixed | D-252, N-048, D-070: M45 |
+| LA4 | Fixed | D-068, D-255, T-147, N-062, N-174, D-098: phone chip and tab rows fade at the edge until scrolled to the end |
+| LA5 | Recorded / fixed elsewhere | D-174…N-189: M47; AF10 below |
+| LA6 | Recorded | D-192 (Part 7 heatmap), D-198, D-196, D-194: M47 |
+| LA7 / E3 | Fixed (part) | L-022, N-175, BUG-050, BUG-045/049: names already present (M45). N-115: standalone links and folds are 24 px or more on computers and tablets. L-080, N-119, N-187, N-190, N-124, N-176, M-091, N-186: already fixed or recorded (M45, M47) |
+| LA8 | Fixed | D-213, D-006: a quiet page outline while private data opens |
+| LA9 | Moves to Part 18 / recorded | D-013, D-016, M-075, N-177, Denver S-09: M47 |
+| LA10 | Fixed | D-212, D-223, D-221: text links underline on hover everywhere |
+| D3 | Fixed | BUG-039: 24 px on computers and tablets (phones were already 44 px) |
+| E1 / E2 | Already fixed | BUG-046, BUG-047/048: M45 |
+| F1 / F3 | Already fixed / recorded | M45, M47 |
+| AF10 | Fixed | owner: "calm the ecosystem header by day" (Light glows lowered) |
+| AF15 | Recorded | M47 |
+| TO7 (carried) | Fixed | T-098, M-133: Today's duplicate Quick add in the tablet top bar steps aside |
+| WE10 (carried) | Fixed | B-151: the phone Add-asset sheet no longer scrolls sideways; its title has its inset |
+| SE3 (carried) | Fixed (part) | D-088: tabs mark the group on screen; D-005, D-127, D-224, D-062, D-251, M-128, Denver S-05: M47 |

@@ -168,15 +168,23 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  const order:string[]=[];
  for(let i=0;i<15;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
  expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
- // The narrow-tablet header: the last group starts its own row, and Quick add (below the nav) follows it in tab order.
+ // Owner decision (Session AH, LA2, 26 Oct; replaces Session AF Gate C's grouped header rows, deliberate): from 541 to
+ // 900 px the navigation is a rail on the left, in the same order and groups, each link at least 44 px, the groups
+ // apart, Settings and Help at its foot, and the page beside it with no navigation block above; Quick add (in the top
+ // bar beside the rail) still follows Help in tab order.
  await page.setViewportSize({width:820,height:1180});await page.goto('/app/goals');await expect(page.locator('main h1')).toBeVisible();
- // Session AF Gate C (design critique; deliberate, stronger): every group starts its own row (the money group had broken
- // across two rows, 8 then 2 then 6), so Staking sits on Earn's row, not Today's; the last group still starts its own row
- // under them, and the rows read 5 · 5 · 6, none of them a single item (5 · 4 · 6 since Session AG Polish 3 hid Governance, ADR-032 L19).
- await expect.poll(()=>page.locator('.app-nav a').evaluateAll(links=>{const rows=new Map<number,number>();for(const a of links){const y=Math.round(a.getBoundingClientRect().top);rows.set(y,(rows.get(y)??0)+1);}return [...rows.entries()].sort((a,b)=>a[0]-b[0]).map(([,n])=>n);})).toEqual([5,4,6]);
- const today=await box(page,'.app-nav a[href="/app"]'),earn=await box(page,'.app-nav a[href="/app/earn"]'),ecosystem=await box(page,'.app-nav a[href="/app/ecosystem"]'),staking=await box(page,'.app-nav a[href="/app/staking"]');
- expect(earn.x).toBeCloseTo(today.x,0);expect(earn.y).toBeGreaterThan(today.y+today.height-1);expect(staking.y).toBeCloseTo(earn.y,0);
- expect(ecosystem.x).toBeCloseTo(today.x,0);expect(ecosystem.y).toBeGreaterThan(earn.y+earn.height-1);
+ const rail=await page.locator('.app-nav a').evaluateAll(links=>links.map(a=>{const r=a.getBoundingClientRect();return {name:a.textContent!.trim(),x:Math.round(r.x),y:Math.round(r.y),w:r.width,h:r.height,bottom:Math.round(r.bottom)};}));
+ expect(rail.map(l=>l.name)).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
+ expect(new Set(rail.map(l=>l.x)).size).toBe(1);
+ for(let i=1;i<rail.length;i++)expect(rail[i]!.y).toBeGreaterThan(rail[i-1]!.y);
+ for(const l of rail){expect(l.h).toBeGreaterThanOrEqual(44);expect(l.w).toBeGreaterThanOrEqual(44);}
+ const railGap=(b:string)=>{const i=rail.findIndex(l=>l.name===b);return rail[i]!.y-rail[i-1]!.bottom;};
+ expect(railGap('Earn')).toBeGreaterThan(railGap('Goals'));expect(railGap('Ecosystem')).toBeGreaterThan(railGap('Goals'));
+ const aside=await box(page,'.app-sidebar'),main=await box(page,'main'),help=rail.at(-1)!;
+ expect(aside.x).toBe(0);expect(aside.width).toBeLessThan(100);expect(aside.height).toBeCloseTo(1180,0);
+ expect(railGap('Settings')).toBeGreaterThan(railGap('Goals'));expect(help.bottom).toBeGreaterThan(1180-80);
+ expect(main.x).toBeGreaterThanOrEqual(aside.x+aside.width);expect(main.y).toBeLessThan(330);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(820);
  await page.locator('.app-nav a[href="/app/help"]').focus();await page.keyboard.press('Tab');
  await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeFocused();
 });

@@ -1,6 +1,7 @@
 "use client";
 import "./platform/run92-product.css";
 import "./navigation.css";
+import "./shell/tablet-rail.css";
 import { FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
