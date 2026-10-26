@@ -43,6 +43,11 @@ const dayId = (id: string, day: string) => `${id}@${day}`;
 export function countOn(h: WithExercise, id: string, day: string): number | null {
   return exerciseData(h).days.find(d => d.id === dayId(id, day))?.count ?? null;
 }
+/** Session AH Part 18: Undo after a typed count puts the day back exactly as it was: its count, or no entry at all. */
+export function restoreCount<T extends WithExercise>(h: T, id: string, day: string, count: number | null): T {
+  if (count === null) { const e = exerciseData(h); return e.days.some(d => d.id === dayId(id, day)) ? put(h, {...e, days: e.days.filter(d => d.id !== dayId(id, day))}) : h; }
+  return changeCount(h, id, day, count - (countOn(h, id, day) ?? 0));
+}
 /** Adds (or with a negative delta removes) repetitions for a day. Never below zero; a "−" on a day without an entry changes nothing. */
 export function changeCount<T extends WithExercise>(h: T, id: string, day: string, delta: number): T {
   const e = exerciseData(h);

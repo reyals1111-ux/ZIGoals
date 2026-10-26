@@ -1390,19 +1390,10 @@ body .metric-note, body .wallet-subtitle {
   main details > summary { min-height: 24px; }
 }
 /* Session AH (LA4, D-068/D-255/T-147/N-062/N-174/D-098): a phone row of chips or tabs that runs past the edge fades
-   there, so it reads as "more this way"; the fade leaves once the row is scrolled to its end. Rows that fit never fade
-   (the scroll timeline is inactive and the fade stays 0). Browsers without scroll timelines, reduced motion and Motion Off keep the rows as before
-   (the fade is a scroll-linked animation, and nothing animates with motion off). */
-@property --ah-scroll-cue { syntax: '<length>'; inherits: false; initial-value: 0px; }
-@keyframes ah-scroll-cue { from, 92% { --ah-scroll-cue: 28px; } to { --ah-scroll-cue: 0px; } }
-@media (max-width: 767.98px) and (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: scroll()) {
-    :root:not([data-app-motion=off]) :is(.picker-tabs, .habit-filter-bar, .health-views, .view-tabs, .activity-context, .earn-chips) {
-      animation: ah-scroll-cue linear both; animation-timeline: scroll(self inline);
-      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--ah-scroll-cue)), transparent);
-      mask-image: linear-gradient(to right, #000 calc(100% - var(--ah-scroll-cue)), transparent);
-    }
-  }
+   there while more of it lies to the right (components/scroll-cues.tsx marks it); a row that fits, or one scrolled to its
+   end, never fades. A static mask: nothing moves. */
+@media (max-width: 767.98px) {
+  :root [data-scroll-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
 }
 /* Session AH (LA8, D-213/D-006): while a hard reload opens the private data (the workspace stays hidden until then),
    the page shows a quiet outline of a page instead of an empty void. It is decoration only and never takes a tap. */

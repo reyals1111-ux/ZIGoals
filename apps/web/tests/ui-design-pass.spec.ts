@@ -395,7 +395,8 @@ test.describe('Part 3: liquid glass',()=>{
 });
 
 test.describe('Part 4: Health',()=>{
- const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('output');
+ // Session AH Part 18 (owner): the count is a button that becomes a field; its slot holds the number and what is announced.
+ const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('.exercise-count');
  test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
   await page.goto('/app/health');
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();

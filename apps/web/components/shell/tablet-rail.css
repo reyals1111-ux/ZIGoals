@@ -48,7 +48,7 @@
   :root .app-sidebar .sidebar-actions:not(#\-) { position: fixed; top: 0; right: 16px; z-index: 1; height: var(--rail-bar); display: flex; align-items: center; gap: 8px; padding: 0; }
   :root .app-sidebar .sidebar-actions .quick-add-trigger:not(#\-) { width: auto; }
   :root .app-content:not(#\-) { padding-top: var(--rail-bar); }
-  :root :is(.settings-page .settings-sections, .earn-chips, .checklist-topbar):not(#\-) { top: var(--rail-bar); }
+  :root :is(.settings-page .settings-sections, .earn-chips):not(#\-) { top: var(--rail-bar); }
   /* Beside the rail a page header is narrower: its lede and its buttons each take the full width (as Wealth's do). */
   :root .pillar-hero.has-art:not(#\-) { grid-template-areas: "eyebrow eyebrow art" "title title art" "lede lede art" "actions actions art"; }
 }

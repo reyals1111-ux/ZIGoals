@@ -4780,6 +4780,24 @@
     .checklist-heat-legend:not(#\-) {
         color: #c5d3ea
     }
+    .checklist-bar-tools button:not(#\-) {
+        border-color: #ffffff2e;
+        background-image: none;
+        background-color: #ffffff12;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-bar-tools button:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff1f
+    }
+    .checklist-bar-tools button:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-bar-tools button[aria-expanded=true]:not(#\-) {
+        background-image: linear-gradient(100deg, #23eaff40, #9273ff59);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #9273ff99
+    }
 }
 /*  components/checklist/day-celebration.css  */
 @scope (:root[data-theme=dark]) {
@@ -8456,6 +8474,32 @@
         background-image: none;
         background-color: #ffffff07
     }
+    .exercise-counter .exercise-count:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text-strong, #f4f8ff)
+    }
+    .exercise-counter button.exercise-count:hover:not(#\-) {
+        border-color: #a9c9ff4d
+    }
+    .exercise-counter button.exercise-count:focus-visible:not(#\-), .exercise-counter .exercise-count-input:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .exercise-counter .exercise-count-input:not(#\-) {
+        border-color: #a9c9ff80;
+        background-image: none;
+        background-color: #00000033
+    }
+    .exercise-counter .exercise-count-input[aria-invalid=true]:not(#\-) {
+        border-color: #ff9aa8
+    }
+    .exercise-count-error:not(#\-) {
+        color: #ffd6dc;
+        background-image: none;
+        background-color: #0e0206e6;
+        border-color: #ff9aa866
+    }
 }
 /*  components/health/fasting.css  */
 @scope (:root[data-theme=dark]) {
@@ -11317,6 +11361,9 @@
             background-image: none;
             background-color: transparent
         }
+    }
+    :scope .phone-topbar .phone-title.sr-only:not(#\-) {
+        border-color: currentcolor
     }
 }
 /*  components/phone/phone-today.css  */

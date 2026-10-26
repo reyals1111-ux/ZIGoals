@@ -216,6 +216,25 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
   - Tests: lib/health-day.test.ts; tests/ah-health-day.spec.ts (deep link, logging to the day, trend mark, card links, the future refused, keys, 44 px, swipe and reduced motion on a phone, the full views). health-midnight now proves the rollover through the field's limit, and layout-fixes-ae measures the new bar (both equal strength).
 - **M52 — CI 1230 fixes.** The goal ring's `aria-valuenow` is exact again; TO7's two-decimal rounding belongs to the spoken `aria-valuetext` only. Activity's account events (B-199) are newer than the Showcase's asset events, so run9-2-life clicks the first asset link and also checks that an account row links to Accounts (stronger).
 
+- **M53 — Part 18 (owner addition 2): the Checklist top bar, the phone top bar and the quick counters.**
+  - Checklist top bar (owner exception to PROTECTED, the top bar only):
+    - "N of M planets today" is gone from view but stays for screen readers, updating as before.
+    - The Path / List switch sits next to X on every screen, and "Your orbit" stays on a computer.
+    - From 600 px, Edit path and Options join the switch, and "⋯" keeps How it works (and the replay).
+    - On a phone, Edit path and Options stay in "⋯": with the switch, the streak, + and ⋯ at 44 px they need about 405 px with the bar's spacing, and a 360 px phone has 340. Each appears once.
+    - Below 360 px the bar's gaps tighten so 320 px has no sideways scroll.
+    - The path, river, labels, banners and planets are untouched, and their pins pass (checklist suites, 147 tests).
+  - Phone top bar: no page name on any page. It stays as screen-reader text and in the tab's title; the actions keep their place at the right.
+  - Quick counters:
+    - one fixed − / number / + group at the row's right; the number keeps four tabular digits of room, so the buttons never move;
+    - a tap turns the number into a number field (Enter or leaving it saves, Escape keeps the old count);
+    - the shared limit (`LIMITS.repsPerDay`, 9,999) answers beside the field;
+    - a saved count offers an Undo named "Undo the Push-ups count", which puts back exactly the earlier count or no entry (`restoreCount`);
+    - the count saves on the chosen Health day;
+    - the button is named "Push-ups count, edit", and the count is announced in a live line.
+    - Tested at 360 and 390 px in Nebula, Light and Dark with reduced motion (tests/ah-part18.spec.ts). counters-compact and ui-design-pass read the new count button (equal strength).
+  - LA4 follow-up: the phone rows' edge fade is now a static mask on rows marked by `components/scroll-cues.tsx`, not a scroll-linked animation. An animation that never ends kept "everything at rest" checks waiting. It now shows with reduced motion and Motion Off too, since nothing moves.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
@@ -515,3 +534,10 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | ID | Outcome | Findings / evidence |
 |---|---|---|
 | Part 17 (owner) | Fixed | M51 |
+
+### Part 18 — Owner addition 2: Checklist top bar, phone title, counters
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| Part 18.1 Checklist top bar | Fixed | M53 |
+| Part 18.2 phone top bar | Fixed | M53 |
+| Part 18.3 quick counters (HE11 carried) | Fixed | M53 |

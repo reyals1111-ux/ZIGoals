@@ -8,6 +8,8 @@ export const LIMITS = {
   /** Minutes in one day (exercise, a habit's duration, sleep and meditation per day). */
   minutesPerDay: 1440,
   stepsPerDay: 100_000,
+  /** Session AH Part 18: one quick counter's repetitions in one day (its four-digit display). */
+  repsPerDay: 9_999,
   /** Water in millilitres, after converting fl oz: one entry, and one day's total. */
   waterEntryMl: 5_000,
   waterDayMl: 10_000,
@@ -22,6 +24,9 @@ const fmt = (n: number) => n.toLocaleString('en-GB');
 /** Throws the sentence when a check fails. */
 export function within(message: string | null): void { if (message) throw new LimitError(message); }
 
+export function repsIssue(count: number): string | null {
+  return Number.isInteger(count) && count >= 0 && count <= LIMITS.repsPerDay ? null : `Enter a whole number from 0 to ${fmt(LIMITS.repsPerDay)}.`;
+}
 export function weightIssue(grams: number): string | null {
   const kg = grams / 1000;
   return Number.isFinite(kg) && kg >= LIMITS.weightKg.min && kg <= LIMITS.weightKg.max ? null
