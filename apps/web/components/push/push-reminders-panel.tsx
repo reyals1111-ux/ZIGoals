@@ -33,9 +33,11 @@ export function PushRemindersPanel() {
   useEffect(() => { setDraft(null); }, [push.record.data?.quiet.from, push.record.data?.quiet.to]);
   const quiet = draft ?? push.record.data?.quiet ?? {from: '22:00', to: '07:00'};
   const validQuiet = TIME.test(quiet.from) && TIME.test(quiet.to);
-  return <section className="panel push-panel" id="reminders" aria-labelledby="push-title">
-    <p className="eyebrow">REMINDERS WHEN CLOSED</p>
-    <h2 id="push-title">Reminders on this phone, even when ZIGoals is closed.</h2>
+  // Session AH (SE7; N-097, M-023): a panel that cannot be turned on here says so at its top and looks it (dimmed, a pill).
+  const available = state.canTurnOn || !!push.record.data;
+  return <section className="panel push-panel" id="reminders" aria-labelledby="push-title" data-available={available ? undefined : 'false'}>
+    <p className="eyebrow">REMINDERS WHEN CLOSED{!available && <span className="unavailable-pill">Not available here</span>}</p>
+    <h2 id="push-title">Reminders on this device, even when ZIGoals is closed.</h2>
     <p>Your reminder times stay as they are. After one, your device shows a single notification, &ldquo;A reminder from ZIGoals&rdquo;, or the habit&rsquo;s name if you turn that on below; opening it brings you to Today. Off unless you turn it on here, for this device only.</p>
     <details className="push-server"><summary>What the server gets, and what it never gets</summary>
       <ul><li>the address your browser hands out for push messages, and the two keys that encrypt them;</li><li>your reminder times as times of day, your time zone and the weekdays they apply to;</li><li>your quiet hours.</li></ul>

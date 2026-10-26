@@ -14,7 +14,8 @@ export function planDue(plan: RemindersPlan, now: Date, today: string, context: 
   for (const kind of Object.keys(plan.items ?? {}) as PlanKind[]) {
     const item = plan.items![kind]!; if (!item.on || plan.dismissed?.[kind] === today) continue;
     const [h, m] = (item.time ?? PLAN_LABELS[kind].defaultTime).split(':').map(Number); if (minutes < h! * 60 + m!) continue;
-    if (kind === 'review' && (item.weekday ?? context.reviewWeekday) !== context.weekday) continue;
+    // Session AH (SE2; B-126, N-093): one review day, Settings' (a weekday stored here by older builds is not used).
+    if (kind === 'review' && context.reviewWeekday !== context.weekday) continue;
     if (kind === 'goal-checkin' && (item.weekday ?? 0) !== context.weekday) continue;
     if (kind === 'fasting-end' && !context.fastDone) continue;
     const line = kind === 'bedtime' ? 'Time to wind down.' : kind === 'review' ? 'Your weekly review is open.' : kind === 'fasting-end' ? 'Your fast has reached its target hours.' : 'A moment for your goals.';

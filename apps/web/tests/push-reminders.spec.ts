@@ -92,7 +92,7 @@ async function signInAndUnlock(page: Page) {
   await page.getByRole('button', {name: 'Confirm and create vault', exact: true}).click();
   await expect(page.getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
 }
-const panel = (page: Page) => page.getByRole('region', {name: 'Reminders on this phone, even when ZIGoals is closed.', exact: true});
+const panel = (page: Page) => page.getByRole('region', {name: 'Reminders on this device, even when ZIGoals is closed.', exact: true});
 const state = (page: Page) => panel(page).locator('.push-state');
 const registrations = (page: Page) => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map(r => (r.active ?? r.installing ?? r.waiting)?.scriptURL ?? ''));
 const record = (page: Page) => page.evaluate(key => { const found = Object.entries(localStorage).find(([k]) => k.endsWith(key)); return found ? JSON.parse(found[1]) : null; }, PUSH_KEY);

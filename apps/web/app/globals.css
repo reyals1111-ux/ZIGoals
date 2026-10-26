@@ -1376,3 +1376,10 @@ body .metric-note, body .wallet-subtitle {
 /* Session AD (Part 3, ADR-026 F5): while a Light or Dark theme's stylesheet loads on the first paint, nothing is painted in
    the wrong theme (app/theme-boot.ts clears this within 1.5 s at most). */
 :root[data-theme-loading] body { visibility: hidden; }
+/* Session AH (SE12): the not-found page outside /app. */
+.site-not-found { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+.site-not-found .app-not-found { max-width: 560px; width: 100%; }
+.site-not-found-mark { margin: 0 0 8px; }
+/* Session AH (SE7): a feature that cannot be used here looks it. */
+.unavailable-pill { display: inline-block; margin-inline-start: 8px; padding: 2px 10px; border-radius: 999px; border: 1px dashed currentColor; font-size: 12px; font-weight: 600; letter-spacing: .02em; text-transform: none; opacity: .85; vertical-align: middle; }
+.push-panel[data-available="false"] > :not(.eyebrow):not(.push-state) { opacity: .72; }

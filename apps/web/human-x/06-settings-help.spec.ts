@@ -706,7 +706,7 @@ journey('J209', 'reminders while ZIGoals is closed: unavailable in this build sa
     if ('Notification' in window) Notification.requestPermission = (() => { w.__asked++; return Promise.resolve('default'); }) as typeof Notification.requestPermission;
   });
   await open(page, '/app/settings');
-  const panel = page.getByRole('region', {name: 'Reminders on this phone, even when ZIGoals is closed.', exact: true});
+  const panel = page.getByRole('region', {name: 'Reminders on this device, even when ZIGoals is closed.', exact: true});
   await panel.scrollIntoViewIfNeeded();
   await expect(panel.locator('.push-state')).toHaveText('Not available in this build.');
   await expect(panel.getByRole('button', {name: /Turn on/})).toHaveCount(0);

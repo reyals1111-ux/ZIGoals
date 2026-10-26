@@ -31,7 +31,7 @@ export function MusicSettings() {
     {shown ? <div className="actions"><button type="button" className="secondary" onClick={openMusicPlayer}>Open the player</button></div>
       : <p>The music player is hidden. <button type="button" className="text-link" onClick={() => void showPlayer()}>Show the music player</button></p>}
     {prefs.loaded && <label className="checkbox"><input type="checkbox" checked={prefs.data.mini} onChange={e => mini(e.currentTarget.checked)}/><span>Show a mini-bar instead of the round button (this device)</span></label>}
-    <h3>Spotify</h3>
+    <h3>Spotify{!showcase && config.loaded && !config.clientId && <span className="unavailable-pill">Not set up</span>}</h3>
     <p className="music-settings-state">{spotifyState}</p>
     {!showcase && config.clientId && spotify.scope && spotify.connected === false && <button type="button" className="secondary" onClick={() => void spotify.connect()}>Connect Spotify</button>}
     {!showcase && spotify.connected && <button type="button" className="secondary" onClick={() => void spotify.disconnect().then(() => setMessage({text: 'Spotify is disconnected on this device. To remove ZIGoals from your Spotify account too, use Spotify’s account page → Manage apps.'}))}>Disconnect Spotify</button>}

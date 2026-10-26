@@ -399,6 +399,9 @@
     :focus-visible:not(#\-) {
         outline-color: var(--accent, #b8ec93)
     }
+    .unavailable-pill:not(#\-) {
+        border-color: currentColor
+    }
 }
 /*  app/visual-theme.css  */
 @scope (:root[data-theme=dark]) {
@@ -5375,6 +5378,14 @@
     }
     :scope .dh-facts dt:not(#\-) {
         color: var(--text-secondary)
+    }
+}
+/*  components/device-lock.css  */
+@scope (:root[data-theme=dark]) {
+    .device-lock-host:not(#\-) {
+        background-image: radial-gradient(120% 90% at 50% 0%, #050829 0%, #020213 60%, #010109 100%);
+        background-color: transparent;
+        color: #eef1ff
     }
 }
 /*  components/earn-dock/earn-dock.css  */

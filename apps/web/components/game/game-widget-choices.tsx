@@ -17,7 +17,7 @@ export default function GameWidgetChoices() {
   const chosen = gameWidgetsOf(prefs.data);
   const toggle = (id: GameWidget) => { try { prefs.update(p => { const list = gameWidgetsOf(p); const next = list.includes(id) ? list.filter(x => x !== id) : [...list, id]; return {...p, today: {...p.today, gameWidgets: next}}; }); } catch { /* the device record reports its own failure */ } };
   return <section className="game-widget-choices" aria-labelledby="game-widget-choices-title">
-    <h3 id="game-widget-choices-title">Journey widgets <small>Gamify is on · kept on this device</small></h3>
+    <h3 id="game-widget-choices-title">Journey widgets <small>The game layer is on · kept on this device</small></h3>
     <div role="group" aria-label="Journey widgets">{GAME_WIDGETS.map(id => <button key={id} type="button" className="widget-library-tile game-widget-choice" aria-pressed={chosen.includes(id)} onClick={() => toggle(id)}>
       <strong>{LABELS[id].label}</strong><small>{chosen.includes(id) ? 'On Today · tap to remove' : LABELS[id].line}</small></button>)}</div>
   </section>;

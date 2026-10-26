@@ -1,6 +1,7 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
 import {WhatsThis} from "../../../components/earn/whats-this";
+import {DeviceLockSettings} from "../../../components/device-lock";
 import { SendFeedback } from "../../../components/help/send-feedback";
 import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
 import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
@@ -200,6 +201,7 @@ export default function Settings() {
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">
         <VaultSyncControls/>
+        <DeviceLockSettings/>
         <div className="settings-overview">
           <section className="panel" id="account"><p className="eyebrow">ACCOUNT</p><h2>Your space.</h2><p>{s.mode === "local" ? "Local Demo · no account needed" : "Keplr · explicitly connected for this session"}</p><code>{shortAccount(s.owner)}</code><p className="fine">Habits and Health belong to this browser, independently of the active wallet. Switching wallets does not hide or move them.</p></section>
           <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain networks.</h2>{/* Session AH (DE1, ST1, AF4; the owner's 18 Oct decision): practice on zig-test-2, real on zigchain-1 after a one-time confirm, signed in Keplr. */}<p>Goals and the wallet control above: the practice network, zig-test-2 · ZIG (18 decimals), no real value. <WhatsThis term="practice-network"/></p><p>Staking: the practice network, or the real network (zigchain-1, real ZIG) after a one-time confirmation. You sign every step in Keplr.</p><p>Wealth, Earn and Staking read the real network&rsquo;s public figures, read-only.</p><span className="badge">Practice network · real staking opt-in</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>

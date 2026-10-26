@@ -41,7 +41,7 @@ test('Nebula wears the ZG monogram: one plain line in the sun and moon icons’ 
   await page.goto('/app/settings');
   await hydrated(page);
   const nebula = appearance(page).getByRole('radio', {name: 'Nebula theme'});
-  await expect(nebula).toHaveAttribute('title', /Customize — coming later/);
+  await expect(nebula).toHaveAttribute('title', 'Nebula'); // Session AH (SE9): no "coming later" in the tooltip
   await expect(nebula).toContainText('Nebula');
   const icon = nebula.locator('svg');
   await expect(icon).toHaveCount(1);
