@@ -32,14 +32,13 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Part 2 so far: `9b1dd80f` staking execute test, `ba33c973` doProbe content-length (domain-review-race), AF7 verifier (TIER 3), `75766fec` AF6, `6966c04d` source-pinning + pagehide save, `6055f5ab` layout-fixes/J055/motion/parity.
 - Part 2 later: quick-add early tap, ADR M8–M10 (`e6bade8e`).
 - Part 3: DS1 (already safe; `ah-multitab`), DS4, DS5, DS2, DS3, DS6, DS7, DS8, DS9, A7, J2 (M11–M15).
-- Part 4: TR1–TR14, B1, B2, B4–B8, J1, HA2 (M16–M22); B3/B9 move to Part 5.
+- Part 4: TR1–TR14, B1, B2, B4–B8, J1, HA2 (M16–M22).
+- Part 5: VA1–VA10, C1–C3, C8, B3, B9 (M23–M25).
 
 ## Next step
-- Part 4 done: `0dc8ae4d`, `05037e8b`, `9e865423` (TR7), `1b5d218a` (TR10), `cdb6f967` (TR11), `1e8946ad` (TR6), `6dc444a0` (TR12), `7abfbfda` (TR9/HA2), `521dba16` (TR14, TIER 3 stored format); ADR M16–M22 and rows `77bb22a7`.
-- CI run 1200 failures fixed in `e4fb87ee` (checklist-timers, pwa-aa, the account-switch integration test).
-- Next: Part 5 (VA1–VA10, C1–C3, C8, plus B3/B9): one limits module, inline field errors, one water limit, toasts replace, one date format, plurals, time-zone picker. Start with the "already fixed" check.
-- Shared modules so far: `lib/numbers/counts.ts` (TR6), `components/ui/confirm-inline.tsx`, `lib/undo-removal.ts`, `components/ui/remove-with-undo.ts`, `tests/ah-helpers.ts`, `tests/ah-numbers.spec.ts`.
-- CI: a later push never cancels a PR run (ci.yml concurrency); later pushes queue.
+- Part 5 done: `cd216935`, `24da254e` (M23–M25). Before every push: full unit suite (compare with `<scratchpad>/fail-main.txt`: finance-homes, visual-format ja-JP, pre-run11-setup fail only here), typecheck, lint, theme check.
+- Next: Part 6 (DE8 workouts first; HE1–HE14, HE4/J5/L4, C9, C11, J8, RM7). Start with the "already fixed" check; one helper may research Strong/Hevy/JEFIT/Fitbod/NTC.
+- Shared modules: `lib/numbers/counts.ts`, `lib/limits/plausibility.ts`, `lib/plain-error.ts`, `lib/time-zone-input.ts`, `components/ui/length-counter.tsx`, `components/ui/confirm-inline.tsx`, `lib/undo-removal.ts`, `tests/ah-helpers.ts`.
 
 ## Open decisions
 - None.

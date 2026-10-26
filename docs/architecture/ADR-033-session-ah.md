@@ -75,6 +75,10 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M21 — Calculator months (TR14), additive.** `months` (0–11) is an optional field after the whole years in the calculator's device record (`zigoals:calculator:v1`, loose; older builds ignore it). A plan stays at least one year so every saved scenario still reads in #37–#49. A rate from Earn is added once a year and the banner says so.
 - **M22 — "Ahead" needs the target by its date (TR11).** Ahead of the plan's schedule is not ahead of the Goal: a shortfall or a later finish reads "Behind". The Showcase's Emergency fund (ahead of schedule, $5,000 short) now has a later date and a plan that reaches it, so the Showcase still shows every status honestly.
 
+- **M23 — Limits on the writes, not the records (VA2–VA4).** lib/limits/plausibility.ts guards the write functions (Health, Habits, the Checklist, Portfolio, manual assets, accounts), so every entry point shares it and a record saved before keeps reading. Stored length limits stay per record (a goal name 80, a habit title 100): raising one would make older builds refuse the record, lowering one would make this build refuse old ones. Instead every limited field shows its count while focused. Day bounds at the write layer are 1990 on only; future days are refused by the page in its journal zone (a clock bound would refuse a backup from a device ahead).
+- **M24 — Errors are sentences (VA1, C1, C2, C3).** `plainErrorMessage` turns a schema issue into a short sentence or the form's own fallback; 74 forms outside ZIGi use it. Where a page shows results far from the button (the Goal page), the result also shows in the app's one toast; a confirm takes the focus where it opens.
+- **M25 — Time zones as typed (VA10, C8).** A typed zone is matched to the browser's own list whatever its case; a fixed offset is explained with places that have it today (no offset is stored: it has no daylight-saving rules).
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 
@@ -139,4 +143,19 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | B3, B9 | Part 5 | Limits and the water cap are VA2/VA3 (one limits module) |
 | B4 | Fixed | BUG-063, BUG-085 (`0dc8ae4d`): Today and Wealth read one net worth |
 | J1 | Fixed (package) | The TR and B rows above |
+
+### Part 5 — Forms, errors and limits
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| VA1 / C1 | Fixed | BUG-003, BUG-009, BUG-020, BUG-026, BUG-084, L-023, L-035, L-041, L-044, L-050, L-076, L-079, M-123, T-093, T-121, N-135, N-142, N-151, N-155, D-022, D-024, D-034, D-048, D-071, D-101, D-118, D-199 (`cd216935`, M24): no validation JSON anywhere; the forms with field errors (Habits, assets, accounts, Health's highlighted fields) mark and focus the field |
+| VA2 / B3 | Fixed | L-001, L-045, L-082, L-053, L-067, BUG-001, BUG-011, BUG-022, BUG-027, BUG-078, BUG-079, BUG-083, B-018, B-019, B-020, B-036, B-088, B-141, B-159, B-160, B-173, B-182, B-195, B-199, N-053, N-059, N-117, N-133, N-143, N-157, T-060, T-081, T-089, T-119, T-133, T-137, D-077, D-081, D-088, D-089, D-102, M-016, M-053, M-129, B-165 (`cd216935`, `24da254e`, M23). Micronutrients and ZIGi's Quick add parse go through the same Health writes |
+| VA3 / B9 | Fixed | L-034, L-082, BUG-083, B-019, B-146, T-112, L-033 (`cd216935`): one water limit after fl oz, per entry and per day, the Checklist's range included |
+| VA4 | Fixed (counter) | D-043, D-202, D-207, B-138, N-052, T-062, T-064, T-078, T-123, M-011, D-054, B-157, B-149 (`24da254e`, M23) |
+| VA5 | Fixed | D-041, D-140, D-141, D-143, D-172, D-173, D-190, L-014, M-014, M-109, M-101, L-076, L-028, D-074 (`cd216935`): an empty required field says "This can't be empty." in the form's own message |
+| VA6 | Fixed | D-034, D-035, D-088, D-105, L-044, N-024, D-052, T-071, D-144 (`cd216935`, M24) |
+| VA7 | Fixed | B-170, D-219, M-107, M-111, N-129, N-179, T-072, T-101, B-059, D-046 (`24da254e`); the toast already replaces, never stacks |
+| VA8 | Fixed | B-057, B-185, L-068, L-075, M-060, M-098, B-201, L-086, L-054 (`24da254e`). Numbers follow the display locale while dates are English by design (AD's one date format) |
+| VA9 / C2 | Fixed | B-064, L-052, M-102, L-038, D-048, T-065, T-080, BUG-020 (`24da254e`) |
+| VA10 / C8 | Fixed | B-067, B-069, B-068, B-175, B-176, N-131, BUG-035 (`24da254e`, M25) |
+| C3 | Fixed | BUG-084 (`24da254e`): the range and unit in the message; Health shows the reason |
 
