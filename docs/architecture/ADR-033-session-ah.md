@@ -117,12 +117,22 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
   - "Net worth this week" waits for a weekly wealth reading on Today.
   - The week grid exists (Today's "Your week": Goals, Habits and Health rows, today marked). A P&L row and logging from a cell are later.
 
+- **M43 — Part 12 items kept as they are, with reasons.**
+  - SE13: the Permissions-Policy header names `bluetooth=()` on purpose, and public-safety.test pins it. Browsers that do not know the feature warn; the header stays. The web manifest has no `enctype` field, so there is nothing to remove (the warning came from a share-target check outside the app).
+  - SE10: the two addresses are deliberate. contact@ is the owner's public contact (L1); hello@ is the security contact in SECURITY.md. The build identity in Help & diagnostics is documented in PRIVACY.md and pinned by the Session AC spec, so it stays.
+  - SE1: accounts and sync are not open on the Alpha, so Help's account wording is accurate (send-feedback.spec pins it). The wrong Settings paths, the backup promise and the game-layer line are fixed.
+  - SE4 / H5: the release notes stay in Help (18 topics are pinned by specs). Help gains a search box instead.
+  - SE5: undo from the Activity log is later; every log already has its own undo where it is made.
+  - SE9: the sidebar scrolled after switching to Light (N-039) did not reproduce at 360, 768 or 1440.
+- **M44 — SE14 device lock.** A 4–8 digit PIN, off by default, on this device only (amendment 4). The lock hides the screen; it never encrypts data. Three tries are free, then 30 s doubling to 5 min. "Forgot the PIN?" removes the lock after one minute, so local data is never out of reach. The PIN is stored as a PBKDF2-SHA-256 hash (120,000 rounds) in the device-only key `zigoals:device-lock:v1`; erase and export lists include it. Face ID and passkeys are not offered: WebAuthn without a server cannot prove much more than the PIN does, and it is not in the Alpha's scope.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
 - Part 9: a negative price and dates before 1990 were already refused (transaction schema and `dateIssue`); archiving an asset already had a toast; Markets already had Owned and Favourites filters (WE13); market 503s already say "Price refresh is unavailable. Last-good values stay visible with their timestamps." (F5, BUG-069).
 - Part 10: practice/real staking was already decided and built (owner, 18 Oct; Staking signs in Keplr after a one-time confirm); Earn already read the unbonding time live and showed "unavailable" without a fallback; Governance was already hidden by default and offered no vote in the Showcase.
 - Part 11: Today already had a week grid ("Your week") with today marked; the welcome already had "Explore the demo"; the wrap-up already showed after its time; Showcase weekly-review text is labelled SHOWCASE DATA and lives in the tab's Showcase only (TO4 e).
+- Part 12: Help & diagnostics already had one contact per purpose (SE10, M43); the Permissions-Policy and manifest were already as intended (SE13, M43); Settings already showed the weekly-review day it saves.
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
@@ -334,3 +344,22 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | H3 / AF13 | Recorded | M41 |
 | CO1 | Fixed (line) | M42 |
 | J16 / CO4 | Already present (grid); later (P&L row, logging from cells) | M42 |
+
+### Part 12 — Settings, Help, Activity
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| SE1 | Fixed (part) | B-089, B-193, D-229, D-216, M-127, M-068 (`799935f3`): Help's Settings paths, the backup line and the game-layer line match the app. B-023, M-022, M-029, B-108: accounts are not open on the Alpha, so that wording stays (M43). M-128 with SE3 |
+| SE2 | Fixed | B-126, N-093 (`799935f3`): one review day in Settings drives the review and its reminder; saving says so |
+| SE3 | Moves to Part 13 | D-005, D-088, D-127, D-224, D-062, D-251, M-128, Denver S-05 (layout) |
+| SE4 | Fixed (part) | D-091, D-015, N-032, T-083, M-031, D-159 (`799935f3`): Help search with a result count. D-133, N-184, M-126, L-020, Denver S-14: release notes stay (M43) |
+| SE5 | Fixed (part) | D-171 (`799935f3`): filters show counts, phone rows are compact. T-113 undo from the log: later (M43) |
+| B-199 | Fixed | `799935f3`: account payments and balance updates appear in Activity |
+| SE7 | Fixed | N-097, M-023 (`799935f3`): "Not available here" and "Not set up" pills, dimmed controls, one push heading |
+| SE8 | Fixed | D-218, M-006 (`799935f3`): one name, "Game layer"; the demo's game layer says so |
+| SE9 | Fixed (part) | D-191, D-230, N-183 (`799935f3`): no "coming later" tooltip, a theme note, motion saves with a message. N-039 not reproduced (M43) |
+| SE10 | Already fixed / kept | M-067: M43 |
+| SE12 | Fixed | D-248, M-005, M-032, N-138 (`799935f3`): a branded 404 with a way back |
+| SE13 | Kept (by design) | L-007, B-095: M43 |
+| SE14 | Fixed | Tokyo (`799935f3`, M44); tests/ah-settings.spec.ts |
+| H5 | Fixed | BUG-068 (`799935f3`): a page that starts hidden says "off until you turn it on"; Help search |
+| RM5 | Moves to Part 15 | Friends pack goes with the launch documents |

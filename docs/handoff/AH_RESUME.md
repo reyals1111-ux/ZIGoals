@@ -34,6 +34,7 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Part 3: DS1 (already safe; `ah-multitab`), DS4, DS5, DS2, DS3, DS6, DS7, DS8, DS9, A7, J2 (M11–M15).
 - Part 4: TR1–TR14, B1, B2, B4–B8, J1, HA2 (M16–M22).
 - Part 5: VA1–VA10, C1–C3, C8, B3, B9 (M23–M25).
+- Part 12: `799935f3` (SE1, SE2, SE4, SE5, SE7–SE9, SE12, SE14 device lock, H5, B-199; M43–M44). SE3 → Part 13, RM5 → Part 15.
 - Part 11: `0e66fea8` (CI 1224/1225 fixes, TO1, TO2, TO5) and batch 2 (TO4/H6/DE4, TO7–TO13, CO1; M40–M42).
 - Part 10: `e194278a` (TIER 3 verifier: Earn title), `facc2b0f` wording/calculator/empty states, AF3 `/api/earn/shares` (TIER 3 egress) (M37–M39).
 - Part 9: `f927c2d5` WE1, `351c51c5` WE2–WE7/WE9–WE12/WE14/C12, `8a7e9727` WE4/WE8/WE13/WE15/WE18/WE19/WE21/WE22/J14/J17/DE5 + lib/ah-device-keys.ts (M34–M36).
@@ -43,9 +44,10 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 
 ## Next step
 - Part 11 done (M40–M42). Part 10 done (M37–M39). Before every push: full unit suite (sandbox-only failures: finance-homes, visual-format ja-JP, pre-run11-setup), typecheck (NODE_OPTIONS=--max-old-space-size=8192), lint, theme check, focused browser specs against a production build on :3101 (build with NODE_OPTIONS=--max-old-space-size=8192; start the server only after the build has finished).
-- Next: Part 12 Settings, Help, Activity (SE1–SE5, SE7–SE10, SE12–SE14, H5, RM5; plus WE7's payment in Activity, B-199). SE14 device lock: optional, OFF by default, never makes data unreachable. Permissions-Policy/manifest changes are TIER 3 (headers/PWA). Start with the "already fixed" check for its rows.
+- Next: Part 13 layout, a11y, themes, speed (LA1–LA10, D2, D3, E1–E3, F1, F3, AF10, AF15) plus the carried items below and SE3 (one "Backup & restore" card, a shorter Settings page). Start with the "already fixed" check for its rows.
+- Activity filter counts are aria-hidden on purpose: specs click the filters by exact name.
 - Sandbox note: Node 22 here formats compact numbers differently from Node 24 and Chrome; an SSR'd compact format needs an explicit minimumFractionDigits or the page fails to hydrate (theme parity then fails).
-- Carried: HE10 and WE10's sheet padding (B-151) into Part 13 (LA1); HE11's counter layout into Part 18; TO7's duplicate Quick add on tablets into Part 13; WE7's payment in Activity (B-199) into Part 12; WE15's doc-link 404s recheck into Part 16; the landing's staking line (DE1) into Part 15.
+- Carried: HE10 and WE10's sheet padding (B-151) into Part 13 (LA1); HE11's counter layout into Part 18; TO7's duplicate Quick add on tablets into Part 13; SE3's Settings wall into Part 13; RM5's friends pack into Part 15; WE15's doc-link 404s recheck into Part 16; the landing's staking line (DE1) into Part 15.
 - New device keys: register them in lib/ah-device-keys.ts (personal or display).
 - Theme layers for this session: apps/web/themes/<theme>.ah-*.css, every rule scoped `:root[data-theme=<theme>]`.
 
