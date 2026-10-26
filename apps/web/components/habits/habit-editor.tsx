@@ -5,7 +5,7 @@ import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import { INVISIBLE_NAME, isInvisibleName } from "../../lib/visible-text";
 import { ReminderTimeField } from "../reminders/reminder-time-field";
-import { HealthLinkField, healthLinkDraft, healthLinkFromDraft } from "./health-link-field";
+import { HealthLinkField, healthLinkDraft, healthLinkFromDraft, suggestedHealthLink } from "./health-link-field";
 import type { HabitHealthLinkV4 as HabitHealthLink } from "../../lib/habit-health-links/schema";
 import type { ExerciseCounter } from "../../lib/health-counters";
 import { useFieldErrors } from "../field-errors";
@@ -67,6 +67,10 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
   const [stackAfterId, setStackAfterId] = useState(habit?.stackAfterId ?? "");
   const [reminderTime, setReminderTime] = useState(reminder);
   const [linkDraft, setLinkDraft] = useState(() => healthLinkDraft(healthLink, waterUnit));
+  // Session AH (TR9/HA2): a new habit whose unit Health records starts with that link, until the person changes the field.
+  const [linkTouched, setLinkTouched] = useState(false);
+  const suggested = !habit && !linkTouched && !healthLink && linkDraft.measure === '' ? suggestedHealthLink({title, unit, target, measurement}, waterUnit) : null;
+  const shownLink = suggested ?? linkDraft;
   const [busy, setBusy] = useState(false);
   // Session Y Part 9: each refusal names its field (aria-invalid, aria-describedby) and the first takes the focus.
   const fe = useFieldErrors(), error = fe.error, setError = (message: string) => { if (message) fe.fail(message); else fe.clear(); };
@@ -112,7 +116,7 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
     if (!parsed.success) { setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
     // The Health link is checked after the habit itself, so its message names its own field; a quit or limit habit has none.
     let link: HabitHealthLink | null = null;
-    if (type === "build" && !healthLinksUnreadable) { try { link = healthLinkFromDraft(linkDraft, waterUnit); } catch (e) { setError(`Done automatically from Health: ${e instanceof Error ? e.message : "Check the link."}`); return; } }
+    if (type === "build" && !healthLinksUnreadable) { try { link = healthLinkFromDraft(shownLink, waterUnit); } catch (e) { setError(`Done automatically from Health: ${e instanceof Error ? e.message : "Check the link."}`); return; } }
     setBusy(true); setError(""); try { await onSave(parsed.data,habit?effectiveFrom:undefined,expected,reminderTime,healthLinksUnreadable?undefined:link); } catch(e) { setError(e instanceof Error?e.message:"Your habit was not saved. Check the storage message and try again."); } finally { setBusy(false); }
   }
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
@@ -139,7 +143,7 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
       {scheduleKind === "frequency" && <div className="habit-form-grid"><label className="field">Times per period<input {...fe.field("frequency")} type="text" inputMode="numeric" autoComplete="off" value={frequency} onChange={(event) => setFrequency(event.target.value)} /></label><label className="field">Frequency period<select value={frequencyPeriod} onChange={(event) => { const next = event.target.value as typeof frequencyPeriod; setFrequencyPeriod(next); setTargetPeriod(next); setFrequency((current) => { const limit = { week: 7, month: 28, year: 365 }[next]; return /^\d+$/.test(current.trim()) && Number(current) > limit ? String(limit) : current; }); }}><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option></select></label></div>}
       {scheduleKind === "month-dates" && <label className="field">Dates in month<input value={monthDates} onChange={(event) => setMonthDates(event.target.value)} placeholder="1, 15, 28" /><small>Comma-separated dates from 1 to 31. Months without that date simply skip it.</small></label>}
       <ReminderTimeField value={reminderTime} onChange={setReminderTime} />
-      {type === "build" && <HealthLinkField draft={linkDraft} onChange={setLinkDraft} counters={counters} waterUnit={waterUnit} unreadable={healthLinksUnreadable} onStartOver={onStartOverHealthLinks} />}
+      {type === "build" && <HealthLinkField draft={shownLink} onChange={next => { setLinkTouched(true); setLinkDraft(next); }} counters={counters} waterUnit={waterUnit} unreadable={healthLinksUnreadable} onStartOver={onStartOverHealthLinks} />}
       <label className="field">Linked Goal (optional)<select {...fe.field("goal")} name="goal" defaultValue={unmatchedLink ? "keep" : savedGoalIndex < 0 ? "" : JSON.stringify(goals[savedGoalIndex]!.link)}><option value="">Standalone habit</option>{unmatchedLink && <option value="keep">Keep existing link · another Goal scope</option>}{goals.map((option) => <option key={JSON.stringify(option.link)} value={JSON.stringify(option.link)}>{option.label}</option>)}</select></label>
       <label className="field">Stack after (optional)<select value={stackAfterId} onChange={(event) => setStackAfterId(event.target.value)}><option value="">No habit stack</option>{habits.filter((item) => item.id !== habit?.id).map((item) => <option value={item.id} key={item.id}>After {item.title}</option>)}</select></label>
       <div className="habit-form-grid"><label className="field">End condition<select value={endKind} onChange={(event) => setEndKind(event.target.value as typeof endKind)}><option value="none">No end date</option><option value="date">End date</option><option value="completions">Number of completions</option><option value="goal" disabled>Linked Goal target · metadata only</option></select></label>{endKind === "date" && <label className="field">End date<input type="date" required value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>}{endKind === "completions" && <label className="field">Completion count<input {...fe.field("endCount")} type="text" inputMode="numeric" autoComplete="off" value={endCount} onChange={(event) => setEndCount(event.target.value)} /></label>}</div>

@@ -80,14 +80,20 @@ describe('autoCompletions and applyAutoCompletion', () => {
     expect(once.habits.find(h => h.id === WALK)!.entries.find(e => e.date === DAY)).toMatchObject({count: 8000, disposition: 'logged'});
     expect(autoCheckInMarker(item, now)).toEqual({habitId: WALK, date: DAY, healthDate: DAY, measure: 'steps', value: 8800, appliedAt: now.toISOString()});
   });
-  test('a tap always wins: an undo with a marker, or a manual tap before the hook runs, applies nothing', () => {
+  test('an undo always wins; a part-logged day completes from Health once; a full tap applies nothing more', () => {
     process.env.TZ = 'UTC';
     const {habits, health} = showcase(), now = new Date(`${DAY}T12:00:00Z`), links = withLinks({[WALK]: link({})}, [{habitId: WALK, date: DAY, healthDate: DAY, measure: 'steps', value: 8800, appliedAt: AT, undone: true}]);
     const undone = logHabitValue(walkDue(habits), WALK, DAY, 0, {}, now);
     expect(autoCompletions({links, habits: undone, health, now})).toEqual([]);
+    // Assertion changed (Session AH TR9/HA2, owner amendment 5; stronger): a day logged only in part (500 of 8,000 steps
+    // tapped) completes from Health's 8,800 steps, set to the target once, never added (8,500); a full tap still wins.
     const tapped = logHabitValue(walkDue(habits), WALK, DAY, 500, {}, now);
-    expect(autoCompletions({links: withLinks({[WALK]: link({})}), habits: tapped, health, now})).toEqual([]);
-    expect(applyAutoCompletion(tapped, {habitId: WALK, date: DAY, healthDate: DAY, measure: 'steps', value: 8800}, now)).toBe(tapped);
+    const items = autoCompletions({links: withLinks({[WALK]: link({})}), habits: tapped, health, now});
+    expect(items).toEqual([{habitId: WALK, date: DAY, healthDate: DAY, measure: 'steps', value: 8800}]);
+    expect(applyAutoCompletion(tapped, items[0]!, now).habits.find(h => h.id === WALK)!.entries.find(e => e.date === DAY)!.count).toBe(8000);
+    const full = logHabitValue(walkDue(habits), WALK, DAY, 8000, {}, now);
+    expect(autoCompletions({links: withLinks({[WALK]: link({})}), habits: full, health, now})).toEqual([]);
+    expect(applyAutoCompletion(full, items[0]!, now)).toBe(full);
   });
   test('each journal counts its own day at the same instant: Kiritimati habits, UTC-12 Health', () => {
     process.env.TZ = 'Europe/Brussels';

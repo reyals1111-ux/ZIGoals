@@ -8172,6 +8172,9 @@
         border-color: #79b7ff;
         box-shadow: 0 -10px 55px #79b7ff30
     }
+    .health-gauge .health-gauge-over:not(#\-) {
+        color: var(--warning-text, #75560e)
+    }
     .health-gauge span:not(#\-) {
         color: #0a1e1b
     }

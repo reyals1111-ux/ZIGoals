@@ -8682,6 +8682,9 @@
         border-color: #79b7ff;
         box-shadow: 0 -10px 55px #79b7ff30
     }
+    .health-gauge .health-gauge-over:not(#\-) {
+        color: var(--warning-text, #ffd27a)
+    }
     .health-gauge span:not(#\-) {
         color: #b0c8c3
     }
@@ -14040,41 +14043,15 @@
         background-color: #01030b;
         color: var(--text, #f0f5ff)
     }
-    .account-panel .wallet-card-currency:not(#\-) {
-        border-color: #5de5e324;
-        background-image: none;
-        background-color: #01030bc9
-    }
-    .account-panel .wallet-card-currency button:not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: #c4d6f0
-    }
-    .account-panel .wallet-card-currency button:hover:not(#\-), .account-panel .wallet-card-currency button:focus-visible:not(#\-) {
-        color: #fff;
-        background-image: none;
-        background-color: #ffffff12
-    }
-    .account-panel .wallet-card-currency button[aria-pressed="true"]:not(#\-) {
-        color: #04101f;
-        background-image: linear-gradient(90deg, #6fe6f6, #a3a0ff);
-        background-color: transparent
-    }
-    .account-panel .wallet-card-unavailable:not(#\-) {
-        color: #c4d6f0
-    }
     .account-panel .wallet-card-error:not(#\-) {
         color: #ffb4c8
     }
-    @media (forced-colors: active) {
-        .account-panel .wallet-card-currency:not(#\-), .account-panel .wallet-card-choice select:not(#\-) {
-            border-color: CanvasText
-        }
+    .account-panel .wallet-card-why:not(#\-) {
+        color: #c4d6f0
     }
     @media (forced-colors: active) {
-        .account-panel .wallet-card-currency button[aria-pressed="true"]:not(#\-) {
-            outline-color: currentcolor
+        .account-panel .wallet-card-choice select:not(#\-) {
+            border-color: CanvasText
         }
     }
 }
