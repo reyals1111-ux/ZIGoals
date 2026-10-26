@@ -1,0 +1,55 @@
+/* Session AH Part 6 (DE8): the Workouts view. Theme tokens only, 44 px targets, nothing moves while typing. */
+.workouts-view { display: grid; gap: 18px; }
+.workouts-view .page-heading { margin-bottom: 0; }
+.workouts-view .sleep-back { display: inline-flex; align-items: center; min-height: 44px; }
+.workouts-note { margin: 0; }
+.workouts-start-actions, .workouts-now-actions, .workouts-row-actions, .workouts-exercise-foot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.workouts-routines, .workouts-past, .workouts-past-exercises, .workouts-picker-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.workouts-routines > li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line, #8fb6ff26); }
+.workouts-routines > li > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.workouts-routines span, .workouts-past summary span, .workouts-picker-list span { color: var(--text-secondary, #c9d6ea); font-size: 15px; overflow-wrap: anywhere; }
+.workouts-now-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: end; }
+.workouts-name { flex: 1 1 240px; }
+.workouts-elapsed { margin: 0; display: grid; justify-items: end; font-variant-numeric: tabular-nums; }
+.workouts-elapsed strong { font-size: 1.6rem; }
+.workouts-rest { margin: 0; padding: 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--pillar, #ff74be) 14%, transparent); font-variant-numeric: tabular-nums; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.workouts-exercise { border-top: 1px solid var(--line, #8fb6ff26); padding-top: 12px; display: grid; gap: 8px; }
+.workouts-exercise header { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; }
+.workouts-exercise h3 { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.workouts-sets { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.workouts-sets th, .workouts-sets td { padding: 4px; text-align: left; vertical-align: middle; }
+.workouts-sets thead th { font-size: 13px; color: var(--text-meta, #c2d0e5); font-weight: 600; }
+.workouts-sets tr[data-done] td, .workouts-sets tr[data-done] th { background: color-mix(in srgb, var(--success, #47d6a1) 12%, transparent); }
+.workouts-kind { min-height: 44px; min-width: 52px; border-radius: 10px; }
+.workouts-num { width: 5.5em; min-height: 44px; font-variant-numeric: tabular-nums; }
+.workouts-tick, .workouts-remove { min-width: 44px; min-height: 44px; border-radius: 12px; }
+.workouts-tick[aria-pressed="true"] { background: var(--success, #47d6a1); color: #04101f; }
+.workouts-prev { min-height: 44px; font-size: 14px; text-align: left; }
+.workouts-problem p { margin: 0; color: var(--danger-text, #ffb4c8); font-size: 14px; }
+.workouts-ex-note { flex: 1 1 200px; }
+.workouts-add { justify-self: start; }
+.workouts-picker { display: grid; gap: 10px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.workouts-picker-filters { display: flex; flex-wrap: wrap; gap: 10px; }
+.workouts-picker-filters .field { flex: 1 1 180px; }
+.workouts-picker-list { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); max-height: 360px; overflow: auto; }
+.workouts-picker-list button { width: 100%; min-height: 52px; display: grid; justify-items: start; gap: 2px; text-align: left; }
+.workouts-picker-new { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.workouts-picker-new p { flex-basis: 100%; margin: 0; }
+.workouts-past details summary { min-height: 44px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; cursor: pointer; }
+.workouts-past > li { border-top: 1px solid var(--line, #8fb6ff26); padding: 6px 0; }
+.workouts-past-exercises { margin: 8px 0; }
+.workouts-save-routine { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.workouts-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0; }
+.workouts-stats div { display: grid; gap: 2px; }
+.workouts-stats dt { color: var(--text-meta, #c2d0e5); font-size: 14px; }
+.workouts-stats dd { margin: 0; font-size: 1.3rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.workouts-history-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.workouts-history-table th, .workouts-history-table td { padding: 6px 4px; text-align: left; border-top: 1px solid var(--line, #8fb6ff1f); }
+.workouts-card-week { margin: 0; }
+@media (max-width: 520px) { .workouts-num { width: 4.5em; } .workouts-sets th, .workouts-sets td { padding: 2px; } }
+:root[data-theme=light] .workouts-tick[aria-pressed="true"] { background: #16865c; color: #fff; }
+:root[data-theme=light] .workouts-problem p { color: #a3123a; }
+@media (forced-colors: active) { .workouts-tick[aria-pressed="true"] { outline: 2px solid CanvasText; } }
+/* Session AH (L1): the progression line above the history table. */
+.workouts-progress-line { margin: 12px 0 0; color: var(--brand-cyan, #6fe6f6); }
+.workouts-progress-line svg { display: block; width: 100%; max-width: 420px; height: 72px; }

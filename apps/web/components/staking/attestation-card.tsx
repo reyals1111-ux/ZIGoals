@@ -7,6 +7,7 @@ import {STAKING_JOURNAL, stakingEntriesOf} from '../../lib/staking/journal';
 import {STAKING_PREFS, attestationsOn, withAttestations} from '../../lib/staking/prefs';
 import {formatDateTime} from '../../lib/visual-format';
 import type {StakingSession} from '../../lib/wallets/keplr-session';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 D4, H48): practice badges on-chain, on ZIGChain Testnet only, opt-in and off by
@@ -35,7 +36,7 @@ export function AttestationCard({wallet, busy, error, onReview}: {wallet: Stakin
   const review = async (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
-    try { onReview(await makeAttestation(kind, note)); setProblem(''); } catch (cause) { setProblem(cause instanceof Error ? cause.message : 'This badge could not be made.'); }
+    try { onReview(await makeAttestation(kind, note)); setProblem(''); } catch (cause) { setProblem(plainErrorMessage(cause, 'This badge could not be made.')); }
   };
   const readBack = async () => {
     setBack({phase: 'reading'});

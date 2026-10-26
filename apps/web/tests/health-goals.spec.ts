@@ -67,7 +67,8 @@ test('Local Demo: create, count from a water entry, close and reopen a health go
   await page.goto('/app/goals');
   await expect(list).toContainText('1 of 5 days');
   await section.getByRole('button', {name: 'End Water days', exact: true}).click();
-  await expect(section.getByRole('status')).toContainText('Water days ended.');
+  // Session AH (DS5): ending a goal is said once, in the toast with its Undo.
+  await expect(page.locator('.aa-toast')).toContainText('Water days ended.');
   await section.getByRole('button', {name: 'Show done and ended (1)', exact: true}).click();
   await section.getByRole('button', {name: 'Reopen Water days', exact: true}).click();
   await expect(section.getByRole('status')).toContainText('Water days reopened.');

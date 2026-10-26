@@ -1,7 +1,9 @@
 'use client';
 import {getAccountScope} from '../lib/account-session';
 import {useState} from 'react';
-import {getAppStorage, isShowcase} from '../lib/showcase-storage';
+import {getAppStorage, isShowcase, showcaseDay} from '../lib/showcase-storage';
+import {PORTFOLIO_KEY} from '../lib/portfolio/schema';
+import {showcasePortfolios} from '../lib/portfolio/showcase';
 import {deletedAccountRecords} from '../lib/deleted-account-records';
 import {localDate} from '../lib/local-date';
 import './export-everything.css';
@@ -25,6 +27,9 @@ export function ExportEverything() {
       let storage: Storage, kept = false; const now = new Date();
       try { storage = getAppStorage(); } catch (locked) { const records = deletedAccountRecords(); if (!records) throw locked; storage = records; kept = true; }
       const {texts, localSimulation} = await readEverything(storage);
+      // Session AH Part 3 (DS6, N-042): the Showcase's Portfolio is drawn from its fixture until it is changed, so the
+      // export copies what the Portfolio page shows, as Portfolio does (components/portfolio/use-portfolios.ts).
+      if (!kept && isShowcase() && texts[PORTFOLIO_KEY] == null) texts[PORTFOLIO_KEY] = JSON.stringify(showcasePortfolios(showcaseDay() ?? localDate(now)));
       // ZIGi's conversations (ADR-012) ride along; its provider keys live in a key store the export never opens.
       // The chat store (IndexedDB, or the Showcase tab's storage) is imported only for the export itself; the page never ships it.
       const aiChats = kept ? undefined : await import('../lib/ai/scope').then(({currentChatStore, exportChats}) => exportChats(currentChatStore())).catch(() => undefined);

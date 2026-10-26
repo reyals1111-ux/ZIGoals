@@ -52,6 +52,8 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await card.getByRole("button", { name: "Undo completion for Read a chapter" }).click();
   await expect(card.locator(".habit-count")).toHaveText("0 / 3 times per day");
   await card.getByRole("button", { name: "Archive habit" }).click();
+  // Session AH (HA3): Archive asks first, in place.
+  await card.getByRole("alertdialog", { name: "Archive Read a chapter?" }).getByRole("button", { name: "Archive habit", exact: true }).click();
   await expect(card).toContainText("Scheduled change from Sep 16, 2026: archived");
   await page.clock.fastForward(24 * 60 * 60 * 1000);
   await expect(card).toHaveCount(0);
@@ -62,7 +64,12 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await expect.poll(() => card.locator(".habit-more").evaluate(el => (el as HTMLDetailsElement).open)).toBe(true);
   await openHabitDetails(card);
   await card.getByRole("button", { name: "Restore habit" }).click();
-  await expect(card).toContainText("Scheduled change from Sep 17, 2026: active");
+  // Session AH (HA3, HA10): nothing is recorded for today, so the restore starts today: the habit leaves the Archived
+  // list at once, with no change waiting.
+  await expect(card).toHaveCount(0);
+  await page.getByRole("button", { name: "All", exact: true }).click();
+  await expect(card).toBeVisible();
+  await expect(card).not.toContainText("Scheduled change from");
   await page.clock.fastForward(24 * 60 * 60 * 1000);
   await page.getByRole("button", { name: "All", exact: true }).click();
   await expect(card).toBeVisible();
@@ -188,7 +195,7 @@ test("frequency templates display the period that actually governs completion", 
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();
   await page.getByLabel("Start from template").selectOption("buyzig");
   await page.getByRole("button", { name: "Create habit", exact: true }).click();
-  const card = page.getByRole("article", { name: "Buy ZIG", exact: true });
+  const card = page.getByRole("article", { name: "My ZIG plan", exact: true });
   await expect(card.getByText("1× per month · 500 USD per month", { exact: true })).toBeVisible();
   await expect(card.getByText(/500 USD per day/)).toHaveCount(0);
 });

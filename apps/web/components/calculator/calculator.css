@@ -20,6 +20,7 @@
 :root .calc-figures dd { margin: 0; font-size: 22px; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
 :root .calc-figures .calc-final { flex-basis: 100%; background: linear-gradient(120deg, #13304acc, #2a2153cc); border-color: #8fe6f455; }
 :root .calc-figures .calc-final dd { font-size: clamp(32px, 2.4vw + 18px, 46px); line-height: 1.1; background: linear-gradient(90deg, #ffffff 0 45%, #9fe9f7 70%, #d9a4ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+:root .calc-assumptions { margin: 0 0 8px; color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
 :root .calc-estimate { margin: 0 0 14px; color: var(--text-secondary); font-size: 15px; }
 
 /* Chart. */

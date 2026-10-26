@@ -20,6 +20,7 @@ import {formatDateTime} from '../../lib/visual-format';
 // Session AF Gate C (ledger N1): the card's staking words, one tap away, as on Earn and Staking.
 import {WhatsThis} from '../earn/whats-this';
 import type {LinkedWallet} from '../../lib/linked-wallets';
+import { plural } from '../../lib/plural';
 
 /**
  * Session AF (L2b, Part 6, ADR-028 H8, H11, H17, H44; P6.2–P6.4): Goal Vaults inside a Goal's detail (a lazy chunk). Link a
@@ -98,7 +99,7 @@ export default function GoalVaultSection({goal}: {goal: {id: string; name: strin
                 <p className="whats-this-row">{p!.parts.includes('delegations') && <><WhatsThis term="staking"/> <WhatsThis term="rewards"/></>}{p!.stzig && <> <WhatsThis term="liquid-staking"/> <WhatsThis term="exchange-rate"/></>}</p>
                 <p className="fine">Read {formatDateTime(now.at)}{now.height ? ` at block ${now.height}` : ''} through ZIGoals’ read-only relay{state.error ? `; the latest read failed (${state.error}), so this reading is kept` : ''}.{stzigRate && rates.stzig.phase === 'ok' ? ` stZIG at ${stzigRate} ZIG each (Valdora’s rate, matching OroSwap’s pool within 2 %, as of ${formatDateTime(rates.stzig.at)}).` : ''} {NOT_RECONSTRUCTED}</p>
                 {goalAzig !== null && <div className="goal-vault-illustration" role="group" aria-label={ILLUSTRATION_LABEL}>
-                  <p><strong>{ILLUSTRATION_LABEL}.</strong> {ill?.reached ? 'This stake already covers the Goal.' : ill?.months ? `If this stake kept earning ${ownRate ? `${(Number(ownRate) * 100).toFixed(2)} % a year (your assumption)` : rates.chain.phase === 'ok' ? `${(Number(rates.chain.rate) * 100).toFixed(2)} % a year (the chain’s rate before a validator’s commission, ZIGoals’ read of ZIGChain${rates.chain.height ? ` at block ${rates.chain.height}` : ''})` : ''}, compounded monthly, it would reach the Goal in about ${ill.months} months. Rates change; this is not a promise.` : rates.chain.phase === 'loading' && !ownRate ? 'Reading the chain’s rate…' : 'No illustration: give a yearly rate to see one.'}</p>
+                  <p><strong>{ILLUSTRATION_LABEL}.</strong> {ill?.reached ? 'This stake already covers the Goal.' : ill?.months ? `If this stake kept earning ${ownRate ? `${(Number(ownRate) * 100).toFixed(2)} % a year (your assumption)` : rates.chain.phase === 'ok' ? `${(Number(rates.chain.rate) * 100).toFixed(2)} % a year (the chain’s rate before a validator’s commission, ZIGoals’ read of ZIGChain${rates.chain.height ? ` at block ${rates.chain.height}` : ''})` : ''}, compounded monthly, it would reach the Goal in about ${ill.months} ${plural(ill.months, 'month')}. Rates change; this is not a promise.` : rates.chain.phase === 'loading' && !ownRate ? 'Reading the chain’s rate…' : 'No illustration: give a yearly rate to see one.'}</p>
                   <label>Your own yearly rate assumption (%) <input inputMode="decimal" value={assumption} onChange={e => setAssumption(e.target.value)} placeholder="e.g. 5" maxLength={6}/></label>
                 </div>}
               </>}

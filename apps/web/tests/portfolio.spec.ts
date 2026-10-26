@@ -80,7 +80,10 @@ test('Showcase shows a fictional portfolio with labelled fixture prices and requ
   await expect(page.getByLabel('Fictional long-term coins totals')).toContainText('Value$8,450.00');
   await expect(page.getByLabel('Fictional long-term coins totals')).toContainText('Cost basisUnknown');
   await expect(page.getByText('Showcase fixture prices, not market data.')).toBeVisible();
-  expect(requests.slice(before).filter(path => path.startsWith('/api/market'))).toEqual([]);
+  // Session AH Part 4 (TR3/B1, M16, deliberate): the Showcase's prices come from the one price service too — Portfolio
+  // asks for prices only (the same request Wealth makes, kept for the tab), never insights or details. With no price
+  // loaded (this offline fixture) its fixture answers, labelled as before.
+  expect(requests.slice(before).filter(path => path.startsWith('/api/market') && path !== '/api/market-quotes')).toEqual([]);
   // Viewing never writes: the fictional portfolio is not stored until something is changed.
   expect(await page.evaluate(key => Object.keys(sessionStorage).filter(k => k.endsWith(key)), KEY)).toEqual([]);
 });

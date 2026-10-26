@@ -7,6 +7,7 @@ import { formatDateTime } from '../lib/visual-format';
 import {refusedStepUp,STEP_UP_REFUSED,type StepUp} from '../lib/vault/step-up';
 import {RecoverySecretCheck,looksLikeSecret} from './recovery-secret-check';
 import './account-devices.css';
+import {plainErrorMessage} from '../lib/plain-error';
 const sessionsSchema=z.object({sessions:z.array(z.object({id:z.uuid(),label:z.string().min(1).max(80),createdAt:z.iso.datetime(),current:z.boolean()}).strict()).max(5000)}).strict();
 type Session=z.infer<typeof sessionsSchema>['sessions'][number];
 /**
@@ -25,7 +26,7 @@ export function AccountDevices({account,onCurrentRevoked,vault=false,stepUp}:{ac
     const provider=answer.providerSignedOut===true?' They were also signed out at the email provider.':answer.providerSignedOut===false?' Signing them out at the email provider was not confirmed; they can no longer read or write your vault.':'';
     setMessage(operation.action==='revoke-others'?`Signed out all other devices: ${answer.revoked} session(s) revoked.${provider} This device stays signed in.`:`${answer.revoked} session(s) revoked.${provider} Refresh to inspect remaining access.`);if(answer.currentRevoked){onCurrentRevoked?.();lockAccount();}else if(operation.action==='revoke-others')void revokeOtherDevicesPush(account);}
    else{setSessions(sessionsSchema.parse(data).sessions);setMessage('Only active sessions are listed. Already downloaded data cannot be erased remotely.');}
-  }catch(e){setMessage(e instanceof Error?e.message:'Session management unavailable.');}finally{setBusy(false);}
+  }catch(e){setMessage(plainErrorMessage(e, 'Session management unavailable.'));}finally{setBusy(false);}
  }
  // Session W Part 18 (W3): "Sign out all other devices" is its own explained action with a confirmation, needing no list
  // first (the same revoke-others request, which also signs them out at the email provider); per-session Revoke is unchanged.

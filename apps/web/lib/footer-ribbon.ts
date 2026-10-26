@@ -115,6 +115,16 @@ export function phoneArc(foot: Pt, dir: Pt, below: number, wealth: Pt, w: number
  */
 /** Health's ring on a computer: its node's radius (86 px across). */
 const RING = 43;
+/** How far the computer's river runs on past Health's ring before it turns back (Session AH Finish): 20 px. It was 4 px,
+ *  which only the narrow stages ever used, and the tablet rail (LA2) made the 768 px window's stage one of them: the river
+ *  then turned back 8 px past Health, where footer-arc-af holds it to more than 20 (wider stages pass by 27 px or more,
+ *  and their river is unchanged). */
+const PAST_HEALTH = 20;
+const NOT_PAST = 'not past Health\'s ring on its right';
+/** The faults that break the river's shape itself (footer-arc-af pins them): not on past Health, above the "Goals · Habits ·
+ *  Health" line, down among the step labels, outside the stage. The others (a bend, a bump, the star's and the tagline's
+ *  distances) are its finer spacing. */
+const SHAPE_FAULT = /^(not past |above |down among |outside )/;
 export const RIVER_RULES = {radius: 30, narrowRadius: 12, bump: 14, star: 120, join: 1, flat: 60, flatRadius: 1000, tagline: 30} as const;
 export type RiverRoom = {star: Pt; ceiling: number; tagline?: {l: number; r: number; t: number; b: number}; floor?: number};
 const unit = (v: Pt): Pt => { const l = Math.hypot(v.x, v.y) || 1; return {x: v.x / l, y: v.y / l}; };
@@ -224,7 +234,7 @@ function makeRiver(last: Pt, dir: Pt, wealth: Pt, w: number, room: RiverRoom): R
   for (const shrink of scale < 1 ? [1, .8, .6] : [1]) for (const drop of [.45, .5, .3, .55, .12, 0, -.1]) for (const grow of [1.3, 1.25, 1.4, 1.5, 1.2, 1.1, 1.6, 1.8]) for (const [k1, k2] of [[.5, .7], [.6, .85], [.4, .6], [.5, 1], [.7, 1], [.6, 1.4], [.9, .6], [1, .8], [1.1, 1]] as const) for (const first of [-1, 1]) for (const amps0 of [AMPS[3], AMPS[1], AMPS[0]]) tries.push({drop, grow, k1, k2, first, amps0, shrink});
   // (Two passes in one: bends of 30 px or more; else — a narrow stage — the roundest variant found, its tightest bend 12 px
   // or more, looking at most 120 variants past the first that passes and 600 in all.)
-  let round: (River & {r: number}) | null = null, since = 0, tried = 0;
+  let round: (River & {r: number}) | null = null, shape: River | null = null, since = 0, tried = 0;
   for (const {drop, grow, k1, k2, first, amps0, shrink} of tries) {
     const amps = amps0.map(a => a * scale * shrink), g3 = grow ** 3;
     const lag = (f: number) => { const x = f / Math.PI, [a0, a1, a2] = amps; return a0! * (x - 1.5) * (x - 2.5) / 2 - a1! * (x - .5) * (x - 2.5) + a2! * (x - .5) * (x - 1.5) / 2; };
@@ -248,13 +258,16 @@ function makeRiver(last: Pt, dir: Pt, wealth: Pt, w: number, room: RiverRoom): R
     const fromWealth = c2Spline(pts, d0, into);
     // (The pieces from Health: each reversed, in reverse order.)
     const segs = fromWealth.map(sg => [sg[3], sg[2], sg[1], sg[0]] as Seg).reverse();
-    const faults = Math.max(...pts.map(q => q.x)) < last.x + RING + 4 ? ['not past Health\'s ring on its right'] : riverFaults(segs, w, room, {radius: RIVER_RULES.narrowRadius, early: true});
-    if (faults.length) { if (!best || faults.length < best.faults.length) best = {segs, goldFrom: 0, bends: [], faults}; if ((round && ++since > 120) || ++tried > 600) break; continue; }
+    const faults = Math.max(...pts.map(q => q.x)) < last.x + RING + PAST_HEALTH ? [NOT_PAST] : riverFaults(segs, w, room, {radius: RIVER_RULES.narrowRadius, early: true});
+    if (faults.length) {
+      if (!faults.some(f => SHAPE_FAULT.test(f))) { const all = riverFaults(segs, w, room, {radius: RIVER_RULES.narrowRadius}); if (!all.some(f => SHAPE_FAULT.test(f)) && (!shape || all.length < shape.faults.length)) shape = {segs, goldFrom: atLen(cut(1)).p.x, bends: [], faults: all}; }
+      if (!best || faults.length < best.faults.length) best = {segs, goldFrom: 0, bends: [], faults}; if ((round && ++since > 120) || ++tried > 600) break; continue;
+    }
     // (Each bend's amplitude as drawn: the farthest the river strays from the baseline within its span.)
     const bends = [0, 1, 2].map(k => Math.max(...Array.from({length: 61}, (_, j) => { const l = cut(k) + (cut(k + 1) - cut(k)) * j / 60, q = C(l), b = atLen(l).p; return Math.hypot(q.x - b.x, q.y - b.y); })));
     if (!(bends[0]! < bends[1]! && bends[1]! < bends[2]!)) faults.push('bends not growing');
     const cand = {segs, goldFrom: atLen(cut(1)).p.x, bends, faults};
-    if (faults.length) { if (!best || faults.length < best.faults.length) best = cand; if ((round && ++since > 120) || ++tried > 600) break; continue; }
+    if (faults.length) { if (!shape || faults.length < shape.faults.length) shape = cand; if (!best || faults.length < best.faults.length) best = cand; if ((round && ++since > 120) || ++tried > 600) break; continue; }
     const r = Math.min(...segs.flatMap(sg => Array.from({length: 25}, (_, j) => { const t = j / 24, u = 1 - t, v = {x: 3 * u * u * (sg[1].x - sg[0].x) + 6 * u * t * (sg[2].x - sg[1].x) + 3 * t * t * (sg[3].x - sg[2].x), y: 3 * u * u * (sg[1].y - sg[0].y) + 6 * u * t * (sg[2].y - sg[1].y) + 3 * t * t * (sg[3].y - sg[2].y)}, a2 = {x: 6 * u * (sg[2].x - 2 * sg[1].x + sg[0].x) + 6 * t * (sg[3].x - 2 * sg[2].x + sg[1].x), y: 6 * u * (sg[2].y - 2 * sg[1].y + sg[0].y) + 6 * t * (sg[3].y - 2 * sg[2].y + sg[1].y)}, k = Math.abs(v.x * a2.y - v.y * a2.x) / Math.hypot(v.x, v.y) ** 3; return k > 1e-9 ? 1 / k : Infinity; })));
     if (r >= RIVER_RULES.radius) return cand;
     if (!round || r > round.r) round = {...cand, r};
@@ -262,6 +275,10 @@ function makeRiver(last: Pt, dir: Pt, wealth: Pt, w: number, room: RiverRoom): R
     if (++since > 120 || ++tried > 600) break;
   }
   if (round) return {segs: round.segs, goldFrom: round.goldFrom, bends: round.bends, faults: round.faults};
+  // (Session AH Finish: a narrow stage where no variant keeps every rule — the tablet rail's 768 px window, a computer window
+  // just over 900 px — keeps the river's shape first: on past Health, below the line, inside the stage, its finer spacing as
+  // close as it comes. Before, the fallback could turn back at Health's ring.)
+  if (best!.faults.includes(NOT_PAST) && shape) return shape;
   return best!;
 }
 

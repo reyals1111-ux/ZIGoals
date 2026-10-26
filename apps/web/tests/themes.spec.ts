@@ -23,8 +23,9 @@ test('Nebula is the default: no theme attribute, no theme sheet, the middle choi
   const group = page.locator('#appearance').getByRole('radiogroup', {name: 'Theme'});
   await expect(group.getByRole('radio')).toHaveText([/Light/, /Nebula/, /Dark/]);
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('aria-checked', 'true');
-  await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('title', /Customize — coming later/);
-  await expect(page.locator('#appearance')).toContainText('Customize — coming later');
+  await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('title', 'Nebula'); // Session AH (SE9)
+  await expect(page.locator('#appearance')).toContainText('Nebula is the look you know. Light and Dark are the same app by day and by night.');
+  await expect(page.locator('#appearance')).not.toContainText('coming later');
   // Session AE: final themes. Each is named plainly, and nothing in the bar, its tips or its note says "preview".
   for (const name of ['Light theme', 'Dark theme']) await expect(group.getByRole('radio', {name, exact: true})).toHaveCount(1);
   await expect(page.locator('#appearance .theme-switch-wrap')).not.toContainText(/preview/i);

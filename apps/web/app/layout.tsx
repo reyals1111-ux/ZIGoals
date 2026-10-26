@@ -1,3 +1,4 @@
+import { localDate } from "../lib/local-date";
 import { trustedOrigin } from "../lib/trusted-origin";
 import { ThemeBootScript } from "../components/theme-boot-script";
 import { connection } from "next/server";
@@ -67,7 +68,10 @@ export default async function RootLayout({
   // attributes only).
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="en" suppressHydrationWarning>
+    // Session AH (AF6): the server's own calendar day, so the first client render of `useLocalToday` matches this HTML
+    // (between 00:00 and 02:00 Brussels the browser's day is one ahead of a UTC server's); the hook moves to the
+    // browser's day right after hydration.
+    <html lang="en" suppressHydrationWarning data-server-day={localDate()}>
       <head>
         <ThemeBootScript nonce={nonce} />
       </head>

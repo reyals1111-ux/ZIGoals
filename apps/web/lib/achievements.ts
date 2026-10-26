@@ -12,10 +12,12 @@ export type Achievement = {key: string; name: string; finished: string | null; d
 const dayOf = (iso: string) => iso.slice(0, 10);
 const span = (from: string, to: string) => Math.max(0, Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000));
 
-export function achievementsOf(goals: readonly PrivateGoal[], averages: readonly AverageGoal[], extras: GoalExtras): Achievement[] {
+/** Session AH (TR6): `finished` says whether a tracked goal is finished now (the Goals page passes its derived status, so
+ * the Hall and "Finished" agree); without it, the stored status. */
+export function achievementsOf(goals: readonly PrivateGoal[], averages: readonly AverageGoal[], extras: GoalExtras, isFinished: (g: PrivateGoal) => boolean = g => g.status === 'completed'): Achievement[] {
   const out: Achievement[] = [];
   for (const g of goals) {
-    if (g.status !== 'completed') continue;
+    if (g.status === 'closed' || !isFinished(g)) continue;
     const done = [...(g.lifecycle ?? [])].reverse().find(l => l.kind === 'completed');
     const key = `private:${g.id}`, e = extras.goals[key], finished = done ? dayOf(done.at) : null, started = dayOf(g.createdAt);
     out.push({key, name: g.name, finished, days: finished ? span(started, finished) : null, area: e?.area, areaLabel: areaLabel(extras, e?.area), story: e?.story, started});

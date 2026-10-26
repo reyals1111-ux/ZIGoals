@@ -22,6 +22,11 @@ async function openTimers(page: Page) {
 const fasts = async (page: Page) => (await stored<{sessions: {endedAt: string | null}[]}>(page, FASTING_KEY))?.sessions ?? (await stored<Health>(page, HEALTH_STORAGE_KEY))?.fasting?.sessions ?? [];
 
 test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next ends it on its page', async ({page}) => {
+  // Session AH (DS2): a sleep ended within ten minutes saves nothing (its own toast offers Undo), so the night here runs
+  // eleven minutes on the page's clock; time otherwise flows as before. Session AH: it starts at 21:00 on this machine's
+  // clock, since a short sleep that starts between 09:00 and 20:00 is a nap (the run had depended on the time of day).
+  const evening = new Date(); evening.setHours(21, 0, 0, 0);
+  await page.clock.install({time: evening});
   await seedChecklist(page);
   await page.goto('/app/checklist');
   await openTimers(page);
@@ -31,7 +36,7 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await timer(page, 'Sleep').click();
   await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.sleep?.nights.map(n => n.end)).toEqual([null]);
-  await page.waitForTimeout(1100);
+  await page.clock.fastForward('11:00');
   await timer(page, 'Sleep').click();
   await expect(timer(page, 'Sleep')).toHaveAttribute('aria-pressed', 'false');
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.sleep?.nights.every(n => typeof n.end === 'string')).toBe(true);
@@ -44,12 +49,16 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await timer(page, 'Meditate').click();
   await expect.poll(async () => (await stored<Health>(page, HEALTH_STORAGE_KEY))?.meditation?.sessions.length).toBe(1);
   await expect.poll(async () => (await stored<{run: unknown}>(page, MEDITATION_RUN_KEY))?.run).toBeNull();
-  // Fast.
+  // Fast. Session AH (TO5, N-095): starting asks once, in place.
   await timer(page, 'Fast').click();
+  expect((await fasts(page)).length).toBe(0);
+  await page.getByRole('alertdialog', {name: 'Start a fast?'}).getByRole('button', {name: 'Start', exact: true}).click();
   await expect.poll(async () => (await fasts(page)).map(f => f.endedAt)).toEqual([null]);
   await expect(timer(page, 'Fast')).toHaveAttribute('aria-pressed', 'true');
+  // Session AH (HE7): a fast stopped within ten minutes saves nothing, so this one runs eleven minutes on the page clock.
+  await page.clock.fastForward('11:00');
   await timer(page, 'Fast').click();
-  await expect.poll(async () => (await fasts(page)).every(f => typeof f.endedAt === 'string')).toBe(true);
+  await expect.poll(async () => (await fasts(page)).map(f => typeof f.endedAt)).toEqual(['string']);
   // The running state was on the buttons, and is gone now.
   for (const name of ['Sleep', 'Meditate', 'Fast']) await expect(timer(page, name)).toHaveAttribute('aria-pressed', 'false');
 });
@@ -64,6 +73,7 @@ test('Focus shows with a timed habit on the path: its own timer starts, then the
   await expect(focus).toContainText('Focus');
   await expect(focus).toHaveAccessibleName(new RegExp(`^Focus: ${TITLE.piano}\\.`));
   await focus.click();
+  await page.getByRole('alertdialog', {name: 'Start focus?'}).getByRole('button', {name: 'Start', exact: true}).click(); // Session AH (TO5)
   await expect.poll(async () => (await stored<{habits: {id: string; timer?: {state: string}}[]}>(page, HABITS_KEY))?.habits.find(h => h.id === ID.piano)?.timer?.state).toBe('running');
   await expect(focus).toHaveAttribute('aria-pressed', 'true');
   await page.waitForTimeout(1200);

@@ -4,7 +4,8 @@
 import {useEffect, useRef, useState} from 'react';
 import {exitShowcase, resetShowcase} from '../../lib/showcase';
 import {SHOWCASE_CHIP, SHOWCASE_SHEET} from '../../lib/showcase-copy';
-import {useShowcase} from '../showcase-controls';
+import {RESET_SHOWCASE_CONFIRM, useShowcase} from '../showcase-controls';
+import {ConfirmInline} from '../ui/confirm-inline';
 import './shell-ab.css';
 
 /**
@@ -16,7 +17,7 @@ import './shell-ab.css';
  * "Showcase"), the sheet SHOWCASE_SHEET.
  */
 export function ShowcaseChip() {
-  const active = useShowcase(), [open, setOpen] = useState(false), [busy, setBusy] = useState(false), root = useRef<HTMLElement>(null);
+  const active = useShowcase(), [open, setOpen] = useState(false), [busy, setBusy] = useState(false), [asking, setAsking] = useState(false), root = useRef<HTMLElement>(null);
   useEffect(() => { if (!open) return; const close = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); }; document.addEventListener('pointerdown', close); return () => document.removeEventListener('pointerdown', close); }, [open]);
   if (!active) return null;
   return <aside ref={root} className="showcase-chip" aria-label="Showcase data" onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); } }}>
@@ -24,9 +25,12 @@ export function ShowcaseChip() {
     {open && <div className="showcase-chip-panel" role="dialog" aria-label="About the Showcase">
       <p><strong>Showcase data</strong> {SHOWCASE_SHEET}</p>
       <div className="showcase-chip-actions">
-        <button type="button" className="secondary" disabled={busy} onClick={() => { setBusy(true); resetShowcase().then(() => window.location.assign('/app'), () => setBusy(false)); }}>Load again</button>
+        <button type="button" className="secondary" disabled={busy} aria-expanded={asking} onClick={() => setAsking(true)}>Load again</button>
         <button type="button" className="primary" onClick={() => { exitShowcase(); window.location.assign('/app'); }}>Exit Showcase</button>
       </div>
+      {/* Session AH Part 3 (DS4): "Load again" resets this tab's Showcase, so it asks first, as Settings does. */}
+      {asking && <ConfirmInline title={RESET_SHOWCASE_CONFIRM.title} confirmLabel={RESET_SHOWCASE_CONFIRM.confirm} cancelLabel={RESET_SHOWCASE_CONFIRM.cancel} busy={busy} onCancel={() => setAsking(false)}
+        onConfirm={() => { setBusy(true); resetShowcase().then(() => window.location.assign('/app'), () => setBusy(false)); }}><p>{RESET_SHOWCASE_CONFIRM.body}</p></ConfirmInline>}
     </div>}
   </aside>;
 }

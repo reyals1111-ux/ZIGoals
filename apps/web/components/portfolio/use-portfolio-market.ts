@@ -24,15 +24,19 @@ const NONE: Sizes = {marketCap: null, volume24h: null, circulatingSupply: null, 
  */
 export function usePortfolioMarket(coins: readonly PortfolioCoin[], currency: PortfolioCurrency, showcase: boolean, enabled = true) {
   const live = enabled && !showcase && coins.length > 0, refs = useMemo(() => live ? coins.map(c => c.ref) : [], [live, coins]);
-  const requests = useMemo(() => refs.map(marketRef => ({marketRef, currency})), [refs, currency]);
+  // Session AH Part 4 (TR3/B1, BUG-006, M16): the Showcase's prices come from the one price service too (the prices the
+  // Showcase loaded, kept for the tab), so Portfolio, Wealth and Today show the same BTC; its fixture answers only
+  // when no price could be loaded. Its 24h and 7-day lines stay the labelled fixture.
+  const quoted = useMemo(() => enabled && coins.length > 0 ? coins.map(c => c.ref) : [], [enabled, coins]);
+  const requests = useMemo(() => quoted.map(marketRef => ({marketRef, currency})), [quoted, currency]);
   const market = useMarketQuotes(requests.length ? requests : false), insights = useMarketInsights(refs, currency), details = useMarketDetails(refs, currency);
   // The Showcase's fixture line is drawn to the moment the page opened; live data ages by the quotes' own clock.
   const [opened] = useState(() => Date.now()), now = market.now || opened;
   function of(coin: PortfolioCoin): CoinMarket {
     const key = coinKey(coin.ref);
     if (showcase) {
-      const fixture = currency === 'USD' ? showcaseMarket(key, opened) : undefined, value = currency === 'USD' ? SHOWCASE_PRICES[key] : undefined;
-      return {price: value ? {value, source: 'Showcase fixture price', stale: false} : undefined, change1h: fixture?.change1h ?? null, change24h: fixture?.change24h ?? null, change7d: fixture?.change7d ?? null, sparkline: fixture?.sparkline ?? null, logoUrl: null, sizes: fixture ? {marketCap: fixture.marketCap, volume24h: fixture.volume24h, circulatingSupply: fixture.circulatingSupply, totalSupply: fixture.totalSupply, maxSupply: fixture.maxSupply} : null, observedAt: null, details: 'showcase'};
+      const fixture = currency === 'USD' ? showcaseMarket(key, opened) : undefined, value = currency === 'USD' ? SHOWCASE_PRICES[key] : undefined, shared = referenceQuote(coin.ref, currency, market.quotes, now);
+      return {price: shared ? {value: formatUnits(shared.price, shared.priceDecimals), source: `Showcase price · ${shared.source}`, at: shared.observedAt ?? shared.fetchedAt, stale: false} : value ? {value, source: 'Showcase example price (no market price loaded)', stale: false} : undefined, change1h: fixture?.change1h ?? null, change24h: fixture?.change24h ?? null, change7d: fixture?.change7d ?? null, sparkline: fixture?.sparkline ?? null, logoUrl: null, sizes: fixture ? {marketCap: fixture.marketCap, volume24h: fixture.volume24h, circulatingSupply: fixture.circulatingSupply, totalSupply: fixture.totalSupply, maxSupply: fixture.maxSupply} : null, observedAt: null, details: 'showcase'};
     }
     const quote = referenceQuote(coin.ref, currency, market.quotes, now), requestKey = marketRequestKey({marketRef: coin.ref, currency});
     const insight = insights.results[requestKey]?.insight ?? null, result = details.results[requestKey], detail = result?.detail ?? null;

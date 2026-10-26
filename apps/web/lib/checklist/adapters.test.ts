@@ -58,7 +58,8 @@ describe('a tick writes the real record through its page’s own function, and U
     expect(s1.days.today?.ticks[0]?.record).toEqual({kind: 'water', id: water[0]!.id});
     expect(plan.message).toBe('500 ml of water logged.');
     expect(dailyData(run(s1, plan.undo).health).water).toEqual([]);
-    expect(() => planTick(dot(s0, 'Water'), ctx({value: 9000}), 'value')).toThrow('from 50 to 3000 ml');
+    // Assertion changed (Session AH VA3, one water limit; equal strength): the Checklist's range is the app's 1–5,000 mL.
+    expect(() => planTick(dot(s0, 'Water'), ctx({value: 9000}), 'value')).toThrow('from 1 to 5000 ml');
   });
   test('a supplement (a familiar food) logs one serving to the meal of the hour; Undo removes it', () => {
     const s0 = stores(), plan = planTick(dot(s0, 'Vitamin D'), ctx()), s1 = run(s0, plan.writes);
@@ -105,6 +106,23 @@ describe('a tick writes the real record through its page’s own function, and U
     expect(dot(s2, 'Sleep').state).toBe('done');
     const reopened = run(s2, end.undo).sleep.nights;
     expect(reopened.map(n => [n.start, n.end])).toEqual([['2026-10-17T22:10:00.000Z', null]]);
+  });
+  // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments later saves nothing, a short daytime sleep is a
+  // nap, and the words follow the local time of day.
+  test('sleep: stopped within ten minutes nothing is saved (Undo resumes it); a daytime sleep is a nap; the greeting follows the hour', () => {
+    const at = (iso: string) => new Date(iso);
+    const s0 = stores(), s1 = run(s0, sleepPlan(dot(s0, 'Sleep'), ctx({now: at('2026-10-18T13:51:00.000Z')})).writes);
+    const quick = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T13:52:00.000Z'), snapshot: {sleep: s1.sleep}})), s2 = run(s1, quick.writes);
+    expect(s2.sleep.nights).toEqual([]);
+    expect(quick.message).toBe('Stopped after less than ten minutes, so nothing was saved.');
+    expect(run(s2, quick.undo).sleep.nights.map(n => [n.start, n.end])).toEqual([['2026-10-18T13:51:00.000Z', null]]);
+    const nap = planTick(dot(s1, 'Sleep'), ctx({now: at('2026-10-18T14:31:00.000Z'), snapshot: {sleep: s1.sleep}})), s3 = run(s1, nap.writes);
+    expect(s3.sleep.nights.map(n => [n.kind, n.end])).toEqual([['nap', '2026-10-18T14:31:00.000Z']]);
+    expect(nap.message).toBe('Good afternoon. Your nap is saved on Health.');
+    const n0 = run(s0, sleepPlan(dot(s0, 'Sleep'), ctx({now: at('2026-10-17T22:10:00.000Z')})).writes);
+    const morning = planTick(dot(n0, 'Sleep'), ctx({now: at('2026-10-18T06:40:00.000Z'), snapshot: {sleep: n0.sleep}}));
+    expect(morning.message).toBe('Good morning. Your night is saved on Health.');
+    expect(run(n0, morning.writes).sleep.nights.map(n => n.kind)).toEqual(['night']);
   });
   test('fasting: start with the target, stop as Health does; Undo of the stop restarts it from its start', () => {
     const s0 = stores(), start = fastPlan(dot(s0, 'Fast'), ctx({now: new Date('2026-10-17T20:00:00.000Z')})), s1 = run(s0, start.writes);
@@ -157,3 +175,13 @@ test('no adapter reaches a wallet, a network or another lane’s module', () => 
     expect(text, file).not.toMatch(/\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon|lib\/wallet|\.\.\/wallet|\/earn\/|cosmjs/);
   }
 });
+
+// Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no 0.0 h fast); Undo resumes it.
+test('a fast stopped within ten minutes is not saved, and Undo resumes it', () => {
+  const s0 = stores(), start = fastPlan(dot(s0, 'Fast'), ctx({now: new Date('2026-10-17T20:00:00.000Z')})), s1 = run(s0, start.writes);
+  const stop = fastPlan(null, ctx({now: new Date('2026-10-17T20:05:00.000Z'), snapshot: {fasting: s1.fasting}}));
+  expect(stop.message).toBe('Stopped after less than ten minutes, so nothing was saved.');
+  const s2 = run(s1, stop.writes); expect(s2.fasting.sessions).toEqual([]);
+  const s3 = run(s2, stop.undo); expect(s3.fasting.sessions.map(f => f.endedAt)).toEqual([null]);
+});
+

@@ -1,4 +1,6 @@
 'use client';
+import {removeWithUndo} from '../ui/remove-with-undo';
+import {showToast} from '../ui/undo-toast';
 import {Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
 import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
 import {CHECKLIST_COLOUR_IDS, nebulaColour} from '../../lib/path/orbit-colours';
@@ -32,6 +34,16 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
   const [status, setStatus] = useState(''), [custom, setCustom] = useState({label: '', colour: 'pink', section: addTo && sections.some(s => s.id === addTo) ? addTo : 'anytime'}), [orbitName, setOrbitName] = useState(''), [openRow, setOpenRow] = useState<string | null>(null);
   const dotById = useMemo(() => new Map(state.dots.map(d => [d.id, d])), [state.dots]);
   const write = (change: Parameters<typeof record.update>[0], words: string) => { try { record.update(change); setStatus(words); return true; } catch (e) { setStatus(message(e)); return false; } };
+  // Session AH Part 3 (DS5): taking an item off the path gives a labelled Undo that puts it back where it was (its
+  // records stay on its own page either way). Removing an orbit moves its items, so it is undone as one step while
+  // nothing else changed since; otherwise the Undo says so.
+  const removeItemWithUndo = (id: string, words: string) => { removeWithUndo(record.update, r => removeItem(r, id), words, 'Back on your path.').then(() => setStatus(words), e => setStatus(message(e))); };
+  const removeSectionWithUndo = (id: string, words: string) => {
+    let before: Parameters<Parameters<typeof record.update>[0]>[0] | undefined, after: typeof before;
+    try { record.update(r => { const next = removeSection(r, id); before = r; after = next; return next; }); setStatus(words); }
+    catch (e) { setStatus(message(e)); return; }
+    showToast({message: words, undone: 'The orbit is back.', undo: () => { let unchanged = true; record.update(r => { if (JSON.stringify(r) !== JSON.stringify(after)) { unchanged = false; return r; } return before!; }); return unchanged ? undefined : {undone: 'Not undone: the path changed since. Add the orbit again from Edit path.'}; }});
+  };
   const add = (ref: FavouriteRef, label: string, extra: {section?: string; defaultValue?: number; unit?: string} = {}) => write(r => addFavourite(r, ref, {id: newChecklistId(), at: new Date(), label, ...extra}), `${label} added to your path.`);
 
   // Drag by the handle (pointer), with the keyboard and tap alternative beside it.
@@ -101,7 +113,7 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
             <button type="button" className="quiet" aria-label={`Move ${label} up`} disabled={mate === 0} onClick={() => write(r => moveWithinSection(r, item.id, -1), `${label} moved up in ${orbitLabel}.`)}>↑</button>
             <button type="button" className="quiet" aria-label={`Move ${label} down`} disabled={mate === mates.length - 1} onClick={() => write(r => moveWithinSection(r, item.id, 1), `${label} moved down in ${orbitLabel}.`)}>↓</button>
             {item.kind === 'custom' && <button type="button" className="quiet" onClick={() => void makeHabit(item.id, label, section)}>Make this a habit</button>}
-            <button type="button" className="quiet" aria-label={`Take ${label} off your path`} onClick={() => write(r => removeItem(r, item.id), `${label} is off your path. Its records stay on its page.`)}>Remove</button>
+            <button type="button" className="quiet" aria-label={`Take ${label} off your path`} onClick={() => removeItemWithUndo(item.id, `${label} is off your path. Its records stay on its page.`)}>Remove</button>
           </div>
         </div>}
       </li>
@@ -128,7 +140,7 @@ export function EditPath({state, onClose, addTo}: {state: ChecklistState; onClos
     <ul className="checklist-edit-orbits">{sections.map(s => <li key={s.id} style={{'--dot': PATH_COLOURS[nebulaColour(pathColour(s.colour))].token} as CSSProperties}>
       <label className="field"><span className="sr-only">Name of {s.label}</span><input defaultValue={s.label} maxLength={30} onBlur={e => { if (e.target.value.trim() && e.target.value.trim() !== s.label) write(r => updateSection(r, s.id, {label: e.target.value}), `Renamed to ${e.target.value.trim()}.`); }}/></label>
       <fieldset className="checklist-edit-colours"><legend className="sr-only">Colour of {s.label}</legend><div className="checklist-swatches">{CHECKLIST_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name={`orbit-colour-${s.id}`} checked={nebulaColour(pathColour(s.colour)) === id} onChange={() => write(r => updateSection(r, s.id, {colour: id}), `${s.label} is ${PATH_COLOURS[id].label.toLowerCase()} now.`)}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
-      {sections.length > 1 && <button type="button" className="quiet" aria-label={`Remove the ${s.label} orbit`} onClick={() => write(r => removeSection(r, s.id), `${s.label} removed; its items moved to ${sections.filter(x => x.id !== s.id).at(-1)?.label}.`)}>Remove</button>}
+      {sections.length > 1 && <button type="button" className="quiet" aria-label={`Remove the ${s.label} orbit`} onClick={() => removeSectionWithUndo(s.id, `${s.label} removed; its items moved to ${sections.filter(x => x.id !== s.id).at(-1)?.label}.`)}>Remove</button>}
     </li>)}</ul>
     <form className="checklist-edit-custom" onSubmit={submitOrbit}><label className="field">New orbit<input value={orbitName} maxLength={30} required placeholder="Gym" onChange={e => setOrbitName(e.target.value)}/></label><button type="submit" className="secondary">Add orbit</button></form>
   </section>;

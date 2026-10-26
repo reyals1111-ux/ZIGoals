@@ -22,7 +22,7 @@ test('the Showcase review: highlights, wins, streaks, health beside the week bef
   const trends = page.getByRole('region', {name: 'Trends'});
   await expect(trends.getByRole('rowheader', {name: /Sleep a night/})).toBeVisible();
   await expect(trends).toContainText('never counted as zero');
-  const money = page.getByRole('region', {name: 'Net worth, by currency'});
+  const money = page.getByRole('region', {name: 'Tracked wealth, by currency'}); // Session AH (TR13): the chapter shows what Wealth tracks; net worth (with accounts and debts) is Wealth's own card
   await expect(money).toContainText('never converted');
   const insights = page.getByRole('region', {name: 'On the same days'});
   await expect(insights).toContainText('not a cause');

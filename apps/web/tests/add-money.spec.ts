@@ -130,7 +130,7 @@ test('entry points: Wealth\'s holdings header and a malformed return address', a
   await ready(page, '/app/wealth');
   await expect(page.getByRole('region', {name: 'What you have', exact: true}).getByRole('link', {name: 'Add money →'})).toHaveAttribute('href', '/app/wealth/add-money');
   // Ledger P1.3 (ADR-028 H126): Wealth's own door to Earn sits beside Add money, on every device.
-  await expect(page.getByRole('region', {name: 'What you have', exact: true}).getByRole('link', {name: 'Put it to work on Earn →'})).toHaveAttribute('href', '/app/earn');
+  await expect(page.getByRole('region', {name: 'What you have', exact: true}).getByRole('link', {name: 'Ways to earn on ZIGChain →'})).toHaveAttribute('href', '/app/earn');
   await ready(page, '/app/wealth/add-money/back?provider=moonpay&asset=usdc&network=base&wallet=w-evm');
   await expect(steps(page).getByRole('heading', {name: 'Nothing to watch here'})).toBeVisible();
 });

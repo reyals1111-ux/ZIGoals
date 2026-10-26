@@ -1,4 +1,5 @@
 'use client';
+import {useRememberedChoice} from '../ui/use-remembered-choice';
 import {useEffect, useId, useMemo, useState} from 'react';
 import {createMarketHistoryCache, fetchPublicMarketHistory, formatHistoryValue, type MarketHistoryResult} from '../../lib/market-history';
 import {formatDate, formatDateTime, formatMoney, formatSignedMoney} from '../../lib/visual-format';
@@ -22,7 +23,7 @@ const W = 760, H = 220, TOP = 16, BOTTOM = 196, LEFT = 8, RIGHT = 752;
  * line. A moment with a held coin but no observed price is a gap. The scale fits the values; it does not start at 0.
  */
 export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio; showcase: boolean}) {
-  const id = useId(), [range, setRange] = useState<ValueRange>('30d'), [now, setNow] = useState(() => Date.now()), [inspect, setInspect] = useState<number | null>(null);
+  const id = useId(), [range, setRange] = useRememberedChoice<ValueRange>('portfolio-value-range', '30d', VALUE_RANGES), [now, setNow] = useState(() => Date.now()), [inspect, setInspect] = useState<number | null>(null);
   const span = useMemo(() => rangeWindow(range, portfolio.transactions, now), [range, portfolio.transactions, now]);
   const coins = useMemo(() => coinsInWindow(portfolio, span.start), [portfolio, span.start]);
   const refs = useMemo(() => new Map(portfolio.coins.map(c => [coinKey(c.ref), c.ref])), [portfolio.coins]);

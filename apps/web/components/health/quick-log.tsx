@@ -5,6 +5,7 @@ import {copyMealFromDayBefore, dayBefore, logAgain, pinnedItems, repeatDayBefore
 import {dailyData} from '../../lib/health-daily';
 import {plural} from '../../lib/plural';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Health quick logging on the diary (Session W Part 9): one tap repeats the day before's meal (or the whole day before)
@@ -58,7 +59,7 @@ export function MealQuick({data, date, today, meal, perform}: {data: HealthData;
 export function WaterButtonsEditor({data, perform}: {data: HealthData; perform: Perform}) {
   const unit = dailyData(data).preferences.waterUnit, [open, setOpen] = useState(false), [text, setText] = useState(() => waterSizesText(data)), [error, setError] = useState('');
   if (!open) return <button type="button" className="quiet health-water-change" onClick={() => { setText(waterSizesText(data)); setError(''); setOpen(true); }}>Change these buttons</button>;
-  return <form className="health-form health-water-buttons" aria-label="Your water buttons" onSubmit={e => { e.preventDefault(); try { saveWaterSizes(data, text, now()); setError(''); void perform(latest => saveWaterSizes(latest, text, now()), 'Water buttons saved.', () => setOpen(false)); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the sizes.'); } }}>
+  return <form className="health-form health-water-buttons" aria-label="Your water buttons" onSubmit={e => { e.preventDefault(); try { saveWaterSizes(data, text, now()); setError(''); void perform(latest => saveWaterSizes(latest, text, now()), 'Water buttons saved.', () => setOpen(false)); } catch (cause) { setError(plainErrorMessage(cause, 'Check the sizes.')); } }}>
     <label className="field"><span>Your water buttons ({unit === 'ml' ? 'mL' : 'US fl oz'}, up to six, separated by commas)</span><input type="text" inputMode="decimal" autoComplete="off" required maxLength={80} value={text} onChange={e => setText(e.target.value)} /></label>
     <div className="actions"><button type="submit" className="primary">Save buttons</button>{quickIn(data) && <button type="button" className="quiet" onClick={() => void perform(latest => resetWaterSizes(latest, now()), 'Water buttons back to the usual sizes.', () => setOpen(false))}>Back to {unit === 'ml' ? '250 and 500 mL' : '8 and 16 US fl oz'}</button>}<button type="button" className="quiet" onClick={() => setOpen(false)}>Cancel</button></div>
     {error && <p role="alert">{error}</p>}

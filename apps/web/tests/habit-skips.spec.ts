@@ -37,7 +37,8 @@ test('plan a skip for tomorrow, see it in the list and the calendar, then remove
   expect(planned.note).toMatch(/^Planned skip/); expect(planned.note).toContain('Trip');
   await expect(card.getByRole('button', {name: /^Sep 16, 2026: Planned skip/})).toBeVisible();
   await card.getByRole('button', {name: 'Remove the planned skip on Sep 16, 2026', exact: true}).click();
-  await expect(card.getByRole('status')).toContainText('Planned skip on Wed, Sep 16, 2026 removed.');
+  // Session AH (DS5): a removal is said once, in the toast with its Undo.
+  await expect(page.locator('.aa-toast')).toContainText('Planned skip on Wed, Sep 16, 2026 removed.');
   expect((await stored(page)).habits[0]!.entries.map(e => e.date)).toEqual(['2026-09-15']);
 });
 

@@ -14,7 +14,16 @@ export const marketQuoteSchema=z.object({base:assetIdentitySchema,currency:z.str
 export type MarketQuote=z.infer<typeof marketQuoteSchema>;
 export type ValuationEvidence={state:'fresh'|'stale'|'manual'|'missing';quote?:MarketQuote;observedAt?:string;source?:string};
 export const QUOTE_FRESH_MS=15*60*1000;
-export function quoteIsStale(quote:MarketQuote,now=Date.now()):boolean {const at=Date.parse(quote.observedAt??quote.fetchedAt??'');return !Number.isFinite(now)||!Number.isFinite(at)||at>now+60000||now-at>QUOTE_FRESH_MS;}
+/**
+ * Session AH Part 4 (TR2/TR3, ADR-033 M16): the Showcase keeps the prices it first loaded, in its own tab, for every page,
+ * and labels them as the Showcase's ("Showcase price", with their own time) instead of "Current". While it is on, a held
+ * quote is never stale, so a fictional Goal is not sent to review because the Showcase stayed open. Set only by the
+ * browser's quotes hook in the Showcase; the server never sets it.
+ */
+let frozenPrices=false;
+export function setFrozenPrices(on:boolean){frozenPrices=on;}
+export const pricesFrozen=()=>frozenPrices;
+export function quoteIsStale(quote:MarketQuote,now=Date.now()):boolean {if(frozenPrices)return false;const at=Date.parse(quote.observedAt??quote.fetchedAt??'');return !Number.isFinite(now)||!Number.isFinite(at)||at>now+60000||now-at>QUOTE_FRESH_MS;}
 export function sameAsset(a:z.infer<typeof assetIdentitySchema>,b:z.infer<typeof assetIdentitySchema>):boolean{return a.network===b.network&&a.denom===b.denom&&a.decimals===b.decimals;}
 export function quoteValue(quantity:string,quantityDecimals:number,quote:MarketQuote,targetDecimals:number):string {
  if(!/^(0|[1-9]\d{0,77})$/.test(quantity)||!Number.isInteger(quantityDecimals)||quantityDecimals<0||quantityDecimals>18||!Number.isInteger(targetDecimals)||targetDecimals<0||targetDecimals>18)throw new ProviderValidationError('Invalid valuation units.');

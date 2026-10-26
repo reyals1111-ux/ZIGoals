@@ -8,7 +8,13 @@ import {addLocalDays} from '../local-date';
  * the balance is derived, never stored. Never automatic: the person chooses the day.
  */
 export const FREEZE_NOTE = 'Streak freeze';
-export function freezesEarned(data: HabitData, today: string): number { return data.habits.reduce((n, h) => n + Math.floor(habitStats(h, today).bestStreak / 7), 0); }
+/**
+ * Session AH (HA7, M-024): earned from streaks reached on their own. A day a freeze repaired counts as missed here, so
+ * using a freeze lowers the balance by one, never rejoins two streaks into a longer one that would earn it back.
+ */
+export function freezesEarned(data: HabitData, today: string): number {
+  return data.habits.reduce((n, h) => n + Math.floor(habitStats({...h, entries: h.entries.filter(e => !(e.disposition === 'skipped' && e.note === FREEZE_NOTE))}, today).bestStreak / 7), 0);
+}
 export function freezesUsed(data: HabitData): number { return data.habits.reduce((n, h) => n + h.entries.filter(e => e.disposition === 'skipped' && e.note === FREEZE_NOTE).length, 0); }
 /** At most five in hand: enough to mend a week, never a stockpile that makes a miss meaningless. */
 export const MAX_FREEZES = 5;

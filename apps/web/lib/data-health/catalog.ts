@@ -25,6 +25,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   zigiSuggestions: ['ZIGi\'s suggestions', 'ZIGi'], zigiVoice: ['ZIGi\'s voice choices', 'ZIGi'], zigiCards: ['ZIGi\'s cards', 'ZIGi'],
   goalExtras: ['Goal plans, life areas, visions and sub-goals', 'Goals'], averageGoals: ['Average goals', 'Goals'],
   calculator: ['Calculator scenarios', 'Wealth'], searchRecent: ['Recent searches', 'Search'], lifeReview: ['Life review focus', 'Life review'],
+  workouts: ['Workouts', 'Health'],
   todayCards: ['Today\'s cards kept on this device', 'Today'],
   // Session AA-Local (ADR-022 B1, merged second): the eleven device-only keys of lib/aa-device-keys.ts.
   habitExtras: ['Habit extras: areas, quit costs, bells, folds', 'Habits'], routineRun: ['A routine in progress', 'Habits'], game: ['The game layer: XP, quests, badges, freezes', 'Journey'],

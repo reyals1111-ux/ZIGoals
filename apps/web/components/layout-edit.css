@@ -16,6 +16,8 @@
 :root[data-layout-editing] [data-layout-item]:focus-within { outline-color:#9fe6ff; }
 /* A movable section whose own children are movable cards gets a lane for its controls, clear of the first row's. */
 :root[data-layout-editing] [data-layout-item]:has(> [data-layout-item]) { padding-top:66px; }
+/* Session AH (TO7, M-045): every card gets the same lane while arranging, so the controls never sit on its title. */
+:root[data-layout-editing] [data-layout-item]:not(:has(> [data-layout-item])) { padding-top:60px; }
 /* Controls are portalled into the card itself, so `:root` keeps a page's own child rules (e.g. `.x > div`, `.x span`) off them.
    Centred by auto margins so a narrow card wraps them onto two rows instead of spilling over its neighbour. */
 :root .layout-controls { position:absolute;z-index:6;top:8px;left:0;right:0;width:max-content;max-width:calc(100% - 4px);margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;padding:4px;border-radius:27px;border:1px solid #a9c9ff55;background:linear-gradient(140deg,#0f1c33,#1a1633);box-shadow:0 10px 30px -12px #4f7bffaa,0 0 0 4px #060b19b3,inset 0 1px 0 #ffffff1c; }

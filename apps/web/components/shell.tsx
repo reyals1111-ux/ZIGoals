@@ -1,6 +1,7 @@
 "use client";
 import "./platform/run92-product.css";
 import "./navigation.css";
+import "./shell/tablet-rail.css";
 import { FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
@@ -21,6 +22,7 @@ import { LogoMark, Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
 import {useShowcase} from "./showcase-controls";
 import { ShowcaseChip } from "./shell/showcase-chip";
+import { ShowcaseUndoOffer } from "./shell/showcase-undo";
 import { AlphaNotice } from "./shell/alpha-notice";
 import { pillarOfHref } from "../lib/pillar-route";
 import "./pillar-hero.css";
@@ -44,6 +46,7 @@ import { LAYOUT_LOCK_SLOT, PAGE_TOOLS_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
+import { LengthCounterHost } from "./ui/length-counter";
 import { SearchButton, SearchHost } from "./search/search-trigger";
 import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
@@ -277,7 +280,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
           </section>
         )}
         <OfflineNotice />
-        <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
+        <SearchHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>

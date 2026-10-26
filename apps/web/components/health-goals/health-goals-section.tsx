@@ -1,4 +1,5 @@
 'use client';
+import {showToast} from '../ui/undo-toast';
 import {EmptyState} from '../ui/empty-state';
 import {useMemo, useState} from 'react';
 import type {HealthData} from '../../lib/health';
@@ -32,7 +33,9 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
     setMessage(editing ? 'Health goal saved.' : 'Health goal created.'); setEditor(null);
   }
   async function status(goal: HealthGoal, next: HealthGoal['status']) {
-    setError(''); try { await goals.update(current => setHealthGoalStatus(current, goal.id, next)); setMessage(next === 'done' ? `${goal.name} marked done.` : next === 'closed' ? `${goal.name} ended.` : `${goal.name} reopened.`); } catch (e) { setError(`The health goal was not changed. ${deviceSettingFailureMessage(e)}`); }
+    setError(''); setMessage(''); try { await goals.update(current => setHealthGoalStatus(current, goal.id, next)); const said = next === 'done' ? `${goal.name} marked done.` : next === 'closed' ? `${goal.name} ended.` : `${goal.name} reopened.`;
+      // Session AH Part 3 (DS5, M-131): ending (or finishing) a health goal gives a labelled Undo back to its earlier state.
+      if (next === 'active' || next === goal.status) setMessage(said); else showToast({message: said, undone: `${goal.name} is as it was.`, undo: () => goals.update(current => setHealthGoalStatus(current, goal.id, goal.status))}); } catch (e) { setError(`The health goal was not changed. ${deviceSettingFailureMessage(e)}`); }
   }
   const row = (goal: HealthGoal) => {
     const progress = healthLoaded ? healthGoalProgress(goal, health, today) : {kind: 'no-data' as const};

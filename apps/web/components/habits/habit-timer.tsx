@@ -8,6 +8,7 @@ import {habitBell, setTimerBell} from '../../lib/habits-extras/store';
 import {ringTimerBell} from '../../lib/habits-extras/bell';
 import {useHabitExtrasContext} from './habit-extras-context';
 import {zigiSignals} from '../zigi/bus';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const mmss = (minutes: number) => { const s = Math.max(0, Math.round(minutes * 60)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 /** The timer's shown minutes, from its stored timestamps (a reload keeps it; nothing ticks in storage). */
@@ -25,7 +26,7 @@ export function HabitTimer({habit,store}:{habit:Habit;store:HabitCardStore}){
  const now=useTimerClock(habit),[busy,setBusy]=useState(false),[error,setError]=useState('');const saving=useRef(false);
  const timer=habit.timer,rule=habitRuleOn(habit,store.today);
  const extras=useHabitExtrasContext(), bell=!!extras&&extras.loaded&&!extras.unreadable&&habitBell(extras.data,habit.id), rang=useRef<string|null>(null);
- async function run(action:()=>Promise<void>){if(saving.current)return;saving.current=true;setBusy(true);setError('');try{await action();}catch(e){setError(e instanceof Error?e.message:'Timer was not saved. Its previous state is retained.');}finally{saving.current=false;setBusy(false);}}
+ async function run(action:()=>Promise<void>){if(saving.current)return;saving.current=true;setBusy(true);setError('');try{await action();}catch(e){setError(plainErrorMessage(e, 'Timer was not saved. Its previous state is retained.'));}finally{saving.current=false;setBusy(false);}}
  function change(action:(data:HabitData,at:Date)=>HabitData){const at=new Date();return run(()=>store.update(data=>action(data,at)));}
  const preview=timer?habitTimerPreview(habit,now):undefined;
  const targetMinutes=rule&&rule.measurement.kind==='duration'?(rule.measurement.unit==='hours'?rule.target*60:rule.target):null;

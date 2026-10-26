@@ -5,11 +5,15 @@ import {CardOptions} from '../card-options';
 import {LayoutRegion} from '../layout-edit';
 import {entityLayoutId} from '../../lib/page-layout';
 import {dailyData,healthDay} from '../../lib/health-daily';
-import {EXERCISE_ICONS,EXERCISE_ICON_LABELS,MAX_COUNTERS,addCounter,changeCount,countOn,deleteCounter,editCounter,exerciseData,type ExerciseCounter,type ExerciseIcon} from '../../lib/health-counters';
+import {EXERCISE_ICONS,EXERCISE_ICON_LABELS,MAX_COUNTERS,addCounter,changeCount,restoreCount,countOn,deleteCounter,editCounter,exerciseData,type ExerciseCounter,type ExerciseIcon} from '../../lib/health-counters';
 import type {HealthData} from '../../lib/health';
 import './exercise-counters.css';
 import {updateRefusalMessage} from '../../lib/storage-error-copy';
+import {dayName} from '../../lib/health-day';
+import {repsIssue} from '../../lib/limits/plausibility';
+import {showToast} from '../ui/undo-toast';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 type Update=(updater:(h:HealthData)=>HealthData)=>Promise<void>;
 const PATHS:Record<ExerciseIcon,ReactNode>={
@@ -33,7 +37,7 @@ function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children
 }
 function CounterEditor({initial,gradient,onSave,onClose}:{initial?:ExerciseCounter;gradient:string;onSave:(name:string,icon:ExerciseIcon)=>Promise<void>;onClose:()=>void}){
  const [name,setName]=useState(initial?.name??''),[icon,setIcon]=useState<ExerciseIcon>(initial?.icon??'run'),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- return <Dialog title={initial?`Edit ${initial.name}`:'Add a counter'} onClose={onClose}><form className="exercise-editor" onSubmit={async event=>{event.preventDefault();setBusy(true);setError('');try{await onSave(name,icon);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this counter.');}finally{setBusy(false);}}}>
+ return <Dialog title={initial?`Edit ${initial.name}`:'Add a counter'} onClose={onClose}><form className="exercise-editor" onSubmit={async event=>{event.preventDefault();setBusy(true);setError('');try{await onSave(name,icon);onClose();}catch(e){setError(plainErrorMessage(e, 'Could not save this counter.'));}finally{setBusy(false);}}}>
   <label className="field"><span>Counter name</span><input value={name} maxLength={40} required onChange={event=>setName(event.target.value)} placeholder="Planks, burpees, lunges…"/></label>
   <fieldset className="exercise-icon-choices"><legend>Icon</legend>{EXERCISE_ICONS.map(choice=><label key={choice} className="exercise-icon-choice"><input type="radio" name="exercise-icon" value={choice} checked={icon===choice} onChange={()=>setIcon(choice)}/><span><ExerciseIconGlyph icon={choice} gradient={gradient} size={28}/><small>{EXERCISE_ICON_LABELS[choice]}</small></span></label>)}</fieldset>
   {error&&<p role="alert">{error}</p>}
@@ -41,9 +45,11 @@ function CounterEditor({initial,gradient,onSave,onClose}:{initial?:ExerciseCount
  </form></Dialog>;
 }
 
-export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
+export function ExerciseCounters({data,update,date}:{data:HealthData;update:Update;date?:string}){
  const gradient=`exercise-gradient-${useId().replace(/[^a-zA-Z0-9-]/g,'')}`;
- const today=healthDay(dailyData(data).preferences.timezone);
+ // Session AH Part 17: the counters count on the Health journal's chosen day (never a future one).
+ const journalToday=healthDay(dailyData(data).preferences.timezone),today=date&&date<=journalToday?date:journalToday,isToday=today===journalToday;
+ const onDay=isToday?'today':`on ${dayName(today,journalToday)}`;
  const exercise=exerciseData(data);
  const [editor,setEditor]=useState<ExerciseCounter|'new'|null>(null),[removing,setRemoving]=useState<ExerciseCounter|null>(null),[managing,setManaging]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState('');
  // Taps are applied one after another, each to the latest saved Health data.
@@ -53,24 +59,34 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
   queue.current=step.catch(()=>{});
   return step.catch(e=>{setError(updateRefusalMessage(e,e instanceof Error&&e.message.length<160?e.message:'Could not save this count. Check available browser storage, then try again.'));throw e;});
  }
- const tap=(c:ExerciseCounter,delta:number)=>{void run(h=>changeCount(h,c.id,today,delta)).catch(()=>{});};
+ const [fieldError,setFieldError]=useState<{id:string;text:string}|null>(null);
+ const tap=(c:ExerciseCounter,delta:number)=>{const now=countOn(data,c.id,today)??0;const issue=repsIssue(now+delta);if(delta>0&&issue){setFieldError({id:c.id,text:issue});return;}setFieldError(null);void run(h=>changeCount(h,c.id,today,delta)).catch(()=>{});};
+ // Session AH Part 18 (owner): a count typed in place; Enter or leaving the field saves, Escape keeps the old count. The
+ // shared limit (lib/limits) answers next to the field; a saved count offers a labelled Undo on the same day.
+ const setTo=(c:ExerciseCounter,value:number)=>{
+  const previous=countOn(data,c.id,today),before=previous??0;
+  const issue=repsIssue(value);if(issue){setFieldError({id:c.id,text:issue});return false;}
+  setFieldError(null);if(previous!==null&&value===before||previous===null&&value===0)return true;
+  void run(h=>changeCount(h,c.id,today,value-(countOn(h,c.id,today)??0)),`${c.name}: ${value.toLocaleString('en-GB')} ${onDay}.`).then(()=>showToast({message:`${c.name} set to ${value.toLocaleString('en-GB')} ${onDay}.`,undoLabel:`Undo the ${c.name} count`,undo:()=>run(h=>restoreCount(h,c.id,today,previous),previous===null?`${c.name} has no entry ${onDay} again.`:`${c.name} is back to ${before.toLocaleString('en-GB')}.`)})).catch(()=>{});
+  return true;
+ };
  const card=(c:ExerciseCounter)=>{
   const count=countOn(data,c.id,today);
   // A bar: icon and name on the left, − / count / + and the options on the right (Session I: no visible subtitle; the
   // section heading already says "Today in your Health journal"). "Today" stays in what is announced with the name.
   return <article className="exercise-counter" aria-label={c.name}>
    <span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span>
-   <div className="exercise-counter-name"><h3 title={c.name}>{c.name}</h3><p className="exercise-counter-caption sr-only">{count===null?'No entry today':'Today'}</p></div>
+   <div className="exercise-counter-name"><h3 title={c.name}>{c.name}</h3><p className="exercise-counter-caption sr-only">{count===null?`No entry ${onDay}`:isToday?'Today':dayName(today,journalToday)}</p></div>
    <div className="exercise-counter-controls">
     <button type="button" className="exercise-step" aria-label={`Decrease ${c.name}`} disabled={!count} onClick={()=>tap(c,-1)}>−</button>
-    <output className="exercise-count" aria-live="polite" aria-label={`${c.name} today`} data-empty={count===null||undefined}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry today</span></>:count}</output>
+    <CountField name={c.name} count={count} onDay={onDay} error={fieldError?.id===c.id?fieldError.text:null} onSet={value=>setTo(c,value)} onTyping={()=>setFieldError(null)}/>
     <button type="button" className="exercise-step" aria-label={`Increase ${c.name}`} onClick={()=>tap(c,1)}>+</button>
    </div>
   </article>;
  };
  return <section className="exercise-counters" aria-labelledby="exercise-counters-title">
   <svg width="0" height="0" aria-hidden="true" focusable="false" style={{position:'absolute'}}><defs><linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5fe6f5"/><stop offset=".55" stopColor="#9d8cff"/><stop offset="1" stopColor="#f07fd8"/></linearGradient></defs></svg>
-  <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">Today in your Health journal · <time dateTime={today}>{formatDate(today)}</time></p></div>
+  <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">{isToday?'Today':dayName(today,journalToday)} in your Health journal · <time dateTime={today}>{formatDate(today)}</time></p></div>
    {/* Session AB-Design (owner request 22): one ⋯ in the card's corner manages the counters (add, rename or change icon, delete; reorder with the layout lock); the rows carry only the icon, the name and −/value/+. */}
    <div className="exercise-counters-tools"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>+ Add counter</button><CardOptions label="Quick counters"><button type="button" onClick={()=>setManaging(true)}>Manage counters…</button><button type="button" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>Add counter</button></CardOptions></div></div>
   <div className="exercise-counter-grid"><LayoutRegion region="counters" grid items={exercise.counters.map(c=>({id:entityLayoutId(c.id),label:c.name,node:card(c)}))}/></div>
@@ -80,4 +96,20 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
   {managing&&<Dialog title="Manage counters" onClose={()=>setManaging(false)}><p className="fine">Rename a counter, change its icon or delete it. To reorder, unlock the page layout and move the rows.</p><ul className="exercise-manage-list">{exercise.counters.map(c=><li key={c.id}><span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span><strong>{c.name}</strong><span className="exercise-manage-actions"><button type="button" className="secondary" onClick={()=>{setManaging(false);setEditor(c);}}>Rename or change icon</button><button type="button" className="quiet" onClick={()=>{setManaging(false);setRemoving(c);}}>Delete counter</button></span></li>)}</ul><div className="dashboard-actions"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>{setManaging(false);setEditor('new');}}>+ Add counter</button><button type="button" className="primary" onClick={()=>setManaging(false)}>Done</button></div></Dialog>}
   {removing&&<Dialog title={`Delete ${removing.name}?`} onClose={()=>setRemoving(null)}><p>This removes the {removing.name} counter and its daily history from your Health journal. Other Health records are not changed.</p><div className="dashboard-actions"><button type="button" className="secondary" autoFocus onClick={()=>setRemoving(null)}>Keep counter</button><button type="button" className="primary" onClick={()=>{const target=removing;setRemoving(null);void run(h=>deleteCounter(h,target.id),`${target.name} counter deleted.`).catch(()=>{});}}>Delete counter</button></div></Dialog>}
  </section>;
+}
+
+/** The count, as a button that turns into a number field (Session AH Part 18): four tabular digits wide, right-aligned
+ *  in its −/+ group; its name says what it does ("Push-ups count, edit"). */
+function CountField({name,count,onDay,error,onSet,onTyping}:{name:string;count:number|null;onDay:string;error:string|null;onSet:(value:number)=>boolean;onTyping:()=>void}){
+ const [editing,setEditing]=useState(false),[draft,setDraft]=useState(''),errorId=useId(),field=useRef<HTMLInputElement>(null),button=useRef<HTMLButtonElement>(null),cancelled=useRef(false);
+ useEffect(()=>{if(editing){field.current?.focus();field.current?.select();}},[editing]);
+ const commit=()=>{if(cancelled.current){cancelled.current=false;return;}const text=draft.trim();if(text===''){setEditing(false);return;}const value=/^\d+$/.test(text)?Number(text):NaN;if(onSet(value)){setEditing(false);requestAnimationFrame(()=>button.current?.focus());}};
+ return <span className="exercise-count-slot">
+  {editing
+   ?<input ref={field} className="exercise-count exercise-count-input" inputMode="numeric" pattern="[0-9]*" maxLength={5} aria-label={`${name} count ${onDay}`} aria-invalid={error?true:undefined} aria-describedby={error?errorId:undefined} value={draft}
+     onChange={e=>{setDraft(e.target.value);onTyping();}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();commit();}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();cancelled.current=true;setEditing(false);onTyping();requestAnimationFrame(()=>button.current?.focus());}}} onBlur={commit}/>
+   :<button ref={button} type="button" className="exercise-count" aria-label={`${name} count, edit`} aria-describedby={error?errorId:undefined} data-empty={count===null||undefined} onClick={()=>{cancelled.current=false;setDraft(count===null?'':String(count));setEditing(true);}}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry {onDay}</span></>:String(count)}</button>}
+  {error&&<span className="exercise-count-error" id={errorId} role="alert">{error}</span>}
+  <output className="exercise-count-live sr-only" aria-live="polite" aria-label={`${name} ${onDay}`}>{count===null?`No entry ${onDay}`:`${name} ${onDay}: ${count}`}</output>
+ </span>;
 }

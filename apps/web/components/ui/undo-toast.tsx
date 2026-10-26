@@ -9,6 +9,8 @@ import {createPortal} from 'react-dom';
  * reverse once and then says what happened. Motion: a short fade, none under reduced motion or Motion Off (CSS).
  */
 export type UndoToast = {message: string; undo?: () => Promise<unknown> | unknown; undone?: string;
+  /** Session AH Part 18: what the Undo button says to a screen reader ("Undo the Push-ups count"); "Undo" when unset. */
+  undoLabel?: string;
   /** Session AG Polish 2: a link after the message (the Checklist's quick add: "Edit on Habits"). */
   link?: {href: string; label: string}};
 /** Session AG Polish 2: an Undo that knows best what it did resolves to `{undone}`, said instead of the toast's own words. */
@@ -19,6 +21,8 @@ let current: Shown | null = null, seq = 0;
 const listeners = new Set<() => void>();
 const emit = () => { for (const l of listeners) l(); };
 
+/** The id of the latest toast shown (0 before any): a caller can tell whether its action already said something. */
+export function lastToastId(): number { return seq; }
 /** Shows a toast (replacing any other). Returns its id. */
 export function showToast(toast: UndoToast): number {
   current = {...toast, id: ++seq};
@@ -97,7 +101,7 @@ export function UndoToastHost() {
   const region = <div className="aa-toast-region" role="status" aria-live="polite">
     {toast && !hidden && <div className="aa-toast" key={toast.id} onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
       <span>{toast.message}{toast.link && <> · <Link className="aa-toast-link" href={toast.link.href} onClick={() => hideToast(toast.id)}>{toast.link.label}</Link></>}</span>
-      {toast.undo && <button type="button" className="aa-toast-undo" disabled={busy} onClick={() => void undo()}>Undo</button>}
+      {toast.undo && <button type="button" className="aa-toast-undo" aria-label={toast.undoLabel} disabled={busy} onClick={() => void undo()}>Undo</button>}
       <button type="button" className="aa-toast-close" aria-label="Close message" onClick={() => hideToast(toast.id)}>×</button>
     </div>}
   </div>;

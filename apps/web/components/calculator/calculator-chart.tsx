@@ -16,7 +16,7 @@ type Point = {x: number; balance: number; contributed: number};
 
 const series = (result: CompoundResult, start: number, offset = 0): Point[] =>
   [{x: offset, balance: start, contributed: start}, ...result.rows.map(r => ({x: r.year + offset, balance: Number(r.balance), contributed: Number(r.contributed)}))];
-const compact = (n: number, currency: string) => formatNumber(n, {style: 'currency', currency, currencyDisplay: 'narrowSymbol', notation: 'compact', maximumFractionDigits: n >= 1000 ? 1 : 0});
+const compact = (n: number, currency: string) => formatNumber(n, {style: 'currency', currency, currencyDisplay: 'narrowSymbol', notation: 'compact', minimumFractionDigits: 0, maximumFractionDigits: n >= 1000 ? 1 : 0}); // Session AH: explicit minimum, so every ICU writes "$50K" (an older one wrote "$50.0K" and the page failed to hydrate)
 const shortThreshold = (n: number) => n >= 1_000_000 ? `${n / 1_000_000}M` : `${n / 1000}k`;
 
 export function CalculatorChart({result, start, currency, lines}: {result: CompoundResult; start: string; currency: 'USD' | 'EUR'; lines: readonly ChartLine[]}) {

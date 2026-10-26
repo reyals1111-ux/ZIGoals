@@ -42,7 +42,8 @@ test('the honest list: Bluetooth here, linked accounts that need ZIGoals\' setup
   for (const name of ['Oura', 'Withings', 'Polar', 'Strava']) await expect(links.getByText(name, {exact: true})).toBeVisible();
   await expect(links.getByRole('button')).toHaveCount(0);
   const instead = page.getByRole('region', {name: 'Bring your history instead'});
-  await expect(instead).toContainText('turned off 30 October 2026');
+  // Session AH (RM7): Fitbit's old connection is said plainly as ended.
+  await expect(instead).toContainText('Fitbit\'s old connection ended on 30 October 2026');
   await expect(instead.getByRole('link', {name: 'Settings → Switch to ZIGoals →'})).toHaveAttribute('href', '/app/settings#switch-import');
   if (await isPhone(page)) expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
 });

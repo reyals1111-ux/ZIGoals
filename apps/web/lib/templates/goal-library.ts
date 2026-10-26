@@ -15,7 +15,8 @@ export type LibraryTemplate = {
   id: string; title: string; area: BuiltInArea; kind: TemplateKind; summary: string;
   milestones?: readonly string[];
   habits?: readonly TemplateHabit[];
-  average?: {metric: AverageMetric; target: number; direction: 'at-least' | 'at-most'; windowDays: 7 | 14 | 30; unit: string};
+  /** askTarget: the person writes the target (a money cap is theirs; the library never suggests a sum). */
+  average?: {metric: AverageMetric; target: number; direction: 'at-least' | 'at-most'; windowDays: 7 | 14 | 30; unit: string; askTarget?: true};
   keywords?: readonly string[];
 };
 const h = (title: string, schedule: TemplateHabit['schedule'], why: string): TemplateHabit => ({title, schedule, why});
@@ -41,6 +42,8 @@ export const GOAL_LIBRARY: readonly LibraryTemplate[] = [
   {id: 'pay-off-card', title: 'Pay off a credit card', area: 'wealth', kind: 'value', summary: 'Clear a balance; record what you pay toward it.', milestones: ['First payment above the minimum', 'Half paid off', 'Paid off'], habits: [h('Check spending', 'weekdays', 'Two minutes a day keeps it honest.')], keywords: ['debt', 'loan']},
   {id: 'invest-monthly', title: 'Invest every month', area: 'wealth', kind: 'value', summary: 'A regular amount, your choice of asset.', milestones: ['First three months', 'Six months', 'A full year'], keywords: ['investing', 'etf', 'stocks']},
   {id: 'holiday-fund', title: 'Holiday fund', area: 'wealth', kind: 'value', summary: 'Save for a trip, by a date if you like.', milestones: ['Booked the dates', 'Half saved', 'Fully saved'], keywords: ['travel', 'vacation', 'trip']},
+  // Session AH (DE5, J18): the light budget: a spending cap over 30 days, from what you log each day (no bank link).
+  {id: 'spend-cap', title: 'Keep spending under a cap', area: 'wealth', kind: 'average', summary: 'Your own cap for everyday spending, as a 30-day average of what you log each day.', average: {metric: 'custom', target: 1, direction: 'at-most', windowDays: 30, unit: 'spent a day', askTarget: true}, habits: [h('Log today’s spending', 'daily', 'Two minutes in the evening; a no-spend day counts as 0.')], keywords: ['budget', 'spending', 'expenses', 'monthly', 'cap']},
   {id: 'no-spend-month', title: 'A no-spend month', area: 'wealth', kind: 'project', summary: 'Only essentials for a month.', milestones: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], habits: [h('No-spend day', 'daily', 'Count the days you made it.')], keywords: ['budget', 'frugal']},
   // Relationships
   {id: 'weekly-call', title: 'Call family every week', area: 'relationships', kind: 'project', summary: 'A weekly call with someone who matters.', milestones: ['4 calls', '12 calls', '26 calls', '52 calls'], habits: [h('Sunday call', 'three-a-week', 'A set moment makes it easy.')], keywords: ['family', 'friends', 'call']},

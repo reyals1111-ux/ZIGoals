@@ -4,7 +4,8 @@ import {createEmptyHealth} from '../health';
 import {addWater, saveHealthPreferences, dailyData} from '../health-daily';
 import {REMINDERS_KEY, WATER_REMINDER, emptyReminders, remindersSchema, reminderTime} from './schema';
 import {dismissForToday, readReminders, setHabitReminder, setWaterReminder, updateReminders} from './store';
-import {dueReminders, localClock} from './due';
+import {dueReminders, localClock, zoneClock} from './due';
+import {saveHabitTimezone} from '../habits';
 
 // Session I, Part 8: in-app reminders, device-only (zigoals:reminders:v1).
 const memory = (initial?: string) => { const map = new Map<string, string>(initial === undefined ? [] : [[REMINDERS_KEY, initial]]); return {getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); }, map}; };
@@ -72,5 +73,20 @@ describe('due reminders', () => {
     const targeted = saveHealthPreferences(logged, {...dailyData(logged).preferences, waterTargetMl: 2000});
     expect(dueReminders({reminders: water, health: targeted, now: at(21)}).map(r => r.id)).toEqual([WATER_REMINDER]);
     expect(dueReminders({reminders: dismissForToday(water, WATER_REMINDER, '2026-10-01'), health: targeted, now: at(21)})).toEqual([]);
+  });
+});
+describe('QA2-04: a reminder\'s time and day come from the same zone (Session AH)', () => {
+  it('the clock in a zone, the device clock without one', () => {
+    const now = new Date('2026-10-01T20:30:00Z');
+    expect(zoneClock('Asia/Tokyo', now)).toBe('05:30');
+    expect(zoneClock('America/New_York', now)).toBe('16:30');
+    expect(zoneClock(null, now)).toBe(localClock(now));
+  });
+  it('a habit journal in Tokyo: the 07:00 reminder waits for 07:00 Tokyo time on the Tokyo day, whatever the device clock says', () => {
+    const reminders = setHabitReminder(emptyReminders(), ID, '07:00');
+    const habits = saveHabitTimezone(habitsWith(), 'Asia/Tokyo');
+    // 21:30 UTC on 1 Oct is 06:30 on 2 Oct in Tokyo: the Tokyo day has begun, its 07:00 has not.
+    expect(dueReminders({reminders, habits, now: new Date('2026-10-01T21:30:00Z')})).toEqual([]);
+    expect(dueReminders({reminders, habits, now: new Date('2026-10-01T22:00:00Z')}).map(r => [r.id, r.day])).toEqual([[ID, '2026-10-02']]);
   });
 });

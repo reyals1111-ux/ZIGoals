@@ -189,9 +189,19 @@ async function landing(page, {origins, expect, report, output}) {
   const cta = page.getByRole('link', {name: 'Launch Alpha', exact: false}).first();
   assert.equal(await cta.getAttribute('href'), origins.alpha + '/app'); assert.equal(await cta.getAttribute('target'), '_blank');
   assert.match(await cta.getAttribute('rel'), /noopener/); assert.match(await cta.getAttribute('rel'), /noreferrer/);
-  await expect(page.locator('.alpha-status')).toHaveText('Public Alpha / Financial execution disabled');
-  await expect(page.getByText('Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed.', {exact: false})).toBeVisible();
-  await expect(page.getByText('Independent project · Not affiliated with ZIGChain · Financial execution disabled', {exact: false})).toBeVisible();
+  // Session AH (MO5; TIER 3 verifier): the landing's honesty lines changed with the staking decision of 18 Oct. The apex is
+  // deployed separately by the owner, so until it is redeployed it keeps the earlier lines: exactly one of the two known
+  // sets must be there in full (each states that the Goal Manager contract is not deployed). Drop the first set after
+  // the landing redeploy.
+  const sets = [
+    {status: 'Public Alpha / Financial execution disabled', alpha: 'Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed.', independence: 'Independent project · Not affiliated with ZIGChain · Financial execution disabled'},
+    {status: 'Public Alpha / Nothing moves unless you sign', alpha: 'ZIGoals never holds keys. The Goal Manager contract is not deployed, so Goals never move funds.', independence: 'Independent project · Not affiliated with ZIGChain · Nothing moves unless you sign'},
+  ];
+  const shown = ((await page.locator('.alpha-status').textContent()) ?? '').replace(/\s+/g, ' ').trim();
+  const set = sets.find(s => s.status === shown);
+  assert.ok(set, `landing status line is neither known set: "${shown}"`);
+  await expect(page.getByText(set.alpha, {exact: false})).toBeVisible();
+  await expect(page.getByText(set.independence, {exact: false})).toBeVisible();
   report.landingLinks = await page.locator('a').evaluateAll(nodes => nodes.map(a => ({text: a.textContent.trim(), href: a.href, target: a.target, rel: a.rel})));
   for (const url of ['https://x.com/ZIGoals', 'https://x.com/ZIGFluencer', 'https://github.com/reyals1111-ux/ZIGoals']) assert(report.landingLinks.some(a => a.href === url));
   await recordLayouts(page, report, 'landing'); await page.screenshot({path: output + '/landing.png', fullPage: true});
@@ -306,14 +316,19 @@ export function setAsideNotConfigured(report, base, answerOf) {
  * Session AF Part 11 A3 (ADR-028 H5/H70): requests the verifier's own navigations abort (Next link prefetches and RSC
  * fetches cancelled when a stage navigates; a page's own fetch cut off by the next goto) are recorded as a count, not as
  * findings. A failed request is "aborted by a navigation" only when its error is net::ERR_ABORTED and it is a Next
- * prefetch or RSC fetch, or it failed within 2 s of a main-frame navigation; everything else still counts.
- * Each failedRequests entry carries `at` (ms) and `rsc` (a prefetch or RSC request); `navigations` is the list of
+ * prefetch or RSC fetch, or it failed within 2 s of a main-frame navigation, or it started before a main-frame navigation and
+ * failed after that navigation began (Session AH, AF7); everything else still counts.
+ * Each failedRequests entry carries `at` (ms), `startedAt` (ms, when the request was sent) and `rsc` (a prefetch or RSC
+ * request); `navigations` is the list of
  * main-frame navigation times (ms).
  */
 export const NAVIGATION_WINDOW_MS = 2000;
 export function classifyFailedRequests(report, navigations) {
   const nearNavigation = at => typeof at === 'number' && navigations.some(t => Math.abs(at - t) <= NAVIGATION_WINDOW_MS);
-  const aborted = entry => entry.failure?.errorText === 'net::ERR_ABORTED' && (entry.rsc === true || nearNavigation(entry.at));
+  // Session AH Part 2 (AF7): a request that started before a main-frame navigation and failed after it began was cut
+  // off by that navigation, however late the browser reports the failure (one /api/push failed 2.1 s after its goto).
+  const spanned = entry => typeof entry.startedAt === 'number' && typeof entry.at === 'number' && navigations.some(t => entry.startedAt <= t && t <= entry.at);
+  const aborted = entry => entry.failure?.errorText === 'net::ERR_ABORTED' && (entry.rsc === true || nearNavigation(entry.at) || spanned(entry));
   const set = report.failedRequests.filter(aborted);
   report.abortedByNavigation = {count: set.length, urls: set.map(entry => entry.url)};
   report.failedRequests = report.failedRequests.filter(entry => !aborted(entry));

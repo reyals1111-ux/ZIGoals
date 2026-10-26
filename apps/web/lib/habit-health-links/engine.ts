@@ -37,10 +37,13 @@ export function ruleMet(link: HabitHealthLinkV4, value: number | null): boolean 
   if (link.rule === 'by') return link.target !== undefined && value <= afterNoon(link.target);
   return link.rule === 'recorded' ? value > 0 : link.target !== undefined && value >= link.target;
 }
+/** A day Health may still complete: nothing logged, or less than the target. */
+const OPEN: ReadonlySet<string> = new Set(['due', 'partial']);
 export type AutoCompletion = {habitId: string; date: string; healthDate: string; measure: HealthMeasureV4; value: number};
 /**
- * The habits to tick off now: each linked build habit that is due today (scheduled, nothing logged yet) with no marker
- * for the day, whose Health day meets the rule. Habits and Health each count their own day (their own journal zone),
+ * The habits to tick off now: each linked build habit that is due today (scheduled, nothing or only part logged; Session
+ * AH TR9: 4 of 8 glasses with 2.2 L in the water journal completes it) with no marker for the day, whose Health day meets
+ * the rule. The tick sets the day to its target, never adds to it, so a manual entry and Health count once (amendment 5). Habits and Health each count their own day (their own journal zone),
  * both at the same instant.
  */
 export function autoCompletions({links, habits, health, now = new Date()}: {links: HabitHealthLinksV4; habits: HabitData; health: HealthData; now?: Date}): AutoCompletion[] {
@@ -49,7 +52,7 @@ export function autoCompletions({links, habits, health, now = new Date()}: {link
     const habit = habits.habits.find(h => h.id === habitId);
     if (!habit || links.applied.some(a => a.habitId === habitId && a.date === date)) continue;
     const rule = habitRuleOn(habit, date);
-    if (!rule || rule.type !== 'build' || habitDay(habit, date, date).status !== 'due') continue;
+    if (!rule || rule.type !== 'build' || !OPEN.has(habitDay(habit, date, date).status)) continue;
     const value = measureValue(health, healthDate, link);
     if (value !== null && ruleMet(link, value)) out.push({habitId, date, healthDate, measure: link.measure, value});
   }
@@ -64,7 +67,7 @@ export function applyAutoCompletion(data: HabitData, item: AutoCompletion, now =
   const habit = data.habits.find(h => h.id === item.habitId);
   if (!habit) return data;
   const rule = habitRuleOn(habit, item.date);
-  if (!rule || rule.type !== 'build' || habitDay(habit, item.date, item.date).status !== 'due') return data;
+  if (!rule || rule.type !== 'build' || !OPEN.has(habitDay(habit, item.date, item.date).status)) return data;
   return logHabitValue(data, habit.id, item.date, smartDoneValue(rule), {}, now);
 }
 export const autoCheckInMarker = (item: AutoCompletion, now = new Date()): AppliedCheckInV4 => ({habitId: item.habitId, date: item.date, healthDate: item.healthDate, measure: item.measure, value: item.value, appliedAt: now.toISOString()});

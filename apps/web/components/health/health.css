@@ -11,6 +11,7 @@
 .health-gauge svg { width: 100%; height: 100%; overflow: visible; }
 .health-gauge>div { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .health-gauge strong { font-size: clamp(1.65rem, 3vw, 2.15rem); letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+.health-gauge .health-gauge-over { display: block; font-size: 13px; font-weight: 650; color: var(--warning-text, #ffd27a); }
 .health-gauge span { font-size: .875rem; color: #b0c8c3; margin-top: 3px; }
 .health-summary h2 { margin: 8px 0; font-size: 1.45rem; max-width: 300px; letter-spacing: -.035em; line-height: 1.25; }
 .health-summary p { margin: 7px 0; }

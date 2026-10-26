@@ -92,7 +92,8 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
 
   const run = useCallback(async (plan: TickPlan, dotId?: string): Promise<TickOutcome> => {
     try { await apply(plan.writes); }
-    catch (e) { return {ok: false, message: errorText(e, 'Not saved. Try again.')}; }
+    // Session AH (VA7): a failed tick never leaves the last success in the live region.
+    catch (e) { setAnnounce(''); return {ok: false, message: errorText(e, 'Not saved. Try again.')}; }
     if (dotId) lastPlans.current.set(dotId, plan);
     if (plan.done) void tickFeedback({sounds: prefs.sounds, haptics: prefs.haptics, now: new Date(), quiet});
     zigiSignals.emitValidated(plan.signal);
@@ -111,7 +112,7 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   }, [ctxFor, run, record]);
   const undoLast = useCallback(async (dotId: string): Promise<TickOutcome> => {
     const plan = lastPlans.current.get(dotId); if (!plan || !plan.undo.length) return {ok: false, message: 'Nothing to undo here. Change it on its own page.'};
-    try { await apply(plan.undo); lastPlans.current.delete(dotId); setAnnounce(plan.undone); return {ok: true, message: plan.undone}; } catch (e) { return {ok: false, message: errorText(e, 'Not undone. Try again.')}; }
+    try { await apply(plan.undo); lastPlans.current.delete(dotId); setAnnounce(plan.undone); return {ok: true, message: plan.undone}; } catch (e) { setAnnounce(''); return {ok: false, message: errorText(e, 'Not undone. Try again.')}; }
   }, [apply, setAnnounce]);
   const canUndo = useCallback((dotId: string) => (lastPlans.current.get(dotId)?.undo.length ?? 0) > 0, []);
 

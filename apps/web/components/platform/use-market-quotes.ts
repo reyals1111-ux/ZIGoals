@@ -1,7 +1,8 @@
 'use client';
 import {useEffect,useSyncExternalStore} from 'react';
-import {getAppStorage} from '../../lib/showcase-storage';
+import {getAppStorage,isShowcase} from '../../lib/showcase-storage';
 import {fetchPublicMarketQuotes} from '../../lib/market-quote-client';
+import {setFrozenPrices} from '../../lib/market-quotes';
 import {nativeZigRequest,uniqueMarketRequests,type MarketQuoteRequest} from '../../lib/market-assets';
 import {createMarketQuoteCache,type QuoteSnapshot} from '../../lib/market-quote-cache';
 const cache=createMarketQuoteCache(fetchPublicMarketQuotes);
@@ -14,9 +15,11 @@ export function useMarketQuotes(input:boolean|readonly MarketQuoteRequest[]=true
  useEffect(()=>{
   // A mode change reloads the app; an in-flight response must not cross storage scopes.
  if(!hydrated){hydrated=true;try{const storage=getAppStorage();cache.hydrate({getItem:key=>storage.getItem(key),setItem:(key,value)=>{if(getAppStorage()===storage)storage.setItem(key,value);}});}catch{/* Public cache optional. */}}
-  users++;cache.tick();void cache.refresh(JSON.parse(requestKey) as MarketQuoteRequest[]);
+  // Session AH Part 4 (TR2/TR3): the Showcase keeps the prices it first loaded (in its own tab storage) for every page.
+  const frozen=isShowcase();setFrozenPrices(frozen);
+  users++;cache.tick();void cache.refresh(JSON.parse(requestKey) as MarketQuoteRequest[],false,frozen);
   if(!timer)timer=setInterval(()=>cache.tick(),30000);
   return()=>{users--;if(!users&&timer){clearInterval(timer);timer=undefined;}};
  },[requestKey]);
- return {...snapshot,refresh:()=>cache.refresh(requests,true)};
+ return {...snapshot,refresh:()=>cache.refresh(requests,true,isShowcase())};
 }

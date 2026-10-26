@@ -1,4 +1,5 @@
 'use client';
+import {isLivePriced} from '../../lib/numbers/counts';
 import {useEffect,useState,type FormEvent} from 'react';
 import type {MarketCatalogAsset} from '../../lib/market-assets';
 import type {Position,AssetClass} from '../../lib/positions';
@@ -15,23 +16,24 @@ import {AssetIcon} from './financial-ui';
 import {useMarketInsights} from './use-market-insights';
 import {marketRequestKey} from '../../lib/market-assets';
 import {shownAmount} from './common';
+import {plainErrorMessage} from '../../lib/plain-error';
 const categories=['Existing assets','Crypto','Stablecoins','Stocks','ETFs','Precious metals','Cash','Property','Custom'];
 /** Values another part of the app hands to the manual form (ZIGi's pre-fill, ADR-012): shown as defaults the person reviews and saves. */
 export type AssetDraft={category:string;name:string;quantity:string;currency:string;value?:string;symbol?:string;notes?:string};
 /** `initialCurrency`: the currency a new manual asset starts in (a Goal's own, when funding it; Session X P2.1). */
-export function AssetPicker({positions=[],onExisting,onDraft,onFavourite,initialCategory='Crypto',initialDraft,initialCurrency='USD',submitLabel='Use this asset'}:{positions?:Position[];onExisting?:(p:Position)=>void;onDraft?:(p:Position)=>void;onFavourite?:(a:MarketCatalogAsset)=>void;initialCategory?:string;initialDraft?:AssetDraft;initialCurrency?:string;submitLabel?:string}){
+export function AssetPicker({positions=[],onExisting,onDraft,onFavourite,initialCategory='Crypto',initialDraft,initialCurrency='USD',submitLabel='Use this asset',emptyText}:{/** Session AH (GO3, D-027): what to say when none of the listed assets fits, while others exist */ emptyText?:string;positions?:Position[];onExisting?:(p:Position)=>void;onDraft?:(p:Position)=>void;onFavourite?:(a:MarketCatalogAsset)=>void;initialCategory?:string;initialDraft?:AssetDraft;initialCurrency?:string;submitLabel?:string}){
  const [,setSearchReady]=useState(!!AssetSearch);useEffect(()=>{let live=true;if(!AssetSearch)void searchLoaded.then(()=>{if(live)setSearchReady(true);});return()=>{live=false;};},[]);
  const [category,setCategory]=useState(initialDraft&&categories.includes(initialDraft.category)?initialDraft.category:initialCategory),[manual,setManual]=useState(!!initialDraft),[selected,setSelected]=useState<MarketCatalogAsset>(),[error,setError]=useState(''),[currency,setCurrency]=useState(initialDraft?.currency??initialCurrency),[name,setName]=useState<string>();
- const insights=useMarketInsights([...positions.flatMap(p=>p.marketRef?[p.marketRef]:[]),...(selected?[selected.ref]:[])]);
+ const insights=useMarketInsights([...positions.flatMap(p=>p.marketRef&&isLivePriced(p)?[p.marketRef]:[]),...(selected?[selected.ref]:[])]);/* Session AH (WE11) */
  const automatic=!manual&&!['Existing assets','Cash','Property','Custom'].includes(category);
  function choose(c:string){setCategory(c);setSelected(undefined);setError('');setManual(false);setName(undefined);}
  function create(e:FormEvent<HTMLFormElement>){e.preventDefault();setError('');try{const f=new FormData(e.currentTarget),get=(key:string)=>String(f.get(key)||'');let p:Position;
   if(automatic&&selected)p=automaticSourcePosition({asset:selected,assetClass:(category==='ETFs'?'Stocks':category==='Precious metals'?'Precious Metals':category) as AssetClass,quantity:get('quantity'),currency:currency as 'USD'|'EUR',notes:get('notes')});
   else p=manualSourcePosition({category:(category==='Custom'?'Custom asset':category==='ETFs'?'Stocks':category) as ManualSource['category'],name:get('name')||`${currency} Cash`,quantity:get('quantity'),currency,symbol:get('symbol'),metal:get('metal'),unit:get('unit'),value:get('value'),notes:get('notes')});
   onDraft?.(p);
- }catch(e){setError(e instanceof Error?e.message:'Check the asset details.');}}
+ }catch(e){setError(plainErrorMessage(e, 'Check the asset details.'));}}
  return <div className="asset-picker"><div className="picker-intro"><h3>{onFavourite?'Markets you care about':'Choose an asset'}</h3><p>{onFavourite?'Follow a price without adding it to your wealth.':'Use an asset you already track, or add something new.'}</p></div><div className="picker-tabs" role="group" aria-label="Asset categories">{categories.filter(c=>onDraft||onFavourite||c==='Existing assets').filter(c=>c!=='Existing assets'||!!onExisting).filter(c=>!onFavourite||!['Existing assets','Cash','Property','Custom'].includes(c)).map(c=><button type="button" key={c} aria-pressed={category===c} onClick={()=>choose(c)}>{c}</button>)}</div>
- {category==='Existing assets'?<div className="picker-existing">{positions.filter(p=>!p.archivedAt).map(p=><button key={p.id} type="button" onClick={()=>onExisting?.(p)}><AssetIcon symbol={p.asset} kind={p.assetClass} logoUrl={p.marketRef?insights.results[marketRequestKey({marketRef:p.marketRef,currency:'USD'})]?.insight?.logoUrl:null}/><span><strong>{p.providerId}</strong><small>{shownAmount(p.quantity,p.decimals)} {p.asset} · {p.valuation?.source==='MANUAL'||p.valuationMode==='manual'?'Manual value':p.marketRef&&p.valuationMode==='automatic'?'Automatic price':p.valuation?'Recorded value':'Needs valuation'}</small></span></button>)}{!positions.filter(p=>!p.archivedAt).length&&<p>No assets yet. Choose a category to add your first.</p>}</div>:<>
+ {category==='Existing assets'?<div className="picker-existing">{positions.filter(p=>!p.archivedAt).map(p=><button key={p.id} type="button" onClick={()=>onExisting?.(p)}><AssetIcon symbol={p.asset} kind={p.assetClass} logoUrl={p.marketRef?insights.results[marketRequestKey({marketRef:p.marketRef,currency:'USD'})]?.insight?.logoUrl:null}/><span><strong>{p.providerId}</strong><small>{shownAmount(p.quantity,p.decimals)} {p.asset} · {p.valuation?.source==='MANUAL'||p.valuationMode==='manual'?'Manual value':p.marketRef&&p.valuationMode==='automatic'?'Automatic price':p.valuation?'Recorded value':'Needs valuation'}</small></span></button>)}{!positions.filter(p=>!p.archivedAt).length&&<p>{emptyText??'No assets yet. Choose a category to add your first.'}</p>}</div>:<>
  {automatic&&(AssetSearch?<AssetSearch category={category} selected={selected} onSelect={a=>{setSelected(a);setCurrency('USD');}} onManual={()=>setManual(true)}/>:<p className="fine" aria-live="polite">Loading the market search…</p>)}
  {onFavourite&&selected&&<button className="primary" type="button" onClick={()=>onFavourite(selected)}>Add {selected.name} to favourites</button>}
  {!onFavourite&&(!automatic||selected)&&<form className="picker-draft-form" onSubmit={create} key={`${category}:${manual}:${selected?.ref.id??''}`}>

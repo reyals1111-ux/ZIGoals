@@ -17,6 +17,8 @@ import {GlassSegments} from './progress/glass-progress';
 import { formatDate, formatNumber, formatPlainDecimal, formatWeekday, progressPresentation } from '../lib/visual-format';
 import {ML_PER_US_FL_OZ,type WaterUnit} from '../lib/health-units';
 import {healthGroupIn} from '../lib/vault/w-homes';
+import {assetCounts} from '../lib/numbers/counts';
+import { unitFor } from '../lib/plural';
 
 const dayLabel=(date:string)=>({weekday:formatWeekday(date),day:Number(date.slice(8))});
 function Shell({id,eyebrow,title,lede,children,layout,className=''}:{id:string;eyebrow:string;title:ReactNode;lede?:ReactNode;children:ReactNode;layout:LayoutAttrs;className?:string}){
@@ -36,9 +38,9 @@ export function TodayWeek({today,habits,health,platform,financial,...layout}:Lay
  const phone=usePhoneActive(),[days,setDays]=useState(false),rowsId=useId();
  const totals=rows.map(r=>{const total=week.reduce((n,d)=>n+d[r.key],0);return total?`${formatNumber(total)} ${(total===1?r.one:r.label).toLowerCase()}`:`no ${r.label.toLowerCase()}`;}).join(' · ');
  // Gate C design review (finding 10): the window is named (Today's other "week" cards count other windows) and so is what
- // a habit check-in counts here, every one saved, done or partly done: the Life review counts completed habit days.
+ // a habit check-in counts here. Session AH (TR6): one rule everywhere, a scheduled habit day completed.
  const span=week.length?`${formatDate(week[0]!.date,{weekday:true,year:false})} – ${formatDate(week.at(-1)!.date,{weekday:true,year:false})}`:'';
- return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede={`How many records you saved each day${span?`, ${span}`:''} (habit check-ins: every one saved, done or partly done; Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.`}>
+ return <Shell layout={layout} id="bottom-today-week" eyebrow="THE LAST 7 DAYS" title={<>Your week, all in one orbit.</>} lede={`How many records you saved each day${span?`, ${span}`:''} (habit check-ins: habit days completed, as everywhere in the app; Health: meals, water, weight, activity and exercise counters). A dash means nothing was recorded that day.`}>
   {phone&&<p className="bottom-week-totals">Last 7 days: {totals}.</p>}
   <div className="bottom-rows" id={rowsId} {...(phone&&!days?{'data-phone-collapsed':''}:{})}>{rows.map(r=><div key={r.key} className="bottom-row" data-tone={r.tone} role="group" aria-label={`${r.label}, last 7 days`}><h3><i aria-hidden="true"/>{r.label}</h3><ul>{week.map(d=>{const l=dayLabel(d.date);return <li key={d.date} data-today={d.date===today||undefined}><small>{l.weekday} {l.day}</small><Count value={d[r.key]} label={r.label.toLowerCase()}/></li>;})}</ul></div>)}</div>
   {phone&&<button type="button" className="secondary phone-show-all" aria-controls={rowsId} aria-expanded={days} onClick={()=>setDays(!days)}>{days?'Hide each day':'Show each day'}</button>}
@@ -65,7 +67,7 @@ export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:
  return <Shell layout={layout} id="bottom-habit-rhythm" eyebrow="YOUR RHYTHM" title={<>Consistency by weekday.</>} lede="Check-ins recorded over the last four weeks, and your best streaks.">
   <div className="bottom-two">
    <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} ${plural(d.checkins,'check-in')}`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>
-   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {s.unit}</strong><small>Now {s.current} {s.unit}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
+   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {unitFor(s.best,s.unit)}</strong><small>Now {s.current} {unitFor(s.current,s.unit)}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
   </div>
   {!r.total&&<p className="bottom-note">No check-ins in the last four weeks yet.</p>}
  </Shell>;
@@ -79,7 +81,7 @@ export function HealthTrends({health,today,waterUnit='ml',...layout}:LayoutAttrs
  // the rows appear only when the week has any.
  const vitals=useMemo(()=>{const byDay=new Map<string,{restingHr?:number;activeKcal?:number;updatedAt:string}>();for(const d of healthGroupIn(health,'vitals')?.days??[]){const seen=byDay.get(d.date);if(!seen||d.updatedAt>seen.updatedAt)byDay.set(d.date,d);}return byDay;},[health]);
  const restingRow=week.map(d=>[d.date,vitals.get(d.date)?.restingHr??null,false] as [string,number|null,boolean]),activeRow=week.map(d=>[d.date,vitals.get(d.date)?.activeKcal??null,false] as [string,number|null,boolean]);
- const row=(label:string,tone:string,values:[string,number|null,boolean][])=><div className="bottom-row" data-tone={tone} role="group" aria-label={`${label}, last 7 days`}><h3><i aria-hidden="true"/>{label}</h3><ul>{values.map(([date,value,partial])=>{const l=dayLabel(date);return <li key={date} data-today={date===today||undefined}><small>{l.weekday} {l.day}</small>{value===null?<strong className="bottom-none"><span aria-hidden="true">{partial?'…':'—'}</span><span className="sr-only">{partial?'Incomplete calorie data':'No entry'}</span></strong>:<strong>{value>=1000?<><span className="bottom-full">{formatNumber(value,{maximumFractionDigits:0})}</span><span className="bottom-compact" aria-hidden="true">{formatNumber(value,{notation:'compact',maximumFractionDigits:1})}</span></>:formatNumber(value,{maximumFractionDigits:0})}</strong>}</li>;})}</ul></div>;
+ const row=(label:string,tone:string,values:[string,number|null,boolean][])=><div className="bottom-row" data-tone={tone} role="group" aria-label={`${label}, last 7 days`}><h3><i aria-hidden="true"/>{label}</h3><ul>{values.map(([date,value,partial])=>{const l=dayLabel(date);return <li key={date} data-today={date===today||undefined} aria-current={date===today?"date":undefined}><small>{l.weekday} {l.day}</small>{value===null?<strong className="bottom-none"><span aria-hidden="true">{partial?'…':'—'}</span><span className="sr-only">{partial?'Incomplete calorie data':'No entry'}</span></strong>:<strong>{value>=1000?<><span className="bottom-full">{formatNumber(value,{maximumFractionDigits:0})}</span><span className="bottom-compact" aria-hidden="true">{formatNumber(value,{notation:'compact',maximumFractionDigits:1})}</span></>:formatNumber(value,{maximumFractionDigits:0})}</strong>}</li>;})}</ul></div>;
  return <Shell layout={layout} id="bottom-health-trends" eyebrow="SEVEN DAYS OF CARE" title={<>Your week, gently tracked.</>} lede="Calories, water and quick counters you logged. A dash means no entry, not zero.">
   <div className="bottom-rows">
    {row('Calories · kcal','health',week.map(d=>[d.date,d.kcal,d.kcalPartial]))}
@@ -111,8 +113,10 @@ const SOURCES=[
 ] as const;
 /** Markets and Positions: what is tracked and where values come from. No prices are shown here. */
 export function ValueSources({variant,platform,...layout}:LayoutAttrs&{variant:'markets'|'positions';platform:Platform}){
- const owned=platform.positions.filter(p=>!p.archivedAt),linked=owned.filter(p=>p.marketRef).length,manual=owned.filter(p=>p.sourceType==='MANUAL').length,observed=owned.filter(p=>p.sourceType!=='MANUAL').length;
- const counts=variant==='markets'?[['Favourite markets',platform.watchlist.length],['Owned assets with a market reference',linked],['Manual assets',manual]] as const:[['Observed public positions',observed],['Manual positions',manual],['Allocations to Goals',platform.allocations.length]] as const;
+ // Session AH (TR6): "Manual assets" is Wealth's count (lib/numbers/counts.ts: not live-priced); positions typed in by hand
+ // are a different thing and say so.
+ const owned=platform.positions.filter(p=>!p.archivedAt),linked=owned.filter(p=>p.marketRef).length,manual=assetCounts(platform).manual,typed=owned.filter(p=>p.sourceType==='MANUAL').length,observed=owned.filter(p=>p.sourceType!=='MANUAL').length;
+ const counts=variant==='markets'?[['Favourite markets',platform.watchlist.length],['Owned assets with a market reference',linked],['Manual assets',manual]] as const:[['Observed public positions',observed],['Positions entered by hand',typed],['Allocations to Goals',platform.allocations.length]] as const;
  return <Shell layout={layout} id={`bottom-${variant}-sources`} eyebrow="WHERE VALUES COME FROM" title={<>What’s tracked, and how.</>} lede="Every value keeps its source and time. When the price service is unavailable, no new price appears; the last verified value keeps its timestamp.">
   <dl className="bottom-counts">{counts.map(([label,n])=><div key={label}><dt>{label}</dt><dd>{formatNumber(n)}</dd></div>)}</dl>
   <ul className="bottom-sources">{SOURCES.map(([title,body])=><li key={title}><strong>{title}</strong><span>{body}</span></li>)}</ul>

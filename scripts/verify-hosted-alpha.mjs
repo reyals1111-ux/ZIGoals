@@ -51,7 +51,9 @@ page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push({m
 // Session AF Part 11 A3: each failed request carries its time and whether it is a Next prefetch/RSC fetch, and every
 // main-frame navigation is stamped, so the requests the verifier's own navigations abort can be told from real failures.
 page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push(Date.now()); });
-page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure: r.failure(), at: Date.now(), rsc: isRscRequest(r.url(), r.headers()) }));
+// Session AH Part 2 (AF7): each request's send time, so a request a later navigation cut off is told apart from one that failed on its own.
+const sentAt = new WeakMap(); page.on('request', r => sentAt.set(r, Date.now()));
+page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure: r.failure(), at: Date.now(), startedAt: sentAt.get(r), rsc: isRscRequest(r.url(), r.headers()) }));
 // Session AF Part 11 A2: the body of every error answer is read at once (a later navigation can drop it), so the two
 // designed "not configured" answers can be matched exactly; an answer whose body cannot be read stays an error.
 // Session AF Gate C: a body that never arrives (its request aborted by a navigation) once held the run for an hour after its

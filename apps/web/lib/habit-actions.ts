@@ -3,8 +3,13 @@ import {localDate,addLocalDays} from './local-date';
 export function habitById(data:HabitData,id:string){const h=data.habits.find(h=>h.id===id);if(!h)throw Error('Habit unavailable.');return h;}
 export function replace(data:HabitData,h:Habit):HabitData{return habitDataSchema.parse({...data,habits:data.habits.map(x=>x.id===h.id?h:x)});}
 export function habitEditFingerprint(h:Habit){const {entries,timer,timerReceipts,updatedAt,...details}=h;void entries;void timer;void timerReceipts;void updatedAt;return JSON.stringify(details);}
-export function earliestHabitChange(h:Habit,today=localDate()){return [addLocalDays(today,1),latestHabitRule(h).from].sort().at(-1)!;}
-function checkChange(h:Habit,from:string,today:string,expected?:string){if(expected!==undefined&&expected!==habitEditFingerprint(h))throw Error('This Habit changed while you were editing. Reopen it and review the latest rule.');if(from<earliestHabitChange(h,today))throw Error('Choose a future day on or after the latest scheduled rule.');}
+/**
+ * The first day a rule change (an edit, a pause, an archive) may begin. Tomorrow by default, so today's recorded history
+ * keeps its rule. Session AH (HA3, HA10; D-045, L-065): with `allowToday`, today when nothing is recorded for it yet (no
+ * check-in, no timer), so a habit made by mistake can be archived and deleted at once, and an edit can start today.
+ */
+export function earliestHabitChange(h:Habit,today=localDate(),{allowToday=false}:{allowToday?:boolean}={}){const free=allowToday&&!h.entries.some(e=>e.date===today)&&h.timer?.date!==today;return [free?today:addLocalDays(today,1),latestHabitRule(h).from].sort().at(-1)!;}
+function checkChange(h:Habit,from:string,today:string,expected?:string){if(expected!==undefined&&expected!==habitEditFingerprint(h))throw Error('This Habit changed while you were editing. Reopen it and review the latest rule.');if(from<earliestHabitChange(h,today,{allowToday:true}))throw Error('Choose today (when nothing is recorded yet) or a later day, on or after the latest scheduled rule.');}
 function revised(h:Habit,rule:HabitRule,now:Date):Habit{
  const revisions=[...(h.ruleRevisions??h.rules.map(rule=>({id:`rule:${h.id}:${crypto.randomUUID()}`,recordedAt:now.toISOString(),source:'retained' as const,rule})))];
  revisions.push({id:`rule:${h.id}:${crypto.randomUUID()}`,recordedAt:now.toISOString(),source:'scheduled',rule});
@@ -23,3 +28,13 @@ export function scheduleHabitState(data:HabitData,id:string,state:HabitState,fro
  const h=habitById(data,id);checkChange(h,from,habitCalendarDay(data,now),expected);return replace(data,revised(h,ruleSchema.parse({...latestHabitRule(h),state,from}),now));
 }
 // The timer's day key is read from date parts, like habitCalendarDay, never from a locale's display pattern (QA-34).
+/**
+ * Session AH (HA18/J9; N-038, T-020): log days from before a habit was made. Its start (and the first rule's day) moves
+ * back, so those days can be filled in from History; a day left empty counts as missed, as any scheduled day does. The
+ * record keeps its shape (an older build reads it unchanged).
+ */
+export function moveHabitStart(data:HabitData,id:string,newStart:string,now=new Date()):HabitData{
+ const h=habitById(data,id);if(!/^\d{4}-\d{2}-\d{2}$/.test(newStart))throw Error('Choose a day.');
+ if(newStart>=h.startDate)throw Error('Choose a day before the habit started.');if(newStart<'1990-01-01')throw Error('Choose a day from 1990 on.');
+ const [first,...rest]=h.rules;return replace(data,{...h,startDate:newStart,rules:[{...first!,from:newStart},...rest],updatedAt:now.toISOString()});
+}

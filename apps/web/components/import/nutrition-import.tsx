@@ -8,6 +8,7 @@ import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHead
 import {detectNutritionPreset, type NutritionPreset} from '../../lib/import/nutrition-presets';
 import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const OPTIONS: SetupOptions = {fields: NUTRITION_FIELDS, numberFields: ['quantity', 'servingAmount', 'kcal', 'protein', 'carbs', 'fat'], dateField: 'date'};
 const REQUIRED = ['date', 'food'];
@@ -33,7 +34,7 @@ export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: 
     const importId = crypto.randomUUID(), at = new Date().toISOString();
     const final = planNutritionImport({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, basis, mealMap, today, importId, at});
     try { await update(d => applyNutritionImport(d, final)); }
-    catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'The file was not imported. Nothing was changed.'); setBusy(false); return; }
+    catch (cause) { setError(plainErrorMessage(cause, 'The file was not imported. Nothing was changed.')); setBusy(false); return; }
     let note = '';
     try { imports.record({id: importId, kind: 'nutrition', at, label: `${final.entries.length} ${final.entries.length === 1 ? 'entry' : 'entries'} and ${final.foods.length} ${final.foods.length === 1 ? 'food' : 'foods'} imported`, createdIds: [...final.foods.map(f => f.id), ...final.entries.map(e => e.id)]}); }
     catch { note = 'The import went through, but the undo note could not be saved on this device.'; }
@@ -47,7 +48,7 @@ export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: 
   </section>;
   return <section className="import-panel" aria-label="Import meals">
     <h2>Import meals</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { let next = setupFromText(f.text, OPTIONS); const found = detectNutritionPreset(next.parsed.header); if (found) next = withGuesses({...next, mapping: found.mapping}, OPTIONS, {numbers: true, dates: true}); setPreset(found); setSetup(next); setFile(f); setMealMap({}); setBasis('serving'); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { let next = setupFromText(f.text, OPTIONS); const found = detectNutritionPreset(next.parsed.header); if (found) next = withGuesses({...next, mapping: found.mapping}, OPTIONS, {numbers: true, dates: true}); setPreset(found); setSetup(next); setFile(f); setMealMap({}); setBasis('serving'); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="nutrition" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" />{preset && <p className="notice import-preset" role="status">{preset.note}</p>}<MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-basis"><legend>Nutrient values are per</legend>
@@ -62,7 +63,7 @@ export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: 
       {setup.mapping.meal === undefined && <p className="fine">No meal column: every entry goes under Snacks.</p>}
     </MappingStep><StepActions onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!mappingReady} /></>}
     {step === 3 && plan && <><StepHeading step={3} title="Preview" />
-      <p className="import-summary" aria-live="polite">{plan.foods.length} {plan.foods.length === 1 ? 'food' : 'foods'} will be added to your library · {plan.entries.length} diary {plan.entries.length === 1 ? 'entry' : 'entries'} on {plan.days} {plan.days === 1 ? 'day' : 'days'} · {plan.withoutMeasure} {plan.withoutMeasure === 1 ? 'entry' : 'entries'} without a serving measure · {plan.refused.length} rows refused</p>
+      <p className="import-summary" aria-live="polite">{plan.foods.length} {plan.foods.length === 1 ? 'food' : 'foods'} will be added to your library · {plan.entries.length} diary {plan.entries.length === 1 ? 'entry' : 'entries'} on {plan.days} {plan.days === 1 ? 'day' : 'days'} · {plan.withoutMeasure} {plan.withoutMeasure === 1 ? 'entry' : 'entries'} without a serving measure · {plan.refused.length} {plan.refused.length === 1 ? 'row' : 'rows'} refused</p>
       {plan.entries.length > 0 && <div className="import-preview"><ul className="import-preview-lines" aria-label="The first entries that will be imported">{plan.entries.slice(0, 50).map(e => <li key={e.id}>{formatDate(e.date)} · {e.meal} · {e.snapshot.name} · {formatNutrient(e.quantityMilli, 1000)} {e.quantityMilli === 1000 ? 'serving' : 'servings'} · {formatNutrient(e.snapshot.nutrients.kcal)} kcal · P {formatHealthGrams(e.snapshot.nutrients.proteinMg)} g · C {formatHealthGrams(e.snapshot.nutrients.carbsMg)} g · F {formatHealthGrams(e.snapshot.nutrients.fatMg)} g{e.snapshot.servingGrams === null && e.snapshot.servingMl === undefined ? ' · serving measure unknown' : ''}</li>)}</ul>
         {plan.entries.length > 50 && <p className="fine">… and {plan.entries.length - 50} more entries.</p>}</div>}
       <RefusedRows refused={plan.refused} />

@@ -4,8 +4,13 @@ import {wealthOverview,ASSET_COLORS,WEALTH_CLASSES} from './wealth';
 import type {Platform,Position} from './positions';
 import {verifiedMarketQuote,quoteMatchesPosition,type MarketQuote} from './market-quotes';
 import {marketRefKey,type MarketAssetRef} from './market-assets';
-import {formatPlainDecimal} from './visual-format';
-export function referencePriceLabel(quote:MarketQuote){const value=formatPlainDecimal(formatUnits(quote.price,quote.priceDecimals));return `${quote.currency==='USD'?'$':quote.currency==='EUR'?'€':''}${value}${['USD','EUR'].includes(quote.currency)?'':` ${quote.currency}`}`;}
+import {formatPlainDecimal,formatPrice,isMoneyCurrency} from './visual-format';
+/**
+ * Session AH Part 4 (TR4/B2, BUG-007, BUG-028): a reference price follows the one price rule (lib/visual-format.ts
+ * formatPrice: the currency's minor digits, and four significant digits below one unit) — "$83,356.64", never
+ * "$83356.64376998547". A code that is not money keeps its exact digits, cut to eight decimals.
+ */
+export function referencePriceLabel(quote:MarketQuote){const text=formatUnits(quote.price,quote.priceDecimals);if(isMoneyCurrency(quote.currency))return formatPrice(text,quote.currency);const [whole,fraction='']=text.split('.');return `${formatPlainDecimal(fraction?`${whole}.${fraction.slice(0,8)}`.replace(/\.?0+$/,''):whole!)} ${quote.currency}`;}
 /** Reference prices are independent public evidence, never derived from a holding total. */
 export function referenceQuote(ref:MarketAssetRef,currency:string,quotes:readonly MarketQuote[],now=Date.now()):MarketQuote|undefined{
  return quotes.flatMap(raw=>{try{const quote=verifiedMarketQuote(raw,now);if(quote.currency!==currency)return [];const matches=quote.marketRef?marketRefKey(quote.marketRef)===marketRefKey(ref)&&(ref.kind!=='rwa'||quote.marketRef.kind==='rwa'&&ref.assetType===quote.marketRef.assetType):ref.kind==='coin'&&ref.id==='zignaly'&&quote.providerAssetId==='zignaly';return matches?[quote]:[];}catch{return [];}}).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt!)-Date.parse(a.observedAt??a.fetchedAt!))[0];

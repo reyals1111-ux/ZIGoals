@@ -27,3 +27,5 @@
 /* Session AB-Design Phase 2 closing pass (owner, 2026-10-14: 44 px wherever the pointer is coarse): on a touch screen each
    point's hit strip is 48 wide (44 px or more after the chart scales), centred on its point; a mouse keeps 28 so the nearest of two close points still wins. */
 @media (pointer: coarse) { .wealth-history-hit { width: 48px; transform: translateX(-10px); } }
+/* Session AH (CO6): the "why it changed" line sits on its own row under the figure. */
+.wealth-history-readout .wealth-history-why { flex-basis: 100%; }

@@ -199,3 +199,6 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
   .portfolio-holdings-section .coin-detail { position: static; width: auto; margin-top: 4px; border-radius: 18px; white-space: normal; }
 }
 @media (max-width: 359.98px) { .portfolio-holdings-section .data-table tbody > tr > td { font-size: 14px; } }
+/* Session AH (J17): inflows in green, outflows in the page's own ink. */
+.portfolio-transactions li[data-direction="in"] .portfolio-tx-amount { color: #7ee2b8; }
+.portfolio-since { margin: 4px 0 0; }

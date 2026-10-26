@@ -17,6 +17,17 @@ export function healthLinkDraft(link: HabitHealthLink | null | undefined, waterU
   const target = link.target === undefined ? '' : formNumberText(link.measure === 'water' && waterUnit === 'fl-oz-us' ? Math.round(link.target / FL_OZ * 10) / 10 : link.target);
   return {measure: link.measure, exerciseId: link.exerciseId ?? '', rule: link.rule, target};
 }
+/**
+ * Session AH (TR9/HA2): the link a new habit starts with when its unit names something Health already records: steps,
+ * water in the Health water unit, or meditation minutes. It shows in the editor, filled in and editable; null otherwise.
+ */
+export function suggestedHealthLink(input: {title: string; unit: string; target: string; measurement: string}, waterUnit: 'ml' | 'fl-oz-us'): HealthLinkDraft | null {
+  const unit = input.unit.trim().toLowerCase(), target = input.target.trim();
+  if (unit === 'steps') return {measure: 'steps', exerciseId: '', rule: 'at-least', target};
+  if (waterUnit === 'ml' ? unit === 'ml' : unit === 'fl oz') return {measure: 'water', exerciseId: '', rule: 'at-least', target};
+  if (input.measurement === 'duration' && unit === 'minutes' && /meditat|mindful/i.test(input.title)) return {measure: 'meditationMinutes', exerciseId: '', rule: 'at-least', target};
+  return null;
+}
 /** The link a draft describes (water targets stored in millilitres), null for none. Throws the field's own message when it cannot be saved. */
 export function healthLinkFromDraft(draft: HealthLinkDraft, waterUnit: 'ml' | 'fl-oz-us', now = new Date()): HabitHealthLink | null {
   if (!draft.measure) return null;

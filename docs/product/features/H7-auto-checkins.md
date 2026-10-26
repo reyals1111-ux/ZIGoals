@@ -56,7 +56,7 @@ Unknown is `null`, never `0`: a day with no record never satisfies a rule.
 ruleMet(link, value: number | null): boolean   // null → false; "recorded" → value > 0; "at-least" → value >= target
 autoCompletions({links, applied, habits, health, now}): {habitId, date, healthDate, measure, value}[]
 ```
-For each link whose habit exists and is `build` type: `date = habitCalendarDay(habits, now)` (`lib/habits.ts:120`), `healthDate = healthDay(dailyData(health).preferences.timezone, now)`; skip when a marker exists for `habitId + date` (applied or undone); skip unless `habitDay(habit, date, date).status === "due"` (scheduled, nothing logged yet; `partial`, `skipped`, `failed` and `complete` all mean the person already acted); include when `ruleMet`. Habits of kind `quit` or `limit` are never linked (the editor hides the section for them).
+For each link whose habit exists and is `build` type: `date = habitCalendarDay(habits, now)` (`lib/habits.ts:120`), `healthDate = healthDay(dailyData(health).preferences.timezone, now)`; skip when a marker exists for `habitId + date` (applied or undone); skip unless `habitDay(habit, date, date).status` is `"due"` or `"partial"` (scheduled, nothing or only part logged; `skipped`, `failed` and `complete` mean the person already acted); include when `ruleMet`. Session AH (TR9/HA2, ADR-033 M18, owner amendment 5): a part-logged day completes from Health, set to its target once, never added, so a manual entry and Health count once. Habits of kind `quit` or `limit` are never linked (the editor hides the section for them).
 ```
 applyAutoCompletion(data: HabitData, item, now): HabitData   // the updater passed to habits.update
 ```
@@ -97,7 +97,7 @@ Unit (`lib/habit-health-links/engine.test.ts`, `schema.test.ts`):
 5. `ruleMet`: at-least 8000 with 8000 → true, 7999 → false, `null` → false; recorded with 0 → false.
 6. `autoCompletions` with Showcase on its day → exactly one item (Walk, 8,800 steps); with the Walk entry already logged → none; with a marker for today → none; with the habit paused today → none; with a `quit` habit link → none (schema refuses it anyway).
 7. No double count: `applyAutoCompletion` twice on the same data → the second returns the same object; the entry count is the target (8,000), disposition `logged`.
-8. Override: after `logHabitValue(…, 0)` (Undo) and a marker, `autoCompletions` → none; a manual tap before the hook runs → none (`partial`).
+8. Override: after `logHabitValue(…, 0)` (Undo) and a marker, `autoCompletions` → none; a full manual tap before the hook runs → none; a part-logged day → one item, written as the target (Session AH, M18).
 9. Zones: Habits zone `Pacific/Kiritimati`, Health zone `Etc/GMT+12`, `now = 2026-10-01T11:30:00Z` → `date = 2026-10-02`, `healthDate = 2026-09-30`; both stored in the marker; the entry lands on `2026-10-02`. The same on the eleven host zones with equal zones → `date === healthDate`.
 10. DST: Europe/Brussels 2026-10-25 02:30 local (the repeated hour) → the day is `2026-10-25` once, one marker.
 11. Schema: 201 links refused; `at-least` without target refused; weight with `at-least` refused; version 2 refused; unreadable bytes read as empty with `unreadable: true` and are untouched.

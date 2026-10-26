@@ -22,7 +22,7 @@ async function sixLongCounters(page:Page){
  },NAMES);
  await page.reload();
  await expect(page.locator('.exercise-counter')).toHaveCount(6);
- await expect(page.getByRole('article',{name:NAMES[0],exact:true}).locator('output')).toHaveText('1234');
+ await expect(page.getByRole('article',{name:NAMES[0],exact:true}).locator('.exercise-count')).toHaveText('1234');
 }
 
 test('no visible subtitle under a counter name; "today" is still announced with it',async({page})=>{
@@ -32,7 +32,10 @@ test('no visible subtitle under a counter name; "today" is still announced with 
  // Visually hidden (the section heading already says "Today in your Health journal"), still in the reading order.
  expect(await caption.evaluate(e=>{const b=e.getBoundingClientRect();return b.width<=1&&b.height<=1;})).toBe(true);
  await expect(caption).toHaveText('No entry today');
- await expect(bar.locator('output')).toHaveAccessibleName('Push-ups today');
+ // Assertion changed (Session AH Part 18, owner: the count is typed in place, named "Push-ups count, edit"; equal strength):
+ // the count button has that name, and today is still said with the count.
+ await expect(bar.locator('.exercise-count')).toHaveAccessibleName('Push-ups count, edit');
+ await expect(bar.locator('.exercise-count-live')).toHaveText('No entry today');
  // The name sits centred beside its icon.
  const [icon,name]=await Promise.all([bar.locator('.exercise-medallion').boundingBox(),bar.locator('h3').boundingBox()]);
  expect(Math.abs((icon!.y+icon!.height/2)-(name!.y+name!.height/2))).toBeLessThanOrEqual(2);
@@ -48,9 +51,10 @@ for(const width of [320,360,390,430])
   await page.mouse.move(1,1);
   // Session AB-Design (owner request 22, ADR-024 D20): one thin row per exercise on every width — icon, name, − value + on
   // one line; the name may end in an ellipsis, the figure and both buttons stay whole; the card's one ⋯ opens Manage counters.
+  // (Session AH Part 18: the figure is the count button, typed in place; same measurements.)
   const bars=await page.locator('.exercise-counter').evaluateAll(els=>els.map(e=>{
-   const b=e.getBoundingClientRect(),box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),h3=e.querySelector('h3')!,out=e.querySelector('output')!;
-   const icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),count=box('output');
+   const b=e.getBoundingClientRect(),box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),h3=e.querySelector('h3')!,out=e.querySelector('.exercise-count')!;
+   const icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),count=box('.exercise-count');
    return {
     name:h3.textContent,
     nameBesideIcon:icon.right<=name.left&&Math.abs((icon.top+icon.bottom)/2-(name.top+name.bottom)/2)<=12,

@@ -1,4 +1,5 @@
 'use client';
+import {YourPoolShares, type ShareRead} from './your-shares';
 import type {LiveState} from '../../lib/earn/client';
 import {bps, decimal, tokenAmount, usd} from '../../lib/earn/format';
 import type {DefillamaData, OroswapData} from '../../lib/earn/live/types';
@@ -20,7 +21,7 @@ export const OROSWAP_GUIDE: Guide<'oroswap'> = {id: 'oroswap-swap', app: 'OroSwa
   steps: ['On OroSwap, connect your wallet (Keplr or Leap, for example) and check ZIGChain is selected.', 'Choose the token you give and the token you get, and the amount.', 'Check the price impact and the slippage limit before you go on: in a small pool a large swap moves the price.', 'Press Swap and review in your wallet: you sign one swap and nothing else.', 'The new token lands in your wallet. ZIGoals shows it once your wallet is read.']};
 export const OROSWAP_POOL_GUIDE: Guide<'oroswap'> = {id: 'oroswap-pool', app: 'OroSwap', title: 'Add liquidity on OroSwap', provider: 'oroswap', kind: 'pools', open: 'Open OroSwap pools', option: 'oroswap',
   steps: ['On OroSwap’s Pools page, connect your wallet and choose a pool.', 'Enter amounts of both tokens of equal value (the page fills in the second one).', 'Review in your wallet: you sign one transaction that sends both tokens to the pool and returns LP tokens, your share.', 'Your share earns part of every swap’s fee in that pool.', 'To leave: Portfolio, Remove liquidity, then choose how much.']};
-export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<OroswapData>; llama: LiveState<DefillamaData>; now: number}) {
+export function OroswapSection({oroswap, llama, now, shares = []}: {oroswap: LiveState<OroswapData>; llama: LiveState<DefillamaData>; now: number; shares?: readonly ShareRead[]}) {
   const data = oroswap.phase === 'ok' ? oroswap.answer.data : null;
   const unavailable = oroswap.phase === 'unavailable' ? oroswap.reason : 'UPSTREAM_DOWN';
   return <OptionSection id="oroswap" eyebrow="OroSwap · exchange and pools" title="Swap, or earn swap fees in a pool"
@@ -55,8 +56,8 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
         <Risk chain="each token’s full name (its denom) in ZIGChain’s own records; see Safety below" tap={<WhatsThis term="decoy"/>}>Token risk: a copy can carry a real token’s name. Check every token is the real one by its full denom before you swap or add it.</Risk>
       </ul>},
     ]}
-    // Session AF Gate C (ADR-028 H134, ledger P1.23): your own share here is not read this session; the section says where it is seen.
-    mine={<p className="fine earn-your-share">Your own pool share: OroSwap&rsquo;s Portfolio page shows it once you connect there. ZIGoals reads your stake and stZIG on this page, not pool shares yet.</p>}
+    // Session AH (AF3): your own pool shares, read through /api/earn/shares (components/earn/your-shares.tsx).
+    mine={<YourPoolShares reads={shares} oroswap={oroswap}/>}
     steps={[
       {text: 'Open OroSwap (a new tab) and connect your wallet.'},
       {text: 'To swap: choose the two tokens and the amount, check the price impact and slippage, and press Swap.', sign: 'one swap through the pool. Nothing else.'},

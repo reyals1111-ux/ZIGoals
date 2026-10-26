@@ -53,3 +53,13 @@ test('a servings line of its own is the yield, never an ingredient (the import-r
   expect(r.servings).toBe(4); expect(r.ingredients.map(i => i.name)).toEqual(['red lentils', 'onion']);
   expect(parseRecipeText('Soep\n4 personen\n100 g rijst').ingredients.map(i => i.name)).toEqual(['rijst']);
 });
+
+test('Session AH (HE14): a line led by its name keeps its amount; a first line that is an ingredient is not taken as the title', () => {
+  expect(parseIngredientLine('Flour, 200 g')).toMatchObject({name: 'Flour', quantity: 200, unit: 'g', grams: 200});
+  expect(parseIngredientLine('Milk 300 ml')).toMatchObject({name: 'Milk', quantity: 300, unit: 'ml', grams: 300});
+  expect(parseIngredientLine('Eggs 2')).toMatchObject({name: 'Eggs', quantity: 2, unit: null});
+  expect(parseIngredientLine('Salt to taste')).toMatchObject({name: 'Salt to taste', quantity: null});
+  const r = parseRecipeText('Butter 50 g\nSugar 100 g\n2 eggs');
+  expect(r.title).toBe('Pasted recipe');
+  expect(r.ingredients.map(i => i.name)).toEqual(['Butter', 'Sugar', 'eggs']);
+});

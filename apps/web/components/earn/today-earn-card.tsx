@@ -38,7 +38,7 @@ export function TodayEarnCard(layout: Partial<LayoutAttrs>) {
       <div className="today-earn-body">
         <p className="eyebrow">Earn · start here</p>
         <h2 id="today-earn-title">Learn to stake, earn and swap — in 30 minutes</h2>
-        <p className="today-earn-lede">Six steps from no wallet to your first stake, with a free practice round first. You sign in your own wallet; ZIGoals never holds your keys.</p>
+        <p className="today-earn-lede">Six steps that show how staking works, with a free practice round first. You sign in your own wallet; ZIGoals never holds your keys.</p>
         <p className="today-earn-actions"><Link className="primary" href="/app/earn#start-here">Start here</Link> <button type="button" className="secondary" onClick={dismiss}>Not now</button></p>
         <p className="fine today-earn-note">“Not now” hides this card on this device; Earn’s Start-here brings it back.</p>
         {error && <p role="alert" className="fine">{error}</p>}

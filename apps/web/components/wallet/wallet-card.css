@@ -1,13 +1,12 @@
-/* Session AE (Part 6, ADR-027): Today's wallet card — the chooser and the display-currency switch, in a row reserved at
-   first paint (44 px) so nothing moves when they load. The card stays a night island in every theme. */
+/* Session AE (Part 6, ADR-027): Today's wallet card — the wallet chooser (only with a linked wallet). Session AH (TR7): the
+   display-currency switch is gone, so the row takes no room when there is nothing to choose. The card stays a night island
+   in every theme. */
+.account-panel .wallet-card-controls:empty { display: none; }
 .account-panel .wallet-card-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; margin: 0 0 12px; }
 .account-panel .wallet-card-choice { display: flex; flex: 1 1 100%; min-width: 0; max-width: 100%; font-size: 14px; color: #c4d6f0; }
 .account-panel .wallet-card-choice select { flex: 1 1 auto; min-width: 0; max-width: 100%; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid #5de5e33d; background: #061222; color: var(--text, #f0f5ff); font: inherit; font-size: 14px; }
-.account-panel .wallet-card-currency { display: inline-flex; gap: 4px; padding: 2px; border-radius: 14px; border: 1px solid #5de5e324; background: #061222c9; }
-.account-panel .wallet-card-currency button { min-width: 44px; min-height: 44px; padding: 0 8px; border: 0; border-radius: 11px; background: transparent; color: #c4d6f0; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
-.account-panel .wallet-card-currency button:hover, .account-panel .wallet-card-currency button:focus-visible { color: #fff; background: #ffffff12; }
-.account-panel .wallet-card-currency button[aria-pressed="true"] { color: #04101f; background: linear-gradient(90deg, #6fe6f6, #a3a0ff); }
-.account-panel .wallet-card-unavailable { font-size: 23px; color: #c4d6f0; }
 .account-panel .wallet-card-address { font-size: 23px; overflow-wrap: anywhere; }
 .account-panel .wallet-card-error { flex-basis: 100%; margin: 0; max-width: none; font-size: 14px; color: #ffb4c8; }
-@media (forced-colors: active) { .account-panel .wallet-card-currency, .account-panel .wallet-card-choice select { border-color: CanvasText; } .account-panel .wallet-card-currency button[aria-pressed="true"] { outline: 2px solid CanvasText; } }
+
+.account-panel .wallet-card-why { font-size: 14px; color: #c4d6f0; }
+@media (forced-colors: active) { .account-panel .wallet-card-choice select { border-color: CanvasText; } }

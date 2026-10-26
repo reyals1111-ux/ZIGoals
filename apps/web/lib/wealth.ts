@@ -45,7 +45,7 @@ export function ringSegments(mix:readonly AssetMix[],progressPct:string){
  const total=mix.reduce((n,m)=>n+m.percent,0),filled=Math.max(0,Math.min(100,Number(progressPct)));let offset=0;
  return mix.filter(m=>m.percent>0).map(m=>{const size=total?m.percent/total*filled:0;const segment={...m,size,offset};offset+=size;return segment;});
 }
-function automaticMarketRef(p:Position):MarketAssetRef|undefined{
+export function automaticMarketRef(p:Position):MarketAssetRef|undefined{
  if(p.marketRef&&p.valuationMode==='automatic')return p.marketRef;
  return !p.marketRef&&p.valuationMode!=='manual'&&isNativeZig(p)&&p.providerId==='native-zig'?nativeZigRequest.marketRef:undefined;
 }
@@ -142,16 +142,23 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
   const requestedCurrency=p.quoteCurrency??'USD';
   const matching=validQuotes.filter(q=>quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
-  const currency=p.valuation?.currency??matching?.currency??(p.valuationMode==='automatic'?requestedCurrency:undefined);
-  const value=p.valuation?BigInt(p.valuation.value)*100n/10n**BigInt(p.valuation.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
+  // Session AH Part 4 (TR8, B1, ADR-033 M16): one price per holding. A market quote newer than a stored snapshot that is
+  // not the person's own value replaces it (the reward reserve was valued at an older $0.06 beside a shown $0.048); a
+  // value the person typed (MANUAL) always stays theirs, with the market's value kept beside it (TR5/B7).
+  const quoteAt=matching?Date.parse(matching.observedAt??matching.fetchedAt??''):NaN,snapshotAt=p.valuation?Date.parse(p.valuation.observedAt):NaN;
+  const own=p.valuation&&(p.valuation.source==='MANUAL'||!matching||!(quoteAt>snapshotAt)||matching.currency!==p.valuation.currency)?p.valuation:undefined;
+  const currency=own?.currency??matching?.currency??(p.valuationMode==='automatic'?requestedCurrency:undefined);
+  const value=own?BigInt(own.value)*100n/10n**BigInt(own.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
+  const marketValue=matching&&own?.source==='MANUAL'&&matching.currency===own.currency?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
-  const valuationState=p.valuation?.source==='MANUAL'?'manual':p.valuation?snapshotIsStale(p.valuation.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
-  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,source:p.valuation?.source==='MANUAL'?'Manual value':p.valuation?'Verified Position value':matching?.source,valuedAt:p.valuation?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
+  const valuationState=own?.source==='MANUAL'?'manual':own?snapshotIsStale(own.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
+  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,marketValue,source:own?.source==='MANUAL'?'Manual value':own?'Verified Position value':matching?.source,valuedAt:own?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
  });
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];
   const subtotals=currencies.map(currency=>{const members=items.filter(r=>r.currency===currency&&r.value!==undefined);return {currency,value:members.reduce((n,r)=>n+r.value!,0n),allocated:members.reduce((n,r)=>n+r.allocatedValue!,0n),unallocated:members.reduce((n,r)=>n+r.unallocatedValue!,0n)};});
-  return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1};
+  // Session AH (WE5, B-032): why a total is incomplete, kept apart: a value missing, or more than one currency.
+  return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1,missingValue:items.some(r=>r.value===undefined),mixedCurrencies:currencies.length>1};
  };
  return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.wealthClass===assetClass);return {assetClass,items,...summarize(items)};})};
 }

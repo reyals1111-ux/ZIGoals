@@ -52,7 +52,7 @@ test('fixture A: three entries on two days with an unknown serving measure, blan
   await expect(page.getByText('Serving measure unknown').first()).toBeVisible();
   const banner = page.locator('.import-banner');
   await expect(banner).toContainText('3 entries and 0 foods imported.');
-  const undo = banner.getByRole('button', {name: 'Undo', exact: true});
+  const undo = banner.getByRole('button', {name: 'Undo import', exact: true}); // Session AH (HE9): the strip's own label
   expect((await undo.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await undo.click();
   await expect(banner).toHaveCount(0);

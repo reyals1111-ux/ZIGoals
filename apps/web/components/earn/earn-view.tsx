@@ -21,6 +21,7 @@ import {OroswapSection} from './oroswap-section';
 import {SafetyBlock} from './safety-block';
 import {StartHereSection} from './start-here-section';
 import {useEarnWallets, usePositionReads, useStakingFacts, walletReads} from './use-earn-positions';
+import {useEarnShares} from './your-shares';
 import {useEarnLive, useMinuteClock} from './use-earn-live';
 import {ValdoraSection} from './valdora-section';
 import {ValidatorsSection} from './validators-section';
@@ -47,7 +48,7 @@ export function EarnView() {
   const chain = useEarnLive('chain'), valdora = useEarnLive('valdora'), oroswap = useEarnLive('oroswap'), llama = useEarnLive('defillama'), validators = useEarnLive('validators');
   const vaults = useEarnLive('vaults'), measured = useEarnLive('measured');
   const wallets = useEarnWallets(), {journal} = useStakingFacts();
-  const reads = usePositionReads(wallets, journal);
+  const reads = usePositionReads(wallets, journal), shares = useEarnShares(wallets);
   const facts: StartFacts = useMemo(() => ({linked: wallets.filter(w => w.via === 'linked').length, connected: wallets.filter(w => w.via !== 'linked').length, journal, reads: walletReads(reads)}), [wallets, journal, reads]);
   const live = useMemo(() => ({chain, oroswap}), [chain, oroswap]);
   const chips = useMemo(() => EARN_SECTIONS.filter(s => !('when' in s) || wallets.length > 0).map(s => ({id: s.id, label: s.label})), [wallets.length]);
@@ -56,8 +57,8 @@ export function EarnView() {
   const calculatorHref = rate ? `/app/wealth/calculator?${new URLSearchParams({from: 'earn', rate: rounded(fixed(rate) * 100n, 2), label: 'illustration'})}` : null;
   return <GuideProvider>
     <div className="dashboard earn-page">
-      <PageHeader className="page-heading earn-hero" titleId="earn-title" eyebrow="Wealth · Earn" title="Make your money work"
-        lede="Every live way to earn on ZIGChain, in plain words, with numbers read live from their own sources. You choose and you sign in your own wallet; ZIGoals shows the way and never holds your keys."
+      <PageHeader className="page-heading earn-hero" titleId="earn-title" eyebrow="Wealth · Earn" title="Ways to earn on ZIGChain"
+        lede="The ways to earn on ZIGChain that ZIGoals reads, in plain words, with figures read live from their own sources. Information, not advice: you decide, and you sign in your own wallet; ZIGoals never holds your keys."
         actions={<><a className="primary" href="#start-here">Start here</a> <a className="secondary" href="#safety">Safety first</a></>}
         art={<OrbitArt glyph={EarnGlyph} tone="wealth" spin={-24}/>}/>
       <p className="earn-hero-note fine">Options are listed in the order the network is built, not by how much they pay. Nothing here is advice or a promise of returns.</p>
@@ -68,8 +69,8 @@ export function EarnView() {
         <SectionBoundary id="start-here" title="Start here"><StartHereSection facts={facts} live={live}/></SectionBoundary>
         <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><NativeSection chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><ValdoraSection valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
-        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><VaultsSection vaults={vaults} valdora={valdora} now={now}/></SectionBoundary>
-        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><OroswapSection oroswap={oroswap} llama={llama} now={now}/></SectionBoundary>
+        <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><VaultsSection vaults={vaults} valdora={valdora} now={now} shares={shares}/></SectionBoundary>
+        <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><OroswapSection oroswap={oroswap} llama={llama} now={now} shares={shares}/></SectionBoundary>
         <SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><NawaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="defa" title="Invoice finance pools: DeFa"><DefaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><PermapodSection llama={llama} now={now}/></SectionBoundary>

@@ -1,6 +1,8 @@
+import {isMoneyCurrency} from '../visual-format';
+import {isVerifiedAsset} from '../market-assets';
 import {addTransaction, checkHistories, removeTransaction} from '../portfolio/store';
 import {coinKey, type PortfolioCoin, type PortfolioData, type PortfolioTransaction} from '../portfolio/schema';
-import {HoldingsBelowZero} from '../portfolio/math';
+import {HoldingsBelowZero, PortfolioDecimal} from '../portfolio/math';
 import {MANUAL_SOURCES, manualSourcePosition, type ManualSource} from '../manual-source';
 import {platformSchema, saveManualPosition, type Platform} from '../positions';
 import type {MarketCatalogAsset} from '../market-assets';
@@ -26,7 +28,10 @@ export function resolveCoinWith(catalog: readonly MarketCatalogAsset[] | null, f
   return text => {
     const query = text.trim().toLowerCase(); if (!query) return null;
     const bySymbol = coins.filter(c => c.symbol.toLowerCase() === query);
-    if (bySymbol.length === 1) return bySymbol[0]!; if (bySymbol.length > 1) return bySymbol;
+    if (bySymbol.length === 1) return bySymbol[0]!;
+    // Session AH (WE3, T-100): "BTC" is Bitcoin: of several coins with one ticker, the single well-known one is meant.
+    const known = bySymbol.filter(c => isVerifiedAsset(c.ref)); if (known.length === 1) return known[0]!;
+    if (bySymbol.length > 1) return bySymbol;
     const byName = coins.filter(c => c.name.toLowerCase() === query);
     return byName.length === 1 ? byName[0]! : byName.length > 1 ? byName : null;
   };
@@ -56,6 +61,18 @@ export function planTransactionImport({rows, mapping, numberStyle, dateFormat, t
     plan.ready.push({row, coinText, coin: resolved, kind, quantity, ...(price !== null ? {price} : {}), ...(fee !== null ? {fee} : {}), date, note: cell(cells, mapping, 'note').slice(0, 500)});
   });
   return plan;
+}
+/**
+ * Session AH (J14): rows that look like a transaction the portfolio already has (the same coin, type, date, quantity and
+ * price), so importing the same file twice does not double a history. Repeats inside one file are left alone: two equal buys
+ * on one day can be real. The person decides; the panel skips them by default.
+ */
+export function duplicateRows(portfolio: {transactions: readonly PortfolioTransaction[]} | undefined, ready: readonly ReadyTransaction[]): Set<number> {
+  const same = (a?: string, b?: string) => a === undefined || b === undefined ? a === b : new PortfolioDecimal(a).equals(b);
+  const found = new Set<number>();
+  if (!portfolio) return found;
+  for (const r of ready) if (portfolio.transactions.some(t => t.coin === coinKey(r.coin.ref) && t.kind === r.kind && t.date === r.date && same(t.quantity, r.quantity) && same(t.price, r.price))) found.add(r.row);
+  return found;
 }
 export const transactionImportId = (importId: string, row: number) => `imp_${importId}_${row}`;
 /** The coins a portfolio did not list before an import: named in the undo ledger as `coin:<key>`, so Undo can drop them again. */
@@ -88,8 +105,10 @@ export function planHoldingsImport({rows, mapping, numberStyle}: {rows: readonly
   rows.forEach((cells, index) => {
     const row = index + 1, refuse = (reason: string) => plan.refused.push({row, reason: `Row ${row}: ${reason}`});
     const name = cell(cells, mapping, 'name'), currency = cell(cells, mapping, 'currency').toUpperCase();
+    // Session AH (WE3, L-072): a name that a spreadsheet would run as a formula is refused with the reason.
+    if (/^[=+\-@\t\r]/.test(name)) { plan.refused.push({row: index + 1, reason: `Row ${index + 1}: the name starts with “${name[0] === '\t' ? 'a tab' : name[0]}”, which a spreadsheet would run as a formula. Remove that first character.`}); return; }
     if (!name) return refuse('the name is blank.');
-    if (!/^[A-Z]{3}$/.test(currency)) return refuse('the currency must be three letters, for example EUR.');
+    if (!isMoneyCurrency(currency)) return refuse(`“${currency}” is not a currency code; use one such as EUR, USD or GBP.`);
     let quantity: string | null, value: string | null;
     try { quantity = parseNumberCell(cell(cells, mapping, 'quantity'), numberStyle); } catch { return refuse('the quantity is not a number.'); }
     try { value = parseNumberCell(cell(cells, mapping, 'value'), numberStyle); } catch { return refuse('the value is not a number.'); }

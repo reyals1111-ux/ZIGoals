@@ -1,0 +1,7 @@
+/* Session AH (HA15; D-178, D-192): the 30-day heatmap in Light: an empty day is a clear outlined cell, each level darker
+   than the last, every number on its own background at 4.5:1 or more. */
+:root[data-theme=light] .habit-month-grid>span:not(#\-) { background-color: #f7f8fb; border-color: #8f9ab0; color: #2a3346; }
+:root[data-theme=light] .habit-month-grid>span[data-level=some]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=some]:not(#\-) { background-color: #c7d4ef; border-color: #7f92ba; color: #10182a; }
+:root[data-theme=light] .habit-month-grid>span[data-level=many]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=many]:not(#\-) { background-color: #6f5aa8; border-color: #5a4890; color: #fff; }
+:root[data-theme=light] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=full]:not(#\-) { background-image: linear-gradient(135deg,#2f8fae,#5d55c4,#9a4fa8); color: #fff; }
+:root[data-theme=light] .habit-month-legend i:not(#\-) { border: 1px solid #8f9ab0; }

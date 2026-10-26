@@ -4,6 +4,7 @@ import { addLocalDays, localDate } from "./local-date";
 import { formatDate, formatRelativeDay } from "./visual-format";
 import { journalTimeZone } from "./journal-zone";
 import { wallClock } from "./zone-time";
+import { checkInsOn } from "./numbers/counts";
 
 /** Saved diary snapshots, never current library values or assumed missing meals. */
 export function nutritionDashboard(data: HealthData, date: string) {
@@ -23,7 +24,8 @@ export function habitConsistency(habits: Habit[], today: string) {
   const days = Array.from({ length: 30 }, (_, index) => {
     const date = addLocalDays(today, index - 29);
     const outcomes = habits.map(habit => habitDay(habit, date, today));
-    const checkins = habits.filter(habit => habit.entries.some(entry => entry.date === date && entry.disposition === "logged")).length;
+    // Session AH (TR6, M-081): a check-in is a scheduled day completed, as Journey, Life review and the weekly review count it.
+    const checkins = checkInsOn(habits, date, today);
     return { date, completed: outcomes.filter(day => day.status === "complete").length, scheduled: outcomes.filter(day => day.scheduled).length, checkins };
   });
   return { days, week: days.slice(-7), checkins: days.reduce((sum, day) => sum + day.checkins, 0), activeDays: days.filter(day => day.checkins > 0).length };
@@ -48,6 +50,17 @@ export function activityPresentation(event: { category: string; title: string; d
 }
 
 /** The day an event belongs to, in the journal's zone when one is chosen (as Habits and Health count days), else the device's. */
+/** Session AH (TR12, D-227): an event's day — the record's own day when it has one (a meal logged today for yesterday sits
+ * under yesterday), else the day of its time in the journal zone. */
+export function activityDay(event: { at: string; day?: string }) {
+  if (event.day) return event.day;
+  const zone = journalTimeZone(), time = Date.parse(event.at);
+  return Number.isFinite(time) ? (zone ? wallClock(time, zone).date : localDate(new Date(time))) : event.at.slice(0, 10);
+}
+export function activityDayHeading(day: string, today?: string) {
+  const zone = journalTimeZone(), now = today ?? (zone ? wallClock(Date.now(), zone).date : localDate());
+  return formatRelativeDay(day, now, { weekday: true });
+}
 export function activityDateHeading(at: string, today?: string) {
   const zone = journalTimeZone(), day = (ms: number) => zone ? wallClock(ms, zone).date : localDate(new Date(ms));
   const time = Date.parse(at);

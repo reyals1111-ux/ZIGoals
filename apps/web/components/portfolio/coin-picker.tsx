@@ -1,7 +1,7 @@
 'use client';
 import {useEffect, useMemo, useState} from 'react';
 import {createCatalogLoader} from '../../lib/market-catalog-client';
-import {searchMarketAssets, type MarketAssetRef, type MarketCatalogAsset} from '../../lib/market-assets';
+import {isVerifiedAsset, searchMarketAssets, type MarketAssetRef, type MarketCatalogAsset} from '../../lib/market-assets';
 import {FEATURED_MARKETS} from '../../lib/product-insights';
 import {coinKey, type PortfolioCoin} from '../../lib/portfolio/schema';
 
@@ -32,6 +32,6 @@ export function CoinPicker({value, onChange}: {value: PortfolioCoin | null; onCh
     {catalog === null && !failed && <p className="fine" role="status">Loading the coin list…</p>}
     {fallback && <p className="fine" role="status">The full coin list is unavailable right now. These featured coins can be added.</p>}
     {!results.length && <p className="fine">No coin in the list matches. ZIGoals does not guess from a ticker.</p>}
-    {!!results.length && <ul className="portfolio-coin-results" aria-label="Coins">{results.slice(0, 20).map(coin => <li key={coinKey(coin.ref)}><button type="button" aria-pressed={!!value && coinKey(value.ref) === coinKey(coin.ref)} onClick={() => onChange(coin)}><strong>{coin.name}</strong><span>{coin.symbol}</span></button></li>)}</ul>}
+    {!!results.length && <ul className="portfolio-coin-results" aria-label="Coins">{results.slice(0, 20).map(coin => <li key={coinKey(coin.ref)}><button type="button" aria-pressed={!!value && coinKey(value.ref) === coinKey(coin.ref)} onClick={() => onChange(coin)}><strong>{coin.name}</strong><span>{coin.symbol}</span>{/* Session AH (WE1) */}{!isVerifiedAsset({...coin.ref, kind: 'coin'}) && <small className="asset-unverified">Unverified: check the project before you add it</small>}</button></li>)}</ul>}
   </fieldset>;
 }

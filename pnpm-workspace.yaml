@@ -29,3 +29,29 @@ overrides:
   # pins sharp to exactly 0.35.4; the patch release 0.35.5 is the fix. Remove once
   # miniflare pins >=0.35.5.
   "miniflare>sharp": 0.35.5
+  # Session AH Part 1, audit fix (GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw,
+  # GHSA-587h-7wmj-h5pm, GHSA-9jrq-w75r-8gcw, GHSA-rq7h-c2jc-7f22,
+  # GHSA-vfpm-58rq-9qcg; AF14 launch-editor): vite reaches the tree only as
+  # vitest's peer (test runner, dev server never used); the locked 8.3.0 is
+  # vulnerable, 8.3.3 is the first fixed patch. Remove once the lock resolves
+  # >=8.3.3 without it.
+  "vite": 8.3.3
+  # Session AH Part 1, audit fix (GHSA-5j98-mcp5-4vw2, high; the glob CLI's
+  # -c/--cmd only): @node-minify/core 9.0.2 (through @opennextjs/aws, build
+  # tooling) pins glob to exactly 10.3.3; no 10.3.x or 10.4.x fix exists, 10.5.0
+  # is the first fixed release (same major). Remove once @node-minify/core pins
+  # >=10.5.0.
+  "@node-minify/core>glob": 10.5.0
+  # Session AH Part 1, audit fix (GHSA-27r3-jxmh-p828, high): express 5.2.1
+  # (through @opennextjs/aws, build and local tooling) declares body-parser
+  # ^2.2.1 and the lock holds 2.3.0; no 2.3.x fix exists, 2.4.0 is the first
+  # fixed release. Remove once the lock resolves >=2.4.0 without it.
+  "express>body-parser": 2.4.0
+  # Session AH Part 1, audit fix (GHSA-4qv8-2p9j-2685, GHSA-f72v-6w45-q472,
+  # GHSA-xjj6-f33q-929c high): miniflare (through wrangler; local preview and
+  # test runtime only) pins undici to exactly 7.29.1, fixed in the patch 7.30.1;
+  # jsdom 30.0.1 (unit tests only) declares undici ^8.9.0 and the lock holds
+  # 8.10.2, fixed in 8.12.2. Remove once miniflare pins >=7.30.1 and the lock
+  # resolves jsdom's undici >=8.12.2 without them.
+  "miniflare>undici": 7.30.1
+  "jsdom>undici": 8.12.2

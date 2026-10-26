@@ -48,11 +48,22 @@ test('N1–N3: the trend, the energy estimate and the coach show from six weeks 
   await expect.poll(() => stored(page, HEALTH_COACH_KEY)).toMatchObject({version: 1, answers: {'2026-10-05': {answer: 'keep'}}});
   expect((await stored(page, HEALTH_STORAGE_KEY) as HealthData).targets.kcal).toBe(2200);
   await page.evaluate(k => localStorage.removeItem(k), HEALTH_COACH_KEY); await page.reload();
-  const adjust = page.getByRole('region', {name: 'Your coach'}).getByRole('button', {name: /^Adjust to \d+ kcal$/});
+  // Assertion changed (Session AH HE2; stronger): Adjust asks first, moves at most 15 % from 2,200, scales the macros,
+  // and offers Undo; nothing is written before the confirm.
+  const coachRegion = page.getByRole('region', {name: 'Your coach'});
+  const adjust = coachRegion.getByRole('button', {name: /^Adjust to \d+ kcal…$/});
   const kcal = Number(/\d+/.exec((await adjust.textContent()) ?? '')?.[0]);
+  expect(Math.abs(kcal - 2200)).toBeLessThanOrEqual(330);
+  const before = ((await stored(page, HEALTH_STORAGE_KEY)) as HealthData).targets;
   await adjust.click();
-  await expect(page.getByRole('region', {name: 'Your coach'}).getByText('You adjusted your target this week.')).toBeVisible();
+  expect(((await stored(page, HEALTH_STORAGE_KEY)) as HealthData).targets.kcal).toBe(2200);
+  await coachRegion.getByRole('alertdialog').getByRole('button', {name: 'Adjust my target'}).click();
+  await expect(coachRegion.getByText('You adjusted your target this week.')).toBeVisible();
   await expect.poll(async () => ((await stored(page, HEALTH_STORAGE_KEY)) as HealthData).targets.kcal).toBe(kcal);
+  const after = ((await stored(page, HEALTH_STORAGE_KEY)) as HealthData).targets;
+  if (before.proteinMg) expect(after.proteinMg).toBe(Math.max(1, Math.round(before.proteinMg * kcal / 2200)));
+  await page.locator('.aa-toast').getByRole('button', {name: 'Undo'}).click();
+  await expect.poll(async () => ((await stored(page, HEALTH_STORAGE_KEY)) as HealthData).targets.kcal).toBe(2200);
 });
 
 test('N4, N7: a micronutrient target edited on the device; unknown stays unknown; the macro mode is a view only', async ({page}) => {
@@ -101,7 +112,7 @@ test('N6: pasted recipe text becomes confirmable rows, then foods and a recipe; 
   const panel = page.getByRole('region', {name: 'Import a recipe'});
   await panel.getByLabel('Recipe text').fill('Fictional chickpea stew\nServes 3\n\nIngredients\n400 g chickpeas\n1 onion, chopped\n2 tbsp olive oil\n100 g Fictional lentils\n\nMethod\n1. Cook.');
   await panel.getByRole('button', {name: 'Read the ingredients', exact: true}).click();
-  await expect(panel.getByText('4 ingredients found, 1 steps left aside.')).toBeVisible();
+  await expect(panel.getByText('4 ingredients found, 1 step left aside.')).toBeVisible();
   await expect(panel.getByRole('textbox', {name: 'Ingredient 1 name'})).toHaveValue('chickpeas');
   await expect(panel.getByRole('textbox', {name: 'Ingredient 4 grams'})).toHaveValue('100');
   await panel.getByRole('button', {name: 'Drop ingredient 2'}).click();

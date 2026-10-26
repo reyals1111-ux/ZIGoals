@@ -21,10 +21,12 @@ export function healthGoalProgress(goal: HealthGoal, health: HealthData, today: 
   if (goal.measure === 'weight') {
     const trend = weightTrend(health, through);
     if (trend.count === 0 || trend.averageGrams === null) return {kind: 'no-data', ended};
-    const perUnit = goal.unit === 'lb' ? LB_GRAMS : 1000, current = Math.round(trend.averageGrams / perUnit * 100) / 100, targetGrams = Math.round(target * perUnit);
-    const latest = trend.readings.at(-1)!;
-    return {kind: 'value', current, target, unit: goal.unit, percent: null, days: trend.count, done: goal.direction === 'down' ? trend.averageGrams <= targetGrams : trend.averageGrams >= targetGrams,
-      detail: `30-day average of ${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} · latest ${number(latest.grams / perUnit, 2)} ${goal.unit} on ${formatDate(latest.date)}`, ended};
+    // Session AH (GO11, N-004): a weight goal follows your latest reading, as every weight app does; the 30-day average
+    // stays beside it as context (it smooths day-to-day swings, it is not where you are).
+    const perUnit = goal.unit === 'lb' ? LB_GRAMS : 1000, targetGrams = Math.round(target * perUnit);
+    const latest = trend.readings.at(-1)!, current = Math.round(latest.grams / perUnit * 100) / 100;
+    return {kind: 'value', current, target, unit: goal.unit, percent: null, days: trend.count, done: goal.direction === 'down' ? latest.grams <= targetGrams : latest.grams >= targetGrams,
+      detail: `Latest reading on ${formatDate(latest.date)} · 30-day average ${number(trend.averageGrams / perUnit, 2)} ${goal.unit} over ${trend.count} ${trend.count === 1 ? 'reading' : 'readings'}`, ended};
   }
   if (goal.measure === 'steps' || goal.measure === 'activeMinutes') {
     const recorded = window.filter(date => health.activity.some(a => a.date === date));

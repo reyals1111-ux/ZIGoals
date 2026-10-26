@@ -114,6 +114,17 @@ export function formatPrice(value:string,currency:string,locale=displayLocale())
  while(small>digits&&fixed.endsWith('0')&&fixed.split('.')[1]!.length>digits)fixed=fixed.slice(0,-1);
  return formatExactNumber(fixed,locale,currency);
 }
+/**
+ * Session AH Part 4 (TR4/B2, M17): a quantity of something that is not money (BTC, ZIG, a share count) in a list or a
+ * card: at most `maxDecimals` decimals (8), cut toward zero, trailing zeros dropped, and "≈ " in front when digits were
+ * cut, so a 23-digit amount never fills a row. Detail views keep formatExactNumber.
+ */
+export function formatQuantity(value:string,maxDecimals=8,locale=displayLocale()){
+ if(!/^-?\d+(?:\.\d+)?$/.test(value))return 'Unavailable';
+ const [integer,fraction='']=value.split('.'),kept=fraction.slice(0,maxDecimals).replace(/0+$/,''),cut=/[1-9]/.test(fraction.slice(maxDecimals));
+ const text=kept?`${integer}.${kept}`:integer!;
+ return `${cut?'≈ ':''}${formatExactNumber(text==='-0'?'0':text,locale)}`;
+}
 export function progressPresentation(value:number|string|null|undefined,complete?:boolean){
  if(value===null||value===undefined||value===''||typeof value==='string'&&!/^\d+(?:\.\d+)?$/.test(value))return null;
  const exact=new Decimal(value);if(!exact.isFinite()||exact.isNegative())return null;

@@ -17,7 +17,9 @@ test('wealth leads collapsed read-only utilities and APR stays account-scoped',a
  await open('scenario');await page.getByLabel('Net APR assumption %',{exact:true}).fill('6');await page.getByRole('button',{name:'Save APR assumption'}).click();await expect(page.getByRole('status').filter({hasText:'Net APR assumption saved'})).toContainText('Net APR assumption saved');
  await page.reload();await expect(scenario.locator('summary')).toContainText('6%');
  await open('scenario');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('6');
- await open('wallet');await page.getByLabel('Read-only network').selectOption('TESTNET_READ_ONLY');await open('scenario');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('');
+ await open('wallet');await page.getByLabel('Read-only network').selectOption('TESTNET_READ_ONLY');await open('scenario');
+ // Session AH (ST3): on a network with no tracked account the saved 6% is not carried over: the scenario offers a try-out with nothing saved.
+ await expect(scenario.locator('summary')).toContainText('Not set');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveCount(0);await expect(page.locator('[data-staking-try]').first()).toBeVisible();
  await open('wallet');await page.getByLabel('Read-only network').selectOption('MAINNET_READ_ONLY');await open('scenario');await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('6');
  await closeFormSheet(page);
  for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`positions ${width}`).toBe(true);}

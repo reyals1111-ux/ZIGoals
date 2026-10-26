@@ -6,7 +6,7 @@ import {useMarketInsights} from './use-market-insights';
 import {FEATURED_MARKETS,marketCategory} from '../../lib/product-insights';
 import {marketRequestKey} from '../../lib/market-assets';
 import {AssetIcon} from './financial-ui';
-import {searchMarketAssets,type MarketCatalogAsset} from '../../lib/market-assets';
+import {isVerifiedAsset,searchMarketAssets,type MarketCatalogAsset} from '../../lib/market-assets';
 
 /* Session AD (weights): the two helpers live in asset-source.ts, so a page can hold the picker without this search. */
 export {automaticSourcePosition,automaticUnitLabel,type AutomaticSourceInput} from './asset-source';
@@ -37,7 +37,7 @@ export function AssetSearch({selected,onSelect,onManual,disabled=false,category}
   {!!results.length&&<ul className="asset-search-results" aria-label="Market assets">{results.map(asset=>{
    const key=`${asset.ref.provider}:${asset.ref.kind}:${asset.ref.id}:${asset.ref.kind==='coin'?asset.ref.platform??'base':asset.ref.assetType}`;
    const active=selected&&JSON.stringify(selected.ref)===JSON.stringify(asset.ref);
-   return <li key={key}><button type="button" aria-pressed={!!active} onClick={()=>onSelect(asset)} disabled={disabled}><AssetIcon symbol={displaySymbol(asset)} kind={marketCategory(asset.ref,asset.symbol)} logoUrl={insights.results[marketRequestKey({marketRef:asset.ref,currency:'USD'})]?.insight?.logoUrl}/><span className="asset-result-copy"><strong>{asset.name}</strong><small>{identityLabel(asset)}</small>{asset.ref.kind==='coin'&&asset.ref.contractAddress&&<small className="asset-result-contract">{asset.ref.contractAddress}</small>}</span><span className="asset-result-action">{active?'Selected':'Choose'}</span></button></li>;
+   return <li key={key}><button type="button" aria-pressed={!!active} onClick={()=>onSelect(asset)} disabled={disabled}><AssetIcon symbol={displaySymbol(asset)} kind={marketCategory(asset.ref,asset.symbol)} logoUrl={insights.results[marketRequestKey({marketRef:asset.ref,currency:'USD'})]?.insight?.logoUrl}/><span className="asset-result-copy"><strong>{asset.name}{/* Session AH (WE1): a coin outside the well-known list says so */}{!isVerifiedAsset(asset.ref)&&<span className="asset-unverified"> · Unverified, check the project before you add it</span>}</strong><small>{identityLabel(asset)}</small>{asset.ref.kind==='coin'&&asset.ref.contractAddress&&<small className="asset-result-contract">{asset.ref.contractAddress}</small>}</span><span className="asset-result-action">{active?'Selected':'Choose'}</span></button></li>;
   })}</ul>}
  </section>;
 }

@@ -45,14 +45,37 @@ export function registerStorageScope(view:Storage,prefix:string):void{scopes.set
 export function storageLockKey(storage:Storage,key:string):string{return `${scopes.get(storage)??''}${key}`;}
 export function showcaseStorageKey(key:string):string{return storageLockKey(getAppStorage(),key);}
 /** Commit a prepared dataset with one final selector write. Old data stays intact on failure. */
-export function activateShowcase(session:Storage,day:string,records:Readonly<Record<string,string>>,generation=crypto.randomUUID()):void{
+/** Session AH (DS4): the Showcase this tab shows now, or null. */
+export function currentShowcase(session:Storage):{generation:string;day:string}|null{try{const s=selector(session);return s?{generation:s.generation,day:s.day}:null;}catch{return null;}}
+/**
+ * Session AH Part 3 (DS4, BUG-061, D-087, B-081, M-141, D-031): what a Showcase reset can undo, in this tab only. A reset
+ * keeps the replaced generation's records in the tab (`keep` below) and names it here; Undo selects it again and removes
+ * the fresh one. The next load, reset or exit clears both. sessionStorage only: no stored record changes.
+ */
+export const SHOWCASE_UNDO='zigoals:showcase:undo:v1';
+type ShowcaseUndo={version:1;generation:string;day:string;offered:boolean};
+export function readShowcaseUndo(session:Storage):ShowcaseUndo|null{try{const v=JSON.parse(session.getItem(SHOWCASE_UNDO)??'null') as ShowcaseUndo|null;return v&&v.version===1&&/^[-a-zA-Z0-9]{1,80}$/.test(v.generation)&&/^\d{4}-\d{2}-\d{2}$/.test(v.day)?v:null;}catch{return null;}}
+export function noteShowcaseUndo(session:Storage,previous:{generation:string;day:string}):void{session.setItem(SHOWCASE_UNDO,JSON.stringify({version:1,generation:previous.generation,day:previous.day,offered:false}));}
+export function markShowcaseUndoOffered(session:Storage):void{const u=readShowcaseUndo(session);if(u)session.setItem(SHOWCASE_UNDO,JSON.stringify({...u,offered:true}));}
+/** Selects the generation a reset replaced, and removes the fresh one. False when there is nothing (left) to undo. */
+export function undoShowcaseReset(session:Storage):boolean{
+ const undo=readShowcaseUndo(session),now=currentShowcase(session);session.removeItem(SHOWCASE_UNDO);
+ if(!undo||!now)return false;
+ const keys=()=>Array.from({length:session.length},(_,i)=>session.key(i)!),kept=`${PREFIX}${undo.generation}:`,fresh=`${PREFIX}${now.generation}:`;
+ if(!keys().some(k=>k.startsWith(kept)))return false;
+ session.setItem(SHOWCASE_MARKER,JSON.stringify({version:1,generation:undo.generation,day:undo.day}));
+ for(const key of keys().filter(k=>k.startsWith(fresh)))try{session.removeItem(key);}catch{/* the restored generation is selected */}
+ return true;
+}
+export function activateShowcase(session:Storage,day:string,records:Readonly<Record<string,string>>,generation=crypto.randomUUID(),keep?:string):void{
  if(!/^[-a-zA-Z0-9]{1,80}$/.test(generation))throw Error('Invalid showcase generation.');
  const prefix=`${PREFIX}${generation}:`;if(Array.from({length:session.length},(_,i)=>session.key(i)).some(k=>k?.startsWith(prefix)))throw Error('Showcase generation already exists.');
  const staged:string[]=[];
  try{for(const [key,value] of Object.entries(records)){const physical=prefix+key;session.setItem(physical,value);staged.push(physical);}session.setItem(SHOWCASE_MARKER,JSON.stringify({version:1,generation,day}));}
  catch(error){for(const key of staged)session.removeItem(key);throw error;}
  // Cleanup only after the selector committed. Failure can retain old demo bytes, never private data.
- const obsolete=Array.from({length:session.length},(_,i)=>session.key(i)!).filter(k=>k.startsWith(PREFIX)&&!k.startsWith(prefix));
+ const kept=keep?`${PREFIX}${keep}:`:null;if(!kept)session.removeItem(SHOWCASE_UNDO);
+ const obsolete=Array.from({length:session.length},(_,i)=>session.key(i)!).filter(k=>k.startsWith(PREFIX)&&!k.startsWith(prefix)&&!(kept&&k.startsWith(kept)));
  for(const key of obsolete)try{session.removeItem(key);}catch{/* The newly committed generation remains complete. */}
 }
-export function exitShowcase(session=window.sessionStorage):void{session.removeItem(SHOWCASE_MARKER);}
+export function exitShowcase(session=window.sessionStorage):void{session.removeItem(SHOWCASE_MARKER);session.removeItem(SHOWCASE_UNDO);}

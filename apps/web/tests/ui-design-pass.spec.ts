@@ -249,8 +249,8 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('[data-layout-region="health:body"]').first()).toBeVisible();
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   await page.getByRole('button',{name:'Move Today’s nourishment down',exact:true}).click();
-  // Session W added the Sleep (Part 4) and Meditation (Part 5) cards after the journal.
-  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:sleep','health:meditation','health:roadmap','health:fasting','health:trends']);
+  // Session W added the Sleep (Part 4) and Meditation (Part 5) cards after the journal; Session AH (DE8) Workouts after them.
+  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:sleep','health:meditation','health:workouts','health:roadmap','health:fasting','health:trends']);
   expect(await page.evaluate(()=>[...document.querySelectorAll('[data-layout-item]')].flatMap(e=>e.getAnimations()).length)).toBe(0);
  });
  test('touch: a long-press on the handle picks a card up and moves it',async({page,isMobile})=>{
@@ -395,7 +395,8 @@ test.describe('Part 3: liquid glass',()=>{
 });
 
 test.describe('Part 4: Health',()=>{
- const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('output');
+ // Session AH Part 18 (owner): the count is a button that becomes a field; its slot holds the number and what is announced.
+ const count=(page:Page,name:string)=>page.getByRole('article',{name,exact:true}).locator('.exercise-count');
  test('quick counters: +/− on today, never below zero, and they survive a reload',async({page})=>{
   await page.goto('/app/health');
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();

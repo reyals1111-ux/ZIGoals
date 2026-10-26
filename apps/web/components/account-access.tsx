@@ -4,6 +4,7 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import * as z from 'zod';
 import {ACCOUNT_CHANGE,activateAccount,clearAccountSession,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount} from '../lib/account-session';
 import {isShowcase} from '../lib/showcase-storage';
+import {plainErrorMessage} from '../lib/plain-error';
 type Props={onAuthenticated?:(accountId:string)=>void|Promise<void>;onSignout?:()=>void|Promise<void>;onVerifying?:(active:boolean)=>void;onDenied?:(code:'SESSION_REVOKED'|'ACCOUNT_DELETED')=>void|Promise<void>};
 const identity=z.object({signedIn:z.literal(true),accountId:z.uuid()});
 const denial=z.object({signedIn:z.literal(false),error:z.enum(['SESSION_REVOKED','ACCOUNT_DELETED'])});
@@ -56,7 +57,7 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:P
    if(res.status===429)setCooldown(60);const data=await response(res);if(controller.signal.aborted||generation!==getAccountGeneration())return;
    if(action==='send'){setSentTo(address);setCooldown(60);setMessage(CODE_SENT);return;}
    const verified=identity.parse(data);activateAccount(verified.accountId);setCode('');setStatus('signed-in');setMessage('Account verified. Unlock your encrypted vault below to access account records.');await callbacks.current.onAuthenticated?.(verified.accountId);refreshSelection();
-  }catch(error){if(!controller.signal.aborted)setMessage(error instanceof Error?error.message:'Account access was not confirmed.');}
+  }catch(error){if(!controller.signal.aborted)setMessage(plainErrorMessage(error, 'Account access was not confirmed.'));}
   finally{if(action==='verify')callbacks.current.onVerifying?.(false);if(pending.current===controller)setBusy(false);}
  }
  async function signout(){

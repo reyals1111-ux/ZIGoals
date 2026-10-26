@@ -10,6 +10,7 @@ import {describeChoice, describeQuickAdd, savedLine} from '../lib/quick-add/desc
 import {applyQuickAdd, type QuickAddStores, type QuickAddWrite} from '../lib/quick-add/save';
 import {storageMessageOr} from '../lib/storage-error-copy';
 import {formatClock} from '../lib/visual-format';
+import {plainErrorMessage} from '../lib/plain-error';
 
 /**
  * A2: the Quick-add line. One field, Enter or Preview shows exactly what would be saved, and nothing is written before
@@ -49,7 +50,7 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
       if (write.habits) await habits.update(current => apply(item, {health: health.data, habits: current}, now).habits!);
       setSaved(savedLine(item, write.habitTotal)); setResult(null); setChosen(null); setText(''); setWake('');
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : '';
+      const message = plainErrorMessage(cause, '');
       setError(/scheduled/.test(message) && item.kind === 'habit' && item.day === 'yesterday' ? 'That habit wasn’t scheduled yesterday.' : message ? storageMessageOr(cause, message) : 'This line was not saved. Nothing was changed.');
     } finally { setBusy(false); }
   }

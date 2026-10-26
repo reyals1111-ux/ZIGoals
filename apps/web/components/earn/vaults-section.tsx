@@ -1,4 +1,5 @@
 'use client';
+import {YourVaultShares, type ShareRead} from './your-shares';
 import type {LiveState} from '../../lib/earn/client';
 import {decimal, tokenAmount} from '../../lib/earn/format';
 import type {ValdoraData, VaultId, VaultRow, VaultsData} from '../../lib/earn/live/types';
@@ -33,7 +34,7 @@ type Ok = Extract<VaultRow, {status: 'ok'}>;
 export function vaultHint(v: Ok) {
   return <>Share price {decimal(v.pricePerShare, 6)} · {v.paused ? 'paused right now' : 'not paused'} · {tokenAmount(v.pendingRedemptionUnits, v.decimals, v.asset === 'other' ? 'units' : v.asset, {compact: true})} waiting to be paid out · it holds {ASSET_WORDS[v.asset]}</>;
 }
-export function VaultsSection({vaults, valdora, now}: {vaults: LiveState<VaultsData>; valdora: LiveState<ValdoraData>; now: number}) {
+export function VaultsSection({vaults, valdora, now, shares = []}: {vaults: LiveState<VaultsData>; valdora: LiveState<ValdoraData>; now: number; shares?: readonly ShareRead[]}) {
   const data = vaults.phase === 'ok' ? vaults.answer.data : null;
   const rows = data ? VALDORA_VAULTS.map(id => data.vaults[id]) : [];
   const ok = rows.filter((v): v is Ok => v.status === 'ok');
@@ -79,8 +80,8 @@ export function VaultsSection({vaults, valdora, now}: {vaults: LiveState<VaultsD
         <Risk chain={vaults.phase === 'ok' ? <>each vault’s admin account on ZIGChain, read live at block {vaults.answer.height}</> : 'each vault’s admin account on ZIGChain'} link={<VerifiedLink provider="valdora" kind="security" className="text-link" mark="compact">Valdora’s security page</VerifiedLink>}>{data && staker ? sameAdmin ? <>Who can change the vaults: their admin is the same account as Valdora’s staking contract{staker.key === 'single-key' ? ', a single key' : ''} (read live at block {vaults.phase === 'ok' ? vaults.answer.height : ''}).</> : <>Who can change the vaults: each vault has an admin account, read live.</> : <>Who can change the vaults is <Unavailable reason={unavailable} short/> right now.</>}</Risk>
       </ul>},
     ]}
-    // Session AF Gate C (ADR-028 H134, ledger P1.23): your own share here is not read this session; the section says where it is seen.
-    mine={<p className="fine earn-your-share">Your own vault shares: each vault&rsquo;s page on Valdora shows them once you connect there. ZIGoals does not read vault shares yet.</p>}
+    // Session AH (AF3): your own vault shares, read through /api/earn/shares (components/earn/your-shares.tsx).
+    mine={<YourVaultShares reads={shares} vaults={vaults}/>}
     steps={[
       {text: 'Open the vault’s page on Valdora (a new tab) and read its strategy, withdrawal and risk sections.'},
       {text: 'Connect your wallet with Valdora’s own Connect Wallet button.'},

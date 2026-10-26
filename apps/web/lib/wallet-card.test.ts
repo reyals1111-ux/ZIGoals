@@ -23,21 +23,23 @@ beforeEach(async () => {
 });
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); });
 
-test('the app\'s simulated wallet in ZIG first, with no request; practice money is never shown in another currency (unavailable, with why, still no request)', async () => {
+// Assertion changed (Session AH TR7, owner amendment 6; stronger): the USD/EUR/BTC buttons could only ever read
+// "unavailable" for practice money, so they are gone. The card shows ZIG, says why, asks for no price, and an older stored
+// display choice neither changes what shows nor is lost from the record.
+test('the app\'s simulated wallet shows ZIG only, says why other currencies are not shown, and asks for no price', async () => {
+  localStorage.setItem(LINKED_WALLETS_KEY, JSON.stringify({version: 1, display: 'USD'}));
   await act(async () => root.render(createElement(GoalProvider, null, createElement(WalletCard, {plainWords: true}))));
-  await vi.waitFor(async () => { await act(async () => {}); expect(card().querySelector('.wallet-card-currency')).not.toBeNull(); });
+  await vi.waitFor(async () => { await act(async () => {}); expect(card().textContent).toContain('Practice money has no market value, so it is never shown in another currency.'); });
+  await settle(); await settle();
   expect(card().querySelector('.account-value')!.textContent).toBe('1,000 ZIG');
   expect(card().textContent).toContain('Simulated balance · this browser');
   expect(card().querySelector('.pill')!.textContent).toBe('Demo records');
-  const buttons = [...card().querySelectorAll<HTMLButtonElement>('.wallet-card-currency button')];
-  expect(buttons.map(b => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([['ZIG', 'true'], ['USD', 'false'], ['EUR', 'false'], ['BTC', 'false']]);
+  expect(card().querySelector('.wallet-card-currency')).toBeNull();
+  expect(card().querySelector('.wallet-card-controls')).toBeNull();
+  expect([...card().querySelectorAll('button')].map(b => b.textContent)).not.toEqual(expect.arrayContaining(['USD', 'EUR', 'BTC']));
   expect(card().querySelector('select')).toBeNull();
-  await settle(); expect(requests).toEqual([]);
-  await act(async () => { buttons[1]!.click(); }); await settle(); await settle();
-  // ADR-027: practice money has no market value — no price is asked for and no amount is shown.
+  expect(card().textContent).not.toMatch(/\$|€|unavailable/);
   expect(requests).toEqual([]);
-  await vi.waitFor(async () => { await act(async () => {}); expect(card().querySelector('.account-value')!.textContent).toBe('USD unavailable'); expect(card().textContent).toContain('Practice money has no market value'); });
-  expect(card().textContent).not.toMatch(/\$0|0\.00/);
   expect(JSON.parse(localStorage.getItem(LINKED_WALLETS_KEY)!)).toEqual({version: 1, display: 'USD'});
 });
 

@@ -2,6 +2,7 @@ import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
 import { formatDate } from "./visual-format";
+import { minutesIssue, within } from "./limits/plausibility";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -319,6 +320,9 @@ export function logHabitValue(data: HabitData, id: string, rawDate: string, rawV
   return replaceHabit(data, id, (habit) => {
     const rule = habitRuleOn(habit, date); if (date > today || !scheduledOn(habit, rule, date)) throw new Error("Choose a scheduled, active day up to today.");
     if (rule!.measurement.kind === "count" && !Number.isInteger(value)) throw new Error("Count values must be whole numbers.");
+    // Session AH (VA2: 100,000 minutes a day were saved): a minutes habit holds at most a day (1,440) on its day; an hours
+    // habit (a fast can end two on one day, each over a day long) at most a week (168). The added total counts.
+    if (rule!.measurement.kind === "duration") { const prior = habit.entries.find(e => e.date === date)?.count ?? 0, total = options.mode === "add" ? prior + value : value; within(rule!.measurement.unit === "hours" ? (total <= 168 ? null : "Enter at most 168 hours (a week) for one day.") : minutesIssue(total)); }
     const previous = habit.entries.find((item) => item.date === date); const count = valueSchema.parse(options.mode === "add" ? addValues(previous?.count ?? 0, value) : value);
     const entry = entrySchema.parse({ date, count, disposition: "logged", note: options.note ?? previous?.note ?? "", mood: options.mood ?? previous?.mood, updatedAt: now.toISOString() });
     return { ...habit, updatedAt: now.toISOString(), entries: [...habit.entries.filter((item) => item.date !== date), entry].sort((a, b) => a.date.localeCompare(b.date)) };
@@ -381,7 +385,9 @@ export function setVacation(data: HabitData, range: VacationRange, now = new Dat
     for (const date of days) {
       const rule = habitRuleOn(habit, date); if (!scheduledOn(habit, rule, date) || aggregatePeriod(rule!)) continue;
       const previous = habit.entries.find((item) => item.date === date);
-      if ((previous?.disposition === "logged" && previous.count > 0) || (previous?.disposition === "skipped" && previous.note === VACATION_NOTE)) continue;
+      // Session AH (HA8, T-099): a day the person already wrote on (a check-in, their own skip, a failed mark, a note or a
+      // mood) keeps it, so clearing the vacation gives every day back exactly as it was; only an empty 0 is covered.
+      if (previous && !(previous.disposition === "logged" && previous.count === 0 && !previous.note && !previous.mood)) continue;
       additions.push(entrySchema.parse({ date, count: previous?.count ?? 0, disposition: "skipped", note: VACATION_NOTE, mood: previous?.mood, updatedAt: now.toISOString() }));
     }
     if (!additions.length) continue;
@@ -445,7 +451,9 @@ function computeHabitStats(habit: Habit, today: string) {
   const streakBoard: Record<StreakUnit, { current: number; best: number }> = { days: { current: 0, best: 0 }, weeks: { current: 0, best: 0 }, months: { current: 0, best: 0 }, years: { current: 0, best: 0 } };
   let previousUnit: StreakUnit | undefined; let successCount = 0, failCount = 0, skipDecisions = 0, weeklyCompleted = 0, weeklyScheduled = 0;
   for (const outcome of outcomes) {
-    if (outcome.start <= weekEnd && outcome.end >= weekStart) { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
+    // Session AH (HA1; B-003, B-017, B-189): a skipped day is neutral in every figure, as the app promises: it is not
+    // scheduled work for the week, and it is left out of the completion percentage.
+    if (outcome.start <= weekEnd && outcome.end >= weekStart && outcome.status !== "skipped") { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
     const streak = streakBoard[outcome.unit]; if (previousUnit !== outcome.unit) streak.current = 0;
     if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); }
     // H1 (Session P): a skipped day is neutral, it neither adds to a streak nor breaks it; only a failed day resets.
@@ -454,7 +462,7 @@ function computeHabitStats(habit: Habit, today: string) {
     previousUnit = outcome.unit;
   }
   const skipCount = habit.entries.filter((entry) => entry.disposition === "skipped" && entry.date <= today).length;
-  const decided = successCount + failCount + skipDecisions; const completionPercentage = decided ? Math.round(successCount / decided * 100) : 0;
+  void skipDecisions; const decided = successCount + failCount; const completionPercentage = decided ? Math.round(successCount / decided * 100) : 0;
   const currentPeriod = aggregatePeriod(habitRuleOn(habit,today)??habit.rules[0]!); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
   return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
@@ -463,7 +471,7 @@ function computeHabitTrends(habit: Habit, today: string) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;
   return windows.map(({ key, days }) => {
     const start = addLocalDays(today, -(days - 1)); let success = 0, total = 0;
-    for (let date = start < habit.startDate ? habit.startDate : start; date <= today; date = addLocalDays(date, 1)) { const result = habitDay(habit, date, today); if (!result.scheduled || result.status === "due" || result.status === "partial") continue; total++; if (result.status === "complete") success++; }
+    for (let date = start < habit.startDate ? habit.startDate : start; date <= today; date = addLocalDays(date, 1)) { const result = habitDay(habit, date, today); if (!result.scheduled || result.status === "due" || result.status === "partial" || result.status === "skipped") continue; total++; if (result.status === "complete") success++; }
     return { period: key, success, total, percentage: total ? Math.round(success / total * 100) : 0 };
   });
 }
@@ -476,13 +484,13 @@ export function scheduleLabel(schedule: HabitRule["schedule"]): string {
 }
 export function measurementUnit(rule: HabitRule): string { return rule.measurement.kind === "boolean" ? "" : rule.measurement.unit; }
 export function smartDoneValue(rule: HabitRule): number { return rule.type === "build" ? rule.target : 0; }
-export function getHabitActivities(data: HabitData): { id: string; category: "HABIT"; title: string; detail: string; at: string; href: string }[] {
+export function getHabitActivities(data: HabitData): { id: string; category: "HABIT"; title: string; detail: string; at: string; day: string; href: string }[] {
   return data.habits.flatMap((habit) => habit.entries.filter((entry) => {
     if (entry.disposition !== "logged") return false;
     const rule = habitRuleOn(habit, entry.date);
     return !!rule && (rule.type !== "build" || entry.count > 0);
   }).map((entry) => {
     const rule = habitRuleOn(habit, entry.date)!; const outcome = individualSuccess(rule, entry.count) ? "completed" : "logged";
-    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, href: "/app/habits" };
+    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, day: entry.date, href: "/app/habits" };
   })).sort((a, b) => b.at.localeCompare(a.at));
 }

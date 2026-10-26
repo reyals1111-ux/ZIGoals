@@ -6,11 +6,15 @@ import type {DirectoryEntry} from '@zigoals/ecosystem-registry/providers';
 import {PinToToday} from './pin-to-today';
 import {AppIcon} from './app-icon';
 import {formatDate} from '../lib/visual-format';
+import {EcosystemLiveLine} from './ecosystem-live';
+import type {LiveState} from '../lib/earn/client';
+import type {DefillamaData} from '../lib/earn/live/types';
 
 /**
  * One Ecosystem project (Session I, Part 6). The header is a button (inside the heading, so the heading keeps the
  * project's name) that opens the project's full record in place: every field shown is the registry's own, worded as the
- * registry words it. Nothing here is fetched or invented, nothing invites a transfer (no contract addresses), and a
+ * registry words it. Nothing here is invented (Session AH, CO7: the one live figure, value locked, is Earn's own DefiLlama
+ * read, named with its source and time), nothing invites a transfer (no contract addresses), and a
  * listing never reads as a partnership. Several cards can be open; focus stays on the button.
  */
 const VERIFICATION: Record<DirectoryEntry['provider']['verification'], string> = {
@@ -27,7 +31,7 @@ const KYC: Record<DirectoryEntry['provider']['eligibility']['kyc'], string> = {
 const ACTION_LABEL = {Website: 'Visit website', App: 'Open app', Docs: 'Read docs'} as const;
 const external = {target: '_blank', rel: 'noopener noreferrer'} as const;
 
-export function EcosystemCard({entry, open, onToggle}: {entry: DirectoryEntry; open: boolean; onToggle: () => void}) {
+export function EcosystemCard({entry, open, onToggle, llama}: {entry: DirectoryEntry; open: boolean; onToggle: () => void; llama?: LiveState<DefillamaData>}) {
   const p = entry.provider, id = useId(), detailsId = `project-${entry.id}-details`, titleId = `${id}-title`;
   const documentation = p.documentation.filter(isSafeReferenceUrl).filter(url => !entry.actions.some(a => a.url === url));
   return <article className="ecosystem-project" data-category={entry.category} data-open={open || undefined} id={`project-${entry.id}`} aria-labelledby={titleId}>
@@ -39,8 +43,9 @@ export function EcosystemCard({entry, open, onToggle}: {entry: DirectoryEntry; o
       <PinToToday label={entry.name} choices={[{kind: 'ecosystem', metric: 'directory', entity: entry.id, label: `${entry.name} research shortcut`}]} />
     </header>
     <p className="ecosystem-description">{entry.description}<small><a href={entry.descriptionSource} {...external}>Description source ↗</a></small></p>
+    {llama && <EcosystemLiveLine id={entry.id} llama={llama}/>}
     <div className="ecosystem-labels"><span>{entry.inclusion}</span><span>{p.phase === 'READ_ONLY' ? 'Read-only links' : 'Research only'}</span></div>
-    <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span>Website unavailable in this review</span>}</div>
+    <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span className="fine">No checked website link yet</span>}</div>
     <div className="ecosystem-details" id={detailsId} role="region" aria-labelledby={titleId} hidden={!open}>
       <p className="ecosystem-today"><strong>In ZIGoals today:</strong> research only — no connection to your money.</p>
       <section><h3>About</h3><p>{entry.description} <a href={entry.descriptionSource} {...external}>Description source ↗</a></p><p>{entry.inclusion}. <a href={entry.inclusionSource} {...external}>Inclusion evidence ↗</a></p></section>

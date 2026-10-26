@@ -29,9 +29,11 @@ export function createMarketQuoteCache(load:(requests:readonly MarketQuoteReques
  const emit=()=>{for(const listener of listeners)listener();};
  function hydrate(store:Pick<Storage,'getItem'|'setItem'>){storage=store;try{const text=store.getItem(PUBLIC_QUOTE_KEY);if(!text||text.length>PUBLIC_QUOTES_MAX_BYTES)return;const raw=JSON.parse(text);const rows=Array.isArray(raw)?raw:[raw];if(rows.length>MAX_PUBLIC_QUOTES)return;const quotes=rows.map(q=>verifiedMarketQuote(q,clock()));state={...state,quotes:[...new Map(quotes.map(q=>[key(q),q])).values()],now:clock()};emit();}catch{/* Optional public cache is never allowed to contaminate private data. */}}
  function tick(){state={...state,now:clock()};emit();}
- async function refresh(raw:readonly MarketQuoteRequest[],force=false):Promise<void>{
- const requests=uniqueMarketRequests(raw);if(!requests.length)return;if(pending){if(!await waitForPendingWork(pending)){state={...state,error:'Market prices could not be refreshed. Last verified evidence is retained.'};emit();return;}if(!workIsPending(pending)){pending=null;state={...state,loading:false};}return refresh(requests,force);}
- const now=clock();const needed=requests.filter(r=>{const k=marketRequestKey(r),quote=state.quotes.find(q=>key(q)===k);return now>=(attempts.get(k)??0)&&(force||!quote||quoteIsStale(quote,now));});if(!needed.length)return;
+ // Session AH Part 4 (TR2/TR3, M16): `frozen` (the Showcase) fetches only quotes it does not have yet; a quote it holds
+ // is never re-priced, so a reload or Refresh never moves the Showcase's figures.
+ async function refresh(raw:readonly MarketQuoteRequest[],force=false,frozen=false):Promise<void>{
+ const requests=uniqueMarketRequests(raw);if(!requests.length)return;if(pending){if(!await waitForPendingWork(pending)){state={...state,error:'Market prices could not be refreshed. Last verified evidence is retained.'};emit();return;}if(!workIsPending(pending)){pending=null;state={...state,loading:false};}return refresh(requests,force,frozen);}
+ const now=clock();const needed=requests.filter(r=>{const k=marketRequestKey(r),quote=state.quotes.find(q=>key(q)===k);return now>=(attempts.get(k)??0)&&(frozen?!quote:(force||!quote||quoteIsStale(quote,now)));});if(!needed.length)return;
  for(const request of needed)attempts.set(marketRequestKey(request),now+MARKET_RETRY_MS);while(attempts.size>MAX_PUBLIC_QUOTES*2)attempts.delete(attempts.keys().next().value!);
  state={...state,now,loading:true};emit();
  const work=beginPendingWork();pending=work;await ownPendingWork(work,(async()=>{try{const loaded=await load(needed,force);const result='quotes' in loaded?loaded:{quotes:loaded,error:null};const quotes=result.quotes.map(q=>verifiedMarketQuote(q,clock()));if((quotes.length!==needed.length&&!result.error)||quotes.some(q=>!needed.some(r=>marketRequestKey(r)===key(q)))||new Set(quotes.map(key)).size!==quotes.length)throw Error('Incomplete market response.');

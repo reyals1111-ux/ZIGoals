@@ -6,7 +6,8 @@ import {SidebarSky} from './sidebar-sky';
 /** The line under the bar on phones and in Settings. Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's bar has no
  *  line under it any more; that the choice stays on this device is said in Settings → Appearance, Settings → Your data
  *  ("How pages look on this device") and Help ("What are Light, Nebula and Dark?"). */
-const THEME_NOTE = 'Nebula is the look you know, for everyone. Customize — coming later. Light and Dark are the same app by day and by night.';
+// Session AH (SE9; D-191): no "coming later" in the product's own words.
+const THEME_NOTE = 'Nebula is the look you know. Light and Dark are the same app by day and by night.';
 
 const Sun = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg>;
 /** Session AE (Part 3.1, ADR-027): Nebula's mark is the ZIGoals logo drawn as one plain line in the sun's and moon's style
@@ -16,7 +17,7 @@ const Moon = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="
 
 const OPTIONS: readonly {theme: Theme; word: string; label: string; tip: string; icon: () => React.ReactElement}[] = [
   {theme: 'light', word: 'Light', label: 'Light theme', tip: 'Light · by day', icon: Sun},
-  {theme: 'nebula', word: 'Nebula', label: 'Nebula theme', tip: 'Nebula · Customize — coming later', icon: ZgMark},
+  {theme: 'nebula', word: 'Nebula', label: 'Nebula theme', tip: 'Nebula', icon: ZgMark},
   {theme: 'dark', word: 'Dark', label: 'Dark theme', tip: 'Dark · by night', icon: Moon},
 ];
 const subscribe = (change: () => void) => { window.addEventListener(THEME_EVENT, change); window.addEventListener('storage', change); return () => { window.removeEventListener(THEME_EVENT, change); window.removeEventListener('storage', change); }; };

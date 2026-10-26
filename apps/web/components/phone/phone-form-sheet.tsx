@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, type ReactNode } from "react";
+import { useBackCloses } from "../use-back-closes";
 
 /**
  * A form as a bottom sheet on a phone (Session I, Part 9, the #52 sheet pattern): a modal dialog that rises from the
@@ -10,6 +11,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 export function PhoneFormSheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null), close = useRef(onClose);
   useEffect(() => { close.current = onClose; });
+  useBackCloses(true, () => close.current());
   useEffect(() => {
     const dialog = ref.current, previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialog?.showModal();

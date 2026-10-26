@@ -12,14 +12,18 @@ import {useAverageGoals, useGoalExtras} from './use-goal-extras';
 import {VisionArt} from './vision-art';
 import {formatDay} from './format';
 import './goals.css';
+import {useUnifiedGoals} from '../use-unified-goals';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * G7, the Hall of achievements: finished goals as a wall of cards (the day, how long it took, the area, the story), each
  * with a share image drawn on this device (nothing is uploaded).
  */
 export function AchievementsHall(layout: LayoutAttrs) {
-  const platform = usePlatform(), averages = useAverageGoals(), extras = useGoalExtras();
-  const list = platform.loaded && averages.loaded && extras.loaded ? achievementsOf(platform.data.goals, averages.unreadable ? [] : averages.data.goals, extras.data) : null;
+  const platform = usePlatform(), averages = useAverageGoals(), extras = useGoalExtras(), unified = useUnifiedGoals();
+  // Session AH (TR6): finished as the Goals page's "Finished" figure counts it (each Goal's derived status, live prices included).
+  const finished = new Set(unified.goals.filter(g => g.status === 'completed' && g.key.startsWith('private:')).map(g => g.id));
+  const list = platform.loaded && averages.loaded && extras.loaded && unified.loaded ? achievementsOf(platform.data.goals, averages.unreadable ? [] : averages.data.goals, extras.data, g => finished.has(g.id)) : null;
   return <section className="achievements-hall" aria-labelledby="hall-title" {...layout}>
     <SectionHeading id="hall-title" pillar="goals" eyebrow="Finished, with a story" title="Hall of achievements" lede="Every goal you finish keeps its place here." />
     {!list ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : list.length ? <ul className="hall-wall">
@@ -36,7 +40,7 @@ function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vi
       const blob = await drawShareCard({eyebrow: a.areaLabel ? `Achievement · ${a.areaLabel}` : 'Achievement', title: a.name, lines: [a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished', durationWords(a.days), ...(a.story ? [`“${a.story}”`] : [])]});
       const how = await shareOrSave(blob, `${a.name.replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40) || 'achievement'}.png`, a.name);
       showToast({message: how === 'saved' ? 'Image saved to your device.' : 'Image ready to share.'});
-    } catch (e) { showToast({message: e instanceof Error ? e.message : 'The image could not be made.'}); }
+    } catch (e) { showToast({message: plainErrorMessage(e, 'The image could not be made.')}); }
     finally { setBusy(false); }
   }
   return <li className="hall-card" style={color ? {'--area': color} as React.CSSProperties : undefined}>

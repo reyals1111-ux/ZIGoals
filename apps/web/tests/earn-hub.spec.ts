@@ -14,7 +14,7 @@ test('live figures carry their source and age; every outgoing link is a verified
   const requests = await earnRoutes(page);
   await page.goto('/app/earn');
   await expect(page).toHaveTitle(/^Earn · ZIGoals/);
-  await expect(page.locator('main h1').first()).toHaveText('Make your money work');
+  await expect(page.locator('main h1').first()).toHaveText('Ways to earn on ZIGChain');
   for (const id of ['native-apr', 'native-bonded', 'native-unbonding', 'valdora-rate', 'valdora-fee', 'valdora-minimum', 'oroswap-zig-usdc', 'oroswap-farms', 'valdora-llama-tvl']) {
     const figure = page.locator(`[data-live-figure="${id}"]`);
     await expect(figure, id).toHaveAttribute('data-state', 'ok');
@@ -108,7 +108,7 @@ test('until the validators route is in the build, its section says so and the re
   await expect(page.locator('#validators [data-live-figure="validators"]')).toHaveAttribute('data-reason', 'NOT_IN_THIS_BUILD');
   await expect(page.locator('#validators')).toContainText('this build of ZIGoals does not read it yet');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
-  await expect(page.locator('[data-live-figure="native-apr"] dt')).toHaveText('Yearly rate before the validator’s commission');
+  await expect(page.locator('[data-live-figure="native-apr"] dt')).toHaveText('Yearly rate before the validator’s commission · estimate, variable');
 });
 
 test('the chip index stays at the top while the page scrolls and marks the section on screen', async ({page}) => {

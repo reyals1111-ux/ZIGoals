@@ -29,6 +29,9 @@
   /* Forms in the page: their primary action stays in reach. */
   :root .habit-editor .actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); z-index: 3; margin: 12px -16px -16px; padding: 12px 16px; background: linear-gradient(180deg, #071228e6, #050c1ef7); border-top: 1px solid #7fc8ff2e; border-radius: 0 0 20px 20px; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   :root .habit-editor .actions > * { flex: 1; min-height: 48px; }
+  /* Session AH (HA12, B-028): one slim row, never a stack of full-width buttons over the form. */
+  :root .habit-editor .actions { flex-wrap: nowrap; gap: 8px; padding-block: 8px; }
+  :root .habit-editor .actions > * { min-height: 44px; min-width: 0; }
   :root .habit-editor { scroll-margin-top: calc(var(--phone-bar) + var(--safe-top) + 12px); }
   :root form[aria-label="Log a meal"] > button[type="submit"] { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + 8px); z-index: 3; min-height: 48px; box-shadow: 0 10px 30px #0009; }
   :root[data-keyboard] :is(.habit-editor .actions, form[aria-label="Log a meal"] > button[type="submit"]) { bottom: calc(var(--keyboard-inset, 0px) + 8px); }
@@ -78,4 +81,8 @@
 @media (max-width: 767.98px) {
   :root dialog.dashboard-dialog > header, :root dialog.wealth-sheet > header { margin-inline: -16px; padding-inline: 16px; background: #101e35; }
   :root dialog.dashboard-dialog .dashboard-actions { margin-inline: -16px; padding: 12px 16px; background: #101e35; box-shadow: 0 -12px 20px -12px #000a; }
+  /* Session AH (WE10, B-151): a wealth sheet has no padding of its own (its header and body carry 18 px), so the
+     header already reaches both edges; the -16 px above pushed it past them (the title touched the edge and the
+     sheet scrolled sideways). */
+  :root dialog.wealth-sheet > header { margin-inline: 0; padding-inline: 18px; }
 }

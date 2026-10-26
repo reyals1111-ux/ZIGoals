@@ -34,3 +34,11 @@
    cyan, Health pink), as everywhere else, instead of the Goals violet and a mint. */
 .activity-event[data-tone=habit] { --event-accent: var(--pillar-habits, #23eaff); background: linear-gradient(110deg, #0f3c4a51, #12213990); }
 .activity-event[data-tone=health] { --event-accent: var(--pillar-health, #ff74be); background: linear-gradient(110deg, #4a1f3c51, #12213990); }
+/* Session AH (SE5; D-171): on a phone each entry is a compact row, so a screen shows several. */
+@media (max-width: 650px) {
+  :root .unified-activity .activity-event { padding: 12px 14px; gap: 10px; }
+  :root .unified-activity .activity-event .timeline-icon { width: 32px; height: 32px; }
+  :root .unified-activity .activity-event-content strong, :root .unified-activity .activity-event-content a { font-size: 16px; }
+  :root .unified-activity ol { gap: 8px; }
+}
+.activity-filter-count { font-variant-numeric: tabular-nums; opacity: .8; }

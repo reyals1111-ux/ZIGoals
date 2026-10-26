@@ -12,6 +12,7 @@ import { groupByTimeOfDay, todayFocus } from "../../lib/habits-extras/sections";
 import "./habits.css";
 import "./habits-aa.css";
 import { SwipeRow } from "../swipe/swipe-row";
+import { habitsOnDay } from '../../lib/numbers/counts';
 
 export function HabitsTodayBody() {
   const store = useHabits();
@@ -19,11 +20,12 @@ export function HabitsTodayBody() {
   // Today can show this section twice (built-in and widget), so its heading id is per instance (QA-30).
   const titleId = useId();
   const due = store.data.habits.filter((habit) => habitDay(habit, store.today, store.today).scheduled);
-  const complete = due.filter((habit) => habitDay(habit, store.today, store.today).status === "complete").length;
+  // Session AH (TR6): the shared "X of Y" (lib/numbers/counts.ts): a skipped (rest) day is listed but not due.
+  const counted = habitsOnDay(store.data.habits, store.today, store.today), complete = counted.done;
   // ADR-022 B49: at most five due habits, the clock's part of the day first; the rest are one tap away on Habits.
   const focus = todayFocus(groupByTimeOfDay(due, store.today), new Date().getHours());
   return <section className="panel habits-today" aria-labelledby={titleId}><div className="habit-section-heading"><div><p className="eyebrow">Your daily cadence</p><h2 id={titleId}>Small steps, steady rhythm.</h2></div><span className="habit-spark" aria-hidden="true">✦</span></div>
-    {!store.loaded ? <p role="status">Loading habits…</p> : store.error ? <p role="alert">{store.error}</p> : due.length ? <><p className="fine">{complete} of {due.length} complete today</p><HabitSections compact sections={focus.sections} extras={null} hour={new Date().getHours()} render={(section) => <ul className="habit-today-list">{section.habits.map((habit) => {
+    {!store.loaded ? <p role="status">Loading habits…</p> : store.error ? <p role="alert">{store.error}</p> : due.length ? <><p className="fine">{complete} of {counted.due} complete today</p><HabitSections compact sections={focus.sections} extras={null} hour={new Date().getHours()} render={(section) => <ul className="habit-today-list">{section.habits.map((habit) => {
       const streak = habitStats(habit, store.today).currentStreak;
       const linked = habit.goalLink && goalLinkMatches(habit.goalLink, { chainId: goals.chain, owner: goals.owner, goalId: habit.goalLink.goalId }) ? goals.metadata?.goals[habit.goalLink.goalId]?.name : undefined;
       const day = habitDay(habit, store.today, store.today), rule = habitRuleOn(habit, store.today);

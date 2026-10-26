@@ -6,6 +6,7 @@ import {useLinkedWallets} from '../wallet/use-linked-wallets';
 import {useBaseCurrency} from '../platform/wealth-total';
 import {LaneLink} from './out-link';
 import {useRampAssets, type RampState} from './use-ramp-assets';
+import {useShowcase} from '../showcase-controls';
 import {BUY_ASSETS, NETWORKS, buyAsset, offerFor, type BuyAsset, type BuyAssetId, type NetworkId, type ProviderId} from '../../lib/onramps/assets';
 import {destinationsFor} from '../../lib/onramps/guard';
 import {handOffUrl, returnUrl} from '../../lib/onramps/urls';
@@ -31,7 +32,7 @@ function rampAsset(ramp: RampState, code: string | undefined) {
   return ramp.phase === 'ready' && ramp.data.status === 'ok' && code ? ramp.data.assets.find(a => a.code === code) : undefined;
 }
 export default function AddMoneyView() {
-  const linked = useLinkedWallets(), currency = useBaseCurrency(), ramp = useRampAssets(currency), id = useId();
+  const linked = useLinkedWallets(), currency = useBaseCurrency(), showcase = useShowcase(), ramp = useRampAssets(currency, !showcase), id = useId();
   const [assetId, setAssetId] = useState<BuyAssetId | null>(null), [network, setNetwork] = useState<NetworkId | null>(null), [walletId, setWalletId] = useState<string | null>(null), [provider, setProvider] = useState<ProviderId>('ramp'), [origin, setOrigin] = useState('');
   useEffect(() => setOrigin(window.location.origin), []);
   const asset = assetId ? buyAsset(assetId) : undefined, offer = asset && network ? offerFor(asset, network) : undefined;
@@ -43,10 +44,12 @@ export default function AddMoneyView() {
   const asOf = ramp.phase === 'ready' && ramp.data.status === 'ok' ? formatTime(ramp.data.asOf) : null;
   return <div className="add-money">
     <p className="add-money-honest notice" role="note">{HONEST_LINE}</p>
+    {/* Session AH (WE8): in the Showcase this is still the real flow, so it says so plainly. */}
+    {showcase && <p className="add-money-showcase notice" role="note" data-showcase-note><strong>This opens a real provider.</strong> The Showcase keeps its simulated wallet and never buys anything: you can look through the steps, but exit the Showcase to link your own wallet and add money.</p>}
 
     <section className="add-money-step panel" aria-labelledby={`${id}-s1`}>
       <h2 id={`${id}-s1`}><span className="add-money-n">1</span> What do you want to buy?</h2>
-      <p className="add-money-hint">Choose one. Next come the network, where it arrives and the provider, then the provider&rsquo;s own page.</p>
+      <p className="add-money-hint">Choose one. Next come the network, where it arrives and the provider, then the provider&rsquo;s own page, where you choose the amount.</p>
       <div className="add-money-tiles" role="group" aria-label="What to buy">{BUY_ASSETS.map(a => <div key={a.id} className="add-money-tile" data-selected={a.id === assetId || undefined}>
         <button type="button" aria-pressed={a.id === assetId} onClick={() => choose(a)} data-asset={a.id}><strong>{a.name}</strong><span>{a.plain}</span></button>
         <details><summary>What’s this?</summary><p>{a.more}</p></details>
@@ -60,7 +63,7 @@ export default function AddMoneyView() {
         const n = NETWORKS[o.network], fee = live(o.ramp?.value)?.networkFee;
         return <button key={o.network} type="button" aria-pressed={o.network === network} data-network={o.network} onClick={() => { setNetwork(o.network); setWalletId(null); }}>
           <strong>{n.name}{o.network === asset.recommended && <span className="add-money-badge">Recommended</span>}</strong><span>{n.plain}</span>
-          {typeof fee === 'number' && asOf && <small>Ramp’s network fee here: {money(fee, currency)} (Ramp’s figure, as of {asOf})</small>}
+          {asset.offers.length > 1 && typeof fee === 'number' && fee > 0 && asOf && <small>Ramp’s network fee here: {money(fee, currency)} (Ramp’s figure, as of {asOf})</small>}
         </button>;
       })}</div>
       {network && <p className="add-money-warning" role="note" data-network-warning><strong>Your wallet must be on this network: {NETWORKS[network].name}.</strong> {asset.symbol} sent to an address on another network can be lost for good. Choose the same network on the provider’s page.</p>}

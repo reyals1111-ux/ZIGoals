@@ -1,5 +1,6 @@
 import {habitDay, habitRuleOn, type Habit, type HabitData} from '../habits';
 import {stacksOf} from '../habits-v2/stacks';
+import {templateOfChain} from './templates';
 import {routineRunSchema, type RoutineRun, type RoutineRunStore} from './run-schema';
 
 /**
@@ -10,9 +11,12 @@ import {routineRunSchema, type RoutineRun, type RoutineRunStore} from './run-sch
  */
 export type RoutineStep = {habit: Habit; index: number; duration: boolean; minutes: number | null; status: 'done' | 'skipped' | 'pending' | 'current'};
 export type Routine = {headId: string; title: string; habits: Habit[]};
-/** Every stack of two or more habits, as a routine named after its first habit. */
+/**
+ * Every stack of two or more habits, as a routine. Session AH (HA4, N-134): one made from a template keeps the
+ * template's name ("Morning routine"); any other is named by its first and last steps, never "Glass of water routine".
+ */
 export function routines(data: Pick<HabitData, 'habits'>): Routine[] {
-  return stacksOf(data).map(chain => ({headId: chain[0]!.id, title: `${chain[0]!.title} routine`, habits: chain}));
+  return stacksOf(data).map(chain => ({headId: chain[0]!.id, title: templateOfChain(chain.map(h => h.title))?.title ?? `${chain[0]!.title} → ${chain.at(-1)!.title}`, habits: chain}));
 }
 export function routineOf(data: Pick<HabitData, 'habits'>, headId: string): Routine | null {
   return routines(data).find(r => r.headId === headId) ?? null;

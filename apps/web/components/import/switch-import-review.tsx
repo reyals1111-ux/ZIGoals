@@ -8,6 +8,7 @@ import type {HealthData} from '../../lib/health';
 import {GROUP_LIMIT_WORDS, GROUP_LIMITS, previewImport, sinceDay, sizeCheck, windowThatFits, type ImportItems, type ImportPlan} from '../../lib/import/switch/apply';
 import {previewHabits, type HabitsPlan} from '../../lib/import/switch/loop';
 import {GROUPS, n, bytesText} from './switch-import-text';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 /**
  * Switch to ZIGoals' preview and undo code (Session X Part 5): the two previews moved unchanged from switch-import.tsx, and
@@ -66,7 +67,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
 
 export function HabitsPreview({plan, data, onConfirm, onCancel}: {plan: HabitsPlan; data: HabitData; onConfirm: (plan: HabitsPlan) => Promise<void>; onCancel: () => void}) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
-  const preview = useMemo(() => { try { return previewHabits(data, plan.habits); } catch (cause) { return cause instanceof Error ? cause.message : 'This export cannot be imported.'; } }, [data, plan]);
+  const preview = useMemo(() => { try { return previewHabits(data, plan.habits); } catch (cause) { return plainErrorMessage(cause, 'This export cannot be imported.'); } }, [data, plan]);
   if (typeof preview === 'string') return <div className="switch-preview"><p role="alert">{preview}</p><div className="actions"><button type="button" className="secondary" onClick={onCancel}>Start over</button></div></div>;
   const checkIns = plan.habits.filter(h => preview.created.includes(h.id)).reduce((t, h) => t + h.entries.length, 0) + preview.entries.length;
   // Session X P2.1: an exported habit named like one already here comes in beside it (habits are matched by Loop's own

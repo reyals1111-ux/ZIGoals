@@ -1,8 +1,11 @@
 "use client";
+import { removedItems, reinsertItems } from "../../lib/undo-removal";
+import { showToast } from "../ui/undo-toast";
 import { ProgressSlot } from "../progress/slot";
 import { HealthTrends } from "../bottom-sections";
 import { useHealthToday } from "./use-health-today";
 import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
+import { foodIssue, within } from "../../lib/limits/plausibility";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
 import {PillarHero} from "../pillar-hero";
@@ -34,12 +37,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, lazy, useState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
 import {
   HEALTH_MEALS,foodSnapshot,recipeSnapshot,formatServingMeasure,formatNutrient,nutritionSummaryText, dailyHealthSummary, editDiaryEntry, formatHealthGrams,
-  logHealthItem, newHealthId, parseHealthNumber, recipeNutrition,
+  logHealthItem, newHealthId, parseHealthNumber, quickLogFood, recipeNutrition,
   removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, scaleNutrition,
-  searchFoods, setHealthTargets, weightTrend, type HealthData, type HealthDiaryEntry,
+  searchFoods, setHealthTargets, weightTrend, healthSchema, type HealthData, type HealthDiaryEntry,
   type HealthFood, type HealthRecipe, type HealthTargets, type Nutrition, type RecipeDraft,
 } from "../../lib/health";
-import { addLocalDays } from "../../lib/local-date";
 import { GlassBar, GlassRing } from "../progress/glass-progress";
 import { useHealth } from "./use-health";
 import { useHabits } from "../habits/use-habits";
@@ -61,17 +63,18 @@ import { MealQuick, RepeatDay } from "./quick-log";
 import { bodyWeightGrams, dailyData, servingsFromMeasure } from "../../lib/health-daily";
 import { EvidenceChart } from "../platform/evidence-chart";
 import { weightChangeText, weightChartValue, weightText, type WeightUnit } from "../../lib/health-units";
-import {healthDateSchema} from "../../lib/health";
 import {PinToToday} from "../pin-to-today";
 import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
 import { PhoneFold } from "../phone/phone-fold";
-import { formatDate, formatNumber } from "../../lib/visual-format";
+import { formatDate, formatNumber, formatTime } from "../../lib/visual-format";
+import { saveMeasurement } from "../../lib/body-measurements";
 import { plural } from "../../lib/plural";
 import { updateRefusalMessage } from "../../lib/storage-error-copy";
 import { SleepCard } from "./sleep/sleep-card";
 import { healthGroupIn } from "../../lib/vault/w-homes";
 import { MeditationCard } from "./meditation/meditation-card";
+import { WorkoutsCard } from "./workouts/workouts-card";
 import { useDeviceRecord } from "../ai/use-device-record";
 import { MEDITATION_RUN } from "../../lib/meditation/schema";
 import { zigiSignals } from "../zigi/bus";
@@ -79,10 +82,16 @@ import { LoadBoundary } from "../load-boundary";
 import {Skeleton} from "../ui/skeleton";
 import {useScrollEdges} from '../ui/use-scroll-edges';
 import { StarToggle } from '../checklist/star-toggle';
+import {plainErrorMessage} from '../../lib/plain-error';
+import { isShowcase } from "../../lib/showcase-storage";
+import {journalDay} from "../../lib/health-day";
+import {HealthDateBar, HealthDayProvider, LoggingFor} from "./health-day";
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
 const MeditationView = lazy(() => import("./meditation/meditation-view"));
+/** Session AH Part 6 (DE8): the workout log, a view of this page (/app/health?view=workouts), loaded when opened. */
+const WorkoutsView = lazy(() => import("./workouts/workouts-view"));
 const DevicesView = lazy(() => import("./devices/devices-view"));
 /** Session W Part 7: an activity line an import or a device link brought in (its id names the source). */
 const SOURCE_NAMES: Record<string, string> = {"apple-health": "Apple Health", fitbit: "Fitbit / Google Health", samsung: "Samsung Health", oura: "Oura", garmin: "Garmin", "oura-link": "Oura (linked)", "withings-link": "Withings (linked)", "polar-link": "Polar (linked)", "strava-link": "Strava (linked)"};
@@ -92,7 +101,10 @@ type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
 const views = ["Diary", "Foods & recipes", "Meals & planning", "Planner", "Weight", "Measurements", "Activity", "Targets", "Insights", "Import", "Journal settings"] as const;
 /** Session AA-Local Part 5: a ZIGi open-page card names a tab by hash (#planner, #insights, #import); the page reads it once. */
-const HASH_VIEWS: Record<string, View> = {planner: "Planner", insights: "Insights", import: "Import", targets: "Targets", measurements: "Measurements"};
+// Session AH (C9, BUG-080): every view answers to a link, as ?tab=<name> or #<name>; the full views (sleep, meditation,
+// workouts, devices) answer to ?tab= and # too.
+const HASH_VIEWS: Record<string, View> = {diary: "Diary", foods: "Foods & recipes", recipes: "Foods & recipes", planning: "Meals & planning", meals: "Meals & planning", planner: "Planner", weight: "Weight", measurements: "Measurements", activity: "Activity", targets: "Targets", insights: "Insights", import: "Import", settings: "Journal settings"};
+const FULL_VIEWS = new Set(["sleep", "meditation", "workouts", "devices"]);
 type View = typeof views[number];
 const foodFields = [
   ["kcal", "Calories (kcal)", 1, 1_000_000], ["proteinMg", "Protein (g)", 1000, 1_000_000_000],
@@ -131,17 +143,22 @@ export function HealthApp() {
   const params = useSearchParams();
   // Session W Part 8: a linked service sends the person back to /app/health with its code (or refusal) and the state;
   // the Devices view reads and removes them.
-  const view = params.get("view") ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
+  const tab = params.get("tab")?.toLowerCase() ?? null;
+  const [hashView, setHashView] = useState<string | null>(null);
+  useEffect(() => { const read = () => { const h = window.location.hash.slice(1).toLowerCase(); setHashView(FULL_VIEWS.has(h) ? h : null); }; read(); window.addEventListener("hashchange", read); return () => window.removeEventListener("hashchange", read); }, []);
+  const view = params.get("view") ?? (tab && FULL_VIEWS.has(tab) ? tab : null) ?? hashView ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
   if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><Skeleton label="Opening Sleep…" block/></section>}><SleepView /></Suspense></LoadBoundary>;
   if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><Skeleton label="Opening Meditation…" block/></section>}><MeditationView /></Suspense></LoadBoundary>;
+  if (view === "workouts") return <LoadBoundary title="Workouts" label="Workouts"><Suspense fallback={<section className="panel"><h1>Workouts</h1><Skeleton label="Opening Workouts…" block/></section>}><WorkoutsView /></Suspense></LoadBoundary>;
   if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><Skeleton label="Opening Devices…" block/></section>}><DevicesView /></Suspense></LoadBoundary>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
-  const [view, setView] = useState<View>("Diary");
+  const tabParam = useSearchParams().get("tab")?.toLowerCase() ?? "";
+  const [view, setView] = useState<View>(() => HASH_VIEWS[tabParam] ?? "Diary");
   useEffect(() => { const follow = () => { const v = HASH_VIEWS[window.location.hash.slice(1).toLowerCase()]; if (v) setView(v); }; follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow); }, []);
   const router = useRouter(), phone = usePhoneActive();
   // HE6: the fasting timer, this device's own record.
@@ -156,7 +173,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
   // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
   const [logging, setLogging] = useState(false);
-  const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
+  const searchParams=useSearchParams();
   const addIntent = searchParams.get("add") === "entry";
   const [handledIntent, setHandledIntent] = useState(false);
   // A same-page Quick Add is a new intent, not a new Health store.
@@ -186,7 +203,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [addIntent, router]);
   const today = useHealthToday(dailyData(data).preferences.timezone);
-  const [date, setDate] = useState(() => pinnedDate.success?pinnedDate.data:today);
+  // Session AH Part 17: a `?date=` deep link opens that day; a future or malformed one opens today.
+  const [date, setDate] = useState(() => journalDay(searchParams.get("date"), today));
   // Forms are keyed by the reader's own date choices, not by the date itself: when the open page follows midnight
   // (QA-16), a half-typed entry stays and is logged on the new day; choosing another date still starts afresh.
   const [dateChoice, setDateChoice] = useState(0);
@@ -203,7 +221,10 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const perform: Perform = async (updater, success, after) => {
     if (saving.current) return;
     saving.current = true; setBusy(true); setError(""); setMessage(""); unmark();
-    try { await update(updater); setMessage(success); after?.(); }
+    // Session AH Part 3 (DS5): a save that only removed items (water, a diary row, a food, a weight…) offers a labelled
+    // Undo in the app's one toast, which puts exactly those items back into the latest record (lib/undo-removal.ts).
+    let before: HealthData | undefined, saved: HealthData | undefined;
+    try { await update(latest => { const next = updater(latest); before = latest; saved = next; return next; }); const removed = before === undefined ? null : removedItems(before, saved); if (removed) showToast({message: success, undone: "Put back.", undo: () => update(latest => reinsertItems(latest, removed))}); else setMessage(success); after?.(); }
     catch (error) { setError(updateRefusalMessage(error, "Could not save this change. Check your entries and available browser storage, then try again.")); }
     finally { saving.current = false; setBusy(false); }
   };
@@ -224,19 +245,20 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     marked.current = fields; fields[0]?.focus(); return fields.length;
   };
   // A name with nothing visible gets its own message (QA-32); every other refusal keeps the fields message.
-  const invalid = (cause?: unknown) => { const name = cause instanceof Error && cause.message === INVISIBLE_NAME, count = mark(name); setError(name ? cause.message : count ? "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings." : "Check the numbers: enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings."); };
+  const invalid = (cause?: unknown) => { const name = cause instanceof Error && cause.message === INVISIBLE_NAME, count = mark(name); /* Session AH (C2, C3): the reason itself when the app wrote one (a limit, a range with its unit) */ const said = cause instanceof Error && (cause.name === "LimitError" || /^Enter |^Choose /.test(cause.message)) ? plainErrorMessage(cause, "") : ""; setError(name ? cause.message : said ? said : count ? "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings." : "Check the numbers: enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings."); };
   const summary = dailyHealthSummary(data, date);
-  const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => chooseDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") chooseDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => chooseDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => chooseDate(today)}>Today</button></div>;
-  return <LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
+  // Session AH Part 17 (owner addition): the date bar; on a past day every card logs to that day, the future cannot be chosen.
+  const dateControl = <div className="health-date-block"><HealthDateBar date={date} today={today} onChoose={next => chooseDate(journalDay(next, today))}/><LoggingFor date={date} today={today}/></div>;
+  return <HealthDayProvider value={{date, today}}><LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
     {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
-    <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<><Link className="secondary health-privacy-link" href="/app/settings">Privacy &amp; backups</Link><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button></>}/><LayoutLockButton/>
-    {!phone && <ExerciseCounters data={data} update={update} />}
+    <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<><Link className="secondary health-privacy-link" href="/app/settings">Privacy &amp; backups</Link><button type="button" className="secondary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("water")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log water</button><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food</button></>}/><LayoutLockButton/>
+    {!phone && <ExerciseCounters data={data} update={update} date={date} />}
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
-    {phone && <ExerciseCounters data={data} update={update} />}
+    {phone && <ExerciseCounters data={data} update={update} date={date} />}
     {/* Phase 2, Part 5 (owner request 33): the highlight tiles — the figures of the trend, energy and coach cards below. */}
-    <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={today} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
+    <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={date} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
@@ -245,7 +267,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {!phone && dateControl}
     </div>
     <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && !(phone && logging) && <p className="health-error" role="alert" id={errorId}>{error}</p>}
-    <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
+    {/* Session AH (HE9; D-010, L-037, B-121, M-141): the import strip on the Diary and Import views only, never in the
+        Showcase (its sample import is not the person's), with its own "Undo import" beside any toast's Undo. */}
+    {(view === "Diary" || view === "Import") && !isShowcase() && <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />}
 
     <fieldset className="health-content" disabled={busy}>
       {view === "Diary" && <><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details onToggle={(e) => setBarcodeOpen(e.currentTarget.open)}><summary>Scan or look up a food barcode</summary>{barcodeOpen && <LoadBoundary quiet><Suspense fallback={null}><BarcodeFoodLookup date={date} update={update}/></Suspense></LoadBoundary>}</details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
@@ -255,24 +279,25 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Import" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the import…"/>}><RecipeImport data={data} perform={perform} /></Suspense></LoadBoundary>}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
-      {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={today} /></Suspense></LoadBoundary></>}
+      {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary></>}
       {view === "Weight" && <WeightView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} />}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
       {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></Suspense></LoadBoundary></>}
     </fieldset>
     {/* ADR-022 B49: the weight trend, energy and coach cards close the journal block (no new layout item; the summary and the nutrition dashboard stay adjacent; the diary form keeps its place after a Quick Add, run9-2-life). */}
-    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
+    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={date} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
-    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
+    {id: "health:workouts", label: "Workouts", node: <PhoneFold label="Workouts"><WorkoutsCard /></PhoneFold>},
+    {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><div className="health-fasting-block"><FastingTimer fasting={fasting} health={data} /><LoadBoundary quiet><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></LoadBoundary></div></PhoneFold>}, // B49: one child, so PhoneFold can carry the layout attributes on computers (two children lost the item from the region since B41)
-    {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} waterUnit={dailyData(data).preferences.waterUnit} />},
+    {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={date} waterUnit={dailyData(data).preferences.waterUnit} />},
     ]}/>
     {/* Session AB-Design (owner requests 9, 23): the game card only at the very bottom of the page while Gamify is on. */}
     <div className="health-progress-slot page-game-slot"><ProgressSlot page="health" /></div>
     <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
-  </div></LayoutPage>;
+  </div></LayoutPage></HealthDayProvider>;
 }
 
 function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs & { data: HealthData; date: string; today: string; onTargets: () => void }) {
@@ -283,8 +308,8 @@ function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs 
   return <section {...layout} className="panel health-summary" aria-label="Daily nutrition summary">
     <PinToToday label="Daily nutrition" choices={[{kind:'health',metric:'kcal',label:'Meals today'},{kind:'health',metric:'macros',label:'Macros today'}]}/>
     <div className="health-aurora" aria-hidden="true"><i /><i /><i /></div>
-    <GlassRing identity="health-gauge" className="health-gauge" arcs={[{ key: "kcal", end: progress * 100 }]}><div><strong>{formatNutrient(kcal)}</strong><span>kcal logged</span></div></GlassRing>
-    <div className="health-summary-main"><p className="eyebrow">{date === today ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? <NebulaFlow identity="health-summary-title">Every entry adds perspective.</NebulaFlow> : "Start with one small entry."}</h2><p>{target ? `${formatNumber(target)} kcal target` : "No calorie target set"}</p>{target && kcal!==null ? <p className="fine">{kcal <= target ? `${formatNumber((target - kcal))} kcal remaining to your target` : `${formatNumber((kcal - target))} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}{kcal===null&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}. Total and target comparison unavailable.</p>}<p className="health-daily-facts">{groupsOn(data, date)}{` ${plural(groupsOn(data, date), "meal group")} · `}{summary.entries}{` ${plural(summary.entries, "entry", "entries")}`}{summary.steps > 0 ? ` · ${formatNumber(summary.steps)} steps logged` : ""}{summary.minutes > 0 ? ` · ${summary.minutes} min movement` : ""}</p><button className="quiet" onClick={onTargets}>Edit personal targets</button></div>
+    <GlassRing identity="health-gauge" className="health-gauge" arcs={[{ key: "kcal", end: progress * 100 }]}><div><strong>{formatNutrient(kcal ?? summary.knownNutrients.kcal)}</strong><span>{kcal === null && summary.knownNutrients.kcal !== null ? "kcal known so far" : "kcal logged"}</span>{/* Session AH (TR9): a full ring past the target says so. */}{target && kcal !== null && kcal > target && <span className="health-gauge-over">over target</span>}</div></GlassRing>
+    <div className="health-summary-main"><p className="eyebrow">{date === today ? "TODAY’S NOURISHMENT" : date}</p><h2>{summary.entries ? <NebulaFlow identity="health-summary-title">Every entry adds perspective.</NebulaFlow> : "Start with one small entry."}</h2><p>{target ? `${formatNumber(target)} kcal target` : "No calorie target set"}</p>{target && kcal!==null ? <p className="fine">{kcal <= target ? `${formatNumber((target - kcal))} kcal remaining to your target` : `${formatNumber((kcal - target))} kcal above your target`}</p> : <button className="text-link health-inline-button" onClick={onTargets}>Set your own targets →</button>}{kcal===null&&summary.entries>0&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}. The entries without calories are left out; add their calories for a full total.</p>}<p className="health-daily-facts">{groupsOn(data, date)}{` ${plural(groupsOn(data, date), "meal group")} · `}{summary.entries}{` ${plural(summary.entries, "entry", "entries")}`}{summary.steps > 0 ? ` · ${formatNumber(summary.steps)} steps logged` : ""}{summary.minutes > 0 ? ` · ${summary.minutes} min movement` : ""}</p><button className="quiet" onClick={onTargets}>Edit personal targets</button></div>
     <div className="health-macro-grid">{([ ["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"] ] as const).map(([label, key]) => {
       const personalTarget = data.targets[key];
       return <div className={`health-macro health-macro-${key}`} key={key}><span>{label}</span><strong>{nutritionSummaryText(summary,key,"g",1000)}</strong><GlassBar identity={`health-macro:${key}`} className="health-meter" aria-hidden="true" value={personalTarget && summary.nutrients[key]!==null ? summary.nutrients[key]! / personalTarget : 0} /><small>{personalTarget ? `${formatHealthGrams(personalTarget)} g target` : "Target not set"}</small></div>;
@@ -313,11 +338,11 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
       void perform(latest => logHealthItem(latest, draft, new Date().toISOString()), "Meal logged.", () => { setServings(entryUnit !== "servings" ? "" : "1"); logOperation.current = null; setLogging(false); zigiSignals.emitValidated('health_log_recorded'); });
     } catch (cause) { invalid(cause); }
   };
-  const quickPicks = sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); logOperation.current = null; }} />;
+  const quickPicks = sourceItems.length > 0 && <HealthQuickPicks data={data} perform={perform} onChoose={(id, quantity, usualMeal) => { setSource(id); setServings(String(quantity / 1000)); setEntryUnit("servings"); if (usualMeal) setMeal(usualMeal); logOperation.current = null; }} />;
   const mealForm = <>{sourceItems.length ? <FormBox title="Log a meal" onSubmit={submit}>
     <label className="field"><span>Food or recipe</span><select data-sheet-focus required value={source} onChange={e => setSource(e.target.value)}><option value="">Choose from your library</option>{sourceItems.map(s => <option value={s.id} key={s.id}>{s.name} · {s.kind}</option>)}</select></label>
     <div className="health-form-grid"><MealField value={meal} onChange={setMeal} /><label className="field"><span>Quantity unit</span><select aria-label="Quantity unit" value={entryUnit} onChange={e => { setEntryUnit(e.target.value); setServings(""); logOperation.current = null; }}><option value="servings">Servings</option><option value="grams">Grams</option><option value="millilitres">Millilitres</option></select></label><NumberField label={entryUnit === "grams" ? "Food weight (g)" : entryUnit==="millilitres"?"Food volume (mL)":"Servings"} value={servings} onChange={v => { setServings(v); logOperation.current = null; }} step="0.001" /></div>{preview && <div className="health-preview"><NutrientLine nutrients={preview} /></div>}<button className="primary" type="submit">Log to diary</button><p className="fine">Logging for {formatDate(date)}. Measured entries use the saved serving unit, rounded to 0.001 serving. Weight and volume never convert without density evidence.</p>
-  </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}</>;
+  </FormBox> : <><p>Build a food library from the nutrition labels you use, then add meals here.</p><button className="primary" onClick={onLibrary}>Add your first food</button></>}<QuickAddFood date={date} meal={meal} perform={perform} invalid={invalid} /></>;
   const logForm = <>{quickPicks}{mealForm}</>;
   return <div className="health-diary-layout"><div className="health-meals"><RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
@@ -326,7 +351,30 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)}{` ${plural(entry.quantityMilli / 1000, "serving")} · `}{formatServingMeasure(entry.snapshot,entry.quantityMilli)}{entry.snapshot.recipeVersion?` · Recipe version ${entry.snapshot.recipeVersion}`:""}</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
     </SwipeRow>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}<MealQuick data={data} date={date} today={today} meal={mealName} perform={perform} /></section>;
-  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone && sourceItems.length > 0 ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert" id="health-page-error">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
+  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert" id="health-page-error">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
+}
+
+/** Session AH (C11, BUG-066): log a food that is not in the library yet: a name, its calories and one serving's size. */
+function QuickAddFood({ date, meal: initialMeal, perform, invalid }: { date: string; meal: HealthDiaryEntry["meal"]; perform: Perform; invalid: (cause?: unknown) => void }) {
+  const [name, setName] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [size, setSize] = useState("");
+  const [unit, setUnit] = useState<"g" | "ml">("g");
+  const [meal, setMeal] = useState(initialMeal);
+  const [macros, setMacros] = useState({ proteinMg: "", carbsMg: "", fatMg: "" });
+  const ids = useRef<{ foodId: string; logId: string } | null>(null);
+  const reset = () => { setName(""); setKcal(""); setSize(""); setMacros({ proteinMg: "", carbsMg: "", fatMg: "" }); ids.current = null; };
+  return <details className="health-quick-add"><summary>Quick add a food that is not in your library</summary><FormBox title="Quick add a food" onSubmit={e => { e.preventDefault(); try {
+    const nutrients: Nutrition = { kcal: parseHealthNumber(kcal, 1, 0, 10_000), proteinMg: macros.proteinMg.trim() ? parseHealthNumber(macros.proteinMg, 1000, 0, 1_000_000_000) : null, carbsMg: macros.carbsMg.trim() ? parseHealthNumber(macros.carbsMg, 1000, 0, 1_000_000_000) : null, fatMg: macros.fatMg.trim() ? parseHealthNumber(macros.fatMg, 1000, 0, 1_000_000_000) : null };
+    const amount = parseHealthNumber(size, 1, 1, 100_000);
+    within(foodIssue(nutrients, unit === "g" ? amount : null));
+    ids.current ??= { foodId: newHealthId(), logId: newHealthId() };
+    const quick = { ...ids.current, name: visibleName(name), servingGrams: unit === "g" ? amount : null, ...(unit === "ml" ? { servingMl: amount } : {}), nutrients, date, meal };
+    void perform(latest => quickLogFood(latest, quick, new Date().toISOString()), `${quick.name} logged and saved to your library.`, reset);
+  } catch (cause) { invalid(cause); } }}>
+    <div className="health-form-grid"><label className="field"><span>Food name</span><input required maxLength={120} value={name} onChange={e => { setName(e.target.value); ids.current = null; }} /></label><NumberField label="Calories (kcal)" value={kcal} onChange={v => { setKcal(v); ids.current = null; }} /><NumberField label={unit === "g" ? "Portion weight (g)" : "Portion volume (mL)"} value={size} onChange={v => { setSize(v); ids.current = null; }} /><label className="field"><span>Portion unit</span><select value={unit} onChange={e => { setUnit(e.target.value as "g" | "ml"); ids.current = null; }}><option value="g">Grams</option><option value="ml">Millilitres</option></select></label><MealField value={meal} onChange={setMeal} />{(["proteinMg", "carbsMg", "fatMg"] as const).map(key => <NumberField key={key} required={false} step="0.001" label={`${{ proteinMg: "Protein", carbsMg: "Carbs", fatMg: "Fat" }[key]} (g, optional)`} value={macros[key]} onChange={v => { setMacros(old => ({ ...old, [key]: v })); ids.current = null; }} />)}</div>
+    <button className="secondary" type="submit">Log and save food</button><p className="fine">Logging for {formatDate(date)}. The food is saved to your library as one portion, so you can pick it again. Blank values stay unknown, never zero.</p>
+  </FormBox></details>;
 }
 
 function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEntry; perform: Perform; invalid: (cause?: unknown) => void; close: () => void }) {
@@ -334,7 +382,7 @@ function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEnt
   const [date, setDate] = useState(entry.date);
   const [meal, setMeal] = useState(entry.meal);
   return <FormBox title="Edit diary entry" onSubmit={e => { e.preventDefault(); try { const quantityMilli = parseHealthNumber(quantity, 1000, 1, 1_000_000); void perform(latest => editDiaryEntry(latest, entry.id, { date, meal, quantityMilli }, new Date().toISOString()), "Diary entry updated.", close); } catch (cause) { invalid(cause); } }}>
-    <div className="health-form-grid"><label className="field"><span>Entry date</span><input type="date" required min="1900-01-01" max="2199-12-31" value={date} onChange={e => setDate(e.target.value)} /></label><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={quantity} onChange={setQuantity} step="0.001" /></div><p className="fine">Corrections use the nutrition originally saved with this entry.</p><div className="actions"><button className="primary" type="submit">Save entry</button><button className="quiet" type="button" onClick={close}>Cancel</button></div>
+    <div className="health-form-grid"><label className="field"><span>Entry date</span><input type="date" required min="1990-01-01" max="2199-12-31" value={date} onChange={e => setDate(e.target.value)} /></label><MealField value={meal} onChange={setMeal} /><NumberField label="Servings" value={quantity} onChange={setQuantity} step="0.001" /></div><p className="fine">Corrections use the nutrition originally saved with this entry.</p><div className="actions"><button className="primary" type="submit">Save entry</button><button className="quiet" type="button" onClick={close}>Cancel</button></div>
   </FormBox>;
 }
 
@@ -369,6 +417,7 @@ function FoodEditor({ food, perform, invalid, close }: { food: HealthFood | null
     for(const [key,,,scale]of additionalNutrients)if(extras[key]?.trim())labelNutrients[key]=parseHealthNumber(extras[key]!,scale,0,1_000_000_000);
     const servingAmount = parseHealthNumber(weight, 1, 1, 100_000);
     const nutrients = basis !== "serving" ? scaleNutrition(labelNutrients, servingAmount * 10) : labelNutrients;
+    within(foodIssue(nutrients, measureUnit==="g"?servingAmount:null));
     const draft = { id: foodId, name: visibleName(name), brand, servingGrams:measureUnit==="g"?servingAmount:null,...(measureUnit==="ml"?{servingMl:servingAmount}:{}), nutrients, createdAt: food?.createdAt ?? at, updatedAt: at };
     void perform(latest => saveFood(latest, draft), "Food saved.", close);
   } catch (cause) { invalid(cause); } }}><div className="health-form-grid"><label className="field"><span>Food name</span><input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label><label className="field"><span>Brand (optional)</span><input maxLength={80} value={brand} onChange={e => setBrand(e.target.value)} /></label><label className="field"><span>Nutrition label basis</span><select value={basis} onChange={e => {setBasis(e.target.value);if(e.target.value!=="serving")setMeasureUnit(e.target.value==="100g"?"g":"ml");}}><option value="serving">Per serving</option><option value="100g">Per 100 g</option><option value="100ml">Per 100 mL</option></select></label><label className="field"><span>Serving measure unit</span><select value={measureUnit} disabled={basis!=="serving"} onChange={e=>setMeasureUnit(e.target.value)}><option value="g">Grams</option><option value="ml">Millilitres</option></select></label><NumberField label={measureUnit==="g"?"Serving weight (g)":"Serving volume (mL)"} value={weight} onChange={setWeight} />{foodFields.map(([key, label, scale]) => <NumberField key={key} label={label} required={false} value={values[key]} onChange={value => setValues(old => ({ ...old, [key]: value }))} step={scale === 1 ? "1" : "0.001"} />)}</div><details><summary>Additional label nutrients (optional)</summary><p>Enter only values supplied by the label.</p><div className="health-form-grid">{additionalNutrients.map(([key,label,unit,scale])=><NumberField key={key} label={`${label} (${unit})`} value={extras[key]??""} onChange={value=>setExtras(old=>({...old,[key]:value}))} required={false} step={scale===1?"1":"0.001"}/>)}</div></details><Suspense fallback={null}><VitaminFields foodId={foodId} basis={basis} amount={weight} /></Suspense><div className="actions"><button className="primary" type="submit">Save food</button><button className="quiet" type="button" onClick={close}>Cancel</button></div></FormBox></section>;
@@ -402,10 +451,16 @@ function WeightView({ data, date, choice, perform, invalid, onDate }: { data: He
   const unit = dailyData(data).preferences.weightUnit;
   const trend = weightTrend(data, date);
   const history = [...data.weights].sort((a, b) => b.date.localeCompare(a.date));
+  // Session AH Part 3 (DS7): second readings of a day (timed weight measurements) listed with their time.
+  const seconds = (data.measurements ?? []).filter(m => m.kind === "weight" && m.source === "MANUAL");
   return <div className="health-two-columns"><div><section className="panel health-weight-overview"><StarToggle item={{kind:"health",input:"weight"}} label="Weigh in"/><PinToToday label="Weight journal" choices={[{kind:'health',metric:'weight',label:'Latest weight'}]}/><p className="eyebrow">A LONGER VIEW</p><h2>Your weight journal.</h2><p>Individual readings can vary. See what you recorded over time.</p><div className="health-weight-stats"><div><span>Latest in 30 days</span><strong>{trend.latestGrams === null ? "—" : weightText(trend.latestGrams, unit)}</strong></div><div><span>Your weight goal</span><strong>{data.targets.weightGrams === null ? "Not set" : weightText(data.targets.weightGrams, unit)}</strong></div><div><span>30-day change</span><strong>{trend.changeGrams === null ? "—" : weightChangeText(trend.changeGrams, unit)}</strong></div></div>
     <WeightChart data={data} date={date} unit={unit} /><p className="fine">{trend.count ? `${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} in the 30 days ending ${formatDate(date)}. Average ${weightText(trend.averageGrams!, unit)}.` : "Add your first reading to start a trend."}</p></section>
-    <section className="panel health-weight-history"><h2>Weight history</h2>{history.length ? <div ref={edges} className="health-table-wrap"><table aria-label="Weight history"><thead><tr><th>Date</th><th>Weight</th><th><span className="health-sr-only">Actions</span></th></tr></thead><tbody>{history.slice(0, 100).map(w => <tr key={w.id}><td>{formatDate(w.date)}</td><td>{weightText(w.grams, unit)}</td><td><div className="health-row-actions"><button className="quiet" aria-label={`Edit weight for ${formatDate(w.date)}`} onClick={() => onDate(w.date)}>Edit</button><button className="quiet" aria-label={`Remove weight for ${formatDate(w.date)}`} onClick={() => void perform(latest => removeHealthItem(latest, "weights", w.id), "Weight entry removed.")}>Remove</button></div></td></tr>)}</tbody></table>{history.length > 100 && <p className="fine">Showing the latest 100 readings. All readings remain in your private backup.</p>}</div> : <p className="health-empty-inline">No weight readings yet.</p>}</section></div>
-    <section className="panel health-fit-panel"><h2>{reading ? "Correct a reading." : "Add a reading."}</h2><p>{formatDate(date)} · One reading per day; saving again corrects that day.</p><FormBox key={`${choice}:${reading?.updatedAt ?? "new"}`} title="Weight entry" onSubmit={e => { e.preventDefault(); try { const grams = bodyWeightGrams(formString(new FormData(e.currentTarget), "weight"), unit); void perform(latest => saveWeight(latest, { id: reading?.id ?? newHealthId(), date, grams }, new Date().toISOString()), "Weight saved.", () => zigiSignals.emitValidated('health_log_recorded')); } catch (cause) { invalid(cause); } }}><label className="field"><span>Weight ({unit})</span><input name="weight" type="text" inputMode="decimal" autoComplete="off" required defaultValue={reading ? unit === "kg" ? reading.grams / 1000 : (reading.grams / 453.59237).toFixed(3) : ""} /></label><button className="primary" type="submit">Save weight</button><p className="fine">Manual reading, converted to and stored as grams. History and the chart use your weight unit from Journal settings. Set or clear your own weight goal in Targets.</p></FormBox></section></div>;
+    <section className="panel health-weight-history"><h2>Weight history</h2>{history.length ? <div ref={edges} className="health-table-wrap"><table aria-label="Weight history"><thead><tr><th>Date</th><th>Weight</th><th><span className="health-sr-only">Actions</span></th></tr></thead><tbody>{seconds.map(m => <tr key={m.id}><td>{formatDate(m.observedAt, { timeZone: m.timezone })}, {formatTime(m.observedAt, { timeZone: m.timezone })}</td><td>{weightText(Math.round(m.canonical / 1000), unit)}</td><td><div className="health-row-actions"><button className="quiet" aria-label={`Remove the reading of ${formatDate(m.observedAt, { timeZone: m.timezone })} at ${formatTime(m.observedAt, { timeZone: m.timezone })}`} onClick={() => void perform(latest => healthSchema.parse({ ...latest, measurements: (latest.measurements ?? []).filter(x => x.id !== m.id) }), "Reading removed.")}>Remove</button></div></td></tr>)}{history.slice(0, 100).map(w => <tr key={w.id}><td>{formatDate(w.date)}</td><td>{weightText(w.grams, unit)}</td><td><div className="health-row-actions"><button className="quiet" aria-label={`Edit weight for ${formatDate(w.date)}`} onClick={() => onDate(w.date)}>Edit</button><button className="quiet" aria-label={`Remove weight for ${formatDate(w.date)}`} onClick={() => void perform(latest => removeHealthItem(latest, "weights", w.id), "Weight entry removed.")}>Remove</button></div></td></tr>)}</tbody></table>{history.length > 100 && <p className="fine">Showing the latest 100 readings. All readings remain in your private backup.</p>}</div> : <p className="health-empty-inline">No weight readings yet.</p>}</section></div>
+    <section className="panel health-fit-panel"><h2>{reading ? "Correct a reading, or keep both." : "Add a reading."}</h2><p>{formatDate(date)} · {reading ? "“Save weight” corrects this day’s reading; “Keep both” adds a second reading at this time." : "One reading a day; a second one can be kept beside it."}</p><FormBox key={`${choice}:${reading?.updatedAt ?? "new"}`} title="Weight entry" onSubmit={e => { e.preventDefault(); try { const grams = bodyWeightGrams(formString(new FormData(e.currentTarget), "weight"), unit), now = new Date();
+      // Session AH Part 3 (DS7, N-057): a second reading on a day that has one is kept beside it (a timed weight
+      // measurement, the record's own kind for readings with a time), never written over the first.
+      if (reading && (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "second") void perform(latest => saveMeasurement(latest, { id: newHealthId(), kind: "weight", quantityMilli: grams, unit: "kg", observedAt: now.toISOString(), timezone: dailyData(latest).preferences.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone, sourceLabel: "Manual reading" }, now.toISOString()), "Second reading saved beside the first.", () => zigiSignals.emitValidated('health_log_recorded'));
+      else void perform(latest => saveWeight(latest, { id: reading?.id ?? newHealthId(), date, grams }, now.toISOString()), "Weight saved.", () => zigiSignals.emitValidated('health_log_recorded')); } catch (cause) { invalid(cause); } }}><label className="field"><span>Weight ({unit})</span><input name="weight" type="text" inputMode="decimal" autoComplete="off" required defaultValue={reading ? unit === "kg" ? reading.grams / 1000 : (reading.grams / 453.59237).toFixed(3) : ""} /></label><button className="primary" type="submit">Save weight</button>{reading && <button className="secondary" type="submit" value="second">Keep both</button>}<p className="fine">Manual reading, converted to and stored as grams. History and the chart use your weight unit from Journal settings. Set or clear your own weight goal in Targets.</p></FormBox></section></div>;
 }
 
 function WeightChart({ data, date, unit }: { data: HealthData; date: string; unit: WeightUnit }) {

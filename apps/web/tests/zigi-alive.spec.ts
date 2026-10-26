@@ -297,7 +297,13 @@ test('Meet ZIGi: every state with its code, reached from Customize and not from 
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   const states = Object.values(manifest.states);
   await expect(page.locator('.meet-zigi-card')).toHaveCount(states.length);
-  for (const state of states) await expect(page.getByRole('article', {name: state.label, exact: true})).toContainText(state.code);
+  /* Assertion changed (Session AH TO9, D-249/M-030, equal strength): the page no longer shows frame codes (owner: the
+     internal copy only). Each card shows how its state moves, in plain words, and never its code. */
+  for (const state of states) {
+    const card = page.getByRole('article', {name: state.label, exact: true});
+    await expect(card).toContainText(state.kind === 'loop' ? 'Moves while it lasts' : 'A short move, about');
+    await expect(card).not.toContainText(state.code);
+  }
   await expect(page.getByRole('button', {name: /^Play .* again$/})).toHaveCount(states.filter(s => s.kind === 'one-shot').length);
   await page.getByRole('button', {name: 'Play Celebrate again'}).click();
   await expect(page.getByRole('article', {name: 'Celebrate', exact: true}).locator('.zigi')).toHaveCount(3);

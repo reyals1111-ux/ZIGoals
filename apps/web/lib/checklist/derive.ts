@@ -14,6 +14,7 @@ import {pathColour, type PathColour} from '../path/colours';
 import type {PathMilestone, PathModel, PathStep, StepIntent, StepState, StepValue} from '../path/model';
 import {isHealthItem, itemKey, orderedItems, sectionOfItem, sectionsOf} from './store';
 import type {Checklist, ChecklistDaySummary, ChecklistHealthItem, ChecklistItem, ChecklistToday, HealthInput} from './schema';
+import {LIMITS, ML_PER_US_FL_OZ} from '../limits/plausibility';
 
 /**
  * A dot's state is derived from the real record, never stored (Session AF, L3; P7.1, P7.10). The habit's own day, the
@@ -87,7 +88,7 @@ function habitDot(item: ChecklistItem, base: Base, s: DeriveSources, date: strin
   const state: StepState = day.status === 'complete' ? 'done' : running ? 'running' : 'undone';
   const progress = day.status === 'partial' && day.target > 0 ? Math.min(.99, Math.max(.01, day.count / day.target)) : undefined;
   const note = day.status === 'complete' ? (rule.type === 'quit' ? 'Stayed clear' : rule.measurement.kind === 'boolean' ? undefined : `${formatNumber(day.count)} ${unitFor(day.count, measurementUnit(rule))}`.trim())
-    : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${formatNumber(day.count)} of ${formatNumber(day.target)} ${measurementUnit(rule)}`.trim() : undefined;
+    : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${formatNumber(day.count)} of ${formatNumber(day.target)} ${unitFor(day.target, measurementUnit(rule))}`.trim() : undefined;
   return {...dot, state, counted: true, ...(progress ? {partial: progress} : {}), ...(note ? {note} : {}), ...(value ? {value, intent: 'value'} : {intent: 'tick'}), ...(state === 'done' && entry ? {doneAt: entry.updatedAt} : {})};
 }
 
@@ -127,7 +128,7 @@ function healthDot(item: ChecklistHealthItem, base: Base, s: DeriveSources, date
       const unit = prefs?.waterUnit === 'fl-oz-us' ? 'fl oz' : 'ml', sum = h ? waterSummary(h, day) : {entries: 0, millilitres: 0, targetMl: null};
       const suggested = item.defaultValue ?? (unit === 'ml' ? 250 : 8);
       const note = sum.entries ? `${Math.round(sum.millilitres)} ml today${sum.targetMl ? ` of ${sum.targetMl}` : ''}` : undefined;
-      return {...here, label: item.label ?? 'Water', state: sum.entries ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 50, max: 3000, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: 100, step: 1}};
+      return {...here, label: item.label ?? 'Water', state: sum.entries ? 'done' : 'undone', counted: true, ...(note ? {note} : {}), intent: 'value', value: unit === 'ml' ? {current: item.lastValue ?? null, unit, suggested, min: 1, max: LIMITS.waterEntryMl, step: 50} : {current: item.lastValue ?? null, unit, suggested, min: 1, max: Math.floor(LIMITS.waterEntryMl / ML_PER_US_FL_OZ), step: 1}}; // Session AH (VA3): the one water limit
     }
     case 'diary': {
       const sourceId = item.ref?.sourceId, kind = item.ref?.sourceKind;

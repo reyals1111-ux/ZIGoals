@@ -61,9 +61,12 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
     </section>}
     <dl className="governance-facts">
       <div><dt>Deposit</dt><dd>{zigText(proposal.totalDeposit)}{proposal.state === 'deposit' ? ` of ${zigText(needed)} needed to start voting` : ''}</dd></div>
-      <div><dt>Voting period</dt><dd>{durationWords(proposal.expedited ? params.expeditedVotingPeriodSeconds : params.votingPeriodSeconds)} on this network</dd></div>
+      {/* Session AH (ST7, D-169): an ended or running proposal states its own voting period, not today's setting. */}
+      <div><dt>Voting period</dt><dd>{proposal.votingStartTime && proposal.votingEndTime && Date.parse(proposal.votingEndTime) > Date.parse(proposal.votingStartTime) ? <>{durationWords(Math.round((Date.parse(proposal.votingEndTime) - Date.parse(proposal.votingStartTime)) / 1000))} for this proposal</> : <>{durationWords(proposal.expedited ? params.expeditedVotingPeriodSeconds : params.votingPeriodSeconds)} on this network</>}</dd></div>
       <div><dt>Submitted</dt><dd><time dateTime={proposal.submitTime}>{formatDateTime(proposal.submitTime)}</time></dd></div>
-      {proposal.failedReason && <div><dt>Why it did not pass</dt><dd>{proposal.failedReason}</dd></div>}
+      {/* Session AH (ST7, L-043, B-112): "Rejected" with mostly Yes votes is explained in words; the chain's own reason is quoted as the chain's. */}
+      {proposal.state === 'rejected' && BigInt(proposal.tally.yes) > BigInt(proposal.tally.no) + BigInt(proposal.tally.noWithVeto) && <div><dt>Why Rejected with mostly Yes</dt><dd>A proposal also needs enough of all staked ZIG to vote (the quorum, above). When too few vote, the chain rejects it whatever the votes say.</dd></div>}
+      {proposal.failedReason && <div><dt>The chain&rsquo;s own reason</dt><dd><q>{proposal.failedReason}</q></dd></div>}
     </dl>
     {proposal.summary && <details className="governance-summary"><summary>In the proposer&rsquo;s own words</summary><p className="fine">The proposer wrote this; ZIGoals has not checked it.</p><p className="governance-summary-text">{proposal.summary}</p></details>}
     {voting?.journal && <p className="governance-journal" role="status">You voted <strong>{CHOICE_WORDS[voting.journal.choice].label}</strong> from this device on {formatDateTime(voting.journal.at)}.{links.map(link => <span key={link.url}> <a href={link.url} target="_blank" rel="noopener noreferrer">Check it on {link.name} ↗</a></span>)}</p>}

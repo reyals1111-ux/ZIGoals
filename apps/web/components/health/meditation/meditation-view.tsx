@@ -18,6 +18,7 @@ import {AmbientPlayer} from '../../audio/ambient-player';
 import '../sleep/sleep.css';
 import './meditation.css';
 import {sourceName} from '../../../lib/health-sources';
+import {plainErrorMessage} from '../../../lib/plain-error';
 
 const KIND_WORDS: Record<Session['kind'], string> = {timer: 'Sitting', breathing: 'Breathing', manual: 'Mindful minutes', import: 'Imported'};
 const sessionLine = (s: Session) => {
@@ -43,7 +44,7 @@ export default function MeditationView() {
   const summary = meditationSummary(meditation, today), weeks = weeklyBars(meditation, today, 8);
   const recent = [...meditation.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 14);
   async function remove(id: string) {
-    try { await store.update(m => deleteSession(m, id)); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(error instanceof Error ? error.message : 'Could not delete.'); }
+    try { await store.update(m => deleteSession(m, id)); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(plainErrorMessage(error, 'Could not delete.')); }
   }
   return <div className="meditation-view">
     <div className="page-heading header-art-host"><div>
@@ -73,6 +74,8 @@ export default function MeditationView() {
     <section className="panel" aria-labelledby="meditation-bell-title"><h2 id="meditation-bell-title">Your bell</h2><BellsForm key={`bell-${meditation.bells?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
     <section className="panel" aria-labelledby="meditation-recent-title">
       <h2 id="meditation-recent-title">Recent sessions</h2>
+      {/* Session AH (HE13, B-078): the list is the latest 14; the totals above count every session. */}
+      {meditation.sessions.length > recent.length && <p className="fine">The latest {recent.length} of {meditation.sessions.length} sessions; the totals above count all of them.</p>}
       {recent.length ? <ul className="sleep-nights">{recent.map(s => <li key={s.id}>
         {editing === s.id ? <ManualForm store={store} session={s} onDone={done} onCancel={() => setEditing(null)}/> : <>
           <div><strong>{KIND_WORDS[s.kind]} · {formatDate(sessionDay(s))}</strong><span>{sessionLine(s)}</span>{s.note && <span className="fine">{s.note}</span>}{s.source !== 'manual' && s.source !== 'timer' && s.source !== 'breathing' && <span className="fine">From {sourceName(s.source)}</span>}</div>

@@ -1,4 +1,5 @@
 "use client";
+import { plainErrorMessage } from "../lib/plain-error";
 import {getAppStorage,isShowcase,storageLockKey} from "../lib/showcase-storage";
 import {ACCOUNT_CHANGE,getAccountGeneration} from '../lib/account-session';
 import { FINANCIAL_EXECUTION_ALLOWED, assertFinancialExecutionAllowed } from "../lib/app-environment";
@@ -177,7 +178,7 @@ function useGoalState() {
     try {
       localLoad();
     } catch (e) {
-      setError(String(e));
+      setError(plainErrorMessage(e, "Your Goal plan was not saved. Check the fields and try again."));
     }
     try {
       setMetadata(readPlans(LOCAL_CHAIN, LOCAL_OWNER));
@@ -306,9 +307,7 @@ function useGoalState() {
       } catch (error) {
         if (!stopped) {
           const warning =
-            error instanceof Error
-              ? error.message
-              : "Transaction history is unavailable. Stored data was preserved.";
+            plainErrorMessage(error, "Transaction history is unavailable. Stored data was preserved.");
           // Only merge warnings after this scope has loaded its own history.
           // A first-load failure must replace any previous account's warnings.
           const resetWarnings = firstLoad;
@@ -465,7 +464,7 @@ function useGoalState() {
     try {
       localLoad();
     } catch (e) {
-      setError(String(e));
+      setError(plainErrorMessage(e, "Your Goal plan was not saved. Check the fields and try again."));
     }
     try {
       setMetadata(readPlans(LOCAL_CHAIN, LOCAL_OWNER));
@@ -535,7 +534,7 @@ function useGoalState() {
         });
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(plainErrorMessage(e, 'That did not work. Nothing was changed.'));
     } finally {
       actionBusy.current = false;
       setBusy(false);
@@ -769,7 +768,7 @@ function useGoalState() {
         mode === "local" && !localLedgerHealthy ? LOCAL_LEDGER_ERROR : "",
       );
     } catch (e) {
-      setError(String(e));
+      setError(plainErrorMessage(e, "Your Goal plan was not saved. Check the fields and try again."));
     }
   }
   async function importPlans(raw: string) {
@@ -794,7 +793,8 @@ function useGoalState() {
         mode === "local" && !localLedgerHealthy ? LOCAL_LEDGER_ERROR : "",
       );
     } catch (e) {
-      setError("Import was not applied. " + String(e));
+      // Session AH Part 3 (A7, BUG-042): a junk or foreign file is said in plain words, never as a schema dump.
+      setError("Import was not applied. " + plainErrorMessage(e, "This is not a Goal-plan backup for this wallet and network, or it is damaged. Nothing was changed."));
     }
   }
   return {

@@ -12,6 +12,9 @@ test('the shortcuts: Quick add opens; water is ready to tap, never logged by its
   await expect(dialog).toBeVisible();
   await expect(page).toHaveURL(/\/app$/);
   await page.keyboard.press('Escape');
+  // Session AH (DS9): closing Quick add takes its Back entry out of history; wait for that before the next navigation.
+  await expect(dialog).toBeHidden();
+  await expect.poll(() => page.evaluate(() => (history.state as Record<string, unknown> | null)?.__zigoalsLayer ?? null)).toBeNull();
   await page.goto('/app?shortcut=water');
   const water = page.getByRole('button', {name: /of water$/});
   await expect(water).toBeFocused();

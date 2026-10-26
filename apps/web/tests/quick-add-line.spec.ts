@@ -16,6 +16,13 @@ test.beforeEach(async ({page}) => {
 });
 const health = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), HEALTH_STORAGE_KEY)) ?? 'null') as HealthData | null;
 const habits = async (page: Page) => JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABITS_KEY))!) as HabitData;
+// Closing the dialog any way but Back takes its history entry back out (Session AH DS9, use-back-closes): that
+// history.back() runs a moment later, and a page.goto started before it lands is cancelled (net::ERR_ABORTED, CI 1235).
+// So the next page is opened once the dialog is closed and its entry is gone.
+async function closedLayer(page: Page, dialog: import('@playwright/test').Locator) {
+  await expect(dialog).toBeHidden();
+  await expect.poll(() => page.evaluate(() => (window.history.state as Record<string, unknown> | null)?.__zigoalsLayer ?? null)).toBeNull();
+}
 async function openQuickAdd(page: Page) {
   await page.goto('/app');
   // The Today hero's trigger (desktop) or the phone top bar's.
@@ -53,6 +60,7 @@ test('water: preview first, then Save writes one entry and the dialog stays open
   await expect(line.getByRole('status')).toContainText('I didn’t understand that yet. Try: drank 2 glasses of water · weight 78.4 · ran 5k in 28 min');
   expect((await health(page))!.daily!.water).toHaveLength(1);
   await dialog.getByRole('button', {name: 'Close Quick add', exact: true}).click();
+  await closedLayer(page, dialog);
   await page.goto('/app/health');
   await expect(page.getByRole('region', {name: 'Water journal'})).toContainText('500 mL recorded');
 });
@@ -67,6 +75,7 @@ test('a habit by its name: "meditated" logs one check-in on today', async ({page
   await expect(line.getByRole('status')).toContainText('Saved: Meditate · 1 of 10 times today');
   expect((await habits(page)).habits[0]!.entries).toMatchObject([{date: TODAY, count: 1, disposition: 'logged'}]);
   await page.keyboard.press('Escape');
+  await closedLayer(page, page.getByRole('dialog', {name: 'What would you like to add?'}));
   await page.goto('/app/habits');
   await expect(page.getByRole('article', {name: 'Meditate', exact: true}).locator('.habit-count')).toHaveText('1 / 10 times per day');
 });

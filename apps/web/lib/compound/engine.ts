@@ -25,6 +25,9 @@ export const compoundInputSchema = z.looseObject({
   frequency: z.enum(['weekly', 'monthly', 'yearly']),
   ratePercent: percent(-50, LIMITS.ratePercent),
   years: z.number().int().min(1).max(LIMITS.years),
+  /** Session AH (TR14, B-099): extra months after the whole years (0–11). Optional and additive, so a saved scenario
+   *  still reads in older builds (they ignore it); a plan is at least one year. */
+  months: z.number().int().min(0).max(11).optional(),
   compounding: z.enum(['yearly', 'quarterly', 'monthly', 'daily']),
   timing: z.enum(['start', 'end']),
   increasePercent: percent(0, LIMITS.increasePercent),
@@ -34,7 +37,7 @@ export const compoundInputSchema = z.looseObject({
 export type CompoundInput = z.infer<typeof compoundInputSchema>;
 export const DEFAULT_INPUT: CompoundInput = {start: '1000', contribution: '200', frequency: 'monthly', ratePercent: 5, years: 20, compounding: 'monthly', timing: 'end', increasePercent: 0, inflationPercent: 0, currency: 'USD'};
 
-export type YearRow = {year: number; contributedThisYear: string; contributed: string; growth: string; balance: string; real: string | null};
+export type YearRow = {year: number; contributedThisYear: string; contributed: string; growth: string; balance: string; real: string | null; /** The last row of a plan with extra months: how many. */ months?: number};
 export type Milestone = {threshold: number; year: number; period: number; periodsPerYear: number};
 export type CompoundResult = {final: string; contributed: string; growth: string; realFinal: string | null; rows: YearRow[]; milestones: Milestone[]; perPeriodRate: string};
 
@@ -65,6 +68,23 @@ export function compound(raw: CompoundInput): CompoundResult {
     const real = input.inflationPercent > 0 ? balance.div(inflation.pow(year)) : null;
     rows.push({year, contributedThisYear: thisYear.toFixed(2), contributed: contributed.toFixed(2), growth: balance.minus(contributed).toFixed(2), balance: balance.toFixed(2), real: real ? real.toFixed(2) : null});
     payment = payment.times(increase);
+  }
+  // Extra months: the contribution periods that fall in them (weekly: 52 × months ÷ 12, rounded down), then growth for
+  // the part of a period left over, without a contribution; a yearly contribution falls in no part year.
+  const months = input.months ?? 0;
+  if (months > 0) {
+    const year = input.years + 1, exact = new D(k).times(months).div(12), whole = exact.floor().toNumber(), rest = exact.minus(whole);
+    let thisYear = new D(0);
+    for (let p = 0; p < whole; p++) {
+      if (input.timing === 'start') { balance = balance.plus(payment); balance = balance.times(growthFactor); }
+      else { balance = balance.times(growthFactor); balance = balance.plus(payment); }
+      contributed = contributed.plus(payment); thisYear = thisYear.plus(payment); period++;
+      while (pending.length && balance.gte(pending[0]!)) milestones.push({threshold: pending.shift()!, year, period, periodsPerYear: k});
+    }
+    if (rest.gt(0) && !rate.isZero()) balance = balance.times(growthFactor.pow(rest));
+    while (pending.length && balance.gte(pending[0]!)) milestones.push({threshold: pending.shift()!, year, period, periodsPerYear: k});
+    const real = input.inflationPercent > 0 ? balance.div(inflation.pow(new D(input.years).plus(new D(months).div(12)))) : null;
+    rows.push({year, contributedThisYear: thisYear.toFixed(2), contributed: contributed.toFixed(2), growth: balance.minus(contributed).toFixed(2), balance: balance.toFixed(2), real: real ? real.toFixed(2) : null, months});
   }
   const last = rows.at(-1)!;
   return {final: last.balance, contributed: last.contributed, growth: last.growth, realFinal: last.real, rows, milestones, perPeriodRate: rate.toSignificantDigits(12).toString()};

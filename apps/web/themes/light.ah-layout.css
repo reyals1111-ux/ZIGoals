@@ -1,0 +1,3 @@
+/* Session AH (AF10, owner: "calm the ecosystem header by day"): by day the Ecosystem header's glows sit lower, so the
+   eyebrow's teal-to-mauve end reads clearly at phone widths (it fell to 3.2–3.7:1 on the mauve patch). */
+:root[data-theme=light] .ecosystem-intro:not(#\-) { background-image: radial-gradient(ellipse at 90% 0, #64377b1a, transparent 55%), radial-gradient(ellipse at 0 100%, #12516b1a, transparent 60%); }

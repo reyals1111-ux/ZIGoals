@@ -67,11 +67,15 @@ const days = (from: string, to: string) => { const out: string[] = []; for (let 
 const mean = (v: readonly number[]) => v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
 const dayOf = (iso: string) => iso.slice(0, 10);
 
-export function lifeReview({window, habits, health, platform, goals, averages, extras, history, today}: {
+export function lifeReview(input: {
   window: Window; habits: HabitData; health: HealthData; platform: Platform;
   goals: readonly {key: string; id: string; name: string; href: string; status: string}[];
   averages: readonly AverageGoal[]; extras: GoalExtras; history: readonly WealthHistory[]; today: string;
+  /** Session AH Part 4 (TR13): today's holdings per currency in minor units, as Wealth and Today show them (live quotes
+   *  included); a period that ends today ends at these, so the review never shows another figure for the same day. */
+  current?: readonly {currency: string; value: bigint}[];
 }): LifeReview {
+  const {window, habits, health, platform, goals, averages, extras, history, today} = input;
   const now = days(window.start, window.end), before = days(window.prevStart, window.prevEnd), inNow = (d: string) => d >= window.start && d <= window.end;
 
   // Habits: check-ins, perfect habits, streaks.
@@ -137,7 +141,8 @@ export function lifeReview({window, habits, health, platform, goals, averages, e
     // History values are in the currency's minor units (cents), as Wealth records them.
     const units = (v: string | undefined) => v === undefined ? null : new Decimal(v).div(new Decimal(10).pow(h.decimals)).toFixed(h.decimals);
     const at = (day: string) => units([...h.points].filter(p => dayOf(p.at) <= day).at(-1)?.value);
-    const start = at(addLocalDays(window.start, -1)) ?? units(h.points.find(p => inNow(dayOf(p.at)))?.value), end = at(window.end);
+    const live = window.end >= today ? input.current?.find(c => c.currency === h.currency) : undefined;
+    const start = at(addLocalDays(window.start, -1)) ?? units(h.points.find(p => inNow(dayOf(p.at)))?.value), end = live ? new Decimal(live.value.toString()).div(100).toFixed(2) : at(window.end);
     const change = start !== null && end !== null ? new Decimal(end).minus(start).toFixed(2) : null;
     return {currency: h.currency, start, end, change, note: start === null || end === null ? 'Not enough recorded values in this period' : 'Recorded values, this currency only'};
   });

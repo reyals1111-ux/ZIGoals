@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {VERIFIED_URLS} from '../../packages/ecosystem-registry/src/verified-links.ts';
 
 export const EARN_PATH = '/app/earn';
-export const EARN_TITLE = 'Make your money work';
+export const EARN_TITLE = 'Ways to earn on ZIGChain';
 /** Every live figure of the Earn page carries this attribute and `data-state` (components/earn/live-figure.tsx). */
 export const FIGURE = '[data-live-figure]';
 /** The Earn page's own outgoing links (its sections and the guide panel; the app's shell is not Earn's). */

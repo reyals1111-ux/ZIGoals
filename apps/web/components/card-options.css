@@ -5,7 +5,9 @@
 .card-options-panel button:hover,.card-options-panel a:hover,.card-options-panel button:focus-visible,.card-options-panel a:focus-visible{background:#274c69;outline:2px solid #75e2ef;outline-offset:0}
 .card-options-panel button:disabled{opacity:.55;cursor:not-allowed}
 .pin-to-today{position:relative;display:inline-flex;align-items:start;flex-direction:column;gap:.2rem}
-.pin-to-today-status{color:#aee5d8;font-size:.78rem;max-width:28ch;margin:0}
+/* Session AH (GO8, D-037): the "added to Today" note floats under the ⋯ button, never pushing the card's own lines. */
+.pin-to-today{position:relative}
+.pin-to-today-status{position:absolute;inset-inline-end:0;top:calc(100% + 4px);z-index:6;width:max-content;max-width:min(28ch,70vw);margin:0;padding:6px 10px;border-radius:10px;color:#aee5d8;font-size:.78rem;background:#071228f2;border:1px solid #7fc8ff2e;box-shadow:0 8px 24px #0008}
 .owned-asset-card{position:relative}.owned-asset-card>.pin-to-today{position:absolute;top:1rem;right:1rem}.owned-asset-card>.owned-card-link .owned-asset-heading{padding-right:2.8rem}
 .health-summary{position:relative}.health-summary>.pin-to-today{position:absolute;top:1rem;right:1rem}
 .health-water,.health-weight-overview,.health-activity-overview{position:relative}.health-water>.pin-to-today,.health-weight-overview>.pin-to-today,.health-activity-overview>.pin-to-today{position:absolute;top:1rem;right:1rem}

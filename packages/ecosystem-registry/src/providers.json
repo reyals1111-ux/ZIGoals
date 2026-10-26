@@ -556,7 +556,6 @@
     ],
     "website": "https://permapod.xyz/",
     "documentation": [
-      "https://permapod.gitbook.io/",
       "https://github.com/permapod-zigchain/permapod-skills",
       "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts"
     ],
@@ -1708,7 +1707,7 @@
       "EXPLORER",
       "ECOSYSTEM_TOOL"
     ],
-    "website": "https://app.range.org/zigchain-testnet/general",
+    "website": "https://app.range.org/zigchain/general",
     "documentation": [
       "https://docs.zigchain.com/users/tools/block-explorers"
     ],
@@ -1735,7 +1734,7 @@
       "jurisdiction": "Public information access; third-party terms apply.",
       "note": "No wallet/account required by ZIGoals for these links."
     },
-    "notes": "ZIGoals links to Range's test-network home page only. Its detail pages are not confirmed, and ZIGoals reads no portfolio or history from it.",
+    "notes": "ZIGoals links to Range's ZIGChain mainnet home page (and, under Network tools, its test-network home page). ZIGoals reads no portfolio or history from it.",
     "sources": [
       {
         "url": "https://docs.zigchain.com/users/tools/block-explorers",
@@ -1751,7 +1750,7 @@
     "roles": [
       "EXPLORER"
     ],
-    "website": "https://testnet.zigscan.org/",
+    "website": "https://zigscan.org/",
     "documentation": [
       "https://docs.zigchain.com/users/tools/block-explorers"
     ],

@@ -4,6 +4,7 @@
 import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
 import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
+import {typeGoalName} from './goal-name.mjs';
 // Session AB-Design (ADR-024 D2): on a phone Settings is a row of the More sheet; the sidebar link elsewhere.
 const navigate=async(page,name)=>{const more=page.locator('.phone-more-top');if(name==='Settings'&&await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name,exact:true}).click();return;}await page.getByRole('link',{name,exact:true}).first().click();};
 /** Session U follow-up F3: on a phone a Today widget card is a row named by it that opens in place; open it there. */
@@ -32,7 +33,7 @@ async function pinGoalAndHabit(page,name,path,habit){
 async function create(page,type){
  const name=`Packaged ${type} continuity`;
  await navigate(page,'Today');await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
- await page.getByLabel('Goal name',{exact:true}).fill(name);await page.getByRole('radio',{name:type,exact:true}).check();
+ await typeGoalName(page,name);await page.getByRole('radio',{name:type,exact:true}).check();
  if(type==='Project')await page.getByLabel('Milestones, one per line',{exact:true}).fill('Fictional research review\nFictional delivery review');
  else{await page.getByLabel('Target amount',{exact:true}).fill(type==='Value'?'1000':'10');if(type==='Quantity')await page.getByLabel('Goal asset',{exact:true}).fill('BTC');}
  await page.getByRole('button',{name:'Continue →',exact:true}).click();

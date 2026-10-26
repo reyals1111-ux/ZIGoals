@@ -30,7 +30,8 @@ describe('streaks: a skipped day is neutral', () => {
     data = setHabitEntryStatus(data, ID, '2026-09-04', 'skipped', 'Rest', at('2026-09-04'));
     data = logHabitCount(data, ID, '2026-09-05', 1, '', at('2026-09-05'));
     const stats = habitStats(data.habits[0]!, '2026-09-05');
-    expect(stats).toMatchObject({currentStreak: 4, bestStreak: 4, skipCount: 1, completionPercentage: 80, successCount: 4, failCount: 0});
+    // Session AH (HA1, B-003): the skipped day is neutral in the percentage too (it was 80 %, against the promise).
+    expect(stats).toMatchObject({currentStreak: 4, bestStreak: 4, skipCount: 1, completionPercentage: 100, successCount: 4, failCount: 0});
     expect(oldStreaks(data.habits[0]!, '2026-09-05')).toEqual({current: 1, best: 3});
   });
   test('a skip at the start, two skips in a row, and a failed day that still resets', () => {
@@ -188,4 +189,25 @@ describe('vacation ahead (cleared later)', () => {
     const gap = clearVacation(data, {from: '2026-10-08', to: '2026-10-08'}, now);
     expect(upcomingVacation(gap, '2026-10-01').map(r => [r.from, r.to])).toEqual([['2026-10-05', '2026-10-07'], ['2026-10-09', '2026-10-16']]);
   });
+});
+
+test('Session AH (HA1): 26 done and 4 skipped is 100 %, this week counts only the days that were not skipped', () => {
+  let data = daily();
+  for (let i = 1; i <= 30; i++) { const day = `2026-09-${String(i).padStart(2, '0')}`; data = i % 7 === 0 && i <= 28 ? setHabitEntryStatus(data, ID, day, 'skipped', '', at(day)) : logHabitCount(data, ID, day, 1, '', at(day)); }
+  const stats = habitStats(data.habits[0]!, '2026-09-30');
+  expect(stats).toMatchObject({successCount: 26, skipCount: 4, failCount: 0, completionPercentage: 100});
+  expect(stats.weeklyConsistency).toBe(100);
+});
+
+
+test('Session AH (HA8): a vacation keeps every day the person wrote on, and clearing it gives each day back as it was', () => {
+  let data = daily('2026-09-01');
+  data = logHabitCount(data, ID, '2026-09-10', 0, 'Rest, sore knee', at('2026-09-10')); // today: a note, no count
+  data = planSkip(data, ID, '2026-09-12', 'Dentist', at('2026-09-10'));
+  const before = data.habits[0]!.entries.map(e => ({date: e.date, disposition: e.disposition, note: e.note}));
+  const away = setVacation(data, {from: '2026-09-10', to: '2026-09-14'}, at('2026-09-10'));
+  const notes = Object.fromEntries(away.habits[0]!.entries.map(e => [e.date, e.note]));
+  expect(notes).toMatchObject({'2026-09-10': 'Rest, sore knee', '2026-09-11': 'Vacation', '2026-09-12': 'Planned skip · Dentist', '2026-09-13': 'Vacation', '2026-09-14': 'Vacation'});
+  const back = clearVacation(away, {from: '2026-09-10', to: '2026-09-14'}, at('2026-09-10'));
+  expect(back.habits[0]!.entries.map(e => ({date: e.date, disposition: e.disposition, note: e.note}))).toEqual(before);
 });

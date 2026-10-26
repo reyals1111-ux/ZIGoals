@@ -43,6 +43,11 @@ const dayId = (id: string, day: string) => `${id}@${day}`;
 export function countOn(h: WithExercise, id: string, day: string): number | null {
   return exerciseData(h).days.find(d => d.id === dayId(id, day))?.count ?? null;
 }
+/** Session AH Part 18: Undo after a typed count puts the day back exactly as it was: its count, or no entry at all. */
+export function restoreCount<T extends WithExercise>(h: T, id: string, day: string, count: number | null): T {
+  if (count === null) { const e = exerciseData(h); return e.days.some(d => d.id === dayId(id, day)) ? put(h, {...e, days: e.days.filter(d => d.id !== dayId(id, day))}) : h; }
+  return changeCount(h, id, day, count - (countOn(h, id, day) ?? 0));
+}
 /** Adds (or with a negative delta removes) repetitions for a day. Never below zero; a "−" on a day without an entry changes nothing. */
 export function changeCount<T extends WithExercise>(h: T, id: string, day: string, delta: number): T {
   const e = exerciseData(h);
@@ -57,16 +62,24 @@ export function changeCount<T extends WithExercise>(h: T, id: string, day: strin
   return put(h, {...e, days});
 }
 const cleanName = (value: string) => { const name = value.trim().replace(/\s+/g, ' '); if (!name || name.length > 40) throw Error('Name the counter in 1 to 40 characters.'); if (!hasVisibleText(name)) throw Error('Name the counter with at least one visible character.'); return name; };
+/** Session AH (HE11, B-169): two counters never share a name (case and spacing ignored), so each reads apart. */
+function sameName(e: Exercise, name: string, except?: string) {
+  const key = name.toLocaleLowerCase();
+  const clash = e.counters.find(c => c.id !== except && c.name.trim().replace(/\s+/g, ' ').toLocaleLowerCase() === key);
+  if (clash) throw Error(`You already have a counter called “${clash.name}”. Choose another name.`);
+}
 export function addCounter<T extends WithExercise>(h: T, name: string, icon: ExerciseIcon, id: string): T {
   const e = exerciseData(h);
   if (e.counters.length >= MAX_COUNTERS) throw Error(`You can keep up to ${MAX_COUNTERS} counters. Delete one to add another.`);
   if (!(EXERCISE_ICONS as readonly string[]).includes(icon)) throw Error('Choose one of the counter icons.');
   if (e.counters.some(c => c.id === id)) throw Error('This counter already exists.');
-  return put(h, {...e, counters: [...e.counters, {id, name: cleanName(name), icon}]});
+  const clean = cleanName(name); sameName(e, clean);
+  return put(h, {...e, counters: [...e.counters, {id, name: clean, icon}]});
 }
 export function editCounter<T extends WithExercise>(h: T, id: string, change: {name?: string; icon?: ExerciseIcon}): T {
   const e = exerciseData(h);
   if (!e.counters.some(c => c.id === id)) throw Error('Choose an existing counter.');
+  if (change.name !== undefined) sameName(e, cleanName(change.name), id);
   return put(h, {...e, counters: e.counters.map(c => c.id === id ? {...c, ...(change.name !== undefined ? {name: cleanName(change.name)} : {}), ...(change.icon ? {icon: change.icon} : {})} : c)});
 }
 /** Deleting a counter removes its definition and its daily history (the confirmation says so). */

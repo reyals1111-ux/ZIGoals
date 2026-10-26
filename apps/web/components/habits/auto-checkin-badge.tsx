@@ -12,5 +12,5 @@ export function AutoCheckInBadge({habitId, marker, link}: {habitId: string; mark
   if (!marker) return null;
   if (marker.undone) return <p className="habit-auto-badge" role="status" aria-live="polite">Undone · it won’t be ticked off again today.</p>;
   const source = measureSource({measure: marker.measure, exerciseId: link?.exerciseId}, context?.counters ?? []);
-  return <p className="habit-auto-badge" role="status">Done automatically · from {source} · {formatMeasureValue(marker.measure, marker.value, context?.waterUnit)}{isShowcase() ? ' · Showcase example' : ''}</p>;
+  return <p className="habit-auto-badge" role="status">Done automatically · from {source} · {formatMeasureValue(marker.measure, marker.value, context?.waterUnit)}{/* Session AH (TR12, D-084): only the Showcase's own example habits say so, never one you made. */}{isShowcase() && habitId.startsWith('92000000-') ? ' · Showcase example' : ''}</p>;
 }

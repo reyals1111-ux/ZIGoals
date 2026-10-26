@@ -399,6 +399,17 @@
     :focus-visible:not(#\-) {
         outline-color: var(--accent, #b8ec93)
     }
+    .unavailable-pill:not(#\-) {
+        border-color: currentColor
+    }
+    .workspace[aria-busy="true"]:not(#\-)::before {
+        background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
+        background-color: transparent
+    }
+    .settings-page .settings-sections a[aria-current]:not(#\-) {
+        color: inherit;
+        box-shadow: inset 0 -2px 0 currentColor
+    }
 }
 /*  app/visual-theme.css  */
 @scope (:root[data-theme=dark]) {
@@ -3702,6 +3713,9 @@
         background-color: transparent;
         color: transparent
     }
+    :scope .calc-assumptions:not(#\-) {
+        color: var(--text-secondary)
+    }
     :scope .calc-estimate:not(#\-) {
         color: var(--text-secondary)
     }
@@ -3946,7 +3960,11 @@
         outline-color: #75e2ef
     }
     .pin-to-today-status:not(#\-) {
-        color: #aee5d8
+        color: #aee5d8;
+        background-image: none;
+        background-color: #01030ef2;
+        border-color: #7fc8ff2e;
+        box-shadow: 0 8px 24px #0008
     }
 }
 /*  components/charts/charts.css  */
@@ -4762,6 +4780,24 @@
     .checklist-heat-legend:not(#\-) {
         color: #c5d3ea
     }
+    .checklist-bar-tools button:not(#\-) {
+        border-color: #ffffff2e;
+        background-image: none;
+        background-color: #ffffff12;
+        color: var(--text, #f0f5ff)
+    }
+    .checklist-bar-tools button:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff1f
+    }
+    .checklist-bar-tools button:focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+    .checklist-bar-tools button[aria-expanded=true]:not(#\-) {
+        background-image: linear-gradient(100deg, #23eaff40, #9273ff59);
+        background-color: transparent;
+        box-shadow: inset 0 0 0 1px #9273ff99
+    }
 }
 /*  components/checklist/day-celebration.css  */
 @scope (:root[data-theme=dark]) {
@@ -5238,6 +5274,12 @@
         border-color: #f3a6c066;
         color: #ffd7e4
     }
+    .today-line:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .today-line-label:not(#\-) {
+        color: var(--text-primary, inherit)
+    }
 }
 /*  components/dashboard/hero-fold.css  */
 @scope (:root[data-theme=dark]) {
@@ -5362,6 +5404,14 @@
     }
     :scope .dh-facts dt:not(#\-) {
         color: var(--text-secondary)
+    }
+}
+/*  components/device-lock.css  */
+@scope (:root[data-theme=dark]) {
+    .device-lock-host:not(#\-) {
+        background-image: radial-gradient(120% 90% at 50% 0%, #050829 0%, #020213 60%, #010109 100%);
+        background-color: transparent;
+        color: #eef1ff
     }
 }
 /*  components/earn-dock/earn-dock.css  */
@@ -5945,6 +5995,15 @@
             background-image: radial-gradient(120% 120% at 30% 20%, #071229, #01040f 72%);
             background-color: transparent
         }
+    }
+    .earn-chips-more:not(#\-) {
+        border-color: #7fc8ff55;
+        background-image: none;
+        background-color: #020614;
+        color: var(--text-primary, #eef4ff)
+    }
+    .earn-chips-more:focus-visible:not(#\-) {
+        outline-color: #9fd8ff
     }
     :is(.earn-formula, .earn-illustration-slot) > summary:not(#\-)::after {
         border-right-color: currentColor;
@@ -7738,6 +7797,20 @@
         border-color: #7fe3f3;
         color: #fff
     }
+    .habit-more-options:not(#\-) {
+        border-top-color: var(--line, #7fc8ff24)
+    }
+    .habit-more-options > summary small:not(#\-) {
+        color: var(--muted, #a9b6cc)
+    }
+    .habit-vacation-button[data-open]:not(#\-) {
+        border-color: var(--brand-cyan, #63e7ff);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 14%, transparent)
+    }
+    .habit-vacation-state:not(#\-) {
+        color: var(--muted, #a9b6cc)
+    }
 }
 /*  components/habits/habits.css  */
 @scope (:root[data-theme=dark]) {
@@ -8401,6 +8474,32 @@
         background-image: none;
         background-color: #ffffff07
     }
+    .exercise-counter .exercise-count:not(#\-) {
+        border-color: transparent;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text-strong, #f4f8ff)
+    }
+    .exercise-counter button.exercise-count:hover:not(#\-) {
+        border-color: #a9c9ff4d
+    }
+    .exercise-counter button.exercise-count:focus-visible:not(#\-), .exercise-counter .exercise-count-input:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .exercise-counter .exercise-count-input:not(#\-) {
+        border-color: #a9c9ff80;
+        background-image: none;
+        background-color: #00000033
+    }
+    .exercise-counter .exercise-count-input[aria-invalid=true]:not(#\-) {
+        border-color: #ff9aa8
+    }
+    .exercise-count-error:not(#\-) {
+        color: #ffd6dc;
+        background-image: none;
+        background-color: #0e0206e6;
+        border-color: #ff9aa866
+    }
 }
 /*  components/health/fasting.css  */
 @scope (:root[data-theme=dark]) {
@@ -8608,6 +8707,50 @@
         color: var(--text-strong, #f4f8ff)
     }
 }
+/*  components/health/health-day.css  */
+@scope (:root[data-theme=dark]) {
+    .health-page .health-date-bar:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .health-page .health-date-step:not(#\-), .health-page .health-date-today:not(#\-) {
+        border-color: #ffffff3d;
+        color: #fff;
+        background-image: linear-gradient(135deg, #0b7690 0%, #5a43c9 52%, #9a35ad 100%);
+        background-color: transparent;
+        box-shadow: 0 6px 18px #6d55e040
+    }
+    .health-page :is(.health-date-step, .health-date-today):hover:not(:disabled):not(#\-) {
+        filter: brightness(1.1) saturate(1.08);
+        box-shadow: inset 0 0 0 1px #ffffff59, 0 8px 24px #6d55e066
+    }
+    .health-page :is(.health-date-step, .health-date-today):focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .health-page .health-date-step:disabled:not(#\-) {
+        box-shadow: none;
+        filter: grayscale(.4)
+    }
+    .health-page .health-date-pick:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 24%, transparent)
+    }
+    .health-page .health-date-pick:focus-within:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .health-page .health-date-text small:not(#\-) {
+        color: var(--health-muted, #b9c6dc)
+    }
+    .health-page .health-date-pick input:not(#\-) {
+        border-color: currentcolor
+    }
+    @media (forced-colors: active) {
+        .health-page :is(.health-date-step, .health-date-today):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: ButtonText;
+            border-color: ButtonText
+        }
+    }
+}
 /*  components/health/health-highlights.css  */
 @scope (:root[data-theme=dark]) {
     .health-hl-tile:not(#\-) {
@@ -8681,6 +8824,9 @@
     .health-aurora i:nth-child(3):not(#\-) {
         border-color: #79b7ff;
         box-shadow: 0 -10px 55px #79b7ff30
+    }
+    .health-gauge .health-gauge-over:not(#\-) {
+        color: var(--warning-text, #ffd27a)
     }
     .health-gauge span:not(#\-) {
         color: #b0c8c3
@@ -9225,6 +9371,65 @@
         }
     }
 }
+/*  components/health/workouts/workouts.css  */
+@scope (:root[data-theme=dark]) {
+    .workouts-routines > li:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-routines span:not(#\-), .workouts-past summary span:not(#\-), .workouts-picker-list span:not(#\-) {
+        color: var(--text-secondary, #c9d6ea)
+    }
+    .workouts-rest:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--pillar, #ff74be) 14%, transparent)
+    }
+    .workouts-exercise:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-sets thead th:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .workouts-sets tr[data-done] td:not(#\-), .workouts-sets tr[data-done] th:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--success, #47d6a1) 12%, transparent)
+    }
+    .workouts-tick[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: var(--success, #47d6a1);
+        color: #04101f
+    }
+    .workouts-problem p:not(#\-) {
+        color: var(--danger-text, #ffb4c8)
+    }
+    .workouts-picker:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-past > li:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-stats dt:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .workouts-history-table th:not(#\-), .workouts-history-table td:not(#\-) {
+        border-top-color: var(--line, #8fb6ff1f)
+    }
+    :scope[data-theme=light] .workouts-tick[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: #16865c;
+        color: #fff
+    }
+    :scope[data-theme=light] .workouts-problem p:not(#\-) {
+        color: #a3123a
+    }
+    @media (forced-colors: active) {
+        .workouts-tick[aria-pressed="true"]:not(#\-) {
+            outline-color: currentcolor
+        }
+    }
+    .workouts-progress-line:not(#\-) {
+        color: var(--brand-cyan, #6fe6f6)
+    }
+}
 /*  components/help/help.css  */
 @scope (:root[data-theme=dark]) {
     .help-page p:not(#\-), .help-page li:not(#\-), .help-page dd:not(#\-) {
@@ -9263,6 +9468,18 @@
     }
     .help-status:not(#\-) {
         color: var(--accent-cyan, #9ee8f8) !important
+    }
+}
+/*  components/hide-amounts.css  */
+@scope (:root[data-theme=dark]) {
+    :scope[data-hide-amounts="on"] :is(
+  .wealth-total-headline, .split-figure, .wealth-total-other, .accounts-worth-net, .accounts-row-balance strong,
+  .owned-value, .portfolio-totals dd, .portfolio-tx-amount, .portfolio-since-value, .portfolio-coin-results, .wallet-holding-amount,
+  .wallet-holdings-total, .wallet-totals, .goal-value, .dashboard-metric-value, .dashboard-widget-preview-value,
+  .staking-amount, .stake-card-value, .earn-value, [data-private-amount],
+  .wealth-history-readout strong, .wealth-history-change, .wealth-history-why
+):not(#\-), :scope[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg:not(#\-) {
+        filter: blur(7px)
     }
 }
 /*  components/import/import.css  */
@@ -11145,6 +11362,9 @@
             background-color: transparent
         }
     }
+    :scope .phone-topbar .phone-title.sr-only:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/phone/phone-today.css  */
 @scope (:root[data-theme=dark]) {
@@ -11405,6 +11625,9 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--space-purple) 15%,transparent)
     }
+    .asset-unverified:not(#\-) {
+        color: #f2c46d
+    }
 }
 /*  components/platform/evidence-chart.css  */
 @scope (:root[data-theme=dark]) {
@@ -11592,6 +11815,12 @@
     }
     .goal-milestone-note:not(#\-) {
         border-color: #a6c1fa33
+    }
+}
+/*  components/platform/goal-finished.css  */
+@scope (:root[data-theme=dark]) {
+    .goal-finished:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent)
     }
 }
 /*  components/platform/intelligence.css  */
@@ -12392,27 +12621,10 @@
     .wealth-other-chip-panel small:not(#\-) {
         color: var(--text-meta, #c2d0e5)
     }
-    .wealth-total-base-note:not(#\-) {
-        color: var(--text-meta, #c2d0e5)
-    }
     @media (max-width: 700px) {
         .wealth-other-chip-panel:not(#\-) {
             box-shadow: none
         }
-    }
-    .wealth-base-switch:not(#\-) {
-        border-color: #8fb6ff33;
-        background-image: none;
-        background-color: #010313a6
-    }
-    .wealth-base-switch > span:not(#\-) {
-        color: var(--text-secondary, #c9d6ea)
-    }
-    .wealth-base-switch > button[aria-pressed="true"]:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in srgb, var(--pillar, #ffd27a) 22%, #000d1a);
-        color: #fff;
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar, #ffd27a) 60%, transparent)
     }
 }
 /*  components/platform/wealth.css  */
@@ -12964,6 +13176,9 @@
             border-color: currentcolor
         }
     }
+    .portfolio-transactions li[data-direction="in"] .portfolio-tx-amount:not(#\-) {
+        color: #7ee2b8
+    }
 }
 /*  components/portfolio/value-chart.css  */
 @scope (:root[data-theme=dark]) {
@@ -13399,6 +13614,22 @@
     @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
         :scope:not([data-app-motion=off]) .app-sidebar[data-sky]:not(#\-) {
             --sky-y: var(--sky-rest, 0px)
+        }
+    }
+}
+/*  components/shell/tablet-rail.css  */
+@scope (:root[data-theme=dark]) {
+    @media (min-width: 541px) and (max-width: 900px) and (min-height: 501px), (min-width: 541px) and (max-width: 900px) and (pointer: fine) {
+        :scope .app-sidebar:not(#\-):not(#\-) {
+            border-bottom-color: currentcolor;
+            border-right-color: color-mix(in srgb, currentColor 14%, transparent)
+        }
+    }
+    @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) {
+        :scope .app-sidebar:not(#\-)::before {
+            background-image: inherit;
+            background-color: inherit;
+            border-bottom-color: color-mix(in srgb, currentColor 14%, transparent)
         }
     }
 }
@@ -13946,6 +14177,43 @@
         color: var(--text-secondary, #c9d6ea)
     }
 }
+/*  components/ui/confirm-inline.css  */
+@scope (:root[data-theme=dark]) {
+    .confirm-inline:not(#\-) {
+        border-color: var(--edge-soft);
+        background-image: none;
+        background-color: var(--surface-1)
+    }
+    .confirm-inline[data-tone="danger"]:not(#\-) {
+        border-color: color-mix(in srgb, var(--edge-soft) 50%, #ff6b8a 50%)
+    }
+}
+/*  components/ui/length-counter.css  */
+@scope (:root[data-theme=dark]) {
+    .length-counter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--surface-1, #010412) 92%, transparent);
+        color: var(--text-secondary, #c9d6ea);
+        box-shadow: 0 0 0 1px #8fb6ff33
+    }
+    .length-counter[data-near]:not(#\-) {
+        color: var(--warning-text, #ffd27a)
+    }
+    :scope[data-theme=light] .length-counter:not(#\-) {
+        background-image: none;
+        background-color: #ffffff;
+        color: #3b4659;
+        box-shadow: 0 0 0 1px #0d0f1526
+    }
+    :scope[data-theme=light] .length-counter[data-near]:not(#\-) {
+        color: #7a4d00
+    }
+    @media (forced-colors: active) {
+        .length-counter:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+}
 /*  components/universe/extras-setting.css  */
 @scope (:root[data-theme=dark]) {
     .af-extras-row:not(#\-) {
@@ -14046,41 +14314,15 @@
         background-color: #01030b;
         color: var(--text, #f0f5ff)
     }
-    .account-panel .wallet-card-currency:not(#\-) {
-        border-color: #5de5e324;
-        background-image: none;
-        background-color: #01030bc9
-    }
-    .account-panel .wallet-card-currency button:not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: #c4d6f0
-    }
-    .account-panel .wallet-card-currency button:hover:not(#\-), .account-panel .wallet-card-currency button:focus-visible:not(#\-) {
-        color: #fff;
-        background-image: none;
-        background-color: #ffffff12
-    }
-    .account-panel .wallet-card-currency button[aria-pressed="true"]:not(#\-) {
-        color: #04101f;
-        background-image: linear-gradient(90deg, #6fe6f6, #a3a0ff);
-        background-color: transparent
-    }
-    .account-panel .wallet-card-unavailable:not(#\-) {
-        color: #c4d6f0
-    }
     .account-panel .wallet-card-error:not(#\-) {
         color: #ffb4c8
     }
-    @media (forced-colors: active) {
-        .account-panel .wallet-card-currency:not(#\-), .account-panel .wallet-card-choice select:not(#\-) {
-            border-color: CanvasText
-        }
+    .account-panel .wallet-card-why:not(#\-) {
+        color: #c4d6f0
     }
     @media (forced-colors: active) {
-        .account-panel .wallet-card-currency button[aria-pressed="true"]:not(#\-) {
-            outline-color: currentcolor
+        .account-panel .wallet-card-choice select:not(#\-) {
+            border-color: CanvasText
         }
     }
 }
@@ -14337,6 +14579,10 @@
   linear-gradient(0deg, #000 0, #000 12vh, #000000d0 34vh, #00000080 58vh, #00000030 84vh, #00000000 110vh) bottom / 100% 110vh no-repeat; }
 :root[data-theme=dark] :is(.account-panel, .destination-panel, .stake-hero, .staking-card):not(#\-)::before { filter: brightness(.82); }
 :root[data-theme=dark] .site-footer-art:not(#\-) { filter: brightness(.8); }
+/* apps/web/themes/dark.ah-habits.css */
+/* Session AH (HA15; D-178, D-192): the 30-day heatmap in Dark: dark numbers on the pale "all done" cell, never white. */
+:root[data-theme=dark] .habit-month-grid>span:not(#\-) { border-color: #4a5a7a; }
+:root[data-theme=dark] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=dark] .habit-month-legend i[data-level=full]:not(#\-) { color: #10142a; font-weight: 750; }
 /* apps/web/themes/dark.headerart.css */
 /* Session AE (Part 4, ADR-027 G5): the page-header art in Dark — the same drawing on the near-black ground, its glows a
    little dimmer (the halo, the glyph's bloom, the planets' light and the nebula disc). */

@@ -60,11 +60,6 @@ async function openMenu(page: Page) {
   await expect(async () => { if (!await menu.isVisible()) await trigger.click(); await expect(menu).toBeVisible({timeout: 1500}); }).toPass({timeout: 15000});
   return menu;
 }
-/** Presses a display-currency button of the card until it reads as pressed (the card's chunk may still be loading). */
-async function pick(card: ReturnType<Page['locator']>, currency: string) {
-  const button = card.getByRole('group', {name: 'Show the balance in'}).getByRole('button', {name: currency, exact: true});
-  await expect(async () => { await button.click(); await expect(button).toHaveAttribute('aria-pressed', 'true', {timeout: 1500}); }).toPass({timeout: 15000});
-}
 const stored = (page: Page) => page.evaluate(key => JSON.parse(localStorage.getItem(key) ?? 'null') as {wallets?: {kind: string; wallet: string; label: string; address: string}[]; display?: string; selected?: string} | null, LINKED_KEY);
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}})); });
 
@@ -185,30 +180,25 @@ test('phones: the same choices as 44 px rows in the Status & wallet sheet; Bitco
   expect(calls.every(call => READS.test(call)), calls.join(' ')).toBe(true);
 });
 
-test('Today\'s wallet card: ZIG first; another currency without a price reads "unavailable" (never 0); the choice survives a reload; a linked address shows read-only', async ({page}) => {
+// Assertion changed (Session AH TR7, owner amendment 6; stronger): practice money has no market value, so the USD, EUR
+// and BTC buttons that could only read "unavailable" are gone. The card shows ZIG and says why (ADR-027 G16), an older
+// stored display choice changes nothing, and nothing anywhere on the card is a money figure.
+test('Today\'s wallet card: ZIG only, with why other currencies are not shown (never "unavailable", never 0); a linked address shows read-only', async ({page}) => {
   const calls = await wallets(page);
-  await page.addInitScript(({key, value}) => { if (!sessionStorage.getItem('fixture-seeded')) { localStorage.setItem(key, value); sessionStorage.setItem('fixture-seeded', '1'); } }, {key: LINKED_KEY, value: JSON.stringify({version: 1, wallets: [{id: 'w1', kind: 'evm', wallet: 'test.fictional.fox', label: 'Fictional Fox', address: EVM, addedAt: '2026-10-17T10:00:00.000Z'}]})});
+  await page.addInitScript(({key, value}) => { if (!sessionStorage.getItem('fixture-seeded')) { localStorage.setItem(key, value); sessionStorage.setItem('fixture-seeded', '1'); } }, {key: LINKED_KEY, value: JSON.stringify({version: 1, display: 'BTC', wallets: [{id: 'w1', kind: 'evm', wallet: 'test.fictional.fox', label: 'Fictional Fox', address: EVM, addedAt: '2026-10-17T10:00:00.000Z'}]})});
   await ready(page, '/app');
   await openFold(page, 'Your wallet');
   const card = page.locator('.account-panel');
+  await expect(card.getByLabel('Wallet shown on this card')).toBeVisible();
   await expect(card.locator('.account-value')).toHaveText('1,000 ZIG');
   await expect(card).toContainText('Simulated balance · this browser');
-  const currency = card.getByRole('group', {name: 'Show the balance in'});
-  await expect(currency.getByRole('button', {name: 'ZIG', exact: true})).toHaveAttribute('aria-pressed', 'true');
-  // Measured once the page's entrance motions have ended (a card still settling from a scale reads 43.99997 px: CI run on 45e500c3).
-  await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))));
-  for (const c of ['ZIG', 'USD', 'EUR', 'BTC']) { const box = (await currency.getByRole('button', {name: c, exact: true}).boundingBox())!; expect(box.height).toBeGreaterThanOrEqual(44); expect(box.width).toBeGreaterThanOrEqual(44); }
-  for (const c of ['USD', 'EUR', 'BTC'] as const) {
-    await pick(card, c);
-    await expect(card.locator('.account-value')).toHaveText(`${c} unavailable`);
-    // Session AE (ADR-027 G16, TIER 3 public-safety labels): practice money is never shown in another currency, and says why.
-    await expect(card).toContainText('Practice money has no market value, so it is never shown in another currency.');
-    await expect(card.locator('.account-value')).not.toContainText(/\d/);
-  }
+  await expect(card).toContainText('Practice money has no market value, so it is never shown in another currency.');
+  await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
+  for (const c of ['USD', 'EUR', 'BTC']) await expect(card.getByRole('button', {name: c, exact: true})).toHaveCount(0);
+  await expect(card).not.toContainText(/unavailable|\$|€/);
+  // The chooser keeps its 44 px target.
+  const box = (await card.getByLabel('Wallet shown on this card').boundingBox())!; expect(box.height).toBeGreaterThanOrEqual(44);
   expect((await stored(page))!.display).toBe('BTC');
-  await ready(page); await openFold(page, 'Your wallet');
-  await expect(card.getByRole('group', {name: 'Show the balance in'}).getByRole('button', {name: 'BTC', exact: true})).toHaveAttribute('aria-pressed', 'true');
-  await expect(card.locator('.account-value')).toHaveText('BTC unavailable');
   // The linked wallet, read-only: shortened, whole in its title, no balance and no currency switch.
   await card.getByLabel('Wallet shown on this card').selectOption('w1');
   await expect(card.locator('.account-value')).toHaveText(short(EVM)); await expect(card.locator('.account-value')).toHaveAttribute('title', EVM);
@@ -219,7 +209,7 @@ test('Today\'s wallet card: ZIG first; another currency without a price reads "u
   await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
   expect((await stored(page))!.selected).toBe('w1');
   await card.getByLabel('Wallet shown on this card').selectOption('app');
-  await expect(card.locator('.account-value')).toHaveText('BTC unavailable');
+  await expect(card.locator('.account-value')).toHaveText('1,000 ZIG');
   expect(calls).toEqual([]); // the card asks no wallet for anything
 });
 
@@ -237,8 +227,9 @@ test('the Showcase keeps its simulated wallet: no menu, no chooser, nothing writ
   const card = page.locator('.account-panel');
   await expect(card).toContainText('Simulated balance · this browser');
   await expect(card.locator('select')).toHaveCount(0);
-  // The switch changes this view only.
-  await pick(card, 'USD');
-  await expect(card.locator('.account-value')).toHaveText('USD unavailable');
+  // Assertion changed (Session AH TR7; stronger): no currency switch here either, ZIG and the reason only; nothing is written.
+  await expect(card.locator('.account-value')).toHaveText('1,000 ZIG');
+  await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
+  await expect(card).toContainText('Practice money has no market value, so it is never shown in another currency.');
   expect(await page.evaluate(key => [localStorage.getItem(key), sessionStorage.getItem(key), Object.keys(sessionStorage).some(k => k.includes('linked-wallets'))], LINKED_KEY)).toEqual([null, null, false]);
 });

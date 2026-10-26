@@ -59,3 +59,6 @@
 .music-disc-small .music-disc-glyph{width:22px;height:22px}
 .music-disc-small .music-disc-glyph svg{width:14px;height:14px}
 @media (forced-colors:active){.music-panel,.music-mini{border-color:CanvasText}.music-sources button[aria-pressed=true],.music-tool[aria-pressed=true]{outline:2px solid Highlight}}
+/* Session AH (TO10, L-077): on a computer or tablet the player opens just above its own button (bottom right), not across
+   the page over Today's hero; Escape and × close it. Phones keep their bottom sheet. */
+@media (min-width:641px){.music-panel:not(.music-panel-phone),:root[data-zigi-side=left] .music-panel:not(.music-panel-phone){left:auto;right:max(22px,env(safe-area-inset-right,0px));bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + 178px);max-height:calc(100dvh - 200px)}}

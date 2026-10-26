@@ -22,6 +22,6 @@ describe("visible names (QA-32)", () => {
   it("guard the write paths that take a name outside a component", () => {
     expect(() => manualSourcePosition({ category: "Cash", name: "\u200b", quantity: "1", currency: "EUR", symbol: "", metal: "", unit: "", value: "", notes: "" })).toThrow("Name the asset with at least one visible character.");
     expect(() => addCounter(createEmptyHealth(), "\u200b\u200d", "squat", "health_counter-a")).toThrow("Name the counter with at least one visible character.");
-    expect(exerciseData(addCounter(createEmptyHealth(), "Squats", "squat", "health_counter-b")).counters.at(-1)?.name).toBe("Squats");
+    expect(exerciseData(addCounter(createEmptyHealth(), "Lunges", "squat", "health_counter-b")).counters.at(-1)?.name).toBe("Lunges");
   });
 });

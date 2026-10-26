@@ -7,7 +7,9 @@ import {StakingEmptyPreview} from '../../components/earn/staking-empty-preview';
 describe('the Staking empty preview', () => {
   it('keeps the Staking sentence, shows two live figures as "reading…" (never a number before a read) and the door to Earn', () => {
     const html = renderToStaticMarkup(createElement(StakingEmptyPreview));
-    expect(html).toContain('A clear view of your wealth');
+    expect(html).toContain('A clear view of your staked ZIG.');
+    // Session AH (ST2): the rate is labelled an estimate that moves.
+    expect(html).toContain('estimate, variable');
     expect(html).toContain('Track a public wallet to see liquid funds, stake and rewards together.');
     // Session AF (the lead): two figures — the Staking page reads nothing about Valdora (staking-page.spec); exact list as before.
     expect(html.match(/data-live-figure="preview-[a-z]+"/g)).toEqual(['data-live-figure="preview-native"', 'data-live-figure="preview-oroswap"']);

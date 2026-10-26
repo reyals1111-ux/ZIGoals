@@ -4,7 +4,7 @@ import {createCatalogLoader} from '../../lib/market-catalog-client';
 import type {MarketCatalogAsset} from '../../lib/market-assets';
 import {CoinPicker, FEATURED_COINS} from '../portfolio/coin-picker';
 import {TRANSACTION_FIELDS} from '../../lib/csv/mapping';
-import {addedCoinIds, applyTransactionImport, planTransactionImport, resolveCoinWith, transactionImportId} from '../../lib/import/holdings';
+import {addedCoinIds, applyTransactionImport, duplicateRows, planTransactionImport, resolveCoinWith, transactionImportId} from '../../lib/import/holdings';
 import {createPortfolio} from '../../lib/portfolio/store';
 import {type Portfolio, type PortfolioCoin, type PortfolioCurrency, type PortfolioData, type PortfolioTransaction} from '../../lib/portfolio/schema';
 import type {ImportRecord} from '../../lib/import/undo-schema';
@@ -13,6 +13,7 @@ import {saveFailureMessage, storageUiCode} from '../../lib/storage-error-copy';
 import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const loadCatalog = createCatalogLoader();
 const OPTIONS: SetupOptions = {fields: TRANSACTION_FIELDS, numberFields: ['quantity', 'price', 'fee'], dateField: 'date'};
@@ -38,12 +39,16 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
   const today = localDate();
   const plan = useMemo(() => setup ? planTransactionImport({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, today, resolveCoin, choices}) : null, [setup, today, resolveCoin, choices]);
   const unknown = useMemo(() => { const groups = new Map<string, {text: string; rows: number[]}>(); for (const u of plan?.unknownCoins ?? []) { const key = u.text.trim().toLowerCase(); const g = groups.get(key) ?? {text: u.text, rows: []}; g.rows.push(u.row); groups.set(key, g); } return [...groups.entries()]; }, [plan]);
+  // Session AH (J14): rows already in the chosen portfolio are skipped unless the person keeps them.
+  const [keepDuplicates, setKeepDuplicates] = useState(false);
+  const duplicates = useMemo(() => duplicateRows(target.kind === 'existing' ? data.portfolios.find(p => p.id === target.id) : undefined, plan?.ready ?? []), [target, data, plan]);
+  const ready = useMemo(() => (plan?.ready ?? []).filter(r => keepDuplicates || !duplicates.has(r.row)), [plan, duplicates, keepDuplicates]);
   const targetName = target.kind === 'new' ? target.name.trim() : data.portfolios.find(p => p.id === target.id)?.name ?? '';
   const mappingReady = !!setup && REQUIRED.every(id => setup.mapping[id] !== undefined) && !setup.ambiguousDates && targetName.length > 0;
   function confirm() {
     if (!plan || !setup) return;
     setBusy(true); setError('');
-    const importId = crypto.randomUUID(), at = new Date().toISOString(), portfolioId = target.kind === 'new' ? crypto.randomUUID() : target.id, ready = plan.ready;
+    const importId = crypto.randomUUID(), at = new Date().toISOString(), portfolioId = target.kind === 'new' ? crypto.randomUUID() : target.id;
     let coinIds: string[] = [];
     try {
       update(current => { const base = target.kind === 'new' ? createPortfolio(current, {id: portfolioId, name: targetName, kind: target.portfolioKind, currency: target.currency, createdAt: at}) : current; const next = applyTransactionImport(base, portfolioId, ready, {importId, at}); coinIds = addedCoinIds(base, next, portfolioId); return next; });
@@ -61,7 +66,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
   </section>;
   return <section className="panel import-panel" aria-label="Import transactions">
     <h2>Import transactions</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="portfolio" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-target"><legend>Into portfolio</legend>
@@ -81,20 +86,23 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
         <div className="actions"><button type="button" className="secondary" aria-expanded={picking === key} onClick={() => setPicking(picking === key ? null : key)}>Choose a coin</button><button type="button" className="quiet" onClick={() => { setChoices({...choices, [key]: 'skip'}); if (picking === key) setPicking(null); }}>Skip {group.rows.length === 1 ? 'row' : 'rows'}</button></div>
         {picking === key && <CoinPicker value={null} onChange={coin => { setChoices({...choices, [key]: coin}); setPicking(null); }} />}
       </li>)}</ul>}
-      {plan.ready.length > 0 && <div className="import-preview"><table><caption className="sr-only">The first rows that will be imported</caption><thead><tr><th scope="col">Row</th><th scope="col">Coin</th><th scope="col">Type</th><th scope="col">Quantity</th><th scope="col">Price per coin</th><th scope="col">Fee</th><th scope="col">Date</th><th scope="col">Note</th></tr></thead>
-        <tbody>{plan.ready.slice(0, 50).map(r => <tr key={r.row}><td className="num">{r.row}</td><td>{r.coin.name} <small>{r.coin.symbol}</small></td><td>{KIND_LABEL[r.kind]}</td><td className="num">{r.quantity}</td><td className="num">{r.price ?? (r.kind.startsWith('transfer') ? 'no price' : '')}</td><td className="num">{r.fee ?? ''}</td><td>{formatDate(r.date)}</td><td>{r.note.slice(0, 40)}</td></tr>)}</tbody></table>
-        {plan.ready.length > 50 && <p className="fine">… and {plan.ready.length - 50} more rows.</p>}</div>}
+      {ready.length > 0 && <div className="import-preview"><table><caption className="sr-only">The first rows that will be imported</caption><thead><tr><th scope="col">Row</th><th scope="col">Coin</th><th scope="col">Type</th><th scope="col">Quantity</th><th scope="col">Price per coin</th><th scope="col">Fee</th><th scope="col">Date</th><th scope="col">Note</th></tr></thead>
+        <tbody>{ready.slice(0, 50).map(r => <tr key={r.row}><td className="num">{r.row}</td><td>{r.coin.name} <small>{r.coin.symbol}</small></td><td>{KIND_LABEL[r.kind]}</td><td className="num">{r.quantity}</td><td className="num">{r.price ?? (r.kind.startsWith('transfer') ? 'no price' : '')}</td><td className="num">{r.fee ?? ''}</td><td>{formatDate(r.date)}</td><td>{r.note.slice(0, 40)}</td></tr>)}</tbody></table>
+        {ready.length > 50 && <p className="fine">… and {ready.length - 50} more rows.</p>}</div>}
       {plan.ready.some(r => r.kind.startsWith('transfer') && !r.price) && <p className="fine">Transfers without a price: the cost of what they bring stays unknown.</p>}
+      {duplicates.size > 0 && <div className="notice import-duplicates" role="note" data-import-duplicates><p>{duplicates.size === 1 ? '1 row looks like a transaction' : `${duplicates.size} rows look like transactions`} already in {targetName} (the same coin, type, date, quantity and price): {[...duplicates].slice(0, 8).map(r => `row ${r}`).join(', ')}{duplicates.size > 8 ? '…' : ''}.</p>
+        <label className="check"><input type="checkbox" checked={!keepDuplicates} onChange={event => setKeepDuplicates(!event.target.checked)} /> Skip {duplicates.size === 1 ? 'it' : 'them'} (recommended, so nothing is counted twice)</label></div>}
       <RefusedRows refused={plan.refused} />
       {plan.ready.length === 0 && unknown.length === 0 && <p role="alert">Nothing to import: every row was refused.</p>}
-      <StepActions onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={plan.ready.length === 0 || unknown.length > 0} />
+      {plan.ready.length > 0 && ready.length === 0 && <p role="alert">Nothing new to import: every row is already in {targetName}.</p>}
+      <StepActions onBack={() => setStep(2)} onNext={() => setStep(4)} nextDisabled={ready.length === 0 || unknown.length > 0} />
       {unknown.length > 0 && <p className="fine">Choose a coin or skip the rows for each unrecognised coin to continue.</p>}
     </>}
     {step === 4 && plan && <><StepHeading step={4} title="Confirm" />
-      <p className="import-summary">{plan.ready.length} {plan.ready.length === 1 ? 'transaction' : 'transactions'} into {targetName}{target.kind === 'new' ? ' (a new portfolio)' : ''}.</p>
+      <p className="import-summary">{ready.length} {ready.length === 1 ? 'transaction' : 'transactions'} into {targetName}{target.kind === 'new' ? ' (a new portfolio)' : ''}{ready.length < plan.ready.length ? `; ${plan.ready.length - ready.length} already there ${plan.ready.length - ready.length === 1 ? 'is' : 'are'} skipped` : ''}.</p>
       <p className="fine">You can undo this import from the banner until you change any of these records. Repeated coins extend the portfolio’s coin list once each.</p>
       {error && <p role="alert">{error}</p>}
-      <StepActions onBack={() => setStep(3)} onNext={confirm} nextLabel={`Import ${plan.ready.length} ${plan.ready.length === 1 ? 'transaction' : 'transactions'} into ${targetName}`} busy={busy} primary />
+      <StepActions onBack={() => setStep(3)} onNext={confirm} nextLabel={`Import ${ready.length} ${ready.length === 1 ? 'transaction' : 'transactions'} into ${targetName}`} busy={busy} primary />
     </>}
   </section>;
 }

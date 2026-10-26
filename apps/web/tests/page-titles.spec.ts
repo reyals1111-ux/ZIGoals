@@ -6,7 +6,7 @@ import {expect, test} from '@playwright/test';
 // Alpha"; client-side navigation changes the title too (Next.js announces the new title to screen readers on navigation).
 // Meet ZIGi (/app/zigi) is X-LOCAL's page and keeps the default title until that lane names it.
 const PAGES: [path: string, title: string][] = [
-  ['/app', 'Today'], ['/app/goals', 'Goals'], ['/app/goals/new', 'Create a goal'], ['/app/habits', 'Habits'], ['/app/health', 'Health'],
+  ['/app', 'Today'], ['/app/today', 'Today'], ['/app/goals', 'Goals'], ['/app/goals/new', 'Create a goal'], ['/app/habits', 'Habits'], ['/app/health', 'Health'],
   ['/app/wealth', 'Wealth'], ['/app/portfolio', 'Portfolio'], ['/app/markets', 'Markets'], ['/app/staking', 'Staking'],
   ['/app/ecosystem', 'Ecosystem'], ['/app/activity', 'Activity'], ['/app/chess', 'Chess'], ['/app/settings', 'Settings'],
   ['/app/help', 'Help'], ['/app/welcome', 'Welcome'],

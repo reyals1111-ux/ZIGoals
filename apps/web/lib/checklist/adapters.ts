@@ -2,7 +2,7 @@ import {habitCalendarDay, habitDataSchema, habitRuleOn, logHabitValue, setHabitE
 import {logHealthItem, newHealthId, removeHealthItem, saveWeight, type HealthData} from '../health';
 import {addWater, removeWater} from '../health-daily';
 import type {Platform} from '../positions';
-import {deleteNight, endNight, runningNights, startNight} from '../sleep/engine';
+import {SHORTEST_SLEEP_MS, deleteNight, endNight, napOrNight, runningNights, startNight, wakeGreeting} from '../sleep/engine';
 import type {Sleep} from '../sleep/schema';
 import {addSession, deleteSession, newSessionId, saveManual} from '../meditation/engine';
 import {emptyMeditationRun, type Meditation, type MeditationRun} from '../meditation/schema';
@@ -10,10 +10,12 @@ import {endedSession, sessionFrom, startRun} from '../meditation/timer';
 import {logFastToHabit, removeFast, runningSession, startFast, stopFast} from '../fasting/engine';
 import type {Fasting} from '../fasting/schema';
 import {wallClock} from '../zone-time';
-import {discardHabitTimer, finishHabitTimer, startHabitTimer} from '../habit-timer-actions';
+import {discardHabitTimer, finishHabitTimer, pauseHabitTimer, resumeHabitTimer, startHabitTimer} from '../habit-timer-actions';
 import {addReceipt, dropReceipt, setCustomDone} from './day';
 import {mealAt, type DerivedDot} from './derive';
 import type {ChecklistDays} from './schema';
+import {formatDate} from '../visual-format';
+import { unitFor } from '../plural';
 
 /**
  * Ticking a dot writes the real record through its page's own functions (Session AF, L3; P7.10): a habit check-in
@@ -66,7 +68,7 @@ function habitPlan(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'value'):
   const r = receiptWrites(dot, ctx, {kind: 'habit', id: `${id}:${day}`});
   if (intent === 'value') {
     const v = valueOf(dot, ctx), unit = dot.value?.unit ?? '';
-    return {writes: [w('habits', d => { capture(d); return logHabitValue(d, id, day, v, {mode: 'add'}); }), r.apply], undo: [w('habits', d => restoreHabitDay(d, id, day, previous)), r.undo], message: `${v} ${unit} added to ${dot.label}`.replace(/\s+/g, ' ').trim() + (day !== ctx.date ? ` (for ${day}).` : '.'), undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};
+    return {writes: [w('habits', d => { capture(d); return logHabitValue(d, id, day, v, {mode: 'add'}); }), r.apply], undo: [w('habits', d => restoreHabitDay(d, id, day, previous)), r.undo], message: `${v} ${unitFor(v, unit)} added to ${dot.label}`.replace(/\s+/g, ' ').trim() + (day !== ctx.date ? ` (for ${formatDate(day)}).` : '.'), undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};
   }
   return {writes: [w('habits', d => { capture(d); const habit = d.habits.find(h => h.id === id); if (!habit) throw new TickRefused('This habit is no longer on Habits.'); const rule = habitRuleOn(habit, day); if (!rule) throw new TickRefused('This habit is not active today.'); return logHabitValue(d, id, day, smartDoneValue(rule)); }), r.apply],
     undo: [w('habits', d => restoreHabitDay(d, id, day, previous)), r.undo], message: `${dot.label} logged for ${forDay(day, ctx.date)}.`, undone: `${dot.label}: back as it was.`, done: true, signal: 'checklist_tick'};
@@ -127,9 +129,16 @@ function healthPlan(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'value')
 export function sleepPlan(dot: DerivedDot | null, ctx: TickContext): TickPlan {
   const running = ctx.snapshot?.sleep ? runningNights(ctx.snapshot.sleep)[0] : undefined;
   if (running) {
-    const original = {start: running.start, timeZone: running.timeZone}, r = dot ? receiptWrites(dot, ctx, {kind: 'sleep', id: running.id}) : null;
-    return {writes: [w('sleep', s => endNight(s, running.id, ctx.now)), ...(r ? [r.apply] : [])], undo: [w('sleep', s => { const held = s.nights.find(n => n.id === running.id); const without = held ? deleteNight(s, running.id) : s; return startNight(without, new Date(original.start), original.timeZone); }), ...(r ? [r.undo] : [])],
-      message: 'Good morning. Your night is saved on Health.', undone: 'The night is running again.', done: true, signal: 'checklist_tick'};
+    const original = {start: running.start, timeZone: running.timeZone}, resume = w('sleep', s => { const held = s.nights.find(n => n.id === running.id); const without = held ? deleteNight(s, running.id) : s; return startNight(without, new Date(original.start), original.timeZone); });
+    // Session AH Part 3 (DS2, T-110, T-116, M-134): a second tap moments after the first never saves a near-empty night
+    // (it used to stand in for last night's 7 h 17 min); under ten minutes the sleep is simply stopped, with an Undo.
+    const startMs = Date.parse(running.start), endMs = ctx.now.getTime();
+    if (endMs - startMs < SHORTEST_SLEEP_MS) return {writes: [w('sleep', s => s.nights.some(n => n.id === running.id) ? deleteNight(s, running.id) : s)], undo: [resume], message: 'Stopped after less than ten minutes, so nothing was saved.', undone: 'The sleep is running again.', done: false, signal: 'checklist_tick'};
+    // A short daytime sleep is a nap (lib/sleep/engine.ts napOrNight), and the words follow the local time of day.
+    const kind = napOrNight(startMs, endMs, running.timeZone), greeting = wakeGreeting(endMs, ctx.zone);
+    const r = dot ? receiptWrites(dot, ctx, {kind: 'sleep', id: running.id}) : null;
+    return {writes: [w('sleep', s => { const ended = endNight(s, running.id, ctx.now); return kind === 'nap' ? {...ended, nights: ended.nights.map(n => n.id === running.id ? {...n, kind: 'nap' as const} : n)} : ended; }), ...(r ? [r.apply] : [])], undo: [resume, ...(r ? [r.undo] : [])],
+      message: kind === 'nap' ? `${greeting} Your nap is saved on Health.` : `${greeting} Your night is saved on Health.`, undone: kind === 'nap' ? 'The nap is running again.' : 'The night is running again.', done: kind === 'night', signal: 'checklist_tick'};
   }
   const id = `health_sleep-${crypto.randomUUID()}`;
   return {writes: [w('sleep', s => startNight(s, ctx.now, ctx.zone, id))], undo: [w('sleep', s => s.nights.some(n => n.id === id) ? deleteNight(s, id) : s)], message: 'Sleep started. Tap again when you wake.', undone: 'Sleep not started.', done: false, signal: 'checklist_tick'};
@@ -139,6 +148,11 @@ export function fastPlan(dot: DerivedDot | null, ctx: TickContext, targetHours =
   const running = ctx.snapshot?.fasting ? runningSession(ctx.snapshot.fasting) : undefined;
   if (running) {
     const r = dot ? receiptWrites(dot, ctx, {kind: 'fast', id: running.id}) : null;
+    // Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no "0.0 h" fast), as Sleep does; Undo resumes it.
+    if (ctx.now.getTime() - Date.parse(running.startedAt) < 10 * 60_000) {
+      const resume = (f: Fasting) => f.sessions.some(s => s.id === running.id) ? f : startFast(f, {id: running.id, now: new Date(running.startedAt), targetHours: running.targetHours, timeZone: running.timeZone, ...(running.habitId ? {habitId: running.habitId} : {})});
+      return {writes: [w('fasting', f => removeFast(f, running.id))], undo: [w('fasting', resume)], message: 'Stopped after less than ten minutes, so nothing was saved.', undone: 'The fast is running again.', done: false, signal: 'checklist_tick'};
+    }
     // The linked duration habit gets the fast's time on the habit journal's day of the stop, as Health's Stop adds it.
     const stopped = stopFast(ctx.snapshot!.fasting!, running.id, ctx.now).sessions.find(s => s.id === running.id)!, habitId = running.habitId;
     let before: Entry | undefined, loggedDay: string | undefined;
@@ -160,7 +174,8 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
     if (!ended) return {writes: [w('meditationRun', () => emptyMeditationRun())], undo: [w('meditationRun', () => held)], message: 'Less than a second: nothing to save.', undone: 'The session is running again.', done: false, signal: 'checklist_tick'};
     const session = sessionFrom(ended, {id: newSessionId(), timeZone: ctx.zone, now: ctx.now});
     return {writes: [w('meditation', m => addSession(m, session)), w('meditationRun', () => emptyMeditationRun())], undo: [w('meditation', m => m.sessions.some(s => s.id === session.id) ? deleteSession(m, session.id) : m), w('meditationRun', () => held)],
-      message: `Meditation saved on Health: ${Math.max(1, Math.round(ended.seconds / 60))} min.`, undone: 'The session is running again.', done: true, signal: 'checklist_tick'};
+      // Session AH (HE13, M-135): the toast says what the record holds (6 s, not "1 min").
+      message: `Meditation saved on Health: ${ended.seconds < 60 ? `${ended.seconds} ${ended.seconds === 1 ? 'second' : 'seconds'}` : `${Math.round(ended.seconds / 60)} min`}.`, undone: 'The session is running again.', done: true, signal: 'checklist_tick'};
   }
   return {writes: [w('meditationRun', () => startRun({now: ctx.now, minutes}))], undo: [w('meditationRun', () => emptyMeditationRun())], message: `Meditation started: ${minutes} minutes.`, undone: 'Meditation not started.', done: false, signal: 'checklist_tick'};
 }
@@ -171,6 +186,9 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
 export function focusPlan(habit: Habit | undefined, ctx: TickContext): TickPlan {
   if (!habit) throw new TickRefused('Star a habit you time (minutes or hours) to use Focus.');
   const timer = habit.timer;
+  // Session AH (TO5, M-137): a paused timer resumes; only a running one is finished and logged (a paused "25:00" had
+  // been logged in one tap).
+  if (timer?.state === 'paused') return {writes: [w('habits', d => resumeHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.state === 'running' ? pauseHabitTimer(d, habit.id, timer.id, new Date()) : d)], message: `Focus resumed: ${habit.title}.`, undone: 'Focus paused again.', done: false, signal: 'checklist_tick'};
   if (timer) return {writes: [w('habits', d => finishHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [], message: `${habit.title}: your time is logged on Habits. Change it there if needed.`, undone: '', done: true, signal: 'checklist_tick'};
   const timerId = crypto.randomUUID();
   return {writes: [w('habits', d => startHabitTimer(d, habit.id, timerId, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.id === timerId ? discardHabitTimer(d, habit.id, timerId, new Date()) : d)], message: `Focus started: ${habit.title}.`, undone: 'Focus not started.', done: false, signal: 'checklist_tick'};

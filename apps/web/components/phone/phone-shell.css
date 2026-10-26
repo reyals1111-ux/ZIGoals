@@ -194,3 +194,7 @@
   :root .phone-topbar .phone-quick-add { background: ButtonFace; border-color: ButtonText; }
   :root .phone-topbar .phone-quick-add::before, :root .phone-topbar .phone-quick-add::after { background: ButtonText; }
 }
+/* Session AH Part 18 (owner): the page name is not shown on the phone's top bar (it stays for screen readers and in the
+   tab's title); the actions keep their place at the right. */
+:root .phone-topbar .phone-title.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+:root .phone-topbar-row > .phone-actions { grid-column: 3; }

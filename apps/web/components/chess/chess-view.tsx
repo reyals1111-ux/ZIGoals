@@ -1,4 +1,5 @@
 'use client';
+import {removeWithUndo} from '../ui/remove-with-undo';
 import {useEffect, useState, type FormEvent} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
@@ -78,7 +79,7 @@ function ChessGoals({state}: {state: ReturnType<typeof useChess>}) {
     catch (error) { setMessage({text: error instanceof Error && error.message ? error.message : 'Could not save.', failed: true}); }
   }
   return <section className="panel chess-goals" aria-labelledby="chess-goals-title"><h2 id="chess-goals-title">Rating goals</h2>
-    {goals.length ? <ul className="chess-goal-list">{goals.map(g => { const p = cache.loaded && !cache.unreadable ? goalProgress(cache.data, g) : {rating: null, left: null, reached: false}; return <li key={g.id}><div><strong>{SITE_NAME[g.site]} · {CONTROL_NAME[g.control]} · {g.target}</strong><small>{p.rating === null ? 'No rating yet on this site and time control.' : p.reached ? `Reached: ${p.rating} now.` : `${p.rating} now · ${p.left} to go`}{g.by ? ` · by ${formatDate(g.by)}` : ''}</small></div>{!showcase && <button type="button" className="quiet" aria-label={`Remove the goal ${SITE_NAME[g.site]} ${CONTROL_NAME[g.control]} ${g.target}`} onClick={() => void settings.update(s => removeChessGoal(s, g.id))}>Remove</button>}</li>; })}</ul> : <p>No rating goal yet.</p>}
+    {goals.length ? <ul className="chess-goal-list">{goals.map(g => { const p = cache.loaded && !cache.unreadable ? goalProgress(cache.data, g) : {rating: null, left: null, reached: false}; return <li key={g.id}><div><strong>{SITE_NAME[g.site]} · {CONTROL_NAME[g.control]} · {g.target}</strong><small>{p.rating === null ? 'No rating yet on this site and time control.' : p.reached ? `Reached: ${p.rating} now.` : `${p.rating} now · ${p.left} to go`}{g.by ? ` · by ${formatDate(g.by)}` : ''}</small></div>{!showcase && <button type="button" className="quiet" aria-label={`Remove the goal ${SITE_NAME[g.site]} ${CONTROL_NAME[g.control]} ${g.target}`} onClick={() => void removeWithUndo(settings.update, s => removeChessGoal(s, g.id), 'Chess goal removed.', 'The chess goal is back.').catch(() => undefined) /* Session AH Part 3 (DS5) */}>Remove</button>}</li>; })}</ul> : <p>No rating goal yet.</p>}
     {!showcase && <form className="platform-form chess-goal-form" aria-label="Add a rating goal" onSubmit={e => void add(e)}>
       <label className="field">Site<select name="site" defaultValue={chess?.chesscom ? 'chesscom' : 'lichess'}>{CHESS_SITES.map(s => <option key={s} value={s}>{SITE_NAME[s]}</option>)}</select></label>
       <label className="field">Time control<select name="control" defaultValue="rapid">{CHESS_CONTROLS.map(c => <option key={c} value={c}>{CONTROL_NAME[c]}</option>)}</select></label>

@@ -6,6 +6,7 @@ import type {Platform} from '../../lib/positions';
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const OPTIONS: SetupOptions = {fields: HOLDINGS_FIELDS, numberFields: ['quantity', 'value']};
 const REQUIRED = ['name', 'currency'];
@@ -37,7 +38,7 @@ export function HoldingsImportPanel({update, imports, onUndo, onClose}: {platfor
   </section>;
   return <section className="import-panel" aria-label="Import holdings">
     <h2>Import holdings</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { setSetup(setupFromText(f.text, OPTIONS)); setFile(f); setStep(2); return null; } catch (cause) { return cause instanceof Error ? cause.message : 'This file could not be read.'; } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { setSetup(setupFromText(f.text, OPTIONS)); setFile(f); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="wealth" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <p className="fine">“Kind of asset” is read as cash, crypto, stablecoins, stocks, precious metals or property; anything else becomes a custom asset. A row without a value is added without a valuation.</p>

@@ -1,4 +1,7 @@
 'use client';
+import {removedItems,reinsertItems} from '../../lib/undo-removal';
+import {showToast} from '../ui/undo-toast';
+import {useBackCloses} from '../use-back-closes';
 import {TodayWeek} from '../bottom-sections';
 import Link from 'next/link';
 import {Suspense,cloneElement,isValidElement,lazy,useEffect,useMemo,useRef,useState,type ReactElement,type ReactNode} from 'react';
@@ -43,6 +46,7 @@ import {useHealth} from '../health/use-health';
 import {useAutoCheckIns} from '../habits/use-auto-checkins';
 import {TodayForYou,type ForYouParts} from '../for-you/today-for-you';
 import {TodayFocus} from './today-focus';
+import {TodayLine} from './today-line';
 import {TodayChecklistCard} from '../checklist/today-checklist-card';
 import {ProgressSlot,Slot} from '../progress/slot';
 import {HealthLinkContext} from '../habits/health-link-context';
@@ -86,11 +90,13 @@ import {isFoldOpen,readTodayFolds,rememberFold,type TodayFolds} from '../../lib/
 import {LoadBoundary} from '../load-boundary';
 import {Skeleton} from '../ui/skeleton';
 import {WalletCard} from '../wallet/wallet-card';
+import {useAverageGoals} from '../goals/use-average-goals';
+import {plainErrorMessage} from '../../lib/plain-error';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
 const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your financial progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
- const ref=useRef<HTMLDialogElement>(null);
+ const ref=useRef<HTMLDialogElement>(null);useBackCloses(true,onClose);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null,dialog=ref.current;dialog?.showModal();return()=>{dialog?.close();previous?.focus();};},[]);
  return <dialog ref={ref} className="dashboard-dialog" aria-label={title} onCancel={onClose}><header><h2>{title}</h2><button className="secondary" type="button" onClick={onClose} aria-label="Close customization">Close</button></header>{children}</dialog>;
 }
@@ -101,8 +107,8 @@ function WidgetEditor({initial,sources,ready,onSave,onRemove,onClose}:{initial?:
  const requiresEntity=widgetNeedsSource(kind);
  const draft:DashboardWidget={id:id.current,kind,metric,...(requiresEntity||kind==='ecosystem'&&entity?{entity}:{}),title,size,hidden:initial?.hidden??false,revision:initial?.revision??1};
  const preview=widgetMetric(draft,sources);
- async function save(){if(isInvisibleName(title)){setError('Give the card title at least one visible character, or leave it empty.');return;}setBusy(true);setError('');try{await onSave(draft,initial?.revision);onClose();}catch(e){setError(e instanceof Error?e.message:'Could not save this widget.');}finally{setBusy(false);}}
- return <Modal title={initial?'Edit widget':'Add a widget'} onClose={onClose}>{!initial&&<LoadBoundary quiet><Suspense fallback={null}><GameWidgetChoices/></Suspense></LoadBoundary>}<form onSubmit={e=>{e.preventDefault();void save();}}><Suspense fallback={<Skeleton label="Opening the widget library…" lines={4}/>}><WidgetLibrary kind={kind} metric={metric} entity={entity} title={title} size={size} initial={initial} sources={sources} ready={ready} onKind={next=>{setKind(next);setMetric(WIDGET_CATALOG[next].metrics[0]);setEntity('');}} onMetric={setMetric} onEntity={setEntity} onTitle={setTitle} onSize={setSize}/></Suspense><section className="dashboard-widget-preview" aria-label="Widget preview" data-size={size} data-domain={WIDGET_CATALOG[kind].domain}><p className="eyebrow">PREVIEW · YOUR CURRENT RECORDS · {size==='wide'?'WIDE':'COMPACT'} CARD</p><h3>{preview.title}</h3><div className="dashboard-widget-preview-value">{preview.percent!==undefined&&<ProgressRing percent={preview.percent} complete={preview.complete} size={64} identity={`preview-${id.current}`} label={`${preview.title} progress`}/>}<strong>{preview.value}</strong></div><p>{preview.detail}</p>{preview.facts&&<dl className="dashboard-metric-facts">{preview.facts.map(f=><div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>}{preview.warning&&<p>{preview.warning}</p>}</section>{error&&<p role="alert">{error}</p>}<div className="dashboard-actions">{initial&&onRemove&&<button type="button" className="secondary dashboard-remove" disabled={busy} onClick={()=>{setBusy(true);void onRemove().then(onClose).catch(e=>{setError(e instanceof Error?e.message:'Could not remove this widget.');setBusy(false);});}}>Remove widget</button>}<button type="button" className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={busy||requiresEntity&&!entity}>{busy?'Saving…':'Save widget'}</button></div></form></Modal>;
+ async function save(){if(isInvisibleName(title)){setError('Give the card title at least one visible character, or leave it empty.');return;}setBusy(true);setError('');try{await onSave(draft,initial?.revision);onClose();}catch(e){setError(plainErrorMessage(e, 'Could not save this widget.'));}finally{setBusy(false);}}
+ return <Modal title={initial?'Edit widget':'Add a widget'} onClose={onClose}>{!initial&&<LoadBoundary quiet><Suspense fallback={null}><GameWidgetChoices/></Suspense></LoadBoundary>}<form onSubmit={e=>{e.preventDefault();void save();}}><Suspense fallback={<Skeleton label="Opening the widget library…" lines={4}/>}><WidgetLibrary kind={kind} metric={metric} entity={entity} title={title} size={size} initial={initial} sources={sources} ready={ready} onKind={next=>{setKind(next);setMetric(WIDGET_CATALOG[next].metrics[0]);setEntity('');}} onMetric={setMetric} onEntity={setEntity} onTitle={setTitle} onSize={setSize}/></Suspense><section className="dashboard-widget-preview" aria-label="Widget preview" data-size={size} data-domain={WIDGET_CATALOG[kind].domain}><p className="eyebrow">PREVIEW · YOUR CURRENT RECORDS · {size==='wide'?'WIDE':'COMPACT'} CARD</p><h3>{preview.title}</h3><div className="dashboard-widget-preview-value">{preview.percent!==undefined&&<ProgressRing percent={preview.percent} complete={preview.complete} size={64} identity={`preview-${id.current}`} label={`${preview.title} progress`}/>}<strong>{preview.value}</strong></div><p>{preview.detail}</p>{preview.facts&&<dl className="dashboard-metric-facts">{preview.facts.map(f=><div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>}{preview.warning&&<p>{preview.warning}</p>}</section>{error&&<p role="alert">{error}</p>}<div className="dashboard-actions">{initial&&onRemove&&<button type="button" className="secondary dashboard-remove" disabled={busy} onClick={()=>{setBusy(true);void onRemove().then(onClose).catch(e=>{setError(plainErrorMessage(e, 'Could not remove this widget.'));setBusy(false);});}}>Remove widget</button>}<button type="button" className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={busy||requiresEntity&&!entity}>{busy?'Saving…':'Save widget'}</button></div></form></Modal>;
 }
 export function TodayDashboard(){
  const settings=usePrivateStore(DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings);
@@ -126,8 +132,9 @@ export function TodayDashboard(){
  const market=useMarketQuotes(settings.loaded&&financial?wealthMarketRequests(platform.data):false),now=useEvidenceNow(platform.data,market.now);
  const goals=unifiedGoalSummaries(legacy.goals,legacy.metadata?.goals??{},platform.data,market.quotes,now,legacy.mode==='local'?'Local simulation':'Future Goal Manager').filter(g=>!g.key.startsWith('legacy:')||!platform.data.legacyGoalUi?.[`${legacy.chain}:${legacy.owner}:${g.id}`]?.archived);
  const chessCache=useDeviceRecord(CHESS_CACHE);
+ const averageGoals=useAverageGoals();
  const todayCards=useDeviceRecord(TODAY_CARDS),deviceCards=todayCards.loaded&&!todayCards.unreadable?shownCards(todayCards.data):[];
- const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
+ const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(averageGoals.loaded&&!averageGoals.unreadable?{averages:averageGoals.data.goals}:{}),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
@@ -153,7 +160,9 @@ export function TodayDashboard(){
  const meta=(id:DashboardBuiltinId)=>DASHBOARD_BUILTINS.find(b=>b.id===id)!;
  async function change(update:(s:DashboardSettings)=>DashboardSettings,message='Layout saved on this device.'){
   setBusy(true);setError('');
-  try{await settings.update(update);setStatus(message);}catch(e){setError(e instanceof Error?e.message:'Could not save the layout.');throw e;}finally{setBusy(false);}
+  // Session AH Part 3 (DS5): a change that only removed something (a widget) offers a labelled Undo in the app's toast.
+  let before:DashboardSettings|undefined,after:DashboardSettings|undefined;
+  try{await settings.update(s=>{const next=update(s);before=s;after=next;return next;});const removed=before===undefined?null:removedItems(before,after);if(removed)showToast({message,undone:'Put back on Today.',undo:()=>settings.update(s=>reinsertItems(s,removed))});else setStatus(message);}catch(e){setError(plainErrorMessage(e, 'Could not save the layout.'));throw e;}finally{setBusy(false);}
  }
  const apply=(update:(s:DashboardSettings)=>DashboardSettings,message?:string)=>void change(update,message).catch(()=>{});
  const itemId=(ref:DashboardItemRef)=>`dashboard-item-${ref.kind}-${ref.id}`;
@@ -198,6 +207,8 @@ export function TodayDashboard(){
  function renderBuiltin(id:DashboardBuiltinId){
   if(['whole-life','attention','funding','needs-attention','watchlist'].includes(id)){
    if(!financial||!platform.loaded||!!platform.error||id==='attention'&&!hasFundingGoal)return null;
+   // Session AH (TO12, M-122): the attention count waits for the first price read, so it never changes after load.
+   if(id==='needs-attention'&&market.loading&&!market.quotes.length)return <section className="needs-attention panel" aria-busy="true" aria-label="Needs attention"><p className="loading-line" role="status">Checking what needs attention…</p></section>;
    return intelligence(({ 'whole-life':'life',attention:'attention',funding:'funding','needs-attention':'needs-attention',watchlist:'watchlist'} as const)[id as 'whole-life'|'attention'|'funding'|'needs-attention'|'watchlist']);
   }
   switch(id){
@@ -242,7 +253,7 @@ export function TodayDashboard(){
  // column at a reading width; while arranging, the rail stays as a place to move modules to.
  const railItems=regionItems('rail'),single=!railItems.length&&!customize;
  let presetPreview:DashboardSettings|null=null,presetError='';
- if(preset)try{presetPreview=applyDashboardPreset(settings.data,preset);}catch(e){presetError=e instanceof Error?e.message:'This layout cannot be applied without removing a saved widget.';}
+ if(preset)try{presetPreview=applyDashboardPreset(settings.data,preset);}catch(e){presetError=plainErrorMessage(e, 'This layout cannot be applied without removing a saved widget.');}
  // Session AA-Cloud Part 1 (docs/product/PAGE_ORDER_AA.md): the hero, then Today's focus, the grouped widgets, For you,
  // and What's new with the summaries at the end. "Make Today yours" stays a new device's first action; in the Showcase
  // it waits at the end of the main column.
@@ -265,7 +276,8 @@ export function TodayDashboard(){
    {financial&&platform.error&&legacy.loaded&&!legacy.error&&goals.some(g=>g.key.startsWith('legacy:'))&&<section className="panel" aria-label="Available local simulation Goals"><h2>Your local simulation Goals are still available.</h2><p>Private tracked records need recovery. These separate local simulation records remain readable.</p><ul>{goals.filter(g=>g.key.startsWith('legacy:')).map(g=><li key={g.key} data-goal-key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul></section>}
    {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}
    {!showcase&&makeToday}
-   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
+   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
    {!brandNew&&<TodayChecklistCard/>}
    <section aria-label="Your Today widgets" className="dashboard-widget-area">

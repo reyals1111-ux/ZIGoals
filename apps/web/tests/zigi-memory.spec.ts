@@ -181,6 +181,10 @@ test('Showcase: notes stay in the tab, fictional, and never reach the person\'s 
   await expect(card.getByRole('status')).toHaveText('Note added.');
   const where = await page.evaluate(key => ({local: Object.keys(localStorage).filter(k => k.includes(key)), session: Object.keys(sessionStorage).filter(k => k.includes(key))}), AI_MEMORY_KEY);
   expect(where.local).toEqual([]); expect(where.session.length).toBe(1);
+  // Session AH Part 2 (AF16, WebKit's navigation stall): "Return to my data" reloads the page; WebKit closed the page
+  // when that reload cut off the router's prefetches still in flight (twice in CI). As before every goto (Session AE),
+  // the page settles first; the click and every check after it are unchanged.
+  await page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => undefined);
   await page.getByRole('button', {name: 'Return to my data', exact: true}).click();
   await expect(page.getByRole('button', {name: 'Load Showcase Demo', exact: true})).toBeVisible();
   const own = await openNotes(page);

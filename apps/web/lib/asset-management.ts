@@ -16,6 +16,8 @@ export function saveAsset(s:Platform,p:Position):Platform {
  const old=s.positions.find(x=>x.id===p.id);
  if(old?.archivedAt)throw Error('Restore this asset before editing.');
  if(old&&JSON.stringify(old.marketRef)!==JSON.stringify(p.marketRef))throw Error('Create a replacement asset for a different market identity.');
+ /* Session AH (C12): adding a market asset you already track (ETH again) is said, never a second card */
+ if(!old&&p.marketRef){const twin=s.positions.find(x=>!x.archivedAt&&x.marketRef&&JSON.stringify(x.marketRef)===JSON.stringify(p.marketRef));if(twin)throw Error(`You already track ${twin.asset}. Open it and change its quantity instead.`);}
  const next=saveManualPosition(s,{...p,...(old?membership(s,old):{trackingStartedAt:p.trackingStartedAt??p.observedAt,archivePeriods:[]})});
  return platformSchema.parse({...next,assetEvents:[...s.assetEvents,{id:crypto.randomUUID(),positionId:p.id,name:p.providerId,assetClass:assetClassOf(p),kind:old?'edited':'added',at:p.observedAt,provenance:'PRIVATE_EDIT'}]});
 }

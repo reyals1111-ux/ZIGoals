@@ -1,3 +1,4 @@
+import {webkitCancelled} from './webkit-cancelled';
 import {expect, test, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
@@ -41,7 +42,7 @@ test('the phone set opens in WebKit at 390 px: a heading, no page error, no side
       expect(Math.round(Math.min(box!.width, box!.height)), `${path}: "${(await tab.textContent())?.trim()}" is at least 44 px`).toBeGreaterThanOrEqual(44);
     }
   }
-  // Session Z-Local (owner decision, 2026-10-11): Goals' nested routes (/app/goals/<id>, /app/goals/new) prefetch too; the same shape and moment, two segments deep.
-  const prefetchCancel = (e: {at: number; message: string}) => /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
+  // The router's prefetches and the page's own /api fetches that a navigation cancelled (ADR-017 S64; tests/webkit-cancelled.ts).
+  const prefetchCancel = (e: {at: number; message: string}) => webkitCancelled(e, navigations);
   expect(errors.filter(e => !prefetchCancel(e)).map(e => e.message), "page errors (WebKit's rejected router prefetches excluded by shape and moment, S64)").toEqual([]);
 });

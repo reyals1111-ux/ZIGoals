@@ -162,7 +162,9 @@ test('Showcase: the whole page and a coin\'s page from labelled fixtures, and no
   const before = asked.length;
   await page.goto('/app/portfolio');
   const totals = page.getByLabel('Fictional long-term coins totals');
-  await expect(totals).toContainText('Value$8,450.00');
+  // Session AH Part 4 (TR3/B1, M16, deliberate): priced with the market prices the Showcase loaded (this spec's own
+  // fixture quotes), as Wealth is — not the Portfolio-only fixture; the 24h and 7-day lines stay labelled examples.
+  await expect(totals).toContainText('Value$9,400.00');
   await expect(totals.locator('div').filter({hasText: '24h change'}).locator('dd')).toHaveText(/^[+−]\$[\d,]+\.\d{2} \([+−][\d.]+%\)$/);
   await expect(totals.locator('div').filter({hasText: 'All-time result'}).locator('dd')).toHaveText('Unknown');
   await expect(page.getByRole('table', {name: 'Fictional long-term coins holdings'}).getByRole('row')).toHaveCount(4);
@@ -172,7 +174,7 @@ test('Showcase: the whole page and a coin\'s page from labelled fixtures, and no
   await expect(page.getByRole('heading', {level: 1, name: 'Solana'})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Market figures'})).toContainText('Showcase fixture figures, not market data.');
   await expect(page.getByRole('region', {name: 'Your SOL in Fictional long-term coins'})).toContainText('Unrealized resultUnknown');
-  expect(asked.slice(before).map(r => r.path)).toEqual([]);
+  expect(asked.slice(before).map(r => r.path).filter(path => path !== '/api/market-quotes')).toEqual([]);
 });
 
 test('phone: the coin, its 24h change, value and result; allocation and transactions fold; no sideways scroll; 44 px targets', async ({page, isMobile}) => {

@@ -2,6 +2,7 @@ import {csvSafeCell} from './export/csv-safe';
 import {healthSchema,type HealthData} from './health';
 import {healthDay} from './health-daily';
 import {bodyMeasurementSchema,measurementValueSchema,canonicalMeasurement,type MeasurementDraft,type BodyMeasurement} from './body-measurement-schema';
+import {weightIssue,within} from './limits/plausibility';
 export type MeasurementGroup={id:string;copies:BodyMeasurement[];canonical:BodyMeasurement|null;conflict:'source'|'values'|null};
 const sourceKey=(r:{provider:string;sourceId:string})=>JSON.stringify([r.provider,r.sourceId]);
 const observedValue=(r:BodyMeasurement)=>JSON.stringify({kind:r.kind,quantityMilli:r.quantityMilli,unit:r.unit,observedAt:r.observedAt,timezone:r.timezone,sourceLabel:r.sourceLabel,canonical:r.canonical});
@@ -20,6 +21,8 @@ export function measurementGroups(data:HealthData):MeasurementGroup[]{
 }
 export const measurementGroupFingerprint=(group:MeasurementGroup)=>JSON.stringify(group.copies);
 export function saveMeasurement(data:HealthData,draft:MeasurementDraft,recordedAt:string,review?:string):HealthData{
+ // Session AH (VA2): a weight reading, kept beside the day's (DS7) or imported, has the same limits as the form's.
+ if(draft.kind==='weight'&&draft.unit==='kg')within(weightIssue(draft.quantityMilli));
  const group=measurementGroups(data).find(g=>g.copies.some(r=>r.id===draft.id));
  if(group?.conflict==='source')throw Error('This source observation ID has conflicting fingerprints. Preserve the copies and ask the source for a corrected observation with a new source ID.');
  if(group&&review!==undefined&&review!==measurementGroupFingerprint(group))throw Error('Measurement copies changed after review. Review them again before saving.');
@@ -35,6 +38,11 @@ function correctMeasurement(prior:BodyMeasurement|undefined,draft:MeasurementDra
  const corrections=prior?[...prior.corrections,measurementValueSchema.safeExtend({canonical:bodyMeasurementSchema.shape.canonical,recordedAt:bodyMeasurementSchema.shape.recordedAt}).parse({kind:prior.kind,quantityMilli:prior.quantityMilli,unit:prior.unit,observedAt:prior.observedAt,timezone:prior.timezone,sourceLabel:prior.sourceLabel,canonical:prior.canonical,recordedAt:prior.recordedAt})]:[];
  const next=bodyMeasurementSchema.parse({...v,id,observedAt:new Date(v.observedAt).toISOString(),canonical,source:prior?.source??'MANUAL',observationSources:prior?.observationSources,createdAt:prior?.createdAt??recordedAt,recordedAt,corrections});
  return next;
+}
+/** Session AH (HE6, T-138): a reading removed, with every retained copy of it (the group counts as one reading). */
+export function deleteMeasurement(data:HealthData,id:string):HealthData{
+ const group=measurementGroups(data).find(g=>g.copies.some(r=>r.id===id));if(!group)throw Error('This reading is no longer here.');
+ const ids=new Set(group.copies.map(r=>r.id));return healthSchema.parse({...data,measurements:(data.measurements??[]).filter(r=>!ids.has(r.id))});
 }
 export function measurementHistory(data:HealthData,kind:BodyMeasurement['kind']){
  const groups=measurementGroups(data).filter(g=>g.copies.some(r=>r.kind===kind)),readings=groups.flatMap(g=>g.canonical?[g.canonical]:[]).sort((a,b)=>Date.parse(a.observedAt)-Date.parse(b.observedAt)||a.id.localeCompare(b.id));

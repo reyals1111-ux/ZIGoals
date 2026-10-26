@@ -6,7 +6,9 @@ import type {UnavailableReason} from '../../earn/live/envelope';
 /**
  * Session AF (ADR-028 H16, H42, H58; `TIER 3 (egress routes)`): the only way the /api/earn/* routes reach the outside.
  * Server-only (never in connect-src): ZIGChain's official LCDs, Polkachu's public mainnet LCD as the rotation fallback
- * when the official one does not answer, and DefiLlama's two public APIs. Every request is a plain GET with no address of
+ * when the official one does not answer, and DefiLlama's two public APIs. Session AH (AF3): /api/earn/shares is the one
+ * exception to "no address" below: it asks the LCD for one public address's balance of eight pinned share denoms only.
+ * Every other request is a plain GET with no address of
  * a person anywhere (contract and validator addresses are public chain identifiers), no credentials, no referrer, no
  * cache and no redirect followed; an origin outside this list throws before anything is sent. A failure becomes one of
  * the envelope's reasons, never an exception text on the page.

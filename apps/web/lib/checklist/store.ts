@@ -62,6 +62,12 @@ export type AddOptions = {id: string; at: Date; label?: string; section?: string
 export function addFavourite(record: Checklist, ref: FavouriteRef, options: AddOptions): Checklist {
   if (isFavourite(record, ref)) return record;
   const at = options.at.toISOString(), label = options.label?.trim().slice(0, 120) || undefined;
+  // Session AH (TO5, T-111): a habit starred while a custom item of the same name is on the path takes that item's place
+  // (as "Make this a habit" does), so the path never shows two planets with one name.
+  if (ref.kind === 'habit' && label) {
+    const same = record.items.find(i => i.kind === 'custom' && i.label?.trim().toLowerCase() === label.toLowerCase());
+    if (same) return customToHabit(record, same.id, ref.habitId);
+  }
   if (ref.kind === 'health') {
     if (record.healthItems.length >= MAX_HEALTH_ITEMS) throw new ChecklistError(CHECKLIST_LIMIT_MESSAGE);
     const {input} = ref, refPart = ref.input === 'diary' ? {ref: {sourceKind: ref.sourceKind, sourceId: ref.sourceId}} : ref.input === 'meal' ? {ref: {meal: ref.meal}} : {};
@@ -88,6 +94,8 @@ export function toggleFavourite(record: Checklist, ref: FavouriteRef, options: A
 export function addCustom(record: Checklist, input: {label: string; colour?: string; section?: string}, options: {id: string; at: Date}): Checklist {
   const label = input.label.trim();
   if (!label || label.length > MAX_LABEL) throw new ChecklistError(CUSTOM_LABEL_MESSAGE);
+  // Session AH (TO5): one planet per name.
+  if (record.items.some(i => i.kind === 'custom' && i.label?.trim().toLowerCase() === label.toLowerCase())) throw new ChecklistError(`“${label}” is already on your path.`);
   if (record.items.length >= MAX_PATH_ITEMS) throw new ChecklistError(CHECKLIST_LIMIT_MESSAGE);
   const item: ChecklistItem = {id: options.id, kind: 'custom', label, colour: pathColour(input.colour, 'gold'), section: sectionOrDefault(record, input.section), addedAt: options.at.toISOString()};
   return save({...record, items: [...record.items, item], order: withOrder(record, options.id)});

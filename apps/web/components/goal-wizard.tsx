@@ -11,6 +11,7 @@ import { useGoals } from "./goal-provider";
 import { displayAmount } from "./goal-card";
 import { SceneArt } from "./scene-art";
 import { formatDate } from "../lib/visual-format";
+import { plainErrorMessage } from "../lib/plain-error";
 function defaults(): GoalMetadata {
   const d = new Date();
   d.setUTCFullYear(d.getUTCFullYear() + 1);
@@ -50,7 +51,7 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
       setError("");
       setStep((n) => n + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(plainErrorMessage(e, 'The goal could not be saved. Check the fields and try again.'));
     }
   }
   let projection;

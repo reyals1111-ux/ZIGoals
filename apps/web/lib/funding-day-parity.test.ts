@@ -124,7 +124,8 @@ const GOLDEN:Record<string,string>={
  legacyMonthly:'92c5fb3bfddb39f0fdf827bbf69a689bf1047c75e7d0445bb4a01977cc613708',
  legacyLeapYearly:'d2a618aabec6ae3ea967ad8ddd10effac9ac4ff0e6a411d7cfb97b48aa4ca9c9',
  paused:'13bfe986a5542692cf250896c02895cba4ca7e1377e6fa910b102d5841ecfdee',
- completed:'40bc3a07276384ccc5017ed0f75b802219d9e846e868f6ef5cc695db9df937df',
+ // Session AH (VA9): the summary's '1 Positions' now reads '1 Position' (wording only; checked: with the old wording the digest is unchanged).
+ completed:'9a3625717ee29fbf20dfeb01b8eab1f3edf9f7a17ad254ab85e7fba9e569be13',
  targetDate:'40189aeccaeada7ee7b682fb5430b705c3a3113b4652eb770aa6a4fd39ed7d1d',
  fundedRevisions:'1654f4c18aa1c1e10369f59333ef7801eb7f01b0154698783057135f78cb46fe',
  fundedLegacy:'292d9fff3f985173cb45ca05239af9ef11c5c09b1c9cb439d6f03233f448ff95',

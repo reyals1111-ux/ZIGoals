@@ -30,7 +30,7 @@ const OrbitQuickAdd = lazy(() => import('./orbit-quick-add').then(m => ({default
 
 /** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
  *  which the path never runs under; the jump button moves into it there. */
-const NARROW = '(max-width: 1179.98px)', PHONE = '(max-width: 767.98px)';
+const NARROW = '(max-width: 1179.98px)';
 const useMedia = (query: string) => useSyncExternalStore(useCallback((l: () => void) => { const m = window.matchMedia?.(query); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); }, [query]), () => !!window.matchMedia?.(query).matches, () => false);
 
 /**
@@ -66,7 +66,7 @@ export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   const [addTo, setAddTo] = useState<string | undefined>(undefined), [sheet, setSheet] = useState<'edit' | 'options' | 'about' | 'quick' | null>(null), [arrive, setArrive] = useState<string | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
-  const narrow = useMedia(NARROW), phone = useMedia(PHONE), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
+  const narrow = useMedia(NARROW), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
   // once the page runs it becomes modal. Our own close here is not the person's close.
@@ -152,14 +152,21 @@ export function ChecklistPage() {
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">
         <button type="button" className="checklist-close" aria-label="Close the Checklist" onClick={leave}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"/></svg></button>
-        <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
-        {/* Session AG Polish 3 (owner Part 3): no progress bar — reaching the orbits is the tracker; the words stay. */}
-        <div className="checklist-progress">
-          <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
-        </div>
+        {/* Session AH Part 18 (owner exception for the top bar): the view next to X on every screen; from 600 px Edit path
+            and Options join it (on a phone they stay in "⋯", where they fit); "⋯" keeps How it works. Nothing twice. */}
         <div className="checklist-view-switch" role="group" aria-label="View">
           <button type="button" aria-label="Path" aria-pressed={prefs.view === 'path'} onClick={() => state.setPrefs({view: 'path'})}><ViewMark name="path"/></button>
           <button type="button" aria-label="List" aria-pressed={prefs.view === 'list'} onClick={() => state.setPrefs({view: 'list'})}><ViewMark name="list"/></button>
+        </div>
+        <div className="checklist-bar-tools">
+          <button type="button" aria-expanded={sheet === 'edit'} onClick={() => open('edit')}><ToolMark name="edit"/>Edit path</button>
+          <button type="button" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
+        </div>
+        <div className="checklist-title"><h1 id="checklist-title"><NebulaFlow identity="checklist-title">Your orbit</NebulaFlow></h1></div>
+        {/* Session AG Polish 3 (owner Part 3): no progress bar — reaching the orbits is the tracker; the words stay. */}
+        {/* Part 18: the count is said, not shown (it updates as before). */}
+        <div className="checklist-progress sr-only">
+          <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit</span>}{day && <span className="eyebrow"> · {day}</span>}</p>
         </div>
         <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} data-ignite={ignite ? (ignite % 2 ? 'a' : 'b') : undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><CountUp value={streakDays}/></p>
         {/* Session AG Polish 2 (owner Part 5, pointer D-path 11): quick add where "⋯" stood; "⋯" moves to the far right. */}
@@ -167,13 +174,8 @@ export function ChecklistPage() {
         <div className="checklist-menu-wrap">
           <button type="button" className="checklist-menu-button" aria-label="Checklist menu" aria-expanded={menu} onClick={() => setMenu(m => !m)}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg></button>
           {menu && <div className="checklist-menu" role="group" aria-label="Checklist menu">
-            {/* Round 4: on a phone the top bar is one row, so the view lives here (the bar's own switch is hidden there). */}
-            {phone && <div className="checklist-menu-view" role="group" aria-label="View">
-              <button type="button" aria-pressed={prefs.view === 'path'} onClick={() => { setMenu(false); state.setPrefs({view: 'path'}); }}><ViewMark name="path"/>Path</button>
-              <button type="button" aria-pressed={prefs.view === 'list'} onClick={() => { setMenu(false); state.setPrefs({view: 'list'}); }}><ViewMark name="list"/>List</button>
-            </div>}
-            <button type="button" aria-expanded={sheet === 'edit'} onClick={() => open('edit')}><ToolMark name="edit"/>Edit path</button>
-            <button type="button" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
+            <button type="button" className="checklist-menu-tool" aria-expanded={sheet === 'edit'} onClick={() => open('edit')}><ToolMark name="edit"/>Edit path</button>
+            <button type="button" className="checklist-menu-tool" aria-expanded={sheet === 'options'} onClick={() => open('options')}><ToolMark name="options"/>Options</button>
             <button type="button" aria-expanded={sheet === 'about'} onClick={() => open('about')}><ToolMark name="about"/>How it works</button>
             {complete && <button type="button" onClick={() => { setMenu(false); setReplay(true); setCelebrate(true); }}><ToolMark name="replay"/>Replay today’s celebration</button>}
           </div>}

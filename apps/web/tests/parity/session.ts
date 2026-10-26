@@ -42,7 +42,11 @@ export async function openIn(page: Page, route: string, theme: Theme) {
   else await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   await expect(page.locator('html')).not.toHaveAttribute('data-theme-loading', /.*/);
   await page.waitForLoadState('networkidle');
-  for (let y = 0; y < 40_000; y += 700) { const max = await page.evaluate(top => { scrollTo(0, top); return document.documentElement.scrollHeight - innerHeight; }, y); await page.waitForTimeout(40); if (y > max) break; }
+  // Session AH Part 2: each step answers within 15 s or the sweep stops there (CI once saw one step's evaluate never
+  // answer on a loaded shard until the 240 s test timeout). The sweep only brings lazy sections in; every comparison
+  // after it still runs, and a page that stays stuck fails them.
+  const step = (top: number) => Promise.race([page.evaluate(t => { scrollTo(0, t); return document.documentElement.scrollHeight - innerHeight; }, top), new Promise<null>(done => setTimeout(() => done(null), 15_000))]);
+  for (let y = 0; y < 40_000; y += 700) { const max = await step(y); if (max === null) break; await page.waitForTimeout(40); if (y > max) break; }
   await page.waitForLoadState('networkidle');
   await page.evaluate(async () => { scrollTo({top: 0, left: 0, behavior: 'instant'}); await document.fonts.ready; });
   // Session AF (CI's WebKit job on bf72baa0): the phone bar's title, ZIGi's resting spot and Earn's chip rail follow the

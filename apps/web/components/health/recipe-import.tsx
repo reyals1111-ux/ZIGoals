@@ -6,6 +6,7 @@ import {newHealthId, saveFood, saveRecipe, type HealthData, type HealthFood} fro
 import {readFormNumber} from '../../lib/decimal-input';
 import type {HealthPerform} from './aa-types';
 import './health-aa.css';
+import { plural } from '../../lib/plural';
 
 type Row = ParsedIngredient & {foodId: string; gramsText: string; existing: HealthFood | null; keep: boolean};
 const CODES: Record<string, string> = {INVALID_URL: 'That is not a web address the import can read.', NOT_HTTPS: 'Only https addresses are read.', PRIVATE_HOST: 'That address is not a public website.', REDIRECT: 'That page redirects, which the import never follows.', TOO_LARGE: 'That page is too large to read (1 MB).', TIMEOUT: 'That site did not answer in time.', WRONG_TYPE: 'That address is not a web page.', NO_RECIPE: 'No recipe data on that page (it needs schema.org Recipe JSON-LD). Paste the recipe text instead.', UPSTREAM: 'That site could not be reached.', TRY_LATER: 'Too many imports just now; try again in a minute.'};
@@ -30,7 +31,7 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
   }
   function save() {
     const kept = rows.filter(r => r.keep); if (!kept.length) { setError('Keep at least one ingredient.'); return; }
-    let portions: number; try { portions = readFormNumber(servings, {min: 0.001, max: 1000}); } catch { setError('Servings: a number from 0.001 to 1000.'); return; }
+    let portions: number; try { portions = readFormNumber(servings, {min: 0.001, max: 1000}); } catch { setError('Servings: enter how many servings the recipe makes, from 0.001 to 1,000.'); return; }
     const at = new Date().toISOString();
     void perform(latest => {
       let next = latest;
@@ -43,7 +44,7 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
       });
       next = saveRecipe(next, {id: newHealthId(), name: title.trim().slice(0, 80) || "Imported recipe", portionsMilli: Math.round(portions * 1000), items: ingredients}, at);
       return next;
-    }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ingredients. Foods without a label stay unknown until you fill them in.`, () => { setParsed(null); setRows([]); setText(''); setUrl(''); });
+    }, `Recipe "${title.trim() || 'Imported recipe'}" saved with ${kept.length} ${plural(kept.length, 'ingredient')}. Foods without a label stay unknown until you fill them in.`, () => { setParsed(null); setRows([]); setText(''); setUrl(''); });
   }
   return <section className="panel health-aa-card" aria-labelledby="recipe-import-title">
     <p className="eyebrow">From text or a page</p><h2 id="recipe-import-title"><NebulaFlow identity="recipe-import-title">Import a recipe</NebulaFlow></h2>
@@ -55,9 +56,9 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
     </> : <form className="health-import-form" aria-label="Confirm the recipe" onSubmit={e => { e.preventDefault(); save(); }}>
       <label className="field"><span>Recipe name</span><input type="text" value={title} maxLength={80} onChange={e => setTitle(e.target.value)} /></label>
       <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>
-      <p className="fine">{rows.length} ingredients found{parsed.steps ? `, ${parsed.steps} steps left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p>
+      {rows.length ? <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.steps ? `, ${parsed.steps} ${plural(parsed.steps, 'step')} left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p> : <p role="alert">No ingredient lines were found. Put one ingredient on each line, with its amount (“200 g lentils” or “Lentils, 200 g”), then read it again.</p>}
       <ul className="health-import-rows">{rows.map((r, i) => <li key={i}><input type="text" aria-label={`Ingredient ${i + 1} name`} value={r.name} maxLength={80} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, name: e.target.value} : x))} /><input type="text" inputMode="numeric" aria-label={`Ingredient ${i + 1} grams`} placeholder="g" value={r.gramsText} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, gramsText: e.target.value} : x))} /><small>{r.existing ? 'known' : 'new food'}</small><button type="button" className="quiet" aria-label={`${r.keep ? 'Drop' : 'Keep'} ingredient ${i + 1}`} aria-pressed={!r.keep} onClick={() => setRows(rows.map((x, j) => j === i ? {...x, keep: !x.keep} : x))}>{r.keep ? 'Drop' : 'Keep'}</button></li>)}</ul>
-      <div className="actions"><button type="submit" className="primary">Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
+      <div className="actions"><button type="submit" className="primary" disabled={!rows.some(r => r.keep)}>Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}
     </form>}
   </section>;

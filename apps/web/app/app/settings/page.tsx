@@ -1,5 +1,7 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
+import {WhatsThis} from "../../../components/earn/whats-this";
+import {DeviceLockSettings} from "../../../components/device-lock";
 import { SendFeedback } from "../../../components/help/send-feedback";
 import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
 import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
@@ -22,7 +24,7 @@ import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useGoals } from "../../../components/goal-provider";
 import { ConnectionDiagnostics } from "../../../components/connection-diagnostics";
 import { shortAccount } from "../../../lib/diagnostics";
@@ -60,9 +62,27 @@ function SettingsGroup({id, title, children}: {id: string; title: string; childr
   const icon = GROUP_ICON[id];
   return <div className="settings-group" id={id} role="group" aria-labelledby={`${id}-title`}><p className="settings-group-title" id={`${id}-title`}>{icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}{title}</p>{children}</div>;
 }
+/** Session AH (SE3, D-088): the section tabs say which group is on screen (they had no state). */
+function SettingsSectionsNav() {
+  const [current, setCurrent] = useState('');
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const groups = SETTINGS_GROUPS.map(([id]) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+    const seen = new Map<string, boolean>();
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) seen.set(entry.target.id, entry.isIntersecting);
+      setCurrent(SETTINGS_GROUPS.map(([id]) => id).find(id => seen.get(id)) ?? '');
+    }, {rootMargin: '-30% 0px -60% 0px'});
+    for (const group of groups) observer.observe(group);
+    return () => observer.disconnect();
+  }, []);
+  return <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id} aria-current={current === id ? 'location' : undefined}>{title}</a>)}</nav>;
+}
 export default function Settings() {
   const s = useGoals();
   const [backup, setBackup] = useState("");
+  const [legacyPlans, setLegacyPlans] = useState(false);
+  useEffect(() => { try { setLegacyPlans(s.loaded && !!s.owner && Object.keys(loadMetadata(getAppStorage(), s.chain, s.owner).goals ?? {}).length > 0); } catch { setLegacyPlans(false); } }, [s.loaded, s.owner, s.chain]);
   function exportData() {
     try {
       const data = loadMetadata(getAppStorage(), s.chain, s.owner);
@@ -94,7 +114,7 @@ export default function Settings() {
       </div>
       <PhoneSettingsList/>
       <KeepSettingsJump/>
-      <nav className="settings-sections" aria-label="Settings sections">{SETTINGS_GROUPS.map(([id, title]) => <a href={`#${id}`} key={id}>{title}</a>)}</nav>
+      <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
         <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
@@ -105,7 +125,10 @@ export default function Settings() {
         <ExportEverything/>
         <SwitchImport/>
         <div className="detail-grid">
-          <section className="panel">
+          {/* Session AH Part 3 (DS6/A2, BUG-036, M-007): this older format holds local simulation Goal plans only; with
+              none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export
+              everything" above is the one export for everything else. */}
+          {legacyPlans && <section className="panel">
             <h2>Export Goal Data</h2>
             <p>
               Save a private backup of your goal names, targets, dates and
@@ -126,7 +149,7 @@ export default function Settings() {
             >
               Export Goal Data
             </button>
-          </section>
+          </section>}
           <section className="panel">
             <h2>Import Goal Data</h2>
             <p>
@@ -194,9 +217,10 @@ export default function Settings() {
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">
         <VaultSyncControls/>
+        <DeviceLockSettings/>
         <div className="settings-overview">
           <section className="panel" id="account"><p className="eyebrow">ACCOUNT</p><h2>Your space.</h2><p>{s.mode === "local" ? "Local Demo · no account needed" : "Keplr · explicitly connected for this session"}</p><code>{shortAccount(s.owner)}</code><p className="fine">Habits and Health belong to this browser, independently of the active wallet. Switching wallets does not hide or move them.</p></section>
-          <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain Testnet.</h2><p>zig-test-2 · ZIG (18 decimals)</p><span className="badge">Testnet Alpha</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
+          <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain networks.</h2>{/* Session AH (DE1, ST1, AF4; the owner's 18 Oct decision): practice on zig-test-2, real on zigchain-1 after a one-time confirm, signed in Keplr. */}<p>Goals and the wallet control above: the practice network, zig-test-2 · ZIG (18 decimals), no real value. <WhatsThis term="practice-network"/></p><p>Staking: the practice network, or the real network (zigchain-1, real ZIG) after a one-time confirmation. You sign every step in Keplr.</p><p>Wealth, Earn and Staking read the real network&rsquo;s public figures, read-only.</p><span className="badge">Practice network · real staking opt-in</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
           <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Contract execution is disabled in the public Alpha.</p></section>
         </div>
       </SettingsGroup>

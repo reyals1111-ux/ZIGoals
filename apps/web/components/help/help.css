@@ -65,3 +65,7 @@
   .help-page > nav.help-topics:not([data-all]) > a[data-more] { display: none; }
   .help-page .help-topics-all { display: inline-flex; grid-column: 1 / -1; align-items: center; justify-content: center; min-height: 46px; padding: 8px 14px; font-size: 15px; font-weight: 600; }
 }
+/* Session AH (SE4): search inside Help. */
+.help-search { display: grid; gap: 6px; margin: 0 0 16px; max-width: 640px; }
+.help-search input { min-height: 44px; }
+.help-search p:empty { display: none; }

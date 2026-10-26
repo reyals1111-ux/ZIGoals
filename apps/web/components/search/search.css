@@ -18,7 +18,7 @@
 :root .search-row.is-ask { margin-top: 6px; border-top: 1px solid #6c9cc526; border-radius: 0 0 12px 12px; }
 :root .search-row.is-ask .search-row-title { background: var(--nebula-flow-mid, linear-gradient(90deg, #9fe9f7, #d9a4ff)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 :root .search-row[aria-disabled=true] { cursor: default; opacity: .8; }
-:root .search-empty { padding: 14px 12px; font-size: 15px; color: var(--text-secondary); }
+:root .search-empty { padding: 14px 12px; font-size: 15px; color: var(--text-secondary); overflow-wrap: anywhere; } /* Session AH (TO11, D-093): a long query wraps */
 :root .search-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 18px 14px; border-top: 1px solid #6c9cc526; font-size: 14px; color: var(--text-secondary); }
 :root .search-foot p { margin: 0; }
 :root .search-foot .text-link { min-height: 44px; }

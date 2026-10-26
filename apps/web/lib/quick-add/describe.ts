@@ -1,9 +1,11 @@
 import {formatNumber} from '../visual-format';
+import {unitFor} from '../plural';
 import type {QuickAddKnown} from './types';
 
 /** The preview and saved lines of a Quick-add result (A2): exact amounts, the person's own units, no praise. */
 const n = (value: number) => formatNumber(value, {maximumFractionDigits: 3});
-const unitWord = (unit: string, value: number) => unit === 'done' ? 'done' : unit === 'times' ? (value === 1 ? 'time' : 'times') : unit;
+// Session AH (HA5): "+1 minute", "+1 time": every unit word agrees with its number.
+const unitWord = (unit: string, value: number) => unit === 'done' ? 'done' : unitFor(value, unit);
 export function describeQuickAdd(result: QuickAddKnown): string {
   switch (result.kind) {
     case 'water': return result.shown.unit === 'glasses' ? `Water · ${n(result.shown.amount)} ${result.shown.amount === 1 ? 'glass' : 'glasses'} (${n(result.millilitres)} mL)` : result.shown.unit === 'mL' ? `Water · ${n(result.millilitres)} mL` : `Water · ${n(result.shown.amount)} ${result.shown.unit} (${n(result.millilitres)} mL)`;

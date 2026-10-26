@@ -247,7 +247,10 @@ export function goalProgress(s:Platform,id:string,now=Date.now(),quotes:readonly
   if(goal.type==='VALUE'){
    const v=p.valuation;
    const matching=quotes.filter(q=>marketQuoteSchema.safeParse(q).success&&quoteMatchesPosition(p,q)&&p.valuationMode!=='manual'&&q.currency===goal.asset&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
-   if(v&&v.currency===goal.asset){
+   // Session AH Part 4 (TR8, M16): the same rule as Wealth (lib/wealth.ts) — a newer market quote replaces a stored
+   // snapshot that is not the person's own value; a MANUAL value stays.
+   const quoteAt=matching?Date.parse(matching.observedAt??matching.fetchedAt??''):NaN;
+   if(v&&v.currency===goal.asset&&(v.source==='MANUAL'||!matching||!(quoteAt>Date.parse(v.observedAt)))){
     value=observed?BigInt(v.value)*effective*10n**BigInt(goal.decimals)/(observed*10n**BigInt(v.decimals)):0n;
     intended+=observed?BigInt(v.value)*q*10n**BigInt(goal.decimals)/(observed*10n**BigInt(v.decimals)):0n;
     valuation={state:v.source==='MANUAL'?'manual':snapshotIsStale(v.observedAt,now)?'stale':'fresh',source:v.source==='MANUAL'?'Manual valuation':'Position valuation',observedAt:v.observedAt};

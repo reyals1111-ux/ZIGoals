@@ -200,7 +200,9 @@ test('the Health gate closed mid-chat: the next request carries nothing of Healt
   // or sent without any Health: either way the planted value never leaves.
   if (bodies.length > 1) { expect(systemOf(bodies[1]!)).not.toContain('123.4'); expect(systemOf(bodies[1]!)).not.toContain('123,4'); expect(JSON.stringify(bodies[1])).not.toContain('123400'); }
   else await expect(panel(page)).toContainText(/Health/);
-  expect(await page.evaluate(() => document.body.innerText)).not.toContain('123.4');
+  // Assertion changed (Session AH TR10): the Health page's own weight-trend card now shows the latest reading beside the
+  // trend (the person's own record on their own page). Everything else on the page, ZIGi's panel included, is checked.
+  expect(await page.evaluate(() => { const own = [...document.querySelectorAll<HTMLElement>('.health-trend-card')]; own.forEach(e => { e.dataset.ahHidden = e.style.display; e.style.display = 'none'; }); const text = document.body.innerText; own.forEach(e => { e.style.display = e.dataset.ahHidden ?? ''; }); return text; })).not.toContain('123.4');
 });
 
 test('auto-accept under fast repeated asks: the daily cap holds, every auto-added card has Undo, and Undo removes the entry', async ({page}) => {

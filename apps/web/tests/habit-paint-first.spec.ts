@@ -84,19 +84,20 @@ test('a second quick tap while the first check-in saves counts too, on screen an
   const card = await oneHabit(page, 'water', 'Fictional water');
   const count = card.locator('.habit-count strong');
   await expect(count).toHaveText('0');
-  expect(await tapTwice(card.getByRole('button', {name: 'Add one to Fictional water', exact: true}))).toBe('1');
-  await expect(count).toHaveText('2');
-  await expect(card.getByRole('button', {name: 'Add one to Fictional water', exact: true})).not.toHaveAttribute('aria-busy', 'true');
-  expect(JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABITS))!).habits[0].entries.map((e: {count: number}) => e.count)).toEqual([2]);
+  // Session AH (HA9): a litre habit steps by a quarter litre.
+  expect(await tapTwice(card.getByRole('button', {name: 'Add 0.25 to Fictional water', exact: true}))).toBe('0.25');
+  await expect(count).toHaveText('0.5');
+  await expect(card.getByRole('button', {name: 'Add 0.25 to Fictional water', exact: true})).not.toHaveAttribute('aria-busy', 'true');
+  expect(JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABITS))!).habits[0].entries.map((e: {count: number}) => e.count)).toEqual([0.5]);
   await page.reload();
-  await expect(page.getByRole('article', {name: 'Fictional water', exact: true}).locator('.habit-count strong')).toHaveText('2');
+  await expect(page.getByRole('article', {name: 'Fictional water', exact: true}).locator('.habit-count strong')).toHaveText('0.5');
 });
 
 test('when storage refuses the save, every quick tap it carried is taken back with the coded reason', async ({page}) => {
   const card = await oneHabit(page, 'water', 'Fictional water');
   const before = await page.evaluate(key => localStorage.getItem(key), HABITS);
   await watch(page, true);
-  await tapTwice(card.getByRole('button', {name: 'Add one to Fictional water', exact: true}));
+  await tapTwice(card.getByRole('button', {name: 'Add 0.25 to Fictional water', exact: true}));
   await expect(card.getByRole('alert')).toContainText('(STORAGE_FULL)');
   await expect(card.locator('.habit-count strong')).toHaveText('0');
   expect(await page.evaluate(key => localStorage.getItem(key), HABITS)).toBe(before);

@@ -82,8 +82,10 @@ test('every switch sits on its name\'s row, before the name, at its full size', 
   await seed(page, {[SETTINGS]: settingsWith()});
   await page.goto('/app/settings');
   const rows = section(page).locator('label.pages-switch');
-  // (Session AG Polish 3: and Governance's switch on this device, after Chess.)
-  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 1);
+  // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth,
+  // shown and locked to Wealth's state.)
+  await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2);
+  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeDisabled();
   const placed = await rows.evaluateAll(labels => labels.map(label => {
     const input = label.querySelector('input')!.getBoundingClientRect(), name = label.querySelector('span')!.getBoundingClientRect();
     return {name: label.textContent, beside: input.right <= name.left && Math.abs(input.top + input.height / 2 - (name.top + name.height / 2)) < 6, size: `${Math.round(input.width)}x${Math.round(input.height)}`};

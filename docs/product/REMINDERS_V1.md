@@ -3,7 +3,7 @@
 ## What it is
 - A habit, and the Water journal, can have a **reminder time**. The field is "Reminder time — on this device", in the
   habit editor and under Water on Health. It is optional, on a 24-hour clock; leaving it empty means no reminder.
-- Once the device's own clock passes that time, **Today shows a reminder card**, only while all of these hold:
+- Once the clock in the habit's journal zone (the device's own clock when the journal follows the device) passes that time, **Today shows a reminder card**, only while all of these hold:
   - the habit is scheduled that day, by the habit journal's day;
   - it is not done yet (for water: nothing is logged, or the day is below the personal target);
   - the card has not been dismissed for today.
@@ -23,7 +23,7 @@
 - **Not synced and not in any backup.** A habit's backup never carries its reminder time.
 
 ## Time
-- Reminder times follow the device's local clock (the time zone the device is set to).
+- Reminder times follow the same zone as their day: the Habit journal's zone for habit reminders, the Health journal's for water; the device's own clock when a journal follows the device (QA2-04, fixed in Session AH).
 - The habit's day follows the habit journal, and water's day follows the Health journal.
 - The UTC funding schedule (QA-04) is not involved.
 

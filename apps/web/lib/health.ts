@@ -1,4 +1,5 @@
 import {bodyMeasurementSchema} from "./body-measurement-schema";
+import {kcalTargetIssue, minutesIssue, recordDayIssue, stepsIssue, weightIssue, within} from "./limits/plausibility";
 import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
 import * as z from "zod";
@@ -205,13 +206,17 @@ function decimalComma(value: string, scale: 1 | 1000): string {
   return normalizeDecimalInput(value);
 }
 /** Parse decimal form values without exponent syntax, implicit defaults, or lost precision. */
-export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number): number {
+/** Session AH (C2, C3, BUG-084): the refusal names the range and, when given, the unit ("Enter 1 to 5,000 mL."). */
+export function parseHealthNumber(raw: string, scale: 1 | 1000, min: number, max: number, unit = ""): number {
+  const range = `Enter ${formatNumber(min / scale, { maximumFractionDigits: 3 })} to ${formatNumber(max / scale, { maximumFractionDigits: 3 })}${unit ? ` ${unit}` : ""}.`;
   const value = decimalComma(raw.trim(), scale);
   const pattern = scale === 1 ? /^\d+$/ : /^\d+(?:\.\d{1,3})?$/;
-  if (!pattern.test(value) || value.length > 18) throw new Error("Enter a number within the displayed range.");
+  // A value that is not a number at all ("abc", the ambiguous "1,234") is a format problem, not a range one: the form
+  // marks the field and says how to write it; a readable number outside the range gets the range itself.
+  if (!pattern.test(value) || value.length > 18) throw new Error(`Not a number this field reads: digits only${scale === 1000 ? ", with up to three decimals" : ""}.`);
   const [whole = "0", fraction = ""] = value.split(".");
   const result = BigInt(whole) * BigInt(scale) + (scale === 1000 ? BigInt(fraction.padEnd(3, "0")) : 0n);
-  if (result < BigInt(min) || result > BigInt(max)) throw new Error("Enter a number within the displayed range.");
+  if (result < BigInt(min) || result > BigInt(max)) throw new Error(range);
   return Number(result);
 }
 export const formatHealthGrams = (mg: number|null) => formatNutrient(mg,1000);
@@ -246,6 +251,14 @@ export function logHealthItem(data: HealthData, draft: HealthLogDraft, at: strin
   const snapshot = "ingredients" in source ? recipeSnapshot(source) : foodSnapshot(source);
   return healthSchema.parse({ ...data, diary: [...data.diary, { ...parsed, snapshot, createdAt: at, updatedAt: at }] });
 }
+/**
+ * Session AH (C11, BUG-066): a food that is not in the library yet is logged in one step: it is saved to the library
+ * (so it can be picked again) and logged as one serving to the chosen day and meal.
+ */
+export function quickLogFood(data: HealthData, quick: { foodId: string; logId: string; name: string; servingGrams: number | null; servingMl?: number; nutrients: Nutrition; date: string; meal: HealthDiaryEntry["meal"] }, at: string): HealthData {
+  const food: HealthFood = { id: quick.foodId, name: quick.name, brand: "", servingGrams: quick.servingGrams, ...(quick.servingMl !== undefined ? { servingMl: quick.servingMl } : {}), nutrients: quick.nutrients, createdAt: at, updatedAt: at };
+  return logHealthItem(saveFood(data, food), { id: quick.logId, sourceId: quick.foodId, sourceKind: "food", date: quick.date, meal: quick.meal, quantityMilli: 1000 }, at);
+}
 const diaryEditSchema = diarySchema.pick({ date: true, meal: true, quantityMilli: true });
 export function editDiaryEntry(data: HealthData, id: string, edit: z.infer<typeof diaryEditSchema>, at: string): HealthData {
   if (!data.diary.some(e => e.id === id)) throw new Error("This diary entry was removed. Refresh and try again.");
@@ -256,16 +269,20 @@ export function removeHealthItem(data: HealthData, collection: "foods" | "recipe
   return healthSchema.parse({ ...data, [collection]: data[collection].filter(item => item.id !== id) });
 }
 export function setHealthTargets(data: HealthData, targets: HealthTargets): HealthData {
+  within(kcalTargetIssue(targets.kcal)); // Session AH (VA2)
   return healthSchema.parse({ ...data, targets: targetsSchema.parse(targets) });
 }
 const weightDraftSchema = weightSchema.pick({ id: true, date: true, grams: true });
 export function saveWeight(data: HealthData, draft: z.infer<typeof weightDraftSchema>, at: string): HealthData {
   const parsed = weightDraftSchema.parse(draft);
+  within(weightIssue(parsed.grams)); within(recordDayIssue(parsed.date)); // Session AH (VA2: 1,000 kg and 5 kg were saved; 1900 and 2199)
   const old = data.weights.find(w => w.date === parsed.date);
   const weight = { ...parsed, id: old?.id ?? parsed.id, createdAt: old?.createdAt ?? at, updatedAt: at };
   return healthSchema.parse({ ...data, weights: upsert(data.weights, weight) });
 }
 export function saveActivity(data: HealthData, draft: Pick<HealthActivity, "id" | "date" | "name" | "steps" | "minutes">, at: string): HealthData {
+  // Session AH (VA2): steps and minutes a day can hold.
+  within(stepsIssue(draft.steps)); within(minutesIssue(draft.minutes)); within(recordDayIssue(draft.date));
   const old = data.activity.find(a => a.id === draft.id);
   const item = activitySchema.parse({ ...draft, createdAt: old?.createdAt ?? at, updatedAt: at });
   return healthSchema.parse({ ...data, activity: upsert(data.activity, item) });
@@ -303,10 +320,10 @@ export function weightTrend(data: HealthData, endDate: string) {
  * page and that one is not (the shell's weight budget).
  */
 const LB_GRAMS = 453.59237;
-export function getHealthActivities(data: HealthData, weightUnit: WeightUnit = "kg"): { id: string; category: "HEALTH"; title: string; detail: string; at: string; href: string }[] {
+export function getHealthActivities(data: HealthData, weightUnit: WeightUnit = "kg"): { id: string; category: "HEALTH"; title: string; detail: string; at: string; day: string; href: string }[] {
   return [
-    ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${formatDate(e.date)}`, at: e.updatedAt, href: "/app/health" })),
-    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? `${formatNumber(w.grams / LB_GRAMS, { maximumFractionDigits: 1 })} lb` : `${formatHealthGrams(w.grams)} kg`} · ${formatDate(w.date)}`, at: w.updatedAt, href: "/app/health" })),
-    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${formatDate(a.date)}`, at: a.updatedAt, href: "/app/health" })),
+    ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${formatDate(e.date)}`, at: e.updatedAt, day: e.date, href: "/app/health" })),
+    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? `${formatNumber(w.grams / LB_GRAMS, { maximumFractionDigits: 1 })} lb` : `${formatNumber(w.grams / 1000, { maximumFractionDigits: 1 })} kg`} · ${formatDate(w.date)}`, at: w.updatedAt, day: w.date, href: "/app/health" })),
+    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${formatDate(a.date)}`, at: a.updatedAt, day: a.date, href: "/app/health" })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 }

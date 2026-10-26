@@ -11,7 +11,8 @@ const Rocket = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden
  * Session AB-Design (owner request 9, ADR-024 D8): the Gamify button beside every page's layout lock. A small rocket
  * that widens on hover or focus to say "Gamify" (static under reduced motion and Motion Off), with a small menu:
  * "Gamify: on/off" (the game layer's own device record, the same switch Settings shows) and "Open your Journey →".
- * With Gamify off the game cards, XP and quests show nowhere; streaks stay a plain habit feature.
+ * Session AH (SE8; D-218, M-006): one name everywhere, "Game layer" (it had been "Gamify" here and "Game layer" in Settings).
+ * With the game layer off the game cards, XP and quests show nowhere; streaks stay a plain habit feature.
  */
 export function GamifyButton() {
   const game = useDeviceRecord(GAME), [open, setOpen] = useState(false), [error, setError] = useState(''), root = useRef<HTMLDivElement>(null), trigger = useRef<HTMLButtonElement>(null);
@@ -19,11 +20,11 @@ export function GamifyButton() {
   const on = game.loaded && !game.unreadable && game.data.enabled;
   const toggle = () => { try { game.update(g => setGameEnabled(g, !on)); setError(''); } catch { setError('This device refused to save that choice.'); } };
   return <div ref={root} className="gamify" data-on={on || undefined} onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); trigger.current?.focus(); } }}>
-    <button ref={trigger} type="button" className="gamify-trigger" aria-label={`Gamify: ${on ? 'on' : 'off'}`} aria-haspopup="true" aria-expanded={open} onClick={() => setOpen(v => !v)}>
-      <Rocket/><span className="gamify-word" aria-hidden="true">Gamify</span>
+    <button ref={trigger} type="button" className="gamify-trigger" aria-label={`Game layer: ${on ? 'on' : 'off'}`} aria-haspopup="true" aria-expanded={open} onClick={() => setOpen(v => !v)}>
+      <Rocket/><span className="gamify-word" aria-hidden="true">Game layer</span>
     </button>
-    {open && <div className="gamify-menu" role="group" aria-label="Gamify options">
-      <button type="button" role="switch" aria-checked={on} className="gamify-switch" onClick={toggle}><span>Gamify</span><span className="gamify-state">{on ? 'On' : 'Off'}</span></button>
+    {open && <div className="gamify-menu" role="group" aria-label="Game layer options">
+      <button type="button" role="switch" aria-checked={on} className="gamify-switch" onClick={toggle}><span>Game layer</span><span className="gamify-state">{on ? 'On' : 'Off'}</span></button>
       <p className="gamify-note">{on ? 'XP, quests and badges show at the bottom of pages and on your Journey.' : 'Streaks stay. No XP, quests or badges until you switch it on.'}</p>
       <Link className="gamify-journey" href="/app/journey" onClick={() => setOpen(false)}>Open your Journey →</Link>
       {error && <p role="alert" className="gamify-note">{error}</p>}

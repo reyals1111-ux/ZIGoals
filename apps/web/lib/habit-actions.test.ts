@@ -23,7 +23,11 @@ describe('future Habit rules and saved timers',()=>{
  });
  it('rejects a historical effective day and stale edits, and preserves superseded future terms',()=>{
   const s=make(),fp=habitEditFingerprint(s.habits[0]!);
-  expect(()=>scheduleHabitEdit(s,id,input,'2026-09-20',at('2026-09-20'),fp)).toThrow(/future/i);
+  // Session AH (HA10): a past day is refused; today is refused once something is recorded for it, and accepted before.
+  expect(()=>scheduleHabitEdit(s,id,input,'2026-09-19',at('2026-09-20'),fp)).toThrow(/on or after/i);
+  const logged=logHabitValue(s,id,'2026-09-20',5,{},at('2026-09-20'));
+  expect(()=>scheduleHabitEdit(logged,id,{...input,target:40},'2026-09-20',at('2026-09-20'),habitEditFingerprint(logged.habits[0]!))).toThrow(/Choose today \(when nothing is recorded yet\) or a later day/);
+  expect(habitRuleOn(scheduleHabitEdit(s,id,{...input,target:45},'2026-09-20',at('2026-09-20'),fp).habits[0]!,'2026-09-20')?.target).toBe(45);
   const next=scheduleHabitEdit(s,id,{...input,target:40},'2026-09-21',at('2026-09-20'),fp);
   expect(()=>scheduleHabitEdit(next,id,{...input,target:50},'2026-09-21',at('2026-09-20'),fp)).toThrow(/changed/i);
   const replacement=scheduleHabitEdit(next,id,{...input,target:50},'2026-09-21',at('2026-09-20'),habitEditFingerprint(next.habits[0]!));
@@ -83,5 +87,18 @@ describe('future Habit rules and saved timers',()=>{
   const changed=pauseHabitTimer(resumeHabitTimer(paused,id,timerId,new Date(+start+60_000)),id,timerId,new Date(+start+90_000));
   expect(()=>commitHabitTimer(changed,id,timerId,new Date(+start+90_000),expected)).toThrow(/changed/i);
   expect(()=>discardHabitTimer(changed,id,timerId,new Date(+start+90_000),expected)).toThrow(/changed/i);
+ });
+});
+
+describe('Session AH (HA18): moving the start back', () => {
+ it('lets earlier days be logged, keeps the rest, and refuses a later day', async () => {
+  const {moveHabitStart} = await import('./habit-actions');
+  const s=make();
+  expect(()=>logHabitValue(s,id,'2026-09-15',10,{},at('2026-09-20'))).toThrow();
+  const moved=moveHabitStart(s,id,'2026-09-10',at('2026-09-20'));
+  expect(moved.habits[0]!.startDate).toBe('2026-09-10');expect(moved.habits[0]!.rules[0]!.from).toBe('2026-09-10');
+  const logged=logHabitValue(moved,id,'2026-09-15',30,{},at('2026-09-20'));
+  expect(habitDay(logged.habits[0]!,'2026-09-15','2026-09-20').status).toBe('complete');
+  expect(()=>moveHabitStart(s,id,'2026-09-21',at('2026-09-20'))).toThrow('Choose a day before the habit started.');
  });
 });

@@ -11,13 +11,14 @@ import {formatGoalAmount} from '../../lib/goal-summary';
 import {ProgressRing} from '../platform/financial-ui';
 import {progressPresentation} from '../../lib/visual-format';
 import './goals.css';
+import {goalCounts} from '../../lib/numbers/counts';
 
 export type {GoalsView} from './goals-view-switch';
 
 /** Goals' key figures under the header (Session AA-Cloud Part 2): active, finished, with a plan, sub-goals. */
 export function GoalsFigures({goals, averages, extras}: {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]; extras: GoalExtras}) {
-  const active = goals.filter(g => g.status === 'active').length + averages.filter(a => a.status === 'active').length;
-  const finished = goals.filter(g => g.status === 'completed').length + averages.filter(a => a.status === 'completed').length;
+  // Session AH (TR6): the shared count, as Today and the goals widget read it.
+  const {active, finished} = goalCounts(goals, averages);
   const planned = Object.values(extras.goals).filter(e => e.why || e.ifThen).length;
   const areas = new Set(Object.values(extras.goals).map(e => e.area).filter(Boolean)).size;
   const figures: [string, number, string][] = [['Active', active, 'goals in motion'], ['Finished', finished, 'on the Hall of achievements'], ['With a plan', planned, 'why and if-then written'], ['Life areas', areas, 'with at least one goal']];

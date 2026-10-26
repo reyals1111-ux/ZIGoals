@@ -46,7 +46,7 @@ const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
   "/app/earn": "Every way to earn, with live numbers and risks",
   "/app/markets": "Prices you follow · watch-only",
-  "/app/staking": "Public ZIG staking and positions · read-only",
+  "/app/staking": "Stake in your own Keplr wallet · positions read-only",
   "/app/portfolio": "Coins you hold or plan · on this device",
   "/app/ecosystem": "ZIGChain projects · research only",
   "/app/chess": "Your chess ratings and games · public data",
@@ -138,7 +138,8 @@ export function PhoneTopBar() {
       {route.back
         ? <Link className="phone-back" href={route.back.href} aria-label={`Back to ${route.back.label}`}><AppIcon name="back" size={22} /><span aria-hidden="true">{route.back.label}</span></Link>
         : <Link className="phone-home" href={homeHref(view)} aria-label="ZIGoals home"><LogoMark /><LogoIntro host="phone" /></Link>}
-      <p className="phone-title" aria-hidden="true">{route.title}</p>
+      {/* Session AH Part 18 (owner): no page name on the phone's top bar; it stays for screen readers and in the tab's title. */}
+      <p className="phone-title sr-only">{route.title}</p>
       <div className="phone-actions">
         {/* Session AG Polish (owner addition, 22 Oct): the phone's one-tap way into the Checklist, between the logo and "+". */}
         <PhoneChecklistButton />

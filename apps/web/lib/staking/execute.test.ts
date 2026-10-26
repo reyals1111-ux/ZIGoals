@@ -119,8 +119,16 @@ describe('executeSigned', () => {
     const ticket = await ticketFor([delegate({delegator: ME, validator: A, amount: '25'})]);
     let settled = false;
     const run = execute.executeSigned(ticket, keplrDouble().keplr, () => undefined, {storage: () => storage, connect: chain.connect}).catch(e => e).finally(() => { settled = true; });
-    // The hashing is real async work (Web Crypto), so the fake clock moves in poll-sized steps until the run ends.
-    for (let i = 0; i < 100 && !settled; i++) { await vi.advanceTimersByTimeAsync(1_500); await new Promise(resolve => setImmediate(resolve)); }
+    // The hashing is real async work (Web Crypto) that can take many event-loop turns on a loaded runner. The fake
+    // clock therefore moves only while the run waits on a timer (each poll's sleep), never while it is still hashing,
+    // so the 60 s window is always the same ~40 polls; otherwise the loop yields a real turn. A real-time guard turns a
+    // stuck run into a plain failure here instead of the test's own timeout (Session AH Part 2).
+    const realStart = performance.now(), fakeStart = Date.now();
+    while (!settled && performance.now() - realStart < 45_000 && Date.now() - fakeStart <= 2 * 60_000) {
+      if (vi.getTimerCount() > 0) await vi.advanceTimersToNextTimerAsync();
+      else await new Promise(resolve => setImmediate(resolve));
+    }
+    expect(settled).toBe(true);
     const error = await run as InstanceType<typeof execute.StakingFailure>;
     expect(chain.calls.filter(c => c === 'getTx').length).toBeGreaterThan(30);
     expect(error.plain.kind).toBe('timeout');

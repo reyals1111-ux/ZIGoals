@@ -96,9 +96,6 @@
 :root .position-metrics.is-empty { grid-template-columns: minmax(0, 1fr); }
 :root .position-metrics.is-empty > .stake-hero { grid-column: 1 / -1; }
 :root .position-metrics-empty > p { margin: 12px 0 0; max-width: 58ch; font-size: 16px; line-height: 1.55; color: var(--text-secondary); }
-/* Beside the wallet and scenario tools (computers), the one card fills their height, its words centred, so no gap opens
-   where the tiles stood. */
-@media (min-width: 901px) {
-  :root .positions-workspace .positions-top:has(> .position-metrics.is-empty) { align-items: stretch; }
-  :root .positions-workspace .position-metrics.is-empty { grid-template-rows: minmax(0, 1fr); }
-}
+/* Session AH (ST4; D-002, D-152, D-182, D-193, L-018, T-076, N-028, Denver S-04): the empty card is as tall as its words,
+   not stretched to the tools beside it (it had stood 400–600 px tall and nearly blank). */
+:root .positions-workspace .positions-top .position-metrics.is-empty .stake-hero { min-height: 0; padding-block: 20px; }

@@ -16,8 +16,8 @@ test('six steps, each opening its guide with the right links; mark as done is ke
   await earnRoutes(page);
   await page.goto('/app/earn#start-here');
   const section = page.locator('#start-here');
-  await expect(section.getByRole('heading', {level: 2, name: 'From no wallet to your first stake'})).toBeVisible();
-  const stage = section.getByRole('group', {name: 'Start here: from no wallet to your first stake'});
+  await expect(section.getByRole('heading', {level: 2, name: 'How staking works, step by step'})).toBeVisible();
+  const stage = section.getByRole('group', {name: 'Start here: how staking works, step by step'});
   await expect(stage).toBeVisible();
   await expect(stage.locator('button.path-dot')).toHaveCount(6);
   expect(await stage.locator('button.path-dot').evaluateAll(els => els.map(e => e.getAttribute('aria-label')!.split(':')[0]))).toEqual(STEPS);

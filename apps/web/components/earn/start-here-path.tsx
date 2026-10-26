@@ -113,7 +113,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
 export default function StartHerePath({states, open, onOpen, onMark, live, markError}: Props) {
   const model = useMemo(() => startHereModel(states), [states]);
   const next = states.find(s => !s.done);
-  return <Path model={model} ariaLabel="Start here: from no wallet to your first stake" layout="snake" className="earn-start-path"
+  return <Path model={model} ariaLabel="Start here: how staking works, step by step" layout="snake" className="earn-start-path"
     panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)}
     zigi={{say: next ? `Next: ${STEP_WORDS[next.id].label}` : 'All six done. Well travelled!'}} jumpLabel="Jump to your next step"
     renderPanel={step => {

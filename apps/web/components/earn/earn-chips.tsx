@@ -11,6 +11,24 @@ export type Chip = {id: string; label: string};
 export function EarnChips({chips}: {chips: readonly Chip[]}) {
   const [current, setCurrent] = useState(chips[0]?.id ?? '');
   const rail = useRef<HTMLDivElement>(null);
+  // Session AH (ST6; D-149, D-123, N-199, D-098): one row on every screen; when chips are out of view, a 44 px button at
+  // each end says so and moves the row (a mouse cannot scroll it sideways), instead of the index wrapping onto three rows.
+  const [edges, setEdges] = useState({before: false, after: false});
+  useEffect(() => {
+    const el = rail.current;
+    if (!el) return;
+    const read = () => setEdges({before: el.scrollLeft > 4, after: el.scrollLeft + el.clientWidth < el.scrollWidth - 4});
+    read();
+    el.addEventListener('scroll', read, {passive: true});
+    window.addEventListener('resize', read);
+    return () => { el.removeEventListener('scroll', read); window.removeEventListener('resize', read); };
+  }, [chips]);
+  const move = (direction: 1 | -1) => {
+    const el = rail.current;
+    if (!el) return;
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.appMotion === 'off';
+    el.scrollBy({left: direction * el.clientWidth * 0.7, behavior: still ? 'auto' : 'smooth'});
+  };
   useEffect(() => {
     // The current section is the last one whose top has passed a line just under the index (or the last one when the page
     // is scrolled to its end). Read on scroll, at most once a frame; a section entering or leaving view wakes it too.
@@ -40,9 +58,11 @@ export function EarnChips({chips}: {chips: readonly Chip[]}) {
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.appMotion === 'off';
     rail.current.scrollTo({left: chip.offsetLeft - rail.current.clientWidth / 2 + chip.offsetWidth / 2, behavior: still ? 'auto' : 'smooth'});
   }, [current]);
-  return <nav className="earn-chips" aria-label="On this page">
+  return <nav className="earn-chips" aria-label="On this page" data-before={edges.before || undefined} data-after={edges.after || undefined}>
+    {edges.before && <button type="button" className="earn-chips-more is-before" aria-label="Show earlier sections" onClick={() => move(-1)}>‹</button>}
     <div className="earn-chips-rail" ref={rail}>
       {chips.map(c => <a key={c.id} href={`#${c.id}`} className="earn-chip" data-chip={c.id} aria-current={c.id === current ? 'true' : undefined} onClick={() => setCurrent(c.id)}>{c.label}</a>)}
     </div>
+    {edges.after && <button type="button" className="earn-chips-more is-after" aria-label="Show more sections" onClick={() => move(1)}>›</button>}
   </nav>;
 }

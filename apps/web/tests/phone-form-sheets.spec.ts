@@ -75,7 +75,9 @@ test('phone: Staking opens the wallet reader and the reward scenario as sheets',
   await expect(wallet).toBeFocused();
   await page.locator('.positions-scenario > summary').click();
   const scenario = page.getByRole('dialog', {name: 'Staking reward scenario'});
-  await expect(scenario.getByLabel('Net APR assumption %')).toBeVisible();
+  /* Assertion changed (Session AH ST, equal strength): with no tracked wallet (the Showcase) the sheet holds the try-out
+     calculator, whose rate field replaces the disabled saved-APR field (owner-preview.spec pins that no saved-APR field shows). */
+  await expect(scenario.getByLabel('Yearly rate % (estimate, variable)')).toBeVisible();
   await isBottomSheet(scenario, page);
 });
 

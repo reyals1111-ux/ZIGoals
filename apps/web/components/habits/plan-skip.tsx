@@ -1,4 +1,5 @@
 "use client";
+import { showToast } from "../ui/undo-toast";
 import { useState, type FormEvent } from "react";
 import type { Habit } from "../../lib/habits";
 import { addLocalDays } from "../../lib/local-date";
@@ -18,9 +19,10 @@ export function PlanSkip({ habit, store }: { habit: Habit; store: HabitCardStore
     try { await store.planSkip(habit.id, date, reason); setMessage(`Skip planned for ${longDate(date)}.`); setOpen(false); setDate(""); setReason(""); }
     catch (e) { setError(storageMessageOr(e, "The skip was not saved. Choose a scheduled day within the next year.")); } finally { setBusy(false); }
   }
-  async function remove(day: string) {
+  async function remove(day: string, why = "") {
     setBusy(true); setMessage(""); setError("");
-    try { await store.unplanSkip(habit.id, day); setMessage(`Planned skip on ${longDate(day)} removed.`); } catch (e) { setError(storageMessageOr(e, "The planned skip was not removed.")); } finally { setBusy(false); }
+    // Session AH Part 3 (DS5): a labelled Undo plans the same skip again, with its reason.
+    try { await store.unplanSkip(habit.id, day); showToast({message: `Planned skip on ${longDate(day)} removed.`, undone: "The planned skip is back.", undo: () => store.planSkip(habit.id, day, why)}); } catch (e) { setError(storageMessageOr(e, "The planned skip was not removed.")); } finally { setBusy(false); }
   }
   return <div className="habit-plan-skip">
     {!open && <button type="button" className="quiet" disabled={busy} onClick={() => { setOpen(true); setMessage(""); }}>Plan a skip</button>}
@@ -30,7 +32,7 @@ export function PlanSkip({ habit, store }: { habit: Habit; store: HabitCardStore
       <p className="fine">A planned skip never breaks a streak, and no reminder shows that day. You can remove it any time.</p>
       <div className="actions"><button className="secondary" type="submit">{busy ? "Saving…" : "Save skip"}</button><button className="quiet" type="button" onClick={() => { setOpen(false); setError(""); }}>Cancel</button></div>
     </fieldset></form>}
-    {planned.length > 0 && <ul className="habit-planned-skips" aria-label={`Planned skips for ${habit.title}`}>{planned.map((entry) => <li key={entry.date}><span>Planned: {formatDate(entry.date)}{entry.note && entry.note !== "Planned skip" ? ` · ${entry.note.replace(/^Planned skip · /, "")}` : ""}</span><button type="button" className="quiet" disabled={busy} onClick={() => void remove(entry.date)} aria-label={`Remove the planned skip on ${formatDate(entry.date)}`}>Remove</button></li>)}</ul>}
+    {planned.length > 0 && <ul className="habit-planned-skips" aria-label={`Planned skips for ${habit.title}`}>{planned.map((entry) => <li key={entry.date}><span>Planned: {formatDate(entry.date)}{entry.note && entry.note !== "Planned skip" ? ` · ${entry.note.replace(/^Planned skip · /, "")}` : ""}</span><button type="button" className="quiet" disabled={busy} onClick={() => void remove(entry.date, entry.note && entry.note !== "Planned skip" ? entry.note.replace(/^Planned skip · /, "") : "")} aria-label={`Remove the planned skip on ${formatDate(entry.date)}`}>Remove</button></li>)}</ul>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
   </div>;
 }

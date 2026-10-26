@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import {beforeEach,expect,test,vi} from 'vitest';
 import {createEmptyHealth,healthSchema,HEALTH_STORAGE_KEY,type HealthData} from './health';
-import {DEFAULT_COUNTERS,MAX_COUNTERS,addCounter,changeCount,countOn,counterHistory,deleteCounter,editCounter,exerciseData} from './health-counters';
+import {DEFAULT_COUNTERS,MAX_COUNTERS,addCounter,changeCount,restoreCount,countOn,counterHistory,deleteCounter,editCounter,exerciseData} from './health-counters';
 import {mergePrivateData} from './vault/cloud-sync';
 import {encryptBackup,decryptBackup} from './vault/backup';
 import {VaultDatabase} from './vault/database';
@@ -94,4 +94,21 @@ test('Showcase counters are fictional examples inside the Showcase dataset only'
  const showcase=buildShowcase('2026-09-29'),health=parse(JSON.parse(Object.entries(showcase.records).find(([k])=>k===HEALTH_STORAGE_KEY)![1]));
  expect(exerciseData(health).counters.map(c=>c.name)).toEqual(['Push-ups','Pull-ups','Squats']);
  expect(countOn(health,DEFAULT_COUNTERS[0]!.id,'2026-09-29')).toBeGreaterThan(0);
+});
+
+test('Session AH (HE11): two counters never share a name; renaming to a free name works', () => {
+  let h = createEmptyHealth();
+  expect(() => addCounter(h, '  squats ', 'squat', 'health_counter-ah-2')).toThrow('You already have a counter called “Squats”. Choose another name.');
+  h = addCounter(h, 'Lunges', 'squat', 'health_counter-ah-2');
+  expect(() => editCounter(h, 'health_counter-ah-2', {name: 'SQUATS'})).toThrow('You already have a counter called “Squats”.');
+  expect(exerciseData(editCounter(h, 'health_counter-squats', {name: 'squats'})).counters.find(c => c.id === 'health_counter-squats')!.name).toBe('squats');
+});
+
+test('Session AH Part 18: Undo restores a day exactly, a count or no entry at all', () => {
+  const start = createEmptyHealth(), id = DEFAULT_COUNTERS[0]!.id, day = '2026-10-22';
+  const typed = changeCount(start, id, day, 30);
+  expect(countOn(typed, id, day)).toBe(30);
+  expect(countOn(restoreCount(typed, id, day, null), id, day)).toBeNull();
+  expect(countOn(restoreCount(typed, id, day, 5), id, day)).toBe(5);
+  expect(restoreCount(start, id, day, null)).toBe(start);
 });

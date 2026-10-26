@@ -80,6 +80,10 @@ importer says why.
 
 ## Fitbit / Google Health
 
+> **Session AH (RM7, owner, 25 Oct 2026): no longer offered.** Fitbit's old connection ends on 30 October 2026; ZIGoals
+> no longer imports from Fitbit and builds nothing new on it. Records imported before stay readable and exportable. The
+> notes below are kept for that history.
+
 - **Export:** Google Takeout with "Google Health" (Fitbit became the Google Health app in May 2026 [F11]) or the Fitbit
   account archive [F1]; Takeout may split a large export into several ZIPs [F10]: choose them all together.
 - **Read (CSV only):** `Health Fitness Data_GoogleData/UserSleeps_*.csv` (sleep_id, minutes_to_fall_asleep,

@@ -135,6 +135,11 @@ test('H5: a routine from a template is played step by step and ends on the finis
   await seed(page);
   await page.goto('/app/habits');
   await page.getByRole('button', {name: 'Add routine', exact: true}).nth(2).click(); // Workout: three steps
+  // Session AH (HA4): a preview first, naming what is created; nothing is written before the confirm.
+  const preview = page.getByRole('alertdialog', {name: 'Add the workout routine?'});
+  await expect(preview).toContainText('New: Warm up, Exercise, Cool down.');
+  expect(((await stored(page, HABITS_KEY)) as HabitData).habits).toHaveLength(habits().habits.length);
+  await preview.getByRole('button', {name: 'Add 3 habits', exact: true}).click();
   await expect(page.getByRole('status').filter({hasText: 'Workout routine ready: 3 new habits.'})).toBeVisible();
   await page.getByRole('button', {name: 'Start', exact: true}).click();
   const player = page.getByRole('dialog', {name: 'Routine'});
@@ -151,7 +156,8 @@ test('H5: a routine from a template is played step by step and ends on the finis
   await expect(player).toBeHidden();
   expect(await stored(page, ROUTINE_RUN_KEY)).toMatchObject({run: null});
   const data = await stored(page, HABITS_KEY) as HabitData;
-  expect(data.habits.find(h => h.title === 'Warm up')!.entries.find(e => e.date === TODAY)!.count).toBeGreaterThanOrEqual(5);
+  // Session AH (HA4, L-084): Done straight away credits the seconds the step took, never its 5-minute target.
+  expect(data.habits.find(h => h.title === 'Warm up')!.entries.find(e => e.date === TODAY)?.count ?? 0).toBeLessThan(5);
   expect(data.habits.find(h => h.title === 'Exercise')!.entries.find(e => e.date === TODAY)).toBeUndefined();
 });
 

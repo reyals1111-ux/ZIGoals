@@ -1,4 +1,6 @@
 'use client';
+import {useLinkedDay} from '../health-day';
+import {showToast} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {BELL_SOUNDS, BREATHING_PATTERNS, type MeditationSession} from '../../../lib/meditation/schema';
 import {DEFAULT_BELLS, saveManual, setBells, setMeditationGoal} from '../../../lib/meditation/engine';
@@ -73,9 +75,11 @@ export function ManualForm({store, session, onDone, onCancel}: {store: Meditatio
     finally { setBusy(false); }
   }
   const now = wallClock(store.now, zone);
+  // Session AH Part 17: a new session defaults to the Health journal's linked day (`?date=`), never a future one.
+  const linkedDay = useLinkedDay(now.date);
   return <form className="meditation-form" onSubmit={submit} aria-label={session ? 'Edit this session' : 'Log mindful minutes'} noValidate>
     <div className="meditation-form-row">
-      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? now.date}/></label>
+      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? linkedDay}/></label>
       <label className="field">Began (time)<input type="time" name="time" required defaultValue={start?.clock ?? '07:00'}/></label>
       <label className="field">Minutes<input type="text" inputMode="numeric" name="minutes" autoComplete="off" required defaultValue={session ? String(Math.round(session.seconds / 60)) : '10'}/></label>
     </div>
@@ -98,7 +102,9 @@ export function MeditationGoalForm({store, onDone}: {store: MeditationStore; onD
   }
   async function remove() {
     setBusy(true); setError('');
-    try { await store.update(m => setMeditationGoal(m, null, new Date())); onDone('Your weekly goal is removed.'); } catch (err) { setError(message(err)); } finally { setBusy(false); }
+    // Session AH Part 3 (DS5): removing the goal gives a labelled Undo that sets the same goal again.
+    const previous = store.meditation.goal;
+    try { await store.update(m => setMeditationGoal(m, null, new Date())); onDone('Your weekly goal is removed.'); if (previous) showToast({message: 'Your weekly meditation goal is removed.', undone: 'Your weekly goal is back.', undo: () => store.update(m => m.goal ? m : setMeditationGoal(m, previous.minutesPerWeek, new Date()))}); } catch (err) { setError(message(err)); } finally { setBusy(false); }
   }
   const choices = goal && !(GOAL_CHOICES as readonly number[]).includes(goal.minutesPerWeek) ? [...GOAL_CHOICES, goal.minutesPerWeek].sort((a, b) => a - b) : GOAL_CHOICES;
   return <form className="meditation-form" onSubmit={submit} aria-label="Your weekly goal">

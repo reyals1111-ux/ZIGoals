@@ -454,9 +454,10 @@ journey('J236', 'the network section: Local Demo and the Testnet; the testnet\'s
   await open(page, '/app/settings');
   await expect(page.locator('#account')).toContainText('Local Demo · no account needed');
   const network = page.locator('#network');
-  await expect(network.getByRole('heading', {name: 'ZIGChain Testnet.'})).toBeVisible();
+  await expect(network.getByRole('heading', {name: 'ZIGChain networks.'})).toBeVisible();
   await expect(network).toContainText('zig-test-2 · ZIG (18 decimals)');
-  await expect(network).toContainText('Testnet Alpha');
+  await expect(network).toContainText('Practice network · real staking opt-in');
+  await expect(network).toContainText('the real network (zigchain-1, real ZIG) after a one-time confirmation');
   await page.getByText('Advanced Diagnostics', {exact: true}).click();
   const panel = page.getByRole('region', {name: 'Connection diagnostics'});
   await panel.getByRole('button', {name: 'Check connection'}).click();
@@ -705,7 +706,7 @@ journey('J209', 'reminders while ZIGoals is closed: unavailable in this build sa
     if ('Notification' in window) Notification.requestPermission = (() => { w.__asked++; return Promise.resolve('default'); }) as typeof Notification.requestPermission;
   });
   await open(page, '/app/settings');
-  const panel = page.getByRole('region', {name: 'Reminders on this phone, even when ZIGoals is closed.', exact: true});
+  const panel = page.getByRole('region', {name: 'Reminders on this device, even when ZIGoals is closed.', exact: true});
   await panel.scrollIntoViewIfNeeded();
   await expect(panel.locator('.push-state')).toHaveText('Not available in this build.');
   await expect(panel.getByRole('button', {name: /Turn on/})).toHaveCount(0);

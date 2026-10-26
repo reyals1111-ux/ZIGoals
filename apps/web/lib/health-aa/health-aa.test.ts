@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {createEmptyHealth, healthSchema, type HealthData} from '../health';
 import {addLocalDays} from '../local-date';
-import {weightTrend, TREND_ALPHA} from './trend';
+import {weightTrend, weeklyRateOf, TREND_ALPHA} from './trend';
 import {energyEstimate, suggestedTarget, ENERGY_MIN_LOGGED_DAYS} from './energy';
 import {coachCheckIn} from './coach';
 import {answerCoach, emptyHealthCoach} from './coach-schema';
@@ -106,4 +106,14 @@ describe('N4 micronutrients and N7 macro modes', () => {
     expect(() => setMacroMode(m, 'custom', {fat: 50, protein: 40, carbs: 30})).toThrow();
     expect(setMacroMode(m, 'standard').split).toBeUndefined();
   });
+});
+
+// Session AH (TR10; B-011, N-058): one weekly rate whatever window a view draws, and it follows the readings.
+test('the weekly rate is the readings\' own slope, the same for the card, the coach and the energy estimate', () => {
+  const weights = Array.from({length: 28}, (_, i) => ({id: `health_weight-${String(i).padStart(3, '0')}`, date: addLocalDays(TODAY, i - 27), grams: Math.round(80_000 - 40 * i), createdAt: stamp(TODAY), updatedAt: stamp(TODAY)}));
+  const h = {...createEmptyHealth(), weights};
+  expect(weeklyRateOf(weights, TODAY)).toBe(-280);
+  expect(weightTrend(h, TODAY, 14).weeklyRate).toBe(-280); expect(weightTrend(h, TODAY, 42).weeklyRate).toBe(-280);
+  expect(weightTrend(h, TODAY).latestReading).toEqual({date: TODAY, grams: 80_000 - 40 * 27});
+  expect(weeklyRateOf(weights.slice(-3), TODAY)).toBeNull(); // under a week of span
 });

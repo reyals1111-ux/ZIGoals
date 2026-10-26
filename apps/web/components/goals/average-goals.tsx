@@ -19,6 +19,7 @@ import {formatDay} from './format';
 import {GoalPlan} from './goal-plan';
 import {useUnifiedGoals} from '../use-unified-goals';
 import './goals.css';
+import {plainErrorMessage} from '../../lib/plain-error';
 
 const value = (goal: Pick<AverageGoal, 'metric'>, v: number) => formatExactNumber(String(Math.round(v * 10 ** AVERAGE_METRICS[goal.metric].decimals) / 10 ** AVERAGE_METRICS[goal.metric].decimals));
 const verdict = (g: AverageGoal, p: ReturnType<typeof averageProgress>) => p.average === null ? 'No days recorded in this window yet' : `${value(g, p.average)} ${g.unit} on average · ${p.days} of ${p.windowDays} days recorded`;
@@ -47,7 +48,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
   const t = templateId ? templateById(templateId) : undefined, preset = t?.average;
   const store = useAverageGoals(), extras = useGoalExtras(), router = useRouter(), id = useId();
   const [name, setName] = useState(t?.title ?? ''), [metric, setMetric] = useState<AverageMetric>(preset?.metric ?? 'sleep-hours');
-  const [target, setTarget] = useState(preset ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
+  const [target, setTarget] = useState(preset && !preset.askTarget ? String(preset.target) : ''), [direction, setDirection] = useState<'at-least' | 'at-most'>(preset?.direction ?? 'at-least');
   const [windowDays, setWindow] = useState<7 | 14 | 30>(preset?.windowDays ?? 7), [unit, setUnit] = useState(preset?.unit ?? AVERAGE_METRICS['sleep-hours'].unit), [error, setError] = useState('');
   function save(e: React.FormEvent) {
     e.preventDefault(); setError('');
@@ -60,7 +61,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
       if (t && extras.writable) extras.update(x => setGoalTemplate(setGoalArea(x, averageKey(goalId), t.area, at), averageKey(goalId), t.id, at));
       showToast({message: `${name.trim()} is saved on this device.`, undo: () => store.update(s => removeAverageGoal(s, goalId)), undone: 'The new goal was removed.'});
       router.push(`/app/goals/average/${goalId}`);
-    } catch (err) { setError(err instanceof Error ? err.message : 'The goal could not be saved.'); }
+    } catch (err) { setError(plainErrorMessage(err, 'The goal could not be saved.')); }
   }
   return <form className="panel average-goal-form" onSubmit={save} aria-labelledby={`${id}-title`}>
     <SectionHeading id={`${id}-title`} pillar="goals" eyebrow="A fifth kind of goal" title="Keep an average" lede="A rolling average over 7, 14 or 30 days, from Health where it already records the measure, or from your own entries." />
@@ -68,9 +69,10 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
     <label className="field"><span>Measure</span><select value={metric} onChange={e => { const m = e.target.value as AverageMetric; setMetric(m); setUnit(AVERAGE_METRICS[m].unit); }}>{(Object.keys(AVERAGE_METRICS) as AverageMetric[]).map(m => <option key={m} value={m}>{AVERAGE_METRICS[m].label}{AVERAGE_METRICS[m].source === 'health' ? ' (from Health)' : ''}</option>)}</select></label>
     <div className="average-goal-row">
       <label className="field"><span>Keep it</span><select value={direction} onChange={e => setDirection(e.target.value as 'at-least' | 'at-most')}><option value="at-least">At least</option><option value="at-most">At most</option></select></label>
-      <label className="field"><span>Target</span><input inputMode="decimal" value={target} onChange={e => setTarget(e.target.value)} /></label>
+      <label className="field"><span>Target</span><input inputMode="decimal" value={target} onChange={e => setTarget(e.target.value)} aria-describedby={preset?.askTarget ? `${id}-own-target` : undefined} /></label>
       <label className="field"><span>Unit</span><input value={unit} maxLength={30} onChange={e => setUnit(e.target.value)} /></label>
     </div>
+    {preset?.askTarget && <p className="fine" id={`${id}-own-target`}>Write your own cap per day, in your currency. Log what you spend on the goal’s page each day; a day with no spending is a 0.</p>}
     <fieldset className="average-windows"><legend>Over the last</legend>{WINDOWS.map(w => <label key={w}><input type="radio" name={`${id}-window`} checked={windowDays === w} onChange={() => setWindow(w)} /><span>{w} days</span></label>)}</fieldset>
     {error && <p role="alert">{error}</p>}
     <p className="fine">Kept on this device and, with an account, in your encrypted sync. A day without a value is left out of the average, never counted as zero.</p>
@@ -86,7 +88,7 @@ export function AverageGoalDetail({id}: {id: string}) {
   const p = useMemo(() => goal ? averageProgress(goal, health.loaded && !health.error ? health.data : undefined, today) : null, [goal, health.loaded, health.error, health.data, today]);
   if (!store.loaded) return <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div>;
   if (!goal || !p) return <section className="panel"><h1>Goal unavailable</h1><p>This average goal is not kept on this device.</p><Link className="text-link" href="/app/goals">Back to Goals →</Link></section>;
-  const run = (change: Parameters<typeof store.update>[0], message: string, undo?: Parameters<typeof store.update>[0]) => { try { store.update(change); showToast({message, ...(undo ? {undo: () => store.update(undo), undone: 'Change undone.'} : {})}); } catch (e) { showToast({message: e instanceof Error ? e.message : 'That change could not be saved.'}); } };
+  const run = (change: Parameters<typeof store.update>[0], message: string, undo?: Parameters<typeof store.update>[0]) => { try { store.update(change); showToast({message, ...(undo ? {undo: () => store.update(undo), undone: 'Change undone.'} : {})}); } catch (e) { showToast({message: plainErrorMessage(e, 'That change could not be saved.')}); } };
   const before = goal.entries.find(e => e.day === day);
   return <div className="average-goal-page">
     <section className="panel goal-detail-overview average-goal-overview" aria-labelledby="average-title">
