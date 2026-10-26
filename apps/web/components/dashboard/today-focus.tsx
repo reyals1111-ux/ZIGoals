@@ -48,7 +48,7 @@ export function stepText(step: GoalStep): string {
  * Health coach check-in (`today:coach`). Links to a view of a page (`?add=`, `?view=`) are not prefetched: WebKit
  * reports a prefetch cancelled by leaving Today as a page error (ADR-017 S64), and a tap loads them quickly anyway.
  */
-export function TodayFocus({reminders, nextGoal, step, financial, showHabits, showHealth, healthDate, habitsWidget = false}: {reminders?: ReactNode; nextGoal?: GoalSummary; /** Session AF (L5a): the goal's next step (lib/today/goal-roles.ts); without it, its progress as before. */ step?: GoalStep; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string; /** Session AB-Design (owner request 12): the habits widget shows the due habits itself, so the tile stands down. */ habitsWidget?: boolean}) {
+export function TodayFocus({reminders, nextGoal, step, financial, showHabits, showHealth, healthDate, habitsWidget = false, goalsReady = true}: {/** Session AH (TO12, B-066): until the goals are read, the tile says so (it had said "No active goal yet"). */ goalsReady?: boolean; reminders?: ReactNode; nextGoal?: GoalSummary; /** Session AF (L5a): the goal's next step (lib/today/goal-roles.ts); without it, its progress as before. */ step?: GoalStep; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string; /** Session AB-Design (owner request 12): the habits widget shows the due habits itself, so the tile stands down. */ habitsWidget?: boolean}) {
   const habits = useHabits(), health = useHealth(), fasting = useFasting();
   // Session AH (TR6): the shared count — a skipped (rest) day is not due.
   const due = habits.loaded && !habits.error ? habits.data.habits.filter(h => { const d = habitDay(h, habits.today, habits.today); return d.scheduled && d.status !== 'skipped'; }) : [];
@@ -91,7 +91,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
           <strong>{nextGoal.name}</strong>
           {step ? <p data-step={step.kind}>{stepText(step)}</p> : <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${formatDate(nextGoal.nextContributionDate)}` : ''}</p>}
           <div className="focus-actions"><Link className="text-link" href={nextGoal.href}>Open Goal →</Link></div>
-        </> : <>
+        </> : !goalsReady ? <p className="loading-line" role="status">Reading your goals…</p> : <>
           <strong>No active goal yet</strong>
           <div className="focus-actions"><Link className="text-link" href="/app/goals/new">Plan a goal →</Link></div>
         </>}

@@ -5,7 +5,7 @@ import {useEffect,useRef,useState,useSyncExternalStore,type ReactNode,type CSSPr
 const noSubscribe=()=>()=>{};
 const useShowcase=()=>useSyncExternalStore(noSubscribe,isShowcase,()=>false);
 import './financial-ui.css';
-import {progressPresentation} from '../../lib/visual-format';
+import {formatQuantity, progressPresentation} from '../../lib/visual-format';
 import {ASSET_COLORS,ringSegments,type AssetMix} from '../../lib/wealth';
 import {GlassRing} from '../progress/glass-progress';
 /** Session AH (WE6, B-076): a cash asset shows its own currency's sign (£ for GBP, ¥ for JPY), never "$" for all. */
@@ -17,10 +17,11 @@ export function AssetIcon({symbol,kind='Crypto',logoUrl}:{symbol:string;kind?:st
 /** `bound` (Session I, Part 10): 'at-least' marks a lower bound (QA-38); 'unavailable' shows no progress at all (QA-37/38). */
 export function ProgressRing({percent,size=112,label='Goal progress',complete,assetMix=[],identity=label,valueText,bound,color}:{percent:number|string|null|undefined;size?:number;label?:string;complete?:boolean;assetMix?:AssetMix[];identity?:string;valueText?:string;bound?:'at-least'|'unavailable';color?:string}){
  const progress=bound==='unavailable'?null:progressPresentation(percent,complete),atLeast=bound==='at-least'&&!!progress;
+ // Session AH (TO7, D-073): screen readers hear at most two decimals ("≈ 33.33%"), never a 16-digit float.
  const segments=progress?ringSegments(assetMix,progress.exact):[];
  // Composition rings keep their legend colours, one arc per asset class; otherwise one nebula arc.
  const arcs=!progress?[]:segments.length?segments.map(s=>({key:s.assetClass,end:s.offset+s.size,color:ASSET_COLORS[s.assetClass]})):[{key:'progress',end:progress.arc,color}];
- return <GlassRing identity={`progress:${identity}`} ready={Boolean(progress&&progress.arc>0)} arcs={arcs} className="flow-ring" role={progress?'progressbar':'img'} aria-label={progress?label:`${label}: Unavailable`} aria-valuemin={progress?0:undefined} aria-valuemax={progress?100:undefined} aria-valuenow={progress?.arc} aria-valuetext={progress?valueText??(atLeast?`At least ${progress.exact}% · some sources have no value yet`:`${progress.exact}% exact progress${complete===false||Number(progress.exact)<100?' · target not yet reached':''}`):undefined} title={progress?atLeast?`At least ${progress.exact}%`:`${progress.exact}% exact progress`:'Progress unavailable'} style={{'--ring-size':`${size}px`} as CSSProperties}>
+ return <GlassRing identity={`progress:${identity}`} ready={Boolean(progress&&progress.arc>0)} arcs={arcs} className="flow-ring" role={progress?'progressbar':'img'} aria-label={progress?label:`${label}: Unavailable`} aria-valuemin={progress?0:undefined} aria-valuemax={progress?100:undefined} aria-valuenow={progress ? Math.round(progress.arc * 100) / 100 : undefined} aria-valuetext={progress?valueText??(atLeast?`At least ${formatQuantity(progress.exact, 2)}% · some sources have no value yet`:`${formatQuantity(progress.exact, 2)}% exact progress${complete===false||Number(progress.exact)<100?' · target not yet reached':''}`):undefined} title={progress?atLeast?`At least ${formatQuantity(progress.exact, 2)}%`:`${formatQuantity(progress.exact, 2)}% exact progress`:'Progress unavailable'} style={{'--ring-size':`${size}px`} as CSSProperties}>
   <span aria-hidden="true">{progress?<>{atLeast&&<small className="ring-at-least">≥</small>}{progress.label}<small>%</small></>:'—'}</span>
  </GlassRing>;
 }

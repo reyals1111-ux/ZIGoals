@@ -16,6 +16,9 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:sleep', kind: 'page', title: 'Sleep', subtitle: 'Health', href: '/app/health?view=sleep', keywords: ['nights', 'bedtime']},
   {id: 'page:meditation', kind: 'page', title: 'Meditation', subtitle: 'Health', href: '/app/health?view=meditation', keywords: ['mindfulness', 'breathing']},
   {id: 'page:wealth', kind: 'page', title: 'Wealth', href: '/app/wealth', keywords: ['assets', 'net worth', 'accounts', 'debts']},
+  // Session AH (TO11, B-178, B-179): the actions people look for by name.
+  {id: 'page:wealth-refresh', kind: 'page', title: 'Refresh prices', subtitle: 'Wealth', href: '/app/wealth#holdings', keywords: ['refresh', 'update', 'prices', 'reload']},
+  {id: 'page:portfolio-gains', kind: 'page', title: 'Realised gains by year (CSV)', subtitle: 'Portfolio', href: '/app/portfolio', keywords: ['tax', 'taxes', 'accountant', 'realised', 'realized', 'gains', 'capital gains']},
   {id: 'page:calculator', kind: 'page', title: 'Compound interest calculator', subtitle: 'Wealth', href: '/app/wealth/calculator', keywords: ['interest', 'savings', 'growth', 'compound', 'invest']},
   {id: 'page:markets', kind: 'page', title: 'Markets', href: '/app/markets', keywords: ['prices', 'crypto', 'stocks', 'watchlist']},
   {id: 'page:earn', kind: 'page', title: 'Earn', href: '/app/earn', keywords: ['earn', 'staking', 'stake', 'apr', 'yield', 'valdora', 'stzig', 'oroswap', 'liquidity', 'validators', 'zig finance', 'start here', 'academy', 'vault', 'usdc', 'stablecoin', 'governance', 'zignaly', 'permapod', 'nawa']},

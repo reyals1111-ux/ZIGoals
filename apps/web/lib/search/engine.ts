@@ -10,7 +10,8 @@ export const KIND_LABEL: Record<SearchKind, string> = {page: 'Pages', goal: 'Goa
 export type SearchItem = {id: string; kind: SearchKind; title: string; subtitle?: string; href: string; keywords?: readonly string[]};
 export type SearchHit = SearchItem & {score: number};
 
-export const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N}%€$]+/gu, ' ').trim();
+// Session AH (TO11, B-072): markup typed into the box ("<b>x</b>") is read as its text, never as extra words.
+export const normalize = (s: string) => s.replace(/<\/?[a-z][^>]*>/gi, ' ').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N}%€$]+/gu, ' ').trim();
 const words = (s: string) => normalize(s).split(' ').filter(Boolean);
 
 /** How well one item matches the query's words, or null when a word matches nowhere. */

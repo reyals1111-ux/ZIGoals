@@ -1,6 +1,7 @@
 "use client";
 /* Opening Showcase reloads the page on purpose, as in Settings: every store hook must switch data profiles. */
 /* eslint-disable @next/next/no-location-assign-relative-destination */
+import { exitShowcase } from "../../lib/showcase-storage";
 import "./onboarding.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -99,10 +100,15 @@ export function OnboardingFlow() {
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null), first = useRef(true), id = useId();
   const index = STEPS.indexOf(step);
-  useEffect(() => { if (first.current) { first.current = false; return; } heading.current?.focus(); }, [step]);
-  useEffect(() => { setInstalled(currentInstallContext() === "installed"); }, []);
+  // Session AH (TO4, N-106): each step opens at its top (a step had opened mid-page, where the last one's button was).
+  useEffect(() => { if (first.current) { first.current = false; return; } window.scrollTo({top: 0}); heading.current?.focus({preventScroll: true}); }, [step]);
+  const [installContext, setInstallContext] = useState<ReturnType<typeof currentInstallContext> | null>(null);
+  useEffect(() => { const context = currentInstallContext(); setInstallContext(context); setInstalled(context === "installed"); }, []);
 
   const ready = settings.loaded && platform.loaded && habits.loaded && health.loaded;
+  // Session AH (TO4, N-045): a read that never ends says so after a while, with a way on (it had waited forever).
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { if (ready) { setSlow(false); return; } const t = window.setTimeout(() => setSlow(true), 8000); return () => window.clearTimeout(t); }, [ready]);
   const storeError = settings.error || platform.error || habits.error || health.error;
   const demoAvailable = legacy.loaded && legacy.mode === "local";
   const currentPages = ready && !settings.error ? settingsGroupIn(settings.data, "pages") : undefined;
@@ -118,6 +124,15 @@ export function OnboardingFlow() {
   const shown = pagesShownFor(pillars, currentPages);
   const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages) !== null;
   const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind");
+  // Session AH (TO4, N-094): the targets follow the habits picked above (Walk is 8,000 steps a day, Drink water 2 L)
+  // until the person chooses a target themselves.
+  const touched = useRef({steps: false, water: false});
+  const pickedTitles = [...pickedHabits.map(t => t.title), ...extraHabits].map(t => t.toLowerCase()).join("|");
+  useEffect(() => {
+    const titles = pickedTitles.split("|");
+    if (!touched.current.steps) setSteps(titles.includes("walk") ? 8000 : null);
+    if (!touched.current.water) setWater(titles.includes("drink water") ? 2000 : null);
+  }, [pickedTitles]);
   function go(next: Step) { setError(""); setStep(next); }
   function leaveFocuses() {
     const wanted = starters.filter(t => suggested.habits.some(h => h.toLowerCase() === t.title.toLowerCase())).map(t => t.id);
@@ -196,7 +211,10 @@ export function OnboardingFlow() {
   if (showcase) return <section className="onboarding panel" aria-labelledby={`${id}-title`}>
     <h1 id={`${id}-title`}><NebulaFlow identity="welcome-title">Welcome to ZIGoals.</NebulaFlow></h1>
     <p>You’re exploring Showcase data. The welcome sets up your own records, so it opens outside Showcase.</p>
-    <div className="onboarding-actions"><Link className="primary" href="/app/settings#showcase">Showcase settings</Link><Link className="secondary" href="/app">Back to Today</Link></div>
+    {/* Session AH (DE4, H6; M-021, M-015, N-002, T-009): one clear way from the demo to your own start. The demo's records stay
+        in this tab's Showcase and never mix with yours; Settings can load the demo again at any time. */}
+    <div className="onboarding-actions"><button type="button" className="primary" onClick={() => { try { exitShowcase(); } catch { /* a refused store keeps the tab as it is */ } window.location.assign("/app/welcome"); }}>Start my own</button><Link className="secondary" href="/app">Back to the demo</Link></div>
+    <p className="fine">Your own records start empty. The demo stays one tap away in Settings → Load Showcase Demo.</p>
   </section>;
 
   const escape = <div className="onboarding-escape">
@@ -225,7 +243,7 @@ export function OnboardingFlow() {
       <GlassBar identity="onboarding-steps" className="onboarding-track" aria-hidden="true" value={(index + 1) / STEPS.length} />
     </div>
     <h1 id={`${id}-title`} ref={heading} tabIndex={-1}><NebulaFlow identity="welcome-title">{TITLES[step]}</NebulaFlow></h1>
-    {!ready && !storeError && <p role="status">Opening your private records…</p>}
+    {!ready && !storeError && <p role="status">{slow ? <>Your records are taking longer than usual to open. If your account is locked, unlock it in <Link className="text-link" href="/app/settings">Settings</Link>, or <button type="button" className="text-link" onClick={() => window.location.reload()}>try again</button>.</> : 'Opening your private records…'}</p>}
     {storeError && <p role="alert">{storeError} <Link href="/app/settings">Open Settings</Link></p>}
 
     {ready && !storeError && <div className="onboarding-step" key={step}>
@@ -286,12 +304,12 @@ export function OnboardingFlow() {
         </fieldset>}
         {showHealth && <fieldset className="onboarding-targets"><legend>Health targets (optional)</legend>
           <div className="onboarding-choices" role="radiogroup" aria-label="Daily steps">
-            <Choice type="radio" name="onboarding-steps" checked={steps === null} onChange={() => setSteps(null)} label="No step target" />
-            {STEP_TARGETS.map(n => <Choice key={n} type="radio" name="onboarding-steps" checked={steps === n} onChange={() => setSteps(n)} label={`${n.toLocaleString("en")} steps a day`} />)}
+            <Choice type="radio" name="onboarding-steps" checked={steps === null} onChange={() => { touched.current.steps = true; setSteps(null); }} label="No step target" />
+            {STEP_TARGETS.map(n => <Choice key={n} type="radio" name="onboarding-steps" checked={steps === n} onChange={() => { touched.current.steps = true; setSteps(n); }} label={`${n.toLocaleString("en")} steps a day`} />)}
           </div>
           <div className="onboarding-choices" role="radiogroup" aria-label="Daily water">
-            <Choice type="radio" name="onboarding-water" checked={water === null} onChange={() => setWater(null)} label="No water target" />
-            {WATER_TARGETS_ML.map(ml => <Choice key={ml} type="radio" name="onboarding-water" checked={water === ml} onChange={() => setWater(ml)} label={`${litres(ml)} of water a day`} />)}
+            <Choice type="radio" name="onboarding-water" checked={water === null} onChange={() => { touched.current.water = true; setWater(null); }} label="No water target" />
+            {WATER_TARGETS_ML.map(ml => <Choice key={ml} type="radio" name="onboarding-water" checked={water === ml} onChange={() => { touched.current.water = true; setWater(ml); }} label={`${litres(ml)} of water a day`} />)}
           </div>
           <p className="fine">Common starting points, not advice. Calorie, weight and nutrient targets are yours to set on the Health page if you want them.</p>
         </fieldset>}
@@ -325,8 +343,8 @@ export function OnboardingFlow() {
         {installed ? <p className="onboarding-lede">You’re already using the installed app. Keep opening ZIGoals from its icon.</p> : <>
           <p className="onboarding-lede">Opened from its icon, ZIGoals feels like an app and keeps its own copy of your data.</p>
           {install.available && <div className="onboarding-actions"><button type="button" className="primary" onClick={() => void install.install().then(outcome => { if (outcome === "accepted") setInstalled(true); })}>Install ZIGoals</button></div>}
-          <InstallGuide />
-          <p className="fine">On a computer or an Android phone, the browser’s menu offers Install app or Add to Home screen where it supports it.</p>
+          {/* Session AH (TO4, N-108): the iPhone steps only where they apply; elsewhere the browser's own words. */}
+          {installContext === "apple-browser" ? <InstallGuide /> : <p>{installContext === null ? " " : "In Chrome or Edge on a computer, use Install in the address bar or the browser’s menu; on an Android phone, the menu’s Install app or Add to Home screen. On an iPhone, open ZIGoals in Safari, tap Share, then Add to Home Screen."}</p>}
         </>}
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("zigi")}>Continue</button>{back("tour")}</div>
       </>}

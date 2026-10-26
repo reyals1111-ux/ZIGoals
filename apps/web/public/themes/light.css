@@ -4896,6 +4896,12 @@
         border-color: #f3a6c066;
         color: #1a0a10
     }
+    .today-line:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .today-line-label:not(#\-) {
+        color: var(--text-primary, inherit)
+    }
 }
 /*  components/dashboard/hero-fold.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -13660,11 +13666,6 @@
 :root[data-theme=light] .habit-month-grid>span[data-level=many]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=many]:not(#\-) { background-color: #6f5aa8; border-color: #5a4890; color: #fff; }
 :root[data-theme=light] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=light] .habit-month-legend i[data-level=full]:not(#\-) { background-image: linear-gradient(135deg,#2f8fae,#5d55c4,#9a4fa8); color: #fff; }
 :root[data-theme=light] .habit-month-legend i:not(#\-) { border: 1px solid #8f9ab0; }
-/* apps/web/themes/light.ah-staking.css */
-/* Session AH (ST4, D-152, D-193): in Light, Staking's empty card reads as a light panel, not a near-black block. */
-:root[data-theme=light] .positions-workspace .position-metrics.is-empty .stake-hero:not(#\-) { color-scheme: light; background: #eff2f7; border-color: #27334973; color: #0e1825; }
-:root[data-theme=light] .positions-workspace .position-metrics.is-empty .stake-hero :is(small, p):not(#\-) { color: #2b3549; }
-:root[data-theme=light] .positions-workspace .position-metrics.is-empty .stake-hero strong:not(#\-) { color: #0e1825; -webkit-text-fill-color: #0e1825; background: none; }
 /* apps/web/themes/light.gatec.css */
 /* Session AF Gate C (design review 2, ADR-028 H137): Light's last half-flipped pieces, by hand. Every rule carries the
    sheet's one id of weight (:not(#\-)) and the theme root, so it wins over the generated rule it replaces. */

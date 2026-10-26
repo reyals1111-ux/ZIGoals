@@ -18,3 +18,24 @@ test('TO1: with Goals as the start page, /app opens Goals, the Today link shows 
   await expect(page).toHaveURL(/\/app#today$/);
   await expect(page.locator('main h1').first()).toBeVisible();
 });
+
+test('DE4: in the Showcase, the welcome offers "Start my own", which leaves the demo and opens the welcome', async ({page}) => {
+  await page.goto('/app/settings'); await hydrated(page);
+  await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+  await page.waitForURL('**/app'); await hydrated(page);
+  await page.goto('/app/welcome'); await hydrated(page);
+  await page.getByRole('button', {name: 'Start my own', exact: true}).click();
+  await page.waitForURL('**/app/welcome'); await hydrated(page);
+  await expect(page.getByRole('complementary', {name: 'Showcase data'})).toHaveCount(0);
+  await expect(page.getByRole('button', {name: 'Start my own', exact: true})).toHaveCount(0);
+});
+
+test('TO2: "Start the wrap-up now" opens it on Today before its time', async ({page}) => {
+  await page.clock.install({time: new Date('2026-10-26T09:00:00')});
+  await page.goto('/app/settings'); await hydrated(page);
+  const settings = page.getByRole('region', {name: 'Evening wrap-up', exact: true});
+  await settings.getByLabel('Show the evening wrap-up on Today').check();
+  await expect(settings.getByRole('status')).toContainText('Saved.');
+  await settings.getByRole('link', {name: 'Start the wrap-up now →'}).click();
+  await expect(page.getByRole('region', {name: 'Your evening wrap-up'}).or(page.locator('[aria-label="Your evening wrap-up"]')).first()).toBeVisible();
+});

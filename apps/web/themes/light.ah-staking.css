@@ -1,4 +1,0 @@
-/* Session AH (ST4, D-152, D-193): in Light, Staking's empty card reads as a light panel, not a near-black block. */
-:root[data-theme=light] .positions-workspace .position-metrics.is-empty .stake-hero:not(#\-) { color-scheme: light; background: #eff2f7; border-color: #27334973; color: #0e1825; }
-:root[data-theme=light] .positions-workspace .position-metrics.is-empty .stake-hero :is(small, p):not(#\-) { color: #2b3549; }
-:root[data-theme=light] .positions-workspace .position-metrics.is-empty .stake-hero strong:not(#\-) { color: #0e1825; -webkit-text-fill-color: #0e1825; background: none; }

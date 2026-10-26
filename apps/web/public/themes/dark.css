@@ -5245,6 +5245,12 @@
         border-color: #f3a6c066;
         color: #ffd7e4
     }
+    .today-line:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .today-line-label:not(#\-) {
+        color: var(--text-primary, inherit)
+    }
 }
 /*  components/dashboard/hero-fold.css  */
 @scope (:root[data-theme=dark]) {

@@ -100,11 +100,29 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
   - Earn's "as of" times stay in UTC, named, as its "23:59 UTC" deadlines are (Session AF Gate C); the "estimate, variable" label is what ST2 asked for.
   - The landing's staking line goes with Part 15.
 
+- **M40 — Today can still be hidden (TO1).** The plan said "Today can't be switched off". Hiding Today is an owner decision from Session W (W4). The synced pages format and ZIGi's page actions carry it, and pinned specs cover it (bare /app opens the start page). So the switch stays. What TO1 found broken is fixed:
+  - the Today link was blank after a start page had moved a bare /app (the hold was never released);
+  - /app/today was a 404.
+- **M41 — Part 11 items recorded rather than changed.**
+  - TO5:
+    - the Undo toast already stays 8 s, longer while hovered or focused (`TOAST_MS`);
+    - the 12-week history is on phones behind "Show" (it loads when opened);
+    - the sticky bars' share of the phone screen is the protected Checklist layout, and the top bar is Part 18's.
+  - TO7: on tablets the shell's Quick add and Today's hero Quick add both show; one top bar is Part 13 (LA).
+  - H3: the second swan is the first-visit logo intro playing beside the sidebar's page mark (an approved design). Every widget showing twice is the "Widget summary" built-in, by design (today-dashboard).
+  - AF13: the Focus habits tile already steps aside when the habits widget shows. The other repeats are the summary by design.
+  - TO11: results no longer gain markup words. The rows above them (the pillar list) still leave on the first key; the Ask ZIGi row stays below the results.
+- **M42 — CO1 and the week grid (J16/CO4).**
+  - Today's one line joins habits, water and tracked wealth from the same numbers as their pages, on computers and tablets. On a phone the focus tiles just below carry them, and Today's pinned phone height holds.
+  - "Net worth this week" waits for a weekly wealth reading on Today.
+  - The week grid exists (Today's "Your week": Goals, Habits and Health rows, today marked). A P&L row and logging from a cell are later.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
 - Part 9: a negative price and dates before 1990 were already refused (transaction schema and `dateIssue`); archiving an asset already had a toast; Markets already had Owned and Favourites filters (WE13); market 503s already say "Price refresh is unavailable. Last-good values stay visible with their timestamps." (F5, BUG-069).
 - Part 10: practice/real staking was already decided and built (owner, 18 Oct; Staking signs in Keplr after a one-time confirm); Earn already read the unbonding time live and showed "unavailable" without a fallback; Governance was already hidden by default and offered no vote in the Showcase.
+- Part 11: Today already had a week grid ("Your week") with today marked; the welcome already had "Explore the demo"; the wrap-up already showed after its time; Showcase weekly-review text is labelled SHOWCASE DATA and lives in the tab's Showcase only (TO4 e).
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
@@ -289,7 +307,7 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | ST1 / AF4 | Fixed | B-005, B-012, B-022, B-136, D-258, N-028, B-052 (`facc2b0f`); AF4 "What's this?" on the wallet card's Testnet label |
 | ST2 / I4 | Fixed | L-056, B-053, B-048, M-059, T-022, D-168 (`facc2b0f`): "estimate, variable" on every chain APR; the unbonding explainer uses the pinned constant the review checks; UTC kept (M39) |
 | ST3 | Fixed | N-027, N-198, N-201, B-065, L-042, D-082, T-129 (`facc2b0f`): the scenario works without a wallet and in the Showcase |
-| ST4 | Fixed | D-002, D-152, D-182, D-193, L-018, T-076, N-028, Denver S-04 (`facc2b0f`) |
+| ST4 | Fixed (size) | D-002, D-182, L-018, T-076, N-028, Denver S-04 (`facc2b0f`): the empty card is as tall as its words. D-152/D-193 (dark in Light): the Light theme keeps Staking's hero card dark by design, and theme parity holds it; the Light override was removed (Part 11 batch 2) |
 | ST5 / I2 / I3 | Fixed | D-060, D-099, D-150, D-146, B-054, B-084, D-092, D-153 (`e194278a` TIER 3 verifier, `facc2b0f`); ZIGi's "OUR SUGGESTION" recorded (M39) |
 | ST6 / AF12 | Fixed (index, chest) | D-149, D-123, N-199, D-098 (`facc2b0f`, M38) |
 | ST7 | Fixed | T-075, T-107, M-052, D-154, L-043, B-112, D-014, D-169 (`facc2b0f`) |
@@ -297,4 +315,22 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | ST9 | Fixed | B-174, D-217 (`facc2b0f`): Earn listed (it follows Wealth); the sidebar summary includes the Checklist |
 | ST10 | Fixed | Tokyo (`facc2b0f`): "Verify, don't trust" on Staking and in Help |
 | I5 | Recorded | M39 |
-| AF3 | Fixed | ADR-028 H134 (M37; the `TIER 3 (egress routes)` commit) |
+| AF3 | Fixed | ADR-028 H134 (`a31fa439`, TIER 3 egress routes; M37) |
+
+### Part 11 — Today, first run, Checklist logic
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| TO1 | Fixed | N-178, B-124, T-149, M-095 (`0e66fea8`, M40) |
+| TO2 | Fixed | M-064, M-063, B-198, B-135, M-093, M-120 (`0e66fea8`): saves as it changes, confirms beside it, "Start the wrap-up now", open in Today's focus once due |
+| TO4 / H6 / DE4 | Fixed | N-045, N-106, N-108, N-107, N-094, M-021, M-015, N-002, T-009, M-071 (Part 11 batch 2): a slow read says so; each step opens at its top; iPhone steps only on Apple browsers; targets follow the picked habits; "Start my own" leaves the Showcase |
+| TO5 | Fixed (logic) | M-137, N-095, T-111 (`0e66fea8`): a paused Focus resumes; Fast and Focus ask first; one planet per name. M-112, M-110, M-013, D-170 recorded (M41) |
+| TO7 | Fixed (part) | D-073 (two decimals spoken), M-045 (arrange handles clear titles); T-098, M-133, D-134, D-016, D-028 recorded (M41) |
+| TO8 | Fixed | M-065, M-027, B-097, M-028: skipped days not due, an open today not counted, "(ends today)", no fixed step count |
+| TO9 | Fixed (copy only) | D-249, M-030: no frame ids or studio notes on /app/zigi; no sidebar entries (owner note) |
+| TO10 | Fixed | L-077: the player opens above its own button |
+| TO11 | Fixed (part) | D-093, B-072, B-178, B-179, T-082; N-110, N-139 recorded (M41) |
+| TO12 | Fixed | B-066, M-122 |
+| TO13 | Fixed | N-001: a tap while the settings open is never overridden by the start page |
+| H3 / AF13 | Recorded | M41 |
+| CO1 | Fixed (line) | M42 |
+| J16 / CO4 | Already present (grid); later (P&L row, logging from cells) | M42 |

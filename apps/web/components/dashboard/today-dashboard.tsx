@@ -46,6 +46,7 @@ import {useHealth} from '../health/use-health';
 import {useAutoCheckIns} from '../habits/use-auto-checkins';
 import {TodayForYou,type ForYouParts} from '../for-you/today-for-you';
 import {TodayFocus} from './today-focus';
+import {TodayLine} from './today-line';
 import {TodayChecklistCard} from '../checklist/today-checklist-card';
 import {ProgressSlot,Slot} from '../progress/slot';
 import {HealthLinkContext} from '../habits/health-link-context';
@@ -206,6 +207,8 @@ export function TodayDashboard(){
  function renderBuiltin(id:DashboardBuiltinId){
   if(['whole-life','attention','funding','needs-attention','watchlist'].includes(id)){
    if(!financial||!platform.loaded||!!platform.error||id==='attention'&&!hasFundingGoal)return null;
+   // Session AH (TO12, M-122): the attention count waits for the first price read, so it never changes after load.
+   if(id==='needs-attention'&&market.loading&&!market.quotes.length)return <section className="needs-attention panel" aria-busy="true" aria-label="Needs attention"><p className="loading-line" role="status">Checking what needs attention…</p></section>;
    return intelligence(({ 'whole-life':'life',attention:'attention',funding:'funding','needs-attention':'needs-attention',watchlist:'watchlist'} as const)[id as 'whole-life'|'attention'|'funding'|'needs-attention'|'watchlist']);
   }
   switch(id){
@@ -273,7 +276,8 @@ export function TodayDashboard(){
    {financial&&platform.error&&legacy.loaded&&!legacy.error&&goals.some(g=>g.key.startsWith('legacy:'))&&<section className="panel" aria-label="Available local simulation Goals"><h2>Your local simulation Goals are still available.</h2><p>Private tracked records need recovery. These separate local simulation records remain readable.</p><ul>{goals.filter(g=>g.key.startsWith('legacy:')).map(g=><li key={g.key} data-goal-key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul></section>}
    {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}
    {!showcase&&makeToday}
-   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {!brandNew&&storesReady&&<TodayLine habits={habits.data} health={health.data} platform={platform.data} quotes={market.quotes} now={now} today={today} healthDate={sources.healthDate} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} financial={financial}/>}
+   {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
    {!brandNew&&<TodayChecklistCard/>}
    <section aria-label="Your Today widgets" className="dashboard-widget-area">

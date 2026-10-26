@@ -1,4 +1,4 @@
-import {addLocalDays} from '../local-date';
+import {addLocalDays, localDate} from '../local-date';
 import {habitDay, type HabitData} from '../habits';
 import type {HealthData} from '../health';
 import {waterSummary} from '../health-daily';
@@ -17,7 +17,9 @@ const dayList = (from: string, to: string) => { const out: string[] = []; for (l
 export function summaryCounts({weekStart, weekEnd, habits, health, platform, financial, review, now}: {weekStart: string; weekEnd: string; habits: HabitData; health: HealthData; platform: Platform; financial: boolean; review: WeeklyReview; now: number}): SummaryCounts {
   const days = dayList(weekStart, weekEnd);
   let done = 0, scheduled = 0;
-  for (const habit of habits.habits) for (const date of days) { const day = habitDay(habit, date, weekEnd); if (!day.scheduled) continue; scheduled++; if (day.status === 'complete') done++; }
+  // Session AH (TO8): the weekly review's rule: a skipped day is not due, and an open today is not counted yet.
+  const todayKey = localDate(new Date(now));
+  for (const habit of habits.habits) for (const date of days) { const day = habitDay(habit, date, weekEnd); if (!day.scheduled || day.status === 'skipped' || date === todayKey && day.status !== 'complete') continue; scheduled++; if (day.status === 'complete') done++; }
   const waterDays = days.filter(date => waterSummary(health, date).entries > 0).length;
   const timed = measurementHistory(health, 'weight').readings.filter(r => { const day = r.observedAt.slice(0, 10); return day >= weekStart && day <= weekEnd; }).length;
   const weights = health.weights.filter(w => w.date >= weekStart && w.date <= weekEnd).length + timed;

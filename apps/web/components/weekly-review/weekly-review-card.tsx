@@ -9,6 +9,7 @@ import type {WeeklyReviewStore} from './use-weekly-review';
 import {WeeklyReviewDialog} from './weekly-review-dialog';
 import './weekly-review.css';
 import {formatDate} from '../../lib/visual-format';
+import {localDate} from '../../lib/local-date';
 
 /** Today's "Your week" card (G1): due or a draft; it opens the review, or skips the week with one tap. */
 export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial, formatWealth, onDone, guideNote}: {store: WeeklyReviewStore; weekStart: string; weekEnd: string; summary: () => WeekSummary; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string; onDone?: (status: string) => void; guideNote?: string}) {
@@ -21,7 +22,7 @@ export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial,
   return <>
     <section className="panel for-you-card weekly-review-card" aria-labelledby="weekly-review-title">
       <p className="eyebrow">Your week</p><h2 id="weekly-review-title">{state === 'draft' ? 'Continue your review.' : 'A short look back at your week.'}</h2>
-      <p className="fine">{formatDate(weekStart)} – {formatDate(weekEnd)}. Six small steps, all optional.</p>
+      <p className="fine">{formatDate(weekStart)} – {formatDate(weekEnd)}{weekEnd === localDate() ? ' (ends today)' : ''}. A few short steps, all optional.</p>
       <div className="actions"><button type="button" className="primary" onClick={() => setOpen(true)}>{state === 'draft' ? 'Continue' : 'Start review'}</button><button type="button" className="quiet" onClick={() => void act(current => skipReview(current, weekStart), 'Skipped this week.')}>Skip this week</button></div>
       {error && <p role="alert">{error}</p>}
     </section>

@@ -1,4 +1,4 @@
-import {addLocalDays, localWeekday} from '../local-date';
+import {addLocalDays, localDate, localWeekday} from '../local-date';
 import {habitDay, habitStats, type HabitData} from '../habits';
 import {dailyHealthSummary, type HealthData} from '../health';
 import {waterSummary} from '../health-daily';
@@ -50,10 +50,14 @@ export function weekSummary({weekStart, weekEnd, habits, health, platform, local
   const summaries: GoalSummary[] = unifiedGoalSummaries(localGoals, metadata, platform, quotes, now);
   const goals = summaries.filter(g => g.status === 'active').map(g => ({name: g.name, fundingHealth: g.fundingHealth, nextContributionDate: g.nextContributionDate ?? null, progress: ((shown) => shown ? `${shown.label}%` : 'Progress unavailable')(progressPresentation(g.progressPct))}));
   const habitLines = habits.habits.map(habit => {
-    const results = days.map(date => habitDay(habit, date, weekEnd)).filter(r => r.scheduled);
+    // Session AH (TO8; M-065, M-027, B-097, M-028): the same rule as Today's "X of Y": a skipped day is not due, and today
+    // counts only once it is done (an open today is not a miss).
+    const todayKey = localDate(new Date(now));
+    const results = days.map(date => ({date, ...habitDay(habit, date, weekEnd)})).filter(r => r.scheduled);
     if (!results.length) return null;
-    const stats = habitStats(habit, weekEnd);
-    return {title: habit.title, done: results.filter(r => r.status === 'complete').length, scheduled: results.length, skipped: results.filter(r => r.status === 'skipped').length, streak: stats.currentStreak, unit: stats.streakUnit};
+    const stats = habitStats(habit, weekEnd), skipped = results.filter(r => r.status === 'skipped').length;
+    const due = results.filter(r => r.status !== 'skipped' && !(r.date === todayKey && r.status !== 'complete'));
+    return {title: habit.title, done: due.filter(r => r.status === 'complete').length, scheduled: due.length, skipped, streak: stats.currentStreak, unit: stats.streakUnit};
   }).filter((line): line is NonNullable<typeof line> => line !== null);
   const healthLines: string[] = [];
   const meals = days.filter(date => health.diary.some(e => e.date === date)).length;
