@@ -117,3 +117,15 @@ test('the registrar\'s literals equal GAME_KEY and ZIGI_STORE_EVENT', async () =
   expect(src).toContain(`const GAME_KEY = '${GAME_KEY}', ZIGI_STORE_EVENT = '${ZIGI_STORE_EVENT}';`);
 });
 
+
+test('Session AH (HA7): a freeze used to join two runs never earns itself back; the balance goes down by one', () => {
+  const log = (d: HabitData, id: string, days: string[]) => days.reduce((x, day) => logHabitValue(x, id, day, 1, {mode: 'set'}, new Date(`${day}T07:00:00Z`)), d);
+  let d = createHabit(createHabit(emptyHabitData(), input('Walk'), AT, ID.a), input('Stretch'), AT, ID.b);
+  // Walk: six days, a miss on Sep 30, six days. Stretch: seven days in a row, which earns the one freeze.
+  d = log(d, ID.a, ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04', '2026-10-05', '2026-10-06']);
+  d = log(d, ID.b, ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30']);
+  expect(freezesEarned(d, TODAY)).toBe(1); expect(freezesAvailable(d, TODAY)).toBe(1);
+  d = applyFreeze(d, ID.a, '2026-09-30', TODAY, new Date(`${TODAY}T09:00:00Z`));
+  // Walk's run is twelve days now; counted with the freeze it would earn one more and the balance would stay at 1.
+  expect(freezesEarned(d, TODAY)).toBe(1); expect(freezesUsed(d)).toBe(1); expect(freezesAvailable(d, TODAY)).toBe(0);
+});

@@ -46,8 +46,9 @@ export function RoutinePlayer({headId, store, extras, onClose}: {headId: string;
         const rule = habitRuleOn(current.habit, store.today);
         const day = habitDay(current.habit, store.today, store.today);
         if (rule && day.scheduled && day.status !== 'complete') {
-          const value = current.duration && rule.measurement.kind === 'duration' ? Math.max(rule.target, Number((rule.measurement.unit === 'hours' ? elapsed / 60 : elapsed).toFixed(2))) : smartDoneValue(rule);
-          await store.update(data => logHabitValue(data, current.habit.id, store.today, value, {}));
+          // Session AH (HA4, L-084): a timed step is credited the time it took, never its full target after 0:00.
+          const value = current.duration && rule.measurement.kind === 'duration' ? Number((rule.measurement.unit === 'hours' ? elapsed / 60 : elapsed).toFixed(2)) : smartDoneValue(rule);
+          if (value > 0) await store.update(data => logHabitValue(data, current.habit.id, store.today, value, {mode: 'add'}));
           try { zigiSignals.emitValidated('habit_completed'); } catch { /* decoration */ }
         }
       }

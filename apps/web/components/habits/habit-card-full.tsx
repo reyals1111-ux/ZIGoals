@@ -9,7 +9,7 @@ import {PinToToday} from "../pin-to-today";
 import {LinkedGoalReview} from './linked-goal-review';
 import type {PrivateGoal} from '../../lib/positions';
 import { GlassBar } from "../progress/glass-progress";
-import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
+import {earliestHabitChange,habitEditFingerprint,moveHabitStart} from "../../lib/habit-actions";
 import {ConfirmInline} from "../ui/confirm-inline";
 import { visualTone } from "../visual-tone";
 import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, latestHabitRule, measurementUnit, scheduleLabel, type Habit, type HabitGoalLink } from "../../lib/habits";
@@ -60,6 +60,17 @@ function targetCopy(habit: Habit,today:string) {
 import {HabitCompletion} from './habit-completion';
 import {plainErrorMessage} from "../../lib/plain-error";
 
+/** Session AH (HA18/J9, N-038): days from before the habit was made can be logged once its start moves back. */
+function StartEarlier({ habit, store }: { habit: Habit; store: HabitCardStore }) {
+  const [open, setOpen] = useState(false), [day, setDay] = useState(addLocalDays(habit.startDate, -7)), [error, setError] = useState(""), [busy, setBusy] = useState(false);
+  if (!open) return <p className="fine"><button type="button" className="text-link habit-start-earlier" onClick={() => setOpen(true)}>Log days before {formatDate(habit.startDate)}…</button></p>;
+  return <form className="habit-start-earlier-form" aria-label={`Start ${habit.title} earlier`} onSubmit={event => { event.preventDefault(); setBusy(true); setError(""); store.update(data => moveHabitStart(data, habit.id, day)).then(() => setOpen(false), e => setError(plainErrorMessage(e, "The start was not moved."))).finally(() => setBusy(false)); }}>
+    <label className="field">Start this habit on<input type="date" required min="1990-01-01" max={addLocalDays(habit.startDate, -1)} value={day} onChange={e => setDay(e.target.value)} /></label>
+    <p className="fine">Then pick those days in the calendar to fill them in. A day you leave empty counts as missed, as any scheduled day does.</p>
+    <div className="actions"><button className="secondary" type="submit" disabled={busy}>Move the start back</button><button className="quiet" type="button" onClick={() => setOpen(false)}>Cancel</button></div>
+    {error && <p role="alert">{error}</p>}
+  </form>;
+}
 function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore }) {
   const [month, setMonth] = useState(store.today.slice(0, 7)); const [selectedDate, setSelectedDate] = useState(store.today); const [busy, setBusy] = useState(false); const [message, setMessage] = useState(""); const [error, setError] = useState("");
   const first = `${month}-01`; const gridStart = addLocalDays(first, -((localWeekday(first) + 6) % 7)); const day = habitDay(habit, selectedDate, store.today); const rule = habitRuleOn(habit, selectedDate) ?? latestHabitRule(habit);
@@ -77,6 +88,9 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
       return <button key={date} type="button" className={`habit-calendar-day habit-day-${result.status}`} disabled={date > store.today || date < habit.startDate} aria-pressed={selectedDate === date} aria-label={`${longDate(date)}: ${statusLabel[result.status]}, ${plain(result.count)} of ${plain(result.target)}`} onClick={() => chooseDate(date)}><span>{Number(date.slice(-2))}</span>{/* Session AH (C7, BUG-082; HA6): every state shows the mark its legend promises, a part-done failed day ◐ */}{DAY_MARK(result) && <span className={`habit-calendar-check habit-calendar-mark-${result.status}`} aria-hidden="true">{DAY_MARK(result)}</span>}</button>;
     })}</div>
     <p className="habit-calendar-legend"><span>✓ Complete</span><span>◐ Partly done</span><span>× Failed</span><span>○ Skipped</span><span>◌ Planned skip</span><span>— Not scheduled</span></p>
+    {/* Session AH (HA18/J9; T-020, N-163): the streak rule and its grace, said where the days are. */}
+    <p className="fine habit-streak-legend">Streak: each ✓ adds a day; ○ and ◌ are rest days that keep it; × ends it. A freeze (Journey) can turn one missed day of the last week into a rest day.</p>
+    <StartEarlier habit={habit} store={store} />
     <Suspense fallback={null}><Reflections habit={habit} today={store.today} /></Suspense>
     <form onSubmit={save} className="habit-day-editor" key={`${selectedDate}-${day.count}-${day.note}-${day.mood ?? ""}`}>
       <label className="field">Day to review<input type="date" required min={habit.startDate} max={store.today} value={selectedDate} onChange={(event) => chooseDate(event.target.value)} /></label>
@@ -89,7 +103,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
       </fieldset>{message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     </form>
     <PlanSkip habit={habit} store={store} />
-    <details className="habit-rule-history"><summary>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time dateTime={item.from}>{formatDate(item.from)}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {plain(item.target)} {unitFor(item.target, measurementUnit(item))} per {habitTargetPeriod(item)}</li>)}</ul>{!!habit.ruleRevisions?.length&&<details><summary>Retained rule revisions ({habit.ruleRevisions.length})</summary><p className="fine">Original and scheduled terms are retained, including superseded future terms. Earlier same-day edits before this record were not retained.</p><ol>{habit.ruleRevisions.map(r=><li key={r.id}>Effective {formatDate(r.rule.from)} · {r.rule.state} · {plain(r.rule.target)} {unitFor(r.rule.target, measurementUnit(r.rule))} per {habitTargetPeriod(r.rule)} · {scheduleLabel(r.rule.schedule)}<p className="fine">Recorded {formatDateTime(r.recordedAt)} · {r.source==='retained'?'Existing rule captured':'Scheduled edit'}</p></li>)}</ol></details>}</details>
+    <details className="habit-rule-history"><summary aria-label={`Rule history for ${habit.title}`}>Rule history</summary><ul>{habit.rules.map((item) => <li key={item.from}><time dateTime={item.from}>{formatDate(item.from)}</time> · {item.state} · {item.type.toUpperCase()} · {scheduleLabel(item.schedule)} · {plain(item.target)} {unitFor(item.target, measurementUnit(item))} per {habitTargetPeriod(item)}</li>)}</ul>{!!habit.ruleRevisions?.length&&<details><summary>Retained rule revisions ({habit.ruleRevisions.length})</summary><p className="fine">Original and scheduled terms are retained, including superseded future terms. Earlier same-day edits before this record were not retained.</p><ol>{habit.ruleRevisions.map(r=><li key={r.id}>Effective {formatDate(r.rule.from)} · {r.rule.state} · {plain(r.rule.target)} {unitFor(r.rule.target, measurementUnit(r.rule))} per {habitTargetPeriod(r.rule)} · {scheduleLabel(r.rule.schedule)}<p className="fine">Recorded {formatDateTime(r.recordedAt)} · {r.source==='retained'?'Existing rule captured':'Scheduled edit'}</p></li>)}</ol></details>}</details>
   </div>;
 }
 
@@ -151,10 +165,10 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
      <Suspense fallback={null}><HabitTimer habit={habit} store={store}/></Suspense>
      {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
      {onViewStack&&stackNext?.map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
-     <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <ChallengeControls habit={habit} store={store} />}
+     <details className="habit-details habit-insight-details"><summary aria-label={`Consistency & trends for ${habit.title}`}>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <ChallengeControls habit={habit} store={store} />}
      {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}
-     <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
-     {habit.notes && <details className="habit-details"><summary>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
+     <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary aria-label={`History & reflection for ${habit.title}`}>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
+     {habit.notes && <details className="habit-details"><summary aria-label={`Private notes for ${habit.title}`}>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
      <p className="fine">Pause, resume and archive changes begin {changeFrom === store.today ? "today" : formatDate(changeFrom)}. {changeFrom === store.today ? "Nothing is recorded for today yet." : "Today’s recorded history stays unchanged."}</p><div className="habit-management">{extras && <Suspense fallback={null}><HabitAreaField habitId={habit.id} title={habit.title} extras={extras} keep={new Set((store.journalData?.().habits ?? [habit]).map(h => h.id))} /></Suspense>}<button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => setArchiving(true)}>Archive habit</button>}</div>{archiving && planned.state !== "archived" && <ConfirmInline title={`Archive ${habit.title}?`} confirmLabel="Archive habit" busy={busy} onConfirm={() => void state("archived")} onCancel={() => setArchiving(false)}><p>It leaves your lists {changeFrom === store.today ? "today" : `from ${formatDate(changeFrom)}`}. Its history is kept; you can restore it, or then delete it for good.</p></ConfirmInline>}{rule.state === "archived" && onDeleteForGood && <DeleteForGood habit={habit} onDelete={onDeleteForGood} asked={asked} />}{planned.state === "archived" && rule.state !== "archived" && <p className="fine">“Delete for good…” appears here once the archive starts ({formatDate(planned.from)}).</p>}{asked && planned.state !== "archived" && <p className="fine" role="status">To delete this habit for good, archive it first; then “Delete for good…” appears here.</p>}{error && <p role="alert">{error}</p>}
     </details>
   </SwipeRow>;

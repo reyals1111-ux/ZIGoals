@@ -7747,6 +7747,14 @@
     .habit-more-options > summary small:not(#\-) {
         color: var(--muted, #a9b6cc)
     }
+    .habit-vacation-button[data-open]:not(#\-) {
+        border-color: var(--brand-cyan, #63e7ff);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 14%, transparent)
+    }
+    .habit-vacation-state:not(#\-) {
+        color: var(--muted, #a9b6cc)
+    }
 }
 /*  components/habits/habits.css  */
 @scope (:root[data-theme=dark]) {
@@ -14399,6 +14407,10 @@
   linear-gradient(0deg, #000 0, #000 12vh, #000000d0 34vh, #00000080 58vh, #00000030 84vh, #00000000 110vh) bottom / 100% 110vh no-repeat; }
 :root[data-theme=dark] :is(.account-panel, .destination-panel, .stake-hero, .staking-card):not(#\-)::before { filter: brightness(.82); }
 :root[data-theme=dark] .site-footer-art:not(#\-) { filter: brightness(.8); }
+/* apps/web/themes/dark.ah-habits.css */
+/* Session AH (HA15; D-178, D-192): the 30-day heatmap in Dark: dark numbers on the pale "all done" cell, never white. */
+:root[data-theme=dark] .habit-month-grid>span:not(#\-) { border-color: #4a5a7a; }
+:root[data-theme=dark] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=dark] .habit-month-legend i[data-level=full]:not(#\-) { color: #10142a; font-weight: 750; }
 /* apps/web/themes/dark.headerart.css */
 /* Session AE (Part 4, ADR-027 G5): the page-header art in Dark — the same drawing on the near-black ground, its glows a
    little dimmer (the halo, the glyph's bloom, the planets' light and the nebula disc). */

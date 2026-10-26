@@ -18,6 +18,7 @@ import {keepWords} from '../today/keep-words';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import './game.css';
+import {ConfirmInline} from '../ui/confirm-inline';
 
 /**
  * /app/journey (H7): the level ring, XP this week, today's quests, the weekly challenges against yourself, the badge
@@ -25,11 +26,12 @@ import './game.css';
  * Everything is derived from the journals (lib/game); only the switch and what was seen live on the device.
  */
 export function JourneyPage() {
-  const game = useGame(), [busy, setBusy] = useState(false), [message, setMessage] = useState('');
+  const game = useGame(), [busy, setBusy] = useState(false), [message, setMessage] = useState(''), [asking, setAsking] = useState<string | null>(null);
   const d = game.derived;
   async function repair(habitId: string, date: string) {
     setBusy(true); setMessage('');
-    try { await game.habits.update(data => applyFreeze(data, habitId, date, game.today)); setMessage(`Freeze used: ${formatDate(date, {year: false})} now counts as a rest day.`); }
+    setAsking(null);
+    try { await game.habits.update(data => applyFreeze(data, habitId, date, game.today)); setMessage(`Freeze used: ${formatDate(date, {year: false})} now counts as a rest day. ${d && d.freezes - 1 > 0 ? `${d.freezes - 1} left.` : 'None left for now.'}`); }
     catch (e) { setMessage(storageMessageOr(e, 'The freeze was not used.')); } finally { setBusy(false); }
   }
   return <LayoutPage page="journey"><div className="journey-page">
@@ -61,8 +63,10 @@ export function JourneyPage() {
         <ol className="journey-path">{d.path.map(stop => <li key={stop.level} data-reached={stop.reached || undefined} data-current={stop.current || undefined} style={{'--planet-hue': `${(stop.level * 47) % 360}deg`} as CSSProperties}><span className="journey-path-node" aria-hidden="true">{stop.reached ? '✓' : stop.level}</span><div><strong>Level {stop.level} · {stop.name}</strong><small>{stop.reached ? stop.current ? 'You are here' : 'Reached' : `${stop.xp - d.xp.total} XP to go`}</small>{stop.badges.length > 0 && <small className="journey-path-badge">{/* Phase 2 closing pass (design critique): words, not the badge's symbol glyph (it drew as a broken mark here). */}{`${stop.badges.length === 1 ? 'Badge' : 'Badges'} · ${stop.badges.map(b => b.title).join(' · ')}`}</small>}</div></li>)}</ol>
         <p className="journey-next"><span className="eyebrow">Next unlock</span>{(() => { const next = d.badges.find(b => !b.earned); const stop = d.path.find(s => !s.reached); return <strong>{next ? keepWords(`${next.symbol} ${next.title}: ${next.blurb}`) : stop ? `Level ${stop.level} · ${stop.name}` : 'Everything on the path, reached.'}</strong>; })()}</p></section>
       <section className="panel journey-freeze" aria-labelledby="journey-freeze-title"><p className="eyebrow">Streak repair</p><h2 id="journey-freeze-title"><NebulaFlow identity="journey-freeze">Freezes</NebulaFlow></h2>
-        <p>{d.freezes > 0 ? `You have ${d.freezes} ${d.freezes === 1 ? 'freeze' : 'freezes'}: each turns one missed day of the last week into a rest day.` : 'A seven-day streak on any habit earns a freeze, which repairs one missed day of the last week.'}</p>
-        {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(r.date, {weekday: true, year: false})}</span><button type="button" className="secondary" disabled={busy} onClick={() => void repair(r.habitId, r.date)}>Use a freeze</button></li>)}</ul>}
+        <p>{d.freezes > 0 ? `You have ${d.freezes} ${d.freezes === 1 ? 'freeze' : 'freezes'}: each turns one missed day of the last week into a rest day.` : 'No freeze in hand yet.'}</p>
+        {/* Session AH (HA7, M-115): how a freeze is earned, always said, not only at zero. */}
+        <p className="fine">How they are earned: every seven days in a row on a habit earns one (a day a freeze repaired does not count toward it), and you keep at most five.</p>
+        {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(r.date, {weekday: true, year: false})}</span><button type="button" className="secondary" disabled={busy} onClick={() => setAsking(`${r.habitId}:${r.date}`)}>Use a freeze</button>{asking === `${r.habitId}:${r.date}` && <ConfirmInline tone="neutral" title={`Use a freeze on ${r.title}, ${formatDate(r.date, {weekday: true, year: false})}?`} confirmLabel="Use a freeze" busy={busy} onConfirm={() => void repair(r.habitId, r.date)} onCancel={() => setAsking(null)}><p>That missed day becomes a rest day and the streak holds. You will have {d.freezes - 1} left.</p></ConfirmInline>}</li>)}</ul>}
         {d.freezes > 0 && d.repairable.length === 0 && <p className="fine">Nothing to repair this week.</p>}
         {message && <p role="status" className="fine">{message}</p>}</section>
       <section className="panel journey-settings"><GameSetting /></section>

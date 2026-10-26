@@ -20,7 +20,7 @@ function stack(): HabitData {
 describe('routines (H5)', () => {
   test('a stack of two or more is a routine; steps know their order, duration and status; a run advances and finishes', () => {
     const d = stack(), list = routines(d);
-    expect(list).toHaveLength(1); expect(list[0]!.title).toBe('Water routine'); expect(list[0]!.habits.map(h => h.title)).toEqual(['Water', 'Stretch', 'Plan']);
+    expect(list).toHaveLength(1); expect(list[0]!.title).toBe('Water → Plan') /* Session AH (HA4, N-134): named by its first and last steps */; expect(list[0]!.habits.map(h => h.title)).toEqual(['Water', 'Stretch', 'Plan']);
     const r = routineOf(d, list[0]!.headId)!;
     let run = startRun(r.headId, '2026-09-10', new Date('2026-09-10T07:00:00Z'));
     let steps = routineSteps(r, run, '2026-09-10');
@@ -58,4 +58,17 @@ describe('routines (H5)', () => {
     expect(again.created).toHaveLength(0); expect(again.data.habits).toHaveLength(made.data.habits.length);
     for (const t of ROUTINE_TEMPLATES) expect(t.steps.length).toBeGreaterThanOrEqual(3);
   });
+});
+
+test('Session AH (HA4): a step reuses a habit you already have under another usual name, and the routine keeps its template name', async () => {
+  const {createHabit: make, emptyHabitData: empty} = await import('../habits');
+  const {createRoutineFromTemplate: create, previewRoutineTemplate, ROUTINE_TEMPLATES: all} = await import('./templates');
+  const {routineOf: of} = await import('./engine');
+  const at = new Date('2026-09-10T08:00:00Z'); let n = 0; const next = () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`;
+  const d = make(empty(), {title: 'Drink water', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, at, next());
+  const morning = all.find(t => t.id === 'morning')!;
+  expect(previewRoutineTemplate(d, morning)).toEqual({create: ['Stretch', 'Meditate', 'Plan the day'], reuse: ['Drink water']});
+  const made = create(d, morning, at, next);
+  expect(made.data.habits.filter(h => /water/i.test(h.title)).map(h => h.title)).toEqual(['Drink water']);
+  expect(of(made.data, made.headId)!.title).toBe('Morning routine');
 });

@@ -89,3 +89,16 @@ describe('future Habit rules and saved timers',()=>{
   expect(()=>discardHabitTimer(changed,id,timerId,new Date(+start+90_000),expected)).toThrow(/changed/i);
  });
 });
+
+describe('Session AH (HA18): moving the start back', () => {
+ it('lets earlier days be logged, keeps the rest, and refuses a later day', async () => {
+  const {moveHabitStart} = await import('./habit-actions');
+  const s=make();
+  expect(()=>logHabitValue(s,id,'2026-09-15',10,{},at('2026-09-20'))).toThrow();
+  const moved=moveHabitStart(s,id,'2026-09-10',at('2026-09-20'));
+  expect(moved.habits[0]!.startDate).toBe('2026-09-10');expect(moved.habits[0]!.rules[0]!.from).toBe('2026-09-10');
+  const logged=logHabitValue(moved,id,'2026-09-15',30,{},at('2026-09-20'));
+  expect(habitDay(logged.habits[0]!,'2026-09-15','2026-09-20').status).toBe('complete');
+  expect(()=>moveHabitStart(s,id,'2026-09-21',at('2026-09-20'))).toThrow('Choose a day before the habit started.');
+ });
+});

@@ -28,3 +28,13 @@ export function scheduleHabitState(data:HabitData,id:string,state:HabitState,fro
  const h=habitById(data,id);checkChange(h,from,habitCalendarDay(data,now),expected);return replace(data,revised(h,ruleSchema.parse({...latestHabitRule(h),state,from}),now));
 }
 // The timer's day key is read from date parts, like habitCalendarDay, never from a locale's display pattern (QA-34).
+/**
+ * Session AH (HA18/J9; N-038, T-020): log days from before a habit was made. Its start (and the first rule's day) moves
+ * back, so those days can be filled in from History; a day left empty counts as missed, as any scheduled day does. The
+ * record keeps its shape (an older build reads it unchanged).
+ */
+export function moveHabitStart(data:HabitData,id:string,newStart:string,now=new Date()):HabitData{
+ const h=habitById(data,id);if(!/^\d{4}-\d{2}-\d{2}$/.test(newStart))throw Error('Choose a day.');
+ if(newStart>=h.startDate)throw Error('Choose a day before the habit started.');if(newStart<'1990-01-01')throw Error('Choose a day from 1990 on.');
+ const [first,...rest]=h.rules;return replace(data,{...h,startDate:newStart,rules:[{...first!,from:newStart},...rest],updatedAt:now.toISOString()});
+}

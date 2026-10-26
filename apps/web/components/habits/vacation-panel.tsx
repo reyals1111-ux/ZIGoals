@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { habitTargetPeriod, latestHabitRule, upcomingVacation, type HabitData, type VacationRun } from "../../lib/habits";
 import { addLocalDays } from "../../lib/local-date";
 import { storageMessageOr } from "../../lib/storage-error-copy";
@@ -22,8 +22,14 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
   // Session Y Part 9: a refused range marks both date fields and moves the focus to the first.
   const fields = useFieldErrors(), errorId = fields.messageId; const [marked, setMarked] = useState<{ from: string; to: string; habitIds: string[] } | null>(null);
   const max = addLocalDays(today, 366), ids = active.map((habit) => habit.id).filter((id) => chosen.has(id));
+  // Session AH (HA8, M-033): the panel opens where it is seen: scrolled to and focused, not far below the button.
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => { root.current?.scrollIntoView({ block: "start" }); root.current?.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true }); }, []);
   async function mark(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage(""); setError(""); fields.clear();
+    event.preventDefault(); setMessage(""); setError(""); fields.clear();
+    // Session AH (HA8, L-050): a "To" before "From" is said next to the field, not left to the browser's silent minimum.
+    if (to < from) { const text = "Choose a “To” day on or after “From”."; setError(text); fields.fail(text, "to"); return; }
+    setBusy(true);
     // Session X P2.1: a habit counted per week or month gets no skip days (its count spans the period), so the message
     // names only the habits that got them, and says what happened to the others.
     const periodic = ids.filter((id) => { const habit = active.find((h) => h.id === id); return !!habit && habitTargetPeriod(latestHabitRule(habit)) !== "day"; }).length, daily = ids.length - periodic, days = dayCount(from, to);
@@ -40,12 +46,12 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
     if (!marked) return; setBusy(true); setMessage(""); setError("");
     try { await onClear(marked); setMarked(null); setMessage("Vacation days cleared. Your own check-ins and skips were kept."); } catch (e) { setError(storageMessageOr(e, "The vacation days were not cleared.")); } finally { setBusy(false); }
   }
-  return <section className="panel habit-vacation" aria-labelledby="habit-vacation-title">
-    <div className="habit-section-heading"><div><p className="eyebrow">Time away</p><h2 id="habit-vacation-title">Vacation days</h2></div></div>
+  return <section ref={root} className="panel habit-vacation" aria-labelledby="habit-vacation-title">
+    <div className="habit-section-heading"><div><p className="eyebrow">Time away</p><h2 id="habit-vacation-title" tabIndex={-1}>Vacation days</h2></div></div>
     <form onSubmit={mark}><fieldset disabled={busy} className="habit-form-fields">
       <div className="habit-form-grid"><label className="field">From<input {...fields.field("from")} type="date" required min={today} max={max} value={from} onChange={(event) => setFrom(event.target.value)} /></label><label className="field">To<input {...fields.field("to")} type="date" required min={from || today} max={max} value={to} onChange={(event) => setTo(event.target.value)} /></label></div>
       <fieldset className="habit-vacation-habits"><legend>Habits</legend>{active.length ? active.map((habit) => <label key={habit.id}><input type="checkbox" checked={chosen.has(habit.id)} onChange={(event) => { const next = new Set(chosen); if (event.target.checked) next.add(habit.id); else next.delete(habit.id); setChosen(next); }} /><span>{habit.title}</span></label>) : <p className="fine">No active habits yet.</p>}</fieldset>
-      <p className="fine">Scheduled days in this range are marked as skipped. Streaks don’t break on skipped days, and reminders stay quiet on them. Check-ins you already saved are kept.</p>
+      <p className="fine">Scheduled days in this range are marked as skipped. Streaks don’t break on skipped days, and reminders stay quiet on them. Any day you already wrote on (a check-in, your own skip, a note) is kept, and clearing gives every day back as it was.</p>
       <div className="actions"><button className="primary" type="submit" disabled={!ids.length}>{busy ? "Saving…" : "Mark vacation"}</button><button className="secondary" type="button" onClick={onClose}>{marked ? "Done" : "Cancel"}</button></div>
     </fieldset></form>
     {ahead.length > 0 && <div className="habit-vacation-ahead"><h3>Vacation days ahead</h3><ul>{ahead.map((run) => <li key={run.from}><span>{runText(run)} · {run.habitIds.length} {run.habitIds.length === 1 ? "habit" : "habits"}</span><button type="button" className="quiet" disabled={busy} aria-label={`Clear vacation days ${runText(run)}`} onClick={() => void clearRun(run)}>Clear</button></li>)}</ul></div>}

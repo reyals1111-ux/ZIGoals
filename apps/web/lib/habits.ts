@@ -385,7 +385,9 @@ export function setVacation(data: HabitData, range: VacationRange, now = new Dat
     for (const date of days) {
       const rule = habitRuleOn(habit, date); if (!scheduledOn(habit, rule, date) || aggregatePeriod(rule!)) continue;
       const previous = habit.entries.find((item) => item.date === date);
-      if ((previous?.disposition === "logged" && previous.count > 0) || (previous?.disposition === "skipped" && previous.note === VACATION_NOTE)) continue;
+      // Session AH (HA8, T-099): a day the person already wrote on (a check-in, their own skip, a failed mark, a note or a
+      // mood) keeps it, so clearing the vacation gives every day back exactly as it was; only an empty 0 is covered.
+      if (previous && !(previous.disposition === "logged" && previous.count === 0 && !previous.note && !previous.mood)) continue;
       additions.push(entrySchema.parse({ date, count: previous?.count ?? 0, disposition: "skipped", note: VACATION_NOTE, mood: previous?.mood, updatedAt: now.toISOString() }));
     }
     if (!additions.length) continue;

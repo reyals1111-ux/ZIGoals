@@ -199,3 +199,15 @@ test('Session AH (HA1): 26 done and 4 skipped is 100 %, this week counts only th
   expect(stats.weeklyConsistency).toBe(100);
 });
 
+
+test('Session AH (HA8): a vacation keeps every day the person wrote on, and clearing it gives each day back as it was', () => {
+  let data = daily('2026-09-01');
+  data = logHabitCount(data, ID, '2026-09-10', 0, 'Rest, sore knee', at('2026-09-10')); // today: a note, no count
+  data = planSkip(data, ID, '2026-09-12', 'Dentist', at('2026-09-10'));
+  const before = data.habits[0]!.entries.map(e => ({date: e.date, disposition: e.disposition, note: e.note}));
+  const away = setVacation(data, {from: '2026-09-10', to: '2026-09-14'}, at('2026-09-10'));
+  const notes = Object.fromEntries(away.habits[0]!.entries.map(e => [e.date, e.note]));
+  expect(notes).toMatchObject({'2026-09-10': 'Rest, sore knee', '2026-09-11': 'Vacation', '2026-09-12': 'Planned skip · Dentist', '2026-09-13': 'Vacation', '2026-09-14': 'Vacation'});
+  const back = clearVacation(away, {from: '2026-09-10', to: '2026-09-14'}, at('2026-09-10'));
+  expect(back.habits[0]!.entries.map(e => ({date: e.date, disposition: e.disposition, note: e.note}))).toEqual(before);
+});

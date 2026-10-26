@@ -88,3 +88,15 @@
 .habit-more-options > summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
 .habit-more-options > summary small { font-weight: 400; color: var(--muted, #a9b6cc); }
 .habit-more-options[open] > summary { margin-bottom: 4px; }
+/* Session AH (HA8): the Vacation button shows when the panel is open, and a vacation that covers today beside it. */
+.habit-vacation-button[data-open] { border-color: var(--brand-cyan, #63e7ff); background: color-mix(in srgb, var(--brand-cyan, #63e7ff) 14%, transparent); }
+.habit-vacation-state { align-self: center; font-size: .82rem; color: var(--muted, #a9b6cc); }
+/* Session AH (HA14; M-076, M-106, N-062): an opened card takes the whole row, so no empty hole sits beside it; its
+   chips and schedule line wrap instead of clipping at 375 px. */
+.habits-workspace .habit-grid > .habit-card:has(.habit-more[open]) { grid-column: 1 / -1; }
+.habits-workspace .habit-card-heading .eyebrow { display: flex; flex-wrap: wrap; column-gap: 4px; }
+.habits-workspace .habit-card-heading small { overflow-wrap: anywhere; }
+/* Session AH (F6): the sort sits at the end of the filter bar; "Show more" under the list. */
+.habit-filter-bar .habit-sort { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; font-size: .875rem; }
+.habit-filter-bar .habit-sort select { min-height: 44px; }
+.habit-show-more { display: flex; justify-content: center; margin: 12px 0; }
