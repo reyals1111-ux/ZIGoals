@@ -11,7 +11,7 @@ applies, and so does the first line of part 8.
 
 Thank you for trying ZIGoals with us! ZIGoals is one calm place for your Goals, Habits, Health and Wealth plans. This is an early Alpha, so things will change, and what you tell us shapes what comes next.
 
-**No real money is involved.** Money in the Alpha is simulated, or on a test network whose tokens have no value. Nothing real is bought, sold or sent.
+**Nothing moves unless you sign.** Money in the Alpha is simulated, or on a practice network whose tokens have no value. Staking and votes are the one exception, and only by your choice: you sign them in your own Keplr wallet, on the practice network by default, and on ZIGChain's real network only after a one-time confirm. ZIGoals never holds your keys.
 
 ## 1. Open it, and install it on your iPhone first
 
@@ -104,18 +104,28 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **Amounts your way:** type "3,250.50" or "3.250,50"; a new goal starts in euros if your phone is set to a euro country.
 - **ZIGi without an AI** answers a Dutch question with a Dutch introduction, and "create a food" or "plan a goal" with the steps and a button to the right page.
 
+## 8c. New in this release (Session AH, "The Big Polish")
+
+- **One set of numbers everywhere.** Today, Wealth, Portfolio and your reviews show the same totals, prices say how fresh they are, and Help explains the rules ("How fresh are the numbers?").
+- **Safer data.** Two open tabs no longer overwrite each other; removing something offers Undo or asks first; Create a goal keeps what you typed if you go back or reload.
+- **Workouts.** Log sets with weight and reps, see last time and your best, start from a routine, and watch each exercise's progress as a line.
+- **Habits.** A Strength score per habit (a miss dents it, never resets it), vacation, freezes and clearer history.
+- **A screen lock (optional).** Settings → Screen lock adds a PIN on this device. It never encrypts or hides your data: "Forgot the PIN?" removes the lock after a minute.
+- **Tablets.** A slim rail on the left replaces the big navigation block at the top.
+- **Earn and Ecosystem.** Plain words for staking, and the value locked in the projects Earn covers, with its source.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
 - **Reminders when ZIGoals is closed** wait for accounts; until then, due reminders show on Today while ZIGoals is open.
-- **No real money moves**, and the test network's tokens have no value.
-- **Oura, Withings, Polar and Strava** say "Needs setup by ZIGoals" until we register with them. **Fitbit's** web access is turned off on 30 October 2026: use Google Takeout and Switch to ZIGoals.
+- **Nothing moves unless you sign.** Goals, allocations and the demo never move money; the practice network's tokens have no value; real staking is opt-in and signed in your own Keplr wallet.
+- **Oura, Withings, Polar and Strava** say "Needs setup by ZIGoals" until we register with them. **Fitbit** connecting and importing were removed (Fitbit's web access ends on 30 October 2026); anything you imported before stays readable and exports with the rest.
 - **Spotify** needs Premium, and only accounts we list can connect while Spotify keeps ZIGoals in development mode.
 - **Photos stay on the device** where you added them; a backup carries them (Help → "Do my photos sync?").
 - **Safari on iPhone and iPad** offers no Home Screen shortcuts and no Share sheet entry for ZIGoals (Help → "Can I add shortcuts to my Home Screen…?").
 - **Push notifications are switched off** in this Alpha: nothing reaches your phone while ZIGoals is closed; due reminders show on Today while it is open (Help → "Where are my reminders?").
 - **Your last backup isn't recorded.** Settings → Your data says "Not recorded", because making a backup writes nothing on your device; your browser's downloads list shows when you made one.
-- **The Alpha's facts** (practice money, nothing signed or sent onchain, not a backup, unaudited) are in the notice on your first visit, in Settings → Your data and in Help → "About this Alpha".
+- **The Alpha's facts** (practice money, nothing moves unless you sign, not a backup, unaudited) are in the notice on your first visit, in Settings → Your data and in Help → "About this Alpha".
 - **English only** for the app's words for now; ZIGi understands you spoken in English and Dutch.
 
 The full list, kept up to date, is in **Help → Known limitations**.

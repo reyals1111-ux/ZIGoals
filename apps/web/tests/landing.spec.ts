@@ -68,12 +68,14 @@ test("landing keeps its public contract visible without horizontal overflow", as
   await expect(alpha).toHaveAttribute("rel", "noopener noreferrer");
 
   // The honesty copy that must never disappear from the apex.
-  await expect(page.locator(".alpha-status")).toHaveText("Public Alpha / Financial execution disabled");
+  // Session AH (MO5, DE1; assertion text changed, equal strength): staking signs in your own wallet since 18 Oct (owner decision),
+  // so "signing disabled" was no longer true. The Goal Manager contract is still not deployed.
+  await expect(page.locator(".alpha-status")).toHaveText("Public Alpha / Nothing moves unless you sign");
   await expect(page.locator("#alpha")).toContainText(
-    "The public Alpha is unaudited. Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed. Mainnet financial execution is disabled.",
+    "The public Alpha is unaudited. Staking and votes are signed in your own Keplr wallet: on the practice network by default, on ZIGChain mainnet only after a one-time confirm. ZIGoals never holds keys. The Goal Manager contract is not deployed, so Goals never move funds.",
   );
   await expect(page.locator(".independence")).toHaveText(
-    "Independent project · Not affiliated with ZIGChain · Financial execution disabled",
+    "Independent project · Not affiliated with ZIGChain · Nothing moves unless you sign",
   );
 
   // No remote font, script, stylesheet or pixel: the apex loads from itself only.
