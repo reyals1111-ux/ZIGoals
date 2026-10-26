@@ -71,21 +71,20 @@ test('Health on a phone: the journal date fits its field at 390 and 320 px, with
     await page.goto('/app/health');
     const strip = page.locator('.health-date-strip');
     await expect(strip.getByLabel('Journal date', {exact: true})).toBeVisible();
+    // Assertions moved (Session AH Part 17, owner addition: the date bar shows the day as "Thu 22 Oct" over the date
+    // field; equal strength): the day's name fits its box on one line, and every control sits inside the strip at 44 px.
     const m = await strip.evaluate(el => {
-      const input = el.querySelector('input')!, probe = input.cloneNode() as HTMLInputElement;
-      probe.style.cssText = 'width:auto!important;min-width:0!important;max-width:none!important;position:absolute;visibility:hidden';
-      input.parentElement!.append(probe); const needs = probe.getBoundingClientRect().width; probe.remove();
       const box = (e: Element) => { const r = e.getBoundingClientRect(); return {left: r.left, right: r.right, width: r.width, height: r.height}; };
-      const label = el.querySelector('.field > span')!, range = document.createRange(); range.selectNodeContents(label);
-      return {needs, input: box(input), strip: box(el), controls: [...el.querySelectorAll('button, input')].map(c => ({name: c.getAttribute('aria-label') ?? (c.textContent || 'date'), ...box(c)})), labelLines: range.getClientRects().length};
+      const name = el.querySelector('.health-date-text strong')!, pick = el.querySelector('.health-date-pick')!, range = document.createRange(); range.selectNodeContents(name);
+      return {nameFits: name.scrollWidth <= name.clientWidth + 0.5 && box(name).right <= box(pick).right + 0.5, strip: box(el), controls: [...el.querySelectorAll('button, .health-date-pick')].map(c => ({name: c.getAttribute('aria-label') ?? 'date', ...box(c)})), labelLines: range.getClientRects().length};
     });
-    expect(m.input.width, `${width}: the date's field holds the whole date`).toBeGreaterThanOrEqual(m.needs - 0.5);
+    expect(m.nameFits, `${width}: the day's name fits its field`).toBe(true);
     for (const c of m.controls) {
       expect(c.left, `${width}: ${c.name} inside the strip`).toBeGreaterThanOrEqual(m.strip.left);
       expect(c.right, `${width}: ${c.name} inside the strip`).toBeLessThanOrEqual(m.strip.right);
       expect(Math.min(c.width, c.height), `${width}: ${c.name} is a 44 px target`).toBeGreaterThanOrEqual(44);
     }
-    expect(m.labelLines, `${width}: "Journal date" on one line`).toBe(1);
+    expect(m.labelLines, `${width}: the day's name on one line`).toBe(1);
   }
 });
 

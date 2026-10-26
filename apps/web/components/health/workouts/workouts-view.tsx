@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {LoggingFor, useLinkedDay} from '../health-day';
 import {useEffect, useMemo, useState} from 'react';
 import {NebulaFlow} from '../../nebula-flow';
 import {ConfirmInline} from '../../ui/confirm-inline';
@@ -35,6 +36,8 @@ export default function WorkoutsView() {
   const ready = record.loaded && health.loaded && !health.error;
   const unit = ready ? dailyData(health.data).preferences.weightUnit : 'kg';
   const today = ready ? healthDay(dailyData(health.data).preferences.timezone) : '';
+  // Session AH Part 17: a workout started from a past Journal date's link is logged on that day.
+  const linked = useLinkedDay(today || '9999-12-31'), logDay = today && linked < today ? linked : today;
   const current = record.loaded ? inProgress(record.data) : undefined;
   // One clock for the elapsed time and the rest timer, every second while either shows.
   useEffect(() => { if (!current && restUntil === null) return; const t = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(t); }, [current, restUntil]);
@@ -68,7 +71,7 @@ export default function WorkoutsView() {
     setNote(`${target.name} on ${formatDate(target.date)} is deleted, with its minutes in Health.`);
   }
 
-  return <div className="workouts-view">
+  return <div className="workouts-view">{today && <LoggingFor date={logDay} today={today}/>}
     <div className="page-heading"><div>
       <p><Link className="text-link sleep-back" href="/app/health">← Health</Link></p>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="workouts-eyebrow">HEALTH · WORKOUTS</NebulaFlow></p>
@@ -86,12 +89,12 @@ export default function WorkoutsView() {
         <h2 id="workouts-start-title">Start a workout</h2>
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         <div className="workouts-start-actions">
-          <button className="primary" type="button" onClick={() => begin({date: today, now: new Date()})}>Start an empty workout</button>
-          {last && <button className="secondary" type="button" onClick={() => begin({date: today, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
+          <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
+          {last && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: last})}>Repeat {last.name}</button>}
         </div>
         {w.templates.length > 0 && <><h3>Your routines</h3><ul className="workouts-routines">{w.templates.map(t => <li key={t.id}>
           <div><strong>{t.name}</strong><span>{t.exercises.map(e => e.name).join(' · ')}</span></div>
-          <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: today, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
+          <div className="workouts-row-actions"><button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), template: t})} aria-label={`Start ${t.name}`}>Start</button>
             <button className="quiet" type="button" aria-label={`Remove routine ${t.name}`} onClick={() => change(x => removeTemplate(x, t.id), `Routine ${t.name} removed.`)}>Remove</button></div>
         </li>)}</ul></>}
       </section>}
@@ -111,7 +114,7 @@ export default function WorkoutsView() {
         <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {durationMinutes(x)} min · {x.exercises.length} {plural(x.exercises.length, 'exercise')}</span></summary>
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
-            {!current && <button className="secondary" type="button" onClick={() => begin({date: today, now: new Date(), repeat: x})}>Repeat</button>}
+            {!current && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
             <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>
             <button className="quiet" type="button" onClick={() => setAsking({remove: x.id})} aria-label={`Delete ${x.name} on ${formatDate(x.date)}`}>Delete</button>
           </div>

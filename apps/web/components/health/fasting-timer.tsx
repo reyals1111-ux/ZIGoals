@@ -3,7 +3,7 @@ import {removeWithUndo} from '../ui/remove-with-undo';
 import {useState} from 'react';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, MAX_HOURS, elapsedMs, fastingHistory, formatFast, logFastToHabit, removeFast, startFast, stopFast} from '../../lib/fasting/engine';
 import type {HealthData} from '../../lib/health';
-import {dailyData} from '../../lib/health-daily';
+import {dailyData, healthDay} from '../../lib/health-daily';
 import {latestHabitRule} from '../../lib/habits';
 import {readFormNumber} from '../../lib/decimal-input';
 import {saveFailureMessage} from '../../lib/storage-error-copy';
@@ -15,6 +15,7 @@ import type {FastingStore} from './use-fasting';
 import './fasting.css';
 import type {LayoutAttrs} from '../layout-edit';
 import {StarToggle} from '../checklist/star-toggle';
+import {PastDayLine, useHealthDay} from './health-day';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
 const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone}); } catch { return formatTime(iso); } };
@@ -24,6 +25,8 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
   const [preset, setPreset] = useState<number | 'custom'>(16); const [custom, setCustom] = useState('18'); const [habitId, setHabitId] = useState('');
   const [result, setResult] = useState(''); const [error, setError] = useState(''); const [confirming, setConfirming] = useState(false);
   const zone = dailyData(health).preferences.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // Session AH Part 17: on a past Journal date, the fasts begun that day (a fast is timed live, so it is not logged afterwards).
+  const day = useHealthDay(healthDay(zone)), dayFasts = day.past && !fasting.unreadable ? fastingHistory(fasting.data, 200).filter(row => row.day === day.date) : [];
   const running = fasting.running, durationHabits = habits.data.habits.filter(h => { const rule = latestHabitRule(h); return rule.measurement.kind === 'duration' && rule.state === 'active'; });
   async function start() {
     setError(''); setResult('');
@@ -57,6 +60,7 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
     <div className="habit-section-heading"><div><p className="eyebrow">A clock, nothing more</p><h2 id="fasting-title">Fasting timer</h2></div><StarToggle item={{kind: 'health', input: 'fast'}} label="Fast" defaultValue={16} unit="h"/></div>
     <p className="fasting-safety" role="note">{FASTING_SAFETY_NOTE}</p>
     <p className="fine">ZIGoals shows the clock only. It gives no medical or nutritional advice.</p>
+    <PastDayLine date={day.date} today={day.today}>{dayFasts.length ? dayFasts.map(row => `${formatFast(row.hours * 3_600_000)} fast`).join(', ') : 'no fast begun that day'}</PastDayLine>
     {fasting.unreadable ? fasting.error ? <div className="notice" role="alert"><p>{fasting.error}</p></div> : <div className="notice" role="alert"><p>Your saved fasts on this device could not be read. They were not changed.</p>
       {confirming ? <div className="actions"><p className="fine">Start over keeps the old bytes as a recovery copy and continues with no fasts.</p><button type="button" className="secondary" onClick={() => { setConfirming(false); fasting.startOver().catch(e => setError(saveFailureMessage(e))); }}>Start over</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div> : <button type="button" className="quiet" onClick={() => setConfirming(true)}>Start over…</button>}</div>
     : running ? <div className="fasting-running">

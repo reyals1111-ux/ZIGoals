@@ -33,7 +33,9 @@ test("a date the reader chose stays as chosen across midnight", async ({ page })
   await page.getByRole("button", { name: "Previous day", exact: true }).click();
   await expect(journal).toHaveValue("2026-10-23");
   await page.clock.runFor(60_000);
-  await expect(page.getByText("Today in your Health journal · Oct 25, 2026").first()).toBeAttached();
+  // Assertion changed (Session AH Part 17, owner addition; equal strength): the quick counters now follow the chosen day,
+  // so the new day shows in the date field's limit (the two "Next day" taps below reach it only because midnight passed).
+  await expect(journal).toHaveAttribute("max", "2026-10-25");
   await expect(journal).toHaveValue("2026-10-23");
   await page.getByRole("button", { name: "Next day", exact: true }).click();
   await page.getByRole("button", { name: "Next day", exact: true }).click();

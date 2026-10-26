@@ -9,6 +9,7 @@ import {EXERCISE_ICONS,EXERCISE_ICON_LABELS,MAX_COUNTERS,addCounter,changeCount,
 import type {HealthData} from '../../lib/health';
 import './exercise-counters.css';
 import {updateRefusalMessage} from '../../lib/storage-error-copy';
+import {dayName} from '../../lib/health-day';
 import {formatDate} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 
@@ -42,9 +43,11 @@ function CounterEditor({initial,gradient,onSave,onClose}:{initial?:ExerciseCount
  </form></Dialog>;
 }
 
-export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
+export function ExerciseCounters({data,update,date}:{data:HealthData;update:Update;date?:string}){
  const gradient=`exercise-gradient-${useId().replace(/[^a-zA-Z0-9-]/g,'')}`;
- const today=healthDay(dailyData(data).preferences.timezone);
+ // Session AH Part 17: the counters count on the Health journal's chosen day (never a future one).
+ const journalToday=healthDay(dailyData(data).preferences.timezone),today=date&&date<=journalToday?date:journalToday,isToday=today===journalToday;
+ const onDay=isToday?'today':`on ${dayName(today,journalToday)}`;
  const exercise=exerciseData(data);
  const [editor,setEditor]=useState<ExerciseCounter|'new'|null>(null),[removing,setRemoving]=useState<ExerciseCounter|null>(null),[managing,setManaging]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState('');
  // Taps are applied one after another, each to the latest saved Health data.
@@ -61,17 +64,17 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
   // section heading already says "Today in your Health journal"). "Today" stays in what is announced with the name.
   return <article className="exercise-counter" aria-label={c.name}>
    <span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span>
-   <div className="exercise-counter-name"><h3 title={c.name}>{c.name}</h3><p className="exercise-counter-caption sr-only">{count===null?'No entry today':'Today'}</p></div>
+   <div className="exercise-counter-name"><h3 title={c.name}>{c.name}</h3><p className="exercise-counter-caption sr-only">{count===null?`No entry ${onDay}`:isToday?'Today':dayName(today,journalToday)}</p></div>
    <div className="exercise-counter-controls">
     <button type="button" className="exercise-step" aria-label={`Decrease ${c.name}`} disabled={!count} onClick={()=>tap(c,-1)}>−</button>
-    <output className="exercise-count" aria-live="polite" aria-label={`${c.name} today`} data-empty={count===null||undefined}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry today</span></>:count}</output>
+    <output className="exercise-count" aria-live="polite" aria-label={`${c.name} ${onDay}`} data-empty={count===null||undefined}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry {onDay}</span></>:count}</output>
     <button type="button" className="exercise-step" aria-label={`Increase ${c.name}`} onClick={()=>tap(c,1)}>+</button>
    </div>
   </article>;
  };
  return <section className="exercise-counters" aria-labelledby="exercise-counters-title">
   <svg width="0" height="0" aria-hidden="true" focusable="false" style={{position:'absolute'}}><defs><linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5fe6f5"/><stop offset=".55" stopColor="#9d8cff"/><stop offset="1" stopColor="#f07fd8"/></linearGradient></defs></svg>
-  <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">Today in your Health journal · <time dateTime={today}>{formatDate(today)}</time></p></div>
+  <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">{isToday?'Today':dayName(today,journalToday)} in your Health journal · <time dateTime={today}>{formatDate(today)}</time></p></div>
    {/* Session AB-Design (owner request 22): one ⋯ in the card's corner manages the counters (add, rename or change icon, delete; reorder with the layout lock); the rows carry only the icon, the name and −/value/+. */}
    <div className="exercise-counters-tools"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>+ Add counter</button><CardOptions label="Quick counters"><button type="button" onClick={()=>setManaging(true)}>Manage counters…</button><button type="button" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>Add counter</button></CardOptions></div></div>
   <div className="exercise-counter-grid"><LayoutRegion region="counters" grid items={exercise.counters.map(c=>({id:entityLayoutId(c.id),label:c.name,node:card(c)}))}/></div>

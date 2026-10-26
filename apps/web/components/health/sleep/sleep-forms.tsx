@@ -1,4 +1,5 @@
 'use client';
+import {LoggingFor, useLinkedDay} from '../health-day';
 import {showToast} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {SLEEP_TAGS, type SleepNight} from '../../../lib/sleep/schema';
@@ -56,21 +57,22 @@ export function NightForm({store, night, onDone, onCancel}: {store: SleepStore; 
     catch (err) { setError(message(err)); }
     finally { setBusy(false); }
   }
-  const today = store.today;
+  // Session AH Part 17: a new night defaults to the Health journal's linked day (`?date=`), never a future one.
+  const today = store.today, day = useLinkedDay(store.today);
   // Session AH Part 3 (DS3, L-062): the new-night form says when last night is already logged, instead of offering the
   // same 23:00–07:00 again (saving it would be refused as an overlap).
-  const logged = night ? undefined : store.sleep.nights.find(n => n.kind === 'night' && n.end !== null && nightDay(n) === today);
-  return <form className="sleep-form" onSubmit={submit} aria-label={night ? (night.kind === 'nap' ? 'Edit this nap' : 'Edit this night') : 'Log a night or a nap'} noValidate>
+  const logged = night ? undefined : store.sleep.nights.find(n => n.kind === 'night' && n.end !== null && nightDay(n) === day);
+  return <form className="sleep-form" onSubmit={submit} aria-label={night ? (night.kind === 'nap' ? 'Edit this nap' : 'Edit this night') : 'Log a night or a nap'} noValidate>{!night && <LoggingFor date={day} today={today}/>}
     {logged && <p className="fine" role="note">Last night is already logged, {formatTime(logged.start, {timeZone: logged.timeZone})}–{formatTime(logged.end!, {timeZone: logged.timeZone})}. Edit it from the list below, or log a nap or another night here.</p>}
     <fieldset className="sleep-kind"><legend>What are you logging?</legend>
       {(['night', 'nap'] as const).map(kind => <label key={kind}><input type="radio" name="kind" value={kind} defaultChecked={(night?.kind ?? 'night') === kind}/><span>{kind === 'night' ? 'A night' : 'A nap'}</span></label>)}
     </fieldset>
     <div className="sleep-form-row">
-      <label className="field">Went to bed (date)<input type="date" name="bedDate" required defaultValue={start?.date ?? addDays(today, -1)}/></label>
+      <label className="field">Went to bed (date)<input type="date" name="bedDate" required defaultValue={start?.date ?? addDays(day, -1)}/></label>
       <label className="field">Went to bed (time)<input type="time" name="bedTime" required defaultValue={start?.clock ?? '23:00'}/></label>
     </div>
     <div className="sleep-form-row">
-      <label className="field">Woke up (date)<input type="date" name="wakeDate" required defaultValue={end?.date ?? today}/></label>
+      <label className="field">Woke up (date)<input type="date" name="wakeDate" required defaultValue={end?.date ?? day}/></label>
       <label className="field">Woke up (time)<input type="time" name="wakeTime" required defaultValue={end?.clock ?? '07:00'}/></label>
     </div>
     <p className="fine">Times in {zone}.</p>

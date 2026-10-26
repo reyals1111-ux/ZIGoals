@@ -196,6 +196,26 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
   - NO4: a sweep of 30 routes, both with a fresh empty device and with the Showcase, at 390 and 1440 px, every /api/ call answering 503. No page errors, no console errors, nothing sideways, no "NaN", "undefined" or "[object Object]" text, and every page has its title.
   - WE15: of the registry's 178 links, 124 answered 200. 50 answered 403 and 2 answered 401 from bot or proxy blocks (GitHub included), which says nothing about the links. Two were 404: PermaPod's GitBook (removed; its GitHub links stay) and the FSCA FAIS Notice 93 of 2022 PDF, an evidence source that has moved (kept and recorded; no replacement address guessed).
 
+- **M51 — Part 17 (owner addition 1): the Journal date drives the whole Health page.**
+  - One chosen day for the page (`lib/health-day.ts`, `components/health/health-day.tsx`). A `?date=YYYY-MM-DD` link opens that day. A future, impossible or malformed date opens today, and the field stops at today: the future cannot be logged.
+  - What follows the chosen day:
+    - the quick counters, which count and log on it;
+    - the diary, water and meals, weight and activity, which already did;
+    - the highlights, the weight trend, the measurements trend and "Seven days of care", which end on the day and mark it (`aria-current="date"`);
+    - Sleep, Meditation, Workouts and Fasting, which show what that day holds and link to logging for it (`?view=…&date=`). Their full views start a new entry on that day and say "Logging for Thu 22 Oct".
+  - Fasting is timed live, so a past day shows its fasts but cannot add one. The coach card stays advice for now. Tonight's one-tap night shows only on today.
+  - The date bar:
+    - ← and → are 44 px nebula buttons (white text 5.2–6.8:1 on every stop) that brighten on hover without following the pointer, with focus rings;
+    - a "Today" pill appears once another day is chosen;
+    - the day reads "Thu 22 Oct" with "Today", "Yesterday" or "3 days ago";
+    - tapping the day opens the date picker (the real field, still named "Journal date", sits over it);
+    - a swipe on a phone and the ← / → keys while the bar has focus move a day;
+    - the day's name animates once when it changes, never with reduced motion or Motion Off;
+    - the same styles in every theme.
+  - Stored format: no change was needed. Counters, water, the diary, sleep nights, meditation and fasting sessions, workouts and measurements were already stored per day or per instant, so no TIER 3 (stored format) commit was made.
+  - Tests: lib/health-day.test.ts; tests/ah-health-day.spec.ts (deep link, logging to the day, trend mark, card links, the future refused, keys, 44 px, swipe and reduced motion on a phone, the full views). health-midnight now proves the rollover through the field's limit, and layout-fixes-ae measures the new bar (both equal strength).
+- **M52 — CI 1230 fixes.** The goal ring's `aria-valuenow` is exact again; TO7's two-decimal rounding belongs to the spoken `aria-valuetext` only. Activity's account events (B-199) are newer than the Showcase's asset events, so run9-2-life clicks the first asset link and also checks that an account row links to Accounts (stronger).
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
@@ -490,3 +510,8 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | NO2 | Verified | M50 |
 | NO4 | Verified (empty and Showcase) | M50 |
 | WE15 (carried) | Fixed (part) | M-117, B-093: one dead documentation link removed; the moved FSCA source recorded (M50) |
+
+### Part 17 — Owner addition 1: the Health journal date
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| Part 17 (owner) | Fixed | M51 |

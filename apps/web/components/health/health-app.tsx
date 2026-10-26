@@ -42,7 +42,6 @@ import {
   searchFoods, setHealthTargets, weightTrend, healthSchema, type HealthData, type HealthDiaryEntry,
   type HealthFood, type HealthRecipe, type HealthTargets, type Nutrition, type RecipeDraft,
 } from "../../lib/health";
-import { addLocalDays } from "../../lib/local-date";
 import { GlassBar, GlassRing } from "../progress/glass-progress";
 import { useHealth } from "./use-health";
 import { useHabits } from "../habits/use-habits";
@@ -64,7 +63,6 @@ import { MealQuick, RepeatDay } from "./quick-log";
 import { bodyWeightGrams, dailyData, servingsFromMeasure } from "../../lib/health-daily";
 import { EvidenceChart } from "../platform/evidence-chart";
 import { weightChangeText, weightChartValue, weightText, type WeightUnit } from "../../lib/health-units";
-import {healthDateSchema} from "../../lib/health";
 import {PinToToday} from "../pin-to-today";
 import { PHONE_QUERY, usePhoneActive } from "../phone/use-phone-layout";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
@@ -86,6 +84,8 @@ import {useScrollEdges} from '../ui/use-scroll-edges';
 import { StarToggle } from '../checklist/star-toggle';
 import {plainErrorMessage} from '../../lib/plain-error';
 import { isShowcase } from "../../lib/showcase-storage";
+import {journalDay} from "../../lib/health-day";
+import {HealthDateBar, HealthDayProvider, LoggingFor} from "./health-day";
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
@@ -173,7 +173,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
   // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
   const [logging, setLogging] = useState(false);
-  const searchParams=useSearchParams(),pinnedDate=healthDateSchema.safeParse(searchParams.get("date"));
+  const searchParams=useSearchParams();
   const addIntent = searchParams.get("add") === "entry";
   const [handledIntent, setHandledIntent] = useState(false);
   // A same-page Quick Add is a new intent, not a new Health store.
@@ -203,7 +203,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     router.replace(`${url.pathname}${url.search}${url.hash}`, { scroll: false });
   }, [addIntent, router]);
   const today = useHealthToday(dailyData(data).preferences.timezone);
-  const [date, setDate] = useState(() => pinnedDate.success?pinnedDate.data:today);
+  // Session AH Part 17: a `?date=` deep link opens that day; a future or malformed one opens today.
+  const [date, setDate] = useState(() => journalDay(searchParams.get("date"), today));
   // Forms are keyed by the reader's own date choices, not by the date itself: when the open page follows midnight
   // (QA-16), a half-typed entry stays and is logged on the new day; choosing another date still starts afresh.
   const [dateChoice, setDateChoice] = useState(0);
@@ -246,17 +247,18 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   // A name with nothing visible gets its own message (QA-32); every other refusal keeps the fields message.
   const invalid = (cause?: unknown) => { const name = cause instanceof Error && cause.message === INVISIBLE_NAME, count = mark(name); /* Session AH (C2, C3): the reason itself when the app wrote one (a limit, a range with its unit) */ const said = cause instanceof Error && (cause.name === "LimitError" || /^Enter |^Choose /.test(cause.message)) ? plainErrorMessage(cause, "") : ""; setError(name ? cause.message : said ? said : count ? "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings." : "Check the numbers: enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings."); };
   const summary = dailyHealthSummary(data, date);
-  const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => chooseDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") chooseDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => chooseDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => chooseDate(today)}>Today</button></div>;
-  return <LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
+  // Session AH Part 17 (owner addition): the date bar; on a past day every card logs to that day, the future cannot be chosen.
+  const dateControl = <div className="health-date-block"><HealthDateBar date={date} today={today} onChoose={next => chooseDate(journalDay(next, today))}/><LoggingFor date={date} today={today}/></div>;
+  return <HealthDayProvider value={{date, today}}><LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
     {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
     <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<><Link className="secondary health-privacy-link" href="/app/settings">Privacy &amp; backups</Link><button type="button" className="secondary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("water")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log water</button><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food</button></>}/><LayoutLockButton/>
-    {!phone && <ExerciseCounters data={data} update={update} />}
+    {!phone && <ExerciseCounters data={data} update={update} date={date} />}
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
-    {phone && <ExerciseCounters data={data} update={update} />}
+    {phone && <ExerciseCounters data={data} update={update} date={date} />}
     {/* Phase 2, Part 5 (owner request 33): the highlight tiles — the figures of the trend, energy and coach cards below. */}
-    <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={today} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
+    <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={date} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
@@ -277,25 +279,25 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Import" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the import…"/>}><RecipeImport data={data} perform={perform} /></Suspense></LoadBoundary>}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
-      {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={today} /></Suspense></LoadBoundary></>}
+      {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary></>}
       {view === "Weight" && <WeightView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} />}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
       {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></Suspense></LoadBoundary></>}
     </fieldset>
     {/* ADR-022 B49: the weight trend, energy and coach cards close the journal block (no new layout item; the summary and the nutrition dashboard stay adjacent; the diary form keeps its place after a Quick Add, run9-2-life). */}
-    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
+    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={date} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
     {id: "health:workouts", label: "Workouts", node: <PhoneFold label="Workouts"><WorkoutsCard /></PhoneFold>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><div className="health-fasting-block"><FastingTimer fasting={fasting} health={data} /><LoadBoundary quiet><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></LoadBoundary></div></PhoneFold>}, // B49: one child, so PhoneFold can carry the layout attributes on computers (two children lost the item from the region since B41)
-    {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} waterUnit={dailyData(data).preferences.waterUnit} />},
+    {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={date} waterUnit={dailyData(data).preferences.waterUnit} />},
     ]}/>
     {/* Session AB-Design (owner requests 9, 23): the game card only at the very bottom of the page while Gamify is on. */}
     <div className="health-progress-slot page-game-slot"><ProgressSlot page="health" /></div>
     <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
-  </div></LayoutPage>;
+  </div></LayoutPage></HealthDayProvider>;
 }
 
 function HealthSummary({ data, date, today, onTargets, ...layout }: LayoutAttrs & { data: HealthData; date: string; today: string; onTargets: () => void }) {

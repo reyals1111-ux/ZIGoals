@@ -1,4 +1,5 @@
 'use client';
+import {useLinkedDay} from '../health-day';
 import {showToast} from '../../ui/undo-toast';
 import {useState, type FormEvent} from 'react';
 import {BELL_SOUNDS, BREATHING_PATTERNS, type MeditationSession} from '../../../lib/meditation/schema';
@@ -74,9 +75,11 @@ export function ManualForm({store, session, onDone, onCancel}: {store: Meditatio
     finally { setBusy(false); }
   }
   const now = wallClock(store.now, zone);
+  // Session AH Part 17: a new session defaults to the Health journal's linked day (`?date=`), never a future one.
+  const linkedDay = useLinkedDay(now.date);
   return <form className="meditation-form" onSubmit={submit} aria-label={session ? 'Edit this session' : 'Log mindful minutes'} noValidate>
     <div className="meditation-form-row">
-      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? now.date}/></label>
+      <label className="field">Began (date)<input type="date" name="date" required defaultValue={start?.date ?? linkedDay}/></label>
       <label className="field">Began (time)<input type="time" name="time" required defaultValue={start?.clock ?? '07:00'}/></label>
       <label className="field">Minutes<input type="text" inputMode="numeric" name="minutes" autoComplete="off" required defaultValue={session ? String(Math.round(session.seconds / 60)) : '10'}/></label>
     </div>

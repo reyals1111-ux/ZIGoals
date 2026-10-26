@@ -8663,6 +8663,50 @@
         color: var(--text-strong, #f4f8ff)
     }
 }
+/*  components/health/health-day.css  */
+@scope (:root[data-theme=dark]) {
+    .health-page .health-date-bar:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .health-page .health-date-step:not(#\-), .health-page .health-date-today:not(#\-) {
+        border-color: #ffffff3d;
+        color: #fff;
+        background-image: linear-gradient(135deg, #0b7690 0%, #5a43c9 52%, #9a35ad 100%);
+        background-color: transparent;
+        box-shadow: 0 6px 18px #6d55e040
+    }
+    .health-page :is(.health-date-step, .health-date-today):hover:not(:disabled):not(#\-) {
+        filter: brightness(1.1) saturate(1.08);
+        box-shadow: inset 0 0 0 1px #ffffff59, 0 8px 24px #6d55e066
+    }
+    .health-page :is(.health-date-step, .health-date-today):focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .health-page .health-date-step:disabled:not(#\-) {
+        box-shadow: none;
+        filter: grayscale(.4)
+    }
+    .health-page .health-date-pick:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 24%, transparent)
+    }
+    .health-page .health-date-pick:focus-within:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .health-page .health-date-text small:not(#\-) {
+        color: var(--health-muted, #b9c6dc)
+    }
+    .health-page .health-date-pick input:not(#\-) {
+        border-color: currentcolor
+    }
+    @media (forced-colors: active) {
+        .health-page :is(.health-date-step, .health-date-today):not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: ButtonText;
+            border-color: ButtonText
+        }
+    }
+}
 /*  components/health/health-highlights.css  */
 @scope (:root[data-theme=dark]) {
     .health-hl-tile:not(#\-) {

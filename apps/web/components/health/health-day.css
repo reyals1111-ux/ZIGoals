@@ -1,0 +1,26 @@
+/* Session AH Part 17: the Health date bar. The arrows and the Today pill wear the nebula gradient in every theme (the
+   same element styles everywhere, so theme parity holds); hover brightens them like glass, without following the pointer. */
+.health-page .health-date-bar { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; border-radius: 16px; }
+.health-page .health-date-bar:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 4px; }
+.health-page .health-date-step, .health-page .health-date-today {
+  min-width: 44px; min-height: 44px; border: 1px solid #ffffff3d; color: #fff; cursor: pointer; font-weight: 700;
+  background: linear-gradient(135deg, #0b7690 0%, #5a43c9 52%, #9a35ad 100%);
+  box-shadow: 0 6px 18px #6d55e040; transition: filter .15s ease, box-shadow .15s ease;
+}
+.health-page .health-date-step { width: 44px; height: 44px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 20px; line-height: 1; }
+.health-page .health-date-today { padding: 0 18px; border-radius: 999px; font-size: 15px; }
+.health-page :is(.health-date-step, .health-date-today):hover:not(:disabled) { filter: brightness(1.1) saturate(1.08); box-shadow: inset 0 0 0 1px #ffffff59, 0 8px 24px #6d55e066; }
+.health-page :is(.health-date-step, .health-date-today):focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 3px; }
+.health-page .health-date-step:disabled { opacity: .4; cursor: default; box-shadow: none; filter: grayscale(.4); }
+.health-page .health-date-pick { position: relative; display: grid; align-items: center; min-height: 44px; min-width: 9.5rem; padding: 4px 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, currentColor 24%, transparent); cursor: pointer; }
+.health-page .health-date-pick:focus-within { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
+.health-page .health-date-text { display: grid; line-height: 1.15; }
+.health-page .health-date-text strong { font-size: 16px; }
+.health-page .health-date-text small { font-size: 13px; color: var(--health-muted, #b9c6dc); }
+/* The real date field sits over the day's name: a tap opens the picker, and keyboards and tests type into it. */
+.health-page .health-date-pick input { position: absolute; inset: -1px; width: auto; height: auto; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 16px; }
+@keyframes health-day-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .health-page .health-date-text.is-new { animation: health-day-in .22s ease-out both; } }
+.health-logging-for { margin: 6px 0 0; font-size: 14px; }
+.health-past-day { margin: 6px 0; font-size: 14px; }
+@media (forced-colors: active) { .health-page :is(.health-date-step, .health-date-today) { background: ButtonFace; color: ButtonText; border-color: ButtonText; } }
