@@ -105,6 +105,19 @@ it('keeps overdue actual pace visible despite forecast wealth reaching target',(
  const s=intelligence.appendContribution(state(),{...event(),quantity:'40000'});
  expect(intelligence.fundingHealth(s,'1',now).status).toBe('AHEAD');
 });
+// Session AH (TR11; B-006, B-113, M-056): ahead of the plan's schedule is not ahead of the Goal. A plan that leaves a
+// shortfall at the target date, or finishes after it, reads "Behind"; the same pace that reaches the target reads "Ahead".
+it('never reads Ahead when the plan misses the target or the target date',()=>{
+ const short=intelligence.appendContribution(state(),{...event(),quantity:'40000'});short.goals[0]!.target='1000000';
+ const shortHealth=intelligence.fundingHealth(short,'1',now);
+ expect(BigInt(shortHealth.variance)).toBeGreaterThan(0n);expect(BigInt(shortHealth.shortfall)).toBeGreaterThan(0n);
+ expect(shortHealth.status).toBe('BEHIND');
+ const late=intelligence.appendContribution(state(),{...event(),quantity:'40000'});late.goals[0]!.targetDate='2026-09-21';
+ const lateHealth=intelligence.fundingHealth(late,'1',now);
+ expect(BigInt(lateHealth.variance)).toBeGreaterThan(0n);expect(lateHealth.status).toBe('BEHIND');
+ const reaches=intelligence.appendContribution(state(),{...event(),quantity:'40000'});
+ const health=intelligence.fundingHealth(reaches,'1',now);expect(health.shortfall).toBe('0');expect(health.status).toBe('AHEAD');
+});
 it('shows a payment scheduled today without guessing it is paid',()=>{
  const s=state();s.goals[0]!.plan!.nextDate='2026-09-20';
  expect(intelligence.fundingHealth(s,'1',now).nextDate).toBe('2026-09-20');
