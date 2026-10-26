@@ -556,7 +556,6 @@
     ],
     "website": "https://permapod.xyz/",
     "documentation": [
-      "https://permapod.gitbook.io/",
       "https://github.com/permapod-zigchain/permapod-skills",
       "https://raw.githubusercontent.com/permapod-zigchain/permapod-skills/main/src/config.ts"
     ],

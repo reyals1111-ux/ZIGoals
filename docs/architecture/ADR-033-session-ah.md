@@ -190,6 +190,12 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
     Rollback: delete the workflow and `scripts/pr-review/`. The secret and the variable wait on the owner.
   - RM5: FRIENDS_GUIDE is refreshed: "Nothing moves unless you sign", Fitbit's removal, and what's new in this release. Help's Known limitations already matched the app (Part 6, Part 12).
 
+- **M50 — Part 16: final sweeps.**
+  - NO1: of BUG-001…085, the closing tables name 61, each with its row's outcome; C4 (Part 8) carries BUG-013–017 and 065. The Grok run had already listed BUG-008, 015, 025, 033 and 058 as fixed, and 005, 017, 018, 037, 040, 043, 065 and 081 as not reproduced. Fourteen ids (BUG-002, 012, 019, 023, 038, 051, 052, 054, 055, 056, 057, 060, 067, 072) are not described in the brief or anywhere in the repository, so they are recorded for the owner's next bot run rather than guessed.
+  - NO2: the keep-list still holds. Unit suite: food maths, water conversion, DST, P&L, CSP. Browser, on a production build: focus traps, the calculator review, ZIP export and its round trip, restore with preview, sleep, the weekly review, Habits at 375, Earn's plain words and multi-tab persistence (93 tests).
+  - NO4: a sweep of 30 routes, both with a fresh empty device and with the Showcase, at 390 and 1440 px, every /api/ call answering 503. No page errors, no console errors, nothing sideways, no "NaN", "undefined" or "[object Object]" text, and every page has its title.
+  - WE15: of the registry's 178 links, 124 answered 200. 50 answered 403 and 2 answered 401 from bot or proxy blocks (GitHub included), which says nothing about the links. Two were 404: PermaPod's GitBook (removed; its GitHub links stay) and the FSCA FAIS Notice 93 of 2022 PDF, an evidence source that has moved (kept and recorded; no replacement address guessed).
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
@@ -476,3 +482,11 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | CO13 | Already fixed | the V5 landing (M49) |
 | RM6 | Fixed (waits on the owner's secret) | TIER 3 CI, amendment 7 (M49) |
 | RM5 | Fixed | FRIENDS_GUIDE refreshed; Help's Known limitations current (M49) |
+
+### Part 16 — Final sweeps
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| NO1 | Closed / recorded | M50 (14 undescribed ids recorded) |
+| NO2 | Verified | M50 |
+| NO4 | Verified (empty and Showcase) | M50 |
+| WE15 (carried) | Fixed (part) | M-117, B-093: one dead documentation link removed; the moved FSCA source recorded (M50) |
