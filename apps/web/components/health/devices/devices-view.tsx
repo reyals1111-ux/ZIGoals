@@ -4,7 +4,8 @@ import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {useHealth} from '../use-health';
 import {useHealthToday} from '../use-health-today';
 import {dailyData} from '../../../lib/health-daily';
-import {formatHealthGrams, newHealthId, saveWeight} from '../../../lib/health';
+import {newHealthId, saveWeight} from '../../../lib/health';
+import {weightText} from '../../../lib/health-units';
 import {isShowcase} from '../../../lib/showcase-storage';
 import {bluetoothProblem, bluetoothSupport, connectScale, type Connection, type Support} from '../../../lib/bluetooth/web-bluetooth';
 import {connectMonitor, disconnectMonitor} from '../../../lib/bluetooth/monitor';
@@ -105,7 +106,7 @@ function ScaleReader() {
     {weight && <div className="devices-weight">
       <p className="devices-reading"><strong>{shown(weight.kg)}</strong>{body?.fatPct != null ? ` · body fat ${body.fatPct.toFixed(1)} %` : ''}</p>
       {body?.fatPct != null && <p className="fine">Body fat is shown, not saved: your Health journal has no place for it yet.</p>}
-      {existing && <p className="notice">You already have a weight for {formatDate(today)} ({formatHealthGrams(existing.grams)} kg); saving replaces it.</p>}
+      {existing && <p className="notice">You already have a weight for {formatDate(today)} ({weightText(existing.grams, 'kg')}); saving replaces it.</p>}
       <div className="actions"><button type="button" className="primary" onClick={() => void save()}>{existing ? 'Replace today’s weight' : 'Save as today’s weight'}</button><button type="button" className="quiet" onClick={() => { setWeight(null); setBody(null); }}>Not this one</button></div>
     </div>}
     <div className="actions">{name ? <button type="button" className="secondary" onClick={() => { connection.current?.stop(); connection.current = null; setName(null); }}>Disconnect</button> : <button type="button" className="secondary" disabled={busy || !health.loaded} onClick={() => void connect()}>{busy ? 'Connecting…' : 'Connect a scale'}</button>}</div>

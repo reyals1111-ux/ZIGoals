@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {openMealLog} from "./phone-nav";
+import { HEALTH_STORAGE_KEY } from "../lib/health";
 
 test("rejected food validation keeps the draft and existing private records recoverable", async ({ page }) => {
   await page.goto("/app/health");
@@ -115,7 +116,10 @@ test("explicit targets, weight correction and manual activity persist without a 
   await page.reload();
   await expect(page.getByText("2,300 kcal target")).toBeVisible();
   await page.getByRole("button", { name: "Weight", exact: true }).click();
-  await expect(page.getByRole("table", { name: "Weight history" })).toContainText("73.25 kg");
+  // Assertion changed (Session AH TR10, one rounding rule: weight shows a tenth; stronger): the row reads 73.3 kg and the
+  // record keeps the exact 73,250 g.
+  await expect(page.getByRole("table", { name: "Weight history" })).toContainText("73.3 kg");
+  expect(await page.evaluate(key => (JSON.parse(localStorage.getItem(key)!) as { weights: { grams: number }[] }).weights.map(w => w.grams), HEALTH_STORAGE_KEY)).toContain(73250);
   await expect(page.getByText("72 kg", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

@@ -30,6 +30,8 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
     <p className="eyebrow">Six weeks</p><h2 id="weight-trend-title"><NebulaFlow identity="weight-trend-title">Weight trend</NebulaFlow></h2>
     {t.latestTrend === null ? <p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p> : <>
       <p className="health-big">{weightText(tenths(t.latestTrend), unit)}<small>trend today{rate ? ` · ${rate}/week` : ''}</small></p>
+      {/* Session AH (TR10): the latest reading beside the smoothed trend, so the two numbers are never mistaken for each other. */}
+      {t.latestReading && <p className="fine health-trend-latest">Latest reading {weightText(t.latestReading.grams, unit)} · {formatDate(t.latestReading.date, {year: false})}. The trend smooths day-to-day swings.</p>}
       <div className="health-trend-chart" ref={plot}>
         <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary} onMouseLeave={() => setTip(null)}>
           <ChartDefs id="weight-trend" pillar="health"/>
