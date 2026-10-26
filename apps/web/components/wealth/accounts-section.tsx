@@ -98,7 +98,7 @@ function AddAccount({onAdd, today}: {onAdd: (input: Parameters<typeof addAccount
   const [kind, setKind] = useState<AccountKind>('savings'), fe = useFieldErrors();
   return <form className="platform-form accounts-add" aria-label="Add an account or debt" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); let field = ''; try {
     const name = String(f.get('name')).trim(), currency = String(f.get('currency')).trim().toUpperCase(), balance = String(f.get('balance') ?? '').trim(), rate = String(f.get('rate') ?? '').trim().replace(',', '.');
-    field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a currency code. Use one such as EUR, USD or GBP.`);
+    field = 'currency'; if (!isMoneyCurrency(currency)) throw Error(`“${currency}” is not a three-letter currency code ZIGoals knows. Use one such as EUR, USD or GBP.`);
     field = 'balance'; const money = balance ? toMoney(balance, String(f.get('date') || today)) : undefined; field = '';
     onAdd({id: crypto.randomUUID(), kind, name, currency, institution: String(f.get('institution') ?? ''), ...(rate ? {ratePercent: rate} : {}), ...(money ? {balance: money} : {})}, `${name} added.`); fe.clear();
   } catch (cause) { fe.fail(plainErrorMessage(cause, 'Check the account.'), ...(field ? [field] : [])); } }}>

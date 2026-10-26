@@ -48,8 +48,9 @@ test('the wrap-up: turned on in Settings, a calm card after 18:00 with the day i
   const settings = page.getByRole('region', {name: 'Evening wrap-up', exact: true});
   await expect(settings.getByLabel('Show the evening wrap-up on Today')).not.toBeChecked();
   await settings.getByLabel('Show the evening wrap-up on Today').check();
-  await settings.getByRole('button', {name: 'Save wrap-up', exact: true}).click();
-  await expect(settings.getByRole('status')).toHaveText('The evening wrap-up shows on Today from 6:00 PM.');
+  // Session AH (TO2): it saves as it changes, says so beside the control, and offers to start now.
+  await expect(settings.getByRole('status')).toHaveText('Saved. The evening wrap-up shows on Today from 6:00 PM.');
+  await expect(settings.getByRole('link', {name: 'Start the wrap-up now →'})).toHaveAttribute('href', '/app?wrap-up=now');
   expect(await stored(page, SETTINGS)).toMatchObject({schemaVersion: 3, wrapUp: {version: 1, enabled: {v: true}, days: {}}});
   await page.goto('/app');
   await revealForYou(page);

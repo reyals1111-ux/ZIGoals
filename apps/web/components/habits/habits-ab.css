@@ -98,5 +98,5 @@
 .habits-workspace .habit-card-heading small { overflow-wrap: anywhere; }
 /* Session AH (F6): the sort sits at the end of the filter bar; "Show more" under the list. */
 .habit-filter-bar .habit-sort { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; font-size: .875rem; }
-.habit-filter-bar .habit-sort select { min-height: 44px; }
+:root .habit-filter-bar .habit-sort select { min-height: 44px; min-width: 8rem; flex: none; } /* Session AH (QA2-07): a full tap target on phones too (it had shrunk to 28 px) */
 .habit-show-more { display: flex; justify-content: center; margin: 12px 0; }

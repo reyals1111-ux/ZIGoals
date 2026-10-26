@@ -49,6 +49,3 @@
    stretched them into equal columns, each word centred mid-row). */
 :root .accounts-row > .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 14px; }
 :root .accounts-row > .actions > :is(button, a) { width: auto; flex: none; }
-/* Session AH (WE10, B-026): inside its phone fold the section's title repeats the fold's own label; it stays for
-   screen readers only. */
-.phone-fold .accounts-section #accounts-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

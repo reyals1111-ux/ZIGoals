@@ -42,7 +42,7 @@ import {dailyData} from '../../lib/health-daily';
 import {deviceTimeZone} from '../../lib/journal-zone';
 import {JournalZoneCard} from './journal-zone-card';
 import {WrapUpCard} from './wrap-up-card';
-import {intentionFrom, wrapUpDay, wrapUpDue} from '../../lib/wrap-up/engine';
+import {intentionFrom, wrapUpDay, wrapUpDue, wrapUpEnabled, wrappedUp} from '../../lib/wrap-up/engine';
 import {localClock} from '../../lib/reminders/due';
 import {addLocalDays} from '../../lib/local-date';
 import {usePagesView} from '../pages/use-pages-view';
@@ -70,7 +70,8 @@ const formatWealth = (s: {currency: string; value: bigint}) => wealthMoney(s.val
 /** Where Today places each part (Session AA-Cloud Part 1): the fasting clock in "Today's focus", the cards for the day
  * after the widgets, and What's new, the weekly review and the wrap-up with the summaries at the end. */
 export type ForYouParts = {focus: ReactNode; main: ReactNode; end: ReactNode};
-const END_CARDS = new Set(['whats-new', 'weekly-review', 'wrap-up', 'life-review']), FOCUS_CARDS = new Set(['fasting']);
+// Session AH (TO2): once due, the wrap-up stands open in Today's focus (at the end it had folded away, on a phone always).
+const END_CARDS = new Set(['whats-new', 'weekly-review', 'life-review']), FOCUS_CARDS = new Set(['fasting', 'wrap-up']);
 export function TodayForYou({habits, health, platform, localGoals, metadata, quotes, now, today, financial, showcase, render, reviewOnToday = false}: {reviewOnToday?: boolean; habits: HabitData; health: HealthData; platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[]; now: number; today: string; financial: boolean; showcase: boolean; render?: (parts: ForYouParts) => ReactNode}) {
   const fasting = useFasting(), review = useWeeklyReview(), healthGoals = useHealthGoals(), links = useHabitHealthLinks(), guide = useGuide(), reminders = useReminders();
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), zonePrompt = useDeviceRecord(W_REMINDERS);
@@ -81,6 +82,9 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   // Session W Part 13: the evening wrap-up follows this device's clock, checked every half minute.
   const pagesView = usePagesView(), [clock, setClock] = useState<Date | null>(null);
   useEffect(() => { const tick = () => setClock(new Date()); queueMicrotask(tick); return everyHalfMinute(tick); }, []);
+  // Session AH (TO2): "Start the wrap-up now" in Settings opens Today with ?wrap-up=now, before its time.
+  const [startNow, setStartNow] = useState(false);
+  useEffect(() => { queueMicrotask(() => { try { setStartNow(new URLSearchParams(globalThis.location.search).get('wrap-up') === 'now'); } catch { setStartNow(false); } }); }, []);
   const zigiOn = launcher.loaded && launcher.record.enabled && !launcher.record.launcherHidden;
   useEffect(() => { let active = true; queueMicrotask(() => { if (!active) return; try { setWhatsNew(!whatsNewSeen(getAppStorage())); } catch { setWhatsNew(false); } }); return () => { active = false; }; }, [showcase]);
   const dismissNew = useCallback(() => { let ok = false; try { ok = dismissWhatsNew(getAppStorage()); } catch { ok = false; } if (ok) setWhatsNew(false); return ok; }, []);
@@ -127,7 +131,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (!showcase && zoneMatters && settings.loaded && !settings.error && !settings.data.journalTimeZone && !habits.timeZone && !dailyData(health).preferences.timezone && zonePrompt.loaded && !zonePrompt.unreadable && !zonePrompt.data.dismissed[JOURNAL_ZONE_PROMPT])
     cards.push({id: 'journal-zone', priority: 8, node: <JournalZoneCard zone={deviceTimeZone()} onUse={() => settings.update(current => withJournalZone(current, deviceTimeZone())).then(() => undefined)} onLater={() => { try { zonePrompt.update(r => ({...r, dismissed: {...r.dismissed, [JOURNAL_ZONE_PROMPT]: today}})); return true; } catch { return false; } }} />});
   // Session W Part 13: the evening wrap-up, once its time has come and until the day is wrapped up; below the open card.
-  if (settings.loaded && !settings.error && clock && wrapUpDue(settings.data, today, localClock(clock)))
+  if (settings.loaded && !settings.error && clock && (wrapUpDue(settings.data, today, localClock(clock)) || startNow && wrapUpEnabled(settings.data) && !wrappedUp(settings.data, today)))
     cards.push({id: 'wrap-up', priority: 9, node: <WrapUpCard habits={habits} health={health} now={clock.getTime()} showHabits={isShown(pagesView, 'habits')} showHealth={isShown(pagesView, 'health')} onWrap={intention => settings.update(current => wrapUpDay(current, today, intention, new Date().toISOString())).then(() => true, () => false)} />});
   // Session AA-Cloud Part 5: the Life review's door, with the summaries at the end, once there is something to review.
   // Not when the person keeps the Life review among Today's cards on this device (Part 8): it shows there instead.

@@ -35,7 +35,7 @@ export function CornerTimers({state}: {state: ChecklistState}) {
   const {sleep, meditation, fasting} = state.stores, [clock, setClock] = useState(0);
   const night = runningNights(sleep.sleep)[0], runSession = meditation.run.data.run, fast = runningSession(fasting.data), focus = state.focusHabit;
   // While a timer runs its text moves on each second (only then; nothing ticks at rest).
-  const anyRunning = !!night || !!runSession || !!fast || !!focus?.timer;
+  const anyRunning = !!night || !!runSession || !!fast || focus?.timer?.state === 'running';
   useEffect(() => { if (!anyRunning) return; const tick = () => setClock(Date.now()); tick(); const t = window.setInterval(tick, 1000); return () => window.clearInterval(t); }, [anyRunning]);
   const now = Math.max(clock, sleep.now, meditation.now, fasting.now.getTime());
   const focusTimer = focus?.timer, focusPreview = focus && focusTimer ? (() => { try { return habitTimerPreview(focus, new Date(now)); } catch { return null; } })() : null;
@@ -55,13 +55,18 @@ export function CornerTimers({state}: {state: ChecklistState}) {
     {kind: 'fast', label: 'Fast', glyph: 'clock', colour: 'purple', running: !!fast,
       sub: fast ? run(`${formatFast(fastElapsed(fast, new Date(now)).ms)} of ${hours(fast.targetHours)}`) : lastFast ? {value: hours(lastFast.targetHours), label: 'Last fast ·', before: true} : {value: '16h', label: 'No goal set · starts at', before: true},
       spoken: ''},
-    ...(focus ? [{kind: 'focus' as const, label: 'Focus', glyph: 'target', colour: 'pink' as const, running: !!focusTimer,
-      sub: focusTimer && focusPreview ? run(clockText(focusPreview.elapsedMs)) : focusGoal ? {value: span(focusGoal), label: 'Goal'} : {value: '', label: 'No goal set · tap to start'},
+    // Session AH (TO5): a paused Focus timer says Paused, never Running.
+    ...(focus ? [{kind: 'focus' as const, label: 'Focus', glyph: 'target', colour: 'pink' as const, running: focusTimer?.state === 'running',
+      sub: focusTimer && focusPreview ? (focusTimer.state === 'running' ? run(clockText(focusPreview.elapsedMs)) : {value: clockText(focusPreview.elapsedMs), label: 'Paused ·', before: true}) : focusGoal ? {value: span(focusGoal), label: 'Goal'} : {value: '', label: 'No goal set · tap to start'},
       spoken: focus.title}] : []),
   ];
   const line = (t: Timer) => t.sub.before ? `${t.sub.label} ${t.sub.value}`.trim() : `${t.sub.value} ${t.sub.label}`.trim();
-  async function press(kind: TimerKind) {
-    setBusy(kind); setMessage('');
+  // Session AH (TO5, N-095): starting a fast or a focus session asks once, in place; ending one does not.
+  const [asking, setAsking] = useState<TimerKind | null>(null);
+  async function press(kind: TimerKind, confirmed = false) {
+    const t = timers.find(x => x.kind === kind);
+    if (!confirmed && t && !t.running && (kind === 'fast' || kind === 'focus') && !(kind === 'focus' && focusTimer)) { setAsking(kind); setMessage(''); return; }
+    setAsking(null); setBusy(kind); setMessage('');
     const out = await state.timer(kind);
     setBusy(null);
     if (!out.ok) setMessage(out.message);
@@ -74,6 +79,10 @@ export function CornerTimers({state}: {state: ChecklistState}) {
       <span className="checklist-timer-ring" aria-hidden="true"><PathGlyph name={t.glyph} size={30}/></span>
       <span className="checklist-timer-text"><strong>{t.label}</strong><small title={line(t)}>{t.sub.before ? <><span className="checklist-timer-label">{t.sub.label}</span>{t.sub.value && <> <b>{t.sub.value}</b></>}</> : <><b>{t.sub.value}</b> <span className="checklist-timer-label">{t.sub.label}</span></>}</small></span>
     </button>)}
+    {asking && <div className="checklist-timers-message checklist-timers-confirm" role="alertdialog" aria-label={asking === 'fast' ? 'Start a fast?' : 'Start focus?'}>
+      <p>{asking === 'fast' ? `Start a fast now${lastFast ? ` (${hours(lastFast.targetHours)} target)` : ' (16h target)'}?` : `Start a focus session on ${focus?.title ?? 'your habit'} now?`}</p>
+      <button type="button" className="primary" onClick={() => void press(asking, true)}>Start</button> <button type="button" className="quiet" onClick={() => setAsking(null)}>Cancel</button>
+    </div>}
     {message && <p className="checklist-timers-message" role="alert">{message}</p>}
     </div>
   </div>;

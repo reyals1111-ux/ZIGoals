@@ -33,17 +33,14 @@ export default function EcosystemPage() {
             </a>
           ))}
         </div>
-        <p className="fine">
-          Test network (practice):{" "}
-          {explorers.map((p, i) => (
-            <span key={p.id}>
-              {i > 0 && " · "}
-              <a href={p.homepage} target="_blank" rel="noopener noreferrer">
-                Open {p.name} testnet ↗
-              </a>
-            </span>
+        <p className="fine">Test network (practice):</p>
+        <div className="actions">
+          {explorers.map((p) => (
+            <a key={p.id} className="quiet" href={p.homepage} target="_blank" rel="noopener noreferrer">
+              Open {p.name} testnet ↗
+            </a>
           ))}
-        </p>
+        </div>
         <p className="fine">
           Detail links appear on known records. Neither explorer is a complete
           ZIGoals history service.

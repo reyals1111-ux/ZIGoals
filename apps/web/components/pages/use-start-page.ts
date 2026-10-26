@@ -35,6 +35,8 @@ export function useStartPage(state: 'pending' | 'ready' | 'unreadable', view: Pa
     const document_ = healthNavigation({href: target, origin: window.location.origin, cameraAllowed: documentAllowsCamera(document), accountOpen, button: 0, modified: false, target: '', download: false});
     if (document_ === 'document') window.location.replace(target); else router.replace(target);
   }, [state, view, router]);
-  // Arriving anywhere else ends the hold (the start page, or a page the person chose before the move).
+  // Arriving anywhere else ends the hold (the start page, or a page the person chose before the move). Session AH (TO1;
+  // N-178, B-124, T-149, M-095): it is released for good, so a later in-app link to Today shows Today (it had stayed blank).
+  useLayoutEffect(() => { if (decided.current && hold && pathname !== '/app') setHold(false); }, [pathname, hold]);
   return hold && pathname === '/app';
 }

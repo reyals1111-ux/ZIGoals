@@ -10,7 +10,7 @@ import {endedSession, sessionFrom, startRun} from '../meditation/timer';
 import {logFastToHabit, removeFast, runningSession, startFast, stopFast} from '../fasting/engine';
 import type {Fasting} from '../fasting/schema';
 import {wallClock} from '../zone-time';
-import {discardHabitTimer, finishHabitTimer, startHabitTimer} from '../habit-timer-actions';
+import {discardHabitTimer, finishHabitTimer, pauseHabitTimer, resumeHabitTimer, startHabitTimer} from '../habit-timer-actions';
 import {addReceipt, dropReceipt, setCustomDone} from './day';
 import {mealAt, type DerivedDot} from './derive';
 import type {ChecklistDays} from './schema';
@@ -186,6 +186,9 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
 export function focusPlan(habit: Habit | undefined, ctx: TickContext): TickPlan {
   if (!habit) throw new TickRefused('Star a habit you time (minutes or hours) to use Focus.');
   const timer = habit.timer;
+  // Session AH (TO5, M-137): a paused timer resumes; only a running one is finished and logged (a paused "25:00" had
+  // been logged in one tap).
+  if (timer?.state === 'paused') return {writes: [w('habits', d => resumeHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.state === 'running' ? pauseHabitTimer(d, habit.id, timer.id, new Date()) : d)], message: `Focus resumed: ${habit.title}.`, undone: 'Focus paused again.', done: false, signal: 'checklist_tick'};
   if (timer) return {writes: [w('habits', d => finishHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [], message: `${habit.title}: your time is logged on Habits. Change it there if needed.`, undone: '', done: true, signal: 'checklist_tick'};
   const timerId = crypto.randomUUID();
   return {writes: [w('habits', d => startHabitTimer(d, habit.id, timerId, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.id === timerId ? discardHabitTimer(d, habit.id, timerId, new Date()) : d)], message: `Focus started: ${habit.title}.`, undone: 'Focus not started.', done: false, signal: 'checklist_tick'};

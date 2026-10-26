@@ -77,7 +77,7 @@ test('a goal’s pace forecast is labelled an estimate; its plan saves with Undo
 test('a template fills in the goal wizard and offers its habits', async ({page}) => {
   await page.goto('/app/goals/templates');
   await expect(page.getByRole('heading', {name: 'Goal templates', level: 1})).toBeVisible();
-  await expect(page.locator('.template-card')).toHaveCount(42);
+  await expect(page.locator('.template-card')).toHaveCount(43); // Session AH (DE5): + "Keep spending under a cap"
   await page.getByLabel('Search templates').fill('10k');
   await expect(page.locator('.template-card')).toHaveCount(1);
   await page.getByRole('link', {name: 'Use the template: Run a 10K'}).click();

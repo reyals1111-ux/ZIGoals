@@ -34,7 +34,7 @@ test('long build, quit, limit and duration Habit cards reflow with enlarged text
  await page.setViewportSize({width:320,height:850});await page.goto('/app/habits');await page.addStyleTag({content:'html { font-size: 125%; }'});
  await expect(page.locator('.habit-card')).toHaveCount(4);await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const escapes=await page.locator('.habit-card').evaluateAll(cards=>cards.flatMap(card=>{const outer=card.getBoundingClientRect();return [...card.querySelectorAll('h2,.habit-count,button')].filter(el=>{const r=el.getBoundingClientRect();return r.right>outer.right+1||r.left<outer.left-1;}).map(el=>el.textContent);}));expect(escapes).toEqual([]);
- const first=page.locator('.habit-card').first();await first.getByRole('button',{name:/^Add one to/}).click();await expect(first.locator('.habit-count strong')).toHaveText('1');
+ const first=page.locator('.habit-card').first();/* Session AH (HA9): one tap on a 1,000,000,000 target adds a round share of it, 10,000 */await first.getByRole('button',{name:/^Add 10,000 to/}).click();await expect(first.locator('.habit-count strong')).toHaveText('10,000');
  await openHabitDetails(first);
  await first.getByText('Consistency & trends',{exact:true}).click();await expect(first.locator('.habit-insights')).toBeVisible();
  await first.screenshot({animations:'disabled',path:testInfo.outputPath('run10-long-habit-320.png')});
