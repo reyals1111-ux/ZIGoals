@@ -6,6 +6,7 @@ import type {Fasting} from '../fasting/schema';
 import type {AverageGoal} from '../average-goals/store';
 import {addLocalDays} from '../local-date';
 import {formatNumber} from '../visual-format';
+import {derivedGoalStatus} from '../positions';
 
 /**
  * My Universe (Session AF, L5b; P9.1, ADR-028 H55, H77): a personal star system with one planet per pillar, derived on
@@ -112,7 +113,9 @@ export function universeCounts({habits, health, platform, fasting, averages = []
   for (const g of platform.goals) {
     if (dayOf(g.createdAt) > asOf) continue;
     milestonesDone += g.milestones.filter(m => m.done).length;
-    if (g.status === 'completed') {
+    // Session AH (TR6, B-009): reached means the Goal's derived status (its saved progress), as Goals and Today count it,
+    // never a stored flag that its progress no longer supports.
+    if (g.status !== 'closed' && derivedGoalStatus(platform, g.id) === 'completed') {
       const done = [...(g.lifecycle ?? [])].reverse().find(l => l.kind === 'completed');
       // An older record without the finishing step counts as reached on every day (its day is not recorded).
       if (!done || dayOf(done.at) <= asOf) goalsReached++;
@@ -128,12 +131,13 @@ export function universeCounts({habits, health, platform, fasting, averages = []
   const goalMovedToday = contributionsIn.some(c => dayOf(c.occurredAt) === asOf)
     || platform.goalHistory.some(h => (h.kind === 'milestone' || h.kind === 'status') && dayOf(h.capturedAt) === asOf);
 
-  // Wealth: contributions, accounts tracked (since their first record), a stake tracked; today's light from a contribution
+  // Wealth: contributions, assets tracked (since their first record), a stake tracked; today's light from a contribution
   // or an account seen today.
   const firstSeen = new Map<string, string>();
   for (const s of platform.snapshots) { const d = dayOf(s.observedAt), old = firstSeen.get(s.positionId); if (!old || d < old) firstSeen.set(s.positionId, d); }
   const sinceOf = (p: Platform['positions'][number]) => [p.trackingStartedAt ? dayOf(p.trackingStartedAt) : null, firstSeen.get(p.id) ?? null, dayOf(p.observedAt)].filter((d): d is string => !!d).sort()[0]!;
-  const trackedPositions = platform.positions.filter(p => sinceOf(p) <= asOf);
+  // Session AH (TR6, D-246): assets tracked (holdings, not accounts), leaving out one archived by then.
+  const trackedPositions = platform.positions.filter(p => sinceOf(p) <= asOf && !(p.archivedAt && dayOf(p.archivedAt) <= asOf));
   const staked = trackedPositions.filter(p => p.liquidity === 'BONDED' || p.liquidity === 'UNBONDING' || !!p.validator).map(sinceOf).sort();
   const wealthToday = contributionsIn.some(c => dayOf(c.occurredAt) === asOf) || platform.positions.some(p => !p.archivedAt && dayOf(p.observedAt) === asOf);
   return {
@@ -168,7 +172,7 @@ function planets(c: Counts): Planet[] {
       lightLine: !c.goalsAny ? 'No goal yet' : c.goalMovedToday ? 'A goal moved today' : 'No goal moved today yet'},
     {pillar: 'wealth', label: PILLAR_LABEL.wealth, rings: stepsReached(c.contributions, RING_STEPS.wealth), faintRings: 0, moons: Math.min(MAX_MOONS, c.tracked), staked: !!c.stakedSince,
       light: wealthLight, lit: wealthLight === 1,
-      facts: [plural(c.contributions, 'contribution') + ' to your goals', `${plural(c.tracked, 'account')} tracked`, ...(c.stakedSince ? ['A stake is tracked'] : [])],
+      facts: [plural(c.contributions, 'contribution') + ' to your goals', `${plural(c.tracked, 'asset')} tracked`, ...(c.stakedSince ? ['A stake is tracked'] : [])],
       lightLine: !c.wealthAny ? 'Nothing tracked yet' : c.wealthToday ? 'Money moved or was checked today' : 'Nothing moved or checked today yet'},
   ];
 }
@@ -183,7 +187,7 @@ const MOON_LINE: Record<UniversePillar, (count: number) => string> = {
   habits: n => `${plural(n, 'habit')} held a streak of seven.`,
   health: n => `${plural(n, 'kind')} of Health log kept.`,
   goals: n => `${plural(n, 'goal milestone')} ticked.`,
-  wealth: n => `${plural(n, 'account')} tracked.`,
+  wealth: n => `${plural(n, 'asset')} tracked.`,
 };
 function milestonesOf(list: Planet[]): Milestone[] {
   const out: Milestone[] = [];

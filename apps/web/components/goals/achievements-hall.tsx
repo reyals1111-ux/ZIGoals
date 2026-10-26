@@ -12,14 +12,17 @@ import {useAverageGoals, useGoalExtras} from './use-goal-extras';
 import {VisionArt} from './vision-art';
 import {formatDay} from './format';
 import './goals.css';
+import {useUnifiedGoals} from '../use-unified-goals';
 
 /**
  * G7, the Hall of achievements: finished goals as a wall of cards (the day, how long it took, the area, the story), each
  * with a share image drawn on this device (nothing is uploaded).
  */
 export function AchievementsHall(layout: LayoutAttrs) {
-  const platform = usePlatform(), averages = useAverageGoals(), extras = useGoalExtras();
-  const list = platform.loaded && averages.loaded && extras.loaded ? achievementsOf(platform.data.goals, averages.unreadable ? [] : averages.data.goals, extras.data) : null;
+  const platform = usePlatform(), averages = useAverageGoals(), extras = useGoalExtras(), unified = useUnifiedGoals();
+  // Session AH (TR6): finished as the Goals page's "Finished" figure counts it (each Goal's derived status, live prices included).
+  const finished = new Set(unified.goals.filter(g => g.status === 'completed' && g.key.startsWith('private:')).map(g => g.id));
+  const list = platform.loaded && averages.loaded && extras.loaded && unified.loaded ? achievementsOf(platform.data.goals, averages.unreadable ? [] : averages.data.goals, extras.data, g => finished.has(g.id)) : null;
   return <section className="achievements-hall" aria-labelledby="hall-title" {...layout}>
     <SectionHeading id="hall-title" pillar="goals" eyebrow="Finished, with a story" title="Hall of achievements" lede="Every goal you finish keeps its place here." />
     {!list ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : list.length ? <ul className="hall-wall">

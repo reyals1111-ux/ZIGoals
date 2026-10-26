@@ -48,7 +48,8 @@ export function stepText(step: GoalStep): string {
  */
 export function TodayFocus({reminders, nextGoal, step, financial, showHabits, showHealth, healthDate, habitsWidget = false}: {reminders?: ReactNode; nextGoal?: GoalSummary; /** Session AF (L5a): the goal's next step (lib/today/goal-roles.ts); without it, its progress as before. */ step?: GoalStep; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string; /** Session AB-Design (owner request 12): the habits widget shows the due habits itself, so the tile stands down. */ habitsWidget?: boolean}) {
   const habits = useHabits(), health = useHealth(), fasting = useFasting();
-  const due = habits.loaded && !habits.error ? habits.data.habits.filter(h => habitDay(h, habits.today, habits.today).scheduled) : [];
+  // Session AH (TR6): the shared count — a skipped (rest) day is not due.
+  const due = habits.loaded && !habits.error ? habits.data.habits.filter(h => { const d = habitDay(h, habits.today, habits.today); return d.scheduled && d.status !== 'skipped'; }) : [];
   const done = due.filter(h => habitDay(h, habits.today, habits.today).status === 'complete').length;
   const healthReady = health.loaded && !health.error;
   const daily = healthReady ? dailyData(health.data) : undefined;

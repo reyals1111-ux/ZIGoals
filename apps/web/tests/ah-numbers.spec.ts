@@ -29,3 +29,25 @@ test.describe('one currency at a time, never converted', () => {
     await expect(ring).not.toContainText('€');
   });
 });
+
+// Session AH Part 4 (TR6/B5; BUG-031, BUG-041, BUG-062, M-085, D-238, D-246): one count per thing — the same Showcase reads
+// the same numbers on Today, Goals, Habits, Wealth and Markets.
+test('Today, Goals, Habits, Wealth and Markets agree on their counts', async ({page}) => {
+  await offlineApi(page);
+  await loadShowcase(page);
+  const life = page.locator('.life-rings');
+  const goalsLine = (await life.locator('[data-pillar="goals"] .life-long').innerText()).trim();
+  const habitsLine = (await life.locator('[data-pillar="habits"] .life-long').innerText()).trim();
+  const todayActive = Number(goalsLine.match(/^(\d+) active/)![1]);
+  const [, todayDone, todayDue] = habitsLine.match(/^(\d+) of (\d+) Habits complete$/)!;
+  await page.goto('/app/goals'); await hydrated(page);
+  await expect(page.getByRole('list', {name: 'Your goals at a glance'}).or(page.locator('.goals-figures')).first().locator('div').filter({hasText: 'Active'}).locator('strong')).toHaveText(String(todayActive));
+  await page.goto('/app/habits'); await hydrated(page);
+  await expect(page.getByRole('region', {name: 'Today’s habit progress'}).locator('strong').first()).toHaveText(`${todayDone} / ${todayDue}`);
+  await page.goto('/app/wealth'); await hydrated(page);
+  const manual = Number((await page.locator('.wealth-hero-total small').first().innerText()).match(/(\d+) manual/)![1]);
+  await page.goto('/app/markets'); await hydrated(page);
+  const sources = page.getByRole('region', {name: 'What’s tracked, and how.'});
+  await sources.scrollIntoViewIfNeeded();
+  await expect(sources.locator('.bottom-counts div').filter({hasText: 'Manual assets'}).locator('dd')).toHaveText(String(manual));
+});

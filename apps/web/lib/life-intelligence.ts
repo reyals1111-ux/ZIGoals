@@ -4,6 +4,7 @@ import { addLocalDays, localDate } from "./local-date";
 import { formatDate, formatRelativeDay } from "./visual-format";
 import { journalTimeZone } from "./journal-zone";
 import { wallClock } from "./zone-time";
+import { checkInsOn } from "./numbers/counts";
 
 /** Saved diary snapshots, never current library values or assumed missing meals. */
 export function nutritionDashboard(data: HealthData, date: string) {
@@ -23,7 +24,8 @@ export function habitConsistency(habits: Habit[], today: string) {
   const days = Array.from({ length: 30 }, (_, index) => {
     const date = addLocalDays(today, index - 29);
     const outcomes = habits.map(habit => habitDay(habit, date, today));
-    const checkins = habits.filter(habit => habit.entries.some(entry => entry.date === date && entry.disposition === "logged")).length;
+    // Session AH (TR6, M-081): a check-in is a scheduled day completed, as Journey, Life review and the weekly review count it.
+    const checkins = checkInsOn(habits, date, today);
     return { date, completed: outcomes.filter(day => day.status === "complete").length, scheduled: outcomes.filter(day => day.scheduled).length, checkins };
   });
   return { days, week: days.slice(-7), checkins: days.reduce((sum, day) => sum + day.checkins, 0), activeDays: days.filter(day => day.checkins > 0).length };

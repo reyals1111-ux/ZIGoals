@@ -89,6 +89,7 @@ import {isFoldOpen,readTodayFolds,rememberFold,type TodayFolds} from '../../lib/
 import {LoadBoundary} from '../load-boundary';
 import {Skeleton} from '../ui/skeleton';
 import {WalletCard} from '../wallet/wallet-card';
+import {useAverageGoals} from '../goals/use-average-goals';
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
 const PHONE_FOLD_LABEL:Partial<Record<string,string>>={watchlist:'Your market watch',progress:'Your financial progress',wallet:'Your wallet',staking:'Staking',destination:'Plan a new destination',activity:'Recent activity'};
@@ -129,8 +130,9 @@ export function TodayDashboard(){
  const market=useMarketQuotes(settings.loaded&&financial?wealthMarketRequests(platform.data):false),now=useEvidenceNow(platform.data,market.now);
  const goals=unifiedGoalSummaries(legacy.goals,legacy.metadata?.goals??{},platform.data,market.quotes,now,legacy.mode==='local'?'Local simulation':'Future Goal Manager').filter(g=>!g.key.startsWith('legacy:')||!platform.data.legacyGoalUi?.[`${legacy.chain}:${legacy.owner}:${g.id}`]?.archived);
  const chessCache=useDeviceRecord(CHESS_CACHE);
+ const averageGoals=useAverageGoals();
  const todayCards=useDeviceRecord(TODAY_CARDS),deviceCards=todayCards.loaded&&!todayCards.unreadable?shownCards(todayCards.data):[];
- const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
+ const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(averageGoals.loaded&&!averageGoals.unreadable?{averages:averageGoals.data.goals}:{}),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);

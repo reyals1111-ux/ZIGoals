@@ -174,7 +174,8 @@ export function HabitsWorkspace() {
     ...platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ label: `${goal.name} · Private`, link: { chainId: "private", owner: "local", goalId: goal.id } })),
     ...goals.goals.filter((goal) => goal.status === "active").map((goal) => ({ label: goals.metadata?.goals[goal.id]?.name ?? `Goal #${goal.id}`, link: { chainId: goals.chain, owner: goals.owner, goalId: goal.id } })),
   ];
-  const due = store.data.habits.filter((habit) => habitDay(habit, store.today, store.today).scheduled);
+  // Session AH (TR6): the shared count — a skipped (rest) day is not due.
+  const due = store.data.habits.filter((habit) => { const day = habitDay(habit, store.today, store.today); return day.scheduled && day.status !== "skipped"; });
   const completed = due.filter((habit) => habitDay(habit, store.today, store.today).status === "complete");
   const visible = store.data.habits.filter((habit) => {
     const day = habitDay(habit, store.today, store.today); const archived = habitRuleOn(habit,store.today)?.state === "archived";

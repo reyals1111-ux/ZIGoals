@@ -77,6 +77,7 @@ import { formatDate, formatDateTime, formatExactNumber, formatQuantity } from '.
 import { formatUnits } from '@zigoals/chain-config';
 import {wealthMoney} from './wealth-money';
 import {ShowcaseTag} from '../ui/showcase-tag';
+import {isLivePriced} from '../../lib/numbers/counts';
 export {wealthMoney};
 export function WealthView(){
  const accountsRecord=useDeviceRecord(ACCOUNTS);
@@ -87,7 +88,8 @@ export function WealthView(){
  const now=useEvidenceNow(store.data,market.now),overview=wealthOverview(store.data,now,market.quotes);
  if(!store.loaded)return <div className="dashboard"><h1>Your Wealth</h1><p>Loading your private wealth…</p></div>;
  if(store.error)return <div className="dashboard"><h1>Your Wealth</h1><p role="alert">{store.error}</p></div>;
- const automatic=overview.rows.filter(r=>r.position.valuationMode==='automatic'||r.source?.startsWith('CoinGecko')),fresh=automatic.filter(r=>r.valuationState==='fresh').length,attention=overview.rows.filter(r=>r.stale||r.value===undefined||r.balance.deficit!=='0');
+ // Session AH (TR6): live-priced by Wealth's own rule (lib/numbers/counts.ts), so Markets counts the same manual assets.
+ const automatic=overview.rows.filter(r=>isLivePriced(r.position)),fresh=automatic.filter(r=>r.valuationState==='fresh').length,attention=overview.rows.filter(r=>r.stale||r.value===undefined||r.balance.deficit!=='0');
  // Session AB-Design (owner request 24): one currency line per row (the base currency), the others as a chip, never converted.
  const lead=splitWealthTotals(overview.subtotals).primary?.currency;
  const metric=(key:'value'|'allocated'|'unallocated')=>overview.subtotals.length?<SplitMoney id={`wealth-${key}`} lead={lead} subtotals={overview.subtotals.map(s=>({currency:s.currency,value:s[key]}))}/>:<span>{overview.rows.length?'Needs valuation':key==='value'?'Start your wealth story':'—'}</span>;

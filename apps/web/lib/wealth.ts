@@ -45,7 +45,7 @@ export function ringSegments(mix:readonly AssetMix[],progressPct:string){
  const total=mix.reduce((n,m)=>n+m.percent,0),filled=Math.max(0,Math.min(100,Number(progressPct)));let offset=0;
  return mix.filter(m=>m.percent>0).map(m=>{const size=total?m.percent/total*filled:0;const segment={...m,size,offset};offset+=size;return segment;});
 }
-function automaticMarketRef(p:Position):MarketAssetRef|undefined{
+export function automaticMarketRef(p:Position):MarketAssetRef|undefined{
  if(p.marketRef&&p.valuationMode==='automatic')return p.marketRef;
  return !p.marketRef&&p.valuationMode!=='manual'&&isNativeZig(p)&&p.providerId==='native-zig'?nativeZigRequest.marketRef:undefined;
 }
