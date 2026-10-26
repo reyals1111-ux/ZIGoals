@@ -34,7 +34,9 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Part 3: DS1 (already safe; `ah-multitab`), DS4, DS5, DS2, DS3, DS6, DS7, DS8, DS9, A7, J2 (M11–M15).
 - Part 4: TR1–TR14, B1, B2, B4–B8, J1, HA2 (M16–M22).
 - Part 5: VA1–VA10, C1–C3, C8, B3, B9 (M23–M25).
-- Part 13: layout, a11y, themes, speed (M45–M47); CI 1227/1228 fixes `48d60046`, packaged-journey diagnostics `e6a884bb`.
+- Part 15: landing lines, FRIENDS_GUIDE, TIER 3 verifier (landing line sets), TIER 3 CI (PR review) (M49).
+- Part 14: competitor features (M48): why-it-changed, Ecosystem value locked, freshness Help, habit Strength, workout progression; tests/ah-competitors.spec.ts.
+- Part 13: layout, a11y, themes, speed, and the owner's tablet rail (M45–M47); CI 1227/1228 fixes `48d60046`, packaged-journey diagnostics `e6a884bb`.
 - Part 12: `799935f3` (SE1, SE2, SE4, SE5, SE7–SE9, SE12, SE14 device lock, H5, B-199; M43–M44). SE3 → Part 13, RM5 → Part 15.
 - Part 11: `0e66fea8` (CI 1224/1225 fixes, TO1, TO2, TO5) and batch 2 (TO4/H6/DE4, TO7–TO13, CO1; M40–M42).
 - Part 10: `e194278a` (TIER 3 verifier: Earn title), `facc2b0f` wording/calculator/empty states, AF3 `/api/earn/shares` (TIER 3 egress) (M37–M39).
@@ -45,13 +47,13 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 
 ## Next step
 - Part 11 done (M40–M42). Part 10 done (M37–M39). Before every push: full unit suite (sandbox-only failures: finance-homes, visual-format ja-JP, pre-run11-setup), typecheck (NODE_OPTIONS=--max-old-space-size=8192), lint, theme check, focused browser specs against a production build on :3101 (build with NODE_OPTIONS=--max-old-space-size=8192; start the server only after the build has finished).
-- Next: Part 14 competitor features and retention (CO5–CO8, CO11, CO12, L1, L2, MO3). CO11 and any service-worker/manifest change: TIER 3 (PWA) with rollback. Start with the "already fixed" check for its rows.
+- Next: Part 16 final sweeps (NO1, NO2, NO4; WE15 doc-link 404 recheck), then Part 17 (Health journal date drives the Health page) and Part 18 (Checklist top bar, phone top bar without the page name, Health counters), then the final STATUS commit. Owner LA2 decision done (tablet rail, M46).
 - CI watch: the packaged Goal journey (Alpha gate) stalled in runs 1224, 1227 and 1228 but passes locally (98 s); `e6a884bb` makes it print each page's headings and messages on failure. sync-lost-ack-browser stalled once each in 1212, 1215 and 1227 (name field empty at Continue); passes 9/9 locally. market-status.test 'fetch failed' (workerd socket closed) in 1228: one re-run.
 - Local-only: platform.spec:46 fails here (Node 22 cannot load @cosmjs/encoding's sources in the test); it passes in CI.
 - Packaged test locally: unshallow the clone (`git fetch --unshallow origin main`), commit, `build:alpha`, `activation-check.mjs --source $(git rev-parse HEAD) --dry-run`, then `RUN11_PACKAGED=1 RUN11_PACKAGE_BUNDLE=/tmp/zigoals-run11-dry-app/worker.js npx vitest run scripts/run11/packaged-runtime.test.mjs`.
 - Activity filter counts are aria-hidden on purpose: specs click the filters by exact name.
 - Sandbox note: Node 22 here formats compact numbers differently from Node 24 and Chrome; an SSR'd compact format needs an explicit minimumFractionDigits or the page fails to hydrate (theme parity then fails).
-- Carried: HE11's counter layout and LA9's phone page names into Part 18; RM5's friends pack into Part 15; WE15's doc-link 404s recheck into Part 16; the landing's staking line (DE1) into Part 15.
+- Carried: HE11's counter layout and LA9's phone page names into Part 18; WE15's doc-link 404s recheck into Part 16. Owner steps outside the PR: redeploy the landing (then drop the verifier's earlier line set), the www redirect rule, the PR-review secret and model variable.
 - New device keys: register them in lib/ah-device-keys.ts (personal or display).
 - Theme layers for this session: apps/web/themes/<theme>.ah-*.css, every rule scoped `:root[data-theme=<theme>]`.
 

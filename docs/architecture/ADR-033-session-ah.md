@@ -149,12 +149,55 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
   - AF15: the Habits time headings now measure well in all three themes. The Checklist name on a phone path is protected. The two stress-only Health import readings and the Academy name under the lesson bubble stay as the audits left them.
   - SE3: the section tabs take 9–13 % of the screen (not 35 %) and now mark the group on screen. One "Backup & restore" card is later: the four cards do different jobs (export, protected copy, restore, import from another app), and their anchors and headings are pinned by specs.
 
+- **M48 — Part 14: what competitors have, built where it fits.**
+  - A read-only helper compared Multi, HALO (the "Halo: Habit Tracker" app, medium confidence), personalEverything and Lifemova with ZIGoals. Multi's "$49.99 lifetime" price could not be verified on its own pages.
+  - Built now, all derived from saved records (nothing new stored, no new outside host):
+    - L2: a habit's **Strength** (0–100). Each scheduled day moves it a tenth of the way toward done or not; skipped and rest days are neutral.
+    - L1: a **progression line** of each session's best set in the exercise history.
+    - CO6: **why a wealth record changed**, by asset class, under the chart.
+    - CO7: Earn's **value locked** on the five Ecosystem cards Earn covers, from Earn's own DefiLlama read.
+    - CO12: the **data-freshness policy** in Help.
+  - Recorded for later, largest gap first:
+    - an expense and income log with a weekly "room to spend" budget (new stored record, export, backup and sync consent);
+    - several items in one Quick add line;
+    - a shareable habit-history card;
+    - sick and break days beside vacation (an optional stored field);
+    - a focus session tied to a goal;
+    - a daily energy rating (the mood record is strict);
+    - notes and a journal;
+    - tasks with priority and a due date.
+  - Not possible on the web: widgets, Apple Health, a watch app, Screen Time blocks, receipt scanning without an OCR dependency, and walk routes.
+  - CO6's split by source (wallets, manual, staking) needs each wealth observation to keep its source (a stored-format change). The chart keeps its approved split by asset class.
+  - CO11: complete or snooze from a notification is not possible yet. The push payload is deliberately content-free (`{"v":1}`), so the worker cannot know which item to complete, and push is not switched on for the Alpha (owner track).
+  - MO3: push is the owner's acceptance track; ZIGi free-form is ZIGi's lane; the weekly review was renewed in Part 11 (TO8).
+
+- **M49 — Part 15: landing and launch.**
+  - MO5/DE1: the landing's staking lines are corrected. Staking and votes sign in your own Keplr wallet: practice network by default, ZIGChain mainnet after a one-time confirm (owner, 18 Oct). The Goal Manager contract is still not deployed. The landing is deployed by the owner, outside this PR.
+  - TIER 3 (verifier): the live verifier's stage 7 accepts exactly one of two known sets of landing lines: the earlier set until the owner redeploys the landing, then the new one. Each set requires all three of its lines. Drop the earlier set after the redeploy.
+  - MO4: the privacy notice is a draft awaiting a lawyer and, by owner decision L4, is not published, so no privacy, terms or pricing page is added. The landing links to none.
+  - RM4: `workers_dev` and `preview_urls` were already off in `landing/wrangler.jsonc`. The landing is an assets-only Worker, so the `www` → apex redirect is a Cloudflare redirect rule the owner adds; it is not repository configuration.
+  - F4: the hero film already loads only when played (`preload="none"`, `data-src`).
+  - CO13: the landing already leads with one promise and an interactive glimpse (the V5 fold and equation). It is not redesigned here.
+  - RM6 (TIER 3 CI, owner amendment 7): `.github/workflows/pr-review.yml`:
+    - runs on `pull_request` only, never `pull_request_target`, and never for a fork's PR or a draft;
+    - has least privilege (`contents: read`, `pull-requests: write`);
+    - pins `actions/checkout` by SHA, as the repo already does;
+    - never prints the secret;
+    - skips green when the `ANTHROPIC_API_KEY` secret or the `PR_REVIEW_MODEL` variable is missing (the model id lives in a repository variable, not in the code);
+    - posts one advisory comment;
+    - is pinned by scripts/pr-review/review.test.mjs.
+
+    Rollback: delete the workflow and `scripts/pr-review/`. The secret and the variable wait on the owner.
+  - RM5: FRIENDS_GUIDE is refreshed: "Nothing moves unless you sign", Fitbit's removal, and what's new in this release. Help's Known limitations already matched the app (Part 6, Part 12).
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
 - Part 9: a negative price and dates before 1990 were already refused (transaction schema and `dateIssue`); archiving an asset already had a toast; Markets already had Owned and Favourites filters (WE13); market 503s already say "Price refresh is unavailable. Last-good values stay visible with their timestamps." (F5, BUG-069).
 - Part 10: practice/real staking was already decided and built (owner, 18 Oct; Staking signs in Keplr after a one-time confirm); Earn already read the unbonding time live and showed "unavailable" without a fallback; Governance was already hidden by default and offered no vote in the Showcase.
 - Part 11: Today already had a week grid ("Your week") with today marked; the welcome already had "Explore the demo"; the wrap-up already showed after its time; Showcase weekly-review text is labelled SHOWCASE DATA and lives in the tab's Showcase only (TO4 e).
+- Part 15: RM4's workers.dev and preview URLs were already off; F4's film already loads on demand; CO13's promise and glimpse were already on the landing (M49).
+- Part 14: CO5 (one-tap water tiles with Undo on Health and Today, and a water reminder, Session AC) and CO8 (the "Solve the daily puzzle" habit template) were already there.
 - Part 13: LA1/D2/HE10 (nothing stays covered at a page's end), LA3, LA7's names and `<dl>`, E1, E2 and F1 were already fixed (M45).
 - Part 12: Help & diagnostics already had one contact per purpose (SE10, M43); the Permissions-Policy and manifest were already as intended (SE13, M43); Settings already showed the weekly-review day it saves.
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
@@ -409,3 +452,27 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | TO7 (carried) | Fixed | T-098, M-133: Today's duplicate Quick add in the tablet top bar steps aside |
 | WE10 (carried) | Fixed | B-151: the phone Add-asset sheet no longer scrolls sideways; its title has its inset |
 | SE3 (carried) | Fixed (part) | D-088: tabs mark the group on screen; D-005, D-127, D-224, D-062, D-251, M-128, Denver S-05: M47 |
+
+### Part 14 — Competitor features and retention
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| CO5 | Already fixed | Lose It: one-tap water and a water reminder (Session AC; M48) |
+| CO6 | Fixed (part) | Monarch: "why it changed" by asset class (`lib/wealth-why`); the split by source is later (M48) |
+| CO7 | Fixed | CoinStats; owner note: Earn's value locked on Ecosystem cards, with source and time |
+| CO8 | Already fixed | Tokyo: "Solve the daily puzzle" habit template |
+| CO11 | Not possible yet | T-021: content-free push, and push not switched on (M48) |
+| CO12 | Fixed | T-051, T-018: Help, "How fresh are the numbers?" |
+| L1 | Fixed (part) | Multi: workout progression line; the rest recorded (M48) |
+| L2 | Fixed (part) | HALO: habit Strength; the rest recorded (M48) |
+| MO3 | Recorded | Part 12 §3: M48 |
+
+### Part 15 — Landing and launch prep
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| MO5 / DE1 (landing) | Fixed | C-001–C-004, T-001, B-136: the landing's staking lines; the verifier accepts the earlier set until the owner redeploys the landing (M49) |
+| MO4 | Not possible (owner) | C-035: privacy notice unpublished by owner decision L4 (awaiting a lawyer); terms and pricing wait on the owner |
+| RM4 | Fixed in repo / owner step | workers.dev and preview URLs already off; the www redirect is a Cloudflare rule (M49) |
+| F4 | Already fixed | the film loads on demand (M49) |
+| CO13 | Already fixed | the V5 landing (M49) |
+| RM6 | Fixed (waits on the owner's secret) | TIER 3 CI, amendment 7 (M49) |
+| RM5 | Fixed | FRIENDS_GUIDE refreshed; Help's Known limitations current (M49) |
