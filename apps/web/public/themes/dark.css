@@ -13534,7 +13534,7 @@
             border-right-color: color-mix(in srgb, currentColor 14%, transparent)
         }
     }
-    @media (min-width: 768px) and (max-width: 900px) {
+    @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) {
         :scope .app-sidebar:not(#\-)::before {
             background-image: inherit;
             background-color: inherit;

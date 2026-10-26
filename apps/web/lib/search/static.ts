@@ -177,6 +177,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["abd-goals", "What is new on Goals?"],
   ["abd-habits-health", "What is new on Habits and Health?"],
   ["abd-wealth", "Which currency does Wealth show first?"],
+  ["ah-freshness", "How fresh are the numbers?"],
   ["abd-search-review", "What changed in Search and the Life review?"],
   ["ac-habits", "Why do my habit cards show their last 28 days?"],
   ["ac-sky", "Why is the top of each page plainer now?"],

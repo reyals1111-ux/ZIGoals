@@ -243,7 +243,7 @@ function ProgressLine({h, unit}: {h: NonNullable<ReturnType<typeof exerciseHisto
   const first = points[0]!, last = points.at(-1)!;
   return <figure className="workouts-progress-line">
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${h.measure === 'weight-reps' ? 'Estimated one-rep max' : 'Best set'} over ${points.length} sessions: ${shown(first.v)} on ${formatDate(first.date)}, ${shown(last.v)} on ${formatDate(last.date)}; highest ${shown(hi)}.`}><path d={d} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/></svg>
-    <figcaption className="fine">{`Progress, session by session (${h.measure === 'weight-reps' ? 'estimated one-rep max' : 'best set'}): ${shown(first.v)} on ${formatDate(first.date)} → ${shown(last.v)} on ${formatDate(last.date)}`}</figcaption>
+    <figcaption className="fine">{`Progress, session by session (${h.measure === 'weight-reps' ? 'estimated 1-rep max' : 'best set'}): ${shown(first.v)} on ${formatDate(first.date)} → ${shown(last.v)} on ${formatDate(last.date)}`}</figcaption>
   </figure>;
 }
 function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; unit: 'kg' | 'lb'; library: LibraryExercise[]; value: string; onChange: (v: string) => void}) {
