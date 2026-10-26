@@ -34,12 +34,13 @@ Shared modules: one net worth, one price service, one rounding, one count per th
 - Part 3: DS1 (already safe; `ah-multitab`), DS4, DS5, DS2, DS3, DS6, DS7, DS8, DS9, A7, J2 (M11–M15).
 - Part 4: TR1–TR14, B1, B2, B4–B8, J1, HA2 (M16–M22).
 - Part 5: VA1–VA10, C1–C3, C8, B3, B9 (M23–M25).
+- Part 8: `b492379f`, `e3937889` (M32–M33); CI 1212/1215 fixes `63d0c6de`.
 - Part 7: `32354145`, `e6e55ec4` (M29–M31); CI 1210 fixes `06f01019`.
 - Part 6: DE8 `0425bd79`, HE1/HE2 `8120ec92`, RM7 `fb21c2b8`, HE3–HE14 + C9 + C11 `2361b562` and the fasting messages (M26–M28). J8 already fixed; HE4/J5/L4 owner step; HE10 → Part 13; HE11 layout → Part 18.
 
 ## Next step
-- Part 7 done (M29–M31). Before every push: full unit suite (sandbox-only failures: finance-homes, visual-format ja-JP, pre-run11-setup), typecheck (NODE_OPTIONS=--max-old-space-size=8192), lint, theme check, focused browser specs against a production build on :3101 (start the server only after the build has finished).
-- Next: Part 8 Goals (GO1 crash first; GO1–GO14, C4, C5; F6 on Goals). Start with the "already fixed" check for its rows.
+- Part 8 done (M32–M33). Before every push: full unit suite (sandbox-only failures: finance-homes, visual-format ja-JP, pre-run11-setup), typecheck (NODE_OPTIONS=--max-old-space-size=8192), lint, theme check, focused browser specs against a production build on :3101 (start the server only after the build has finished).
+- Next: Part 9 Wealth, Markets, Portfolio (WE1 first: rank by market cap/verified list; WE1–WE22, C12, DE5, J11, J14, J15, J17, J18, F5). Start with the "already fixed" check for its rows.
 - Carried: HE10 into Part 13 (LA1); HE11's counter layout into Part 18.
 - Theme layers for this session: apps/web/themes/<theme>.ah-*.css, every rule scoped `:root[data-theme=<theme>]`.
 

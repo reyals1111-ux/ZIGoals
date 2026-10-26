@@ -84,9 +84,12 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M29 — A habit change starts today when today is still empty (HA3, HA10).** `earliestHabitChange(…, {allowToday: true})` (the card, the editor, and the check every rule change passes) gives today when nothing is recorded for today (no check-in, no timer), else tomorrow, so a habit made by mistake is archived and deleted for good at once and an edit applies now. The default without the option stays tomorrow, so ZIGi's plans and the Goal-linked pause keep their wording (ZIGi lane untouched). The ⋯ menu stays a disclosure with Escape and focus return, as Session Z chose ("without ARIA-menu traps"); HA17's repeated unnamed stops are fixed by naming each section with its habit.
 - **M30 — Figures and grace (HA1, HA7, HA9, HA15).** A skipped day is neutral everywhere (percentages, the week, trends). Freezes are earned from streaks reached without one. "+" steps by a share of the target (lib/habit-step.ts). The heatmap level is the share of that day's scheduled habits done. A vacation never covers a day the person already wrote on.
 - **M31 — Habit → Goal is an offer, not an automatic sum (J3).** The app's rule stays: a habit tick never adds money to a Goal by itself. A habit linked to a private Goal offers "Add to its Goal" after completion, which opens that Goal's own funding form (`?contribute=1`), where the person confirms the amount. C6's bug numbers (BUG-070/071/018/024/025) are not in the repository or the scope file; its row is closed by the habit form and schedule items it overlaps (HA3, HA10, HA12), and recorded as such.
+- **M32 — A Goal with financial history is closed, never deleted (GO2, C5).** Contributions and plan revisions are append-only records that sync between devices; deleting their Goal would orphan them on every other device. Delete stays for Goals without them; otherwise the page says so in words and points to Close, which can now pause the Goal's supporting habits too. GO1 did not reproduce on this build (M33's spec keeps every goal kind and the 2-hours template opening without an error).
+- **M33 — The Goal wizard keeps its four steps (GO3, C4).** Creating from step 1 already exists ("Create goal" on the first step), which is the two-step path Tokyo suggests; the other steps stay because integration scripts, the packaged journey and owner-run checks walk them. The wizard gains a way out (Cancel and Escape, the draft kept), a control on the Habit step, ideas that say what they filled, a currency read from "€5000", and an honest asset list. C4's bug numbers are not in the repository; its row is closed by these GO3 items. GO14's "what matters" values step is a later feature (Claude's own note: "a nice later idea"), recorded, not built. A weight goal follows the latest reading (GO11); the Sleep page's nightly goal and a "keep an average" sleep goal stay two different things, named apart.
 
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
+- Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
@@ -213,3 +216,22 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | HA18 / J9 | Fixed | N-038, T-020, N-163 (`e6e55ec4`): start earlier, streak legend; grace = rest days and freezes |
 | F6 (Habits) | Fixed | BUG-064 (`e6e55ec4`): sort and 30 at a time; Goals in Part 8 |
 | J3 | Fixed (offer) | `e6e55ec4`, M31 |
+
+### Part 8 — Goals
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| GO1 | Not reproduced (spec kept) | B-171: every goal kind named "Create 2 hours a day" and the digital-detox average template, opened from every view, desktop and phone, no page error (`b492379f`, `tests/ah-goals.spec.ts`) |
+| GO2 / C5 | Fixed | BUG-010, B-014, B-143, N-040, N-041, N-125, N-158, D-036, D-209, D-035, M-103, M-124, T-122 (`b492379f`, M32): close pauses supporting habits; Delete's reason in words; a closed Goal was already not fundable |
+| GO3 / C4 | Fixed | D-205, D-225, D-026, D-027, D-025, D-226, D-166, D-241, N-109, N-111, N-185, N-205, N-156, N-003, M-046, M-100, N-071, T-014, T-120, D-008, D-038, D-139, D-257, L-026, Denver S-07 (`b492379f`, `63d0c6de` the draft race, M33). "Hiding Goals in setup" goes with Part 11 (first run) |
+| GO4 | Fixed | N-166 (`b492379f`) |
+| GO5 | Fixed (form closes) | B-196, D-105, T-077, L-066 (`b492379f`); the plan comparison round-trip and the Vision gradient did not reproduce |
+| GO6 | Fixed | L-055, L-024, L-025, N-070, N-080, N-160, B-071, B-115, B-187 (`b492379f`): unique milestone names, no negative axis |
+| GO7 | Fixed | M-047, M-082 (`b492379f`) |
+| GO8 | Fixed | D-037, D-210, B-142 (`b492379f`) |
+| GO9 | Part 13 (LA1) | D-111, D-112, D-136, D-211, D-029, D-208, D-097, D-019, Denver S-11: the 768 grid is two columns already (`product-beta.css`); the rest with the layout sweep |
+| GO10 | Fixed (dates) | D-039, L-075, M-098, N-144: the review date in the one format (`b492379f`); copy with Part 16's sweep |
+| GO11 | Fixed | N-004, B-167 (`e3937889`, M33) |
+| GO12 | Fixed | M-066, B-177 (`e3937889`) |
+| GO13 | Already fixed | The funding-health badge on every card (goal-card.tsx) |
+| GO14 | Later (recorded) | Tokyo's values step; M33 |
+| F6 (Goals) | Already fixed | Run 11: search, sort, pages past 24 Goals (`run11-large-goal-collection.spec.ts`) |
