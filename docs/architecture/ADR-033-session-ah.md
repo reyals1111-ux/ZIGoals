@@ -81,9 +81,13 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M26 — Workouts in their own device record (DE8).** A new device-only key `zigoals:workouts:v1` (TIER 3 stored format, frozen readers #37–#49 pass): older builds never read it, so nothing they hold changes. A finished workout adds one exercise-minutes entry to the Health journal (the habit and Today links already read those), so no Health schema field was added. Patterns follow Strong, Hevy and JEFIT (sets of weight × reps with last time beside each, a rest timer, personal bests by estimated one-rep max, routines, repeat last); a new set copies the one before, and finishing asks before leaving unticked sets out.
 - **M27 — Food plausibility on the forms, not the stored food (HE5).** The label check (≤ 900 kcal per 100 g, macros within the serving, < 10,000 kcal a serving) runs where a person types a food (the food editor and quick add). saveFood itself stays as it was, so imports, older records and test fixtures keep reading; imports have their own row-level refusals.
 - **M28 — Fitbit is off, not deleted (RM7).** The owner's note: no Fitbit build. The import choice is shown as off with the reason, records already brought in stay in the journal and in Export everything, and Help says plainly that the old connection ended. Barcode (HE4/J5/L4): the lookup path is built and tested with a fixture; turning it on is the owner's step (deploy the food Worker with FOOD_USER_AGENT and bind it). A second free source (USDA FoodData Central) needs an API key, which is a secret the owner holds: recorded, not added.
+- **M29 — A habit change starts today when today is still empty (HA3, HA10).** `earliestHabitChange(…, {allowToday: true})` (the card, the editor, and the check every rule change passes) gives today when nothing is recorded for today (no check-in, no timer), else tomorrow, so a habit made by mistake is archived and deleted for good at once and an edit applies now. The default without the option stays tomorrow, so ZIGi's plans and the Goal-linked pause keep their wording (ZIGi lane untouched). The ⋯ menu stays a disclosure with Escape and focus return, as Session Z chose ("without ARIA-menu traps"); HA17's repeated unnamed stops are fixed by naming each section with its habit.
+- **M30 — Figures and grace (HA1, HA7, HA9, HA15).** A skipped day is neutral everywhere (percentages, the week, trends). Freezes are earned from streaks reached without one. "+" steps by a share of the target (lib/habit-step.ts). The heatmap level is the share of that day's scheduled habits done. A vacation never covers a day the person already wrote on.
+- **M31 — Habit → Goal is an offer, not an automatic sum (J3).** The app's rule stays: a habit tick never adds money to a Goal by itself. A habit linked to a private Goal offers "Add to its Goal" after completion, which opens that Goal's own funding form (`?contribute=1`), where the person confirms the amount. C6's bug numbers (BUG-070/071/018/024/025) are not in the repository or the scope file; its row is closed by the habit form and schedule items it overlaps (HA3, HA10, HA12), and recorded as such.
 
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
+- Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
 ## Closing table (every ID in the brief's index)
@@ -185,3 +189,27 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | C11 | Fixed | BUG-066 (`2361b562`): quick add; `tests/ah-health.spec.ts`, `lib/health.test.ts` |
 | J8 | Already fixed | Session W (quick-log.tsx: per-meal copy yesterday, recent / frequent / favorites) |
 | RM7 | Fixed | The owner's note (`fb21c2b8`, M28) |
+
+### Part 7 — Habits
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| HA1 | Fixed | B-003, B-017, B-189 (`32354145`, M30): 26 done + 4 skipped is 100 % (`lib/habit-skips.test.ts`) |
+| HA2 | Already fixed (Part 4) | N-169, N-015, B-163, B-079, M-037, L-021, Tokyo #5 (`7abfbfda`, TR9) |
+| HA3 / C6 | Fixed | D-045, D-204, B-031, B-145, M-105, N-061, N-078, N-079, N-088, T-085, T-125, T-131, L-011 (`32354145`, M29): archive confirms, starts today when today is empty, then Delete for good; Archive in the ⋯ menu (`tests/ah-habits.spec.ts`). C6: see M31 |
+| HA4 | Fixed | T-141, L-083, L-084, N-134 (`e6e55ec4`) |
+| HA5 | Fixed | T-134, B-192, D-244, D-072, T-067 (`32354145`); J10's one input box stays S2 |
+| HA6 / C7 | Fixed | B-013, N-162, L-005, B-190, L-074, BUG-082 (`32354145`): every calendar mark; no "0/0 · 0%"; "On track so far" for quit/limit |
+| HA7 | Fixed | M-024, M-025, M-115 (`e6e55ec4`, M30) |
+| HA8 | Fixed | M-033, M-034, M-035, L-050, T-099, T-095, D-100 (`e6e55ec4`); today's score already left skips out (TR6) |
+| HA9 | Fixed | N-005, N-112, N-087 (`32354145`, M30) |
+| HA10 | Fixed | L-065, D-044, T-124, N-164 (`32354145`, M29) |
+| HA11 | Fixed | M-138, D-232, B-077 (`32354145`): 2 decimals of a minute; the timer still adds on Finish (said in the card) |
+| HA12 | Fixed | D-007, B-028, D-040, B-144, N-150, N-090, D-113, Denver S-06 (`32354145`): More options fold, one slim action row, money templates named as your own plan; the 2.5 count target was already refused |
+| HA13 | Fixed | D-042, N-069, M-036 (`32354145`): toast with Undo both ways |
+| HA14 | Fixed | M-076, M-106, M-132, N-062, D-137 (`e6e55ec4`) |
+| HA15 | Fixed | D-178, D-192, N-089 (`e6e55ec4`, M30) |
+| HA16 | Fixed | M-061, B-127, B-128, N-096, M-062 (`32354145`) |
+| HA17 | Fixed | T-088, M-040, M-092, D-203 (`e6e55ec4`, M29) |
+| HA18 / J9 | Fixed | N-038, T-020, N-163 (`e6e55ec4`): start earlier, streak legend; grace = rest days and freezes |
+| F6 (Habits) | Fixed | BUG-064 (`e6e55ec4`): sort and 30 at a time; Goals in Part 8 |
+| J3 | Fixed (offer) | `e6e55ec4`, M31 |
