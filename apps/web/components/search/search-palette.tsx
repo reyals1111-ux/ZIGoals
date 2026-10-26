@@ -13,6 +13,7 @@ import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
 import {useAverageGoals} from '../goals/use-average-goals';
+import {useHealthGoals} from '../health-goals/use-health-goals';
 import {NAV_ITEMS, useVisibleNav} from '../app-nav';
 
 const NAV_HREFS = new Set<string>(NAV_ITEMS.map(([href]) => href));
@@ -37,7 +38,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null), returnTo = useRef<Element | null>(null);
   const router = useRouter(), base = useId(), [query, setQuery] = useState(initial), [active, setActive] = useState(0);
   const recent = useDeviceRecord(SEARCH_RECENT);
-  const goals = useUnifiedGoals(), habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), nav = useVisibleNav();
+  const goals = useUnifiedGoals(), habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), healthGoals = useHealthGoals(), nav = useVisibleNav();
 
   useEffect(() => {
     returnTo.current = document.activeElement;
@@ -54,6 +55,8 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     const out: SearchItem[] = [...PAGES.filter(p => pageShown(p.href)), ...nav.items.filter(([href]) => !PAGES.some(p => p.href === href)).map(([href, label]): SearchItem => ({id: `page:${href}`, kind: 'page', title: label, href})), ...SETTINGS, ...HELP_ITEMS];
     if (goals.loaded) for (const g of goals.goals) out.push({id: `goal:${g.key}`, kind: 'goal', title: g.name, subtitle: `${g.type} · ${g.status}`, href: g.href});
     if (averages.loaded && !averages.unreadable) for (const g of averages.data.goals) out.push({id: `goal:average:${g.id}`, kind: 'goal', title: g.name, subtitle: `Keep an average · ${g.status}`, href: `/app/goals/average/${g.id}`});
+    // Session AH (GO12, B-177): Health goals are found too, and open where they live on Goals.
+    if (healthGoals.loaded && !healthGoals.unreadable) for (const g of healthGoals.data.goals) out.push({id: `goal:health:${g.id}`, kind: 'goal', title: g.name, subtitle: `Health goal · ${g.measure}`, href: '/app/goals#goals-health'});
     if (habits.loaded && !habits.error) for (const h of habits.data.habits) out.push({id: `habit:${h.id}`, kind: 'habit', title: h.title, subtitle: h.category, href: `/app/habits#habit-${h.id}`, keywords: [h.description]});
     if (health.loaded && !health.error) {
       for (const f of health.data.foods) out.push({id: `food:${f.id}`, kind: 'food', title: f.name, subtitle: f.brand ? `${f.brand} · in Health` : 'In Health', href: '/app/health'});
@@ -62,7 +65,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     if (platform.loaded && !platform.error) for (const p of platform.data.positions) if (!p.archivedAt) out.push({id: `asset:${p.id}`, kind: 'asset', title: p.providerId === 'native-zig' ? `ZIG ${p.sourceType.replaceAll('_', ' ').toLowerCase()}` : p.providerId, subtitle: `${p.asset}${p.assetClass ? ` · ${p.assetClass}` : ''}`, href: `/app/wealth/asset/${encodeURIComponent(p.id)}`, keywords: [p.asset]});
     for (const t of GOAL_LIBRARY) out.push({id: `template:${t.id}`, kind: 'template', title: t.title, subtitle: `Template · ${t.summary}`, href: t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : `/app/goals/new?template=${t.id}`, keywords: t.keywords});
     return out;
-  }, [goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items]);
+  }, [healthGoals.loaded, healthGoals.unreadable, healthGoals.data, goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items]);
 
   const trimmed = query.trim(), hits = useMemo(() => trimmed ? search(items, trimmed) : [], [items, trimmed]);
   const rows: Row[] = trimmed

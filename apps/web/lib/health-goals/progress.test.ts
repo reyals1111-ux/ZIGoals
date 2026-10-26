@@ -46,13 +46,15 @@ describe('healthGoalProgress', () => {
     expect(healthGoalProgress(goal({measure: 'exercise', exerciseId: 'health_counter-gone', unit: 'reps'}), counters, DAY)).toEqual({kind: 'no-data', detail: 'This counter was deleted.', ended: undefined});
     expect(healthGoalProgress(goal({measure: 'activeMinutes', unit: 'minutes', target: {value: '60', decimals: 0}}), activity([{date: '2026-09-28', steps: 1, minutes: 35}, {date: '2026-09-29', steps: 1, minutes: 40}]), DAY)).toMatchObject({kind: 'value', current: 75, done: true, percent: 100});
   });
-  test('weight: the 30-day average in the goal\'s unit, compared in grams, never a percentage', () => {
+  test('weight: the latest reading in the goal\'s unit (Session AH GO11), the 30-day average beside it, compared in grams, never a percentage', () => {
     const readings = (grams: number[]): HealthData => ({...createEmptyHealth(), weights: grams.map((g, i) => ({id: `health_weight-${String(i).padStart(3, '0')}`, date: `2026-09-${String(10 + i).padStart(2, '0')}`, grams: g, createdAt: AT, updatedAt: AT}))});
     const down = goal({measure: 'weight', direction: 'down', unit: 'kg', target: {value: '72', decimals: 0}});
     const high = healthGoalProgress(down, readings([74600, 74200, 73800, 73440]), DAY);
-    expect(high).toMatchObject({kind: 'value', current: 74.01, target: 72, unit: 'kg', percent: null, days: 4, done: false, detail: '30-day average of 4 readings · latest 73.44 kg on Sep 13, 2026'});
-    expect(healthGoalLine(down, high)).toBe('74.01 towards 72 kg');
-    expect(healthGoalProgress(down, readings([72000, 71900, 71800]), DAY)).toMatchObject({done: true, current: 71.9});
+    expect(high).toMatchObject({kind: 'value', current: 73.44, target: 72, unit: 'kg', percent: null, days: 4, done: false, detail: 'Latest reading on Sep 13, 2026 · 30-day average 74.01 kg over 4 readings'});
+    expect(healthGoalLine(down, high)).toBe('73.44 towards 72 kg');
+    expect(healthGoalProgress(down, readings([72000, 71900, 71800]), DAY)).toMatchObject({done: true, current: 71.8});
+    // Reached by the latest reading even while the average is still above the target.
+    expect(healthGoalProgress(down, readings([73000, 72500, 71900]), DAY)).toMatchObject({done: true, current: 71.9});
     const lb = goal({measure: 'weight', direction: 'down', unit: 'lb', target: {value: '1587', decimals: 1}});
     expect(healthGoalProgress(lb, readings([72000]), DAY)).toMatchObject({current: 158.73, done: false});
     expect(healthGoalProgress(lb, readings([71900]), DAY)).toMatchObject({current: 158.51, done: true});
