@@ -87,9 +87,14 @@ Part 18, after Part 17 and before the final STATUS commit and CI round. **Owner 
 - **M32 — A Goal with financial history is closed, never deleted (GO2, C5).** Contributions and plan revisions are append-only records that sync between devices; deleting their Goal would orphan them on every other device. Delete stays for Goals without them; otherwise the page says so in words and points to Close, which can now pause the Goal's supporting habits too. GO1 did not reproduce on this build (M33's spec keeps every goal kind and the 2-hours template opening without an error).
 - **M33 — The Goal wizard keeps its four steps (GO3, C4).** Creating from step 1 already exists ("Create goal" on the first step), which is the two-step path Tokyo suggests; the other steps stay because integration scripts, the packaged journey and owner-run checks walk them. The wizard gains a way out (Cancel and Escape, the draft kept), a control on the Habit step, ideas that say what they filled, a currency read from "€5000", and an honest asset list. C4's bug numbers are not in the repository; its row is closed by these GO3 items. GO14's "what matters" values step is a later feature (Claude's own note: "a nice later idea"), recorded, not built. A weight goal follows the latest reading (GO11); the Sleep page's nightly goal and a "keep an average" sleep goal stay two different things, named apart.
 
+- **M34 — Wealth's asset search trusts a short verified list (WE1).** The market catalog has no market cap per asset, so ranking by cap would need a new outside source. A fixed list of the well-known ids (lib/market-assets.ts `VERIFIED_ASSET_IDS`) ranks first, and every other token in a search says "Unverified". No egress added.
+- **M35 — Hide amounts and since-last-visit are device-only display aids (WE19, WE22).** "Hide amounts" blurs the person's own figures and value charts (market prices stay) for screenshots; screen readers still read the figures to their owner. "Since your last visit" keeps one value per portfolio on this device, only when every holding is priced and current, never in the Showcase; it is erased with the account and not exported (it is only a comparison point, not a record). Both keys are registered in lib/ah-device-keys.ts, which also fixes Part 6's gap: workouts are now erased with the account and make a device "not new".
+- **M36 — Recorded, not built, in Part 9.** WE16: the catalog route answers `no-store` and is rebuilt on request; its size is the full coin list the search needs offline (a split catalog is a later speed item, Part 13 F3 notes it). WE17/J11 price alerts tied to Goals need push delivery (CO11, Part 14) to be useful; the watchlist exists. WE20: reading a linked wallet into Portfolio is the next step after AF's Wealth tracking; Portfolio's records are hand-entered by design (ADR-013) and a wallet import changes that rule. J15: reward, income and airdrop types need a stored-format version (the transaction kind is a strict enum, so older builds would refuse the records); later, with a frozen-reader plan. WE21's FIFO/LIFO lots: later (the label is fixed now). J14's read-only exchange sync: needs exchange API keys and egress; later.
+
 ## The "already fixed" checks (per part, amendment 2)
 Filled at the start of each part.
 - Part 8: funding a closed Goal was already refused (goal-intelligence `canEdit`, `previewFunding`); GO13's ahead/behind chip already sits on every Goal card (the funding-health badge); F6 for Goals was already built for large collections (search, sort and pages past 24 Goals, Run 11); the wizard already offered "Create goal" on its first step.
+- Part 9: a negative price and dates before 1990 were already refused (transaction schema and `dateIssue`); archiving an asset already had a toast; Markets already had Owned and Favourites filters (WE13); market 503s already say "Price refresh is unavailable. Last-good values stay visible with their timestamps." (F5, BUG-069).
 - Part 7: HA2 was fixed in Part 4 (TR9, `7abfbfda`); HA12's "2.5 target for a count habit" was already refused (habit-editor, `lib/habits.ts`); HA13's 3–5 s repaint was already fixed (paint-first, Session I); HA17's Escape already closed the ⋯ menu. The rest of Part 7 was open on `main`.
 - Part 6: J8 was already fixed (Session W: per-meal "Copy yesterday's …", Recent / Frequent / Favorites quick picks, usual chips in quick-log.tsx). Everything else in Part 6 was still open on `main`.
 
@@ -235,3 +240,34 @@ Filled part by part: per row, the finding IDs fixed, already fixed (evidence) or
 | GO13 | Already fixed | The funding-health badge on every card (goal-card.tsx) |
 | GO14 | Later (recorded) | Tokyo's values step; M33 |
 | F6 (Goals) | Already fixed | Run 11: search, sort, pages past 24 Goals (`run11-large-goal-collection.spec.ts`) |
+
+### Part 9 — Wealth, Markets, Portfolio
+| ID | Outcome | Findings / evidence |
+|---|---|---|
+| WE1 | Fixed | B-148, L-032, L-013, BUG-029, BUG-030, N-023, N-206, T-074, T-143, M-058, D-051, D-079 (`f927c2d5`, M34) |
+| WE2 / A5 | Fixed | N-146, N-147, N-161, N-165, N-044, B-060, B-061, B-158, L-016, T-073, D-081 (`351c51c5`): Edit, price above 0, 1990 floor, future date said in words; realised result per year in WE18. "Record a transaction" stays a disclosure (it opens the form), recorded |
+| WE3 | Fixed | N-099, N-100, T-100, B-087, D-078, D-237, L-072, L-073, T-102 (`351c51c5`): exact names auto-map, BTC is Bitcoin, reasons per row, binary refused, formula names refused |
+| WE4 | Fixed | D-096, D-200, N-197, M-122 (`8a7e9727`): Refresh says what it did; the currency choice was already kept (settings) |
+| WE5 | Fixed | B-104, B-106, D-145, D-221, L-069, M-042, B-032, L-049 (`351c51c5`) |
+| WE6 | Fixed | L-015, D-080, T-061, B-074, B-076 (`351c51c5`): currencies from the list only; the cash glyph per currency |
+| WE7 | Fixed | L-067, B-152 (`351c51c5`): a payment above 0 and at most what is owed; the calculator too. B-199 (payment in Activity) goes with Part 12's Activity work |
+| WE8 | Fixed | M-125, B-140, B-186 (`8a7e9727`): the Showcase says it opens a real provider and asks Ramp for nothing; the amount is chosen on the provider's page; the fee line only where networks are compared |
+| WE9 | Fixed | L-063, T-040 (`351c51c5`): "Tokenized reference price", no token logo for metals |
+| WE10 | Fixed (net worth, heading) | B-030, B-026, T-096, N-145 (`351c51c5`); the Add-asset sheet padding (B-151) is Part 13 (LA) |
+| WE11 | Fixed | B-085 (`351c51c5`): only live-priced ids are sent; PRIVACY.md says so |
+| WE12 | Fixed | L-064, N-009, N-024, N-207, D-052, D-108, D-223, N-200 (`351c51c5`) |
+| WE13 / J17 | Fixed | T-105, T-117, N-195, D-108, D-215, N-191, N-192, L-031 (`8a7e9727`): layout and ranges remembered, inflows green and signed; filters already existed |
+| WE14 | Fixed | D-055, D-148, D-056, M-108 (`351c51c5`) |
+| WE15 | Fixed (links, labels, Light) | M-117, B-093, M-118, D-157, B-122 (`8a7e9727`): mainnet explorers first; Light logo tiles. M-119/M-069 (six doc 404s): the docs hosts answer 403 to this sandbox, so they cannot be checked here; the record keeps them and Part 16 rechecks in CI's browser. D-183/D-125 ("ZW"): the initials tile is the named fallback for a project without an official icon (it says so to screen readers), kept |
+| WE16 | Recorded | B-094: M36 |
+| WE17 / J11 | Later (recorded) | T-006, N-047: M36 |
+| WE18 | Fixed | T-041 (`8a7e9727`) |
+| WE19 | Fixed | T-023 (`8a7e9727`, M35) |
+| WE20 | Later (recorded) | N-103: M36 |
+| WE21 | Fixed (label) | T-050, N-102 (`8a7e9727`); lots later (M36) |
+| WE22 | Fixed | N-082 (`8a7e9727`, M35) |
+| C12 | Fixed | `351c51c5`: a second card for the same market asset is refused with its name; the stock form's words |
+| DE5 / J18 | Fixed (light budget) | T-007 (`8a7e9727`): the spend-cap goal template; logging a day's spending is the goal page's day entry |
+| J14 | Fixed (duplicates) | `8a7e9727`; exchange sync later (M36) |
+| J15 | Later (recorded) | M36 |
+| F5 | Already fixed | BUG-069: the "Price refresh is unavailable" notice with last-good values (wealth-view) |
