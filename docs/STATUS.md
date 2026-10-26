@@ -1,7 +1,68 @@
-# Session AH — The Big Polish (ADR-033) (2026-10-25 onward, `feature/session-ah-polish`; in progress, not merged, not deployed)
-**Base:** `main` `f13abb0` (Alpha #49). **Rules (owner):** the brief (Parts 0–16, the complete ID index, the non-negotiables), the approved plan, and eight owner amendments (25 Oct, ADR-033): (1) close every finding ID per row, not only the row; (2) the "already fixed" check runs at the start of each part for that part's rows; (3) DS1's revision stamp additive, TIER 3 (stored format), frozen readers #37–#49; (4) the device lock optional, off by default, never locking anyone out of their own data; (5) Health auto-ticks never double-count; (6) no FX source → the currency switch hides; (7) the PR-review Action on `pull_request` only, never forks, least privilege, a clean skip without its secret; (8) notification actions and service-worker/manifest changes TIER 3 (PWA).
+# Session AH — The Big Polish (ADR-033, Parts 0–18) (2026-10-25/26, `feature/session-ah-polish`, [PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95); not merged, not deployed)
+**Evidence labels:** unit = vitest from the repository root; local = the cloud sandbox (Node 22 against the project's 24), Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101); frozen readers = `scripts/frozen-readers.mjs` on releases #37–#49; CI = Milestone quality on the PR head. No paid service, no secret, no deploy; no wallet signing, key, transaction-building or contract-call change; no edit under `apps/web/lib/ai/**`, ZIGi components or evals (only `/app/zigi`'s page copy, TO9). The only dependency changes are Part 1's pre-approved security bumps.
+**Base:** `main` `f13abb0` (Alpha #49). **Rules (owner):** the brief (Parts 0–16, the complete ID index, the non-negotiables), the approved plan, and eight owner amendments (25 Oct, ADR-033): (1) close every finding ID per row, not only the row; (2) the "already fixed" check runs at the start of each part for that part's rows; (3) DS1's revision stamp additive, TIER 3 (stored format), frozen readers #37–#49; (4) the device lock optional, off by default, never locking anyone out of their own data; (5) Health auto-ticks never double-count; (6) no FX source → the currency switch hides; (7) the PR-review Action on `pull_request` only, never forks, least privilege, a clean skip without its secret; (8) notification actions and service-worker/manifest changes TIER 3 (PWA). Then three owner additions, each pre-approved: Part 17 (the Health journal date drives the whole Health page), Part 18 (the Checklist top bar — an exception to the protected Checklist for the top bar only —, the phone top bar without the page name, the Health quick counters), and the LA2 decision (26 Oct: a rail on tablets instead of the header grid).
 
-Decisions: `docs/architecture/ADR-033-session-ah.md` (M1…). Resume file: `docs/handoff/AH_RESUME.md`. This entry is completed by the session's last commit.
+Decisions: `docs/architecture/ADR-033-session-ah.md` (M1–M53, the "already fixed" checks, and the closing table for every ID in the brief's index). Resume file: `docs/handoff/AH_RESUME.md`. Self-check: about 14 of 20 scratchpad captures, none committed.
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: AG Polish 3 merged (`f13abb0`, PR #94), run 52 = Alpha #49 VERIFIED (version `5595578f`, rollback `5c0b7920` #48, floor #32); ADR-033, the resume file, Draft PR; RM8 checks, QA2-04 (a reminder's time follows its day's zone) (M1–M4) | 1 | `5d070b66`, `dd4dc885` | unit, local |
+| 1 | Security: vitest 5.0.3, vite 8.3.3, glob 10.5.0, body-parser 2.4.0, undici 7.30.1 / 8.12.2 (exact overrides); frozen readers default to #37–#49 and keep their first SHA (M5–M7) | 3 (dependency) | `c117baf9`, `a0a1fab4`, `bfe62b3d`, `b461524b`, `96e616f3`, `405c152c` | unit, frozen readers, `pnpm audit`, CI |
+| 2 | CI and deploy stability at their cause: staking execute clock, domain-review-race probe, run10-source-pinning, four browser intermittents, the WebKit cancelled-request class, AF6 hydration day, AF7 verifier, AF16 reproducibility, quick-add early tap (M8–M10) | 1 / 3 (verifier, CI) | `9b1dd80f`, `ba33c973`, `88af29d5`, `75766fec`, `6966c04d`, `6055f5ab`, `05173f41`, `b1cdba48`, `ea7aaca9`, `3f0b505d`, `e6bade8e` | unit, local, CI |
+| 3 | Data safety: two tabs (already safe; spec), Reset Showcase asks and undoes, every removal confirms or undoes, sleep taps, naps, complete exports, two weights a day, restore hints, Back and drafts, plain import errors (M11–M15) | 1 | `bce3ac48`, `9dab86af`, `3bc64a6d`, `749e2d75`, `3038f6c0` | unit, local, CI |
+| 4 | Numbers: one valuation and net worth, one Showcase price set, rounding, freshness, counts, the hidden currency switch, "Ahead" only when true, honest Activity, habits from Health counted once, the calculator's assumptions and months (M16–M22) | 1 / 3 (stored format) | `0dc8ae4d`, `9e865423`, `1b5d218a`, `cdb6f967`, `1e8946ad`, `6dc444a0`, `7abfbfda`, `521dba16`, `77bb22a7` (+ fixes `bfd6d7fd`, `05037e8b`, `580bd230`, `04966f9c`, `ffc0777f`, `e4fb87ee`) | unit, frozen readers, local, CI |
+| 5 | Forms: plain inline errors, one limits module, time zones, character counts, one date format, plurals, amount caps (M23–M25) | 1 | `cd216935`, `24da254e`, `6130a96d` | unit, local, CI |
+| 6 | Health: workout tracking (DE8), water tap on a new profile, the calorie coach, Fitbit import removed (data kept), Health polish (M26–M28) | 1 / 3 (stored format) | `0425bd79`, `8120ec92`, `fb21c2b8`, `2361b562`, `15dad441` (+ `8456c397`) | unit, frozen readers, local, CI |
+| 7 | Habits (M29–M31) | 1 | `32354145`, `e6e55ec4`, `e6ae271f` (+ `06f01019`) | unit, local, CI |
+| 8 | Goals (M32–M33) | 1 | `b492379f`, `e3937889`, `57c1275e` (+ `63d0c6de`) | unit, local, CI |
+| 9 | Wealth, Markets, Portfolio (M34–M36) | 1 | `f927c2d5`, `351c51c5`, `8a7e9727`, `70674800` | unit, local, CI |
+| 10 | Staking, Earn, Governance: wording, labels, calculators and empty states; AF3 read-only pool and vault shares (M37–M39) | 1 / 3 (verifier, egress) | `e194278a`, `facc2b0f`, `a31fa439`, `c576beee` | unit, local, CI |
+| 11 | Today, first run, Checklist logic (layout untouched) (M40–M42) | 1 | `0e66fea8`, `bf39bf71` | unit, local, CI |
+| 12 | Settings, Help, Activity; the optional device lock (M43–M44) | 1 (new device-only key, see Tier 3) | `799935f3`, `601fcf07` (+ `48d60046`, `e6a884bb`) | unit, frozen readers, local, CI |
+| 13 | Layout, accessibility, themes, speed; the tablet rail (LA2 owner decision) (M45–M47) | 1 | `f33fd251`, `21ce0f20` | local, theme parity, CI |
+| 14 | Competitor features: why net worth changed, Ecosystem value locked, the freshness policy, habit Strength, workout progression (M48) | 1 | `4fc04a7a`, `355f0e7e` | unit, local, CI |
+| 15 | Landing staking lines, FRIENDS_GUIDE, the landing verifier, the advisory PR review (M49) | 1 / 3 (verifier, CI) | `b6df734e`, `90f6c093`, `632c6914`, `c1a7ac4d` | unit, local, CI |
+| 16 | Final sweeps: BUG ids, the keep-list, 30 routes empty and Showcase at 390 and 1440 px (M50) | 1 | `b49ad0d6` (+ `489b9cd8`, M52) | local, CI |
+| 17 | Owner addition 1: the Journal date drives the whole Health page; `?date=` links; the date bar (no stored-format change) (M51) | 1 | `e77ea8e7` | unit, local, CI |
+| 18 | Owner addition 2: the Checklist top bar, the phone top bar without the page name, quick counters typed in place (M53) | 1 | `a0416ba6` | unit, local, CI |
+| Records | Owner amendments and additions recorded, resume file along the way | 1 | `3f08028e`, `7354f620`, `5e320d47`, `126674c1`, `a980249b` | — |
+| Finish | Two specs wait for a Health card to load; this entry | 1 | `745be930`, this commit | local |
+
+## Tier 3, in plain words (risk → rollback)
+- **Dependencies (Part 1):** `c117baf9` vitest 5.0.3, `a0a1fab4` vite 8.3.3, `bfe62b3d` glob 10.5.0, `b461524b` body-parser 2.4.0, `96e616f3` undici 7.30.1 / 8.12.2 (exact pnpm overrides for transitive packages). *Risk:* test, build and preview tooling; nothing stored. *Rollback:* revert the one commit (pin and lockfile together).
+- **Verifier:** `88af29d5` (AF7, a request cut off by a navigation counts as aborted), `e194278a` (Earn's new heading), `90f6c093` (stage 7 accepts exactly one of the landing's earlier or new line sets). *Risk:* the verifier checks a little less (AF7) or looks for new text. *Rollback:* revert the commit (`e194278a` together with its title). After the owner redeploys the landing, drop the earlier line set.
+- **CI:** `b1cdba48` (AF16: a kernel difference is accepted only with a runner-image difference; the byte comparison is unchanged); `632c6914` (an advisory PR review on `pull_request` only, same repository, non-draft, `contents: read` and `pull-requests: write`, pinned checkout, skips cleanly until the owner sets the secret and `PR_REVIEW_MODEL`). *Rollback:* revert, or delete `.github/workflows/pr-review.yml` and `scripts/pr-review/`.
+- **Stored format:** `521dba16` (an optional months field on a saved calculator scenario; older builds show whole years); `0425bd79` (the new device-only key `zigoals:workouts:v1`); `799935f3` (the new device-only key `zigoals:device-lock:v1`, off by default, a PBKDF2 hash, never encrypting data, "Forgot the PIN?" clears it after a minute; this commit was not labelled TIER 3 at the time). *Risk:* older builds ignore the new field and keys. *Proof:* frozen readers #37–#49 pass. *Rollback:* revert; the field and keys are then ignored.
+- **Egress:** `a31fa439` (AF3 `/api/earn/shares`: public addresses only, allow-listed hosts and pinned query shapes, rate-limited, nothing stored or logged, mainnet only). *Rollback:* revert; Earn returns to "shown on the provider's page".
+- No service-worker or manifest change was made (CO11 is recorded as not possible yet).
+
+## Tests and assertions changed (deliberate; none weakened)
+Each change is named in its commit message and in ADR-033 (M-entries). The specs moved with deliberate product changes at equal or greater strength (titles, wording, the tablet rail in `page-marks`, the counters in `counters-compact` and `ui-design-pass`, `health-midnight`'s date bar, `run9-2-life`'s account rows). Intermittents were fixed at their cause, not by longer timeouts or removed checks. New Session AH specs: 16 `tests/ah-*.spec.ts` files, plus unit tests for each new module (net worth, rounding, counts, limits, why-it-changed, habit strength, health-day, health-counters, workouts, the PR-review script).
+
+## Evidence (final head, local)
+- **Unit:** 733 files; 6,042 passed, 46 skipped, 6 failed in the 3 files that fail only in this sandbox (Node 22: `vault/finance-homes`, `visual-format` ja-JP, `scripts/pre-run11-setup`). Typecheck clean; lint 19 warnings, 0 errors (the baseline).
+- **Frozen readers:** #37 `32cb9c5` … #49 `f13abb0`: 13 releases × 33 records, all read or ignored.
+- **Browser (production build of the Part 18 code):** theme parity (`theme-parity-af`) 55 passed, 1 skipped; the 16 Session AH specs with `page-marks` and `phone-shell` 151 passed, 6 skipped, 1 failed: a race in `ah-workouts` (it checked a card once while the card was still loading), fixed at its cause in `745be930`, then `ah-workouts` 8/8 and `ah-health` 10/10. Each part's focused suites are listed in its commit and in ADR-033.
+- **Gate (scratchpad, never committed):** about 14 captures.
+- **CI:** Milestone quality on this head — the result is on the PR (one re-run per known intermittent).
+
+## Weights (gzip -6; budgets never raised)
+`/app/checklist` 483.2 of 492.0 kB, the shell 405.4 of 447.0 kB, every page within its line (`scripts/check-weight-budget.mjs`).
+
+## Closing table summary (ADR-033)
+About 200 rows: most fixed (with commit and test), 11 already fixed (evidence), and the rest recorded with a reason:
+- **Owner steps:** HE4 / J5 / L4 (deploy the food Worker), MO4 (the privacy notice waits on a lawyer, owner decision L4).
+- **Not possible yet:** CO11 (push is not switched on).
+- **Later (recorded):** GO14, WE17 / J11, WE20, J15.
+- **Recorded with reasons:** WE16, I5, H3 / AF13, LA5, LA6, AF15, MO3, NO1 (14 undescribed BUG ids: 002, 012, 019, 023, 038, 051, 052, 054–057, 060, 067, 072).
+- **Kept by design:** SE13.
+- **Not reproduced:** GO1 (its spec kept).
+
+## Known CI intermittents and open items
+- Known intermittents (one re-run each): `lib/staking/execute.test.ts:116`, `scripts/run11/domain-review-race.test.mjs:41`, `run9-2-product.spec.ts:30`, and the WebKit "ZIGi box empty" class. Seen in this session's CI and passed on re-run: market-status (workerd socket closed), sync-lost-ack-browser and the packaged Goal journey (on failure the log now prints each page's headings and messages).
+- **Owner steps outside this PR:** redeploy the landing, then drop the verifier's earlier line set; add the `www` → apex redirect rule; set the PR-review secret and the `PR_REVIEW_MODEL` variable; describe the 14 undescribed BUG ids; deploy the food Worker (HE4 / J5 / L4).
+- Not merged, not deployed: the owner merges and deploys.
 
 ---
 
