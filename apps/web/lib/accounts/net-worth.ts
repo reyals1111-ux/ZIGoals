@@ -39,6 +39,29 @@ export function netWorth(accounts: Accounts, day: string, positions: readonly Po
   const rows = [...by.values()].map(r => ({...r, net: sub(add(r.assets, r.holdings), r.debts)})).sort((a, b) => a.currency.localeCompare(b.currency));
   return {rows, unvaluedHoldings: unvalued};
 }
+/**
+ * Session AH Part 4 (TR1/B4/TR13, BUG-085, ADR-033 M16): THE net worth — the accounts' latest balances, plus Wealth's
+ * holdings valued exactly as Wealth values them (lib/wealth.ts wealthOverview: a live quote for a live-priced coin, the
+ * person's own value for a manual one), minus debts, per currency, never converted. `netWorth` above counted a holding
+ * only when it had a stored value, so live-priced BTC and ETH were left out ($47,166.74 in the Showcase) and the
+ * "no value yet" names were the wrong two. Today, Wealth, Life review and Journey read this one total; ZIGi is wired to it
+ * by the ZIGi session (lib/ai is not changed here).
+ */
+export type ValuedHolding = {name: string; currency?: string; value?: bigint};
+export function netWorthTotal(accounts: Accounts, day: string, holdings: readonly ValuedHolding[]): {rows: CurrencyWorth[]; unvaluedHoldings: number; unvaluedNames: string[]} {
+  const base = netWorth(accounts, day, []), by = new Map(base.rows.map(r => [r.currency, {...r}]));
+  const unvaluedNames: string[] = [];
+  for (const h of holdings) {
+    if (h.value === undefined || !h.currency) { unvaluedNames.push(h.name); continue; }
+    let r = by.get(h.currency);
+    if (!r) by.set(h.currency, r = {currency: h.currency, assets: ZERO, debts: ZERO, net: ZERO, holdings: ZERO, accounts: 0, noBalance: 0});
+    r.holdings = add(r.holdings, {value: h.value, decimals: 2});
+  }
+  const rows = [...by.values()].map(r => ({...r, net: sub(add(r.assets, r.holdings), r.debts)})).sort((a, b) => a.currency.localeCompare(b.currency));
+  return {rows, unvaluedHoldings: unvaluedNames.length, unvaluedNames};
+}
+/** Wealth's overview rows as the holdings `netWorthTotal` counts. */
+export const holdingsOf = (rows: readonly {position: {providerId: string; asset: string}; currency?: string; value?: bigint}[]): ValuedHolding[] => rows.map(r => ({name: r.position.providerId || r.position.asset, currency: r.currency, value: r.value}));
 /** Net worth from accounts only at the end of each of the last `months` months (and today), per currency, oldest first. */
 export function netWorthHistory(accounts: Accounts, today: string, months = 12): {date: string; currency: string; net: Money; counted: number}[] {
   const [y, m] = today.split('-').map(Number);

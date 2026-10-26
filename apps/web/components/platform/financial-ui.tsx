@@ -1,6 +1,9 @@
 'use client';
 import {useBackCloses} from '../use-back-closes';
-import {useEffect,useRef,useState,type ReactNode,type CSSProperties} from 'react';
+import {isShowcase} from '../../lib/showcase-storage';
+import {useEffect,useRef,useState,useSyncExternalStore,type ReactNode,type CSSProperties} from 'react';
+const noSubscribe=()=>()=>{};
+const useShowcase=()=>useSyncExternalStore(noSubscribe,isShowcase,()=>false);
 import './financial-ui.css';
 import {progressPresentation} from '../../lib/visual-format';
 import {ASSET_COLORS,ringSegments,type AssetMix} from '../../lib/wealth';
@@ -19,7 +22,7 @@ export function ProgressRing({percent,size=112,label='Goal progress',complete,as
   <span aria-hidden="true">{progress?<>{atLeast&&<small className="ring-at-least">≥</small>}{progress.label}<small>%</small></>:'—'}</span>
  </GlassRing>;
 }
-export function FreshnessBadge({state}:{state:string}){return <span className="freshness-badge" data-state={state}>{state==='fresh'?'Current':state==='stale'?'Needs refresh':state==='manual'?'Manual value':'Needs value'}</span>;}
+export function FreshnessBadge({state}:{state:string}){const showcase=useShowcase();return <span className="freshness-badge" data-state={state} title={showcase&&(state==='fresh'||state==='stale')?'The Showcase keeps the prices it loaded when it opened, so its examples stay the same':undefined}>{showcase&&(state==='fresh'||state==='stale')?'Showcase price':state==='fresh'?'Current':state==='stale'?'Needs refresh':state==='manual'?'Manual value':'Needs value'}</span>;}
 /** Phase 2 closing pass (design critique): a text value sizes itself from its length inside the tile, so a date or amount never breaks. */
 export function MetricCard({label,value,detail}:{label:string;value:ReactNode;detail?:ReactNode}){const fit=typeof value==='string'&&/\d/.test(value)&&!/[a-z]{4,}/.test(value);return <div className="financial-metric"><span>{label}</span><strong className={fit?'is-figure':undefined} style={fit?{'--chars':value.length} as import('react').CSSProperties:undefined}>{value}</strong>{detail&&<small>{detail}</small>}</div>;}
 // Focus returns to whatever opened the sheet (QA-19), as Quick add and Today's dialogs already do.

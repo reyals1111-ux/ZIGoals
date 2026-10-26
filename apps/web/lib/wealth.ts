@@ -142,11 +142,17 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   const balance=allocationBalance(s,p.id),observed=BigInt(p.quantity),allocated=BigInt(balance.allocated)>observed?observed:BigInt(balance.allocated);
   const requestedCurrency=p.quoteCurrency??'USD';
   const matching=validQuotes.filter(q=>quoteMatchesPosition(p,q)&&q.currency===requestedCurrency&&Date.parse(q.observedAt??q.fetchedAt??'')<=now+60000).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt??'')-Date.parse(a.observedAt??a.fetchedAt??''))[0];
-  const currency=p.valuation?.currency??matching?.currency??(p.valuationMode==='automatic'?requestedCurrency:undefined);
-  const value=p.valuation?BigInt(p.valuation.value)*100n/10n**BigInt(p.valuation.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
+  // Session AH Part 4 (TR8, B1, ADR-033 M16): one price per holding. A market quote newer than a stored snapshot that is
+  // not the person's own value replaces it (the reward reserve was valued at an older $0.06 beside a shown $0.048); a
+  // value the person typed (MANUAL) always stays theirs, with the market's value kept beside it (TR5/B7).
+  const quoteAt=matching?Date.parse(matching.observedAt??matching.fetchedAt??''):NaN,snapshotAt=p.valuation?Date.parse(p.valuation.observedAt):NaN;
+  const own=p.valuation&&(p.valuation.source==='MANUAL'||!matching||!(quoteAt>snapshotAt)||matching.currency!==p.valuation.currency)?p.valuation:undefined;
+  const currency=own?.currency??matching?.currency??(p.valuationMode==='automatic'?requestedCurrency:undefined);
+  const value=own?BigInt(own.value)*100n/10n**BigInt(own.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
+  const marketValue=matching&&own?.source==='MANUAL'&&matching.currency===own.currency?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
-  const valuationState=p.valuation?.source==='MANUAL'?'manual':p.valuation?snapshotIsStale(p.valuation.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
-  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,source:p.valuation?.source==='MANUAL'?'Manual value':p.valuation?'Verified Position value':matching?.source,valuedAt:p.valuation?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
+  const valuationState=own?.source==='MANUAL'?'manual':own?snapshotIsStale(own.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
+  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,marketValue,source:own?.source==='MANUAL'?'Manual value':own?'Verified Position value':matching?.source,valuedAt:own?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
  });
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];

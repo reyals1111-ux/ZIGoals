@@ -44,3 +44,20 @@ describe('Life review (Session AA-Cloud Part 5)', () => {
     expect(Number(usd.end)).toBeLessThan(5_000_000);
   });
 });
+
+// Session AH Part 4 (TR13): a period that ends today ends at today's holdings as Wealth shows them.
+import {describe as describeAh, expect as expectAh, it as itAh} from 'vitest';
+describeAh('Life review money, today as Wealth shows it', () => {
+  itAh('the end value is the current total when the period ends today; earlier periods keep their recorded end', async () => {
+    const {lifeReview, reviewPeriod} = await import('./engine');
+    const {emptyHabitData} = await import('../habits');
+    const {createEmptyHealth} = await import('../health');
+    const {emptyPlatform} = await import('../positions');
+    const history = [{currency: 'USD', decimals: 2, points: [{at: '2026-10-01T12:00:00.000Z', value: '5000000'}, {at: '2026-10-20T12:00:00.000Z', value: '5100000'}]}];
+    const base = {habits: emptyHabitData(), health: createEmptyHealth(), platform: emptyPlatform(), goals: [], averages: [], extras: {version: 1, goals: {}} as never, history: history as never, today: '2026-10-25'};
+    const live = lifeReview({...base, window: reviewPeriod('month', '2026-10-25'), current: [{currency: 'USD', value: 5250000n}]});
+    expectAh(live.money[0]).toMatchObject({currency: 'USD', end: '52500.00'});
+    const past = lifeReview({...base, window: reviewPeriod('month', '2026-09-30'), current: [{currency: 'USD', value: 5250000n}]});
+    expectAh(past.money[0]?.end).not.toBe('52500.00');
+  });
+});

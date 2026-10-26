@@ -96,3 +96,18 @@ it('the Showcase accounts are fictional, valid and the same for the same day', (
   expect(moneyText(usualPayment(loan, '2026-10-01')!)).toBe('300.00');
   expect(moneyText(netWorth(a, '2026-10-01').rows[0]!.net)).toBe(String(2430 + 10450 + 23900 - 6911 - 640) + '.00');
 });
+
+// Session AH Part 4 (TR1/B4, BUG-085): one net worth — holdings valued as Wealth values them, including live-priced ones.
+describe('netWorthTotal', () => {
+  it('counts every valued holding (live-priced too), names the ones without a value, and subtracts debts', async () => {
+    const {netWorthTotal} = await import('./net-worth');
+    let g = addAccount(emptyAccounts(), {id: '00000000-0000-4000-8000-000000000011', kind: 'cash', name: 'Fictional checking', currency: 'USD', balance: {value: 500000n, decimals: 2, date: '2026-09-01'}}, '2026-09-01T00:00:00.000Z');
+    g = addAccount(g, {id: '00000000-0000-4000-8000-000000000012', kind: 'credit-card', name: 'Fictional card', currency: 'USD', balance: {value: 100000n, decimals: 2, date: '2026-09-01'}}, '2026-09-01T00:00:00.000Z');
+    const total = netWorthTotal(g, '2026-10-01', [{name: 'Bitcoin', currency: 'USD', value: 3750000n}, {name: 'Ethereum', currency: 'USD', value: 960000n}, {name: 'Family home', currency: 'EUR', value: 30000000n}, {name: 'Unlisted token'}]);
+    const usd = total.rows.find(r => r.currency === 'USD')!;
+    expect(moneyText(usd.holdings)).toBe('47100.00');
+    expect(moneyText(usd.net)).toBe('51100.00'); // 5,000 + 47,100 − 1,000
+    expect(total.rows.map(r => r.currency)).toEqual(['EUR', 'USD']);
+    expect(total.unvaluedNames).toEqual(['Unlisted token']);
+  });
+});

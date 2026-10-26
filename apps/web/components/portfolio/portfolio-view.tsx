@@ -33,6 +33,8 @@ import {useDefaultCurrency} from '../../lib/default-currency';
 
 const NO_COINS: PortfolioCoin[] = [];
 /** Messages a reader can act on; storage refusals keep their Part 5 code. */
+/** Session AH (TR3): whether a Showcase coin is priced from the prices the Showcase loaded (not its fixture). */
+const marketOfPriced = (portfolio: Portfolio, of: (coin: PortfolioCoin) => CoinMarket) => portfolio.coins.some(c => of(c).price?.source.startsWith('Showcase price'));
 function failure(error: unknown, fallback: string) {
   if (error instanceof HoldingsBelowZero || error instanceof PortfolioUnreadable) return error.message;
   return storageMessageOr(error, fallback);
@@ -76,7 +78,7 @@ export function PortfolioView() {
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="portfolio-eyebrow">On this device</NebulaFlow></p>
       <h1 id="portfolio-title"><NebulaFlow identity="portfolio-title">Portfolio</NebulaFlow></h1>
       <p className="page-lede">Keep track of coins you hold, or a portfolio you are only considering. It stays apart from your Wealth and Goals.</p>
-      {store.showcase && <p className="portfolio-note" role="note">Showcase: a fictional portfolio with fixture prices. These are not market prices.</p>}
+      {store.showcase && <p className="portfolio-note" role="note">{market.priced ? 'Showcase: a fictional portfolio, priced with the market prices this Showcase loaded when it opened (the same on every page, kept for this tab). Its 24h and 7-day lines are examples.' : 'Showcase: a fictional portfolio with fixture prices. These are not market prices.'}</p>}
       {noPrices && <p className="portfolio-note" role="status">No live price is available right now. Values and results stay unknown until one is.</p>}
       <HeaderArtCorner><OrbitArt glyph={PortfolioGlyph} tone="wealth" spin={36}/></HeaderArtCorner>
     </section>
@@ -161,7 +163,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
         {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
         <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} />
         {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
-        {showcase && <p className="fine portfolio-attribution">Showcase fixture prices, not market data.</p>}
+        {showcase && <p className="fine portfolio-attribution">{marketOfPriced(portfolio, marketOf) ? 'Showcase prices as loaded when the Showcase opened; the 24h and 7-day lines are examples.' : 'Showcase fixture prices, not market data.'}</p>}
       </div>
       <div id={`${portfolio.id}-panel-analysis`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-analysis`} hidden={tab !== 'analysis'}>
         <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <AllocationDonut portfolio={portfolio} rows={rows} />}</div>

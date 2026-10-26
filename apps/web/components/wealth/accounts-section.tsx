@@ -3,13 +3,15 @@ import {useEffect, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
 import {showToast} from '../ui/undo-toast';
 import {ACCOUNTS, accountsSchema, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
-import {add, addAccount, balanceOn, editAccount, moneyText, netWorth, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
+import {add, addAccount, balanceOn, editAccount, holdingsOf, moneyText, netWorthTotal, netWorthHistory, payoffMonths, recordBalance, recordPayment, removeAccount, usualPayment, type Money} from '../../lib/accounts/net-worth';
 import {parseAmountInput} from '../../lib/amount-input';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {useDeviceRecord} from '../ai/use-device-record';
 import type {LayoutAttrs} from '../layout-edit';
 import {usePlatform} from '../platform/use-platform';
+import {useMarketQuotes} from '../platform/use-market-quotes';
+import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
 import {useFieldErrors} from '../field-errors';
 import {formatDate} from '../../lib/visual-format';
 import './accounts.css';
@@ -50,9 +52,11 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   function change(fn: (current: Accounts) => Accounts, words: string, undo?: {fn: (current: Accounts) => Accounts; done: string}) {
     try { accounts.update(fn); setMessage(words); setError(''); if (undo) showToast({message: words, undo: () => accounts.update(undo.fn), undone: undo.done}); return true; } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved on this device.'); return false; }
   }
+  const market = useMarketQuotes(wealthMarketRequests(platform.data));
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
   if (accounts.unreadable) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p role="alert">Your accounts on this device could not be read. Their bytes are kept; nothing was changed.</p></section>;
-  const items = accounts.data.items, worth = netWorth(accounts.data, today, platform.data.positions), history = netWorthHistory(accounts.data, today);
+  // Session AH Part 4 (TR1): holdings valued exactly as Wealth values them (live quotes included), one net worth.
+  const items = accounts.data.items, worth = netWorthTotal(accounts.data, today, holdingsOf(wealthOverview(platform.data, market.now || Date.now(), market.quotes).rows)), history = netWorthHistory(accounts.data, today);
   const active = items.filter(a => !a.archivedAt), archived = items.filter(a => a.archivedAt);
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
@@ -68,7 +72,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
         <AssetsVsDebts assets={r.assets} holdings={r.holdings} debts={r.debts} currency={r.currency} />
         {r.noBalance > 0 && <p className="fine">{r.noBalance} {r.noBalance === 1 ? 'account has' : 'accounts have'} no balance yet (not counted as zero).</p>}
       </article>)}
-      <p className="fine">Net worth = accounts + Wealth holdings with a value − debts, per currency, never converted between currencies.{worth.unvaluedHoldings ? ` ${worth.unvaluedHoldings} ${worth.unvaluedHoldings === 1 ? 'holding has' : 'holdings have'} no value yet and ${worth.unvaluedHoldings === 1 ? 'is' : 'are'} not counted.` : ''}</p>
+      <p className="fine">Net worth = accounts + Wealth holdings with a value − debts, per currency, never converted between currencies.{worth.unvaluedHoldings ? ` Not counted, no value yet: ${worth.unvaluedNames.join(', ')}.` : ''}</p>
     </div>}
     {history.length > 1 && <details className="accounts-history"><summary>Net worth over time (accounts only)</summary><table><caption>Month-end net worth from your accounts and debts</caption><thead><tr><th scope="col">Date</th><th scope="col">Currency</th><th scope="col">Net worth</th><th scope="col">Accounts counted</th></tr></thead>
       <tbody>{history.map(h => <tr key={`${h.date}-${h.currency}`}><th scope="row">{formatDate(h.date)}</th><td>{h.currency}</td><td>{show(h.net, h.currency)}</td><td>{h.counted}</td></tr>)}</tbody></table></details>}

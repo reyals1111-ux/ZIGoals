@@ -123,3 +123,15 @@ it('deduplicates one public pair shared by several open Value Goals',()=>{
  expect(goalMarketRequests(state)).toEqual([{marketRef:btc.marketRef!,currency:'USD'}]);
  expect(goalMarketRequests(state,closed.id)).toEqual([]);
 });
+
+// Session AH Part 4 (TR8, TR5/B7, M16): one price per holding.
+it('a newer market quote replaces an older stored snapshot; a manual value stays, with the market value beside it', () => {
+ const zig = {...automaticSourcePosition({asset: catalog('zignaly', 'ZIG'), assetClass: 'Crypto', quantity: '1000', currency: 'USD'}, 'reward-zig'), valuation: {value: '6000', currency: 'USD', decimals: 2, source: 'VERIFIED' as never, observedAt: '2026-09-18T10:00:00.000Z'}};
+ const aapl = {...automaticSourcePosition({asset: catalog('apple', 'AAPL', 'rwa'), assetClass: 'Stocks', quantity: '30', currency: 'USD'}, 'own-aapl'), valuation: {value: '750000', currency: 'USD', decimals: 2, source: 'MANUAL' as const, observedAt: '2026-09-20T09:00:00.000Z'}};
+ const now = Date.parse('2026-09-20T10:05:00.000Z');
+ const overview = wealthOverview({...emptyPlatform(), positions: [zig, aapl]}, now, [quote(zig.marketRef!, 'USD', '48', 3), quote(aapl.marketRef!, 'USD', '34197', 2)]);
+ // The reward reserve: 1000 × $0.048 now, not the older $60.00 snapshot.
+ expect(overview.rows.find(r => r.position.id === 'reward-zig')).toMatchObject({value: 4800n, valuationState: 'fresh', source: 'CoinGecko'});
+ // AAPL: the person's $7,500 stays; 30 × $341.97 = $10,259.10 is kept beside it.
+ expect(overview.rows.find(r => r.position.id === 'own-aapl')).toMatchObject({value: 750000n, marketValue: 1025910n, valuationState: 'manual', source: 'Manual value'});
+});

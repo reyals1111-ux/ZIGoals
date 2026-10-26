@@ -4,7 +4,8 @@ import {useMemo, useState} from 'react';
 import {lifeReview, reviewPeriod, type Period} from '../../lib/life-review/engine';
 import {LIFE_REVIEW, previousFocus, setFocus, setPeriod} from '../../lib/life-review/store';
 import {reviewState, reviewWindow, weekSummary} from '../../lib/weekly-review/engine';
-import {wealthOverview} from '../../lib/wealth';
+import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
+import {useMarketQuotes} from '../platform/use-market-quotes';
 import {formatMoney, formatSignedMoney} from '../../lib/visual-format';
 import {drawShareCard, shareOrSave} from '../../lib/share-image';
 import {isShown} from '../../lib/pages/visibility';
@@ -39,6 +40,7 @@ export function LifeReviewView() {
   const record = useDeviceRecord(LIFE_REVIEW), today = useLocalToday();
   const habits = useHabits(), health = useHealth(), platform = usePlatform(), goals = useUnifiedGoals(), averages = useAverageGoals(), extras = useGoalExtras(), legacy = useGoals(), pages = usePagesView();
   const [chosen, setChosen] = useState<Period | null>(null), [now] = useState(() => Date.now());
+  const market = useMarketQuotes(platform.error ? false : wealthMarketRequests(platform.data));
   const period: Period = chosen ?? (record.loaded ? record.data.period ?? 'week' : 'week');
   const window = useMemo(() => reviewPeriod(period, today), [period, today]);
   const ready = habits.loaded && health.loaded && platform.loaded && goals.loaded && averages.loaded && extras.loaded;
@@ -47,7 +49,8 @@ export function LifeReviewView() {
     goals: goals.goals.map(g => ({key: g.key, id: g.id, name: g.name, href: g.href, status: g.status})),
     averages: averages.unreadable ? [] : averages.data.goals, extras: extras.data,
     history: platform.error ? [] : wealthOverview(platform.data, now).history, today,
-  }), [ready, window, habits.data, habits.error, health.data, platform.data, platform.error, goals.goals, averages.data, averages.unreadable, extras.data, today, now]);
+    current: platform.error ? [] : wealthOverview(platform.data, market.now || now, market.quotes).subtotals,
+  }), [ready, window, habits.data, habits.error, health.data, platform.data, platform.error, goals.goals, averages.data, averages.unreadable, extras.data, today, now, market.now, market.quotes]);
   const [focusDraft, setFocusDraft] = useState<{key: string; text: string} | null>(null);
   const saved = record.loaded ? record.data.focus[window.key]?.text ?? '' : '';
   const focusText = focusDraft?.key === window.key ? focusDraft.text : saved;
@@ -110,9 +113,9 @@ export function LifeReviewView() {
           <p className="fine">Averages of the days you recorded; a day without a record is left out, never counted as zero. Not advice.</p>
         </section>
         {financial && <section className="panel life-chapter" data-pillar="wealth" data-chapter="4" aria-labelledby="life-review-money">
-          <SectionHeading id="life-review-money" pillar="wealth" eyebrow="Chapter 4 · Wealth" title="Net worth, by currency" level={3} />
+          <SectionHeading id="life-review-money" pillar="wealth" eyebrow="Chapter 4 · Wealth" title="Tracked wealth, by currency" level={3} />
           {review.money.length ? <ul className="life-list">{review.money.map(m => <li key={m.currency}><strong>{m.currency}</strong><span>{m.change !== null ? `${formatSignedMoney(m.change, m.currency)} · ${formatMoney(m.start!, m.currency)} → ${formatMoney(m.end!, m.currency)}` : m.note}</span></li>)}</ul> : <p className="life-none">No recorded wealth values yet. Values recorded on Wealth show their change here, each in its own currency.</p>}
-          <p className="fine">Each currency on its own, never converted. Recorded values only; a missing value is never filled in.</p>
+          <p className="fine">What Wealth tracks, each currency on its own, never converted; today's figure is the one Wealth shows today. Accounts and debts are in Wealth's net worth. A missing value is never filled in.</p>
         </section>}
       </div>
 
