@@ -95,3 +95,11 @@ test('Showcase counters are fictional examples inside the Showcase dataset only'
  expect(exerciseData(health).counters.map(c=>c.name)).toEqual(['Push-ups','Pull-ups','Squats']);
  expect(countOn(health,DEFAULT_COUNTERS[0]!.id,'2026-09-29')).toBeGreaterThan(0);
 });
+
+test('Session AH (HE11): two counters never share a name; renaming to a free name works', () => {
+  let h = createEmptyHealth();
+  expect(() => addCounter(h, '  squats ', 'squat', 'health_counter-ah-2')).toThrow('You already have a counter called “Squats”. Choose another name.');
+  h = addCounter(h, 'Lunges', 'squat', 'health_counter-ah-2');
+  expect(() => editCounter(h, 'health_counter-ah-2', {name: 'SQUATS'})).toThrow('You already have a counter called “Squats”.');
+  expect(exerciseData(editCounter(h, 'health_counter-squats', {name: 'squats'})).counters.find(c => c.id === 'health_counter-squats')!.name).toBe('squats');
+});

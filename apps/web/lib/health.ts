@@ -249,6 +249,14 @@ export function logHealthItem(data: HealthData, draft: HealthLogDraft, at: strin
   const snapshot = "ingredients" in source ? recipeSnapshot(source) : foodSnapshot(source);
   return healthSchema.parse({ ...data, diary: [...data.diary, { ...parsed, snapshot, createdAt: at, updatedAt: at }] });
 }
+/**
+ * Session AH (C11, BUG-066): a food that is not in the library yet is logged in one step: it is saved to the library
+ * (so it can be picked again) and logged as one serving to the chosen day and meal.
+ */
+export function quickLogFood(data: HealthData, quick: { foodId: string; logId: string; name: string; servingGrams: number | null; servingMl?: number; nutrients: Nutrition; date: string; meal: HealthDiaryEntry["meal"] }, at: string): HealthData {
+  const food: HealthFood = { id: quick.foodId, name: quick.name, brand: "", servingGrams: quick.servingGrams, ...(quick.servingMl !== undefined ? { servingMl: quick.servingMl } : {}), nutrients: quick.nutrients, createdAt: at, updatedAt: at };
+  return logHealthItem(saveFood(data, food), { id: quick.logId, sourceId: quick.foodId, sourceKind: "food", date: quick.date, meal: quick.meal, quantityMilli: 1000 }, at);
+}
 const diaryEditSchema = diarySchema.pick({ date: true, meal: true, quantityMilli: true });
 export function editDiaryEntry(data: HealthData, id: string, edit: z.infer<typeof diaryEditSchema>, at: string): HealthData {
   if (!data.diary.some(e => e.id === id)) throw new Error("This diary entry was removed. Refresh and try again.");

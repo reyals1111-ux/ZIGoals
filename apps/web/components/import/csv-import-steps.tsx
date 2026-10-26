@@ -101,7 +101,7 @@ export function ImportBanner({imports, kind, onUndo}: {imports: ImportUndoStore;
   if (!record) return null;
   return <div role="status" className="import-banner">
     <p>{record.label}.</p>
-    <div className="actions"><button type="button" className="quiet" disabled={busy} onClick={() => { setBusy(true); setError(''); onUndo(record).catch(e => setError(plainErrorMessage(e, 'The import was not undone.'))).finally(() => setBusy(false)); }}>Undo</button><button type="button" className="quiet" aria-label="Dismiss this notice" disabled={busy} onClick={() => { try { imports.dismiss(record.id); } catch (e) { setError(plainErrorMessage(e, 'Could not dismiss.')); } }}>Dismiss</button></div>
+    <div className="actions"><button type="button" className="quiet" disabled={busy} onClick={() => { setBusy(true); setError(''); onUndo(record).catch(e => setError(plainErrorMessage(e, 'The import was not undone.'))).finally(() => setBusy(false)); }}>Undo import</button><button type="button" className="quiet" aria-label="Dismiss this notice" disabled={busy} onClick={() => { try { imports.dismiss(record.id); } catch (e) { setError(plainErrorMessage(e, 'Could not dismiss.')); } }}>Dismiss</button></div>
     {error && <p role="alert">{error}</p>}
   </div>;
 }

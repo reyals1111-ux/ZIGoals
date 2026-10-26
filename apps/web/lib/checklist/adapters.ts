@@ -148,6 +148,11 @@ export function fastPlan(dot: DerivedDot | null, ctx: TickContext, targetHours =
   const running = ctx.snapshot?.fasting ? runningSession(ctx.snapshot.fasting) : undefined;
   if (running) {
     const r = dot ? receiptWrites(dot, ctx, {kind: 'fast', id: running.id}) : null;
+    // Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no "0.0 h" fast), as Sleep does; Undo resumes it.
+    if (ctx.now.getTime() - Date.parse(running.startedAt) < 10 * 60_000) {
+      const resume = (f: Fasting) => f.sessions.some(s => s.id === running.id) ? f : startFast(f, {id: running.id, now: new Date(running.startedAt), targetHours: running.targetHours, timeZone: running.timeZone, ...(running.habitId ? {habitId: running.habitId} : {})});
+      return {writes: [w('fasting', f => removeFast(f, running.id))], undo: [w('fasting', resume)], message: 'Stopped after less than ten minutes, so nothing was saved.', undone: 'The fast is running again.', done: false, signal: 'checklist_tick'};
+    }
     // The linked duration habit gets the fast's time on the habit journal's day of the stop, as Health's Stop adds it.
     const stopped = stopFast(ctx.snapshot!.fasting!, running.id, ctx.now).sessions.find(s => s.id === running.id)!, habitId = running.habitId;
     let before: Entry | undefined, loggedDay: string | undefined;
@@ -169,7 +174,8 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
     if (!ended) return {writes: [w('meditationRun', () => emptyMeditationRun())], undo: [w('meditationRun', () => held)], message: 'Less than a second: nothing to save.', undone: 'The session is running again.', done: false, signal: 'checklist_tick'};
     const session = sessionFrom(ended, {id: newSessionId(), timeZone: ctx.zone, now: ctx.now});
     return {writes: [w('meditation', m => addSession(m, session)), w('meditationRun', () => emptyMeditationRun())], undo: [w('meditation', m => m.sessions.some(s => s.id === session.id) ? deleteSession(m, session.id) : m), w('meditationRun', () => held)],
-      message: `Meditation saved on Health: ${Math.max(1, Math.round(ended.seconds / 60))} min.`, undone: 'The session is running again.', done: true, signal: 'checklist_tick'};
+      // Session AH (HE13, M-135): the toast says what the record holds (6 s, not "1 min").
+      message: `Meditation saved on Health: ${ended.seconds < 60 ? `${ended.seconds} ${ended.seconds === 1 ? 'second' : 'seconds'}` : `${Math.round(ended.seconds / 60)} min`}.`, undone: 'The session is running again.', done: true, signal: 'checklist_tick'};
   }
   return {writes: [w('meditationRun', () => startRun({now: ctx.now, minutes}))], undo: [w('meditationRun', () => emptyMeditationRun())], message: `Meditation started: ${minutes} minutes.`, undone: 'Meditation not started.', done: false, signal: 'checklist_tick'};
 }

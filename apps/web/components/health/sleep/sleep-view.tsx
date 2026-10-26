@@ -1,4 +1,5 @@
 'use client';
+import {showToast} from '../../ui/undo-toast';
 import Link from 'next/link';
 import {useState} from 'react';
 import {asleep, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepDebt, summary} from '../../../lib/sleep/engine';
@@ -37,7 +38,8 @@ export default function SleepView() {
   const debt = sleepDebt(sleep, today), steady = consistency(sleep, today), patterns = sleepInsights(sleep, today);
   const nights = sleep.nights.filter(n => n.end !== null).sort((a, b) => b.end!.localeCompare(a.end!)).slice(0, 14);
   // Each save starts the log form afresh (its key), so the next night begins from the defaults.
-  const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); };
+  // Session AH (HE3; N-006, D-120): a save also says so in the app's toast, where it is seen, not only at the top.
+  const done = (text: string) => { setNote(text); setEditing(null); setSaves(n => n + 1); showToast({message: text}); };
   async function remove(id: string) {
     // Session AH Part 3 (DS3, L-009/L-010): a nap is called a nap.
     const kind = store.sleep.nights.find(n => n.id === id)?.kind;
@@ -50,8 +52,10 @@ export default function SleepView() {
       <h1><NebulaFlow identity="sleep-title">Your sleep, your rhythm.</NebulaFlow></h1>
       <p className="page-lede">Nights and naps you log or bring in. Private to your Health journal; it syncs only with Health, under the same consent.</p>
     </div><HeaderArtCorner><OrbitArt glyph={SleepGlyph} tone="health" spin={6}/></HeaderArtCorner></div>
-    {note && <p className="sleep-note" role="status">{note}</p>}
+    {note && <p className="sleep-note">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSetting/></section>
+    {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
+    <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
     <section className="panel sleep-week" aria-labelledby="sleep-week-title">
       <h2 id="sleep-week-title">Your last 7 days</h2>
@@ -78,10 +82,7 @@ export default function SleepView() {
       {patterns.length ? <ul>{patterns.map(p => <li key={p.id}><p>{p.sentence}</p><details><summary>How this is worked out</summary><p className="fine">Average time asleep on the {p.withTag.nights} logged nights with the tag and the {p.without.nights} without it, from {formatDate(p.window.start)} to {formatDate(p.window.end)}. Shown only with at least 14 logged nights and 5 on each side.</p></details></li>)}</ul>
         : <p className="fine">Patterns appear once you have logged at least 14 nights in 60 days, with a tag on at least 5 of them and missing from at least 5 others. They describe your log; they do not explain it.</p>}
     </section>
-    <div className="sleep-columns">
-      <section className="panel" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/></section>
-      <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
-    </div>
+    <section className="panel" aria-labelledby="sleep-goal-title"><h2 id="sleep-goal-title">Your sleep goal</h2><SleepGoalForm key={`goal-${sleep.goal?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
     <section className="panel sleep-recent" aria-labelledby="sleep-recent-title">
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {nights.length ? <ul className="sleep-nights">{nights.map(n => <li key={n.id}>

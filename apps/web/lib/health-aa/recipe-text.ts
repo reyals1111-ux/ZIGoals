@@ -23,7 +23,10 @@ export function parseQuantity(text: string): {quantity: number | null; rest: str
 export function parseIngredientLine(raw: string): ParsedIngredient | null {
   const line = raw.replace(/^[-•*·\s]+/, '').replace(/\s+/g, ' ').trim();
   if (!line || line.length > 200 || HEADING.test(line)) return null;
-  const {quantity, rest} = parseQuantity(line);
+  let {quantity, rest} = parseQuantity(line);
+  // Session AH (HE14, L-038): a line led by its name ("Flour, 200 g", "Milk 300 ml", "Eggs 2") keeps its amount.
+  const tail = quantity === null ? /^(.*?[a-zA-Z].*?)[,:\s]+(\d+(?:[.,]\d+)?)\s*([a-zA-Z]+)?\.?$/.exec(rest) : null;
+  if (tail && (!tail[3] || Object.prototype.hasOwnProperty.call(UNITS, tail[3].toLowerCase()))) { quantity = Number(tail[2]!.replace(',', '.')); rest = tail[3] ? `${tail[3]} ${tail[1]}` : tail[1]!; }
   const um = /^([a-zA-Z]+)\.?\s+(?:of\s+)?(.+)$/.exec(rest);
   let unit: string | null = null, name = rest;
   if (um && Object.prototype.hasOwnProperty.call(UNITS, um[1]!.toLowerCase())) { unit = um[1]!.toLowerCase(); name = um[2]!; }
@@ -37,7 +40,8 @@ export function parseIngredientLine(raw: string): ParsedIngredient | null {
 const SERVINGS_LINE = /^(?:(?:serves|servings?|portions?|yield|makes|voor)\s*:?\s*\d{1,3}\s*(?:servings?|portions?|people|persons|personen|porties)?|\d{1,3}\s*(?:servings?|portions?|people|persons|personen|porties))\.?$/i;
 export function parseRecipeText(text: string): ParsedRecipe {
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const title = lines[0] && !HEADING.test(lines[0]) && !parseQuantity(lines[0]).quantity ? lines[0].slice(0, 100) : 'Pasted recipe';
+  // The first line is the title unless it reads as an ingredient (an amount at either end, as in "Butter 50 g").
+  const title = lines[0] && !HEADING.test(lines[0]) && parseIngredientLine(lines[0])?.quantity == null ? lines[0].slice(0, 100) : 'Pasted recipe';
   const servingsMatch = /(?:serves|servings?|portions?|yield)s?\s*:?\s*(\d{1,3})|(\d{1,3})\s*(?:servings?|portions?)/i.exec(text);
   const servings = servingsMatch ? Number(servingsMatch[1] ?? servingsMatch[2]) : null;
   const start = lines.findIndex(l => /^ingredients?\b/i.test(l));

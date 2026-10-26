@@ -51,8 +51,10 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
   await timer(page, 'Fast').click();
   await expect.poll(async () => (await fasts(page)).map(f => f.endedAt)).toEqual([null]);
   await expect(timer(page, 'Fast')).toHaveAttribute('aria-pressed', 'true');
+  // Session AH (HE7): a fast stopped within ten minutes saves nothing, so this one runs eleven minutes on the page clock.
+  await page.clock.fastForward('11:00');
   await timer(page, 'Fast').click();
-  await expect.poll(async () => (await fasts(page)).every(f => typeof f.endedAt === 'string')).toBe(true);
+  await expect.poll(async () => (await fasts(page)).map(f => typeof f.endedAt)).toEqual(['string']);
   // The running state was on the buttons, and is gone now.
   for (const name of ['Sleep', 'Meditate', 'Fast']) await expect(timer(page, name)).toHaveAttribute('aria-pressed', 'false');
 });

@@ -9,7 +9,7 @@ import './how-it-works.css';
 
 const STEPS = [
   {n: '01', title: 'Goals', glyph: <LotusGlyph size={28}/>, body: 'Name what matters and give it a target: a sum, a date, or milestones.', how: 'Goals → + Create a goal. Pick a life area, write why, and link the wealth that funds it.', href: '/app/goals/new', cta: 'Create a goal'},
-  {n: '02', title: 'Habits & Health', glyph: <><ButterflyGlyph size={28}/><HeartGlyph size={22}/></>, body: 'Take a small step each day and let the pattern build.', how: 'Habits → + New habit, then −/+ and Done on the card. Health → Log food or water, a weight, a night of sleep.', href: '/app/habits', cta: 'Open Habits'},
+  {n: '02', title: 'Habits & Health', glyph: <><ButterflyGlyph size={28}/><HeartGlyph size={22}/></>, body: 'Take a small step each day and let the pattern build.', how: 'Habits → + New habit, then −/+ and Done on the card. Health → Log food or Log water, a weight, a night of sleep.', href: '/app/habits', cta: 'Open Habits'},
   {n: '03', title: '= Wealth', glyph: <BullGlyph size={28}/>, body: 'See everything you own and everything you are working toward in one view.', how: 'Wealth → + Add asset (cash, crypto, stocks, metals, property). Prices refresh on request; nothing moves and nothing is signed.', href: '/app/wealth', cta: 'Open Wealth'},
 ] as const;
 

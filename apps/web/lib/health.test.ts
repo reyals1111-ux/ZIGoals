@@ -3,7 +3,7 @@ import {
   createEmptyHealth, healthSchema, foodSchema, targetsSchema, scaleNutrition,
   recipeNutrition, saveFood, saveRecipe, logHealthItem, editDiaryEntry,
   removeHealthItem, dailyHealthSummary, healthHistory, saveWeight, weightTrend,
-  searchFoods, setHealthTargets, saveActivity, getHealthActivities, parseHealthNumber,
+  searchFoods, setHealthTargets, saveActivity, getHealthActivities, parseHealthNumber, quickLogFood,
   type HealthFood,
 } from "./health";
 
@@ -142,4 +142,11 @@ describe("strict import boundary", () => {
     const data = saveFood(createEmptyHealth(), { ...food, nutrients: { ...food.nutrients, kcal: 1_000_000 } });
     expect(() => logHealthItem(data, { id: id(2), sourceId: id(1), sourceKind: "food", date: "2026-09-15", meal: "Dinner", quantityMilli: 2000 }, at)).toThrow();
   });
+});
+
+test("Session AH (C11): a food not in the library is saved and logged as one serving in one step", () => {
+  const data = quickLogFood(createEmptyHealth(), { foodId: id(901), logId: id(902), name: "Street taco", servingGrams: 120, nutrients: { kcal: 230, proteinMg: 11_000, carbsMg: null, fatMg: null }, date: "2026-09-14", meal: "Lunch" }, at);
+  expect(data.foods.map(f => [f.name, f.servingGrams, f.nutrients.kcal])).toEqual([["Street taco", 120, 230]]);
+  expect(data.diary.map(e => [e.sourceId, e.date, e.meal, e.quantityMilli, e.snapshot.nutrients.carbsMg])).toEqual([[id(901), "2026-09-14", "Lunch", 1000, null]]);
+  expect(dailyHealthSummary(data, "2026-09-14").nutrients.kcal).toBe(230);
 });

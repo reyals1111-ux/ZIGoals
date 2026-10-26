@@ -31,7 +31,7 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
   }
   function save() {
     const kept = rows.filter(r => r.keep); if (!kept.length) { setError('Keep at least one ingredient.'); return; }
-    let portions: number; try { portions = readFormNumber(servings, {min: 0.001, max: 1000}); } catch { setError('Servings: a number from 0.001 to 1000.'); return; }
+    let portions: number; try { portions = readFormNumber(servings, {min: 0.001, max: 1000}); } catch { setError('Servings: enter how many servings the recipe makes, from 0.001 to 1,000.'); return; }
     const at = new Date().toISOString();
     void perform(latest => {
       let next = latest;
@@ -56,9 +56,9 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
     </> : <form className="health-import-form" aria-label="Confirm the recipe" onSubmit={e => { e.preventDefault(); save(); }}>
       <label className="field"><span>Recipe name</span><input type="text" value={title} maxLength={80} onChange={e => setTitle(e.target.value)} /></label>
       <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>
-      <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.steps ? `, ${parsed.steps} steps left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p>
+      {rows.length ? <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.steps ? `, ${parsed.steps} ${plural(parsed.steps, 'step')} left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p> : <p role="alert">No ingredient lines were found. Put one ingredient on each line, with its amount (“200 g lentils” or “Lentils, 200 g”), then read it again.</p>}
       <ul className="health-import-rows">{rows.map((r, i) => <li key={i}><input type="text" aria-label={`Ingredient ${i + 1} name`} value={r.name} maxLength={80} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, name: e.target.value} : x))} /><input type="text" inputMode="numeric" aria-label={`Ingredient ${i + 1} grams`} placeholder="g" value={r.gramsText} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, gramsText: e.target.value} : x))} /><small>{r.existing ? 'known' : 'new food'}</small><button type="button" className="quiet" aria-label={`${r.keep ? 'Drop' : 'Keep'} ingredient ${i + 1}`} aria-pressed={!r.keep} onClick={() => setRows(rows.map((x, j) => j === i ? {...x, keep: !x.keep} : x))}>{r.keep ? 'Drop' : 'Keep'}</button></li>)}</ul>
-      <div className="actions"><button type="submit" className="primary">Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
+      <div className="actions"><button type="submit" className="primary" disabled={!rows.some(r => r.keep)}>Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}
     </form>}
   </section>;

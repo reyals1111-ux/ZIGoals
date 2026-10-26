@@ -175,3 +175,13 @@ test('no adapter reaches a wallet, a network or another lane’s module', () => 
     expect(text, file).not.toMatch(/\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon|lib\/wallet|\.\.\/wallet|\/earn\/|cosmjs/);
   }
 });
+
+// Session AH (HE7, M-136): a fast stopped within ten minutes saves nothing (no 0.0 h fast); Undo resumes it.
+test('a fast stopped within ten minutes is not saved, and Undo resumes it', () => {
+  const s0 = stores(), start = fastPlan(dot(s0, 'Fast'), ctx({now: new Date('2026-10-17T20:00:00.000Z')})), s1 = run(s0, start.writes);
+  const stop = fastPlan(null, ctx({now: new Date('2026-10-17T20:05:00.000Z'), snapshot: {fasting: s1.fasting}}));
+  expect(stop.message).toBe('Stopped after less than ten minutes, so nothing was saved.');
+  const s2 = run(s1, stop.writes); expect(s2.fasting.sessions).toEqual([]);
+  const s3 = run(s2, stop.undo); expect(s3.fasting.sessions.map(f => f.endedAt)).toEqual([null]);
+});
+

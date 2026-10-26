@@ -67,7 +67,7 @@ test('Portfolio: four rows, one unknown coin skipped, three transactions importe
   await panel.getByRole('button', {name: 'Done', exact: true}).click();
   const banner = page.locator('.import-banner');
   await expect(banner).toContainText('3 transactions imported into Long-term.');
-  const undo = banner.getByRole('button', {name: 'Undo', exact: true});
+  const undo = banner.getByRole('button', {name: 'Undo import', exact: true}); // Session AH (HE9): the strip's own label
   expect((await undo.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await undo.click();
   await expect(banner).toHaveCount(0);
@@ -104,7 +104,7 @@ test('Wealth: two holdings become manual assets, one without a valuation; Undo r
   await expect(page.getByRole('region', {name: 'What you have', exact: true})).toContainText('Needs valuation');
   const banner = page.locator('.import-banner');
   await expect(banner).toContainText('2 assets added to Wealth.');
-  await banner.getByRole('button', {name: 'Undo', exact: true}).click();
+  await banner.getByRole('button', {name: 'Undo import', exact: true}).click(); // Session AH (HE9)
   await expect(banner.getByRole('alert')).toHaveCount(0);
   await expect(banner).toHaveCount(0);
   expect(JSON.parse((await key(page, PLATFORM_KEY))!).positions).toEqual([]);

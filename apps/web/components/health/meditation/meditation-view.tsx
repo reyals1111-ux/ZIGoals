@@ -74,6 +74,8 @@ export default function MeditationView() {
     <section className="panel" aria-labelledby="meditation-bell-title"><h2 id="meditation-bell-title">Your bell</h2><BellsForm key={`bell-${meditation.bells?.updatedAt ?? 'none'}`} store={store} onDone={done}/></section>
     <section className="panel" aria-labelledby="meditation-recent-title">
       <h2 id="meditation-recent-title">Recent sessions</h2>
+      {/* Session AH (HE13, B-078): the list is the latest 14; the totals above count every session. */}
+      {meditation.sessions.length > recent.length && <p className="fine">The latest {recent.length} of {meditation.sessions.length} sessions; the totals above count all of them.</p>}
       {recent.length ? <ul className="sleep-nights">{recent.map(s => <li key={s.id}>
         {editing === s.id ? <ManualForm store={store} session={s} onDone={done} onCancel={() => setEditing(null)}/> : <>
           <div><strong>{KIND_WORDS[s.kind]} · {formatDate(sessionDay(s))}</strong><span>{sessionLine(s)}</span>{s.note && <span className="fine">{s.note}</span>}{s.source !== 'manual' && s.source !== 'timer' && s.source !== 'breathing' && <span className="fine">From {sourceName(s.source)}</span>}</div>

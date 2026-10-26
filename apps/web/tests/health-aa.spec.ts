@@ -112,7 +112,7 @@ test('N6: pasted recipe text becomes confirmable rows, then foods and a recipe; 
   const panel = page.getByRole('region', {name: 'Import a recipe'});
   await panel.getByLabel('Recipe text').fill('Fictional chickpea stew\nServes 3\n\nIngredients\n400 g chickpeas\n1 onion, chopped\n2 tbsp olive oil\n100 g Fictional lentils\n\nMethod\n1. Cook.');
   await panel.getByRole('button', {name: 'Read the ingredients', exact: true}).click();
-  await expect(panel.getByText('4 ingredients found, 1 steps left aside.')).toBeVisible();
+  await expect(panel.getByText('4 ingredients found, 1 step left aside.')).toBeVisible();
   await expect(panel.getByRole('textbox', {name: 'Ingredient 1 name'})).toHaveValue('chickpeas');
   await expect(panel.getByRole('textbox', {name: 'Ingredient 4 grams'})).toHaveValue('100');
   await panel.getByRole('button', {name: 'Drop ingredient 2'}).click();

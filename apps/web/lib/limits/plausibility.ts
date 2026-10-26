@@ -55,6 +55,19 @@ export function dateIssue(date: string, today: string, future: 'past' | 'year-ah
   if (future === 'year-ahead' && date > ahead) return 'Choose a date within a year from today.';
   return null;
 }
+/**
+ * Session AH (HE5, C11): a food's label values must be possible. Pure fat is 9 kcal a gram, so 100 g holds at most
+ * 900 kcal; protein, carbs and fat together cannot weigh more than the serving; one serving stays under 10,000 kcal.
+ * Weights in mg, the serving in grams (null when the label gives a volume, which needs no mass check).
+ */
+export function foodIssue(n: {kcal: number | null; proteinMg: number | null; carbsMg: number | null; fatMg: number | null}, servingGrams: number | null): string | null {
+  if (n.kcal !== null && n.kcal > LIMITS.kcalTarget) return `One serving can hold at most ${fmt(LIMITS.kcalTarget)} kcal. Check the label.`;
+  if (servingGrams === null || servingGrams <= 0) return null;
+  if (n.kcal !== null && n.kcal > servingGrams * 9 + 5) return `${fmt(n.kcal)} kcal in ${fmt(servingGrams)} g is more than pure fat holds (900 kcal per 100 g). Check the calories or the serving weight.`;
+  const macroGrams = ((n.proteinMg ?? 0) + (n.carbsMg ?? 0) + (n.fatMg ?? 0)) / 1000;
+  if (macroGrams > servingGrams + 1) return `Protein, carbs and fat add up to ${fmt(Math.round(macroGrams))} g, more than the ${fmt(servingGrams)} g serving. Check the label.`;
+  return null;
+}
 /** A fee much larger than the trade it belongs to reads as a typing slip: a warning, never a refusal. */
 export function feeWarning(fee: number, trade: number): string | null {
   return fee > 0 && trade > 0 && fee > trade ? 'The fee is larger than the trade itself. Check it before saving.' : null;

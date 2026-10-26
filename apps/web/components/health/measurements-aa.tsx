@@ -13,7 +13,7 @@ import {MEASUREMENTS_CUSTOM, addCustomKind, addCustomReading, customHistory, rem
 import {PROGRESS_PHOTOS, addPhotoEntry, compressImage, deletePhotoBlob, getPhotoBlob, putPhotoBlob, removePhotoEntry, type PhotoEntry} from '../../lib/health-aa/photos';
 import type {HealthData} from '../../lib/health';
 import {readFormNumber} from '../../lib/decimal-input';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatNumber} from '../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {getAccountScope} from '../../lib/account-session';
 import {isShowcase} from '../../lib/showcase-storage';
@@ -21,15 +21,17 @@ import './health-aa.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 
 const H = 120, PAD = {top: 10, right: 8, bottom: 22, left: 40};
+const one0 = (v: number) => formatNumber(v, {maximumFractionDigits: 1});
 function MiniChart({title, points, unit, id}: {title: string; points: {date: string; value: number}[]; unit: string; id: string}) {
   const [plot, width] = useChartWidth(260, 200);
-  if (points.length < 2) return <div className="health-measure-chart"><h3><span>{title}</span><small>{points.length ? `${points[0]!.value} ${unit}` : '—'}</small></h3><small>{points.length ? 'One reading; a second draws the line.' : 'No readings yet.'}</small></div>;
-  const vals = points.map(p => p.value), lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(hi - lo, 1);
+  if (points.length < 2) return <div className="health-measure-chart"><h3><span>{title}</span><small>{points.length ? `${one0(points[0]!.value)} ${unit}` : '—'}</small></h3><small>{points.length ? 'One reading; a second draws the line.' : 'No readings yet.'}</small></div>;
+  // Session AH (HE6; L-054, B-120, N-121): one decimal in every label, the axis never below zero, dates in words.
+  const vals = points.map(p => p.value), lo = Math.max(0, Math.min(...vals)), hi = Math.max(...vals), span = Math.max(hi - lo, 1), one = (v: number) => formatNumber(v, {maximumFractionDigits: 1});
   const x = (i: number) => PAD.left + (i / (points.length - 1)) * (width - PAD.left - PAD.right), y = (v: number) => PAD.top + (1 - (v - lo) / span) * (H - PAD.top - PAD.bottom);
   const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const change = vals[vals.length - 1]! - vals[0]!;
-  return <div className="health-measure-chart" ref={plot}><h3><span>{title}</span><small>{vals[vals.length - 1]} {unit} · {change > 0 ? '+' : ''}{Math.round(change * 10) / 10} since {points[0]!.date}</small></h3>
-    <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${title}: ${points.length} readings from ${points[0]!.value} to ${vals[vals.length - 1]} ${unit}`}><ChartDefs id={`m-${id}`} pillar="health" /><ChartGrid ticks={[{y: y(hi), label: hi}, {y: y(lo), label: lo}]} left={PAD.left} right={width - PAD.right} /><path className="chart-ink" d={d} stroke={`url(#m-${id}-ink)`} />{points.map((p, i) => <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.value)} r="3.5" />)}<ChartXAxis ticks={[{x: x(0), label: formatDate(points[0]!.date, {year: false})}, {x: x(points.length - 1), label: formatDate(points[points.length - 1]!.date, {year: false})}]} y={H - 6} /></svg>
+  return <div className="health-measure-chart" ref={plot}><h3><span>{title}</span><small>{one(vals[vals.length - 1]!)} {unit} · {change > 0 ? '+' : ''}{one(change)} since {formatDate(points[0]!.date)}</small></h3>
+    <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${title}: ${points.length} readings from ${one(points[0]!.value)} to ${one(vals[vals.length - 1]!)} ${unit}`}><ChartDefs id={`m-${id}`} pillar="health" /><ChartGrid ticks={[{y: y(hi), label: one(hi)}, {y: y(lo), label: one(lo)}]} left={PAD.left} right={width - PAD.right} /><path className="chart-ink" d={d} stroke={`url(#m-${id}-ink)`} />{points.map((p, i) => <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.value)} r="3.5" />)}<ChartXAxis ticks={[{x: x(0), label: formatDate(points[0]!.date, {year: false})}, {x: x(points.length - 1), label: formatDate(points[points.length - 1]!.date, {year: false})}]} y={H - 6} /></svg>
     <details className="health-trend-table"><summary>Show as a table</summary><table><tbody>{points.map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{p.value} {unit}</td></tr>)}</tbody></table></details></div>;
 }
 /** N9: charts per measurement kind (the synced kinds and the person's own), custom kinds, and progress photos. */

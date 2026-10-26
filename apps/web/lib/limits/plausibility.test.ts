@@ -26,3 +26,14 @@ test('the Health writes refuse what does not fit, with the sentence; earlier val
   expect(() => addWater(w, {id: 'health_water-009', date: DAY, amountMilli: 250_000, unit: 'ml'}, AT)).toThrow(/10,000 mL in one day/);
   expect(() => editWater(w, 'health_water-000', {date: DAY, amountMilli: 6_000_000, unit: 'ml'}, AT)).toThrow(/5,000 mL/);
 });
+
+test('Session AH (HE5): a food label must be possible: kcal per gram, macros within the serving, one serving under 10,000 kcal', async () => {
+  const {foodIssue} = await import('./plausibility');
+  const n = (kcal: number | null, p = 0, c = 0, f = 0) => ({kcal, proteinMg: p * 1000, carbsMg: c * 1000, fatMg: f * 1000});
+  expect(foodIssue(n(380, 13, 67, 7), 100)).toBeNull();
+  expect(foodIssue(n(900, 0, 0, 100), 100)).toBeNull();
+  expect(foodIssue(n(5000), 100)).toMatch(/more than pure fat holds/);
+  expect(foodIssue(n(200, 80, 80, 10), 100)).toMatch(/add up to 170 g, more than the 100 g serving/);
+  expect(foodIssue(n(20_000), null)).toMatch(/at most 10,000 kcal/);
+  expect(foodIssue(n(null, 1, 1, 1), 10)).toBeNull();
+});
