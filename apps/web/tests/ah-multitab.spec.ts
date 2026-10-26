@@ -13,9 +13,17 @@ const hydrated = (page: Page) => page.locator('html[data-app-hydrated]').waitFor
 const stored = <T,>(page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key) as Promise<T>;
 
 async function createGoal(page: Page, name: string) {
-  await page.getByLabel('Goal name', {exact: true}).fill(name);
+  // The name is typed first, right as the wizard opens: on a busy runner those keystrokes can be lost (the run11 journeys,
+  // scripts/run11/goal-name.mjs; CI on 93ea99f1 here). Type it, let the page paint twice, and type again until it holds.
+  const field = page.getByLabel('Goal name', {exact: true});
+  await expect(async () => {
+    await field.fill(name);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    expect(await field.inputValue()).toBe(name);
+  }).toPass({timeout: 15_000});
   await page.getByLabel('Target amount', {exact: true}).fill('1200');
-  for (let i = 0; i < 3; i++) { const next = page.getByRole('button', {name: 'Continue →'}); if (await next.isVisible()) await next.click(); }
+  // Three steps to the review, each Continue once it is there (a one-shot isVisible() skipped a step that was still rendering).
+  for (let i = 0; i < 3; i++) { const next = page.getByRole('button', {name: 'Continue →'}); await expect(next).toBeVisible(); await next.click(); }
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();
   await expect(page).not.toHaveURL(/\/app\/goals\/new$/);
 }
