@@ -8721,6 +8721,62 @@
         }
     }
 }
+/*  components/health/workouts/workouts.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .workouts-routines > li:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-routines span:not(#\-), .workouts-past summary span:not(#\-), .workouts-picker-list span:not(#\-) {
+        color: var(--text-secondary, #070f1c)
+    }
+    .workouts-rest:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--pillar, #ff74be) 14%, transparent)
+    }
+    .workouts-exercise:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-sets thead th:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .workouts-sets tr[data-done] td:not(#\-), .workouts-sets tr[data-done] th:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--success, #47d6a1) 12%, transparent)
+    }
+    .workouts-tick[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: var(--success, #47d6a1);
+        color: #04101f
+    }
+    .workouts-problem p:not(#\-) {
+        color: var(--danger-text, #89485b)
+    }
+    .workouts-picker:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-past > li:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-stats dt:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .workouts-history-table th:not(#\-), .workouts-history-table td:not(#\-) {
+        border-top-color: var(--line, #8fb6ff1f)
+    }
+    :scope[data-theme=light] .workouts-tick[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: #16865c;
+        color: #fff
+    }
+    :scope[data-theme=light] .workouts-problem p:not(#\-) {
+        color: #a3123a
+    }
+    @media (forced-colors: active) {
+        .workouts-tick[aria-pressed="true"]:not(#\-) {
+            outline-color: currentcolor
+        }
+    }
+}
 /*  components/help/help.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .help-page p:not(#\-), .help-page li:not(#\-), .help-page dd:not(#\-) {

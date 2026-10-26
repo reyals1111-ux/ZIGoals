@@ -30,6 +30,7 @@ import {FASTING_KEY, fastingSchema, emptyFasting} from '../fasting/schema';
 import {INSIGHTS_KEY, insightsSchema, emptyInsights} from '../insights/schema';
 import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema, emptyHabitHealthLinks} from '../habit-health-links/schema';
 import {summarizeBackupModules} from '../vault/backup-preview';
+import {WORKOUTS} from '../workouts/schema';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): what "Restore from a backup" can bring back from an
@@ -70,6 +71,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('accounts', 'Accounts and debts', 'Goals and Wealth', ACCOUNTS),
   dev('milestoneDates', 'Milestone dates', 'Goals and Wealth', MILESTONE_DATES),
   dev('calculator', 'Calculator scenarios', 'Goals and Wealth', CALCULATOR),
+  dev('workouts', 'Workouts', 'Health', WORKOUTS),
   dev('portfolio', 'Portfolio', 'Goals and Wealth', spec(PORTFOLIO_KEY, portfolioDataSchema, emptyPortfolioData)),
   dev('habitExtras', 'Habit extras', 'Habits', HABIT_EXTRAS),
   dev('game', 'Levels and streak shields', 'Habits', GAME),

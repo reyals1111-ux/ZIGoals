@@ -75,6 +75,7 @@ import { updateRefusalMessage } from "../../lib/storage-error-copy";
 import { SleepCard } from "./sleep/sleep-card";
 import { healthGroupIn } from "../../lib/vault/w-homes";
 import { MeditationCard } from "./meditation/meditation-card";
+import { WorkoutsCard } from "./workouts/workouts-card";
 import { useDeviceRecord } from "../ai/use-device-record";
 import { MEDITATION_RUN } from "../../lib/meditation/schema";
 import { zigiSignals } from "../zigi/bus";
@@ -87,6 +88,8 @@ import {plainErrorMessage} from '../../lib/plain-error';
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
 const MeditationView = lazy(() => import("./meditation/meditation-view"));
+/** Session AH Part 6 (DE8): the workout log, a view of this page (/app/health?view=workouts), loaded when opened. */
+const WorkoutsView = lazy(() => import("./workouts/workouts-view"));
 const DevicesView = lazy(() => import("./devices/devices-view"));
 /** Session W Part 7: an activity line an import or a device link brought in (its id names the source). */
 const SOURCE_NAMES: Record<string, string> = {"apple-health": "Apple Health", fitbit: "Fitbit / Google Health", samsung: "Samsung Health", oura: "Oura", garmin: "Garmin", "oura-link": "Oura (linked)", "withings-link": "Withings (linked)", "polar-link": "Polar (linked)", "strava-link": "Strava (linked)"};
@@ -140,6 +143,7 @@ export function HealthApp() {
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
   if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><Skeleton label="Opening Sleep…" block/></section>}><SleepView /></Suspense></LoadBoundary>;
   if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><Skeleton label="Opening Meditation…" block/></section>}><MeditationView /></Suspense></LoadBoundary>;
+  if (view === "workouts") return <LoadBoundary title="Workouts" label="Workouts"><Suspense fallback={<section className="panel"><h1>Workouts</h1><Skeleton label="Opening Workouts…" block/></section>}><WorkoutsView /></Suspense></LoadBoundary>;
   if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><Skeleton label="Opening Devices…" block/></section>}><DevicesView /></Suspense></LoadBoundary>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
@@ -272,6 +276,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
+    {id: "health:workouts", label: "Workouts", node: <PhoneFold label="Workouts"><WorkoutsCard /></PhoneFold>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><div className="health-fasting-block"><FastingTimer fasting={fasting} health={data} /><LoadBoundary quiet><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></LoadBoundary></div></PhoneFold>}, // B49: one child, so PhoneFold can carry the layout attributes on computers (two children lost the item from the region since B41)
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} waterUnit={dailyData(data).preferences.waterUnit} />},

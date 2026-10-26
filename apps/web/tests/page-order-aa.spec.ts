@@ -155,7 +155,8 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   expect(only(await items(page), 'markets:')).toEqual(['markets:explorer', 'markets:sources']);
   await page.goto('/app/health');
   await expect(page.locator('[data-layout-item="health:summary"]')).toBeAttached();
-  expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:nutrition', 'health:journal', 'health:sleep', 'health:meditation', 'health:roadmap', 'health:fasting', 'health:trends']);
+  // Session AH Part 6 (DE8): the Workouts card joins after Meditation (deliberate; the order is otherwise unchanged).
+  expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:nutrition', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:roadmap', 'health:fasting', 'health:trends']);
   await page.goto('/app/settings');
   await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'ZIGi', 'Help & diagnostics']);
 });

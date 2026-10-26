@@ -1,4 +1,5 @@
 import {CALCULATOR_KEY} from '../compound/store';
+import {WORKOUTS_KEY, workoutsSchema, type Workouts} from '../workouts/schema';
 import {SEARCH_RECENT_KEY} from '../search/recent';
 import {LIFE_REVIEW_KEY} from '../life-review/store';
 import {TODAY_CARDS_KEY} from '../today-cards/store';
@@ -69,6 +70,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   goalExtras: GOAL_EXTRAS_KEY, averageGoals: AVERAGE_GOALS_KEY,
   // Session AA-Cloud Parts 3–5: calculator scenarios, recent searches and the Life review's focus.
   calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY,
+  // Session AH Part 6 (DE8): the workout log on this device.
+  workouts: WORKOUTS_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
   todayCards: TODAY_CARDS_KEY,
   // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
@@ -85,7 +88,9 @@ export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS)
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
   // Session W: one per new area, each a plain copy of its stored records.
-  'sleep.csv', 'meditation.csv', 'vitals.csv', 'moods.csv', 'accounts.csv', 'links.csv', 'portfolio-transactions.csv'] as const;
+  'sleep.csv', 'meditation.csv', 'vitals.csv', 'moods.csv', 'accounts.csv', 'links.csv', 'portfolio-transactions.csv',
+  // Session AH Part 6 (DE8): one row per set of each finished workout.
+  'workout-sets.csv'] as const;
 export type CsvFileName = typeof CSV_FILES[number];
 export type EverythingTexts = Record<string, string | null>;
 export type LocalSimulationExport = {section: string; warning: string | null} | null;
@@ -110,6 +115,7 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'moods.csv': ['date', 'mood', 'note', 'recorded_at_utc'],
   'accounts.csv': ['home', 'account_id', 'name', 'kind', 'currency', 'institution', 'own_rate_percent', 'archived_at_utc', 'entry', 'entry_id', 'date', 'value', 'decimals', 'note'],
   'links.csv': ['id', 'label', 'url', 'icon', 'order', 'created_at_utc', 'updated_at_utc'],
+  'workout-sets.csv': ['workout_id', 'workout_name', 'date', 'started_at_utc', 'ended_at_utc', 'exercise', 'exercise_id', 'set_number', 'set_kind', 'weight_kg', 'reps', 'distance_km', 'seconds'],
   // Session AH Part 3 (DS6, N-042): Portfolio's own trades and transfers (its record is in everything.json since Session U).
   'portfolio-transactions.csv': ['portfolio_id', 'portfolio_name', 'portfolio_kind', 'currency', 'transaction_id', 'coin', 'coin_name', 'symbol', 'kind', 'quantity', 'price_per_coin', 'fee', 'date', 'note', 'created_at_utc'],
 };
@@ -227,6 +233,8 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   out['links.csv'] = csv(CSV_HEADERS['links.csv'], (settings?.links?.items ?? []).map(l => [l.id, l.label, l.url, l.icon, l.order, l.createdAt, l.updatedAt]));
   const portfolios = typed<PortfolioData>('Portfolio', json.portfolio, v => portfolioDataSchema.safeParse(v));
   out['portfolio-transactions.csv'] = csv(CSV_HEADERS['portfolio-transactions.csv'], (portfolios?.portfolios ?? []).flatMap(p => p.transactions.map(t => { const coin = p.coins.find(c => coinKey(c.ref) === t.coin); return [p.id, p.name, p.kind, p.currency, t.id, t.coin, coin?.name ?? '', coin?.symbol ?? '', t.kind, t.quantity, t.price ?? '', t.fee ?? '', t.date, t.note, t.createdAt] as Cell[]; })));
+  const workouts = typed<Workouts>('Workouts', json.device.workouts, v => workoutsSchema.safeParse(v));
+  out['workout-sets.csv'] = csv(CSV_HEADERS['workout-sets.csv'], (workouts?.workouts ?? []).filter(x => x.endedAt).flatMap(x => x.exercises.flatMap(e => e.sets.map((st, i) => [x.id, x.name, x.date, x.startedAt, x.endedAt ?? '', e.name, e.exerciseId, i + 1, st.kind, st.weightKg ?? '', st.reps ?? '', st.distanceKm ?? '', st.seconds ?? '']))));
   return {json, csv: out, unreadable, warnings};
 }
 /**

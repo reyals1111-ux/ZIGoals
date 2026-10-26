@@ -43,6 +43,8 @@ import {showcaseLinks} from './links/showcase';
 import {showcaseMeditation} from './meditation/showcase';
 import type {MarketAssetRef} from './market-assets';
 import {showcaseMoment, type DayPart} from './showcase-moment';
+import {WORKOUTS_KEY} from './workouts/schema';
+import {showcaseWorkouts} from './workouts/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -146,6 +148,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
   records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitExtras(aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
   records[HEALTH_COACH_KEY]=JSON.stringify(dev.coach);records[MICRO_TARGETS_KEY]=JSON.stringify(dev.micro);records[MACRO_MODE_KEY]=JSON.stringify(dev.macro);records[MEASUREMENTS_CUSTOM_KEY]=JSON.stringify(dev.measurements);records[REMINDERS_PLAN_KEY]=JSON.stringify(dev.reminders);}
  }
+ // Session AH Part 6 (DE8): a fictional training log and two routines (lib/workouts/showcase.ts).
+ records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
