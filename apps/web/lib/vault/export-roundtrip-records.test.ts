@@ -71,7 +71,7 @@ test.each([
 test('the fixture really contains the records it claims',()=>{
  const h=health(),hb=habits().habits[0]!,f=finance();
  expect(h.exercise?.days.length).toBe(4);expect(h.measurements).toHaveLength(2);expect(h.measurements?.find(m=>m.id==='health_measure-weight')?.corrections).toHaveLength(1);
- expect(hb.timerReceipts).toHaveLength(1);expect(hb.timer?.state).toBe('running');expect(hb.entries[0]!.count).toBeCloseTo(754.321/60,9);
+ expect(hb.timerReceipts).toHaveLength(1);expect(hb.timer?.state).toBe('running');/* Session AH (HA11): a timed session is logged to 2 decimals of a minute; the receipt keeps the milliseconds */expect(hb.entries[0]!.count).toBe(12.57);expect(hb.timerReceipts![0]!.elapsedMs).toBe(754321);
  expect(f.financialEvents?.some(e=>e.kind==='void')).toBe(true);expect(f.manualFx).toHaveLength(1);
 });
 test('a version 1 Habits backup restores as its version 2 migration, in a fresh profile',async()=>{

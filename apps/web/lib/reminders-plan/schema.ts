@@ -22,12 +22,17 @@ export const emptyRemindersPlan = (): RemindersPlan => ({version: 1});
 export const REMINDERS_PLAN: DeviceRecordSpec<RemindersPlan> = {key: REMINDERS_PLAN_KEY, schema: remindersPlanSchema, empty: emptyRemindersPlan};
 export const DEFAULT_QUIET = {from: '22:00', to: '08:00'} as const;
 export const PLAN_LABELS: Record<PlanKind, {title: string; blurb: string; defaultTime: string}> = {
-  bedtime: {title: 'Bedtime', blurb: 'A wind-down nudge before your bedtime window.', defaultTime: '22:00'},
+  // Session AH (HA16, M-061): before the default quiet hours (22:00), never inside them.
+  bedtime: {title: 'Bedtime', blurb: 'A wind-down nudge before your bedtime window.', defaultTime: '21:30'},
   review: {title: 'Weekly review', blurb: 'On your review day, once the day is under way.', defaultTime: '18:00'},
   'fasting-end': {title: 'Fasting end', blurb: 'When a running fast reaches its target hours.', defaultTime: '12:00'},
   'goal-checkin': {title: 'Goal check-in', blurb: 'A weekly look at your goals.', defaultTime: '19:00'},
 };
 export const setPlanItem = (p: RemindersPlan, kind: PlanKind, item: {on: boolean; time?: string; weekday?: number}): RemindersPlan => remindersPlanSchema.parse({...p, items: {...(p.items ?? {}), [kind]: {...(p.items?.[kind] ?? {}), ...item}}});
-export const setQuietHours = (p: RemindersPlan, quiet: {from: string; to: string} | null): RemindersPlan => remindersPlanSchema.parse({...p, quiet: quiet ?? undefined});
+/** Session AH (HA16, B-127): quiet hours from 10:00 to 10:00 would be none at all; they are refused with the reason. */
+export const setQuietHours = (p: RemindersPlan, quiet: {from: string; to: string} | null): RemindersPlan => {
+  if (quiet && quiet.from === quiet.to) throw new Error('Quiet hours need an end time that differs from the start.');
+  return remindersPlanSchema.parse({...p, quiet: quiet ?? undefined});
+};
 export const dismissPlan = (p: RemindersPlan, id: string, today: string): RemindersPlan => remindersPlanSchema.parse({...p, dismissed: {...Object.fromEntries(Object.entries(p.dismissed ?? {}).filter(([, d]) => d >= today)), [id]: today}});
 export const quietHours = (p: RemindersPlan) => p.quiet ?? DEFAULT_QUIET;

@@ -86,7 +86,10 @@ const rows: Row[] = [
   ['+3 meditate', habit('Meditate', 3)],
   ['read 20 min', habit('Read', 20, 'minutes')],
   ['read 1 hour', habit('Read', 60, 'minutes')],
-  ['read', habit('Read', 1, 'minutes')],
+  // Session AH (HA5): a timed habit without a time, or with another unit, asks how long (it was "+1 minutes" / "+20 minutes").
+  ['read', result => { expect(result).toMatchObject({kind: 'needs-more', hint: 'Read is timed: write how long, like “read 20 min”.'}); }],
+  ['read 20 pages', result => { expect(result).toMatchObject({kind: 'needs-more', hint: 'Read is timed: write how long, like “read 20 min”.'}); }],
+  ['read 20', habit('Read', 20, 'minutes')],
   ['exercised 45 minutes', habit('Exercise', 45)],
   ['drink water 2 glasses', result => { expect(result.kind).toBe('ambiguous'); if (result.kind !== 'ambiguous') return; expect(result.choices).toHaveLength(2); expect(result.choices[0]).toMatchObject(water(500)); expect(result.choices[1]).toMatchObject(habit('Drink water', 2, 'glasses')); }],
   ['meditated yesterday', habit('Meditate', 1, undefined, 'yesterday')],
@@ -124,8 +127,8 @@ describe('A2 quick-add grammar (en)', () => {
     if (typeof expected === 'function') expected(result); else expect(result).toMatchObject(expected);
   });
   // Gate C (persona round): four more phrases (a number before an unknown word, and one more day check).
-  test('the table has 94 phrases and the unknown answer carries the three examples', () => {
-    expect(rows).toHaveLength(94);
+  test('the table has 96 phrases and the unknown answer carries the three examples', () => {
+    expect(rows).toHaveLength(96);
     const result = parse('hello', 'en', context);
     expect(result).toEqual({kind: 'unknown', examples: en.examples});
   });

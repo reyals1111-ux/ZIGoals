@@ -181,7 +181,15 @@ export function parse(text: string, localeName: 'en', context: QuickAddContext):
       const firstWord = normalizeName(stemmed[0] ?? ''), firstRaw = normalizeName(words[0] ?? '');
       if (!title || !(joined === title || joinedRaw === title || (first && (firstWord === first || firstRaw === first)))) continue;
       let value: number;
-      if (habit.kind === 'duration') { const minutes = minutesOf(); if (minutes === 'unclear') return needsMore(UNCLEAR_NUMBER); value = typeof minutes === 'number' ? minutes : count ? count.num!.value : 1; }
+      if (habit.kind === 'duration') {
+        // Session AH (HA5; T-134, B-192, D-244): a timed habit takes a time. A bare number counts as minutes only when no
+        // other unit sits with it ("read 20" yes, "read 20 pages" no), and no time at all is asked for, never "+1 minutes".
+        const minutes = minutesOf(); if (minutes === 'unclear') return needsMore(UNCLEAR_NUMBER);
+        const titleWords = new Set(habit.title.split(/\s+/).map(w => normalizeName(w))), extra = words.filter(w => !titleWords.has(normalizeName(w)) && !titleWords.has(normalizeName(locale.stems[w] ?? w)));
+        if (typeof minutes === 'number') value = minutes;
+        else if (count && !extra.length) value = count.num!.value;
+        else return needsMore(`${habit.title} is timed: write how long, like “${habit.title.toLowerCase()} 20 min”.`);
+      }
       else if (habit.kind === 'boolean') value = count ? count.num!.value : habit.target || 1;
       else value = count ? count.num!.value : 1;
       if (!(value > 0)) return needsMore(ABOVE_ZERO);

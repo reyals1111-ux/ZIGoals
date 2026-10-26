@@ -3,8 +3,13 @@ import {localDate,addLocalDays} from './local-date';
 export function habitById(data:HabitData,id:string){const h=data.habits.find(h=>h.id===id);if(!h)throw Error('Habit unavailable.');return h;}
 export function replace(data:HabitData,h:Habit):HabitData{return habitDataSchema.parse({...data,habits:data.habits.map(x=>x.id===h.id?h:x)});}
 export function habitEditFingerprint(h:Habit){const {entries,timer,timerReceipts,updatedAt,...details}=h;void entries;void timer;void timerReceipts;void updatedAt;return JSON.stringify(details);}
-export function earliestHabitChange(h:Habit,today=localDate()){return [addLocalDays(today,1),latestHabitRule(h).from].sort().at(-1)!;}
-function checkChange(h:Habit,from:string,today:string,expected?:string){if(expected!==undefined&&expected!==habitEditFingerprint(h))throw Error('This Habit changed while you were editing. Reopen it and review the latest rule.');if(from<earliestHabitChange(h,today))throw Error('Choose a future day on or after the latest scheduled rule.');}
+/**
+ * The first day a rule change (an edit, a pause, an archive) may begin. Tomorrow by default, so today's recorded history
+ * keeps its rule. Session AH (HA3, HA10; D-045, L-065): with `allowToday`, today when nothing is recorded for it yet (no
+ * check-in, no timer), so a habit made by mistake can be archived and deleted at once, and an edit can start today.
+ */
+export function earliestHabitChange(h:Habit,today=localDate(),{allowToday=false}:{allowToday?:boolean}={}){const free=allowToday&&!h.entries.some(e=>e.date===today)&&h.timer?.date!==today;return [free?today:addLocalDays(today,1),latestHabitRule(h).from].sort().at(-1)!;}
+function checkChange(h:Habit,from:string,today:string,expected?:string){if(expected!==undefined&&expected!==habitEditFingerprint(h))throw Error('This Habit changed while you were editing. Reopen it and review the latest rule.');if(from<earliestHabitChange(h,today,{allowToday:true}))throw Error('Choose today (when nothing is recorded yet) or a later day, on or after the latest scheduled rule.');}
 function revised(h:Habit,rule:HabitRule,now:Date):Habit{
  const revisions=[...(h.ruleRevisions??h.rules.map(rule=>({id:`rule:${h.id}:${crypto.randomUUID()}`,recordedAt:now.toISOString(),source:'retained' as const,rule})))];
  revisions.push({id:`rule:${h.id}:${crypto.randomUUID()}`,recordedAt:now.toISOString(),source:'scheduled',rule});

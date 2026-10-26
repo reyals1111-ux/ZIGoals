@@ -86,6 +86,7 @@ test("no Habits field is a number field: every value is a text field with a nume
     await page.getByRole("combobox", { name: "Schedule", exact: true }).selectOption(schedule);
     await expect(page.locator('main input[type="number"]'), schedule).toHaveCount(0);
   }
+  await page.getByText("More options", { exact: false }).first().click();
   await page.getByRole("combobox", { name: "End condition", exact: true }).selectOption("completions");
   await expect(page.locator('main input[type="number"]')).toHaveCount(0);
   for (const label of ["Target value", "Times per period", "Completion count"]) await expect(page.getByLabel(label, { exact: true }), label).toHaveAttribute("inputmode", /^(decimal|numeric)$/);

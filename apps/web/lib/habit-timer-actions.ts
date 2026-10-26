@@ -31,7 +31,10 @@ function receipt(h:Habit,now:Date,status:'logged'|'discarded'){
 }
 export function commitHabitTimer(data:HabitData,id:string,timerId:string,now=new Date(),expected?:string):HabitData{
  const h=habitById(data,id);if(h.timerReceipts?.some(r=>(r.timerId??r.id)===timerId&&r.status==='logged'))return data;assertTimerReview(h,expected);const t=timerFor(h,timerId),p=habitTimerPreview(h,now);if(t.state!=='paused')throw Error('Pause and review the timer before logging.');if(data.timeZone&&data.timeZone!==t.timeZone)throw Error('The Habit timezone changed. Review the original timer date and record it manually in History.');if(p.reviewReason)throw Error(`Timer needs review. ${p.reviewReason}`);if(p.value<=0)throw Error('No elapsed duration to log.');
- const next=logHabitValue(data,id,t.date,p.value,{mode:'add'},now),updated=habitById(next,id);
+ // Session AH (HA11, M-138): a timed session is logged in whole seconds, written as 2 decimals of a minute (3 of an
+ // hour), never "30.030783 minutes"; the receipt keeps the exact milliseconds.
+ const logged=t.unit==='hours'?Math.round(p.value*1000)/1000:Math.round(p.value*100)/100;
+ const next=logHabitValue(data,id,t.date,logged>0?logged:p.value,{mode:'add'},now),updated=habitById(next,id);
  return replace(next,{...updated,timer:undefined,timerReceipts:[...(h.timerReceipts??[]),receipt(h,now,'logged')]});
 }
 /** Session AA-Local H2: Finish in one tap: a running timer is paused at `now` and logged at once (the review rules of commit apply unchanged). */

@@ -7741,6 +7741,12 @@
         border-color: #7fe3f3;
         color: #fff
     }
+    .habit-more-options:not(#\-) {
+        border-top-color: var(--line, #7fc8ff24)
+    }
+    .habit-more-options > summary small:not(#\-) {
+        color: var(--muted, #a9b6cc)
+    }
 }
 /*  components/habits/habits.css  */
 @scope (:root[data-theme=dark]) {

@@ -83,3 +83,8 @@
 /* …and the row always has a line of its own: a short counter ("2 / 3") would otherwise share its line and centre it a
    few pixels lower than its neighbours' rows (CI's fonts: 14 px). */
 .habits-workspace .habit-grid > .habit-card > .habit-completion > .habit-check-actions { flex-basis: 100%; }
+/* Session AH (HA12): the habit form's optional fields, folded on create. */
+.habit-more-options { display: grid; gap: 14px; border-top: 1px solid var(--line, #7fc8ff24); padding-top: 10px; }
+.habit-more-options > summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+.habit-more-options > summary small { font-weight: 400; color: var(--muted, #a9b6cc); }
+.habit-more-options[open] > summary { margin-bottom: 4px; }

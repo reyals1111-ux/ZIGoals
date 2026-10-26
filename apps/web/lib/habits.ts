@@ -449,7 +449,9 @@ function computeHabitStats(habit: Habit, today: string) {
   const streakBoard: Record<StreakUnit, { current: number; best: number }> = { days: { current: 0, best: 0 }, weeks: { current: 0, best: 0 }, months: { current: 0, best: 0 }, years: { current: 0, best: 0 } };
   let previousUnit: StreakUnit | undefined; let successCount = 0, failCount = 0, skipDecisions = 0, weeklyCompleted = 0, weeklyScheduled = 0;
   for (const outcome of outcomes) {
-    if (outcome.start <= weekEnd && outcome.end >= weekStart) { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
+    // Session AH (HA1; B-003, B-017, B-189): a skipped day is neutral in every figure, as the app promises: it is not
+    // scheduled work for the week, and it is left out of the completion percentage.
+    if (outcome.start <= weekEnd && outcome.end >= weekStart && outcome.status !== "skipped") { weeklyScheduled++; if (outcome.status === "complete") weeklyCompleted++; }
     const streak = streakBoard[outcome.unit]; if (previousUnit !== outcome.unit) streak.current = 0;
     if (outcome.status === "complete") { successCount++; streak.current++; streak.best = Math.max(streak.best, streak.current); }
     // H1 (Session P): a skipped day is neutral, it neither adds to a streak nor breaks it; only a failed day resets.
@@ -458,7 +460,7 @@ function computeHabitStats(habit: Habit, today: string) {
     previousUnit = outcome.unit;
   }
   const skipCount = habit.entries.filter((entry) => entry.disposition === "skipped" && entry.date <= today).length;
-  const decided = successCount + failCount + skipDecisions; const completionPercentage = decided ? Math.round(successCount / decided * 100) : 0;
+  void skipDecisions; const decided = successCount + failCount; const completionPercentage = decided ? Math.round(successCount / decided * 100) : 0;
   const currentPeriod = aggregatePeriod(habitRuleOn(habit,today)??habit.rules[0]!); const streakUnit: StreakUnit = currentPeriod ? `${currentPeriod}s` as StreakUnit : "days";
   return { currentStreak: streakBoard[streakUnit].current, bestStreak: streakBoard[streakUnit].best, streakUnit, streakBoard, weeklyCompleted, weeklyScheduled, weeklyConsistency: weeklyScheduled ? Math.round(weeklyCompleted / weeklyScheduled * 100) : 0, successCount, failCount, skipCount, completionPercentage, consistency: completionPercentage };
 }
@@ -467,7 +469,7 @@ function computeHabitTrends(habit: Habit, today: string) {
   const windows = [{ key: "day", days: 1 }, { key: "week", days: 7 }, { key: "month", days: 30 }, { key: "year", days: 365 }] as const;
   return windows.map(({ key, days }) => {
     const start = addLocalDays(today, -(days - 1)); let success = 0, total = 0;
-    for (let date = start < habit.startDate ? habit.startDate : start; date <= today; date = addLocalDays(date, 1)) { const result = habitDay(habit, date, today); if (!result.scheduled || result.status === "due" || result.status === "partial") continue; total++; if (result.status === "complete") success++; }
+    for (let date = start < habit.startDate ? habit.startDate : start; date <= today; date = addLocalDays(date, 1)) { const result = habitDay(habit, date, today); if (!result.scheduled || result.status === "due" || result.status === "partial" || result.status === "skipped") continue; total++; if (result.status === "complete") success++; }
     return { period: key, success, total, percentage: total ? Math.round(success / total * 100) : 0 };
   });
 }

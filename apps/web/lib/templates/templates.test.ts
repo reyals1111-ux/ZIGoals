@@ -22,8 +22,9 @@ describe('starter habits (Session W Part 3)', () => {
     for (const t of HABIT_TEMPLATES) { expect(`${t.title} ${t.note}`, t.id).not.toMatch(words); }
     for (const t of HABIT_TEMPLATES.filter(t => t.group === 'money')) { expect(t.measurement?.kind, t.id).toBe('boolean'); expect(`${t.title} ${t.note}`, t.id).not.toMatch(/[$€£]|\d/); }
   });
-  test('the editor\'s own templates stay as they were (Buy ZIG included)', () => {
-    expect(HABIT_TEMPLATE_TITLES).toEqual({walk: 'Walk', exercise: 'Exercise', water: 'Drink water', read: 'Read', study: 'Study', buyzig: 'Buy ZIG', budget: 'Review budget', savings: 'Add to savings', nospend: 'No-spend day'});
+  // Session AH (HA12, N-150): the two money templates are named as the person's own plan, never as an instruction.
+  test('the editor\'s own templates: the money ones are named as your own plan', () => {
+    expect(HABIT_TEMPLATE_TITLES).toEqual({walk: 'Walk', exercise: 'Exercise', water: 'Drink water', read: 'Read', study: 'Study', buyzig: 'My ZIG plan', budget: 'Review budget', savings: 'My savings plan', nospend: 'No-spend day'});
   });
   test('an existing habit with the same title (any case) is never added twice', () => {
     const walk = HABIT_TEMPLATES.find(t => t.id === 'walk')!;

@@ -59,7 +59,8 @@ for (const setting of ['default', 'reduced', 'off'] as const) test(`"−" beside
   await page.goto('/app/habits');
   await addHabit(page, 'Water plants', {kind: 'quantity', target: '2.5'});
   const card = page.getByRole('article', {name: 'Water plants', exact: true});
-  const minus = card.getByRole('button', {name: 'Remove one from Water plants', exact: true}), plus = card.getByRole('button', {name: 'Add one to Water plants', exact: true});
+  // Session AH (HA9): a litre habit steps by a quarter litre.
+  const minus = card.getByRole('button', {name: 'Remove 0.25 from Water plants', exact: true}), plus = card.getByRole('button', {name: 'Add 0.25 to Water plants', exact: true});
   await expect(minus).toBeDisabled();
   if (await isPhone(page)) for (const button of [minus, plus]) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await openHabitDetails(card);
@@ -68,15 +69,17 @@ for (const setting of ['default', 'reduced', 'off'] as const) test(`"−" beside
   await card.getByRole('button', {name: 'Set value', exact: true}).click();
   await expect(card.locator('.habit-count strong')).toHaveText('2.2');
   await minus.click();
-  await expect(card.locator('.habit-count strong')).toHaveText('1.2');
+  await expect(card.locator('.habit-count strong')).toHaveText('1.95');
+  await card.getByLabel('Value for Water plants').fill('0,3');
+  await card.getByRole('button', {name: 'Set value', exact: true}).click();
   await minus.click(); await minus.click();
   await expect(card.locator('.habit-count strong')).toHaveText('0');
   await expect(minus).toBeDisabled();
   await plus.click();
-  await expect(card.locator('.habit-count strong')).toHaveText('1');
+  await expect(card.locator('.habit-count strong')).toHaveText('0.25');
   // Session Z-Cloud Gate C: the card shows a check-in while its save is still running (habit-card's queue), so the stored
   // record is read until the save lands (CI once read 0 here; mechanics, the expected value unchanged).
-  await expect.poll(async () => (await stored(page)).habits[0]!.entries.find(e => e.date === '2026-09-15')?.count).toBe(1);
+  await expect.poll(async () => (await stored(page)).habits[0]!.entries.find(e => e.date === '2026-09-15')?.count).toBe(0.25);
 });
 
 // A metal entered without a value has no valuation history (Wealth records a daily valuation only for a valued asset),

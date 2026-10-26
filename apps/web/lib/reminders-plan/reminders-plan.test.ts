@@ -38,3 +38,10 @@ describe('S4 onboarding focuses', () => {
     expect(setupUndoable(done, new Date('2026-10-07T20:00:00.000Z'))).toBe(true); expect(setupUndoable(done, new Date('2026-10-09T08:00:00.000Z'))).toBe(false); expect(setupUndoable({...done, undone: true}, new Date('2026-10-07T09:00:00.000Z'))).toBe(false);
   });
 });
+
+test('Session AH (HA16): quiet hours that start and end at the same minute are refused; the bedtime default sits before them', async () => {
+  const {setQuietHours, emptyRemindersPlan, PLAN_LABELS, DEFAULT_QUIET} = await import('./schema');
+  expect(() => setQuietHours(emptyRemindersPlan(), {from: '10:00', to: '10:00'})).toThrow('Quiet hours need an end time that differs from the start.');
+  expect(setQuietHours(emptyRemindersPlan(), {from: '23:00', to: '07:00'}).quiet).toEqual({from: '23:00', to: '07:00'});
+  expect(PLAN_LABELS.bedtime.defaultTime < DEFAULT_QUIET.from).toBe(true);
+});

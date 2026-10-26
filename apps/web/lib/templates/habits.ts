@@ -3,7 +3,7 @@ import {habitInputSchema, type HabitInput} from '../habits';
 /**
  * Starter habits (Session W Part 3; the library on the Habits page arrives with Part 10): curated, calm, one tap to a
  * complete habit the person can change afterwards. No target is advice: amounts are common starting points, money ones
- * hold no sum, and nothing here measures a person against anyone else. The editor's own templates (Walk, Buy ZIG, …)
+ * hold no sum, and nothing here measures a person against anyone else. The editor's own templates (Walk, My ZIG plan, …)
  * stay exactly as they were.
  */
 export const HABIT_TEMPLATE_GROUPS = ['health', 'mind', 'fitness', 'learning', 'money', 'chess', 'sleep', 'home'] as const;
