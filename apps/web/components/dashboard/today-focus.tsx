@@ -18,6 +18,8 @@ import {AppIcon} from '../app-icon';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
 import {showToast} from '../ui/undo-toast';
+import {plainErrorMessage} from '../../lib/plain-error';
+import {newHealthId} from '../../lib/health';
 
 const ozText = (ml: number) => `${Math.round(ml / 29.5735295625 * 10) / 10} US fl oz`;
 const waterText = (ml: number, unit: 'ml' | 'fl-oz-us') => unit === 'ml' ? (ml >= 1000 ? `${Math.round(ml / 100) / 10} L` : `${Math.round(ml)} mL`) : ozText(ml);
@@ -59,12 +61,13 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
   const slept = lastNight ? asleep(lastNight) : null;
   async function logWater() {
     if (!firstWater) return;
-    const id = crypto.randomUUID(), at = new Date().toISOString();
+    // Session AH (HE1; N-105, B-001): the same id and payload as Health's own water button (a bare UUID is refused).
+    const id = newHealthId(), at = new Date().toISOString();
     try {
       await health.update(latest => addWater(latest, {id, date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, at));
       showToast({message: `Water logged: ${firstWater.label.replace(/^Add /, '')}.`, undo: () => health.update(latest => removeWater(latest, id)), undone: 'Water entry removed.'});
     } catch (e) {
-      showToast({message: e instanceof Error && e.message ? e.message : 'Could not log water on this device.'});
+      showToast({message: plainErrorMessage(e, 'Could not log water on this device.')});
     }
   }
   return <section className="today-focus" aria-labelledby="today-focus-title">

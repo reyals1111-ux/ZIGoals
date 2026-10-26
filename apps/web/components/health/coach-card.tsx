@@ -7,6 +7,10 @@ import {coachCheckIn} from '../../lib/health-aa/coach';
 import {answerCoach, HEALTH_COACH} from '../../lib/health-aa/coach-schema';
 import {dailyData} from '../../lib/health-daily';
 import {setHealthTargets, type HealthData} from '../../lib/health';
+import {scaledTargets} from '../../lib/health-aa/energy';
+import {ConfirmInline} from '../ui/confirm-inline';
+import {showToast} from '../ui/undo-toast';
+import {useState} from 'react';
 import {registerSlotCard} from '../game/slot-local';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import type {HealthPerform} from './aa-types';
@@ -23,15 +27,23 @@ const paceLabel = (kg: number, unit: string) => `${kg < 0 ? '−' : kg > 0 ? '+'
 export function CoachCard({data, today, perform, compact = false}: {data: HealthData; today: string; perform: HealthPerform; compact?: boolean}) {
   const coach = useDeviceRecord(HEALTH_COACH), unit = dailyData(data).preferences.weightUnit;
   const c = coachCheckIn(data, coach.loaded && !coach.unreadable ? coach.data : {version: 1}, today, unit);
+  // Session AH (HE2; D-094, L-046, M-054, M-097, B-100, N-035): Adjust asks first, names the change, scales the macro
+  // targets with it, moves at most 15 % a step (never under 1,200 kcal), and offers Undo.
+  const [asking, setAsking] = useState(false);
   const answer = (what: 'keep' | 'adjust') => {
     const kcal = what === 'adjust' ? c.suggestion?.kcal : undefined;
     const record = () => { try { coach.update(r => answerCoach(r, c.weekStart, what, new Date().toISOString(), kcal)); } catch (e) { void perform(l => l, `Answer not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
-    if (what === 'adjust' && kcal) void perform(latest => setHealthTargets(latest, {...latest.targets, kcal}), `Calorie target adjusted to ${kcal} kcal a day.`, record); else record();
+    setAsking(false);
+    if (what === 'adjust' && kcal) {
+      const before = data.targets;
+      void perform(latest => setHealthTargets(latest, scaledTargets(latest.targets, kcal)), `Calorie target adjusted to ${kcal} kcal a day; protein, carbs and fat scaled with it.`, () => { record(); showToast({message: `Calorie target now ${kcal} kcal a day.`, undone: `Calorie target back to ${before.kcal ?? 'none'}.`, undo: () => perform(latest => setHealthTargets(latest, before), 'Your earlier targets are back.')}); });
+    } else record();
   };
   return <section id={compact ? undefined : 'health-coach'} className={`panel health-aa-card health-coach${compact ? ' health-coach-compact' : ''}`} aria-labelledby="coach-title">
     <p className="eyebrow">Weekly check-in</p><h2 id="coach-title"><NebulaFlow identity={`coach-title${compact ? '-compact' : ''}`}>Your coach</NebulaFlow></h2>
     <p className="health-coach-line">{c.sentence}</p>
-    {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => answer('adjust')} disabled={!c.suggestion}>{c.suggestion ? `Adjust to ${c.suggestion.kcal} kcal` : 'Adjust (needs the estimate)'}</button></div>)}
+    {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => setAsking(true)} disabled={!c.suggestion} aria-expanded={asking}>{c.suggestion ? `Adjust to ${c.suggestion.kcal} kcal…` : 'Adjust (needs the estimate)'}</button></div>)}
+    {asking && c.suggestion && <ConfirmInline title={`Set your calorie target to ${c.suggestion.kcal} kcal a day?`} confirmLabel="Adjust my target" cancelLabel="Keep it as it is" tone="neutral" onConfirm={() => answer('adjust')} onCancel={() => setAsking(false)}><p>Now {c.currentKcal === null ? 'no target' : `${c.currentKcal} kcal`}. Protein, carbs and fat scale with it. A change moves at most 15 % at a time and never below 1,200 kcal. You can undo it right after.</p></ConfirmInline>}
     <p className="fine">{c.suggestion ? `The adjustment comes from your energy estimate and a pace of ${paceLabel(c.suggestion.paceKg, unit)} toward your goal.` : 'The adjustment appears once the energy estimate has two weeks of logs.'} <span className="health-estimate-tag">an estimate, not medical advice</span></p>
   </section>;
 }

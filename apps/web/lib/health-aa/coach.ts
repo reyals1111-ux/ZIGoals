@@ -19,6 +19,6 @@ export function coachCheckIn(data: HealthData, coach: HealthCoach, today: string
   const sentence = rate === null ? (trend.readings ? 'Not enough readings yet for a weekly rate; two in the last week will do.' : 'Log a weight or two and the coach can read your week.') : `This week: ${sign}${shown!.replace('-', '')}/week.`;
   const estimate = energyEstimate(data, today), goal = data.targets.weightGrams, latest = trend.latestTrend;
   const paceKg = goal !== null && latest !== null ? (goal < latest ? -0.4 : goal > latest ? 0.25 : 0) : 0;
-  const kcal = suggestedTarget(estimate, paceKg);
+  const kcal = suggestedTarget(estimate, paceKg, data.targets.kcal);
   return {weekStart, answered, rateGrams: rate, readings: trend.readings, sentence, suggestion: kcal !== null ? {kcal, paceKg} : null, currentKcal: data.targets.kcal};
 }
