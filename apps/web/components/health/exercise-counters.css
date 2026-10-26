@@ -96,6 +96,6 @@
 .exercise-counter button.exercise-count:focus-visible, .exercise-counter .exercise-count-input:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
 .exercise-counter .exercise-count-input { border-color: #a9c9ff80; background: #00000033; appearance: textfield; }
 .exercise-counter .exercise-count-input[aria-invalid=true] { border-color: #ff9aa8; }
-.exercise-count-error { position: absolute; top: 100%; right: 0; z-index: 2; width: max-content; max-width: 220px; margin-top: 4px; padding: 6px 8px; border-radius: 10px; font-size: 13px; line-height: 1.3; color: #ffd6dc; background: #2a0f1ae6; border: 1px solid #ff9aa866; }
+.exercise-count-error { position: absolute; top: 100%; right: 0; z-index: 2; width: max-content; max-width: 220px; margin-top: 4px; padding: 6px 8px; border-radius: 10px; font-size: 14px; line-height: 1.3; color: #ffd6dc; background: #2a0f1ae6; border: 1px solid #ff9aa866; }
 @media (max-width: 374px) { .exercise-counter .exercise-count { font-size: 22px; } }
 @media (max-width: 339px) { .exercise-counter .exercise-count { font-size: 20px; padding: 0 2px; } }

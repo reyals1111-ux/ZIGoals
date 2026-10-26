@@ -16,7 +16,7 @@
 .health-page .health-date-pick:focus-within { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
 .health-page .health-date-text { display: grid; line-height: 1.15; }
 .health-page .health-date-text strong { font-size: 16px; }
-.health-page .health-date-text small { font-size: 13px; color: var(--health-muted, #b9c6dc); }
+.health-page .health-date-text small { font-size: 14px; color: var(--health-muted, #b9c6dc); }
 /* The real date field sits over the day's name: a tap opens the picker, and keyboards and tests type into it. */
 .health-page .health-date-pick input { position: absolute; inset: -1px; width: auto; height: auto; min-height: 0; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 16px; }
 @keyframes health-day-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
