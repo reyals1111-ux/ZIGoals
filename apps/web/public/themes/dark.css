@@ -5953,6 +5953,15 @@
             background-color: transparent
         }
     }
+    .earn-chips-more:not(#\-) {
+        border-color: #7fc8ff55;
+        background-image: none;
+        background-color: #020614;
+        color: var(--text-primary, #eef4ff)
+    }
+    .earn-chips-more:focus-visible:not(#\-) {
+        outline-color: #9fd8ff
+    }
     :is(.earn-formula, .earn-illustration-slot) > summary:not(#\-)::after {
         border-right-color: currentColor;
         border-bottom-color: currentColor

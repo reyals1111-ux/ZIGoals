@@ -282,10 +282,14 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 /* crit1: with a mouse the one-row rail could not be scrolled (no scrollbar, the wheel scrolls the page), so six chips were
    out of reach on a computer. With a fine pointer and room, the index wraps onto two rows and every chip shows; touch
    screens keep the sideways rail with the current chip in view. */
+/* Session AH (ST6): one row everywhere; the end buttons (earn-chips.tsx) move it, so it never wraps onto three sticky rows. */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  .earn-chips-rail { flex-wrap: wrap; overflow: visible; -webkit-mask-image: none; mask-image: none; padding-inline: 0; }
-  html:has(.earn-chips) { scroll-padding-top: 180px; } /* two or three rows of chips, then a breath */
+  html:has(.earn-chips) { scroll-padding-top: 120px; } /* one row of chips, then a breath */
 }
+.earn-chips { display: flex; align-items: center; gap: 6px; }
+.earn-chips > .earn-chips-rail { flex: 1 1 auto; min-width: 0; }
+.earn-chips-more { flex: none; inline-size: 44px; block-size: 44px; border-radius: 999px; border: 1px solid #7fc8ff55; background: #101c33; color: var(--text-primary, #eef4ff); font-size: 22px; line-height: 1; cursor: pointer; }
+.earn-chips-more:focus-visible { outline: 2px solid #9fd8ff; outline-offset: 2px; }
 /* crit1: the two disclosures ("How this is computed", "What you'll see on …") lost the browser's triangle to their flex
    layout; a chevron says they open, and turns when they do. The picture count wraps under the label on a phone. */
 :is(.earn-formula, .earn-illustration-slot) > summary { flex-wrap: wrap; gap: 4px 8px; list-style: none; }
@@ -343,3 +347,6 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 @media (max-width: 767.98px) {
   :root:not([data-zigi-side=left]) .earn-hero-note { padding-inline-end: 60px; }
 }
+/* Session AH (ST6, AF12): an end chest not reached yet says it lies ahead ("Start here, complete" at 0 of 6 had read as done).
+   Earn's own paths only; the Checklist path is untouched. Screen readers already hear "(not reached yet)". */
+:is(.earn-start-path, .earn-academy-path) .path-chest:not([data-reached]) .path-chest-text strong::before { content: "Ahead · " / ""; font-weight: 500; opacity: .8; }

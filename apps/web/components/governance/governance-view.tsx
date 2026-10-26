@@ -169,11 +169,11 @@ export function GovernanceView() {
     <section className={`panel staking-actions governance-network is-${network}`} aria-labelledby="governance-network-title">
       <div className="staking-actions-head">
         <div><p className="eyebrow">Signed in your own wallet</p><h2 id="governance-network-title">Vote on a network</h2></div>
-        <NetworkSwitch network={network} onChoose={choose} disabled={!!quote || !!reviewing}/>
+        {/* Session AH (ST7, M-052): the Showcase never offers the real network (no real-money warning inside the demo). */}<NetworkSwitch network={network} onChoose={choose} disabled={showcase || !!quote || !!reviewing}/>
       </div>
       <NetworkBanner network={network}/>
       {askReal && <RealConfirm onConfirm={confirmReal} onCancel={() => { setAskReal(false); setRealError(''); }} error={realError}/>}
-      {showcase ? <p>Exit the Showcase to vote. The Showcase keeps its simulated wallet and signs nothing.</p>
+      {showcase ? <p>Exit the Showcase to vote. The Showcase keeps its simulated wallet and signs nothing; the proposals below are ZIGChain&rsquo;s own, read live from the practice network.</p>
         : !wallet ? <div className="staking-connect">
           {hasKeplr ? <>
             <p>Connect Keplr for the {network === 'real' ? 'real' : 'practice'} network to vote with your stake. Reading proposals needs no wallet.</p>
@@ -201,9 +201,9 @@ export function GovernanceView() {
     <section className="governance-proposals" aria-labelledby="governance-proposals-title">
       <h2 id="governance-proposals-title">Proposals on {words.name}</h2>
       {!proposals ? <p role="status">Reading the proposals…</p>
-        : proposals.phase === 'unavailable' ? <p className="notice" role="status">Proposals are unavailable: {proposals.reason} <button type="button" className="text-link" onClick={() => void load()}>Read again</button></p>
+        : proposals.phase === 'unavailable' ? <p className="notice" role="status">Proposals are unavailable: {proposals.reason} <button type="button" className="text-link" onClick={() => { setProposals(null); void load(); }}>Read again</button></p>
         : <>
-          <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={() => void load()}>Read again</button></p>
+          <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={() => { setProposals(null); void load(); }}>Read again</button></p>
           {!ordered.length && <p>No proposals on this network yet.</p>}
           {ordered.map(p => <ProposalCard key={p.id} explainQuorum={p === ordered.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
             voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>)}

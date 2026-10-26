@@ -46,7 +46,7 @@ const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
   "/app/earn": "Every way to earn, with live numbers and risks",
   "/app/markets": "Prices you follow · watch-only",
-  "/app/staking": "Public ZIG staking and positions · read-only",
+  "/app/staking": "Stake in your own Keplr wallet · positions read-only",
   "/app/portfolio": "Coins you hold or plan · on this device",
   "/app/ecosystem": "ZIGChain projects · research only",
   "/app/chess": "Your chess ratings and games · public data",

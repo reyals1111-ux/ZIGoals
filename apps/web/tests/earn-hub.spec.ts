@@ -108,7 +108,7 @@ test('until the validators route is in the build, its section says so and the re
   await expect(page.locator('#validators [data-live-figure="validators"]')).toHaveAttribute('data-reason', 'NOT_IN_THIS_BUILD');
   await expect(page.locator('#validators')).toContainText('this build of ZIGoals does not read it yet');
   await expect(page.locator('[data-live-figure="native-apr"]')).toHaveAttribute('data-state', 'ok');
-  await expect(page.locator('[data-live-figure="native-apr"] dt')).toHaveText('Yearly rate before the validator’s commission');
+  await expect(page.locator('[data-live-figure="native-apr"] dt')).toHaveText('Yearly rate before the validator’s commission · estimate, variable');
 });
 
 test('the chip index stays at the top while the page scrolls and marks the section on screen', async ({page}) => {

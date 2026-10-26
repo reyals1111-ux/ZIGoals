@@ -1,6 +1,6 @@
 'use client';
 import {useCallback, useEffect, useMemo, useRef, useState, type FormEvent} from 'react';
-import {STAKING_NETWORKS, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {STAKING_NETWORKS, UNBONDING_SECONDS, type StakingNetwork} from '@zigoals/chain-config/networks';
 import {usePlatform} from '../platform/use-platform';
 import {useShowcase} from '../showcase-controls';
 import {usePhoneActive} from '../phone/use-phone-layout';
@@ -317,7 +317,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
           <div id="staking-amount-network"><NetworkLine network={network}/></div>
           {action === 'delegate' && <p className="fine">The network fee is kept back from your balance; the review shows the exact fee. <WhatsThis term="gas"/></p>}
         </div>}
-        {(action === 'undelegate' || action === 'delegate') && <details className="staking-explainer"><summary>What unstaking means</summary><p>Unstaking takes {daysText(1814400)} (the chain&rsquo;s unbonding time, checked again before every review). During that time the ZIG earns nothing and cannot move. A validator allows at most 7 unstakings from you at a time.</p></details>}
+        {(action === 'undelegate' || action === 'delegate') && <details className="staking-explainer"><summary>What unstaking means</summary><p>Unstaking takes {daysText(UNBONDING_SECONDS)} on ZIGChain (the chain&rsquo;s unbonding time; the review checks it against the chain before you sign and stops if it has changed). During that time the ZIG earns nothing and cannot move. A validator allows at most 7 unstakings from you at a time.</p></details>}
         {error && <p role="alert" className="notice">{error}</p>}
         <button type="submit" className="primary" disabled={quoting || (action !== 'claim' && !validator)}>{quoting ? 'Estimating the fee…' : 'Review'}</button>
       </form>

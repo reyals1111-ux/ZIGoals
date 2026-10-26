@@ -8,7 +8,7 @@ import {useLauncherRecord} from '../ai/use-launcher-record';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {EARN_PREFS, earnPrefsOf, setEarnPref} from '../../lib/earn/records';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
-import {NAV_ITEMS} from '../app-nav';
+import {NAV_ITEMS, useVisibleNav} from '../app-nav';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 import {settingsGroupIn} from '../../lib/vault/w-homes';
 import {updateSettingsGroup} from '../../lib/w-homes-store';
@@ -51,7 +51,9 @@ export function PagesSettings() {
   const nav = NAV_ITEMS.filter(([href]) => hrefShown(view, href, {governance})), {tabs, more} = phoneTabs(nav);
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
   // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
-  const summary = `Sidebar: ${nav.map(([, label]) => label).join(', ')}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
+  // Session AH (ST9, B-174, D-217): the sidebar as it really is, with the pages other parts add (the Checklist, Journey).
+  const sidebar = useVisibleNav().items;
+  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
     <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>
     <p>Hide what you don&rsquo;t use; your records stay as they are. Settings and Help always show. A hidden page still opens from a link, with a way to show it again.</p>
@@ -64,6 +66,13 @@ export function PagesSettings() {
               <input type="checkbox" role="switch" checked={isShown(view, id)} onChange={e => toggle(id, PAGE_LABEL[id], e.currentTarget.checked)}/>
               <span>{PAGE_LABEL[id]}</span>
             </label>
+            {id === 'wealth' && <div className="pages-switch-row">
+              <label className="pages-switch">
+                <input type="checkbox" role="switch" checked={isShown(view, 'wealth')} disabled aria-describedby="pages-note-earn"/>
+                <span>Earn</span>
+              </label>
+              <small className="pages-switch-note" id="pages-note-earn">Earn sits in the Wealth group: it shows and hides with Wealth.</small>
+            </div>}
             {id === 'chess' && <div className="pages-switch-row">
               <label className="pages-switch">
                 <input type="checkbox" role="switch" checked={prefsUsable && governance} disabled={!prefsUsable} aria-describedby="pages-note-governance" onChange={e => showGovernance(e.currentTarget.checked)}/>

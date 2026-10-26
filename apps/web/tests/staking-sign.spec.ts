@@ -92,7 +92,7 @@ test('practice: delegate, undelegate, redelegate and claim all, each through the
   await panel.getByRole('radio', {name: /Fictional Alpha/}).check();
   await panel.getByLabel('Amount of ZIG').fill('10');
   await panel.getByRole('button', {name: 'Review', exact: true}).click();
-  await expect(page.getByRole('dialog', {name: 'Review before you sign'})).toContainText('This ZIG comes back to your wallet after 21 days (read from the chain now). Meanwhile it earns nothing and cannot move.');
+  await expect(page.getByRole('dialog', {name: 'Review before you sign'})).toContainText('This ZIG comes back to your wallet after 21 days (checked against the chain just now). Meanwhile it earns nothing and cannot move.');
   await sign(page, calls, mark); await done(page);
 
   // 3. Redelegate 5 ZIG from Fictional Alpha to Fictional Beta.

@@ -55,13 +55,13 @@ export function NativeSection({chain, validators, measured, now, reads = []}: {c
       {label: 'Who can use it', value: 'Anyone with a ZIGChain wallet. The rules of the country you live in still apply to you.'},
     ]}
     figures={<>
-      <LiveFigure id="native-apr" big label={commission ? <>Yearly rate at a {pctShort(commission)} validator commission</> : 'Yearly rate before the validator’s commission'} now={now}
+      <LiveFigure id="native-apr" big label={commission ? <>Yearly rate at a {pctShort(commission)} validator commission · estimate, variable</> : 'Yearly rate before the validator’s commission · estimate, variable'} now={now}
         figure={shown(chain, d => commission ? pct(aprAtCommission(d.apr, commission)) : pct(d.apr.beforeCommission))}
         hint={<>The issuance figure: a simple yearly rate (APR) from the new ZIG the network pays out, block time measured over {data ? <>the last {decimal(data.apr.windowBlocks, 0)} blocks</> : 'recent blocks'}; rewards are not compounded unless you stake them again. Rates move every block. <WhatsThis term="apr"/> <WhatsThis term="commission"/></>}/>
       <LiveFigure id="native-apr-measured" big label={m ? <>Measured: what {m.validator.moniker}’s own stake earned, at its {pctShort(m.validator.commission)} commission</> : 'Measured on one validator’s own stake'} now={now}
         figure={shown(measured, d => d.measured.status === 'ok' ? pct(d.measured.rate) : {unavailable: d.measured.reason})}
         hint={m ? <>The rewards waiting on that validator’s own stake of {zig(m.latest.selfBond)}, read at block {m.latest.height} and {m.measured.status === 'ok' ? decimal(m.measured.windowBlocks, 0) : '10,000'} blocks earlier (block {m.earlier.height}), over the real time between them; it includes what the issuance figure leaves out (transaction fees). One validator, one window: a check, not a promise.</> : 'What one named validator’s own stake earned over the last 10,000 blocks, read from the chain at two heights.'}/>
-      <LiveFigure id="native-apr-before" label="Before any commission" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
+      <LiveFigure id="native-apr-before" label="Before any commission · estimate, variable" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
       <LiveFigure id="native-bonded" label="ZIG staked on the network" now={now} figure={shown(chain, d => <>{zig(d.staking.bondedTokens, {compact: true})} <span className="earn-unit">({pct(d.staking.bondedShare, 1)} of all ZIG)</span></>)}/>
       <LiveFigure id="native-unbonding" label="Unbonding time when you leave" now={now} figure={shown(chain, d => duration(d.staking.unbondingSeconds))} hint={<WhatsThis term="unbonding"/>}/>
       <LiveFigure id="native-commission" label="Commission validators charge now" now={now} figure={validators.phase === 'ok' && range ? {kind: 'ok', value: range, answer: validators.answer} : validators.phase === 'ok' ? {kind: 'unavailable', reason: 'MALFORMED'} : shown(validators, () => null)}/>

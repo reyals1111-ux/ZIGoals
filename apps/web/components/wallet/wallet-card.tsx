@@ -1,4 +1,5 @@
 'use client';
+import {WhatsThis} from '../earn/whats-this';
 import './wallet-card.css';
 import Link from 'next/link';
 import {Suspense, lazy, type ReactNode} from 'react';
@@ -12,7 +13,7 @@ const WalletCardBody = lazy(() => import('./wallet-card-body'));
 
 /** The card's frame, the same before and after its controls load (the controls' row shows only with a linked wallet). */
 export function WalletCardFrame({pill, value, lines, controls}: {pill: string; value: ReactNode; lines: ReactNode; controls?: ReactNode}) {
-  return <section className="account-panel"><div><h2>Your wallet <span className="pill">{pill}</span></h2>{value}{lines}{controls}<Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>;
+  return <section className="account-panel"><div><h2>Your wallet <span className="pill">{pill}</span></h2>{/* Session AH (AF4, ledger N1): the older "Testnet" label explains itself. */}{pill === 'Testnet' && <p className="wallet-card-whats"><WhatsThis term="practice-network"/></p>}{value}{lines}{controls}<Link href="/app/settings" className="secondary account-action"><AppIcon name="wallet" luminous/>Wallet &amp; data →</Link></div></section>;
 }
 /** The app's own wallet as the card has always shown it: the local demo's simulated balance, or Keplr's testnet account. */
 export function useAppWallet(plainWords: boolean) {

@@ -16,12 +16,12 @@ export function StakingEmptyPreview() {
   // stZIG rate lives on Earn, where both sources are shown (H44).
   const now = useMinuteClock(), chain = useEarnLive('chain'), oroswap = useEarnLive('oroswap');
   return <div className="panel positions-empty earn-preview" data-earn-preview>
-    <h3>A clear view of your wealth — and the way to grow it.</h3>
+    <h3>A clear view of your staked ZIG.</h3>
     <p>Track a public wallet to see liquid funds, stake and rewards together. Allocate existing wealth to your Goals without moving funds.</p>
     <dl className="earn-figures earn-preview-cards">
-      <LiveFigure id="preview-native" label="Native staking · yearly rate before a validator’s commission" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
+      <LiveFigure id="preview-native" label="Native staking · yearly rate before a validator’s commission · estimate, variable" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
       <LiveFigure id="preview-oroswap" label="Liquidity · ZIG / USDC pool fee per swap" now={now} figure={shown(oroswap, d => { const p = d.pools.find(x => x.id === 'zig-usdc'); return p ? bps(p.feeBps) : null; })}/>
     </dl>
-    <p className="earn-preview-cta"><Link className="primary" href="/app/earn#start-here">Learn and start on Earn →</Link> <span className="fine">Live figures, the risks of each, and the steps in plain words.</span></p>
+    <p className="earn-preview-cta"><Link className="primary" href="/app/earn#start-here">How staking works, on Earn →</Link> <span className="fine">Live figures, the risks of each, and the steps in plain words. Information, not advice.</span></p>
   </div>;
 }
