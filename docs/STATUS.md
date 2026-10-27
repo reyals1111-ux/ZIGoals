@@ -1,4 +1,49 @@
-# Session AH — The Big Polish (ADR-033, Parts 0–18) (2026-10-25/26, `feature/session-ah-polish`, [PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95); not merged, not deployed)
+# Session AH-FIX — the red page-marks test on `main` after the Session AH merge (2026-10-27, `fix/ah-page-marks`; not merged, not deployed)
+**Records:** Session AH was merged into `main` as `dc94ac9` ([PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95)) and is not yet deployed (Alpha #49, `f13abb0`, stays live).
+
+**Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101), Playwright Chromium standing in for the Chrome channel, at most 2 workers, one run at a time. CI = Milestone quality.
+
+**The failure:** Milestone quality run #1243 on `main` (push, `dc94ac9`) failed in both attempts (26 Oct 23:xx, 27 Oct 07:xx UTC) on one test, `tests/page-marks.spec.ts:96` [desktop]. 570 others passed; the other shards, the checks and the Alpha gate were green.
+- **The error:** "Test timeout of 150000ms exceeded" about 160 s in, during the page loop: line 108 (the words image) in attempt 1, line 107 (`main h1` still loading) in attempt 2. No layout assertion failed.
+- **The cause:** one test ran all 48 checks (8 desktop window sizes × 6 pages) under one 150 s budget. It had taken 140 s (run 1149, `261f32a`), 103 s (run 1182, `f13abb0`) and 138 s (PR #95's green run, `b197a21`) in CI, so a slower runner pushed it over.
+
+## The fix
+| What | Commit | Evidence |
+|---|---|---|
+| `page-marks.spec.ts`: one test per desktop window size (8 tests, 90 s each), the same six pages and every assertion unchanged (48 size/page checks); test-only | `ed0874b4` | local: 5 runs in a row, 17 passed and 9 skipped each (the 9 are the phone project's desktop-only skips); about 8.5 s per size here |
+| This entry | this commit | — |
+
+## Checks
+- **The desktop sidebar (≥ 901 px) is unchanged by Session AH.** I measured production builds of `f13abb0` and `dc94ac9`: the sidebar's mark box, figure, words, horizon (planet), star, destination, Settings link, the sidebar box and its sideways scroll.
+  - Where: the six pages at 1024×768, 1180×820, 1280×720, 1440×900, 1920×1080, 1280×640, 1440×600 and 1024×600 (Nebula), and at 1024×600, 1280×640, 1440×600 and 1920×1080 in Light and Dark.
+  - Result: 96 combinations, 960 values, no difference over 0.5 px.
+  - The tablet rail (541–900 px, ADR-033 M46) and the phone layout (M53) are as Session AH made them.
+- **Theme parity and the sidebar specs:** `theme-parity-af`, `sidebar-sky-af` (1280×640) and `sidebar-note-af`: 62 passed, 8 skipped.
+- **Layout audit** (`tests/audit/layout-audit.mjs --widths=1024,1280,1440,1920`, the six pages, Nebula, Light and Dark) on both builds:
+  - There are no sidebar findings and no clip, spill, overlap or covered findings on either build.
+  - The only findings are contrast readings of the animated gradient headings in the page content. These were present before Session AH too (32 / 37 / 32 findings, now 35 / 37 / 35). The same headings appear on both builds, moving between widths as each gradient's phase shifts.
+- **Lint and typecheck:** typecheck clean; lint shows the 19-warning baseline.
+
+## Did Session AH make these pages slower? (owner amendment 2)
+Production builds of `f13abb0` and `dc94ac9`, same machine, Showcase, 1280×720, reduced motion, after one warm-up pass. "Ready" is the median of 7 loads, timed to the page heading visible and the sidebar words image loaded (the test's own waits).
+
+| Page | Weight before → after (gzip -6, `check-weight-budget`) | Ready before → after |
+|---|---|---|
+| `/app` | 518.4 → 534.3 kB (+3.1%) | 1082 → 1090 ms (+1%) |
+| `/app/goals` | 436.8 → 448.9 kB (+2.8%) | 500 → 532 ms (+6%) |
+| `/app/habits` | 460.4 → 473.9 kB (+2.9%) | 598 → 637 ms (+7%) |
+| `/app/health` | 482.5 → 502.8 kB (+4.2%) | 622 → 640 ms (+3%) |
+| `/app/wealth` | 449.8 → 462.1 kB (+2.7%) | 693 → 714 ms (+3%) |
+| `/app/markets` | 427.2 → 439.4 kB (+2.9%) | 493 → 500 ms (+1%) |
+| shell (every page) | 395.1 → 405.4 kB (+2.6%) | — |
+
+Session AH added about 10 kB to the shell and 12–20 kB to each of these pages. All stay within their budgets. Load time is about 3% more over the six pages, which is small next to CI's runner-to-runner spread (this test alone ranged from 103 to 140 s before AH). Recorded, not changed: no small, safe change would win it back.
+
+Not merged, not deployed: the owner merges and deploys.
+
+---
+
+# Session AH — The Big Polish (ADR-033, Parts 0–18) (2026-10-25/26, `feature/session-ah-polish`, [PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95), merged into `main` as `dc94ac9`; not yet deployed)
 **Evidence labels:** unit = vitest from the repository root; local = the cloud sandbox (Node 22 against the project's 24), Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101); frozen readers = `scripts/frozen-readers.mjs` on releases #37–#49; CI = Milestone quality on the PR head. No paid service, no secret, no deploy; no wallet signing, key, transaction-building or contract-call change; no edit under `apps/web/lib/ai/**`, ZIGi components or evals (only `/app/zigi`'s page copy, TO9). The only dependency changes are Part 1's pre-approved security bumps.
 **Base:** `main` `f13abb0` (Alpha #49). **Rules (owner):** the brief (Parts 0–16, the complete ID index, the non-negotiables), the approved plan, and eight owner amendments (25 Oct, ADR-033): (1) close every finding ID per row, not only the row; (2) the "already fixed" check runs at the start of each part for that part's rows; (3) DS1's revision stamp additive, TIER 3 (stored format), frozen readers #37–#49; (4) the device lock optional, off by default, never locking anyone out of their own data; (5) Health auto-ticks never double-count; (6) no FX source → the currency switch hides; (7) the PR-review Action on `pull_request` only, never forks, least privilege, a clean skip without its secret; (8) notification actions and service-worker/manifest changes TIER 3 (PWA). Then three owner additions, each pre-approved: Part 17 (the Health journal date drives the whole Health page), Part 18 (the Checklist top bar — an exception to the protected Checklist for the top bar only —, the phone top bar without the page name, the Health quick counters), and the LA2 decision (26 Oct: a rail on tablets instead of the header grid).
 
