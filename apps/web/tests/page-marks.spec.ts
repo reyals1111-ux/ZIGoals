@@ -93,14 +93,17 @@ test('changing pages crossfades the marks once with motion on, and swaps them at
  }
 });
 
-test('figure and words never overlap the navigation, the horizon or the star, and nothing clips, at every desktop size',async({page,isMobile})=>{
+// Session AH-FIX: one test per desktop window size (it was one test of 48 page loads under a 150 s budget, which used
+// 103–140 s in CI and ran out on main after the Session AH merge, run 1243). The same six pages and every check per size.
+const DESKTOP_SIZES=[[1024,768],[1180,820],[1280,720],[1440,900],[1920,1080],[1280,640],[1440,600],[1024,600]] as const;
+for(const [width,height] of DESKTOP_SIZES)test(`figure and words never overlap the navigation, the horizon or the star, and nothing clips, at every desktop size: ${width}×${height}`,async({page,isMobile})=>{
  test.skip(isMobile,'The sidebar planet and its marks are the desktop sidebar.');
- test.setTimeout(150000);
+ test.setTimeout(90000);
  await page.emulateMedia({reducedMotion:'reduce'});
  await showcase(page);
  // The five marks, plus one page that shows the swan as a stand-in.
  const pages=['/app','/app/goals','/app/habits','/app/health','/app/wealth','/app/markets'];
- for(const [width,height] of [[1024,768],[1180,820],[1280,720],[1440,900],[1920,1080],[1280,640],[1440,600],[1024,600]] as const){
+ {
   await page.setViewportSize({width,height});
   let planetOnToday:{x:number;y:number;width:number;height:number}|undefined;
   for(const path of pages){
