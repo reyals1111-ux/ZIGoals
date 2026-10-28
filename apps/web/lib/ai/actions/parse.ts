@@ -120,6 +120,12 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   if (record.kind === undefined && typeof record.type === 'string' && (KIND_ALIASES[record.type.trim().toLowerCase()] ?? record.type.trim().toLowerCase()) in KIND_SET) { record.kind = record.type; delete record.type; }
   if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase().replace(/\s+/g, '-'); record.kind = KIND_ALIASES[kind] ?? kind; }
   if (record.day === undefined && typeof record.date === 'string') { record.day = record.date; delete record.date; }
+  // Session AI (A4 photos, seen on Opus): a meal estimate's "from" and "range" written beside the estimate instead of in it.
+  if (record.kind === 'log-food' && (record.from !== undefined || record.range !== undefined)) {
+    const estimate = {...(record.estimate && typeof record.estimate === 'object' ? record.estimate as Record<string, unknown> : {})};
+    for (const key of ['from', 'range'] as const) if (record[key] !== undefined) { if (estimate[key] === undefined) estimate[key] = record[key]; delete record[key]; }
+    record.estimate = estimate;
+  }
   if (record.kind === 'create-habit' || record.kind === 'build-habit' || record.kind === 'edit-habit') {
     if (typeof record.measurement === 'string') { const m = record.measurement.trim().toLowerCase(); record.measurement = MEASUREMENT_WORDS[m] ?? (['done', 'count', 'minutes', 'hours'].includes(m) ? m : {unit: record.measurement.trim()}); }
     if (typeof record.schedule === 'string') {

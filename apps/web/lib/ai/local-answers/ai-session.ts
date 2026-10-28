@@ -175,7 +175,9 @@ function roomAnswer(lang: Lang, env: ToolEnv): LocalReply {
     `Deze week: ${spent || 'nog niets'} uitgegeven${top ? `, het meest aan ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Vastgelegd vermogen deze week: ${worth}.` : ''} Je eigen cijfers; geen financieel advies.`), calls: [s.record, w.record]};
 }
 const JOURNAL_Q = /\b(?:patterns?|what (?:do you|can you) see|what have i (?:been )?writ(?:ten|ing)|themes?)\b.*\b(?:journal|entries|diary)\b|\bmy journal\b|\b(?:patronen|wat zie je)\b.*\b(?:dagboek|journal)\b/i;
-const ENERGY_Q = /\b(?:how (?:is|was|has been) my energy|my energy (?:this|last) week|energy level|hoe (?:is|was) mijn energie|mijn energie)\b/i;
+const ENERGY_Q = /\b(?:how (?:is|was|has been) my energy|my energy (?:this|last) week|energy levels?|energy ratings?|energy scores?|rated my energy|hoe (?:is|was) mijn energie|mijn energie|energie(?:score|cijfer)s?)\b/i;
+/** Session AI: the daily energy rating, never food energy (kcal): "energy ratings" must not reach the nutrient answer. */
+export const isEnergyRatingAsk = (q: string): boolean => ENERGY_Q.test(q) && !/\b(?:kcal|calories?|calorie[eë]n|food|eten|ate|gegeten)\b/i.test(q);
 /** Session AI (feature 6): journal patterns, on this device only (nothing is sent; the words never leave it). */
 function journalAnswer(lang: Lang, env: ToolEnv): LocalReply {
   const j = env.journal;
@@ -184,12 +186,13 @@ function journalAnswer(lang: Lang, env: ToolEnv): LocalReply {
   if (!found.length) return {kind: 'answer', text: say(lang, `${j.entries.length} entries so far; no theme came up three times in your last 14 yet.`, `Tot nu toe ${j.entries.length} stukjes; nog geen thema kwam drie keer terug in je laatste 14.`), calls: []};
   return {kind: 'answer', text: `${found.map(p => patternLine(p, lang)).join('\n')}\n${say(lang, 'Counts from your own entries, made on this device; never a diagnosis.', 'Tellingen uit je eigen stukjes, op dit apparaat gemaakt; nooit een diagnose.')}`, calls: []};
 }
-function energyAnswer(lang: Lang, env: ToolEnv): LocalReply {
-  const e = call('energy', {days: 7}, env);
+function energyAnswer(lang: Lang, env: ToolEnv, q = ''): LocalReply {
+  const n = /\b(?:14|fourteen|two weeks|veertien|twee weken)\b/i.test(q) ? 14 : 7; // the period asked for, else the last 7 days
+  const e = call('energy', {days: n}, env);
   if (!e.result.ok) return refusalOf(e.result, [e.record]);
   const d = dataOf(e.result) as {rated: number; average: number | null};
-  if (!d.rated) return {kind: 'answer', text: say(lang, 'No energy rated in the last 7 days. Tap 1 to 5 on Today’s journal card.', 'Geen energie gemeten de afgelopen 7 dagen. Tik 1 tot 5 op de dagboekkaart van Vandaag.'), calls: [e.record]};
-  return {kind: 'answer', text: say(lang, `Your energy, the last 7 days: ${d.average} of 5 on average, rated on ${d.rated} days (1 drained · 5 full of energy).`, `Je energie, de afgelopen 7 dagen: gemiddeld ${d.average} van 5, op ${d.rated} dagen gemeten (1 leeg · 5 vol energie).`), calls: [e.record]};
+  if (!d.rated) return {kind: 'answer', text: say(lang, `No energy rated in the last ${n} days. Tap 1 to 5 on Today’s journal card.`, `Geen energie gemeten de afgelopen ${n} dagen. Tik 1 tot 5 op de dagboekkaart van Vandaag.`), calls: [e.record]};
+  return {kind: 'answer', text: say(lang, `Your energy, the last ${n} days: ${d.average} of 5 on average, rated on ${d.rated} days (1 drained · 5 full of energy).`, `Je energie, de afgelopen ${n} dagen: gemiddeld ${d.average} van 5, op ${d.rated} dagen gemeten (1 leeg · 5 vol energie).`), calls: [e.record]};
 }
 /** The device's answer to one of these questions, or null (the engine's own fallback stands). */
 export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null {
@@ -202,7 +205,7 @@ export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null
   if (WHY_CHANGE.test(q)) return whyAnswer(lang, q, env);
   if (ROOM_Q.test(q)) return roomAnswer(lang, env);
   if (JOURNAL_Q.test(q)) return journalAnswer(lang, env);
-  if (ENERGY_Q.test(q)) return energyAnswer(lang, env);
+  if (ENERGY_Q.test(q)) return energyAnswer(lang, env, q);
   if (SPEND_Q.test(q)) return spendAnswer(lang, q, env);
   if (WHAT_SEE.test(q)) return whatSeeAnswer(lang, env);
   const asset = ASSET.exec(q);

@@ -175,3 +175,8 @@ test('Session AI (A3-r2, AF5): a habit\'s own reminder rides with its habit — 
   const eleven = parseReply([...habits, {...habits[0]!, title: 'Habit 11'}].map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
   expect(eleven.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);
 });
+test('Session AI (A4 photos): a meal estimate\'s "from" and "range" beside the estimate are read as part of it', () => {
+  const out = parseReply('```zigoals-action\n{"kind":"log-food","name":"White rice","meal":"Lunch","estimate":{"serving_g":150},"range":{"kcal":[170,230]},"from":"photo"}\n```');
+  expect(out.rejected).toEqual([]);
+  expect(out.proposals[0]).toMatchObject({kind: 'log-food', estimate: {serving_g: 150, range: {kcal: [170, 230]}, from: 'photo'}});
+});
