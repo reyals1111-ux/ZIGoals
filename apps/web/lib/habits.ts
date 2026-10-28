@@ -363,7 +363,14 @@ export function unplanSkip(data: HabitData, id: string, rawDate: string, now = n
   return replaceHabit(data, id, (habit) => habit.entries.some((item) => item.date === date && item.disposition === "skipped") ? { ...habit, updatedAt: now.toISOString(), entries: habit.entries.filter((item) => item.date !== date) } : habit);
 }
 export const VACATION_NOTE = "Vacation";
-export type VacationRange = { from: string; to: string; habitIds?: readonly string[] };
+/**
+ * Session AI (B3, sick and break days): the same time-away skips with their own note — a vacation, sick days or rest days.
+ * Ordinary skipped entries (no new field): streaks hold, reminders stay quiet, and clearing gives every day back.
+ */
+export const TIME_AWAY = { vacation: VACATION_NOTE, sick: "Sick day", rest: "Rest day" } as const;
+export type TimeAwayKind = keyof typeof TIME_AWAY;
+const timeAwayOf = (note: string | undefined): TimeAwayKind | null => (Object.keys(TIME_AWAY) as TimeAwayKind[]).find((k) => TIME_AWAY[k] === note) ?? null;
+export type VacationRange = { from: string; to: string; habitIds?: readonly string[]; kind?: TimeAwayKind };
 /** The habits a vacation applies to: the chosen ones, else every habit whose latest rule is active. */
 const vacationHabits = (data: HabitData, range: VacationRange) => new Set(range.habitIds ?? data.habits.filter((habit) => latestHabitRule(habit).state === "active").map((habit) => habit.id));
 function vacationDates(data: HabitData, range: VacationRange, now: Date) {
@@ -388,7 +395,7 @@ export function setVacation(data: HabitData, range: VacationRange, now = new Dat
       // Session AH (HA8, T-099): a day the person already wrote on (a check-in, their own skip, a failed mark, a note or a
       // mood) keeps it, so clearing the vacation gives every day back exactly as it was; only an empty 0 is covered.
       if (previous && !(previous.disposition === "logged" && previous.count === 0 && !previous.note && !previous.mood)) continue;
-      additions.push(entrySchema.parse({ date, count: previous?.count ?? 0, disposition: "skipped", note: VACATION_NOTE, mood: previous?.mood, updatedAt: now.toISOString() }));
+      additions.push(entrySchema.parse({ date, count: previous?.count ?? 0, disposition: "skipped", note: TIME_AWAY[range.kind ?? "vacation"], mood: previous?.mood, updatedAt: now.toISOString() }));
     }
     if (!additions.length) continue;
     const replaced = new Set(additions.map((entry) => entry.date));
@@ -406,28 +413,29 @@ export function clearVacation(data: HabitData, range: VacationRange, now = new D
   let next = data;
   for (const habit of data.habits) {
     if (!ids.has(habit.id)) continue;
-    const kept = habit.entries.filter((item) => !(item.disposition === "skipped" && item.note === VACATION_NOTE && item.date >= today && item.date >= from && item.date <= to));
+    const kept = habit.entries.filter((item) => !(item.disposition === "skipped" && (range.kind ? item.note === TIME_AWAY[range.kind] : timeAwayOf(item.note) !== null) && item.date >= today && item.date >= from && item.date <= to));
     if (kept.length === habit.entries.length) continue;
     next = replaceHabit(next, habit.id, (current) => ({ ...current, updatedAt: now.toISOString(), entries: kept }));
   }
   return next;
 }
 /** Session Y Part 8: a stretch of vacation days still ahead and the habits it covers. */
-export type VacationRun = { from: string; to: string; habitIds: string[] };
+export type VacationRun = { from: string; to: string; habitIds: string[]; kind: TimeAwayKind };
 /**
  * The vacation days still ahead (today on), as stretches the person can clear later: days with a vacation entry, one
  * after another, joined across days on which none of the stretch's habits is scheduled (a weekday habit's weekend).
  * Read from the entries themselves; nothing new is stored.
  */
 export function upcomingVacation(data: HabitData, today: string): VacationRun[] {
-  const byDate = new Map<string, Set<string>>();
-  for (const habit of data.habits) for (const item of habit.entries) if (item.disposition === "skipped" && item.note === VACATION_NOTE && item.date >= today) { const ids = byDate.get(item.date) ?? new Set<string>(); ids.add(habit.id); byDate.set(item.date, ids); }
+  const byDate = new Map<string, Set<string>>(), kindOn = new Map<string, TimeAwayKind>();
+  for (const habit of data.habits) for (const item of habit.entries) { const kind = item.disposition === "skipped" ? timeAwayOf(item.note) : null; if (kind && item.date >= today) { const ids = byDate.get(item.date) ?? new Set<string>(); ids.add(habit.id); byDate.set(item.date, ids); if (!kindOn.has(item.date)) kindOn.set(item.date, kind); } }
   const unscheduled = (from: string, to: string, ids: Iterable<string>) => { const habits = data.habits.filter((habit) => [...ids].includes(habit.id)); return dayList(from, to).every((date) => habits.every((habit) => !scheduledOn(habit, habitRuleOn(habit, date), date))); };
   const runs: VacationRun[] = [];
   for (const date of [...byDate.keys()].sort()) {
     const ids = byDate.get(date)!, last = runs.at(-1), next = last ? addLocalDays(last.to, 1) : null;
-    if (last && (next === date || unscheduled(next!, addLocalDays(date, -1), new Set([...last.habitIds, ...ids])))) { last.to = date; for (const id of ids) if (!last.habitIds.includes(id)) last.habitIds.push(id); }
-    else runs.push({ from: date, to: date, habitIds: [...ids] });
+    const kind = kindOn.get(date)!;
+    if (last && last.kind === kind && (next === date || unscheduled(next!, addLocalDays(date, -1), new Set([...last.habitIds, ...ids])))) { last.to = date; for (const id of ids) if (!last.habitIds.includes(id)) last.habitIds.push(id); }
+    else runs.push({ from: date, to: date, habitIds: [...ids], kind });
   }
   return runs;
 }
