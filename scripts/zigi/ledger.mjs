@@ -51,8 +51,12 @@ for (const file of files) {
     }
     read.push({file: relative(RUNS, file), model, turns: count});
   } else if (data && data.summary && data.summary.provider === 'anthropic' && data.summary.batch === true && data.summary.tokens) {
-    const model = data.summary.model, usage = data.summary.tokens;
-    addRow(stage, model, true, usage, data.summary.requests ?? 0, estimateCost(model, usage, {batch: true}));
+    const model = data.summary.model, usage = data.summary.tokens, n = Math.max(1, data.summary.requests ?? 0);
+    // A batch file sums its requests' tokens; a price tier set per request (Haiku's long-prompt price above 100,000 prompt
+    // tokens) is applied to the average request, never to the sum (which priced every Haiku batch at the long-prompt rate).
+    const each = Object.fromEntries(Object.entries(usage).map(([k, v]) => [k, v === null ? null : v / n]));
+    const cost = estimateCost(model, each, {batch: true});
+    addRow(stage, model, true, usage, data.summary.requests ?? 0, cost === null ? null : cost * n);
     read.push({file: relative(RUNS, file), model, turns: data.summary.requests ?? 0});
   } else if (Array.isArray(data)) {
     let count = 0;
