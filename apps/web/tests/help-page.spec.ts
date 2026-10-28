@@ -199,7 +199,8 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   expect(small).toEqual([]);
   // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
   // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).
-  expect(inline).toBe(37);
+  // Session AI (MO4, 12f444dd): the data answer's "Privacy" and "Terms" links are two new in-sentence links (37 → 39).
+  expect(inline).toBe(39);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });

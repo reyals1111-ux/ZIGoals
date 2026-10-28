@@ -4,6 +4,7 @@ import {BRIEF_DEFAULTS, briefPrefs, ZIGI, type BriefPrefs} from '../../lib/ai/st
 import {Switch} from './ai-switch';
 import {useDeviceRecord} from './use-device-record';
 import {METRIC_EVENTS, ZIGI_METRICS, setMetricsOn, type MetricEvent} from '../../lib/ai/store/metrics';
+import {formatMonth} from '../../lib/visual-format';
 
 /**
  * Settings → ZIGi · Your day (Session AF, L4, P8.2): the morning brief on Today, the evening recap and its time, the
@@ -42,7 +43,7 @@ function ZigiValue() {
   return <section className="ai-zigi-value" aria-labelledby="ai-zigi-value-title">
     <h4 id="ai-zigi-value-title">What ZIGi did for you</h4>
     <Switch checked={metrics.data.on === true} onChange={set} label="Count what ZIGi does" note="On this device only: answers made here, answers from your AI, cards added and dismissed, per month. Never what was said or added, no amounts, nothing from Health, and nothing is sent anywhere." />
-    {metrics.data.on && (months.length ? <dl className="ai-zigi-value-months">{months.map(m => <div key={m}><dt>{new Date(`${m}-15T12:00:00Z`).toLocaleDateString('en-GB', {month: 'long', year: 'numeric'})}</dt><dd>{METRIC_EVENTS.map(e => `${metrics.data.months![m]![e] ?? 0} ${METRIC_WORDS[e]}`).join(' · ')}</dd></div>)}</dl> : <p className="ai-note">Nothing counted yet this month.</p>)}
+    {metrics.data.on && (months.length ? <dl className="ai-zigi-value-months">{months.map(m => <div key={m}><dt>{formatMonth(`${m}-15`)}</dt><dd>{METRIC_EVENTS.map(e => `${metrics.data.months![m]![e] ?? 0} ${METRIC_WORDS[e]}`).join(' · ')}</dd></div>)}</dl> : <p className="ai-note">Nothing counted yet this month.</p>)}
     {note && <p className="ai-note" role="status">{note}</p>}
   </section>;
 }

@@ -49,5 +49,5 @@ test('Export everything names a photo by its day, pose and id, and the erase rem
   expect(photoFileName({id: 'photo_abc12345', date: '2026-10-01', pose: 'front', type: 'image/jpeg'})).toBe('photos/2026-10-01-front-abc12345.jpg');
   expect(photoFileName({id: 'photo_abc12345', date: '2026-10-01', pose: 'side'})).toBe('photos/2026-10-01-side-abc12345.webp');
   const deleted: string[] = []; (globalThis as {indexedDB?: unknown}).indexedDB = {deleteDatabase: (n: string) => { deleted.push(n); }};
-  try { forgetAaDeviceRecords(memory().storage); expect(deleted).toEqual(['zigoals-progress-photos', 'zigoals-vision-v1']); /* and AA-Cloud's vision photos since the merge (ADR-022 B53) */ } finally { delete (globalThis as {indexedDB?: unknown}).indexedDB; }
+  try { forgetAaDeviceRecords(memory().storage); expect(deleted).toEqual(['zigoals-progress-photos', 'zigoals-vision-v1', 'zigoals-exchange-keys-v1']); /* and AA-Cloud's vision photos since the merge (ADR-022 B53); Session AI J14: the exchange keys' database (owner amendment 3, ADR-034 N34) */ } finally { delete (globalThis as {indexedDB?: unknown}).indexedDB; }
 });

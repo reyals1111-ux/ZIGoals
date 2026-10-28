@@ -79,6 +79,9 @@
 @media (max-width: 767.98px) { .bottom-row .bottom-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .bottom-row .bottom-compact { display: inline; } }
 /* Session AI (B3): a week cell that opens the day to log, and the wealth change row. */
 .bottom-cell-link { display: grid; justify-items: center; color: inherit; text-decoration: none; border-radius: 8px; min-height: 44px; }
+/* Session AI (touch targets): a cell's link fills its cell (the cell, not the text, is the target), at least 44 px wide. */
+.bottom-row li:has(> .bottom-cell-link) { padding: 0; }
+.bottom-cell-link { justify-self: stretch; align-self: stretch; box-sizing: border-box; inline-size: 100%; min-inline-size: 44px; padding: 6px 2px; align-content: center; }
 .bottom-cell-link:hover, .bottom-cell-link:focus-visible { background: var(--surface-hover, rgba(128, 128, 200, .12)); }
 .bottom-row [data-sign="up"] { color: var(--success, #57c78a); }
 .bottom-row [data-sign="down"] { color: var(--warning, #e8a33d); }

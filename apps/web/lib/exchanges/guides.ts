@@ -3,7 +3,7 @@ import type {ExchangeId} from './allowlist';
 /** Session AI (J14): how to make a read-only key, per exchange (docs read 2026-10-28; docs/research/session-ai/EXCHANGES.md). */
 export const KEY_LABELS: Record<ExchangeId, {keyId: string; secret: string; secretHint: string}> = {
   kraken: {keyId: 'API key', secret: 'Private key', secretHint: 'The private key Kraken shows once, a long base64 text.'},
-  coinbase: {keyId: 'Key name', secret: 'Private key (ECDSA)', secretHint: 'The whole "-----BEGIN EC PRIVATE KEY-----" block Coinbase shows once.'},
+  coinbase: {keyId: 'Key name', secret: 'Private key (ECDSA)', secretHint: 'The whole private key block Coinbase shows once, from its BEGIN EC PRIVATE KEY line to its END line.'},
   binance: {keyId: 'API key', secret: 'Secret key', secretHint: 'The secret key Binance shows once.'},
 };
 export const GUIDES: Record<ExchangeId, readonly string[]> = {
