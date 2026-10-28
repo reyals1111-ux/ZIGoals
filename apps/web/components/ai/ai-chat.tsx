@@ -90,7 +90,8 @@ import {useTalk} from './use-talk';
 import {VoiceWaves} from './voice-waves';
 import {resolveVoiceLanguage} from '../../lib/zigi-voice-lang';
 import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
-import {ZIGI, zigiPrefs} from '../../lib/ai/store/records';
+import {ZIGI, zigiPersonality, zigiPrefs} from '../../lib/ai/store/records';
+import {greetingWords} from '../../lib/zigi-personality';
 import {inQuietHours} from '../../lib/ai/knock/rules';
 
 /**
@@ -360,11 +361,13 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
 }
 /** Session Z-Cloud Part 2: a new chat is one short greeting and the box; suggestions wait in their sheet by the composer. */
 function Greeting() {
-  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. Ask about your records or tell me what to log. Nothing is written until you add a card.</p></div></div>;
+  const personality = zigiPersonality(useDeviceRecord(ZIGI).data); // Session AI (mascot): the words follow the chosen personality
+  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, 'connected')}</p></div></div>;
 }
 /** Before any AI is connected: the same short greeting; ZIGi answers lookups here, on this device, with no AI (Session V Part 3). */
 function LocalGreeting({sensitive}: {sensitive: boolean}) {
-  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{sensitive ? 'Hi, I’m ZIGi. On this private screen I read nothing from the page.' : 'Hi, I’m ZIGi. Ask about your records: I answer right here, privately, on this device.'}</p></div></div>;
+  const personality = zigiPersonality(useDeviceRecord(ZIGI).data);
+  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, sensitive ? 'private' : 'local')}</p></div></div>;
 }
 /** Not connected: one compact line above the box, never over the chat (Session Z-Cloud Part 2). */
 function SetupLine({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {

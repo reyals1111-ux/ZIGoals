@@ -28,7 +28,7 @@ import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability,
 import {Handles} from '../../lib/ai/handles';
 import {recordsSent} from '../../lib/ai/records-sent';
 import {readDeviceRecord} from '../../lib/device-record';
-import {AI_OPTIONS, type AiOptions} from '../../lib/ai/store/records';
+import {AI_OPTIONS, ZIGI, zigiPersonality, type AiOptions} from '../../lib/ai/store/records';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {runWithTools, toolsFor} from '../../lib/ai/tool-loop';
 import {ANSWER_CHARS, type ToolResult} from '../../lib/ai/tools/types';
@@ -201,7 +201,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const provider = PROVIDERS[providerId], contextText = [pageText, options.extra?.text].filter(Boolean).join('\n\n') || null;
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
-    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate()};
+    const personality = (() => { try { return zigiPersonality(readDeviceRecord(getAppStorage(), ZIGI).data); } catch { return 'calm' as const; } })(); // Session AI (mascot)
+    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate(), personality};
     // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
     const risk = detectRisk(text);
     const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);

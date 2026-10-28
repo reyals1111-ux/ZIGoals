@@ -169,6 +169,7 @@ export function todayLine(today: string): string {
 }
 export type SystemPromptArgs = {area: PageArea; context: string | null; customInstructions: string; providerName: string; tools?: boolean; today?: string;
   /** Session Z-Local Part 6: false when Health is not shared with ZIGi on this device; the prompt then says so (absent: the prompt is as before). */ healthShared?: boolean;
+  /** Session AI (mascot): the person's choice of ZIGi's personality; calm (or absent) leaves the prompt as before. */ personality?: 'calm' | 'cheerful' | 'direct';
   /**
    * Session Z-Local Part 3 (ADR-020 L3): the page's own records, when the caller keeps them apart from the question's
    * (`context`). They go first inside the data block, joined with the question's records exactly as the app joined them
@@ -184,9 +185,14 @@ const RECORDS_HEAD = 'The person\'s records for this page, attached by ZIGoals w
  * are stable within a chat (a second block); the question's records and the tools note change per message (the tail).
  * `prompt` is what `buildSystemPrompt` always returned, built by the same join; a test holds the blocks to it.
  */
-export function buildSystemParts({area, context, customInstructions, providerName, tools = false, today, pageContext = null, healthShared}: SystemPromptArgs): SystemParts {
+/** Session AI (mascot): the tone line for a personality other than calm; the facts, guardrails and format never change. */
+export const PERSONALITY_NOTES = {
+  cheerful: 'The person chose a cheerful ZIGi: a little warmer and lighter in tone (one friendly word is fine), still no exclamation marks in a row, no emoji strings, no praise inflation and the same facts.',
+  direct: 'The person chose a direct ZIGi: lead with the answer or the card, no warm-up and no closing offer; the shortest plain sentences that are still kind.',
+} as const;
+export function buildSystemParts({area, context, customInstructions, providerName, tools = false, today, pageContext = null, healthShared, personality}: SystemPromptArgs): SystemParts {
   const examples = EXAMPLES[area].map((e, i) => `Example ${i + 1}. Person: ${e.ask}\nYou: ${e.reply}`).join('\n\n');
-  const parts = [FRAME, ...(today ? [todayLine(today)] : []), SPECIALISTS[area].prompt, ...(healthShared === false ? [HEALTH_CLOSED_NOTE] : []), ACTION_PROTOCOL, `Examples of the exact format (the handles are examples; use the ones in the context):\n\n${examples}`, `Your answers are labelled in the app as "${ANSWER_LABEL(providerName)}"; never present yourself as ZIGoals.`];
+  const parts = [FRAME, ...(personality && personality !== 'calm' ? [PERSONALITY_NOTES[personality]] : []), ...(today ? [todayLine(today)] : []), SPECIALISTS[area].prompt, ...(healthShared === false ? [HEALTH_CLOSED_NOTE] : []), ACTION_PROTOCOL, `Examples of the exact format (the handles are examples; use the ones in the context):\n\n${examples}`, `Your answers are labelled in the app as "${ANSWER_LABEL(providerName)}"; never present yourself as ZIGoals.`];
   const stableParts = parts.length;
   const custom = customInstructions.trim();
   if (custom) parts.push(`The person's own standing instructions (follow them where they do not conflict with the rules above): ${DATA_OPEN}${escapeData(custom)}${DATA_CLOSE}`);
