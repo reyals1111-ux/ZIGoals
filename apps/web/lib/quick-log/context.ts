@@ -12,7 +12,7 @@ import type {QuickLogContext} from './multi';
  * a Health item still gets its card otherwise, because a quick line reads nothing and writes only when the person adds
  * the card, exactly as Quick add does (the defaults fill in: millilitres, kilograms, no foods of their own).
  */
-export function quickLogContext(env: ToolEnv, {expenses = false}: {expenses?: boolean} = {}): QuickLogContext {
+export function quickLogContext(env: ToolEnv, {expenses = true}: {expenses?: boolean} = {}): QuickLogContext {
   const health = env.health, preferences = health ? dailyData(health).preferences : null;
   return {
     habits: env.habits.habits.filter(h => latestHabitRule(h).state === 'active').map(h => { const rule = latestHabitRule(h); return {id: h.id, title: h.title, unit: 'unit' in rule.measurement ? rule.measurement.unit : 'done', kind: rule.measurement.kind, target: rule.target}; }),

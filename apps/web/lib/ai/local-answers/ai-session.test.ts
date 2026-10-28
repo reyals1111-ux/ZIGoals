@@ -75,3 +75,13 @@ describe('advice asks with no AI (ZI10, G8)', () => {
   test.each(['Should I take sleeping pills?', 'Is it safe to fast for three days?', 'Moet ik stoppen met mijn medicijnen?'])('"%s" is not medical advice, said plainly', q => expect(textOf(noModelReply(q, env))).toMatch(/not medical advice|geen medisch advies/));
   test('with an AI connected these still go to the AI', () => expect(ask('Should I sell my ETH now?').kind).toBe('none'));
 });
+describe('money questions and the weekly money recap (feature 5)', () => {
+  test('what was spent this month, biggest categories, from the log', () => {
+    const t = textOf(ask('What did I spend this month?'));
+    expect(t).toMatch(/You spent [\d.]+ EUR this month/);
+    expect(t).toMatch(/Biggest: Groceries/);
+  });
+  test('one category', () => expect(textOf(ask('How much did I spend on groceries this month?'))).toMatch(/on groceries this month/));
+  test('the weekly recap with the room to spend', () => expect(textOf(ask('How much room to spend do I have?'))).toMatch(/Room to spend: [\d.]+ EUR left of 200.00 EUR/));
+  test('Dutch', () => expect(textOf(ask('Hoeveel heb ik deze week uitgegeven?'))).toMatch(/Je gaf deze week/));
+});

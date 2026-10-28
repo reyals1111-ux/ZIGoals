@@ -64,6 +64,10 @@ import {deleteSession, saveManual, setBells, setMeditationGoal, type ManualInput
 import {emptyMeditation} from '../../meditation/schema';
 import {challengeOf, startChallenge} from '../../habits-v2/challenge';
 import {formatMinutes, instantAt, wallClock} from '../../zone-time';
+import {MONEY_LOG_KEY} from '../../money-log/schema';
+import {expenseCategory, incomeCategory} from '../../money-log/category';
+// Session AI: the expense log's writer, registered before any money card can be added.
+import './money-writes';
 
 /**
  * From a validated proposal to a card and two writes (ADR-012, Part 5). `write` runs at confirm time on the latest
@@ -717,6 +721,15 @@ export function planAction(action: Action, env: Env): PlanResult {
         write: s => { const current = mine(s); writableGoal(current); before = Object.fromEntries(fields.map(k => [k, current[k]])) as Named; return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? withFields(g, values) : g)})}; },
         undo: {label: 'Put the goal back as it was', write: s => before ? ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? withFields(g, before!) : g)})}) : {}, unchanged: (afterApply, now) => same(plain(mine(afterApply)), plain(mine(now)))},
         activity: {id: `goal-edit:${goal.id}:${at}`, title: `Goal changed: ${action.name ?? goal.name}`}}};
+    }
+    // Session AI (B3, J10, feature 5): money spent or received, written to the expense log on this device (its own writer).
+    case 'log-expense': case 'log-income': {
+      const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const spent = action.kind === 'log-expense', amount = action.amount.toFixed(2), currency = action.currency ?? 'EUR', words = action.note ?? '';
+      const category = spent ? expenseCategory(action.category, words) : incomeCategory(action.category, words);
+      const entry = {id: crypto.randomUUID(), kind: spent ? 'expense' : 'income', amount, currency, category, ...(action.note ? {note: action.note} : {}), date: day.day, createdAt: at, source: 'zigi'};
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${spent ? 'Spent' : 'Received'} ${amount} ${currency}`, lines: [`${category}${action.note ? ` · ${action.note}` : ''}`, 'Kept in Wealth → Spending on this device; never converted; remove it there'], where: 'Wealth → Spending', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: () => ({}), undo: null, device: {key: MONEY_LOG_KEY, patch: {add: entry}, label: `${spent ? 'Spent' : 'Received'} ${amount} ${currency} · ${category}, logged in Spending`}}};
     }
     case 'log-mood': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);

@@ -247,6 +247,10 @@ export const actionSchema = z.discriminatedUnion('kind', [
     .refine(a => Object.keys(a).length > 1, 'Say what to change about the brief: the morning brief, the evening recap, its time, the earning line or reading aloud.'),
   // ADR-028 D7, H47 (TIER 3 wallet/signing): it only fills in the Staking page's review; the person reviews and signs in their own wallet.
   z.strictObject({kind: z.literal('prefill-staking'), action: z.enum(STAKING_ACTIONS).default('delegate'), network: z.enum(STAKING_NETWORKS).default('practice'), validator: text(120).optional(), amount: zigAmount.optional()}),
+  // Session AI (B3, J10, feature 5; TIER 3 data formats): money spent or received, written to the device's expense log
+  // (`zigoals:money-log:v1`) through its registered writer; the person's own words, never converted, never advice.
+  z.strictObject({kind: z.literal('log-expense'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('log-income'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -260,7 +264,9 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   'set-time-of-day', 'start-timer', 'stop-timer', 'start-routine', 'set-habit-area', 'set-quit-cost', 'use-freeze', 'set-micro-target', 'set-macro-mode', 'coach-answer', 'import-recipe', 'set-game-layer',
   'set-goal-area', 'set-goal-plan', 'set-sub-goal', 'create-average-goal', 'log-average', 'calculator-scenario', 'open-search', 'open-review',
   // Session AF (L4)
-  'checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief', 'prefill-staking'] as const satisfies readonly ActionKind[];
+  'checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief', 'prefill-staking',
+  // Session AI
+  'log-expense', 'log-income'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -371,6 +377,8 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   mood: 'log-mood', 'log_mood': 'log-mood', 'add-mood': 'log-mood',
   link: 'add-link', 'add_link': 'add-link', 'create-link': 'add-link', 'my-link': 'add-link',
   widget: 'add-widget', 'add_widget': 'add-widget', 'pin-widget': 'add-widget', 'pin-to-today': 'add-widget', 'create-widget': 'add-widget',
+  // Session AI: money spent or received.
+  expense: 'log-expense', 'add-expense': 'log-expense', 'log_expense': 'log-expense', spending: 'log-expense', 'log-spending': 'log-expense', 'spent': 'log-expense', income: 'log-income', 'add-income': 'log-income', 'log_income': 'log-income',
   // Session AF (L4): the new kinds' plain names. No alias for a bare stake, unstake, claim, sign, send or broadcast: an unknown kind stays refused.
   'checklist_tick': 'checklist-tick', tick: 'checklist-tick', 'tick-off': 'checklist-tick', 'check-off': 'checklist-tick', 'mark-done': 'checklist-tick', 'checklist-check': 'checklist-tick',
   'checklist_add_favourite': 'checklist-add-favourite', 'checklist-add-favorite': 'checklist-add-favourite', 'checklist_add_favorite': 'checklist-add-favourite', 'checklist-favourite': 'checklist-add-favourite', 'checklist-favorite': 'checklist-add-favourite', 'star-habit': 'checklist-add-favourite',

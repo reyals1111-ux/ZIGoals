@@ -41,7 +41,8 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.
  // Session AA-Cloud Part 1 (deliberate, PAGE_ORDER_AA.md): accounts join the items on top, before the tools.
  // Session AC (the owner's decision of 2026-10-15): the three holdings lists are one item, wealth:holdings.
- expect((await items('wealth:body')).slice(0,6)).toEqual(['wealth:pulse','wealth:holdings','wealth:composition','wealth:mix','wealth:watchlist','wealth:history']);
+ // Session AI: Spending follows the holdings.
+ expect((await items('wealth:body')).slice(0,7)).toEqual(['wealth:pulse','wealth:holdings','wealth:spending','wealth:composition','wealth:mix','wealth:watchlist','wealth:history']);
  expect((await items('wealth:body')).at(-1)).toBe('wealth:calculator'); // Session AB-Design (owner request 26): the calculator is last
  // An order saved on this device wins over the phone default. Session AE Part 4: this one was saved before Routines was its
  // own block, so Routines takes its place right after your habits; the saved four keep their order.

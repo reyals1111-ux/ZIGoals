@@ -19,6 +19,7 @@ import type {Checklist, ChecklistDays} from '../../checklist/schema';
 import type {EarnSnapshot} from '../../earn/snapshot';
 import type {PageView} from '../context/page-view';
 import type {ZigiPlans} from '../store/plans';
+import type {MoneyLog} from '../../money-log/schema';
 
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
@@ -45,6 +46,8 @@ export type ToolSources = {
    * of My links (their names and addresses never reach a tool).
    */
   accounts?: Accounts | null;
+  /** Session AI: the expense and income log on this device (Wealth's area switch). */
+  moneyLog?: MoneyLog | null;
   milestoneDates?: MilestoneDates | null;
   chess?: {settings: ChessSettings | null; cache: ChessCache} | null;
   linksCount?: number | null;

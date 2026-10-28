@@ -9,8 +9,8 @@ import {CSV_FILES,collectEverything} from './everything';
 // Session W: "Export everything" copies the new areas as they are stored: one CSV each, nothing computed, unknown empty.
 const NOW=new Date('2026-10-06T12:00:00.000Z'),APP={now:NOW,version:'0.0.0-test',commit:'abc1234',localSimulation:null};
 const lines=(text:string)=>text.split('\r\n');
-test('the six new CSV files follow the nine earlier ones, in this order; Session AH adds Portfolio\'s transactions, then the workout sets',()=>{
- expect(CSV_FILES.slice(9)).toEqual(['sleep.csv','meditation.csv','vitals.csv','moods.csv','accounts.csv','links.csv','portfolio-transactions.csv','workout-sets.csv']);
+test('the six new CSV files follow the nine earlier ones, in this order; Session AH adds Portfolio\'s transactions, then the workout sets; Session AI the expense log',()=>{
+ expect(CSV_FILES.slice(9)).toEqual(['sleep.csv','meditation.csv','vitals.csv','moods.csv','accounts.csv','links.csv','portfolio-transactions.csv','workout-sets.csv','money-log.csv']);
 });
 test('Health v4, settings v3, finance v5 and the accounts device key export row by row, each from where it is stored',()=>{
  const texts={[HEALTH_STORAGE_KEY]:JSON.stringify(healthV4()),[DASHBOARD_SETTINGS_KEY]:JSON.stringify(settingsV3()),[PLATFORM_KEY]:JSON.stringify(financeV5()),

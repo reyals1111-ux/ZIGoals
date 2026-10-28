@@ -24,7 +24,7 @@ export default function QuickLogCards({line, lang = 'en', fallback = null}: {lin
     return {
       habits: habits.data.habits.filter(h => latestHabitRule(h).state === 'active').map(h => { const rule = latestHabitRule(h); return {id: h.id, title: h.title, unit: 'unit' in rule.measurement ? rule.measurement.unit : 'done', kind: rule.measurement.kind, target: rule.target}; }),
       counters: exerciseData(health.data).counters.map(c => ({id: c.id, name: c.name})), waterUnit: preferences.waterUnit, weightUnit: preferences.weightUnit,
-      goals: goals.goals.filter(g => g.status === 'active').map(g => g.name), foods: health.data.foods.map(f => f.name), now: new Date(),
+      goals: goals.goals.filter(g => g.status === 'active').map(g => g.name), foods: health.data.foods.map(f => f.name), expenses: true, now: new Date(),
     };
   }, [health.data, habits.data, goals.goals]);
   const parsed = useMemo(() => { const reply = quickLogReply(line, ctx, lang); return reply ? parseReply(reply.text) : null; }, [line, ctx, lang]);

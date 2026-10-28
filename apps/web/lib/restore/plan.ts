@@ -31,6 +31,7 @@ import {INSIGHTS_KEY, insightsSchema, emptyInsights} from '../insights/schema';
 import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema, emptyHabitHealthLinks} from '../habit-health-links/schema';
 import {summarizeBackupModules} from '../vault/backup-preview';
 import {WORKOUTS} from '../workouts/schema';
+import {MONEY_LOG} from '../money-log/schema';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): what "Restore from a backup" can bring back from an
@@ -72,6 +73,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('milestoneDates', 'Milestone dates', 'Goals and Wealth', MILESTONE_DATES),
   dev('calculator', 'Calculator scenarios', 'Goals and Wealth', CALCULATOR),
   dev('workouts', 'Workouts', 'Health', WORKOUTS),
+  dev('moneyLog', 'Spending', 'Goals and Wealth', MONEY_LOG),
   dev('portfolio', 'Portfolio', 'Goals and Wealth', spec(PORTFOLIO_KEY, portfolioDataSchema, emptyPortfolioData)),
   dev('habitExtras', 'Habit extras', 'Habits', HABIT_EXTRAS),
   dev('game', 'Levels and streak shields', 'Habits', GAME),

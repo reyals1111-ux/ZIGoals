@@ -27,7 +27,9 @@ const env = process.env, enabled = env.ZIGI_REAL_MODEL === '1' && !!env.ZIGI_PHO
 const MODEL = env.ZIGI_MODEL ?? '', DIR = env.ZIGI_PHOTOS ?? '', OUT = env.ZIGI_OUT ?? '', CAP = Number(env.ZIGI_MAX_USD ?? '1');
 type Plate = {file: string; category: string; isFood: boolean; expectedItems: string[]; mayAlsoSee: string[]; notOnPlate: string[]; packagedLabelText: string | null; hard: boolean};
 const ASK = {en: 'What is on this plate? Log it as lunch.', nl: 'Wat staat er op dit bord? Log het als lunch.'} as const;
-const NOT_FOOD = /\b(not (?:a |any )?(?:food|meal|dish)|no (?:food|meal)|isn'?t (?:food|a meal)|geen (?:eten|voedsel|maaltijd|gerecht)|niet eetbaar|geen etenswaren)\b/i;
+// Session AI (A2 read-back): the models said it as "I don't see a plate or any food" and "I cannot see a plate … nothing
+// here I can log"; those are right answers, so they count (the first pattern missed them).
+const NOT_FOOD = /\b(not (?:a |any )?(?:food|meal|dish)|no (?:food|meal|plate|dish)|isn'?t (?:food|a meal)|(?:don'?t|do not|can'?t|cannot) see (?:a |any )?(?:plate|food|meal|dish)|nothing (?:here )?(?:i can|to) log|geen (?:eten|voedsel|maaltijd|gerecht|bord)|niet eetbaar|geen etenswaren|zie (?:ik )?geen (?:bord|eten|maaltijd))\b/i;
 const mentions = (text: string, item: string) => text.toLowerCase().includes(item.toLowerCase());
 
 describe.skipIf(!enabled)('meal photos against a real model (owner machines only)', () => {

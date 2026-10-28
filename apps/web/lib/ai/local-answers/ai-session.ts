@@ -147,6 +147,32 @@ export function simpleCommand(question: string): LocalReply | null {
   if (title && !/^(?:a|an|een|it|het|to .*|for .*|om .*)$/i.test(title)) return newHabitAnswer(lang, title);
   return null;
 }
+const SPEND_Q = /\b(?:how much (?:did|have) i (?:spend|spent|spending)|what did i spend|what have i spent|my spending|spent (?:this|last) (?:week|month)|hoeveel heb ik (?:\w+ ){0,3}uitgegeven|wat heb ik uitgegeven|mijn uitgaven)\b/i;
+const ROOM_Q = /\b(?:room to spend|left to spend|how much (?:can i|do i have (?:left )?to) spend|budget left|money recap|weekly money|hoeveel (?:kan|mag) ik (?:nog )?uitgeven|budget over|geldoverzicht)\b/i;
+function spendAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
+  const period = /\b(?:last week|vorige week)\b/i.test(q) ? 'last week' : /\b(?:this week|deze week|week)\b/i.test(q) ? 'this week' : /\b(?:last month|vorige maand)\b/i.test(q) ? 'last month' : 'this month';
+  const cat = /\bon ([a-z &]{3,30}?)(?: this| last| in|\?|$)/i.exec(q)?.[1] ?? /\baan ([a-z &]{3,30}?)(?: deze| vorige|\?|$)/i.exec(q)?.[1];
+  const s = call('spending', {period, ...(cat && !/\b(?:week|month|maand)\b/i.test(cat) ? {category: cat.trim()} : {}), }, env);
+  if (!s.result.ok) return refusalOf(s.result, [s.record]);
+  const d = dataOf(s.result) as {note?: string; totals?: {currency: string; spent: string; received: string}[]; byCategory?: {category: string; spent: string}[]; roomToSpendThisWeek?: {left: string; budget: string; daysLeft: number}; matched?: string};
+  if (d.note) return {kind: 'answer', text: say(lang, d.note, 'Er is nog niets gelogd in Vermogen → Uitgaven.'), calls: [s.record]};
+  const tot = (d.totals ?? []).map(t => t.spent).join(' and '), top = (d.byCategory ?? []).slice(0, 3).map(c => `${c.category} ${c.spent}`).join(', ');
+  const room = d.roomToSpendThisWeek ? say(lang, ` Room to spend this week: ${d.roomToSpendThisWeek.left} of ${d.roomToSpendThisWeek.budget}.`, ` Ruimte deze week: ${d.roomToSpendThisWeek.left} van ${d.roomToSpendThisWeek.budget}.`) : '';
+  const what = cat ? say(lang, ` on ${cat.trim()}`, ` aan ${cat.trim()}`) : '';
+  return {kind: 'answer', text: say(lang, `You spent ${tot || 'nothing'}${what} ${period}.${top && !cat ? ` Biggest: ${top}.` : ''}${room} From your own entries in Wealth → Spending, never converted.`,
+    `Je gaf ${period === 'this week' ? 'deze week' : period === 'last week' ? 'vorige week' : period === 'last month' ? 'vorige maand' : 'deze maand'} ${tot || 'niets'}${what} uit.${top && !cat ? ` Grootste: ${top}.` : ''}${room} Uit je eigen invoer in Vermogen → Uitgaven, nooit omgerekend.`), calls: [s.record]};
+}
+function roomAnswer(lang: Lang, env: ToolEnv): LocalReply {
+  const s = call('spending', {period: 'this week'}, env);
+  if (!s.result.ok) return refusalOf(s.result, [s.record]);
+  const d = dataOf(s.result) as {note?: string; totals?: {spent: string; received: string}[]; byCategory?: {category: string; spent: string}[]; roomToSpendThisWeek?: {left: string; budget: string; spent: string; daysLeft: number}};
+  const w = call('net_worth_change', {period: 'week'}, env), rows = w.result.ok ? (dataOf(w.result).currencies as {currency: string; change?: string}[] | undefined) ?? [] : [];
+  const worth = rows.filter(r => r.change).map(r => `${r.change}`).join(', ');
+  const room = d.roomToSpendThisWeek ? say(lang, `Room to spend: ${d.roomToSpendThisWeek.left} left of ${d.roomToSpendThisWeek.budget} (${d.roomToSpendThisWeek.daysLeft} days to go).`, `Ruimte om uit te geven: nog ${d.roomToSpendThisWeek.left} van ${d.roomToSpendThisWeek.budget} (${d.roomToSpendThisWeek.daysLeft} dagen te gaan).`) : say(lang, 'No weekly budget is set (Wealth → Spending).', 'Er is geen weekbudget ingesteld (Vermogen → Uitgaven).');
+  const spent = (d.totals ?? []).map(t => t.spent).join(' and '), top = (d.byCategory ?? [])[0];
+  return {kind: 'answer', text: say(lang, `This week: spent ${spent || 'nothing yet'}${top ? `, most on ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Recorded wealth this week: ${worth}.` : ''} Your own figures; not financial advice.`,
+    `Deze week: ${spent || 'nog niets'} uitgegeven${top ? `, het meest aan ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Vastgelegd vermogen deze week: ${worth}.` : ''} Je eigen cijfers; geen financieel advies.`), calls: [s.record, w.record]};
+}
 /** The device's answer to one of these questions, or null (the engine's own fallback stands). */
 export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null {
   const q = question.trim(), lang: Lang = questionLanguage(q) === 'nl' ? 'nl' : 'en';
@@ -156,6 +182,8 @@ export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null
   if (track) return onTrackAnswer(lang, track[1], env);
   if (WORST_HABIT.test(q)) return worstHabitAnswer(lang, env);
   if (WHY_CHANGE.test(q)) return whyAnswer(lang, q, env);
+  if (ROOM_Q.test(q)) return roomAnswer(lang, env);
+  if (SPEND_Q.test(q)) return spendAnswer(lang, q, env);
   if (WHAT_SEE.test(q)) return whatSeeAnswer(lang, env);
   const asset = ASSET.exec(q);
   if (asset && PRICE.test(q)) return priceAnswer(lang, asset[1]!, env);

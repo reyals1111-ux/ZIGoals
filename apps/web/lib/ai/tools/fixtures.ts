@@ -28,6 +28,7 @@ import {chessCacheSchema} from '../../skills/chess/schema';
 import {chessOf} from '../../skills/chess/engine';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema} from '../../dashboard-settings';
 import {linksOf} from '../../links/engine';
+import {MONEY_LOG_KEY, moneyLogSchema} from '../../money-log/schema';
 
 /**
  * Fixtures for ZIGi's tools and for every path that reads them (Session V; used by unit tests only, nothing in the app
@@ -78,7 +79,9 @@ export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {})
   const accounts = records[ACCOUNTS_KEY] ? accountsSchema.parse(JSON.parse(records[ACCOUNTS_KEY])) : null;
   const chess = records[CHESS_CACHE_KEY] ? {settings: chessOf(settings) ?? null, cache: chessCacheSchema.parse(JSON.parse(records[CHESS_CACHE_KEY]))} : null;
   return {now: new Date(`${day}T19:00:00Z`), habitDay: day, healthDay: day, habitZone: 'UTC', healthZone: 'UTC', habits, health, fasting, platform, localGoals: [], metadata: {}, quotes: [], localActivity: null, portfolio: null, weekly, notes: null,
-    accounts, milestoneDates: null, chess, linksCount: linksOf(settings).items.length, showcase: true, ...overrides};
+    accounts, milestoneDates: null, chess, linksCount: linksOf(settings).items.length, showcase: true,
+    // Session AI: the Showcase's spending log (lib/money-log/showcase.ts).
+    moneyLog: records[MONEY_LOG_KEY] ? moneyLogSchema.parse(JSON.parse(records[MONEY_LOG_KEY])) : null, ...overrides};
 }
 const at = (day: string) => `${day}T08:00:00.000Z`;
 /** Health records with sentinel names and values, a check-in filled in from Health, and a Health-tagged note. */

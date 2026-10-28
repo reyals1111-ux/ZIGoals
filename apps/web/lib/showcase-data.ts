@@ -45,6 +45,8 @@ import type {MarketAssetRef} from './market-assets';
 import {showcaseMoment, type DayPart} from './showcase-moment';
 import {WORKOUTS_KEY} from './workouts/schema';
 import {showcaseWorkouts} from './workouts/showcase';
+import {MONEY_LOG_KEY} from './money-log/schema';
+import {showcaseMoneyLog} from './money-log/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -150,6 +152,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  }
  // Session AH Part 6 (DE8): a fictional training log and two routines (lib/workouts/showcase.ts).
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
+ // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
+ records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
