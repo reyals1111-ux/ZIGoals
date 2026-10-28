@@ -77,7 +77,7 @@ function NotesCard() {
   const {open, setOpen, card} = useAnchoredCard(NOTES_ANCHOR);
   return <details ref={card} id={NOTES_ANCHOR} className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">What ZIGi knows about me</summary>
-    <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you.</p>
+    <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you. <Link className="text-link" href="/app/zigi/memory">Open What ZIGi remembers</Link></p>
     {open && <ZigiPartBoundary label="The notes"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><NotesPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }

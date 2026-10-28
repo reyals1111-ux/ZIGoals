@@ -75,7 +75,9 @@ export const MEMORY_CATEGORIES = ['goals', 'preferences', 'constraints', 'diet',
 /** Notes in these categories describe the person's health and need the Health gate on every path, like Health itself. */
 export const HEALTH_NOTE_CATEGORIES: readonly string[] = ['health', 'diet'];
 export const MAX_NOTES = 100, MAX_NOTE_CHARS = 500;
-export const memoryNoteSchema = z.looseObject({id: z.string().min(1).max(80), text: z.string().trim().min(1).max(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES), source: z.enum(['person', 'zigi']), createdAt: stamp, updatedAt: stamp});
+export const memoryNoteSchema = z.looseObject({id: z.string().min(1).max(80), text: z.string().trim().min(1).max(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES), source: z.enum(['person', 'zigi']), createdAt: stamp, updatedAt: stamp,
+  /** Session AI (feature 3): kept on this device, never sent to the person's AI while paused. */
+  paused: z.boolean().optional()});
 export type MemoryNoteRecord = z.infer<typeof memoryNoteSchema>;
 /**
  * Session AF (L4, ADR-028 H30; `TIER 3 (storage)`): `consent` says when the person first agreed that ZIGi keeps notes

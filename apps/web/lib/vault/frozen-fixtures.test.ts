@@ -16,6 +16,7 @@ import {GOAL_VAULTS_KEY, WALLET_BALANCES_KEY} from '../af-wallet-keys';
 import {ZIGI_PLANS_KEY} from '../af-zigi-keys';
 import {MONEY_LOG_KEY} from '../money-log/schema';
 import {JOURNAL_KEY} from '../journal/schema';
+import {AI_MEMORY_KEY} from '../ai/store/keys';
 import {ENERGY_KEY} from '../energy/schema';
 import {DAY_TIMELINE_KEY, STORIES_KEY, UNIVERSE_KEY} from '../af-extras-keys';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../af-checklist-keys';
@@ -133,6 +134,9 @@ export function frozenFixture() {
   checks.push({key: JOURNAL_KEY, module: './journal/schema', spec: 'JOURNAL', expect: {version: 1, 'entries.0.followUp.answer': 'A walk.'}});
   records[ENERGY_KEY] = JSON.stringify({version: 1, days: {'2026-10-27': {energy: 4, at: '2026-10-27T20:30:00.000Z'}}});
   checks.push({key: ENERGY_KEY, module: './energy/schema', spec: 'ENERGY', expect: {'days.2026-10-27.energy': 4}});
+  // Session AI (feature 3, TIER 3 (stored format)): a ZIGi note may carry `paused` (additive, optional; the note schema is loose in every release).
+  records[AI_MEMORY_KEY] = JSON.stringify({version: 1, notes: [{id: 'note_frozen', text: 'Fictional: trains in the morning', category: 'schedule', source: 'person', createdAt: '2026-10-27T08:00:00.000Z', updatedAt: '2026-10-28T08:00:00.000Z', paused: true}]});
+  checks.push({key: AI_MEMORY_KEY, module: './ai/store/records', spec: 'AI_MEMORY', expect: {'notes.0.text': 'Fictional: trains in the morning', 'notes.0.paused': true}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -142,7 +146,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
