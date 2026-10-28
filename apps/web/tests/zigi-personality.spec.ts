@@ -26,3 +26,17 @@ test('choosing Direct changes the greeting and tells the AI the tone; calm is th
   await expect.poll(() => bodies.length).toBeGreaterThan(0);
   expect(JSON.stringify(bodies[0]!.messages[0])).toContain('The person chose a direct ZIGi');
 });
+test('G14: what ZIGi did for you is counted only once switched on, on the device, as counts only', async ({page}) => {
+  await seed(page, {ai: null});
+  await page.goto('/app/settings#zigi-your-day');
+  const value = page.getByRole('region', {name: 'What ZIGi did for you'});
+  await value.getByRole('switch', {name: 'Count what ZIGi does'}).click();
+  await expect(value.getByRole('status')).toContainText('from now on');
+  await page.goto('/app');
+  await openChat(page);
+  await panel(page).getByRole('textbox').first().fill('How much water did I drink today?');
+  await panel(page).locator('.ai-composer button[type=submit]').click();
+  await expect.poll(async () => JSON.stringify(await stored(page, 'zigoals:zigi-metrics:v1'))).toMatch(/"device-answer":1/);
+  const record = JSON.stringify(await stored(page, 'zigoals:zigi-metrics:v1'));
+  expect(record).not.toMatch(/water|drink/i);
+});

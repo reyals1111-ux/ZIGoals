@@ -29,6 +29,7 @@ import {Handles} from '../../lib/ai/handles';
 import {recordsSent} from '../../lib/ai/records-sent';
 import {readDeviceRecord} from '../../lib/device-record';
 import {AI_OPTIONS, ZIGI, zigiPersonality, type AiOptions} from '../../lib/ai/store/records';
+import {countZigi} from '../../lib/ai/store/metrics';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {runWithTools, toolsFor} from '../../lib/ai/tool-loop';
 import {ANSWER_CHARS, type ToolResult} from '../../lib/ai/tools/types';
@@ -149,6 +150,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const claimFresh = useCallback((turnId: string) => fresh.current.delete(turnId), []);
   const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean; records?: string[]} = {}) => {
     if (!text && !stopped) return;
+    if (text) countZigi('ai-answer'); // Session AI (G14)
     // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
     const {text: shown, hint} = extractHint(text);
     text = shown;
@@ -363,7 +365,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     let next: Chat;
     try { next = appendTurn(appendTurn(before, user), answer); }
     catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
-    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); fresh.current.add(answer.id);
+    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); fresh.current.add(answer.id); countZigi('device-answer'); // Session AI (G14): counted only when the person turned the counts on
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
     zigiSignals.emit(localSignal(reply, question));

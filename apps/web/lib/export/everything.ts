@@ -6,6 +6,7 @@ import {TASKS_KEY} from '../tasks/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
 import {IMPORTS_KEY} from '../portfolio/wallet-import';
 import {EXCHANGES_KEY} from '../exchanges/record';
+import {ZIGI_METRICS_KEY} from '../ai/store/metrics';
 import {JOURNAL_KEY, journalSchema, type Journal} from '../journal/schema';
 import {ENERGY_KEY, energySchema, type Energy} from '../energy/schema';
 import {SEARCH_RECENT_KEY} from '../search/recent';
@@ -95,6 +96,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   portfolioImports: IMPORTS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).
   exchanges: EXCHANGES_KEY,
+  // Session AI (G14): ZIGi's own counts, when the person turned them on.
+  zigiMetrics: ZIGI_METRICS_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
   todayCards: TODAY_CARDS_KEY,
   // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
