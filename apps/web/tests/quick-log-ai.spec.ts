@@ -3,6 +3,7 @@ import {HABITS_KEY, createHabit, emptyHabitData} from '../lib/habits';
 import {HEALTH_STORAGE_KEY, type HealthData} from '../lib/health';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {isPhone} from './phone-nav';
+import {speak, voiceFakes} from './zigi-af';
 
 // Session AI (J10, ZI11): ONE line for several things: each understood item becomes its own card (ZIGi's cards, made on this
 // device with no AI), each added on its own; nothing is written before Add. The same line works as /log in ZIGi with no AI.
@@ -63,4 +64,29 @@ test('ZIGi with no AI: /log takes the same line and answers with the cards, made
   await panel.locator('.ai-composer button[type=submit]').click();
   await expect(panel.locator('.ai-turn-local .ai-card')).toHaveCount(2);
   await expect(panel).not.toContainText('This command needs your own AI connected');
+});
+// Session AI (feature 2, voice logging): the same line, spoken. The browser's speech recognition (faked here) hands the
+// words over; they are read the spoken way (fillers out, number words as digits) and previewed as cards; nothing is saved
+// before Add. English and Dutch.
+test('Quick add: a spoken line becomes one card per item, nothing saved before Add', async ({page}) => {
+  await voiceFakes(page);
+  const {dialog, field} = await openQuickAdd(page);
+  const water = await waterCount(page);
+  await expect(dialog).toContainText('Nothing goes through ZIGoals');
+  await dialog.getByRole('button', {name: 'Speak a line'}).click();
+  await expect(dialog.getByRole('button', {name: 'Stop'})).toHaveAttribute('aria-pressed', 'true');
+  await speak(page, 'um two glasses of water and a banana');
+  await expect(field).toHaveValue('2 glasses of water and 1 banana'); // the spoken reading: fillers out, number words as digits
+  const cards = dialog.locator('.ai-card');
+  await expect(cards).toHaveCount(2);
+  expect(await waterCount(page)).toBe(water);
+  await cards.first().getByRole('button', {name: 'Add', exact: true}).click();
+  await expect.poll(() => waterCount(page)).toBe(water + 1);
+});
+test('Quick add: a Dutch spoken line', async ({page}) => {
+  await voiceFakes(page);
+  const {dialog} = await openQuickAdd(page);
+  await dialog.getByRole('button', {name: 'Speak a line'}).click();
+  await speak(page, 'euh twee glazen water en een banaan');
+  await expect(dialog.locator('.ai-card')).toHaveCount(2);
 });

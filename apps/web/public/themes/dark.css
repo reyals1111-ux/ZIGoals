@@ -11121,6 +11121,9 @@
             box-shadow: 0 -12px 20px -12px #000a
         }
     }
+    .quick-add-mic button[aria-pressed="true"]:not(#\-) {
+        border-color: currentColor
+    }
 }
 /*  components/phone/phone-shell.css  */
 @scope (:root[data-theme=dark]) {

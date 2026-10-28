@@ -86,3 +86,5 @@
      sheet scrolled sideways). */
   :root dialog.wealth-sheet > header { margin-inline: 0; padding-inline: 18px; }
 }
+.quick-add-mic { display: grid; gap: 6px; justify-items: start; }
+.quick-add-mic button[aria-pressed="true"] { border-color: currentColor; }

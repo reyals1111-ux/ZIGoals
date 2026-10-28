@@ -12,6 +12,7 @@ import {storageMessageOr} from '../lib/storage-error-copy';
 import {formatClock} from '../lib/visual-format';
 import {plainErrorMessage} from '../lib/plain-error';
 import {lineLanguage, splitItems} from '../lib/quick-log/multi';
+import {QuickAddMic} from './quick-add-mic';
 // Session AI (J10): several items in one line, or an item Quick add's own reader does not know, as ZIGi's cards.
 const QuickLogCards = lazy(() => import('./quick-log-cards'));
 
@@ -42,7 +43,7 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
   const primed = useRef(false);
   useEffect(() => { if (!initialText || primed.current || !ready) return; primed.current = true; setText(initialText); setResult(parse(initialText, 'en', context)); }, [initialText, ready, context]);
   const [multi, setMulti] = useState<string | null>(null);
-  function preview() { setSaved(''); setError(''); setChosen(null); setWake(''); const several = splitItems(text).length >= 2; setMulti(several ? text : null); setResult(several ? null : parse(text, lineLanguage(text), context)); }
+  function preview(line = text) { setSaved(''); setError(''); setChosen(null); setWake(''); const several = splitItems(line).length >= 2; setMulti(several ? line : null); setResult(several ? null : parse(line, lineLanguage(line), context)); }
   async function save(item: QuickAddKnown) {
     setBusy(true); setError('');
     try {
@@ -68,6 +69,7 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
   return <form className="quick-add-line" aria-label="Type a line" onSubmit={event => { event.preventDefault(); preview(); }}>
     <label className="field"><span>Type a line</span><input ref={field} data-sheet-focus type="text" value={text} maxLength={200} autoComplete="off" enterKeyHint="go" placeholder="drank 2 glasses of water" disabled={!ready || busy} onChange={event => { setText(event.target.value); if (result) setResult(null); if (chosen) setChosen(null); }} /></label>
     <div className="actions"><button type="submit" className="quiet" disabled={!ready || busy || !text.trim()}>Preview</button></div>
+    {!onlyIfUnderstood && <QuickAddMic disabled={!ready || busy} onText={words => { setText(words); preview(words); }}/>}
     <div aria-live="polite" className="quick-add-line-preview">
       {active && <div className="quick-add-line-card"><p className="quick-add-line-will">Will save: {describeQuickAdd(active)} · {active.day}</p>
         {active.kind === 'water' && active.shown.unit === 'glasses' && <p className="fine">A glass is counted as 250 mL.</p>}
