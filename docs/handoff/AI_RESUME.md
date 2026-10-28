@@ -25,14 +25,17 @@ Read this first when resuming in a fresh workspace; then ADR-034 and the approve
 - B1 all seven groups: `83055397` (numbers, answer vs change, device answers), group 2 (fallbacks, G6 set, chip gate script, exact names, typos, follow-ups, 15k input), `cef4c63e` (groups 3–4: setup, settings, guardrails, tone, G12), `4b8d0e41` (zigi-knock), `b0ecc8db` (J10 one line).
 - A3-r1 (from the worktree `/Users/AIUSER/Documents/ZIGoals-Claude-ai-a3` at `cef4c63e`): Sonnet 1947/2089 (93.2 %), Haiku 1907/2089 (91.3 %). Failure analysis by a helper: `<runs>/analysis/a3-r1-failures.md`.
 - B3/feature 5: the expense log, TIER 3 (stored format) `7f9bedb7` (Wealth → Spending, ZIGi cards and spending tool, money recap). Feature 6 journal + daily energy `f45597e6`.
-- A3-r1 fixes `3a264734` (question rule clause by clause, decline/refusal/prompt/router/tool-loop/scorer fixes, 70 case corrections; ADR N20). Feature 3 memory page `84b9f9a4` (TIER 3: `paused` on a note). Feature 1 HE17 ranges `d30033a0` (TIER 3: `zigoals:meal-estimates:v1`, ADR N21).
-- A3-r2 running from `/Users/AIUSER/Documents/ZIGoals-Claude-ai-a3` at `3a264734` (Haiku cap $2, Sonnet cap $17; logs `<runs>/logs/a3-r2-*.log`). A2 baseline still running from the baseline worktree.
+- A3-r1 fixes `3a264734`; memory page `84b9f9a4`; HE17 ranges `d30033a0`; voice `2ad899bc`; insights `1b4f69fa`; G9 + daily check-in `d7c6404e`; Life review values + G13 `68011a64`; linked plans `1a410b29`; mascot (personality, celebrate once) `1a161a3d`.
+- A3-r2: Sonnet 96.8 %, Haiku 95.3 % (analysis `<runs>/analysis/a3-r2-failures.md`); fixes `7e751764`, case corrections `562627ea`, chip gate + G10 `95253fa2`, UI key file `f46cab1c`.
+- Conversations 15/15 × 3 on both models through the UI (45/45 each; `<runs>/real-model/a3-conv`).
+- B3: MO4 `12f444dd` (TIER 3 deploy config), sick/rest days `e75317e2`, tasks + J15 + WE20 + SE5 `b0e44cb2` (TIER 3 stored), WE21 + CO6 + share card + focus `c87be1d3`.
+- A3-r3 running from `/Users/AIUSER/Documents/ZIGoals-Claude-ai-a3` at `c87be1d3`.
 
 ## Track A ledger total
-$22.62 of $95 by ledger.mjs before A3-r2 (A2 baseline and A3-r2 still adding; rebuild with ledger.mjs before every run).
+$34.27 of $95 by ledger.mjs before A3-r3 (rebuild with ledger.mjs before every run).
 
 ## Next step
-Analyse A3-r2 when it ends; then features 2 (voice → J10), 4 (insights), 7–9, the mascot, G9/G10/G13/G14, then B3's list; Opus full-corpus pass and conversations 15/15×3 on Sonnet and Haiku before 31 Oct 12:00 UTC. Gaps kept: plan-meal pointing at a new recipe, the time zone in the today line, the meal-plan fixture.
+Analyse A3-r3; J14 exchanges (Kraken, Coinbase, Binance; relay TIER 3 egress; WebCrypto key vault); SE3, WE16, week grid P&L, F3 measured; A4 final (Sonnet, Haiku, Opus full corpus; photos on 3 models) before 31 Oct 12:00 UTC; B4 sweep; reports, STATUS, CI, PR out of Draft. Known local-only failures: mobile dev-mode sheets (Log a meal, habit form, wealth add/fund), finance-homes navigator.locks.
 
 ## How to run a stage
 `<runs>/scripts/stage.sh <checkout> <stage> <model> <sets> <cases> <cap>` (background with nohup; the harness reads the key file itself). Sets: `corpus` = typed, af, aa, spoken, ai. Check the ledger first: `node scripts/zigi/ledger.mjs --runs <runs> --cap 95 --check <forecast> --title 'Session AI'`.
