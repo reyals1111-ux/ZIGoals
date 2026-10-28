@@ -70,3 +70,8 @@ describe('simple commands with no AI (ZI11)', () => {
     for (const q of ['add a habit', 'Create a habit to stretch every morning']) expect(parseReply(textOf(noModelReply(q, env))).proposals).toEqual([]);
   });
 });
+describe('advice asks with no AI (ZI10, G8)', () => {
+  test.each(['Should I sell my ETH now?', 'Is it a good time to buy BTC?', 'Moet ik mijn ETH verkopen?'])('"%s" gets the money guardrail', q => expect(textOf(noModelReply(q, env))).toMatch(/advise|advies/));
+  test.each(['Should I take sleeping pills?', 'Is it safe to fast for three days?', 'Moet ik stoppen met mijn medicijnen?'])('"%s" is not medical advice, said plainly', q => expect(textOf(noModelReply(q, env))).toMatch(/not medical advice|geen medisch advies/));
+  test('with an AI connected these still go to the AI', () => expect(ask('Should I sell my ETH now?').kind).toBe('none'));
+});

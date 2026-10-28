@@ -122,6 +122,8 @@
 .ai-composer textarea{flex:1;min-height:44px;max-height:160px;resize:vertical;font-size:16px;line-height:1.4;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--bg,#070a1a) 70%,transparent);color:inherit;font-family:inherit}
 .ai-composer textarea:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:1px}
 .ai-composer button{min-height:44px;white-space:nowrap}
+/* Session AI (ZI6; Grok's D-032): Send looks unavailable when it is (an empty box), never active. */
+.ai-composer button.primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;filter:saturate(.5)}
 .ai-bridge{display:grid;gap:10px}
 .ai-bridge .field{display:grid;gap:4px;font-size:14px}
 .ai-bridge textarea{font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--bg,#070a1a) 70%,transparent);color:inherit;font-family:inherit}

@@ -218,6 +218,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["af-zigi-checklist", "Can I tick my Checklist by voice?"],
   ["af-plans", "What is a ZIGi plan?"],
   ["af-page-awareness", "What does ZIGi see of my page?"],
+  ["ai-what-sent", "What does my own AI receive, and how do I switch ZIGi off?"],
   ["af-earn-coach", "What does ZIGi’s Earn coach do?"],
   ["af-zigi-memory", "What does ZIGi remember now?"],
   ["af-universe", "What is My universe?"],

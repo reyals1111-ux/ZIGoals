@@ -58,6 +58,24 @@ describe('the batch transport', () => {
     expect(String((results[0] as PromiseRejectedResult).reason)).toMatch(/capped/);
     expect(submitted).toHaveLength(0);
   });
+  test('a small later round goes as ordinary calls, recorded at full price in the ledger\'s run shape', async () => {
+    const {submitted, fetchMock} = mockApi(() => ({type: 'succeeded', message: {content: [{type: 'text', text: 'first'}], usage: {input_tokens: 10, output_tokens: 5}}}));
+    const direct = vi.fn(async () => new Response(JSON.stringify({content: [{type: 'text', text: 'second'}], usage: {input_tokens: 10, output_tokens: 5}, stop_reason: 'end_turn'}), {status: 200}));
+    const dir = mkdtempSync(join(tmpdir(), 'zigi-direct-'));
+    const queue = new BatchQueue({key: 'test-key', model: 'claude-haiku-5-5', pollMs: 1, recordDir: dir});
+    queue.enter();
+    expect((await drain(queue.stream(request('one')))).at(0)).toEqual({type: 'text', delta: 'first'});
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => url.endsWith('/v1/messages') ? direct() : fetchMock(url, init)));
+    expect((await drain(queue.stream(request('two')))).at(0)).toEqual({type: 'text', delta: 'second'});
+    queue.leave();
+    expect(submitted).toHaveLength(1);
+    expect(direct).toHaveBeenCalledTimes(1);
+    const files = readdirSync(dir).sort();
+    expect(files.some(f => f.startsWith('direct-'))).toBe(true);
+    const record = JSON.parse(readFileSync(join(dir, files.find(f => f.startsWith('direct-'))!), 'utf8')) as {summary: {batch: boolean}; runs: {requests: number}[]};
+    expect(record.summary.batch).toBe(false);
+    expect(record.runs).toEqual([{requests: 1, tokens: {input: 10, output: 5, cacheWrite: null, cacheRead: null}}]);
+  });
   test('an error text never carries a key', () => {
     expect(redact(`bad ${['sk', 'ant', 'api03', 'abcDEF123'].join('-')} here`)).toBe('bad *** here');
   });

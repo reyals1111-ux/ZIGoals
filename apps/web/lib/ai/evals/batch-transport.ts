@@ -30,7 +30,12 @@ export class BatchQueue {
   constructor(private readonly opts: {key: string; model: string; pollMs?: number; capUsd?: number; forecastPerRequest?: number; log?: (line: string) => void;
     /** Each ended batch's own usage is written here at once (`batch-<id>.json`, the ledger's batch-file shape), so a run that
      * stops early still leaves its spend on the ledger; the run file then says its cost is counted in these files. */
-    recordDir?: string}) {}
+    recordDir?: string;
+    /** A round of at most this many requests (after the first round) goes as ordinary API calls, side by side, instead of
+     * waiting minutes in the batch queue for a handful of tool rounds or later turns; full price for those few, counted
+     * as such in their record. 0 keeps every round in a batch. */
+    directAtMost?: number}) {}
+  private rounds = 0;
   /** A case starts: the queue waits for it before sending a batch. */
   enter() { this.active++; }
   /** A case ends: it no longer holds the batch back. */
@@ -64,12 +69,51 @@ export class BatchQueue {
     try {
       const forecast = batch.length * (this.opts.forecastPerRequest ?? 0);
       if (this.opts.capUsd && this.spentUsd + forecast > this.opts.capUsd) throw new Error(`capped: $${this.spentUsd.toFixed(4)} spent, the next batch's forecast $${forecast.toFixed(4)} would pass the cap $${this.opts.capUsd.toFixed(2)}`);
-      const results = await this.send(batch);
+      this.rounds++;
+      const results = this.rounds > 1 && batch.length <= (this.opts.directAtMost ?? 24) ? await this.sendDirect(batch) : await this.send(batch);
       for (const p of batch) p.resolve(results.get(p.id) ?? {type: 'missing'});
     } catch (e) {
       const error = e instanceof Error ? new Error(redact(e.message)) : new Error('batch failed');
       for (const p of batch) p.reject(error);
     } finally { this.flushing = false; if (this.pending.length) this.schedule(); }
+  }
+  /** A small round as ordinary (non-streaming) Messages API calls, a few at a time; recorded at full price. */
+  private async sendDirect(batch: Pending[]): Promise<Map<string, BatchResult>> {
+    const headers = {...anthropicHeaders(this.opts.key), 'content-type': 'application/json', accept: 'application/json'}, started = Date.now();
+    const rows = new Map<string, BatchResult>();
+    for (let i = 0; i < batch.length; i += 6) await Promise.all(batch.slice(i, i + 6).map(async p => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const res = await fetch(`${ORIGIN}/v1/messages`, {method: 'POST', headers, body: JSON.stringify(p.params)});
+        if (res.status === 429 || res.status === 529 || res.status >= 500) { await new Promise(r => setTimeout(r, 2000 * (attempt + 1))); continue; }
+        const text = await res.text();
+        rows.set(p.id, res.ok ? {type: 'succeeded', message: JSON.parse(text) as BatchResult['message']} : {type: 'errored', error: {error: {message: `${res.status} ${redact(text.slice(0, 160))}`}}});
+        return;
+      }
+      rows.set(p.id, {type: 'errored', error: {error: {message: 'the API stayed busy'}}});
+    }));
+    this.record(`direct-${Date.now()}`, rows, false, started);
+    return rows;
+  }
+  private record(id: string, rows: Map<string, BatchResult>, batch: boolean, started: number) {
+    let cost = 0;
+    const tokens = {input: 0, output: 0, cacheWrite: 0, cacheRead: 0};
+    for (const r of rows.values()) {
+      const u = r.message?.usage; if (!u) continue;
+      const usage = {input: u.input_tokens ?? 0, output: u.output_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0, cacheRead: u.cache_read_input_tokens ?? 0};
+      tokens.input += usage.input; tokens.output += usage.output; tokens.cacheWrite += usage.cacheWrite; tokens.cacheRead += usage.cacheRead;
+      cost += estimateCost(this.opts.model, usage, {batch}) ?? 0;
+    }
+    if (this.opts.recordDir) {
+      mkdirSync(this.opts.recordDir, {recursive: true});
+      // A direct round is recorded in the ledger's harness shape (one run per request, full price); a batch in its batch shape.
+      const body = batch ? {summary: {provider: 'anthropic', model: this.opts.model, batch: true, batchId: id, requests: rows.size, tokens, costUsd: cost, endedAt: new Date().toISOString()}}
+        : {summary: {provider: 'anthropic', model: this.opts.model, batch: false, direct: true, requests: rows.size, costUsd: cost, endedAt: new Date().toISOString()}, runs: [...rows.values()].map(r => ({requests: 1, tokens: {input: r.message?.usage?.input_tokens ?? null, output: r.message?.usage?.output_tokens ?? null, cacheWrite: r.message?.usage?.cache_creation_input_tokens ?? null, cacheRead: r.message?.usage?.cache_read_input_tokens ?? null}}))};
+      writeFileSync(join(this.opts.recordDir, `${batch ? 'batch' : 'direct'}-${id.replace(/^direct-/, '')}.json`), JSON.stringify(body, null, 1));
+    }
+    this.spentUsd += cost;
+    const log = {batchId: id, requests: rows.size, costUsd: cost, wallMs: Date.now() - started};
+    this.batches.push(log);
+    this.opts.log?.(`${batch ? 'batch' : 'direct round'} ${id}: ended, ${rows.size} requests, $${cost.toFixed(4)}, ${Math.round(log.wallMs / 1000)} s`);
   }
   private async send(batch: Pending[]): Promise<Map<string, BatchResult>> {
     const headers = {...anthropicHeaders(this.opts.key), 'content-type': 'application/json', accept: 'application/json'};
@@ -89,23 +133,7 @@ export class BatchQueue {
     const res = await fetch(`${ORIGIN}/v1/messages/batches/${batchId}/results`, {headers});
     if (!res.ok) throw new Error(`batch results → ${res.status}`);
     const rows = new Map((await res.text()).split('\n').filter(Boolean).map(l => JSON.parse(l) as {custom_id: string; result: BatchResult}).map(r => [r.custom_id, r.result] as const));
-    let cost = 0;
-    const tokens = {input: 0, output: 0, cacheWrite: 0, cacheRead: 0};
-    for (const r of rows.values()) {
-      const u = r.message?.usage; if (!u) continue;
-      const usage = {input: u.input_tokens ?? 0, output: u.output_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0, cacheRead: u.cache_read_input_tokens ?? 0};
-      tokens.input += usage.input; tokens.output += usage.output; tokens.cacheWrite += usage.cacheWrite; tokens.cacheRead += usage.cacheRead;
-      cost += estimateCost(this.opts.model, usage, {batch: true}) ?? 0;
-    }
-    if (this.opts.recordDir) {
-      // Priced per request here; the file's own token sums are priced once by the ledger (equal unless Haiku's long-prompt card applies).
-      mkdirSync(this.opts.recordDir, {recursive: true});
-      writeFileSync(join(this.opts.recordDir, `batch-${batchId}.json`), JSON.stringify({summary: {provider: 'anthropic', model: this.opts.model, batch: true, batchId, requests: rows.size, tokens, costUsd: cost, endedAt: new Date().toISOString()}}, null, 1));
-    }
-    this.spentUsd += cost;
-    const log = {batchId, requests: batch.length, costUsd: cost, wallMs: Date.now() - started};
-    this.batches.push(log);
-    this.opts.log?.(`batch ${batchId}: ended, ${batch.length} requests, $${cost.toFixed(4)}, ${Math.round(log.wallMs / 1000)} s`);
+    this.record(batchId, rows, true, started);
     return rows;
   }
 }

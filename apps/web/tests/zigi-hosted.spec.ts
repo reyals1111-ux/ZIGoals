@@ -135,7 +135,7 @@ test('an invited account: the disclosure first, then ZIGi answers through /api/z
   await go(page, 'Habits', '/app/habits');
   await page.getByRole('button', {name: /Open ZIGi/}).click();
   // The header says so; the reply already given keeps its hosted label.
-  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('not connected yet');
+  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('answers on this device');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('via ZIGoals hosted');
 });
 

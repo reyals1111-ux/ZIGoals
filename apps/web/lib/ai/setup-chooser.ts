@@ -34,7 +34,7 @@ const ON_DEVICE: Omit<Recommendation, 'why'> = {route: 'on-device', title: 'Chro
 const API: Omit<Recommendation, 'why'> = {route: 'api', title: 'An API key from a provider',
   pros: ['The best answers, with tools and proposal cards', 'Works on phones and computers', 'You pay only for what you use'],
   cons: ['Costs money per message, at your provider\u2019s own prices', 'The key stays on this device; you add it on each device you use'],
-  steps: ['Create a key at your provider (OpenAI, Anthropic, Google, xAI or OpenRouter).', 'Set a monthly spending limit in that provider’s billing settings first.', 'Settings → ZIGi · Your Personal AI Companion → "I have an API key", paste it. ZIGi’s own soft cap is under Usage.']};
+  steps: ['Create a key at an AI provider you choose (ZIGoals works with OpenAI, Anthropic, Google, xAI and OpenRouter; it is not paid by any of them).', 'Set a monthly spending limit in that provider’s billing settings first.', 'Settings → ZIGi · Your Personal AI Companion → "I have an API key", paste it. ZIGi’s own soft cap is under Usage.']};
 const BRIDGE: Omit<Recommendation, 'why'> = {route: 'subscription', title: 'The subscription bridge',
   pros: ['Uses the subscription you already pay for', 'No key, no extra cost'],
   cons: ['Copy and paste: ZIGi writes the prompt, you paste it into the app', 'Answers cannot become cards here'],

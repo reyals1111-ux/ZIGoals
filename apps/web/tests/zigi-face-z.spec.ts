@@ -160,7 +160,7 @@ test('not connected: one compact line with "Set up" and "Which setup fits me?", 
   const line = panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'});
   await expect(line).toContainText('Not connected to an AI yet');
   await expect(line.getByRole('link', {name: 'Set up', exact: true})).toHaveAttribute('href', '/app/settings#your-ai');
-  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('not connected yet');
+  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('answers on this device');
   const [lineBox, logBox, composerBox] = await Promise.all([line.boundingBox(), panel(page).locator('.ai-chat-log').boundingBox(), panel(page).locator('.ai-composer-wrap').boundingBox()]);
   expect(lineBox!.y).toBeGreaterThanOrEqual(logBox!.y + logBox!.height - 1);
   expect(lineBox!.y + lineBox!.height).toBeLessThanOrEqual(composerBox!.y + 1);

@@ -2496,6 +2496,10 @@
     .ai-composer textarea:focus-visible:not(#\-) {
         outline-color: var(--cyan,#6fd3ff)
     }
+    .ai-composer button.primary:disabled:not(#\-) {
+        box-shadow: none;
+        filter: saturate(.5)
+    }
     .ai-bridge textarea:not(#\-) {
         border-color: var(--line,#c3cae3);
         background-image: none;
@@ -3094,9 +3098,6 @@
     }
     .ai-chat .ai-turn-kind[data-kind=change]:not(#\-) {
         color: var(--text,#0c0f18)
-    }
-    .ai-chat .ai-turn-kind-note:not(#\-) {
-        color: var(--muted,#202938)
     }
     .ai-chat .ai-turn-source:not(#\-) {
         color: var(--muted,#202938)
@@ -12363,6 +12364,23 @@
     }
     .portfolio-transactions li[data-direction="in"] .portfolio-tx-amount:not(#\-) {
         color: #096a4c
+    }
+    .trade-checkin:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .trade-checkin-row:not(#\-) {
+        border-color: currentcolor
+    }
+    .trade-chip span:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.35))
+    }
+    .trade-chip input:checked+span:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);
+        border-color: var(--violet,#8b7cff)
+    }
+    .trade-chip input:focus-visible+span:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
     }
 }
 /*  components/portfolio/value-chart.css  */

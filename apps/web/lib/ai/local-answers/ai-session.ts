@@ -117,8 +117,8 @@ function whyAnswer(lang: Lang, q: string, env: ToolEnv): LocalReply {
 function whatSeeAnswer(lang: Lang, env: ToolEnv): LocalReply {
   const health = env.areas.health;
   return {kind: 'answer', text: say(lang,
-    `This answer was made on this device: nothing was sent anywhere. When your own AI is connected, ZIGi sends it your question and the records of the areas you share with it (Settings → ZIGi → What your AI sees), and only what the question needs. Health is ${health ? 'shared now' : 'not shared now'} ("Include Health"). Nothing is changed without your OK: every change is a card you add yourself.`,
-    `Dit antwoord is op dit apparaat gemaakt: er is niets verstuurd. Als je eigen AI gekoppeld is, stuurt ZIGi je vraag en de gegevens van de gebieden die je deelt (Instellingen → ZIGi → Wat je AI ziet), en alleen wat de vraag nodig heeft. Gezondheid wordt ${health ? 'nu gedeeld' : 'nu niet gedeeld'} („Include Health”). Er verandert niets zonder jouw OK: elke wijziging is een kaart die je zelf toevoegt.`), calls: []};
+    `This answer was made on this device: nothing was sent anywhere. When your own AI is connected, ZIGi sends it your question and the records of the areas you share with it (Settings → ZIGi → What your AI sees), and only what the question needs. Health is ${health ? 'shared now' : 'not shared now'} ("Include Health"). Nothing is changed without your OK: every change is a card you add, or a kind you chose yourself to have added automatically (Settings → ZIGi, always with Undo).`,
+    `Dit antwoord is op dit apparaat gemaakt: er is niets verstuurd. Als je eigen AI gekoppeld is, stuurt ZIGi je vraag en de gegevens van de gebieden die je deelt (Instellingen → ZIGi → Wat je AI ziet), en alleen wat de vraag nodig heeft. Gezondheid wordt ${health ? 'nu gedeeld' : 'nu niet gedeeld'} („Include Health”). Er verandert niets zonder jouw OK: elke wijziging is een kaart die je toevoegt, of een soort die je zelf automatisch liet toevoegen (Instellingen → ZIGi, altijd met Ongedaan maken).`), calls: []};
 }
 function newHabitAnswer(lang: Lang, title: string): LocalReply {
   const name = title.trim().replace(/\s+/g, ' ');
@@ -130,8 +130,18 @@ function newHabitAnswer(lang: Lang, title: string): LocalReply {
  * "Maak een gewoonte Yoga aan"). With an AI connected the AI keeps these (it can ask about the schedule), so this runs only
  * on the no-model path (`noModelReply`). The card is saved only when the person adds it.
  */
+const MONEY_ADVICE = /\b(?:should i|shall i|do i|would you|is (?:it|now) (?:a )?good (?:time|idea|moment) to|what should i|which (?:coin|asset|stock|validator) should i|moet ik|zal ik|is het (?:een )?goed (?:moment|idee) om|welke (?:munt|coin|validator) moet ik)\b.*\b(?:buy|sell|invest|stake|unstake|hold|put|koop|kopen|verkoop|verkopen|investeren|beleggen|staken|aanhouden)\b/i;
+const HEALTH_ADVICE = /\b(?:should i|can i|is it (?:safe|ok|okay|healthy) (?:for me )?to|moet ik|mag ik|is het (?:veilig|gezond|goed) om)\b.*\b(?:take|stop|start|fast|pills?|medication|medicine|tablets?|diet|supplements?|dose|vast(?:en)?|medicijn(?:en)?|pil(?:len)?|tabletten|dieet|supplement(?:en)?|dosis|slaappillen)\b/i;
+/** Session AI (ZI10, G8): with no AI, an advice ask gets the guardrail in plain words, never the example list. */
+function adviceReply(q: string, lang: Lang): LocalReply | null {
+  if (MONEY_ADVICE.test(q)) return {kind: 'answer', text: say(lang, 'I can’t advise on buying, selling, staking or investing: that choice is yours. I can show the facts from your records here, for example “What is the price of BTC?” or “What is my net worth?”.', 'Ik kan geen advies geven over kopen, verkopen, staken of beleggen: die keuze is aan jou. Ik kan de feiten uit je gegevens laten zien, bijvoorbeeld “Wat is mijn nettovermogen?”.'), calls: []};
+  if (HEALTH_ADVICE.test(q)) return {kind: 'answer', text: say(lang, 'This is not medical advice, and I can’t give it: a doctor or pharmacist can help with that. I can show what your own records hold, for example “Did I sleep enough?”.', 'Dit is geen medisch advies, en dat kan ik niet geven: een arts of apotheker kan je daarbij helpen. Ik kan laten zien wat je eigen gegevens tonen, bijvoorbeeld “Heb ik genoeg geslapen?”.'), calls: []};
+  return null;
+}
 export function simpleCommand(question: string): LocalReply | null {
   const q = question.trim(), lang: Lang = questionLanguage(q) === 'nl' || NEW_HABIT_NL.test(q) ? 'nl' : 'en';
+  const advice = adviceReply(q, lang);
+  if (advice) return advice;
   const habit = NEW_HABIT_EN.exec(q) ?? NEW_HABIT_NL.exec(q);
   const title = habit?.[1]?.trim();
   if (title && !/^(?:a|an|een|it|het|to .*|for .*|om .*)$/i.test(title)) return newHabitAnswer(lang, title);

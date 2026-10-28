@@ -49,7 +49,9 @@ export function LongText({text}: {text: string}) {
   </div>;
 }
 export function TurnKind({cards}: {cards: boolean}) {
-  return <p className="ai-turn-kind" data-kind={cards ? 'change' : 'answer'}>{cards ? <>Proposed change<span className="ai-turn-kind-note"> · saved only when you add it</span></> : 'Answer'}</p>;
+  // The words are the eyebrow's generated content (read by screen readers, never part of the reply's own text, which
+  // copies, reads aloud and specs take from the reply alone).
+  return <p className="ai-turn-kind" data-kind={cards ? 'change' : 'answer'} data-label={cards ? 'Proposed change · saved only when you add it' : 'Answer'}/>;
 }
 export function FollowupChips({calls, asked, onAsk}: {calls: readonly FollowupCall[]; asked: string; onAsk: (question: string) => void}) {
   const questions = followupsFor(calls, asked);

@@ -119,8 +119,10 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const provider = !hosted && data.provider ? PROVIDERS[data.provider] : null;
   const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
   const connected = !!hosted || (data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model), bridge = !hosted && data.enabled && data.mode === 'subscription';
-  // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device.
-  const localOnly = !connected && !bridge;
+  // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device. Session AI (ZI4;
+  // Grok's N-067, N-022): a subscription (the copy path) is no AI connection either, so the device's answers, cards and
+  // examples stay; the copy path is offered above them instead of replacing them.
+  const localOnly = !connected;
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context, hosted}), runner = useProposals(), zigi = useZigiState();
   // Session X-Local Part 5b: auto-accept against the Health gate of this very moment (the page's consent, fail-closed).
   const autoAccept = useAutoAccept(context.consent.health);
@@ -271,7 +273,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     <ChatHeader titleId={titleId} figure={<ZigiAvatar state={zigi} size={phone || mini.win ? 28 : 40} decorative live/>} phone={phone} miniWindow={!!mini.win} miniSupported={mini.supported} expanded={expanded}
       // Panel polish round 2: the status is one line (the model name gives way first, the full text in its tooltip); with your
       // own AI connected it is also the model switcher, its chevron inline at the end.
-      status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet';
+      status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'answers on this device';
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
       premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
@@ -354,7 +356,7 @@ function Greeting() {
 }
 /** Before any AI is connected: the same short greeting; ZIGi answers lookups here, on this device, with no AI (Session V Part 3). */
 function LocalGreeting({sensitive}: {sensitive: boolean}) {
-  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{sensitive ? 'Hi, I’m ZIGi. On this private screen I read nothing from the page.' : 'Hi, I’m ZIGi. Ask about your records: I answer here, on this device, with no AI.'}</p></div></div>;
+  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{sensitive ? 'Hi, I’m ZIGi. On this private screen I read nothing from the page.' : 'Hi, I’m ZIGi. Ask about your records: I answer right here, privately, on this device.'}</p></div></div>;
 }
 /** Not connected: one compact line above the box, never over the chat (Session Z-Cloud Part 2). */
 function SetupLine({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {

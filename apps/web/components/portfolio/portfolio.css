@@ -202,3 +202,14 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
 /* Session AH (J17): inflows in green, outflows in the page's own ink. */
 .portfolio-transactions li[data-direction="in"] .portfolio-tx-amount { color: #7ee2b8; }
 .portfolio-since { margin: 4px 0 0; }
+
+/* Session AI (G12): the 30-second trade check-in, chips that wrap, 44 px targets. */
+.trade-checkin{margin:8px 0;border:1px solid var(--line,rgba(140,160,220,.25));border-radius:12px;padding:8px 12px}
+.trade-checkin summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:15px}
+.trade-checkin-row{border:0;margin:8px 0;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.trade-checkin-row legend{font-size:14px;margin-bottom:6px;padding:0}
+.trade-chip{display:inline-flex;align-items:center;min-height:44px;cursor:pointer}
+.trade-chip input{position:absolute;opacity:0;width:1px;height:1px}
+.trade-chip span{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.35));font-size:14px}
+.trade-chip input:checked+span{background:color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);border-color:var(--violet,#8b7cff)}
+.trade-chip input:focus-visible+span{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
