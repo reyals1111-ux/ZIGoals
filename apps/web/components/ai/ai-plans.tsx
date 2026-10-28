@@ -18,7 +18,7 @@ import {useDeviceRecord} from './use-device-record';
  */
 export default function AiPlans() {
   const record = useDeviceRecord(ZIGI_PLANS), [note, setNote] = useState(''), [confirm, setConfirm] = useState(false);
-  const plans = record.data.plans ?? [];
+  const plans = useMemo(() => record.data.plans ?? [], [record.data.plans]);
   // Session AI (feature 8): each plan's progress across the habits and the goal it added, read from the records.
   const habits = useHabits(), goals = useUnifiedGoals(), today = useLocalToday();
   const progress = useMemo(() => new Map(plans.map(p => [p.id, habits.loaded && goals.loaded ? planProgress(p, {habits: habits.data, goals: goals.goals, today}) : []])), [plans, habits.loaded, habits.data, goals.loaded, goals.goals, today]);
