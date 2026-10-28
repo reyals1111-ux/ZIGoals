@@ -37,6 +37,25 @@ test('the morning: the brief card on Today with its sections; Read aloud speaks 
   expect(bodies).toEqual([]);
 });
 
+test('Session AI (G9, feature 7): Why these lines? names each line\'s rule, and the morning check-in notes today\'s energy on this device', async ({page}) => {
+  const bodies = await server(page);
+  await seed(page, {extra, time: LATE_MORNING});
+  await page.goto('/app');
+  const card = await forYouCard(page, "ZIGi's morning brief");
+  await card.getByText('Why these lines?').click();
+  const why = card.locator('.zigi-brief-why');
+  await expect(why).toContainText('no AI used');
+  for (const line of await card.locator('.ai-brief-lines li, .zigi-brief-card > ul li').allTextContents()) {
+    if (line.startsWith('Still open today')) await expect(why).toContainText('Still open: your active habits scheduled today');
+    if (line.startsWith('One to start with')) await expect(why).toContainText('One to start with: the open habit with the longest streak');
+  }
+  // The Showcase already rated today's energy, so the check-in shows it and takes a new tap.
+  const checkIn = card.getByRole('group', {name: 'Your energy today'});
+  await checkIn.getByRole('radio', {name: /^2 of 5/}).check();
+  await expect(card.getByRole('status')).toContainText('Energy today: low');
+  await expect.poll(async () => ((await stored(page, 'zigoals:energy:v1')) as {days: Record<string, {energy: number}>} | null)?.days[DAY]?.energy).toBe(2);
+  expect(bodies).toEqual([]);
+});
 test('the evening: the recap from its time, above the morning brief; "Not today" hides only the recap; Settings turns it off', async ({page}) => {
   await seed(page, {extra, time: EVENING});
   await page.goto('/app');

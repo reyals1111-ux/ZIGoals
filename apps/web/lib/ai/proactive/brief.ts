@@ -28,6 +28,15 @@ export type BriefSection = {id: BriefSectionId; label: string; text: string};
 export type Brief = {due: string | null; win: string | null; focus: string | null; lines: string[]; sections?: BriefSection[]};
 export type BriefExtras = {snapshot?: EarnSnapshot | null; earning?: boolean; notes?: boolean};
 export const BRIEF_LABEL = 'Made on this device from your records · no AI used';
+/**
+ * Session AI (G9): the rule behind each of the brief's three lines, for its "Why these lines?" (the same rules as
+ * `morningBrief` below; a test keeps them in step).
+ */
+export const BRIEF_WHY = {
+  due: 'Still open: your active habits scheduled today that are not done yet.',
+  win: 'From yesterday: the longest daily streak yesterday continued; else the habits checked in yesterday; else yesterday\'s water, or the night that ended this morning (Health, only when shared with ZIGi).',
+  focus: 'One to start with: the open habit with the longest streak so far; else the goal whose next planned date is nearest this week.',
+} as const;
 const fmtLitres = (ml: number) => `${Number((ml / 1000).toFixed(1))} L`;
 /** The v2 sections of the morning: Checklist dots, meals planned, timers, goals needing a step, earning, one note. */
 function morningSections(env: ToolEnv, extras: BriefExtras): BriefSection[] {
