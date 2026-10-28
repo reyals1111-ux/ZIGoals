@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020918">
+  <meta name="description" content="How ZIGoals handles your data, in plain words: kept on your device, no ads, no trackers, no app analytics.">
+  <title>Privacy · ZIGoals</title>
+  <link rel="canonical" href="https://zigoals.app/privacy.html">
+  <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
+  <link rel="stylesheet" href="styles/base.css?v=v5-1">
+  <link rel="stylesheet" href="styles/legal.css?v=ai-1">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<main id="main" class="legal-page">
+<a class="legal-back" href="https://zigoals.app/">← ZIGoals</a>
+<h1>Privacy, in plain words</h1>
+<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 28 October 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
+
+<h2>The short version</h2>
+<ul>
+<li>What you enter (goals, wealth positions, habits, health records, notes, journal) is kept <strong>on your device</strong>, in your browser. The public Alpha has <strong>no accounts</strong> and no sync.</li>
+<li>It is <strong>not encrypted on your device</strong>. Anyone who can use your browser profile, or a harmful browser extension, could read it. Keep your device locked.</li>
+<li>ZIGoals has <strong>no ads, no trackers and no app analytics</strong>.</li>
+<li>Nothing is sent anywhere unless you use a feature that needs it, and then only what that feature needs (below).</li>
+</ul>
+
+<h2>What leaves your device, and when</h2>
+<ul>
+<li><strong>Loading the app:</strong> the web host (Cloudflare) receives ordinary page requests, with your IP address and browser details, like any website. A goal's page address carries its identifier, never its name, amount or notes.</li>
+<li><strong>Prices and market figures:</strong> the public identity of an asset (for example "bitcoin, in euros") goes to ZIGoals' market service and from there to CoinGecko. Never your amounts, addresses or names.</li>
+<li><strong>Wallets you connect or link:</strong> public addresses go to the chain services that answer for them (ZIGChain's own services, PublicNode and others for other chains), which can see your IP address. ZIGoals never holds your keys and never signs for you: your wallet does that, on your device, only when you approve.</li>
+<li><strong>ZIGi with your own AI (off until you connect one):</strong> when you ask ZIGi something, your message and the records it needs go straight from your browser to the AI provider <em>you</em> chose (for example Anthropic or OpenAI), under your own account and their privacy policy. You see which records go with each message and can remove them. Health, your journal and your notes go only when you allow each. A meal photo goes once to your provider and is not kept by ZIGoals. Without an AI, ZIGi answers on your device and sends nothing.</li>
+<li><strong>Your browser's speech recognition</strong> (when you tap the microphone): the browser maker's speech service may hear the audio (Chrome: Google; Safari: Apple). Nothing goes through ZIGoals.</li>
+<li><strong>Add money and other apps:</strong> these are links to independent providers (such as Ramp Network or Banxa) that open on their own site, under their own policy. ZIGoals never sees the payment or the identity check.</li>
+<li><strong>Feedback you send</strong> goes to ZIGoals with only what you type.</li>
+</ul>
+
+<h2>Your files and your choices</h2>
+<ul>
+<li><strong>Exports</strong> you download are files you control. Readable exports are <strong>not encrypted</strong>; encrypted backups are protected by their own secret, which only you have.</li>
+<li><strong>Showcase</strong> (the example data) lives in the current tab only and never mixes with your records.</li>
+<li><strong>Delete:</strong> clearing this site's data in your browser removes your records from this device. It cannot erase anything already public on a blockchain.</li>
+<li><strong>Health</strong> is never shared with ZIGi unless you switch it on; the journal and ZIGi's notes have their own switches too.</li>
+</ul>
+
+<h2>Later: accounts and encrypted sync</h2>
+<p>When accounts open, sync will be <strong>off until you turn it on</strong>, and your data will be encrypted on your device before it leaves, so ZIGoals cannot read your plans, habits or health records. This page will say so on the day it changes.</p>
+
+<h2>Children</h2>
+<p>ZIGoals is not meant for children under 16.</p>
+<p class="legal-meta">Questions or a privacy request: <a href="mailto:hello@zigoals.app">hello@zigoals.app</a>. Never send secrets, keys or personal health or financial details by email.</p>
+<p><a href="https://zigoals.app/privacy.html">Privacy</a> · <a href="https://zigoals.app/terms.html">Terms</a> · <a href="https://zigoals.app/">Home</a></p>
+</main>
+</body></html>

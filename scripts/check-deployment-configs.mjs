@@ -10,6 +10,9 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // package, a capture source tree, a build tool — stays out of the public site.
 const publishableAssetPatterns = new Set([
   "!index.html",
+  // Session AI (MO4, owner decision 20 Oct): the plain-language privacy and terms pages.
+  "!privacy.html",
+  "!terms.html",
   "!favicon.ico",
   "!styles",
   "!styles/*.css",
