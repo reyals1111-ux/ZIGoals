@@ -76,7 +76,7 @@ test('WE20: a linked wallet\'s reported ZIG imported into a real portfolio as a 
     localStorage.setItem(bk, JSON.stringify({version: 1, observations: {'w1|zigchain-1': {walletId: 'w1', chainId: 'zigchain-1', at, assets: [{id: 'uzig', symbol: 'ZIG', decimals: 6, amount: '250000000'}]}}}));
   }, [PORTFOLIO_KEY, LINKED_WALLETS_KEY, WALLET_BALANCES_KEY, at] as const);
   await page.goto('/app/portfolio');
-  const panel = page.getByRole('region', {name: 'From your wallets (read-only)'});
+  const panel = page.getByRole('region', {name: 'From your wallets and exchanges (read-only)'});
   await expect(panel).toContainText('250 ZIG');
   await panel.getByRole('button', {name: 'Import as a transfer in'}).click();
   await expect(panel).toContainText('imported, from wallet');
