@@ -5,9 +5,9 @@ import type {ZigiPersonality} from './ai/store/records';
  * keeps every sentence exactly as before; cheerful is a touch warmer; direct leads with the point. The facts, the
  * guardrails and what is written never change with the personality.
  */
-export const PERSONALITY_LABELS: Record<ZigiPersonality, string> = {calm: 'Calm', cheerful: 'Cheerful', direct: 'Direct'};
+export const PERSONALITY_LABELS: Record<ZigiPersonality, string> = {calm: 'Steady', cheerful: 'Cheerful', direct: 'Direct'}; // "Steady", not "Calm": the Animation choice beside it already has a "Calm"
 export const PERSONALITY_NOTES: Record<ZigiPersonality, string> = {
-  calm: 'Quiet and steady, short plain sentences (as ZIGi has always been).',
+  calm: 'Calm and quiet, short plain sentences (as ZIGi has always been).',
   cheerful: 'A little warmer and lighter, never pushy, never loud.',
   direct: 'The point first, no warm-up: the shortest kind answer.',
 };
