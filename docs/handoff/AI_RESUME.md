@@ -27,7 +27,7 @@ Read this first when resuming in a fresh workspace; then ADR-034 and the approve
 - B3/feature 5: the expense log, TIER 3 (stored format) `7f9bedb7` (Wealth → Spending, ZIGi cards and spending tool, money recap). Feature 6 journal + daily energy `f45597e6`.
 - A3-r1 fixes `3a264734`; memory page `84b9f9a4`; HE17 ranges `d30033a0`; voice `2ad899bc`; insights `1b4f69fa`; G9 + daily check-in `d7c6404e`; Life review values + G13 `68011a64`; linked plans `1a410b29`; mascot (personality, celebrate once) `1a161a3d`.
 - A3-r2: Sonnet 96.8 %, Haiku 95.3 % (analysis `<runs>/analysis/a3-r2-failures.md`); fixes `7e751764`, case corrections `562627ea`, chip gate + G10 `95253fa2`, UI key file `f46cab1c`.
-- Conversations 15/15 × 3 on both models through the UI (45/45 each; `<runs>/real-model/a3-conv`).
+- Conversations 15 × 3 through the UI: Sonnet 45/45, Haiku 44/45 (`ride-weekdays` once; `<runs>/real-model/a3-conv`).
 - B3: MO4 `12f444dd` (TIER 3 deploy config), sick/rest days `e75317e2`, tasks + J15 + WE20 + SE5 `b0e44cb2` (TIER 3 stored), WE21 + CO6 + share card + focus `c87be1d3`.
 - A3-r3 done (Sonnet 97.4 %, Haiku 96.2 %) from `/Users/AIUSER/Documents/ZIGoals-Claude-ai-a3` at `c87be1d3`.
 - B3 rest: J14 exchanges `9fb4812f` (TIER 3), SE3 + week grid `966cd39c`, G14 `d46e7b9d`, CI fixes `a3e3cb2b`, feature cases + fixes `7e44d275`.
@@ -35,10 +35,10 @@ Read this first when resuming in a fresh workspace; then ADR-034 and the approve
 - Harness/ledger: unique direct-record names `6f81275b`; ledger prices a batch per request `f7db1e10` (Haiku had been overstated ~5×); ZI6 Enter + short window, ZI3 tied streaks `1d9cc60d`; expense currency rule `5326355e`.
 
 ## Track A ledger total
-$57.74 of $95 by ledger.mjs at the A4 Opus launch (rebuild with ledger.mjs before every run).
+$86.19 of $95 by ledger.mjs — Track A closed. The API's workspace usage limit refused the last batch's 77 requests on 28 Oct (access again on 1 Nov); no further real-model run is planned.
 
 ## Next step
-Opus A4 pieces to finish; re-run the ai-f cases ×3 on Haiku and Sonnet after `5326355e`; failure analysis; REAL_MODEL_ROUND_AI.md and API_LEDGER.md (from `<runs>/ledger.md`); ADR closing table (draft in the scratchpad from a helper) and N39+; full local suite on the prod build (running); CI green; STATUS; PR out of Draft. Never `pnpm install` inside a run worktree: they share the main checkout's node_modules.
+Done: every part, the round report, the ledger, ADR-034's closing table, the STATUS entry (final commit), CI green on `d3430fcb`. The PR leaves Draft once CI is green on the final head. Owner: J14 real-key test per exchange, compare the Console with the ledger, deploy the landing; merge and deploy are the owner's.
 
 ## How to run a stage
 `<runs>/scripts/stage.sh <checkout> <stage> <model> <sets> <cases> <cap>` (background with nohup; the harness reads the key file itself). Sets: `corpus` = typed, af, aa, spoken, ai. Check the ledger first: `node scripts/zigi/ledger.mjs --runs <runs> --cap 95 --check <forecast> --title 'Session AI'`.

@@ -1,6 +1,6 @@
 # ADR-034: Session AI, "ZIGi, the best companion": session decisions
 
-Status: **In progress** on `feature/session-ai-zigi`, from `main` `80570b5` (Merge #96, Session AH-FIX; live as Alpha #50), in a local Claude Code session on the owner's Mac (Opus 5.5). This record holds the owner's decisions at plan approval, the owner's amendments, every decision the session took without asking (N1…), and the closing table for every ID in the brief. Resume point: `docs/handoff/AI_RESUME.md`.
+Status: **Complete** (not merged, not deployed) on `feature/session-ai-zigi`, from `main` `80570b5` (Merge #96, Session AH-FIX; live as Alpha #50), in a local Claude Code session on the owner's Mac (Opus 5.5). This record holds the owner's decisions at plan approval, the owner's amendments, every decision the session took without asking (N1…), and the closing table for every ID in the brief. Resume point: `docs/handoff/AI_RESUME.md`.
 
 ## Owner decisions (2026-10-28, plan approval)
 - **The brief:** Session AI, "ZIGi, the best companion". Two tracks side by side. Track A: real-model testing of ZIGi on the owner's API credits (Batch API, prompt caching, a ledger, hard cap $95 with at least $7 reserve; the $83.74 promotional credit expires 31 Oct 2026 12:00 UTC and is spent first). Track B: every ZIGi fix (B1), nine new ZIGi features and the mascot upgrade (B2), Session AH's upgrade list and the competitor gaps (B3), and a final sweep (B4). No API credits in Track B.
