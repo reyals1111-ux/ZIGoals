@@ -32,6 +32,7 @@ import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema, emptyHabitHealthLinks} f
 import {summarizeBackupModules} from '../vault/backup-preview';
 import {WORKOUTS} from '../workouts/schema';
 import {MONEY_LOG} from '../money-log/schema';
+import {MEAL_ESTIMATES} from '../meal-estimates/schema';
 import {JOURNAL} from '../journal/schema';
 import {ENERGY} from '../energy/schema';
 
@@ -78,6 +79,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('moneyLog', 'Spending', 'Goals and Wealth', MONEY_LOG),
   dev('journal', 'Journal', 'Today and Life', JOURNAL),
   dev('energy', 'Daily energy', 'Health', ENERGY),
+  dev('mealEstimates', 'Meal estimate ranges', 'Health', MEAL_ESTIMATES, true),
   dev('portfolio', 'Portfolio', 'Goals and Wealth', spec(PORTFOLIO_KEY, portfolioDataSchema, emptyPortfolioData)),
   dev('habitExtras', 'Habit extras', 'Habits', HABIT_EXTRAS),
   dev('game', 'Levels and streak shields', 'Habits', GAME),

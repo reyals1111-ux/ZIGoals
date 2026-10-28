@@ -29,6 +29,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   moneyLog: ['Spending', 'Wealth'],
   journal: ['Journal', 'Today'],
   energy: ['Daily energy', 'Health'],
+  mealEstimates: ['Meal estimate ranges', 'Health'],
   todayCards: ['Today\'s cards kept on this device', 'Today'],
   // Session AA-Local (ADR-022 B1, merged second): the eleven device-only keys of lib/aa-device-keys.ts.
   habitExtras: ['Habit extras: areas, quit costs, bells, folds', 'Habits'], routineRun: ['A routine in progress', 'Habits'], game: ['The game layer: XP, quests, badges, freezes', 'Journey'],

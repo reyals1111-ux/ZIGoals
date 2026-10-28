@@ -68,6 +68,8 @@ import {MONEY_LOG_KEY} from '../../money-log/schema';
 import {expenseCategory, incomeCategory} from '../../money-log/category';
 // Session AI: the expense log's writer, registered before any money card can be added.
 import './money-writes';
+import './meal-estimate-writes';
+import {MEAL_ESTIMATES_KEY, NUTRIENT_RANGES, middleOf, rangeText} from '../../meal-estimates/schema';
 
 /**
  * From a validated proposal to a card and two writes (ADR-012, Part 5). `write` runs at confirm time on the latest
@@ -294,12 +296,17 @@ export function planAction(action: Action, env: Env): PlanResult {
           write: s => ({health: logHealthItem(s.health, {id: entryId, sourceId: found.id, sourceKind, date: day.day, meal: action.meal, quantityMilli}, at)}),
           undo: {label: 'Remove this diary entry', write: s => ({health: removeHealthItem(s.health, 'diary', entryId)}), unchanged: (after, current) => same(after.health.diary.find(e => e.id === entryId), current.health.diary.find(e => e.id === entryId))}, activity: {id: entryId, title: `${action.meal}: ${source.name}`}}};
       }
-      const estimate = action.estimate ?? {}, foodId = healthId(), serving = estimate.serving_g ?? 100, byVolume = estimate.serving_ml !== undefined;
+      // Session AI (feature 1, HE17): a range per nutrient; its middle is the value saved where the AI gave none.
+      const given = action.estimate ?? {}, ranges = given.range ?? {}, ranged = NUTRIENT_RANGES.filter(k => ranges[k] !== undefined);
+      const estimate = {...given, ...Object.fromEntries(ranged.filter(k => given[k] === undefined).map(k => [k, middleOf(k, ranges[k]!)]))} as typeof given;
+      const foodId = healthId(), serving = estimate.serving_g ?? 100, byVolume = estimate.serving_ml !== undefined;
+      const shown = (k: (typeof NUTRIENT_RANGES)[number], value: number | undefined, unit: string) => value === undefined ? 'unknown' : ranges[k] ? `${rangeText(k, ranges[k]!)}${unit} (saved as ${k === 'kcal' ? Math.round(value) : num(value)}${unit})` : `${k === 'kcal' ? Math.round(value) : num(value)}${unit}`;
       const mg = (g: number | undefined) => g === undefined ? null : Math.round(g * 1000);
       // Session X-Local Part 6d: a serving given in millilitres (a drink) makes a food measured by volume, as create-food does.
       const food = foodSchema.parse({id: foodId, name: action.name, brand: 'AI estimate', ...(byVolume ? {servingGrams: null, servingMl: estimate.serving_ml} : {servingGrams: serving}), nutrients: {kcal: estimate.kcal === undefined ? null : Math.round(estimate.kcal), proteinMg: mg(estimate.protein_g), carbsMg: mg(estimate.carbs_g), fatMg: mg(estimate.fat_g)}, createdAt: at, updatedAt: at});
-      const nutrientLines = [`kcal ${estimate.kcal === undefined ? 'unknown' : Math.round(estimate.kcal)}`, `protein ${estimate.protein_g === undefined ? 'unknown' : `${num(estimate.protein_g)} g`}`, `carbs ${estimate.carbs_g === undefined ? 'unknown' : `${num(estimate.carbs_g)} g`}`, `fat ${estimate.fat_g === undefined ? 'unknown' : `${num(estimate.fat_g)} g`}`];
-      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Log a food with an AI estimate', lines: [`${action.meal}: ${action.name} × ${num(action.quantity, 2)} serving${action.quantity === 1 ? '' : 's'}`, `AI estimate per serving: ${nutrientLines.join(', ')}; unknown stays unknown, never 0`, byVolume ? `Serving ${num(estimate.serving_ml!)} mL` : estimate.serving_g === undefined ? `Serving weight not given: recorded as ${serving} g per serving (an AI estimate you can edit in Foods & recipes)` : `Serving ${serving} g`, 'Added to Foods & recipes as "AI estimate" so you can correct it later'], where: 'Health · Diary and Foods & recipes', day: dayLabel(day.day, env.healthDay), estimate: true},
+      const nutrientLines = [`kcal ${shown('kcal', estimate.kcal, '')}`, `protein ${shown('protein_g', estimate.protein_g, ' g')}`, `carbs ${shown('carbs_g', estimate.carbs_g, ' g')}`, `fat ${shown('fat_g', estimate.fat_g, ' g')}`];
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Log a food with an AI estimate', lines: [`${action.meal}: ${action.name} × ${num(action.quantity, 2)} serving${action.quantity === 1 ? '' : 's'}`, `AI estimate per serving: ${nutrientLines.join(', ')}; unknown stays unknown, never 0`, byVolume ? `Serving ${num(estimate.serving_ml!)} mL` : estimate.serving_g === undefined ? `Serving weight not given: recorded as ${serving} g per serving (an AI estimate you can edit in Foods & recipes)` : `Serving ${serving} g`, ...(ranged.length ? [`${given.from === 'photo' ? 'From your photo: a' : 'A'} range, because a meal is never one exact number; edit any value before you add it`] : []), 'Added to Foods & recipes as "AI estimate" so you can correct it later'], where: 'Health · Diary and Foods & recipes', day: dayLabel(day.day, env.healthDay), estimate: true},
+        ...(ranged.length ? {device: {key: MEAL_ESTIMATES_KEY, patch: {add: {foodId, estimate: {ranges: Object.fromEntries(ranged.map(k => [k, ranges[k]])), source: given.from === 'photo' ? 'photo' : 'chat', at}}}, label: 'The estimate\'s ranges, kept beside the food'}} : {}),
         write: s => ({health: logHealthItem(saveFood(s.health, food), {id: entryId, sourceId: foodId, sourceKind: 'food', date: day.day, meal: action.meal, quantityMilli}, at)}),
         undo: {label: 'Remove this entry and the estimated food', write: s => ({health: removeHealthItem(removeHealthItem(s.health, 'diary', entryId), 'foods', foodId)}), unchanged: (after, current) => same(after.health.diary.find(e => e.id === entryId), current.health.diary.find(e => e.id === entryId)) && same(after.health.foods.find(f => f.id === foodId), current.health.foods.find(f => f.id === foodId))}, activity: {id: entryId, title: `${action.meal}: ${action.name}`}}};
     }

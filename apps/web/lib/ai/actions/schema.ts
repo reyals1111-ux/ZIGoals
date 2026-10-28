@@ -44,6 +44,8 @@ const habitName = named('h1, h2'), goalName = named('g1');
 const text = (max: number) => z.string().trim().min(1).max(max);
 const positive = z.number().finite().positive();
 const grams = z.number().finite().min(0).max(100_000);
+/** A [low, high] range (Session AI, HE17): both at least 0, the low end first. */
+const pair = (max: number) => z.tuple([z.number().finite().min(0).max(max), z.number().finite().min(0).max(max)]).refine(([lo, hi]) => lo <= hi, 'Give the low end of a range first.');
 const clock = z.string().trim().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'A time is HH:MM on a 24-hour clock.');
 /** An AI's estimate of nutrients (per serving, or per 100 g for a recipe ingredient); a value it is unsure of stays out. */
 const nutrients = z.strictObject({kcal: z.number().finite().min(0).max(100_000).optional(), protein_g: grams.optional(), carbs_g: grams.optional(), fat_g: grams.optional()});
@@ -119,7 +121,11 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-steps'), steps: z.number().int().min(0).max(1_000_000).optional(), minutes: z.number().int().min(0).max(1440).optional(), day: daySchema})
     .refine(a => (a.steps ?? 0) > 0 || (a.minutes ?? 0) > 0, 'Say the steps or the minutes of the walk.'),
   z.strictObject({kind: z.literal('log-food'), name: text(100), meal: z.enum(MEALS), quantity: positive.max(100).default(1), food: handleSchema.optional(),
-    estimate: z.strictObject({kcal: z.number().finite().min(0).max(100_000).optional(), protein_g: grams.optional(), carbs_g: grams.optional(), fat_g: grams.optional(), serving_g: positive.max(100_000).optional(), serving_ml: positive.max(100_000).optional()})
+    estimate: z.strictObject({kcal: z.number().finite().min(0).max(100_000).optional(), protein_g: grams.optional(), carbs_g: grams.optional(), fat_g: grams.optional(), serving_g: positive.max(100_000).optional(), serving_ml: positive.max(100_000).optional(),
+      /** Session AI (feature 1, HE17): each nutrient as [low, high] per serving; the middle is saved where no value is given. */
+      range: z.strictObject({kcal: pair(100_000).optional(), protein_g: pair(100_000).optional(), carbs_g: pair(100_000).optional(), fat_g: pair(100_000).optional()}).optional(),
+      /** Where the estimate came from: the meal photo the person attached, or their words. */
+      from: z.enum(['photo', 'words']).optional()})
       .refine(e => e.serving_g === undefined || e.serving_ml === undefined, 'Give the serving in grams or in millilitres, not both.').optional(), day: daySchema}),
   z.strictObject({kind: z.literal('log-measurement'), kind_of: z.enum(MEASUREMENT_KINDS), value: positive.max(500), unit: z.enum(['cm', 'in']), day: daySchema}),
   z.strictObject({kind: z.literal('check-in'), habit: habitName, value: z.number().finite().min(0).max(1_000_000_000).optional(),
