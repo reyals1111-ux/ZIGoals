@@ -70,3 +70,18 @@ test('a plan larger than ten steps is cut, and the cut is said; Add all adds the
   // The Checklist items and the Remember card are not in Add all (forms and device records wait for their own tap).
   await expect(panel(page).locator('.ai-card').filter({hasText: 'Laundry'}).getByRole('button', {name: 'Apply'})).toBeVisible();
 });
+test('Session AI (feature 8): a plan shows how it is going across the habit and the goal it added', async ({page}) => {
+  const at = '2026-10-15T08:00:00.000Z';
+  const plans = {version: 1, plans: [{id: 'b_linked', title: 'Read more, save more', createdAt: at, updatedAt: at, items: [
+    {sig: '0000000a', kind: 'create-habit', label: 'Create the habit "Read"', outcome: 'added'},
+    {sig: '0000000b', kind: 'create-goal', label: 'Create the goal "Emergency fund"', outcome: 'added'},
+    {sig: '0000000c', kind: 'create-habit', label: 'Create the habit "Juggle"', outcome: 'dismissed'},
+  ], done: true}]};
+  await seed(page, {extra: {[ZIGI_PLANS_KEY]: JSON.stringify(plans)}});
+  await page.goto('/app/settings#zigi-plans');
+  const going = page.getByRole('group', {name: 'How "Read more, save more" is going'});
+  await expect(going.getByRole('listitem')).toHaveCount(2);
+  await expect(going.getByRole('listitem').filter({hasText: 'Read'})).toContainText(/Last 7 days: \d+ of \d+ scheduled days? done\./);
+  await expect(going.getByRole('listitem').filter({hasText: 'Emergency fund'})).toContainText(/% of the target so far\.|Completed\./);
+  await expect(going.getByRole('link', {name: 'Read'})).toHaveAttribute('href', '/app/habits');
+});
