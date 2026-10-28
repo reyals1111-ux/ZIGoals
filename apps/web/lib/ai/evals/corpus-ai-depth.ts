@@ -199,11 +199,11 @@ export const DEPTH: readonly ModelCase[] = D;
   );
 }
 
-// ---- 4. several items in one line (no expense card exists: the money part gets words, not a card) ----
+// ---- 4. several items in one line (A3-r2: money the person says they spent is a log-expense card, the expense log) ----
 {
   const multi = kase('multi', 'multi');
   D.push(
-    multi('pushups-water-expense', 'today', '30 push-ups, 500 ml water, spent 12 euro on lunch', {kinds: ['counter', 'check-in', 'log-water', 'log-food'], minCards: 2, maxCards: 4}, KEY),
+    multi('pushups-water-expense', 'today', '30 push-ups, 500 ml water, spent 12 euro on lunch', {kinds: ['counter', 'check-in', 'log-water', 'log-food', 'log-expense'], minCards: 2, maxCards: 4, fields: [{kind: 'log-expense', amount: 12}]}, KEY),
     multi('breakfast-water-steps', 'health', 'Oatmeal for breakfast, two glasses of water and 6000 steps so far', {kinds: ['log-food', 'log-water', 'log-steps']}, {...KEY, mode: 'log'}),
     multi('read-walk-meditate', 'habits', 'Read 20 min, walked, meditated 10 min', {kinds: ['check-in', 'log-meditation'], minCards: 3, maxCards: 4}, KEY),
     multi('weight-waist', 'health', 'Weight 78.0 kg and waist 83 cm this morning', {kinds: ['log-weight', 'log-measurement']}),
@@ -215,7 +215,7 @@ export const DEPTH: readonly ModelCase[] = D;
     multi('habit-reminder-goal', 'today', 'New habit: journal every evening, remind me at 21:30, and a goal: 800 euros for a bike by May', {kinds: ['create-habit', 'create-reminder', 'create-goal']}, {...KEY, mode: 'plan'}),
     multi('log-and-grocery', 'health', 'Log a banana and add bananas and oat milk to my groceries', {kinds: ['log-food', 'grocery-item']}),
     multi('note-milestone', 'goals', 'Japan goal: add a note "rail pass booked" and a milestone "hotels paid" worth 600', {kinds: ['add-goal-note', 'add-milestone']}),
-    multi('paid-coffee-water', 'today', 'Paid 4 euro for a coffee and drank 300 ml water', {kinds: ['log-food', 'log-water'], minCards: 1, maxCards: 2}),
+    multi('paid-coffee-water', 'today', 'Paid 4 euro for a coffee and drank 300 ml water', {kinds: ['log-food', 'log-water', 'log-expense'], minCards: 1, maxCards: 2, fields: [{kind: 'log-expense', amount: 4}]}),
     multi('meditate-water-steps', 'today', 'meditated 10 min, 1 l water, 10k steps', {kinds: ['check-in', 'log-meditation', 'log-water', 'log-steps'], minCards: 3, maxCards: 4}),
     multi('fast-water', 'health', 'Start a 16 hour fast and log a glass of water', {kinds: ['start-fast', 'log-water']}),
     multi('two-days', 'health', 'Yesterday 8000 steps, today 5000 steps', {kinds: ['log-steps', 'log-steps'], fields: [{kind: 'log-steps', steps: 8000, day: 'yesterday'}, {kind: 'log-steps', steps: 5000}]}, KEY),
@@ -223,7 +223,7 @@ export const DEPTH: readonly ModelCase[] = D;
     multi('five-items', 'health', 'Log: 2 eggs, toast, coffee, 250 ml orange juice, 1 glass of water', {kinds: ['log-food', 'log-water'], minCards: 4, maxCards: 5}, {mode: 'log'}),
     multi('tick-and-ask', 'habits', 'Tick off Read and tell me my Read streak', {kinds: ['check-in'], toolsAny: HABIT_READS}),
     multi('mood-sleep-water', 'today', 'Mood 4, slept 7 hours, woke at 7, 3 glasses of water', {kinds: ['log-mood', 'log-sleep', 'log-water']}), // A3-r1: log-sleep needs the wake time (the prompt: never guess one), so the ask gives it
-    multi('pushups-water-nl', 'today', '30 push-ups, 500 ml water en 12 euro uitgegeven aan lunch', {kinds: ['counter', 'check-in', 'log-water', 'log-food'], minCards: 2, maxCards: 4}, NL_KEY),
+    multi('pushups-water-nl', 'today', '30 push-ups, 500 ml water en 12 euro uitgegeven aan lunch', {kinds: ['counter', 'check-in', 'log-water', 'log-food', 'log-expense'], minCards: 2, maxCards: 4, fields: [{kind: 'log-expense', amount: 12}]}, NL_KEY),
     multi('ontbijt-nl', 'health', 'Havermout als ontbijt, twee glazen water en tot nu toe 6000 stappen', {kinds: ['log-food', 'log-water', 'log-steps']}, {...NL_KEY, mode: 'log'}),
     multi('checkins-nl', 'habits', 'Gedaan: Read en Meditate. Sla Exercise over, mijn knie doet pijn.', {kinds: ['check-in', 'check-in', 'skip']}, NL_KEY),
     multi('gewicht-taille-nl', 'health', 'Gewicht 78,0 kg en taille 83 cm vanochtend', {kinds: ['log-weight', 'log-measurement']}, NL),

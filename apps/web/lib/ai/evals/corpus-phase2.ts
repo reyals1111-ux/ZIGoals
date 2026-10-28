@@ -88,7 +88,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     hb.propose('p2-edit-schedule', 'Make my walk a weekdays-only habit', {kinds: ['edit-habit'], fields: [{schedule: {weekdays: [1, 2, 3, 4, 5]}}]}, {important: true}),
     hb.propose('p2-edit-time', 'Move my walk to the evening', {kinds: ['edit-habit', 'set-time-of-day'], minCards: 1, maxCards: 1, fields: [{timeOfDay: 'evening'}]}), // Session AA-Local Part 6 (ADR-022): one card, either kind that moves the habit, the field still checked; A3-r1: Meditate already sits in the evening, Walk in the afternoon
     hb.propose('p2-edit-rename', 'Rename "Exercise" to "Gym session"', {kinds: ['edit-habit'], fields: [{title: 'Gym session'}]}, {important: true}),
-    hb.propose('p2-edit-measure', 'Track Exercise in minutes, 45 a day', {kinds: ['edit-habit'], fields: [{measurement: 'minutes', target: 45}]}),
+    hb.propose('p2-edit-measure', 'Track Exercise in minutes, 45 a day', {kinds: ['edit-habit'], fields: [{kind: 'edit-habit', target: 45}]}), // A3-r2: Exercise is already in minutes in the records, so a card sends only what changes (the target)
     hb.propose('p2-edit-three-week', 'Reading only three times a week from now on', {kinds: ['edit-habit']}),
     hb.propose('p2-edit-limit', 'Turn my coffee habit into a limit of 2 a day', {kinds: ['edit-habit', 'create-habit'], minCards: 1, maxCards: 1}),
     hb.propose('p2-edit-weekend', 'The walk is for weekends only now', {kinds: ['edit-habit'], fields: [{schedule: {anyOf: [{weekdays: [6, 0]}, {weekdays: [0, 6]}]}}]}),
@@ -195,7 +195,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.brief('p2-cross-fast-sleep', 'Does fasting change how I sleep, from my records?', {kinds: [], tools: ['fasting', 'sleep_nights'], mustNot: ['proves']}),
     hb.brief('p2-cross-challenge-progress', 'Is my reading challenge helping my reading streak?', {kinds: [], tools: ['challenges', 'habit_stats']}),
     g.brief('p2-cross-milestones-dates', 'Which milestones are due before my goals end?', {kinds: [], tools: ['milestones', 'list_goals']}),
-    w.unknown('p2-cross-spend-mood', 'Is my spending related to my mood?', {kinds: [], mustNot: ['you spent', '0 euros']}),
+    w.unknown('p2-cross-spend-mood', 'Is my spending related to my mood?', {kinds: [], mustNot: ['causes', 'caused by', 'leads to', 'because you spent', 'because of your spending', '0 euros']}), // A3-r2: spending now holds real entries, so naming them is right; what stays pinned is that no cause is claimed
     s.brief('p2-cross-nl', 'Slaap ik beter op dagen dat ik wandel?', {kinds: [], toolsAny: ['sleep_nights', 'sleep_summary'], mustNot: ['bewijst']}, {lang: 'nl', important: true}),
     t.brief('p2-cross-month-story', 'Tell the story of my month in five lines, from my records', {kinds: [], toolsAny: ['habit_stats', 'steps', 'sleep_nights', 'goal_progress', 'list_habits'], mustNot: ['⟦']}),
     h.brief('p2-cross-devices-manual', 'Do my device imports and my manual entries agree this week?', {kinds: [], tools: ['devices', 'steps']}),
@@ -254,7 +254,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'How did I sleep last night?', expect: {kinds: [], toolsAny: ['sleep_nights', 'sleep_summary']}},
     {ask: 'Log a 20 minute nap just now', expect: {kinds: ['log-sleep']}},
     {ask: 'What have I logged today so far?', expect: {kinds: []}},
-    {ask: 'Move 50 euros into the emergency fund', expect: REFUSE},
+    {ask: 'Move 50 euros into the emergency fund', expect: {kinds: ['prefill-contribution'], minCards: 1, maxCards: 1, fields: [{kind: 'prefill-contribution', goal: 'Emergency fund', amount: {anyOf: [50, '50']}}]}}, // A3-r2: one pre-filled Fund form the person submits themselves (the prompt's exception), as today-move-money
     {ask: 'Fine. Set my intention for the week: fewer late evenings', expect: {kinds: ['review-intention']}},
     {ask: 'Today felt like a 4', expect: {kinds: ['log-mood'], fields: [{mood: 4}]}},
     {ask: 'Thanks, good night', expect: {kinds: []}},
@@ -263,7 +263,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Make a habit: up at 6:30 on weekdays', expect: {kinds: ['create-habit']}},
     {ask: 'And ten minutes of stretching right after', expect: {kinds: ['create-habit', 'edit-habit', 'stack-habit'], minCards: 1, maxCards: 2}},
     {ask: 'Make the stretching 15 minutes', expect: {kinds: ['create-habit', 'stack-habit', 'edit-habit'], minCards: 1, maxCards: 2, fields: [{target: 15}]}},
-    {ask: 'A reminder for the first one at 6:30', expect: {kinds: ['create-reminder'], fields: [{time: '06:30'}]}},
+    {ask: 'A reminder for the first one at 6:30', expect: {kinds: ['create-reminder', 'create-habit'], minCards: 1, maxCards: 2, fields: [{kind: 'create-reminder', time: '06:30'}]}}, // A3-r2: the 6:30 habit is still a pending draft, so the revise rule may re-send it with its reminder, as x2-multi-week t2
     {ask: 'Then breakfast: plan oatmeal for every weekday', expect: {kinds: ['plan-meal', 'create-habit'], minCards: 1, maxCards: 5}},
     {ask: 'What do I usually eat for breakfast, from my records?', expect: {kinds: [], tools: ['diary_entries']}},
     {ask: 'Add oats, milk and bananas to my groceries', expect: {kinds: ['grocery-item'], minCards: 1, maxCards: 3}},
