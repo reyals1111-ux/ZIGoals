@@ -5,7 +5,7 @@ import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo
 import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
-import type {ChatTurn} from '../../lib/ai/chats';
+import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
 import {usageLine} from '../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
 import {ANSWER_LABEL, SPECIALISTS} from '../../lib/ai/context/specialists';
@@ -65,7 +65,7 @@ import {HistoryView} from './history-view';
 import {ShortcutsSheet} from './shortcuts-sheet';
 import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
-import {FeedbackButtons, FollowupChips, SourceLine, TurnTime, TurnKind} from './turn-extras';
+import {FeedbackButtons, FollowupChips, SourceLine, TurnTime, TurnKind, LongText} from './turn-extras';
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
@@ -468,7 +468,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   // An earlier reply shows its buttons on hover or focus, or after a tap on it (a phone has no hover).
   const [shown, setShown] = useState(false);
   // "Edit" sits just after the message, not inside it: the message stays only the person's own words.
-  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
+  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   const copy = () => { copyText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
@@ -686,8 +686,9 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {photoNote && <p className="ai-note" role="status">{photoNote}</p>}
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
+    {text.length >= INPUT_COUNTER_FROM && <p className="ai-note ai-length" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters. A shorter message gets a better answer.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;

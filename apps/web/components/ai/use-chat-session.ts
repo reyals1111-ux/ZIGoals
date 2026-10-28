@@ -44,6 +44,7 @@ import {localDate} from '../../lib/local-date';
 import {applyDayCue} from '../../lib/ai/actions/day-cue';
 import {reviseEdits} from '../../lib/ai/actions/revise';
 import {answerOnly, stripDeclinedBlocks} from '../../lib/ai/actions/decline';
+import {followUpQuestion} from '../../lib/ai/local-answers/followup';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -411,6 +412,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const env = localEnv();
     let reply: LocalReply = {kind: 'none'};
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
+    // Session AI (G4): "and yesterday?" after a question the device answered is that question for yesterday.
+    if (reply.kind === 'none' && env) { const previous = [...chatRef.current.turns].reverse().find(t => t.role === 'user')?.text ?? null, again = followUpQuestion(text, previous); if (again) { try { const r = localAnswer(again, env); if (r.kind === 'answer' || r.kind === 'choices') reply = r; } catch { /* the question as typed stands */ } } }
     if (reply.kind === 'none' && connected) return send(text, options);
     if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
     // Session AB-Cloud Part 9 (ADR-023 C30): without a model, the steps for a "create/plan" ask, or the examples in the question's language.

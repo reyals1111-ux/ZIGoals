@@ -21,13 +21,28 @@ export function stem(word: string): string {
   return w;
 }
 export const tokens = (value: string): string[] => normalise(value).split(' ').filter(t => t && !STOP.has(t));
+/**
+ * Session AI (G4; Grok's BUG-056): one slip of the keyboard in a longer word still names the record ("Meditaet",
+ * "Exercsie"): one letter added, dropped, changed, or two neighbours swapped, in words of six letters or more.
+ */
+function oneSlip(a: string, b: string): boolean {
+  if (a.length < 6 || b.length < 6 || Math.abs(a.length - b.length) > 1 || a === b) return false;
+  let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  if (a.length === b.length) return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
+  const [long, short] = a.length > b.length ? [a, b] : [b, a];
+  return long.slice(i + 1) === short.slice(i);
+}
 function score(title: string, query: string): number {
   const t = normalise(title), q = normalise(query);
   if (!q) return 0;
   if (t === q) return 100;
-  const titleStems = tokens(title).map(stem), queryStems = tokens(query).map(stem);
+  // Session AI (G3): the exact name said with small words around it ("the Holiday fund goal", "mijn Holiday fund") is still
+  // that name, above any partial match, so a name that is exact is never called ambiguous with a longer or similar one.
+  const titleWords = tokens(title), queryWords = tokens(query);
+  if (titleWords.length && titleWords.join(' ') === queryWords.join(' ')) return 95;
+  const titleStems = titleWords.map(stem), queryStems = queryWords.map(stem);
   if (!queryStems.length) return 0;
-  const hits = queryStems.filter(qs => titleStems.some(ts => ts === qs || (qs.length >= 4 && (ts.startsWith(qs) || qs.startsWith(ts)) && Math.min(ts.length, qs.length) >= 4)));
+  const hits = queryStems.filter(qs => titleStems.some(ts => ts === qs || (qs.length >= 4 && (ts.startsWith(qs) || qs.startsWith(ts)) && Math.min(ts.length, qs.length) >= 4) || oneSlip(ts, qs)));
   if (!hits.length) return 0;
   // All of the question's words found, and how much of the title they cover.
   return hits.length === queryStems.length ? 50 + Math.round(30 * hits.length / Math.max(titleStems.length, 1)) : 10 * hits.length;

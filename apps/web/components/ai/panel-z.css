@@ -193,6 +193,10 @@
 .ai-chat .ai-turn-kind{margin:0 0 4px;font-size:14px;line-height:1.3;font-weight:600;letter-spacing:.02em;color:var(--muted,#a1afc8)}
 .ai-chat .ai-turn-kind[data-kind=change]{color:var(--text,#e8eefc)}
 .ai-chat .ai-turn-kind-note{font-weight:500;color:var(--muted,#a1afc8)}
+/* Session AI (ZI15): a long message folded after 600 characters; the length counter above the box. */
+.ai-chat .ai-long-text p{margin:0}
+.ai-chat .ai-long-toggle{margin-top:4px;font-size:14px}
+.ai-chat .ai-length{margin:0 0 6px;font-size:14px}
 .ai-chat .ai-turn-source{margin:6px 0 0;font-size:14px;line-height:1.35;color:var(--muted,#a1afc8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* The reply's row: the time on the left, icon buttons on the right, one line, each a 44 px target. */
 .ai-chat .ai-reply-row{display:flex;flex-wrap:nowrap;align-items:center;gap:0;margin:0;min-width:0;max-width:100%}

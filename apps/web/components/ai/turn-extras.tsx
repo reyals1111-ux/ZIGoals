@@ -1,5 +1,5 @@
 'use client';
-import type {ReactNode} from 'react';
+import {useState, type ReactNode} from 'react';
 import {followupsFor, type FollowupCall} from '../../lib/ai/followups';
 import {ReplyIcon} from './reply-actions';
 import {formatDateTime, formatTime} from '../../lib/visual-format';
@@ -35,6 +35,19 @@ export function SourceLine({short, full, extra, deeper = false, time}: {short: s
  * cards of one that proposes a change, which is saved only when the person adds it. One short eyebrow line, never a
  * colour alone (the words carry it).
  */
+/**
+ * Session AI (ZI15, G5; Grok's L-003): a long message is not echoed in full. Up to 1,200 characters show as typed; a
+ * longer one shows its first 600 and a button to read the rest (and to fold it again). The words are all still there.
+ */
+export const LONG_TEXT_FROM = 1_200, LONG_TEXT_SHOWN = 600;
+export function LongText({text}: {text: string}) {
+  const [open, setOpen] = useState(false);
+  if (text.length <= LONG_TEXT_FROM) return <p>{text}</p>;
+  return <div className="ai-long-text">
+    <p>{open ? text : `${text.slice(0, LONG_TEXT_SHOWN).trimEnd()}…`}</p>
+    <button type="button" className="text-link ai-long-toggle" aria-expanded={open} onClick={() => setOpen(v => !v)}>{open ? 'Show less' : `Show all ${text.length.toLocaleString('en-US')} characters`}</button>
+  </div>;
+}
 export function TurnKind({cards}: {cards: boolean}) {
   return <p className="ai-turn-kind" data-kind={cards ? 'change' : 'answer'}>{cards ? <>Proposed change<span className="ai-turn-kind-note"> · saved only when you add it</span></> : 'Answer'}</p>;
 }
