@@ -15,6 +15,7 @@ import {score, type Observed, type Score} from '../lib/ai/evals/score';
 import type {Expect} from '../lib/ai/evals/corpus';
 import {estimateCost} from '../lib/ai/pricing';
 import {AI_USAGE_KEY} from '../lib/ai/store/keys';
+import {readKeyFile} from '../lib/ai/evals/key-file';
 
 /**
  * Shared helpers of the real-model browser specs (Session X-Local Part 6c): the real panel against a real local model
@@ -87,8 +88,8 @@ async function sealKeyInApp(page: Page, key: string, scope = 'local') {
 }
 export async function seedReal(page: Page, {health = true, log = false}: {health?: boolean; log?: boolean} = {}) {
   if (PROVIDER === 'anthropic') {
-    const key = process.env.ANTHROPIC_TEST_KEY ?? '';
-    if (!key) throw new Error('ANTHROPIC_TEST_KEY is not in this process\'s environment.');
+    // Session AI (ADR-034 N6): the key is read from its own 0600 file by this process (never a shell variable), kept in memory only.
+    const key = readKeyFile();
     await sealKeyInApp(page, key);
   }
   await page.goto('/app/settings');
