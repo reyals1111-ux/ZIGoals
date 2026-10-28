@@ -64,6 +64,10 @@ export const G6: G6Case[] = [];
     w('ai-g6-chip-data-owe', '2 debts in your accounts — what do I owe?', {...ANSWER, toolsAny: ['accounts', 'net_worth']}, {chip: 'owe'}),
     make('lookup', 'portfolio', 'wealth')('ai-g6-chip-data-portfolios', 'How are my portfolios split?', {...ANSWER, toolsAny: ['portfolios']}, {chip: 'portfolios'}),
     make('lookup', 'staking', 'wealth')('ai-g6-chip-data-staking', 'What am I watching on staking?', {...ANSWER, toolsAny: ['staking_watch', 'holdings']}, {chip: 'staking'}),
+    // Session AI (G10): the expense log's chips on Wealth and the journal's on Today.
+    w('ai-g6-chip-data-spend-week', '4 expenses logged this week — what did I spend?', {...ANSWER, toolsAny: ['spending']}, {chip: 'spend-week'}),
+    w('ai-g6-chip-data-room', 'How much room to spend do I have this week?', {...ANSWER, toolsAny: ['spending']}, {chip: 'room'}),
+    t('ai-g6-chip-data-journal', 'What patterns do you see in my journal?', {...ANSWER, mustNot: ['diagnos']}, {chip: 'journal-patterns'}),
   );
 }
 // ---- the fixes: answered on the device (no model; scored the same in CI and in Track A) ----

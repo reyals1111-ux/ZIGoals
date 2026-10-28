@@ -1,0 +1,180 @@
+{
+ "source": "real-model runs of the G6 set (scripts/zigi/prompt-gate.mjs)",
+ "rule": "shown only when passed on claude-sonnet-5-5 and claude-haiku-5-5",
+ "models": {
+  "claude-haiku-5-5": "2026-10-28T03:07:31.360Z",
+  "claude-sonnet-5-5": "2026-10-28T03:08:01.064Z"
+ },
+ "chips": {
+  "starter:What’s left for today?": {
+   "case": "ai-g6-chip-today-left",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Help me with my weekly review": {
+   "case": "ai-g6-chip-today-review",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Log a glass of water": {
+   "case": "ai-g6-chip-today-water",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:What can you help with here?": {
+   "case": "ai-g6-chip-today-help",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:How am I doing on my goals this month?": {
+   "case": "ai-g6-chip-goals-month",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Which dates are coming up?": {
+   "case": "ai-g6-chip-goals-dates",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Help me shape a new goal": {
+   "case": "ai-g6-chip-goals-shape",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Add a note to a goal": {
+   "case": "ai-g6-chip-goals-note",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Log my morning habits": {
+   "case": "ai-g6-chip-habits-morning",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Which habits are still open today?": {
+   "case": "ai-g6-chip-habits-open",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:How are my streaks?": {
+   "case": "ai-g6-chip-habits-streaks",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Create a new habit": {
+   "case": "ai-g6-chip-habits-create",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": false
+  },
+  "starter:Log what I ate — I’ll say it": {
+   "case": "ai-g6-chip-health-ate",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:What did I log today?": {
+   "case": "ai-g6-chip-health-logged",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Add a glass of water": {
+   "case": "ai-g6-chip-health-water",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:How is my fasting going?": {
+   "case": "ai-g6-chip-health-fasting",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Summarise my tracked totals per currency": {
+   "case": "ai-g6-chip-wealth-totals",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:What changed recently?": {
+   "case": "ai-g6-chip-wealth-changed",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:Add a holding I own": {
+   "case": "ai-g6-chip-wealth-add",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": false
+  },
+  "starter:Explain this page": {
+   "case": "ai-g6-chip-wealth-explain",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:How does ZIGoals keep my data?": {
+   "case": "ai-g6-chip-help-data",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:What can you do here?": {
+   "case": "ai-g6-chip-help-what",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:How do habits and goals connect?": {
+   "case": "ai-g6-chip-help-connect",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "starter:How do I turn you off?": {
+   "case": "ai-g6-chip-help-off",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "challenge": {
+   "case": "ai-g6-chip-data-challenge",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "open-today": {
+   "case": "ai-g6-chip-data-open",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "streak": {
+   "case": "ai-g6-chip-data-streak",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "goal": {
+   "case": "ai-g6-chip-data-goal",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "sleep-week": {
+   "case": "ai-g6-chip-data-sleep",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "currencies": {
+   "case": "ai-g6-chip-data-currencies",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "unpriced": {
+   "case": "ai-g6-chip-data-unpriced",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "owe": {
+   "case": "ai-g6-chip-data-owe",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "portfolios": {
+   "case": "ai-g6-chip-data-portfolios",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  },
+  "staking": {
+   "case": "ai-g6-chip-data-staking",
+   "claude-haiku-5-5": true,
+   "claude-sonnet-5-5": true
+  }
+ }
+}

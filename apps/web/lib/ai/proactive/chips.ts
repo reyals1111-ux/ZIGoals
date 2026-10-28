@@ -3,6 +3,7 @@ import {habitDay, habitStats, latestHabitRule} from '../../habits';
 import {challengeOf} from '../../habits-v2/challenge';
 import {nightsIn} from '../../sleep/engine';
 import {healthGroupIn} from '../../vault/w-homes';
+import {addLocalDays} from '../../local-date';
 import {reviewState, reviewWindow} from '../../weekly-review/engine';
 import {SPECIALISTS} from '../context/specialists';
 import type {PageArea} from '../settings';
@@ -11,6 +12,7 @@ import {summaries} from '../tools/goals';
 import {runTool} from '../tools/registry';
 import {shortName} from './calm';
 import {zigiInsights} from './insights';
+import {chipPassed} from '../prompt-gate';
 
 /**
  * ZIGi's suggestion chips (Session V Part 9), made on this device from the person's own records: a streak, what is still
@@ -64,10 +66,19 @@ function wealthChips(env: ToolEnv, view: ChipView): Chip[] {
   const unpriced = Number(totals?.withoutPrice ?? 0), currencies = Array.isArray(totals?.totals) ? totals.totals.length : 0;
   if (unpriced > 0) out.push({id: 'unpriced', text: `${unpriced} ${unpriced === 1 ? 'holding has' : 'holdings have'} no price — which ${unpriced === 1 ? 'one' : 'ones'}?`, action: 'ask'});
   if (currencies > 1) out.push({id: 'currencies', text: `My wealth is in ${currencies} currencies — what are the totals?`, action: 'ask'});
+  // Session AI (G10): the expense log on this device — this week's spending, and the room to spend when a budget is set.
+  const week = (env.moneyLog?.entries ?? []).filter(e => e.kind === 'expense' && e.date > addLocalDays(env.habitDay, -7) && e.date <= env.habitDay).length;
+  if (week) out.push({id: 'spend-week', text: `${week} ${week === 1 ? 'expense' : 'expenses'} logged this week — what did I spend?`, action: 'ask'});
+  if (env.moneyLog?.budget) out.push({id: 'room', text: 'How much room to spend do I have this week?', action: 'ask'});
   // Session W Part 21: debts kept in Wealth's accounts on this device.
   const debts = (env.accounts?.items ?? []).filter(a => !a.archivedAt && isDebtKind(a.kind)).length;
   if (debts) out.push({id: 'owe', text: `${debts} ${debts === 1 ? 'debt' : 'debts'} in your accounts — what do I owe?`, action: 'ask'});
   return out;
+}
+/** Session AI (G10): the journal, once it holds a few entries — its patterns, answered on this device. */
+function journalChip(env: ToolEnv): Chip[] {
+  const entries = env.journal?.entries.length ?? 0;
+  return entries >= 3 ? [{id: 'journal-patterns', text: 'What patterns do you see in my journal?', action: 'ask'}] : [];
 }
 function reviewChip(env: ToolEnv): Chip[] {
   if (!env.weekly || !env.areas.today) return [];
@@ -81,7 +92,7 @@ function insightChip(env: ToolEnv): Chip[] {
 /** Every chip the records suggest for this page, before rotation. */
 export function dataChips(area: PageArea, view: ChipView, env: ToolEnv): Chip[] {
   switch (area) {
-    case 'today': return [...reviewChip(env), ...habitChips(env), ...goalChips(env), ...healthChips(env), ...insightChip(env)];
+    case 'today': return [...reviewChip(env), ...habitChips(env), ...goalChips(env), ...healthChips(env), ...insightChip(env), ...journalChip(env)];
     case 'habits': return env.areas.habits ? [...habitChips(env), ...insightChip(env)] : [];
     case 'goals': return [...goalChips(env), ...reviewChip(env)];
     case 'health': return [...healthChips(env), ...(env.health ? insightChip(env) : [])];
@@ -98,7 +109,8 @@ function hash(text: string): number {
 export const rotate = <T extends {id: string}>(items: readonly T[], day: string): T[] => [...items].sort((a, b) => hash(`${day}|${a.id}`) - hash(`${day}|${b.id}`) || a.id.localeCompare(b.id));
 /** The chips to show: up to three from the records (rotated by day, without today's dismissed ones), then T's starters. */
 export function chipsFor({area, view = null, env, day, dismissed = new Set()}: {area: PageArea; view?: ChipView; env: ToolEnv | null; day: string; dismissed?: ReadonlySet<string>}): Chip[] {
-  const data = env ? rotate(dataChips(area, view, env).filter(c => !dismissed.has(c.id)), day).slice(0, MAX_DATA_CHIPS) : [];
-  const starters: Chip[] = SPECIALISTS[area].chips.map(text => ({id: `starter:${text}`, text, action: text === REVIEW_STARTER && area === 'today' ? 'review' : 'ask'}));
+  // Session AI (DE7): a chip that failed its real-model case on either model is never shown (lib/ai/prompt-gate.ts).
+  const data = env ? rotate(dataChips(area, view, env).filter(c => !dismissed.has(c.id) && chipPassed(c.id)), day).slice(0, MAX_DATA_CHIPS) : [];
+  const starters: Chip[] = SPECIALISTS[area].chips.map(text => ({id: `starter:${text}`, text, action: (text === REVIEW_STARTER && area === 'today' ? 'review' : 'ask') as ChipAction})).filter(c => chipPassed(c.id));
   return [...data, ...starters.filter(s => !data.some(d => d.text === s.text || (d.action === 'review' && s.action === 'review')))].slice(0, MAX_CHIPS);
 }
