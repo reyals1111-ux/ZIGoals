@@ -1,5 +1,6 @@
 import type {CorpusArea, CorpusKind, Expect, Lang, ModelCase} from './corpus';
 import type {PageArea} from '../settings';
+import {DEPTH} from './corpus-ai-depth';
 
 /**
  * Session AI (ADR-034 N3, owner amendments 1 and 2a): the model-scored cases of this session, in English and Dutch.
@@ -151,4 +152,4 @@ export const CORE: ModelCase[] = [];
     g.propose('ai-ab-plan-goal-nl', 'help me een doel plannen om 3000 euro te sparen voor een nieuwe laptop tegen volgende zomer', {minCards: 1, maxCards: 4}, NL),
   );
 }
-export const CORPUS_AI: readonly ModelCase[] = [...CORE];
+export const CORPUS_AI: readonly ModelCase[] = [...CORE, ...DEPTH];
