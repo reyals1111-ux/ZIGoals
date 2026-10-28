@@ -37,13 +37,13 @@ test('a focus session on a goal: nothing written until the tap, then one line in
   await focus.locator('summary').click();
   await focus.getByRole('radio', {name: '15 min'}).check();
   await focus.getByRole('button', {name: 'Start a focus session'}).click();
-  await expect(module.getByRole('timer')).toBeVisible();
+  await expect(focus.getByRole('timer')).toBeVisible();
   const before = JSON.stringify(await stored(page, PLATFORM_KEY));
   await page.clock.runFor(15 * 60_000 + 2000);
   await expect(focus).toContainText('Focused 15 min.');
   expect(JSON.stringify(await stored(page, PLATFORM_KEY))).toBe(before);
   await focus.getByRole('button', {name: 'Add it to the goal’s notes'}).click();
-  await expect(module.getByRole('status')).toContainText('Focus session: 15 min');
+  await expect(focus.getByRole('status')).toContainText('Focus session: 15 min');
   const goal = ((await stored(page, PLATFORM_KEY)) as {goals: {id: string; notes?: string}[]}).goals.find(g => g.id === '9201');
   expect(goal?.notes).toMatch(/Focus session: 15 min \(\d{4}-\d{2}-\d{2}\)$/);
 });
