@@ -166,3 +166,12 @@ test('L63: an empty-string field is absent (a nap with "wake": "" is a nap, not 
   const r = parseReply('A nap.\n\n```zigoals-action\n{"kind":"log-sleep","wake":"","minutes":20,"nap":true}\n```');
   expect(r.rejected).toHaveLength(0); expect(r.proposals).toHaveLength(1); expect('wake' in (r.proposals[0] as object)).toBe(false);
 });
+test('Session AI (A3-r2, AF5): a habit\'s own reminder rides with its habit — ten habits with times are ten items, not cut at five', () => {
+  const habits = Array.from({length: 10}, (_, i) => ({kind: 'build-habit', title: `Habit ${i + 1}`, reminder: `${String(7 + i).padStart(2, '0')}:00`}));
+  const out = parseReply(habits.map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
+  expect(out.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);
+  expect(out.rejected.filter(r => /Only the first/.test(r.reason))).toEqual([]);
+  // An eleventh item is still cut.
+  const eleven = parseReply([...habits, {...habits[0]!, title: 'Habit 11'}].map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
+  expect(eleven.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);
+});

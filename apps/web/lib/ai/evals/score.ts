@@ -64,7 +64,9 @@ export function saysUnrefused(text: string, words: string): boolean {
     if (/^\d/.test(needle) && at > 0 && /[\d.,]/.test(lower[at - 1]!)) { from = at + needle.length; continue; }
     const sentenceStart = Math.max(lower.lastIndexOf('. ', at), lower.lastIndexOf('! ', at), lower.lastIndexOf('? ', at), lower.lastIndexOf('\n', at)) + 1;
     const before = lower.slice(Math.max(sentenceStart, at - 120), at);
-    if (!REFUSING.test(before)) return true;
+    // A3-r2: a negation right after the phrase refuses it too ("it proves nothing", "bewijst niets").
+    const after = lower.slice(at + needle.length, at + needle.length + 16);
+    if (!REFUSING.test(before) && !/^\s*(?:nothing|niets|no\b|not\b|niet\b|geen\b)/.test(after)) return true;
     from = at + needle.length;
   }
 }
@@ -92,7 +94,7 @@ export function score(expect: Expect, observed: Observed): Score {
   if (expect.toolsNot) for (const tool of expect.toolsNot) checks.push({name: `tool-not:${tool}`, pass: !observed.calls.some(c => c.name === tool)});
   if (observed.calls.length) checks.push({name: 'arguments', pass: observed.calls.every(c => c.accepted), detail: observed.calls.filter(c => !c.accepted).map(c => c.name).join(', ') || 'every call accepted'});
   // Session AI (A3-r1): a number to contain is found however the reply's language writes it ("0.25" in "0,25 %").
-  for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: /^\d+(?:[.,]\d+)?$/.test(words.trim()) ? digitsOf(text).some(n => sameNumber(n, digitsOf(words)[0]!)) : text.toLowerCase().includes(words.toLowerCase())});
+  for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: text.toLowerCase().includes(words.toLowerCase()) || (/^\d+(?:[.,]\d+)?$/.test(words.trim()) && digitsOf(text).some(n => sameNumber(n, digitsOf(words)[0]!)))}); // A3-r2: the plain words first ("62" in "62,000"), then the number in the reply's own form
   for (const words of expect.mustNot ?? []) checks.push({name: `never:${words}`, pass: !saysUnrefused(text, words)});
   if (expect.refuse) checks.push({name: 'refusal', pass: refused && kinds.length === 0, detail: refused ? 'refused in words' : 'no refusal wording'});
   if (expect.noNumbers) checks.push({name: 'no-numbers', pass: numbers === 0, detail: `${numbers} numbers`});

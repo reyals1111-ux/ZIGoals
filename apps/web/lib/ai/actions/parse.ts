@@ -187,11 +187,14 @@ export function parseReply(reply: string): ParsedReply {
   if (opens.length) {
     const dangling = opens[opens.length - 1]!;
     const cut = source.slice(dangling.index + dangling[0].length).trim();
-    rejected.push({raw: cut.slice(0, 200), reason: 'The proposal was cut off before it finished.'});
+    // Session AI (A3-r2): an empty fence left at the end of a reply proposed nothing; it goes quietly.
+    if (cut.replace(/^[`~]+$/, '')) rejected.push({raw: cut.slice(0, 200), reason: 'The proposal was cut off before it finished.'});
     source = source.slice(0, dangling.index);
   }
+  let counted = 0;
   const text = source.replace(FENCE, (block, _fence: string, body: string) => {
     // Strict JSON first; almost-JSON is repaired (Session X-Local Part 5c) and then held to the same whitelist.
+    if (!body.trim()) return ''; // Session AI (A3-r2): an empty block proposed nothing
     const parsed: unknown = repairJson(body);
     if (parsed === null) { rejected.push({raw: body.trim().slice(0, 200), reason: 'The proposal was not valid JSON.'}); return ''; }
     const unwrapped = parsed && typeof parsed === 'object' && !Array.isArray(parsed) && !('kind' in (parsed as object)) && Object.keys(parsed as object).length === 1 ? Object.values(parsed as object)[0] : parsed;
@@ -200,6 +203,8 @@ export function parseReply(reply: string): ParsedReply {
       if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
       const normalised = normalise(coerceNumbers(item), flags) as Record<string, unknown>;
       let parts: unknown[] = [normalised], plan: BundleMeta | null = null;
+      // Session AI (A3-r2, AF5): a habit's own reminder (build-habit) rides with its habit and does not count toward the cap.
+      let itemCounted = false; const ridesAlong = normalised.kind === 'build-habit';
       if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
         if (normalised.kind === 'plan-bundle' && bundle) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: ONE_BUNDLE}); continue; }
         const composite = compositeSchema.safeParse(normalised);
@@ -214,8 +219,10 @@ export function parseReply(reply: string): ParsedReply {
         const key = JSON.stringify(result.data);
         if (seen.has(key)) continue;
         if (plan && plan.count >= MAX_BUNDLE_STEPS) { rejected.push({raw: key.slice(0, 200), reason: BUNDLE_CUT(MAX_BUNDLE_STEPS)}); continue; }
-        if (proposals.length >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: plan ? BUNDLE_CUT(plan.count) : `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
+        if (!(ridesAlong && itemCounted) && counted >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: plan ? BUNDLE_CUT(plan.count) : `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
         seen.add(key); proposals.push(result.data);
+        if (!(ridesAlong && itemCounted)) counted++;
+        itemCounted = true;
         if (plan) plan.count++;
       }
       if (plan && plan.count > 0) bundle = plan;

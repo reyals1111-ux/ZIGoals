@@ -116,3 +116,10 @@ test('Phase 2 round 4: the cues and families the fix-round misses named, in Engl
   expect(tools('How do my weekends compare with my weekdays?')).toEqual(expect.arrayContaining(['habit_stats', 'steps']));
 });
 
+test('Session AI (A3-r1/A3-r2): someone else\'s records read nothing; a brief brings the Checklist, in Dutch too; "which of these cards" asks for the page', () => {
+  const sources = withHandHealth(showcaseSources()), gates = healthPage(true);
+  expect(questionCalls('What is my partner Sam\'s weight? She uses this phone too.', sources, gates)).toEqual([]);
+  expect(questionCalls('Hoeveel weegt mijn vrouw haar laatste meting?', sources, gates)).toEqual([]);
+  expect(questionCalls('What was my weight last month?', sources, gates).map(c => c.tool)).toContain('weight');
+  for (const ask of ['Read me my morning brief', 'Vertel me mijn ochtendbriefing']) expect(questionCalls(ask, sources, gates).map(c => c.tool), ask).toContain('checklist_today');
+});

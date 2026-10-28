@@ -15,10 +15,20 @@ import {detectIntent, REFUSAL_REPLY} from '../intent';
 import {FENCE} from './parse';
 import {normalizeSpoken} from '../spoken/normalize';
 
-const MONEY_ASK = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |dan |nu |zigi,? |nova,? )*(?:buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|stake|unstake|convert|allocate|reallocate|rebalance|wire|pay|koop|verkoop|verhandel|stort|verstuur|verplaats|zet|wissel)\b/i;
-
+const LEAD = '^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |dan |nu |zigi,? |nova,? )*';
+const MONEY_ASK = new RegExp(`${LEAD}(?:buy|sell|trade|swap|fund|transfer|withdraw|deposit|stake|unstake|convert|allocate|reallocate|rebalance|wire|pay|koop|verkoop|verhandel|stort|verstuur|wissel)\\b`, 'i');
+/**
+ * Session AI (A3-r2): "move", "send", "put", "zet" and "verplaats" also mean other things ("move my weekly review", "zet
+ * mijn ijzerdoel op 18 mg"), so they make a money ask only with money in the same sentence: an amount, a currency, an
+ * asset, an account or savings.
+ */
+const MAYBE_MONEY = new RegExp(`${LEAD}(?:move|send|put|zet|verplaats)\\b`, 'i');
+const MONEY_WORDS = /[€$£]|\b(?:euros?|eur|usd|dollars?|pounds?|money|cash|geld|bitcoin|btc|eth|ether|zig|crypto|coins?|tokens?|stocks?|shares?|gold|goud|savings?|spaar\w*|accounts?|rekening\w*|wallet|portfolio|holdings?|everything|alles|fund|fonds)\b/i;
 /** Whether the message is a money ask ZIGi always declines (a verb that moves money, at the start). */
-export const isMoneyAsk = (message: string): boolean => MONEY_ASK.test(message.trim());
+export const isMoneyAsk = (message: string): boolean => { const t = message.trim(); return MONEY_ASK.test(t) || (MAYBE_MONEY.test(t) && MONEY_WORDS.test(t.split(/[.!?\n]/)[0]!)); };
+const MONEY_VERB = /\b(?:buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|stake|wire|pay|koop|verkoop|stort|verstuur|verplaats|zet|wissel)\b/i;
+/** An ask that tells ZIGi to ignore its rules: a money card is never the answer to it (A3-r2, p2-inj-nl). */
+const INJECTION = /\b(?:ignore|disregard|forget|override)\b.{0,30}\b(?:rules|instructions|guidelines|prompt)\b|\bnegeer\b.{0,30}\b(?:regels|instructies)\b|\bvergeet\b.{0,30}\b(?:regels|instructies)\b/i;
 
 /**
  * Session AF (ADR-028 D7, H47; `TIER 3 (wallet/signing)`): the one card a staking ask may keep beside a decline is the
@@ -34,19 +44,26 @@ const STAKING_BLOCK = /"kind"\s*:\s*"(?:prefill[-_ ]?staking|staking[-_]review|s
  * Real models declined both in words and still sent a note or Remember card "in its place". Deliberately narrow: a partial
  * decline of any other ask keeps its cards.
  */
-const NO_CARD_ASK = /\b(?:milestone|mijlpaal)\b.{0,80}\b(?:reached|done|complete[d]?|ticked|behaald|gehaald|klaar|afgevinkt)\b|\b(?:remember|onthoud)\b.{0,60}\b(?:weight|weigh|blood pressure|heart rate|bloeddruk|gewicht|hartslag)\b/i;
+const NO_CARD_ASK = /\b(?:mark|tick|check off|set|markeer|zet|vink)\b.{0,40}\b(?:milestone|mijlpaal)\b.{0,80}\b(?:reached|done|complete[d]?|ticked|behaald|gehaald|afgevinkt)\b|\b(?:milestone|mijlpaal)\b.{0,80}\b(?:as|als|op)\s+(?:reached|done|complete[d]?|behaald|gehaald|afgevinkt)\b|\b(?:remember|onthoud)\b.{0,60}\b(?:weight|weigh|blood pressure|heart rate|bloeddruk|gewicht|hartslag)\b/i;
+/** Adding a milestone ("Add a milestone: visa done") is a card, never the declined tick (A3-r2, p2-carry-milestone). */
+const ADD_MILESTONE = /\b(?:add|new|create|voeg|nieuwe|maak)\b.{0,20}\b(?:milestones?|mijlpalen|mijlpaal)\b/i;
 /**
  * The Fund form filled in (`prefill-contribution`) is the answer to "fund my goal with 300" — the person submits it on
  * Goals themselves, like the staking review — so a goal-funding ask keeps that one card beside its "I can't move money"
  * line (A3-r1: correct replies lost their card). Every other block of a declined money ask still goes.
  */
 const FUND_ASK = /\b(?:fund|contribut\w*|goal|doel|stort\w*|bijdrage|inleg)\b/i;
+const OPEN_ONLY = /"kind"\s*:\s*"(?:open-page|open-search)"/i;
 const FUND_BLOCK = /"kind"\s*:\s*"prefill[-_ ]?contribution"/i;
 export function stripDeclinedBlocks(reply: string, message: string): string {
-  const noCard = NO_CARD_ASK.test(normalizeSpoken(message));
-  if ((!isMoneyAsk(message) && !noCard) || reply.search(FENCE) < 0) return reply;
-  const words = reply.replace(FENCE, ' ').trim();
-  if (!REFUSAL_REPLY.test(words.slice(0, 400))) return reply;
+  if (reply.search(FENCE) < 0) return reply;
+  const spoken = normalizeSpoken(message), noCard = NO_CARD_ASK.test(spoken) && !ADD_MILESTONE.test(spoken), money = isMoneyAsk(message);
+  // An ask to ignore the rules that asks to move money gets no card at all, declined in words or not.
+  if (INJECTION.test(message) && (money || (MONEY_VERB.test(message) && MONEY_WORDS.test(message)))) return tidy(reply.replace(FENCE, ''));
+  const words = reply.replace(FENCE, ' ').trim(), declined = REFUSAL_REPLY.test(words.slice(0, 400));
+  // A3-r2: a decline answered with only a page to open (music, sharing, an import) is a card in place of what was refused.
+  if (declined && !money && !noCard) { const blocks = reply.match(FENCE) ?? []; return blocks.length && blocks.every(b => OPEN_ONLY.test(b)) ? tidy(reply.replace(FENCE, '')) : reply; }
+  if ((!money && !noCard) || !declined) return reply;
   const keepStaking = !noCard && STAKING_ASK.test(message), keepFund = !noCard && FUND_ASK.test(message);
   return tidy(reply.replace(FENCE, block => (keepStaking && STAKING_BLOCK.test(block)) || (keepFund && FUND_BLOCK.test(block)) ? block : ''));
 }
@@ -72,7 +89,7 @@ const QUESTION_LEAD = new RegExp(`^${FILLERS}(?:how|what(?:'s)?|which|when|where
 const WRITE_VERB = '(?:log|record|track|add|set|make|create|mark|tick|put|use|move|rename|call|pause|resume|stack|switch|turn|remember|remind|start|stop|skip|save|plan|note|change|hide|unhide|noteer|voeg|zet|maak|vink|markeer|herinner|onthoud|pauzeer|hernoem|plan|sla|stel|gebruik|verplaats|begin)';
 const COMMAND = new RegExp(`^${FILLERS}${WRITE_VERB}\\b|\\b(?:and|then|en|dan|also|ook)\\s+(?:also\\s+|ook\\s+)?${WRITE_VERB}\\b|\\blog (?:it|that|this)\\b|\\bput (?:it|that|this) (?:in|down|on)\\b|\\bzet (?:dat|het|dit) er\\b|\\bshow\\b.{0,60}\\b(?:view|mode|on today|keto|net carbs|again)\\b|\\blaat\\b.{0,60}\\b(?:weergave|pagina|netto|keto|weer zien|op vandaag)\\b`, 'i');
 const READ_ONLY_BLOCK = /"kind"\s*:\s*"(?:open-page|open-search|open-review|calculator-scenario)"/i;
-const clausesOf = (message: string): string[] => normalizeSpoken(message).split(/(?<=[.!?])\s+|\n+|;\s*|,\s*(?=(?:and|then|en|dan)\s)/i).map(s => s.replace(/^(?:and|then|en|dan)\s+/i, '').trim()).filter(Boolean);
+const clausesOf = (message: string): string[] => normalizeSpoken(message).split(/(?<=[.!?])\s+|\n+|;\s*|:\s+|,\s*(?=(?:and|then|en|dan)\s)/i).map(s => s.replace(/^(?:and|then|en|dan)\s+/i, '').trim()).filter(Boolean);
 const asksOnly = (clause: string): boolean => {
   if (POLITE_REQUEST.test(clause) || COMMAND.test(clause)) return false;
   const intent = detectIntent(clause);
