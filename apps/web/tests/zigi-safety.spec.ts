@@ -40,7 +40,7 @@ async function seed(page: Page, settings: Partial<AiSettings> | null) {
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
 const systemOf = (body: Body) => String(body.messages[0]!.content);
-/** The composer's own button (on phones Enter adds a line, by design). */
+/** The composer's own button (the same on phones and desktops). */
 const send = (page: Page) => panel(page).locator('.ai-composer button[type=submit]').click();
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 

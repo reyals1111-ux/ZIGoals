@@ -104,7 +104,8 @@ function coerceNumbers(value: unknown): unknown {
  * `proposals[first + count - 1]`, `steps` is how many cards the plan had before the cut (the reply shows at most 10).
  */
 export type BundleMeta = {title: string; first: number; count: number; steps: number};
-export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean; bundle?: BundleMeta};
+/** `counted`: the cards that count toward the 10-card cap (a habit's own reminder rides with its habit, AF5); absent when every card counts. */
+export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean; bundle?: BundleMeta; counted?: number};
 /** The words a cut plan carries, and a second plan in the same reply. */
 export const BUNDLE_CUT = (shown: number) => `Only the first ${shown} steps of this plan are shown; ask for the rest once these are done.`;
 export const ONE_BUNDLE = 'One plan per reply: ask for the next plan once this one is decided.';
@@ -120,6 +121,12 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   if (record.kind === undefined && typeof record.type === 'string' && (KIND_ALIASES[record.type.trim().toLowerCase()] ?? record.type.trim().toLowerCase()) in KIND_SET) { record.kind = record.type; delete record.type; }
   if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase().replace(/\s+/g, '-'); record.kind = KIND_ALIASES[kind] ?? kind; }
   if (record.day === undefined && typeof record.date === 'string') { record.day = record.date; delete record.date; }
+  // Session AI (A4 photos, seen on Opus): a meal estimate's "from" and "range" written beside the estimate instead of in it.
+  if (record.kind === 'log-food' && (record.from !== undefined || record.range !== undefined)) {
+    const estimate = {...(record.estimate && typeof record.estimate === 'object' ? record.estimate as Record<string, unknown> : {})};
+    for (const key of ['from', 'range'] as const) if (record[key] !== undefined) { if (estimate[key] === undefined) estimate[key] = record[key]; delete record[key]; }
+    record.estimate = estimate;
+  }
   if (record.kind === 'create-habit' || record.kind === 'build-habit' || record.kind === 'edit-habit') {
     if (typeof record.measurement === 'string') { const m = record.measurement.trim().toLowerCase(); record.measurement = MEASUREMENT_WORDS[m] ?? (['done', 'count', 'minutes', 'hours'].includes(m) ? m : {unit: record.measurement.trim()}); }
     if (typeof record.schedule === 'string') {
@@ -187,11 +194,14 @@ export function parseReply(reply: string): ParsedReply {
   if (opens.length) {
     const dangling = opens[opens.length - 1]!;
     const cut = source.slice(dangling.index + dangling[0].length).trim();
-    rejected.push({raw: cut.slice(0, 200), reason: 'The proposal was cut off before it finished.'});
+    // Session AI (A3-r2): an empty fence left at the end of a reply proposed nothing; it goes quietly.
+    if (cut.replace(/^[`~]+$/, '')) rejected.push({raw: cut.slice(0, 200), reason: 'The proposal was cut off before it finished.'});
     source = source.slice(0, dangling.index);
   }
+  let counted = 0;
   const text = source.replace(FENCE, (block, _fence: string, body: string) => {
     // Strict JSON first; almost-JSON is repaired (Session X-Local Part 5c) and then held to the same whitelist.
+    if (!body.trim()) return ''; // Session AI (A3-r2): an empty block proposed nothing
     const parsed: unknown = repairJson(body);
     if (parsed === null) { rejected.push({raw: body.trim().slice(0, 200), reason: 'The proposal was not valid JSON.'}); return ''; }
     const unwrapped = parsed && typeof parsed === 'object' && !Array.isArray(parsed) && !('kind' in (parsed as object)) && Object.keys(parsed as object).length === 1 ? Object.values(parsed as object)[0] : parsed;
@@ -200,6 +210,8 @@ export function parseReply(reply: string): ParsedReply {
       if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
       const normalised = normalise(coerceNumbers(item), flags) as Record<string, unknown>;
       let parts: unknown[] = [normalised], plan: BundleMeta | null = null;
+      // Session AI (A3-r2, AF5): a habit's own reminder (build-habit) rides with its habit and does not count toward the cap.
+      let itemCounted = false; const ridesAlong = normalised.kind === 'build-habit';
       if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
         if (normalised.kind === 'plan-bundle' && bundle) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: ONE_BUNDLE}); continue; }
         const composite = compositeSchema.safeParse(normalised);
@@ -214,15 +226,17 @@ export function parseReply(reply: string): ParsedReply {
         const key = JSON.stringify(result.data);
         if (seen.has(key)) continue;
         if (plan && plan.count >= MAX_BUNDLE_STEPS) { rejected.push({raw: key.slice(0, 200), reason: BUNDLE_CUT(MAX_BUNDLE_STEPS)}); continue; }
-        if (proposals.length >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: plan ? BUNDLE_CUT(plan.count) : `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
+        if (!(ridesAlong && itemCounted) && counted >= MAX_PROPOSALS) { rejected.push({raw: key.slice(0, 200), reason: plan ? BUNDLE_CUT(plan.count) : `Only the first ${MAX_PROPOSALS} proposals of a reply are shown.`}); continue; }
         seen.add(key); proposals.push(result.data);
+        if (!(ridesAlong && itemCounted)) counted++;
+        itemCounted = true;
         if (plan) plan.count++;
       }
       if (plan && plan.count > 0) bundle = plan;
     }
     void block; return '';
   }).replace(/\n{3,}/g, '\n\n').trim();
-  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {}), ...(bundle ? {bundle} : {})};
+  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {}), ...(bundle ? {bundle} : {}), ...(counted !== proposals.length ? {counted} : {})};
 }
 /** Whether a reply still has an open proposal fence (streaming): nothing is parsed before it closes. */
 export function hasOpenFence(partial: string): boolean { const opens = partial.match(new RegExp(`(\`\`\`+|~~~+)[^\\S\\n]*(?:json[^\\S\\n]+)?${ACTION_FENCE.replace('-', '[-_ ]?')}`, 'gi'))?.length ?? 0; return opens > (partial.match(FENCE)?.length ?? 0); }

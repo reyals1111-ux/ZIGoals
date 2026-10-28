@@ -1,0 +1,11 @@
+/* Session AI (tasks): Today's tasks card. */
+.tasks-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.task { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "done title remove" "done meta remove"; align-items: center; gap: 2px 10px; padding: 6px 0; border-bottom: 1px solid var(--line, rgba(128, 128, 160, .2)); }
+.task-done { grid-area: done; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.task-title { grid-area: title; overflow-wrap: anywhere; }
+.task-meta { grid-area: meta; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; opacity: .8; }
+.task .text-link { grid-area: remove; }
+.task-overdue .task-meta { opacity: 1; color: var(--warning, #e8a33d); }
+.task-chip { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 12px; }
+.tasks-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.tasks-add .field { min-width: 140px; flex: 1 1 140px; }

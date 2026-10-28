@@ -166,3 +166,18 @@ test('L63: an empty-string field is absent (a nap with "wake": "" is a nap, not 
   const r = parseReply('A nap.\n\n```zigoals-action\n{"kind":"log-sleep","wake":"","minutes":20,"nap":true}\n```');
   expect(r.rejected).toHaveLength(0); expect(r.proposals).toHaveLength(1); expect('wake' in (r.proposals[0] as object)).toBe(false);
 });
+test('Session AI (A3-r2, AF5): a habit\'s own reminder rides with its habit — ten habits with times are ten items, not cut at five', () => {
+  const habits = Array.from({length: 10}, (_, i) => ({kind: 'build-habit', title: `Habit ${i + 1}`, reminder: `${String(7 + i).padStart(2, '0')}:00`}));
+  const out = parseReply(habits.map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
+  expect(out.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);
+  expect(out.rejected.filter(r => /Only the first/.test(r.reason))).toEqual([]);
+  expect(out.proposals).toHaveLength(20); expect(out.counted).toBe(10); // A4: the count the cap and the scorer read
+  // An eleventh item is still cut.
+  const eleven = parseReply([...habits, {...habits[0]!, title: 'Habit 11'}].map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
+  expect(eleven.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);
+});
+test('Session AI (A4 photos): a meal estimate\'s "from" and "range" beside the estimate are read as part of it', () => {
+  const out = parseReply('```zigoals-action\n{"kind":"log-food","name":"White rice","meal":"Lunch","estimate":{"serving_g":150},"range":{"kcal":[170,230]},"from":"photo"}\n```');
+  expect(out.rejected).toEqual([]);
+  expect(out.proposals[0]).toMatchObject({kind: 'log-food', estimate: {serving_g: 150, range: {kcal: [170, 230]}, from: 'photo'}});
+});

@@ -1,4 +1,5 @@
 'use client';
+import {countZigi} from '../../lib/ai/store/metrics';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {batchable, UNDO_WINDOW_MS} from '../../lib/ai/actions/batch';
 import type {Rejected} from '../../lib/ai/actions/parse';
@@ -126,7 +127,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const before = runner.stores.habits;
     try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after});
       // Session AA-Local Part 5: a journal card may also carry a device-record change (the coach's weekly answer beside its target); it follows the write.
-      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
+      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); countZigi('card-added'); }
     catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be written.'}); }
   }, [announce, onNavigate, patch, runner]);
   const addAll = useCallback(async () => {
@@ -137,7 +138,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const {after, error} = await runner.applyAll(plans);
     const done = pending.slice(0, after.length), failed = pending[after.length];
     setItems(current => current.map(item => { const i = done.findIndex(d => d.id === item.id); if (i >= 0) return {...item, status: 'added', after: after[i]!}; if (failed && item.id === failed.id) return {...item, status: 'proposed', error}; if (pending.some(p => p.id === item.id)) return {...item, status: 'proposed'}; return item; }));
-    if (done.length) { setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(after.some((stores, i) => proud(plans[i]!, i ? after[i - 1]!.habits : before, stores.habits)) ? 'streak_milestone' : 'card_accepted'); }
+    if (done.length) { done.forEach(() => countZigi('card-added')); setUndoGroup({ids: done.map(d => d.id), until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(after.some((stores, i) => proud(plans[i]!, i ? after[i - 1]!.habits : before, stores.habits)) ? 'streak_milestone' : 'card_accepted'); }
     announce(done.length ? `Added ${done.length} of ${pending.length}. Undo is available for ten seconds.` : error ?? 'Nothing was added.');
   }, [announce, items, patch, runner]);
   /** Auto-accept: the chosen cards in order on the latest stores, each counted toward the day's cap, one Undo for all. */
@@ -196,7 +197,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       onSkipRest={() => { setItems(current => current.map(i => bundleIds.has(i.id) && i.status === 'proposed' ? {...i, status: 'dismissed'} : i)); announce('The rest of this plan was skipped; nothing was written.'); }}/>}
     {(() => {
       const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} opened={item.opened} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))} receiptDetail={item.edited && !item.after ? 'edited' : undefined}
-        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)} firstNote={item.action.kind === 'remember' && memoryConsent(runner.stores.memory) === 'unasked'}/>;
+        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => { patch(item.id, {status: 'dismissed'}); countZigi('card-dismissed'); }} onEdit={action => edit(item, action)} firstNote={item.action.kind === 'remember' && memoryConsent(runner.stores.memory) === 'unasked'}/>;
       const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
       if (!waiting.length) return items.map(card);
       // Folded, the cap note leads: it says why the earlier cards wait, and stays in view above the fold.

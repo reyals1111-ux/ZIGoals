@@ -3,6 +3,8 @@ import {useState} from 'react';
 import {BRIEF_DEFAULTS, briefPrefs, ZIGI, type BriefPrefs} from '../../lib/ai/store/records';
 import {Switch} from './ai-switch';
 import {useDeviceRecord} from './use-device-record';
+import {METRIC_EVENTS, ZIGI_METRICS, setMetricsOn, type MetricEvent} from '../../lib/ai/store/metrics';
+import {formatMonth} from '../../lib/visual-format';
 
 /**
  * Settings → ZIGi · Your day (Session AF, L4, P8.2): the morning brief on Today, the evening recap and its time, the
@@ -28,5 +30,20 @@ export default function AiYourDay() {
       note="With /brief or /recap. Never by itself, never while ZIGi is muted; the Read aloud button on each brief works either way."/>
     {JSON.stringify(prefs) !== JSON.stringify(BRIEF_DEFAULTS) && <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => save({...BRIEF_DEFAULTS}, 'Back to the defaults.')}>Back to the defaults</button></div>}
     {note && <p className="ai-note" role="status">{note}</p>}
+    <ZigiValue />
   </div>;
+}
+const METRIC_WORDS: Record<MetricEvent, string> = {'device-answer': 'answers made on this device', 'ai-answer': 'answers from your AI', 'card-added': 'cards added', 'card-dismissed': 'cards dismissed'};
+/** Session AI (G14): what ZIGi did for you, counted on this device only after you switch it on; counts only, never sent. */
+function ZigiValue() {
+  const metrics = useDeviceRecord(ZIGI_METRICS), [note, setNote] = useState('');
+  if (!metrics.loaded) return null;
+  const months = Object.keys(metrics.data.months ?? {}).sort().reverse().slice(0, 2);
+  const set = (on: boolean) => { try { metrics.update(r => setMetricsOn(r, on)); setNote(on ? 'ZIGi counts what it does for you on this device from now on.' : 'The counts are off and forgotten.'); } catch { setNote('Not saved on this device.'); } };
+  return <section className="ai-zigi-value" aria-labelledby="ai-zigi-value-title">
+    <h4 id="ai-zigi-value-title">What ZIGi did for you</h4>
+    <Switch checked={metrics.data.on === true} onChange={set} label="Count what ZIGi does" note="On this device only: answers made here, answers from your AI, cards added and dismissed, per month. Never what was said or added, no amounts, nothing from Health, and nothing is sent anywhere." />
+    {metrics.data.on && (months.length ? <dl className="ai-zigi-value-months">{months.map(m => <div key={m}><dt>{formatMonth(`${m}-15`)}</dt><dd>{METRIC_EVENTS.map(e => `${metrics.data.months![m]![e] ?? 0} ${METRIC_WORDS[e]}`).join(' · ')}</dd></div>)}</dl> : <p className="ai-note">Nothing counted yet this month.</p>)}
+    {note && <p className="ai-note" role="status">{note}</p>}
+  </section>;
 }

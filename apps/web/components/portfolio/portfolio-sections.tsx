@@ -20,6 +20,9 @@ import {useScrollEdges} from '../ui/use-scroll-edges';
 
 /** Session W Part 15: the pieces of Portfolio v2 and its coin page. Unknown is written as unknown, never as 0. */
 export const KIND_LABEL = {real: 'Real holdings', hypothetical: 'Hypothetical'} as const;
+import {RECEIPTS, RECEIPT_LABEL, receiptOf} from '../../lib/portfolio/receipts';
+import {IMPORTS} from '../../lib/portfolio/wallet-import';
+import {useDeviceRecord} from '../ai/use-device-record';
 export const TX_LABEL: Record<PortfolioTransaction['kind'], string> = {buy: 'Buy', sell: 'Sell', 'transfer-in': 'Transfer in', 'transfer-out': 'Transfer out'};
 export const coinHref = (coin: {ref: {id: string}}, portfolioId?: string) => `/app/portfolio/coin/${encodeURIComponent(coin.ref.id)}${portfolioId ? `?portfolio=${encodeURIComponent(portfolioId)}` : ''}`;
 
@@ -155,11 +158,11 @@ export function AllTransactions({portfolio, onRemove, run}: {portfolio: Portfoli
   </section>;
 }
 export function TransactionList({portfolio, list, names, onRemove, run}: {portfolio: Portfolio; list: PortfolioTransaction[]; names: Map<string, PortfolioCoin>; onRemove: (id: string) => void; run?: Run}) {
-  const currency = portfolio.currency, [editing, setEditing] = useState<string | null>(null);
+  const currency = portfolio.currency, [editing, setEditing] = useState<string | null>(null), receipts = useDeviceRecord(RECEIPTS).data, imported = useDeviceRecord(IMPORTS).data.rows; // Session AI (J15, WE20)
   return <ol className="portfolio-transactions">{list.map(t => <li key={t.id} data-direction={t.kind === 'buy' || t.kind === 'transfer-in' ? 'in' : 'out'}>
-    {/* Session AH (J17): what came in reads "+", in green; what went out "−" */}<span><strong>{TX_LABEL[t.kind]}</strong> <span className="portfolio-tx-amount">{t.kind === 'buy' || t.kind === 'transfer-in' ? '+' : '−'}{formatExactNumber(t.quantity)}</span> {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
+    {/* Session AH (J17): what came in reads "+", in green; what went out "−" */}<span><strong>{(t.kind === 'transfer-in' && receiptOf(receipts, t.id) ? RECEIPT_LABEL[receiptOf(receipts, t.id)!] : null) ?? TX_LABEL[t.kind]}</strong> <span className="portfolio-tx-amount">{t.kind === 'buy' || t.kind === 'transfer-in' ? '+' : '−'}{formatExactNumber(t.quantity)}</span> {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
     <small><time dateTime={t.date}>{formatDate(t.date)}</time>{t.note ? ` · ${t.note}` : ''}</small>
-    {/* Session AH (WE2, N-146): a recorded transaction can be corrected, not only removed */}{run && names.get(t.coin) && <button type="button" className="quiet" aria-expanded={editing === t.id} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>}<button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
+    {/* Session AH (WE2, N-146): a recorded transaction can be corrected, not only removed */}{imported[t.id] && <small className="portfolio-from-wallet">from wallet</small>}{run && names.get(t.coin) && !imported[t.id] && <button type="button" className="quiet" aria-expanded={editing === t.id} onClick={() => setEditing(editing === t.id ? null : t.id)}>Edit</button>}<button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
     {run && editing === t.id && names.get(t.coin) && <TransactionForm portfolio={portfolio} run={run} coin={names.get(t.coin)} edit={{transaction: t, onDone: () => setEditing(null)}} />}
   </li>)}</ol>;
 }

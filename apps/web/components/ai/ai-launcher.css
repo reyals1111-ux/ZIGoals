@@ -64,8 +64,8 @@
 .ai-settings-loading{color:var(--muted,#aab2d9);font-size:15px;margin:12px 0 0}
 /* Phase 2 (P2.8, H6): the body's height, reserved until it mounts (measured on a new device; Session Z-Cloud C19: 1121 px at 1280 wide, 1501 px at 390 wide, with the Voice card). */
 /* Session Z-Cloud Part 3: re-measured with the Voice card (a new device: 1,121 px on a computer, 1,501 px on a phone). */
-.ai-settings{--ai-settings-reserve:1120px}
-@media (max-width:767.98px){.ai-settings{--ai-settings-reserve:1500px}}
+.ai-settings{--ai-settings-reserve:2020px} /* Session AI: the body grew (the sharing switches show before a connection, ZI5; the notes link); measured on a new device, production build */
+@media (max-width:767.98px){.ai-settings{--ai-settings-reserve:2970px}}
 .ai-settings-reserve{min-height:var(--ai-settings-reserve)}
 /* "Ask ZIGi about this" on a goal or habit: a quiet text link, 44 px tall, no data leaves before Send. */
 .ai-ask-link{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;font-size:14px;color:var(--cyan,#6fd3ff);background:transparent;border:0;cursor:pointer;border-radius:10px}

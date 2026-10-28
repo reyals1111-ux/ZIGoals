@@ -1,0 +1,9 @@
+/* Session AI (MO4): the plain-language privacy and terms pages. Same tokens as the landing; one readable column. */
+.legal-page { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; line-height: 1.6; }
+.legal-page h1 { font-size: clamp(28px, 6vw, 40px); margin: 24px 0 8px; }
+.legal-page h2 { font-size: 20px; margin: 32px 0 8px; }
+.legal-page p, .legal-page li { font-size: 16px; }
+.legal-page ul { padding-left: 20px; }
+.legal-page .legal-meta { opacity: .75; font-size: 14px; }
+.legal-page .legal-back { display: inline-block; margin-top: 8px; }
+.legal-page a { text-decoration: underline; }

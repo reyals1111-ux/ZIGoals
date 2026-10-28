@@ -35,7 +35,9 @@ const loadChat = () => import('./ai-chat');
 const AiChat = lazy(loadChat);
 const HIDE_UNDO_MS = 10_000;
 /** Session V Part 13: the knock, loaded only once the person turned knocking on; Part 16: browser agents, only where the browser offers them. */
-const ZigiCompanion = lazy(() => import('../zigi/companion'));
+// Session AI (B1 CI): with knocking on, the knock's due rules (their own chunk, ADR-022 B41) load beside the companion
+// instead of after it, so a slow page still shows a due knock in time (CI run 40394055893).
+const ZigiCompanion = lazy(() => Promise.all([import('../zigi/companion'), import('../../lib/ai/knock/compute').catch(() => null)]).then(([m]) => m));
 /** Session V Part 16: a browser that offers tools to AI agents (WebMCP); only there can the person's switch for them matter. */
 const agentsOffered = () => [document, navigator].some(host => typeof (host as {modelContext?: {registerTool?: unknown}}).modelContext?.registerTool === 'function');
 /**

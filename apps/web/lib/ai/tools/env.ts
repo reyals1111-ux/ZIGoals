@@ -19,6 +19,9 @@ import type {Checklist, ChecklistDays} from '../../checklist/schema';
 import type {EarnSnapshot} from '../../earn/snapshot';
 import type {PageView} from '../context/page-view';
 import type {ZigiPlans} from '../store/plans';
+import type {MoneyLog} from '../../money-log/schema';
+import type {Journal} from '../../journal/schema';
+import type {Energy} from '../../energy/schema';
 
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
@@ -45,6 +48,11 @@ export type ToolSources = {
    * of My links (their names and addresses never reach a tool).
    */
   accounts?: Accounts | null;
+  /** Session AI: the expense and income log on this device (Wealth's area switch). */
+  moneyLog?: MoneyLog | null;
+  /** Session AI: the journal (its entries reach the person's AI only when they turned journal sharing on) and the daily energy (the Health gate). */
+  journal?: Journal | null;
+  energy?: Energy | null;
   milestoneDates?: MilestoneDates | null;
   chess?: {settings: ChessSettings | null; cache: ChessCache} | null;
   linksCount?: number | null;
@@ -73,5 +81,6 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   // Notes (Part 8): to the person's AI only where a page attaches data; on the device whenever nothing private shows.
   const notesOpen = purpose === 'provider' ? gates.notes : !gates.paused;
   const notes = notesOpen && sources.notes ? sources.notes.filter(note => health || !HEALTH_NOTE_CATEGORIES.includes(note.category)) : null;
-  return {...sources, health: health ? sources.health : null, fasting: health ? sources.fasting : null, notes, areas: {...areas, health}, handles, limits};
+  // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
+  return {...sources, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, notes, areas: {...areas, health}, handles, limits};
 }

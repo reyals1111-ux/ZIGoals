@@ -19,6 +19,7 @@ import {storageMessageOr} from '../../lib/storage-error-copy';
 import {coinKey, type PortfolioCoin, type PortfolioData} from '../../lib/portfolio/schema';
 import {HoldingsBelowZero, holdings, ordered, valueHolding} from '../../lib/portfolio/math';
 import {realizedResults} from '../../lib/portfolio/performance';
+import {lotResults, type LotMethod} from '../../lib/portfolio/lots';
 import {PortfolioUnreadable, removeTransaction} from '../../lib/portfolio/store';
 import {showcasePrices} from '../../lib/portfolio/showcase';
 import './portfolio.css';
@@ -89,6 +90,7 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
         <div><dt>Unrealized result</dt><dd>{Number(held.quantity) === 0 ? '—' : position.unrealized === undefined ? 'Unknown' : formatSignedMoney(position.unrealized, currency)}</dd></div>
         <div><dt>Realized result</dt><dd>{position.realized === undefined ? 'Unknown' : formatSignedMoney(position.realized, currency)}</dd>{position.realized === undefined && <small>A sale of coins whose cost was unknown.</small>}</div>
       </dl> : <p>You have no {coin.symbol} in {portfolio.name} yet.</p>}
+      {held && position && list.some(t => t.kind === 'sell' || t.kind === 'transfer-out') && <LotMethods portfolio={portfolio} coinKey={key!} currency={currency} />}
       {list.length > 0 && <TransactionList portfolio={portfolio} list={list} names={new Map([[key!, coin]])} onRemove={tid => removeTx(portfolio.id, tid)} run={run} />}
       <TransactionForm key={portfolio.id} portfolio={portfolio} run={run} coin={coin} />
     </section>}
@@ -110,5 +112,23 @@ function FavouriteToggle({coin}: {coin: PortfolioCoin}) {
     <p>{favourite ? `${coin.name} is one of your favourite markets.` : full ? 'You already follow eight favourite markets, the most there can be. Remove one on Markets to follow this coin.' : 'Follow this coin among your favourite markets on Markets, Wealth and Portfolio.'}</p>
     <button type="button" className="secondary" disabled={busy || full} onClick={() => { setBusy(true); setProblem(''); void platform.update(s => favourite ? removeFavourite(s, key) : addFavourite(s, {ref: coin.ref, name: coin.name, symbol: coin.symbol})).catch(e => setProblem(plainErrorMessage(e, 'Could not update favourites.'))).finally(() => setBusy(false)); }}>{favourite ? 'Remove from favourites' : 'Add to favourites'}</button>
     {problem && <p role="alert">{problem}</p>}
+  </section>;
+}
+
+/**
+ * Session AI (WE21): the same sales by lots — first in, first out or last in, first out — beside the average cost the
+ * Portfolio uses everywhere else. A view only: the choice changes nothing stored, and the totals keep average cost.
+ */
+function LotMethods({portfolio, coinKey, currency}: {portfolio: Parameters<typeof lotResults>[0]; coinKey: string; currency: string}) {
+  const [method, setMethod] = useState<LotMethod>('fifo');
+  const result = useMemo(() => { try { return lotResults(portfolio, method).get(coinKey) ?? null; } catch { return null; } }, [portfolio, method, coinKey]);
+  return <section className="portfolio-lots" aria-labelledby="portfolio-lots-title">
+    <h3 id="portfolio-lots-title">The same sales by lots</h3>
+    <div role="radiogroup" aria-label="Lot method" className="portfolio-lots-methods">{(['fifo', 'lifo'] as const).map(m => <label key={m}><input type="radio" name="lot-method" checked={method === m} onChange={() => setMethod(m)} /> {m === 'fifo' ? 'First in, first out (FIFO)' : 'Last in, first out (LIFO)'}</label>)}</div>
+    {result && <dl className="portfolio-totals" aria-label={`By lots, ${method === 'fifo' ? 'first in, first out' : 'last in, first out'}`}>
+      <div><dt>Realized result</dt><dd>{result.realized === undefined ? 'Unknown' : formatSignedMoney(result.realized, currency)}</dd></div>
+      <div><dt>Cost of what you hold</dt><dd>{Number(result.heldQuantity) === 0 ? '—' : result.heldCost === undefined ? 'Unknown' : formatMoney(result.heldCost, currency)}</dd></div>
+    </dl>}
+    <p className="fine">A view only: average cost stays the Portfolio&rsquo;s method everywhere else. A lot without a known cost leaves what it touches unknown. Not tax advice.</p>
   </section>;
 }

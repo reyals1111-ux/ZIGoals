@@ -77,7 +77,7 @@ function NotesCard() {
   const {open, setOpen, card} = useAnchoredCard(NOTES_ANCHOR);
   return <details ref={card} id={NOTES_ANCHOR} className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">What ZIGi knows about me</summary>
-    <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you.</p>
+    <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you. <Link className="text-link" href="/app/zigi/memory">Open What ZIGi remembers</Link></p>
     {open && <ZigiPartBoundary label="The notes"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><NotesPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
@@ -282,8 +282,10 @@ export default function AiSettings() {
       {settings.loaded && <HostedCard/>}
     </Group>
     <Group id="zigi-privacy" title="Privacy & data">
-      {data.enabled && <>
+      {/* Session AI (ZI5; Grok's N-019, M-089): these switches show before a connection too, where Help points to them. */}
+      {settings.loaded && <>
         <h4>What each page may share</h4>
+        {!data.enabled && <p className="ai-note">These apply once you connect your own AI. With no AI connected, nothing leaves this device: ZIGi answers from your records here.</p>}
         <p className="ai-note">On by default except Health. Off means ZIGi answers without that page&rsquo;s data. Identifiers, wallet addresses, chain details, account and sync metadata are never sent.</p>
         <div className="ai-switch-list">{PAGE_AREAS.map(area => <Switch key={area} checked={data.pageShare[area]} onChange={next => save(s => ({...s, pageShare: {...s.pageShare, [area]: next}}))} label={`${AREA_LABELS[area]} page data`} note={PAGE_NOTES[area]}/>)}</div>
         <Switch checked={data.includeHealth} onChange={next => save(s => ({...s, includeHealth: next}))} label="Include Health" disabled={!layoutHasHealth} note={!layoutHasHealth ? 'Health is not part of your Today layout on this device, so nothing from Health can be shared. Add Health to Today first.' : healthConsent.accountActive && !healthConsent.accountHealthPermitted ? 'With your account open, Health is shared only when the account\'s Health permission is on for this device (Settings → Account & sync). It is not, so Health stays out.' : 'Health goes to your AI only with this switch, the Health page switch above and, with an account, its Health permission. Off by default.'}/>

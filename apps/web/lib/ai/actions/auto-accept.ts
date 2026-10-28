@@ -17,7 +17,9 @@ export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'pref
   // Session AA-Local, merged second (ADR-022 B53): three navigations (a scenario opens the calculator, a query opens search, a period opens the Life review).
   'calculator-scenario', 'open-search', 'open-review',
   // Session AF (ADR-028 D7, H47): the staking review, filled in, is always opened by the person and signed in their own wallet.
-  'prefill-staking'] as const satisfies readonly ActionKind[];
+  'prefill-staking',
+  // Session AI: money spent or received is about money, so never automatic either.
+  'log-expense', 'log-income'] as const satisfies readonly ActionKind[];
 // Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night and the bell are Health kinds too.
 export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement', 'set-micro-target', 'set-macro-mode', 'coach-answer',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
@@ -82,6 +84,7 @@ export const AUTO_ACCEPT_GROUPS: readonly {title: string; kinds: readonly Action
   {title: 'Checklist and your day', kinds: ['checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief']},
 ];
 export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
+  'log-expense': 'Spending', 'log-income': 'Income',
   'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
   'edit-diary-entry': 'Changes to a diary entry', 'log-meal-plan': 'Logging a planned meal', 'grocery-notes': 'Grocery notes', 'set-favorite': 'Favourite foods and recipes', 'create-counter': 'New counters', 'edit-counter': 'Changes to a counter', 'set-target': 'Health targets', 'set-health-preference': 'Health units', 'start-night': 'Starting a night', 'end-night': 'Ending a night', 'set-bells': 'The meditation bell',
   'set-today-preset': 'Today presets', 'edit-link': 'Changes to a link', 'skip-review': 'Skipping a weekly review', 'set-review-weekday': 'The weekly review\'s day', 'set-wrap-up': 'The evening wrap-up', 'set-page-visibility': 'Showing or hiding pages and buttons', 'set-start-page': 'The start page', 'set-zigi-look': 'ZIGi\'s look and feel',

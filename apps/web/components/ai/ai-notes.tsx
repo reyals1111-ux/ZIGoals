@@ -1,6 +1,6 @@
 'use client';
 import {useId, useMemo, useState, type FormEvent} from 'react';
-import {addNote, CATEGORY_LABELS, deleteNote, editNote, isHealthNote, newestFirst, restoreNote, withConsent, type MemoryCategory} from '../../lib/ai/memory';
+import {addNote, CATEGORY_LABELS, deleteNote, editNote, isHealthNote, newestFirst, notesExport, restoreNote, setNotePaused, withConsent, type MemoryCategory} from '../../lib/ai/memory';
 import {AI_MEMORY, AI_OPTIONS, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, memoryConsent, type AiMemory, type MemoryNoteRecord} from '../../lib/ai/store/records';
 import {isShowcase} from '../../lib/showcase-storage';
 import {formatDate} from '../../lib/visual-format';
@@ -58,10 +58,13 @@ export default function AiNotes() {
       : <ul className="ai-memory-list" aria-label="Your notes">{notes.map(note => <li key={note.id} className="ai-memory-note">
         {editing === note.id ? <NoteEdit note={note} onCancel={() => setEditing(null)} onSave={(text, kind) => { if (change(current => editNote(current, note.id, {text, category: kind}, new Date()), 'Note saved.')) setEditing(null); }}/> : <>
           <p className="ai-memory-text">{note.text}</p>
+          {/* Session AI (feature 3): a note can be paused: kept here, used by no AI. */}
+          <Switch checked={note.paused !== true} onChange={next => change(current => setNotePaused(current, note.id, !next, new Date()), next ? 'ZIGi uses this note again.' : 'Paused: the note stays here and goes to no AI.')} label="Use this note" note={note.paused ? 'Paused: kept on this device, never sent.' : 'On: it can shape ZIGi’s answers.'}/>
           <p className="ai-memory-meta">{CATEGORY_LABELS[note.category]} · {note.source === 'zigi' ? 'from a ZIGi card you confirmed' : 'written by you'} · {formatDate(note.updatedAt)}{isHealthNote(note.category) ? ' · goes to your AI only while Health is shared' : ''}</p>
           <div className="ai-card-actions"><button type="button" className="secondary" aria-label={`Edit the note "${excerpt(note.text)}"`} onClick={() => { setEditing(note.id); setMessage(null); }}>Edit</button><button type="button" className="text-link" aria-label={`Delete the note "${excerpt(note.text)}"`} onClick={() => remove(note)}>Delete</button></div>
         </>}
       </li>)}</ul>}
+    {notes.length > 0 && <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => { const url = URL.createObjectURL(new Blob([notesExport(memory.data, new Date())], {type: 'application/json'})); const a = document.createElement('a'); a.href = url; a.download = 'zigi-notes.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); setMessage({text: 'Your notes were saved as a file (zigi-notes.json).'}); }}>Export my notes</button></div>}
     {notes.length > 0 && (!confirmAll ? <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => setConfirmAll(true)}>Delete all notes</button></div>
       : <div className="ai-confirm" role="group" aria-label="Delete all notes"><p>All {notes.length} notes go from this device. This cannot be undone.</p><div className="ai-card-actions"><button type="button" className="primary" onClick={deleteAll}>Delete all {notes.length}</button><button type="button" className="text-link" onClick={() => setConfirmAll(false)}>Keep them</button></div></div>)}
     {message && <p role={message.failed ? 'alert' : 'status'} className="ai-note">{message.text}{message.restore && <> <button type="button" className="text-link" onClick={() => change(current => restoreNote(current, message.restore!), 'The note is back.')}>Undo</button></>}</p>}

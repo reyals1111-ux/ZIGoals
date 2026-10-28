@@ -20,3 +20,8 @@ export function checkInFacts(before: HabitData, after: HabitData, habitId: strin
 }
 /** The celebrations-record id that remembers "all done" for a day on this device. */
 export const allDoneNoteId = (today: string) => `all-done:${today}`;
+/**
+ * Session AI (mascot, "celebrate once"): the celebrations-record id for one streak milestone of one habit on one day, so
+ * unticking and ticking again (or a second device view) never plays the same celebration twice.
+ */
+export const streakNoteId = (habitId: string, milestone: number, today: string) => `streak:${habitId.slice(0, 120)}:${milestone}:${today}`;

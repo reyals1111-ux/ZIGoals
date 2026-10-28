@@ -24,3 +24,6 @@
 /* Session AB-Design (owner request 36): the Settings group's icon sits on the title line in the nebula cyan. */
 .settings-page .settings-group-title { display: flex; align-items: center; gap: 10px; }
 .settings-page .settings-group-icon { flex: none; color: #8fe6f4; filter: drop-shadow(0 0 5px #4fc3f766); }
+/* Session AI (SE3): one Backup & restore card; its four parts sit inside it as sections, not cards of their own. */
+.settings-page .backup-restore { display: grid; gap: 16px; }
+.settings-page .backup-restore > .panel { margin: 0; box-shadow: none; border: 0; border-top: 1px solid var(--line, rgba(128, 128, 160, .2)); border-radius: 0; padding-inline: 0; background: transparent; }

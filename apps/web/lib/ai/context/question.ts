@@ -40,12 +40,17 @@ const CUES: [RegExp, string][] = [
   [/\bgelezen\b|\blezen\b|\bpagina'?s?\b|\bpages\b/g, 'read'], [/\bgewandeld\b|\bwandel\w*/g, 'walk'], [/\bgesport\b|\bsporten\b/g, 'exercise'], [/\bdoel(?:en)?\b/g, 'goal'], [/\bgewoonte(?:s|n)?\b/g, 'habit'],
   [/\bnoodfonds\b/g, 'emergency fund'], [/\bhoeveel\b/g, 'how much'], [/\bwelke\b/g, 'which'], [/\bhoe ver\b/g, 'how far'], [/\bwat is\b|\bwat was\b/g, 'what is'], [/\bwanneer\b/g, 'when'], [/\bapparaten\b|\bgeïmporteerd\b/g, 'devices'], [/\bhartslag\b/g, 'heart rate'],
 ];
+/** Someone else's records, named by relation and a possessive (English and Dutch). */
+const OTHER_PERSON = /\b(?:my|mijn)\s+(?:partner|wife|husband|girlfriend|boyfriend|friend|mother|mum|mom|father|dad|son|daughter|kid|child|brother|sister|colleague|neighbou?r|roommate|vrouw|man|vriend(?:in)?|moeder|vader|zoon|dochter|kind|broer|zus|collega|buur(?:vrouw|man)?|huisgenoot)\b[^.?!]{0,40}(?:'s|’s|s'|\bzijn\b|\bhaar\b|\bhis\b|\bher\b|\btheir\b)/i;
 export function translateCues(question: string): string { let q = normalizeSpoken(question).toLowerCase(); for (const [re, word] of CUES) q = q.replace(re, word); return q; }
 /** A habit measure asked for without a habit's name (minutes read, a streak, pages): every timed habit's figures are pre-run. */
 const HABIT_MEASURE = /\b(minutes?|minuten|streaks?|reeks|pages?|pagina|consistent|consistency|rate|check-?ins?|how often|hoe vaak)\b/;
 const GOAL_WORDS = /\b(how far|progress|left|remaining|how close|which|list|dates?|coming up|hoe ver|ontbreekt|welke)\b/;
 /** The tool calls a question asks for: the lookup's own, or the figures of each record it names. */
 export function questionCalls(question: string, sources: ToolSources, gates: Gates): ToolCallRecord[] {
+  // Session AI (A3-r2): a question about someone else's records ("my partner Sam's weight") reads nothing: these are only
+  // the person's own records, so no tool is pre-run (the prompt says the same to the model).
+  if (OTHER_PERSON.test(question)) return [];
   const env = toolEnv(sources, gates, 'provider');
   const reply = localAnswer(question, env);
   if ((reply.kind === 'answer' || reply.kind === 'refusal') && reply.calls.length) return reply.calls;
@@ -89,18 +94,18 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   const OPEN_TODAY = /\b(still open|left today|open today|what(?:'s| is) open|still to do|remaining today|left to do|to do today|due today|habits (?:are )?left|nog open|nog te doen|staat er .*open|open for me)\b/;
   const LIST_GOALS = /\b(which goals?|what goals?|my goals|goals do i have|list (?:my )?goals|goal dates|goals? (?:are|is) (?:coming|due|closest|furthest|behind)|closest to done|furthest behind|welke doelen|mijn doelen|doeldatums)\b/;
   const LIST_HABITS = /\b(which habits?|what habits?|my habits|habits do i have|list (?:my )?habits|my streaks|how are my streaks|welke gewoontes?|mijn gewoontes?|mijn reeksen)\b/;
-  const BRIEF = /\b(brief|briefing|focus on today|pay attention|what should i|how is my (?:week|day|month)|my (?:week|month|day) (?:going|so far)|story of my|summar|wrap-?up|weekly review|weekend|weekdays|samenvat|overzicht|waar moet ik op letten|mijn week|hoe gaat mijn)\b/;
+  const BRIEF = /\b(brief|\w*briefing|focus on today|pay attention|what should i|how is my (?:week|day|month)|my (?:week|month|day) (?:going|so far)|story of my|summar|wrap-?up|weekly review|weekend|weekdays|samenvat|overzicht|waar moet ik op letten|mijn week|hoe gaat mijn)\b/;
   const DID = /\b(what did i (?:do|log)|what have i logged|busiest day|what happened|wat heb ik (?:gedaan|gelogd)|qu'ai-je fait|qu'est-ce que j'ai fait)\b/;
   const ABOUT_ME = /\b(know about me|about me|over mij|sur moi)\b/;
   const PORTFOLIO = /\b(portfolios?|portefeuilles?)\b/, STAKING = /\b(stak(?:ing|ed)|validators?|staken|rewards?)\b/;
   if (OPEN_TODAY.test(qt)) { add('habits_due', {}); add('list_habits', {}); }
   if (LIST_GOALS.test(qt) || (!s.goals.length && /\b(goals?|doel(?:en)?)\b/.test(qt) && GOAL_WORDS.test(qt))) add('list_goals', {});
   if (LIST_HABITS.test(qt)) add('list_habits', {});
-  if (BRIEF.test(qt)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); }
+  if (BRIEF.test(qt)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); add('checklist_today', {}); } // Session AI (A3-r1): the app's own brief includes the Checklist
   if (DID.test(qt)) add('recent_activity', {range: phrase('today')});
   // Session AF (L4, P8.7): a question about what is on screen ("explain this card", "what does this page show") brings the
   // page's card titles and ids as one removable chip, "This page" (never a value; nothing on Settings or a private screen).
-  const PAGE_REF = /\b(?:this|that|the) (?:card|widget|page|screen|section)\b|\bon (?:this|my) screen\b|\bwhat am i looking at\b|\b(?:deze|die|dit) (?:kaart|pagina|scherm|widget)\b|\bwat zie ik\b/;
+  const PAGE_REF = /\b(?:this|that|the) (?:card|widget|page|screen|section)\b|\bon (?:this|my) screen\b|\bwhat am i looking at\b|\b(?:which|what) (?:of )?(?:these|the) (?:cards?|widgets?)\b|\bthese (?:cards|widgets)\b|\b(?:kaart|kaarten|widget) hier\b|\bwelke (?:van deze )?kaart(?:en)?\b|\b(?:deze|die|dit) (?:kaart|pagina|scherm|widget)\b|\bwat zie ik\b/;
   if (PAGE_REF.test(q) && sources.pageView) calls.push({tool: 'page_view', args: {}, label: 'This page'});
   // Session AF (L4): the Earn coach's figures for a question about earning, and the Checklist for a question about it.
   if (/\b(?:apr|apy|staking (?:rates?|apr|yield|rewards? rate)|unbond\w*|stzig|liquid staking|pool fees?|ways to earn|earn page|staking-?rente|manieren om te verdienen)\b/.test(q)) add('earn_rates', {});

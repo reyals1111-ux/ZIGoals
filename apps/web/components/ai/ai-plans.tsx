@@ -1,5 +1,10 @@
 'use client';
-import {useState} from 'react';
+import Link from 'next/link';
+import {useMemo, useState} from 'react';
+import {planProgress} from '../../lib/ai/store/plan-progress';
+import {useHabits} from '../habits/use-habits';
+import {useUnifiedGoals} from '../use-unified-goals';
+import {useLocalToday} from '../use-local-today';
 import {forgetAllPlans, forgetPlan, planLines, ZIGI_PLANS} from '../../lib/ai/store/plans';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
@@ -13,7 +18,10 @@ import {useDeviceRecord} from './use-device-record';
  */
 export default function AiPlans() {
   const record = useDeviceRecord(ZIGI_PLANS), [note, setNote] = useState(''), [confirm, setConfirm] = useState(false);
-  const plans = record.data.plans ?? [];
+  const plans = useMemo(() => record.data.plans ?? [], [record.data.plans]);
+  // Session AI (feature 8): each plan's progress across the habits and the goal it added, read from the records.
+  const habits = useHabits(), goals = useUnifiedGoals(), today = useLocalToday();
+  const progress = useMemo(() => new Map(plans.map(p => [p.id, habits.loaded && goals.loaded ? planProgress(p, {habits: habits.data, goals: goals.goals, today}) : []])), [plans, habits.loaded, habits.data, goals.loaded, goals.goals, today]);
   const forgetOne = (id: string, title: string) => { try { forgetPlan(getAppStorage(), id); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_PLANS.key})); setNote(`Forgot the plan “${title}”; what you added stays.`); } catch { setNote('It could not be forgotten on this device.'); } };
   const forgetAll = () => { try { forgetAllPlans(getAppStorage()); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_PLANS.key})); setNote('All plans were forgotten on this device; what you added stays.'); } catch { setNote('They could not be forgotten on this device.'); } setConfirm(false); };
   if (!record.loaded) return <p className="ai-note" role="status">Reading your plans…</p>;
@@ -25,6 +33,7 @@ export default function AiPlans() {
         <p className="ai-memory-text"><strong>{lines.title}</strong></p>
         <p className="ai-memory-meta">{lines.steps.length} {lines.steps.length === 1 ? 'step' : 'steps'} · {lines.done ? 'every step decided' : 'some steps not decided yet'} · {formatDate(p.updatedAt)}</p>
         <ul className="ai-plan-steps">{lines.steps.map((s, i) => <li key={i}>{s.label} — {s.outcome}</li>)}</ul>
+        {(progress.get(p.id) ?? []).length > 0 && <div className="ai-plan-progress" role="group" aria-label={`How "${lines.title}" is going`}><p className="ai-memory-meta">How it is going</p><ul>{progress.get(p.id)!.map((l, i) => <li key={i}>{l.href ? <Link className="text-link" href={l.href}>{l.label}</Link> : <strong>{l.label}</strong>}: {l.text}</li>)}</ul></div>}
         <div className="ai-card-actions"><button type="button" className="text-link" aria-label={`Forget the plan "${lines.title}"`} onClick={() => forgetOne(p.id, lines.title)}>Forget</button></div>
       </li>; })}</ul>}
     {plans.length > 0 && (!confirm ? <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => setConfirm(true)}>Forget all plans</button></div>

@@ -31,6 +31,14 @@ import {INSIGHTS_KEY, insightsSchema, emptyInsights} from '../insights/schema';
 import {HABIT_HEALTH_LINKS_KEY, habitHealthLinksSchema, emptyHabitHealthLinks} from '../habit-health-links/schema';
 import {summarizeBackupModules} from '../vault/backup-preview';
 import {WORKOUTS} from '../workouts/schema';
+import {MONEY_LOG} from '../money-log/schema';
+import {MEAL_ESTIMATES} from '../meal-estimates/schema';
+import {TASKS} from '../tasks/schema';
+import {RECEIPTS} from '../portfolio/receipts';
+import {IMPORTS} from '../portfolio/wallet-import';
+import {EXCHANGES_RECORD} from '../exchanges/record';
+import {JOURNAL} from '../journal/schema';
+import {ENERGY} from '../energy/schema';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): what "Restore from a backup" can bring back from an
@@ -72,6 +80,14 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('milestoneDates', 'Milestone dates', 'Goals and Wealth', MILESTONE_DATES),
   dev('calculator', 'Calculator scenarios', 'Goals and Wealth', CALCULATOR),
   dev('workouts', 'Workouts', 'Health', WORKOUTS),
+  dev('moneyLog', 'Spending', 'Goals and Wealth', MONEY_LOG),
+  dev('journal', 'Journal', 'Today and Life', JOURNAL),
+  dev('energy', 'Daily energy', 'Health', ENERGY),
+  dev('mealEstimates', 'Meal estimate ranges', 'Health', MEAL_ESTIMATES, true),
+  dev('tasks', 'Tasks', 'Today and Life', TASKS),
+  dev('portfolioReceipts', 'Portfolio rewards, income and airdrops', 'Goals and Wealth', RECEIPTS),
+  dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
+  dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),
   dev('portfolio', 'Portfolio', 'Goals and Wealth', spec(PORTFOLIO_KEY, portfolioDataSchema, emptyPortfolioData)),
   dev('habitExtras', 'Habit extras', 'Habits', HABIT_EXTRAS),
   dev('game', 'Levels and streak shields', 'Habits', GAME),

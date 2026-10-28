@@ -3,6 +3,14 @@ import {digitsOf, score, factNumbers, sameDay, saysUnrefused} from './score';
 
 // Session X-Local Part 6d: the scorer's verdicts are exact, so a model's pass rate means what it says.
 const block = (json: string) => `\`\`\`zigoals-action\n${json}\n\`\`\``;
+test('Session AI (A4): card bounds count what the cap counts: a habit\'s own reminder rides with its habit', () => {
+  const ten = Array.from({length: 10}, (_, i) => block(JSON.stringify({kind: 'build-habit', title: `Habit ${i + 1}`, reminder: `${String(7 + i).padStart(2, '0')}:00`}))).join('\n');
+  const s = score({minCards: 1, maxCards: 10}, {text: ten, calls: []});
+  expect(s.checks.find(c => c.name === 'cards')).toMatchObject({pass: true, detail: 'got 20 (10 toward the cap)'});
+  // Eleven separate habits: the app keeps ten and refuses the eleventh, so the turn fails on that refused block.
+  const eleven = score({minCards: 1, maxCards: 10}, {text: Array.from({length: 11}, (_, i) => block(JSON.stringify({kind: 'create-habit', title: `Habit ${i + 1}`}))).join('\n'), calls: []});
+  expect(eleven.pass).toBe(false); expect(eleven.checks.find(c => c.name === 'schema')).toMatchObject({pass: false, detail: expect.stringContaining('Only the first 10')});
+});
 test('cards: an exact multiset without bounds, an allowed subset within bounds; every block must validate', () => {
   const ok = score({kinds: ['log-water']}, {text: `One glass.\n\n${block('{"kind":"log-water","glasses":1}')}`, calls: []});
   expect(ok.pass).toBe(true); expect(ok.cards).toBe(1);
@@ -119,4 +127,19 @@ test('L53: a day field written as the date it names is that day ("yesterday" on 
   const other = score(exp, {text: '```zigoals-action\n{"kind":"log-steps","steps":12000,"day":"2026-10-03"}\n```', calls: [], today: '2026-10-05'});
   expect(other.pass).toBe(false);
   expect(sameDay('today', 'today', '2026-10-05')).toBe(true); expect(sameDay(undefined, 'today', '2026-10-05')).toBe(true);
+});
+
+test('Session AI (A3-r1): grouped numbers with decimals, numbers in the reply\'s own language, and "isn\'t"', () => {
+  expect(digitsOf('€8,000.00 and 12,450.50 and 8.000,00')).toEqual(['8000.00', '12450.50', '8000.00']);
+  expect(digitsOf('2,350 mL, 72,5 kg, 1.5 L, 3.14159')).toEqual(['2350', '72.5', '1.5', '3.14159']);
+  expect(score({mustContain: ['0.25']}, {text: 'De poolkosten zijn 0,25 %.', calls: []}).pass).toBe(true);
+  expect(score({mustContain: ['0.25']}, {text: 'The fee is 2.5 %.', calls: []}).pass).toBe(false);
+  expect(saysUnrefused('It isn\'t a promise of any return.', 'promise')).toBe(false);
+  expect(saysUnrefused('This is a promise.', 'promise')).toBe(true);
+});
+test('Session AI (A3-r1): a card naming a record by its handle matches the expected name', () => {
+  const card = '```zigoals-action\n{"kind":"check-in","habit":"h6"}\n```';
+  expect(score({fields: [{kind: 'check-in', habit: 'Read'}]}, {text: card, calls: [], names: {h6: 'Read'}}).pass).toBe(true);
+  expect(score({fields: [{kind: 'check-in', habit: 'Read'}]}, {text: card, calls: [], names: {h6: 'Walk'}}).pass).toBe(false);
+  expect(score({fields: [{kind: 'check-in', habit: 'Read'}]}, {text: card, calls: []}).pass).toBe(false);
 });

@@ -111,6 +111,19 @@ test('food from the library keeps the person\'s nutrients; an AI estimate is lab
   expect(afterEstimate.health.diary.find(e => e.sourceId === food!.id)?.meal).toBe('Breakfast');
   expect(plan({kind: 'log-food', name: 'Soup', meal: 'Dinner', estimate: {serving_g: 350}}).card.lines[2]).toBe('Serving 350 g');
 });
+test('Session AI (HE17): a meal estimate as ranges shows each range, saves the middle, and keeps the ranges beside the food', () => {
+  const ranged = plan({kind: 'log-food', name: 'Pasta plate', meal: 'Dinner', estimate: {range: {kcal: [450, 650], protein_g: [20, 30]}, serving_g: 350, from: 'photo'}});
+  expect(ranged.card.lines[1]).toBe('AI estimate per serving: kcal 450–650 (saved as 550), protein 20–30 g (saved as 25 g), carbs unknown, fat unknown; unknown stays unknown, never 0');
+  expect(ranged.card.lines).toContain('From your photo: a range, because a meal is never one exact number; edit any value before you add it');
+  expect(ranged.device).toMatchObject({key: 'zigoals:meal-estimates:v1', patch: {add: {estimate: {ranges: {kcal: [450, 650], protein_g: [20, 30]}, source: 'photo'}}}});
+  const food = roundTrip(ranged).health.foods.find(f => f.name === 'Pasta plate');
+  expect(food).toMatchObject({brand: 'AI estimate', servingGrams: 350, nutrients: {kcal: 550, proteinMg: 25_000, carbsMg: null}});
+  expect((ranged.device!.patch as {add: {foodId: string}}).add.foodId).toBe(food!.id);
+  // A value the AI gave wins over the middle; no range, no device write.
+  expect(plan({kind: 'log-food', name: 'Soup', meal: 'Dinner', estimate: {kcal: 300, range: {kcal: [250, 400]}}}).card.lines[1]).toContain('kcal 250–400 (saved as 300)');
+  expect(plan({kind: 'log-food', name: 'Soup', meal: 'Dinner', estimate: {kcal: 300}}).device).toBeUndefined();
+  expect(actionSchema.safeParse({kind: 'log-food', name: 'Soup', meal: 'Dinner', estimate: {range: {kcal: [650, 450]}}}).success).toBe(false);
+});
 test('check-in, partial check-in and skip go through the habit mutators; undo restores the previous entry or removes the new one', () => {
   const read = habit(0), rule = latestHabitRule(read), before = read.entries.find(e => e.date === DAY);
   const done = plan({kind: 'check-in', habit: 'H1'});
@@ -239,7 +252,7 @@ test('a batch applies in order on the latest stores, stops at the first failure,
   expect(UNDO_WINDOW_MS).toBe(10_000);
 });
 test('cards name records by title, never by identifier, and every kind the parser accepts has a planner', () => {
-  const samples: Record<string, unknown>[] = [{kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
+  const samples: Record<string, unknown>[] = [{kind: 'log-expense', amount: 12.5, currency: 'EUR', note: 'lunch'}, {kind: 'log-income', amount: 100, currency: 'EUR'}, {kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
     // Session V Part 7
     {kind: 'create-food', name: 'Shake', serving_ml: 300, estimate: {kcal: 200}}, {kind: 'create-recipe', name: 'Soup', ingredients: [{name: 'Lentils', grams: 250}]}, {kind: 'plan-meal', recipe: 'r1', meal: 'Dinner'},
     {kind: 'grocery-item', items: ['Oat milk']}, {kind: 'counter', counter: 'Push-ups', count: 20}, {kind: 'create-reminder', for: 'water', time: '10:00'}, {kind: 'review-intention', intention: 'Walk after lunch'},

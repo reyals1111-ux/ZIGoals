@@ -99,8 +99,8 @@ test('Wealth: the tracker row, then holdings and accounts, then the tools, then 
   expect(order).toEqual(isPhone(page)
     // Session AB-Design (owner request 26): the calculator is the last section on every width.
     // Session AC (the owner's decision of 2026-10-15): the three holdings lists are one item, wealth:holdings.
-    ? ['wealth:pulse', 'wealth:holdings', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']
-    : ['wealth:pulse', 'wealth:holdings', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']);
+    ? ['wealth:pulse', 'wealth:holdings', 'wealth:spending', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']
+    : ['wealth:pulse', 'wealth:holdings', 'wealth:spending', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']);
 });
 
 test('Goals: the cards first, Health goals with them, the timeline after', async ({page}) => {

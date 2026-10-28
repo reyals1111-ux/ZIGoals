@@ -49,7 +49,7 @@ async function openChat(page: Page) {
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 const box = (page: Page) => panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
-/** Sends what is in the box with the composer's own button (on phones Enter adds a line, by design). */
+/** Sends what is in the box with the composer's own button (the same on phones and desktops). */
 const submit = (page: Page) => panel(page).locator('.ai-composer button[type=submit]').click();
 /**
  * Session AF Gate C (diagnostic only; nothing is asserted more loosely): CI's WebKit job on efeed49a and 5b0bd5e7 found the
@@ -307,4 +307,33 @@ test('a table in a reply is a real table; HTML and scripts in it stay text', asy
   // ZIGi's own figure sits beside the reply; inside the reply's body nothing can load or run.
   await expect(reply.locator('.ai-turn-body').locator('img, script, iframe, a[href^="javascript"]')).toHaveCount(0);
   expect(await page.evaluate(() => (window as Window & {__zigiXss?: number}).__zigiXss ?? null)).toBeNull();
+});
+test('Session AI, ZI6: Enter sends on phones as on desktops (the key reads "Send"); a short window keeps the conversation tall', async ({page}, testInfo) => {
+  await seed(page, null);
+  await page.goto('/app');
+  await openChat(page);
+  await expect(box(page)).toHaveAttribute('enterkeyhint', 'send');
+  await box(page).fill('How many minutes did I meditate this month?');
+  await box(page).press('Enter');
+  await expect(panel(page).locator('.ai-turn-local').last()).toContainText(LOCAL_LABEL);
+  await expect(box(page)).toHaveValue('');
+  // Shift+Enter keeps a line break in the box and sends nothing.
+  await box(page).fill('first line'); await box(page).press('Shift+Enter');
+  await expect(box(page)).toHaveValue('first line\n');
+  await box(page).fill('');
+  // M-073: closing the panel puts the focus back on the launcher (the close button, then Escape on a desktop).
+  await panel(page).getByRole('button', {name: 'Close ZIGi'}).click();
+  await expect(panel(page)).toHaveCount(0);
+  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
+  if (testInfo.project.name !== 'desktop') return;
+  await openChat(page);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
+  await openChat(page);
+  // D-131: in a 500 px high window the conversation had about 120 px between the header and the composer.
+  await page.setViewportSize({width: 900, height: 500});
+  const log = panel(page).getByRole('log', {name: 'Conversation'});
+  await expect.poll(async () => (await log.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(200);
+  await page.setViewportSize({width: 1440, height: 900});
+  await expect.poll(async () => (await panel(page).boundingBox())?.height ?? 0).toBeLessThanOrEqual(Math.round(0.72 * 900) + 1);
 });

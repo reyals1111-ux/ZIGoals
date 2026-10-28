@@ -75,7 +75,9 @@ export const MEMORY_CATEGORIES = ['goals', 'preferences', 'constraints', 'diet',
 /** Notes in these categories describe the person's health and need the Health gate on every path, like Health itself. */
 export const HEALTH_NOTE_CATEGORIES: readonly string[] = ['health', 'diet'];
 export const MAX_NOTES = 100, MAX_NOTE_CHARS = 500;
-export const memoryNoteSchema = z.looseObject({id: z.string().min(1).max(80), text: z.string().trim().min(1).max(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES), source: z.enum(['person', 'zigi']), createdAt: stamp, updatedAt: stamp});
+export const memoryNoteSchema = z.looseObject({id: z.string().min(1).max(80), text: z.string().trim().min(1).max(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES), source: z.enum(['person', 'zigi']), createdAt: stamp, updatedAt: stamp,
+  /** Session AI (feature 3): kept on this device, never sent to the person's AI while paused. */
+  paused: z.boolean().optional()});
 export type MemoryNoteRecord = z.infer<typeof memoryNoteSchema>;
 /**
  * Session AF (L4, ADR-028 H30; `TIER 3 (storage)`): `consent` says when the person first agreed that ZIGi keeps notes
@@ -102,6 +104,9 @@ export const ZIGI_ANIMATIONS = ['full', 'calm', 'off'] as const;
 export const ZIGI_SIDES = ['right', 'left'] as const;
 export const ZIGI_SIZES = ['s', 'm', 'l'] as const;
 export const ZIGI_GREETINGS = ['quiet', 'friendly'] as const;
+/** Session AI (mascot, ADR-034 N13): ZIGi's personality — calm (the default, as before), cheerful or direct. Words only; the facts are the same. */
+export const ZIGI_PERSONALITIES = ['calm', 'cheerful', 'direct'] as const;
+export type ZigiPersonality = (typeof ZIGI_PERSONALITIES)[number];
 export const MAX_CHAT_AREAS = 200;
 /** The pages a chat can start on: `PAGE_AREAS` of `../settings`, which imports this file (a test keeps the two equal). */
 export const CHAT_AREAS = ['today', 'goals', 'habits', 'health', 'wealth', 'help'] as const;
@@ -112,6 +117,8 @@ export const zigiSchema = z.looseObject({
   side: z.enum(ZIGI_SIDES).optional(),
   size: z.enum(ZIGI_SIZES).optional(),
   greeting: z.enum(ZIGI_GREETINGS).optional(),
+  /** Session AI (mascot; `TIER 3 (stored format)`, additive and optional in this loose record): the personality; absent is calm. */
+  personality: z.enum(ZIGI_PERSONALITIES).optional().catch(undefined),
   edgeTab: z.boolean().optional(),
   knock: z.looseObject({enabled: z.boolean().optional(), offer: z.enum(['accepted', 'declined']).optional(), offeredOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), maxPerDay: z.number().int().min(1).max(10).optional(), quietFrom: clock.optional(), quietTo: clock.optional(), sound: z.boolean().optional()}).optional(),
   /** Tips and chips dismissed on one day; a new day starts empty. */
@@ -139,6 +146,7 @@ export function briefPrefs(record: ZigiRecord): BriefPrefs {
   return {morning: b.morning ?? BRIEF_DEFAULTS.morning, evening: b.evening ?? BRIEF_DEFAULTS.evening, eveningTime: b.eveningTime ?? BRIEF_DEFAULTS.eveningTime, earning: b.earning ?? BRIEF_DEFAULTS.earning, readAloud: b.readAloud ?? BRIEF_DEFAULTS.readAloud};
 }
 export const ZIGI: DeviceRecordSpec<ZigiRecord> = {key: ZIGI_KEY, schema: zigiSchema, empty};
+export const zigiPersonality = (record: ZigiRecord): ZigiPersonality => record.personality ?? 'calm';
 export type ZigiPrefs = {
   skin: string; animation: (typeof ZIGI_ANIMATIONS)[number]; side: (typeof ZIGI_SIDES)[number]; size: (typeof ZIGI_SIZES)[number]; greeting: (typeof ZIGI_GREETINGS)[number]; edgeTab: boolean;
   knock: {enabled: boolean; offer: 'accepted' | 'declined' | null; offeredOn: string | null; maxPerDay: number; quietFrom: string; quietTo: string; sound: boolean};

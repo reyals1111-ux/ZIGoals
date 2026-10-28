@@ -19,6 +19,7 @@
   ],
   "serverOnly": {
     "note": "Origins only the app's own server code reaches, never the browser: none of them enters connect-src (ADR-014 S2). Each is a secret on the app Worker, unset in every committed config. Since Session AF the list also names fixed public origins the server reads (chainRelay, earnLive, recipeResolver, rampAssets, practiceBadges); those are not secrets, and none of them enters connect-src except the testnet LCD, which the browser also reads directly (chainOrigins); the mainnet LCD api.zigchain.com stays server-only.",
+    "exchangeRelay": "Session AI (J14; TIER 3 egress routes): /api/exchange forwards only the listed read-only calls to https://api.kraken.com, https://api.coinbase.com and https://api.binance.com (lib/exchanges/allowlist.ts); fixed public origins, not secrets; never in connect-src (the browser calls only its own origin)",
     "zigiRelay": "ZIGOALS_ZIGI_RELAY_ORIGIN: ZIGoals hosted's relay (workers/zigi-relay), reached only by /api/zigi (lib/server/zigi-route.ts); off by default",
     "healthLink": "ZIGOALS_HEALTH_LINK_ORIGIN: the health-link Worker (workers/health-link), reached only by /api/health-link (lib/server/health-link-route.ts); off by default",
     "pushReminders": "ZIGOALS_PUSH_ORIGIN: the push-reminders Worker (workers/push-reminders), reached only by /api/push (lib/server/push-route.ts); off until the owner activates push (docs/run11/PUSH_ACTIVATION.md). Listed by Session X Part 8: it has been server-only since ADR-010",

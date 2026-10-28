@@ -17,7 +17,7 @@ function add(...cases: ModelCase[]) { AA.push(...cases); }
   const hb = on('habits', 'habits'), h = on('health', 'health'), t = on('today', 'today'), st = on('settings', 'help');
   add(
     // H1 time-of-day sections
-    hb.propose('aa-tod-morning', 'Move my Read habit to the morning', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'morning'}]}, {important: true}),
+    hb.propose('aa-tod-morning', 'Move my Walk habit to the morning', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'morning'}]}, {important: true}), // A3-r1: Read already sits in the morning (Part 7); Walk sits in the afternoon
     hb.propose('aa-tod-evening-nl', 'Zet Lezen in de avond', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'evening'}]}, {lang: 'nl', important: true}),
     hb.propose('aa-tod-anytime', 'Read can be any time of day, not just mornings', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'anytime'}]}), // the Showcase's Read sits in the morning (Part 7); S1 showed the earlier ask named a habit already set to any time
     // H2 the timer
@@ -65,7 +65,7 @@ function add(...cases: ModelCase[]) { AA.push(...cases); }
     h.propose('aa-recipe-text-nl', 'Importeer dit recept: Linzensoep, 4 porties. 200 g rode linzen, 1 ui, 2 el olijfolie.', {kinds: ['import-recipe']}, {lang: 'nl'}), // S1: "voeg toe" (add) is the existing create-recipe, rightly; an import is asked for as one
     h.chat('aa-recipe-url', 'Import the recipe at https://www.example-recipes.com/lentil-soup', {maxCards: 1, mustContain: ['Import']}), // the page's own Import reads a web address: ZIGi never fetches; it may open that view or name it (B9; S1 and S2 saw both from the same model); the planner's own refusal of a URL import is proven in plan-aa.test.ts
     // N5 the planner and groceries (existing kinds, the new words), N11 water
-    h.propose('aa-plan-week', 'Plan the lentil soup for dinner on Thursday', {kinds: ['plan-meal'], fields: [{kind: 'plan-meal', meal: 'Dinner'}]}),
+    h.propose('aa-plan-week', 'Plan the Big lentil pot for dinner on Thursday', {kinds: ['plan-meal'], fields: [{kind: 'plan-meal', meal: 'Dinner'}]}), // A3-r1: "lentil soup" is a food in the records and plan-meal takes only a recipe or saved meal; the ask names the records' recipe
     h.propose('aa-grocery-nl', 'Zet havermelk en spinazie op mijn boodschappenlijst', {kinds: ['grocery-item']}, {lang: 'nl'}),
     h.local('aa-nav-planner', 'Open the meal planner', {localFirst: true, mustContain: ['Planner']}),
     h.local('aa-nav-insights-nl', 'Laat mijn inzichten zien', {localFirst: true, mustContain: ['Insights']}, {lang: 'nl'}),

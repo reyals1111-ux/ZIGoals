@@ -6,7 +6,7 @@ import {CELEBRATIONS} from '../../lib/celebrations';
 import {useRef, useState, type FormEvent} from 'react';
 import {habitDay, habitRuleOn, habitTargetPeriod, measurementUnit, type Habit, type HabitData} from "../../lib/habits";
 import {habitCheckIn, type HabitCardStore} from "./use-habits";
-import {allDoneNoteId, checkInFacts} from '../../lib/habits-v2/zigi-facts';
+import {allDoneNoteId, checkInFacts, streakNoteId} from '../../lib/habits-v2/zigi-facts';
 import {appliedCheckIn, markAutoCheckInUndone} from "../../lib/habit-health-links/store";
 import {checkInFailureMessage} from "../../lib/storage-error-copy";
 import {formNumberText, readFormNumber} from "../../lib/decimal-input";
@@ -76,7 +76,11 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
       // counted); elsewhere (the knock's check-in) only this habit is known and the day's completeness is not judged.
       const journal: HabitData = store.journalData?.() ?? {schemaVersion: before.schemaVersion ?? 2, kind: 'zigoals-habits', habits: [habit], ...(before.timeZone ? {timeZone: before.timeZone} : {})};
       const facts = checkInFacts(journal, change(journal), habit.id, store.today);
-      if (facts.streakMilestone) zigiSignals.emitValidated('streak_milestone');
+      if (facts.streakMilestone) {
+        // Session AI (mascot): a milestone celebrates once — an untick and a tick again the same day stays quiet.
+        const id = streakNoteId(habit.id, facts.streakMilestone, store.today), seen = celebrations.loaded && !celebrations.unreadable ? !!celebrations.data.seen[id] : false;
+        if (!seen) { if (celebrations.loaded && !celebrations.unreadable) { try { celebrations.update(n => ({...n, seen: {...n.seen, [id]: store.today}})); } catch { /* the reaction still plays once in this view */ } } zigiSignals.emitValidated('streak_milestone'); }
+      }
       else if (facts.allDone && celebrations.loaded && !celebrations.unreadable && !celebrations.data.seen[allDoneNoteId(store.today)]) { try { celebrations.update(n => ({...n, seen: {...n.seen, [allDoneNoteId(store.today)]: store.today}})); } catch { /* remembered next time */ } zigiSignals.emitValidated('all_habits_done'); }
       else if (facts.completed) zigiSignals.emitValidated('habit_completed');
     } catch { /* ZIGi's reaction is a convenience; the check-in is saved */ }

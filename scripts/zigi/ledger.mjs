@@ -38,6 +38,9 @@ const read = [], unreadable = [];
 for (const file of files) {
   let data; try { data = JSON.parse(readFileSync(file, 'utf8')); } catch { unreadable.push(relative(RUNS, file)); continue; }
   const stage = relative(RUNS, file).split('/').slice(0, -1).join('/') || '(root)';
+  // Session AI (A1): an every-turn batch run's spend is in its own batch files (`batches/batch-<id>.json`, written as each
+  // batch ends); the run file says so and is never counted a second time.
+  if (data && data.summary && data.summary.costCountedIn === 'batches') { read.push({file: relative(RUNS, file), model: data.summary.model, turns: 0, countedIn: 'batches'}); continue; }
   if (data && data.summary && data.summary.provider === 'anthropic' && Array.isArray(data.runs)) {
     const model = data.summary.model, batch = data.summary.batch === true, estimate = data.summary.estimate === true;
     let count = 0;
@@ -48,8 +51,12 @@ for (const file of files) {
     }
     read.push({file: relative(RUNS, file), model, turns: count});
   } else if (data && data.summary && data.summary.provider === 'anthropic' && data.summary.batch === true && data.summary.tokens) {
-    const model = data.summary.model, usage = data.summary.tokens;
-    addRow(stage, model, true, usage, data.summary.requests ?? 0, estimateCost(model, usage, {batch: true}));
+    const model = data.summary.model, usage = data.summary.tokens, n = Math.max(1, data.summary.requests ?? 0);
+    // A batch file sums its requests' tokens; a price tier set per request (Haiku's long-prompt price above 100,000 prompt
+    // tokens) is applied to the average request, never to the sum (which priced every Haiku batch at the long-prompt rate).
+    const each = Object.fromEntries(Object.entries(usage).map(([k, v]) => [k, v === null ? null : v / n]));
+    const cost = estimateCost(model, each, {batch: true});
+    addRow(stage, model, true, usage, data.summary.requests ?? 0, cost === null ? null : cost * n);
     read.push({file: relative(RUNS, file), model, turns: data.summary.requests ?? 0});
   } else if (Array.isArray(data)) {
     let count = 0;

@@ -15,7 +15,9 @@ import { landingRoot, startLandingServer, type LandingServer } from "./landing-s
 const HEADERS_SHA256 = "c1c50c7ae32bdbe399c69f86322953165068883e68fb0e66e11a2433bec0fc1d";
 // Session U Part 6 (FIX_PLAN F4): .assetsignore gained its final block (only the reviewed media types under assets/, no
 // dotfile anywhere); nothing it published before is dropped. Landing V4/V5 value: e1388b8c…f74807.
-const ASSETSIGNORE_SHA256 = "8c09ec286426c5281e713cd1998ade09cbd3b2618759f273fbcddbf3b93a66b9";
+// Session AI (MO4, owner decision 20 Oct; TIER 3 (deploy config)): the allowlist gained exactly `!privacy.html` and `!terms.html`
+// after `!index.html`; nothing else changed (previous value 8c09ec28…3a66b9).
+const ASSETSIGNORE_SHA256 = "f3884f9c97c8add2121886918f5b521152952a2322b423f934675c6412af8f5c";
 const INVITE = "mailto:contact@zigoals.app?subject=Friends%20Alpha%20invite";
 const sha256 = (file: string) => createHash("sha256").update(readFileSync(resolve(landingRoot, file))).digest("hex");
 
@@ -28,7 +30,8 @@ test.describe("files", () => {
   });
 
   test("every file the page refers to exists, and every file that ships is referred to", async () => {
-    const html = readFileSync(resolve(landingRoot, "index.html"), "utf8");
+    // Session AI (MO4): the privacy and terms pages are pages of their own; their references count like the home page's.
+    const html = ["index.html", "privacy.html", "terms.html"].map(page => readFileSync(resolve(landingRoot, page), "utf8")).join("\n");
     const referenced = new Set<string>(["index.html", "favicon.ico"]);
     const add = (url: string) => {
       const clean = url.trim().split(/[?#]/)[0]!;
@@ -57,7 +60,7 @@ test.describe("files", () => {
     const control = new Set(["_headers", ".assetsignore", "wrangler.jsonc"]);
     const walk = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(dir, entry.name)) : [relative(landingRoot, resolve(dir, entry.name))]);
     const shipped = walk(landingRoot).filter(file => !control.has(file));
-    const allowed = (file: string) => file === "index.html" || file === "favicon.ico" || /^styles\/[^/]+\.css$/.test(file) || /^scripts\/[^/]+\.m?js$/.test(file) || file.startsWith("assets/");
+    const allowed = (file: string) => file === "index.html" || file === "privacy.html" || file === "terms.html" || file === "favicon.ico" || /^styles\/[^/]+\.css$/.test(file) || /^scripts\/[^/]+\.m?js$/.test(file) || file.startsWith("assets/");
     expect(shipped.filter(file => !allowed(file)), "files outside the upload allowlist").toEqual([]);
     // Workers Assets answers a path it would spell differently (an "@", for one) with a 307 to the percent-encoded
     // spelling, an extra round trip per file (seen in wrangler dev and on the live Alpha): every name is already plain.

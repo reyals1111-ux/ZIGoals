@@ -40,10 +40,12 @@ const argsOf = (text: string): Record<string, unknown> | null | undefined => {
   try { const v = JSON.parse(text) as unknown; return v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : undefined; } catch { return undefined; }
 };
 const keyOf = (call: ToolCallPart) => { const args = argsOf(call.arguments); return `${call.name}:${args ? JSON.stringify(Object.keys(args).sort().map(k => [k, args[k]])) : call.arguments}`; };
+/** The one nudge after an empty answer (no words after the records were read). */
+export const EMPTY_NUDGE = 'Reply now, in words, to the message above, with the proposal cards it needs, if any.';
 export async function* runWithTools(request: LoopRequest): AsyncGenerator<LoopEvent> {
   const {env, stream, maxRounds = MAX_TOOL_ROUNDS, answerChars = ANSWER_CHARS, shouldStop, ...chat} = request;
   const tools = toolsFor(env);
-  let messages: ChatMessage[] = [...chat.messages], used = 0, shown = '';
+  let messages: ChatMessage[] = [...chat.messages], used = 0, shown = '', nudged = false;
   const asked = new Set<string>(), total = {input: null as number | null, output: null as number | null, cacheWrite: null as number | null, cacheRead: null as number | null};
   const add = (key: keyof typeof total, value: number | null | undefined) => { if (value !== null && value !== undefined) total[key] = (total[key] ?? 0) + value; };
   const sums = (): Extract<ChatEvent, {type: 'usage'}> => ({type: 'usage', input: total.input, output: total.output, ...(total.cacheWrite !== null ? {cacheWrite: total.cacheWrite} : {}), ...(total.cacheRead !== null ? {cacheRead: total.cacheRead} : {})});
@@ -65,6 +67,10 @@ export async function* runWithTools(request: LoopRequest): AsyncGenerator<LoopEv
     }
     add('input', usage.input); add('output', usage.output); add('cacheWrite', usage.cacheWrite); add('cacheRead', usage.cacheRead);
     if (total.input !== null || total.output !== null || total.cacheWrite !== null || total.cacheRead !== null) yield sums();
+    // Session AI (A3-r1): a model that read the records and then ended with no words at all (seen on Haiku: hundreds of
+    // output tokens, an empty reply) gets one nudge round, so the person never sees an empty answer. A4: an empty first round
+    // (no lookup at all, Haiku on p5-grocery-notes) is nudged too.
+    if (!calls.length && !shown.trim() && !nudged) { nudged = true; messages = [...messages, {role: 'user', content: EMPTY_NUDGE}]; continue; }
     if (!calls.length) { yield done ?? {type: 'done', reason: null}; return; }
     stopped();
     const stop = shouldStop?.();

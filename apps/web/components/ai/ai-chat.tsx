@@ -5,7 +5,7 @@ import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo
 import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
-import type {ChatTurn} from '../../lib/ai/chats';
+import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
 import {usageLine} from '../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
 import {ANSWER_LABEL, SPECIALISTS} from '../../lib/ai/context/specialists';
@@ -65,7 +65,7 @@ import {HistoryView} from './history-view';
 import {ShortcutsSheet} from './shortcuts-sheet';
 import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
-import {FeedbackButtons, FollowupChips, SourceLine, TurnTime} from './turn-extras';
+import {FeedbackButtons, FollowupChips, SourceLine, TurnTime, TurnKind, LongText} from './turn-extras';
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
@@ -90,7 +90,8 @@ import {useTalk} from './use-talk';
 import {VoiceWaves} from './voice-waves';
 import {resolveVoiceLanguage} from '../../lib/zigi-voice-lang';
 import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
-import {ZIGI, zigiPrefs} from '../../lib/ai/store/records';
+import {ZIGI, zigiPersonality, zigiPrefs} from '../../lib/ai/store/records';
+import {greetingWords} from '../../lib/zigi-personality';
 import {inQuietHours} from '../../lib/ai/knock/rules';
 
 /**
@@ -119,8 +120,10 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const provider = !hosted && data.provider ? PROVIDERS[data.provider] : null;
   const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
   const connected = !!hosted || (data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model), bridge = !hosted && data.enabled && data.mode === 'subscription';
-  // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device.
-  const localOnly = !connected && !bridge;
+  // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device. Session AI (ZI4;
+  // Grok's N-067, N-022): a subscription (the copy path) is no AI connection either, so the device's answers, cards and
+  // examples stay; the copy path is offered above them instead of replacing them.
+  const localOnly = !connected;
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context, hosted}), runner = useProposals(), zigi = useZigiState();
   // Session X-Local Part 5b: auto-accept against the Health gate of this very moment (the page's consent, fail-closed).
   const autoAccept = useAutoAccept(context.consent.health);
@@ -190,6 +193,14 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         const text = briefChatText(env, name === '/recap' ? 'evening' : 'morning', {snapshot: sources?.earn, earning: prefs.earning});
         session.say(typed, text);
         if (prefs.readAloud && !muted) speak.current?.(text.replace(BRIEF_LABEL, ''));
+        return true;
+      }
+      // Session AI (ZI11, J10): /log works with no AI: the line becomes one card per item, made on this device.
+      case '/log': {
+        if (connected) return false;
+        const sources = sensitive ? null : context.toolSources(), env = sources ? toolEnv(sources, context.gates, 'local') : null;
+        const lang = questionLanguage(rest) === 'nl' ? 'nl' : 'en', reply = env && rest.trim() ? quickLogReply(rest, quickLogContext(env), lang) : null;
+        session.say(typed, reply?.text ?? (lang === 'nl' ? 'Typ na /log wat je deed, at of dronk, bijvoorbeeld: /log 2 glazen water, 20 minuten gelezen.' : 'Type what you did, ate or drank after /log, for example: /log 2 glasses of water, read 20 minutes, 30 push-ups.'));
         return true;
       }
       default: if (connected) return false; session.say(typed, NEEDS_AI); return true;
@@ -271,7 +282,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     <ChatHeader titleId={titleId} figure={<ZigiAvatar state={zigi} size={phone || mini.win ? 28 : 40} decorative live/>} phone={phone} miniWindow={!!mini.win} miniSupported={mini.supported} expanded={expanded}
       // Panel polish round 2: the status is one line (the model name gives way first, the full text in its tooltip); with your
       // own AI connected it is also the model switcher, its chevron inline at the end.
-      status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet';
+      status={(() => { const text = hosted ? (hosted.provider === 'Anthropic' ? `via ZIGoals AI · ${modelLabel(hosted.model)}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${modelLabel(data.model ?? "")}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'answers on this device';
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
       premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
@@ -350,11 +361,13 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
 }
 /** Session Z-Cloud Part 2: a new chat is one short greeting and the box; suggestions wait in their sheet by the composer. */
 function Greeting() {
-  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. Ask about your records or tell me what to log. Nothing is written until you add a card.</p></div></div>;
+  const personality = zigiPersonality(useDeviceRecord(ZIGI).data); // Session AI (mascot): the words follow the chosen personality
+  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, 'connected')}</p></div></div>;
 }
 /** Before any AI is connected: the same short greeting; ZIGi answers lookups here, on this device, with no AI (Session V Part 3). */
 function LocalGreeting({sensitive}: {sensitive: boolean}) {
-  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{sensitive ? 'Hi, I’m ZIGi. On this private screen I read nothing from the page.' : 'Hi, I’m ZIGi. Ask about your records: I answer here, on this device, with no AI.'}</p></div></div>;
+  const personality = zigiPersonality(useDeviceRecord(ZIGI).data);
+  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{greetingWords(personality, sensitive ? 'private' : 'local')}</p></div></div>;
 }
 /** Not connected: one compact line above the box, never over the chat (Session Z-Cloud Part 2). */
 function SetupLine({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {
@@ -398,6 +411,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
+      <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
       <SafeText className="ai-local-answer" text={shown}/>
       {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
@@ -467,7 +481,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   // An earlier reply shows its buttons on hover or focus, or after a tap on it (a phone has no hover).
   const [shown, setShown] = useState(false);
   // "Edit" sits just after the message, not inside it: the message stays only the person's own words.
-  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
+  if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
   const copy = () => { copyText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
@@ -477,6 +491,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   return <article className="ai-turn ai-turn-assistant" aria-label="Reply" onPointerDown={event => { if (event.pointerType === 'touch') setShown(true); }}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
+      {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
@@ -551,6 +566,9 @@ function InfoGlyph() {
 }
 import {forwardRef} from 'react';
 import {formatClock} from '../../lib/visual-format';
+import {quickLogReply} from '../../lib/quick-log/multi';
+import {questionLanguage} from '../../lib/ai/local-answers/no-model';
+import {quickLogContext} from '../../lib/quick-log/context';
 /** The microphone, drawn in the nebula stroke; a square while listening (tap to stop). */
 function MicGlyph({on}: {on: boolean}) {
   return <svg className="ai-mic-glyph" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
@@ -684,15 +702,17 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {photoNote && <p className="ai-note" role="status">{photoNote}</p>}
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
+    {text.length >= INPUT_COUNTER_FROM && <p className="ai-note ai-length" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters. A shorter message gets a better answer.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;
           // ↑ in an empty box: the last question, to edit and send again (Session V Part 10).
           if (e.key === 'ArrowUp' && !text && !busy) { const last = lastQuestion(session.chat); if (last) { e.preventDefault(); onEditing({id: last.id, text: last.text, seq: Date.now()}); } return; }
           if (e.key === 'Escape' && editing) { e.preventDefault(); e.stopPropagation(); setText(''); onEditing(null); return; }
-          if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); }
+          // ZI6 (D-067): Enter sends on phones too (the keyboard's key reads "Send"); Shift+Enter, or a paste, keeps a line break.
+          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); }
         }}
         onPaste={photosAllowed ? e => { const image = [...e.clipboardData.files].find(f => f.type.startsWith('image/')); if (image) { e.preventDefault(); void takePhoto(image); } } : undefined}/>
       {photosAllowed && <>

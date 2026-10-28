@@ -120,10 +120,15 @@ export default function Settings() {
         <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
         {/* Session AA-Cloud Part 6: the Data health page (where each part lives, what this device holds, what ZIGi sees). */}
         <Link className="panel data-health-door" href="/app/settings/data"><span><strong>Your data</strong><small>Where each part lives, what this device holds and what ZIGi can see.</small></span><span aria-hidden="true">→</span></Link>
-        <PrivateVaultTools/>
-        <PrivateBackups/>
-        <ExportEverything/>
-        <SwitchImport/>
+        {/* Session AI (SE3): one "Backup & restore" card; its four parts keep their own anchors and headings (the specs pin them). */}
+        <section className="panel backup-restore" id="backup-restore" aria-labelledby="backup-restore-title">
+          <p className="eyebrow">BACKUP &amp; RESTORE</p><h2 id="backup-restore-title">Backup &amp; restore</h2>
+          <p className="fine">Four ways to keep or bring back your records: a protected copy, backups per module, one file with everything, and your history from another app.</p>
+          <PrivateVaultTools/>
+          <PrivateBackups/>
+          <ExportEverything/>
+          <SwitchImport/>
+        </section>
         <div className="detail-grid">
           {/* Session AH Part 3 (DS6/A2, BUG-036, M-007): this older format holds local simulation Goal plans only; with
               none on this device it exported {"goals":{}}. It shows only when there is something in it; "Export

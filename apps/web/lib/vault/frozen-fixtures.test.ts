@@ -14,6 +14,16 @@ import {EARN_ACADEMY_KEY, EARN_PATH_KEY, EARN_PREFS_KEY} from '../af-earn-keys';
 import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY} from '../af-signing-keys';
 import {GOAL_VAULTS_KEY, WALLET_BALANCES_KEY} from '../af-wallet-keys';
 import {ZIGI_PLANS_KEY} from '../af-zigi-keys';
+import {MONEY_LOG_KEY} from '../money-log/schema';
+import {JOURNAL_KEY} from '../journal/schema';
+import {AI_MEMORY_KEY, ZIGI_KEY} from '../ai/store/keys';
+import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
+import {TASKS_KEY} from '../tasks/schema';
+import {RECEIPTS_KEY} from '../portfolio/receipts';
+import {IMPORTS_KEY} from '../portfolio/wallet-import';
+import {EXCHANGES_KEY} from '../exchanges/record';
+import {ZIGI_METRICS_KEY} from '../ai/store/metrics';
+import {ENERGY_KEY} from '../energy/schema';
 import {DAY_TIMELINE_KEY, STORIES_KEY, UNIVERSE_KEY} from '../af-extras-keys';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../af-checklist-keys';
 import {linkedWalletsSchema} from '../linked-wallets';
@@ -68,6 +78,12 @@ export function frozenFixture() {
     for (const r of section.records) if (a.has(r.spec.key) && r.spec.key !== GOAL_EXTRAS_KEY) { records[r.spec.key] = a.get(r.spec.key)!; checks.push({key: r.spec.key, ...FROZEN_READERS[r.spec.key]!}); }
     if (section.name === 'goals') { records[GOAL_EXTRAS_KEY + '#merged'] = a.get(GOAL_EXTRAS_KEY)!; checks.push({key: GOAL_EXTRAS_KEY + '#merged', module: './goal-extras/store', spec: 'GOAL_EXTRAS', expect: {[`goals.${first}.cardArt`]: 'aurora-2'}}); }
   }
+  // Session AI (feature 9, GO14; TIER 3 (stored format)): the Life review record may carry the person's values and each
+  // week's values check (optional, additive; the record is loose in every release that reads it).
+  const lifeKey = 'zigoals:life-review:v1';
+  records[lifeKey] = JSON.stringify({...JSON.parse(records[lifeKey] ?? '{"version":1,"focus":{}}') as object, values: ['Health', 'Patience'], valueChecks: {'week:2026-10-22': {ratings: {Health: 4}, at: '2026-10-28T20:00:00.000Z'}}});
+  const lifeCheck = checks.find(c => c.key === lifeKey);
+  if (lifeCheck) lifeCheck.expect = {...lifeCheck.expect, 'values.1': 'Patience', 'valueChecks.week:2026-10-22.ratings.Health': 4}; else checks.push({key: lifeKey, ...FROZEN_READERS[lifeKey]!, expect: {'values.1': 'Patience'}});
   // Session AE (ADR-027 G14, TIER 3 storage): Habits' layout as this build saves it after a move, with Routines
   // (`habits:routines`) as its own block. Older builds read the record, show their own blocks (the new id ignored), and
   // keep the new id when they save a move of their own (lib/page-layout.ts, unchanged since #32).
@@ -122,6 +138,38 @@ export function frozenFixture() {
   checks.push({key: DAY_TIMELINE_KEY, module: './timeline/store', spec: 'DAY_TIMELINE', expect: {version: 1}});
   records[STORIES_KEY] = JSON.stringify({version: 1, seen: {'week:2026-10-11': '2026-10-17'}});
   checks.push({key: STORIES_KEY, module: './stories/store', spec: 'STORIES', expect: {version: 1}});
+  // Session AI (B3, TIER 3 (stored format)): the expense and income log, a new device-only key (fictional entries).
+  records[MONEY_LOG_KEY] = JSON.stringify({version: 1, entries: [{id: 'm1', kind: 'expense', amount: '12.50', currency: 'EUR', category: 'Food & drink', note: 'Fictional lunch', date: '2026-10-27', createdAt: '2026-10-27T12:00:00.000Z', source: 'form'}], budget: {weekly: '200.00', currency: 'EUR'}, weekStartsOn: 'monday', currency: 'EUR'});
+  checks.push({key: MONEY_LOG_KEY, module: './money-log/schema', spec: 'MONEY_LOG', expect: {version: 1, 'entries.0.amount': '12.50'}});
+  // Session AI (B3, TIER 3 (stored format)): the journal and the daily energy rating, two new device-only keys (fictional).
+  records[JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{id: 'j1', date: '2026-10-27', text: 'Fictional calm day.', createdAt: '2026-10-27T21:00:00.000Z', followUp: {question: 'What made it calm?', from: 'device', answer: 'A walk.', answeredAt: '2026-10-27T21:05:00.000Z'}}], shareWithAi: false, followUps: true});
+  checks.push({key: JOURNAL_KEY, module: './journal/schema', spec: 'JOURNAL', expect: {version: 1, 'entries.0.followUp.answer': 'A walk.'}});
+  records[ENERGY_KEY] = JSON.stringify({version: 1, days: {'2026-10-27': {energy: 4, at: '2026-10-27T20:30:00.000Z'}}});
+  checks.push({key: ENERGY_KEY, module: './energy/schema', spec: 'ENERGY', expect: {'days.2026-10-27.energy': 4}});
+  // Session AI (feature 3, TIER 3 (stored format)): a ZIGi note may carry `paused` (additive, optional; the note schema is loose in every release).
+  records[AI_MEMORY_KEY] = JSON.stringify({version: 1, notes: [{id: 'note_frozen', text: 'Fictional: trains in the morning', category: 'schedule', source: 'person', createdAt: '2026-10-27T08:00:00.000Z', updatedAt: '2026-10-28T08:00:00.000Z', paused: true}]});
+  checks.push({key: AI_MEMORY_KEY, module: './ai/store/records', spec: 'AI_MEMORY', expect: {'notes.0.text': 'Fictional: trains in the morning', 'notes.0.paused': true}});
+  // Session AI (tasks, TIER 3 (stored format)): one-off tasks with a priority and a due date, a new device-only key (fictional).
+  records[TASKS_KEY] = JSON.stringify({version: 1, tasks: [{id: 'task_1', title: 'Fictional: call the bank', priority: 'high', due: '2026-10-30', createdAt: '2026-10-28T09:00:00.000Z'}]});
+  checks.push({key: TASKS_KEY, module: './tasks/schema', spec: 'TASKS', expect: {'tasks.0.priority': 'high'}});
+  // Session AI (J15, TIER 3 (stored format)): what a Portfolio transfer in was, a new device-only key (fictional ids).
+  records[RECEIPTS_KEY] = JSON.stringify({version: 1, kinds: {'showcase-tx-9': 'reward'}});
+  checks.push({key: RECEIPTS_KEY, module: './portfolio/receipts', spec: 'RECEIPTS', expect: {'kinds.showcase-tx-9': 'reward'}});
+  // Session AI (WE20, TIER 3 (stored format)): which Portfolio rows came from a linked wallet, a new device-only key (fictional).
+  records[IMPORTS_KEY] = JSON.stringify({version: 1, rows: {'tx-from-wallet': {walletId: 'w-evm', chainId: 'eip155:8453', assetId: 'native', portfolioId: 'p-real', at: '2026-10-28T08:00:00.000Z'}}});
+  checks.push({key: IMPORTS_KEY, module: './portfolio/wallet-import', spec: 'IMPORTS', expect: {'rows.tx-from-wallet.walletId': 'w-evm'}});
+  // Session AI (J14, TIER 3 (stored format)): the exchanges read on this device, balances only (fictional).
+  records[EXCHANGES_KEY] = JSON.stringify({version: 1, connections: {kraken: {connectedAt: '2026-10-28T08:00:00.000Z', read: {at: '2026-10-28T08:01:00.000Z', balances: [{asset: 'BTC', amount: '0.5'}]}}}});
+  checks.push({key: EXCHANGES_KEY, module: './exchanges/record', spec: 'EXCHANGES_RECORD', expect: {'connections.kraken.read.balances.0.asset': 'BTC'}});
+  // Session AI (G14, TIER 3 (stored format)): ZIGi's own counts, a new device-only key (fictional).
+  records[ZIGI_METRICS_KEY] = JSON.stringify({version: 1, on: true, months: {'2026-10': {'card-added': 3}}});
+  checks.push({key: ZIGI_METRICS_KEY, module: './ai/store/metrics', spec: 'ZIGI_METRICS', expect: {'months.2026-10.card-added': 3}});
+  // Session AI (mascot, TIER 3 (stored format)): ZIGi's record may carry `personality` (optional; the record is loose in every release).
+  records[ZIGI_KEY] = JSON.stringify({version: 1, side: 'left', personality: 'direct'});
+  checks.push({key: ZIGI_KEY, module: './ai/store/records', spec: 'ZIGI', expect: {side: 'left', personality: 'direct'}});
+  // Session AI (feature 1, HE17, TIER 3 (stored format)): the ranges behind an AI meal estimate, a new device-only key (fictional).
+  records[MEAL_ESTIMATES_KEY] = JSON.stringify({version: 1, foods: {'health_fixture-estimate': {ranges: {kcal: [450, 650], protein_g: [20, 30]}, source: 'photo', at: '2026-10-28T12:00:00.000Z'}}});
+  checks.push({key: MEAL_ESTIMATES_KEY, module: './meal-estimates/schema', spec: 'MEAL_ESTIMATES', expect: {'foods.health_fixture-estimate.source': 'photo'}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -131,7 +179,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

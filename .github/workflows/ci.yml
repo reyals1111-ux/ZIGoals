@@ -298,13 +298,23 @@ jobs:
       # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, as in the other jobs.
       - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright's WebKit (owner-approved download)
-        run: pnpm --filter @zigoals/web exec playwright install --with-deps webkit
+      # Session AI ([TIER 3] (CI), ADR-034 N16, owner's brief): WebKit and its system packages from a cache keyed on the
+      # runner image and the Playwright version (a slow Ubuntu mirror cost two 45-minute jobs in Session AH). A miss, or a
+      # cached install that fails, runs the normal install; scripts/ci/install-webkit.sh says how.
+      - name: Playwright version (the cache key)
+        id: playwright
+        run: echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.cache/webkit-debs
+          key: webkit-${{ runner.os }}-${{ env.ImageOS }}-playwright-${{ steps.playwright.outputs.version }}-v1
       # Session Z-Local (owner decision, 2026-10-11, [TIER 3] (CI)): the same font package the Chrome shards get through
       # chrome-deps.sh (fonts-liberation), so ZIGi's title and Settings' name are measured in the same font in both jobs
-      # (C56's two checks); the 11 px floor in those checks stays.
-      - name: The Chrome shards' font (fonts-liberation)
-        run: sudo apt-get install -y --no-install-recommends fonts-liberation
+      # (C56's two checks); the 11 px floor in those checks stays. It is part of the cached install now.
+      - name: Install Playwright's WebKit and the Chrome shards' font (owner-approved download; cached)
+        run: bash scripts/ci/install-webkit.sh
       # Session Z-Local L54 ([TIER 3] (CI)): WebKit's own dependencies bring FreeFont, Unifont and Cantarell, and fontconfig
       # drew the app's sans-serif (Inter is not shipped; the Mac uses its own UI font) in a wider face than the Chrome shards'
       # Liberation Sans, so ZIGi's title overran the buttons at 360 and Settings' name wrapped at 320 only in this job. Every

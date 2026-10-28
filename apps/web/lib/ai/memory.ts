@@ -74,5 +74,17 @@ export const consentOnRemember = (memory: AiMemory, now: Date): AiMemory => memo
 export const usingNotes = (options: AiOptions, memory: AiMemory) => (memory.notes?.length ?? 0) > 0 && options.useNotes !== false;
 /** The notes ZIGi's paths may read (the gates filter Health-tagged ones per path), or null when none are in use. */
 export function notesForAi(options: AiOptions, memory: AiMemory): MemoryNote[] | null {
-  return usingNotes(options, memory) ? newestFirst(memory.notes ?? []).map(n => ({text: n.text, category: n.category})) : null;
+  // Session AI (feature 3): a note the person paused stays here and goes to no AI.
+  return usingNotes(options, memory) ? newestFirst(memory.notes ?? []).filter(n => n.paused !== true).map(n => ({text: n.text, category: n.category})) : null;
+}
+/**
+ * Session AI (feature 3, TIER 3 (stored format): an optional `paused` on a note; the record is loose, so older builds keep
+ * it on their writes): pausing keeps a note on this device without letting it shape ZIGi's answers.
+ */
+export function setNotePaused(memory: AiMemory, id: string, paused: boolean, now: Date): AiMemory {
+  return aiMemorySchema.parse({...memory, notes: (memory.notes ?? []).map(n => n.id === id ? {...n, paused, updatedAt: now.toISOString()} : n)});
+}
+/** The notes as a file the person saves (JSON, their own words only). */
+export function notesExport(memory: AiMemory, now: Date): string {
+  return JSON.stringify({format: 'zigoals-zigi-notes', version: 1, exportedAt: now.toISOString(), notes: newestFirst(memory.notes ?? []).map(n => ({text: n.text, category: n.category, source: n.source, paused: n.paused === true, createdAt: n.createdAt, updatedAt: n.updatedAt}))}, null, 2);
 }

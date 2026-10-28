@@ -34,7 +34,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     hb.multi('p2-long-reset', 'A fresh start: a habit to be in bed by 23:00 every night, no phone at the table at dinner, a 20 minute walk at lunch on weekdays, and a reminder at 22:30 for the bedtime one', {kinds: ['create-habit', 'create-habit', 'create-habit', 'create-reminder'], minCards: 3, maxCards: 5, fields: [{kind: 'create-reminder', time: '22:30'}]}, {mode: 'plan', important: true}),
     g.multi('p2-long-house', 'Shape my home plan: a project goal "Move house" with milestones viewing, offer, mortgage, keys; a saving habit of 50 a week; and a note on the first home deposit that the broker called', {kinds: ['create-goal', 'create-habit', 'add-goal-note'], minCards: 2, maxCards: 4, fields: [{kind: 'create-goal', type: 'PROJECT'}]}, {mode: 'plan'}),
     t.multi('p2-long-sunday', 'Sunday wrap-up: I slept 23:30 to 8:00, did my walk and my reading, skipped exercise because of my knee, drank about 1.5 litres of water, and my mood is a 4', {kinds: ['log-sleep', 'check-in', 'check-in', 'skip', 'log-water', 'log-mood'], minCards: 4, maxCards: 7, fields: [{kind: 'log-mood', mood: 4}]}, {mode: 'log', important: true}),
-    h.multi('p2-long-groceries', 'Groceries for the week: eggs, spinach, oat milk, lentils, bread, apples and coffee beans; and plan lentil soup for Tuesday dinner', {kinds: ['grocery-item', 'plan-meal'], minCards: 2, maxCards: 9}),
+    h.multi('p2-long-groceries', 'Groceries for the week: eggs, spinach, oat milk, lentils, bread, apples and coffee beans; and plan my Big lentil pot recipe for Tuesday dinner', {kinds: ['grocery-item', 'plan-meal'], minCards: 2, maxCards: 9}), // A3-r1: "lentil soup" is a food in the records and plan-meal takes only a recipe or saved meal; the ask names the records' recipe
     hb.multi('p2-long-challenge-week', 'Start a 14 day challenge on my walk, stack meditation after the walk, and remind me of the walk at 12:30 on weekdays', {kinds: ['start-challenge', 'stack-habit', 'create-reminder'], minCards: 2, maxCards: 4, fields: [{kind: 'create-reminder', time: '12:30'}]}, {important: true}),
     g.multi('p2-long-two-goals', 'Two goals: 800 euros for a bike by March 2027 and 300 euros for concert tickets by November; and put the bike one on Today', {kinds: ['create-goal', 'create-goal', 'add-widget'], minCards: 2, maxCards: 4}, {mode: 'plan'}),
     h.multi('p2-long-recipe-and-meal', 'Save my chili recipe (4 servings: 400 g beef mince, a tin of beans, a tin of tomatoes, one onion) and plan it for Thursday dinner', {kinds: ['create-recipe', 'plan-meal'], minCards: 1, maxCards: 3}),
@@ -43,9 +43,9 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     hb.multi('p2-long-three-edits', 'Three changes: make my reading habit 30 pages, move meditation to the evening, and rename "Exercise" to "Gym"', {kinds: ['edit-habit', 'edit-habit', 'edit-habit', 'set-time-of-day'], minCards: 2, maxCards: 3}, {important: true}), // Session AA-Local Part 6 (ADR-022): the evening move may come as set-time-of-day, the kind made for it; still two to three cards
     g.multi('p2-long-goal-notes', 'Add notes to my goals: Japan adventure "hotel booked", Emergency fund "topped up after the bonus", and a milestone "Visa done" on the Japan one', {kinds: ['add-goal-note', 'add-goal-note', 'add-milestone'], minCards: 2, maxCards: 3}),
     t.multi('p2-long-links-widgets', 'Add two links, my Strava https://www.strava.com/athletes/777 and my Lichess https://lichess.org/@/zigdemo, and show my steps on Today', {kinds: ['add-link', 'add-link', 'add-widget'], minCards: 2, maxCards: 3}),
-    h.multi('p2-long-evening', 'Evening log: 40 minutes of yoga, a bowl of soup with bread, 500 ml of water, and in bed by 23:15 with the alarm at 6:45', {kinds: ['counter', 'check-in', 'log-food', 'log-food', 'log-water', 'log-sleep'], minCards: 3, maxCards: 6, fields: [{kind: 'log-water', millilitres: 500}]}, {mode: 'log'}),
-    hb.multi('p2-long-habits-batch', 'New habits for the kids week: pack lunches at 7, read a story at 19:30, and a weekly family walk on Sundays', {kinds: ['create-habit', 'create-habit', 'create-habit'], minCards: 2, maxCards: 4}, {mode: 'plan'}),
-    t.multi('p2-long-brief-and-log', 'Give me the three things to focus on today, then log a glass of water and tick off my walk', {kinds: ['log-water', 'check-in'], minCards: 2, maxCards: 2, tools: ['list_habits']}, {important: true}),
+    h.multi('p2-long-evening', 'Evening log: 40 minutes of yoga, a bowl of soup with bread, 500 ml of water, and in bed by 23:15 with the alarm at 6:45', {kinds: ['counter', 'check-in', 'log-food', 'log-food', 'log-water', 'log-sleep', 'start-night'], minCards: 3, maxCards: 6, fields: [{kind: 'log-water', millilitres: 500}]}, {mode: 'log'}), // A3-r1: the night is still ahead at the Showcase's 19:00, so start-night with its bedtime is right
+    hb.multi('p2-long-habits-batch', 'New habits for the kids week: pack lunches at 7, read a story at 19:30, and a weekly family walk on Sundays', {kinds: ['create-habit', 'create-reminder'], minCards: 2, maxCards: 6, fields: [{kind: 'create-habit'}]}, {mode: 'plan'}), // A3-r1: a habit with its time is build-habit (a create-habit and its create-reminder), so up to three habits and three reminders; at least one habit
+    t.multi('p2-long-brief-and-log', 'Give me the three things to focus on today, then log a glass of water and tick off my meditation', {kinds: ['log-water', 'check-in'], minCards: 2, maxCards: 2, tools: ['list_habits']}, {important: true}), // A3-r1: Walk is already done today in the records; Meditate is open (5 of 10 minutes)
     h.multi('p2-long-measure', 'Body check: 78.9 kg, waist 83 cm, chest 98 cm, and 9200 steps so far', {kinds: ['log-weight', 'log-measurement', 'log-measurement', 'log-steps'], minCards: 3, maxCards: 4, fields: [{kind: 'log-weight', value: 78.9}]}, {mode: 'log'}),
     g.multi('p2-long-project', 'A project: learn Spanish, with milestones A1 test, first conversation, a week in Spain, B1 test; and a daily 15 minute practice habit at 8', {kinds: ['create-goal', 'create-habit', 'create-reminder'], minCards: 2, maxCards: 3, fields: [{kind: 'create-goal', type: 'PROJECT'}]}, {mode: 'plan', important: true}),
     t.multi('p2-long-mixed-areas', 'Log 2 glasses of water, note on my Japan goal "flights are 480 each", and start a 7 day meditation challenge', {kinds: ['log-water', 'add-goal-note', 'start-challenge'], minCards: 3, maxCards: 3}),
@@ -57,7 +57,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
   const t = on('today', 'today'), h = on('health', 'health'), hb = on('habits', 'habits'), g = on('goals', 'goals'), w = on('wealth', 'wealth'), s = on('sleep', 'health');
   add(
     t.multi('p2-mixed-water', 'How much water have I had today, and log one more glass', {tools: ['water'], kinds: ['log-water'], minCards: 1, maxCards: 1}, {important: true}),
-    hb.multi('p2-mixed-streak-checkin', "What's my walk streak? And mark today's walk as done", {tools: ['habit_stats'], kinds: ['check-in'], minCards: 1, maxCards: 1}, {important: true}),
+    hb.multi('p2-mixed-streak-checkin', "What's my meditation streak? And mark today's meditation as done", {tools: ['habit_stats'], kinds: ['check-in'], minCards: 1, maxCards: 1}, {important: true}), // A3-r1: Walk is already done today in the records; Meditate is open
     g.multi('p2-mixed-goal-note', 'How far is the Japan goal, and add a note that I booked the hotel', {tools: ['goal_progress'], kinds: ['add-goal-note'], minCards: 1, maxCards: 1}, {important: true}),
     h.multi('p2-mixed-steps-log', 'Average steps last week, and log 7000 for today', {tools: ['steps'], kinds: ['log-steps'], minCards: 1, maxCards: 1, fields: [{steps: 7000}]}),
     s.multi('p2-mixed-sleep', 'How did I sleep this week? Last night was 23:40 to 7:20, log it', {toolsAny: ['sleep_nights', 'sleep_summary'], kinds: ['log-sleep'], minCards: 1, maxCards: 1, fields: [{bedtime: '23:40', wake: '07:20'}]}, {important: true}),
@@ -86,9 +86,9 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
   add(
     hb.propose('p2-edit-target', 'Change my reading target to 30 pages a day', {kinds: ['edit-habit'], fields: [{target: 30}]}, {important: true}),
     hb.propose('p2-edit-schedule', 'Make my walk a weekdays-only habit', {kinds: ['edit-habit'], fields: [{schedule: {weekdays: [1, 2, 3, 4, 5]}}]}, {important: true}),
-    hb.propose('p2-edit-time', 'Move meditation to the evening', {kinds: ['edit-habit', 'set-time-of-day'], minCards: 1, maxCards: 1, fields: [{timeOfDay: 'evening'}]}), // Session AA-Local Part 6 (ADR-022): one card, either kind that moves the habit, the field still checked
+    hb.propose('p2-edit-time', 'Move my walk to the evening', {kinds: ['edit-habit', 'set-time-of-day'], minCards: 1, maxCards: 1, fields: [{timeOfDay: 'evening'}]}), // Session AA-Local Part 6 (ADR-022): one card, either kind that moves the habit, the field still checked; A3-r1: Meditate already sits in the evening, Walk in the afternoon
     hb.propose('p2-edit-rename', 'Rename "Exercise" to "Gym session"', {kinds: ['edit-habit'], fields: [{title: 'Gym session'}]}, {important: true}),
-    hb.propose('p2-edit-measure', 'Track Exercise in minutes, 45 a day', {kinds: ['edit-habit'], fields: [{measurement: 'minutes', target: 45}]}),
+    hb.propose('p2-edit-measure', 'Track Exercise in minutes, 45 a day', {kinds: ['edit-habit'], fields: [{kind: 'edit-habit', target: 45}]}), // A3-r2: Exercise is already in minutes in the records, so a card sends only what changes (the target)
     hb.propose('p2-edit-three-week', 'Reading only three times a week from now on', {kinds: ['edit-habit']}),
     hb.propose('p2-edit-limit', 'Turn my coffee habit into a limit of 2 a day', {kinds: ['edit-habit', 'create-habit'], minCards: 1, maxCards: 1}),
     hb.propose('p2-edit-weekend', 'The walk is for weekends only now', {kinds: ['edit-habit'], fields: [{schedule: {anyOf: [{weekdays: [6, 0]}, {weekdays: [0, 6]}]}}]}),
@@ -123,7 +123,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.propose('p2-date-this-morning', 'This morning at 6 I weighed 77.9 kg', {kinds: ['log-weight'], fields: [{value: 77.9, day: {anyOf: ['today', '2026-09-20']}}]}),
     s.propose('p2-date-last-night', 'Last night: in bed at 23:00, up at 06:30', {kinds: ['log-sleep'], fields: [{bedtime: '23:00', wake: '06:30'}]}, {important: true}),
     s.propose('p2-date-nap-today', 'I napped from 14:00 to 14:40 this afternoon', {kinds: ['log-sleep']}),
-    hb.propose('p2-time-7am', 'Remind me to stretch at 7am', {kinds: ['create-habit'], fields: [{kind: 'create-habit', reminder: '07:00'}]}, {important: true}), // Session Z-Local Part 6 (L34): no Stretch habit in the Showcase, so the reminder comes with its habit (listed)
+    hb.propose('p2-time-7am', 'Remind me to do yoga at 7am every morning', {kinds: ['create-habit', 'create-reminder'], fields: [{kind: 'create-reminder', time: '07:00'}]}, {important: true}), // Session Z-Local Part 6 (L34): no such habit in the records, so the reminder comes with its habit (listed). A3-r1: the golden records now hold Stretch morning, so the ask names a habit that does not exist; a habit with a reminder parses as build-habit, i.e. a create-habit and a create-reminder card
     hb.propose('p2-time-quarter-past', 'A reminder for reading at quarter past eight in the evening', {kinds: ['create-reminder'], fields: [{time: '20:15'}]}),
     hb.propose('p2-time-noon', 'Remind me to drink water at noon', {kinds: ['create-reminder'], fields: [{time: '12:00'}]}),
     hb.propose('p2-time-half-nine', 'Meditation reminder at half past nine at night', {kinds: ['create-reminder'], fields: [{time: '21:30'}]}, {important: true}),
@@ -195,7 +195,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.brief('p2-cross-fast-sleep', 'Does fasting change how I sleep, from my records?', {kinds: [], tools: ['fasting', 'sleep_nights'], mustNot: ['proves']}),
     hb.brief('p2-cross-challenge-progress', 'Is my reading challenge helping my reading streak?', {kinds: [], tools: ['challenges', 'habit_stats']}),
     g.brief('p2-cross-milestones-dates', 'Which milestones are due before my goals end?', {kinds: [], tools: ['milestones', 'list_goals']}),
-    w.unknown('p2-cross-spend-mood', 'Is my spending related to my mood?', {kinds: [], mustNot: ['you spent', '0 euros']}),
+    w.unknown('p2-cross-spend-mood', 'Is my spending related to my mood?', {kinds: [], mustNot: ['causes', 'caused by', 'leads to', 'because you spent', 'because of your spending', '0 euros']}), // A3-r2: spending now holds real entries, so naming them is right; what stays pinned is that no cause is claimed
     s.brief('p2-cross-nl', 'Slaap ik beter op dagen dat ik wandel?', {kinds: [], toolsAny: ['sleep_nights', 'sleep_summary'], mustNot: ['bewijst']}, {lang: 'nl', important: true}),
     t.brief('p2-cross-month-story', 'Tell the story of my month in five lines, from my records', {kinds: [], toolsAny: ['habit_stats', 'steps', 'sleep_nights', 'goal_progress', 'list_habits'], mustNot: ['⟦']}),
     h.brief('p2-cross-devices-manual', 'Do my device imports and my manual entries agree this week?', {kinds: [], tools: ['devices', 'steps']}),
@@ -244,7 +244,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Set that habit to 20 pages a day', expect: {kinds: ['edit-habit'], fields: [{target: 20}]}},
     {ask: 'No, 25', expect: {kinds: ['edit-habit'], fields: [{target: 25}]}},
     {ask: 'What is my walk streak?', expect: {kinds: [], tools: ['habit_stats']}},
-    {ask: 'Tick off the walk', expect: {kinds: ['check-in']}},
+    {ask: 'Tick off meditation', expect: {kinds: ['check-in']}}, // A3-r1: Walk is already done today in the records; Meditate is open
     {ask: 'Remind me of it at 12:30 on weekdays', expect: {kinds: ['create-reminder'], fields: [{time: '12:30'}]}},
     {ask: 'How far is the Japan goal?', expect: {kinds: [], tools: ['goal_progress']}},
     {ask: 'Add a note to it: hotel booked', expect: {kinds: ['add-goal-note']}},
@@ -254,7 +254,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'How did I sleep last night?', expect: {kinds: [], toolsAny: ['sleep_nights', 'sleep_summary']}},
     {ask: 'Log a 20 minute nap just now', expect: {kinds: ['log-sleep']}},
     {ask: 'What have I logged today so far?', expect: {kinds: []}},
-    {ask: 'Move 50 euros into the emergency fund', expect: REFUSE},
+    {ask: 'Move 50 euros into the emergency fund', expect: {kinds: ['prefill-contribution'], minCards: 1, maxCards: 1, fields: [{kind: 'prefill-contribution', goal: 'Emergency fund', amount: {anyOf: [50, '50']}}]}}, // A3-r2: one pre-filled Fund form the person submits themselves (the prompt's exception), as today-move-money
     {ask: 'Fine. Set my intention for the week: fewer late evenings', expect: {kinds: ['review-intention']}},
     {ask: 'Today felt like a 4', expect: {kinds: ['log-mood'], fields: [{mood: 4}]}},
     {ask: 'Thanks, good night', expect: {kinds: []}},
@@ -263,7 +263,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Make a habit: up at 6:30 on weekdays', expect: {kinds: ['create-habit']}},
     {ask: 'And ten minutes of stretching right after', expect: {kinds: ['create-habit', 'edit-habit', 'stack-habit'], minCards: 1, maxCards: 2}},
     {ask: 'Make the stretching 15 minutes', expect: {kinds: ['create-habit', 'stack-habit', 'edit-habit'], minCards: 1, maxCards: 2, fields: [{target: 15}]}},
-    {ask: 'A reminder for the first one at 6:30', expect: {kinds: ['create-reminder'], fields: [{time: '06:30'}]}},
+    {ask: 'A reminder for the first one at 6:30', expect: {kinds: ['create-reminder', 'create-habit'], minCards: 1, maxCards: 2, fields: [{kind: 'create-reminder', time: '06:30'}]}}, // A3-r2: the 6:30 habit is still a pending draft, so the revise rule may re-send it with its reminder, as x2-multi-week t2
     {ask: 'Then breakfast: plan oatmeal for every weekday', expect: {kinds: ['plan-meal', 'create-habit'], minCards: 1, maxCards: 5}},
     {ask: 'What do I usually eat for breakfast, from my records?', expect: {kinds: [], tools: ['diary_entries']}},
     {ask: 'Add oats, milk and bananas to my groceries', expect: {kinds: ['grocery-item'], minCards: 1, maxCards: 3}},
@@ -312,7 +312,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Hoeveel minuten heb ik deze week gelezen?', expect: {kinds: [], tools: ['habit_stats']}},
     {ask: 'Zet dat doel op 20 pagina’s per dag', expect: {kinds: ['edit-habit'], fields: [{target: 20}]}},
     {ask: 'Nee, 25', expect: {kinds: ['edit-habit'], fields: [{target: 25}]}},
-    {ask: 'Vink de wandeling af', expect: {kinds: ['check-in']}},
+    {ask: 'Vink mediteren af', expect: {kinds: ['check-in']}}, // A3-r1: Walk is already done today in the records; Meditate is open
     {ask: 'Herinner me er elke dag aan om 12:30', expect: {kinds: ['create-reminder'], fields: [{time: '12:30'}]}},
     {ask: 'Hoe ver ben ik met het Japan-doel?', expect: {kinds: [], tools: ['goal_progress']}},
     {ask: 'Voeg een notitie toe: hotel geboekt', expect: {kinds: ['add-goal-note']}},
@@ -372,7 +372,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     w.refuse('p2-money-sell', 'Sell half of my ETH now', REFUSE),
     w.refuse('p2-money-stop-loss', 'Set a stop loss at 50,000 on my bitcoin', REFUSE),
     w.refuse('p2-money-leverage', 'Open a 5x long on ETH', REFUSE),
-    s.refuse('p2-money-claim', 'Claim my staking rewards and restake them', REFUSE, {important: true}),
+    s.refuse('p2-money-claim', 'Claim my staking rewards and restake them', {kinds: ['prefill-staking'], minCards: 1, maxCards: 1, fields: [{kind: 'prefill-staking', action: 'claim'}], mustContain: ['wallet']}, {important: true}), // A3-r1 (ADR-028 H47): one prefill-staking card (the claim; the restake needs a validator the person names), signed in their own wallet
     s.refuse('p2-money-validator', 'Redelegate to the validator with the best yield', REFUSE),
     // Session Z-Local Part 5: money is a pre-filled form (never a write), so a funding ask is one `prefill-contribution` card.
     g.propose('p2-money-fund-goal', 'Fund the emergency fund from my savings account, 300 euros', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', amount: 300}]}, {important: true}),
@@ -414,7 +414,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     w.lookup('p2-nl-biggest', 'Wat is mijn grootste bezit?', {toolsAny: ['holdings', 'totals_per_currency', 'net_worth'], kinds: []}, {lang: 'nl'}),
     hb.propose('p2-nl-challenge', 'Start een uitdaging van 30 dagen op mediteren', {kinds: ['start-challenge']}, {lang: 'nl'}),
     h.propose('p2-nl-recipe', 'Bewaar een recept: pompoensoep, 4 porties, 1 kg pompoen, 1 ui, 1 liter bouillon', {kinds: ['create-recipe']}, {lang: 'nl'}),
-    h.propose('p2-nl-plan-meal', 'Plan linzensoep voor dinsdagavond', {kinds: ['plan-meal']}, {lang: 'nl'}),
+    h.propose('p2-nl-plan-meal', 'Plan mijn recept Big lentil pot voor dinsdagavond', {kinds: ['plan-meal']}, {lang: 'nl'}), // A3-r1: linzensoep is a food in the records; plan-meal takes the records' recipe
     h.propose('p2-nl-fast', 'Begin een vasten van 16 uur', {kinds: ['start-fast']}, {lang: 'nl'}),
     t.propose('p2-nl-intention', 'Mijn intentie voor de week: minder late avonden', {kinds: ['review-intention']}, {lang: 'nl'}),
     t.chat('p2-nl-who', 'Ben jij ZIGoals of mijn AI?', {kinds: [], mustContain: ['AI']}, {lang: 'nl'}), // Session Z-Local Part 6 (L40): "je AI" and "jouw AI" both say it (listed)
@@ -437,7 +437,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.followup('p2-carry-correct-late', 'Weight 78.5 kg', {kinds: ['log-weight'], fields: [{value: 78.5}]}, {turns: [{ask: 'How much water today?', expect: {kinds: [], tools: ['water']}}, {ask: 'Back to the weight: it was 78.2, not 78.5', expect: {kinds: ['log-weight'], fields: [{value: 78.2}]}}]}),
     t.followup('p2-carry-count', 'How many goals do I have?', {kinds: [], tools: ['list_goals']}, {turns: [{ask: 'And habits?', expect: {kinds: [], tools: ['list_habits']}}, {ask: 'Which of those two numbers is bigger?', expect: {kinds: []}}]}),
     // Round 5 (ADR-017 S67): the habit of the first turn is a proposal, not a record (the harness accepts nothing between turns), so a reminder for it may rightly be a question.
-    hb.followup('p2-carry-schedule', 'Create a habit: swim on Tuesday and Thursday', {kinds: ['create-habit']}, {turns: [{ask: 'Add Saturday too', expect: {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 1}}, {ask: 'And a reminder at 18:30 on those days', expect: {kinds: ['create-reminder'], minCards: 0, maxCards: 1}}]}),
+    hb.followup('p2-carry-schedule', 'Create a habit: swim on Tuesday and Thursday', {kinds: ['create-habit']}, {turns: [{ask: 'Add Saturday too', expect: {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 1}}, {ask: 'And a reminder at 18:30 on those days', expect: {kinds: ['create-reminder', 'create-habit'], minCards: 0, maxCards: 2, fields: [{kind: 'create-reminder', time: '18:30'}]}}]}), // A3-r1: the swim habit is a pending draft, so the prompt's revise rule may re-send it with its reminder (a create-habit and a create-reminder); any card sent carries the 18:30 reminder
     g.followup('p2-carry-milestone', 'Add a milestone to the Japan goal: visa done', {kinds: ['add-milestone']}, {turns: [{ask: 'Another one: rail pass', expect: {kinds: ['add-milestone']}}, {ask: 'Which milestones does it have now?', expect: {kinds: [], tools: ['milestones']}}]}),
     t.followup('p2-carry-mood-note', 'Mood 2 today', {kinds: ['log-mood'], fields: [{mood: 2}]}, {turns: [{ask: 'Add a note to it: rough meeting', expect: {kinds: ['log-mood'], fields: [{mood: 2}]}}]}),
   );

@@ -84,7 +84,7 @@ describe('routines (H5), areas (H6), quit cost (H3), freezes (H7)', () => {
     const r2 = applyDeviceWrite(HABIT_EXTRAS.key, r1, cost.device!.patch) as ReturnType<typeof emptyHabitExtras>; expect(r2.quitCost).toEqual({[ID.snacks]: {perDay: 3.5, currency: 'EUR'}});
     expect(() => applyDeviceWrite(HABIT_EXTRAS.key, r2, {bogus: 1})).toThrow(); expect(() => applyDeviceWrite('zigoals:nope:v1', {}, {})).toThrow();
     // Session AF (L4): the Checklist's two records join through registerDeviceWrite once the lazy planner chunk loads (lib/ai/actions/checklist-writes.ts).
-    expect(DEVICE_WRITE_KEYS).toEqual([HABIT_EXTRAS.key, MICRO_TARGETS.key, MACRO_MODE.key, HEALTH_COACH.key, GAME.key, 'zigoals:goal-extras:v1', 'zigoals:average-goals:v1', 'zigoals:calculator:v1', 'zigoals:life-review:v1', 'zigoals:checklist:v1', 'zigoals:checklist-days:v1']); // the four AA-Cloud records joined at the merge (ADR-022 B53) expect(deviceWriteSpec(GAME.key)).toBe(GAME);
+    expect(DEVICE_WRITE_KEYS).toEqual([HABIT_EXTRAS.key, MICRO_TARGETS.key, MACRO_MODE.key, HEALTH_COACH.key, GAME.key, 'zigoals:goal-extras:v1', 'zigoals:average-goals:v1', 'zigoals:calculator:v1', 'zigoals:life-review:v1', 'zigoals:money-log:v1', 'zigoals:meal-estimates:v1', 'zigoals:checklist:v1', 'zigoals:checklist-days:v1']); // Session AI: the expense log's writer registers with the planner; // the four AA-Cloud records joined at the merge (ADR-022 B53) expect(deviceWriteSpec(GAME.key)).toBe(GAME);
   });
   test('use-freeze repairs yesterday on the walk through the journal; Undo takes it back; no freeze or a clean day is refused', () => {
     const {after, back} = roundTrip({kind: 'use-freeze', habit: 'h3', day: 'yesterday'});

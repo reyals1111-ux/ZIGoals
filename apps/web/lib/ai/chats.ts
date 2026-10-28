@@ -11,6 +11,11 @@ import {AI_CHATS_SESSION_KEY, PAGE_AREAS, type PageArea} from './settings';
 export const AI_CHATS_DATABASE = 'zigoals-ai-chats-v1';
 const STORE = 'chats', LIMIT_MS = 3000;
 export const MAX_CHATS = 200, MAX_TURNS = 200, MAX_TURN_CHARS = 20_000, MAX_SHOWCASE_CHATS = 50;
+/**
+ * Session AI (G5, ZI15; Grok's BUG-038/060, L-003): the longest message the box takes. 15,000 characters (about 3,500
+ * words); the stored limit stays 20,000 so every chat saved before still reads. A counter shows from 12,000.
+ */
+export const MAX_INPUT_CHARS = 15_000, INPUT_COUNTER_FROM = 12_000;
 const stamp = z.iso.datetime();
 export const chatTurnSchema = z.strictObject({
   id: z.string().min(1).max(80),

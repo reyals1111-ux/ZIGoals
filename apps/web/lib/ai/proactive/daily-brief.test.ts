@@ -76,3 +76,7 @@ test('the evening recap: done and open today, streaks kept, the Checklist, one f
   expect(briefChatText(e, 'morning')).toMatch(/^Your morning brief:\n• /);
   expect(recapDue('18:00', '18:00')).toBe(true); expect(recapDue('17:59', '18:00')).toBe(false); expect(recapDue('21:30', '21:00')).toBe(true);
 });
+test('Session AI (G9): every rule in "Why these lines?" names the line it explains, in the brief\'s own words', async () => {
+  const {BRIEF_WHY} = await import('./brief');
+  expect(BRIEF_WHY.due).toMatch(/^Still open:/); expect(BRIEF_WHY.win).toMatch(/^From yesterday:/); expect(BRIEF_WHY.focus).toMatch(/^One to start with:.*goal/);
+});

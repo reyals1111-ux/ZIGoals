@@ -1,6 +1,7 @@
 import * as z from 'zod';
 import {formatUnits} from '@zigoals/chain-config';
-import {balanceOn, moneyText, netWorth} from '../../accounts/net-worth';
+import {balanceOn, holdingsOf, moneyText, netWorthTotal} from '../../accounts/net-worth';
+import {wealthOverview} from '../../wealth';
 import {emptyAccounts, isDebtKind, type AccountKind} from '../../accounts/schema';
 import {milestoneDateOf, milestoneState} from '../../goals/milestones';
 import {challengeOf} from '../../habits-v2/challenge';
@@ -47,10 +48,13 @@ export const netWorthTool: ToolDefinition<Record<string, never>> = {
   args: NO_ARGS,
   label: () => 'Net worth',
   run(_args, env, label) {
-    const {rows, unvaluedHoldings} = netWorth(env.accounts ?? emptyAccounts(), env.habitDay, env.platform.positions);
+    // Session AI (ZI3, G7; ADR-033 M16): THE net worth the pages show — the accounts' latest balances plus Wealth's holdings
+    // valued exactly as Wealth values them (a live quote for a live-priced coin, the person's own value otherwise), minus
+    // debts, per currency, never converted. The older `netWorth` left live-priced coins out, so ZIGi's total differed.
+    const {rows, unvaluedHoldings, unvaluedNames} = netWorthTotal(env.accounts ?? emptyAccounts(), env.habitDay, holdingsOf(wealthOverview(env.platform, env.now.getTime(), env.quotes).rows));
     const perCurrency = rows.map(r => ({currency: r.currency, netWorth: `${moneyText(r.net)} ${r.currency}`, assets: `${moneyText(r.assets)} ${r.currency}`, debts: `${moneyText(r.debts)} ${r.currency}`, holdingsWithAValue: `${moneyText(r.holdings)} ${r.currency}`,
       accounts: r.accounts, ...(r.noBalance ? {accountsWithoutABalance: r.noBalance} : {})}));
-    return ok('net_worth', label, provenance(env, 'accounts and Wealth holdings', null, null, null), {perCurrency, holdingsWithoutAValue: unvaluedHoldings,
+    return ok('net_worth', label, provenance(env, 'accounts and Wealth holdings', null, null, null), {perCurrency, holdingsWithoutAValue: unvaluedHoldings, ...(unvaluedNames.length ? {withoutAValue: unvaluedNames.slice(0, 12).map(n => text(n, 40))} : {}),
       formula: 'net worth = assets + holdings with a value − debts, for each currency on its own; never converted, so two currencies are two totals',
       ...(perCurrency.length ? {} : {note: 'No account, debt or valued holding yet.'})});
   },

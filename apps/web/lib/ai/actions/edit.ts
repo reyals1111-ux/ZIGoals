@@ -102,6 +102,9 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'edit-habit': [text('title', 'New title', true), select('type', 'Type', ['build', 'quit', 'limit'], true), num('target', 'Daily target', true), select('timeOfDay', 'Time of day', ['anytime', 'morning', 'afternoon', 'evening'], true), text('description', 'Description', true, true), text('category', 'Category', true)],
   'edit-goal': [text('name', 'New name', true), num('target', 'Target', true), {key: 'targetDate', label: 'Target date', type: 'date', optional: true}, select('category', 'Category', GOAL_CATEGORIES, true), text('notes', 'Notes', true, true)],
   'log-mood': [int('mood', 'Mood (1 = hard, 5 = great)'), text('note', 'Note', true, true), DAY],
+  // Session AI: money spent or received.
+  'log-expense': [num('amount', 'Amount'), text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
+  'log-income': [num('amount', 'Amount'), text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
   'add-link': [text('label', 'Name'), text('url', 'Address (https://…)'), select('icon', 'Icon', LINK_ICONS, true)],
   'add-widget': [select('widget', 'Widget', WIDGET_KINDS), text('metric', 'Metric', true), text('title', 'Title', true), select('size', 'Size', ['compact', 'wide'])],
   // Session AF (L4). A starred habit is named by the card (ask again to change it); the staking review's own fields are all editable here and again on the review.

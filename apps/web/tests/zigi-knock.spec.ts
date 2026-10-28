@@ -27,15 +27,20 @@ function records(): Record<string, string> {
 const showcaseGoal = () => (JSON.parse(buildShowcase(DAY).records[PLATFORM_KEY]!) as {goals: {id: string; name: string; status: string}[]}).goals.find(g => g.status !== 'closed')!;
 async function seed(page: Page, extra: Record<string, unknown> = {}, time = EVENING) {
   await page.clock.install({time});
-  await page.goto('/app/settings');
+  // Session AI (B1 CI; ADR-034): the records are written on a static file of this origin, which makes no request, so the
+  // next `goto` never starts while a page's fetches are in flight. Writing them on /app/settings left its prefetches and
+  // /api calls running (the networkidle wait below returns at once once reached), and WebKit's navigation then stalled
+  // (CI run 40394055893: every chunk of /app/habits hung ~24 s and the launcher never mounted).
+  await page.goto('/manifest.webmanifest');
   const values = {...records(), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]))};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
-  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
-  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
-  // c9b123c9 and c1db750e hit it after this seed in four specs).
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
 }
+// Session AI (WebKit CI on f45597e6, 6f81275b, 1d8d608e): on a freshly loaded page the knock (and Today's reminder card)
+// appears only after the launcher's idle-time load (up to 2 s) and two lazy chunks; a cold WebKit runner took longer than
+// the default 5 s. The first appearance after a navigation is awaited for 15 s; what must appear, and only once, is unchanged.
+const FIRST = {timeout: 15_000};
 const KNOCK_ON = {[ZIGI_KEY]: {version: 1, knock: {enabled: true, offer: 'accepted'}}};
 const knock = (page: Page) => page.locator('.zigi-knock');
 const stored = async (page: Page, key: string) => JSON.parse((await page.evaluate(k => localStorage.getItem(k), key)) ?? 'null');
@@ -59,7 +64,7 @@ test('knocking is off by default: a due reminder only shows its card on Today', 
 test('on: ZIGi knocks once for a due reminder; "Do it now" gives the check-in card, and adding it checks the habit in', async ({page}) => {
   await seed(page, KNOCK_ON);
   await page.goto('/app/habits');
-  await expect(knock(page)).toBeVisible();
+  await expect(knock(page)).toBeVisible(FIRST);
   await expect(knock(page).getByRole('heading', {name: 'Stretch evening'})).toBeVisible();
   await expect(knock(page)).toContainText('On your list for today · 18:00');
   await expect(page.locator('.ai-launcher-button')).toHaveAttribute('data-state', /^(idle|reminder)$/);
@@ -82,7 +87,7 @@ test('on: ZIGi knocks once for a due reminder; "Do it now" gives the check-in ca
 test('Snooze holds the reminder for its time, then ZIGi knocks once more; Not today dismisses it for the day', async ({page}) => {
   await seed(page, KNOCK_ON);
   await page.goto('/app/goals');
-  await expect(knock(page)).toBeVisible();
+  await expect(knock(page)).toBeVisible(FIRST);
   await knock(page).getByRole('button', {name: 'Snooze'}).click();
   await expect(knock(page).getByRole('group', {name: 'Snooze for'}).getByRole('button')).toHaveText(['15 minutes', '1 hour', 'Tonight', 'Back']);
   await knock(page).getByRole('button', {name: '15 minutes'}).click();
@@ -113,7 +118,7 @@ test('never in the quiet hours, while ZIGi is hidden, on a sensitive screen, or 
   await expect(knock(page)).toHaveCount(0);
   await seed(page, KNOCK_ON);
   await page.goto('/app');
-  await expect(page.getByRole('article', {name: 'Reminder: Stretch evening'})).toBeVisible();
+  await expect(page.getByRole('article', {name: 'Reminder: Stretch evening'})).toBeVisible(FIRST);
   await settled(page);
   await expect(knock(page)).toHaveCount(0);
   await page.goto('/app/wealth?add=asset');

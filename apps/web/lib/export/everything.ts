@@ -1,5 +1,14 @@
 import {CALCULATOR_KEY} from '../compound/store';
 import {WORKOUTS_KEY, workoutsSchema, type Workouts} from '../workouts/schema';
+import {MONEY_LOG_KEY, moneyLogSchema, type MoneyLog} from '../money-log/schema';
+import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
+import {TASKS_KEY} from '../tasks/schema';
+import {RECEIPTS_KEY} from '../portfolio/receipts';
+import {IMPORTS_KEY} from '../portfolio/wallet-import';
+import {EXCHANGES_KEY} from '../exchanges/record';
+import {ZIGI_METRICS_KEY} from '../ai/store/metrics';
+import {JOURNAL_KEY, journalSchema, type Journal} from '../journal/schema';
+import {ENERGY_KEY, energySchema, type Energy} from '../energy/schema';
 import {SEARCH_RECENT_KEY} from '../search/recent';
 import {LIFE_REVIEW_KEY} from '../life-review/store';
 import {TODAY_CARDS_KEY} from '../today-cards/store';
@@ -72,6 +81,23 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY,
   // Session AH Part 6 (DE8): the workout log on this device.
   workouts: WORKOUTS_KEY,
+  // Session AI (B3): the expense and income log on this device.
+  moneyLog: MONEY_LOG_KEY,
+  // Session AI (B3): the journal and the daily energy rating on this device.
+  journal: JOURNAL_KEY,
+  energy: ENERGY_KEY,
+  // Session AI (feature 1, HE17): the ranges behind AI meal estimates on this device.
+  mealEstimates: MEAL_ESTIMATES_KEY,
+  // Session AI (tasks): one-off tasks with a priority and a due date on this device.
+  tasks: TASKS_KEY,
+  // Session AI (J15): what a Portfolio transfer in was (reward, income, airdrop).
+  portfolioReceipts: RECEIPTS_KEY,
+  // Session AI (WE20): which Portfolio rows came from a linked wallet.
+  portfolioImports: IMPORTS_KEY,
+  // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).
+  exchanges: EXCHANGES_KEY,
+  // Session AI (G14): ZIGi's own counts, when the person turned them on.
+  zigiMetrics: ZIGI_METRICS_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
   todayCards: TODAY_CARDS_KEY,
   // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
@@ -90,7 +116,11 @@ export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check
   // Session W: one per new area, each a plain copy of its stored records.
   'sleep.csv', 'meditation.csv', 'vitals.csv', 'moods.csv', 'accounts.csv', 'links.csv', 'portfolio-transactions.csv',
   // Session AH Part 6 (DE8): one row per set of each finished workout.
-  'workout-sets.csv'] as const;
+  'workout-sets.csv',
+  // Session AI (B3): one row per expense or income entry.
+  'money-log.csv',
+  // Session AI (B3): one row per journal entry; one row per day's energy.
+  'journal.csv', 'energy.csv'] as const;
 export type CsvFileName = typeof CSV_FILES[number];
 export type EverythingTexts = Record<string, string | null>;
 export type LocalSimulationExport = {section: string; warning: string | null} | null;
@@ -115,6 +145,9 @@ const CSV_HEADERS: Record<CsvFileName, string[]> = {
   'moods.csv': ['date', 'mood', 'note', 'recorded_at_utc'],
   'accounts.csv': ['home', 'account_id', 'name', 'kind', 'currency', 'institution', 'own_rate_percent', 'archived_at_utc', 'entry', 'entry_id', 'date', 'value', 'decimals', 'note'],
   'links.csv': ['id', 'label', 'url', 'icon', 'order', 'created_at_utc', 'updated_at_utc'],
+  'journal.csv': ['entry_id', 'date', 'text', 'tags', 'follow_up_question', 'follow_up_answer', 'created_at_utc'],
+  'energy.csv': ['date', 'energy_1_to_5', 'rated_at_utc'],
+  'money-log.csv': ['entry_id', 'date', 'kind', 'amount', 'currency', 'category', 'note', 'created_at_utc'],
   'workout-sets.csv': ['workout_id', 'workout_name', 'date', 'started_at_utc', 'ended_at_utc', 'exercise', 'exercise_id', 'set_number', 'set_kind', 'weight_kg', 'reps', 'distance_km', 'seconds'],
   // Session AH Part 3 (DS6, N-042): Portfolio's own trades and transfers (its record is in everything.json since Session U).
   'portfolio-transactions.csv': ['portfolio_id', 'portfolio_name', 'portfolio_kind', 'currency', 'transaction_id', 'coin', 'coin_name', 'symbol', 'kind', 'quantity', 'price_per_coin', 'fee', 'date', 'note', 'created_at_utc'],
@@ -235,6 +268,12 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   out['portfolio-transactions.csv'] = csv(CSV_HEADERS['portfolio-transactions.csv'], (portfolios?.portfolios ?? []).flatMap(p => p.transactions.map(t => { const coin = p.coins.find(c => coinKey(c.ref) === t.coin); return [p.id, p.name, p.kind, p.currency, t.id, t.coin, coin?.name ?? '', coin?.symbol ?? '', t.kind, t.quantity, t.price ?? '', t.fee ?? '', t.date, t.note, t.createdAt] as Cell[]; })));
   const workouts = typed<Workouts>('Workouts', json.device.workouts, v => workoutsSchema.safeParse(v));
   out['workout-sets.csv'] = csv(CSV_HEADERS['workout-sets.csv'], (workouts?.workouts ?? []).filter(x => x.endedAt).flatMap(x => x.exercises.flatMap(e => e.sets.map((st, i) => [x.id, x.name, x.date, x.startedAt, x.endedAt ?? '', e.name, e.exerciseId, i + 1, st.kind, st.weightKg ?? '', st.reps ?? '', st.distanceKm ?? '', st.seconds ?? '']))));
+  const moneyLog = typed<MoneyLog>('Spending', json.device.moneyLog, v => moneyLogSchema.safeParse(v));
+  out['money-log.csv'] = csv(CSV_HEADERS['money-log.csv'], (moneyLog?.entries ?? []).map(x => [x.id, x.date, x.kind, x.amount, x.currency, x.category, x.note ?? '', x.createdAt]));
+  const journal = typed<Journal>('Journal', json.device.journal, v => journalSchema.safeParse(v));
+  out['journal.csv'] = csv(CSV_HEADERS['journal.csv'], (journal?.entries ?? []).map(x => [x.id, x.date, x.text, (x.tags ?? []).join(' '), x.followUp?.question ?? '', x.followUp?.answer ?? '', x.createdAt]));
+  const energy = typed<Energy>('Energy', json.device.energy, v => energySchema.safeParse(v));
+  out['energy.csv'] = csv(CSV_HEADERS['energy.csv'], Object.entries(energy?.days ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([d, x]) => [d, String(x.energy), x.at]));
   return {json, csv: out, unreadable, warnings};
 }
 /**

@@ -113,6 +113,7 @@ function HabitInsights({ habit, today, zone }: { habit: Habit; today: string; zo
     <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
     <div className="habit-trends">{/* Session AH (HA6, L-074): a window with nothing to count yet is left out, never "0/0 · 0%" */}{trends.filter(trend => trend.total > 0).map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><GlassBar identity={`habit-trends:${habit.id}:${trend.period}`} className="habit-trend-track" aria-hidden="true" value={trend.percentage / 100} /><strong>{trend.percentage}%</strong></div>)}</div>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
+    <ShareHabit habit={habit} today={today} />
     <Suspense fallback={null}><HabitPatterns habit={habit} today={today} zone={zone} /></Suspense>
   </div>;
 }
@@ -182,4 +183,20 @@ function DeleteForGood({ habit, onDelete, asked }: { habit: Habit; onDelete: (ha
   useEffect(() => { if (asked) setOpen(true); }, [asked]);
   if (!open) return <div className="habit-delete"><button type="button" className="quiet habit-delete-open" onClick={() => setOpen(true)}>Delete for good…</button></div>;
   return <Suspense fallback={null}><HabitDeleteForm habit={habit} onDelete={onDelete} onCancel={() => setOpen(false)} /></Suspense>;
+}
+
+/**
+ * Session AI (shareable habit card): an image of the habit's streak and counts, drawn on this device and handed to the
+ * share sheet or saved. Loaded only on the tap; nothing is uploaded.
+ */
+function ShareHabit({ habit, today }: { habit: Habit; today: string }) {
+  const [note, setNote] = useState("");
+  const share = async () => {
+    try {
+      const [{habitShareCard}, {drawShareCard, shareOrSave}] = await Promise.all([import("../../lib/habits-share"), import("../../lib/share-image")]);
+      const how = await shareOrSave(await drawShareCard(habitShareCard(habit, today)), `zigoals-habit-${today}.png`, habit.title);
+      setNote(how === "shared" ? "Shared from your device." : "Saved as an image on this device.");
+    } catch (cause) { setNote(cause instanceof Error ? cause.message : "The image could not be made here."); }
+  };
+  return <p className="habit-share"><button type="button" className="secondary" onClick={() => void share()} aria-label={`Share ${habit.title} as an image`}>Share as an image</button>{note && <span role="status" className="fine"> {note}</span>}</p>;
 }

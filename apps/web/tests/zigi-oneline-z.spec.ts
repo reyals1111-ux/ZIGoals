@@ -115,7 +115,8 @@ test('connected, two replies: title, status, source lines, action rows, share ro
     await page.setViewportSize({width, height: 860});
     await openChat(page);
     await say(page, 'How did my habits go this week?');
-    await say(page, 'And what should I try next?');
+    // Session AI (ZI1): a pure question keeps no write card, so the second ask is a command that brings the card measured below.
+    await say(page, 'And log a glass of water');
     if (CAPTURES) { mkdirSync(CAPTURES, {recursive: true}); await page.screenshot({path: join(CAPTURES, `panel-${info.project.name}-${width}.png`)}); await panel(page).getByRole('button', {name: 'Close ZIGi'}).click(); continue; }
     const where = `at ${width}`, m = await measure(panel(page));
     annotations.push(`${width}: title ${m.titleFont}px`);
@@ -231,7 +232,7 @@ test('not connected: the status says so on one line; the chips row is one line; 
   for (const width of WIDTHS[info.project.name as keyof typeof WIDTHS]) {
     await page.setViewportSize({width, height: 760});
     await openChat(page);
-    await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('not connected yet');
+    await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('answers on this device');
     oneLine(await measure(panel(page)), `not connected at ${width}`);
     await panel(page).getByRole('button', {name: 'Close ZIGi'}).click();
   }

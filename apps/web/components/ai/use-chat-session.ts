@@ -28,7 +28,8 @@ import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability,
 import {Handles} from '../../lib/ai/handles';
 import {recordsSent} from '../../lib/ai/records-sent';
 import {readDeviceRecord} from '../../lib/device-record';
-import {AI_OPTIONS, type AiOptions} from '../../lib/ai/store/records';
+import {AI_OPTIONS, ZIGI, zigiPersonality, type AiOptions} from '../../lib/ai/store/records';
+import {countZigi} from '../../lib/ai/store/metrics';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {runWithTools, toolsFor} from '../../lib/ai/tool-loop';
 import {ANSWER_CHARS, type ToolResult} from '../../lib/ai/tools/types';
@@ -43,7 +44,8 @@ import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {localDate} from '../../lib/local-date';
 import {applyDayCue} from '../../lib/ai/actions/day-cue';
 import {reviseEdits} from '../../lib/ai/actions/revise';
-import {stripDeclinedBlocks} from '../../lib/ai/actions/decline';
+import {answerOnly, stripDeclinedBlocks} from '../../lib/ai/actions/decline';
+import {followUpQuestion} from '../../lib/ai/local-answers/followup';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -148,6 +150,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const claimFresh = useCallback((turnId: string) => fresh.current.delete(turnId), []);
   const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean; records?: string[]} = {}) => {
     if (!text && !stopped) return;
+    if (text) countZigi('ai-answer'); // Session AI (G14)
     // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
     const {text: shown, hint} = extractHint(text);
     text = shown;
@@ -200,7 +203,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const provider = PROVIDERS[providerId], contextText = [pageText, options.extra?.text].filter(Boolean).join('\n\n') || null;
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
-    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate()};
+    const personality = (() => { try { return zigiPersonality(readDeviceRecord(getAppStorage(), ZIGI).data); } catch { return 'calm' as const; } })(); // Session AI (mascot)
+    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate(), personality};
     // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
     const risk = detectRisk(text);
     const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);
@@ -307,7 +311,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
     // Round 9 (ADR-017 S75): a money ask the reply declines in words carries no card (the protocol's own rule, enforced).
     const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
-    const done = (stopped: string | undefined) => finish(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk, records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? context.area : null)}); // Session Z-Local, persona finding #7
+    const done = (stopped: string | undefined) => finish(answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk, records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? context.area : null)}); // Session Z-Local, persona finding #7
     try {
       try { await run(mode); }
       catch (error) {
@@ -361,7 +365,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     let next: Chat;
     try { next = appendTurn(appendTurn(before, user), answer); }
     catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
-    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); fresh.current.add(answer.id);
+    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); fresh.current.add(answer.id); countZigi('device-answer'); // Session AI (G14): counted only when the person turned the counts on
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
     zigiSignals.emit(localSignal(reply, question));
@@ -411,6 +415,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const env = localEnv();
     let reply: LocalReply = {kind: 'none'};
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
+    // Session AI (G4): "and yesterday?" after a question the device answered is that question for yesterday.
+    if (reply.kind === 'none' && env) { const previous = [...chatRef.current.turns].reverse().find(t => t.role === 'user')?.text ?? null, again = followUpQuestion(text, previous); if (again) { try { const r = localAnswer(again, env); if (r.kind === 'answer' || r.kind === 'choices') reply = r; } catch { /* the question as typed stands */ } } }
     if (reply.kind === 'none' && connected) return send(text, options);
     if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
     // Session AB-Cloud Part 9 (ADR-023 C30): without a model, the steps for a "create/plan" ask, or the examples in the question's language.

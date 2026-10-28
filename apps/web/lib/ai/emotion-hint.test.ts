@@ -65,3 +65,8 @@ test('F6: nested markers are stripped to nothing; only a marker that was whole i
   expect(extractHint('Hi ⟦zi⟦zigi: curious⟧gi: insight⟧!')).toEqual({text: 'Hi !', hint: 'curious'}); // the inner one was whole
   expect(extractHint('Sure. ⟦zigi: curious⟧')).toEqual({text: 'Sure.', hint: 'curious'});
 });
+
+test('Session AI (A3-r1): the ⟪zigi: …⟫ brackets some models write are a marker too, never shown as text', () => {
+  expect(extractHint('All logged. ⟪zigi: encouraging⟫')).toEqual({text: 'All logged.', hint: 'encouraging'});
+  expect(extractHint('Noted ⟪zigi: nonsense⟫ here')).toMatchObject({hint: null}); expect(extractHint('Noted ⟪zigi: nonsense⟫ here').text).not.toContain('⟪');
+});

@@ -51,7 +51,14 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
   const ready = reminders.loaded && zigi.loaded && knock.loaded && zigiReminders.loaded && wReminders.loaded;
   // Gate A (ADR-022 B41): the due rules live in their own chunk, loaded once the shell is on screen.
   const [compute, setCompute] = useState<typeof KnockCompute | null>(null);
-  useEffect(() => { let on = true; void import('../../lib/ai/knock/compute').then(m => { if (on) setCompute(m); }).catch(() => undefined); return () => { on = false; }; }, []); // a load cancelled by a navigation retries on the next page
+  // Session AI (B1 CI): a load that fails (a cancelled request) is tried once more a second later, so one failed fetch
+  // never leaves this page without its knock.
+  useEffect(() => {
+    let on = true, timer: ReturnType<typeof setTimeout> | null = null;
+    const load = (retry: boolean) => void import('../../lib/ai/knock/compute').then(m => { if (on) setCompute(m); }).catch(() => { if (on && retry) timer = setTimeout(() => load(false), 1000); });
+    load(true);
+    return () => { on = false; if (timer) clearTimeout(timer); };
+  }, []);
   const candidates = useMemo<KnockCandidate[]>(() => {
     if (!now || !ready || !compute) return [];
     return compute.knockCandidates({reminders: reminders.data, habits: habits.data, health: health.data, w: wReminders.unreadable ? null : wReminders.data, meditationRunning: !!meditationRun.data.run, platform: platform.data, zigiReminders: zigiReminders.data, legacyNames, now});

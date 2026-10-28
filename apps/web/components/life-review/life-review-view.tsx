@@ -2,7 +2,12 @@
 import Link from 'next/link';
 import {useMemo, useState} from 'react';
 import {lifeReview, reviewPeriod, type Period} from '../../lib/life-review/engine';
-import {LIFE_REVIEW, previousFocus, setFocus, setPeriod} from '../../lib/life-review/store';
+import {LIFE_REVIEW, MAX_VALUES, VALUE_SUGGESTIONS, previousFocus, rateValue, setFocus, setPeriod, setValues} from '../../lib/life-review/store';
+import {yourDays} from '../../lib/life-review/your-days';
+import {MONEY_LOG} from '../../lib/money-log/schema';
+import {JOURNAL} from '../../lib/journal/schema';
+import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
+import {healthGroupIn} from '../../lib/vault/w-homes';
 import {reviewState, reviewWindow, weekSummary} from '../../lib/weekly-review/engine';
 import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
 import {useMarketQuotes} from '../platform/use-market-quotes';
@@ -120,7 +125,9 @@ export function LifeReviewView() {
         </section>}
       </div>
 
+      <YourDaysChapter start={window.start} end={window.end} period={period} moods={health.loaded ? healthGroupIn(health.data, 'moods') ?? undefined : undefined} financial={financial} />
       <CrossInsightsCard habits={habits.error ? {...habits.data, habits: []} : habits.data} health={health.data} today={today} />
+      {period === 'week' && <ValuesCheck weekKey={window.key} />}
 
       <section className="panel life-focus" aria-labelledby="life-review-focus">
         <SectionHeading id="life-review-focus" eyebrow={`Next ${period}`} title="One focus" level={3} lede={last ? <>Last {period} you chose: <q>{last.text}</q></> : 'One small thing to carry into the next ' + period + '.'} />
@@ -146,5 +153,58 @@ function WeeklyReflection({financial, habits, health, platform, legacy, today}: 
   return <section className="life-reflection" aria-label="Your weekly reflection">
     {state === 'done' || state === 'skipped' ? <p className="fine">{note || (state === 'done' ? `Your reflection for ${formatDay(w.weekStart)} – ${formatDay(w.weekEnd)} is saved on this device.` : `You skipped the reflection for ${formatDay(w.weekStart)} – ${formatDay(w.weekEnd)}.`)}</p>
       : <WeeklyReviewCard store={store} weekStart={w.weekStart} weekEnd={w.weekEnd} summary={summary} financial={financial} formatWealth={s => wealthMoney(s.value, s.currency)} onDone={setNote} />}
+  </section>;
+}
+
+/**
+ * Session AI (G13): the newer records of the period across life — money spent and received (the expense log, each
+ * currency on its own), journal entries, the average daily energy and evening mood, with the days behind each.
+ */
+function YourDaysChapter({start, end, period, moods, financial}: {start: string; end: string; period: string; moods?: {days: Record<string, {mood: number}>}; financial: boolean}) {
+  const money = useDeviceRecord(MONEY_LOG), journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY);
+  const days = useMemo(() => yourDays({start, end, money: money.data, journal: journal.data, energy: energy.data, moods}), [start, end, money.data, journal.data, energy.data, moods]);
+  const empty = !days.money.length && !days.journal && !days.energy && !days.mood;
+  return <section className="panel life-chapter life-your-days" data-chapter="5" aria-labelledby="life-review-days">
+    <SectionHeading id="life-review-days" eyebrow="Chapter 5 · Your days" title="Spending, journal, energy and mood" level={3} />
+    {empty ? <p className="life-none">Nothing in the expense log, the journal, energy or mood this {period} yet.</p> : <ul className="life-list">
+      {financial && days.money.map(m => <li key={m.currency}><strong>{m.currency}</strong><span>spent {formatMoney(m.spent.toFixed(2), m.currency)}{m.received ? ` · received ${formatMoney(m.received.toFixed(2), m.currency)}` : ''} · {m.entries} {m.entries === 1 ? 'entry' : 'entries'}</span></li>)}
+      {days.journal > 0 && <li><strong>Journal</strong><span>{days.journal} {days.journal === 1 ? 'entry' : 'entries'}</span></li>}
+      {days.energy && <li><strong>Energy</strong><span>{days.energy.average} of 5 on average ({ENERGY_WORDS.en[Math.round(days.energy.average) - 1]}), {days.energy.days} {days.energy.days === 1 ? 'day' : 'days'} rated</span></li>}
+      {days.mood && <li><strong>Evening mood</strong><span>{days.mood.average} of 5 on average, {days.mood.days} {days.mood.days === 1 ? 'day' : 'days'} answered</span></li>}
+    </ul>}
+    <p className="fine">From your own records on this device; a day without a record is left out, never counted as zero. Never converted, not advice.</p>
+  </section>;
+}
+/**
+ * Session AI (feature 9, GO14): the values check — up to three values in the person's own words, and each week a 1–5
+ * answer to "how much did this week reflect it?", beside last week's. Kept in the Life review's own record on this device.
+ */
+function ValuesCheck({weekKey}: {weekKey: string}) {
+  const record = useDeviceRecord(LIFE_REVIEW), [draft, setDraft] = useState<string[] | null>(null), [own, setOwn] = useState(''), [note, setNote] = useState('');
+  if (!record.loaded) return null;
+  const values = record.data.values ?? [], editing = draft !== null || !values.length, chosen = draft ?? values;
+  const ratings = record.data.valueChecks?.[weekKey]?.ratings ?? {};
+  const previous = Object.keys(record.data.valueChecks ?? {}).filter(k => k.startsWith('week:') && k < weekKey).sort().at(-1);
+  const before = previous ? record.data.valueChecks![previous]!.ratings : {};
+  const toggle = (v: string) => setDraft(chosen.includes(v) ? chosen.filter(x => x !== v) : chosen.length < MAX_VALUES ? [...chosen, v] : chosen);
+  const save = () => { try { record.update(s => setValues(s, chosen)); setDraft(null); setNote(chosen.length ? 'Your values are saved on this device.' : 'Your values are cleared.'); } catch (cause) { setNote(cause instanceof Error ? cause.message : 'This could not be saved.'); } };
+  const rate = (v: string, n: number) => { try { record.update(s => rateValue(s, weekKey, v, n, new Date().toISOString())); setNote(`${v}: ${n} of 5 this week.`); } catch (cause) { setNote(cause instanceof Error ? cause.message : 'This could not be saved.'); } };
+  return <section className="panel life-values" aria-labelledby="life-review-values">
+    <SectionHeading id="life-review-values" eyebrow="Your values" title="Did this week reflect them?" level={3} lede={editing ? `Choose up to ${MAX_VALUES} that matter most to you, or write your own.` : undefined} />
+    {editing ? <>
+      <div className="life-value-chips" role="group" aria-label="Values to choose from">{[...new Set([...VALUE_SUGGESTIONS, ...chosen])].map(v => <button key={v} type="button" className="secondary" aria-pressed={chosen.includes(v)} onClick={() => toggle(v)}>{v}</button>)}</div>
+      <form className="life-value-own" onSubmit={e => { e.preventDefault(); const word = own.trim(); if (word && chosen.length < MAX_VALUES && !chosen.includes(word)) { setDraft([...chosen, word]); setOwn(''); } }}>
+        <label className="field">Your own word<input value={own} maxLength={40} onChange={e => setOwn(e.target.value)} placeholder="For example: Patience" /></label>
+        <button type="submit" className="secondary" disabled={!own.trim() || chosen.length >= MAX_VALUES}>Add</button>
+      </form>
+      <div className="actions"><button type="button" className="primary" onClick={save} disabled={!chosen.length && !values.length}>Save values</button>{values.length > 0 && <button type="button" className="quiet" onClick={() => setDraft(null)}>Cancel</button>}</div>
+    </> : <>
+      {values.map(v => <fieldset key={v} className="life-value-rate"><legend>{v}{before[v] ? <small> · last week {before[v]} of 5</small> : null}</legend>
+        {[1, 2, 3, 4, 5].map(n => <label key={n}><input type="radio" name={`value-${v}`} checked={ratings[v] === n} onChange={() => rate(v, n)} /><span>{n}</span></label>)}
+      </fieldset>)}
+      <p className="fine">1 not at all · 5 fully. Your own answer; nothing is scored or sent.</p>
+      <button type="button" className="text-link" onClick={() => setDraft(values)}>Change your values</button>
+    </>}
+    {note && <p role="status" className="fine">{note}</p>}
   </section>;
 }

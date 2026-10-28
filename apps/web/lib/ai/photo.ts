@@ -9,7 +9,7 @@ import type {ChatImage} from './types';
  * photo was attached. Barcode scanning in Health stays the primary way to log a packaged food.
  */
 export const PHOTO_MAX_EDGE = 1024, PHOTO_QUALITY = 0.8, PHOTO_MAX_INPUT_BYTES = 20 * 1024 * 1024;
-export const PHOTO_NOTE = 'The person attached a photo of a meal. Propose one log-food per item you can see, with your estimate per serving; leave out every value you are unsure of (it stays unknown), include serving_g only when you can judge the portion, and say in one sentence what you could not see. The photo is not stored by ZIGoals.';
+export const PHOTO_NOTE = 'The person attached a photo of a meal. Propose one log-food per item you can see, with your estimate per serving as a range ("estimate":{"range":{"kcal":[450,650],"protein_g":[20,30],"carbs_g":[40,60],"fat_g":[15,25]},"from":"photo"}), because a photo never gives one exact number; leave out every value you cannot judge at all (it stays unknown), include serving_g only when you can judge the portion, and say in one sentence what you could not see. The photo is not stored by ZIGoals.';
 export type PhotoAllowance = {allowed: true} | {allowed: false; reason: string};
 /** Whether this message may carry a photo: a model that reads images, and Health shared. */
 export function photoAllowance({capability, declared, healthOpen}: {capability: Capability | null; declared: boolean | undefined; healthOpen: boolean}): PhotoAllowance {

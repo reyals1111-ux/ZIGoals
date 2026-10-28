@@ -1,5 +1,6 @@
 'use client';
-import {askZigi, launcherShown} from './ask';
+import {askZigi} from './ask';
+import {useLauncherShown} from '../zigi-door';
 
 /**
  * "Ask ZIGi about this" in a number's own options menu (Session V Part 9, "Explain this number"): one item per card, in
@@ -16,18 +17,22 @@ const NEEDS_NAME = new Set(['goal', 'milestone', 'habit']);
  * a value). A caller passes `card` for a card whose kind has no question of its own.
  */
 export function ExplainCardItem({card}: {card: {id: string; label: string}}) {
-  if (!launcherShown()) return null;
+  // Session AI (ZI9; Grok's D-059, B-125, N-203): every door follows the launcher live, so ZIGi switched off leaves none.
+  if (!useLauncherShown()) return null;
   const label = card.label.replace(/\s+/g, ' ').trim().slice(0, 60);
   return <button type="button" onClick={() => askZigi(`Explain the ${label} card`, {tool: 'page_view', args: {card: card.id.slice(0, 80)}, label: `This page · ${label}`})}>Explain this card</button>;
 }
 export function AskZigiItem({kind, metric, name, card}: {kind: string; metric: string; name?: string; card?: {id: string; label: string}}) {
+  const shown = useLauncherShown();
   if (card && !KINDS.has(kind)) return <ExplainCardItem card={card}/>;
-  if (!KINDS.has(kind) || (NEEDS_NAME.has(kind) && !name?.trim()) || !launcherShown()) return null;
+  if (!KINDS.has(kind) || (NEEDS_NAME.has(kind) && !name?.trim()) || !shown) return null;
   const ask = () => void import('../../lib/ai/proactive/explain').then(({explainFor}) => { const explain = explainFor(kind, metric, name); if (explain) askZigi(explain.question, explain.about); }).catch(() => undefined);
   return <button type="button" onClick={ask}>Ask ZIGi about this</button>;
 }
 /** The same for a card without an options menu (the habit history): a small corner link, shown only with the launcher. */
 export function AskZigiCorner({kind, metric, label}: {kind: string; metric: string; label: string}) {
+  const shown = useLauncherShown();
+  if (!shown) return null;
   const ask = () => void import('../../lib/ai/proactive/explain').then(({explainFor}) => { const explain = explainFor(kind, metric); if (explain) askZigi(explain.question, explain.about); }).catch(() => undefined);
   return <button type="button" className="ai-ask-link zigi-explain-corner" onClick={ask} aria-label={`Ask ZIGi: ${label}`}>Ask ZIGi</button>;
 }

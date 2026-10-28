@@ -1,6 +1,9 @@
 import type {ToolEnv} from '../tools/env';
 import type {LocalReply} from './engine';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
+import {simpleCommand} from './ai-session';
+import {quickLogItems, quickLogReply} from '../../quick-log/multi';
+import {quickLogContext} from '../../quick-log/context';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -48,5 +51,19 @@ export function howToReply(text: string, lang: ReplyLanguage): LocalReply | null
 /** Everything ZIGi says without a model after the device's own answers had none. */
 export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   const lang = questionLanguage(text);
-  return howToReply(text, lang) ?? examplesIn(env, lang);
+  // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
+  return simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? examplesIn(env, lang);
+}
+
+/**
+ * Session AI (J10, ZI11): with no model, a line of several things done, eaten or drunk becomes one card each, made on this
+ * device ("30 push-ups, 500 ml water and a banana"). A single item Quick add already previews stays with Quick add; a
+ * single food, mood or goal contribution gets its card here.
+ */
+function quickLog(text: string, env: ToolEnv | null, lang: ReplyLanguage): LocalReply | null {
+  if (!env) return null;
+  const ctx = quickLogContext(env), items = quickLogItems(text, ctx, lang), known = items.filter(i => i.action);
+  if (!known.length || !(items.length >= 2 || ['log-food', 'log-mood', 'prefill-contribution', 'log-expense'].includes(String(known[0]!.action!.kind)))) return null;
+  const reply = quickLogReply(text, ctx, lang);
+  return reply ? {kind: 'answer', text: reply.text, calls: []} : null;
 }

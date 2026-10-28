@@ -211,3 +211,20 @@ test('Session AH (HA8): a vacation keeps every day the person wrote on, and clea
   const back = clearVacation(away, {from: '2026-09-10', to: '2026-09-14'}, at('2026-09-10'));
   expect(back.habits[0]!.entries.map(e => ({date: e.date, disposition: e.disposition, note: e.note}))).toEqual(before);
 });
+describe('Session AI (B3): sick and rest days', () => {
+  test('the same skips with their own note; streaks hold; the days ahead name their kind; clearing one kind leaves the others', () => {
+    process.env.TZ = 'UTC';
+    const now = at('2026-10-01'), data = habitDataSchema.parse(JSON.parse(buildShowcase('2026-10-01').records[HABITS_KEY]!));
+    const sick = setVacation(data, {from: '2026-10-02', to: '2026-10-03', kind: 'sick'}, now);
+    const both = setVacation(sick, {from: '2026-10-10', to: '2026-10-11', kind: 'rest'}, now);
+    const habit = both.habits.find(h => h.id !== EARLIER_HABIT_ID && h.entries.some(e => e.note === 'Sick day'))!;
+    expect(habit.entries.filter(e => e.note === 'Sick day').map(e => [e.date, e.disposition])).toEqual([['2026-10-02', 'skipped'], ['2026-10-03', 'skipped']]);
+    expect(habit.entries.filter(e => e.note === 'Rest day').map(e => e.date)).toEqual(['2026-10-10', '2026-10-11']);
+    expect(upcomingVacation(both, '2026-10-01').map(r => [r.kind, r.from, r.to])).toEqual([['sick', '2026-10-02', '2026-10-03'], ['rest', '2026-10-10', '2026-10-11']]);
+    const cleared = clearVacation(both, {from: '2026-10-01', to: '2026-10-31', kind: 'sick'}, now);
+    expect(cleared.habits.some(h => h.entries.some(e => e.note === 'Sick day'))).toBe(false);
+    expect(cleared.habits.some(h => h.entries.some(e => e.note === 'Rest day'))).toBe(true);
+    // Without a kind, clearing takes every kind of time away in the range (as "Clear vacation days" always did).
+    expect(clearVacation(both, {from: '2026-10-01', to: '2026-10-31'}, now).habits.map(h => h.entries)).toEqual(data.habits.map(h => h.entries));
+  });
+});

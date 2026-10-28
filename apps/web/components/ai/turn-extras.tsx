@@ -1,5 +1,5 @@
 'use client';
-import type {ReactNode} from 'react';
+import {useState, type ReactNode} from 'react';
 import {followupsFor, type FollowupCall} from '../../lib/ai/followups';
 import {ReplyIcon} from './reply-actions';
 import {formatDateTime, formatTime} from '../../lib/visual-format';
@@ -29,6 +29,29 @@ export function FeedbackButtons({value, onChange}: {value: 'up' | 'down' | undef
 export function SourceLine({short, full, extra, deeper = false, time}: {short: string; full: string; extra?: ReactNode; deeper?: boolean; time?: ReactNode}) {
   // `time`: a narrow reply (panel-z.css, `zigi-reply`) shows its time here, first, instead of in the row of buttons.
   return <p className="ai-turn-source" title={full}>{time && <span className="ai-turn-source-time">{time}<span aria-hidden="true"> · </span></span>}<span aria-hidden="true">{short}{deeper ? ' · deeper' : ''}</span><span className="ai-turn-label ai-sr-only">{full}</span>{extra}</p>;
+}
+/**
+ * Session AI (G1, ZI1): every reply says what it is. "Answer" for a reply that only tells; "Proposed change" above the
+ * cards of one that proposes a change, which is saved only when the person adds it. One short eyebrow line, never a
+ * colour alone (the words carry it).
+ */
+/**
+ * Session AI (ZI15, G5; Grok's L-003): a long message is not echoed in full. Up to 1,200 characters show as typed; a
+ * longer one shows its first 600 and a button to read the rest (and to fold it again). The words are all still there.
+ */
+export const LONG_TEXT_FROM = 1_200, LONG_TEXT_SHOWN = 600;
+export function LongText({text}: {text: string}) {
+  const [open, setOpen] = useState(false);
+  if (text.length <= LONG_TEXT_FROM) return <p>{text}</p>;
+  return <div className="ai-long-text">
+    <p>{open ? text : `${text.slice(0, LONG_TEXT_SHOWN).trimEnd()}…`}</p>
+    <button type="button" className="text-link ai-long-toggle" aria-expanded={open} onClick={() => setOpen(v => !v)}>{open ? 'Show less' : `Show all ${text.length.toLocaleString('en-US')} characters`}</button>
+  </div>;
+}
+export function TurnKind({cards}: {cards: boolean}) {
+  // The words are the eyebrow's generated content (read by screen readers, never part of the reply's own text, which
+  // copies, reads aloud and specs take from the reply alone).
+  return <p className="ai-turn-kind" data-kind={cards ? 'change' : 'answer'} data-label={cards ? 'Proposed change · saved only when you add it' : 'Answer'}/>;
 }
 export function FollowupChips({calls, asked, onAsk}: {calls: readonly FollowupCall[]; asked: string; onAsk: (question: string) => void}) {
   const questions = followupsFor(calls, asked);

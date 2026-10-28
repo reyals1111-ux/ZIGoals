@@ -14,7 +14,7 @@ import {bridgePrompt} from './bridge';
 import {questionContext} from './context/question';
 import {recordsForAi} from './local-answers/more';
 import {ACTION_PROTOCOL, buildSystemPrompt, DATA_CLOSE, DATA_OPEN} from './context/specialists';
-import {addNote, deleteNote, editNote, looksSecret, newestFirst, noteProblem, notesForAi, restoreNote, SECRET_REFUSAL, usingNotes} from './memory';
+import {addNote, deleteNote, editNote, looksSecret, newestFirst, noteProblem, notesExport, notesForAi, restoreNote, SECRET_REFUSAL, setNotePaused, usingNotes} from './memory';
 import {actionPlace} from './store/actions';
 import {AI_OPTIONS_KEY} from './store/keys';
 import {MAX_NOTES, resetOnTurnOff, type AiMemory} from './store/records';
@@ -195,4 +195,16 @@ test('"Turn off ZIGi" keeps a "Use my notes" the person turned off, and nothing 
   resetOnTurnOff(on); expect(on.map.has(AI_OPTIONS_KEY)).toBe(false);
   const odd = storage({[AI_OPTIONS_KEY]: '{broken'});
   resetOnTurnOff(odd); expect(odd.map.has(AI_OPTIONS_KEY)).toBe(false);
+});
+
+test('Session AI (feature 3): a paused note stays on the device, goes to no AI, and comes back when resumed; the export holds the words only', () => {
+  const two = addNote(addNote({version: 1}, {text: 'Prefers mornings', category: 'schedule', source: 'person'}, t0, 'n1'), {text: 'Vegetarian', category: 'diet', source: 'person'}, t1, 'n2');
+  const paused = setNotePaused(two, 'n2', true, t1);
+  expect(paused.notes).toHaveLength(2);
+  expect(notesForAi({version: 1}, paused)).toEqual([note('Prefers mornings', 'schedule')]);
+  expect(notesForAi({version: 1}, setNotePaused(paused, 'n2', false, t1))).toHaveLength(2);
+  const file = JSON.parse(notesExport(paused, t1)) as {format: string; notes: {text: string; paused: boolean; id?: string}[]};
+  expect(file.format).toBe('zigoals-zigi-notes');
+  expect(file.notes.map(n => [n.text, n.paused])).toEqual([['Vegetarian', true], ['Prefers mornings', false]]);
+  expect(file.notes.every(n => n.id === undefined)).toBe(true);
 });

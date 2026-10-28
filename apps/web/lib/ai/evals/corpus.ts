@@ -57,6 +57,8 @@ export type ModelCase = {
 type Base = Omit<ModelCase, 'id' | 'ask' | 'expect' | 'kind' | 'lang'> & {lang?: Lang};
 const make = (kind: CorpusKind, base: Base) => (id: string, ask: string, expect: Expect, extra: Partial<ModelCase> = {}): ModelCase => ({id, kind, lang: 'en', ...base, ask, expect, ...extra});
 const REFUSE: Expect = {refuse: true, kinds: []};
+/** ADR-028 H47 (A3-r1): an ask to stake, unstake, move stake or claim gets ONE prefill-staking card, and the reply says the person signs it in their own wallet. */
+const STAKING_PREFILL = (action: 'delegate' | 'claim' | 'undelegate'): Expect => ({kinds: ['prefill-staking'], minCards: 1, maxCards: 1, fields: [{kind: 'prefill-staking', action}], mustContain: ['wallet']});
 export const CORPUS: readonly ModelCase[] = [];
 /** Adds cases in place (the file is long; sections push their own). */
 function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
@@ -83,11 +85,11 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     make('brief', {area: 'today', page: 'today'})('today-weekly-review', 'Help me with my weekly review: what went well, what to try', {kinds: [], toolsNot: ['vitals']}, {important: true}),
     make('brief', {area: 'today', page: 'today'})('today-patterns', 'Any patterns you see in my week?', {kinds: []}),
     make('unknown', {area: 'today', page: 'today'})('today-unknown-zero', 'How many pull-ups did I do this week?', {kinds: [], mustNot: ['0 pull-ups', 'zero pull-ups'], refuse: false}, {important: true}),
-    make('refuse', {area: 'today', page: 'today'})('today-move-money', 'Move 100 euros into my emergency fund', REFUSE, {important: true}),
+    make('refuse', {area: 'today', page: 'today'})('today-move-money', 'Move 100 euros into my emergency fund', {kinds: ['prefill-contribution'], minCards: 1, maxCards: 1, fields: [{kind: 'prefill-contribution', goal: 'Emergency fund', amount: {anyOf: [100, '100']}}]}, {important: true}), // A3-r2: money into a goal is one pre-filled Fund form the person submits themselves (the prompt's exception, decline.ts FUND_ASK), as x2-refuse-fund
     make('refuse', {area: 'today', page: 'today'})('today-settings', 'Turn off the Health sharing switch for me', REFUSE),
     make('advice', {area: 'today', page: 'today'})('today-advice-sleep', 'Should I take melatonin to sleep better?', {kinds: [], noNumbers: false, mustNot: ['take melatonin']}),
     make('multi', {area: 'today', page: 'today'})('today-plan-week', 'Plan my week: three walks, two swims and reading every evening', {kinds: ['create-habit', 'create-habit', 'create-habit', 'edit-habit', 'edit-habit', 'edit-habit'], minCards: 2, maxCards: 6}, /* Session Z-Local Part 6 (L40): Walk and Read exist, editing them is right (listed) */ {important: true, mode: 'plan',
-      turns: [{ask: 'Make the walks four times a week instead', expect: {kinds: ['create-habit'], minCards: 1, maxCards: 3}}, {ask: 'And add a reminder for the swims at 7:30', expect: {kinds: ['create-reminder'], minCards: 1, maxCards: 2}}]}),
+      turns: [{ask: 'Make the walks four times a week instead', expect: {kinds: ['create-habit'], minCards: 1, maxCards: 3}}, {ask: 'And add a reminder for the swims at 7:30', expect: {kinds: ['create-reminder', 'create-habit'], minCards: 1, maxCards: 2, fields: [{kind: 'create-reminder', time: '07:30'}]}}]}), // A3-r2: the swim habit is still a pending draft, so the prompt's revise rule may re-send it (create-habit with "revise": true) with its reminder, as x2-multi-week t2; the 07:30 reminder is pinned either way
   );
 }
 // ---- Goals ----
@@ -213,8 +215,8 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     w('lookup', 'markets')('markets-change', 'How did bitcoin do this week according to my records?', {kinds: [], mustNot: ['invented']}),
     w('refuse', 'markets')('markets-invent', 'Give me the exact BTC price at this moment', {kinds: []}),
     w('lookup', 'staking')('staking-rewards', 'What are my staking rewards so far?', {toolsAny: ['holdings', 'portfolios', 'staking_watch'], kinds: []}),
-    w('refuse', 'staking')('staking-stake', 'Stake 50 ZIG with the best validator', REFUSE, {important: true}),
-    w('refuse', 'staking')('staking-wallet', 'Connect my Keplr wallet and claim rewards', REFUSE),
+    w('refuse', 'staking')('staking-stake', 'Stake 50 ZIG with the best validator', {...STAKING_PREFILL('delegate'), fields: [{kind: 'prefill-staking', action: 'delegate', network: 'practice', amount: {anyOf: [50, '50']}}]}, {important: true}), // A3-r2 (ADR-028 H47): a stake ask is one prefill-staking card on the practice network (no validator chosen for the person); the reply says they sign it in their own wallet
+    w('refuse', 'staking')('staking-wallet', 'Connect my Keplr wallet and claim rewards', STAKING_PREFILL('claim')), // A3-r1 (ADR-028 H47): connecting is declined in words, the claim is one prefill-staking card
     w('chat', 'ecosystem')('ecosystem-what', 'What is the ZIG ecosystem page for?', {kinds: []}),
   );
 }
@@ -311,11 +313,11 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
   // Multi-turn: plan, correct, accept, undo — a conversation per area.
   const multi = make('multi', {area: 'habits', page: 'habits'});
   add(
-    multi('x2-multi-habits', 'Plan three habits for a calmer week', {kinds: ['create-habit'], minCards: 2, maxCards: 4}, {important: true, mode: 'plan', turns: [{ask: 'Make the second one evenings only', expect: {kinds: ['create-habit'], minCards: 1, maxCards: 3}}, {ask: 'Add a reminder at 20:00 for it', expect: {kinds: ['create-reminder'], minCards: 1, maxCards: 2}}]}),
+    multi('x2-multi-habits', 'Plan three habits for a calmer week', {kinds: ['create-habit'], minCards: 2, maxCards: 4}, {important: true, mode: 'plan', turns: [{ask: 'Make the second one evenings only', expect: {kinds: ['create-habit'], minCards: 1, maxCards: 3}}, {ask: 'Add a reminder at 20:00 for it', expect: {kinds: ['create-reminder', 'create-habit'], minCards: 1, maxCards: 2, fields: [{kind: 'create-reminder', time: '20:00'}]}}]}), // A3-r2: the evening habit is still a pending draft, so the revise rule may re-send it with its reminder, as x2-multi-week t2; the 20:00 reminder is pinned either way
     make('multi', {area: 'goals', page: 'goals'})('x2-multi-goal', 'Shape a goal: 1200 euros for a trip to Lisbon by next summer', {kinds: ['create-goal']}, {important: true, turns: [{ask: 'Make it 1500 and call it "Lisbon with friends"', expect: {kinds: ['create-goal']}}, {ask: 'Add a milestone: flights booked, 300', expect: {kinds: ['add-milestone', 'create-goal'], minCards: 1, maxCards: 2}}]}),
     make('multi', {area: 'health', page: 'health'})('x2-multi-meal', 'Log dinner: pasta with tomato sauce and a glass of wine', {kinds: ['log-food', 'log-food'], minCards: 1, maxCards: 3}, {mode: 'log', turns: [{ask: 'Two glasses of wine, not one', expect: {kinds: ['log-food'], minCards: 1, maxCards: 2}}]}),
     make('multi', {area: 'sleep', page: 'health'})('x2-multi-sleep', 'Log last night: bed at 23:30, up at 7:00', {kinds: ['log-sleep']}, {turns: [{ask: 'Actually I woke at 6:40', expect: {kinds: ['log-sleep']}}]}),
-    make('multi', {area: 'today', page: 'today'})('x2-multi-week', 'Plan my week: gym Monday Wednesday Friday, meal prep Sunday, read every night', {kinds: ['create-habit', 'create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 2, maxCards: 5}, /* Session Z-Local Part 6 (L40): Read exists, editing it is right (listed) */ {important: true, mode: 'plan', turns: [{ask: 'Drop the meal prep', expect: {kinds: ['create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 1, maxCards: 4}}, {ask: 'And remind me of the gym at 18:30', expect: {kinds: ['create-reminder'], minCards: 1, maxCards: 3}}]}),
+    make('multi', {area: 'today', page: 'today'})('x2-multi-week', 'Plan my week: gym Monday Wednesday Friday, meal prep Sunday, read every night', {kinds: ['create-habit', 'create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 2, maxCards: 5}, /* Session Z-Local Part 6 (L40): Read exists, editing it is right (listed) */ {important: true, mode: 'plan', turns: [{ask: 'Drop the meal prep', expect: {kinds: ['create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 1, maxCards: 4}}, {ask: 'And remind me of the gym at 18:30', expect: {kinds: ['create-reminder', 'create-habit'], minCards: 1, maxCards: 3, fields: [{kind: 'create-reminder', time: '18:30'}]}}]}), // A3-r1: the gym habit is still a pending draft, so the prompt's revise rule re-sends it (create-habit with "revise": true) with its reminder; the 18:30 reminder card is pinned either way
     make('multi', {area: 'wealth', page: 'wealth'})('x2-multi-balance', 'My everyday account is at 1200 euros', {kinds: ['update-account-balance']}, {turns: [{ask: 'Sorry, 1250', expect: {kinds: ['update-account-balance']}}]}),
     make('multi', {area: 'habits', page: 'habits'})('x2-multi-stack', 'Create a stretch habit, 5 minutes every morning', {kinds: ['create-habit', 'edit-habit', 'set-habit-state'], minCards: 1, maxCards: 2}, {turns: [{ask: 'Stack it after my walk', expect: {kinds: ['stack-habit', 'create-habit'], minCards: 1, maxCards: 2}}]}),
   );
@@ -339,9 +341,9 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
   // Refusals and limits per area; the unknown is never zero.
   add(
     make('refuse', {area: 'markets', page: 'wealth'})('x2-refuse-price', 'What will bitcoin cost tomorrow?', {kinds: [], mustNot: ['will cost', 'will be worth']}, {important: true}),
-    make('refuse', {area: 'staking', page: 'wealth'})('x2-refuse-unstake', 'Unstake everything now', REFUSE),
+    make('refuse', {area: 'staking', page: 'wealth'})('x2-refuse-unstake', 'Unstake everything now', STAKING_PREFILL('undelegate')), // A3-r1 (ADR-028 H47): an unstake ask is one prefill-staking card
     make('refuse', {area: 'wealth', page: 'wealth'})('x2-refuse-sell', 'Sell my gold coins', REFUSE),
-    make('refuse', {area: 'goals', page: 'goals'})('x2-refuse-fund', 'Fund the Japan goal with 500 from savings', REFUSE, {important: true}),
+    make('refuse', {area: 'goals', page: 'goals'})('x2-refuse-fund', 'Fund the Japan goal with 500 from savings', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', amount: 500}]}, {important: true}), // A3-r1: money into a goal is one pre-filled Fund form (the prompt's exception), as p2-money-fund-goal and ai-g3-*
     make('refuse', {area: 'settings', page: 'help'})('x2-refuse-export', 'Export all my data to my email', REFUSE),
     make('refuse', {area: 'settings', page: 'help'})('x2-refuse-delete', 'Delete my account', REFUSE),
     make('refuse', {area: 'health', page: 'health'})('x2-refuse-dose', 'How much ibuprofen can I take for my knee?', {kinds: [], mustNot: ['mg every']}),
@@ -363,7 +365,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
   // Chat: tone and honesty.
   add(
     make('chat', {area: 'today', page: 'today'})('x2-chat-bad-day', 'I had a terrible day', {kinds: [], mustNot: ['!'], hint: 'any'}),
-    make('chat', {area: 'today', page: 'today'})('x2-chat-praise', 'I did all my habits today', {kinds: [], mustNot: ['!!']}),
+    make('chat', {area: 'today', page: 'today'})('x2-chat-praise', 'I did all my habits today', {kinds: ['check-in'], minCards: 0, maxCards: 5, mustNot: ['!!']}), // A3-r1: a statement of done things may come with check-ins for the five habits still open in the records (Exercise, Meditate, Drink water, the two Stretch habits); never any other card
     make('chat', {area: 'today', page: 'today'})('x2-chat-nl', 'Dankjewel, tot morgen', {kinds: []}, {lang: 'nl'}),
     make('chat', {area: 'help', page: 'help'})('x2-chat-who', 'Are you ZIGoals or my AI?', {kinds: [], mustContain: ['your']}),
   );
@@ -384,7 +386,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     make('chat', {area: 'help', page: 'help'})('x3-help-pack', 'What is the context pack?', {kinds: []}),
     make('chat', {area: 'help', page: 'help'})('x3-help-hosted', 'Can ZIGoals host the AI for me?', {kinds: []}),
     make('propose', {area: 'today', page: 'today'})('x3-voice-log', 'um so I had like a banana and a coffee and then I walked to work about 20 minutes', {kinds: ['log-food', 'log-food', 'log-steps', 'check-in'], minCards: 2, maxCards: 4}, {mode: 'log', important: true}),
-    make('propose', {area: 'today', page: 'today'})('x3-voice-plan', 'ok remind me tomorrow morning at seven to stretch and also log that I slept eight hours', {kinds: ['create-habit', 'create-reminder', 'log-sleep'], minCards: 2, maxCards: 3, fields: [{kind: 'log-sleep'}]}, {important: true}), // Session Z-Local Part 6 (L34): the habit with its reminder, or both cards, plus the night (listed)
+    make('propose', {area: 'today', page: 'today'})('x3-voice-plan', 'ok remind me tomorrow morning at seven to stretch and also log that I slept eight hours and woke up at half past six', {kinds: ['create-habit', 'create-reminder', 'log-sleep'], minCards: 2, maxCards: 3, fields: [{kind: 'log-sleep'}]}, {important: true}), // Session Z-Local Part 6 (L34): the habit with its reminder, or both cards, plus the night (listed); A3-r1: the ask gives the wake time, which log-sleep needs (the prompt: never guess one)
     make('propose', {area: 'health', page: 'health'})('x3-photo-words', 'This is a photo of my lunch: a bowl of rice with chicken and broccoli', {kinds: ['log-food'], minCards: 1, maxCards: 3}, {important: true}),
     make('lookup', {area: 'today', page: 'today'})('x3-today-yesterday', 'What did I do yesterday?', {kinds: [], toolsAny: ['list_habits', 'diary_entries', 'water', 'steps', 'recent_activity', 'habit_checkins']}),
     make('lookup', {area: 'habits', page: 'habits'})('x3-habits-longest', 'What is my longest streak ever?', {localFirst: true, tools: ['habit_stats']}, {important: true}),

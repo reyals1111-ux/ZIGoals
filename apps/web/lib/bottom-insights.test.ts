@@ -64,3 +64,10 @@ test('Session AC (persona #13): a weight counts as a Health entry, beside water 
  const week=weekAcross({today,habits:emptyHabitData(),health,platform:emptyPlatform()});
  expect(week.at(-1)!.healthRecords).toBe(3);
 });
+
+test('Session AI (week grid P&L): the day-to-day change in the currency with the most history; a day without a value is null', async () => {
+  const {weekWealthChange} = await import('./bottom-insights');
+  const history = [{currency: 'USD', points: [{at: '2026-10-25T20:00:00Z', value: '100000'}, {at: '2026-10-26T20:00:00Z', value: '102550'}, {at: '2026-10-28T09:00:00Z', value: '101000'}]}, {currency: 'EUR', points: [{at: '2026-10-28T09:00:00Z', value: '500'}]}];
+  expect(weekWealthChange(history, ['2026-10-25', '2026-10-26', '2026-10-27', '2026-10-28'])).toEqual({currency: 'USD', changes: [null, 25.5, 0, -15.5]});
+  expect(weekWealthChange([{currency: 'USD', points: [{at: '2026-10-28T09:00:00Z', value: '1'}]}], ['2026-10-28'])).toBeNull();
+});

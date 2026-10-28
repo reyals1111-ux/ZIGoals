@@ -106,13 +106,16 @@ const readRecord = (page: Page) => page.evaluate(async () => new Promise<Record<
     all.onsuccess = () => { db.close(); resolve((all.result[0] as Record<string, unknown>) ?? null); };
   };
 }));
+// The browser refuses to export the root: InvalidAccessError (a non-extractable key) or, since Chrome 156 checks the
+// algorithm first, NotSupportedError (HKDF keys are never exportable). Both are refusals; anything else, or an export, fails.
 const describeRecord = (page: Page) => page.evaluate(async () => {
+  const refusals = ['InvalidAccessError', 'NotSupportedError'];
   const record = await new Promise<Record<string, unknown> | null>(resolve => {
     const open = indexedDB.open('zigoals-device-unlock-v1');
     open.onsuccess = () => { const all = open.result.transaction('devices').objectStore('devices').getAll(); all.onsuccess = () => { open.result.close(); resolve((all.result[0] as Record<string, unknown>) ?? null); }; };
   });
   if (!record) return null;
-  const root = record.root as CryptoKey | undefined, exported = root ? await crypto.subtle.exportKey('raw', root).then(() => 'exported', error => (error as Error).name) : 'no root';
+  const root = record.root as CryptoKey | undefined, exported = root ? await crypto.subtle.exportKey('raw', root).then(() => 'exported', error => refusals.includes((error as Error).name) ? 'refused' : (error as Error).name) : 'no root';
   return {version: record.version, keys: Object.keys(record).sort(), root: root ? {type: root.type, extractable: root.extractable, algorithm: root.algorithm.name, usages: [...root.usages]} : null, exported, migratedFrom: typeof record.migratedFrom === 'string'};
 });
 
@@ -121,7 +124,7 @@ test('B1: a new remember stores the root key itself, which this browser cannot e
   await page.goto('/app/settings');
   await unlock(page, vault.recovery, true);
   await expect(panel(page)).toContainText('This device is remembered');
-  expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'InvalidAccessError', migratedFrom: false});
+  expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'refused', migratedFrom: false});
   await page.reload();
   await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
   await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toHaveCount(0);
@@ -158,7 +161,7 @@ test('B1: a version 1 record from an earlier build opens once more, then is vers
   await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();
   await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toHaveCount(0);
   await expect.poll(async () => (await describeRecord(page))?.version).toBe(2);
-  expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'migratedFrom', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'InvalidAccessError', migratedFrom: true});
+  expect(await describeRecord(page)).toEqual({version: 2, keys: ['account', 'commitment', 'createdAt', 'epoch', 'health', 'id', 'manifest', 'migratedFrom', 'root', 'session', 'vault', 'version'], root: {type: 'secret', extractable: false, algorithm: 'HKDF', usages: ['deriveKey']}, exported: 'refused', migratedFrom: true});
   // And it keeps opening.
   await page.reload();
   await expect(panel(page).getByRole('button', {name: 'Lock account vault', exact: true})).toBeVisible();

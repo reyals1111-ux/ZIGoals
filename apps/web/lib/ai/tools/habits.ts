@@ -16,6 +16,14 @@ import {NO_ARGS, type ToolDefinition, type ToolRefusal} from './types';
 const MINUTE_UNITS = new Set(['min', 'mins', 'minute', 'minutes', 'm', 'minuut', 'minuten', 'minuto', 'minutos']);
 const HOUR_UNITS = new Set(['h', 'hr', 'hrs', 'hour', 'hours', 'uur', 'uren', 'heure', 'heures', 'stunde', 'stunden']);
 /** Minutes for a logged value under its day's rule, or null when the habit is not measured in time. */
+/** Session AI (ZI14): the first day of a streak counted in days, and what the streak counts. */
+function streakSince(current: number, unit: string, today: string): {since?: string; counts: string} {
+  if (current > 0 && /^days?$/.test(unit)) {
+    const d = new Date(`${today}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - (current - 1));
+    return {since: d.toISOString().slice(0, 10), counts: 'scheduled days in a row up to today, across months (not only the range asked)'};
+  }
+  return {counts: `scheduled ${unit} in a row up to today`};
+}
 export function minutesOf(rule: HabitRule, value: number): number | null {
   const m = rule.measurement;
   if (m.kind === 'duration') return m.unit === 'hours' ? value * 60 : value;
@@ -117,7 +125,9 @@ export function computeHabitStats(env: ToolEnv, habit: Habit, handle: string, ra
     averagePerDay: known.length && units.length === 1 && days.length ? known.reduce((s, a) => s + a.value, 0) / days.length : null,
     best: sorted[0] ? {date: sorted[0].date, value: sorted[0].value} : null, lowest: sorted.length ? {date: sorted[sorted.length - 1]!.date, value: sorted[sorted.length - 1]!.value} : null,
     last: last ? {date: last.date, value: heldBack(env, last) ? null : last.count} : null,
-    streak: {current: stats.currentStreak, best: stats.bestStreak, unit: stats.streakUnit}, completionRate, heldBack: hidden.length, notes,
+    // Session AI (ZI14; Grok's M-044): the streak runs across months up to today, so it can be longer than the check-ins of
+    // the range asked; its start date says so, and a model can no longer read the two as contradicting.
+    streak: {current: stats.currentStreak, best: stats.bestStreak, unit: stats.streakUnit, ...streakSince(stats.currentStreak, stats.streakUnit, env.habitDay)}, completionRate, heldBack: hidden.length, notes,
   };
 }
 export const habitStatsTool: ToolDefinition<{habit: string; range?: string; metric?: (typeof METRICS)[number]}> = {
