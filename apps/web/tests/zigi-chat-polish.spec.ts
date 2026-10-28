@@ -320,7 +320,15 @@ test('Session AI, ZI6: Enter sends on phones as on desktops (the key reads "Send
   // Shift+Enter keeps a line break in the box and sends nothing.
   await box(page).fill('first line'); await box(page).press('Shift+Enter');
   await expect(box(page)).toHaveValue('first line\n');
+  // M-073: closing the panel puts the focus back on the launcher (the close button, then Escape on a desktop).
+  await panel(page).getByRole('button', {name: 'Close ZIGi'}).click();
+  await expect(panel(page)).toHaveCount(0);
+  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
   if (testInfo.project.name !== 'desktop') return;
+  await openChat(page);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
+  await openChat(page);
   // D-131: in a 500 px high window the conversation had about 120 px between the header and the composer.
   await page.setViewportSize({width: 900, height: 500});
   const log = panel(page).getByRole('log', {name: 'Conversation'});

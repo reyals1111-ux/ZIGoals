@@ -171,6 +171,7 @@ test('Session AI (A3-r2, AF5): a habit\'s own reminder rides with its habit — 
   const out = parseReply(habits.map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
   expect(out.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);
   expect(out.rejected.filter(r => /Only the first/.test(r.reason))).toEqual([]);
+  expect(out.proposals).toHaveLength(20); expect(out.counted).toBe(10); // A4: the count the cap and the scorer read
   // An eleventh item is still cut.
   const eleven = parseReply([...habits, {...habits[0]!, title: 'Habit 11'}].map(h => `\`\`\`zigoals-action\n${JSON.stringify(h)}\n\`\`\``).join('\n\n'));
   expect(eleven.proposals.filter(p => p.kind === 'create-habit')).toHaveLength(10);

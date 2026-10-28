@@ -104,7 +104,8 @@ function coerceNumbers(value: unknown): unknown {
  * `proposals[first + count - 1]`, `steps` is how many cards the plan had before the cut (the reply shows at most 10).
  */
 export type BundleMeta = {title: string; first: number; count: number; steps: number};
-export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean; bundle?: BundleMeta};
+/** `counted`: the cards that count toward the 10-card cap (a habit's own reminder rides with its habit, AF5); absent when every card counts. */
+export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean; bundle?: BundleMeta; counted?: number};
 /** The words a cut plan carries, and a second plan in the same reply. */
 export const BUNDLE_CUT = (shown: number) => `Only the first ${shown} steps of this plan are shown; ask for the rest once these are done.`;
 export const ONE_BUNDLE = 'One plan per reply: ask for the next plan once this one is decided.';
@@ -235,7 +236,7 @@ export function parseReply(reply: string): ParsedReply {
     }
     void block; return '';
   }).replace(/\n{3,}/g, '\n\n').trim();
-  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {}), ...(bundle ? {bundle} : {})};
+  return {text, proposals, rejected, ...(flags.revise ? {revise: true} : {}), ...(bundle ? {bundle} : {}), ...(counted !== proposals.length ? {counted} : {})};
 }
 /** Whether a reply still has an open proposal fence (streaming): nothing is parsed before it closes. */
 export function hasOpenFence(partial: string): boolean { const opens = partial.match(new RegExp(`(\`\`\`+|~~~+)[^\\S\\n]*(?:json[^\\S\\n]+)?${ACTION_FENCE.replace('-', '[-_ ]?')}`, 'gi'))?.length ?? 0; return opens > (partial.match(FENCE)?.length ?? 0); }

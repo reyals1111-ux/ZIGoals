@@ -77,12 +77,15 @@ export function score(expect: Expect, observed: Observed): Score {
   if (expect.localFirst !== undefined) checks.push({name: 'local-first', pass: !!observed.local?.answered === expect.localFirst, detail: observed.local ? (observed.local.answered ? 'the device answered' : 'the device did not answer') : 'no local run'});
   if (expect.kinds) {
     const want = expect.kinds, got = kinds;
-    const exact = multiset(want) === multiset(got), bounded = (expect.minCards === undefined || got.length >= expect.minCards) && (expect.maxCards === undefined || got.length <= expect.maxCards);
+    // Card bounds count what the app counts toward its cap (a build-habit's reminder rides with its habit, AF5; A4 scorer fix).
+    const count = parsed.counted ?? got.length;
+    const exact = multiset(want) === multiset(got), bounded = (expect.minCards === undefined || count >= expect.minCards) && (expect.maxCards === undefined || count <= expect.maxCards);
     // With bounds, the expected kinds are the allowed ones (a subset in any count); without, an exact multiset.
     const subset = got.every(k => want.includes(k));
     checks.push({name: 'cards', pass: expect.minCards !== undefined || expect.maxCards !== undefined ? bounded && subset : exact, detail: `wanted [${want.join(', ')}], got [${got.join(', ')}]`});
   } else if (expect.minCards !== undefined || expect.maxCards !== undefined) {
-    checks.push({name: 'cards', pass: (expect.minCards === undefined || kinds.length >= expect.minCards) && (expect.maxCards === undefined || kinds.length <= expect.maxCards), detail: `got ${kinds.length}`});
+    const count = parsed.counted ?? kinds.length;
+    checks.push({name: 'cards', pass: (expect.minCards === undefined || count >= expect.minCards) && (expect.maxCards === undefined || count <= expect.maxCards), detail: `got ${kinds.length}${count !== kinds.length ? ` (${count} toward the cap)` : ''}`});
   }
   checks.push({name: 'schema', pass: parsed.rejected.length === 0, detail: parsed.rejected.map(r => r.reason).join('; ') || 'every block valid'});
   // Phase 2 P2.3 (ADR-017 S61): a question the device answered never reached a model, so no tool call can exist; the

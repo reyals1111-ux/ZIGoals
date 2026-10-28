@@ -68,8 +68,9 @@ export async function* runWithTools(request: LoopRequest): AsyncGenerator<LoopEv
     add('input', usage.input); add('output', usage.output); add('cacheWrite', usage.cacheWrite); add('cacheRead', usage.cacheRead);
     if (total.input !== null || total.output !== null || total.cacheWrite !== null || total.cacheRead !== null) yield sums();
     // Session AI (A3-r1): a model that read the records and then ended with no words at all (seen on Haiku: hundreds of
-    // output tokens, an empty reply) gets one nudge round, so the person never sees an empty answer.
-    if (!calls.length && round > 1 && !shown.trim() && !nudged) { nudged = true; messages = [...messages, {role: 'user', content: EMPTY_NUDGE}]; continue; }
+    // output tokens, an empty reply) gets one nudge round, so the person never sees an empty answer. A4: an empty first round
+    // (no lookup at all, Haiku on p5-grocery-notes) is nudged too.
+    if (!calls.length && !shown.trim() && !nudged) { nudged = true; messages = [...messages, {role: 'user', content: EMPTY_NUDGE}]; continue; }
     if (!calls.length) { yield done ?? {type: 'done', reason: null}; return; }
     stopped();
     const stop = shouldStop?.();

@@ -3,6 +3,14 @@ import {digitsOf, score, factNumbers, sameDay, saysUnrefused} from './score';
 
 // Session X-Local Part 6d: the scorer's verdicts are exact, so a model's pass rate means what it says.
 const block = (json: string) => `\`\`\`zigoals-action\n${json}\n\`\`\``;
+test('Session AI (A4): card bounds count what the cap counts: a habit\'s own reminder rides with its habit', () => {
+  const ten = Array.from({length: 10}, (_, i) => block(JSON.stringify({kind: 'build-habit', title: `Habit ${i + 1}`, reminder: `${String(7 + i).padStart(2, '0')}:00`}))).join('\n');
+  const s = score({minCards: 1, maxCards: 10}, {text: ten, calls: []});
+  expect(s.checks.find(c => c.name === 'cards')).toMatchObject({pass: true, detail: 'got 20 (10 toward the cap)'});
+  // Eleven separate habits: the app keeps ten and refuses the eleventh, so the turn fails on that refused block.
+  const eleven = score({minCards: 1, maxCards: 10}, {text: Array.from({length: 11}, (_, i) => block(JSON.stringify({kind: 'create-habit', title: `Habit ${i + 1}`}))).join('\n'), calls: []});
+  expect(eleven.pass).toBe(false); expect(eleven.checks.find(c => c.name === 'schema')).toMatchObject({pass: false, detail: expect.stringContaining('Only the first 10')});
+});
 test('cards: an exact multiset without bounds, an allowed subset within bounds; every block must validate', () => {
   const ok = score({kinds: ['log-water']}, {text: `One glass.\n\n${block('{"kind":"log-water","glasses":1}')}`, calls: []});
   expect(ok.pass).toBe(true); expect(ok.cards).toBe(1);

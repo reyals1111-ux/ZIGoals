@@ -231,3 +231,12 @@ test('Session AI (A3-r1): an empty answer after the records were read gets one n
   await drain(runWithTools({...chat('anthropic', fetch), env: env(), stream: silent}));
   expect(quiet).toHaveLength(3);
 });
+test('Session AI (A4): an empty first round with no lookup is nudged once too', async () => {
+  const seen: ChatRequest[] = [];
+  const replies: ChatEvent[][] = [[{type: 'done', reason: 'end_turn'}], [{type: 'text', delta: 'Added to your notes.'}, {type: 'done', reason: 'end_turn'}]];
+  const stream = async function* (request: ChatRequest) { seen.push(request); for (const e of replies[seen.length - 1] ?? [{type: 'done', reason: null} as ChatEvent]) yield e; };
+  const out = await drain(runWithTools({...chat('anthropic', fetch), env: env(), stream}));
+  expect(seen).toHaveLength(2);
+  expect(seen[1]!.messages.at(-1)).toMatchObject({role: 'user', content: EMPTY_NUDGE});
+  expect(out.text).toBe('Added to your notes.');
+});
