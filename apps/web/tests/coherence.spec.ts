@@ -1,12 +1,10 @@
 import {test,expect,type Page} from '@playwright/test';
 import {seed} from './coherence-fixture';
 import {safeScreenshot} from './safe-screenshot';
+import {typeGoalName} from './goal-name';
 import {createHabit,emptyHabitData,logHabitCount} from '../lib/habits';
 test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
 async function shot(page:Page,name:string){if(process.env.COHERENCE_CAPTURE==='1')await safeScreenshot(page,{path:`../../docs/verification/run8-1-coherence/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}
-// Session AI (CI on 9154a4f9 and ca3ef192, :22): the name typed as the wizard opens can be lost on a busy runner (the
-// Goal-name race, Session AH 59b3314e); typed, two paints, and typed again until it holds — the same as ah-multitab.
-async function typeGoalName(page:Page,name:string){const field=page.getByLabel('Goal name',{exact:true});await expect(async()=>{await field.fill(name);await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));expect(await field.inputValue()).toBe(name);}).toPass({timeout:15_000});}
 test('release, reallocate, pin, lock and delete preserve wealth and Habit history',async({page})=>{
  await seed(page);let habits=createHabit(emptyHabitData(),{title:'Keep my history',category:'Goals',description:'',notes:'',goalLink:{chainId:'private',owner:'local',goalId:'81'},schedule:{kind:'weekdays',days:[0,1,2,3,4,5,6]},target:1});
  habits=logHabitCount(habits,habits.habits[0]!.id,new Date().toLocaleDateString('en-CA'),1);
