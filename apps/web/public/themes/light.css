@@ -3514,6 +3514,19 @@
             background-color: transparent !important
         }
     }
+    .bottom-cell-link:not(#\-) {
+        color: inherit
+    }
+    .bottom-cell-link:hover:not(#\-), .bottom-cell-link:focus-visible:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-hover, rgba(128, 128, 200, .12))
+    }
+    .bottom-row [data-sign="up"]:not(#\-) {
+        color: color-mix(in srgb, var(--success, #0d6a40) 42%, #000)
+    }
+    .bottom-row [data-sign="down"]:not(#\-) {
+        color: color-mix(in srgb, var(--warning, #7f5305) 42%, #000)
+    }
 }
 /*  components/brand/logo-wordmark.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -9260,6 +9273,13 @@
     .settings-page .settings-group-icon:not(#\-) {
         color: #046571;
         filter: drop-shadow(0 0 5px #4fc3f766)
+    }
+    .settings-page .backup-restore > .panel:not(#\-) {
+        box-shadow: none;
+        border-color: currentcolor;
+        border-top-color: var(--line, #302f4b4d);
+        background-image: none;
+        background-color: transparent
     }
 }
 /*  components/life-review/life-review.css  */

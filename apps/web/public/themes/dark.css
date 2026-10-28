@@ -3677,6 +3677,19 @@
             background-color: transparent !important
         }
     }
+    .bottom-cell-link:not(#\-) {
+        color: inherit
+    }
+    .bottom-cell-link:hover:not(#\-), .bottom-cell-link:focus-visible:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-hover, rgba(128, 128, 200, .12))
+    }
+    .bottom-row [data-sign="up"]:not(#\-) {
+        color: var(--success, #57c78a)
+    }
+    .bottom-row [data-sign="down"]:not(#\-) {
+        color: var(--warning, #e8a33d)
+    }
 }
 /*  components/brand/logo-wordmark.css  */
 @scope (:root[data-theme=dark]) {
@@ -9770,6 +9783,13 @@
     .settings-page .settings-group-icon:not(#\-) {
         color: #8fe6f4;
         filter: drop-shadow(0 0 5px #4fc3f766)
+    }
+    .settings-page .backup-restore > .panel:not(#\-) {
+        box-shadow: none;
+        border-color: currentcolor;
+        border-top-color: var(--line, rgba(128, 128, 160, .2));
+        background-image: none;
+        background-color: transparent
     }
 }
 /*  components/life-review/life-review.css  */

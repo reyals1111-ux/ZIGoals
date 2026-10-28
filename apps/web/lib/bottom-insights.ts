@@ -76,3 +76,17 @@ export function wealthAllocation(overview: ReturnType<typeof wealthOverview>) {
   const classes = group ? group.segments.filter(s => s.value > 0n).map(s => ({assetClass: s.label, value: s.value, share: s.basisPoints / 100})).sort((a, b) => b.share - a.share) : [];
   return {currency: primary?.currency, classes, otherCurrencies: overview.subtotals.filter(s => s !== primary).map(s => s.currency), coverage: {valued, total: overview.rows.length}};
 }
+
+/**
+ * Session AI (B3: the week grid's P&L row): the day-to-day change of tracked wealth in one currency (the one with the most
+ * history), from Wealth's own recorded history: each day's last value minus the day before's. A day without a value on or
+ * before it is null, never zero; nothing is converted.
+ */
+export function weekWealthChange(history: readonly {currency: string; points: readonly {at: string; value: string}[]}[], days: readonly string[]): {currency: string; changes: (number | null)[]} | null {
+  const main = [...history].sort((a, b) => b.points.length - a.points.length)[0];
+  if (!main || main.points.length < 2) return null;
+  const sorted = [...main.points].sort((a, b) => a.at.localeCompare(b.at));
+  const valueOn = (day: string) => { let v: number | null = null; for (const p of sorted) { if (p.at.slice(0, 10) <= day) v = Number(p.value) / 100; /* minor units, two decimals */ else break; } return v; };
+  const changes = days.map(day => { const now = valueOn(day), before = valueOn(addLocalDays(day, -1)); return now === null || before === null ? null : Math.round((now - before) * 100) / 100; });
+  return changes.some(c => c !== null) ? {currency: main.currency, changes} : null;
+}
