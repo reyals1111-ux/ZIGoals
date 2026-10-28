@@ -9,7 +9,7 @@ import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
 import {applyDayCue} from '../actions/day-cue';
 import {reviseEdits} from '../actions/revise';
-import {stripDeclinedBlocks} from '../actions/decline';
+import {answerOnly, stripDeclinedBlocks} from '../actions/decline';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../intent';
 import {buildSystemParts} from '../context/specialists';
 import {buildPageContext, type BuilderInput} from '../context/builders';
@@ -177,6 +177,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
     reply = reviseEdits(reply, [...history].reverse().find(m => m.role === 'assistant')?.content ?? null, [...(page?.handles ?? []), ...(context?.handles ?? []), ...toolHandles.list]);
     // Round 9 (ADR-017 S75), as the app does: a money ask the reply declines in words carries no card.
     reply = stripDeclinedBlocks(reply, ask);
+    // Session AI (ZI1, G1), as the app does: a pure question's reply keeps no block that would write.
+    reply = answerOnly(reply, ask);
   }
   const totalMs = Date.now() - started;
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.
@@ -234,7 +236,7 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
       reply = result.message.content.filter(b => b.type === 'text').map(b => b.text ?? '').join('');
       const u = result.message.usage ?? {};
       tokens = {input: u.input_tokens ?? null, output: u.output_tokens ?? null, cacheWrite: u.cache_creation_input_tokens ?? null, cacheRead: u.cache_read_input_tokens ?? null};
-      reply = stripDeclinedBlocks(reviseEdits(applyDayCue(reply, p.ask, DAY), null, [...(p.page?.handles ?? []), ...(p.context?.handles ?? [])]), p.ask);
+      reply = answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, p.ask, DAY), null, [...(p.page?.handles ?? []), ...(p.context?.handles ?? [])]), p.ask), p.ask);
     }
     const facts = (p.c.expect.facts ?? []).map(fact => { const r = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(r).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(r)}; });
     const localReply = localAnswer(p.ask, local), sentinelsSeen = p.c.sentinels ? sentinelsIn(p.system + p.ask + reply) : undefined;

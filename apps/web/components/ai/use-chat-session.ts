@@ -43,7 +43,7 @@ import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {localDate} from '../../lib/local-date';
 import {applyDayCue} from '../../lib/ai/actions/day-cue';
 import {reviseEdits} from '../../lib/ai/actions/revise';
-import {stripDeclinedBlocks} from '../../lib/ai/actions/decline';
+import {answerOnly, stripDeclinedBlocks} from '../../lib/ai/actions/decline';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -307,7 +307,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
     // Round 9 (ADR-017 S75): a money ask the reply declines in words carries no card (the protocol's own rule, enforced).
     const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
-    const done = (stopped: string | undefined) => finish(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk, records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? context.area : null)}); // Session Z-Local, persona finding #7
+    const done = (stopped: string | undefined) => finish(answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk, records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? context.area : null)}); // Session Z-Local, persona finding #7
     try {
       try { await run(mode); }
       catch (error) {

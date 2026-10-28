@@ -3252,6 +3252,15 @@
         background-color: #020313;
         border-color: color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a))
     }
+    .ai-chat .ai-turn-kind:not(#\-) {
+        color: var(--muted,#a1afc8)
+    }
+    .ai-chat .ai-turn-kind[data-kind=change]:not(#\-) {
+        color: var(--text,#e8eefc)
+    }
+    .ai-chat .ai-turn-kind-note:not(#\-) {
+        color: var(--muted,#a1afc8)
+    }
     .ai-chat .ai-turn-source:not(#\-) {
         color: var(--muted,#a1afc8)
     }

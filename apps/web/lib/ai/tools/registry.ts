@@ -12,6 +12,7 @@ import {W_HEALTH_TOOLS} from './health-w';
 import {ACCOUNT_TOOLS, challengesTool, milestonesTool, SKILL_TOOLS} from './life-w';
 import {earnRates} from './earn';
 import {AF_TOOLS} from './af';
+import {WHY_TOOLS} from './why-ai';
 
 /**
  * The one list of ZIGi's read-only tools and the one way to run them (Session V Part 2). Every path calls `runTool`:
@@ -24,7 +25,7 @@ import {AF_TOOLS} from './af';
 // Session W Part 21 (W7): each area's new tools after its own (challenges, sleep to devices, milestones, accounts and net
 // worth), and chess and My links with Today's.
 // Session AF (L4): the Earn coach's figures (earn_rates), this page's titles (page_view), the Checklist and ZIGi's plans.
-export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS] as unknown as readonly AnyTool[];
+export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
 /** Why the tool may not run in this environment (without running anything), or null when it may. */

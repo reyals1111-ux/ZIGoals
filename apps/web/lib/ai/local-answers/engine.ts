@@ -13,6 +13,7 @@ import {amount, dayText, groupUnits, grouped, instantText, n, plural, span} from
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
 import {afLocalAnswer} from './af';
+import {aiLocalAnswer} from './ai-session';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -162,7 +163,9 @@ export function detectSubjects(question: string, env: ToolEnv): Subjects {
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AF (L4): the Checklist commands, the Earn coach, the page and the brief, each with its own stop rule, first.
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return af; }
-  const reply = answer(normalizeSpoken(question), env, subject); // Session Z-Local Part 4: the spoken form
+  let reply = answer(normalizeSpoken(question), env, subject); // Session Z-Local Part 4: the spoken form
+  // Session AI (ZI2, ZI11, ZI12, ZI13, G11): the natural questions that used to fall through to the canned list.
+  if (!subject && (reply.kind === 'none' || reply.kind === 'examples')) reply = aiLocalAnswer(normalizeSpoken(question), env) ?? reply;
   return 'text' in reply ? {...reply, text: groupUnits(reply.text)} : reply;
 }
 /**

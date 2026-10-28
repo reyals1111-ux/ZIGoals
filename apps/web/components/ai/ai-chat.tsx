@@ -65,7 +65,7 @@ import {HistoryView} from './history-view';
 import {ShortcutsSheet} from './shortcuts-sheet';
 import {openSideBySide} from './side-by-side';
 import {SlashMenu, useSlashMenu} from './slash-menu';
-import {FeedbackButtons, FollowupChips, SourceLine, TurnTime} from './turn-extras';
+import {FeedbackButtons, FollowupChips, SourceLine, TurnTime, TurnKind} from './turn-extras';
 import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
@@ -398,6 +398,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
   return <article className="ai-turn ai-turn-assistant ai-turn-local" aria-label={turn.source === 'on-device' ? 'Answer from Chrome’s on-device model, on this device' : 'Answer from ZIGi, made on this device'}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
+      <TurnKind cards={!!parsed && parsed.proposals.length > 0}/>
       <SafeText className="ai-local-answer" text={shown}/>
       {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={localHandles} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
       <DataViz results={info?.results}/>
@@ -477,6 +478,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   return <article className="ai-turn ai-turn-assistant" aria-label="Reply" onPointerDown={event => { if (event.pointerType === 'touch') setShown(true); }}>
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
+      {(parsed.text || parsed.proposals.length > 0) && <TurnKind cards={parsed.proposals.length > 0}/>}
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>

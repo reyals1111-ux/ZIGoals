@@ -30,6 +30,14 @@ export function SourceLine({short, full, extra, deeper = false, time}: {short: s
   // `time`: a narrow reply (panel-z.css, `zigi-reply`) shows its time here, first, instead of in the row of buttons.
   return <p className="ai-turn-source" title={full}>{time && <span className="ai-turn-source-time">{time}<span aria-hidden="true"> · </span></span>}<span aria-hidden="true">{short}{deeper ? ' · deeper' : ''}</span><span className="ai-turn-label ai-sr-only">{full}</span>{extra}</p>;
 }
+/**
+ * Session AI (G1, ZI1): every reply says what it is. "Answer" for a reply that only tells; "Proposed change" above the
+ * cards of one that proposes a change, which is saved only when the person adds it. One short eyebrow line, never a
+ * colour alone (the words carry it).
+ */
+export function TurnKind({cards}: {cards: boolean}) {
+  return <p className="ai-turn-kind" data-kind={cards ? 'change' : 'answer'}>{cards ? <>Proposed change<span className="ai-turn-kind-note"> · saved only when you add it</span></> : 'Answer'}</p>;
+}
 export function FollowupChips({calls, asked, onAsk}: {calls: readonly FollowupCall[]; asked: string; onAsk: (question: string) => void}) {
   const questions = followupsFor(calls, asked);
   if (!questions.length) return null;

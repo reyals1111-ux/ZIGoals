@@ -1,6 +1,7 @@
 import type {ToolEnv} from '../tools/env';
 import type {LocalReply} from './engine';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
+import {simpleCommand} from './ai-session';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -48,5 +49,6 @@ export function howToReply(text: string, lang: ReplyLanguage): LocalReply | null
 /** Everything ZIGi says without a model after the device's own answers had none. */
 export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   const lang = questionLanguage(text);
-  return howToReply(text, lang) ?? examplesIn(env, lang);
+  // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
+  return simpleCommand(text) ?? howToReply(text, lang) ?? examplesIn(env, lang);
 }

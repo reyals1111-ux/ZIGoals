@@ -19,13 +19,18 @@ Read this first when resuming in a fresh workspace; then ADR-034 and the approve
 - Push at least every 45 minutes; update this file after every push.
 
 ## Done
-- Part 0: STATUS records (AH, AH-FIX, Alpha #50), ADR-034, this file, the ledger file, Draft PR.
+- Part 0: STATUS records (AH, AH-FIX, Alpha #50), ADR-034, this file, the ledger file, Draft PR #97 (`215d3b11`).
+- A1: the harness (`7966bc23`), the WebKit install cache, TIER 3 (CI) (`2931755a`), the 298 depth cases (`2382bb72`). Research: COMPETITORS.md, EXCHANGES.md. 15 real photos in the runs folder (`photos/`, licences in SOURCES.md).
+- A2 baseline: running from the worktree `/Users/AIUSER/Documents/ZIGoals-Claude-ai-baseline` (detached at `2382bb72`, packages symlinked), `stage.sh` in the runs folder; logs in `logs/a2-baseline-*.log`.
 
 ## Track A ledger total
-$0.00 of $95 (remaining $95.00; promotional part first).
+$0.005 of $95 after A1 (A2 running: forecasts $0.90 Haiku, ≤ $15.68 Sonnet).
 
 ## Next step
-A1: extend `apps/web/lib/ai/evals/real-model.test.ts` (key from file, Batch for tools mode, new sets, per-case report) and smoke-test on 10 Haiku cases.
+B1 group 1 (numbers and answer-vs-change: ZI1/G1, ZI3/G7, ZI12, G11) in the main checkout while A2 runs; then the photo baseline on three models (`photo-model.test.ts`, ZIGI_PHOTOS=<runs>/photos).
+
+## How to run a stage
+`<runs>/scripts/stage.sh <checkout> <stage> <model> <sets> <cases> <cap>` (background with nohup; the harness reads the key file itself). Sets: `corpus` = typed, af, aa, spoken, ai. Check the ledger first: `node scripts/zigi/ledger.mjs --runs <runs> --cap 95 --check <forecast> --title 'Session AI'`.
 
 ## Open decisions
 None.
