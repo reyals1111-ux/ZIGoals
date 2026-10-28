@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {lazy, Suspense, useEffect, useMemo, useRef, useState} from 'react';
 import {useHealth} from './health/use-health';
 import {useHabits} from './habits/use-habits';
 import {exerciseData} from '../lib/health-counters';
@@ -11,6 +11,9 @@ import {applyQuickAdd, type QuickAddStores, type QuickAddWrite} from '../lib/qui
 import {storageMessageOr} from '../lib/storage-error-copy';
 import {formatClock} from '../lib/visual-format';
 import {plainErrorMessage} from '../lib/plain-error';
+import {lineLanguage, splitItems} from '../lib/quick-log/multi';
+// Session AI (J10): several items in one line, or an item Quick add's own reader does not know, as ZIGi's cards.
+const QuickLogCards = lazy(() => import('./quick-log-cards'));
 
 /**
  * A2: the Quick-add line. One field, Enter or Preview shows exactly what would be saved, and nothing is written before
@@ -38,7 +41,8 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
   const ready = health.loaded && habits.loaded && !health.error && !habits.error;
   const primed = useRef(false);
   useEffect(() => { if (!initialText || primed.current || !ready) return; primed.current = true; setText(initialText); setResult(parse(initialText, 'en', context)); }, [initialText, ready, context]);
-  function preview() { setSaved(''); setError(''); setChosen(null); setWake(''); setResult(parse(text, 'en', context)); }
+  const [multi, setMulti] = useState<string | null>(null);
+  function preview() { setSaved(''); setError(''); setChosen(null); setWake(''); const several = splitItems(text).length >= 2; setMulti(several ? text : null); setResult(several ? null : parse(text, lineLanguage(text), context)); }
   async function save(item: QuickAddKnown) {
     setBusy(true); setError('');
     try {
@@ -72,7 +76,8 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
         <div className="actions"><button type="button" className="primary" disabled={busy || needsWake} onClick={() => void save(active)}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="quiet" disabled={busy} onClick={() => { setResult(null); setChosen(null); setText(''); setWake(''); field.current?.focus(); }}>Clear</button></div></div>}
       {result?.kind === 'ambiguous' && !chosen && <div className="quick-add-line-card"><p>Did you mean…</p><div className="actions">{result.choices.map((choice, index) => <button key={index} type="button" className="secondary" onClick={() => setChosen(choice)}>{describeChoice(choice)}</button>)}</div></div>}
       {result?.kind === 'needs-more' && <p className="quick-add-line-hint">{result.hint}</p>}
-      {result?.kind === 'unknown' && <p className="quick-add-line-hint" role="status">I didn’t understand that yet. Try: {result.examples.join(' · ')}</p>}
+      {multi && <Suspense fallback={null}><QuickLogCards line={multi} lang={lineLanguage(multi)} fallback={<p className="quick-add-line-hint" role="status">I didn’t understand those yet. Try: 2 glasses of water, read 20 minutes, a banana.</p>}/></Suspense>}
+      {result?.kind === 'unknown' && <Suspense fallback={null}><QuickLogCards line={text} fallback={<p className="quick-add-line-hint" role="status">I didn’t understand that yet. Try: {result.examples.join(' · ')}</p>}/></Suspense>}
       {saved && <p role="status" className="quick-add-line-saved">{saved}</p>}
       {error && <p role="alert">{error}</p>}
     </div>

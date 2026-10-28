@@ -1,4 +1,5 @@
 import {en} from './locales/en';
+import {nl} from './locales/nl';
 import type {QuickAddContext, QuickAddDay, QuickAddKnown, QuickAddLocale, QuickAddResult, UnitKind, VerbKind} from './types';
 export type * from './types';
 
@@ -13,7 +14,7 @@ export const LIMITS = {waterMl: 10_000, weightGrams: 1_000_000, steps: 1_000_000
 export const OUTSIDE = 'That number is outside what the journal keeps.', ABOVE_ZERO = 'Use a number above zero.', MINUTES_HINT = 'Add the minutes, for example ran 5k in 28 min';
 export const UNCLEAR_NUMBER = 'Type that number without a thousands separator, for example 1234.';
 export const WATER_UNIT_HINT = 'Name the unit, for example 2 glasses of water or 500 ml.';
-const LOCALES: Record<'en', QuickAddLocale> = {en};
+const LOCALES: Record<'en' | 'nl', QuickAddLocale> = {en, nl};
 const ACTIVITY: Record<Exclude<VerbKind, 'water' | 'weight' | 'sleep'>, 'Run' | 'Walk' | 'Cycle' | 'Swim'> = {walk: 'Walk', run: 'Run', cycle: 'Cycle', swim: 'Swim'};
 type Num = {value: number; grouped: boolean; plus: boolean; thousands: boolean};
 type Token = {word: string; num?: Num; unit?: UnitKind; verb?: VerbKind; used: boolean};
@@ -59,7 +60,7 @@ function numberNear(tokens: Token[], unitIndex: number): Token | undefined {
 const firstNumber = (tokens: Token[]) => tokens.find(t => t.num && !t.used);
 const take = (t: Token | undefined) => { if (t) t.used = true; return t; };
 
-export function parse(text: string, localeName: 'en', context: QuickAddContext): QuickAddResult {
+export function parse(text: string, localeName: 'en' | 'nl', context: QuickAddContext): QuickAddResult {
   const locale = LOCALES[localeName];
   const trimmed = text.trim();
   if (!trimmed || trimmed.length > 200) return unknown(locale);

@@ -194,6 +194,14 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         if (prefs.readAloud && !muted) speak.current?.(text.replace(BRIEF_LABEL, ''));
         return true;
       }
+      // Session AI (ZI11, J10): /log works with no AI: the line becomes one card per item, made on this device.
+      case '/log': {
+        if (connected) return false;
+        const sources = sensitive ? null : context.toolSources(), env = sources ? toolEnv(sources, context.gates, 'local') : null;
+        const lang = questionLanguage(rest) === 'nl' ? 'nl' : 'en', reply = env && rest.trim() ? quickLogReply(rest, quickLogContext(env), lang) : null;
+        session.say(typed, reply?.text ?? (lang === 'nl' ? 'Typ na /log wat je deed, at of dronk, bijvoorbeeld: /log 2 glazen water, 20 minuten gelezen.' : 'Type what you did, ate or drank after /log, for example: /log 2 glasses of water, read 20 minutes, 30 push-ups.'));
+        return true;
+      }
       default: if (connected) return false; session.say(typed, NEEDS_AI); return true;
     }
   }, [connected, onClose, router, session, sensitive, context]);
@@ -555,6 +563,9 @@ function InfoGlyph() {
 }
 import {forwardRef} from 'react';
 import {formatClock} from '../../lib/visual-format';
+import {quickLogReply} from '../../lib/quick-log/multi';
+import {questionLanguage} from '../../lib/ai/local-answers/no-model';
+import {quickLogContext} from '../../lib/quick-log/context';
 /** The microphone, drawn in the nebula stroke; a square while listening (tap to stop). */
 function MicGlyph({on}: {on: boolean}) {
   return <svg className="ai-mic-glyph" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
