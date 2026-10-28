@@ -4,6 +4,8 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {WALLET_BALANCES} from '../../lib/wallets/balances/store';
 import {LINKED_WALLETS} from '../../lib/linked-wallets';
 import {IMPORTS, importables, markImported, type Importable} from '../../lib/portfolio/wallet-import';
+import {EXCHANGES_RECORD, baseUnits} from '../../lib/exchanges/record';
+import {EXCHANGE_NAMES, isExchange} from '../../lib/exchanges/allowlist';
 import {addTransaction, removeTransaction} from '../../lib/portfolio/store';
 import type {Portfolio} from '../../lib/portfolio/schema';
 import {localDate} from '../../lib/local-date';
@@ -16,10 +18,11 @@ import type {Run} from './transaction-form';
  * yourself). "Update" sets an imported row to the wallet's latest amount. Read-only: nothing is signed or sent.
  */
 export function WalletImportPanel({portfolio, run}: {portfolio: Portfolio; run: Run}) {
-  const balances = useDeviceRecord(WALLET_BALANCES), linked = useDeviceRecord(LINKED_WALLETS), imports = useDeviceRecord(IMPORTS), [note, setNote] = useState('');
-  const list = useMemo(() => importables(Object.values(balances.data.observations ?? {}), imports.data, portfolio.id), [balances.data, imports.data, portfolio.id]);
+  const balances = useDeviceRecord(WALLET_BALANCES), linked = useDeviceRecord(LINKED_WALLETS), imports = useDeviceRecord(IMPORTS), exchanges = useDeviceRecord(EXCHANGES_RECORD), [note, setNote] = useState('');
+  // Session AI (J14): an exchange's last read joins the wallets' as its own "wallet" (exchange:<id>).
+  const list = useMemo(() => importables([...Object.values(balances.data.observations ?? {}), ...Object.entries(exchanges.data.connections).flatMap(([id, c]) => c.read ? [{walletId: `exchange:${id}`, chainId: id, at: c.read.at, assets: c.read.balances.map(b => ({id: b.asset, symbol: b.asset, ...baseUnits(b.amount)}))}] : [])], imports.data, portfolio.id), [balances.data, exchanges.data, imports.data, portfolio.id]);
   if (!balances.loaded || !linked.loaded || portfolio.kind !== 'real' || !list.length) return null;
-  const label = (walletId: string) => (linked.data.wallets ?? []).find(w => w.id === walletId)?.label || 'a linked wallet';
+  const label = (walletId: string) => { const ex = walletId.startsWith('exchange:') ? walletId.slice(9) : null; return ex && isExchange(ex) ? EXCHANGE_NAMES[ex] : (linked.data.wallets ?? []).find(w => w.id === walletId)?.label || 'a linked wallet'; };
   const bring = (item: Importable) => {
     if (!item.coin) return;
     const id = item.imported ?? crypto.randomUUID(), at = new Date().toISOString(), date = (item.at ?? at).slice(0, 10) <= localDate() ? (item.at ?? at).slice(0, 10) : localDate();
@@ -27,7 +30,7 @@ export function WalletImportPanel({portfolio, run}: {portfolio: Portfolio; run: 
     if (ok) { try { imports.update(r => markImported(r, id, {walletId: item.walletId, chainId: item.chainId, assetId: item.assetId, portfolioId: portfolio.id, at})); setNote(''); } catch { setNote('The row was saved; its "from wallet" mark could not be kept on this device.'); } }
   };
   return <section className="portfolio-wallet-import" aria-labelledby={`${portfolio.id}-wallet-import`}>
-    <h3 id={`${portfolio.id}-wallet-import`}>From your wallets (read-only)</h3>
+    <h3 id={`${portfolio.id}-wallet-import`}>From your wallets and exchanges (read-only)</h3>
     <ul>{list.map(i => <li key={`${i.walletId}|${i.chainId}|${i.assetId}`}>
       <span><strong>{formatExactNumber(i.quantity)} {i.symbol}</strong> · {label(i.walletId)}{i.imported ? ' · imported, from wallet' : ''}</span>
       {i.coin ? <button type="button" className="secondary" onClick={() => bring(i)}>{i.imported ? 'Update from the wallet' : 'Import as a transfer in'}</button> : <small>No price identity for {i.symbol}; left out.</small>}

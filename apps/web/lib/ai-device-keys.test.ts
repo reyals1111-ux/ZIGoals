@@ -9,9 +9,10 @@ import {MEAL_ESTIMATES_KEY} from './meal-estimates/schema';
 import {TASKS_KEY} from './tasks/schema';
 import {RECEIPTS_KEY} from './portfolio/receipts';
 import {IMPORTS_KEY} from './portfolio/wallet-import';
+import {EXCHANGES_KEY} from './exchanges/record';
 
 // Session AI: this session's personal keys are the owners' constants, make a device "not new", and go with the account.
-test('the literals equal the owners\' constants', () => expect(AI_PERSONAL_KEYS).toEqual([MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, MEAL_ESTIMATES_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY]));
+test('the literals equal the owners\' constants', () => expect(AI_PERSONAL_KEYS).toEqual([MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, MEAL_ESTIMATES_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY]));
 test('each one makes a device not new, and the account erase removes it', () => {
   for (const key of AI_PERSONAL_KEYS) {
     expect(DEVICE_RECORD_KEYS).toContain(key);

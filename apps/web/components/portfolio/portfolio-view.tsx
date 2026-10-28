@@ -16,6 +16,7 @@ import {marketRefKey} from '../../lib/market-assets';
 import {localDate} from '../../lib/local-date';
 import {exportFileName} from '../../lib/showcase-detect';
 import {WalletImportPanel} from './wallet-import-panel';
+import {ExchangesPanel} from '../exchanges/exchanges-panel';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {type Portfolio, type PortfolioCoin, type PortfolioCurrency} from '../../lib/portfolio/schema';
 import {HoldingsBelowZero, holdings, portfolioTotals} from '../../lib/portfolio/math';
@@ -102,6 +103,7 @@ export function PortfolioView() {
         {selected && <PortfolioPanel key={selected.id} portfolio={selected} marketOf={market.of} attribution={!store.showcase && market.priced} run={run} removeTx={removeTx} showcase={store.showcase} />}
         <PortfolioWatch showcase={store.showcase} />
         <CoinSearch portfolioId={selected?.id} />
+        <ExchangesPanel showcase={store.showcase} />
         <PortfolioFiles data={store.data} showcase={store.showcase} onImport={data => run(() => data, 'Portfolios replaced from the file.', 'The file was not imported.')} importing={importing} onImportCsv={() => setImporting(!importing)} />
         {importPanel && (phone ? <PhoneFormSheet title="Import transactions" onClose={() => setImporting(false)}>{importPanel}</PhoneFormSheet> : importPanel)}
       </>}

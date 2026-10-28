@@ -21,6 +21,7 @@ import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
 import {IMPORTS_KEY} from '../portfolio/wallet-import';
+import {EXCHANGES_KEY} from '../exchanges/record';
 import {ENERGY_KEY} from '../energy/schema';
 import {DAY_TIMELINE_KEY, STORIES_KEY, UNIVERSE_KEY} from '../af-extras-keys';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../af-checklist-keys';
@@ -156,6 +157,9 @@ export function frozenFixture() {
   // Session AI (WE20, TIER 3 (stored format)): which Portfolio rows came from a linked wallet, a new device-only key (fictional).
   records[IMPORTS_KEY] = JSON.stringify({version: 1, rows: {'tx-from-wallet': {walletId: 'w-evm', chainId: 'eip155:8453', assetId: 'native', portfolioId: 'p-real', at: '2026-10-28T08:00:00.000Z'}}});
   checks.push({key: IMPORTS_KEY, module: './portfolio/wallet-import', spec: 'IMPORTS', expect: {'rows.tx-from-wallet.walletId': 'w-evm'}});
+  // Session AI (J14, TIER 3 (stored format)): the exchanges read on this device, balances only (fictional).
+  records[EXCHANGES_KEY] = JSON.stringify({version: 1, connections: {kraken: {connectedAt: '2026-10-28T08:00:00.000Z', read: {at: '2026-10-28T08:01:00.000Z', balances: [{asset: 'BTC', amount: '0.5'}]}}}});
+  checks.push({key: EXCHANGES_KEY, module: './exchanges/record', spec: 'EXCHANGES_RECORD', expect: {'connections.kraken.read.balances.0.asset': 'BTC'}});
   // Session AI (mascot, TIER 3 (stored format)): ZIGi's record may carry `personality` (optional; the record is loose in every release).
   records[ZIGI_KEY] = JSON.stringify({version: 1, side: 'left', personality: 'direct'});
   checks.push({key: ZIGI_KEY, module: './ai/store/records', spec: 'ZIGI', expect: {side: 'left', personality: 'direct'}});
@@ -171,7 +175,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

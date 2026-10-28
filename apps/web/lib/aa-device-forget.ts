@@ -34,5 +34,6 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   for (const key of keys) { try { target.removeItem(key); } catch { /* kept */ } }
   try { for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); } catch { /* no window */ }
   // Gate B F3: the progress-photo bytes live in IndexedDB beside the index key; the erase removes the database as a whole (every scope on this device).
-  try { if (typeof indexedDB !== 'undefined') { indexedDB.deleteDatabase('zigoals-progress-photos'); indexedDB.deleteDatabase(VISION_DATABASE); } } catch { /* no IndexedDB: nothing was stored there */ }
+  // Session AI (J14): the sealed exchange keys go with the account too (the whole database, its wrapping key included).
+  try { if (typeof indexedDB !== 'undefined') { indexedDB.deleteDatabase('zigoals-progress-photos'); indexedDB.deleteDatabase(VISION_DATABASE); indexedDB.deleteDatabase('zigoals-exchange-keys-v1'); } } catch { /* no IndexedDB: nothing was stored there */ }
 }
