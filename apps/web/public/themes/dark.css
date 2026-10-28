@@ -9895,6 +9895,12 @@
         border-right-color: var(--cyan, #6fd3ff);
         border-bottom-color: var(--cyan, #6fd3ff)
     }
+    .life-values .life-value-chips button[aria-pressed="true"]:not(#\-) {
+        border-color: currentColor
+    }
+    .life-values .life-value-rate:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/links/links.css  */
 @scope (:root[data-theme=dark]) {

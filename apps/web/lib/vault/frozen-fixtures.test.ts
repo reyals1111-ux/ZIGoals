@@ -73,6 +73,12 @@ export function frozenFixture() {
     for (const r of section.records) if (a.has(r.spec.key) && r.spec.key !== GOAL_EXTRAS_KEY) { records[r.spec.key] = a.get(r.spec.key)!; checks.push({key: r.spec.key, ...FROZEN_READERS[r.spec.key]!}); }
     if (section.name === 'goals') { records[GOAL_EXTRAS_KEY + '#merged'] = a.get(GOAL_EXTRAS_KEY)!; checks.push({key: GOAL_EXTRAS_KEY + '#merged', module: './goal-extras/store', spec: 'GOAL_EXTRAS', expect: {[`goals.${first}.cardArt`]: 'aurora-2'}}); }
   }
+  // Session AI (feature 9, GO14; TIER 3 (stored format)): the Life review record may carry the person's values and each
+  // week's values check (optional, additive; the record is loose in every release that reads it).
+  const lifeKey = 'zigoals:life-review:v1';
+  records[lifeKey] = JSON.stringify({...JSON.parse(records[lifeKey] ?? '{"version":1,"focus":{}}') as object, values: ['Health', 'Patience'], valueChecks: {'week:2026-10-22': {ratings: {Health: 4}, at: '2026-10-28T20:00:00.000Z'}}});
+  const lifeCheck = checks.find(c => c.key === lifeKey);
+  if (lifeCheck) lifeCheck.expect = {...lifeCheck.expect, 'values.1': 'Patience', 'valueChecks.week:2026-10-22.ratings.Health': 4}; else checks.push({key: lifeKey, ...FROZEN_READERS[lifeKey]!, expect: {'values.1': 'Patience'}});
   // Session AE (ADR-027 G14, TIER 3 storage): Habits' layout as this build saves it after a move, with Routines
   // (`habits:routines`) as its own block. Older builds read the record, show their own blocks (the new id ignored), and
   // keep the new id when they save a move of their own (lib/page-layout.ts, unchanged since #32).

@@ -81,3 +81,10 @@
 /* Gate C (design critique): the cover line stands apart from the dated Highlights heading under it (the eyebrow had read
    as the cover's own, sitting tight under it and repeating "Your week"). */
 .life-review-cover > .life-cover-kicker { margin-bottom: 22px; }
+/* Session AI (G13, GO14): Your days and the values check. */
+.life-values .life-value-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.life-values .life-value-chips button[aria-pressed="true"] { border-color: currentColor; font-weight: 600; }
+.life-values .life-value-own { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.life-values .life-value-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border: 0; padding: 0; margin: 10px 0; }
+.life-values .life-value-rate legend { font-weight: 600; margin-bottom: 4px; }
+.life-values .life-value-rate label { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; }
