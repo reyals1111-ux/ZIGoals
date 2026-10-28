@@ -704,14 +704,15 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
     {text.length >= INPUT_COUNTER_FROM && <p className="ai-note ai-length" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters. A shorter message gets a better answer.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;
           // ↑ in an empty box: the last question, to edit and send again (Session V Part 10).
           if (e.key === 'ArrowUp' && !text && !busy) { const last = lastQuestion(session.chat); if (last) { e.preventDefault(); onEditing({id: last.id, text: last.text, seq: Date.now()}); } return; }
           if (e.key === 'Escape' && editing) { e.preventDefault(); e.stopPropagation(); setText(''); onEditing(null); return; }
-          if (e.key === 'Enter' && !e.shiftKey && !phone) { e.preventDefault(); submit(); }
+          // ZI6 (D-067): Enter sends on phones too (the keyboard's key reads "Send"); Shift+Enter, or a paste, keeps a line break.
+          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); }
         }}
         onPaste={photosAllowed ? e => { const image = [...e.clipboardData.files].find(f => f.type.startsWith('image/')); if (image) { e.preventDefault(); void takePhoto(image); } } : undefined}/>
       {photosAllowed && <>

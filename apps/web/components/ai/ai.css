@@ -43,6 +43,9 @@
 @media (min-width:901px){:root[data-zigi-side=left] .ai-chat:not(.ai-chat-expanded):not(.ai-chat-phone){inset:auto auto 20px calc(var(--sidebar-width,216px) + 20px)}}
 .ai-chat::before{content:"";position:absolute;inset:-40% -30% auto auto;width:70%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent),transparent 72%)}
 .ai-chat-expanded{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(880px,calc(100vw - 48px));height:min(86vh,900px)}
+/* Session AI, ZI6 (D-131): in a short window 72 % of the height left the conversation about 120 px between the header and the
+   composer; below 720 px of height the panel takes the window's height less its margins, so the conversation keeps 200 px or more. */
+@media (max-height:720px){.ai-chat:not(.ai-chat-phone):not(.ai-chat-expanded):not(.ai-chat-pip){height:calc(100vh - 40px)}.ai-chat-expanded{height:calc(100vh - 32px)}}
 .ai-chat-phone{inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;border:0;padding-top:var(--safe-top,0px)}
 .ai-chat-phone::backdrop{background:#01050dc7}
 .ai-chat>*{position:relative}

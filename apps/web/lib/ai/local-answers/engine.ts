@@ -742,8 +742,12 @@ function bestStreakAnswer(env: ToolEnv): LocalReply {
   }
   if (!found.length) return {kind: 'answer', text: 'No streak yet: the first check-in starts one.', calls};
   found.sort((a, b) => b.best - a.best);
-  const top = found[0]!, rest = found.slice(1, 3).filter(f => f.best > 0);
-  return {kind: 'answer', text: lines(`Your longest streak ever is ${plural(top.best, top.unit)}: ${top.title} (current ${plural(top.current, top.unit)}).`, rest.map(f => `${f.title}: longest ${plural(f.best, f.unit)}, current ${plural(f.current, f.unit)}`)), calls};
+  // ZI3 (tied streaks): habits that share the longest streak are named together, never one of them as "the" longest.
+  const top = found[0]!, tied = found.filter(f => f.best === top.best && f.unit === top.unit), rest = found.filter(f => !tied.includes(f)).slice(0, 2).filter(f => f.best > 0);
+  const head = tied.length > 1 && top.best > 0
+    ? `Your longest streak ever is ${plural(top.best, top.unit)}, shared by ${tied.length} habits: ${tied.map(f => `${f.title} (current ${plural(f.current, f.unit)})`).join(', ')}.`
+    : `Your longest streak ever is ${plural(top.best, top.unit)}: ${top.title} (current ${plural(top.current, top.unit)}).`;
+  return {kind: 'answer', text: lines(head, rest.map(f => `${f.title}: longest ${plural(f.best, f.unit)}, current ${plural(f.current, f.unit)}`)), calls};
 }
 function milestonesAnswer(env: ToolEnv, q: string): LocalReply {
   const named = mentionedGoals(env, q), r = call(env, 'milestones', named.length === 1 ? {goal: clean(named[0]!.name, 120)} : {}), refused = refusalOf([r]); if (refused) return refused;

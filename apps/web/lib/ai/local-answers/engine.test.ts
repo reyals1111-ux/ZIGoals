@@ -172,7 +172,7 @@ test('Session X-Local Part 6d: five asks the first model runs found unanswered h
   const totals = ask('What are my totals per currency?'); expect(totals.kind).toBe('answer'); expect(totals.kind === 'answer' && totals.calls.map(c => c.tool)).toContain('totals_per_currency');
   const portfolio = ask('What is my portfolio worth?'); expect(portfolio.kind).toBe('answer'); expect(textOf(portfolio)).toContain('own currency'); expect(portfolio.kind === 'answer' && portfolio.calls.map(c => c.tool)).toEqual(['portfolios']);
   const milestones = ask('Which milestones are done?'); expect(milestones.kind).toBe('answer'); expect(textOf(milestones)).toContain('of'); expect(milestones.kind === 'answer' && milestones.calls.map(c => c.tool)).toEqual(['milestones']);
-  const streak = ask('What is my longest streak ever?'); expect(streak.kind).toBe('answer'); expect(textOf(streak)).toMatch(/^Your longest streak ever is \d+ days?: /); expect(streak.kind === 'answer' && streak.calls.every(c => c.tool === 'habit_stats')).toBe(true);
+  const streak = ask('What is my longest streak ever?'); expect(streak.kind).toBe('answer'); expect(textOf(streak)).toMatch(/^Your longest streak ever is \d+ days?, shared by 2 habits: Walk \(current \d+ days?\), Contribute \(/); // Session AI, ZI3: the Showcase's Walk and Contribute tie expect(streak.kind === 'answer' && streak.calls.every(c => c.tool === 'habit_stats')).toBe(true);
   // A habit named still gets its own answer; a question that is not a lookup still goes to the AI.
   expect(textOf(ask("What's my longest reading streak?"))).toContain('longest Read streak');
   expect(ask('Which colour should I paint the kitchen?').kind).toBe('none');
@@ -231,4 +231,13 @@ test('a whole question in Dutch stays unanswered here, as the golden set pins (n
 test('a follow-up "And my habits?" is the model\'s, not the device\'s (the zigi-emotions spec sends it to a mock AI)', () => {
   expect(localAnswer('And my habits?', open()).kind).toBe('none');
   expect(localAnswer('my habits?', open()).kind).toBe('none');
+});
+test('Session AI, ZI3: habits that share the longest streak are named together, never one of them as "the" longest', () => {
+  const s = sources(), walk = s.habits.habits.find(h => h.title === 'Walk')!;
+  // The Showcase's Walk and Contribute tie; a third habit with Walk's days makes three.
+  const three = {...s, habits: {...s.habits, habits: [...s.habits.habits, {...walk, id: `${walk.id}-twin`, title: 'Evening stretch'}]}};
+  expect(textOf(ask('What is my longest streak ever?', open(three)))).toMatch(/^Your longest streak ever is 27 days, shared by 3 habits: Walk \(current 27 days\), Contribute \(current 27 days\), Evening stretch \(current 27 days\)\./);
+  // With no tie (Contribute left out) the answer names the one habit, as before.
+  const one = {...s, habits: {...s.habits, habits: s.habits.habits.filter(h => h.title !== 'Contribute')}};
+  expect(textOf(ask('What is my longest streak ever?', open(one)))).toMatch(/^Your longest streak ever is 27 days: Walk \(current 27 days\)\./);
 });
