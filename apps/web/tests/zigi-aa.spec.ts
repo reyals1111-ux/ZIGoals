@@ -37,6 +37,15 @@ async function seed(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
+/**
+ * Session AI (CI on 9154a4f9, WebKit: the Send click timed out on an empty box): the panel puts the focus in its box as it
+ * opens, and WebKit lost text typed while that focus was still moving (the "ZIGi box empty" class). As in
+ * zigi-chat-polish's openChat (Session AF Gate C), a person types once the cursor is there, and so does the test.
+ */
+async function openChat(page: Page) {
+  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await expect(page.getByLabel('Message to your AI')).toBeFocused();
+}
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); await expect(panel(page).locator('.ai-card').last()).toBeVisible(); }
 const stored = (page: Page, key: string) => page.evaluate(k => localStorage.getItem(k), key);
 
@@ -46,7 +55,7 @@ test('set-game-layer: Add writes only the game device record, the card shows at 
   await page.goto('/app/habits');
   await expect(page.getByRole('region', {name: 'Your progress'})).toHaveCount(0);
   const habitsBefore = await stored(page, HABITS_KEY);
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await openChat(page);
   await send(page, 'Turn on the game layer');
   const card = panel(page).locator('.ai-card').last();
   await expect(card).toContainText('Turn the game layer on');
@@ -71,7 +80,7 @@ test('create-average-goal: Apply writes only the average-goals device record; th
   await seed(page);
   await page.goto('/app/goals');
   const platformBefore = await stored(page, 'zigoals:platform:v1');
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await openChat(page);
   await send(page, 'Make an average goal: 30 pages a day');
   const card = panel(page).locator('.ai-card').last();
   await expect(card).toContainText('Average goal: Fictional pages');
