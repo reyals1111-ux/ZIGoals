@@ -1,4 +1,4 @@
-import {mkdirSync, writeFileSync} from 'node:fs';
+import {mkdirSync, renameSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {anthropicBody, anthropicHeaders} from '../adapters/anthropic';
 import {estimateCost} from '../pricing';
@@ -91,7 +91,9 @@ export class BatchQueue {
       }
       rows.set(p.id, {type: 'errored', error: {error: {message: 'the API stayed busy'}}});
     }));
-    this.record(`direct-${Date.now()}`, rows, false, started);
+    // Two runs (Sonnet and Haiku side by side) can end a direct round in the same millisecond: the name carries the model and
+    // the process, and the file is written whole and renamed, so one record never overwrites or tears the other.
+    this.record(`direct-${Date.now()}-${this.opts.model}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`, rows, false, started);
     return rows;
   }
   private record(id: string, rows: Map<string, BatchResult>, batch: boolean, started: number) {
@@ -108,7 +110,9 @@ export class BatchQueue {
       // A direct round is recorded in the ledger's harness shape (one run per request, full price); a batch in its batch shape.
       const body = batch ? {summary: {provider: 'anthropic', model: this.opts.model, batch: true, batchId: id, requests: rows.size, tokens, costUsd: cost, endedAt: new Date().toISOString()}}
         : {summary: {provider: 'anthropic', model: this.opts.model, batch: false, direct: true, requests: rows.size, costUsd: cost, endedAt: new Date().toISOString()}, runs: [...rows.values()].map(r => ({requests: 1, tokens: {input: r.message?.usage?.input_tokens ?? null, output: r.message?.usage?.output_tokens ?? null, cacheWrite: r.message?.usage?.cache_creation_input_tokens ?? null, cacheRead: r.message?.usage?.cache_read_input_tokens ?? null}}))};
-      writeFileSync(join(this.opts.recordDir, `${batch ? 'batch' : 'direct'}-${id.replace(/^direct-/, '')}.json`), JSON.stringify(body, null, 1));
+      const file = join(this.opts.recordDir, `${batch ? 'batch' : 'direct'}-${id.replace(/^direct-/, '')}.json`);
+      writeFileSync(`${file}.${process.pid}.tmp`, JSON.stringify(body, null, 1), {flag: 'wx'});
+      renameSync(`${file}.${process.pid}.tmp`, file);
     }
     this.spentUsd += cost;
     const log = {batchId: id, requests: rows.size, costUsd: cost, wallMs: Date.now() - started};
