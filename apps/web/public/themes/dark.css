@@ -14094,6 +14094,18 @@
         color: var(--text-secondary)
     }
 }
+/*  components/tasks/tasks.css  */
+@scope (:root[data-theme=dark]) {
+    .task:not(#\-) {
+        border-bottom-color: var(--line, rgba(128, 128, 160, .2))
+    }
+    .task-overdue .task-meta:not(#\-) {
+        color: var(--warning, #e8a33d)
+    }
+    .task-chip:not(#\-) {
+        border-color: currentColor
+    }
+}
 /*  components/timeline/timeline.css  */
 @scope (:root[data-theme=dark]) {
     .timeline-band > h2 small:not(#\-) {

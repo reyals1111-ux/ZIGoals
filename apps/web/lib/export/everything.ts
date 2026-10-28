@@ -2,6 +2,9 @@ import {CALCULATOR_KEY} from '../compound/store';
 import {WORKOUTS_KEY, workoutsSchema, type Workouts} from '../workouts/schema';
 import {MONEY_LOG_KEY, moneyLogSchema, type MoneyLog} from '../money-log/schema';
 import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
+import {TASKS_KEY} from '../tasks/schema';
+import {RECEIPTS_KEY} from '../portfolio/receipts';
+import {IMPORTS_KEY} from '../portfolio/wallet-import';
 import {JOURNAL_KEY, journalSchema, type Journal} from '../journal/schema';
 import {ENERGY_KEY, energySchema, type Energy} from '../energy/schema';
 import {SEARCH_RECENT_KEY} from '../search/recent';
@@ -83,6 +86,12 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   energy: ENERGY_KEY,
   // Session AI (feature 1, HE17): the ranges behind AI meal estimates on this device.
   mealEstimates: MEAL_ESTIMATES_KEY,
+  // Session AI (tasks): one-off tasks with a priority and a due date on this device.
+  tasks: TASKS_KEY,
+  // Session AI (J15): what a Portfolio transfer in was (reward, income, airdrop).
+  portfolioReceipts: RECEIPTS_KEY,
+  // Session AI (WE20): which Portfolio rows came from a linked wallet.
+  portfolioImports: IMPORTS_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
   todayCards: TODAY_CARDS_KEY,
   // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).

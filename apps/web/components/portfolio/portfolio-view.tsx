@@ -15,6 +15,7 @@ import {usePlatform} from '../platform/use-platform';
 import {marketRefKey} from '../../lib/market-assets';
 import {localDate} from '../../lib/local-date';
 import {exportFileName} from '../../lib/showcase-detect';
+import {WalletImportPanel} from './wallet-import-panel';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {type Portfolio, type PortfolioCoin, type PortfolioCurrency} from '../../lib/portfolio/schema';
 import {HoldingsBelowZero, holdings, portfolioTotals} from '../../lib/portfolio/math';
@@ -178,6 +179,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
         <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
       </div>
     </>}
+    {!showcase && <WalletImportPanel portfolio={portfolio} run={run} />}
     <TransactionForm portfolio={portfolio} run={run} />
   </section>;
 }

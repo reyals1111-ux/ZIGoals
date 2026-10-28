@@ -24,6 +24,9 @@ import { useDeviceRecord } from "./ai/use-device-record";
 import { ACCOUNTS } from "../lib/accounts/schema";
 import { isDeletedHabitRef } from "../lib/habit-delete";
 import { plural } from "../lib/plural";
+import { removeHealthItem } from "../lib/health";
+import { removeWater } from "../lib/health-daily";
+import { removeWithUndo } from "./ui/remove-with-undo";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
@@ -56,6 +59,10 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   const autoById = new Map(zigi.actions.filter(a => a.auto).map(a => [a.activityId, true] as const));
   const allEntries = (category === "ZIGI" ? [...base.filter(event => zigi.ids.has(event.id)), ...zigiOnly] : base.filter(event => category === "ALL" || event.category === category)).map(event => ({...event, dayKey: activityDay(event)})).sort((a, b) => b.dayKey.localeCompare(a.dayKey) || b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
   const entries = allEntries.slice(0, limit), keys = activityKeys(entries);
+  // Session AI (SE5): a Health entry can be removed from the log itself, with the app's one Undo; the others keep the undo
+  // where they were made (a habit day in its day editor, a goal's contribution on its goal).
+  const healthKind = (id: string): "diary" | "weights" | "activity" | "water" | null => health.data.diary.some(e => e.id === id) ? "diary" : health.data.weights.some(w => w.id === id) ? "weights" : health.data.activity.some(a => a.id === id) ? "activity" : (() => { try { return dailyData(health.data).water.some(w => w.id === id) ? "water" as const : null; } catch { return null; } })();
+  const remove = (id: string, title: string) => { const kind = healthKind(id); if (!kind) return; void removeWithUndo(health.update, latest => kind === "water" ? removeWater(latest, id) : removeHealthItem(latest, kind, id), `Removed: ${title}.`, `${title} is back.`).catch(() => undefined); };
   const counts = JSON.stringify(Object.fromEntries(["GOAL", "WEALTH", "HABIT", "HEALTH"].map(c => [c, base.filter(e => e.category === c).length]).concat([["ALL", base.length]])));
   useEffect(() => { onCounts?.(JSON.parse(counts) as Record<string, number>); }, [counts, onCounts]);
   return <div className="unified-activity">
@@ -72,6 +79,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
           <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
           {(() => { const time = activityTimeLabel(event.at, activityTimeZone()); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
+          {!showcase && event.category === "HEALTH" && healthKind(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => remove(event.id, event.title)}>Remove</button>}
         </article>
       </li>;
     })}</ol> : <EmptyState className="timeline-empty" zigi="encouraging" title="Your next step belongs here.">Goal actions, habit check-ins and health logs will build your story.</EmptyState>}

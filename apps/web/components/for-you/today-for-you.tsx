@@ -54,6 +54,7 @@ import {TodayStoriesCard, useTodayStoriesCard} from '../stories/today-stories-ca
 import {TodayTimelineCard} from '../timeline/today-timeline-card';
 import {TodayUniverseCard} from '../universe/today-universe-card';
 import {TodayJournalCard} from '../journal/today-journal-card';
+import {TodayTasksCard} from '../tasks/today-tasks-card';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
 const JOURNAL_ZONE_PROMPT = 'journal-zone';
@@ -124,6 +125,8 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   cards.push({id: 'universe', priority: 6.5, node: <TodayUniverseCard />});
   // Session AI (feature 6): the journal and today's energy, with ZIGi's one question.
   cards.push({id: 'journal', priority: 6.6, node: <TodayJournalCard />});
+  // Session AI (tasks with a priority and a due date): one-off things to do, overdue and today's first.
+  cards.push({id: 'tasks', priority: 6.4, node: <TodayTasksCard />});
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});

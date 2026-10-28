@@ -31,11 +31,14 @@ export function ForYou({cards, status = '', note = null, label = 'For you', open
   useEffect(() => {
     const follow = () => {
       const target = hashId(location.hash);
-      if (!target?.startsWith('for-you-') || target === followed.current) return;
-      const card = target.slice('for-you-'.length);
-      if (foldedIds.split(' ').includes(card)) setOpen(true);
+      if (!target?.startsWith('for-you-')) return;
+      // Session AI: a card can be among the open ones at first and move behind "Show more" once later cards arrive; the
+      // link then follows it once more (keyed by where it is), so the fold opens instead of leaving the card hidden.
+      const card = target.slice('for-you-'.length), inFold = foldedIds.split(' ').includes(card), key = `${target}|${inFold ? 'fold' : 'shown'}`;
+      if (key === followed.current) return;
+      if (inFold) setOpen(true);
       else if (!document.getElementById(target)) return;
-      followed.current = target;
+      followed.current = key;
       requestAnimationFrame(() => requestAnimationFrame(() => { const el = document.getElementById(target); if (el) { el.scrollIntoView({block: 'start'}); holdInView(el); } }));
     };
     follow();
