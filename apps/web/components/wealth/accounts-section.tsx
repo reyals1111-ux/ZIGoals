@@ -1,4 +1,5 @@
 'use client';
+import {holdingsBySource, SOURCE_LABEL, type SourceKind} from '../../lib/accounts/by-source';
 import {isMoneyCurrency} from '../../lib/visual-format';
 import {useEffect, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
@@ -60,7 +61,8 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
   if (!accounts.loaded) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title" aria-busy="true"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2></section>;
   if (accounts.unreadable) return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p role="alert">Your accounts on this device could not be read. Their bytes are kept; nothing was changed.</p></section>;
   // Session AH Part 4 (TR1): holdings valued exactly as Wealth values them (live quotes included), one net worth.
-  const items = accounts.data.items, worth = netWorthTotal(accounts.data, today, holdingsOf(wealthOverview(platform.data, now, market.quotes).rows)), history = netWorthHistory(accounts.data, today);
+  const overviewRows = wealthOverview(platform.data, now, market.quotes).rows;
+  const items = accounts.data.items, worth = netWorthTotal(accounts.data, today, holdingsOf(overviewRows)), history = netWorthHistory(accounts.data, today), bySource = holdingsBySource(overviewRows); // Session AI (CO6)
   const active = items.filter(a => !a.archivedAt), archived = items.filter(a => a.archivedAt);
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
     <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
@@ -74,6 +76,7 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
         <strong className="accounts-worth-net">{show(r.net, r.currency)}</strong>
         <dl><div><dt>Accounts</dt><dd>{show(r.assets, r.currency)}</dd></div><div><dt>Holdings in Wealth</dt><dd>{show(r.holdings, r.currency)}</dd></div><div><dt>Debts</dt><dd>{show(r.debts, r.currency)}</dd></div></dl>
         <AssetsVsDebts assets={r.assets} holdings={r.holdings} debts={r.debts} currency={r.currency} />
+        {(() => { const src = bySource.find(b => b.currency === r.currency); const kinds = src ? (Object.keys(SOURCE_LABEL) as SourceKind[]).filter(k => src.parts[k]) : []; return kinds.length > 0 && <details className="accounts-by-source"><summary>Holdings by source</summary><dl>{kinds.map(k => <div key={k}><dt>{SOURCE_LABEL[k]}</dt><dd>{show(src!.parts[k]!, r.currency)} <small>({src!.count[k]} {src!.count[k] === 1 ? 'holding' : 'holdings'})</small></dd></div>)}</dl><p className="fine">Where each holding&rsquo;s value comes from today, from Wealth&rsquo;s own figures; never converted.</p></details>; })()}
         {r.noBalance > 0 && <p className="fine">{r.noBalance} {r.noBalance === 1 ? 'account has' : 'accounts have'} no balance yet (not counted as zero).</p>}
       </article>)}
       <p className="fine">Net worth = accounts + Wealth holdings with a value − debts, per currency, never converted between currencies.{worth.unvaluedHoldings ? ` Not counted, no value yet: ${worth.unvaluedNames.join(', ')}.` : ''}</p>
