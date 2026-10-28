@@ -85,3 +85,8 @@ describe('money questions and the weekly money recap (feature 5)', () => {
   test('the weekly recap with the room to spend', () => expect(textOf(ask('How much room to spend do I have?'))).toMatch(/Room to spend: [\d.]+ EUR left of 200.00 EUR/));
   test('Dutch', () => expect(textOf(ask('Hoeveel heb ik deze week uitgegeven?'))).toMatch(/Je gaf deze week/));
 });
+describe('the journal and the energy (feature 6)', () => {
+  test('patterns from the journal, on the device', () => expect(textOf(ask('What patterns do you see in my journal?'))).toMatch(/You wrote about sleep and tiredness in \d+ of your last 10 entries/));
+  test('energy, the last 7 days', () => expect(textOf(ask('How was my energy this week?'))).toMatch(/Your energy, the last 7 days: [\d.]+ of 5/));
+  test('energy with Health not shared is not read', () => expect(ask('How was my energy this week?', closed).kind).toBe('refusal'));
+});

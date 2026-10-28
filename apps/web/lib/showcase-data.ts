@@ -47,6 +47,10 @@ import {WORKOUTS_KEY} from './workouts/schema';
 import {showcaseWorkouts} from './workouts/showcase';
 import {MONEY_LOG_KEY} from './money-log/schema';
 import {showcaseMoneyLog} from './money-log/showcase';
+import {JOURNAL_KEY} from './journal/schema';
+import {showcaseJournal} from './journal/showcase';
+import {ENERGY_KEY} from './energy/schema';
+import {showcaseEnergy} from './energy/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -154,6 +158,9 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
  records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
+ // Session AI (B3, feature 6): a fictional journal with ZIGi's questions answered, and two weeks of energy ratings.
+ records[JOURNAL_KEY]=JSON.stringify(showcaseJournal(day));
+ records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.

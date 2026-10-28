@@ -9560,6 +9560,38 @@
         color: #cfc6dd
     }
 }
+/*  components/journal/journal.css  */
+@scope (:root[data-theme=dark]) {
+    .journal-energy:not(#\-) {
+        border-color: currentcolor
+    }
+    .journal-energy-dot span[aria-hidden]:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.35))
+    }
+    .journal-energy-dot input:checked+span:not(#\-) {
+        background-image: linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
+        background-color: transparent;
+        color: #0b1020;
+        border-color: transparent
+    }
+    .journal-energy-dot input:focus-visible+span:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .journal-energy-bar:not(#\-) {
+        background-image: linear-gradient(180deg,var(--cyan,#6fd3ff),var(--violet,#8b7cff));
+        background-color: transparent
+    }
+    .journal-energy-bar[data-empty]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#e8eefc) 14%,transparent)
+    }
+    .journal-entries li:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .journal-entry-date:not(#\-) {
+        color: var(--muted,#a1afc8)
+    }
+}
 /*  components/layout-edit.css  */
 @scope (:root[data-theme=dark]) {
     .layout-lock:not(#\-) {

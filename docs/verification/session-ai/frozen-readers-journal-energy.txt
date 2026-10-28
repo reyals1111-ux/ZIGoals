@@ -1,0 +1,1023 @@
+Fixture written by 7f9bedb7 (with working-tree changes if any).
+#37 32cb9c5: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  ABSENT zigoals:goal-extras:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:average-goals:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-extras:v1#merged: no reader in this release (the key is ignored)
+  ABSENT zigoals:calculator:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:life-review:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:today-cards:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:reminders-plan:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:habit-extras:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:routine-run:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:game:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:health-coach:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:micro-targets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:macro-mode:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:aisles:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:measurements-custom:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:health-vitamins:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 124ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#38 e3fa408: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  ABSENT zigoals:reminders-plan:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:habit-extras:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:routine-run:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:game:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:health-coach:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:micro-targets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:macro-mode:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:aisles:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:measurements-custom:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:health-vitamins:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 124ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 9ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#39 6c1052b: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 125ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 9ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 17ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 9ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:game:v1: read by ./game/schema (GAME) or ignored 7ms
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  ABSENT zigoals:health-vitamins:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 66ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#40 985720e: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 125ms
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 10ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:game:v1: read by ./game/schema (GAME) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 53ms
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #40 985720e > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#41 9e41f0d: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 127ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > layout: an unknown block is ignored on screen and kept on save 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 9ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:game:v1: read by ./game/schema (GAME) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 3ms
+  READ zigoals:micro-targets:v1
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 54ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #41 9e41f0d > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#42 61204c3: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 126ms
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > layout: an unknown block is ignored on screen and kept on save 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 10ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 53ms
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #42 61204c3 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#43 11d8408: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 134ms
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > layout: an unknown block is ignored on screen and kept on save 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 47ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  ABSENT zigoals:linked-wallets:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #43 11d8408 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#44 4f92495: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 132ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > layout: an unknown block is ignored on screen and kept on save 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 46ms
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  ABSENT zigoals:earn-path:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-academy:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:earn-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:checklist-days:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-prefs:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:staking-journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:wallet-balances:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:goal-vaults:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:validator-alerts:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:zigi-plans:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:universe:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:day-timeline:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:stories:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 10ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #44 4f92495 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#45 8778497: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 135ms
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 46ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  READ zigoals:earn-path:v1
+  READ zigoals:earn-academy:v1
+  READ zigoals:earn-prefs:v1
+  READ zigoals:checklist:v1
+  READ zigoals:checklist-days:v1
+  READ zigoals:staking-prefs:v1
+  READ zigoals:staking-journal:v1
+  READ zigoals:wallet-balances:v1
+  READ zigoals:goal-vaults:v1
+  READ zigoals:validator-alerts:v1
+  READ zigoals:zigi-plans:v1
+  READ zigoals:universe:v1
+  READ zigoals:day-timeline:v1
+  READ zigoals:stories:v1
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 10ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 13ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #45 8778497 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#46 98a29b4: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 135ms
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  READ zigoals:macro-mode:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 46ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  READ zigoals:earn-path:v1
+  READ zigoals:earn-academy:v1
+  READ zigoals:earn-prefs:v1
+  READ zigoals:checklist:v1
+  READ zigoals:checklist-days:v1
+  READ zigoals:staking-prefs:v1
+  READ zigoals:staking-journal:v1
+  READ zigoals:wallet-balances:v1
+  READ zigoals:goal-vaults:v1
+  READ zigoals:validator-alerts:v1
+  READ zigoals:zigi-plans:v1
+  READ zigoals:universe:v1
+  READ zigoals:day-timeline:v1
+  READ zigoals:stories:v1
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #46 98a29b4 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#47 b0fe242: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 136ms
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  READ zigoals:macro-mode:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 48ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 3ms
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  READ zigoals:earn-path:v1
+  READ zigoals:earn-academy:v1
+  READ zigoals:earn-prefs:v1
+  READ zigoals:checklist:v1
+  READ zigoals:checklist-days:v1
+  READ zigoals:staking-prefs:v1
+  READ zigoals:staking-journal:v1
+  READ zigoals:wallet-balances:v1
+  READ zigoals:goal-vaults:v1
+  READ zigoals:validator-alerts:v1
+  READ zigoals:zigi-plans:v1
+  READ zigoals:universe:v1
+  READ zigoals:day-timeline:v1
+  READ zigoals:stories:v1
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 12ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #47 b0fe242 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#48 261f32a: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 135ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > layout: an unknown block is ignored on screen and kept on save 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:game:v1: read by ./game/schema (GAME) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 47ms
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  READ zigoals:earn-path:v1
+  READ zigoals:earn-academy:v1
+  READ zigoals:earn-prefs:v1
+  READ zigoals:checklist:v1
+  READ zigoals:checklist-days:v1
+  READ zigoals:staking-prefs:v1
+  READ zigoals:staking-journal:v1
+  READ zigoals:wallet-balances:v1
+  READ zigoals:goal-vaults:v1
+  READ zigoals:validator-alerts:v1
+  READ zigoals:zigi-plans:v1
+  READ zigoals:universe:v1
+  READ zigoals:day-timeline:v1
+  READ zigoals:stories:v1
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 12ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #48 261f32a > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#49 f13abb0: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 137ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 50ms
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  READ zigoals:earn-path:v1
+  READ zigoals:earn-academy:v1
+  READ zigoals:earn-prefs:v1
+  READ zigoals:checklist:v1
+  READ zigoals:checklist-days:v1
+  READ zigoals:staking-prefs:v1
+  READ zigoals:staking-journal:v1
+  READ zigoals:wallet-balances:v1
+  READ zigoals:goal-vaults:v1
+  READ zigoals:validator-alerts:v1
+  READ zigoals:zigi-plans:v1
+  READ zigoals:universe:v1
+  READ zigoals:day-timeline:v1
+  READ zigoals:stories:v1
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 12ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 12ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #49 f13abb0 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)
+#50 80570b5: PASS
+  READ zigoals:layout:v1: habits:routines ignored on screen, kept on save
+  READ zigoals:goal-extras:v1
+  READ zigoals:average-goals:v1
+  READ zigoals:goal-extras:v1#merged
+  READ zigoals:calculator:v1
+  READ zigoals:life-review:v1
+  READ zigoals:today-cards:v1
+  READ zigoals:reminders-plan:v1
+  READ zigoals:habit-extras:v1
+  READ zigoals:routine-run:v1
+  READ zigoals:game:v1
+  READ zigoals:health-coach:v1
+  READ zigoals:micro-targets:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 134ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > layout: an unknown block is ignored on screen and kept on save 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:average-goals:v1: read by ./average-goals/store (AVERAGE_GOALS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:goal-extras:v1#merged: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:calculator:v1: read by ./compound/store (CALCULATOR) or ignored 8ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:life-review:v1: read by ./life-review/store (LIFE_REVIEW) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:today-cards:v1: read by ./today-cards/store (TODAY_CARDS) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:reminders-plan:v1: read by ./reminders-plan/schema (REMINDERS_PLAN) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:habit-extras:v1: read by ./habits-extras/schema (HABIT_EXTRAS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:routine-run:v1: read by ./routines/run-schema (ROUTINE_RUN) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:game:v1: read by ./game/schema (GAME) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:health-coach:v1: read by ./health-aa/coach-schema (HEALTH_COACH) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:micro-targets:v1: read by ./health-aa/micro (MICRO_TARGETS) or ignored 49ms
+  READ zigoals:macro-mode:v1
+  READ zigoals:aisles:v1
+  READ zigoals:measurements-custom:v1
+  READ zigoals:health-vitamins:v1
+  READ zigoals:linked-wallets:v1
+  READ zigoals:earn-path:v1
+  READ zigoals:earn-academy:v1
+  READ zigoals:earn-prefs:v1
+  READ zigoals:checklist:v1
+  READ zigoals:checklist-days:v1
+  READ zigoals:staking-prefs:v1
+  READ zigoals:staking-journal:v1
+  READ zigoals:wallet-balances:v1
+  READ zigoals:goal-vaults:v1
+  READ zigoals:validator-alerts:v1
+  READ zigoals:zigi-plans:v1
+  READ zigoals:universe:v1
+  READ zigoals:day-timeline:v1
+  READ zigoals:stories:v1
+  ABSENT zigoals:money-log:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:journal:v1: no reader in this release (the key is ignored)
+  ABSENT zigoals:energy:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:macro-mode:v1: read by ./health-aa/macro-mode (MACRO_MODE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:aisles:v1: read by ./health-aa/aisles (AISLES_RECORD) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:measurements-custom:v1: read by ./health-aa/measurements-custom (MEASUREMENTS_CUSTOM) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:health-vitamins:v1: read by ./health-vitamins/schema (HEALTH_VITAMINS) or ignored 7ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:linked-wallets:v1: read by ./linked-wallets (LINKED_WALLETS) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:earn-path:v1: read by ./earn/records (EARN_PATH) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:earn-academy:v1: read by ./earn/records (EARN_ACADEMY) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:earn-prefs:v1: read by ./earn/records (EARN_PREFS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:checklist:v1: read by ./checklist/schema (CHECKLIST) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:checklist-days:v1: read by ./checklist/schema (CHECKLIST_DAYS) or ignored 1ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:staking-prefs:v1: read by ./staking/prefs (STAKING_PREFS) or ignored 11ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:staking-journal:v1: read by ./staking/journal (STAKING_JOURNAL) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:wallet-balances:v1: read by ./wallets/balances/store (WALLET_BALANCES) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:goal-vaults:v1: read by ./goal-vaults/store (GOAL_VAULTS) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:validator-alerts:v1: read by ./validators/health (VALIDATOR_ALERTS) or ignored 5ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:zigi-plans:v1: read by ./ai/store/plans (ZIGI_PLANS) or ignored 6ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:universe:v1: read by ./universe/store (UNIVERSE) or ignored 4ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:day-timeline:v1: read by ./timeline/store (DAY_TIMELINE) or ignored 3ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:stories:v1: read by ./stories/store (STORIES) or ignored 2ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:money-log:v1: read by ./money-log/schema (MONEY_LOG) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:journal:v1: read by ./journal/schema (JOURNAL) or ignored 0ms
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #50 80570b5 > zigoals:energy:v1: read by ./energy/schema (ENERGY) or ignored 0ms
+  Tests  36 passed (36)

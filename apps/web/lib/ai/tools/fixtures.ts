@@ -29,6 +29,8 @@ import {chessOf} from '../../skills/chess/engine';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema} from '../../dashboard-settings';
 import {linksOf} from '../../links/engine';
 import {MONEY_LOG_KEY, moneyLogSchema} from '../../money-log/schema';
+import {JOURNAL_KEY, journalSchema} from '../../journal/schema';
+import {ENERGY_KEY, energySchema} from '../../energy/schema';
 
 /**
  * Fixtures for ZIGi's tools and for every path that reads them (Session V; used by unit tests only, nothing in the app
@@ -81,7 +83,8 @@ export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {})
   return {now: new Date(`${day}T19:00:00Z`), habitDay: day, healthDay: day, habitZone: 'UTC', healthZone: 'UTC', habits, health, fasting, platform, localGoals: [], metadata: {}, quotes: [], localActivity: null, portfolio: null, weekly, notes: null,
     accounts, milestoneDates: null, chess, linksCount: linksOf(settings).items.length, showcase: true,
     // Session AI: the Showcase's spending log (lib/money-log/showcase.ts).
-    moneyLog: records[MONEY_LOG_KEY] ? moneyLogSchema.parse(JSON.parse(records[MONEY_LOG_KEY])) : null, ...overrides};
+    moneyLog: records[MONEY_LOG_KEY] ? moneyLogSchema.parse(JSON.parse(records[MONEY_LOG_KEY])) : null,
+    journal: records[JOURNAL_KEY] ? journalSchema.parse(JSON.parse(records[JOURNAL_KEY])) : null, energy: records[ENERGY_KEY] ? energySchema.parse(JSON.parse(records[ENERGY_KEY])) : null, ...overrides};
 }
 const at = (day: string) => `${day}T08:00:00.000Z`;
 /** Health records with sentinel names and values, a check-in filled in from Health, and a Health-tagged note. */

@@ -21,13 +21,16 @@ Read this first when resuming in a fresh workspace; then ADR-034 and the approve
 ## Done
 - Part 0: STATUS records (AH, AH-FIX, Alpha #50), ADR-034, this file, the ledger file, Draft PR #97 (`215d3b11`).
 - A1: the harness (`7966bc23`), the WebKit install cache, TIER 3 (CI) (`2931755a`), the 298 depth cases (`2382bb72`). Research: COMPETITORS.md, EXCHANGES.md. 15 real photos in the runs folder (`photos/`, licences in SOURCES.md).
-- A2 baseline: running from the worktree `/Users/AIUSER/Documents/ZIGoals-Claude-ai-baseline` (detached at `2382bb72`, packages symlinked), `stage.sh` in the runs folder; logs in `logs/a2-baseline-*.log`.
+- A2 baseline: from the worktree `/Users/AIUSER/Documents/ZIGoals-Claude-ai-baseline` (detached at `2382bb72`); photos done on 3 models (Sonnet 30/30, Opus 28/30, Haiku 26/30; the not-food check was then widened).
+- B1 all seven groups: `83055397` (numbers, answer vs change, device answers), group 2 (fallbacks, G6 set, chip gate script, exact names, typos, follow-ups, 15k input), `cef4c63e` (groups 3–4: setup, settings, guardrails, tone, G12), `4b8d0e41` (zigi-knock), `b0ecc8db` (J10 one line).
+- A3-r1 (from the worktree `/Users/AIUSER/Documents/ZIGoals-Claude-ai-a3` at `cef4c63e`): Sonnet 1947/2089 (93.2 %), Haiku 1907/2089 (91.3 %). Failure analysis by a helper: `<runs>/analysis/a3-r1-failures.md`.
+- B3/feature 5: the expense log, TIER 3 (stored format) `7f9bedb7` (Wealth → Spending, ZIGi cards and spending tool, money recap). Journal + daily energy (feature 6) in progress.
 
 ## Track A ledger total
-$0.005 of $95 after A1 (A2 running: forecasts $0.90 Haiku, ≤ $15.68 Sonnet).
+≈ $30 of $95 after A3-r1 (rebuild with ledger.mjs before every run).
 
 ## Next step
-B1 group 1 (numbers and answer-vs-change: ZI1/G1, ZI3/G7, ZI12, G11) in the main checkout while A2 runs; then the photo baseline on three models (`photo-model.test.ts`, ZIGI_PHOTOS=<runs>/photos).
+Commit the journal + energy (TIER 3 stored format, frozen readers #37–#50), then features 3 (memory page), 4 (insights), 1 (photo ranges), 2 (voice), 7–9, the mascot, G9/G10/G13/G14, then B3's list; A3-r2 after the analysis's fixes (use a fresh worktree at the commit to run).
 
 ## How to run a stage
 `<runs>/scripts/stage.sh <checkout> <stage> <model> <sets> <cases> <cap>` (background with nohup; the harness reads the key file itself). Sets: `corpus` = typed, af, aa, spoken, ai. Check the ledger first: `node scripts/zigi/ledger.mjs --runs <runs> --cap 95 --check <forecast> --title 'Session AI'`.

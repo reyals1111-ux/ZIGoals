@@ -1,0 +1,25 @@
+/* Session AI: the journal and the daily energy (nebula style, theme tokens, 44 px targets, no motion). */
+.journal-compose{display:grid;gap:10px}
+.journal-energy{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:0;margin:0;padding:0}
+.journal-energy legend{font-size:14px;margin-bottom:6px;padding:0}
+.journal-energy-dot{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;cursor:pointer}
+.journal-energy-dot input{position:absolute;opacity:0;width:1px;height:1px}
+.journal-energy-dot span[aria-hidden]{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--line,rgba(140,160,220,.35));font-size:15px}
+.journal-energy-dot input:checked+span{background:linear-gradient(135deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));color:#0b1020;border-color:transparent}
+.journal-energy-dot input:focus-visible+span{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.journal-energy-word{margin-left:6px}
+.journal-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.journal-question{font-size:16px;margin:0}
+.journal-question .eyebrow,.journal-pattern .eyebrow{margin-right:6px}
+.journal-status{min-height:20px;margin:0;font-size:15px}
+.journal-pattern{margin:0;font-size:15px}
+.journal-page{display:grid;gap:16px}
+.journal-energy-bars{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(14,1fr);gap:6px;align-items:end;height:90px}
+.journal-energy-bars li{height:100%;display:flex;align-items:flex-end}
+.journal-energy-bar{display:block;width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--cyan,#6fd3ff),var(--violet,#8b7cff))}
+.journal-energy-bar[data-empty]{background:color-mix(in srgb,var(--text,#e8eefc) 14%,transparent)}
+.journal-entries{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.journal-entries li{border-bottom:1px solid var(--line,rgba(140,160,220,.18));padding-bottom:10px}
+.journal-entry-date{margin:0;font-size:14px;color:var(--muted,#a1afc8)}
+.journal-entry-text{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.switch-row{display:flex;gap:10px;align-items:center;min-height:44px}

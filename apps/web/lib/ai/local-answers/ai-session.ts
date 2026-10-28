@@ -4,6 +4,7 @@ import type {ToolEnv} from '../tools/env';
 import {runTool} from '../tools/registry';
 import type {ToolOk, ToolResult} from '../tools/types';
 import {questionLanguage} from './no-model';
+import {patternLine, patterns} from '../../journal/reflect';
 import type {LocalReply, ToolCallRecord} from './engine';
 
 /**
@@ -173,6 +174,23 @@ function roomAnswer(lang: Lang, env: ToolEnv): LocalReply {
   return {kind: 'answer', text: say(lang, `This week: spent ${spent || 'nothing yet'}${top ? `, most on ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Recorded wealth this week: ${worth}.` : ''} Your own figures; not financial advice.`,
     `Deze week: ${spent || 'nog niets'} uitgegeven${top ? `, het meest aan ${top.category} (${top.spent})` : ''}. ${room}${worth ? ` Vastgelegd vermogen deze week: ${worth}.` : ''} Je eigen cijfers; geen financieel advies.`), calls: [s.record, w.record]};
 }
+const JOURNAL_Q = /\b(?:patterns?|what (?:do you|can you) see|what have i (?:been )?writ(?:ten|ing)|themes?)\b.*\b(?:journal|entries|diary)\b|\bmy journal\b|\b(?:patronen|wat zie je)\b.*\b(?:dagboek|journal)\b/i;
+const ENERGY_Q = /\b(?:how (?:is|was|has been) my energy|my energy (?:this|last) week|energy level|hoe (?:is|was) mijn energie|mijn energie)\b/i;
+/** Session AI (feature 6): journal patterns, on this device only (nothing is sent; the words never leave it). */
+function journalAnswer(lang: Lang, env: ToolEnv): LocalReply {
+  const j = env.journal;
+  if (!j || !j.entries.length) return {kind: 'answer', text: say(lang, 'Your journal is empty on this device. Write a few lines on Today or the Journal page.', 'Je dagboek is leeg op dit apparaat. Schrijf een paar regels op Vandaag of de dagboekpagina.'), calls: []};
+  const found = patterns(j, env.energy ?? null).slice(0, 3);
+  if (!found.length) return {kind: 'answer', text: say(lang, `${j.entries.length} entries so far; no theme came up three times in your last 14 yet.`, `Tot nu toe ${j.entries.length} stukjes; nog geen thema kwam drie keer terug in je laatste 14.`), calls: []};
+  return {kind: 'answer', text: `${found.map(p => patternLine(p, lang)).join('\n')}\n${say(lang, 'Counts from your own entries, made on this device; never a diagnosis.', 'Tellingen uit je eigen stukjes, op dit apparaat gemaakt; nooit een diagnose.')}`, calls: []};
+}
+function energyAnswer(lang: Lang, env: ToolEnv): LocalReply {
+  const e = call('energy', {days: 7}, env);
+  if (!e.result.ok) return refusalOf(e.result, [e.record]);
+  const d = dataOf(e.result) as {rated: number; average: number | null};
+  if (!d.rated) return {kind: 'answer', text: say(lang, 'No energy rated in the last 7 days. Tap 1 to 5 on Today’s journal card.', 'Geen energie gemeten de afgelopen 7 dagen. Tik 1 tot 5 op de dagboekkaart van Vandaag.'), calls: [e.record]};
+  return {kind: 'answer', text: say(lang, `Your energy, the last 7 days: ${d.average} of 5 on average, rated on ${d.rated} days (1 drained · 5 full of energy).`, `Je energie, de afgelopen 7 dagen: gemiddeld ${d.average} van 5, op ${d.rated} dagen gemeten (1 leeg · 5 vol energie).`), calls: [e.record]};
+}
 /** The device's answer to one of these questions, or null (the engine's own fallback stands). */
 export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null {
   const q = question.trim(), lang: Lang = questionLanguage(q) === 'nl' ? 'nl' : 'en';
@@ -183,6 +201,8 @@ export function aiLocalAnswer(question: string, env: ToolEnv): LocalReply | null
   if (WORST_HABIT.test(q)) return worstHabitAnswer(lang, env);
   if (WHY_CHANGE.test(q)) return whyAnswer(lang, q, env);
   if (ROOM_Q.test(q)) return roomAnswer(lang, env);
+  if (JOURNAL_Q.test(q)) return journalAnswer(lang, env);
+  if (ENERGY_Q.test(q)) return energyAnswer(lang, env);
   if (SPEND_Q.test(q)) return spendAnswer(lang, q, env);
   if (WHAT_SEE.test(q)) return whatSeeAnswer(lang, env);
   const asset = ASSET.exec(q);
