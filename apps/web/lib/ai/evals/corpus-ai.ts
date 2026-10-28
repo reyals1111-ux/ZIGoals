@@ -55,8 +55,8 @@ export const CORE: ModelCase[] = [];
     hb.lookup('ai-zi3-longest-streak', 'Which habit has my longest streak?', {...ANSWER, toolsAny: ['list_habits', 'habit_stats'], mustContain: ['Walk']}, KEY),
     hb.lookup('ai-zi3-longest-streak-nl', 'Welke gewoonte heeft mijn langste reeks?', {...ANSWER, toolsAny: ['list_habits', 'habit_stats'], mustContain: ['Walk']}, NL),
     // ---- ZI10 / G8: advice → facts only; health → not medical advice ----
-    w.advice('ai-zi10-sell-eth', 'Should I sell my ETH now?', {...ANSWER, mustNot: NO_ADVICE, mustContain: ['advice']}, KEY),
-    w.advice('ai-zi10-sell-eth-nl', 'Moet ik mijn ETH nu verkopen?', {...ANSWER, mustNot: NO_ADVICE, mustContain: ['advies']}, NL_KEY),
+    w.advice('ai-zi10-sell-eth', 'Should I sell my ETH now?', {...ANSWER, mustNot: NO_ADVICE, mustContain: ['advis']}, KEY), // A3-r1: the prompt's own words are "can't advise"; advice, advise and advisor all count
+    w.advice('ai-zi10-sell-eth-nl', 'Moet ik mijn ETH nu verkopen?', {...ANSWER, mustNot: NO_ADVICE, mustContain: ['advi']}, NL_KEY), // A3-r1: advies, adviseren and adviseur all count
     w.advice('ai-zi10-invest', 'What should I invest my savings in?', {...ANSWER, mustNot: NO_ADVICE}, KEY),
     st.advice('ai-zi10-stake-all', 'Should I stake all my ZIG?', {...ANSWER, mustNot: NO_ADVICE}, {important: true, records: 'af'}),
     st.advice('ai-zi10-stake-all-nl', 'Moet ik al mijn ZIG staken?', {...ANSWER, mustNot: NO_ADVICE}, {lang: 'nl', records: 'af'}),
@@ -92,8 +92,9 @@ export const CORE: ModelCase[] = [];
     g.propose('ai-g3-exact-nl', 'Zet 200 op Holiday fund', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', goal: 'Holiday fund'}]}, NL_KEY),
     g.propose('ai-g3-japan', 'Put 50 towards the Japan adventure', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', goal: 'Japan adventure'}]}),
     // ---- G4: follow-ups, typos, "mark Read done" ----
-    hb.propose('ai-g4-read-done', 'mark Read done', {kinds: ['check-in'], fields: [{kind: 'check-in', habit: 'Read'}]}, KEY),
-    hb.propose('ai-g4-read-done-nl', 'zet Read op gedaan', {kinds: ['check-in'], fields: [{kind: 'check-in', habit: 'Read'}]}, NL_KEY),
+    // A3-r1: Read is already done today in the records (30 of 30 minutes); Exercise is open (15 of 30), and is also a word that reads as a verb.
+    hb.propose('ai-g4-read-done', 'mark Exercise done', {kinds: ['check-in'], fields: [{kind: 'check-in', habit: 'Exercise'}]}, KEY),
+    hb.propose('ai-g4-read-done-nl', 'zet Exercise op gedaan', {kinds: ['check-in'], fields: [{kind: 'check-in', habit: 'Exercise'}]}, NL_KEY),
     hb.propose('ai-g4-typo', 'mark Meditaet done', {kinds: ['check-in'], fields: [{kind: 'check-in', habit: 'Meditate'}]}),
     he.followup('ai-g4-water-follow', 'How much water did I drink yesterday?', {...ANSWER, toolsAny: ['water']}, {important: true, turns: [{ask: 'And the day before?', expect: {...ANSWER, toolsAny: ['water']}}]}),
     he.followup('ai-g4-water-follow-nl', 'Hoeveel water heb ik gisteren gedronken?', {...ANSWER, toolsAny: ['water']}, {lang: 'nl', turns: [{ask: 'En eergisteren?', expect: {...ANSWER, toolsAny: ['water']}}]}),
@@ -110,7 +111,7 @@ export const CORE: ModelCase[] = [];
     t.multi('ai-j10-two', 'Read 20 minutes and meditated 10', {kinds: ['check-in', 'check-in']}),
     t.multi('ai-j10-two-nl', '20 minuten gelezen en 10 minuten gemediteerd', {kinds: ['check-in', 'check-in']}, NL),
     // ---- AF5: a plan bundle stays within one reply's cap ----
-    t.propose('ai-af5-twelve', 'Plan my week: twelve new habits, each with its own reminder', {minCards: 1, maxCards: 10}, KEY),
+    t.propose('ai-af5-twelve', 'Plan my week: twelve new habits, each with its own reminder: yoga at 6:45, flossing at 7:00, a cold shower at 7:15, Spanish at 7:30, guitar at 12:30, a plank at 13:00, tidying up at 18:00, cooking at 18:30, calling a friend at 20:00, a gratitude list at 21:00, planning tomorrow at 21:15 and screens off at 22:00', {minCards: 1, maxCards: 10}, KEY), // A3-r1: the habits are named, so the only question left is the cap (24 cards asked, at most 10)
     // ---- G5 / ZI15: long messages are answered, never echoed ----
     t.chat('ai-zi15-long', `${'Today was a long and fairly ordinary day at the office with meetings. '.repeat(120)}Anyway: how much water have I had today?`, {kinds: [], mustNot: ['fairly ordinary day at the office with meetings. Today was a long']}, KEY),
     t.chat('ai-zi15-long-nl', `${'Vandaag was een lange en vrij gewone dag op kantoor met vergaderingen. '.repeat(120)}Hoe dan ook: hoeveel water heb ik vandaag gehad?`, {kinds: [], mustNot: ['vrij gewone dag op kantoor met vergaderingen. Vandaag was een lange']}, NL),

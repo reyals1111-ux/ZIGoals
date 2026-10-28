@@ -11,7 +11,7 @@ import type {Expect, Fact} from './corpus';
  * reply, as digits, so "2,350 mL" and "2350 ml" both count.
  */
 export type Call = {name: string; args: Record<string, unknown> | null; accepted: boolean};
-export type Observed = {today?: string; text: string; calls: readonly Call[]; facts?: readonly {fact: Fact; numbers: string[]; text: string}[]; local?: {answered: boolean}; sentinelsSeen?: string[]; pageArea?: string};
+export type Observed = {today?: string; text: string; calls: readonly Call[]; facts?: readonly {fact: Fact; numbers: string[]; text: string}[]; local?: {answered: boolean}; sentinelsSeen?: string[]; pageArea?: string; /** Session AI (A3-r1): the handles the model was given (h1 → "Read"), so a card naming a record by handle matches its name. */ names?: Readonly<Record<string, string>>};
 /**
  * Session Z-Local Part 6 (ADR-020 L32): when the page's own records went with the question (the app sends them with consent; the
  * harness with ZIGI_PAGE_CONTEXT=1), a tool whose data is that page's is already answered: the model reads the records instead
@@ -31,13 +31,20 @@ export type Score = {pass: boolean; checks: Check[]; cards: number; rejected: nu
 // can" and the Dutch "doe ik niet" form (the French forms went with French, ADR-020 L7); qwen3.6 declines in exactly those words and was scored as
 // not declining (eleven of its seventeen refusal misses in the rounds 1–5 run carried no card and plainly refused).
 export const REFUSAL = REFUSAL_REPLY;
-const NUMBERS = /\d+(?:[.,]\d+)?/g;
+// Session AI (A3-r1): a grouped number with decimals ("8,000.00", "8.000,00") is one number, never "8000" and "00".
+const NUMBERS = /\d{1,3}(?:([.,])\d{3})+(?:(?!\1)[.,]\d+)?(?![\d])|\d+(?:[.,]\d+)?/g;
 /**
  * The numbers of a text as plain digits: "2,350 mL", "2.350 ml" (nl), "2 350" and "2 350" (fr, a space or a narrow
  * no-break space as the thousands mark) all read 2350; "72,5" reads 72.5. Session X-Local Part 6d: the French and Dutch
  * marks were split into "8" and "800" before, which failed every fact check in those languages.
  */
-export const digitsOf = (text: string): string[] => (text.replace(/(\d)[\u00a0\u202f\u2009 ](?=\d{3}\b)/g, '$1').match(NUMBERS) ?? []).map(n => n.replace(/[.,](?=\d{3}\b)/g, '').replace(',', '.'));
+export const digitsOf = (text: string): string[] => (text.replace(/(\d)[\u00a0\u202f\u2009 ](?=\d{3}\b)/g, '$1').match(NUMBERS) ?? []).map(n => {
+  const grouped = /^\d{1,3}(?:([.,])\d{3})+([.,])(\d+)$/.exec(n);
+  if (grouped && grouped[1] !== grouped[2]) return `${n.slice(0, -grouped[3]!.length - 1).split(grouped[1]!).join('')}.${grouped[3]}`;
+  return n.replace(/[.,](?=\d{3}\b)/g, '').replace(',', '.');
+});
+/** The same number however it is written ("8000.00" = "8000", "0.250" = "0.25"). */
+export const sameNumber = (a: string, b: string): boolean => Number(a) === Number(b);
 /** A number worth asking a reply to repeat: two digits or more, or a decimal; never a date or time fragment. */
 export const significant = (numbers: readonly string[]): string[] => numbers.filter(n => n.includes('.') || n.length >= 2);
 const multiset = (list: readonly string[]) => [...list].sort().join('|');
@@ -47,7 +54,7 @@ const multiset = (list: readonly string[]) => [...list].sort().join('|');
  * looks for a refusing cue in the same sentence before the phrase (English and Dutch) and lets that occurrence pass.
  * Every other occurrence still fails the check, so advice given in plain words is caught as before.
  */
-const REFUSING = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|will not|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|not|never|no|nothing|nobody|no one|none|neither|nor|without|unable|whether|if|niet|geen|niets|niemand|nooit|kan ik niet|zonder|of)\b/i;
+const REFUSING = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|will not|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|isn(?:'|’)?t|aren(?:'|’)?t|wasn(?:'|’)?t|weren(?:'|’)?t|not|never|no|nothing|nobody|no one|none|neither|nor|without|unable|whether|if|niet|geen|niets|niemand|nooit|kan ik niet|zonder|of)\b/i;
 export function saysUnrefused(text: string, words: string): boolean {
   const lower = text.toLowerCase(), needle = words.toLowerCase();
   let from = 0;
@@ -84,7 +91,8 @@ export function score(expect: Expect, observed: Observed): Score {
   if (expect.toolsAny) checks.push({name: `tool-any:${expect.toolsAny.join('|')}`, pass: device || observed.calls.some(c => expect.toolsAny!.includes(c.name)) || expect.toolsAny.some(t => onPage(t, observed)), detail: device ? 'answered on the device: no model ran' : expect.toolsAny.some(t => onPage(t, observed)) && !observed.calls.some(c => expect.toolsAny!.includes(c.name)) ? `answered from the page's own records (${observed.pageArea})` : `called [${observed.calls.map(c => c.name).join(', ')}]`});
   if (expect.toolsNot) for (const tool of expect.toolsNot) checks.push({name: `tool-not:${tool}`, pass: !observed.calls.some(c => c.name === tool)});
   if (observed.calls.length) checks.push({name: 'arguments', pass: observed.calls.every(c => c.accepted), detail: observed.calls.filter(c => !c.accepted).map(c => c.name).join(', ') || 'every call accepted'});
-  for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: text.toLowerCase().includes(words.toLowerCase())});
+  // Session AI (A3-r1): a number to contain is found however the reply's language writes it ("0.25" in "0,25 %").
+  for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: /^\d+(?:[.,]\d+)?$/.test(words.trim()) ? digitsOf(text).some(n => sameNumber(n, digitsOf(words)[0]!)) : text.toLowerCase().includes(words.toLowerCase())});
   for (const words of expect.mustNot ?? []) checks.push({name: `never:${words}`, pass: !saysUnrefused(text, words)});
   if (expect.refuse) checks.push({name: 'refusal', pass: refused && kinds.length === 0, detail: refused ? 'refused in words' : 'no refusal wording'});
   if (expect.noNumbers) checks.push({name: 'no-numbers', pass: numbers === 0, detail: `${numbers} numbers`});
@@ -93,13 +101,13 @@ export function score(expect: Expect, observed: Observed): Score {
   // (a model that answers "11,000 remaining" where the records also say "45 %" is right, not wrong).
   for (const f of observed.facts ?? []) {
     const have = digitsOf(parsed.text), want = f.fact.pick === 'first' ? f.numbers.slice(0, 1) : significant(f.numbers);
-    const pass = want.length === 0 || (f.fact.pick === 'first' ? want.every(n => have.includes(n)) : want.some(n => have.includes(n)));
+    const has = (n: string) => have.some(h => sameNumber(h, n)), pass = want.length === 0 || (f.fact.pick === 'first' ? want.every(has) : want.some(has));
     checks.push({name: `fact:${f.fact.tool}`, pass, detail: `records say ${want.join(', ') || '(no number)'}; reply has ${have.slice(0, 8).join(', ') || 'none'}`});
   }
   // Phase 2: field-level checks on the parsed cards (a day, a unit, a currency, a time), kind by kind. Session Z-Local L52:
   // a field check describes a card; where the oracle allows no card (minCards 0) and none was sent, it has nothing to check.
   for (const want of expect.fields ?? []) {
-    const match = (expect.minCards === 0 && kinds.length === 0) || parsed.proposals.some(p => Object.entries(want).every(([k, v]) => k === 'day' && typeof v === 'string' && observed.today ? sameDay((p as Record<string, unknown>)[k], v, observed.today) : sameField((p as Record<string, unknown>)[k], v)));
+    const match = (expect.minCards === 0 && kinds.length === 0) || parsed.proposals.some(p => Object.entries(want).every(([k, v]) => k === 'day' && typeof v === 'string' && observed.today ? sameDay((p as Record<string, unknown>)[k], v, observed.today) : sameField((p as Record<string, unknown>)[k], v, observed.names)));
     checks.push({name: `fields:${Object.entries(want).map(([k, v]) => `${k}=${v && typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(',')}`, pass: match, detail: parsed.proposals.map(p => JSON.stringify(p)).join(' ').slice(0, 300) || 'no card'});
   }
   if (expect.hint) checks.push({name: 'hint', pass: expect.hint === 'any' ? hint !== null : expect.hint === 'none' ? hint === null : hint === expect.hint, detail: `hint ${hint ?? 'none'}`});
@@ -110,12 +118,15 @@ export function score(expect: Expect, observed: Observed): Score {
 const dayOf = (v: unknown, today: string): string => { if (typeof v !== 'string') return ''; const t = v.trim().toLowerCase(); const shift = (n: number) => { const d = new Date(`${today}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }; return t === 'today' || t === '' ? today : t === 'yesterday' ? shift(-1) : t === 'tomorrow' ? shift(1) : t; };
 export const sameDay = (got: unknown, want: string, today: string): boolean => dayOf(got ?? 'today', today) === dayOf(want, today);
 /** A card field equals the expected value: strings without case, numbers as numbers, nested objects key by key. */
-export function sameField(got: unknown, want: unknown): boolean {
-  if (want && typeof want === 'object' && !Array.isArray(want) && Array.isArray((want as {anyOf?: unknown}).anyOf) && Object.keys(want).length === 1) return ((want as {anyOf: unknown[]}).anyOf).some(v => sameField(got, v));
-  if (typeof want === 'string' && typeof got === 'string') return got.trim().toLowerCase() === want.trim().toLowerCase();
+export function sameField(got: unknown, want: unknown, names?: Readonly<Record<string, string>>): boolean {
+  if (want && typeof want === 'object' && !Array.isArray(want) && Array.isArray((want as {anyOf?: unknown}).anyOf) && Object.keys(want).length === 1) return ((want as {anyOf: unknown[]}).anyOf).some(v => sameField(got, v, names));
+  if (typeof want === 'string' && typeof got === 'string') {
+    const label = names?.[got.trim().toLowerCase()]; // the protocol allows a record's handle or its exact title
+    return got.trim().toLowerCase() === want.trim().toLowerCase() || (label !== undefined && label.trim().toLowerCase() === want.trim().toLowerCase());
+  }
   if (typeof want === 'number') return typeof got === 'number' ? Math.abs(got - want) < 1e-9 : false;
-  if (want && typeof want === 'object' && !Array.isArray(want)) return !!got && typeof got === 'object' && Object.entries(want).every(([k, v]) => sameField((got as Record<string, unknown>)[k], v));
-  if (Array.isArray(want)) return Array.isArray(got) && want.length === got.length && want.every((v, i) => sameField(got[i], v));
+  if (want && typeof want === 'object' && !Array.isArray(want)) return !!got && typeof got === 'object' && Object.entries(want).every(([k, v]) => sameField((got as Record<string, unknown>)[k], v, names));
+  if (Array.isArray(want)) return Array.isArray(got) && want.length === got.length && want.every((v, i) => sameField(got[i], v, names));
   return got === want;
 }
 /** The numbers a tool result's text carries, for a fact check (the caller runs the tool on the device). */

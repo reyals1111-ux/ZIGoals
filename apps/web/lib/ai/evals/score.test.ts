@@ -120,3 +120,18 @@ test('L53: a day field written as the date it names is that day ("yesterday" on 
   expect(other.pass).toBe(false);
   expect(sameDay('today', 'today', '2026-10-05')).toBe(true); expect(sameDay(undefined, 'today', '2026-10-05')).toBe(true);
 });
+
+test('Session AI (A3-r1): grouped numbers with decimals, numbers in the reply\'s own language, and "isn\'t"', () => {
+  expect(digitsOf('€8,000.00 and 12,450.50 and 8.000,00')).toEqual(['8000.00', '12450.50', '8000.00']);
+  expect(digitsOf('2,350 mL, 72,5 kg, 1.5 L, 3.14159')).toEqual(['2350', '72.5', '1.5', '3.14159']);
+  expect(score({mustContain: ['0.25']}, {text: 'De poolkosten zijn 0,25 %.', calls: []}).pass).toBe(true);
+  expect(score({mustContain: ['0.25']}, {text: 'The fee is 2.5 %.', calls: []}).pass).toBe(false);
+  expect(saysUnrefused('It isn\'t a promise of any return.', 'promise')).toBe(false);
+  expect(saysUnrefused('This is a promise.', 'promise')).toBe(true);
+});
+test('Session AI (A3-r1): a card naming a record by its handle matches the expected name', () => {
+  const card = '```zigoals-action\n{"kind":"check-in","habit":"h6"}\n```';
+  expect(score({fields: [{kind: 'check-in', habit: 'Read'}]}, {text: card, calls: [], names: {h6: 'Read'}}).pass).toBe(true);
+  expect(score({fields: [{kind: 'check-in', habit: 'Read'}]}, {text: card, calls: [], names: {h6: 'Walk'}}).pass).toBe(false);
+  expect(score({fields: [{kind: 'check-in', habit: 'Read'}]}, {text: card, calls: []}).pass).toBe(false);
+});

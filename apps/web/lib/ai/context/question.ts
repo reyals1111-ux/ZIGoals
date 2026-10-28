@@ -96,11 +96,11 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   if (OPEN_TODAY.test(qt)) { add('habits_due', {}); add('list_habits', {}); }
   if (LIST_GOALS.test(qt) || (!s.goals.length && /\b(goals?|doel(?:en)?)\b/.test(qt) && GOAL_WORDS.test(qt))) add('list_goals', {});
   if (LIST_HABITS.test(qt)) add('list_habits', {});
-  if (BRIEF.test(qt)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); }
+  if (BRIEF.test(qt)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); add('checklist_today', {}); } // Session AI (A3-r1): the app's own brief includes the Checklist
   if (DID.test(qt)) add('recent_activity', {range: phrase('today')});
   // Session AF (L4, P8.7): a question about what is on screen ("explain this card", "what does this page show") brings the
   // page's card titles and ids as one removable chip, "This page" (never a value; nothing on Settings or a private screen).
-  const PAGE_REF = /\b(?:this|that|the) (?:card|widget|page|screen|section)\b|\bon (?:this|my) screen\b|\bwhat am i looking at\b|\b(?:deze|die|dit) (?:kaart|pagina|scherm|widget)\b|\bwat zie ik\b/;
+  const PAGE_REF = /\b(?:this|that|the) (?:card|widget|page|screen|section)\b|\bon (?:this|my) screen\b|\bwhat am i looking at\b|\b(?:which|what) (?:of )?(?:these|the) (?:cards?|widgets?)\b|\bthese (?:cards|widgets)\b|\b(?:kaart|kaarten|widget) hier\b|\bwelke (?:van deze )?kaart(?:en)?\b|\b(?:deze|die|dit) (?:kaart|pagina|scherm|widget)\b|\bwat zie ik\b/;
   if (PAGE_REF.test(q) && sources.pageView) calls.push({tool: 'page_view', args: {}, label: 'This page'});
   // Session AF (L4): the Earn coach's figures for a question about earning, and the Checklist for a question about it.
   if (/\b(?:apr|apy|staking (?:rates?|apr|yield|rewards? rate)|unbond\w*|stzig|liquid staking|pool fees?|ways to earn|earn page|staking-?rente|manieren om te verdienen)\b/.test(q)) add('earn_rates', {});

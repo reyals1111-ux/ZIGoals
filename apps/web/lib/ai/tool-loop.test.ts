@@ -7,7 +7,7 @@ import {ollamaBody} from './adapters/ollama';
 import {openAiBody} from './adapters/openai-compatible';
 import {ANTHROPIC_STREAM, FAKE_KEY, GEMINI_STREAM, OLLAMA_STREAM} from './fixtures/mock-streams';
 import {ANTHROPIC_TOOL_STREAM, GEMINI_TOOL_STREAM, OLLAMA_TOOL_STREAM, OPENAI_ANSWER_STREAM, OPENAI_BAD_TOOL_STREAM, OPENAI_TOOL_STREAM, XAI_TOOL_STREAM} from './fixtures/tool-streams';
-import {MAX_CALLS_PER_ROUND, MAX_TOOL_ROUNDS, runWithTools, toolsFor, type LoopEvent} from './tool-loop';
+import {EMPTY_NUDGE, MAX_CALLS_PER_ROUND, MAX_TOOL_ROUNDS, runWithTools, toolsFor, type LoopEvent} from './tool-loop';
 import {toolEnv, type ToolEnv} from './tools/env';
 import {gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withSentinels} from './tools/fixtures';
 import {HEALTH_CLOSED} from './tools/format';
@@ -211,4 +211,23 @@ test('the data cap: results past the answer\'s cap are replaced by a note the mo
   expect(toolsFor(shut)).toEqual([]);
   await drain(runWithTools({...chat('openai', none.fetcher), env: shut, stream: streamChat}));
   expect(none.calls[0]!.body).not.toHaveProperty('tools');
+});
+
+test('Session AI (A3-r1): an empty answer after the records were read gets one nudge round, never a second', async () => {
+  const seen: ChatRequest[] = [];
+  const replies: ChatEvent[][] = [
+    [{type: 'tool-call', call: {id: 't1', name: 'water', arguments: '{"range":"today"}'}}, {type: 'done', reason: 'tool_use'}],
+    [{type: 'done', reason: 'end_turn'}],
+    [{type: 'text', delta: 'You drank 1.5 L today.'}, {type: 'done', reason: 'end_turn'}],
+  ];
+  const stream = async function* (request: ChatRequest) { seen.push(request); for (const e of replies[seen.length - 1] ?? [{type: 'done', reason: null} as ChatEvent]) yield e; };
+  const out = await drain(runWithTools({...chat('anthropic', fetch), env: env(), stream}));
+  expect(seen).toHaveLength(3);
+  expect(seen[2]!.messages.at(-1)).toMatchObject({role: 'user', content: EMPTY_NUDGE});
+  expect(out.text).toBe('You drank 1.5 L today.');
+  // Still empty after the nudge: the loop ends instead of asking again.
+  const quiet: ChatRequest[] = [];
+  const silent = async function* (request: ChatRequest) { quiet.push(request); yield* (quiet.length === 1 ? replies[0]! : [{type: 'done', reason: 'end_turn'} as ChatEvent]); };
+  await drain(runWithTools({...chat('anthropic', fetch), env: env(), stream: silent}));
+  expect(quiet).toHaveLength(3);
 });

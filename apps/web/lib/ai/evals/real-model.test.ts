@@ -16,7 +16,7 @@ import {buildPageContext, type BuilderInput} from '../context/builders';
 import {consent} from '../context/consent';
 type PageContext = ReturnType<typeof buildPageContext>;
 import {emptyWeeklyReview} from '../../weekly-review/schema';
-import type {PageArea} from '../settings';
+import {OUTPUT_CAP, type PageArea} from '../settings';
 import {questionContext} from '../context/question';
 import {Handles} from '../handles';
 import {localAnswer} from '../local-answers/engine';
@@ -142,8 +142,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   // ZIGI_THINK=1 lets a thinking model think (the app's "Think deeper"); the default is the app's quick reply (think off on
   // Ollama, effort low on Claude).
   const wire: ChatRequest = PROVIDER === 'anthropic'
-    ? {provider: 'anthropic', model: MODEL, system, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages, maxOutputTokens: 1024, key: keyNow(), ...(BATCH_ALL ? {} : {signal: AbortSignal.timeout(TIMEOUT_MS)}), think: THINK}
-    : {provider: 'local', localServer: 'ollama', model: MODEL, system, messages, maxOutputTokens: 1024, key: null, baseUrl: BASE, signal: AbortSignal.timeout(TIMEOUT_MS), think: THINK};
+    ? {provider: 'anthropic', model: MODEL, system, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages, maxOutputTokens: OUTPUT_CAP.default, key: keyNow(), ...(BATCH_ALL ? {} : {signal: AbortSignal.timeout(TIMEOUT_MS)}), think: THINK}
+    : {provider: 'local', localServer: 'ollama', model: MODEL, system, messages, maxOutputTokens: OUTPUT_CAP.default, key: null, baseUrl: BASE, signal: AbortSignal.timeout(TIMEOUT_MS), think: THINK};
   const counted = async function* (r: ChatRequest) { let seen = false; for await (const event of transport(r)) { if (!seen) { seen = true; requests++; } yield event; } };
   try {
     if (MODE === 'tools') {
@@ -184,7 +184,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.
   const facts = (c.expect.facts ?? []).map(fact => { const result = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(result).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(result)}; });
   const localReply = localAnswer(ask, local), sentinelsSeen = c.sentinels ? sentinelsIn(system + JSON.stringify(messages) + reply + JSON.stringify(calls)) : undefined;
-  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen, pageArea: PAGE ? c.page : undefined, today: DAY}, reply, repaired, firstTokenMs: first, totalMs, tokens, requests, error};
+  const names = Object.fromEntries([...(page?.handles ?? []), ...(context?.handles ?? []), ...toolHandles.list].map(h => [h.handle, h.label]));
+  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen, pageArea: PAGE ? c.page : undefined, today: DAY, names}, reply, repaired, firstTokenMs: first, totalMs, tokens, requests, error};
 }
 const BATCH_ORIGIN = 'https://api.anthropic.com';
 async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: string; wallMs: number}> {
@@ -202,7 +203,7 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
     const page = PAGE ? pageFor(c, sources, health) : null, context = questionContext(ask, sources, gates, page?.handles ?? []);
     const parts = buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY, healthShared: health, pageContext: page?.text || null});
     // The adapter's body minus `stream` (the Batches API refuses it); everything else (cache markers, effort) is the app's own request.
-    const {stream: _stream, ...params} = anthropicBody({model: MODEL, system: parts.prompt, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages: [{role: 'user', content: ask}], maxOutputTokens: 1024, think: THINK}, {effort: true}); void _stream;
+    const {stream: _stream, ...params} = anthropicBody({model: MODEL, system: parts.prompt, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages: [{role: 'user', content: ask}], maxOutputTokens: OUTPUT_CAP.default, think: THINK}, {effort: true}); void _stream;
     prepared.push({c, ask, sources, context, page, system: parts.prompt, params});
   }
   // The cap (ZIGI_MAX_USD, Part 8): the forecast at batch prices, ~12,000 prompt and ~300 output tokens per case with a 25 % margin, is refused before anything is submitted.

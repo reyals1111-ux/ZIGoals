@@ -9,7 +9,7 @@ export const EMOTION_HINTS = ['insight', 'curious', 'encouraging', 'empathetic',
 export type EmotionHint = (typeof EMOTION_HINTS)[number];
 // Session Z-Local Part 7 (SECURITY_REVIEW_Y F5): every gap in the marker is bounded, so a reply of "[[zigi:" followed by
 // thousands of spaces and no closing bracket is a linear scan, never a backtracking one.
-const MARKER = /(?:⟦|\[\[)[ \t]{0,8}zigi[ \t]{0,8}:[ \t]{0,8}([^⟧\]\n]{0,40}?)[ \t]{0,8}(?:⟧|\]\])/iy;
+const MARKER = /(?:⟦|⟪|\[\[)[ \t]{0,8}zigi[ \t]{0,8}:[ \t]{0,8}([^⟧⟫\]\n]{0,40}?)[ \t]{0,8}(?:⟧|⟫|\]\])/iy; // Session AI (A3-r1): Haiku also writes ⟪zigi: …⟫
 /**
  * The markers of a text, found by their opening bracket (`indexOf`, never a scan of every position) and read with the
  * sticky, bounded pattern at that spot only: linear in the text, however many brackets or spaces it holds.
@@ -17,8 +17,8 @@ const MARKER = /(?:⟦|\[\[)[ \t]{0,8}zigi[ \t]{0,8}:[ \t]{0,8}([^⟧\]\n]{0,40}
 function stripMarkers(text: string, onName: (name: string) => void): string {
   let out = '', cursor = 0, from = 0;
   for (;;) {
-    const a = text.indexOf('[[', from), b = text.indexOf('⟦', from), at = a < 0 ? b : b < 0 ? a : Math.min(a, b);
-    if (at < 0) break;
+    const at = [text.indexOf('[[', from), text.indexOf('⟦', from), text.indexOf('⟪', from)].filter(i => i >= 0).reduce((x, y) => Math.min(x, y), Infinity);
+    if (at === Infinity) break;
     MARKER.lastIndex = at;
     const m = MARKER.exec(text);
     if (m) { onName(m[1]!); out += text.slice(cursor, at); cursor = at + m[0].length; from = cursor; }

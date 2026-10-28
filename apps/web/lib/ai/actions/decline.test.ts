@@ -45,4 +45,18 @@ describe('stripDeclinedBlocks (ADR-017 S75): a decline sends no card', () => {
     const reply = `I can’t move money.\n\n${PREFILL}\n\nAnd:\n\n${block('{"kind":"update-account-balance","account":"a1","balance":1}')}\n\nAsk from Wealth.`;
     expect(stripDeclinedBlocks(reply, 'Swap my stocks for gold')).toBe('I can’t move money.\n\nAnd:\n\nAsk from Wealth.');
   });
+  test('Session AI (A3-r1): a goal-funding ask keeps the Fund form filled in; a milestone tick or a Health value to remember keeps nothing', () => {
+    const fund = block('{"kind":"prefill-contribution","goal":"g1","amount":300}');
+    const out = stripDeclinedBlocks(`I can’t move money, but here is the Fund form filled in; you submit it on Goals.\n\n${fund}\n\n${PREFILL}`, 'Fund the emergency fund from my savings account, 300 euros');
+    expect(parseReply(out).proposals.map(p => p.kind)).toEqual(['prefill-contribution']);
+    expect(stripDeclinedBlocks(`I can’t move money.\n\n${fund}`, 'Move everything into bitcoin now')).toBe('I can’t move money.');
+    const note = block('{"kind":"add-goal-note","goal":"g2","text":"Flights booked"}');
+    expect(stripDeclinedBlocks(`I can’t tick milestones; tick it on the goal.\n\n${note}`, 'Mark the milestone "Flights booked" as reached on the Japan goal')).toBe('I can’t tick milestones; tick it on the goal.');
+    expect(stripDeclinedBlocks(`Dat kan ik niet afvinken; doe het bij het doel.\n\n${note}`, 'Euh, markeer de, eh, zet de mijlpaal vluchten geboekt op behaald bij het Japan-doel.')).toBe('Dat kan ik niet afvinken; doe het bij het doel.');
+    const remember = block('{"kind":"remember","text":"Weighs 80 kg","category":"health"}');
+    expect(stripDeclinedBlocks(`I don’t keep Health figures in notes.\n\n${remember}`, 'Remember my weight is 80 kg and my blood pressure')).toBe('I don’t keep Health figures in notes.');
+    // Not a decline: the card stays.
+    const kept = `Here is the note.\n\n${note}`;
+    expect(stripDeclinedBlocks(kept, 'Mark the milestone "Flights booked" as reached on the Japan goal')).toBe(kept);
+  });
 });
