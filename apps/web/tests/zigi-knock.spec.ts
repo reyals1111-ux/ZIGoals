@@ -27,14 +27,15 @@ function records(): Record<string, string> {
 const showcaseGoal = () => (JSON.parse(buildShowcase(DAY).records[PLATFORM_KEY]!) as {goals: {id: string; name: string; status: string}[]}).goals.find(g => g.status !== 'closed')!;
 async function seed(page: Page, extra: Record<string, unknown> = {}, time = EVENING) {
   await page.clock.install({time});
-  await page.goto('/app/settings');
+  // Session AI (B1 CI; ADR-034): the records are written on a static file of this origin, which makes no request, so the
+  // next `goto` never starts while a page's fetches are in flight. Writing them on /app/settings left its prefetches and
+  // /api calls running (the networkidle wait below returns at once once reached), and WebKit's navigation then stalled
+  // (CI run 40394055893: every chunk of /app/habits hung ~24 s and the launcher never mounted).
+  await page.goto('/manifest.webmanifest');
   const values = {...records(), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]))};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
-  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
-  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
-  // c9b123c9 and c1db750e hit it after this seed in four specs).
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
 }
 const KNOCK_ON = {[ZIGI_KEY]: {version: 1, knock: {enabled: true, offer: 'accepted'}}};
 const knock = (page: Page) => page.locator('.zigi-knock');
