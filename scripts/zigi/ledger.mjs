@@ -38,6 +38,9 @@ const read = [], unreadable = [];
 for (const file of files) {
   let data; try { data = JSON.parse(readFileSync(file, 'utf8')); } catch { unreadable.push(relative(RUNS, file)); continue; }
   const stage = relative(RUNS, file).split('/').slice(0, -1).join('/') || '(root)';
+  // Session AI (A1): an every-turn batch run's spend is in its own batch files (`batches/batch-<id>.json`, written as each
+  // batch ends); the run file says so and is never counted a second time.
+  if (data && data.summary && data.summary.costCountedIn === 'batches') { read.push({file: relative(RUNS, file), model: data.summary.model, turns: 0, countedIn: 'batches'}); continue; }
   if (data && data.summary && data.summary.provider === 'anthropic' && Array.isArray(data.runs)) {
     const model = data.summary.model, batch = data.summary.batch === true, estimate = data.summary.estimate === true;
     let count = 0;

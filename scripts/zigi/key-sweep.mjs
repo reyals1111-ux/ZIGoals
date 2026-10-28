@@ -2,7 +2,7 @@
 import {execFileSync} from 'node:child_process';
 import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
 import {inflateRawSync} from 'node:zlib';
-import {tmpdir} from 'node:os';
+import {homedir, tmpdir} from 'node:os';
 import {join} from 'node:path';
 
 /**
@@ -25,7 +25,13 @@ for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i] === '--paths') { extra.push(...process.argv.slice(i + 1).filter(a => !/^--/.test(a))); }
   if (process.argv[i] === '--ref' && /^[0-9a-f]{7,40}$/.test(process.argv[i + 1] ?? '')) refs.push(process.argv[++i]);
 }
-const key = process.env.ANTHROPIC_TEST_KEY ?? '';
+// Session AI (ADR-034 N6): when the key is not in the environment, it is read from the owner's key file (mode 0600 only),
+// so the sweep still looks for the key's own characters; it is never printed.
+function keyFromFile() {
+  const file = process.env.ZIGI_KEY_FILE || join(homedir(), '.config', 'zigoals', 'anthropic-test.env');
+  try { if (statSync(file).mode & 0o077) return ''; const line = readFileSync(file, 'utf8').split(/\r?\n/).find(l => /^(export )?ANTHROPIC_TEST_KEY=/.test(l)); return line ? line.slice(line.indexOf('=') + 1).trim().replace(/^(['"])(.*)\1$/, '$2') : ''; } catch { return ''; }
+}
+const key = process.env.ANTHROPIC_TEST_KEY || keyFromFile();
 // The key shape is assembled at run time so this file never carries the literal the sweep looks for.
 const SHAPE = ['sk', 'ant', ''].join('-');
 const plain = [SHAPE];
@@ -105,7 +111,7 @@ try {
 const dirs = [
   join(repo, 'apps/web/test-results'), join(repo, 'apps/web/playwright-report'), join(repo, 'apps/web/blob-report'),
   '/tmp/zigoals-webkit-results', '/tmp/zigoals-web-results', '/tmp/zigoals-real-model',
-  '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs',
+  '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs', '/Users/AIUSER/Documents/ZIGoals-Claude-ai-runs',
   ...extra,
 ];
 // Owner edit 3: Playwright's temporary browser profiles (removed with each context, but swept in case one was left behind).
