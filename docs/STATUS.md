@@ -1,4 +1,4 @@
-# Session AH-FIX — the red page-marks test on `main` after the Session AH merge (2026-10-27, `fix/ah-page-marks`; not merged, not deployed)
+# Session AH-FIX — the red page-marks test on `main` after the Session AH merge (2026-10-27, `fix/ah-page-marks`, [PR #96](https://github.com/reyals1111-ux/ZIGoals/pull/96), merged into `main` as `80570b5` and deployed as Alpha #50)
 **Records:** Session AH was merged into `main` as `dc94ac9` ([PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95)) and is not yet deployed (Alpha #49, `f13abb0`, stays live).
 
 **Evidence labels:** local = the cloud sandbox, production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101), Playwright Chromium standing in for the Chrome channel, at most 2 workers, one run at a time. CI = Milestone quality.
@@ -43,7 +43,7 @@ Not merged, not deployed: the owner merges and deploys.
 
 ---
 
-# Session AH — The Big Polish (ADR-033, Parts 0–18) (2026-10-25/26, `feature/session-ah-polish`, [PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95), merged into `main` as `dc94ac9`; not yet deployed)
+# Session AH — The Big Polish (ADR-033, Parts 0–18) (2026-10-25/26, `feature/session-ah-polish`, [PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95), merged into `main` as `dc94ac9`; deployed with AH-FIX as Alpha #50)
 **Evidence labels:** unit = vitest from the repository root; local = the cloud sandbox (Node 22 against the project's 24), Playwright Chromium standing in for the Chrome channel, at most 2 workers, builds and browser runs one at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101); frozen readers = `scripts/frozen-readers.mjs` on releases #37–#49; CI = Milestone quality on the PR head. No paid service, no secret, no deploy; no wallet signing, key, transaction-building or contract-call change; no edit under `apps/web/lib/ai/**`, ZIGi components or evals (only `/app/zigi`'s page copy, TO9). The only dependency changes are Part 1's pre-approved security bumps.
 **Base:** `main` `f13abb0` (Alpha #49). **Rules (owner):** the brief (Parts 0–16, the complete ID index, the non-negotiables), the approved plan, and eight owner amendments (25 Oct, ADR-033): (1) close every finding ID per row, not only the row; (2) the "already fixed" check runs at the start of each part for that part's rows; (3) DS1's revision stamp additive, TIER 3 (stored format), frozen readers #37–#49; (4) the device lock optional, off by default, never locking anyone out of their own data; (5) Health auto-ticks never double-count; (6) no FX source → the currency switch hides; (7) the PR-review Action on `pull_request` only, never forks, least privilege, a clean skip without its secret; (8) notification actions and service-worker/manifest changes TIER 3 (PWA). Then three owner additions, each pre-approved: Part 17 (the Health journal date drives the whole Health page), Part 18 (the Checklist top bar — an exception to the protected Checklist for the top bar only —, the phone top bar without the page name, the Health quick counters), and the LA2 decision (26 Oct: a rail on tablets instead of the header grid).
 
@@ -7032,7 +7032,14 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-22 for the [Alpha deploy #46](#alpha-deploy-46--2026-10-21-98a29b4-live) record near the top of this file (recorded by Session AG Polish). Rollback floor: #32.
+Updated 2026-10-28 by Session AI (Part 0) for Alpha #50. Rollback floor: #32.
+- Deployed source `80570b5baea2c5a336f53f997757a9ee5f30f137`, `main` after [PR #96](https://github.com/reyals1111-ux/ZIGoals/pull/96) (Merge #96, Session AH-FIX; Session AH merged as `dc94ac9`, [PR #95](https://github.com/reyals1111-ux/ZIGoals/pull/95)). Verified: Actions API.
+- CI: Milestone quality #1245 ([run 40490862294](https://github.com/reyals1111-ux/ZIGoals/actions/runs/40490862294)) on `80570b5`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 53 ([run 40501168084](https://github.com/reyals1111-ux/ZIGoals/actions/runs/40501168084)), exact source `80570b5`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `b5584cde-37a7-4756-8047-229f4a6c533e`; live prices `VERIFIED`; rollback `5595578f-b41a-43c9-9057-7850a1e47b27` (#49). Owner-reported.
+- Alphas #47–#49 (Sessions AG Polish, AG Polish 2, AG Polish 3) are recorded in their own STATUS entries; their identities were not copied here at the time.
+
+Previous release identity (#46, 2026-10-22, recorded by Session AG Polish for the [Alpha deploy #46](#alpha-deploy-46--2026-10-21-98a29b4-live) record):
 - Deployed source `98a29b43c025c9e8916a76f88bc1a013d1cd60e0`, `main` after [PR #91](https://github.com/reyals1111-ux/ZIGoals/pull/91) (Merge #91, Session AG). Verified: Actions API.
 - CI: Milestone quality #1108 ([run 39656861876](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39656861876)) on `98a29b4`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 48 ([run 39665883370](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39665883370)), exact source `98a29b4`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
