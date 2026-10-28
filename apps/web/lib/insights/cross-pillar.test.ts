@@ -50,6 +50,27 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     expect(ready.find(i => i.id === 'sleep-habits')).toBeUndefined();
     expect(pending.find(p => p.id === 'sleep-habits')).toEqual({id: 'sleep-habits', title: 'Sleep and habits', withA: 10, withoutA: 10, need: CROSS_MIN_PER_SIDE});
   });
+  test('Session AI (feature 4): food after 9 pm and sleep, habits and mood, spending and mood; dismissed ones stay away; no records, not listed', () => {
+    const {habits, health} = records(40), start = addLocalDays(TODAY, -39);
+    const days = Array.from({length: 40}, (_, i) => addLocalDays(start, i));
+    const moods = {version: 1, days: Object.fromEntries(days.map((d, i) => [d, {mood: i % 2 === 0 ? 5 : 2, at: `${d}T21:00:00.000Z`}]))};
+    const diary = days.map((d, i) => ({id: `e${i}`, date: d, meal: 'Snacks', createdAt: `${d}T${i % 2 === 0 ? '22' : '12'}:00:00.000Z`}));
+    const spending = {entries: days.map((d, i) => ({kind: 'expense', amount: i % 2 === 0 ? '50.00' : '5.00', currency: 'EUR', date: d}))};
+    const utc = (iso: string) => ({date: iso.slice(0, 10), hour: Number(iso.slice(11, 13))});
+    const rich = {...health, moods, diary} as unknown as HealthData;
+    const {ready} = crossPillarInsights({habits, health: rich, today: TODAY, max: 10, spending, localTime: utc});
+    const byId = Object.fromEntries(ready.map(i => [i.id, i]));
+    // Even days: food logged at 22:00, and the night that follows ends on an odd day (6 h); odd days' nights are 8 h.
+    expect(byId['late-food-sleep']?.sentence).toBe('On days you logged food after 9 pm, you slept 6 h that night on average; on other days you logged food, 8 h.');
+    expect(byId['habits-mood']?.sentence).toBe('On days you completed at least half of your scheduled habits, your evening mood averaged 5.0 of 5; on other days, 2.0.');
+    expect(byId['spending-mood']?.sentence).toBe('On days you spent above your usual 5 EUR, your evening mood averaged 5.0 of 5; on other days, 2.0.');
+    for (const insight of ready) expect(FORBIDDEN_INSIGHT_WORDS.filter(w => new RegExp(`\\b${w}\\b`, 'i').test(insight.sentence))).toEqual([]);
+    const hidden = crossPillarInsights({habits, health: rich, today: TODAY, max: 10, spending, localTime: utc, hidden: new Set(['spending-mood'])});
+    expect(hidden.ready.map(i => i.id)).not.toContain('spending-mood');
+    // No moods and no spending kept: those pairings are not listed as collecting.
+    const plain = crossPillarInsights({habits, health, today: TODAY, max: 10, localTime: utc});
+    expect([...plain.ready, ...plain.pending].map(i => i.id).filter(id => ['habits-mood', 'spending-mood', 'late-food-sleep'].includes(id))).toEqual([]);
+  });
   test('nothing recorded: nothing ready, never a zero dressed as a finding', () => {
     const {ready, pending} = crossPillarInsights({habits: emptyHabitData(), health: createEmptyHealth(), today: TODAY});
     expect(ready).toEqual([]);
@@ -67,7 +88,8 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     expect(sleepHabits.withA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); expect(sleepHabits.withoutA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE);
     expect(sleepHabits.sentence).toBe('On days after a night of at least 8 h of sleep, you completed 95% of your scheduled habits; after shorter nights, 90%.');
     // Water and habits passes too (32 and 28 days, 91% and 93%), the weakest of four, so the card's three leave it out.
-    expect(pending).toEqual([]);
+    // Session AI (feature 4): the four pairings above are all ready; of the new ones, only food after 9 pm has records (7 and 19 days, still collecting).
+    expect(pending).toEqual([{id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14}]);
     const all = crossPillarInsights({habits, health, today: day, max: 4}).ready.find(i => i.id === 'water-habits')!;
     expect([all.withA.days, all.withoutA.days, all.sentence]).toEqual([32, 28, 'On days you logged water, you completed 91% of your scheduled habits; on days without, 93%.']);
     // The season's one habit: 30 days within the season, archived since the day after it.
