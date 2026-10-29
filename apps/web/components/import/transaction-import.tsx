@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useMemo, useState} from 'react';
-import {createCatalogLoader} from '../../lib/market-catalog-client';
+import {loadMarketCatalog} from '../../lib/market-catalog-client';
 import type {MarketCatalogAsset} from '../../lib/market-assets';
 import {CoinPicker, FEATURED_COINS} from '../portfolio/coin-picker';
 import {TRANSACTION_FIELDS} from '../../lib/csv/mapping';
@@ -15,7 +15,7 @@ import type {ImportUndoStore} from './use-import-undo';
 import {formatDate} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 
-const loadCatalog = createCatalogLoader();
+const loadCatalog = loadMarketCatalog; // Session AJ (WE16): the app's one shared catalog loader
 const OPTIONS: SetupOptions = {fields: TRANSACTION_FIELDS, numberFields: ['quantity', 'price', 'fee'], dateField: 'date'};
 const KIND_LABEL: Record<PortfolioTransaction['kind'], string> = {buy: 'Buy', sell: 'Sell', 'transfer-in': 'Transfer in', 'transfer-out': 'Transfer out'};
 const REQUIRED = ['coin', 'quantity', 'date'];

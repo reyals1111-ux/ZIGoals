@@ -36,5 +36,8 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); } catch { /* no window */ }
   // Gate B F3: the progress-photo bytes live in IndexedDB beside the index key; the erase removes the database as a whole (every scope on this device).
   // Session AI (J14): the sealed exchange keys go with the account too (the whole database, its wrapping key included).
-  try { if (typeof indexedDB !== 'undefined') { indexedDB.deleteDatabase('zigoals-progress-photos'); indexedDB.deleteDatabase(VISION_DATABASE); indexedDB.deleteDatabase('zigoals-exchange-keys-v1'); } } catch { /* no IndexedDB: nothing was stored there */ }
+  // Session AJ (WE16, A6): and the coin catalog kept for offline search, with every other database the app keeps.
+  try { if (typeof indexedDB !== 'undefined') for (const name of ERASED_DATABASES) indexedDB.deleteDatabase(name); } catch { /* no IndexedDB: nothing was stored there */ }
 }
+/** Session AJ (A6): every IndexedDB database the account erase deletes (lib/erase-coverage.test.ts keeps it complete). */
+export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1'];
