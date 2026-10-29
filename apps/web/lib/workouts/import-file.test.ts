@@ -2,9 +2,12 @@
 import {describe, expect, test} from 'vitest';
 import {addImportedWorkout, alreadyImported, elevationGain, importIdFor, readWorkoutFile} from './import-file';
 import {emptyWorkouts, workoutSchema, workoutsSchema} from './schema';
+import {miniXmlParser, parseXml, XmlReadError} from './mini-xml';
 
 // Session AJ (item 27, D12): GPX and TCX import, summary only. Fictional places, times and readings.
-const parser = new DOMParser();
+// The app reads files with its own strict XML reader (lib/workouts/mini-xml.ts: the browser's DOMParser is a Trusted Types
+// sink under the app's CSP); jsdom's DOMParser is kept as a cross-check below.
+const parser = miniXmlParser;
 const read = (text: string) => readWorkoutFile(text, parser);
 const gpxPoint = (lat: number, time: string | null, ele: number | null, hr: number | null) =>
   `<trkpt lat="${lat}" lon="20">${ele === null ? '' : `<ele>${ele}</ele>`}${time ? `<time>${time}</time>` : ''}${hr === null ? '' : `<extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>${hr}</gpxtpx:hr></gpxtpx:TrackPointExtension></extensions>`}</trkpt>`;
@@ -133,5 +136,18 @@ describe('the stored workout', () => {
     const parsed = workoutSchema.safeParse({...base, imported: {source: 'kml', importId: '../../x', sport: 'Running', durationSeconds: -1}});
     expect(parsed.success).toBe(true);
     expect(parsed.data!.imported).toBeUndefined();
+  });
+});
+
+describe('the strict XML reader (Trusted Types safe)', () => {
+  test('gives the same summaries as the browser\'s DOMParser for GPX', () => {
+    expect(readWorkoutFile(RUN, miniXmlParser)).toEqual(readWorkoutFile(RUN, new DOMParser()));
+  });
+  test('reads attributes, CDATA, comments and the standard entities; refuses broken or odd documents', () => {
+    const d = parseXml('<?xml version="1.0"?><!-- c --><a x="1 &amp; 2"><b>t&lt;<![CDATA[<raw>]]>&#65;</b><c/></a>');
+    expect(d.documentElement.getAttribute('x')).toBe('1 & 2');
+    expect(d.documentElement.getElementsByTagNameNS('*', 'b')[0]!.textContent).toBe('t<<raw>A');
+    expect(d.documentElement.children.map(c => c.localName)).toEqual(['b', 'c']);
+    for (const bad of ['<a><b></a>', '<a>', '<a></a><b/>', 'text<a/>', '<a x="1" x="2"/>', '<a>&nope;</a>', '<!DOCTYPE a [<!ELEMENT a ANY>]><a/>', '']) expect(() => parseXml(bad), bad).toThrow(XmlReadError);
   });
 });

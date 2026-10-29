@@ -23,9 +23,9 @@ export function WorkoutsImport({w, dayOf, onAdd}: {w: Workouts; dayOf: (iso: str
     if (!file) return;
     setBusy(true);
     try {
-      const {IMPORT_MAX_CHARS, readWorkoutFile} = await import('../../../lib/workouts/import-file');
+      const [{IMPORT_MAX_CHARS, readWorkoutFile}, {miniXmlParser}] = await Promise.all([import('../../../lib/workouts/import-file'), import('../../../lib/workouts/mini-xml')]);
       if (file.size > IMPORT_MAX_CHARS) throw new Error('This file is larger than 5 MB. Export one workout at a time, then try again.');
-      const list = readWorkoutFile(await file.text(), new DOMParser());
+      const list = readWorkoutFile(await file.text(), miniXmlParser);
       setFound(list.map(summary => ({summary, day: dayOf(summary.startedAt)})));
     } catch (e) { setProblem(plainErrorMessage(e, 'This file could not be read. Choose a GPX or TCX file.')); setInputKey(k => k + 1); }
     finally { setBusy(false); }
