@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 
 // Session E, Part 5: the first-run welcome. Fresh browsers here are brand-new users on purpose.
 const KEY='zigoals:onboarding:v1';
@@ -109,7 +110,7 @@ test('a first goal: a kind needs a name and a target; it is saved on Finish, onc
  await flow.getByRole('radio',{name:'A trip',exact:true}).check();
  await expect(flow.getByLabel('Goal name')).toHaveValue('');await expect(flow.getByLabel('Target amount')).toHaveValue('');
  await flow.getByRole('button',{name:'Continue',exact:true}).click();await expect(flow.getByRole('alert')).toHaveText('Give your Goal a name.');
- await flow.getByLabel('Goal name').fill('Lisbon in spring');await flow.getByLabel('Target amount').fill('1200');
+ await typeGoalName(flow, 'Lisbon in spring');await flow.getByLabel('Target amount').fill('1200');
  await flow.getByRole('radio',{name:'EUR',exact:true}).check();await flow.getByRole('button',{name:'Continue',exact:true}).click();
  await throughToData(page);
  await expect(flow.getByRole('region',{name:'When you finish'})).toContainText('Your goal “Lisbon in spring”.');

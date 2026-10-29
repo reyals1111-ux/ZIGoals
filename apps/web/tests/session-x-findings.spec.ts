@@ -1,4 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema, type Platform} from '../lib/positions';
 import {createEmptyHealth, HEALTH_STORAGE_KEY} from '../lib/health';
 import {createHabit, emptyHabitData, HABITS_KEY} from '../lib/habits';
@@ -207,7 +208,7 @@ test('J055: a Goal created offline is saved, and the wizard says so instead of l
   await page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
   await page.context().setOffline(true);
   await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
-  await page.getByLabel('Goal name', {exact: true}).fill('Fictional offline plan');
+  await typeGoalName(page, 'Fictional offline plan');
   await page.getByRole('radio', {name: 'Value', exact: true}).check();
   await page.getByLabel('Target amount', {exact: true}).fill('640');
   await page.getByRole('radio', {name: /^USD · /}).check();

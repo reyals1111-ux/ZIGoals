@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
 
 // Session AH Part 3: DS7 (a second weight of the day is kept), DS9/A3 (Back closes a dialog first; the Goal wizard's
@@ -41,7 +42,7 @@ test('DS9: Back closes Quick add and stays on the page; closing it with × leave
 
 test('DS9: the Goal wizard\'s draft survives a reload, and "Start over" clears it', async ({page}) => {
   await page.goto('/app/goals/new'); await hydrated(page);
-  await page.getByLabel('Goal name', {exact: true}).fill('Fictional draft plan');
+  await typeGoalName(page, 'Fictional draft plan');
   await page.getByLabel('Target amount', {exact: true}).fill('1500');
   page.once('dialog', d => void d.accept());
   await page.reload(); await hydrated(page);

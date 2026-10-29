@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import {typeGoalName} from './goal-name';
 test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
 test('private position allocation and plans survive reload without financial or Health side effects',async({page})=>{
  const external:string[]=[];page.on('request',r=>{if(new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
@@ -12,7 +13,7 @@ test('private position allocation and plans survive reload without financial or 
  await picker.getByRole('button',{name:'Save asset',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Example reserve',exact:true})).toBeVisible();
  await page.goto('/app/goals/new');
- await page.getByLabel('Goal name',{exact:true}).fill('Example destination');
+ await typeGoalName(page, 'Example destination');
  await page.getByLabel('Target amount',{exact:true}).fill('200');
  for(let step=0;step<3;step++)await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByRole('button',{name:'Create goal',exact:true}).click();

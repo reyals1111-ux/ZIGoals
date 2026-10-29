@@ -1,11 +1,12 @@
 import {expect,test,type Locator} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 
 /** Tap where the device is touch-first, click otherwise: both must select a tile. */
 async function choose(radio:Locator,touch:boolean){if(touch)await radio.locator('xpath=ancestor::label[1]').tap();else await radio.locator('xpath=ancestor::label[1]').click();await expect(radio).toBeChecked();}
 
 test('risk and liquidity tiles work by keyboard and touch and save the same values as before',async({page,isMobile})=>{
  await page.goto('/app/goals/new');
- await page.getByLabel('Goal name',{exact:true}).fill('Tile preferences');await page.getByLabel('Target amount',{exact:true}).fill('1200');
+ await typeGoalName(page, 'Tile preferences');await page.getByLabel('Target amount',{exact:true}).fill('1200');
  await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByLabel('ZIGoals funding / Local simulation',{exact:true}).check();
  const risk=page.getByRole('group',{name:'Risk preference',exact:true}),liquidity=page.getByRole('group',{name:'Liquidity preference',exact:true});
@@ -26,7 +27,7 @@ test('risk and liquidity tiles work by keyboard and touch and save the same valu
 
 test('wealth scope and cadence tiles keep one valid value and the saved plan reopens selected',async({page,isMobile})=>{
  await page.goto('/app/goals/new');
- await page.getByLabel('Goal name',{exact:true}).fill('Tile cadence');await page.getByLabel('Target amount',{exact:true}).fill('500');
+ await typeGoalName(page, 'Tile cadence');await page.getByLabel('Target amount',{exact:true}).fill('500');
  await page.getByRole('button',{name:'Continue →'}).click();
  await page.getByLabel('Build it with future contributions',{exact:true}).check();
  const scope=page.getByRole('group',{name:'Wealth scope',exact:true});

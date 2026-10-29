@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 
 /**
  * Session AB-Cloud Part 8 (ADR-023 C25, owner items): an amount typed with grouping that reads one way only is read and
@@ -9,7 +10,7 @@ test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route
 const goals = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getItem('zigoals:platform:v1') ?? 'null') as {goals: {name: string; target: string; asset: string}[]} | null)?.goals ?? []);
 async function valueGoal(page: Page, target: string) {
   await page.goto('/app/goals/new');
-  await page.getByLabel('Goal name', {exact: true}).fill('Grouped target');
+  await typeGoalName(page, 'Grouped target');
   await page.getByRole('radio', {name: 'Value', exact: true}).check();
   await page.getByLabel('Target amount', {exact: true}).fill(target);
 }

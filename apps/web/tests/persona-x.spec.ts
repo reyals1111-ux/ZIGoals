@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 import {expectAlphaMode} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitCount} from '../lib/habits';
 import {createEmptyHealth, HEALTH_STORAGE_KEY} from '../lib/health';
@@ -124,7 +125,7 @@ test('a new person is not asked to review a week with nothing in it; a week with
 
 test('the Goal wizard: each new step takes focus, so the keyboard and a screen reader start from it', async ({page}) => {
   await page.goto('/app/goals/new');
-  await page.getByLabel('Goal name', {exact: true}).fill('Fictional bike');
+  await typeGoalName(page, 'Fictional bike');
   // An empty target says what is missing (it read "Enter a non-negative decimal amount.").
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
   await expect(page.getByText('Enter your target.', {exact: true})).toBeVisible();
