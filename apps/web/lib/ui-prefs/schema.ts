@@ -50,6 +50,15 @@ export const uiPrefsSchema = z.looseObject({
     nudges: z.boolean().optional().catch(undefined),
     celebratedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
   }).optional().catch(undefined),
+  /**
+   * Session AJ (item 30, D11; TIER 3 (stored format), optional in this loose record): the Portfolio's trader tools, off
+   * unless turned on here (`on`); `tiltHiddenUntil` is the day (YYYY-MM-DD) until which the tilt check stays quiet after
+   * "Not now". Nothing else of the tools is stored. Older builds keep or ignore the group; exported and erased with the rest.
+   */
+  trader: z.looseObject({
+    on: z.boolean().optional().catch(undefined),
+    tiltHiddenUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
+  }).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
 export const emptyUiPrefs = (): UiPrefs => ({version: 1});

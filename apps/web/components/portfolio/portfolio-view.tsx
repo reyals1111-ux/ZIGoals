@@ -1,6 +1,7 @@
 'use client';
 import {removeWithUndo} from '../ui/remove-with-undo';
 import {Suspense, lazy, useId, useState} from 'react';
+import {LoadBoundary} from '../load-boundary';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
 import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
@@ -53,6 +54,7 @@ function failure(error: unknown, fallback: string) {
 // Session AF (L2b, Part 3, ADR-028 H16): "From your wallets", the linked wallets' balances read-only, in their own chunk
 // (nothing renders until a wallet is linked); the same component as Wealth's.
 const WalletHoldings = lazy(() => import('../wallet/wallet-holdings'));
+const TraderTools = lazy(() => import('./trader-tools').then(m => ({default: m.TraderTools})));
 export function PortfolioView() {
   const store = usePortfolios();
   const [selectedId, setSelectedId] = useState<string | null>(null), [creating, setCreating] = useState(false);
@@ -179,6 +181,8 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
       <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
         <AllTransactions portfolio={portfolio} onRemove={id => removeTx(portfolio.id, id)} run={run} />
         <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
+        {/* Session AJ (item 30, D11): trader tools, offered only when this portfolio has sells; loaded on use. */}
+        {portfolio.transactions.some(t => t.kind === 'sell') && <LoadBoundary quiet><Suspense fallback={null}><TraderTools portfolio={portfolio} /></Suspense></LoadBoundary>}
       </div>
     </>}
     {!showcase && <WalletImportPanel portfolio={portfolio} run={run} />}

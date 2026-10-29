@@ -13283,6 +13283,18 @@
     .trade-chip input:focus-visible+span:not(#\-) {
         outline-color: var(--cyan,#6fd3ff)
     }
+    .trader-figures dt:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .trader-months [data-direction="up"]:not(#\-) {
+        color: #83e0b9
+    }
+    .trader-months [data-direction="down"]:not(#\-) {
+        color: #ff9ab0
+    }
+    .trader-tilt:not(#\-) {
+        border-left-color: var(--cyan, #6fd3ff)
+    }
 }
 /*  components/portfolio/value-chart.css  */
 @scope (:root[data-theme=dark]) {

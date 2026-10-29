@@ -213,3 +213,21 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
 .trade-chip span{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.35));font-size:14px}
 .trade-chip input:checked+span{background:color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);border-color:var(--violet,#8b7cff)}
 .trade-chip input:focus-visible+span{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+
+/* Session AJ (item 30, D11): trader tools on a portfolio's Insights view. */
+.trader-tools { display: grid; gap: var(--space-3, 12px); margin-top: var(--space-4, 16px); }
+.trader-tools-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.trader-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0; }
+.trader-figures div { min-width: 0; }
+.trader-figures dt { color: var(--text-meta, #c2d0e5); font-size: 13px; }
+.trader-figures dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.trader-months { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.trader-months li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: baseline; }
+.trader-months [data-direction="up"] { color: #83e0b9; }
+.trader-months [data-direction="down"] { color: #ff9ab0; }
+.trader-tilt { border-left: 3px solid var(--cyan, #6fd3ff); padding: 8px 12px; border-radius: 8px; }
+.trader-tilt p { margin: 0 0 6px; }
+.trader-leverage summary { cursor: pointer; font-weight: 600; }
+.trader-leverage form { display: grid; gap: 12px; margin-top: 12px; }
+.trader-leverage-result { margin-top: 12px; }
+.trader-leverage-result p { margin: 0 0 6px; }
