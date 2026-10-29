@@ -36,6 +36,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   readingSources: ['Where wealth readings came from', 'Wealth'],
   priceAlerts: ['Price alerts', 'Wealth'],
   focusSessions: ['Focus sessions', 'Journey'],
+  guidedJourneys: ['Guided journeys', 'Journey'],
   exchanges: ['Exchanges read (balances only)', 'Wealth'],
   zigiMetrics: ['What ZIGi did for you (counts)', 'Today'],
   todayCards: ['Today\'s cards kept on this device', 'Today'],

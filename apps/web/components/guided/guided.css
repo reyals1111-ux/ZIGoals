@@ -1,0 +1,43 @@
+/* Session AJ (item 34, D13): Guided journeys. Tokens only (Light and Dark come from the theme build); every control a
+   44 px target; one column on a phone, no sideways scroll at 320 px. The only motion is a short colour change on a done
+   step, and none under reduced motion or Motion Off. */
+.guided-page { display: grid; gap: 18px; min-width: 0; }
+.guided-section { display: grid; gap: 12px; min-width: 0; }
+.guided-section > h2 { margin: 0; font-size: 22px; }
+.guided-section > h2:focus { outline: none; }
+.guided-section > h2:focus-visible, .guided-journey h3:focus-visible { outline: 2px solid var(--brand-cyan); outline-offset: 3px; }
+.guided-empty, .guided-message { margin: 0; color: var(--text-secondary); }
+.guided-message:empty { display: none; }
+.guided-journeys { display: grid; gap: 14px; }
+.guided-programs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.guided-program, .guided-journey { display: grid; align-content: start; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.guided-program p, .guided-journey p { margin: 0; }
+.guided-title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.guided-title-row h3 { margin: 0; font-size: 19px; }
+.guided-journey h3:focus { outline: none; }
+.guided-meta { color: var(--text-meta); font-size: var(--text-meta-size); }
+.guided-care { color: var(--text-meta); }
+.guided-on { color: var(--text-secondary); font-weight: 600; }
+.guided-preview summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--text-secondary); }
+.guided-preview ol { margin: 4px 0 0; padding-left: 22px; color: var(--text-secondary); }
+.guided-preview li + li { margin-top: 4px; }
+.guided-program .guided-start { justify-self: start; min-height: 44px; min-width: 96px; margin-top: 4px; }
+.guided-steps { display: grid; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
+.guided-step { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); border-left: 3px solid var(--pillar, var(--line)); transition: border-color 160ms ease; }
+.guided-journey[data-pillar=goals] { --pillar: var(--pillar-goals); }
+.guided-journey[data-pillar=habits] { --pillar: var(--pillar-habits); }
+.guided-journey[data-pillar=health] { --pillar: var(--pillar-health); }
+.guided-journey[data-pillar=wealth] { --pillar: var(--pillar-wealth); }
+.guided-step[data-done] { border-left-color: var(--line); }
+.guided-step h4 { margin: 0; font-size: 17px; }
+.guided-step-number { margin: 0; }
+.guided-note { color: var(--text-secondary); }
+.guided-locked { border-style: dashed; border-left-style: dashed; }
+.guided-locked .guided-note { color: var(--text-meta); }
+.guided-step-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.guided-step-actions > :is(a, button) { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+.guided-done-mark { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; color: var(--text-secondary); }
+.guided-end > button { min-height: 44px; }
+@media (max-width: 480px) { .guided-step-actions > :is(a, button) { flex: 1 1 auto; } }
+@media (prefers-reduced-motion: reduce) { .guided-step { transition: none; } }
+:root[data-app-motion=off] .guided-step { transition: none; }

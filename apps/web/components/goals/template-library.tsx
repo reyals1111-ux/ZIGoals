@@ -1,4 +1,5 @@
 'use client';
+import {GuidedJourneysLink} from '../guided/guided-link';
 import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useState} from 'react';
@@ -58,5 +59,7 @@ export function TemplateTeaser(layout: LayoutAttrs) {
   return <section className="panel template-teaser" aria-labelledby="template-teaser-title" {...layout}>
     <SectionHeading id="template-teaser-title" eyebrow="Start from something proven" title="Goal templates" lede="Forty-two ready goals across every life area." action={<Link className="secondary" href="/app/goals/templates">Browse all</Link>} />
     <ul className="template-teaser-list">{picks.map(t => <li key={t.id}><Link href={templateHref(t)}><strong>{t.title}</strong><small>{t.summary}</small></Link></li>)}</ul>
+    {/* Session AJ (item 34, A7): one step a day toward a goal, chosen by the person. */}
+    <GuidedJourneysLink />
   </section>;
 }

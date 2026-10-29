@@ -6,6 +6,7 @@ import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
+import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
 import {IMPORTS_KEY} from '../portfolio/wallet-import';
 import {EXCHANGES_KEY} from '../exchanges/record';
@@ -101,6 +102,7 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   readingSources: READING_SOURCES_KEY,
   priceAlerts: PRICE_ALERTS_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
+  guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).
   exchanges: EXCHANGES_KEY,
   // Session AI (G14): ZIGi's own counts, when the person turned them on.

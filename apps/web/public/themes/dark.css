@@ -7448,6 +7448,64 @@
         color: var(--text-secondary,#b7c8de)
     }
 }
+/*  components/guided/guided.css  */
+@scope (:root[data-theme=dark]) {
+    .guided-section > h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-section > h2:focus-visible:not(#\-), .guided-journey h3:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-empty:not(#\-), .guided-message:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-journey h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-meta:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-care:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-on:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview ol:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-step:not(#\-) {
+        border-color: var(--line);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-journey[data-pillar=goals]:not(#\-) {
+        --pillar: var(--pillar-goals)
+    }
+    .guided-journey[data-pillar=habits]:not(#\-) {
+        --pillar: var(--pillar-habits)
+    }
+    .guided-journey[data-pillar=health]:not(#\-) {
+        --pillar: var(--pillar-health)
+    }
+    .guided-journey[data-pillar=wealth]:not(#\-) {
+        --pillar: var(--pillar-wealth)
+    }
+    .guided-step[data-done]:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .guided-note:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-locked .guided-note:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-done-mark:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=dark]) {
     .habit-section:not(#\-) {
@@ -9454,6 +9512,18 @@
     }
     .workouts-progress-line:not(#\-) {
         color: var(--brand-cyan, #6fe6f6)
+    }
+    .workouts-import:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-import-preview:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-import-problem:not(#\-) {
+        color: var(--danger-text, #ffb4c8)
+    }
+    :scope[data-theme=light] .workouts-import-problem:not(#\-) {
+        color: #a3123a
     }
 }
 /*  components/help/help.css  */
@@ -14435,6 +14505,16 @@
     .today-universe-skeleton:not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+    .life-score-of:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .focus-sprout:not(#\-) {
+        color: #86f0d6
+    }
+    .focus-stage[data-state="withered"] .focus-sprout:not(#\-) {
+        color: #c2b48a;
+        filter: saturate(.4)
     }
 }
 /*  components/wallet/wallet-card.css  */

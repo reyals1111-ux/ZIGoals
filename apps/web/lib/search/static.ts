@@ -34,6 +34,8 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:checklist', kind: 'page', title: 'Checklist', href: '/app/checklist', keywords: ['path', 'dots', 'favourites', 'favorites', 'daily', 'orbit', 'star', 'checklist']},
   {id: 'page:timeline', kind: 'page', title: 'Day timeline', href: '/app/timeline', keywords: ['timeline', 'day', 'schedule', 'plan', 'now', 'time', 'move', 'replan']},
   {id: 'page:stories', kind: 'page', title: 'Stories', href: '/app/stories', keywords: ['stories', 'recap', 'week', 'month', 'year', 'share', 'wrapped', 'review']},
+  // Session AJ (item 34, A7): reached from search, Goals, Habits and My Universe; no sidebar entry.
+  {id: 'page:guided', kind: 'page', title: 'Guided journeys', href: '/app/guided', keywords: ['guided', 'journeys', 'program', 'programme', 'plan', 'step a day', 'emergency fund', 'sleep reset', 'walking', 'calm']},
   {id: 'page:universe', kind: 'page', title: 'My universe', href: '/app/journey#universe', keywords: ['universe', 'planets', 'rings', 'moons', 'stars', 'light', 'milestones']},
   {id: 'page:governance', kind: 'page', title: 'Governance', href: '/app/governance', keywords: ['governance', 'vote', 'voting', 'proposal', 'proposals', 'quorum', 'veto', 'gov']},
   {id: 'page:add-money', kind: 'page', title: 'Add money', href: '/app/wealth/add-money', keywords: ['buy', 'card', 'on-ramp', 'onramp', 'ramp', 'banxa', 'usdc', 'atom', 'deposit', 'add money']},

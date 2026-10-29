@@ -6943,6 +6943,64 @@
         color: var(--text-secondary,#0d1724)
     }
 }
+/*  components/guided/guided.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .guided-section > h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-section > h2:focus-visible:not(#\-), .guided-journey h3:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-empty:not(#\-), .guided-message:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-journey h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-meta:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-care:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-on:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview ol:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-step:not(#\-) {
+        border-color: var(--line);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-journey[data-pillar=goals]:not(#\-) {
+        --pillar: var(--pillar-goals)
+    }
+    .guided-journey[data-pillar=habits]:not(#\-) {
+        --pillar: var(--pillar-habits)
+    }
+    .guided-journey[data-pillar=health]:not(#\-) {
+        --pillar: var(--pillar-health)
+    }
+    .guided-journey[data-pillar=wealth]:not(#\-) {
+        --pillar: var(--pillar-wealth)
+    }
+    .guided-step[data-done]:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .guided-note:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-locked .guided-note:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-done-mark:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .habit-section:not(#\-) {
@@ -8944,6 +9002,18 @@
     }
     .workouts-progress-line:not(#\-) {
         color: var(--brand-cyan-ink)
+    }
+    .workouts-import:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-import-preview:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-import-problem:not(#\-) {
+        color: var(--danger-text, #89485b)
+    }
+    :scope[data-theme=light] .workouts-import-problem:not(#\-) {
+        color: #a3123a
     }
 }
 /*  components/help/help.css  */
@@ -13595,6 +13665,16 @@
     .today-universe-skeleton:not(#\-) {
         background-image: none;
         background-color: #2424240d
+    }
+    .life-score-of:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .focus-sprout:not(#\-) {
+        color: #0e6857
+    }
+    .focus-stage[data-state="withered"] .focus-sprout:not(#\-) {
+        color: #292312;
+        filter: saturate(.4)
     }
 }
 /*  components/wallet/wallet-holdings.css  */
