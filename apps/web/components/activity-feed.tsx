@@ -22,6 +22,7 @@ import { useZigiActions } from "./activity/use-zigi-actions";
 import { useEffect } from "react";
 import { useDeviceRecord } from "./ai/use-device-record";
 import { ACCOUNTS } from "../lib/accounts/schema";
+import { PRICE_ALERTS } from "../lib/price-alerts/schema";
 import { isDeletedHabitRef } from "../lib/habit-delete";
 import { plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
@@ -30,13 +31,15 @@ import { removeWithUndo } from "./ui/remove-with-undo";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
-  const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions(), accounts = useDeviceRecord(ACCOUNTS);
+  const goals = useGoals(), habits = useHabits(), health = useHealth(), zigi = useZigiActions(), accounts = useDeviceRecord(ACCOUNTS), priceAlerts = useDeviceRecord(PRICE_ALERTS);
   // Session AH (B-199, WE7): balances and debt payments entered in Wealth appear here too, under their own day.
   const midnight = (date: string) => { const d = new Date(`${date}T00:00:00`); return Number.isNaN(d.getTime()) ? `${date}T00:00:00.000Z` : d.toISOString(); };
   const accountEvents = accounts.loaded && !accounts.unreadable ? accounts.data.items.flatMap(a => [
     ...a.payments.map(p => ({id: `account-payment:${p.id}`, category: "WEALTH", title: `Payment on ${a.name}`, detail: formatMoney(formatUnits(p.value, p.decimals), a.currency), at: midnight(p.date), day: p.date, href: "/app/wealth#accounts-title", source: "Payment you entered"})),
     ...a.snapshots.map(s => ({id: `account-balance:${s.id}`, category: "WEALTH", title: `${a.name}: balance updated`, detail: formatMoney(formatUnits(s.value, s.decimals), a.currency), at: midnight(s.date), day: s.date, href: "/app/wealth#accounts-title", source: "Balance you entered"})),
   ]) : [];
+  // Session AJ (item 15, D9): each price alert that fired, with what it said (kept on this device, the last 200).
+  const alertEvents = priceAlerts.loaded && !priceAlerts.unreadable ? priceAlerts.data.fired.map(f => ({id: `price-alert:${f.alertId}:${f.at}`, category: "WEALTH", title: "Price alert reached", detail: f.text, at: f.at, href: "/app", source: "Your price alert (checked with prices already read)"})) : [];
   // Gate C design review (copy): an amount reads as money where it is money ("US$125.00", as Today writes it elsewhere, not
   // "125 USD"), and a custom asset by its own name ("1 Collectible camera", not "1 CUSTOM").
   const amountOf=(e:{id:string;quantity?:string;asset?:string;decimals?:number},decimals:number)=>{if(!e.quantity)return '';const d=e.decimals??decimals;if(e.asset&&isMoneyCurrency(e.asset))return formatMoney(formatUnits(e.quantity,d),e.asset);return amountWithUnit(platform.data,formatQuantity(formatUnits(e.quantity,d)),e.asset??'',platform.data.contributions.find(c=>`contribution:${c.id}`===e.id)?.positionId);};
@@ -46,7 +49,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.name, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Saved Goal creation date" })) : []),
     ...platform.data.assetEvents.map(e=>({id:e.id,category:"WEALTH",title:`${e.name} ${e.kind}`,detail:e.assetClass,assetType:(()=>{const ref=platform.data.positions.find(position=>position.id===e.positionId)?.marketRef;return ref?.kind==='rwa'?ref.assetType:undefined;})(),at:e.at,href:`/app/wealth/asset/${encodeURIComponent(e.positionId)}`,source:"Private asset record"})),
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
-    ...accountEvents,
+    ...accountEvents, ...alertEvents,
     ...getHabitActivities(habits.data), ...getHealthActivities(health.data, (() => { try { return dailyData(health.data).preferences.weightUnit; } catch { return "kg" as const; } })()), ...getWaterActivities(health.data),
   ];
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose

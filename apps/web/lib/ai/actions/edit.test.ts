@@ -7,6 +7,7 @@ const action = (raw: Record<string, unknown>): Action => actionSchema.parse(raw)
 test('every kind has its fields, each field reads a key the schema knows, and no field is a handle', () => {
   const samples: Record<string, Record<string, unknown>> = {
     // Session AI
+    'create-price-alert': {kind: 'create-price-alert', coin: 'bitcoin', direction: 'above', price: 70000, currency: 'USD'},
     'log-expense': {kind: 'log-expense', amount: 12.5, currency: 'EUR', category: 'Food & drink', note: 'lunch'}, 'log-income': {kind: 'log-income', amount: 100, currency: 'EUR'},
     'log-water': {kind: 'log-water', glasses: 1}, 'log-weight': {kind: 'log-weight', value: 70, unit: 'kg'}, 'log-steps': {kind: 'log-steps', steps: 10}, 'log-food': {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f1'},
     'log-measurement': {kind: 'log-measurement', kind_of: 'waist', value: 80, unit: 'cm'}, 'check-in': {kind: 'check-in', habit: 'h1'}, skip: {kind: 'skip', habit: 'h1'}, 'create-habit': {kind: 'create-habit', title: 'x'}, 'start-fast': {kind: 'start-fast', targetHours: 16}, 'stop-fast': {kind: 'stop-fast'},

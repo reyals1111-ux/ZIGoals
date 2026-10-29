@@ -5,6 +5,7 @@
  */
 export const AJ_PERSONAL_KEYS: readonly string[] = [
   'zigoals:reading-sources:v1',
+  'zigoals:price-alerts:v1',
 ];
 /** The account erase removes them all. */
 export const AJ_ERASE_KEYS: readonly string[] = AJ_PERSONAL_KEYS;

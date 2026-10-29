@@ -20,6 +20,7 @@ import {AI_MEMORY_KEY, ZIGI_KEY} from '../ai/store/keys';
 import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
+import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
 import {IMPORTS_KEY} from '../portfolio/wallet-import';
 import {EXCHANGES_KEY} from '../exchanges/record';
@@ -174,7 +175,10 @@ export function frozenFixture() {
   checks.push({key: MEAL_ESTIMATES_KEY, module: './meal-estimates/schema', spec: 'MEAL_ESTIMATES', expect: {'foods.health_fixture-estimate.source': 'photo'}});
   // Session AJ (item 6, CO6, D7; TIER 3 (stored format)): where each wealth reading came from, a new device-only key (fictional ids).
   records[READING_SOURCES_KEY] = JSON.stringify({version: 1, since: '2026-10-29T10:00:00.000Z', readings: {'valuation:fixture-1:00000000-0000-4000-8000-000000000001': 'market', 'valuation:fixture-2:00000000-0000-4000-8000-000000000002': 'staking'}});
+  // Session AJ (item 15, D9; TIER 3 (stored format)): price alerts, a new device-only key (fictional ids and figures).
+  records[PRICE_ALERTS_KEY] = JSON.stringify({version: 1, alerts: [{id: 'alert_fixture-0001', kind: 'price', coin: 'bitcoin', coinName: 'Fictional coin', currency: 'USD', direction: 'above', price: '12345', createdAt: '2026-10-29T10:00:00.000Z', active: true, channels: {inApp: true, push: false}}], fired: []});
   checks.push({key: READING_SOURCES_KEY, module: './wealth-sources/schema', spec: 'READING_SOURCES', expect: {since: '2026-10-29T10:00:00.000Z'}});
+  checks.push({key: PRICE_ALERTS_KEY, module: './price-alerts/schema', spec: 'PRICE_ALERTS', expect: {'alerts.0.price': '12345'}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -184,7 +188,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

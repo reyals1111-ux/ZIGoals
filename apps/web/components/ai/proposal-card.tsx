@@ -72,7 +72,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     </form> : <div className="ai-card-actions">
       {status === 'proposed' ? <>
         {/* Session V Part 16: each button keeps its short name and is described by the card's title, so a list of buttons still says which card. */}
-        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{applies ? (card.kind === 'log-expense' || card.kind === 'log-income' ? 'Add' : 'Apply') : plan.staking ? 'Open the review' : form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
+        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{applies ? (card.kind === 'log-expense' || card.kind === 'log-income' ? 'Add' : card.kind === 'create-price-alert' ? 'Set alert' : 'Apply') : plan.staking ? 'Open the review' : form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
         {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)} aria-describedby={titleId}>Edit</button>}
         <button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button>
       </> : <span className="ai-card-status">{statusText(status, card.kind, opened)}</span>}

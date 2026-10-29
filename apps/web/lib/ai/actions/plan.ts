@@ -69,6 +69,9 @@ import {MONEY_LOG_KEY} from '../../money-log/schema';
 import {expenseCategory, incomeCategory} from '../../money-log/category';
 // Session AI: the expense log's writer, registered before any money card can be added.
 import './money-writes';
+import './price-alert-writes';
+import {PRICE_ALERTS_KEY} from '../../price-alerts/schema';
+import {alertLine, newAlertId} from '../../price-alerts/engine';
 import './meal-estimate-writes';
 import {MEAL_ESTIMATES_KEY, NUTRIENT_RANGES, middleOf, rangeText} from '../../meal-estimates/schema';
 
@@ -749,6 +752,28 @@ export function planAction(action: Action, env: Env): PlanResult {
       const entry = {id: crypto.randomUUID(), kind: spent ? 'expense' : 'income', amount, currency, category, ...(action.note ? {note: action.note} : {}), date: day.day, createdAt: at, source: 'zigi'};
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${spent ? 'Spent' : 'Received'} ${amount} ${currency}`, lines: [`${category}${action.note ? ` · ${action.note}` : ''}`, 'Kept in Wealth → Spending on this device; never converted; remove it there'], where: 'Wealth → Spending', day: dayLabel(day.day, env.healthDay), estimate: false},
         write: () => ({}), undo: null, device: {key: MONEY_LOG_KEY, patch: {add: entry}, label: `${spent ? 'Spent' : 'Received'} ${amount} ${currency} · ${category}, logged in Spending`}}};
+    }
+    // Session AJ (item 15, D9): a price alert for a coin the person holds with a market price, kept on this device by its own
+    // writer; checked with prices the app already reads; never buys, sells or moves anything.
+    case 'create-price-alert': {
+      const q = action.coin.trim().toLowerCase(), held = stores.platform.positions.filter(p => p.marketRef?.kind === 'coin');
+      const position = held.find(p => p.marketRef!.id.toLowerCase() === q) ?? held.find(p => p.asset.toLowerCase() === q);
+      if (!position || position.marketRef?.kind !== 'coin') return refuse(`ZIGi sets alerts for coins you hold with a market price. For ${action.coin}, use "Price alert" on its Portfolio page.`);
+      const coinName = position.asset, base = {id: newAlertId(), coin: position.marketRef.id, coinName, currency: action.currency, createdAt: at, active: true, channels: {inApp: true, push: false}};
+      let alert: Record<string, unknown> & {kind: 'price' | 'goal'};
+      if (action.goal !== undefined) {
+        const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+        const goalId = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+        if (!goal) return refuse('A goal alert needs one of your own goals in Goals.');
+        alert = {...base, kind: 'goal', goalId: goal.id, goalName: goal.name.slice(0, 100), percent: action.percent!};
+      } else {
+        const price = action.price!.toFixed(12).replace(/\.?0+$/, '');
+        if (!/^\d{1,18}(\.\d{1,12})?$/.test(price) || price === '0') return refuse('That price cannot be set; use a figure such as 65000 or 0.25.');
+        alert = {...base, kind: 'price', direction: action.direction!, price};
+      }
+      const line = alertLine(alert as Parameters<typeof alertLine>[0]);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Price alert: ${line}`, lines: ['Checked with the prices ZIGoals already reads, when the app opens and when prices refresh', 'Shown on Today and in Activity; never buys, sells or moves anything; not advice'], where: 'Today', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: PRICE_ALERTS_KEY, patch: {add: alert}, label: `Price alert set: ${line}`}}};
     }
     case 'log-mood': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
