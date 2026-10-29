@@ -91,3 +91,22 @@
    8 px under its own rings and moons (--reach, in the scene's 400 units: a quarter of 1 % of the stage's width each). */
 .universe-stage[data-layout=grid] { container-type: inline-size; }
 .universe-stage[data-layout=grid] .universe-planet-name { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(var(--reach, 40) * .25cqw + 8px)); }
+
+/* Session AJ (item 29, D10): the Life Score. */
+.life-score { display: grid; gap: 8px; margin-top: 16px; }
+.life-score h3 { margin: 0; display: flex; align-items: baseline; gap: 8px; }
+.life-score-number { font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.life-score-of { font-size: 15px; color: var(--text-meta, #c2d0e5); }
+.life-score-pillars { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.life-score-pillars summary { cursor: pointer; }
+
+/* Session AJ (item 34, D13): Focus Sessions. The sprout grows by size only; smooth only when motion is allowed. */
+.focus-garden { display: grid; gap: 12px; margin-top: 16px; }
+.focus-stage { display: flex; align-items: center; gap: 16px; min-height: 96px; }
+.focus-sprout { width: 88px; height: 88px; color: #86f0d6; transform: scale(var(--grow, .25)); transform-origin: 50% 100%; flex: none; }
+.focus-stage[data-state="withered"] .focus-sprout { color: #c2b48a; filter: saturate(.4); }
+@media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .focus-sprout { transition: transform 1s ease-out, color .4s ease; } }
+.focus-status { margin: 0; font-variant-numeric: tabular-nums; }
+.focus-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.focus-controls label { display: grid; gap: 4px; }
+.focus-garden-line { margin: 0; }

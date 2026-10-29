@@ -37,6 +37,19 @@ export const workoutSchema = z.looseObject({
   /** The Health activity this workout wrote its minutes to, so editing or removing it keeps them in step. */
   activityId: z.string().max(120).optional(),
   templateId: id.optional(),
+  /**
+   * Session AJ (item 27, D12; TIER 3 (stored format)): a workout imported from a GPX or TCX file keeps its summary here,
+   * never the route's points. Optional and tolerant: an unreadable value is dropped, never a reason to refuse the record.
+   */
+  imported: z.looseObject({
+    source: z.enum(['gpx', 'tcx']),
+    importId: z.string().regex(/^[A-Za-z0-9-]{1,60}$/),
+    sport: z.string().max(40),
+    distanceKm: z.number().finite().min(0).max(2000).optional(),
+    elevationM: z.number().finite().min(0).max(20_000).optional(),
+    avgHr: z.number().int().min(20).max(250).optional(),
+    durationSeconds: z.number().int().min(0).max(172_800),
+  }).optional().catch(undefined),
 });
 export const templateSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(80), type: z.enum(WORKOUT_TYPES).default('strength'),

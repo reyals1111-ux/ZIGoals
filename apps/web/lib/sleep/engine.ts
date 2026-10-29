@@ -127,6 +127,24 @@ export function sleepDebt(s: Sleep, today: string): Debt | null {
   if (!logged.length) return null;
   return {minutes: logged.reduce((t, p) => t + (s.goal!.minutes - p.asleep!), 0), nights: logged.length, goal: s.goal.minutes};
 }
+/**
+ * Session AJ (item 26): the sleep balance — over the last 14 days, the average gap per logged night between the person's
+ * own goal and the time asleep, shown in kind words (never "debt"). Needs the goal and 5 logged nights; `perNight` is
+ * positive above the goal and negative under it.
+ */
+export const BALANCE_DAYS = 14, BALANCE_MIN_NIGHTS = 5, BALANCE_EVEN_MIN = 10;
+export type Balance = {perNight: number; nights: number; goal: number};
+export function sleepBalance(s: Sleep, today: string): Balance | null {
+  if (!s.goal) return null;
+  const logged = dailySeries(s, today, BALANCE_DAYS).filter(p => p.asleep !== null);
+  if (logged.length < BALANCE_MIN_NIGHTS) return null;
+  return {perNight: Math.round(logged.reduce((t, p) => t + (p.asleep! - s.goal!.minutes), 0) / logged.length), nights: logged.length, goal: s.goal.minutes};
+}
+/** The balance in a few kind words; `minutes` formats a duration the way the page does. */
+export function balanceWords(b: Balance, minutes: (m: number) => string): string {
+  if (Math.abs(b.perNight) < BALANCE_EVEN_MIN) return 'Right around your goal';
+  return b.perNight > 0 ? `About ${minutes(b.perNight)} above your goal a night` : `About ${minutes(-b.perNight)} under your goal a night`;
+}
 export type Consistency = {minutes: number; nights: number};
 /** The standard deviation of bedtimes over the last 14 days' logged nights, at least 4 of them. */
 export function consistency(s: Sleep, today: string): Consistency | null {

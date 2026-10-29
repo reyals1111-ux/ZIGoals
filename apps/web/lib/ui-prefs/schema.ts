@@ -55,6 +55,10 @@ export const uiPrefsSchema = z.looseObject({
    * unless turned on here (`on`); `tiltHiddenUntil` is the day (YYYY-MM-DD) until which the tilt check stays quiet after
    * "Not now". Nothing else of the tools is stored. Older builds keep or ignore the group; exported and erased with the rest.
    */
+  /** Session AJ (item 28; TIER 3 (stored format), optional): `false` hides "Your best focus window today" on Today. */
+  focusWindow: z.boolean().optional().catch(undefined),
+  /** Session AJ (item 29, D10; TIER 3 (stored format), optional): `true` shows the Life Score (My Universe, and Today). */
+  lifeScore: z.boolean().optional().catch(undefined),
   trader: z.looseObject({
     on: z.boolean().optional().catch(undefined),
     tiltHiddenUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),

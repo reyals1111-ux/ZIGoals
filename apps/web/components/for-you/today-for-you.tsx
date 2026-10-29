@@ -8,6 +8,8 @@ import type {LocalGoal} from '../../lib/local-ledger';
 import type {GoalMetadata} from '@zigoals/shared-types';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {PRICE_ALERTS} from '../../lib/price-alerts/schema';
+import {focusWindow} from '../../lib/sleep/focus-window';
+import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {dismissWhatsNew, whatsNewSeen} from '../../lib/whats-new';
 import {reviewState, reviewWindow, weekSummary} from '../../lib/weekly-review/engine';
 import {wealthMoney} from '../platform/wealth-money';
@@ -25,6 +27,10 @@ const WhatsNewCard = lazy(() => import('./whats-new-card').then(m => ({default: 
 const LifeReviewTeaser = lazy(() => import('../life-review/life-review-teaser').then(m => ({default: m.LifeReviewTeaser})));
 const CrossInsightsCard = lazy(() => import('../insights/cross-insights-card').then(m => ({default: m.CrossInsightsCard})));
 // Session AJ (item 15, D9): price alerts on Today, loaded only when the person has set one.
+// Session AJ (item 28): the focus window from last night's sleep, shown while Health is shown (loaded on use).
+// Session AJ (item 29, D10): the Life Score while the person has it on.
+const LifeScoreTodayCard = lazy(() => import('../universe/life-score').then(m => ({default: m.LifeScoreTodayCard})));
+const FocusWindowCard = lazy(() => import('../health/sleep/focus-window-card').then(m => ({default: m.FocusWindowCard})));
 const PriceAlertsTodayCard = lazy(() => import('../price-alerts/price-alerts').then(m => ({default: m.PriceAlertsTodayCard})));
 import {ForYou, TODAY_FOR_YOU_OPEN, type ForYouCard} from './for-you';
 import {useGuide} from '../coach/use-guide';
@@ -118,7 +124,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   // Session AF (L5b, H104's rule for Today on a phone): the Day Timeline and My Universe are For you cards, and Stories' door
   // joins only while the week's story is ready and unopened; on a phone they wait behind "Show more" like every For you card.
   const storiesCard = useTodayStoriesCard({habits, health, platform, today});
-  const priceAlerts = useDeviceRecord(PRICE_ALERTS);
+  const priceAlerts = useDeviceRecord(PRICE_ALERTS), focusPrefs = useUiPrefs();
   const cards: ForYouCard[] = [];
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
   if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <LoadBoundary quiet><Suspense fallback={null}><WhatsNewCard onDismiss={dismissNew} /></Suspense></LoadBoundary>});
@@ -136,6 +142,8 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});
+  if (focusPrefs.loaded && focusPrefs.data.lifeScore === true && (habits.habits.length || platform.goals.length || platform.positions.length || health.diary.length || health.activity.length)) cards.push({id: 'life-score', priority: 6.7, node: <LoadBoundary quiet><Suspense fallback={null}><LifeScoreTodayCard input={{habits, health, platform, fasting: null, averages: [], today}} /></Suspense></LoadBoundary>});
+  if (health.sleep && focusPrefs.loaded && focusPrefs.data.focusWindow !== false && isShown(pagesView, 'health') && focusWindow(health.sleep, today)) cards.push({id: 'focus-window', priority: 6.45, node: <LoadBoundary quiet><Suspense fallback={null}><FocusWindowCard sleep={health.sleep} today={today} /></Suspense></LoadBoundary>});
   if (habits.habits.length && (health.activity.length || (health.sleep?.nights.length ?? 0) > 0)) cards.push({id: 'cross-insights', priority: 6.5, node: <LoadBoundary quiet><Suspense fallback={null}><CrossInsightsCard habits={habits} health={health} today={today} compact /></Suspense></LoadBoundary>});
   if (zigiOn && brief) cards.push({id: 'zigi-brief', priority: 7, node: <LoadBoundary quiet><Suspense fallback={null}><BriefCard {...brief} /></Suspense></LoadBoundary>});
   // Session W Part 17 (T2-A): once Habits or Health count days in this device's zone and none is written down, offer it once.

@@ -38,7 +38,7 @@ describe('N2 weight trend', () => {
   });
 });
 describe('N1 energy estimate', () => {
-  test('needs two weeks of logs and six weights; then intake minus the trend change, with a band; unknown days are left out', () => {
+  test('needs two weeks of logs and ten weights (six before Session AJ); then intake minus the trend change, with a band; unknown days are left out', () => {
     expect(energyEstimate(withDiary(createEmptyHealth(), 10), TODAY)).toMatchObject({ready: false, loggedDays: 10, weights: 0});
     const h = withWeights(withDiary(createEmptyHealth(), 28, 2200), 27, 2, 74000, -40); // −40 g a day ≈ −0.28 kg a week
     const e = energyEstimate(h, TODAY);
@@ -47,6 +47,18 @@ describe('N1 energy estimate', () => {
     expect(e.weeklyChangeGrams).toBeLessThan(0);
     expect(suggestedTarget(e, -0.4)).toBeLessThan(e.expenditure!); expect(suggestedTarget(e, 0)).toBe(Math.round(e.expenditure! / 10) * 10);
     expect(suggestedTarget(energyEstimate(createEmptyHealth(), TODAY), -0.4)).toBeNull();
+  });
+  // Session AJ (item 25): one trend for every view — the estimate's weekly change is the trend card's weekly rate (the
+  // 28-day slope), so −40 g a day reads as −280 g a week in both, and the estimate waits for 10 weigh-ins.
+  test('the energy estimate uses the same weekly rate as the trend card, and needs 10 weigh-ins', () => {
+    const h = withWeights(withDiary(createEmptyHealth(), 28, 2200), 27, 2, 74000, -40);
+    const e = energyEstimate(h, TODAY);
+    expect(e.weeklyChangeGrams).toBe(weeklyRateOf(h.weights, TODAY));
+    expect(e.weeklyChangeGrams).toBe(-280);
+    expect(e.expenditure).toBe(2200 + 280 / 7 * 7700 / 1000);
+    const nine = withWeights(withDiary(createEmptyHealth(), 28, 2200), 16, 2, 74000, -40);
+    expect(nine.weights).toHaveLength(9);
+    expect(energyEstimate(nine, TODAY)).toMatchObject({ready: false, weights: 9});
   });
 });
 describe('N3 coach check-in', () => {

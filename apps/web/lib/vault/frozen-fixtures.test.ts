@@ -21,6 +21,8 @@ import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
+import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
+import {WORKOUTS_KEY} from '../workouts/schema';
 import {UI_PREFS_KEY} from '../ab-design-keys';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
 import {IMPORTS_KEY} from '../portfolio/wallet-import';
@@ -181,8 +183,15 @@ export function frozenFixture() {
   checks.push({key: PRICE_ALERTS_KEY, module: './price-alerts/schema', spec: 'PRICE_ALERTS', expect: {'alerts.0.price': '12345'}});
   // Session AJ (item 30, D11; TIER 3 (stored format)): the trader tools' opt-in and tilt dismissal, an optional group in the
   // loose UI preferences; an older build keeps or ignores it.
-  records[UI_PREFS_KEY] = JSON.stringify({version: 1, heroCollapsed: true, trader: {on: true, tiltHiddenUntil: '2026-11-05'}});
+  records[UI_PREFS_KEY] = JSON.stringify({version: 1, heroCollapsed: true, trader: {on: true, tiltHiddenUntil: '2026-11-05'}, focusWindow: false, lifeScore: true});
   checks.push({key: UI_PREFS_KEY, module: './ui-prefs/schema', spec: 'UI_PREFS', expect: {heroCollapsed: true}});
+  // Session AJ (item 34, D13; TIER 3 (stored format)): Focus Sessions, a new device-only key (fictional ids).
+  records[FOCUS_SESSIONS_KEY] = JSON.stringify({version: 1, sessions: [{id: 'focus_fixture-0001', startedAt: '2026-10-29T09:00:00.000Z', endedAt: '2026-10-29T09:25:00.000Z', day: '2026-10-29', plannedMinutes: 25, focusedSeconds: 1440, awaySeconds: 60, outcome: 'grown'}]});
+  checks.push({key: FOCUS_SESSIONS_KEY, module: './focus-sessions/schema', spec: 'FOCUS_SESSIONS', expect: {'sessions.0.outcome': 'grown'}});
+  // Session AJ (item 27, D12; TIER 3 (stored format)): a workout imported from a GPX file keeps an optional summary
+  // (`imported`) in the loose workouts record; an older build keeps or ignores it (fictional figures).
+  records[WORKOUTS_KEY] = JSON.stringify({version: 1, workouts: [{id: 'w_fixture-1', name: 'Run (imported)', date: '2026-10-28', type: 'cardio', startedAt: '2026-10-28T07:00:00.000Z', endedAt: '2026-10-28T07:30:00.000Z', exercises: [], imported: {source: 'gpx', importId: '20261028T0700Z-1800s-5000m', sport: 'running', distanceKm: 5, elevationM: 40, avgHr: 148, durationSeconds: 1800}}], templates: [], exercises: [], restSeconds: 90});
+  checks.push({key: WORKOUTS_KEY, module: './workouts/schema', spec: 'WORKOUTS', expect: {'workouts.0.name': 'Run (imported)'}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -192,7 +201,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
