@@ -193,6 +193,7 @@ export function GovernanceView() {
           <p role="status" className="governance-eligibility">{stake.phase === 'reading' || stake.phase === 'idle' ? 'Reading your stake on this network…'
             : stake.phase === 'unavailable' ? 'Your stake could not be read just now, so voting waits. Press Refresh to try again.'
             : stake.eligibility.eligible ? <>You have <strong>{zigText(stake.eligibility.bonded)}</strong> staked with {stake.eligibility.validators} active validator{stake.eligibility.validators === 1 ? '' : 's'} on this network: your vote counts with it.</>
+            : BigInt(stake.eligibility.bonded) > 0n ? <>You have <strong>{zigText(stake.eligibility.bonded)}</strong> staked with active validators on this network. Voting needs at least 1 ZIG staked, so a vote would not count yet. <Link href="/app/staking">Stake more</Link>.</>
             : <>You have no stake with an active validator on this network, so a vote would not count. <Link href="/app/staking">Stake first</Link>.</>}</p>
         </div>}
       {connectError && <p role="alert" className="notice">{connectError}</p>}

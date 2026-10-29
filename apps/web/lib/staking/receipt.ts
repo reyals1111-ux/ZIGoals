@@ -5,8 +5,11 @@ import {STAKING_TYPE_URLS, type StakingMessage} from './messages';
  * Session AF (ADR-028 H4, H61; `TIER 3 (wallet/signing)`): what the wallet signed and what the chain recorded must be the
  * reviewed messages, byte for byte. Checked twice: on the signed bytes before anything is broadcast (a wallet that
  * changed a message is refused), and on the receipt (its hash is the SHA-256 of the signed bytes, its body the reviewed
- * messages, and a successful one carries each message's own staking event). The fee is not compared: the wallet may
- * raise it, and the review says so. cosmjs-types and the registry load with the signer, never with the page.
+ * messages, and a successful one carries each message's own staking event). cosmjs-types and the registry load with the
+ * signer, never with the page.
+ * Session AJ (ADR-035 A1; `TIER 3 (wallet)`): the fee is compared too. The signed bytes must carry exactly the reviewed
+ * fee (one azig amount, the reviewed gas limit, no payer or granter); a wallet that set its own fee is refused before
+ * anything is broadcast, so the fee on the review sheet is the fee that is signed.
  */
 export async function txHash(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(bytes));
@@ -25,6 +28,17 @@ export async function verifySignedMessages(expected: readonly StakingMessage[], 
   const wanted = expected.map(m => registry.encodeAsAny(m));
   if (body.memo !== memo || body.timeoutHeight !== 0n || body.extensionOptions.length || body.nonCriticalExtensionOptions.length || body.messages.length !== wanted.length) throw Error(SIGNED_DIFFERENT);
   body.messages.forEach((m, i) => { if (m.typeUrl !== wanted[i]!.typeUrl || !equalBytes(m.value, wanted[i]!.value)) throw Error(SIGNED_DIFFERENT); });
+}
+export const FEE_CHANGED = 'Your wallet changed the network fee, so nothing was sent. Review again; ZIGoals signs exactly the fee you reviewed.';
+/** The signed TxRaw's fee is exactly the reviewed one: the same single azig amount, the same gas limit, no payer or granter. */
+export async function verifySignedFee(expected: Readonly<{amount: readonly Readonly<{denom: string; amount: string}>[]; gas: string}>, txRawBytes: Uint8Array): Promise<void> {
+  const {TxRaw, AuthInfo} = await import('cosmjs-types/cosmos/tx/v1beta1/tx');
+  if (!(txRawBytes instanceof Uint8Array) || txRawBytes.length > 1024 * 1024) throw Error(SIGNED_DIFFERENT);
+  let fee;
+  try { fee = AuthInfo.decode(TxRaw.decode(txRawBytes).authInfoBytes).fee; } catch { throw Error(SIGNED_DIFFERENT); }
+  const want = expected.amount;
+  if (!fee || fee.payer !== '' || fee.granter !== '' || fee.gasLimit.toString() !== expected.gas || fee.amount.length !== want.length
+    || fee.amount.some((c, i) => c.denom !== want[i]!.denom || c.amount !== want[i]!.amount)) throw Error(FEE_CHANGED);
 }
 export type ChainTx = {hash: string; height: number; code: number; tx: Uint8Array; events: readonly {type: string; attributes: readonly {key: string; value: string}[]}[]};
 /** The event each message leaves when it succeeds, and the attribute that names its validator or proposal. */

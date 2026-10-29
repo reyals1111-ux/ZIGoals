@@ -1,7 +1,7 @@
 import {toBech32} from '@cosmjs/encoding';
 import {Registry} from '@cosmjs/proto-signing';
 import {defaultRegistryTypes} from '@cosmjs/stargate';
-import {TxBody, TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import {AuthInfo, TxBody, TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest';
 import {STAKING_JOURNAL, stakingEntriesOf} from './journal';
 import {attest, claim, delegate, revoke, type StakingMessage} from './messages';
@@ -14,10 +14,14 @@ import type {SigningChain} from './execute';
 const ME = toBech32('zig', new Uint8Array(20).fill(1)), A = toBech32('zigvaloper', new Uint8Array(20).fill(2)), B = toBech32('zigvaloper', new Uint8Array(20).fill(3));
 const registry = new Registry(defaultRegistryTypes);
 const txOf = (messages: readonly StakingMessage[]) => TxRaw.encode(TxRaw.fromPartial({bodyBytes: TxBody.encode(TxBody.fromPartial({messages: messages.map(m => registry.encodeAsAny(m)), memo: ''})).finish(), authInfoBytes: new Uint8Array([9]), signatures: [new Uint8Array(64)]})).finish();
+type Fee = Readonly<{amount: readonly Readonly<{denom: string; amount: string}>[]; gas: string}>;
+/** Session AJ (A1): a signed TxRaw carries the fee it was signed with; the doubles put the fee the signer was given there. */
+const withFee = (bytes: Uint8Array, fee: Fee) => { const raw = TxRaw.decode(bytes); return TxRaw.encode({...raw, authInfoBytes: AuthInfo.encode(AuthInfo.fromPartial({fee: {amount: fee.amount.map(c => ({...c})), gasLimit: BigInt(fee.gas)}})).finish()}).finish(); };
+const signedFeeOf = (bytes: Uint8Array) => { const fee = AuthInfo.decode(TxRaw.decode(bytes).authInfoBytes).fee!; return {amount: fee.amount.map(c => ({denom: c.denom, amount: c.amount})), gas: fee.gasLimit.toString(), payer: fee.payer, granter: fee.granter}; };
 class Memory { map = new Map<string, string>(); getItem(k: string) { return this.map.get(k) ?? null; } setItem(k: string, v: string) { this.map.set(k, v); } }
 const button = {contains: () => false}, press = {submit: {isTrusted: true, type: 'submit', timeStamp: 2, submitter: button}, activation: {isTrusted: true, type: 'click', timeStamp: 1, target: button}};
 const metadata = {base: 'azig', display: 'zig', denom_units: [{denom: 'azig', exponent: 0}, {denom: 'zig', exponent: 18}]};
-const quoteChain = (chainId: string) => async (): Promise<QuoteChain> => ({getChainId: async () => chainId, evidence: async () => ({version: 'v5.1.2', bondDenom: 'azig', unbondingSeconds: 1814400, metadata}), getSequence: async () => 1, getBalance: async () => '100000000000000000000', simulate: async () => 100000, disconnect: () => undefined});
+const quoteChain = (chainId: string, version = 'v5.1.2', base = (4_000_000_000n * 10n ** 18n).toString()) => async (): Promise<QuoteChain> => ({getChainId: async () => chainId, evidence: async () => ({version, bondDenom: 'azig', unbondingSeconds: 1814400, metadata}), getSequence: async () => 1, getBalance: async () => '100000000000000000000', simulate: async () => 100000, baseFee: async () => base, disconnect: () => undefined});
 /** Keplr double: records every call; the signer it hands out records its own. */
 function keplrDouble(address = ME) {
   const calls: string[] = [];
@@ -28,22 +32,27 @@ function keplrDouble(address = ME) {
   };
   return {keplr, calls};
 }
-type Script = {sign?: (msgs: readonly StakingMessage[]) => Promise<Uint8Array>; broadcast?: (bytes: Uint8Array) => Promise<string>; receipt?: (bytes: Uint8Array, hash: string) => ChainTx | null; chainId?: string};
+type Script = {sign?: (msgs: readonly StakingMessage[]) => Promise<Uint8Array>; broadcast?: (bytes: Uint8Array) => Promise<string>; receipt?: (bytes: Uint8Array, hash: string) => ChainTx | null; chainId?: string; walletFee?: (fee: Fee) => Fee};
 function signingChain(script: Script = {}) {
   const calls: string[] = [];
   let signed: Uint8Array | undefined;
+  const feesAsked: Fee[] = [];
   const connect = async (rpc: string): Promise<SigningChain> => { calls.push(`connect:${rpc}`); return {
     getChainId: async () => script.chainId ?? 'zig-test-2',
-    sign: async (_address, msgs) => { calls.push('sign'); signed = await (script.sign ?? (async m => txOf(m)))(msgs); return signed; },
+    sign: async (_address, msgs, fee) => { calls.push('sign'); feesAsked.push(fee); signed = withFee(await (script.sign ?? (async m => txOf(m)))(msgs), script.walletFee ? script.walletFee(fee) : fee); return signed; },
     broadcastTxSync: async bytes => { calls.push('broadcast'); return script.broadcast ? script.broadcast(bytes) : txHash(bytes); },
     getTx: async hash => { calls.push('getTx'); const events = [{type: 'delegate', attributes: [{key: 'validator', value: A}]}, {type: 'withdraw_rewards', attributes: [{key: 'validator', value: A}]}, {type: 'withdraw_rewards', attributes: [{key: 'validator', value: B}]}]; return script.receipt ? script.receipt(signed!, hash) : {hash, height: 8290600, code: 0, tx: signed!, events}; },
     disconnect: () => { calls.push('disconnect'); },
   }; };
-  return {connect, calls};
+  return {connect, calls, feesAsked, signedBytes: () => signed};
 }
-async function ticketFor(messages: readonly StakingMessage[], network: 'practice' | 'real' = 'practice', action: 'delegate' | 'claim' = 'delegate') {
-  const quote = await quoting.quoteStaking({network, address: ME, action, messages, keplr: keplrDouble().keplr, revision: 0}, quoteChain(network === 'real' ? 'zigchain-1' : 'zig-test-2'));
+async function ticketFor(messages: readonly StakingMessage[], network: 'practice' | 'real' = 'practice', action: 'delegate' | 'claim' = 'delegate', version = 'v5.1.2') {
+  const quote = await quoting.quoteStaking({network, address: ME, action, messages, keplr: keplrDouble().keplr, revision: 0}, quoteChain(network === 'real' ? 'zigchain-1' : 'zig-test-2', version));
   return gate.issueSignTicket(quote, press);
+}
+async function quoteAndTicket(messages: readonly StakingMessage[], network: 'practice' | 'real', version: string) {
+  const quote = await quoting.quoteStaking({network, address: ME, action: 'delegate', messages, keplr: keplrDouble().keplr, revision: 0}, quoteChain(network === 'real' ? 'zigchain-1' : 'zig-test-2', version));
+  return {quote, ticket: gate.issueSignTicket(quote, press)};
 }
 let execute: typeof import('./execute'), quoting: typeof import('./quote'), gate: typeof import('./sign-gate');
 beforeEach(async () => { vi.resetModules(); vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT', 'PUBLIC_ALPHA_UNDEPLOYED'); [execute, quoting, gate] = await Promise.all([import('./execute'), import('./quote'), import('./sign-gate')]); });
@@ -202,3 +211,35 @@ describe('chunk 3: practice badges and revokes through the same signer', () => {
     await expect(execute.executeSigned(gate.issueSignTicket(again, press), keplr, () => undefined, {storage: () => new Memory(), connect: signing.connect})).resolves.toMatchObject({height: 8290602, code: 0});
   });
 });
+
+// Session AJ (ADR-035 A1; TIER 3 (wallet)): the fee on the review sheet is the fee that is signed, on v5 and on v6.
+describe('the signed fee is the reviewed fee (A1)', () => {
+  test.each([['practice', 'v5.1.2'], ['practice', 'v6.0.0'], ['real', 'v5.1.2'], ['real', 'v6.0.3']] as const)('%s on %s: the signer gets preferNoSetFee and the quote\'s fee, and the signed bytes carry it exactly', async (network, version) => {
+    const storage = new Memory();
+    if (network === 'real') storage.setItem(STAKING_PREFS.key, JSON.stringify({version: 1, network: 'real', realConfirmedAt: '2026-10-29T00:00:00.000Z'}));
+    const {keplr, calls} = keplrDouble(), chain = signingChain({chainId: network === 'real' ? 'zigchain-1' : 'zig-test-2'});
+    const {quote, ticket} = await quoteAndTicket([delegate({delegator: ME, validator: A, amount: '25'})], network, version);
+    await execute.executeSigned(ticket, keplr, () => undefined, {storage: () => storage, connect: chain.connect});
+    expect(calls).toContain('getOfflineSignerAuto:true');
+    expect(chain.feesAsked).toEqual([quote.fee]);
+    const signed = signedFeeOf(chain.signedBytes()!);
+    expect(signed).toEqual({amount: [{denom: 'azig', amount: quote.feeAmount}], gas: String(quote.gasLimit), payer: '', granter: ''});
+    // The review sheet's fee is quote.feeAmount = gas limit × the quote's gas price (v5 fixed, v6 from the base fee).
+    expect(BigInt(quote.feeAmount)).toBe(BigInt(quote.gasLimit) * BigInt(quote.gasPrice));
+    expect(quote.gasPrice).toBe(version.startsWith('v6') ? '6000000000' : '2500000000');
+  });
+  test.each([
+    ['raised its own gas price', (f: Fee) => ({...f, amount: [{denom: 'azig', amount: (BigInt(f.amount[0]!.amount) * 10n).toString()}]})],
+    ['lowered it', (f: Fee) => ({...f, amount: [{denom: 'azig', amount: '1'}]})],
+    ['changed the gas limit', (f: Fee) => ({...f, gas: String(Number(f.gas) + 1)})],
+    ['paid in another denom', (f: Fee) => ({...f, amount: [{denom: 'uzig', amount: f.amount[0]!.amount}]})],
+    ['added a second coin', (f: Fee) => ({...f, amount: [...f.amount, {denom: 'azig', amount: '1'}]})],
+  ])('a wallet that %s is refused before anything is broadcast; the journal says FAILED', async (_, walletFee) => {
+    const storage = new Memory(), {keplr} = keplrDouble(), chain = signingChain({walletFee});
+    const ticket = await ticketFor([delegate({delegator: ME, validator: A, amount: '25'})], 'practice', 'delegate', 'v6.0.0');
+    await expect(execute.executeSigned(ticket, keplr, () => undefined, {storage: () => storage, connect: chain.connect})).rejects.toThrow();
+    expect(chain.calls).not.toContain('broadcast');
+    expect(stakingEntriesOf(JSON.parse(storage.getItem(STAKING_JOURNAL.key)!)).at(-1)?.state).toBe('FAILED');
+  });
+});
+

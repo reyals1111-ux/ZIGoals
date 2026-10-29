@@ -87,7 +87,7 @@ export const ACADEMY_LESSONS: readonly Lesson[] = Object.freeze([
   ]},
   {id: 'fees', title: 'Gas and fees', short: 'Why you keep a little ZIG', minutes: 4, glyph: 'wallet', colour: 'purple', body: [
     'Every transaction on ZIGChain pays a small network fee in ZIG to the validators who process it.',
-    'Gas is the work a transaction needs; the fee is the gas times the gas price. Your wallet shows the fee before you sign, and may let you raise it.',
+    'Gas is the work a transaction needs; the fee is the gas times the gas price. ZIGoals shows the exact fee on its review screen, and that is the fee your wallet signs.',
     'ZIGChain takes its fees in ZIG only: with only USDC or ATOM in your wallet you cannot even swap until you have a little ZIG.',
     'So keep a little ZIG for fees when you stake: “Max” can leave nothing for the next step.',
   ], quiz: [

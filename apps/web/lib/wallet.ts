@@ -4,7 +4,12 @@ import { fromBech32, toUtf8 } from "@cosmjs/encoding";
 import type { OfflineSigner, EncodeObject } from "@cosmjs/proto-signing";
 import type { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import {
+  BASE_FEE_REST_PATH,
+  BASE_FEE_UNREADABLE,
   TESTNET,
+  checkVersion,
+  parseBaseFee,
+  quotedGasPrice,
   verifyNetwork,
   keplrChainInfo,
   safeMaximum,
@@ -26,13 +31,14 @@ import {
 // wallet actions that use it (alongside the signing client they already load on use) instead of with every page. The
 // functions, their arguments and their order are unchanged.
 const receipts = () => import("./receipt-reconciliation");
+const verifySignedFee = async (...args: Parameters<typeof import("./staking/receipt").verifySignedFee>) => (await import("./staking/receipt")).verifySignedFee(...args);
 export interface Keplr {
   enable(chain: string): Promise<void>;
   experimentalSuggestChain(
     info: ReturnType<typeof keplrChainInfo>,
   ): Promise<void>;
   getKey(chain: string): Promise<{ bech32Address: string }>;
-  getOfflineSignerAuto(chain: string): Promise<OfflineSigner>;
+  getOfflineSignerAuto(chain: string, options?: { preferNoSetFee?: boolean }): Promise<OfflineSigner>;
 }
 declare global {
   interface Window {
@@ -75,8 +81,25 @@ export async function readBalance(address: string): Promise<string> {
   return parseBalance(data);
 }
 async function verifiedClient() {
+  return (await verifiedClientAndVersion()).client;
+}
+/**
+ * Session AJ (ADR-035 P3, A1, A2; `TIER 3 (wallet)`): the gas price of the version the node reports at this quote: v5.1's
+ * fixed 2.5 Gazig, or on v6.0 max(2.5 Gazig, ceil(base fee × 1.5)) from the base fee read now (REST, the host this path
+ * already reads). An unreadable base fee refuses the quote.
+ */
+async function goalGasPrice(version: string | undefined): Promise<string> {
+  const check = checkVersion(TESTNET.chainId, version);
+  if (!check.ok) throw Error("Network or denomination changed. Signing is disabled until configuration is verified.");
+  if (check.fee === "fixed") return quotedGasPrice("fixed").toString();
+  const response = await fetch(`${TESTNET.restUrl}${BASE_FEE_REST_PATH}`, { signal: AbortSignal.timeout(12000) }).catch(() => undefined);
+  if (!response?.ok) throw Error(BASE_FEE_UNREADABLE);
+  const body = (await response.json().catch(() => null)) as { base_fee?: unknown } | null;
+  return quotedGasPrice("base-fee", parseBaseFee(body?.base_fee, "decimal")).toString();
+}
+async function verifiedClientAndVersion() {
   const manifest = requireConfiguredDeployment();
-  await verifyNetwork(TESTNET, fetch, manifest.chainVersion);
+  const version = await verifyNetwork(TESTNET, fetch, manifest.chainVersion);
   const { CosmWasmClient } = await import("@cosmjs/cosmwasm-stargate");
   const client = await CosmWasmClient.connect(TESTNET.rpcUrl);
   try {
@@ -85,7 +108,7 @@ async function verifiedClient() {
     if (fromBech32(CONTRACT_ADDRESS, 90).prefix !== "zig")
       throw Error("Invalid Goal Manager address.");
     await verifyContractEvidence(client, manifest);
-    return client;
+    return { client, version };
   } catch (e) {
     client.disconnect();
     throw e;
@@ -134,12 +157,14 @@ export async function quoteExecute(
     import("@cosmjs/stargate"),
     import("cosmjs-types/cosmwasm/wasm/v1/tx"),
   ]);
-  const check = await verifiedClient();
-  check.disconnect();
+  const check = await verifiedClientAndVersion();
+  check.client.disconnect();
+  const gasPrice = await goalGasPrice(check.version);
   const key = await keplr.getKey(TESTNET.chainId);
   if (key.bech32Address !== owner)
     throw Error("Account changed. Reconnect before continuing.");
-  const signer = await keplr.getOfflineSignerAuto(TESTNET.chainId);
+  // Session AJ (A1): the reviewed fee is the signed fee; Keplr must not set its own.
+  const signer = await keplr.getOfflineSignerAuto(TESTNET.chainId, { preferNoSetFee: true });
   const client = await SigningCosmWasmClient.connectWithSigner(
     TESTNET.rpcUrl,
     signer,
@@ -164,7 +189,7 @@ export async function quoteExecute(
       throw Error("Invalid transaction simulation.");
     const fee = calculateFee(
       Math.ceil(gas * 1.3),
-      GasPrice.fromString(TESTNET.gasPrice + TESTNET.nativeAsset.baseDenom),
+      GasPrice.fromString(gasPrice + TESTNET.nativeAsset.baseDenom),
     );
     const feeAmount = fee.amount[0]?.amount;
     if (!feeAmount) throw Error("No fee estimate available.");
@@ -253,7 +278,7 @@ export async function executeQuote(
   if (operationId) operation.operationId = operationId;
   const journal = new TransactionJournal();
   await journal.create(operation);
-  const signer = await keplr.getOfflineSignerAuto(TESTNET.chainId);
+  const signer = await keplr.getOfflineSignerAuto(TESTNET.chainId, { preferNoSetFee: true });
   assertCurrent();
   const client = await SigningCosmWasmClient.connectWithSigner(
     TESTNET.rpcUrl,
@@ -280,6 +305,7 @@ export async function executeQuote(
         assertFresh: fresh,
         hash: async (bytes) => {
           verifySignedOperation(operation, bytes);
+          await verifySignedFee(quote.fee, bytes);
           return signedTransactionHash(bytes);
         },
         persist: async (state, details) => {

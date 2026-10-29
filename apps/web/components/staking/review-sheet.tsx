@@ -4,6 +4,7 @@ import {NETWORK_WORDS} from '@zigoals/chain-config/networks';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {executeSigned, StakingFailure, type StakingReceipt} from '../../lib/staking/execute';
 import {STAKING_TYPE_URLS, type StakingMessage} from '../../lib/staking/messages';
+import {formatGazig} from '@zigoals/chain-config/reviewed-versions';
 import {GAS_MULTIPLIER, type StakingQuote} from '../../lib/staking/quote';
 import {issueSignTicket, PRESS_SIGN} from '../../lib/staking/sign-gate';
 import {shortAddress} from '../../lib/staking/address';
@@ -19,7 +20,7 @@ import type {PlainTerm} from '../../lib/earn/plain-words';
 /**
  * Session AF (ADR-028 H4, H60, H61; `TIER 3 (wallet/signing)`): the review screen, the only door to the signer. It shows
  * the exact action, the validator(s), the amount the person typed (in ZIG and azig), the network fee from the simulation
- * and that the wallet may raise it, what unstaking means, that the person signs in their own wallet and ZIGoals never sees
+ * (Session AJ A1: the exact fee the wallet signs, at the gas price of the version read at the quote), what unstaking means, that the person signs in their own wallet and ZIGoals never sees
  * keys, what becomes public, and the raw message. Its form's own submit — the person's press of "Sign in Keplr" — is the
  * one place a sign ticket is issued and the signer is called (lib/staking/staking-guard.test.ts pins it).
  */
@@ -107,7 +108,7 @@ export function ReviewSheet({quote, names, facts, rewards, expired, progress, on
           <div><dt>Memo</dt><dd><code className="staking-memo">{quote.memo}</code> <span className="fine">{quote.memo.startsWith('zigoals:att:v1:c:') ? 'A salted code of your note: the note and the salt stay on this device, so nobody can read or guess it from the chain, and you can prove it later.' : 'A random badge number: what it stands for stays on this device.'}</span></dd></div>
         </>}
         {'amount' in first.value && first.typeUrl !== STAKING_TYPE_URLS.attest && <div><dt>Amount</dt><dd><strong>{zigText(first.value.amount.amount)}</strong> <span className="fine">({first.value.amount.amount} azig)</span><NetworkLine network={quote.network}/></dd></div>}
-        <div><dt>Network fee</dt><dd>{feeText(quote.feeAmount)} <span className="fine">({groupDigits(quote.gasUsed)} gas simulated × {GAS_MULTIPLIER} × 2.5 Gazig per gas; your wallet may let you raise it)</span> <WhatsThis term="gas"/></dd></div>
+        <div><dt>Network fee</dt><dd>{feeText(quote.feeAmount)} <span className="fine">({groupDigits(quote.gasUsed)} gas simulated × {GAS_MULTIPLIER} × {formatGazig(BigInt(quote.gasPrice))} per gas{quote.feeModel === 'base-fee' && quote.baseFee ? <>: the network&rsquo;s current base fee ({formatGazig(BigInt(quote.baseFee))}) plus room for it to rise</> : <>, the network&rsquo;s minimum</>}. Your wallet signs exactly this fee.)</span> <WhatsThis term="gas"/></dd></div>
         {quote.action === 'sweep' && <div><dt>How it works</dt><dd>One message: staking more with this validator first pays out the rewards waiting with it to your wallet (the chain does this by itself), then stakes this amount, so the rewards go straight back to work. If those rewards were already claimed, or go to another address you set, this amount is staked from your balance instead.</dd></div>}
         {(quote.action === 'delegate' || quote.action === 'sweep') && <div><dt>Unstaking later</dt><dd>Getting this ZIG back takes {daysText(quote.unbondingSeconds)} after you unstake; it earns nothing and cannot move meanwhile.</dd></div>}
         {quote.action === 'undelegate' && <div><dt>What unstaking means</dt><dd>This ZIG comes back to your wallet after {daysText(quote.unbondingSeconds)} (checked against the chain just now). Meanwhile it earns nothing and cannot move. A validator allows at most 7 unstakings from you at a time.</dd></div>}

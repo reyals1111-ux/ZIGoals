@@ -10,12 +10,16 @@ import type {VoteChoiceWire} from './wire';
  *   (the read-only relay), never guessed.
  * - **The vote journal** is the staking journal's `vote` entries (`zigoals:staking-journal:v1`): the chain removes every
  *   vote when it counts a proposal, so after the voting period this device's own record is the only one ZIGoals keeps.
+ * - Session AJ (ADR-035 P4): from zigchaind v6 a vote needs at least 1 ZIG staked with bonded validators, summed across
+ *   them (below it the chain answers "no voting power"). The rule is applied on both networks: on mainnet's last v5
+ *   days it is a little stricter than the chain, which only hides the vote for stakes under 1 ZIG.
  */
+export const MIN_VOTING_STAKE = 10n ** 18n;
 export type Eligibility = {eligible: boolean; bonded: string; validators: number};
 export function eligibilityOf(positions: readonly Position[], chainId: string, address: string): Eligibility {
   const stake = positions.filter(p => p.network === chainId && p.account === address && p.providerId === 'native-zig' && p.asset === 'ZIG' && p.sourceType === 'NATIVE_STAKING' && !p.archivedAt && /^[1-9]\d*$/.test(p.quantity) && p.validator?.status === 'BOND_STATUS_BONDED');
   const bonded = stake.reduce((n, p) => n + BigInt(p.quantity), 0n);
-  return {eligible: bonded > 0n, bonded: bonded.toString(), validators: new Set(stake.map(p => p.validator!.address)).size};
+  return {eligible: bonded >= MIN_VOTING_STAKE, bonded: bonded.toString(), validators: new Set(stake.map(p => p.validator!.address)).size};
 }
 export type JournalVote = {proposalId: string; choice: VoteChoiceWire; state: StakingJournalEntry['state']; at: string; hash?: string; chainId: string; wallet: string};
 /** The votes signed on this device for one network (and address, when given), newest first; unreadable entries skipped. */
