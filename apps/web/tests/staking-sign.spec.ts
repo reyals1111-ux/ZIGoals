@@ -252,7 +252,8 @@ test('practice on a newer line: the review is refused in plain words, nothing as
   await relay(page, 'practice');
   const panel = await openStaking(page);
   await panel.getByRole('button', {name: 'Connect Keplr for PRACTICE', exact: true}).click();
-  await expect(panel).toContainText('The network was upgraded; checks are pending.');
+  await expect(panel.getByRole('alert')).toHaveText('The network was upgraded; checks are pending.');
+  await expect(panel.getByRole('button', {name: 'Connect Keplr for PRACTICE', exact: true})).toBeEnabled();
   expect(calls.filter(c => SIGNER_CALLS.test(c))).toEqual([]);
 });
 
