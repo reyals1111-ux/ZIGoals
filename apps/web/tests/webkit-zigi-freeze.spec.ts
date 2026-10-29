@@ -1,4 +1,5 @@
 import {expect, test, type ConsoleMessage, type Page, type Route} from '@playwright/test';
+import {openZigi, sendToZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -90,15 +91,11 @@ test('desktop and phone: after an auto-accepted card is undone, a second message
   for (let round = 1; round <= ROUNDS; round++) {
     await seed(page, {autoAccept: {kinds: {'log-water': true, 'log-weight': true}}});
     await page.goto('/app/health');
-    await page.getByRole('button', {name: /Open ZIGi/}).click();
-    await expect(panel(page)).toBeVisible();
-    // Session AF Gate C (CI's WebKit on 499fff64): type once the panel has put its focus in its box, as a person does — a fill
-    // while the panel was still settling never reached the box (the known "box empty after a fill" class).
-    await expect(panel(page).getByRole('textbox', {name: 'Message to your AI'})).toBeFocused();
+    // Session AF Gate C, Session AJ (item 13): open, then type once the box holds the focus and the text (tests/zigi-open.ts).
+    await openZigi(page);
     const cards = panel(page).locator('.ai-card');
     await w.step(`round ${round}: first message`, async () => {
-      await page.getByLabel('Message to your AI').fill('Drank 300 ml and I weigh 72.5 kg');
-      await page.getByRole('button', {name: 'Send', exact: true}).click();
+      await sendToZigi(page, 'Drank 300 ml and I weigh 72.5 kg');
       await expect(cards.nth(0)).toHaveClass(/ai-card-auto/, {timeout: REPLY_MS});
       await expect(panel(page).getByTestId('ai-auto-toast')).toContainText('Added by ZIGi: Add water', {timeout: REPLY_MS});
     });
@@ -107,8 +104,7 @@ test('desktop and phone: after an auto-accepted card is undone, a second message
       await expect(cards.nth(0)).toHaveClass(/ai-card-undone/, {timeout: REPLY_MS});
     });
     await w.step(`round ${round}: second message`, async () => {
-      await page.getByLabel('Message to your AI').fill('Another 300 ml');
-      await page.getByRole('button', {name: 'Send', exact: true}).click();
+      await sendToZigi(page, 'Another 300 ml');
       await expect(cards).toHaveCount(4, {timeout: REPLY_MS});
       await expect(panel(page).locator('.ai-card-auto')).toHaveCount(1, {timeout: REPLY_MS});
     });
@@ -124,12 +120,9 @@ test('Health not shared: the first message is answered as a proposal, every roun
   for (let round = 1; round <= ROUNDS; round++) {
     await seed(page, {autoAccept: {kinds: {'log-water': true}}}, {includeHealth: false});
     await page.goto('/app/health');
-    await page.getByRole('button', {name: /Open ZIGi/}).click();
-    await expect(panel(page)).toBeVisible();
+    await openZigi(page);
     await w.step(`round ${round}: first message with Health closed`, async () => {
-      await page.getByLabel('Message to your AI').fill('Drank 300 ml');
-      await expect(page.getByRole('button', {name: 'Send', exact: true})).toBeEnabled({timeout: REPLY_MS});
-      await page.getByRole('button', {name: 'Send', exact: true}).click();
+      await sendToZigi(page, 'Drank 300 ml');
       await expect(panel(page).locator('.ai-card').first()).toHaveClass(/ai-card-proposed/, {timeout: REPLY_MS});
       await expect(panel(page).locator('.ai-card-auto')).toHaveCount(0);
     });

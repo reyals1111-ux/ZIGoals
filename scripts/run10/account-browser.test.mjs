@@ -38,8 +38,13 @@ test.skipIf(!ENABLED).each(['a-first','b-first'])('two real browser profiles use
  const mf=await createPrivateMiniflare({persist,origin,outboundService:async()=>Response.json({id:account})});
  const sentOperations=[],diag=createDiagnostics(account);
  const contexts=[];let recovery,nextRecovery;
- // A phase's deadline: the journey cannot continue past it; the catch below prints the diagnostics.
- async function phase(name,ms,body){let timer;const run=body();try{await Promise.race([run,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(`phase "${name}" did not finish within ${ms} ms`)),ms);})]);}finally{clearTimeout(timer);run.catch(()=>{});}}
+ // A phase's stall limit: the journey fails when one of the phase's steps makes no progress for `ms` (a stall), and the
+ // catch below prints the diagnostics. Session AJ (item 13): this was a deadline for the whole phase, which measured the
+ // runner's speed rather than a stall: on a slower machine every step of phase 1 finished and the phase still ran past
+ // 20 s (here: the last "Sync now" started at 19.5 s, each sync answered in under 60 ms). The whole journey keeps the
+ // test's own 150 s limit, so a slow run still fails; a stalled step now fails by name after `ms`.
+ let lastProgress=Date.now();const step=diag.step.bind(diag);diag.step=name=>{lastProgress=Date.now();step(name);};
+ async function phase(name,ms,body){let timer;lastProgress=Date.now();const run=body();try{await Promise.race([run,new Promise((_,reject)=>{const check=()=>{const idle=Date.now()-lastProgress;if(idle>=ms)reject(Error(`phase "${name}": a step made no progress for ${ms} ms`));else timer=setTimeout(check,Math.min(1000,ms-idle));};timer=setTimeout(check,Math.min(1000,ms));})]);}finally{clearTimeout(timer);run.catch(()=>{});}}
  async function context(mobile=false){const token=fixtureToken('fixture-'+crypto.randomUUID(),account);const c=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile}),label=mobile?'B':'A';contexts.push(c);await diag.watchContext(c);let offline=false;const toggleOffline=c.setOffline.bind(c);c.setOffline=async value=>{offline=value;await toggleOffline(value);};
   await c.route('**/api/private-account*',async route=>{if(offline){diag.request(label,route.request().method(),route.request().url(),route.request().postData())('aborted: offline');await route.abort('internetdisconnected');return;}const r=route.request(),headers=await r.allHeaders();const done=diag.request(label,r.method(),r.url(),r.postData()),req=new Request(r.url(),{method:r.method(),headers,...(r.postData()?{body:r.postData()}: {})});
    const result=await privateAccountRequest(req,{authOrigin:'https://fixture.supabase.co',publicKey:'public-fixture',syncOrigin:'https://fixture.workers.dev'},async(url,init)=>{

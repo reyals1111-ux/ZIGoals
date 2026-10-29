@@ -85,6 +85,16 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     const root = document.documentElement; root.dataset.zigiKnock = '';
     window.setTimeout(() => { delete root.dataset.zigiKnock; if (zigiState.get() === 'reminder') zigiState.set('idle'); }, RIPPLE_MS * 2);
   }, [next]); // eslint-disable-line react-hooks/exhaustive-deps -- one knock per chosen reminder
+  // Session AJ (item 13): once the due rules have run against the records and their answer is painted, the page says so
+  // (`data-zigi-knock-looked` on <html>), so a check that no knock came reads a fact rather than waiting a fixed time.
+  const looked = !!now && ready && !!compute;
+  useEffect(() => {
+    if (!looked) return;
+    const root = document.documentElement;
+    const frame = requestAnimationFrame(() => requestAnimationFrame(() => { root.dataset.zigiKnockLooked = ''; }));
+    return () => cancelAnimationFrame(frame);
+  }, [looked]);
+  useEffect(() => () => { delete document.documentElement.dataset.zigiKnockLooked; }, []);
   const close = useCallback(() => { setCurrent(null); restUntil.current = Date.now() + REST_MS; }, []);
   /** Closing the knock without acting on it is a dismissal: no more nudges this session (the controller's rule). */
   const dismiss = useCallback(() => { zigiSignals.emit('user_dismissed'); close(); }, [close]);

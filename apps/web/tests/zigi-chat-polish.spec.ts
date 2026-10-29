@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {typeInZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -81,11 +82,12 @@ test('the "/" list: every command by keyboard; /help and /remember answer on the
   await seed(page, {});
   await page.goto('/app');
   await openChat(page);
-  await box(page).fill('/');
+  // Session AJ (item 13): each typed command is confirmed in the box before the list is read (tests/zigi-open.ts).
+  await typeInZigi(page, '/', {submitEnabled: false});
   const list = panel(page).getByRole('listbox', {name: 'Commands'});
   await expect(list.getByRole('option')).toHaveCount(SLASH_COMMANDS.length);
   await expect(box(page)).toHaveAttribute('aria-controls', (await list.getAttribute('id'))!);
-  await box(page).fill('/r');
+  await typeInZigi(page, '/r', {submitEnabled: false});
   await expect(list.getByRole('option')).toHaveText([/^\/review/, /^\/remember/]);
   await box(page).press('ArrowDown');
   await expect(list.getByRole('option', {name: /^\/remember/})).toHaveAttribute('aria-selected', 'true');
@@ -93,7 +95,7 @@ test('the "/" list: every command by keyboard; /help and /remember answer on the
   await expect(box(page)).toHaveValue('/remember ');
   await expect(list).toHaveCount(0);
   // Escape closes the list and leaves the panel open.
-  await box(page).fill('/he');
+  await typeInZigi(page, '/he', {submitEnabled: false});
   await expect(list).toBeVisible();
   await box(page).press('Escape');
   await expect(list).toHaveCount(0); await expect(panel(page)).toBeVisible();

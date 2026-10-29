@@ -153,7 +153,9 @@ describe('executeSigned', () => {
     const ticket = await ticketFor([delegate({delegator: ME, validator: A, amount: '25'})]);
     await expect(execute.executeSigned(ticket, keplr, () => undefined, {storage: () => new Memory(), connect: chain.connect})).rejects.toBeInstanceOf(execute.StakingFailure);
     expect(chain.calls).not.toContain('broadcast');
-  });
+    // Session AJ (item 13): the guard above allows the loop 45 s of real time on a loaded runner, but the test ran under
+    // vitest's default 5 s limit, which fired first (the known intermittent at this test). The test's limit is the guard's.
+  }, 60_000);
   test('an invalid build signs nothing, before redeeming the ticket', async () => {
     const ticket = await ticketFor([delegate({delegator: ME, validator: A, amount: '25'})]);
     vi.resetModules(); vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT', 'BROKEN');
