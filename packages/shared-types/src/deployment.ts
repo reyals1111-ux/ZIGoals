@@ -35,15 +35,18 @@ const timestamp = z.string().refine((value) => {
     time >= Date.UTC(2024, 0, 1)
   );
 }, "Use an actual UTC timestamp, not a future or invalid date.");
+/** v5.0.0-patch-1 (the prepared manifest), or any patch of zig-test-2's reviewed lines v5.1 and v6.0 (ADR-035 D1). */
+export const MANIFEST_CHAIN_VERSION = /^(?:v5\.0\.0-patch-1|v5\.1\.\d{1,4}|v6\.0\.\d{1,4})$/;
 const common = {
   schemaVersion: z.literal(2),
   environment: z.literal("testnet"),
   chainId: z.literal("zig-test-2"),
   // The zigchaind version read when the manifest was prepared or deployed: the repository's prepared manifest was made on
-  // v5.0.0-patch-1 (2026-09-13); v5.1.0, v5.1.1 and v5.1.2 are the reviewed v5.1 versions (Session X Part 1, the same
-  // list as @zigoals/chain-config's REVIEWED_TESTNET_VERSIONS). The financial preflight still requires the live node to
-  // report exactly this manifest's version.
-  chainVersion: z.enum(["v5.0.0-patch-1", "v5.1.0", "v5.1.1", "v5.1.2"]),
+  // v5.0.0-patch-1 (2026-09-13); otherwise any patch of a reviewed minor line of zig-test-2 (Session AJ, ADR-035 D1:
+  // v5.1.x and v6.0.x; the same rule as @zigoals/chain-config's reviewed-versions.ts, which apps/web/lib/
+  // chain-version.test.ts keeps equal). The financial preflight still requires the live node to report exactly this
+  // manifest's version.
+  chainVersion: z.string().regex(MANIFEST_CHAIN_VERSION, "Use the zigchaind version the manifest was prepared on."),
   denom: z.literal("azig"),
   decimals: z.literal(18),
   wasmSha256: hash,

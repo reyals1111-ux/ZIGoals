@@ -4,6 +4,7 @@ import {
   TESTNET,
   type NetworkConfig,
 } from "./index";
+import { GAS_PRICE_FLOOR, checkVersion, requireReviewedVersion, type FeeModel } from "./reviewed-versions";
 
 /**
  * Session AF (ADR-028 H46, H61, H74; `TIER 3 (wallet/signing)`): the two networks native staking may sign on. `TESTNET`,
@@ -62,13 +63,25 @@ export function stakingNetworkOf(chainId: unknown): StakingNetwork | undefined {
 }
 
 /**
- * zigchaind versions reviewed per network. Practice: index.ts's list (v5.1.0–v5.1.2). Real: v5.1.2, the only version
- * both mainnet RPC nodes answered on 2026-10-18 (six reads of node_info and abci_info); any other version fails closed.
+ * zigchaind versions seen and reviewed per network (examples; the rule is reviewed-versions.ts, Session AJ D1: any patch
+ * of a reviewed minor line). Practice: index.ts's list (v5.1.0–v5.1.2, v6.0.0). Real: v5.1.2, the version both mainnet
+ * RPC nodes answered on 2026-10-18 and 2026-10-29; v6.0.x is accepted by the rule once proposal #45 upgrades it (P2).
  */
 export const REVIEWED_VERSIONS: Readonly<Record<StakingNetwork, readonly string[]>> = Object.freeze({
   practice: REVIEWED_TESTNET_VERSIONS,
   real: Object.freeze(["v5.1.2"]),
 });
+/** The fee model of a reviewed version on a staking network (throws like assertNetworkEvidence for any other). */
+export function feeModelFor(network: StakingNetwork, version: unknown): FeeModel {
+  const config = STAKING_NETWORKS[network];
+  if (!config) throw new Error(NETWORK_CHANGED);
+  return requireReviewedVersion(config.chainId, version, NETWORK_CHANGED).fee;
+}
+/** Whether a version is a reviewed patch on this staking network (the D1 rule). */
+export function isReviewedOn(network: StakingNetwork, version: unknown): boolean {
+  const config = STAKING_NETWORKS[network];
+  return !!config && checkVersion(config.chainId, version).ok;
+}
 
 /** The words every staking screen uses for the two networks: big, plain and never abbreviated. */
 export const NETWORK_WORDS = Object.freeze({
@@ -100,6 +113,12 @@ export const MAX_UNBONDING_ENTRIES = 7;
  * minimum × simulated gas × 1.3 and the review says the wallet may raise it.
  */
 export const GAS_PRICE_STEPS = Object.freeze({ low: 2500000000, average: 25000000000, high: 50000000000 });
+/**
+ * Session AJ (ADR-035 A1): the steps above suit both reviewed fee models: `low` is the fixed price of v5.1 and the
+ * feemarket floor of v6.0 (GAS_PRICE_FLOOR), and every step is at or above it. They never set the signed fee: the
+ * signer is asked with `preferNoSetFee`, and the signed bytes must carry exactly the reviewed fee (receipt.ts).
+ */
+export const GAS_PRICE_STEPS_FLOOR = Number(GAS_PRICE_FLOOR);
 /** The same-name decoy: symbol "ZIG", exponent 6, not the chain's coin. ZIG is identified by its base denom azig only. */
 export const DECOY_DENOMS: readonly string[] = Object.freeze(["coin.zig153u6vhv4ds6x95chdnqmsduwxzpt0teh43alsk.zig"]);
 
@@ -130,7 +149,6 @@ export function assertNetworkEvidence(network: StakingNetwork, evidence: Network
     !config ||
     evidence.chainId !== config.chainId ||
     typeof evidence.version !== "string" ||
-    !REVIEWED_VERSIONS[network].includes(evidence.version) ||
     evidence.bondDenom !== config.nativeAsset.baseDenom ||
     evidence.unbondingSeconds !== UNBONDING_SECONDS ||
     !m ||
@@ -139,7 +157,8 @@ export function assertNetworkEvidence(network: StakingNetwork, evidence: Network
     !units.some((d) => d.denom === m.display && d.exponent === config.nativeAsset.decimals)
   )
     throw new Error(NETWORK_CHANGED);
-  return evidence.version;
+  // Session AJ (D1, P5): any patch of a reviewed minor; a newer line throws NetworkUpgradedError (D1's sentence).
+  return requireReviewedVersion(config.chainId, evidence.version, NETWORK_CHANGED).version;
 }
 /** "1814400s" → 1814400; anything else → NaN (and the evidence check fails closed). */
 export function durationSeconds(value: unknown): number {

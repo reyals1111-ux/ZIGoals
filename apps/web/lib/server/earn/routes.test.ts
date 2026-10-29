@@ -104,9 +104,17 @@ describe('a source that fails is an honest unavailable, never a guess', () => {
     ['a figure out of range', respond(is('/cosmos/mint/v1beta1/inflation'), (r) => changedAnswer(r, () => ({inflation: '0.9'}))), 'OUT_OF_RANGE'],
     ['another network', respond(is('/node_info'), (r) => changedAnswer(r, (b: {default_node_info: object}) => ({...b, default_node_info: {...b.default_node_info, network: 'zigchain-2'}}))), 'WRONG_NETWORK'],
     ['another bond denom', respond(is('/cosmos/staking/v1beta1/params'), (r) => changedAnswer(r, (b: {params: object}) => ({params: {...b.params, bond_denom: 'uzig'}}))), 'WRONG_NETWORK'],
+    // Session AJ (ADR-035 D1): a newer zigchaind line stops the figures in D1's words.
+    ['a newer zigchaind line', respond(is('/node_info'), (r) => changedAnswer(r, (b: {application_version: object}) => ({...b, application_version: {...b.application_version, version: 'v6.1.0'}}))), 'NETWORK_UPGRADED'],
   ] as const)('chain: %s', async (_label, override, reason) => {
     const answer = await readChain(mirror(replay('mainnet', {override})), 'mainnet');
     expect(answer).toMatchObject({status: 'unavailable', reason, data: null, stale: false});
+  });
+  it.each(['v6.0.0', 'v6.0.3', 'v5.1.7'])('chain: a reviewed patch (%s) reads as before and names itself (Session AJ, D1)', async (version) => {
+    const override = respond(is('/node_info'), (r) => changedAnswer(r, (b: {application_version: object}) => ({...b, application_version: {...b.application_version, version}})));
+    const answer = await readChain(mirror(replay('mainnet', {override})), 'mainnet');
+    expect(answer.status).toBe('ok');
+    expect(answer.status === 'ok' && answer.data.nodeVersion).toBe(version);
   });
   it.each([
     ['another code id', respond(u => u.endsWith('/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55'), (r) => changedAnswer(r, (b: {contract_info: object}) => ({...b, contract_info: {...b.contract_info, code_id: '180'}}))), 'PIN_MISMATCH'],

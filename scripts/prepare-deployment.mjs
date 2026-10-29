@@ -1,7 +1,7 @@
 // Read-only preparation: no signer, key input, wallet, upload or broadcast API.
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { REVIEWED_TESTNET_VERSIONS, TESTNET, verifyNetwork } from "../packages/chain-config/src/index.ts";
+import { REVIEWED, TESTNET, verifyNetwork } from "../packages/chain-config/src/index.ts";
 import { buildPreparedManifest } from "./lib/prepare-deployment.mjs";
 import { verifyCandidateDirectory } from "./release/verify.mjs";
 
@@ -11,7 +11,8 @@ export async function prepareDeployment({ expectedCommit, candidateDir, validato
   const { manifest: candidate, wasm: bytes } = verifyCandidateDirectory({
     expectedCommit, directory: candidateDir, validator,
   });
-  const chainVersion = await verifyNetwork(TESTNET, fetcher, REVIEWED_TESTNET_VERSIONS);
+  // Session AJ (ADR-035 D1): any patch of a reviewed line; a newer line stops with "The network was upgraded; checks are pending."
+  const chainVersion = await verifyNetwork(TESTNET, fetcher, REVIEWED);
   const response = await fetcher(`${TESTNET.rpcUrl}/status`, { signal: AbortSignal.timeout(12000) });
   if (!response.ok) throw Error("Network evidence unavailable; preparation stopped.");
   const rpc = await response.json();

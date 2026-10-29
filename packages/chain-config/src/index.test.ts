@@ -9,6 +9,8 @@ import {
   verifyNetwork,
   keplrChainInfo,
   REVIEWED_TESTNET_VERSIONS,
+  REVIEWED,
+  NetworkUpgradedError,
 } from "./index";
 test("base units preserve single atomic unit at 18 decimals", () => {
   expect(parseUnits("1.000000000000000001", 18)).toBe(1000000000000000001n);
@@ -79,11 +81,11 @@ const network =
               },
             },
     );
-test("the reviewed testnet versions are exactly v5.1.0, v5.1.1 and v5.1.2, frozen", () => {
-  expect(REVIEWED_TESTNET_VERSIONS).toEqual(["v5.1.0", "v5.1.1", "v5.1.2"]);
+test("the reviewed testnet versions seen are exactly v5.1.0, v5.1.1, v5.1.2 and v6.0.0, frozen (Session AJ adds v6.0.0)", () => {
+  expect(REVIEWED_TESTNET_VERSIONS).toEqual(["v5.1.0", "v5.1.1", "v5.1.2", "v6.0.0"]);
   expect(Object.isFrozen(REVIEWED_TESTNET_VERSIONS)).toBe(true);
 });
-test.each(["v5.1.0", "v5.1.1", "v5.1.2"])(
+test.each(["v5.1.0", "v5.1.1", "v5.1.2", "v6.0.0"])(
   "verifyNetwork accepts the reviewed %s from a list and returns it",
   async (version) => {
     await expect(
@@ -138,4 +140,24 @@ test("the Keplr chain suggestion matches the live testnet (REST and RPC read 202
       },
     ],
   });
+});
+
+// Session AJ (ADR-035 D1, P5): REVIEWED accepts any patch of a reviewed minor; a newer line names itself.
+test.each(["v5.1.2", "v5.1.7", "v6.0.0", "v6.0.3"])("verifyNetwork with REVIEWED accepts %s", async (version) => {
+  await expect(verifyNetwork(TESTNET, network(version) as typeof fetch, REVIEWED)).resolves.toBe(version);
+});
+test.each(["v6.1.0", "v7.0.0"])("verifyNetwork with REVIEWED fails closed on the newer line %s, naming it", async (version) => {
+  const error = await verifyNetwork(TESTNET, network(version) as typeof fetch, REVIEWED).catch((e: unknown) => e);
+  expect(error).toBeInstanceOf(NetworkUpgradedError);
+  expect((error as Error).message).toBe("The network was upgraded; checks are pending.");
+  expect((error as NetworkUpgradedError).version).toBe(version);
+});
+test.each(["v5.0.9", "v5.2.0", "v6.0.0-rc1", "6.0.0", "", null, undefined, 60])(
+  "verifyNetwork with REVIEWED refuses %j with the old words",
+  async (version) => {
+    await expect(verifyNetwork(TESTNET, network(version) as typeof fetch, REVIEWED)).rejects.toThrow("Network or denomination changed");
+  },
+);
+test("a list (a deployment manifest) still means exactly those versions", async () => {
+  await expect(verifyNetwork(TESTNET, network("v6.0.1") as typeof fetch, ["v6.0.0"])).rejects.toThrow("Network or denomination changed");
 });

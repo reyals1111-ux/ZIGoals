@@ -5,6 +5,7 @@ import type {ChainData} from '../../earn/live/types';
 import {div, fixed, text} from '../../earn/decimal';
 import {liveOk, liveUnavailable, type LiveEnvelope} from '../../earn/live/envelope';
 import {chainFailures} from '../../earn/live/ranges.mjs';
+import {checkVersion} from '@zigoals/chain-config/reviewed-versions';
 import {LCD_NAMES, LCDS, UpstreamFailure, ensure, readAtOneHeight, shape, type Fetcher, type LcdNetwork} from './upstream';
 
 /**
@@ -50,6 +51,10 @@ export async function readChain(fetcher: Fetcher, network: LcdNetwork, now: () =
         supply: shape(schemas.supply, supply).amount.amount, earlier: {height: before.height, time: before.time}};
     });
     ensure(value.node.default_node_info.network === chainId, 'WRONG_NETWORK');
+    // Session AJ (ADR-035 D1): a zigchaind line newer than every reviewed one stops these figures in D1's words, rather
+    // than computing an APR from modules nobody has checked. A reviewed patch (v5.1.x, v6.0.x) reads as before.
+    const reported = value.node.application_version?.version;
+    if (reported !== undefined) { const check = checkVersion(chainId, reported); ensure(check.ok || check.reason !== 'upgraded', 'NETWORK_UPGRADED'); }
     ensure(value.staking.bond_denom === 'azig' && value.mintParams.mint_denom === 'azig', 'WRONG_NETWORK');
     const earlier = value.earlier;
     let apr: AprBreakdown;

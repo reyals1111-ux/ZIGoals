@@ -1,4 +1,5 @@
 import testnet from "./testnet.json" with { type: "json" };
+import { NetworkUpgradedError, checkVersion } from "./reviewed-versions";
 export interface NativeAssetConfig {
   symbol: "ZIG";
   displayDenom: "ZIG";
@@ -95,7 +96,37 @@ export const REVIEWED_TESTNET_VERSIONS: readonly string[] = Object.freeze([
   "v5.1.0",
   "v5.1.1",
   "v5.1.2",
+  "v6.0.0",
 ]);
+export {
+  BASE_FEE_ABCI_PATH,
+  BASE_FEE_CEILING,
+  BASE_FEE_HEADROOM,
+  BASE_FEE_REST_PATH,
+  BASE_FEE_TOO_HIGH,
+  BASE_FEE_UNREADABLE,
+  GAS_PRICE_FLOOR,
+  NETWORK_UPGRADED,
+  NetworkUpgradedError,
+  REVIEWED_MINORS,
+  checkVersion,
+  decodeBaseFeeResponse,
+  formatGazig,
+  isReviewedVersion,
+  parseBaseFee,
+  quotedGasPrice,
+  requireReviewedVersion,
+  reviewedVersionPattern,
+  type FeeModel,
+  type ReviewedChainId,
+  type VersionCheck,
+} from "./reviewed-versions";
+/**
+ * Session AJ (ADR-035 D1, P5): pass REVIEWED as `expectedVersion` to accept any patch of a reviewed minor line of the
+ * config's chain (reviewed-versions.ts); a newer line throws NetworkUpgradedError. A string or list still means exactly
+ * those versions (a deployment manifest pins one).
+ */
+export const REVIEWED = Object.freeze({ rule: "reviewed-minors" as const });
 /**
  * Live identity check before anything trusts the testnet: network, bond and bank denomination, decimals, and, when
  * given, the node's application version (one exact version, or one of a reviewed list). Returns the version read.
@@ -103,7 +134,7 @@ export const REVIEWED_TESTNET_VERSIONS: readonly string[] = Object.freeze([
 export async function verifyNetwork(
   config: NetworkConfig = TESTNET,
   fetcher: typeof fetch = fetch,
-  expectedVersion?: string | readonly string[],
+  expectedVersion?: string | readonly string[] | typeof REVIEWED,
 ): Promise<string | undefined> {
   assertTestnet(config);
   const read = async (path: string) => {
@@ -123,14 +154,24 @@ export async function verifyNetwork(
   ]);
   const metadata = bank.metadata;
   const version: unknown = node.application_version?.version;
+  const rule = expectedVersion === REVIEWED;
   const versions =
-    expectedVersion === undefined
+    expectedVersion === undefined || rule
       ? undefined
       : typeof expectedVersion === "string"
         ? [expectedVersion]
-        : expectedVersion;
+        : (expectedVersion as readonly string[]);
+  const check = rule ? checkVersion(config.chainId, version) : undefined;
+  if (
+    node.default_node_info?.network === config.chainId &&
+    check &&
+    !check.ok &&
+    check.reason === "upgraded"
+  )
+    throw new NetworkUpgradedError(check.version);
   if (
     node.default_node_info?.network !== config.chainId ||
+    (check !== undefined && !check.ok) ||
     (versions !== undefined &&
       (typeof version !== "string" || !versions.includes(version))) ||
     staking.params?.bond_denom !== config.nativeAsset.baseDenom ||
