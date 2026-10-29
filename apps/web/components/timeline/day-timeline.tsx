@@ -122,7 +122,7 @@ export function DayTimelinePage() {
           <TimelineBlockRow block={b} actions={actions} busy={busy} />
         </Fragment>)}{band.hasNow && (band.blocks.length === 0 || band.blocks.at(-1)!.start! <= day.nowMinute) && <NowLine minute={day.nowMinute} />}</ol>
       </section>)}
-      <p className="fine timeline-fine">Times you move here are kept on this device only; your habits and their reminders stay as they are. Fasts and running timers keep their own clocks.</p>
+      <p className="fine timeline-fine">Times you move here are kept on this device only; your habits and their reminders stay as they are. A habit time you set with “Every day, on all my devices” goes with your habit to every device. Fasts and running timers keep their own clocks.</p>
     </>}
   </div>;
 }

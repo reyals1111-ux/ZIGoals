@@ -14516,6 +14516,9 @@
         color: #c2b48a;
         filter: saturate(.4)
     }
+    .focus-lengths button[aria-pressed="true"]:not(#\-) {
+        outline-color: currentColor
+    }
 }
 /*  components/wallet/wallet-card.css  */
 @scope (:root[data-theme=dark]) {

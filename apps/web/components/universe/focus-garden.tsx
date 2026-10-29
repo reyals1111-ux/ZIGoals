@@ -59,12 +59,12 @@ export function FocusGarden() {
       <p role="status" className="focus-status">{tally ? `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')} left${tally.hiddenSince !== null ? ' · away' : ''}` : status}</p>
     </div>
     {!tally ? <div className="focus-controls">
-      <div className="picker-tabs" role="group" aria-label="Length">{FOCUS_LENGTHS.map(m => <button key={m} type="button" aria-pressed={length === m} onClick={() => setLength(m)}>{m} min</button>)}</div>
+      <div className="focus-lengths" role="group" aria-label="Length">{FOCUS_LENGTHS.map(m => <button key={m} type="button" className="secondary" aria-pressed={length === m} onClick={() => setLength(m)}>{m} min</button>)}</div>
       {goals.length > 0 && <label>For a goal (optional)<select value={goalId} onChange={e => setGoalId(e.target.value)}><option value="">No goal</option>{goals.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}
       <button type="button" className="primary" onClick={() => { setStatus(''); setLast(null); const t = Date.now(); setTally(startTally(t, length)); setNow(t); }}>Start {length} minutes</button>
       {last?.goalId && last.outcome && focusNote(last.focusedSeconds / 60, last.day) && <button type="button" className="secondary" onClick={addNote}>Add to the goal&rsquo;s notes</button>}
     </div> : <div className="focus-controls"><button type="button" className="secondary" onClick={() => finish(true)}>End early</button></div>}
-    {garden && (garden.grown + garden.withered > 0) && <p className="focus-garden-line">Your garden: {plural(garden.grown, 'grown')}, {plural(garden.withered, 'withered')} (kept). This week: {plural(garden.weekMinutes, 'minute')} of focus in {plural(garden.weekSessions, 'session')}.</p>}
+    {garden && (garden.grown + garden.withered > 0) && <p className="focus-garden-line">Your garden: {plural(garden.grown, 'grown', 'grown')}, {plural(garden.withered, 'withered', 'withered')} (kept). This week: {plural(garden.weekMinutes, 'minute')} of focus in {plural(garden.weekSessions, 'session')}.</p>}
     <p className="fine">Honest note: a web page cannot block other apps or sites. ZIGoals only notices when this page is hidden and counts that time as away. Nothing is saved until a session ends.</p>
   </section>;
 }
