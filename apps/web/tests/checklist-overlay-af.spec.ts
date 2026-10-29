@@ -592,9 +592,14 @@ test('a tick moves nothing but its own node: every name keeps its place, the new
     for (const n of [1, 2, 3]) {
       const before = await boxes(), ticked = `name ck_fixture-${n}`, next = `name ck_fixture-${n + 1}`;
       const cheer = await watchCheer(page);
+      // Session AJ (item 13): the travelling light exists for a moment only; a poll could miss it on a busy runner. An
+      // observer set before the tick records every travelling segment that appears, so the check sees it whenever it ran.
+      await page.evaluate(() => { const w = window as unknown as {__travel?: string[]}; w.__travel = []; const seen = (el: Element) => { if (el.matches('.orbit-flow-segment[data-travel]')) w.__travel!.push(el.getAttribute('data-segment') ?? ''); };
+        document.querySelectorAll('.orbit-flow-segment[data-travel]').forEach(seen);
+        new MutationObserver(list => { for (const m of list) { if (m.type === 'attributes' && m.target instanceof Element) seen(m.target); for (const node of m.addedNodes) if (node instanceof Element) { seen(node); node.querySelectorAll('.orbit-flow-segment[data-travel]').forEach(seen); } } }).observe(document.body, {subtree: true, childList: true, attributes: true, attributeFilter: ['data-travel']}); });
       await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
       // Session AG, moved (was: a comet 12 px from every name): the light runs along the line itself, from the node just lit.
-      await expect(page.locator(`.orbit-flow-segment[data-travel][data-segment^="ck_fixture-${n}>"]`)).toHaveCount(1);
+      await expect.poll(() => page.evaluate(prefix => ((window as unknown as {__travel?: string[]}).__travel ?? []).filter(s => s.startsWith(prefix)).length > 0, `ck_fixture-${n}>`)).toBe(true);
       await zigiAtRest(page);
       // Round 9: every frame of the cheer — the hop's top, its sparkles — off the names.
       expect(await cheer(), `${size.width}px, star ${n}: ZIGi's cheer and its sparkles off every name`).toEqual([]);
