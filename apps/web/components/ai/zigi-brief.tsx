@@ -1,7 +1,6 @@
 'use client';
-import {useEffect, useId, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {BRIEF_WHY, eveningRecap, morningBrief, recapDue, type Brief} from '../../lib/ai/proactive/brief';
-import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import '../journal/journal.css';
 import {BRIEF_ID, dismissedOn, dismissFor} from '../../lib/ai/proactive/dismiss';
 import {briefPrefs, ZIGI, zigiPrefs} from '../../lib/ai/store/records';
@@ -14,6 +13,9 @@ import {localClock, ReadAloudButton, useBriefClock} from './brief-parts';
 import {useAiContext} from './use-ai-context';
 import {useAiSettings} from './use-ai-settings';
 import {useDeviceRecord} from './use-device-record';
+import {zigiSignals} from '../zigi/bus';
+import {welcomeBack} from '../../lib/checkin/checkin';
+import {ZigiCheckIn} from './zigi-checkin';
 import './ai.css';
 
 /**
@@ -62,25 +64,27 @@ export function BriefCard({brief, day, recap}: DayBrief) {
     </article>}
     {brief && <article className="panel zigi-brief-card" aria-label="ZIGi's morning brief">
       <p className="eyebrow">ZIGI · YOUR DAY</p>
+      <WelcomeBack day={day}/>
       <BriefLines brief={brief} footer={<ReadAloudButton brief={brief} intro="Your morning brief."/>}/>
       <details className="zigi-brief-why"><summary>Why these lines?</summary><ul className="fine">{(['due', 'win', 'focus'] as const).filter(k => brief[k]).map(k => <li key={k}>{BRIEF_WHY[k]}</li>)}</ul><p className="fine">Made on this device from your own records by these rules; no AI used.</p></details>
-      <MorningCheckIn day={day}/>
+      <ZigiCheckIn day={day}/>
       <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => askZigi('')}>Open ZIGi</button><button type="button" className="text-link" onClick={() => hideFor(day, BRIEF_ID)}>Not today</button></div>
     </article>}
   </div>;
 }
+
 /**
- * Session AI (feature 7, the daily check-in): one tap on the morning brief for today's energy (1–5, the same record as the
- * Journal's), then a short line that it is noted. Device only; nothing is sent; the Journal shows the last 14 days.
+ * Session AJ (item 10; COMPANIONS.md P4 moment 7): back after 7 days or more without this card, ZIGi says "Welcome back"
+ * once, never how long it was. The last day seen is kept in ZIGi's device record (`lastSeenDay`, optional).
  */
-function MorningCheckIn({day}: {day: string}) {
-  const energy = useDeviceRecord(ENERGY), id = useId(), [status, setStatus] = useState('');
-  if (!energy.loaded) return null;
-  const today = energy.data.days[day]?.energy ?? null;
-  const rate = (n: number) => { try { energy.update(current => rateEnergy(current, day, n, new Date().toISOString())); setStatus(`Energy today: ${ENERGY_WORDS.en[n - 1]}. Noted on this device; the Journal shows your last 14 days.`); } catch { setStatus('This could not be saved on this device.'); } };
-  return <fieldset className="journal-energy zigi-checkin"><legend>{today ? 'Your energy today' : 'Check in: how is your energy this morning?'}</legend>
-    {[1, 2, 3, 4, 5].map(n => <label key={n} className="journal-energy-dot" title={ENERGY_WORDS.en[n - 1]}><input type="radio" name={`${id}-energy`} checked={today === n} onChange={() => rate(n)}/><span aria-hidden="true">{n}</span><span className="sr-only">{n} of 5, {ENERGY_WORDS.en[n - 1]}</span></label>)}
-    <span className="fine journal-energy-word">{today ? ENERGY_WORDS.en[today - 1] : '1 drained · 5 full of energy'}</span>
-    {status && <p role="status" className="fine">{status}</p>}
-  </fieldset>;
+function WelcomeBack({day}: {day: string}) {
+  const zigi = useDeviceRecord(ZIGI), [shown, setShown] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!zigi.loaded || shown !== null) return;
+    const back = welcomeBack(zigi.data.lastSeenDay, day);
+    setShown(back);
+    if (zigi.data.lastSeenDay !== day) { try { zigi.update(r => ({...r, lastSeenDay: day})); } catch { /* the welcome still shows once here */ } }
+    if (back) zigiSignals.emit('hint_encouraging');
+  }, [zigi, day, shown]);
+  return shown ? <p className="zigi-welcome-back">Welcome back. Good to see you.</p> : null;
 }

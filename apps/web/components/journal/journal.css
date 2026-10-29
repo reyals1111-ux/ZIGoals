@@ -23,3 +23,11 @@
 .journal-entry-date{margin:0;font-size:14px;color:var(--muted,#a1afc8)}
 .journal-entry-text{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .switch-row{display:flex;gap:10px;align-items:center;min-height:44px}
+/* Session AJ (item 10): "Your week": seven days, an energy and a mood value each; a missing day is a neutral dot. */
+.journal-week-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; list-style: none; margin: 0 0 8px; padding: 0; }
+.journal-week-days li { display: grid; justify-items: center; gap: 4px; padding: 6px 0; border-radius: 12px; }
+.journal-week-day { font-size: 14px; color: var(--text-secondary, inherit); }
+.journal-week-dot { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 15px; font-weight: 650; }
+.journal-week-days li[data-empty] .journal-week-dot { opacity: .6; border-style: dashed; }
+.journal-week-lines { margin: 8px 0; padding-left: 18px; font-size: 16px; }
+.journal-week-legend { margin: 0; }

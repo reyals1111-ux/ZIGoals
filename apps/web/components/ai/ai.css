@@ -323,3 +323,13 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-card-first-note{border-left:3px solid color-mix(in srgb,var(--cyan,#6fd3ff) 60%,transparent);padding-left:8px}
 .ai-plan-steps{margin:4px 0 0;padding-left:18px;display:grid;gap:2px;font-size:14px;line-height:1.4}
 .ai-your-day input[type=time]{min-height:44px}
+/* Session AJ (item 10): "ZIGi · Your day" check-in v2: energy, the day's mood, one line; readable, ≥ 44 px targets. */
+.zigi-checkin-v2 { display: grid; gap: 10px; margin: 10px 0; }
+.zigi-checkin-v2 .wrap-up-mood-choices button { min-height: 44px; }
+.zigi-checkin-mood { border: 0; margin: 0; padding: 0; }
+.zigi-checkin-mood legend { font-weight: 650; margin-bottom: 6px; }
+.zigi-checkin-note .field input { min-height: 44px; }
+.zigi-checkin-follow { margin: 0; font-size: 16px; }
+.zigi-checkin-actions { margin: 0; }
+.zigi-checkin-actions .text-link { min-height: 44px; }
+.zigi-welcome-back { margin: 0 0 6px; font-size: 16px; font-weight: 650; }

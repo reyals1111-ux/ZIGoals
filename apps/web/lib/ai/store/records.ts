@@ -120,6 +120,9 @@ export const zigiSchema = z.looseObject({
   /** Session AI (mascot; `TIER 3 (stored format)`, additive and optional in this loose record): the personality; absent is calm. */
   personality: z.enum(ZIGI_PERSONALITIES).optional().catch(undefined),
   edgeTab: z.boolean().optional(),
+  /** Session AJ (item 10; `TIER 3 (stored format)`, additive and optional in this loose, device-only record): the last day
+   *  ZIGi · Your day was seen, so a return after 7 days or more is welcomed (never counted). */
+  lastSeenDay: day.optional().catch(undefined),
   knock: z.looseObject({enabled: z.boolean().optional(), offer: z.enum(['accepted', 'declined']).optional(), offeredOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), maxPerDay: z.number().int().min(1).max(10).optional(), quietFrom: clock.optional(), quietTo: clock.optional(), sound: z.boolean().optional()}).optional(),
   /** Tips and chips dismissed on one day; a new day starts empty. */
   dismissed: z.looseObject({day, ids: z.array(z.string().min(1).max(80)).max(50)}).optional(),

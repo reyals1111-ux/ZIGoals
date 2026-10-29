@@ -29,3 +29,17 @@ test('all done only when every habit scheduled today is complete, after the chec
   expect(checkInFacts(base(), done(base(), A, [TODAY]), A, TODAY).allDone).toBe(false);
   expect(allDoneNoteId(TODAY)).toBe('all-done:2026-09-20');
 });
+
+// Session AJ (item 10; COMPANIONS.md P4 moment 8): done again after 3 or more scheduled days without it.
+test('a comeback after a gap of 3 scheduled days, led by the total; never after 2; once in 14 days', async () => {
+  const {comebackOf, comebackNoteId, comebackSeenRecently} = await import('./zigi-facts');
+  const {createHabit, emptyHabitData, logHabitCount} = await import('../habits');
+  const today = '2026-10-29', id = '92000000-0000-4000-8000-000000000777';
+  const build = (doneDaysBack: number[]) => { let d = createHabit(emptyHabitData(), {title: 'Stretch', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date('2026-09-01T08:00:00Z'), id); for (const back of doneDaysBack) { const day = new Date(Date.parse(`${today}T12:00:00Z`) - back * 86_400_000).toISOString().slice(0, 10); d = logHabitCount(d, id, day, 1, '', new Date(`${day}T20:00:00Z`)); } return d.habits[0]!; };
+  expect(comebackOf(build([4, 5, 6]), today)).toEqual({total: 3});
+  expect(comebackOf(build([3, 4]), today)).toBeNull();
+  expect(comebackOf(build([1]), today)).toBeNull();
+  expect(comebackOf(build([]), today)).toBeNull();
+  expect(comebackSeenRecently({[comebackNoteId(id, '2026-10-20')]: '2026-10-20'}, id, today)).toBe(true);
+  expect(comebackSeenRecently({[comebackNoteId(id, '2026-10-10')]: '2026-10-10'}, id, today)).toBe(false);
+});

@@ -6,7 +6,7 @@ import {CELEBRATIONS} from '../../lib/celebrations';
 import {useRef, useState, type FormEvent} from 'react';
 import {habitDay, habitRuleOn, habitTargetPeriod, measurementUnit, type Habit, type HabitData} from "../../lib/habits";
 import {habitCheckIn, type HabitCardStore} from "./use-habits";
-import {allDoneNoteId, checkInFacts, streakNoteId} from '../../lib/habits-v2/zigi-facts';
+import {allDoneNoteId, comebackNoteId, comebackSeenRecently, checkInFacts, streakNoteId} from '../../lib/habits-v2/zigi-facts';
 import {appliedCheckIn, markAutoCheckInUndone} from "../../lib/habit-health-links/store";
 import {checkInFailureMessage} from "../../lib/storage-error-copy";
 import {formNumberText, readFormNumber} from "../../lib/decimal-input";
@@ -82,6 +82,8 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
         if (!seen) { if (celebrations.loaded && !celebrations.unreadable) { try { celebrations.update(n => ({...n, seen: {...n.seen, [id]: store.today}})); } catch { /* the reaction still plays once in this view */ } } zigiSignals.emitValidated('streak_milestone'); }
       }
       else if (facts.allDone && celebrations.loaded && !celebrations.unreadable && !celebrations.data.seen[allDoneNoteId(store.today)]) { try { celebrations.update(n => ({...n, seen: {...n.seen, [allDoneNoteId(store.today)]: store.today}})); } catch { /* remembered next time */ } zigiSignals.emitValidated('all_habits_done'); }
+      // Session AJ (item 10; P4 moment 8): done again after a gap of 3 or more scheduled days — encouraging, once a day per habit.
+      else if (facts.comeback && celebrations.loaded && !celebrations.unreadable && !comebackSeenRecently(celebrations.data.seen, habit.id, store.today)) { try { celebrations.update(n => ({...n, seen: {...n.seen, [comebackNoteId(habit.id, store.today)]: store.today}})); } catch { /* remembered next time */ } zigiSignals.emit('hint_encouraging'); }
       else if (facts.completed) zigiSignals.emitValidated('habit_completed');
     } catch { /* ZIGi's reaction is a convenience; the check-in is saved */ }
     const next = queue.waiting.shift();
