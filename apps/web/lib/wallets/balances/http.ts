@@ -9,7 +9,8 @@ import {BALANCE_ORIGINS} from './chains';
  */
 export const READ_TIMEOUT_MS = 12_000;
 export const MAX_BODY = 64 * 1024;
-export class BalanceReadError extends Error {}
+/** Session AJ (item 36, A5): an HTTP refusal keeps its status and any Retry-After seconds, so a reader can back off on 429. */
+export class BalanceReadError extends Error { constructor(message: string, readonly status?: number, readonly retryAfterSeconds?: number) { super(message); } }
 export type Fetcher = (input: string, init: RequestInit) => Promise<Response>;
 const host = (url: string) => { try { return new URL(url).hostname; } catch { return 'the service'; } };
 export async function readJson(url: string, init: {method: 'GET'} | {method: 'POST'; body: string}, fetcher: Fetcher = (input, request) => fetch(input, request)): Promise<unknown> {
@@ -24,7 +25,11 @@ export async function readJson(url: string, init: {method: 'GET'} | {method: 'PO
   } catch (error) {
     throw new BalanceReadError(error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError') ? `${host(url)} did not answer in time.` : `${host(url)} could not be reached just now.`);
   }
-  if (!response.ok) { await response.body?.cancel().catch(() => undefined); throw new BalanceReadError(`${host(url)} answered with an error (HTTP ${response.status}).`); }
+  if (!response.ok) {
+    const header = response.headers.get('retry-after'), retry = header === null || header.trim() === '' ? NaN : Number(header);
+    await response.body?.cancel().catch(() => undefined);
+    throw new BalanceReadError(`${host(url)} answered with an error (HTTP ${response.status}).`, response.status, Number.isFinite(retry) && retry >= 0 ? retry : undefined);
+  }
   const text = await response.text().catch(() => { throw new BalanceReadError(`${host(url)} stopped answering.`); });
   if (text.length > MAX_BODY) throw new BalanceReadError(`${host(url)} sent more than ZIGoals reads.`);
   try { return JSON.parse(text); } catch { throw new BalanceReadError(`${host(url)} sent something ZIGoals could not read.`); }

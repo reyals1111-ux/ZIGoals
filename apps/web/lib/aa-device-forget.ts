@@ -40,4 +40,4 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { if (typeof indexedDB !== 'undefined') for (const name of ERASED_DATABASES) indexedDB.deleteDatabase(name); } catch { /* no IndexedDB: nothing was stored there */ }
 }
 /** Session AJ (A6): every IndexedDB database the account erase deletes (lib/erase-coverage.test.ts keeps it complete). */
-export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1'];
+export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1', 'zigoals-xpub-v1'];
