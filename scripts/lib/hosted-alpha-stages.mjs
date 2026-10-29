@@ -12,7 +12,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {connectSources, frameSources} from '../../apps/web/lib/csp-compose.mjs';
 import {probeAlphaMarket} from './alpha-market-probe.mjs';
-import {appNonceFindings, priceFinding, reviewReason, reviewedRestPattern} from './hosted-alpha-review.mjs';
+import {appNonceFindings, priceFinding, readLiveBaseFee, reviewReason, reviewedRestPattern} from './hosted-alpha-review.mjs';
+import {BASE_FEE_REST_PATH, TESTNET, checkVersion, formatGazig, parseBaseFee} from '../../packages/chain-config/src/index.ts';
 import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
 import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
@@ -131,7 +132,7 @@ async function fictionalGoal(page, {base, expect, report}) {
 }
 
 /** Stage 4: opens Settings (in-app navigation to Settings stays checked in stage 5). */
-async function backupAndDiagnostics(page, {base, expect, report, expectedCommit, reviewedVersions}) {
+async function backupAndDiagnostics(page, {base, expect, report, expectedCommit, reviewedVersions, chainFetcher}) {
   await page.goto(base + '/app/settings'); await hydrated(page);
   const exportData = page.getByRole('button', {name: 'Export Goal Data', exact: true});
   await expect(exportData).toBeVisible();
@@ -146,9 +147,16 @@ async function backupAndDiagnostics(page, {base, expect, report, expectedCommit,
   // before it is copied ("Preview safe diagnostics", then "Copy reviewed diagnostics").
   const panel = await openDiagnostics(page);
   await page.getByRole('button', {name: 'Check connection', exact: true}).click();
-  // Session X Part 1: zig-test-2 runs zigchaind v5.1 (one of the reviewed versions in @zigoals/chain-config).
+  // Session X Part 1, Session AJ (D1): zig-test-2 runs a reviewed zigchaind line (any patch of v5.1 or v6.0).
   await expect(panel).toContainText(reviewedRestPattern(reviewedVersions), {timeout: 20000});
   report.diagnostics = await panel.innerText();
+  // Session AJ (ADR-035 A3): the verifier itself reads the version and, on v6, the base fee (read-only) and prints it,
+  // so the live check proves the v6 fee path; a v6 node without a base fee is a finding. The page must name it too.
+  if (chainFetcher) {
+    report.baseFee = await readLiveBaseFee(chainFetcher, {restUrl: TESTNET.restUrl, chainId: TESTNET.chainId, checkVersion, parseBaseFee, formatGazig, basePath: BASE_FEE_REST_PATH});
+    console.error(`[verifier] stage 4 fee path: ${report.baseFee.line}`);
+    if (report.baseFee.fee === 'base-fee') assert.match(report.diagnostics, /· base fee [\d.]+ Gazig per gas/);
+  }
   // The build commit Settings shows: the exact EXPECTED_COMMIT when given, else a full 40-hex commit (it pinned M5's
   // 3645b48 until Session X, so it failed on every later deploy).
   assert.match(report.diagnostics, expectedCommit ? new RegExp(`App version / build commit\\n[^\\n]*${expectedCommit}`) : /App version \/ build commit\n[^\n]*\b[a-f0-9]{40}\b/); assert.equal(await panel.getByText('NOT DEPLOYED', {exact: true}).count(), 3);
@@ -183,20 +191,21 @@ async function aaPages(page, {base, expect, report}) {
   await page.setViewportSize({width: 1280, height: 900});
 }
 
+/** The landing's honesty line sets stage 7 accepts (Session AJ item 3; Part 9 may add the session's new set). */
+export const LANDING_LINE_SETS = Object.freeze([
+  Object.freeze({status: 'Public Alpha / Nothing moves unless you sign', alpha: 'ZIGoals never holds keys. The Goal Manager contract is not deployed, so Goals never move funds.', independence: 'Independent project · Not affiliated with ZIGChain · Nothing moves unless you sign'}),
+]);
 /** Stage 7 (live only): the apex landing, a separate deployment, and its CTA to the live Alpha. */
 async function landing(page, {origins, expect, report, output}) {
   await page.goto(origins.apex); await page.waitForLoadState('networkidle');
   const cta = page.getByRole('link', {name: 'Launch Alpha', exact: false}).first();
   assert.equal(await cta.getAttribute('href'), origins.alpha + '/app'); assert.equal(await cta.getAttribute('target'), '_blank');
   assert.match(await cta.getAttribute('rel'), /noopener/); assert.match(await cta.getAttribute('rel'), /noreferrer/);
-  // Session AH (MO5; TIER 3 verifier): the landing's honesty lines changed with the staking decision of 18 Oct. The apex is
-  // deployed separately by the owner, so until it is redeployed it keeps the earlier lines: exactly one of the two known
-  // sets must be there in full (each states that the Goal Manager contract is not deployed). Drop the first set after
-  // the landing redeploy.
-  const sets = [
-    {status: 'Public Alpha / Financial execution disabled', alpha: 'Financial signing and broadcasting are disabled, and the Goal Manager contract is not deployed.', independence: 'Independent project · Not affiliated with ZIGChain · Financial execution disabled'},
-    {status: 'Public Alpha / Nothing moves unless you sign', alpha: 'ZIGoals never holds keys. The Goal Manager contract is not deployed, so Goals never move funds.', independence: 'Independent project · Not affiliated with ZIGChain · Nothing moves unless you sign'},
-  ];
+  // Session AH (MO5; TIER 3 verifier), Session AJ (item 3): the landing deployed from 65d0b85 (version 8708970d, 28 Oct)
+  // carries the "Nothing moves unless you sign" lines, so the pre-#50 "Financial execution disabled" set is dropped.
+  // LANDING_LINE_SETS holds the live set and, while the owner has not redeployed the landing after Session AJ, the
+  // session's new set: exactly one must be there in full.
+  const sets = LANDING_LINE_SETS;
   const shown = ((await page.locator('.alpha-status').textContent()) ?? '').replace(/\s+/g, ' ').trim();
   const set = sets.find(s => s.status === shown);
   assert.ok(set, `landing status line is neither known set: "${shown}"`);

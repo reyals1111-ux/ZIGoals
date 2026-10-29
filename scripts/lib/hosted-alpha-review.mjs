@@ -50,6 +50,33 @@ export function hostedStatus({ review, consoleErrors, failedRequests, layouts })
  * @param {readonly string[]} versions
  */
 export function reviewedRestPattern(versions) {
-  const escaped = versions.map(version => version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  return new RegExp(`Verified zig-test-2 · azig · 18 decimals · (?:${escaped.join("|")})(?![\\d.])`);
+  // Session AJ (ADR-035 D1): a string is already a pattern fragment (reviewedVersionPattern: any patch of a reviewed line).
+  const alternatives = typeof versions === "string" ? versions : versions.map(version => version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  return new RegExp(`Verified zig-test-2 · azig · 18 decimals · (?:${alternatives})(?![\\d.-])`);
+}
+
+/**
+ * Session AJ (ADR-035 A3): stage 4 reads zig-test-2's application version and, on a base-fee line (v6.0), its x/feemarket
+ * base fee — read-only GETs from the verifier itself, never the page — and returns a line for the report. A v6 node that
+ * cannot give its base fee is a stage-4 finding (it throws), since the staking quote prices from it.
+ * @param {typeof fetch} fetcher
+ * @param {{restUrl: string, chainId: string, checkVersion: (chainId: unknown, version: unknown) => {ok: boolean, fee?: string, reason?: string}, parseBaseFee: (raw: unknown, form: string) => bigint, formatGazig: (n: bigint) => string, basePath: string}} chain
+ */
+export async function readLiveBaseFee(fetcher, chain) {
+  const get = async path => {
+    const response = await fetcher(chain.restUrl + path, { method: "GET", redirect: "error", signal: AbortSignal.timeout(12000) });
+    if (!response.ok) throw Error(`stage 4: ${chain.chainId} answered ${response.status} for ${path}`);
+    return response.json();
+  };
+  const node = await get("/cosmos/base/tendermint/v1beta1/node_info");
+  const version = node?.application_version?.version;
+  if (node?.default_node_info?.network !== chain.chainId) throw Error(`stage 4: the REST node is not ${chain.chainId}`);
+  const check = chain.checkVersion(chain.chainId, version);
+  if (!check.ok) throw Error(`stage 4: ${chain.chainId} reports ${String(version)}, outside the reviewed lines (${check.reason})`);
+  if (check.fee !== "base-fee") return { version, fee: check.fee, line: `${chain.chainId} ${version}: fixed fee model (no base fee on this line)` };
+  let raw;
+  try { raw = (await get(chain.basePath))?.base_fee; } catch { raw = undefined; }
+  let value;
+  try { value = chain.parseBaseFee(raw, "decimal"); } catch { throw Error(`stage 4: ${chain.chainId} is on ${version} but its base fee could not be read (finding)`); }
+  return { version, fee: check.fee, baseFee: value.toString(), line: `${chain.chainId} ${version}: base fee ${chain.formatGazig(value)} per gas` };
 }

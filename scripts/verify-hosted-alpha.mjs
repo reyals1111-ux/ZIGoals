@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { REVIEWED_TESTNET_VERSIONS } from '../packages/chain-config/src/index.ts';
+import { reviewedVersionPattern } from '../packages/chain-config/src/index.ts';
 import { hostedStatus } from './lib/hosted-alpha-review.mjs';
 import { LIVE_ORIGINS, SENTINELS, VERIFIER_STAGES, classifyFailedRequests, isRscRequest, liveOnlySkips, setAsideNotConfigured, setAsideUnboundApi, verifyBase } from './lib/hosted-alpha-stages.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
@@ -61,7 +61,7 @@ page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure
 const BODY_READ_MS = 10_000, progress = what => console.error(`[verifier ${new Date().toISOString()}] ${what}`);
 const answers = new WeakMap(), bodyReads = [];
 page.on('response', r => { if (r.status() >= 400) { const entry = {url:r.url(), status:r.status()}; report.httpErrors.push(entry); const answer = {method: r.request().method()}; answers.set(entry, answer); bodyReads.push(Promise.race([r.text().then(text => { answer.body = text.slice(0, 4000); }, () => {}), new Promise(done => setTimeout(done, BODY_READ_MS))])); } });
-const ctx = { base: alpha, live, origins: LIVE_ORIGINS, expectedCommit: expectedBuild, expect, report, reviewedVersions: REVIEWED_TESTNET_VERSIONS, egressPolicy, output };
+const ctx = { base: alpha, live, origins: LIVE_ORIGINS, expectedCommit: expectedBuild, expect, report, reviewedVersions: reviewedVersionPattern('zig-test-2'), chainFetcher: fetch, egressPolicy, output };
 try {
   let alphaCaptureCount = captures.length;
   for (const stage of VERIFIER_STAGES) {

@@ -15,8 +15,10 @@ export type StageContext = {
   expectedCommit: string | null;
   expect: Expect;
   report: StageReport;
-  /** The reviewed zigchaind versions (@zigoals/chain-config REVIEWED_TESTNET_VERSIONS). */
-  reviewedVersions: readonly string[];
+  /** The reviewed zigchaind versions: a list, or a pattern fragment (Session AJ: reviewedVersionPattern('zig-test-2')). */
+  reviewedVersions: readonly string[] | string;
+  /** Session AJ (A3): the verifier's own read-only fetch for zig-test-2's version and base fee (stage 4); absent in specs. */
+  chainFetcher?: typeof fetch;
   /** Stage 1's header checks only. */
   egressPolicy?: EgressPolicy;
   /** The evidence directory (stage 7's screenshot). */
@@ -26,6 +28,7 @@ export type VerifierStage = Readonly<{number: number; key: string; name: string;
 export type LiveOnlyCheck = Readonly<{key: string; stage: string; label: string; reason: string; httpOnly?: boolean}>;
 export const LIVE_ORIGINS: Readonly<{alpha: string; fallback: string; apex: string}>;
 export const SENTINELS: readonly string[];
+export const LANDING_LINE_SETS: readonly Readonly<{status: string; alpha: string; independence: string}>[];
 export function verifyBase(raw: string | undefined): {base: string; live: boolean};
 export function recordLayouts(page: Page, report: StageReport, label: string): Promise<void>;
 export const VERIFIER_STAGES: readonly VerifierStage[];
