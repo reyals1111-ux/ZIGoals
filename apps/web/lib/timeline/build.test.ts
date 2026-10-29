@@ -49,6 +49,15 @@ describe('the Day Timeline (Session AF, L5b; P9.2, ADR-028 D2 (a), H76)', () => 
     expect(block(day, `habit:${ID.stretch}`)).toMatchObject({start: 405, minutes: 30, timeFrom: 'moved here', reminder: '07:15'});
     expect(day.blocks.map(b => b.start)).toEqual([...day.blocks.map(b => b.start)].sort((a, b) => a! - b!));
   });
+  // Session AJ (item 35): a habit's everyday time (synced) outranks its reminder; a move on this device still wins.
+  it('a habit\'s own everyday time sits between a move here and its reminder', () => {
+    const reminders = {...emptyReminders(), habits: {[ID.stretch]: {time: '07:15'}}};
+    let day = buildDayTimeline(base({reminders, habitTimes: {[ID.stretch]: '06:30', [ID.walk]: '18:00'}}));
+    expect(block(day, `habit:${ID.stretch}`)).toMatchObject({start: 390, timeFrom: 'its habit time'});
+    expect(block(day, `habit:${ID.walk}`)).toMatchObject({start: 18 * 60, timeFrom: 'its habit time'});
+    day = buildDayTimeline(base({reminders, habitTimes: {[ID.stretch]: '06:30'}, times: {[habitTimeKey(ID.stretch)]: {time: '09:00'}}}));
+    expect(block(day, `habit:${ID.stretch}`)).toMatchObject({start: 540, timeFrom: 'moved here'});
+  });
 
   it('done, skipped and part-done habits read from the habit’s own day', () => {
     let d = logHabitValue(habits(), ID.stretch, DATE, 1, {}, at('09:00'));

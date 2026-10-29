@@ -6,7 +6,7 @@ const prune = <T>(map: Record<string, T> | undefined, keep: ReadonlySet<string> 
   const next = Object.fromEntries(Object.entries(map).filter(([id]) => !keep || keep.has(id)));
   return Object.keys(next).length ? next : undefined;
 };
-const tidy = (r: HabitExtras, keep: ReadonlySet<string> | null): HabitExtras => habitExtrasSchema.parse({...r, areas: prune(r.areas, keep), quitCost: prune(r.quitCost, keep), bells: prune(r.bells, keep)});
+const tidy = (r: HabitExtras, keep: ReadonlySet<string> | null): HabitExtras => habitExtrasSchema.parse({...r, areas: prune(r.areas, keep), quitCost: prune(r.quitCost, keep), bells: prune(r.bells, keep), times: prune(r.times, keep)});
 export function setHabitArea(r: HabitExtras, habitId: string, areaId: string | null, keep: ReadonlySet<string> | null = null): HabitExtras {
   const areas = {...(r.areas ?? {})};
   if (areaId) areas[habitId] = areaId; else delete areas[habitId];
@@ -22,6 +22,13 @@ export function setTimerBell(r: HabitExtras, habitId: string, on: boolean, keep:
   if (on) bells[habitId] = true; else delete bells[habitId];
   return tidy({...r, bells}, keep ? new Set([...keep, habitId]) : null);
 }
+/** Session AJ (item 35): a habit's own clock time on every device (null clears it). */
+export function setHabitTime(r: HabitExtras, habitId: string, time: string | null, keep: ReadonlySet<string> | null = null): HabitExtras {
+  const times = {...(r.times ?? {})};
+  if (time) times[habitId] = time; else delete times[habitId];
+  return tidy({...r, times}, keep ? new Set([...keep, habitId]) : null);
+}
+export const habitTime = (r: HabitExtras, habitId: string): string | null => r.times?.[habitId] ?? null;
 export function setSectionFold(r: HabitExtras, section: TimeSection, folded: boolean): HabitExtras {
   return habitExtrasSchema.parse({...r, folds: {...(r.folds ?? {}), [section]: folded}});
 }

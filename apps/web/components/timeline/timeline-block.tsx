@@ -18,22 +18,27 @@ const LENGTHS = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240];
 export type BlockActions = {
   done: (b: TimelineBlock) => void; log: (b: TimelineBlock) => void; skip?: (b: TimelineBlock) => void;
   move: (b: TimelineBlock, minutes: number, length?: number) => void; putBack: (b: TimelineBlock) => void;
+  /** Session AJ (item 35): a habit's time on every device (synced), and removing it. */
+  everyDay?: (b: TimelineBlock, minutes: number) => void; clearEveryDay?: (b: TimelineBlock) => void;
   defaultTime: (b: TimelineBlock) => string | null;
 };
 
 export function TimePicker({block, actions, onClose}: {block: TimelineBlock; actions: BlockActions; onClose: () => void}) {
-  const id = useId(), [time, setTime] = useState(block.start === null ? '' : minutesClock(block.start)), [length, setLength] = useState(block.minutes || 20), [error, setError] = useState('');
+  const id = useId(), [time, setTime] = useState(block.start === null ? '' : minutesClock(block.start)), [length, setLength] = useState(block.minutes || 20), [error, setError] = useState(''), [everyDay, setEveryDay] = useState(false);
   const own = actions.defaultTime(block);
   const save = (e: FormEvent) => {
     e.preventDefault();
     if (!CLOCK.test(time)) { setError('Choose a time, for example 07:30.'); return; }
-    actions.move(block, clockMinutes(time), length); onClose();
+    if (everyDay && block.habitId && actions.everyDay) actions.everyDay(block, clockMinutes(time)); else actions.move(block, clockMinutes(time), length);
+    onClose();
   };
   return <form className="timeline-picker" aria-label={`Change the time of ${block.title}`} onSubmit={save}>
     <label className="field" htmlFor={`${id}-time`}><span>Time</span><input id={`${id}-time`} type="time" step={900} value={time} required onChange={e => { setTime(e.target.value); setError(''); }} /></label>
     <label className="field" htmlFor={`${id}-length`}><span>How long</span><select id={`${id}-length`} value={length} onChange={e => setLength(Number(e.target.value))}>{[...new Set([...LENGTHS, length])].filter(m => m >= MIN_MINUTES && m <= MAX_MINUTES).sort((a, b) => a - b).map(m => <option key={m} value={m}>{lengthLabel(m)}</option>)}</select></label>
+    {block.kind === 'habit' && actions.everyDay && <label className="check-row timeline-everyday"><input type="checkbox" checked={everyDay} onChange={e => setEveryDay(e.target.checked)} /> Every day, on all my devices</label>}
     <div className="timeline-picker-actions">
       <button type="submit" className="primary">Save time</button>
+      {block.timeFrom === 'its habit time' && actions.clearEveryDay && <button type="button" className="secondary" onClick={() => { actions.clearEveryDay!(block); onClose(); }}>Remove its everyday time</button>}
       {block.timeFrom === 'moved here' && <button type="button" className="secondary" onClick={() => { actions.putBack(block); onClose(); }}>{own ? `Put it back at ${formatClock(own)}` : 'Put it back on Anytime'}</button>}
       <button type="button" className="quiet" onClick={onClose}>Cancel</button>
     </div>
