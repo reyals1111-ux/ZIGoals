@@ -1,7 +1,7 @@
 'use client';
 import {removeWithUndo} from '../ui/remove-with-undo';
 import Link from 'next/link';
-import {useEffect, useMemo, useState} from 'react';
+import {Suspense, lazy, useEffect, useMemo, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {AssetIcon} from '../platform/financial-ui';
 import {PriceChart} from '../platform/price-chart';
@@ -11,7 +11,9 @@ import {usePortfolioMarket} from './use-portfolio-market';
 import {Change, KIND_LABEL, MarketFacts, TransactionList} from './portfolio-sections';
 import {TransactionForm} from './transaction-form';
 import {FEATURED_COINS} from './coin-picker';
-import {createCatalogLoader} from '../../lib/market-catalog-client';
+import {loadMarketCatalog} from '../../lib/market-catalog-client';
+import {LoadBoundary} from '../load-boundary';
+const PriceAlertForm = lazy(() => import('../price-alerts/price-alerts').then(m => ({default: m.PriceAlertForm})));
 import {marketAssetRefSchema, marketRefKey} from '../../lib/market-assets';
 import {addFavourite, removeFavourite} from '../../lib/asset-management';
 import {formatDateTime, formatExactNumber, formatMoney, formatPrice, formatSignedMoney} from '../../lib/visual-format';
@@ -25,7 +27,7 @@ import {showcasePrices} from '../../lib/portfolio/showcase';
 import './portfolio.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 
-const loadCatalog = createCatalogLoader();
+const loadCatalog = loadMarketCatalog; // Session AJ (WE16): the app's one shared catalog loader
 const DAY = 86400000;
 type Lookup = {state: 'found'; coin: PortfolioCoin} | {state: 'loading' | 'unknown' | 'invalid'};
 
@@ -96,6 +98,8 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
     </section>}
     {!portfolio && <section className="panel"><h2>No portfolio yet</h2><p>Create a portfolio on the <Link href="/app/portfolio">Portfolio page</Link> to record {coin.symbol}.</p></section>}
     <PriceChart marketRef={coin.ref} currency={currency} title={`${coin.name} price`} offline={store.showcase} localPoints={fixturePoints} />
+    {/* Session AJ (item 15, D9): a price alert for this coin, in the app only. */}
+    {coin.ref.kind === 'coin' && (currency === 'USD' || currency === 'EUR') && <section className="panel" aria-label={`Price alert for ${coin.name}`}><LoadBoundary quiet><Suspense fallback={null}><PriceAlertForm coin={coin.ref.id} coinName={coin.name} currency={currency}/></Suspense></LoadBoundary></section>}
     <MarketFacts coin={coin} market={info} currency={currency} />
     <FavouriteToggle coin={coin} />
   </div>;
