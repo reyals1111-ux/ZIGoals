@@ -57,8 +57,20 @@ export function checkinMoment({days, seen, firstSaveToday, low}: {days: number; 
   return firstSaveToday ? {signal: 'health_log_recorded', validated: true} : null;
 }
 
-/** Session AJ (P4 moment 7): back after 7 days or more without ZIGi · Your day (never on a first visit). */
+/** Session AJ (P4 moment 7): back after 7 days or more without a single entry (never on a first visit, never a count). */
 export const WELCOME_BACK_DAYS = 7;
+type Dated = {date: string};
+/**
+ * The latest day on or before `day` with any entry the person made: a habit day, food, an activity, a weight or water.
+ * Read from the records, so nothing is written to know it ("nothing is written on view", Session V Part 9).
+ */
+export function lastEntryDay(habits: {habits: readonly {entries: readonly Dated[]}[]}, health: {diary: readonly Dated[]; activity: readonly Dated[]; weights: readonly Dated[]; daily?: {water: readonly Dated[]} | null}, day: string): string | undefined {
+  let latest: string | undefined;
+  const see = (list: readonly Dated[] | undefined) => { for (const e of list ?? []) if (e.date <= day && (!latest || e.date > latest)) latest = e.date; };
+  for (const h of habits.habits) see(h.entries);
+  see(health.diary); see(health.activity); see(health.weights); see(health.daily?.water);
+  return latest;
+}
 export function welcomeBack(lastSeen: string | undefined, day: string): boolean {
   if (!lastSeen || lastSeen >= day) return false;
   return (Date.parse(`${day}T12:00:00Z`) - Date.parse(`${lastSeen}T12:00:00Z`)) / 86_400_000 >= WELCOME_BACK_DAYS;

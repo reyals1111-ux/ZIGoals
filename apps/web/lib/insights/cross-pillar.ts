@@ -65,7 +65,7 @@ export function confidenceOf(sample: readonly Sample[], gap: number, mid: string
   if (!clear) return {label: null, ps};
   if (withA.length < CROSS_CONSISTENT_PER_SIDE || withoutA.length < CROSS_CONSISTENT_PER_SIDE) return {label: 'early', ps};
   const half = (inFirst: boolean) => { const part = sample.filter(s => (s.date < mid) === inFirst), w = part.filter(s => s.a).map(s => s.value), o = part.filter(s => !s.a).map(s => s.value); return w.length < CROSS_HALF_MIN_PER_SIDE || o.length < CROSS_HALF_MIN_PER_SIDE ? null : mean(w) - mean(o); };
-  const same = (d: number | null) => d !== null && Math.sign(d) === Math.sign(diff) && Math.abs(d) >= gap / 2 - 1e-9;
+  const same = (d: number | null) => d !== null && d > 0 === diff > 0 && d !== 0 && Math.abs(d) >= gap / 2 - 1e-9;
   return {label: same(half(true)) && same(half(false)) ? 'consistent' : 'early', ps};
 }
 
@@ -180,5 +180,5 @@ export function crossPillarInsights({habits, health, today, max = 3, spending, h
 
 /** Session AJ (item 10): the "Why?" text of a ready pairing: the days, the label, its line, and what else could explain it. */
 export function whyText(i: CrossInsight): string {
-  return `From your own records, ${i.window.start} to ${i.window.end}: ${i.withA.days} days with and ${i.withoutA.days} days without, paired by date. Label: ${LABEL_WORDS[i.label].label}. ${LABEL_WORDS[i.label].line} Days that go together are not proof that one brings the other; ${i.confounder}. It is not advice, and only you decide what to do with it.`;
+  return `From your own records, ${i.window.start} to ${i.window.end}: ${i.withA.days} days with and ${i.withoutA.days} days without, paired by date. Label: ${LABEL_WORDS[i.label].label}. ${LABEL_WORDS[i.label].line} Days that go together are not proof that one brings the other; ${i.confounder}; it is not advice, and only you decide what to do with it.`;
 }

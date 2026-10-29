@@ -167,8 +167,7 @@ export function frozenFixture() {
   records[ZIGI_METRICS_KEY] = JSON.stringify({version: 1, on: true, months: {'2026-10': {'card-added': 3}}});
   checks.push({key: ZIGI_METRICS_KEY, module: './ai/store/metrics', spec: 'ZIGI_METRICS', expect: {'months.2026-10.card-added': 3}});
   // Session AI (mascot, TIER 3 (stored format)): ZIGi's record may carry `personality` (optional; the record is loose in every release).
-  // Session AJ (item 10, TIER 3 (stored format)): ZIGi's optional lastSeenDay in its loose record; an older build keeps or ignores it.
-  records[ZIGI_KEY] = JSON.stringify({version: 1, side: 'left', personality: 'direct', lastSeenDay: '2026-10-20'});
+  records[ZIGI_KEY] = JSON.stringify({version: 1, side: 'left', personality: 'direct'});
   checks.push({key: ZIGI_KEY, module: './ai/store/records', spec: 'ZIGI', expect: {side: 'left', personality: 'direct'}});
   // Session AI (feature 1, HE17, TIER 3 (stored format)): the ranges behind an AI meal estimate, a new device-only key (fictional).
   records[MEAL_ESTIMATES_KEY] = JSON.stringify({version: 1, foods: {'health_fixture-estimate': {ranges: {kcal: [450, 650], protein_g: [20, 30]}, source: 'photo', at: '2026-10-28T12:00:00.000Z'}}});

@@ -1,5 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
+import {formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS} from '../../lib/energy/schema';
@@ -38,7 +39,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose/></section>
     <section className="panel journal-week" aria-labelledby="journal-week-title"><h2 id="journal-week-title">Your week</h2>
       <ol className="journal-week-days" aria-label="This week's check-ins">{week.week.map(d => <li key={d.date} data-empty={d.energy === null && d.mood === null ? '' : undefined}>
-        <span className="journal-week-day">{new Date(`${d.date}T12:00:00Z`).toLocaleDateString('en-GB', {weekday: 'short', timeZone: 'UTC'})}</span>
+        <span className="journal-week-day">{formatWeekday(`${d.date}T12:00:00Z`, {timeZone: 'UTC'})}</span>
         <span className="journal-week-dot" data-level={d.energy ?? undefined}>{d.energy ?? '·'}</span>
         {healthShown && <span className="journal-week-dot is-mood" data-level={d.mood ?? undefined}>{d.mood ?? '·'}</span>}
         <span className="sr-only">{d.date}: {d.energy === null && d.mood === null ? 'no check-in' : [d.energy !== null ? `energy ${d.energy} of 5` : null, d.mood !== null ? `mood ${MOOD_WORDS[d.mood - 1]}` : null].filter(Boolean).join(', ')}</span>

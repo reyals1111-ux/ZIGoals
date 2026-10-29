@@ -82,12 +82,13 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
     const {ready, pending, unclear} = crossPillarInsights({habits, health, today: day});
     // Session AJ (item 10, D14; ADR-035 P14): a pairing is ready only with a clear difference (its meaningful gap, a
-    // probability of superiority of 0.60 or more). The Showcase's earlier season gives two early signs; Sleep and habits
-    // (95% and 90%, 5 points) and Water and habits (91% and 93%) are listed as "no clear difference so far", with their days.
-    expect(ready.map(i => [i.id, i.withA.days, i.withoutA.days, i.label])).toEqual([['steps-sleep', 24, 31, 'early'], ['water-sleep', 29, 27, 'early']]);
-    for (const i of ready) expect(i.sentence).toMatch(/^On days you (walked at least 8,000 steps|logged water), you slept \d+ h( \d+ min)? that night on average; on (other days|days without), \d+ h( \d+ min)?\.$/);
-    expect(ready.map(i => i.sentence)).toEqual(['On days you walked at least 8,000 steps, you slept 7 h 51 min that night on average; on other days, 7 h 7 min.', 'On days you logged water, you slept 7 h 35 min that night on average; on days without, 7 h 14 min.']);
-    expect(unclear.map(i => [i.id, i.withA.days, i.withoutA.days, Math.round(i.withA.value * 100), Math.round(i.withoutA.value * 100)])).toEqual([['sleep-habits', 19, 37, 95, 90], ['water-habits', 32, 28, 91, 93]]);
+    // probability of superiority of 0.60 or more). The Showcase's earlier season was redrawn for that rule (fictional: the
+    // stretch after every long night and 6 of the 14 shorter ones, a night after a day with water 25 min longer), so its three
+    // pairings stay early signs on every day of the year; Water and habits (88% and 82%) is "no clear difference so far".
+    expect(ready.map(i => [i.id, i.withA.days, i.withoutA.days, i.label])).toEqual([['steps-sleep', 24, 31, 'early'], ['water-sleep', 29, 27, 'early'], ['sleep-habits', 19, 37, 'early']]);
+    for (const i of ready.filter(r => r.unit === 'min')) expect(i.sentence).toMatch(/^On days you (walked at least 8,000 steps|logged water), you slept \d+ h( \d+ min)? that night on average; on (other days|days without), \d+ h( \d+ min)?\.$/);
+    expect(ready.map(i => i.sentence)).toEqual(['On days you walked at least 8,000 steps, you slept 8 h 11 min that night on average; on other days, 7 h 14 min.', 'On days you logged water, you slept 7 h 57 min that night on average; on days without, 7 h 17 min.', 'On days after a night of at least 8 h of sleep, you completed 100% of your scheduled habits; after shorter nights, 76%.']);
+    expect(unclear.map(i => [i.id, i.withA.days, i.withoutA.days, Math.round(i.withA.value * 100), Math.round(i.withoutA.value * 100)])).toEqual([['water-habits', 32, 28, 88, 82]]);
     for (const i of unclear) { expect(i.withA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); expect(i.withoutA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); }
     // Session AI (feature 4): of the newer pairings, only food after 9 pm has records (7 and 19 days, still collecting).
     expect(pending).toEqual([{id: 'late-food-sleep', title: 'Food after 9 pm and sleep', withA: 7, withoutA: 19, need: 14}]);
