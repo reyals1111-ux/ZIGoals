@@ -13,6 +13,7 @@ import {TransactionForm} from './transaction-form';
 import {FEATURED_COINS} from './coin-picker';
 import {loadMarketCatalog} from '../../lib/market-catalog-client';
 import {LoadBoundary} from '../load-boundary';
+import {PriceAlertWatchGate} from '../price-alerts/watch-gate';
 const PriceAlertForm = lazy(() => import('../price-alerts/price-alerts').then(m => ({default: m.PriceAlertForm})));
 import {marketAssetRefSchema, marketRefKey} from '../../lib/market-assets';
 import {addFavourite, removeFavourite} from '../../lib/asset-management';
@@ -99,7 +100,7 @@ export function PortfolioCoinView({id, portfolioId}: {id: string; portfolioId?: 
     {!portfolio && <section className="panel"><h2>No portfolio yet</h2><p>Create a portfolio on the <Link href="/app/portfolio">Portfolio page</Link> to record {coin.symbol}.</p></section>}
     <PriceChart marketRef={coin.ref} currency={currency} title={`${coin.name} price`} offline={store.showcase} localPoints={fixturePoints} />
     {/* Session AJ (item 15, D9): a price alert for this coin, in the app only. */}
-    {coin.ref.kind === 'coin' && (currency === 'USD' || currency === 'EUR') && <section className="panel" aria-label={`Price alert for ${coin.name}`}><LoadBoundary quiet><Suspense fallback={null}><PriceAlertForm coin={coin.ref.id} coinName={coin.name} currency={currency}/></Suspense></LoadBoundary></section>}
+    {coin.ref.kind === 'coin' && (currency === 'USD' || currency === 'EUR') && <section className="panel" aria-label={`Price alert for ${coin.name}`}><LoadBoundary quiet><Suspense fallback={null}><PriceAlertForm coin={coin.ref.id} coinName={coin.name} currency={currency}/></Suspense></LoadBoundary><PriceAlertWatchGate/></section>}
     <MarketFacts coin={coin} market={info} currency={currency} />
     <FavouriteToggle coin={coin} />
   </div>;
