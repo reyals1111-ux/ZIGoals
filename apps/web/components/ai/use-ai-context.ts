@@ -38,6 +38,7 @@ import {ACCOUNTS} from '../../lib/accounts/schema';
 import {MONEY_LOG} from '../../lib/money-log/schema';
 import {JOURNAL} from '../../lib/journal/schema';
 import {ENERGY} from '../../lib/energy/schema';
+import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
 import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
 import {CHESS_CACHE} from '../../lib/skills/chess/schema';
 import {chessOf} from '../../lib/skills/chess/engine';
@@ -92,7 +93,7 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
   // Part 8: the person's notes, only while "Use my notes" is on; the gates decide per path where they may go.
   const memory = useDeviceRecord(AI_MEMORY), options = useDeviceRecord(AI_OPTIONS);
   // Session W Part 21: the device records ZIGi's new tools read (accounts, milestone dates, chess); each tool keeps its area's switch.
-  const accounts = useDeviceRecord(ACCOUNTS), milestoneDates = useDeviceRecord(MILESTONE_DATES), chessCache = useDeviceRecord(CHESS_CACHE), moneyLog = useDeviceRecord(MONEY_LOG), journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY);
+  const accounts = useDeviceRecord(ACCOUNTS), milestoneDates = useDeviceRecord(MILESTONE_DATES), chessCache = useDeviceRecord(CHESS_CACHE), moneyLog = useDeviceRecord(MONEY_LOG), journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), coach = useDeviceRecord(HEALTH_COACH);
   // Session AF (L4): the Checklist's records, ZIGi's plans, and the Earn snapshot (what the Earn page read in this visit; memory only).
   const checklist = useDeviceRecord(CHECKLIST), checklistDays = useDeviceRecord(CHECKLIST_DAYS), plans = useDeviceRecord(ZIGI_PLANS);
   const earn = useSyncExternalStore(subscribeEarnSnapshot, earnSnapshot, earnSnapshot);
@@ -150,13 +151,13 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
     };
     return {now, habitDay, healthDay: hDay, habitZone, healthZone, habits: habits.data, health: health.data, fasting: fasting.data, platform: platform.data, localGoals: legacy.goals, metadata: legacy.metadata?.goals ?? {}, quotes: market.quotes,
       localActivity: legacy.mode === 'local' ? legacy.activity : null, portfolio: {data: portfolios.data, priceOf}, weekly: weekly.loaded && !weekly.error ? weekly.data : null, notes: notesForAi(options.data, memory.data),
-      accounts: accounts.loaded && !accounts.unreadable ? accounts.data : null, moneyLog: moneyLog.loaded && !moneyLog.unreadable ? moneyLog.data : null, journal: journal.loaded && !journal.unreadable ? journal.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, milestoneDates: milestoneDates.loaded && !milestoneDates.unreadable ? milestoneDates.data : null,
+      accounts: accounts.loaded && !accounts.unreadable ? accounts.data : null, moneyLog: moneyLog.loaded && !moneyLog.unreadable ? moneyLog.data : null, journal: journal.loaded && !journal.unreadable ? journal.data : null, energy: energy.loaded && !energy.unreadable ? energy.data : null, coach: coach.loaded && !coach.unreadable ? coach.data : null, milestoneDates: milestoneDates.loaded && !milestoneDates.unreadable ? milestoneDates.data : null,
       chess: chessCache.loaded && !chessCache.unreadable ? {settings: dashboard.loaded && !dashboard.error ? chessOf(dashboard.data) ?? null : null, cache: chessCache.data} : null,
       linksCount: dashboard.loaded && !dashboard.error ? linksOf(dashboard.data).items.length : null, showcase: isShowcase(),
       // Session AF (L4): read at the moment of the question, like the rest; the page view is titles only, Health cards only with the gate.
       checklist: checklist.loaded && checklistDays.loaded ? {record: checklist.data, days: checklistDays.data, date: checklistDay(now), unreadable: checklist.unreadable || checklistDays.unreadable} : null,
       earn, plans: plans.loaded && !plans.unreadable ? plans.data : null,
       pageView: (() => { try { return readPageView(document, pathname, {healthOpen: toolGates.localHealth, sensitive}); } catch { return null; } })()};
-  }, [journal.loaded, journal.unreadable, journal.data, energy.loaded, energy.unreadable, energy.data, moneyLog.loaded, moneyLog.unreadable, moneyLog.data, ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
+  }, [journal.loaded, journal.unreadable, journal.data, energy.loaded, energy.unreadable, energy.data, coach.loaded, coach.unreadable, coach.data, moneyLog.loaded, moneyLog.unreadable, moneyLog.data, ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};
 }

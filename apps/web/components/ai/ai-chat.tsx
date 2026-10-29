@@ -39,6 +39,7 @@ import {LOCAL_LABEL} from '../../lib/ai/local-answers/words';
 import {toolEnv} from '../../lib/ai/tools/env';
 import {BRIEF_LABEL, briefChatText} from '../../lib/ai/proactive/brief';
 import {briefPrefs} from '../../lib/ai/store/records';
+import {withoutRepeats} from '../../lib/ai/actions/repeats';
 import {runTool, toolText} from '../../lib/ai/tools/registry';
 import type {ToolResult} from '../../lib/ai/tools/types';
 import {questionContext, type QuestionContext} from '../../lib/ai/context/question';
@@ -484,6 +485,10 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
+  // Session AJ (item 9): a follow-up reply does not re-send the cards an earlier reply of this chat proposed (a revision does).
+  const turnIndex = session.chat.turns.findIndex(t => t.id === turn.id);
+  const earlierCards = parsed.revise ? [] : session.chat.turns.slice(0, Math.max(0, turnIndex)).filter(t => t.role === 'assistant').map(t => (session.parsed.get(t.id) ?? parseReply(t.text)).proposals);
+  const {kept: cards, repeated} = withoutRepeats(earlierCards, parsed.proposals);
   const copy = () => { copyText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   const label = turn.source === 'hosted' ? HOSTED_LABEL(providerName.replace(/ via ZIGoals hosted$/, '').replace(/^your AI$/, 'the provider ZIGoals uses')) : ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName);
   // The short source line (panel polish round 2): who answered, in a few words.
@@ -495,7 +500,8 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
-      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
+      {repeated > 0 && <p className="ai-note">{repeated === 1 ? 'One card from an earlier reply is not repeated here.' : `${repeated} cards from an earlier reply are not repeated here.`}</p>}
+      {(cards.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={cards} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>

@@ -153,3 +153,15 @@ test('L50: when the records show there is nothing to change (no fast to stop, a 
   expect(ACTION_PROTOCOL).toContain('show there is nothing to change (no fast running to stop, the goal to reopen already active, the unit, target, bell or look asked for already set that way), say so in one line and send no card');
   expect(ACTION_PROTOCOL).toContain('That is not the second entry above, which still gets its card; a check-in, a log or a skip is never "nothing to change"');
 });
+
+// Session AJ (item 9; real-model p2-dst-night): the today line names the device's time zone and the year's clock changes.
+test('the today line names the time zone and its clock changes; no zone, or an unknown one, leaves the line as before', async () => {
+  const {todayLine, zoneLine} = await import('./specialists');
+  expect(zoneLine('2026-10-05', 'Europe/Brussels')).toBe("The person's time zone is Europe/Brussels, UTC+02:00 today. Its clocks change in 2026 on 2026-03-29 in the early hours (UTC+01:00 → UTC+02:00) and 2026-10-25 in the early hours (UTC+02:00 → UTC+01:00).");
+  expect(zoneLine('2026-10-05', 'Asia/Tokyo')).toBe("The person's time zone is Asia/Tokyo, UTC+09:00 today. Its clocks do not change in 2026.");
+  expect(zoneLine('2026-10-05', 'UTC')).toBe("The person's time zone is UTC, UTC+00:00 today. Its clocks do not change in 2026.");
+  expect(zoneLine('2026-10-05', 'Mars/Olympus')).toBeNull();
+  expect(todayLine('2026-10-05')).not.toContain('time zone');
+  expect(todayLine('2026-10-05', 'Mars/Olympus')).toBe(todayLine('2026-10-05'));
+  expect(todayLine('2026-10-05', 'Europe/Brussels')).toBe(`${todayLine('2026-10-05')} ${zoneLine('2026-10-05', 'Europe/Brussels')}`);
+});

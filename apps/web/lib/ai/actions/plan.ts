@@ -4,6 +4,7 @@ import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, st
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
 import {earliestHabitChange} from '../../habit-actions';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
+import {recipeRef} from './refs';
 import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
 import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
 import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseData} from '../../health-counters';
@@ -415,7 +416,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         activity: {id, title: `Food added: ${action.name}`}}};
     }
     case 'create-recipe': {
-      const recipeId = healthId(), created: HealthFood[] = [], items: {foodId: string; quantityMilli: number}[] = [], lines: string[] = [];
+      // Session AJ (item 9): a recipe a plan-meal card of the same reply names ("recipe_name") gets the id it was given.
+      const recipeId = env.refs?.get(recipeRef(action.name))?.id ?? healthId(), created: HealthFood[] = [], items: {foodId: string; quantityMilli: number}[] = [], lines: string[] = [];
       for (const raw of action.ingredients) {
         // Phase 2: millilitres count 1 ml = 1 g; a quantity with a kitchen unit becomes grams or millilitres; a bare quantity is servings.
         const UNIT_ML: Record<string, number> = {ml: 1, millilitre: 1, millilitres: 1, milliliter: 1, milliliters: 1, cl: 10, dl: 100, l: 1000, litre: 1000, litres: 1000, liter: 1000, liters: 1000, cup: 240, cups: 240, tbsp: 15, tablespoon: 15, tablespoons: 15, tsp: 5, teaspoon: 5, teaspoons: 5};
@@ -465,18 +467,28 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (day.day < env.healthDay) return refuse('A meal plan is for today or a later day; log a past meal in the diary instead.');
       if (day.day > addLocalDays(env.healthDay, PLAN_AHEAD_DAYS)) return refuse(`Meals can be planned up to ${PLAN_AHEAD_DAYS} days ahead.`);
       const planId = healthId(), quantityMilli = Math.round(action.servings * 1000);
-      let savedMealId: string, name: string, recipeId: string | null = null;
+      let savedMealId: string, name: string, recipeId: string | null = null, pendingRecipe: string | null = null;
       if (action.saved_meal) {
         const handle = env.handles.find(h => h.handle === action.saved_meal && h.kind === 'meal'), meal = handle ? dailyData(stores.health).savedMeals.find(m => m.id === handle.id) : undefined;
         if (!meal) return refuse('ZIGi named a saved meal that is not in this page\'s context, so nothing was proposed. Ask again from Health.');
         savedMealId = meal.id; name = meal.name;
+      } else if (action.recipe_name !== undefined) {
+        // Session AJ (item 9; ADR-034 N20's gap): a recipe a create-recipe card of this same reply makes. The plan is written
+        // after that card (Add all keeps the reply's order); added alone first, it says so and writes nothing.
+        const ref = env.refs?.get(recipeRef(action.recipe_name)), existing = ref ? undefined : stores.health.recipes.filter(r => r.name.trim().toLowerCase() === action.recipe_name!.trim().toLowerCase());
+        if (ref) { savedMealId = healthId(); name = ref.title; recipeId = ref.id; pendingRecipe = ref.title; }
+        else if (existing?.length === 1) { savedMealId = healthId(); name = existing[0]!.name; recipeId = existing[0]!.id; }
+        else return refuse(existing && existing.length > 1 ? `You have ${existing.length} recipes called "${action.recipe_name}", so nothing was proposed. Ask again from Health.` : `ZIGi named a recipe ("${action.recipe_name}") that neither this reply nor Health has, so nothing was proposed.`);
       } else {
         const handle = env.handles.find(h => h.handle === action.recipe && h.kind === 'recipe'), recipe = handle ? stores.health.recipes.find(r => r.id === handle.id) : undefined;
         if (!recipe) return refuse('ZIGi named a recipe that is not in this page\'s context, so nothing was proposed. Ask again from Health.');
         savedMealId = healthId(); name = recipe.name; recipeId = recipe.id;
       }
-      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Plan ${name}`, lines: [`${action.meal} · ${recipeId ? `${num(action.servings, 2)} serving${action.servings === 1 ? '' : 's'} of your recipe` : 'your saved meal as saved'}`, 'Planned only: log it from Meals & planning when you eat it'], where: 'Health · Meals & planning', day: dayLabel(day.day, env.healthDay), estimate: false},
-        write: s => { const h = recipeId ? saveMealFromRecipe(s.health, savedMealId, recipeId, quantityMilli, at) : s.health; return {health: saveMealPlan(h, {id: planId, savedMealId, date: day.day, meal: action.meal}, at)}; },
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Plan ${name}`, lines: [`${action.meal} · ${recipeId ? `${num(action.servings, 2)} serving${action.servings === 1 ? '' : 's'} of ${pendingRecipe ? 'the recipe proposed above' : 'your recipe'}` : 'your saved meal as saved'}`, ...(pendingRecipe ? [`Add the recipe "${pendingRecipe}" first: this plan uses it`] : []), 'Planned only: log it from Meals & planning when you eat it'], where: 'Health · Meals & planning', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => {
+          if (pendingRecipe && !s.health.recipes.some(r => r.id === recipeId)) throw new Error(`Add the recipe "${pendingRecipe}" first: this plan uses it. Nothing was planned.`);
+          const h = recipeId ? saveMealFromRecipe(s.health, savedMealId, recipeId, quantityMilli, at) : s.health; return {health: saveMealPlan(h, {id: planId, savedMealId, date: day.day, meal: action.meal}, at)};
+        },
         undo: {label: 'Remove this planned meal', write: s => { const h = removeMealPlan(s.health, planId); return {health: recipeId ? removeSavedMeal(h, savedMealId) : h}; },
           unchanged: (after, current) => same(dailyData(after.health).plans.find(p => p.id === planId), dailyData(current.health).plans.find(p => p.id === planId)) && (!recipeId || (same(dailyData(after.health).savedMeals.find(m => m.id === savedMealId), dailyData(current.health).savedMeals.find(m => m.id === savedMealId)) && !dailyData(current.health).plans.some(p => p.savedMealId === savedMealId && p.id !== planId)))},
         activity: {id: planId, title: `Meal planned: ${name}`}}};

@@ -106,3 +106,14 @@ test('L56: a bare "no" or "nee" between two figures is a self-correction ("eight
   expect(normalizeSpoken('drie glazen nee vier glazen')).toBe('4 glazen');
   expect(normalizeSpoken('no sugar today')).toBe('no sugar today');
 });
+
+// Session AJ (item 9; real-model sp-aac-nav-calculator-nl-filler): a false start that stops on an article is dropped before
+// a navigation restart, and only then.
+import {localAnswer as aj9LocalAnswer} from '../local-answers/engine';
+test('a spoken false start before "open …" is dropped; a sentence that merely pauses keeps every word', () => {
+  expect(normalizeSpoken('Euh, kun je de, eh, open de rekenmachine even')).toBe('open de rekenmachine even');
+  expect(normalizeSpoken('Uh, can you the, open my calculator please')).toBe('open my calculator please');
+  expect(normalizeSpoken('Ik at de, eh, soep')).toBe('Ik at de, soep');
+  expect(normalizeSpoken('Kun je de instellingen openen')).toBe('Kun je de instellingen openen');
+  expect(typeof aj9LocalAnswer).toBe('function');
+});

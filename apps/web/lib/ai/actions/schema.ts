@@ -145,8 +145,9 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('create-recipe'), name: text(100), servings: positive.max(100).default(1),
     ingredients: z.array(z.strictObject({name: text(100), food: handleOf('f', 'f3').optional(), grams: positive.max(100_000).optional(), millilitres: positive.max(100_000).optional(), quantity: positive.max(1000).optional(), unit: text(24).optional(), servings: positive.max(1000).optional(), estimate_per_100g: nutrients.optional()})
       .refine(i => i.grams === undefined || i.servings === undefined, 'Give an ingredient in grams or in servings, not both.')).min(1).max(30)}),
-  z.strictObject({kind: z.literal('plan-meal'), recipe: handleOf('r', 'r1').optional(), saved_meal: handleOf('m', 'm1').optional(), servings: positive.max(100).default(1), meal: z.enum(MEALS), day: daySchema})
-    .refine(a => (a.recipe === undefined) !== (a.saved_meal === undefined), 'Plan one recipe (r1) or one saved meal (m1).'),
+  // Session AJ (item 9; ADR-034 N20's gap): `recipe_name` names a recipe a create-recipe card of the same reply makes.
+  z.strictObject({kind: z.literal('plan-meal'), recipe: handleOf('r', 'r1').optional(), recipe_name: text(100).optional(), saved_meal: handleOf('m', 'm1').optional(), servings: positive.max(100).default(1), meal: z.enum(MEALS), day: daySchema})
+    .refine(a => [a.recipe, a.recipe_name, a.saved_meal].filter(x => x !== undefined).length === 1, 'Plan one recipe (r1, or the name of a recipe this reply creates) or one saved meal (m1).'),
   z.strictObject({kind: z.literal('grocery-item'), items: z.array(text(100)).min(1).max(30)}),
   z.strictObject({kind: z.literal('counter'), counter: z.string().trim().min(1).max(40), count: z.number().int().min(-1000).max(1000).refine(n => n !== 0, 'A count other than zero.'), day: daySchema}),
   z.strictObject({kind: z.literal('create-reminder'), for: z.enum(REMINDER_FOR), habit: habitName.optional(), goal: goalName.optional(), time: clock, weekday: z.number().int().min(0).max(6).optional()})

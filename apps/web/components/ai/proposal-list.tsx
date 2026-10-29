@@ -5,6 +5,7 @@ import {batchable, UNDO_WINDOW_MS} from '../../lib/ai/actions/batch';
 import type {Rejected} from '../../lib/ai/actions/parse';
 import type {Plan, PlanResult, Stores} from '../../lib/ai/actions/plan';
 import type {Action} from '../../lib/ai/actions/schema';
+import {newRecipeRefId, recipeRef} from '../../lib/ai/actions/refs';
 import type {Handle} from '../../lib/ai/context/types';
 import {ProposalCard, type ProposalStatus} from './proposal-card';
 import type {ProposalRunner} from './use-proposals';
@@ -35,7 +36,9 @@ const planOf = (item: ProposalItem): Plan | null => item.result.ok ? item.result
 /** Session V Part 12 / X-Local Part 4 (D5): a check-in that took a streak onto a milestone makes ZIGi proud; any other accepted card is a small success. */
 const proud = (plan: Plan, before: Stores['habits'], after: Stores['habits']) => { try { return streakMilestone(plan, before, after) !== null; } catch { return false; } };
 /** Session V Part 7: the habits this reply creates get their ids now, so a reminder card of the same reply can name them. */
-const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a => a.kind === 'create-habit' && a.ref ? [[a.ref, {id: crypto.randomUUID(), title: a.title}] as const] : []));
+// Session AJ (item 9): a recipe the reply creates is a ref too (by its name), so a plan-meal card of the same reply can use it.
+const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a => a.kind === 'create-habit' && a.ref ? [[a.ref, {id: crypto.randomUUID(), title: a.title}] as const]
+  : a.kind === 'create-recipe' && proposals.some(p => p.kind === 'plan-meal' && p.recipe_name !== undefined && recipeRef(p.recipe_name) === recipeRef(a.name)) ? [[recipeRef(a.name), {id: newRecipeRefId(), title: a.name}] as const] : []));
 /**
  * `replaced` (Session X-Local Part 5a): a later reply carried "revise": true, so whatever is still pending here is marked
  * "Replaced" and can no longer be added; what was already added, undone or dismissed keeps its state.

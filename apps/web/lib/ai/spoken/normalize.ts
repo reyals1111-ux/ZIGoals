@@ -190,10 +190,19 @@ function corrections(text: string): string {
   return text;
 }
 
+/**
+ * Session AJ (item 9; real-model `sp-aac-nav-calculator-nl-filler`): a spoken false start — a few words that stop on a
+ * dangling article and a comma ("kun je de, open de rekenmachine even", "can you the, open my calculator") — is dropped
+ * when the restart begins with a navigation verb. Only then: "ik at de, soep" keeps every word.
+ */
+const FALSE_START = /^(?:[\p{L}']+\s+){0,3}(?:de|het|een|the|a|an|my|mijn|m'n),\s+(?=(?:open|ga|go|toon|show|laat|breng|take|switch|jump|navigate|bring)\b)/iu;
 /** The normalised form (see the file comment): fillers out, numbers as digits, clock idioms as H:MM, the last of a self-correction. */
 export function normalizeSpoken(text: string): string {
   let t = text.replace(/\s+/g, ' ').trim();
+  // (an article's own comma survives the filler after it: "de, eh, open" keeps "de," for the false-start check below)
+  t = t.replace(/\b(de|het|een|the|a|an|my|mijn|m'n),\s*(?:euh|eh|ehm|uh|uhm|um|erm)\s*,\s*/giu, '$1, ');
   t = t.replace(WAKE, '').replace(FILLER, m => m.startsWith(',') ? ' ' : '');
+  t = t.replace(/\s+,/g, ',').replace(/\s{2,}/g, ' ').trim().replace(FALSE_START, '');
   t = quarters(t);
   t = numberWords(t);
   t = t.replace(FILLER_PHRASE, '');
