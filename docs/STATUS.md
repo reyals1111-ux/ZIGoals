@@ -1,3 +1,19 @@
+# Session AJ — "The Big Leap" (ADR-035) (2026-10-29, `feature/session-aj-big-leap`; in progress, not merged, not deployed)
+**Base:** `main` `65d0b85` (Merge #97, Session AI; live as Alpha #51). **Rules (owner):** the brief (Parts 0–10, items 1–36 without item 7, D1–D15), the approved plan and the owner amendments A1–A9 (ADR-035). One plan, one approval; no owner step during the session.
+
+## Part 0 — records (owner-reported, 28 Oct)
+- **Session AI** merged into `main` as `65d0b85` ([PR #97](https://github.com/reyals1111-ux/ZIGoals/pull/97)) and deployed as **Alpha #51**: Manual Alpha deployment run 54 (about 22:05 Brussels); version `8c844fee-8b60-4ce0-b6f4-8d00bc7543fa`, rollback `b5584cde-37a7-4756-8047-229f4a6c533e` (#50); VERIFIED, live prices VERIFIED. Rollback floor #32. Run numbers run three ahead of the Alpha count: the next deploy is run 55 = #52.
+- **Market policy** with two windows, set through `make-private-configs --set-market-policy`; the coordinator `zigoals-acctest-market-coordinator` redeployed: version `a0255b95-95ba-4485-952f-32d2c960a563`, rollback `3729a3cb-b25e-493a-bfce-02e0157da632`. Window 1 ends 2026-10-31 16:00 UTC, then it switches itself to window 2, which ends 2026-11-30 16:00 UTC; `dailyRowBudget` 100000.
+- **Landing** `zigoals` deployed from `65d0b85`: 5 files (index, privacy, terms, legal.css, final-v5.css); version `8708970d-270f-4383-bc58-0e3e713f481f`, rollback `5397cf67-dd5e-4344-bc1c-d71537768a6f`; `/`, `/privacy` and `/terms` answer 200 with the full header set; `/_headers` answers 404.
+- **Hosted verifier on #51:** stages 1–3 PASS (the policy line read "…ending 2026-11-30T16:00:00.000Z (32 days left)"); stage 4 (Connection diagnostics) FAIL: zig-test-2's node_info reports `zigchaind v6.0.0`, while the app accepts only v5.1.0–v5.1.2; RPC healthy. → Part 1.
+- **`activation-check --private`** reported "private: a template var is missing" for the private-sync owner copy. → item 4 (Part 1).
+- **ZIGChain mainnet (read live 29 Oct, A2):** zigchain-1 is on v5.1.2; on-chain proposal #45 "Software Upgrade to v6" (voting until 2 Nov 10:48 UTC) schedules v6.0.0 at height 13,466,800, about Tue 3 Nov 09:30 UTC — while this session runs. ADR-035 P2/P3.
+- Frozen readers are #37–#51 from now on (`scripts/frozen-readers.mjs`, #51 = `65d0b85`).
+
+Not merged, not deployed: the owner merges and deploys.
+
+---
+
 # Session AI — "ZIGi, the best companion" (ADR-034, Tracks A and B) (2026-10-28, `feature/session-ai-zigi`, [PR #97](https://github.com/reyals1111-ux/ZIGoals/pull/97); not merged, not deployed)
 **Evidence labels:** unit = vitest from the repository root; local = the owner's Mac (Node 22 against the project's 24), Chrome headless (Playwright's Chrome channel), at most 2 workers, one run at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`, :3103); real model = the Anthropic API on the owner's credits through `apps/web/lib/ai/evals/real-model.test.ts`, the key read from its 0600 file by the harness only (N6); frozen readers = `scripts/frozen-readers.mjs` over releases #37–#50; CI = Milestone quality on the PR.
 **Base:** `main` `80570b5` (Alpha #50). **Rules (owner):** the brief (Track A real-model testing under a $95 cap with a $7 reserve; Track B every ZIGi fix, nine features and the mascot, Session AH's upgrade list and the competitor gaps, a final sweep), the approved plan and four owner amendments (ADR-034). One plan, one approval; no owner step during the session.
