@@ -66,6 +66,9 @@ importers:
       '@cosmjs/stargate':
         specifier: 0.38.1
         version: 0.38.1
+      '@scure/bip32':
+        specifier: 1.7.0
+        version: 1.7.0
       '@walletconnect/sign-client':
         specifier: 2.26.0
         version: 2.26.0(aws4fetch@1.0.20)(typescript@5.9.3)(zod@4.6.6)
