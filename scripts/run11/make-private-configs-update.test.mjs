@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {execFileSync,spawnSync} from 'node:child_process';
 import JSON5 from 'json5';
-import {makePrivateConfigs,parseArgs,setMarketPolicy,setFoodUserAgent,privateCheckStatus,foodUserAgentProblems} from './make-private-configs.mjs';
+import {addMissingTemplateVars,makePrivateConfigs,parseArgs,setMarketPolicy,setFoodUserAgent,privateCheckStatus,foodUserAgentProblems} from './make-private-configs.mjs';
 import {CONFIGS,privatePath} from './activation-check.mjs';
 
 // Stage 6 update modes. Runs in a throwaway git repository holding the six templates and this .gitignore; the
@@ -113,4 +113,34 @@ test('the private check reports remaining problems by name only',async()=>{
  expect(privateCheckStatus(root)).toBe('activation-check --private: PASS (values not printed).');
  await chmod(join(root,FOOD),0o640);
  expect(privateCheckStatus(root)).toBe('activation-check --private still reports:\n  '+FOOD+': not mode 0600');
+});
+
+// Session AJ (item 4; TIER 3 (activation tooling)): an owner copy made before its template gained a var is named by the
+// var's name, and --add-missing-template-vars adds it with the template's reviewed value, every other byte unchanged.
+test('a missing template var is named, never valued, and --add-missing-template-vars adds exactly it',async()=>{
+ const {root}=await checkout(),PRIVATE=privatePath(CONFIGS.private),original=await text(root,PRIVATE);
+ // The owner's older copy: made before STEP_UP_REQUIRED existed (the line removed, comments added by hand).
+ const older='// private sync copy (fictional owner notes)\n'+original.replace(/,?\s*"STEP_UP_REQUIRED": "on"/,'');
+ expect(JSON5.parse(older).vars.STEP_UP_REQUIRED).toBeUndefined();
+ await writeFile(join(root,PRIVATE),older,{mode:0o600});
+ const status=privateCheckStatus(root);
+ expect(status).toContain('private: template var missing: STEP_UP_REQUIRED');
+ expect(status).not.toContain('a template var is missing');
+ const lines=addMissingTemplateVars(root),after=await text(root,PRIVATE);
+ expect(lines[0]).toBe(PRIVATE+": STEP_UP_REQUIRED added with the template's reviewed value (value not printed); every other byte is unchanged.");
+ expect(lines.at(-1)).toBe('activation-check --private: PASS (values not printed).');
+ expect(JSON5.parse(after)).toEqual({...JSON5.parse(older),vars:{...JSON5.parse(older).vars,STEP_UP_REQUIRED:'on'}});
+ expect(after.startsWith('// private sync copy (fictional owner notes)\n')).toBe(true);
+ expect(await mode(root,PRIVATE)).toBe(0o600);expect(await leftovers(root)).toEqual([]);
+ expect(lines.join('\n')).not.toMatch(/"on"|abcdefghijklmnopqrst|fictional-owner\.net/);
+ expect(addMissingTemplateVars(root)[0]).toBe('Every private copy already has every template var; nothing written.');
+ expect(parseArgs(['--add-missing-template-vars'])).toEqual({addMissing:true});
+});
+test('a missing var whose template value is a placeholder is named for the owner and never written',async()=>{
+ const {root}=await checkout(),template=join(root,CONFIGS.lifecycle),before=await text(root,privatePath(CONFIGS.lifecycle));
+ const t=JSON5.parse(await text(root,CONFIGS.lifecycle));t.vars={...t.vars,FICTIONAL_ORIGIN:'https://unconfigured.example.invalid'};await writeFile(template,JSON.stringify(t,null,2));
+ const lines=addMissingTemplateVars(root);
+ expect(lines[0]).toBe(privatePath(CONFIGS.lifecycle)+': FICTIONAL_ORIGIN is missing and its template holds a placeholder; set it yourself (nothing written for it).');
+ expect(await text(root,privatePath(CONFIGS.lifecycle))).toBe(before);
+ expect(lines.at(-1)).toContain('lifecycle: template var missing: FICTIONAL_ORIGIN');
 });
