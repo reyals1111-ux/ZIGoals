@@ -34,6 +34,7 @@ import {WORKOUTS} from '../workouts/schema';
 import {MONEY_LOG} from '../money-log/schema';
 import {MEAL_ESTIMATES} from '../meal-estimates/schema';
 import {TASKS} from '../tasks/schema';
+import {READING_SOURCES} from '../wealth-sources/schema';
 import {RECEIPTS} from '../portfolio/receipts';
 import {IMPORTS} from '../portfolio/wallet-import';
 import {EXCHANGES_RECORD} from '../exchanges/record';
@@ -87,6 +88,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('tasks', 'Tasks', 'Today and Life', TASKS),
   dev('portfolioReceipts', 'Portfolio rewards, income and airdrops', 'Goals and Wealth', RECEIPTS),
   dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
+  dev('readingSources', 'Where wealth readings came from', 'Goals and Wealth', READING_SOURCES),
   dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),
   dev('portfolio', 'Portfolio', 'Goals and Wealth', spec(PORTFOLIO_KEY, portfolioDataSchema, emptyPortfolioData)),
   dev('habitExtras', 'Habit extras', 'Habits', HABIT_EXTRAS),

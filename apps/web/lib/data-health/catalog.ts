@@ -33,6 +33,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   tasks: ['Tasks', 'Today'],
   portfolioReceipts: ['Portfolio rewards, income and airdrops', 'Wealth'],
   portfolioImports: ['Portfolio rows from wallets', 'Wealth'],
+  readingSources: ['Where wealth readings came from', 'Wealth'],
   exchanges: ['Exchanges read (balances only)', 'Wealth'],
   zigiMetrics: ['What ZIGi did for you (counts)', 'Today'],
   todayCards: ['Today\'s cards kept on this device', 'Today'],
