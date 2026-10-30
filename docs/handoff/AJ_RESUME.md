@@ -18,12 +18,15 @@ Parts in order: 0 records → 1 ZIGChain v6 (items 1, 3, 4; A1–A3) → 2 secur
 - Part 2 complete: items 11–13 (`32e37f7c`, `b187118e`, checklist :578 observer in the item-5 batch), item 14 `c77fa396` (TIER 3 dependency: express>qs 6.16.1; `pnpm audit` clean; build:alpha, check:alpha dry run and artifact check pass).
 - Part 3 complete: items 8–9 (`612d0441`); item 10 (`969cafa3`, fixes `50169562`: Welcome back now write-free from records, lastSeenDay removed; Showcase season redrawn for the gap rule, P14; browser specs pass).
 - Part 4: item 6 (`c8df9714`), item 5 catalog (`613a3a28`; measured v1 4.5 MB/1.52 MB gz → v2 0.78 MB/0.31 MB gz), item 15 alerts (`ed583b26`, `46d37acf`, spec `d5649595`).
+- Part 4 complete: item 30 trader tools (`326ff45a`), item 36 xpub (`78886d80` dependency, `e4f9add4`, `1a55c97a`), frozen readers #37–#51 pass (`abbaa5d1`, docs/verification/session-aj/frozen-readers-part4.txt), ADR P14–P19.
+- Part 5 complete: items 25/26/27/28 (`7712703c`, GPX strict XML reader `7cdd93db`), item 22 FSVO search (`dcd5c1da`, TIER 3 egress routes).
+- Part 6 complete: Life Score and Focus Sessions (`7712703c`), item 35 habit everyday time (`db25f9d2`, TIER 3 stored format + auth/sync), Guided Journeys (`77747265`), specs and /app/guided weight line (`581bae14`).
+- CI fixes: repeat cards and prompt budget (`cc22456c`), checklist landing wait (`3981aed5`), knock first-paint waits (`ca1568e0`).
 
 ## Next steps (exact)
-1. Part 4 item 30 (trader tools, D11) and item 36 (xpub, A5; TIER 3 dependency declares `@scure/bip32@1.7.0`).
-2. Run `node scripts/frozen-readers.mjs` (#37–#51) once after Part 4's stored formats.
-3. ADR-035: add P14 (Showcase pairings redrawn), catalog measurements, the qs line; PRIVACY.md gets every AH/AI/AJ key in Part 10.
-4. Parts 5–10 per the plan.
+1. Part 7: item 32 Customize (D5; Inter self-hosted + OFL), 17 one dismissible notice (D4, P7), 19 SE3 anchor, 18 undo from Activity, 20 wizard skip link, 21 contrast items, 24 A8 list (M41/M43/M47 + AF13/H3), 16 Earn orbit (D3).
+2. Part 8: Guide phase 2 (D6), ADR-011 update. Part 9: landing MO6. Part 10: sweeps (A6 coverage test, PRIVACY for AH/AI/AJ keys, What's new, Help), final STATUS, CI green, PR out of Draft, report.
+3. ADR-035: add P20 (FSVO foods keep the source in the brand; provenance format unchanged), P21 (GPX strict XML reader, Trusted Types), P22 (repeat cards shown with a note), P23 (prompt budget).
 
 ## Sandbox notes
 - Stop the server with `for p in $(pgrep -f "^next-server"); do kill $p; done` (`pgrep -x next-server` misses it; `pkill -f next-server` kills its own shell).
