@@ -447,8 +447,9 @@ export function handLayers(theme) {
 // paint; lib/ui-prefs/look.ts after a choice), so the defaults never load it and never change.
 //
 // Large text (data-text=large): not browser zoom. Every font-size is multiplied by TEXT_SCALE. Sizes in em, % or keywords
-// follow their (already larger) parent and are left alone; sizes fitted to their box (container units, the `--chars`
-// fit) keep fitting it. Widths, paddings and line breaks are not touched: only the words grow.
+// (alone or inside a min()/max()) follow their (already larger) parent and are left alone; sizes fitted to their box
+// (container units, the `--chars` fit) keep fitting it. Widths, paddings and line breaks are not touched: only the words
+// grow.
 //
 // Compact (data-density=compact): the vertical spacing of lists, cards and panels (padding and margin above and below,
 // the gap between rows) is multiplied by DENSITY_SCALE. Only plain positive lengths shrink (never %, auto, env(), var() or
@@ -471,6 +472,7 @@ export const textSelector = selector => scopedSelector(selector, '[data-text=lar
 export function largeSize(value) {
   const v = value.trim();
   if (/\dcq(?:i|w|h|b|min|max)\b|--chars|title-fit/.test(v)) return null;
+  if (/\d(?:em|%)/.test(v)) return null; // partly the parent's size, which is already larger
   if (!/\d(?:px|rem)\b|\dv(?:w|h|i|b|min|max)\b|var\(/.test(v)) return null;
   return `calc(${v} * ${TEXT_SCALE})`;
 }

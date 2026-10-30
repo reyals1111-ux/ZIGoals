@@ -17,6 +17,7 @@ import {LazyCustomizeSettings} from "../../../components/settings/customize-sett
 import {ShowcaseControls} from "../../../components/showcase-controls";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
+import { EraseEverything } from "../../../components/settings/erase-everything";
 import { SwitchImport } from "../../../components/import/switch-import";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
@@ -129,6 +130,8 @@ export default function Settings() {
           <PrivateBackups/>
           <ExportEverything/>
           <SwitchImport/>
+          {/* Session AJ (A6): the last part, after Export everything: remove every ZIGoals record from this browser. */}
+          <EraseEverything/>
         </section>
         <div className="detail-grid">
           {/* Session AH Part 3 (DS6/A2, BUG-036, M-007): this older format holds local simulation Goal plans only; with

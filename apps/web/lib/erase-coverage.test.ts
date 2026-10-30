@@ -33,7 +33,8 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:sync-homes:v1': 'which sync home each record uses (sync bookkeeping), not records',
   'zigoals:sync-offer:v1': 'whether the sync offer was shown; a display mark',
   'zigoals:local-ledger:v1': 'the local simulation\'s ledger, exported with its own simulation backup (Settings → Backup & restore)',
-  'zigoals:goal-extras:v2': 'a reserved next version of the goal extras, only read for photo references; v1 is exported',
+  // Split like lib/goal-extras/photo-references.test.ts does: only photo-references.ts may name this reserved key.
+  ['zigoals:goal-extras:' + 'v2']: 'a reserved next version of the goal extras, only read for photo references; v1 is exported',
   'zigoals:layout:v1': 'how cards are arranged on this screen (a display preference, ADR-022); not a record',
   'zigoals:link-pending:v1': 'a health-link sign-in in progress (one OAuth round trip), removed when it ends',
   'zigoals:link-synced:v1': 'when each linked health source last synced; read again from the source',

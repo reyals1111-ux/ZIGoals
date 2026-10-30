@@ -198,7 +198,7 @@ describe('Session AJ (item 32, D5): the Customize sheets and the look in the ear
     expect(largeSize('14px')).toBe('calc(14px * 1.125)');
     expect(largeSize('clamp(22px, 2.5vw, 30px)')).toBe('calc(clamp(22px, 2.5vw, 30px) * 1.125)');
     expect(largeSize('var(--text-meta-size)')).toBe('calc(var(--text-meta-size) * 1.125)');
-    for (const kept of ['1.1em', '90%', 'inherit', 'smaller', '0', 'clamp(12px, calc(100cqi / (var(--chars, 8) * .6)), 30px)', 'min(1rem, 4cqi)']) expect(largeSize(kept), kept).toBeNull();
+    for (const kept of ['max(.5em, 12px)', 'calc(1em + 2px)', '1.1em', '90%', 'inherit', 'smaller', '0', 'clamp(12px, calc(100cqi / (var(--chars, 8) * .6)), 30px)', 'min(1rem, 4cqi)']) expect(largeSize(kept), kept).toBeNull();
     expect(textSelector('.a .b::before, :root .c, html[data-x] .d')).toBe(':where(:root[data-text=large]) .a .b:not(#\\-)::before, :root:where([data-text=large]) .c:not(#\\-), html:where([data-text=large])[data-x] .d:not(#\\-)');
     expect(textLarge).toContain(':where(:root[data-text=large]) body:not(#\\-) { font-size: calc(');
     const rules = textLarge.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').filter(Boolean);
