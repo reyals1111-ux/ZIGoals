@@ -6049,6 +6049,9 @@
     .journey-badge-grid small:not(#\-) {
         color: var(--text-meta)
     }
+    .journey-badge-grid li:not([data-earned]) small:not(#\-) {
+        color: var(--text-secondary)
+    }
     .journey-path:not(#\-)::before {
         background-image: linear-gradient(180deg, #6fe6f6, #9e78ff, #ed75df, #a184e233);
         background-color: transparent
@@ -7089,6 +7092,12 @@
         background-color: #d88aa03a;
         border-color: #d88aa088;
         color: #1a0a0f
+    }
+    .habit-quit-before:not(#\-), .habit-quit-ahead:not(#\-) {
+        background-image: none;
+        background-color: #86f0d606;
+        border-color: #86f0d612;
+        color: #122724
     }
     .habit-skip-form:not(#\-), .habit-note-form:not(#\-) {
         border-color: #c3a8f93a;

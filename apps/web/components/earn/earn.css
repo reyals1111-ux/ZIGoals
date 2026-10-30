@@ -361,3 +361,6 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 }
 /* Session AJ (item 16, D3): Start here's end node stays dimmed until reached (the old path's rule, kept on the orbit look). */
 .path-stage.earn-start-path[data-variant=orbit] .path-finale:not([data-reached]) .path-chest-art { opacity: .8; }
+/* Session AJ (item 16, D3): by day, Start here's jump button keeps the orbit's shape and accents (theme parity: only its
+   night surface and shade turn light; the Checklist's own day button is unchanged). */
+:root[data-theme=light] .path-stage.earn-start-path[data-variant=orbit] .path-jump { border-color: #8cc8ff80; background: linear-gradient(100deg, #fffffff5, #eef0fbf5); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59; }

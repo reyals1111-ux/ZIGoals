@@ -6052,6 +6052,13 @@
         background-color: transparent;
         color: var(--text-secondary)
     }
+    :scope[data-theme=light] .path-stage.earn-start-path[data-variant=orbit] .path-jump:not(#\-) {
+        border-color: #8cc8ff80;
+        background-image: linear-gradient(100deg, #fffffff5, #eef0fbf5);
+        background-color: transparent;
+        color: #23264d;
+        box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59
+    }
 }
 /*  components/earn/today-earn-card.css  */
 @scope (:root[data-theme=dark]) {
@@ -6549,6 +6556,9 @@
     }
     .journey-badge-grid small:not(#\-) {
         color: var(--text-meta)
+    }
+    .journey-badge-grid li:not([data-earned]) small:not(#\-) {
+        color: var(--text-secondary)
     }
     .journey-path:not(#\-)::before {
         background-image: linear-gradient(180deg, #6fe6f6, #9e78ff, #ed75df, #a184e233);
@@ -7594,6 +7604,12 @@
         background-color: #d88aa03a;
         border-color: #d88aa088;
         color: #ffd9e3
+    }
+    .habit-quit-before:not(#\-), .habit-quit-ahead:not(#\-) {
+        background-image: none;
+        background-color: #86f0d606;
+        border-color: #86f0d612;
+        color: #a3bcb7
     }
     .habit-skip-form:not(#\-), .habit-note-form:not(#\-) {
         border-color: #c3a8f93a;

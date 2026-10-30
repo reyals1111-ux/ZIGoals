@@ -91,8 +91,47 @@ Status: **In progress** on `feature/session-aj-big-leap`, from `main` `65d0b85` 
 | CO6 history (item 6) | Today's split only (N29) | Build (D7) |
 
 ## Closing table (every item in the brief)
-Filled in as each part lands. Outcomes: **Built** (commit, tests), **Already done** (evidence), **Not possible** (evidence, reason).
+Outcomes: **Built** (commit, tests), **Already done** (evidence), **Excluded** (by the owner). Every row's code is on
+`feature/session-aj-big-leap` (PR #98); nothing is merged or deployed.
 
 | Item | Outcome | Where | Evidence |
 |---|---|---|---|
-| 2 (records) | In progress | Part 0 | — |
+| 1 ZIGChain v6 versions | Built (TIER 3 chain config, TIER 3 wallet) | `5754e43b`, `dffab5ee` | reviewed-versions unit tests (v5.1.x, v6.0.x pass; v6.1, v7, rc, empty fail); fee quote tests v5 byte-identical, v6 base fee × 1.5, unreadable refuses; A1 signed = reviewed fee; A2 v5→v6 between quotes; live reads zig-test-2 v6.0.0 and zigchain-1 v5.1.2 |
+| 2 records | Built | `11fb8fd8` | STATUS Part 0; frozen readers #37–#51 |
+| 3 verifier stage 7 (and stage 4, A3) | Built (TIER 3 verifier) | `1359caeb` | hosted-alpha-stages unit test; stage 4 prints the base fee |
+| 4 activation-check names | Built (TIER 3 activation tooling) | `7f2fac82` | make-private-configs tests (names only, never values) |
+| 5 WE16 catalog (D8, A4) | Built (TIER 3 stored format) | `613a3a28` | WE1 ranking tests unchanged; measured 4.5 MB / 1.52 MB gz → 0.78 MB / 0.31 MB gz (P16) |
+| 6 CO6 history by source (D7) | Built (TIER 3 stored format) | `c8df9714` | unit; frozen readers; "Source not recorded" for older readings (P6) |
+| 7 J14 Bitpanda/Bitvavo | Excluded by the owner | — | the brief |
+| 8 pins (GO3, TO1, I5, ST5, ZI5) | Already done; pinned | `612d0441` | `aj-owner-decisions.spec.ts` |
+| 9 ZIGi real-model gaps | Built | `612d0441`, `cc22456c` | mock evals and G6 checks; REAL_MODEL_TODO.md for the owner's real-model run |
+| 10 check-in, insights, mascot (D14) | Built (TIER 3 stored format) | `0c62bba8`, `50169562` | unit; COMPANIONS.md; browser specs; P13–P15 |
+| 11 goal-name fills | Built | `32e37f7c` | the raw-fill guard test |
+| 12 checklist-overlay clock | Built | `b187118e`, `3981aed5` | CI |
+| 13 known intermittents | Built at their cause | `b187118e`, `0ded7bae`, `ca1568e0` | P12; CI |
+| 14 security bumps (D2) | Built (TIER 3 dependency) | `c77fa396`, `78886d80` | `pnpm audit` clean; build:alpha, check:alpha (P17) |
+| 15 price alerts (D9) | Built (TIER 3 stored format) | `ed583b26`, `46d37acf`, `d5649595` | unit; `price-alerts-aj.spec.ts`; ZIGi card never auto-accepted |
+| 16 Earn Start here, orbit look (D3) | Built | `a804f02a`, `50a6e2a9` | earn-path, polish2-af (ZIGi's line and chests unchanged) |
+| 17 one dismissible notice (D4) | Already done; pinned | `d5339e88` | P24; `aj-owner-decisions.spec.ts` D4 test |
+| 18 undo from Activity (SE5) | Built | `d5339e88`, `50a6e2a9` | `activity-undo-aj.spec.ts` (desktop and phone); P25 |
+| 19 backup anchors (SE3) | Built (the remaining gap) | `d5339e88` | `#backup-<module>` links; restore and export specs |
+| 20 wizard skip link (E3) | Built | `d5339e88` | wizard specs |
+| 21 contrast and tables (LA6, AF15, E4, D4) | Built | `b8be8fa5` | a11y-wcag-x adds /app/guided, /app/journey, /app/earn, /app/habits |
+| 22 food databases | Built (TIER 3 egress routes) | `dcd5c1da` | FOOD_SOURCES.md; FSVO via the food Worker; `food-search.test.mjs`, `food-search-aj.spec.ts`; Worker deploy is the owner's |
+| 23 landing (MO6) | Built | `17e5bd8f` | landing specs; privacy and terms cover the new pieces; stage 7 accepts both sets |
+| 24 reopened M41/M43/M47, AF13/H3 (A8) | Built | `39203e7f` | A8_REOPENED.md (71 items, each fixed or protected) |
+| 25 one trend, maintenance estimate | Built | `7712703c` | unit (floors, minimum data) |
+| 26 sleep balance | Built | `7712703c` | `sleep-balance-focus-aj.spec.ts` |
+| 27 fitness research, GPX/TCX import (D12) | Built | `7712703c`, `7cdd93db` | FITNESS_SYNC.md; strict XML reader (P21); `workouts-import-aj.spec.ts` |
+| 28 focus window | Built | `7712703c` | `sleep-balance-focus-aj.spec.ts` |
+| 29 Life Score (D10) | Built (TIER 3 stored format) | `7712703c` | unit; `universe-guided-aj.spec.ts` |
+| 30 trader tools (D11) | Built (TIER 3 stored format) | `326ff45a` | unit; `trader-tools-aj.spec.ts`; P19 |
+| 31 chess overlay research | Built (research) | `eae8a0f8` | CHESS_OVERLAY.md |
+| 32 Customize (D5) | Built (TIER 3 stored format) | `725d8160`, `8f2807f0`, `50a6e2a9` | unit; `customize-aj.spec.ts`; theme parity 'customized'; Inter OFL and SHA-256s |
+| 33 Guide phase 2 (D6) | Built | `ffa78ad2` | unit; ADR-011 status |
+| 34 Guided Journeys, Focus Sessions (D13, A7) | Built (TIER 3 stored format) | `77747265`, `7712703c`, `581bae14` | `universe-guided-aj.spec.ts`; no sidebar entry; /app/guided weight line |
+| 35 a habit's everyday time | Built (TIER 3 stored format + auth/sync) | `db25f9d2` | frozen readers keep `times` through a read-modify-write; `timeline-everyday-aj.spec.ts` |
+| 36 xpub watch (D2b, A5) | Built (TIER 3 dependency, stored format) | `78886d80`, `e4f9add4`, `1a55c97a` | unit (derive, scan, back-off, gap limit); `xpub-watch-aj.spec.ts`; PRIVACY line |
+
+Amendments: A1–A3 in items 1 and 3; A4 in item 5; A5 in item 36; A6 built (`b0439a4d`, `8f2807f0`: Erase everything and
+`lib/erase-coverage.test.ts`); A7 in item 34; A8 in item 24; A9 in STATUS and the report.

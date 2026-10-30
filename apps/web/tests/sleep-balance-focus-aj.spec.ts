@@ -37,8 +37,11 @@ test('the sleep balance over 14 nights, and the focus window on Today with Why?,
   await expect(balance).not.toContainText(/debt/i);
 
   await page.goto('/app');
-  if (isMobile) await page.getByRole('region', {name: 'For you'}).getByRole('button', {name: /^Show more/}).click();
-  else { const more = page.getByRole('region', {name: 'For you'}).getByRole('button', {name: /^Show more/}); if (await more.count()) await more.click(); }
+  // For you mounts after the page: its "Show more" is looked for once the area is there.
+  const forYou = page.getByRole('region', {name: 'For you'});
+  await expect(forYou).toBeVisible({timeout: 15_000});
+  if (isMobile) await forYou.getByRole('button', {name: /^Show more/}).click();
+  else { const more = forYou.getByRole('button', {name: /^Show more/}); if (await more.count()) await more.click(); }
   // Last night was 7 h, under the 8 h goal by an hour: the shorter window, 2½ to 3½ hours after 07:00.
   const card = page.getByRole('article', {name: /Your best focus window today/});
   await expect(card).toContainText('9:30 AM–10:30 AM');

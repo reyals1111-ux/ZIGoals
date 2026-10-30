@@ -261,8 +261,14 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     const result = await page.evaluate(([zigi, rootSelector]) => {
       type RGBA = {r: number; g: number; b: number; a: number};
       type RGB = {r: number; g: number; b: number};
-      const parse = (c: string): RGBA | null => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1]!.split(/[ ,/]+/).filter(Boolean).map(Number); return {r: p[0]!, g: p[1]!, b: p[2]!, a: p[3] ?? 1}; };
-      const stops = (image: string) => [...image.matchAll(/rgba?\([^)]+\)/g)].map(m => parse(m[0])).filter((c): c is RGBA => !!c);
+      // Session AJ (ADR-035): a colour from color-mix() computes to color(srgb r g b / a), channels 0–1; it is read too
+      // (Earn joined the pages measured here), so no text is left unmeasured.
+      const parse = (c: string): RGBA | null => {
+        const srgb = c.match(/color\(srgb ([^)]+)\)/);
+        if (srgb) { const p = srgb[1]!.split(/[ /]+/).filter(Boolean).map(Number); return {r: p[0]! * 255, g: p[1]! * 255, b: p[2]! * 255, a: p[3] ?? 1}; }
+        const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1]!.split(/[ ,/]+/).filter(Boolean).map(Number); return {r: p[0]!, g: p[1]!, b: p[2]!, a: p[3] ?? 1};
+      };
+      const stops = (image: string) => [...image.matchAll(/rgba?\([^)]+\)|color\(srgb [^)]+\)/g)].map(m => parse(m[0])).filter((c): c is RGBA => !!c);
       const over = (top: RGBA, under: RGB): RGB => ({r: top.r * top.a + under.r * (1 - top.a), g: top.g * top.a + under.g * (1 - top.a), b: top.b * top.a + under.b * (1 - top.a)});
       /** One translucent colour over another, keeping the alpha (for gradient layers drawn over each other). */
       const overAlpha = (top: RGBA, under: RGBA): RGBA => { const a = top.a + under.a * (1 - top.a); if (!a) return {r: 0, g: 0, b: 0, a: 0}; const mix = (x: number, y: number) => (x * top.a + y * under.a * (1 - top.a)) / a; return {r: mix(top.r, under.r), g: mix(top.g, under.g), b: mix(top.b, under.b), a}; };
