@@ -16,7 +16,7 @@
 <main id="main" class="legal-page">
 <a class="legal-back" href="https://zigoals.app/">← ZIGoals</a>
 <h1>Privacy, in plain words</h1>
-<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 28 October 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
+<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 30 October 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
 
 <h2>The short version</h2>
 <ul>
@@ -31,6 +31,8 @@
 <li><strong>Loading the app:</strong> the web host (Cloudflare) receives ordinary page requests, with your IP address and browser details, like any website. A goal's page address carries its identifier, never its name, amount or notes.</li>
 <li><strong>Prices and market figures:</strong> the public identity of an asset (for example "bitcoin, in euros") goes to ZIGoals' market service and from there to CoinGecko. Never your amounts, addresses or names.</li>
 <li><strong>Wallets you connect or link:</strong> public addresses go to the chain services that answer for them (ZIGChain's own services, PublicNode and others for other chains), which can see your IP address. ZIGoals never holds your keys and never signs for you: your wallet does that, on your device, only when you approve.</li>
+<li><strong>A Bitcoin wallet watched by its public key (xpub):</strong> the key stays on your device. To read the balance, your browser works out the wallet's addresses and asks mempool.space about each one, so mempool.space sees those addresses (and that they belong together) and your IP address. A private key is refused.</li>
+<li><strong>Food lookup (when it is switched on):</strong> only the barcode, or the words you type to search, go to ZIGoals' food service and from there to Open Food Facts or the Swiss Food Composition Database. Never your diary, your name or your IP address.</li>
 <li><strong>ZIGi with your own AI (off until you connect one):</strong> when you ask ZIGi something, your message and the records it needs go straight from your browser to the AI provider <em>you</em> chose (for example Anthropic or OpenAI), under your own account and their privacy policy. You see which records go with each message and can remove them. Health, your journal and your notes go only when you allow each. A meal photo goes once to your provider and is not kept by ZIGoals. Without an AI, ZIGi answers on your device and sends nothing.</li>
 <li><strong>Your browser's speech recognition</strong> (when you tap the microphone): the browser maker's speech service may hear the audio (Chrome: Google; Safari: Apple). Nothing goes through ZIGoals.</li>
 <li><strong>Add money and other apps:</strong> these are links to independent providers (such as Ramp Network or Banxa) that open on their own site, under their own policy. ZIGoals never sees the payment or the identity check.</li>
@@ -41,6 +43,7 @@
 <ul>
 <li><strong>Exports</strong> you download are files you control. Readable exports are <strong>not encrypted</strong>; encrypted backups are protected by their own secret, which only you have.</li>
 <li><strong>Showcase</strong> (the example data) lives in the current tab only and never mixes with your records.</li>
+<li><strong>Price alerts, Customize and your look:</strong> alerts are checked on your device with prices the app already reads, and your text size, font and density choices stay on your device. The Inter font, when you choose it, comes from ZIGoals itself.</li>
 <li><strong>Delete:</strong> clearing this site's data in your browser removes your records from this device. It cannot erase anything already public on a blockchain.</li>
 <li><strong>Health</strong> is never shared with ZIGi unless you switch it on; the journal and ZIGi's notes have their own switches too.</li>
 </ul>
