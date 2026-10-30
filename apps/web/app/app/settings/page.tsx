@@ -13,6 +13,7 @@ import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
+import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
 import {ShowcaseControls} from "../../../components/showcase-controls";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
@@ -207,7 +208,7 @@ export default function Settings() {
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
         <WrapUpSettings/>
-        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/></section>
+        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/>{/* Session AJ (item 32, D5): font, text size, density and glow, on this device only. */}<LazyCustomizeSettings/></section>
         <MusicSettings/>
         <LinksSettings/>
       </SettingsGroup>

@@ -13656,6 +13656,15 @@
         color: var(--muted, #a4b2cd)
     }
 }
+/*  components/settings/customize-settings.css  */
+@scope (:root[data-theme=dark]) {
+    .customize-group:not(#\-) {
+        border-color: var(--line)
+    }
+    .customize-note:not(#\-) {
+        color: var(--text-muted)
+    }
+}
 /*  components/settings/pages-settings.css  */
 @scope (:root[data-theme=dark]) {
     .pages-switches:not(#\-) {

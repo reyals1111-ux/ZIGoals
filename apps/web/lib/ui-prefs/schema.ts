@@ -63,6 +63,19 @@ export const uiPrefsSchema = z.looseObject({
     on: z.boolean().optional().catch(undefined),
     tiltHiddenUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
   }).optional().catch(undefined),
+  /**
+   * Session AJ (item 32, D5; TIER 3 (stored format)): Settings → Appearance → Customize, on this device only. Each field is
+   * optional and stored only when it is not the default (font "system", text "standard", density "comfortable", glow
+   * "full"); a value this build cannot read is dropped on the next write and never makes the record unreadable. Applied
+   * before the first paint by public/theme-boot.js (scripts/themes/build-themes.mjs). Older builds keep or ignore the group;
+   * never synced; exported, restored and erased with the rest of these preferences.
+   */
+  look: z.looseObject({
+    font: z.enum(['system', 'inter']).optional().catch(undefined),
+    textSize: z.enum(['standard', 'large']).optional().catch(undefined),
+    density: z.enum(['comfortable', 'compact']).optional().catch(undefined),
+    glow: z.enum(['full', 'soft']).optional().catch(undefined),
+  }).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
 export const emptyUiPrefs = (): UiPrefs => ({version: 1});

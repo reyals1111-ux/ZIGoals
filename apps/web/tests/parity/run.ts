@@ -13,13 +13,17 @@ import {isKnown} from './known';
  * file into docs/verification/session-af/theme-parity.md); the check fails on any difference H75 does not allow, listed as
  * route · state · element · property · Nebula → theme.
  */
-export type State = 'showcase' | 'empty' | 'quick-add' | 'more' | 'folded';
+// Session AJ (item 32, D5): 'customized' is a page with every Customize choice made (Inter, Large text, Compact, Soft glow),
+// compared across the themes like any other state.
+export type State = 'showcase' | 'empty' | 'quick-add' | 'more' | 'folded' | 'customized';
 export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new', '/app/timeline', '/app/stories'] as const;
-export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded']];
+export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded'], ['/app', 'customized'], ['/app/settings', 'customized']];
 
 async function enter(page: Page, route: string, state: State, theme: Theme) {
   if (state === 'folded') await page.evaluate(() => { const write = (s: Storage, k: string) => { const v = JSON.parse(s.getItem(k) ?? '{"version":1}') as Record<string, unknown>; v.heroCollapsed = true; s.setItem(k, JSON.stringify(v)); }; write(localStorage, 'zigoals:ui-prefs:v1'); for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i)!; if (k.endsWith('zigoals:ui-prefs:v1')) write(sessionStorage, k); } });
+  if (state === 'customized') await page.evaluate(() => { const k = 'zigoals:ui-prefs:v1', v = JSON.parse(localStorage.getItem(k) ?? '{"version":1}') as Record<string, unknown>; v.look = {font: 'inter', textSize: 'large', density: 'compact', glow: 'soft'}; localStorage.setItem(k, JSON.stringify(v)); });
   await openIn(page, route, theme);
+  if (state === 'customized') { await expect(page.locator('html')).toHaveAttribute('data-density', 'compact'); await expect(page.locator('html')).not.toHaveAttribute('data-look-loading', /.*/); }
   if (state === 'quick-add') { await page.getByRole('button', {name: '+ Quick add', exact: true}).first().click(); await expect(page.getByRole('dialog').first()).toBeVisible(); await page.waitForTimeout(400); }
   if (state === 'more') await openMore(page);
 }
