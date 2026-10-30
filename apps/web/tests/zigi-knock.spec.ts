@@ -73,7 +73,7 @@ test('on: ZIGi knocks once for a due reminder; "Do it now" gives the check-in ca
   await seed(page, KNOCK_ON);
   await page.goto('/app/habits');
   await expect(knock(page)).toBeVisible(FIRST);
-  await expect(knock(page).getByRole('heading', {name: 'Stretch evening'})).toBeVisible();
+  await expect(knock(page).getByRole('heading', {name: 'Stretch evening'})).toBeVisible(FIRST);
   await expect(knock(page)).toContainText('On your list for today · 18:00');
   await expect(page.locator('.ai-launcher-button')).toHaveAttribute('data-state', /^(idle|reminder)$/);
   expect(await stored(page, ZIGI_KNOCK_KEY)).toMatchObject({version: 1, counts: {[DAY]: 1}, shown: {[DAY]: [HABIT_ID]}});
@@ -105,7 +105,7 @@ test('Snooze holds the reminder for its time, then ZIGi knocks once more; Not to
   await page.waitForTimeout(500);
   await expect(knock(page)).toHaveCount(0);
   await page.clock.fastForward('06:30');
-  await expect(knock(page)).toBeVisible();
+  await expect(knock(page)).toBeVisible(FIRST);
   await knock(page).getByRole('button', {name: 'Not today'}).click();
   await expect(knock(page)).toHaveCount(0);
   expect((await stored(page, REMINDERS_KEY)).dismissed).toEqual({[HABIT_ID]: DAY});
@@ -135,7 +135,7 @@ test('never in the quiet hours, while ZIGi is hidden, on a sensitive screen, or 
   await page.waitForTimeout(1500);
   await expect(knock(page)).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await expect(knock(page)).toBeVisible();
+  await expect(knock(page)).toBeVisible(FIRST);
 });
 
 test('ZIGi\'s weekly reminders: a goal check-in shows on Today with "Open goal" and "Dismiss for today", and knocks elsewhere', async ({page}) => {
@@ -150,7 +150,7 @@ test('ZIGi\'s weekly reminders: a goal check-in shows on Today with "Open goal" 
   expect((await stored(page, ZIGI_REMINDERS_KEY)).dismissed).toEqual({[DAY]: [`goal:private:${goal.id}`]});
   await seed(page, {...KNOCK_ON, [REMINDERS_KEY]: {version: 1, habits: {}, dismissed: {}}, [ZIGI_REMINDERS_KEY]: {version: 1, goalCheckIns: {[`private:${goal.id}`]: {weekday: 0, time: '18:00'}}}});
   await page.goto('/app/habits');
-  await expect(knock(page).getByRole('heading', {name: `Weekly check-in: ${goal.name}`})).toBeVisible();
+  await expect(knock(page).getByRole('heading', {name: `Weekly check-in: ${goal.name}`})).toBeVisible(FIRST);
   await knock(page).getByRole('button', {name: 'Open goal'}).click();
   await page.waitForURL(`**/app/goals/tracked/${goal.id}`);
   await expect(knock(page)).toHaveCount(0);
@@ -214,7 +214,7 @@ test('"Yes, knock" on a later day turns knocking on; ZIGi knocks once the panel 
   expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'accepted', enabled: true, offeredOn: DAY}); // Session Z-Local (ADR-020 L43)
   await expect(knock(page)).toHaveCount(0);
   await panel(page).getByRole('button', {name: 'Close ZIGi', exact: true}).click();
-  await expect(knock(page)).toBeVisible();
+  await expect(knock(page)).toBeVisible(FIRST);
   await knock(page).getByRole('button', {name: "Close ZIGi's reminder"}).click();
   await page.getByRole('button', {name: /Open ZIGi/}).click();
   await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
