@@ -439,8 +439,12 @@ test.describe('the landing on a fixed midday (Session AJ item 12)', () => {
     // Lands on the next planet (the sixth), at about 40 % of the screen's height.
     const next = page.locator('[data-next] [data-path-point]');
     await expect(next).toHaveAttribute('aria-label', 'Fictional star 6: not done yet');
-    await expect.poll(async () => { const r = await rect(page, '[data-next] [data-path-point]'); return Math.round(((r.top + r.bottom) / 2) / r.vh * 100); }).toBeGreaterThanOrEqual(28);
+    // Session AJ (CI, a slow runner): the landing scroll can still be under way, and a planet far below the fold already
+    // passes "at least 28 %"; wait until it rests inside the same band, then assert both bounds on one reading.
+    const at = async () => { const r = await rect(page, '[data-next] [data-path-point]'); return ((r.top + r.bottom) / 2) / r.vh; };
+    await expect.poll(async () => { const v = await at(); return v >= .28 && v <= .55; }, {timeout: 10_000}).toBe(true);
     const n = await rect(page, '[data-next] [data-path-point]');
+    expect(((n.top + n.bottom) / 2) / n.vh, 'the next planet near 40 % of the screen').toBeGreaterThanOrEqual(.28);
     expect(((n.top + n.bottom) / 2) / n.vh, 'the next planet near 40 % of the screen').toBeLessThanOrEqual(.55);
     // ZIGi stands beside it, whole on the screen, at least 130 px tall. Round 5 (L3b), moved at equal strength: "beside" is
     // read from the next planet's ring (its outer edge, which ZIGi must now clear by 12 px) instead of its body: ZIGi's drawn
