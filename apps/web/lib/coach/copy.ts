@@ -4,7 +4,7 @@
  */
 export const GUIDE_LABEL = 'Guide · on this device, no AI service';
 export const GUIDE_NAME = 'Guide';
-export type NudgeKind = 'review-ready' | 'habits-open' | 'streak-notice' | 'goal-next-date' | 'insight-ready' | 'quiet-day' | 'first-time';
+export type NudgeKind = 'review-ready' | 'habits-open' | 'streak-notice' | 'habit-back' | 'goal-next-date' | 'goal-near' | 'insight-ready' | 'quiet-day' | 'first-time';
 export type NudgeCopy = {kind: NudgeKind; priority: number; heading: string; body: string; action: {label: string; href: string} | null; hideDays: number};
 /** The milestones a streak notice marks, in days. */
 export const STREAK_MILESTONES = [7, 14, 30, 60, 100, 365] as const;
@@ -14,10 +14,13 @@ export const NUDGES: readonly NudgeCopy[] = [
   {kind: 'review-ready', priority: 1, heading: 'Your weekly review is ready when you are.', body: 'It takes about five minutes.', action: {label: 'Open the review', href: '/app#for-you-weekly-review'}, hideDays: 1},
   {kind: 'habits-open', priority: 2, heading: '{n} of your habits {are} still open today: {titles}.', body: 'A small step counts.', action: {label: 'Open habits', href: '/app/habits'}, hideDays: 1},
   {kind: 'streak-notice', priority: 3, heading: '{title}: {n} days in a row today.', body: 'Worth noticing.', action: {label: 'Open habit', href: '/app/habits#habit-{habitId}'}, hideDays: 28},
-  {kind: 'goal-next-date', priority: 4, heading: '{goal}: your plan’s next date is {when}.', body: 'Nothing moves by itself; this is just the date you chose.', action: {label: 'Open goal', href: '{href}'}, hideDays: 1},
-  {kind: 'insight-ready', priority: 5, heading: 'A pattern from your own records is waiting in For you.', body: 'It is a count, not a cause.', action: null, hideDays: 28},
-  {kind: 'quiet-day', priority: 6, heading: 'Nothing is due today.', body: 'Rest is part of the plan.', action: null, hideDays: 7},
-  {kind: 'first-time', priority: 7, heading: 'I read nothing but what you record here, on this device.', body: 'Add a habit or a goal and I will keep an eye on the dates.', action: {label: 'Open habits', href: '/app/habits'}, hideDays: 1},
+  // Session AJ (item 33, D6; Guide phase 2): two more notes from the person's own records, in the same tone.
+  {kind: 'habit-back', priority: 4, heading: '{title} is back: done again today after a few days off.', body: 'Picking it up again is what counts.', action: {label: 'Open habit', href: '/app/habits#habit-{habitId}'}, hideDays: 7},
+  {kind: 'goal-next-date', priority: 5, heading: '{goal}: your plan’s next date is {when}.', body: 'Nothing moves by itself; this is just the date you chose.', action: {label: 'Open goal', href: '{href}'}, hideDays: 1},
+  {kind: 'goal-near', priority: 6, heading: '{goal} is at {pct}% of its target.', body: '{left} to go. The next step is yours to choose.', action: {label: 'Open goal', href: '{href}'}, hideDays: 7},
+  {kind: 'insight-ready', priority: 7, heading: 'A pattern from your own records is waiting in For you.', body: 'It is a count, not a cause.', action: null, hideDays: 28},
+  {kind: 'quiet-day', priority: 8, heading: 'Nothing is due today.', body: 'Rest is part of the plan.', action: null, hideDays: 7},
+  {kind: 'first-time', priority: 9, heading: 'I read nothing but what you record here, on this device.', body: 'Add a habit or a goal and I will keep an eye on the dates.', action: {label: 'Open habits', href: '/app/habits'}, hideDays: 1},
 ];
 /** The weekly review's summary paragraph (step 6): each clause from an engine count; zero is written out. */
 export const SUMMARY_COPY = {

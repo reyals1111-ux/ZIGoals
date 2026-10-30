@@ -3,7 +3,8 @@ import type {HealthData} from '../health';
 import {dailyData} from '../health-daily';
 import {dueReminders} from '../reminders/due';
 import type {Reminders} from '../reminders/schema';
-import type {GoalSummary} from '../goal-summary';
+import {formatGoalAmount, type GoalSummary} from '../goal-summary';
+import {comebackOf} from '../habits-v2/zigi-facts';
 import {planDay, shiftPlanDay} from '../plan-revisions';
 import type {InsightCard} from '../insights/engine';
 import type {ReviewState} from '../weekly-review/engine';
@@ -41,9 +42,15 @@ export function guideCandidates(input: GuideContext, today = input.today ?? habi
     const stats = habitStats(habit, today);
     if (stats.streakUnit === 'days' && (STREAK_MILESTONES as readonly number[]).includes(stats.currentStreak)) { out.push(nudge(copyOf('streak-notice'), `streak-notice:${habit.id}:${stats.currentStreak}`, {title: habit.title, n: String(stats.currentStreak), habitId: habit.id})); break; }
   }
+  // Session AJ (item 33, D6): a habit done again today after three or more scheduled days without it (the mascot's moment).
+  const back = days.find(({habit, day}) => day.status === 'complete' && comebackOf(habit, today));
+  if (back) out.push(nudge(copyOf('habit-back'), `habit-back:${back.habit.id}:${today}`, {title: back.habit.title, habitId: back.habit.id}));
   const planToday = planDay(now.getTime()), planTomorrow = shiftPlanDay(planToday, 1);
   const goal = goals.find(g => g.status === 'active' && (g.nextContributionDate === planToday || g.nextContributionDate === planTomorrow));
   if (goal) out.push(nudge(copyOf('goal-next-date'), `goal-next-date:${goal.key}`, {goal: goal.name, when: goal.nextContributionDate === planToday ? 'today' : 'tomorrow', href: goal.href}));
+  // Session AJ (item 33, D6): a goal at 90 % or more of its target (not reached, not needing review), with what is left.
+  const near = goals.find(g => g.status === 'active' && !g.requiresReview && g.target && g.remaining && Number(g.progressPct) >= 90 && Number(g.progressPct) < 100);
+  if (near) out.push(nudge(copyOf('goal-near'), `goal-near:${near.key}`, {goal: near.name, pct: String(Math.floor(Number(near.progressPct))), left: formatGoalAmount(near.remaining!, near.currency), href: near.href}));
   const card = input.insights[0];
   if (card) out.push(nudge(copyOf('insight-ready'), `insight-ready:${card.id}`));
   // A rest day presumes a plan: the quiet day needs at least one habit, so a brand-new account hears the first words instead.

@@ -4,7 +4,7 @@ import {FORBIDDEN_WORDS, GUIDE_LABEL, NUDGES, STREAK_MILESTONES, SUMMARY_COPY} f
 // ADR-011 "Tone rules", checked over the copy table and the summary templates.
 const texts = NUDGES.flatMap(n => [n.heading, n.body, n.action?.label ?? '']);
 const samples = [SUMMARY_COPY.lead, SUMMARY_COPY.habitDays(0, 0), SUMMARY_COPY.habitDays(3, 7), SUMMARY_COPY.habitDays(1, 1), SUMMARY_COPY.waterDays(0), SUMMARY_COPY.waterDays(1), SUMMARY_COPY.waterDays(5), SUMMARY_COPY.weights(0), SUMMARY_COPY.weights(1), SUMMARY_COPY.weights(2), SUMMARY_COPY.contributions(0, 0), SUMMARY_COPY.contributions(1, 2), SUMMARY_COPY.contributions(1, 1), SUMMARY_COPY.intention('walk more')];
-const KNOWN_VALUES = new Set(['n', 'are', 'titles', 'title', 'habitId', 'goal', 'when', 'href']);
+const KNOWN_VALUES = new Set(['n', 'are', 'titles', 'title', 'habitId', 'goal', 'when', 'href', 'pct', 'left']); // Session AJ: pct and left (goal-near)
 describe('the copy table', () => {
   test('calm, second person: no exclamation mark, no emoji, no shame, no praise inflation, no urgency', () => {
     for (const text of [...texts, ...samples, GUIDE_LABEL]) {
@@ -15,8 +15,8 @@ describe('the copy table', () => {
   });
   test('every placeholder maps to an engine value; priorities are distinct and in table order; hiding windows are 1, 7 or 28 days', () => {
     for (const nudge of NUDGES) for (const text of [nudge.heading, nudge.body, nudge.action?.href ?? '']) for (const [, key] of text.matchAll(/\{(\w+)\}/g)) expect(KNOWN_VALUES.has(key!), `${nudge.kind}: {${key}}`).toBe(true);
-    expect(NUDGES.map(n => n.priority)).toEqual([1, 2, 3, 4, 5, 6, 7]);
-    expect(NUDGES.map(n => n.kind)).toEqual(['review-ready', 'habits-open', 'streak-notice', 'goal-next-date', 'insight-ready', 'quiet-day', 'first-time']);
+    expect(NUDGES.map(n => n.priority)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]); // Session AJ: habit-back (4) and goal-near (6) joined
+    expect(NUDGES.map(n => n.kind)).toEqual(['review-ready', 'habits-open', 'streak-notice', 'habit-back', 'goal-next-date', 'goal-near', 'insight-ready', 'quiet-day', 'first-time']);
     for (const nudge of NUDGES) expect([1, 7, 28]).toContain(nudge.hideDays);
     expect(STREAK_MILESTONES).toEqual([7, 14, 30, 60, 100, 365]);
   });
