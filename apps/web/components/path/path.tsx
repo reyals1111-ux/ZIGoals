@@ -39,8 +39,9 @@ import './path.css';
  * orbit ring, a gentle pulse and a START / NEXT bubble, a tick bursts into sparks and sends a comet along the line to the
  * next dot, an orbit's banner fills its own bar and celebrates once when the orbit is complete, chests sit on the path,
  * the day's end is a trophy planet, and ZIGi is a large figure beside the next dot. The owner allowed that motion inside
- * the Checklist only; reduced motion and Motion Off still show every final state at once. The default look (Earn's
- * Start-here path and Academy) is unchanged.
+ * the Checklist; reduced motion and Motion Off still show every final state at once. Session AJ (owner decision D3):
+ * Earn's Start-here path wears the orbit look too, with its one-time motion, inside the page (`follow={false}`: it never
+ * moves the page by itself) and with its orbits' own names (`bannerTitle`). The Academy keeps the default look.
  *
  * Round 3 (a learning path's density): each planet's name and the next one's NEXT bubble stand beside it, off the line,
  * on the side toward the path's middle; ZIGi stands on the other side, and cheers (arms up, hops, sparkles) beside a
@@ -66,6 +67,11 @@ export type PathProps = {
   jumpDock?: HTMLElement | null;
   /** Session AG Polish 2 (owner Part 5): a step just added — the path brings it into view and it blooms once. */
   arrive?: string | null;
+  /** Session AJ (owner D3): the orbit look lands on the next planet on opening and glides on after a tick (true: the
+   *  full-screen Checklist). False leaves the page where the person put it (a path inside a page: Earn's Start here). */
+  follow?: boolean;
+  /** Session AJ (owner D3): an orbit banner's title. Default: "<name> Orbit", the Checklist's. */
+  bannerTitle?: (section: PathSection) => string;
 };
 
 /** The orbit look's finale node: where the line ends (Session AG). */
@@ -233,7 +239,7 @@ function useJust(ids: string[], key: string): Set<string> {
   return just;
 }
 
-export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null, arrive = null}: PathProps) {
+export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null, arrive = null, follow = true, bannerTitle}: PathProps) {
   const orbit = variant === 'orbit', swingOf = orbit ? orbitOffset : snakeOffset;
   const model = useMemo(() => normalisePath(raw), [raw]);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, ''), stage = useRef<HTMLDivElement>(null);
@@ -321,8 +327,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // next one would otherwise slip off the top).
   const landed = useRef(false), measured = geo !== null, orbitsDone = useRef<string[] | null>(null), orbitsKey = completeIds.join('|');
   useEffect(() => {
-    // (Owner amendment 2: on a phone, only once the path has settled.)
-    if (!orbit || !measured || !next || !ready) return;
+    // (Owner amendment 2: on a phone, only once the path has settled. Session AJ: never for a path inside a page.)
+    if (!orbit || !follow || !measured || !next || !ready) return;
     // (Read here, in the same commit as the new next planet: the `just` marks only arrive a render later.)
     const before = orbitsDone.current, finished = before !== null && completeIds.some(id => !before.includes(id)); orbitsDone.current = completeIds;
     const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
@@ -344,7 +350,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     if (!landed.current) { landed.current = true; go(false); return; }
     // (A tick that completes an orbit waits for its celebration on the banner before the path moves on.)
     const t = window.setTimeout(() => go(true), finished ? ORBIT_LAND_AFTER_MS : 300); return () => window.clearTimeout(t);
-  }, [orbit, measured, ready, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orbit, follow, measured, ready, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Jump to next": wanted while the next dot is out of view (always, where the browser cannot tell).
   const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);
@@ -459,7 +465,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading} style={lanes ? {'--banner-top': `${scaled!.banners[si]?.top ?? 0}px`, ...(scaled!.banners[si]?.planetX != null ? {'--planet-x': `${scaled!.banners[si]!.planetX}px`} : {})} as CSSProperties : undefined}>
-        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes} title={bannerTitle?.(section)}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
             const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;

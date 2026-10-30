@@ -1,22 +1,39 @@
 'use client';
 import Link from 'next/link';
-import {useMemo, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode} from 'react';
 import type {LiveState} from '../../lib/earn/client';
 import {bps, duration} from '../../lib/earn/format';
 import type {ChainData, OroswapData} from '../../lib/earn/live/types';
 import {ZIG_ROUTES} from '../../lib/earn/options';
 import {START_STEPS, STEP_WORDS, startHereModel, type StartStepId, type StartStepState} from '../../lib/earn/start-here';
+import type {PathModel} from '../../lib/path/model';
 import {formatDate} from '../../lib/visual-format';
 import {VerifiedLink} from '../links/verified-link';
 import {Path} from '../path/path';
+import {entranceAllowed} from '../use-entrance';
 import {HowRead} from './how-read';
 import {Unavailable} from './live-figure';
 import {WhatsThis} from './whats-this';
+// Session AJ (owner decision D3): the Checklist's orbit look, from its own sheets (the path's orbit rules and the Habits
+// page's section banners its orbits wear). Every rule there is keyed on the orbit look's own classes, so nothing else on
+// Earn changes; the Academy keeps the default look.
+import '../path/path-orbit.css';
+import '../habits/habits-aa.css';
 
 /**
  * Session AF chunk 2 (P1.7–P1.11): the Start-here path itself, its own chunk (loaded after the page's first paint): six dots
  * on the shared path engine, each opening its guide under it — what the step is, how to do it on the app's own page,
  * what you sign and how long it takes, whether ZIGoals has seen it done, and "mark as done" where it cannot see it.
+ *
+ * Session AJ (owner decision D3): the path wears the Checklist's orbit look (`variant="orbit"`): three orbits, each with
+ * its planet and banner, glass nodes on one flowing neon line, a name tab on each node, START / NEXT on the next one, ZIGi
+ * beside it, and the end of the path as its finale node. The same steps, states, names and guides. Its motion is the
+ * Checklist's, one time per change: a step just done lights its node, a light travels along the line to the next node and
+ * blooms there, an orbit just completed wakes its planet and sweeps its banner, and ZIGi cheers once. Reduced motion and
+ * Motion Off show every final state at once. Inside the page the path never scrolls by itself (`follow={false}`). The
+ * orbits keep their own names ("Get ready", not "Get ready Orbit"). As on the Checklist, only the end of the path stands
+ * on it (the orbit look sets no chest between planets). On a phone, where the orbit look lays every node out at a fixed
+ * place, the open guide stands just after the path and is brought into view, rather than over the nodes below it.
  */
 export type StartLive = {chain: LiveState<ChainData>; oroswap: LiveState<OroswapData>};
 type Props = {states: StartStepState[]; open: string | null; onOpen: (id: string | null) => void; onMark: (id: StartStepId, done: boolean) => void; live: StartLive; markError?: string};
@@ -110,18 +127,32 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
     </>;
   }
 }
+/** The orbit look's phone layout (components/path/path.tsx: below 641 px, the nodes stand at fixed places). */
+const PHONE_QUERY = '(max-width: 640px)';
+const subscribePhone = (change: () => void) => { const m = window.matchMedia?.(PHONE_QUERY); m?.addEventListener('change', change); return () => m?.removeEventListener('change', change); };
+const usePhone = () => useSyncExternalStore(subscribePhone, () => !!window.matchMedia?.(PHONE_QUERY).matches, () => false);
+/** Only the path's end stands on it: the orbit look sets no chest between planets (as the Checklist's path). */
+const endOnly = (model: PathModel): PathModel => ({...model, milestones: model.milestones.filter(m => m.at === 'end')});
+
 export default function StartHerePath({states, open, onOpen, onMark, live, markError}: Props) {
-  const model = useMemo(() => startHereModel(states), [states]);
-  const next = states.find(s => !s.done);
-  return <Path model={model} ariaLabel="Start here: how staking works, step by step" layout="snake" className="earn-start-path"
-    panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)}
-    zigi={{say: next ? `Next: ${STEP_WORDS[next.id].label}` : 'All six done. Well travelled!'}} jumpLabel="Jump to your next step"
-    renderPanel={step => {
-      const id = step.id as StartStepId, state = states.find(s => s.id === id);
-      if (!state || !(START_STEPS as readonly string[]).includes(id)) return null;
-      return <div className="earn-start-panel" data-start-panel={id} role="region" aria-label={`${STEP_WORDS[id].label}: how`}>
-        <StepGuide id={id} live={live}/>
-        <Seen state={state} onMark={done => onMark(id, done)} error={markError}/>
-      </div>;
-    }}/>;
+  const model = useMemo(() => endOnly(startHereModel(states)), [states]);
+  const phone = usePhone(), guide = useRef<HTMLDivElement>(null);
+  const panel = (stepId: string) => {
+    const id = stepId as StartStepId, state = states.find(s => s.id === id);
+    if (!state || !(START_STEPS as readonly string[]).includes(id)) return null;
+    return <div className="earn-start-panel" data-start-panel={id} role="region" aria-label={`${STEP_WORDS[id].label}: how`}>
+      <StepGuide id={id} live={live}/>
+      <Seen state={state} onMark={done => onMark(id, done)} error={markError}/>
+    </div>;
+  };
+  // (A phone: the guide just opened comes into view, under the page's own bars — its scroll padding.)
+  useEffect(() => {
+    if (phone && open) guide.current?.scrollIntoView({block: 'start', behavior: entranceAllowed() ? 'smooth' : 'auto'});
+  }, [phone, open]);
+  return <>
+    <Path model={model} ariaLabel="Start here: how staking works, step by step" layout="snake" className="earn-start-path" variant="orbit" follow={false}
+      bannerTitle={section => section.label} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next step"
+      renderPanel={phone ? undefined : step => panel(step.id)}/>
+    {phone && open && <div ref={guide} className="earn-start-guide">{panel(open)}</div>}
+  </>;
 }
