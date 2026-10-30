@@ -2,9 +2,10 @@ import type {Action} from './schema';
 
 /**
  * Session AJ (item 9; real-model `today-plan-week` t2): handles and new-habit references are numbered per reply, and a
- * model answering a follow-up re-sent the cards of its earlier reply (the person had them already, added or not). A card
- * that an earlier reply of the same chat proposed with the same values is not shown again: the reply says how many were
- * left out. "The same" ignores the per-reply references (new1, h2, r1: their numbers can differ between replies) and the
+ * model answering a follow-up re-sent the cards of its earlier reply (the person had them already, added or not). When two
+ * or more cards of one earlier reply of the same chat come back with the same values, the reply says so ("also in an
+ * earlier reply"); every card still shows, because a card asked for again ("another 300 ml") or one that was undone is
+ * legitimate (a first version that hid them failed the chat suites). `kept` is what is new; `repeated` counts the rest. "The same" ignores the per-reply references (new1, h2, r1: their numbers can differ between replies) and the
  * case and spacing of words; any other difference (another amount, day or time) keeps the card.
  */
 const PER_REPLY_REF = /^(?:new\d{1,2}|[hgfrcm]\d{1,3})$/i;
@@ -17,7 +18,11 @@ function shape(value: unknown): unknown {
 export const cardIdentity = (action: Action): string => JSON.stringify(shape(action));
 /** The cards of this reply that no earlier reply of the chat proposed, and how many were left out as repeats. */
 export function withoutRepeats(earlier: readonly (readonly Action[])[], actions: readonly Action[]): {kept: Action[]; repeated: number} {
-  const seen = new Set(earlier.flat().map(cardIdentity));
-  const kept = actions.filter(a => !seen.has(cardIdentity(a)));
+  const ids = actions.map(cardIdentity), resent = new Set<string>();
+  for (const reply of earlier) {
+    const before = new Set(reply.map(cardIdentity)), back = new Set(ids.filter(id => before.has(id)));
+    if (back.size >= 2) for (const id of back) resent.add(id);
+  }
+  const kept = actions.filter((_, i) => !resent.has(ids[i]!));
   return {kept, repeated: actions.length - kept.length};
 }

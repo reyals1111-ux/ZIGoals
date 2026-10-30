@@ -485,10 +485,11 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
   if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><LongText text={turn.text}/><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
     {onEdit && <p className="ai-turn-edit"><ReplyIcon glyph="edit" label="Edit your last message" tip="Edit" onClick={onEdit}/></p>}</>;
   const parsed = session.parsed.get(turn.id) ?? parseReply(turn.text), usage = usageLine(turn.usage ?? null);
-  // Session AJ (item 9): a follow-up reply does not re-send the cards an earlier reply of this chat proposed (a revision does).
+  // Session AJ (item 9): when a follow-up reply re-sends cards an earlier reply of this chat proposed, every card still shows
+  // (a card asked for again, or one undone, is legitimate: the CI run of a version that hid them) and a line says so.
   const turnIndex = session.chat.turns.findIndex(t => t.id === turn.id);
   const earlierCards = parsed.revise ? [] : session.chat.turns.slice(0, Math.max(0, turnIndex)).filter(t => t.role === 'assistant').map(t => (session.parsed.get(t.id) ?? parseReply(t.text)).proposals);
-  const {kept: cards, repeated} = withoutRepeats(earlierCards, parsed.proposals);
+  const {repeated} = withoutRepeats(earlierCards, parsed.proposals), cards = parsed.proposals;
   const copy = () => { copyText(plainText(parseBlocks(parsed.text))).then(() => { setCopied(true); window.setTimeout(() => setCopied(false), 1500); }).catch(() => undefined); };
   const label = turn.source === 'hosted' ? HOSTED_LABEL(providerName.replace(/ via ZIGoals hosted$/, '').replace(/^your AI$/, 'the provider ZIGoals uses')) : ANSWER_LABEL(turn.provider && turn.provider !== 'local' ? PROVIDERS[turn.provider].name : providerName);
   // The short source line (panel polish round 2): who answered, in a few words.
@@ -500,7 +501,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
-      {repeated > 0 && <p className="ai-note">{repeated === 1 ? 'One card from an earlier reply is not repeated here.' : `${repeated} cards from an earlier reply are not repeated here.`}</p>}
+      {repeated > 0 && <p className="ai-note">{`${repeated} of these cards were also in an earlier reply. Add only what you still want.`}</p>}
       {(cards.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={cards} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
