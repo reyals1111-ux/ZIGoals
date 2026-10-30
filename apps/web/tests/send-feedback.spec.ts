@@ -94,7 +94,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AC (friends pack): three more again (was 13), each checked by its words and its link below.
   // Session AF (ADR-028, deliberate): two more (was 16), each checked by its words and its link below.
   // Session AF, at the ZIGi and extras merges (deliberate): three more (was 18), each checked by its words and link below.
-  await expect(items).toHaveCount(21);
+  // Session AJ (ADR-035, deliberate): five more (was 21), each checked by its words below.
+  await expect(items).toHaveCount(26);
+  for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'GPX and TCX imports keep only a summary', 'The food search waits for its service']) await expect(section).toContainText(words);
   await expect(section).toContainText('ZIGi never stakes, signs or moves money');
   await expect(section).toContainText('Timeline times stay on this device');
   await expect(section).toContainText('Add money opens the providers’ plain sites');

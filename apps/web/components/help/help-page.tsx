@@ -323,8 +323,14 @@ export function HelpPage() {
         <li><strong>The Checklist stays on this device:</strong> your path, your own items and the day history aren&rsquo;t synced yet, so another device starts with an empty path (<a className="text-link" href="#help-af-checklist">What is the Checklist?</a>).</li>
         <li><strong>Ecosystem apps open in their own tab:</strong> ZIGoals shows their live numbers and steps but never frames their sites, and signs nothing for them; only native staking signs, in your own wallet (<a className="text-link" href="#help-af-earn">What is the Earn page?</a>).</li>
         <li><strong>ZIGi never stakes, signs or moves money:</strong> a staking card only opens the review you complete in your own wallet (<a className="text-link" href="#help-af-earn-coach">What does ZIGi&rsquo;s Earn coach do?</a>).</li>
-        <li><strong>Timeline times stay on this device;</strong> a running fast or timer cannot be moved, and sleep, reminders and Checklist planets move on their own pages (<a className="text-link" href="#help-af-timeline">What is the Day timeline?</a>).</li>
+        <li><strong>Timeline times stay on this device;</strong> a habit&rsquo;s time goes to your other devices only when you choose &ldquo;Every day, on all my devices&rdquo;; a running fast or timer cannot be moved, and sleep, reminders and Checklist planets move on their own pages (<a className="text-link" href="#help-af-timeline">What is the Day timeline?</a>).</li>
         <li><strong>Add money opens the providers&rsquo; plain sites</strong> until ZIGoals has registered with them, so nothing is filled in for you yet; pairing a wallet by QR on a phone waits for the same step (<a className="text-link" href="#help-af-add-money">How do I add money?</a>).</li>
+        {/* Session AJ (ADR-035): this session's limits, each pointing to its answer. */}
+        <li><strong>Price alerts check only while ZIGoals is open;</strong> nothing reaches your phone yet (<a className="text-link" href="#help-aj-alerts">How do price alerts work?</a>).</li>
+        <li><strong>A watched Bitcoin wallet shows its confirmed balance,</strong> read from mempool.space only (<a className="text-link" href="#help-aj-wealth">Watching by public key</a>).</li>
+        <li><strong>Focus Sessions can&rsquo;t block other apps;</strong> time with the page hidden counts as away (<a className="text-link" href="#help-aj-guided">Focus Sessions</a>).</li>
+        <li><strong>GPX and TCX imports keep only a summary,</strong> never the route (<a className="text-link" href="#help-aj-health">GPX import</a>).</li>
+        <li><strong>The food search waits for its service,</strong> which the owner switches on; foods from the Swiss database keep their source in their brand line.</li>
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
       </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>
