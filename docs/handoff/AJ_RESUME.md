@@ -27,9 +27,7 @@ Parts in order: 0 records → 1 ZIGChain v6 (items 1, 3, 4; A1–A3) → 2 secur
 - Fixes from CI and local batches (the commit after `8f2807f0`): prompt budget again, `/app/guided` title row, Activity Remove above the phone row link, the undo fixture's past times, Help's own "aj" topic (nineteen topics; 43 in-sentence links), the Customize body watcher, Earn's ZIGi "Next:" line and end-chest dimming on the orbit look, What's new budget 120 s, the frozen fixture's `look`.
 
 ## Next steps (exact)
-1. Let one full CI run finish on the new head; fix what it shows (drive to green).
-2. Remaining sweeps: frozen readers rerun (Part 5–7 formats), a11y contrast + theme parity incl. 'customized', landing/settings/wizard specs, Showcase pass (≤ 24 scratchpad captures), NO2 keep-list, `pnpm audit`, OpenNext build + check:alpha.
-3. ADR-035 closing table for every item; STATUS entry as the final commit; PR out of Draft when CI is green; short report.
+- Wait for Milestone quality on the STATUS head (the final commit); when green, take the PR out of Draft and report. The owner merges and deploys; the A9 follow-ups are in STATUS.
 
 ## Sandbox notes
 - Stop the server with `for p in $(pgrep -f "^next-server"); do kill $p; done` (`pgrep -x next-server` misses it; `pkill -f next-server` kills its own shell).
