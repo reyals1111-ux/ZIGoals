@@ -238,6 +238,11 @@ test('consistent help (3.2.6): the help mechanisms repeated on every page keep t
 // view the heading that says it has arrived.
 const CONTRAST_PAGES: [path: string, root?: string, heading?: string][] = [
   [SLEEP[0], undefined, SLEEP[1]], [MEDITATION[0], undefined, MEDITATION[1]], ['/app/portfolio'], ['/app/settings'], ['/app/chess'], ['/app', '.music-panel'],
+  // Session AJ (item 21, E4): this session's new surfaces, captions over their gradients included: Guided journeys, Journey's
+  // Focus Sessions and Life Score, and Earn's Start here in the orbit look.
+  ['/app/guided'], ['/app/journey'], ['/app/earn'],
+  // Session AJ (item 21, AF15 reopened): Habits, its time-of-day headings included.
+  ['/app/habits'],
 ];
 test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and Settings', async ({page}) => {
   test.setTimeout(240_000);
