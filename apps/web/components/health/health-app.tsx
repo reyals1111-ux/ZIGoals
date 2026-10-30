@@ -297,7 +297,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     ]}/>
     {/* Session AB-Design (owner requests 9, 23): the game card only at the very bottom of the page while Gamify is on. */}
     <div className="health-progress-slot page-game-slot"><ProgressSlot page="health" /></div>
-    <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
+    <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings#backup-restore">Settings → Backup &amp; restore</Link>.</p>
   </div></LayoutPage></HealthDayProvider>;
 }
 

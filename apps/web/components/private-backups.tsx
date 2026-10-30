@@ -71,7 +71,8 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
     } catch (error) { setError(plainErrorMessage(error, "Restore failed. Existing data was preserved.")); }
     finally { setBusy(false); }
   }
-  return <section className="panel module-backup" aria-label={`${name} backup`}>
+  // Session AJ (item 19, SE3): each module's backup has its own anchor (#backup-health, #backup-habits, #backup-finance…).
+  return <section className="panel module-backup" id={`backup-${module}`} aria-label={`${name} backup`}>
     <p className="eyebrow">{name.toUpperCase()} · PRIVATE BROWSER DATA</p><h3>{name} backup</h3>
     <p>Export all {name.toLowerCase()} records, including history. These files contain personal information and no wallet credentials.</p>
     {store.error && <p className="notice">Stored data needs attention. Export its available stored data before restoring. If the database cannot be read, keep it intact and use a separate protected backup. <button className="text-link" onClick={store.refresh}>Retry reading</button></p>}

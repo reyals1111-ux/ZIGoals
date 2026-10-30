@@ -28,6 +28,9 @@ import { plural } from "../lib/plural";
 import { removeHealthItem } from "../lib/health";
 import { removeWater } from "../lib/health-daily";
 import { removeWithUndo } from "./ui/remove-with-undo";
+import { showToast } from "./ui/undo-toast";
+import { entryOn, restoreHabitEntry, type HabitEntry } from "../lib/timeline/actions";
+import { storageMessageOr } from "../lib/storage-error-copy";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore, onCounts }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void; /** Session AH (SE5): how many entries each filter holds. */ onCounts?: (counts: Record<string, number>) => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
@@ -66,6 +69,18 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // where they were made (a habit day in its day editor, a goal's contribution on its goal).
   const healthKind = (id: string): "diary" | "weights" | "activity" | "water" | null => health.data.diary.some(e => e.id === id) ? "diary" : health.data.weights.some(w => w.id === id) ? "weights" : health.data.activity.some(a => a.id === id) ? "activity" : (() => { try { return dailyData(health.data).water.some(w => w.id === id) ? "water" as const : null; } catch { return null; } })();
   const remove = (id: string, title: string) => { const kind = healthKind(id); if (!kind) return; void removeWithUndo(health.update, latest => kind === "water" ? removeWater(latest, id) : removeHealthItem(latest, kind, id), `Removed: ${title}.`, `${title} is back.`).catch(() => undefined); };
+  // Session AJ (item 18, SE5): a habit day can be removed from the log too, with the app's one Undo, through the habit
+  // journal's own functions (as the Day Timeline's Undo); a goal's contribution is reversed on its goal (a recorded
+  // reversal, never a deletion), so the log links there; ZIGi's own entries keep their Undo in the chat.
+  const habitDay = (id: string) => { const m = /^habit:(.+):(\d{4}-\d{2}-\d{2})$/.exec(id); return m && habits.data.habits.some(h => h.id === m[1]) ? {habitId: m[1]!, date: m[2]!} : null; };
+  const removeHabitDay = (id: string, title: string) => {
+    const day = habitDay(id); if (!day) return;
+    let previous: HabitEntry | undefined, captured = false;
+    void Promise.resolve(habits.update(d => { if (!captured) { previous = entryOn(d, day.habitId, day.date); captured = true; } return restoreHabitEntry(d, day.habitId, day.date, undefined); }))
+      .then(() => showToast({message: `Removed: ${title}, that day.`, undo: () => habits.update(d => restoreHabitEntry(d, day.habitId, day.date, previous)), undone: `${title} is back for that day.`}))
+      .catch(e => showToast({message: storageMessageOr(e, 'This day could not be changed on this device.')}));
+  };
+  const contributionGoal = (id: string) => { if (!id.startsWith("contribution:")) return null; const c = platform.data.contributions.find(x => `contribution:${x.id}` === id); return c && !c.reversesId && c.goalScope === "private" && !platform.data.contributions.some(r => r.reversesId === c.id) ? c.goalId : null; };
   const counts = JSON.stringify(Object.fromEntries(["GOAL", "WEALTH", "HABIT", "HEALTH"].map(c => [c, base.filter(e => e.category === c).length]).concat([["ALL", base.length]])));
   useEffect(() => { onCounts?.(JSON.parse(counts) as Record<string, number>); }, [counts, onCounts]);
   return <div className="unified-activity">
@@ -82,6 +97,8 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
           <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
           {(() => { const time = activityTimeLabel(event.at, activityTimeZone()); return time ? <time dateTime={event.at}>{time}</time> : null; })()}
+          {!showcase && event.category === "HABIT" && habitDay(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => removeHabitDay(event.id, event.title)}>Remove</button>}
+          {!showcase && (() => { const goal = contributionGoal(event.id); return goal ? <Link className="text-link activity-remove" href={`/app/goals/tracked/${goal}#funding-wealth`} aria-label={`Reverse on its goal: ${event.title}`}>Reverse on its goal →</Link> : null; })()}
           {!showcase && event.category === "HEALTH" && healthKind(event.id) && <button type="button" className="text-link activity-remove" aria-label={`Remove ${event.title}${event.detail ? `, ${event.detail}` : ""}`} onClick={() => remove(event.id, event.title)}>Remove</button>}
         </article>
       </li>;

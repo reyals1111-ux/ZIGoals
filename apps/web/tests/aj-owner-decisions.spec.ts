@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {loadShowcase} from './ah-helpers';
 
 /**
  * Session AJ (item 8): the owner's decisions themselves, pinned in the browser (the unit pins I5 and ST5 are in
@@ -6,6 +7,8 @@ import {expect, test, type Page} from '@playwright/test';
  * - GO3: the Goal wizard keeps its four steps, and "Create goal" is there on step 1.
  * - TO1: Today is on by default (bare /app opens Today) and can be switched off.
  * - ZI5: ZIGi's sharing switches and "Include Health" show before any AI is connected.
+ * - D4 (item 17): one dismissible demo/alpha notice; the Showcase chip (so fictional records never look real) is a status
+ *   marker, not a second notice.
  */
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}})); });
 async function freshDevice(page: Page) {
@@ -48,4 +51,15 @@ test('ZI5: the sharing switches and "Include Health" show before any AI is conne
   await expect(privacy).toContainText('These apply once you connect your own AI. With no AI connected, nothing leaves this device');
   await expect(privacy.getByRole('switch', {name: /^Include Health/})).toBeAttached();
   expect(await privacy.getByRole('switch').count()).toBeGreaterThan(3);
+});
+
+test('D4: in the Showcase there is one dismissible notice; the Showcase chip stays as a status marker', async ({page}) => {
+  await loadShowcase(page);
+  await page.goto('/app');
+  await expect(page.locator('main h1').first()).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Close this notice', exact: true})).toHaveCount(1);
+  await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
+  await page.getByRole('button', {name: 'Close this notice', exact: true}).click();
+  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toHaveCount(0);
+  await expect(page.getByRole('complementary', {name: 'Showcase data'})).toBeVisible();
 });
