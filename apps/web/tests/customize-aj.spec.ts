@@ -19,7 +19,11 @@ async function openDevice(page: Page, record: Record<string, unknown> = {}) {
 }
 /** The <html> attributes when <body> is created, before any app script has run. */
 const recordAtBody = (page: Page) => page.addInitScript(names => {
-  new MutationObserver((records, observer) => { for (const r of records) for (const n of r.addedNodes) if (n instanceof HTMLBodyElement) { Reflect.set(window, '__lookAtBody', Object.fromEntries(names.map(a => [a, document.documentElement.getAttribute(a)]))); observer.disconnect(); } }).observe(document.documentElement, {childList: true});
+  // Init scripts can run before <html> exists, so the whole document is watched (and <body> is never already there:
+  // no page script has run yet).
+  const record = () => Reflect.set(window, '__lookAtBody', Object.fromEntries(names.map(a => [a, document.documentElement.getAttribute(a)])));
+  if (document.body) record();
+  else new MutationObserver((_, observer) => { if (document.body) { record(); observer.disconnect(); } }).observe(document, {childList: true, subtree: true});
 }, ATTRS);
 const stored = (page: Page) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null') as Record<string, unknown> | null, KEY);
 const card = (page: Page) => page.locator('#appearance').getByRole('group', {name: 'Customize'});

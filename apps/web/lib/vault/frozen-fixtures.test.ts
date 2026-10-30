@@ -186,8 +186,8 @@ export function frozenFixture() {
   checks.push({key: READING_SOURCES_KEY, module: './wealth-sources/schema', spec: 'READING_SOURCES', expect: {since: '2026-10-29T10:00:00.000Z'}});
   checks.push({key: PRICE_ALERTS_KEY, module: './price-alerts/schema', spec: 'PRICE_ALERTS', expect: {'alerts.0.price': '12345'}});
   // Session AJ (item 30, D11; TIER 3 (stored format)): the trader tools' opt-in and tilt dismissal, an optional group in the
-  // loose UI preferences; an older build keeps or ignores it.
-  records[UI_PREFS_KEY] = JSON.stringify({version: 1, heroCollapsed: true, trader: {on: true, tiltHiddenUntil: '2026-11-05'}, focusWindow: false, lifeScore: true});
+  // loose UI preferences; an older build keeps or ignores it. Item 32 (D5): the Customize `look` group rides the same record.
+  records[UI_PREFS_KEY] = JSON.stringify({version: 1, heroCollapsed: true, trader: {on: true, tiltHiddenUntil: '2026-11-05'}, focusWindow: false, lifeScore: true, look: {font: 'inter', textSize: 'large', density: 'compact', glow: 'soft'}});
   checks.push({key: UI_PREFS_KEY, module: './ui-prefs/schema', spec: 'UI_PREFS', expect: {heroCollapsed: true}});
   // Session AJ (item 34, D13; TIER 3 (stored format)): Focus Sessions, a new device-only key (fictional ids).
   records[FOCUS_SESSIONS_KEY] = JSON.stringify({version: 1, sessions: [{id: 'focus_fixture-0001', startedAt: '2026-10-29T09:00:00.000Z', endedAt: '2026-10-29T09:25:00.000Z', day: '2026-10-29', plannedMinutes: 25, focusedSeconds: 1440, awaySeconds: 60, outcome: 'grown'}]});

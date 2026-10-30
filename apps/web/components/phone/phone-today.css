@@ -167,6 +167,8 @@
   :root .today-page .recent-panel .activity-category-label { margin: 0 88px 2px 0; font-size: 15px; }
   :root .today-page .recent-panel .unified-activity .activity-event a { font-size: 17px; line-height: 1.35; }
   :root .today-page .recent-panel .unified-activity .activity-event a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+  :root .today-page .recent-panel .unified-activity .activity-event .activity-remove { position: relative; z-index: 1; }
+  :root .today-page .recent-panel .unified-activity .activity-event a.activity-remove::after { content: none; }
   :root .today-page .recent-panel .unified-activity .activity-event p { margin: 2px 0; font-size: 15px; line-height: 1.4; }
   :root .today-page .recent-panel .unified-activity .activity-event small { font-size: 15px; }
 

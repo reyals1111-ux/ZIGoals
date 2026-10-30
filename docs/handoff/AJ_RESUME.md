@@ -22,11 +22,14 @@ Parts in order: 0 records → 1 ZIGChain v6 (items 1, 3, 4; A1–A3) → 2 secur
 - Part 5 complete: items 25/26/27/28 (`7712703c`, GPX strict XML reader `7cdd93db`), item 22 FSVO search (`dcd5c1da`, TIER 3 egress routes).
 - Part 6 complete: Life Score and Focus Sessions (`7712703c`), item 35 habit everyday time (`db25f9d2`, TIER 3 stored format + auth/sync), Guided Journeys (`77747265`), specs and /app/guided weight line (`581bae14`).
 - CI fixes: repeat cards and prompt budget (`cc22456c`), checklist landing wait (`3981aed5`), knock first-paint waits (`ca1568e0`).
+- Part 7 complete: items 17–20 (`d5339e88`), 24 A8 list (`39203e7f`), 16 Earn orbit (`a804f02a`), 21 contrast (`b8be8fa5`), 32 Customize + Erase everything in Settings (`725d8160`, `8f2807f0`).
+- Part 8: Guide phase 2 (`ffa78ad2`). Part 9: landing (`17e5bd8f`). Part 10 so far: What's new + Help (`cf2f53ea`), A6 erase + coverage test (`b0439a4d`), PRIVACY/FRIENDS_GUIDE (`fe0b600b`), Known limitations (`d8623fc8`).
+- Fixes from CI and local batches (the commit after `8f2807f0`): prompt budget again, `/app/guided` title row, Activity Remove above the phone row link, the undo fixture's past times, Help's own "aj" topic (nineteen topics; 43 in-sentence links), the Customize body watcher, Earn's ZIGi "Next:" line and end-chest dimming on the orbit look, What's new budget 120 s, the frozen fixture's `look`.
 
 ## Next steps (exact)
-1. Part 7: item 32 Customize (D5; Inter self-hosted + OFL), 17 one dismissible notice (D4, P7), 19 SE3 anchor, 18 undo from Activity, 20 wizard skip link, 21 contrast items, 24 A8 list (M41/M43/M47 + AF13/H3), 16 Earn orbit (D3).
-2. Part 8: Guide phase 2 (D6), ADR-011 update. Part 9: landing MO6. Part 10: sweeps (A6 coverage test, PRIVACY for AH/AI/AJ keys, What's new, Help), final STATUS, CI green, PR out of Draft, report.
-3. ADR-035: add P20 (FSVO foods keep the source in the brand; provenance format unchanged), P21 (GPX strict XML reader, Trusted Types), P22 (repeat cards shown with a note), P23 (prompt budget).
+1. Let one full CI run finish on the new head; fix what it shows (drive to green).
+2. Remaining sweeps: frozen readers rerun (Part 5–7 formats), a11y contrast + theme parity incl. 'customized', landing/settings/wizard specs, Showcase pass (≤ 24 scratchpad captures), NO2 keep-list, `pnpm audit`, OpenNext build + check:alpha.
+3. ADR-035 closing table for every item; STATUS entry as the final commit; PR out of Draft when CI is green; short report.
 
 ## Sandbox notes
 - Stop the server with `for p in $(pgrep -f "^next-server"); do kill $p; done` (`pgrep -x next-server` misses it; `pkill -f next-server` kills its own shell).

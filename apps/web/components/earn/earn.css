@@ -360,4 +360,4 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
   .earn-start-path[data-variant=orbit] { margin-inline: -12px; }
 }
 /* Session AJ (item 16, D3): Start here's end node stays dimmed until reached (the old path's rule, kept on the orbit look). */
-.earn-start-path .path-finale:not([data-reached]) .path-chest-art { opacity: .8; }
+.path-stage.earn-start-path[data-variant=orbit] .path-finale:not([data-reached]) .path-chest-art { opacity: .8; }

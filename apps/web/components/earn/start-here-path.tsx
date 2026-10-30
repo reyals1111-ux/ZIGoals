@@ -136,7 +136,7 @@ const endOnly = (model: PathModel): PathModel => ({...model, milestones: model.m
 
 export default function StartHerePath({states, open, onOpen, onMark, live, markError}: Props) {
   const model = useMemo(() => endOnly(startHereModel(states)), [states]);
-  const phone = usePhone(), guide = useRef<HTMLDivElement>(null);
+  const phone = usePhone(), guide = useRef<HTMLDivElement>(null), next = states.find(s => !s.done);
   const panel = (stepId: string) => {
     const id = stepId as StartStepId, state = states.find(s => s.id === id);
     if (!state || !(START_STEPS as readonly string[]).includes(id)) return null;
@@ -151,7 +151,7 @@ export default function StartHerePath({states, open, onOpen, onMark, live, markE
   }, [phone, open]);
   return <>
     <Path model={model} ariaLabel="Start here: how staking works, step by step" layout="snake" className="earn-start-path" variant="orbit" follow={false}
-      bannerTitle={section => section.label} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next step"
+      bannerTitle={section => section.label} zigi={{say: next ? `Next: ${STEP_WORDS[next.id].label}` : 'All six done. Well travelled!'}} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next step"
       renderPanel={phone ? undefined : step => panel(step.id)}/>
     {phone && open && <div ref={guide} className="earn-start-guide">{panel(open)}</div>}
   </>;

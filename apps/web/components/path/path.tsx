@@ -68,7 +68,8 @@ export type PathProps = {
   /** Session AG Polish 2 (owner Part 5): a step just added — the path brings it into view and it blooms once. */
   arrive?: string | null;
   /** Session AJ (owner D3): the orbit look lands on the next planet on opening and glides on after a tick (true: the
-   *  full-screen Checklist). False leaves the page where the person put it (a path inside a page: Earn's Start here). */
+   *  full-screen Checklist). False leaves the page where the person put it (a path inside a page: Earn's Start here), and
+   *  ZIGi keeps its one-line `say` there, as in the default look. */
   follow?: boolean;
   /** Session AJ (owner D3): an orbit banner's title. Default: "<name> Orbit", the Checklist's. */
   bannerTitle?: (section: PathSection) => string;
@@ -481,7 +482,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
                   <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={lane?.side ?? side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} data-path-box={lane ? `tab:${step.id}` : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane?.wrap ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {}), ...(lane ? {'--tab-dy': `${lane.tabDy}px`, '--tab-out': `${lane.tabOut}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{orbit ? step.short ?? step.label : step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || (orbit && follow) ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
@@ -498,7 +499,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
         </ol>
       </section>;
     })}
-    {zigiAtEnd && !endTrophy && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false || orbit ? undefined : zigi.say} alive={orbit}/></div>}
+    {zigiAtEnd && !endTrophy && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false || (orbit && follow) ? undefined : zigi.say} alive={orbit}/></div>}
     {next && wantJump && (() => {
       // (Docked, it is the dock's own button and follows its theme; on the path it is the path's night bubble.)
       const button = <button ref={bubble} type="button" className={jumpDock ? 'path-dock-jump' : 'path-jump'} data-clear={(docked || jumpClear) || undefined} data-direction={nextAbove ? 'up' : 'down'} onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>;

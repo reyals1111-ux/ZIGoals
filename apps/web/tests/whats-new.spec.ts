@@ -57,8 +57,8 @@ test('after onboarding the card lists the Help entries, is dismissed once per de
 test('a link opens its Help answer; the earlier release\'s links wait under "Earlier updates"', async ({page}) => {
   // Session AF Gate C (CI on 1a7624d6 and 14cf1987): every release moves links under "Earlier updates", and each one is
   // opened from a fresh Today; eleven visits now take about 45 s on CI's runners, the default budget. Its own budget is
-  // 90 s; every check is unchanged.
-  test.setTimeout(90_000);
+  // 90 s; every check is unchanged. Session AJ (ADR-035): one more release, one more visit (twelve); 120 s, checks unchanged.
+  test.setTimeout(120_000);
   await seed(page);
   await page.goto('/app');
   await revealUpdates(page);

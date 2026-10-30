@@ -22,19 +22,22 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AE (ADR-027, deliberate): this release's topic, after AD's.
   ['ae', 'One scene from top to end, and three finished looks'],
   // Session AF (ADR-028, deliberate): this release's topic, after AE's.
-  ['af', 'Earn, stake in your own wallet, and your day as one path'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['af', 'Earn, stake in your own wallet, and your day as one path'],
+  // Session AJ (ADR-035, deliberate): this release's topic, after AF's.
+  ['aj', 'Price alerts, Guided journeys, sleep balance and your own look'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
 // Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
 // names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
 // unlocked"); every label is still checked exactly, in order, with its link.
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one look for every page', 'New: calmer pages', 'New: Light, Nebula and Dark', 'New: Today’s scene, the sidebar and wallets', 'New: Earn, staking and the Checklist', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one look for every page', 'New: calmer pages', 'New: Light, Nebula and Dark', 'New: Today’s scene, the sidebar and wallets', 'New: Earn, staking and the Checklist', 'New: alerts, journeys and your own look', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
 // Session AF (ADR-028, deliberate): eighteen topics, AF's after AE's.
-test('Help has one title and eighteen topics, listed before them, each linking to its section', async ({page}) => {
+// Session AJ (ADR-035, deliberate): nineteen topics, AJ's after AF's.
+test('Help has one title and nineteen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -200,7 +203,8 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Gate C test audit (equal strength restored): the exemption covers exactly the in-sentence links Help has today, so a
   // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).
   // Session AI (MO4, 12f444dd): the data answer's "Privacy" and "Terms" links are two new in-sentence links (37 → 39).
-  expect(inline).toBe(39);
+  // Session AJ (ADR-035, Part 10): Known limitations links four of its new lines to their answers (39 → 43).
+  expect(inline).toBe(43);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });

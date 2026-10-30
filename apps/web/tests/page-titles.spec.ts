@@ -39,6 +39,8 @@ const EVERY_ROUTE: [path: string, title: string][] = [
   ['/app/wealth/add-money/back', 'Add money: what happens next'], ['/app/timeline', 'Timeline'], ['/app/stories', 'Stories'],
   // Session AI (ADR-034): the journal and ZIGi's memory page.
   ['/app/journal', 'Journal'], ['/app/zigi/memory', 'What ZIGi remembers'],
+  // Session AJ (ADR-035, item 34): Guided Journeys.
+  ['/app/guided', 'Guided journeys'],
 ];
 test('every route under /app carries the " · ZIGoals Alpha" title', async ({page}) => {
   test.setTimeout(180_000);
