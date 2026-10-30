@@ -7,6 +7,9 @@
 // `--recovery-admin` (ADR-007 option A, after Stage 4) adds the seventh, local-only recovery admin copy.
 // `--set-market-policy` and `--set-food-user-agent` (Stage 6) change one var in one existing private copy and
 // leave every other byte, comments and order included, as it was.
+// `--add-missing-template-vars` (Session AJ item 4) adds to each existing private copy the vars its template gained
+// after the copy was made (for example STEP_UP_REQUIRED), with the template's own reviewed value, one var at a time by
+// the same byte-preserving edit; a template var that holds a placeholder is named for the owner to set, never guessed.
 import {existsSync,readFileSync,writeFileSync,chmodSync,unlinkSync,renameSync,realpathSync,openSync,fsyncSync,closeSync} from 'node:fs';
 import {resolve,dirname,relative,basename,join} from 'node:path';
 import {randomBytes} from 'node:crypto';
@@ -16,11 +19,12 @@ import JSON5 from 'json5';
 import {CONFIGS,ADMIN_CONFIG,privatePath,privateFileProblems,validatePrivateCopies,validateAdminConfig,lifecycleTargetProblems,syncTargetProblems} from './activation-check.mjs';
 
 const FLAGS=['--auth-ref','--workers-subdomain','--app-origin','--name-prefix','--market-account-id','--market-policy-file'];
-const USAGE='Usage: node scripts/run11/make-private-configs.mjs '+FLAGS.map(f=>f+' <value>').join(' ')+'\n   or: node scripts/run11/make-private-configs.mjs --recovery-admin   (after Stage 4: the seventh, local-only config)'+'\n   or: node scripts/run11/make-private-configs.mjs --set-market-policy <policy file>   (Stage 6: MARKET_POLICY only)'+'\n   or: node scripts/run11/make-private-configs.mjs --set-food-user-agent "ZIGoals/<version> (<contact email>)"   (Stage 6: FOOD_USER_AGENT only)';
+const USAGE='Usage: node scripts/run11/make-private-configs.mjs '+FLAGS.map(f=>f+' <value>').join(' ')+'\n   or: node scripts/run11/make-private-configs.mjs --recovery-admin   (after Stage 4: the seventh, local-only config)'+'\n   or: node scripts/run11/make-private-configs.mjs --set-market-policy <policy file>   (Stage 6: MARKET_POLICY only)'+'\n   or: node scripts/run11/make-private-configs.mjs --set-food-user-agent "ZIGoals/<version> (<contact email>)"   (Stage 6: FOOD_USER_AGENT only)'+'\n   or: node scripts/run11/make-private-configs.mjs --add-missing-template-vars   (vars a template gained since the copies were made; names printed, values never)';
 /** The Stage 6 update modes: each sets one var in one existing private copy. */
 const UPDATES={'--set-market-policy':{kind:'market',name:'MARKET_POLICY'},'--set-food-user-agent':{kind:'food',name:'FOOD_USER_AGENT'}};
 export function parseArgs(argv){
  if(argv.length===1&&argv[0]==='--recovery-admin')return {recoveryAdmin:true};
+ if(argv.length===1&&argv[0]==='--add-missing-template-vars')return {addMissing:true};
  if(argv.length===2&&Object.hasOwn(UPDATES,argv[0]))return {update:argv[0],value:argv[1]};
  const values={};
  for(let i=0;i<argv.length;i+=2){if(!FLAGS.includes(argv[i])||argv[i+1]===undefined||argv[i] in values)throw Error(USAGE);values[argv[i]]=argv[i+1];}
@@ -214,6 +218,26 @@ export function setMarketPolicy(root,file){
  if(policy===null)throw Error('--market-policy-file must contain a JSON object.');
  return [setPrivateVar(root,'market','MARKET_POLICY',policy),privateCheckStatus(root)];
 }
+/**
+ * Session AJ (item 4): every var a template has and its private copy lacks, added with the template's reviewed value by
+ * setPrivateVar (one byte-preserving edit each, verified after writing). A template value that is still a placeholder is
+ * not copied: the owner sets it. Lines name files and vars only, never values.
+ */
+export function addMissingTemplateVars(root){
+ const lines=[];
+ for(const [kind,path]of Object.entries(CONFIGS)){
+  const problems=privateFileProblems(root,privatePath(path));
+  if(problems.length){lines.push(`${privatePath(path)}: ${problems.join(', ')}; skipped.`);continue;}
+  const template=JSON5.parse(readFileSync(resolve(root,path),'utf8')),copy=JSON5.parse(readFileSync(resolve(root,privatePath(path)),'utf8'));
+  for(const [name,value]of Object.entries(template.vars??{})){
+   if(name in(copy.vars??{}))continue;
+   if(typeof value!=='string'||/unconfigured|127\.0\.0\.1|localhost|example\.(com|org|invalid)/i.test(value)){lines.push(`${privatePath(path)}: ${name} is missing and its template holds a placeholder; set it yourself (nothing written for it).`);continue;}
+   lines.push(setPrivateVar(root,kind,name,value).replace(' set (value not printed)',' added with the template\'s reviewed value (value not printed)'));
+  }
+ }
+ if(!lines.length)lines.push('Every private copy already has every template var; nothing written.');
+ return [...lines,privateCheckStatus(root)];
+}
 /** Stage 6: FOOD_USER_AGENT in the existing private food copy. */
 export function setFoodUserAgent(root,value){
  const problems=foodUserAgentProblems(value);
@@ -222,6 +246,7 @@ export function setFoodUserAgent(root,value){
 }
 function main(){
  const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),input=parseArgs(process.argv.slice(2));
+ if(input.addMissing){console.log(addMissingTemplateVars(root).join('\n'));return;}
  if(input.update==='--set-market-policy'){console.log(setMarketPolicy(root,input.value).join('\n'));return;}
  if(input.update==='--set-food-user-agent'){console.log(setFoodUserAgent(root,input.value).join('\n'));return;}
  if(input.recoveryAdmin){console.log(['Wrote the recovery admin config (0600, ignored by git, never deployed):',makeAdminConfig(root),'Next: `node scripts/run11/activation-check.mjs --admin`, then docs/run11/OWNER_RECOVERY_ADMIN.md.'].join('\n'));return;}

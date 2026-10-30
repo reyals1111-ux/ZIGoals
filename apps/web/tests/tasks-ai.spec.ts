@@ -60,6 +60,10 @@ test('SE5: a Health entry is removed from the Activity log itself, with Undo', a
   await dialog.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(dialog.getByRole('status')).toBeVisible();
   await page.keyboard.press('Escape');
+  // Session AJ (CI on df6c8c64: the next goto was aborted, net::ERR_ABORTED): the dialog closes and the page settles
+  // before leaving it, as before other gotos (Session AE); every check after it is unchanged.
+  await expect(dialog).toBeHidden();
+  await page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => undefined);
   await page.goto('/app/activity');
   const remove = page.getByRole('button', {name: /^Remove Water: 500 mL/});
   await expect(remove).toHaveCount(1);

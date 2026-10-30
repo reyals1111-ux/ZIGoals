@@ -1,4 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
+import {AuthInfo, TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {ME, SIGNER_CALLS, V1, V2, ZIG, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
 
 /**
@@ -66,7 +67,9 @@ test('practice: delegate, undelegate, redelegate and claim all, each through the
   await expect(sheet).toContainText('Fictional Alpha');
   await expect(sheet).toContainText('25 ZIG');
   await expect(sheet).toContainText('(25000000000000000000 azig)');
-  await expect(sheet).toContainText(/about 0\.00061\sZIG \(187,701 gas simulated × 1\.3 × 2\.5 Gazig per gas; your wallet may let you raise it\)/);
+  // Session AJ (A1): the fee on the sheet is the one signed (no longer "your wallet may let you raise it").
+  await expect(sheet).toContainText(/about 0\.00061\sZIG \(187,701 gas simulated × 1\.3 × 2\.5 Gazig per gas, the network’s minimum\. Your wallet signs exactly this fee\.\)/);
+  expect(chain.methods, 'a v5 node is never asked for a base fee').not.toContain('abci_query /cosmos.evm.feemarket.v1.Query/BaseFee');
   await expect(sheet).toContainText('Getting this ZIG back takes 21 days after you unstake; it earns nothing and cannot move meanwhile.');
   await expect(sheet).toContainText('You will sign this in your wallet. ZIGoals never sees your keys and cannot sign for you.');
   await expect(sheet).toContainText('Your address, the validator and the amount are recorded on ZIGChain Testnet for anyone to see, forever.');
@@ -223,3 +226,34 @@ test('Back closes the review with nothing asked of the wallet and nothing sent',
   expect(calls.filter(c => SIGNER_CALLS.test(c))).toEqual([]);
   expect(chain.broadcasts).toEqual([]);
 });
+
+// Session AJ (ADR-035 P3, A1, A2; TIER 3 (wallet)): zig-test-2 on v6.0.0 prices from its base fee, read at the quote, and
+// the transaction the wallet signs carries exactly the fee the review sheet showed.
+test('practice on v6: the review prices from the base fee read now, and the broadcast carries exactly that fee', async ({page}) => {
+  const calls = await fakeKeplr(page), chain = await fakeChain(page, 'practice', {version: 'v6.0.0', baseFee: (2_500_000_000n * 10n ** 18n).toString()});
+  await relay(page, 'practice');
+  const panel = await openStaking(page);
+  await connect(page, panel);
+  await panel.getByRole('radio', {name: /Fictional Alpha/}).check();
+  await panel.getByLabel('Amount of ZIG').fill('25');
+  await panel.getByRole('button', {name: 'Review', exact: true}).click();
+  const sheet = page.getByRole('dialog', {name: 'Review before you sign'});
+  await expect(sheet).toContainText(/\(187,701 gas simulated × 1\.3 × 3\.75 Gazig per gas: the network’s current base fee \(2\.5 Gazig\) plus room for it to rise\. Your wallet signs exactly this fee\.\)/);
+  expect(chain.methods).toContain('abci_query /cosmos.evm.feemarket.v1.Query/BaseFee');
+  await sign(page, calls);
+  const fee = AuthInfo.decode(TxRaw.decode(chain.broadcasts[0]!.tx).authInfoBytes).fee!;
+  expect(fee.amount.map(c => ({denom: c.denom, amount: c.amount}))).toEqual([{denom: 'azig', amount: (244012n * 3_750_000_000n).toString()}]);
+  expect(fee.gasLimit).toBe(244012n);
+  expect(fee.payer).toBe(''); expect(fee.granter).toBe('');
+});
+test('practice on a newer line: the review is refused in plain words, nothing asked of the signer', async ({page}) => {
+  const calls = await fakeKeplr(page);
+  await fakeChain(page, 'practice', {version: 'v6.1.0'});
+  await relay(page, 'practice');
+  const panel = await openStaking(page);
+  await panel.getByRole('button', {name: 'Connect Keplr for PRACTICE', exact: true}).click();
+  await expect(panel.getByRole('alert')).toHaveText('The network was upgraded; checks are pending.');
+  await expect(panel.getByRole('button', {name: 'Connect Keplr for PRACTICE', exact: true})).toBeEnabled();
+  expect(calls.filter(c => SIGNER_CALLS.test(c))).toEqual([]);
+});
+

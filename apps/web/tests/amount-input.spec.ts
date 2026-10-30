@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import {typeGoalName} from './goal-name';
 
 // QA-14 (Session F, docs/qa/QA_SWEEP_2026-09-30.md): money and quantity fields refused a decimal comma and surrounding
 // spaces ("1200,50", " 1000 ") with "Enter a non-negative decimal amount.", while the Goal preview showed "1200,50 EUR"
@@ -13,7 +14,7 @@ const goals = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getIt
 
 async function valueGoal(page: Page, name: string, target: string) {
   await page.goto("/app/goals/new");
-  await page.getByLabel("Goal name", { exact: true }).fill(name);
+  await typeGoalName(page, name);
   await page.getByRole("radio", { name: "Value", exact: true }).check();
   await page.getByLabel("Target amount", { exact: true }).fill(target);
 }

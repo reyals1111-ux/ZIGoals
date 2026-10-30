@@ -1,4 +1,5 @@
-import {REVIEWED_VERSIONS, STAKING_NETWORKS, keplrChainInfoFor, NETWORK_CHANGED, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {STAKING_NETWORKS, keplrChainInfoFor, NETWORK_CHANGED, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {requireReviewedVersion} from '@zigoals/chain-config/reviewed-versions';
 import {WALLET_SESSION_KEY} from '../af-signing-keys';
 import {isZigAccount} from '../staking/address';
 
@@ -37,8 +38,9 @@ export async function verifyRpcIdentity(network: StakingNetwork, fetcher: typeof
   const [status, info] = await Promise.all([read('/status'), read('/abci_info')]);
   const chainId = (status.result?.node_info as {network?: unknown} | undefined)?.network;
   const version = (info.result?.response as {version?: unknown} | undefined)?.version;
-  if (chainId !== config.chainId || typeof version !== 'string' || !REVIEWED_VERSIONS[network].includes(version)) throw Error(NETWORK_CHANGED);
-  return version;
+  if (chainId !== config.chainId || typeof version !== 'string') throw Error(NETWORK_CHANGED);
+  // Session AJ (ADR-035 D1, P5): any patch of a reviewed minor line; a newer line fails closed in D1's words.
+  return requireReviewedVersion(config.chainId, version, NETWORK_CHANGED).version;
 }
 export async function connectStaking(network: StakingNetwork, keplr: KeplrConnect | undefined, verify: (network: StakingNetwork) => Promise<unknown> = verifyRpcIdentity): Promise<StakingSession> {
   if (!keplr) throw Error(NO_KEPLR);

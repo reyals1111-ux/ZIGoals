@@ -1,5 +1,6 @@
 import {formatUnits, safeMaximum} from '@zigoals/chain-config';
-import {STAKING_NETWORKS, UNBONDING_SECONDS, assertNetworkEvidence, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {STAKING_NETWORKS, UNBONDING_SECONDS, assertNetworkEvidence, feeModelFor, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {BASE_FEE_ABCI_PATH, BASE_FEE_UNREADABLE, decodeBaseFeeResponse, parseBaseFee, quotedGasPrice, type FeeModel} from '@zigoals/chain-config/reviewed-versions';
 import {toBase64} from '@cosmjs/encoding';
 import {assertSigningMessages} from '../app-environment';
 import {STAKING_TYPE_URLS, assertStakingMessages, liquidSpend, type StakingActionKind, type StakingMessage} from './messages';
@@ -12,8 +13,13 @@ import {registerQuote} from './sign-gate';
  * (lib/staking/execute.ts). The CosmJS read client loads here, on the first Review press, never with the page.
  *
  * Before any number is shown the chain's own evidence is checked (chain id, a reviewed version, bond denom azig, 21-day
- * unbonding, the 18-decimal display unit; fails closed). The fee is the chain minimum: ceil(simulated gas × 1.3) × 2.5
- * Gazig, in azig; the wallet may raise it (the review says so). The liquid balance must cover the fee, plus the amount
+ * unbonding, the 18-decimal display unit; fails closed). The fee is ceil(simulated gas × 1.3) × the gas price, in azig.
+ * Session AJ (ADR-035 P3, A1, A2; `TIER 3 (wallet)`): the gas price follows the version the node reports AT THIS QUOTE
+ * (never a value kept from page load, so a v5→v6 upgrade while the page is open can never sign with the old model):
+ * v5.1 → the fixed 2.5 Gazig minimum; v6.0 → max(2.5 Gazig, ceil(base fee × 1.5)), the base fee read through the same
+ * RPC (`abci_query` of x/feemarket's BaseFee); an unreadable base fee refuses the quote. The fee quoted is the fee
+ * signed: the signer is asked with `preferNoSetFee`, and the signed bytes must carry exactly this fee (receipt.ts), so
+ * a wallet that changes it is refused before anything is sent. The liquid balance must cover the fee, plus the amount
  * for a delegation; `safeMax` is the balance with the fee kept back. A quote lives 60 seconds and is registered with the
  * sign gate, so only a quote made here can ever be signed.
  */
@@ -31,7 +37,11 @@ export type StakingQuote = Readonly<{
   gasLimit: number;
   fee: Readonly<{amount: readonly Readonly<{denom: 'azig'; amount: string}>[]; gas: string}>;
   feeAmount: string;
+  /** The gas price signed, in azig per gas (Session AJ: from the fee model of the version read at this quote). */
   gasPrice: string;
+  /** The fee model of that version, and on v6 the base fee read at this quote (azig per gas). */
+  feeModel: FeeModel;
+  baseFee?: string;
   balance: string;
   safeMax: string;
   /** ZIG leaving the liquid balance (delegations), in azig. */
@@ -54,6 +64,8 @@ export interface QuoteChain {
   getSequence(address: string): Promise<number>;
   getBalance(address: string): Promise<string>;
   simulate(messages: readonly StakingMessage[], pubKey: Uint8Array, sequence: number, memo?: string): Promise<number>;
+  /** v6's x/feemarket base fee as the chain stores it (a LegacyDec scaled by 10^18), read at this quote. */
+  baseFee(): Promise<string>;
   disconnect(): void;
 }
 /** The one wallet call a quote makes: the connected account's public key. */
@@ -77,6 +89,7 @@ async function cosmjsQuoteChain(rpcUrl: string): Promise<QuoteChain> {
       bank: {denomMetadata(denom: string): Promise<{base: string; display: string; denomUnits: {denom: string; exponent: number}[]}>};
       staking: {params(): Promise<{params?: {bondDenom: string; unbondingTime?: {seconds: bigint}}}>};
       tx: {simulate(messages: readonly unknown[], memo: string, signer: {type: string; value: string}, sequence: number): Promise<{gasInfo?: {gasUsed: bigint}}>};
+      queryAbci(path: string, request: Uint8Array): Promise<{value: Uint8Array}>;
     };
   };
   const registry = new Registry(defaultRegistryTypes);
@@ -94,6 +107,10 @@ async function cosmjsQuoteChain(rpcUrl: string): Promise<QuoteChain> {
     async simulate(messages, pubKey, sequence, memo = '') {
       const response = await inner.forceGetQueryClient().tx.simulate(messages.map(m => registry.encodeAsAny(m)), memo, {type: 'tendermint/PubKeySecp256k1', value: toBase64(pubKey)}, sequence);
       return Number(response.gasInfo?.gasUsed ?? 0n);
+    },
+    async baseFee() {
+      const answer = await inner.forceGetQueryClient().queryAbci(BASE_FEE_ABCI_PATH, new Uint8Array());
+      return decodeBaseFeeResponse(answer.value);
     },
     disconnect: () => client.disconnect(),
   };
@@ -119,11 +136,20 @@ export async function quoteStaking(input: QuoteInput, connect: (rpcUrl: string) 
     if ((await chain.getChainId()) !== config.chainId) throw new QuoteRefused('Wrong RPC network. Nothing was signed.');
     const evidence = await chain.evidence();
     const version = assertNetworkEvidence(input.network, {chainId: config.chainId, ...evidence});
+    // A2: the fee model of the version just read, and on v6 the base fee read now (never cached between quotes).
+    const feeModel = feeModelFor(input.network, version);
+    let baseFee: bigint | undefined;
+    if (feeModel === 'base-fee') {
+      let raw: string;
+      try { raw = await chain.baseFee(); } catch { throw new QuoteRefused(BASE_FEE_UNREADABLE); }
+      try { baseFee = parseBaseFee(raw, 'scaled'); } catch (error) { throw new QuoteRefused(error instanceof Error ? error.message : BASE_FEE_UNREADABLE); }
+    }
+    const gasPrice = quotedGasPrice(feeModel, baseFee).toString();
     const sequence = await chain.getSequence(input.address);
     const gasUsed = await chain.simulate(input.messages, key.pubKey, sequence, memo);
     if (!Number.isSafeInteger(gasUsed) || gasUsed <= 0 || gasUsed > MAX_GAS) throw new QuoteRefused('The simulation did not give a usable gas estimate. Nothing was signed.');
     const gasLimit = Math.ceil(gasUsed * GAS_MULTIPLIER);
-    const feeAmount = (BigInt(gasLimit) * BigInt(config.gasPrice)).toString();
+    const feeAmount = (BigInt(gasLimit) * BigInt(gasPrice)).toString();
     const balance = await chain.getBalance(input.address);
     if (!/^\d{1,78}$/.test(balance)) throw new QuoteRefused('The balance read was not usable. Nothing was signed.');
     // A sweep's ZIG comes from the rewards the chain pays out in the same transaction (the delegation claims them first),
@@ -137,7 +163,7 @@ export async function quoteStaking(input: QuoteInput, connect: (rpcUrl: string) 
       network: input.network, chainId: config.chainId, address: input.address, action: input.action,
       messages: Object.freeze([...input.messages]), gasUsed, gasLimit,
       fee: Object.freeze({amount: Object.freeze([Object.freeze({denom: 'azig' as const, amount: feeAmount})]), gas: String(gasLimit)}),
-      feeAmount, gasPrice: config.gasPrice, balance, safeMax: safeMaximum(balance, feeAmount), spend: spend.toString(),
+      feeAmount, gasPrice, feeModel, ...(baseFee !== undefined ? {baseFee: baseFee.toString()} : {}), balance, safeMax: safeMaximum(balance, feeAmount), spend: spend.toString(),
       unbondingSeconds: UNBONDING_SECONDS, isLedger: key.isNanoLedger === true, memo, ...(input.attestation ? {attestation: Object.freeze({...input.attestation})} : {}), version, revision: input.revision,
       quotedAt, expiresAt: quotedAt + QUOTE_TTL_MS,
     }));

@@ -13,7 +13,7 @@ export function AskZigiLink({about, className = ''}: {about: string; className?:
   return <button type="button" className={`quiet ai-ask-link page-ask-zigi ${className}`.trim()} aria-label={`Ask ZIGi about my ${about}`} onClick={() => askZigi(`About my ${about}: `)}><span className="page-ask-full">Ask ZIGi about my {about}</span><span className="page-ask-short" aria-hidden="true">Ask ZIGi</span></button>;
 }
 export function BackupLink({className = ''}: {className?: string}) {
-  return <Link className={`text-link page-backup-link ${className}`.trim()} href="/app/settings">Back up private data ↗</Link>;
+  return <Link className={`text-link page-backup-link ${className}`.trim()} href="/app/settings#backup-restore">Back up private data ↗</Link>;
 }
 /** The pair, in the page header's minor row. */
 export function PageMinorActions({about}: {about: string}) {

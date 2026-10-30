@@ -36,3 +36,14 @@ test('plain words carry the explorer links of the hash on its own network', () =
   // The receipt's code wins over a generic message.
   expect(plainWords(Error('The chain rejected this action.'), {chainId: 'zig-test-2', code: 13}).kind).toBe('insufficient-fee');
 });
+// Session AJ (ADR-035 D1, A1, P3, P4): the v6 cases, each in plain words.
+test.each([
+  ['The network was upgraded; checks are pending.', 'upgraded'],
+  ['Your wallet changed the network fee, so nothing was sent. Review again; ZIGoals signs exactly the fee you reviewed.', 'fee-changed'],
+  ['The network fee could not be read just now. Nothing was signed. Try again in a minute.', 'fee-unreadable'],
+  ['The network fee is unusually high right now. Nothing was signed. Try again later.', 'fee-unreadable'],
+  ['failed to execute message; message index: 0: no voting power: invalid vote', 'no-voting-power'],
+])('%s → %s', (message, kind) => {
+  expect(classifyStakingError(Error(message))).toBe(kind);
+  expect(PLAIN_WORDS[kind as keyof typeof PLAIN_WORDS]).toMatch(/Nothing was (signed|sent)\./);
+});

@@ -15,6 +15,8 @@ import {formatMoney, formatSignedMoney} from '../../lib/visual-format';
 import {drawShareCard, shareOrSave} from '../../lib/share-image';
 import {isShown} from '../../lib/pages/visibility';
 import {useDeviceRecord} from '../ai/use-device-record';
+import {FOCUS_SESSIONS} from '../../lib/focus-sessions/schema';
+import {focusMinutesBetween} from '../../lib/focus-sessions/engine';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
@@ -43,12 +45,13 @@ import { unitFor } from '../../lib/plural';
  * Session AA-Local's coach card (`review:coach`). Nothing is sent anywhere; the share image is drawn on this device.
  */
 export function LifeReviewView() {
-  const record = useDeviceRecord(LIFE_REVIEW), today = useLocalToday();
+  const record = useDeviceRecord(LIFE_REVIEW), today = useLocalToday(), focusRecord = useDeviceRecord(FOCUS_SESSIONS);
   const habits = useHabits(), health = useHealth(), platform = usePlatform(), goals = useUnifiedGoals(), averages = useAverageGoals(), extras = useGoalExtras(), legacy = useGoals(), pages = usePagesView();
   const [chosen, setChosen] = useState<Period | null>(null), [now] = useState(() => Date.now());
   const market = useMarketQuotes(platform.error ? false : wealthMarketRequests(platform.data));
   const period: Period = chosen ?? (record.loaded ? record.data.period ?? 'week' : 'week');
   const window = useMemo(() => reviewPeriod(period, today), [period, today]);
+  const focus = focusRecord.loaded && !focusRecord.unreadable ? focusMinutesBetween(focusRecord.data, window.start, window.end) : null;
   const ready = habits.loaded && health.loaded && platform.loaded && goals.loaded && averages.loaded && extras.loaded;
   const review = useMemo(() => !ready ? null : lifeReview({
     window, habits: habits.error ? {...habits.data, habits: []} : habits.data, health: health.data, platform: platform.data,
@@ -95,6 +98,8 @@ export function LifeReviewView() {
           <div><dt>Habit check-ins</dt><dd>{review.counts.habitCheckIns}</dd></div>
           <div><dt>Days with Health records</dt><dd>{review.counts.healthDays}</dd></div>
           <div><dt>Goal contributions</dt><dd>{review.counts.contributions}</dd></div>
+          {/* Session AJ (item 34, D13): the period's focused minutes, from Focus Sessions (shown once there is one). */}
+          {focus && focus.sessions > 0 && <div><dt>Minutes of focus</dt><dd>{focus.minutes}</dd></div>}
         </dl>
       </section>
 

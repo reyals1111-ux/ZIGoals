@@ -1,6 +1,6 @@
 'use client';
 import './asset-search.css';
-import {createCatalogLoader} from '../../lib/market-catalog-client';
+import {loadMarketCatalog} from '../../lib/market-catalog-client';
 import {useEffect,useMemo,useState} from 'react';
 import {useMarketInsights} from './use-market-insights';
 import {FEATURED_MARKETS,marketCategory} from '../../lib/product-insights';
@@ -11,7 +11,7 @@ import {isVerifiedAsset,searchMarketAssets,type MarketCatalogAsset} from '../../
 /* Session AD (weights): the two helpers live in asset-source.ts, so a page can hold the picker without this search. */
 export {automaticSourcePosition,automaticUnitLabel,type AutomaticSourceInput} from './asset-source';
 
-const loadCatalog=createCatalogLoader();
+const loadCatalog = loadMarketCatalog; // Session AJ (WE16): the app's one shared catalog loader
 
 const typeLabel=(asset:MarketCatalogAsset)=>asset.ref.kind==='rwa'?asset.ref.assetType==='etf'?'ETF':asset.ref.assetType[0]!.toUpperCase()+asset.ref.assetType.slice(1):'Crypto';
 const displaySymbol=(asset:MarketCatalogAsset)=>(asset.symbol.trim()||asset.name.trim()||asset.ref.id).slice(0,12).toUpperCase();

@@ -5,7 +5,7 @@ import {runTransaction, TransactionFailure, type Confirmed, type TransactionUpda
 import {newStakingEntry, updateStakingJournal, withStakingEntry, withStakingTransition, type NewStakingEntry} from './journal';
 import {STAKING_TYPE_URLS, liquidSpend, validatorsOf, type StakingMessage} from './messages';
 import {readStakingPrefs, realConfirmedAtOf} from './prefs';
-import {txHash, verifySignedMessages, verifyStakingReceipt, type ChainTx} from './receipt';
+import {txHash, verifySignedFee, verifySignedMessages, verifyStakingReceipt, type ChainTx} from './receipt';
 import {redeemSignTicket, type SignTicket} from './sign-gate';
 import {abciCode, plainWords, type PlainError} from './errors';
 import type {StakingQuote} from './quote';
@@ -100,7 +100,7 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
   try {
     const confirmed = await runTransaction({
       assertFresh: fresh,
-      hash: async bytes => { await verifySignedMessages(quote.messages, bytes, quote.memo); return (signedHash = await txHash(bytes)); },
+      hash: async bytes => { await verifySignedMessages(quote.messages, bytes, quote.memo); await verifySignedFee(quote.fee, bytes); return (signedHash = await txHash(bytes)); },
       persist: async (state, details) => {
         if (state === 'AWAITING_SIGNATURE') return;
         const saved = updateStakingJournal(storage, record => withStakingTransition(record, entry.operationId, {state, ...(details?.hash ? {hash: details.hash} : {}), ...(details?.height ? {height: String(details.height)} : {}), ...(details?.code !== undefined ? {code: details.code} : {})}));

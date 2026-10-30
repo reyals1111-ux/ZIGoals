@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {useEffect, useMemo, useState, Fragment} from 'react';
 import {AssetIcon} from '../platform/financial-ui';
 import {Sparkline, sparklineWords} from '../markets/sparkline';
-import {createCatalogLoader} from '../../lib/market-catalog-client';
+import {loadMarketCatalog} from '../../lib/market-catalog-client';
 import {searchMarketAssets, type MarketAssetRef} from '../../lib/market-assets';
 import {formatDate, formatDateTime, formatExactNumber, formatMoney, formatNumber, formatPrice, formatSignedMoney} from '../../lib/visual-format';
 import {coinKey, type Portfolio, type PortfolioCoin, type PortfolioCurrency, type PortfolioTransaction} from '../../lib/portfolio/schema';
@@ -168,7 +168,7 @@ export function TransactionList({portfolio, list, names, onRemove, run}: {portfo
 }
 
 type CoinRef = Extract<MarketAssetRef, {kind: 'coin'}>;
-const loadCatalog = createCatalogLoader();
+const loadCatalog = loadMarketCatalog; // Session AJ (WE16): the app's one shared catalog loader
 /** Find any coin in the public catalog and open its page (featured coins when the catalog cannot load). */
 export function CoinSearch({portfolioId}: {portfolioId?: string}) {
   const [query, setQuery] = useState(''), [catalog, setCatalog] = useState<PortfolioCoin[] | null>(null), [failed, setFailed] = useState(false), [asked, setAsked] = useState(false);

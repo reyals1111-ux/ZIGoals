@@ -1,4 +1,5 @@
 'use client';
+import {GuidedJourneysLink} from '../guided/guided-link';
 import {useState} from 'react';
 import {scheduleLabel, type HabitData, type HabitInput} from '../../lib/habits';
 import {addLocalDays} from '../../lib/local-date';
@@ -18,6 +19,8 @@ export function HabitIdeas({data, today, onAdd, onClose}: {data: HabitData; toda
   return <section className="panel habit-ideas" aria-labelledby="habit-ideas-title">
     <div className="habit-ideas-head"><h2 id="habit-ideas-title">Habit ideas</h2><button type="button" className="quiet" onClick={onClose}>Close</button></div>
     <p className="fine">Small, common starting points. Add one, then change anything about it. Nothing here compares you with anyone.</p>
+    {/* Session AJ (item 34, A7): Guided journeys are reached from Habits, Goals, My Universe and search (no sidebar entry). */}
+    <GuidedJourneysLink />
     <div className="habit-filter-bar" role="group" aria-label="Kinds of habit ideas">{HABIT_TEMPLATE_GROUPS.map(g => <button type="button" className="quiet" key={g} aria-pressed={group === g} onClick={() => setGroup(g)}>{HABIT_GROUP_LABEL[g]}</button>)}</div>
     <ul className="habit-ideas-list">{HABIT_TEMPLATES.filter(t => t.group === group).map(t => {
       const added = hasHabitLike(titles, t), input = habitTemplateInputOf(t);

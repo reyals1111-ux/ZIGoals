@@ -18,6 +18,7 @@ import {AF_ZIGI_ERASE_KEYS} from './af-zigi-keys';
 import {AF_EXTRAS_ERASE_KEYS} from './af-extras-keys';
 import {AH_ERASE_KEYS} from './ah-device-keys';
 import {AI_ERASE_KEYS} from './ai-device-keys';
+import {AJ_ERASE_KEYS} from './aj-device-keys';
 
 /** AA-Cloud's personal device keys (ADR-021), erased with the account by the second merger (ADR-022 B52); Today's cards are a display choice and stay. */
 const CLOUD_PERSONAL_KEYS: readonly string[] = [GOAL_EXTRAS_KEY, AVERAGE_GOALS_KEY, CALCULATOR_KEY, SEARCH_RECENT_KEY, LIFE_REVIEW_KEY];
@@ -30,10 +31,13 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { target ??= getAppStorage(); } catch { return; }
   // Session AB-Cloud (ADR-023 C8): AB-Design's display preferences and AB-Cloud's own records go with the account too.
   // Session AE (Part 6, ADR-027): and the wallets linked read-only (public addresses, personal).
-  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS, ...AF_ZIGI_ERASE_KEYS, ...AF_EXTRAS_ERASE_KEYS, ...AH_ERASE_KEYS, ...AI_ERASE_KEYS];
+  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS, ...AF_ZIGI_ERASE_KEYS, ...AF_EXTRAS_ERASE_KEYS, ...AH_ERASE_KEYS, ...AI_ERASE_KEYS, ...AJ_ERASE_KEYS];
   for (const key of keys) { try { target.removeItem(key); } catch { /* kept */ } }
   try { for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); } catch { /* no window */ }
   // Gate B F3: the progress-photo bytes live in IndexedDB beside the index key; the erase removes the database as a whole (every scope on this device).
   // Session AI (J14): the sealed exchange keys go with the account too (the whole database, its wrapping key included).
-  try { if (typeof indexedDB !== 'undefined') { indexedDB.deleteDatabase('zigoals-progress-photos'); indexedDB.deleteDatabase(VISION_DATABASE); indexedDB.deleteDatabase('zigoals-exchange-keys-v1'); } } catch { /* no IndexedDB: nothing was stored there */ }
+  // Session AJ (WE16, A6): and the coin catalog kept for offline search, with every other database the app keeps.
+  try { if (typeof indexedDB !== 'undefined') for (const name of ERASED_DATABASES) indexedDB.deleteDatabase(name); } catch { /* no IndexedDB: nothing was stored there */ }
 }
+/** Session AJ (A6): every IndexedDB database the account erase deletes (lib/erase-coverage.test.ts keeps it complete). */
+export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1', 'zigoals-xpub-v1'];

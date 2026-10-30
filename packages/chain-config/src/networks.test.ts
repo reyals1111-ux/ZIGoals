@@ -4,6 +4,7 @@ import { REVIEWED_TESTNET_VERSIONS, TESTNET, keplrChainInfo, validateNetworkConf
 import {
   DECOY_DENOMS,
   GAS_PRICE_STEPS,
+  GAS_PRICE_STEPS_FLOOR,
   MAINNET,
   NETWORK_CHANGED,
   NETWORK_WORDS,
@@ -12,11 +13,13 @@ import {
   UNBONDING_SECONDS,
   assertNetworkEvidence,
   durationSeconds,
+  feeModelFor,
   keplrChainInfoFor,
   stakingNetworkOf,
   validateMainnetConfig,
   verifyNetworkFor,
 } from "./networks";
+import { NetworkUpgradedError } from "./reviewed-versions";
 
 // Session AF (ADR-028 H46, H61, H74): literals read live on 2026-10-18 (see networks.ts).
 test("mainnet literals are exact and deeply frozen; the testnet config is the untouched TESTNET", () => {
@@ -89,8 +92,11 @@ test("evidence: both networks pass with their own chain id and a reviewed versio
 });
 test.each([
   ["the other network's id", { chainId: "zig-test-2" }],
-  ["an unreviewed version", { version: "v5.1.3" }],
-  ["a testnet-only version on mainnet", { version: "v5.1.0" }],
+  // Session AJ (D1): any patch of a reviewed minor is accepted (v5.1.3, v5.1.0 on mainnet, v6.0.x); these still fail closed.
+  ["an older line", { version: "v5.0.9" }],
+  ["a line between the reviewed ones", { version: "v5.2.0" }],
+  ["a release candidate", { version: "v6.0.0-rc1" }],
+  ["a version without its v", { version: "6.0.0" }],
   ["no version", { version: undefined }],
   ["the legacy bond denom", { bondDenom: "uzig" }],
   ["a changed unbonding time", { unbondingSeconds: 604800 }],
@@ -152,4 +158,40 @@ test("Keplr chain details per network: registry gas steps, coin type 118, the zi
   });
   expect(keplrChainInfoFor("practice")).toMatchObject({ chainId: "zig-test-2", chainName: "ZIGChain Testnet", rpc: "https://testnet-rpc.zigchain.com", feeCurrencies: [{ gasPriceStep: { low: 2500000000, average: 25000000000, high: 50000000000 } }] });
   expect(keplrChainInfo().feeCurrencies[0]!.gasPriceStep).toEqual({ low: 2500000000, average: 2500000000, high: 4000000000 });
+});
+
+// Session AJ (ADR-035 D1, P5): the reviewed-minor rule on both networks.
+test.each([
+  ["practice", "v5.1.2"], ["practice", "v6.0.0"], ["practice", "v6.0.3"], ["practice", "v5.1.3"],
+  ["real", "v5.1.2"], ["real", "v6.0.0"], ["real", "v6.0.3"],
+] as const)("evidence on %s accepts the reviewed patch %s", (network, version) => {
+  const chainId = network === "real" ? "zigchain-1" : "zig-test-2";
+  expect(assertNetworkEvidence(network, { ...good(chainId), version })).toBe(version);
+});
+test.each([
+  ["practice", "v6.1.0"], ["practice", "v7.0.0"], ["real", "v6.1.0"], ["real", "v7.0.0"],
+] as const)("evidence on %s fails closed on the newer line %s with the upgraded sentence", (network, version) => {
+  const chainId = network === "real" ? "zigchain-1" : "zig-test-2";
+  let thrown: unknown;
+  try { assertNetworkEvidence(network, { ...good(chainId), version }); } catch (e) { thrown = e; }
+  expect(thrown).toBeInstanceOf(NetworkUpgradedError);
+  expect((thrown as Error).message).toBe("The network was upgraded; checks are pending.");
+  expect((thrown as NetworkUpgradedError).version).toBe(version);
+});
+test("each reviewed line names its fee model: v5.1 fixed, v6.0 the base fee (both networks)", () => {
+  expect(feeModelFor("practice", "v5.1.2")).toBe("fixed");
+  expect(feeModelFor("real", "v5.1.2")).toBe("fixed");
+  expect(feeModelFor("practice", "v6.0.0")).toBe("base-fee");
+  expect(feeModelFor("real", "v6.0.4")).toBe("base-fee");
+  expect(() => feeModelFor("real", "v7.0.0")).toThrow(NetworkUpgradedError);
+  expect(() => feeModelFor("practice", "v5.0.9")).toThrow(NETWORK_CHANGED);
+});
+test("Keplr's suggested gas-price steps suit both fee models: low is the floor, none below it (A1)", () => {
+  for (const network of ["practice", "real"] as const) {
+    const step = keplrChainInfoFor(network).feeCurrencies[0]!.gasPriceStep;
+    expect(step.low).toBe(GAS_PRICE_STEPS_FLOOR);
+    expect(step.average).toBeGreaterThanOrEqual(GAS_PRICE_STEPS_FLOOR);
+    expect(step.high).toBeGreaterThanOrEqual(step.average);
+  }
+  expect(GAS_PRICE_STEPS_FLOOR).toBe(2_500_000_000);
 });

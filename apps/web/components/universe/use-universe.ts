@@ -30,6 +30,6 @@ export function useUniverse() {
   const pending = useMemo(() => input && !record.unreadable && !isShowcase() ? pendingCelebrations(input, celebrated) : [], [input, record.unreadable, celebrated]);
   const update = record.update;
   const celebrate = useCallback((id: string) => update(r => markCelebrated(r, id, habits.today)), [update, habits.today]);
-  return {loaded, failed, unreadable: record.unreadable, universe, pending, celebrate, today: habits.today, habits: habits.data, health: health.data};
+  return {loaded, failed, unreadable: record.unreadable, universe, pending, celebrate, today: habits.today, habits: habits.data, health: health.data, input};
 }
 export type UniverseState = ReturnType<typeof useUniverse>;

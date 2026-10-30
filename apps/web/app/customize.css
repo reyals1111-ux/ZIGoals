@@ -1,0 +1,49 @@
+/*
+ * Session AJ (item 32, D5): Settings → Appearance → Customize, on this device only. Every rule here is keyed on an
+ * attribute that public/theme-boot.js (before the first paint) or lib/ui-prefs/look.ts (after a choice) sets on <html>
+ * only for a choice that is not the default, so with the defaults nothing here applies and nothing moves. Written for
+ * every theme at once (theme variables or the same glow colours every theme keeps), so it is not a source of the theme
+ * sheets (scripts/themes/build-themes.mjs, NOT_SOURCES). Large text and Compact are their own generated sheets
+ * (public/themes/text-large.css, public/themes/density-compact.css), fetched only when chosen.
+ */
+
+/* While a chosen Customize sheet loads (at most 1.5 s), the page waits unpainted, as it does for a theme. */
+:root[data-look-loading] body { visibility: hidden; }
+
+/* Font: Inter, self-hosted (public/fonts/inter, SIL Open Font License 1.1). A font file is fetched only when an element
+   uses its family, and only the rule below names it, so the default (System) never downloads it. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter/InterVariable-Italic.woff2") format("woff2");
+}
+:root[data-font="inter"] body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Liberation Sans", system-ui, sans-serif;
+}
+
+/* Glow: Soft. The decorative glows keep their colour at about half their strength; data colours, charts, progress bars,
+   pillar colours and every fill and line stay exactly as they are. The glow tokens carry !important so they win over a
+   theme sheet's copy of the same value (every theme keeps these glow colours as they are). */
+:root[data-glow="soft"] {
+  --glow-cyan: #42d6ff10 !important;
+  --glow-violet: #826cff13 !important;
+  --cosmic-cyan-glow: #16ccff19 !important;
+  --cosmic-pink-glow: #d156ff17 !important;
+  --shadow-action: 0 4px 16px #688bfa14 !important;
+}
+/* The page-header art's halo, bloom and dot glows (components/header-art). */
+:root[data-glow="soft"] .orbit-art { --ha-halo-o: .2 !important; --ha-bloom-o: .38 !important; --ha-dot-glow-o: .38 !important; }
+/* Ambient glow layers. The boxes are dimmed with a filter, so their own opacity and any entrance animation still play;
+   the drawn glow strokes (SVG, whose opacity never animates) take half their opacity. */
+:root[data-glow="soft"] :is(.cosmic-glow, .site-footer-glow, .orbit-planet-glow) { filter: opacity(.5); }
+:root[data-glow="soft"] .orbit-flow-glow { opacity: .5; }
+:root[data-glow="soft"] .path-segment-glow { opacity: .3; }

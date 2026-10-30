@@ -45,7 +45,7 @@ test('the step-up switch is copied "on", may be set "off", and anything else is 
  for(const value of ['off','on'])expect(validatePrivateCopies({...copies,private:{...copies.private,vars:{...copies.private.vars,STEP_UP_REQUIRED:value}}},templates)).toEqual([]);
  for(const value of ['On','yes','of',' on'])expect(validatePrivateCopies({...copies,private:{...copies.private,vars:{...copies.private.vars,STEP_UP_REQUIRED:value}}},templates),value).toEqual(['private: STEP_UP_REQUIRED must be "on" or "off".']);
  const without={...copies.private.vars};delete without.STEP_UP_REQUIRED;
- expect(validatePrivateCopies({...copies,private:{...copies.private,vars:without}},templates)).toContain('private: a template var is missing.');
+ expect(validatePrivateCopies({...copies,private:{...copies.private,vars:without}},templates)).toContain('private: template var missing: STEP_UP_REQUIRED');
  // The fixture-only knobs never belong in a private copy.
  for(const name of ['LOCAL_DAILY_SENDS','LOCAL_SHARD_CAPACITY'])expect(validatePrivateCopies({...copies,admission:{...copies.admission,vars:{...copies.admission.vars,[name]:'1000000'}}},templates),name).toContain('admission: the test clock vars must never be configured.');
 });

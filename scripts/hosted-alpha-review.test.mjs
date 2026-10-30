@@ -81,3 +81,33 @@ test("the REST row is found in the panel's textContent, where the version runs i
   for (const unreviewed of ["v5.1.20", "v5.1.2.1", "v5.1.3", "v5.10.0", "v5.1", ""]) expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${unreviewed}Goal Manager`)).toBe(false);
   expect(pattern.test("Verified zig-test-2 · uzig · 6 decimals · v5.1.2")).toBe(false);
 });
+
+// Session AJ (ADR-035 D1, A3): the live pattern is the reviewed-lines rule, and stage 4 reads the base fee itself.
+test("the rule pattern accepts any reviewed patch (v6.0 included) and still nothing past it", async () => {
+  const { reviewedVersionPattern } = await import("../packages/chain-config/src/index.ts");
+  const { reviewedRestPattern } = await import("./lib/hosted-alpha-review.mjs");
+  const pattern = reviewedRestPattern(reviewedVersionPattern("zig-test-2"));
+  for (const v of ["v5.1.2", "v5.1.3", "v6.0.0", "v6.0.3"]) {
+    expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${v}Goal Manager`)).toBe(true);
+    expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${v} · base fee 2.5 Gazig per gasGoal Manager`)).toBe(true);
+  }
+  for (const v of ["v6.1.0", "v7.0.0", "v6.0.0-rc1", "v6.0", "v5.0.9", ""]) expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${v}Goal Manager`), v).toBe(false);
+});
+test("stage 4 reads the base fee on v6, says there is none on v5, and a v6 node without one is a finding", async () => {
+  const { BASE_FEE_REST_PATH, TESTNET, checkVersion, formatGazig, parseBaseFee } = await import("../packages/chain-config/src/index.ts");
+  const { readLiveBaseFee } = await import("./lib/hosted-alpha-review.mjs");
+  const chain = { restUrl: TESTNET.restUrl, chainId: TESTNET.chainId, checkVersion, parseBaseFee, formatGazig, basePath: BASE_FEE_REST_PATH };
+  const asked = [];
+  const node = (version, baseFee) => async (url, init) => {
+    asked.push([String(url), init?.method]);
+    if (String(url).endsWith("node_info")) return Response.json({ default_node_info: { network: "zig-test-2" }, application_version: { version } });
+    return baseFee === undefined ? new Response("{}", { status: 501 }) : Response.json({ base_fee: baseFee });
+  };
+  await expect(readLiveBaseFee(node("v6.0.0", "2500000000.000000000000000000"), chain)).resolves.toEqual({ version: "v6.0.0", fee: "base-fee", baseFee: "2500000000", line: "zig-test-2 v6.0.0: base fee 2.5 Gazig per gas" });
+  expect(asked.every(([, method]) => method === "GET")).toBe(true);
+  expect(asked.map(([url]) => url)).toEqual([`${TESTNET.restUrl}/cosmos/base/tendermint/v1beta1/node_info`, `${TESTNET.restUrl}/cosmos/evm/feemarket/v1/base_fee`]);
+  await expect(readLiveBaseFee(node("v5.1.2"), chain)).resolves.toEqual({ version: "v5.1.2", fee: "fixed", line: "zig-test-2 v5.1.2: fixed fee model (no base fee on this line)" });
+  await expect(readLiveBaseFee(node("v6.0.0"), chain)).rejects.toThrow("stage 4: zig-test-2 is on v6.0.0 but its base fee could not be read (finding)");
+  await expect(readLiveBaseFee(node("v6.0.0", "nonsense"), chain)).rejects.toThrow("could not be read (finding)");
+  await expect(readLiveBaseFee(node("v6.1.0", "2500000000.0"), chain)).rejects.toThrow("outside the reviewed lines (upgraded)");
+});

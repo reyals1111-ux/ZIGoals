@@ -2735,6 +2735,9 @@
     .ai-card-first-note:not(#\-) {
         border-left-color: color-mix(in srgb,var(--cyan,#6fd3ff) 60%,transparent)
     }
+    .zigi-checkin-mood:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/ai/care-note.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -6046,6 +6049,9 @@
     .journey-badge-grid small:not(#\-) {
         color: var(--text-meta)
     }
+    .journey-badge-grid li:not([data-earned]) small:not(#\-) {
+        color: var(--text-secondary)
+    }
     .journey-path:not(#\-)::before {
         background-image: linear-gradient(180deg, #6fe6f6, #9e78ff, #ed75df, #a184e233);
         background-color: transparent
@@ -6940,6 +6946,64 @@
         color: var(--text-secondary,#0d1724)
     }
 }
+/*  components/guided/guided.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .guided-section > h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-section > h2:focus-visible:not(#\-), .guided-journey h3:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-empty:not(#\-), .guided-message:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-journey h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-meta:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-care:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-on:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview ol:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-step:not(#\-) {
+        border-color: var(--line);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-journey[data-pillar=goals]:not(#\-) {
+        --pillar: var(--pillar-goals)
+    }
+    .guided-journey[data-pillar=habits]:not(#\-) {
+        --pillar: var(--pillar-habits)
+    }
+    .guided-journey[data-pillar=health]:not(#\-) {
+        --pillar: var(--pillar-health)
+    }
+    .guided-journey[data-pillar=wealth]:not(#\-) {
+        --pillar: var(--pillar-wealth)
+    }
+    .guided-step[data-done]:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .guided-note:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-locked .guided-note:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-done-mark:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .habit-section:not(#\-) {
@@ -7028,6 +7092,12 @@
         background-color: #d88aa03a;
         border-color: #d88aa088;
         color: #1a0a0f
+    }
+    .habit-quit-before:not(#\-), .habit-quit-ahead:not(#\-) {
+        background-image: none;
+        background-color: #86f0d606;
+        border-color: #86f0d612;
+        color: #122724
     }
     .habit-skip-form:not(#\-), .habit-note-form:not(#\-) {
         border-color: #c3a8f93a;
@@ -8942,6 +9012,18 @@
     .workouts-progress-line:not(#\-) {
         color: var(--brand-cyan-ink)
     }
+    .workouts-import:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-import-preview:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-import-problem:not(#\-) {
+        color: var(--danger-text, #89485b)
+    }
+    :scope[data-theme=light] .workouts-import-problem:not(#\-) {
+        color: #a3123a
+    }
 }
 /*  components/help/help.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -9093,6 +9175,12 @@
     }
     .journal-entry-date:not(#\-) {
         color: var(--muted,#202938)
+    }
+    .journal-week-day:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .journal-week-dot:not(#\-) {
+        border-color: currentColor
     }
 }
 /*  components/layout-edit.css  */
@@ -9410,6 +9498,13 @@
     }
     .life-values .life-value-rate:not(#\-) {
         border-color: currentcolor
+    }
+    :scope .cross-label:not(#\-) {
+        border-color: var(--border-strong, currentColor);
+        color: var(--text-secondary)
+    }
+    :scope .cross-label.is-consistent:not(#\-) {
+        color: var(--text-primary)
     }
 }
 /*  components/links/links.css  */
@@ -12443,6 +12538,18 @@
     .trade-chip input:focus-visible+span:not(#\-) {
         outline-color: var(--cyan,#6fd3ff)
     }
+    .trader-figures dt:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .trader-months [data-direction="up"]:not(#\-) {
+        color: #15684c
+    }
+    .trader-months [data-direction="down"]:not(#\-) {
+        color: #983e56
+    }
+    .trader-tilt:not(#\-) {
+        border-left-color: var(--cyan, #6fd3ff)
+    }
 }
 /*  components/portfolio/value-chart.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -12479,6 +12586,12 @@
     .portfolio-chart-empty:not(#\-) {
         color: var(--muted,#1f2433);
         border-color: rgba(160,180,255,.2)
+    }
+}
+/*  components/price-alerts/price-alerts.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .price-alert-kind:not(#\-) {
+        border-color: currentcolor
     }
 }
 /*  components/progress/glass-progress.css  */
@@ -12726,6 +12839,15 @@
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .af-signing-setting-row small:not(#\-) {
         color: var(--muted, #1e2635)
+    }
+}
+/*  components/settings/customize-settings.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .customize-group:not(#\-) {
+        border-color: var(--line)
+    }
+    .customize-note:not(#\-) {
+        color: var(--text-muted)
     }
 }
 /*  components/settings/pages-settings.css  */
@@ -13561,6 +13683,19 @@
     .today-universe-skeleton:not(#\-) {
         background-image: none;
         background-color: #2424240d
+    }
+    .life-score-of:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .focus-sprout:not(#\-) {
+        color: #0e6857
+    }
+    .focus-stage[data-state="withered"] .focus-sprout:not(#\-) {
+        color: #292312;
+        filter: saturate(.4)
+    }
+    .focus-lengths button[aria-pressed="true"]:not(#\-) {
+        outline-color: currentColor
     }
 }
 /*  components/wallet/wallet-holdings.css  */

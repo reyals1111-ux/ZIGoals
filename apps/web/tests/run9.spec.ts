@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 import {seed} from './coherence-fixture';
 
 test('actual contributions stay separate from observed wealth and reversals retain history',async({page})=>{
@@ -58,7 +59,7 @@ test('automatic selection preserves exact identity, quotes privately, and keeps 
  const calls:unknown[]=[];let catalogCalls=0;
  await page.route('**/api/market-assets',route=>{catalogCalls++;return route.fulfill({json:{assets:[{ref:{provider:'coingecko',kind:'coin',id:'bitcoin'},name:'Bitcoin',symbol:'btc'},{ref:{provider:'coingecko',kind:'coin',id:'bitcoin-collision'},name:'Different Bitcoin',symbol:'btc'},{ref:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'},name:'Gold',symbol:'GOLD'}],error:null}});});
  await page.route('**/api/market-quotes',route=>{const body=route.request().postDataJSON();calls.push(body);return route.fulfill({json:{quotes:body.requests.map((r:{marketRef:{id:string};currency:string})=>({base:{network:'coingecko',denom:r.marketRef.id,decimals:18},marketRef:r.marketRef,currency:r.currency,price:'65000',priceDecimals:0,source:'CoinGecko',providerAssetId:r.marketRef.id,observedAt:new Date().toISOString(),fetchedAt:new Date().toISOString(),verification:'VERIFIED'})),error:null}});});
- await page.goto('/app/goals/new');await page.getByLabel('Goal name',{exact:true}).fill('Automatic wealth');await page.getByRole('radio',{name:'Value',exact:true}).check();await page.getByLabel('Target amount',{exact:true}).fill('100000');await page.getByRole('button',{name:'Continue →',exact:true}).click();
+ await page.goto('/app/goals/new');await typeGoalName(page, 'Automatic wealth');await page.getByRole('radio',{name:'Value',exact:true}).check();await page.getByLabel('Target amount',{exact:true}).fill('100000');await page.getByRole('button',{name:'Continue →',exact:true}).click();
  await page.getByRole('button',{name:'Crypto',exact:true}).click();
  const search=page.getByRole('searchbox');await search.fill('BTC');await expect(page.getByRole('list',{name:'Market assets'}).getByRole('button')).toHaveCount(2);
  await page.getByRole('list',{name:'Market assets'}).getByRole('button').filter({hasText:'CoinGecko ID bitcoin'}).filter({hasNotText:'collision'}).click();

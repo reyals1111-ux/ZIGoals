@@ -66,6 +66,10 @@ describe('eligibility and the vote journal', () => {
     expect(eligibilityOf([position({})], 'zig-test-2', ME)).toEqual({eligible: true, bonded: (5n * E18).toString(), validators: 1});
     expect(eligibilityOf([position({network: 'zigchain-1'})], 'zig-test-2', ME).eligible).toBe(false);
     expect(eligibilityOf([position({quantity: '0'})], 'zig-test-2', ME).eligible).toBe(false);
+    // Session AJ (P4): at least 1 ZIG, summed across bonded validators (zigchaind v6's voting threshold).
+    expect(eligibilityOf([position({quantity: (E18 - 1n).toString()})], 'zig-test-2', ME).eligible).toBe(false);
+    expect(eligibilityOf([position({quantity: E18.toString()})], 'zig-test-2', ME).eligible).toBe(true);
+    expect(eligibilityOf([position({id: 'a', quantity: (E18 / 2n).toString()}), position({id: 'b', quantity: (E18 / 2n).toString(), validator: {address: toBech32('zigvaloper', new Uint8Array(20).fill(4)), name: 'Other', status: 'BOND_STATUS_BONDED', commission: '0.05', votingTokens: '1'}})], 'zig-test-2', ME)).toMatchObject({eligible: true, bonded: E18.toString()});
     expect(eligibilityOf([position({sourceType: 'NATIVE_REWARDS'})], 'zig-test-2', ME).eligible).toBe(false);
     expect(eligibilityOf([position({validator: {address: V, name: 'x', status: 'BOND_STATUS_UNBONDED', commission: '0.05', votingTokens: '1'}})], 'zig-test-2', ME).eligible).toBe(false);
     expect(eligibilityOf([position({account: toBech32('zig', new Uint8Array(20).fill(8))})], 'zig-test-2', ME).eligible).toBe(false);

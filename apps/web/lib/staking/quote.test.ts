@@ -18,14 +18,16 @@ function recordingKeplr(address = ME, extra: Record<string, unknown> = {}) {
   return {keplr, calls};
 }
 const metadata = {base: 'azig', display: 'zig', denom_units: [{denom: 'azig', exponent: 0}, {denom: 'zig', exponent: 18}]};
-function chain(over: Partial<QuoteChain> & {gas?: number; balance?: string; chainId?: string; version?: string} = {}) {
-  const seen: {simulated?: readonly StakingMessage[]; sequence?: number; disconnected: boolean; rpc?: string} = {disconnected: false};
+function chain(over: Partial<QuoteChain> & {gas?: number; balance?: string; chainId?: string; version?: string; base?: string} = {}) {
+  const seen: {simulated?: readonly StakingMessage[]; sequence?: number; disconnected: boolean; rpc?: string; baseFeeReads: number} = {disconnected: false, baseFeeReads: 0};
   const connect = async (rpc: string): Promise<QuoteChain> => { seen.rpc = rpc; return {
     getChainId: async () => over.chainId ?? 'zig-test-2',
     evidence: async () => ({version: over.version ?? 'v5.1.2', bondDenom: 'azig', unbondingSeconds: 1814400, metadata}),
     getSequence: async () => 7,
     getBalance: async () => over.balance ?? (100n * ZIG).toString(),
     simulate: async (messages, _pubKey, sequence) => { seen.simulated = messages; seen.sequence = sequence; return over.gas ?? 187701; },
+    // A v5 node has no x/feemarket ("Not Implemented"), so a v5 quote must never ask for it.
+    baseFee: async () => { seen.baseFeeReads++; if (over.base === undefined) throw Error('Not Implemented'); return over.base; },
     disconnect: () => { seen.disconnected = true; },
     ...over,
   }; };
@@ -57,7 +59,7 @@ describe('quoteStaking', () => {
     expect(seen.rpc).toBe('https://rpc.zigchain.com');
     expect(quote).toMatchObject({network: 'real', chainId: 'zigchain-1', spend: '0'});
     await expect(quoteStaking({network: 'real', address: ME, action: 'claim', messages: claim({delegator: ME, validators: [A]}), keplr, revision: 0}, chain({chainId: 'zig-test-2'}).connect)).rejects.toThrow('Wrong RPC network');
-    await expect(quoteStaking({network: 'real', address: ME, action: 'claim', messages: claim({delegator: ME, validators: [A]}), keplr, revision: 0}, chain({chainId: 'zigchain-1', version: 'v5.1.0'}).connect)).rejects.toThrow(NETWORK_CHANGED);
+    await expect(quoteStaking({network: 'real', address: ME, action: 'claim', messages: claim({delegator: ME, validators: [A]}), keplr, revision: 0}, chain({chainId: 'zigchain-1', version: 'v5.0.9'}).connect)).rejects.toThrow(NETWORK_CHANGED);
   });
   test('a Ledger account is noted (it signs through the amino path)', async () => {
     const {keplr} = recordingKeplr(ME, {isNanoLedger: true});
@@ -98,3 +100,57 @@ describe('quoteStaking', () => {
     expect(() => issueSignTicket(quote, {submit: {isTrusted: true, type: 'submit', timeStamp: 2, submitter: button}, activation: {isTrusted: true, type: 'click', timeStamp: 1, target: button}})).toThrow('no longer current');
   });
 });
+
+// Session AJ (ADR-035 P3, A1, A2; TIER 3 (wallet)): the fee model of the version read at each quote.
+describe('the v6 fee model', () => {
+  const msgs = () => [delegate({delegator: ME, validator: A, amount: (25n * ZIG).toString()})];
+  const SCALED = (azigPerGas: bigint) => (azigPerGas * 10n ** 18n).toString();
+  test('v5.1.x keeps the fixed 2.5 Gazig and never reads a base fee (quotes byte-identical to before)', async () => {
+    const {keplr} = recordingKeplr(), c = chain({version: 'v5.1.2'});
+    const quote = await quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: msgs(), keplr, revision: 0}, c.connect);
+    expect(c.seen.baseFeeReads).toBe(0);
+    expect(quote).toMatchObject({gasPrice: '2500000000', feeModel: 'fixed', feeAmount: (244012n * 2500000000n).toString()});
+    expect('baseFee' in quote).toBe(false);
+  });
+  test.each([['practice', 'zig-test-2'], ['real', 'zigchain-1']] as const)('v6.0.x on %s prices at max(floor, ceil(base fee × 1.5)) from a base fee read now', async (network, chainId) => {
+    const {keplr} = recordingKeplr(), c = chain({chainId, version: 'v6.0.0', base: SCALED(4_000_000_000n)});
+    const quote = await quoteStaking({network, address: ME, action: 'claim', messages: claim({delegator: ME, validators: [A]}), keplr, revision: 0}, c.connect);
+    expect(c.seen.baseFeeReads).toBe(1);
+    expect(quote).toMatchObject({feeModel: 'base-fee', baseFee: '4000000000', gasPrice: '6000000000', feeAmount: (244012n * 6000000000n).toString()});
+    expect(quote.fee).toEqual({amount: [{denom: 'azig', amount: (244012n * 6000000000n).toString()}], gas: '244012'});
+  });
+  test('on v6 at the floor the price is 3.75 Gazig; below the floor it never drops under 2.5', async () => {
+    const {keplr} = recordingKeplr();
+    expect((await quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: msgs(), keplr, revision: 0}, chain({version: 'v6.0.3', base: SCALED(2_500_000_000n)}).connect)).gasPrice).toBe('3750000000');
+    expect((await quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: msgs(), keplr, revision: 0}, chain({version: 'v6.0.3', base: SCALED(1n)}).connect)).gasPrice).toBe('2500000000');
+  });
+  test('an unreadable, malformed or extreme base fee on v6 refuses the quote; nothing was signed', async () => {
+    const {keplr} = recordingKeplr();
+    const ask = (base?: string) => quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: msgs(), keplr, revision: 0}, chain({version: 'v6.0.0', base}).connect);
+    await expect(ask(undefined)).rejects.toThrow('The network fee could not be read just now. Nothing was signed.');
+    await expect(ask('2.5e27')).rejects.toThrow('could not be read');
+    await expect(ask('0')).rejects.toThrow('could not be read');
+    await expect(ask(SCALED(2_500_000_000_001n))).rejects.toThrow('The network fee is unusually high right now. Nothing was signed.');
+  });
+  test('a newer line fails closed in D1\'s words before any fee is read', async () => {
+    const {keplr} = recordingKeplr(), c = chain({version: 'v6.1.0', base: SCALED(2_500_000_000n)});
+    await expect(quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: msgs(), keplr, revision: 0}, c.connect)).rejects.toThrow('The network was upgraded; checks are pending.');
+    expect(c.seen.baseFeeReads).toBe(0);
+  });
+  test('A2: a node that moves from v5.1.2 to v6.0.0 while the page is open is priced by the version read at each quote', async () => {
+    const {keplr} = recordingKeplr();
+    let version = 'v5.1.2';
+    let reads = 0;
+    const live = chain({chainId: 'zigchain-1', base: SCALED(5_000_000_000n)});
+    const connect = async (rpc: string) => { const c = await live.connect(rpc); return {...c, evidence: async () => { reads++; return {version, bondDenom: 'azig', unbondingSeconds: 1814400, metadata}; }}; };
+    const ask = () => quoteStaking({network: 'real', address: ME, action: 'claim', messages: claim({delegator: ME, validators: [A]}), keplr, revision: 0}, connect);
+    const before = await ask();
+    expect(before).toMatchObject({version: 'v5.1.2', feeModel: 'fixed', gasPrice: '2500000000'});
+    version = 'v6.0.0'; // the upgrade height passes between two Review presses
+    const after = await ask();
+    expect(after).toMatchObject({version: 'v6.0.0', feeModel: 'base-fee', baseFee: '5000000000', gasPrice: '7500000000'});
+    expect(reads).toBe(2);
+    expect(live.seen.baseFeeReads).toBe(1);
+  });
+});
+

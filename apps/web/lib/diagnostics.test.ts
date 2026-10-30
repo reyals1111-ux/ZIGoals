@@ -19,6 +19,8 @@ const good = (url: string) =>
             default_node_info: { network: "zig-test-2" },
             application_version: { version: "v5.1.0" },
           }
+        : url.includes("base_fee")
+          ? { base_fee: "2500000000.000000000000000000" }
         : url.includes("staking")
           ? { params: { bond_denom: "azig" } }
           : {
@@ -82,7 +84,7 @@ const withVersion = (version: unknown) =>
           application_version: { version },
         })
       : good(String(url))) as typeof fetch;
-test.each(["v5.1.0", "v5.1.1", "v5.1.2"])(
+test.each(["v5.1.0", "v5.1.1", "v5.1.2", "v5.1.3", "v5.1.10"])(
   "the reviewed version %s verifies and is named",
   async (version) => {
     const r = await readDiagnostics(withVersion(version));
@@ -92,7 +94,8 @@ test.each(["v5.1.0", "v5.1.1", "v5.1.2"])(
     });
   },
 );
-test.each(["v5.0.0-patch-1", "v5.2.0", "v5.1.3", "v5.1.10", "v5.1.0 ", "", null, 5])(
+// Session AJ (D1): any patch of a reviewed minor passes (v5.1.3, v5.1.10 moved to the list above); these still fail.
+test.each(["v5.0.0-patch-1", "v5.2.0", "v5.0.9", "v6.0.0-rc1", "6.0.0", "v5.1.0 ", "", null, 5])(
   "an unreviewed version %j fails closed",
   async (version) => {
     const r = await readDiagnostics(withVersion(version));
@@ -103,3 +106,18 @@ test.each(["v5.0.0-patch-1", "v5.2.0", "v5.1.3", "v5.1.10", "v5.1.0 ", "", null,
     });
   },
 );
+
+// Session AJ (ADR-035 D1, P3, A3): v6.0 verifies and names the network's base fee, read at the same check.
+test.each(["v6.0.0", "v6.0.3"])("the v6 line %s verifies and names the base fee", async (version) => {
+  const r = await readDiagnostics(withVersion(version));
+  expect(r.rest).toEqual({ ok: true, detail: `Verified zig-test-2 · azig · 18 decimals · ${version} · base fee 2.5 Gazig per gas` });
+});
+test("a v6 node that cannot give its base fee is not healthy for signing", async () => {
+  const r = await readDiagnostics((async (url: string | URL) =>
+    String(url).includes("base_fee") ? new Response("{}", { status: 501 }) : withVersion("v6.0.0")(url)) as typeof fetch);
+  expect(r.rest).toEqual({ ok: false, detail: "Verified zig-test-2 · azig · 18 decimals · v6.0.0 · the network fee could not be read. Try again later." });
+});
+test.each(["v6.1.0", "v7.0.0"])("a newer line %s says the network was upgraded and names the version", async (version) => {
+  const r = await readDiagnostics(withVersion(version));
+  expect(r.rest).toEqual({ ok: false, detail: `The network was upgraded; checks are pending. zig-test-2 reports ${version}.` });
+});

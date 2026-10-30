@@ -47,6 +47,8 @@ import {WORKOUTS_KEY} from './workouts/schema';
 import {showcaseWorkouts} from './workouts/showcase';
 import {MONEY_LOG_KEY} from './money-log/schema';
 import {showcaseMoneyLog} from './money-log/showcase';
+import {PRICE_ALERTS_KEY} from './price-alerts/schema';
+import {showcasePriceAlerts} from './price-alerts/showcase';
 import {JOURNAL_KEY} from './journal/schema';
 import {showcaseJournal} from './journal/showcase';
 import {ENERGY_KEY} from './energy/schema';
@@ -158,6 +160,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
  records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
+ // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
+ records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
  // Session AI (B3, feature 6): a fictional journal with ZIGi's questions answered, and two weeks of energy ratings.
  records[JOURNAL_KEY]=JSON.stringify(showcaseJournal(day));
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));

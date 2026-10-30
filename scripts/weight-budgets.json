@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "about": "Session W Part 22: gzip (level 6) of the scripts each page loads in a production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED), measured by scripts/check-weight-budget.mjs. main = main 1063765; budget = the latest release measurement plus about 5 kB (Session X Part 5c lowered every budget to its measurement; Session X P2.3 lowered Today, Staking and Activity after Today's diet; docs/performance/SESSION_X_PERFORMANCE.md). Raise a budget only with the reason in the same change. Session AE (2026-10-17): every budget raised by 10 %, rounded up to the next kB, by the owner (rule A of the Session AE brief, ADR-027), so new features, design and motion have room; big new pieces still load on demand. Session AF (2026-10-19, ADR-028 H96): the owner-approved lines for the new routes /app/earn, /app/checklist, /app/governance, /app/wealth/add-money (+ /back), /app/timeline and /app/stories, and for /app/journey (an existing route without a line that Session AF makes heavier, H79), each measured on the merged build plus 10 %, rounded up to the next kB; no existing line moved. Session AI (2026-10-28, ADR-034): lines for its two new routes, /app/journal (416.2 kB) and /app/zigi/memory (405.7 kB), each measured on the session's production build plus 10 %, rounded up to the next kB (the Session AE rule); no existing line moved.",
+  "about": "Session W Part 22: gzip (level 6) of the scripts each page loads in a production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED), measured by scripts/check-weight-budget.mjs. main = main 1063765; budget = the latest release measurement plus about 5 kB (Session X Part 5c lowered every budget to its measurement; Session X P2.3 lowered Today, Staking and Activity after Today's diet; docs/performance/SESSION_X_PERFORMANCE.md). Raise a budget only with the reason in the same change. Session AE (2026-10-17): every budget raised by 10 %, rounded up to the next kB, by the owner (rule A of the Session AE brief, ADR-027), so new features, design and motion have room; big new pieces still load on demand. Session AF (2026-10-19, ADR-028 H96): the owner-approved lines for the new routes /app/earn, /app/checklist, /app/governance, /app/wealth/add-money (+ /back), /app/timeline and /app/stories, and for /app/journey (an existing route without a line that Session AF makes heavier, H79), each measured on the merged build plus 10 %, rounded up to the next kB; no existing line moved. Session AI (2026-10-28, ADR-034): lines for its two new routes, /app/journal (416.2 kB) and /app/zigi/memory (405.7 kB), each measured on the session's production build plus 10 %, rounded up to the next kB (the Session AE rule); no existing line moved. Session AJ (2026-10-30, ADR-035): a line for its new route /app/guided (Guided journeys), measured at 423.5 kB on the production build plus 10 %, rounded up to the next kB; no existing line moved.",
   "pages": {
     "/app": {"main": 616920, "budget": 567000},
     "/app/goals": {"main": 515136, "budget": 478000},
@@ -23,7 +23,8 @@
     "/app/timeline": {"main": null, "budget": 472000},
     "/app/stories": {"main": null, "budget": 477000},
     "/app/journal": {"main": null, "budget": 458000},
-    "/app/zigi/memory": {"main": null, "budget": 447000}
+    "/app/zigi/memory": {"main": null, "budget": 447000},
+    "/app/guided": {"main": null, "budget": 466000}
   },
   "shell": {"main": 491608, "budget": 447000}
 }

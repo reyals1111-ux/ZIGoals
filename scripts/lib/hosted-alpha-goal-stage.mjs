@@ -3,6 +3,7 @@
 // build on every pull request: when the goal wizard or the goal page changes, that spec fails instead of the owner's live
 // check going stale unnoticed. Browser-local only: a local simulation goal named by fictional sentinels; no wallet, no
 // signature, nothing written to a server. `expect` is Playwright's, passed in by the caller.
+import {typeGoalName} from '../run11/goal-name.mjs';
 
 export const GOAL_SENTINELS = Object.freeze({
   name: 'M5_FICTIONAL_GOAL_81f3c7',
@@ -34,7 +35,8 @@ export async function createFictionalGoal(page, expect, {name = GOAL_SENTINELS.n
   await page.getByRole('navigation', {name: 'Quick add actions'}).getByRole('link').filter({hasText: 'Goal'}).click();
   await page.getByText('Personalize artwork and notes (optional)', {exact: true}).click();
   await page.getByRole('group', {name: 'Category / artwork'}).getByRole('radio', {name: 'Travel', exact: true}).check();
-  await page.getByLabel('Goal name', {exact: true}).fill(name);
+  // Session AJ (item 11): the Goal-name race's helper (scripts/run11/goal-name.mjs) types until the field holds the name.
+  await typeGoalName(page, name);
   await page.getByLabel('Target amount').fill(target);
   await page.getByRole('button', {name: 'Continue →', exact: true}).click();
   await page.getByLabel('ZIGoals funding / Local simulation', {exact: true}).check();

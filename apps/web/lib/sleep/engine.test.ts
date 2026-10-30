@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {addDays, formatMinutes, instantAt, wallClock, zoneOffsetMinutes} from '../zone-time';
 import {emptySleep, type Sleep} from './schema';
-import {asleep, bedClock, clockFromNoon, consistency, dailySeries, deleteNight, endNight, inBedMinutes, nightDay, runningNights, saveNight, setSleepGoal, shortNights, sleepDebt, startNight, summary} from './engine';
+import {asleep, bedClock, clockFromNoon, consistency, dailySeries, deleteNight, endNight, inBedMinutes, nightDay, runningNights, saveNight, setSleepGoal, shortNights, sleepBalance, balanceWords, sleepDebt, startNight, summary} from './engine';
 
 const BXL = 'Europe/Brussels', NY = 'America/New_York';
 const at = (iso: string) => new Date(iso);
@@ -108,6 +108,21 @@ describe('the sleep engine', () => {
     expect(sleepDebt(s, '2026-10-07')!.minutes).toBe(90 - 180);
     expect(setSleepGoal(s, null, at('2026-10-07T08:00:00Z')).goal).toBeUndefined();
     expect(() => setSleepGoal(s, {minutes: 480, bedFrom: '22:30'}, at('2026-10-07T08:00:00Z'))).toThrow();
+  });
+  // Session AJ (item 26): the 14-night balance, in kind words, never "debt".
+  test('sleep balance: the average gap to the goal over the logged nights of 14 days, from 5 nights on, in kind words', () => {
+    let s = setSleepGoal(emptySleep(), {minutes: 480}, at('2026-09-20T08:00:00Z'));
+    for (const d of ['2026-09-25', '2026-09-28', '2026-10-01', '2026-10-03']) s = night(s, d, '23:00', '06:30', {latencyMin: 0, awakeMin: 0});
+    expect(sleepBalance(s, '2026-10-07')).toBeNull(); // 4 nights
+    s = night(s, '2026-10-06', '22:00', '06:30', {latencyMin: 0, awakeMin: 0});
+    const b = sleepBalance(s, '2026-10-07')!;
+    expect(b).toEqual({perNight: Math.round((4 * -30 + 30) / 5), nights: 5, goal: 480});
+    const words = (m: number) => `${m} min`;
+    expect(balanceWords(b, words)).toBe('About 18 min under your goal a night');
+    expect(balanceWords({perNight: 9, nights: 5, goal: 480}, words)).toBe('Right around your goal');
+    expect(balanceWords({perNight: 25, nights: 5, goal: 480}, words)).toBe('About 25 min above your goal a night');
+    for (const w of [balanceWords(b, words), balanceWords({perNight: -200, nights: 9, goal: 480}, words)]) expect(w).not.toMatch(/debt|owe|deficit/i);
+    expect(sleepBalance(setSleepGoal(s, null, at('2026-10-07T08:00:00Z')), '2026-10-07')).toBeNull();
   });
   test('consistency: the standard deviation of bedtimes over 14 days, only from 4 nights on', () => {
     let s = emptySleep();

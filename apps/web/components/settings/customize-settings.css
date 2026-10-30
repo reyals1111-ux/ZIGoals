@@ -1,0 +1,12 @@
+/* Session AJ (item 32, D5): Settings → Appearance → Customize. Layout only and theme variables (the radios are the app's
+   own, app/globals.css), so it reads the same in every theme. */
+.customize-settings { margin-top: 28px; }
+.customize-settings > h2 { margin-bottom: 4px; }
+.customize-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; margin: 14px 0 18px; }
+.customize-group { min-width: 0; margin: 0; padding: 8px 16px 14px; border: 1px solid var(--line); border-radius: 16px; }
+.customize-group legend { padding: 0 6px; font-weight: 650; }
+.customize-options { display: flex; flex-wrap: wrap; gap: 4px 24px; }
+/* A row of its own: the app's global `label` rule stacks a label's children in a column. */
+.customize-option { flex-direction: row; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; font-size: 15px; }
+.customize-note { display: block; margin-top: 4px; font-size: 14px; line-height: 1.45; color: var(--text-muted); }
+.customize-reset { min-height: 44px; }

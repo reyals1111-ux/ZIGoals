@@ -31,7 +31,7 @@ test('a real durable alarm completes an interrupted authorized deletion without 
 },90000);
 test('durable deletion intent fences writers and resumes a lost authority acknowledgement after restart',async()=>{
  const persist=await mkdtemp(join(tmpdir(),'run11-domain-intent-'));let lost=false;
- const lifecycleService=async(request,mf)=>{const ns=await doProbe(mf),res=await ns.get(ns.idFromName(ACCOUNT)).fetch(request);if(request.method==='POST'&&res.ok&&!lost){lost=true;await res.body?.cancel();throw Error('Synthetic lost authority acknowledgement');}return res;};
+ const lifecycleService=async(request,mf)=>{const ns=await doProbe(mf),res=await ns.get(ns.idFromName(ACCOUNT)).fetch(request);if(request.method==='POST'&&res.ok&&!lost){lost=true;/* Session AJ (item 13): the authority's answer is read in full, then lost. Cancelling its body mid-stream (as before) could leave workerd's service-binding stream hanging until the 30 s limit; the caller still never sees the acknowledgement. */await res.arrayBuffer();throw Error('Synthetic lost authority acknowledgement');}return res;};
  let mf=await createPrivateMiniflare({persist,lifecycleService});const call=(path,body)=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken('owner'),'x-zigoals-account':ACCOUNT,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
  try{
   await call('/v1/sessions',{action:'register',label:'Owner'});const v=await createVault();await call('/v1/vault',{protocol:1,vault:v.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:v.manifest});

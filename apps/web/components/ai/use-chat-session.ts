@@ -204,7 +204,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
     const personality = (() => { try { return zigiPersonality(readDeviceRecord(getAppStorage(), ZIGI).data); } catch { return 'calm' as const; } })(); // Session AI (mascot)
-    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate(), personality};
+    // Session AJ (item 9): the device's own time zone goes with the today line (DST nights, "last night" across a change).
+    const timeZone = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return undefined; } })();
+    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate(), personality, ...(timeZone ? {timeZone} : {})};
     // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
     const risk = detectRisk(text);
     const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);

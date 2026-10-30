@@ -1,0 +1,4 @@
+/* Session AJ (item 34, A7): the Guided journeys link. Layout only (its colours are the app's own .text-link and .fine). */
+.guided-link { display: grid; gap: 2px; margin: 0; min-width: 0; }
+.guided-link > a.text-link { display: inline-flex; align-items: center; justify-self: start; min-height: 44px; }
+.guided-link-line { font-size: 15px; }

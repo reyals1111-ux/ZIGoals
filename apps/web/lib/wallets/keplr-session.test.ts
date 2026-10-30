@@ -54,8 +54,19 @@ describe('verifyRpcIdentity', () => {
   });
   test('fails closed on the other network, an unreviewed version or a refused answer', async () => {
     await expect(verifyRpcIdentity('real', rpc('zig-test-2', 'v5.1.2').fetcher)).rejects.toThrow(NETWORK_CHANGED);
-    await expect(verifyRpcIdentity('real', rpc('zigchain-1', 'v5.1.0').fetcher)).rejects.toThrow(NETWORK_CHANGED);
+    // Session AJ (D1): v5.1.0 on mainnet is now a reviewed patch of v5.1; an older line still fails closed.
+    await expect(verifyRpcIdentity('real', rpc('zigchain-1', 'v5.0.9').fetcher)).rejects.toThrow(NETWORK_CHANGED);
+    await expect(verifyRpcIdentity('practice', rpc('zig-test-2', 'v6.0.0-rc1').fetcher)).rejects.toThrow(NETWORK_CHANGED);
     await expect(verifyRpcIdentity('practice', (async () => new Response('', {status: 502})) as unknown as typeof fetch)).rejects.toThrow('did not answer');
+  });
+});
+describe('verifyRpcIdentity on v6 (Session AJ, ADR-035 D1)', () => {
+  const rpc = (network: string, version: string) => (async (url: string) => Response.json(url.endsWith('/status') ? {result: {node_info: {network}}} : {result: {response: {version}}})) as unknown as typeof fetch;
+  test('v6.0.x passes on both networks; a newer line fails closed in D1\'s words', async () => {
+    await expect(verifyRpcIdentity('practice', rpc('zig-test-2', 'v6.0.0'))).resolves.toBe('v6.0.0');
+    await expect(verifyRpcIdentity('real', rpc('zigchain-1', 'v6.0.3'))).resolves.toBe('v6.0.3');
+    for (const [network, chainId] of [['practice', 'zig-test-2'], ['real', 'zigchain-1']] as const) for (const v of ['v6.1.0', 'v7.0.0'])
+      await expect(verifyRpcIdentity(network, rpc(chainId, v))).rejects.toThrow('The network was upgraded; checks are pending.');
   });
 });
 describe('the tab session and the phone link', () => {

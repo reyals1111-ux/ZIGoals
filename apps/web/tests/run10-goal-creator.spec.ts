@@ -1,8 +1,9 @@
 import {test,expect} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 test('Goal type cards keep shared details and confirm incompatible fields before clearing them',async({page},info)=>{
  await page.goto('/app/goals/new');
  await expect(page.getByRole('radio',{name:'Quantity',exact:true})).toBeChecked();
- await page.getByLabel('Goal name',{exact:true}).fill('My next chapter');await page.getByLabel('Target amount',{exact:true}).fill('250');
+ await typeGoalName(page, 'My next chapter');await page.getByLabel('Target amount',{exact:true}).fill('250');
  await page.getByRole('radio',{name:'Project',exact:true}).check();
  const confirmation=page.getByRole('region',{name:'Confirm Goal type change'});await expect(confirmation).toContainText('target');await confirmation.getByRole('button',{name:'Keep current type'}).click();await expect(page.getByLabel('Target amount',{exact:true})).toHaveValue('250');
  await page.getByRole('radio',{name:'Project',exact:true}).check();await confirmation.getByRole('button',{name:'Change type'}).click();await expect(page.getByLabel('Goal name',{exact:true})).toHaveValue('My next chapter');await expect(page.getByLabel('Target amount',{exact:true})).toHaveCount(0);await expect(page.getByLabel('Milestones, one per line')).toBeVisible();
@@ -15,7 +16,7 @@ test('short Goal flow creates all four types with an honest live preview',async(
   await page.goto('/app/goals/new');
   const preview=page.getByRole('region',{name:'Goal preview'});
   await expect(preview).not.toContainText('Choose a target ZIG');
-  await page.getByLabel('Goal name',{exact:true}).fill(name);
+  await typeGoalName(page, name);
   if(type!=='Quantity')await page.getByRole('radio',{name:type,exact:true}).check();
   if(type==='Project')await page.getByLabel('Milestones, one per line').fill(target);
   else{await page.getByLabel('Target amount',{exact:true}).fill(target);if(type==='Value')await page.getByRole('radio',{name:/EUR · Euro/}).check();else await page.getByLabel('Goal asset',{exact:true}).fill(asset);}

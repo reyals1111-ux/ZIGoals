@@ -12,6 +12,8 @@ import {keepWords} from '../today/keep-words';
 import {UniverseCelebration} from './universe-celebration';
 import {planetLabel, planetSummary} from './planet-words';
 import {useUniverse} from './use-universe';
+import {LifeScorePanel} from './life-score';
+import {GuidedJourneysLink} from '../guided/guided-link';
 import './universe.css';
 
 /**
@@ -59,6 +61,10 @@ export function UniverseSection() {
       </li>)}</ul>
       {discovery && (discovery.ready[0] ? <div className="universe-discovery" role="note" aria-label="Discovery"><p className="eyebrow">Discovery · {discovery.ready[0].title}</p><p>{discovery.ready[0].sentence}</p><p className="fine">Seen together in your own records over the last 90 days, never a cause.</p></div>
         : discovery.pending[0] && <div className="universe-discovery is-pending" role="note" aria-label="Discovery"><p className="eyebrow">A discovery is forming</p><p>{discovery.pending[0].title}: {Math.min(discovery.pending[0].withA, CROSS_MIN_PER_SIDE)} and {Math.min(discovery.pending[0].withoutA, CROSS_MIN_PER_SIDE)} of the {CROSS_MIN_PER_SIDE} days on each side it needs.</p></div>)}
+      {/* Session AJ (item 29, D10): the Life Score, opt-in. */}
+      {state.input && <LifeScorePanel input={state.input} />}
+      {/* Session AJ (item 34, A7) */}
+      <GuidedJourneysLink />
       <div className="universe-actions">
         <button type="button" className="secondary" disabled={busy || universe.empty} onClick={() => void share()}>Share my universe</button>
         <p className="fine">The image is drawn on this device and shows counts only: no amount, price or return. Light fills each day: all habits due, three kinds of Health log, a goal moved, money moved or checked.</p>

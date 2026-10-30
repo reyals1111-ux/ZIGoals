@@ -44,3 +44,14 @@ export function setMood(health: HealthData, day: string, mood: number, at: strin
   const days = newest({...current.days, [day]: {...current.days[day], mood, at}}, MAX_MOOD_DAYS);
   return withHealthGroup(health, 'moods', moodsSchema.parse({...current, days}), false);
 }
+/**
+ * Session AJ (item 10): the day's short note beside its mood (the morning check-in v2; the same field the wrap-up writes).
+ * A note belongs to a mood, so a day without one keeps no note; an empty note removes it. At most 280 characters.
+ */
+export function setMoodNote(health: HealthData, day: string, note: string, at: string): HealthData {
+  const current = healthGroupIn(health, 'moods') ?? emptyMoods(), existing = current.days[day];
+  if (!existing) throw new Error('Choose how the day feels first; the note goes with it.');
+  const text = note.trim().slice(0, 280), {note: _old, ...rest} = existing; void _old;
+  const days = {...current.days, [day]: {...rest, ...(text ? {note: text} : {}), at}};
+  return withHealthGroup(health, 'moods', moodsSchema.parse({...current, days}), false);
+}

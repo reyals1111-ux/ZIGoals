@@ -1,7 +1,7 @@
 import {addLocalDays} from '../local-date';
 import type {HealthData} from '../health';
 import {dailyHealthSummary} from '../health';
-import {weightTrend} from './trend';
+import {RATE_WINDOW_DAYS, weeklyRateOf} from './trend';
 
 /**
  * N1: an adaptive estimate of daily energy expenditure (the MacroFactor idea): over a rolling window, the mean logged
@@ -9,19 +9,22 @@ import {weightTrend} from './trend';
  * day and lost 0.3 kg a week expends about 2,530. It needs about two weeks of logs (14 logged days and 6 readings)
  * before it shows, carries a confidence band from the day-to-day spread of intake, and is always labelled an estimate,
  * never medical advice. Unknown is never zero: a day without a diary entry is left out, not counted as fasting.
+ * Session AJ (item 25): one trend for every view. The weight change now comes from the same weekly rate the trend card,
+ * the coach and the highlights show (the 28-day least-squares slope, lib/health-aa/trend.ts), not from the smoothed line's
+ * two ends, which lagged behind it; and it needs 10 weigh-ins in the window (was 6), so one odd reading moves it less.
  */
-export const KCAL_PER_KG = 7700, ENERGY_WINDOW_DAYS = 28, ENERGY_MIN_LOGGED_DAYS = 14, ENERGY_MIN_WEIGHTS = 6;
+export const KCAL_PER_KG = 7700, ENERGY_WINDOW_DAYS = RATE_WINDOW_DAYS, ENERGY_MIN_LOGGED_DAYS = 14, ENERGY_MIN_WEIGHTS = 10;
 export type EnergyEstimate = {ready: boolean; /** The logs read as incomplete (HE2). */ implausible?: boolean; loggedDays: number; weights: number; expenditure: number | null; low: number | null; high: number | null; meanIntake: number | null; weeklyChangeGrams: number | null; windowDays: number};
 export function energyEstimate(data: HealthData, today: string): EnergyEstimate {
   const first = addLocalDays(today, -(ENERGY_WINDOW_DAYS - 1));
   const intakes: number[] = [];
   for (let i = 0; i < ENERGY_WINDOW_DAYS; i++) { const date = addLocalDays(first, i); const s = dailyHealthSummary(data, date); if (s.entries > 0 && s.nutrients.kcal !== null) intakes.push(s.nutrients.kcal); }
   const weights = data.weights.filter(w => w.date >= first && w.date <= today).length;
-  const trend = weightTrend(data, today, ENERGY_WINDOW_DAYS);
-  const ready = intakes.length >= ENERGY_MIN_LOGGED_DAYS && weights >= ENERGY_MIN_WEIGHTS && trend.points[0]!.trend !== null && trend.latestTrend !== null;
+  const rate = weeklyRateOf(data.weights, today);
+  const ready = intakes.length >= ENERGY_MIN_LOGGED_DAYS && weights >= ENERGY_MIN_WEIGHTS && rate !== null;
   if (!ready) return {ready: false, loggedDays: intakes.length, weights, expenditure: null, low: null, high: null, meanIntake: null, weeklyChangeGrams: null, windowDays: ENERGY_WINDOW_DAYS};
   const mean = intakes.reduce((a, b) => a + b, 0) / intakes.length;
-  const changeGrams = trend.latestTrend! - trend.points[0]!.trend!;
+  const changeGrams = rate! / 7 * ENERGY_WINDOW_DAYS;
   // Session AH (HE2, B-088, N-035): no advice from logs that cannot be a person's real month — an average intake outside
   // 800–6,000 kcal or a trend faster than 1.5 kg a week reads as incomplete, not as an estimate.
   if (mean < 800 || mean > 6000 || Math.abs(changeGrams / ENERGY_WINDOW_DAYS * 7) > 1500) return {ready: false, implausible: true, loggedDays: intakes.length, weights, expenditure: null, low: null, high: null, meanIntake: null, weeklyChangeGrams: null, windowDays: ENERGY_WINDOW_DAYS};

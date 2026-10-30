@@ -1,3 +1,70 @@
+# Session AJ — "The Big Leap" (ADR-035) (2026-10-29/30, `feature/session-aj-big-leap`, [PR #98](https://github.com/reyals1111-ux/ZIGoals/pull/98); complete, not merged, not deployed)
+**Base:** `main` `65d0b85` (Merge #97, Session AI; live as Alpha #51). **Rules (owner):** the brief (Parts 0–10, items 1–36 without item 7, D1–D15), the approved plan and the owner amendments A1–A9 (ADR-035). One plan, one approval; no owner step during the session.
+
+## Part 0 — records (owner-reported, 28 Oct)
+- **Session AI** merged into `main` as `65d0b85` ([PR #97](https://github.com/reyals1111-ux/ZIGoals/pull/97)) and deployed as **Alpha #51**: Manual Alpha deployment run 54 (about 22:05 Brussels); version `8c844fee-8b60-4ce0-b6f4-8d00bc7543fa`, rollback `b5584cde-37a7-4756-8047-229f4a6c533e` (#50); VERIFIED, live prices VERIFIED. Rollback floor #32. Run numbers run three ahead of the Alpha count: the next deploy is run 55 = #52.
+- **Market policy** with two windows, set through `make-private-configs --set-market-policy`; the coordinator `zigoals-acctest-market-coordinator` redeployed: version `a0255b95-95ba-4485-952f-32d2c960a563`, rollback `3729a3cb-b25e-493a-bfce-02e0157da632`. Window 1 ends 2026-10-31 16:00 UTC, then it switches itself to window 2, which ends 2026-11-30 16:00 UTC; `dailyRowBudget` 100000.
+- **Landing** `zigoals` deployed from `65d0b85`: 5 files (index, privacy, terms, legal.css, final-v5.css); version `8708970d-270f-4383-bc58-0e3e713f481f`, rollback `5397cf67-dd5e-4344-bc1c-d71537768a6f`; `/`, `/privacy` and `/terms` answer 200 with the full header set; `/_headers` answers 404.
+- **Hosted verifier on #51:** stages 1–3 PASS (the policy line read "…ending 2026-11-30T16:00:00.000Z (32 days left)"); stage 4 (Connection diagnostics) FAIL: zig-test-2's node_info reports `zigchaind v6.0.0`, while the app accepts only v5.1.0–v5.1.2; RPC healthy. → Part 1.
+- **`activation-check --private`** reported "private: a template var is missing" for the private-sync owner copy. → item 4 (Part 1).
+- **ZIGChain mainnet (read live 29 Oct, A2):** zigchain-1 is on v5.1.2; on-chain proposal #45 "Software Upgrade to v6" (voting until 2 Nov 10:48 UTC) schedules v6.0.0 at height 13,466,800, about Tue 3 Nov 09:30 UTC — while this session runs. ADR-035 P2/P3.
+- Frozen readers are #37–#51 from now on (`scripts/frozen-readers.mjs`, #51 = `65d0b85`).
+
+**Evidence labels:** unit = vitest from the repository root; local = this cloud sandbox (Node 22 against the project's 24), Playwright's Chromium as the Chrome channel, at most 2 workers, one run at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101); CI = Milestone quality on the PR. No API key was used in this session (no real-model run; `docs/research/session-aj/REAL_MODEL_TODO.md` lists the cases for the owner's next run).
+
+Decisions: `docs/architecture/ADR-035-session-aj.md` (P1–P26, the verify-then-do table and the closing table for every item). Research: `docs/research/session-aj/` (ZIGChain v6 notes, companions, fitness sync, food sources, chess overlay, real-model to-do). A8 list: `docs/architecture/session-aj/A8_REOPENED.md`. Resume file: `docs/handoff/AJ_RESUME.md`.
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records (above), ADR-035, the resume file, Draft PR #98, frozen readers #37–#51 | 1 | `11fb8fd8` | — |
+| 1 | ZIGChain v6: one reviewed-versions rule (D1); the v6 base fee read at each quote, the signed fee is the reviewed fee (A1, A2); voting copy (P4); verifier stage 4 base fee (A3) and stage 7 (item 3); activation-check names missing vars (item 4); the Staking connect error (P11) | 3 (chain config, wallet, verifier, activation tooling) | `5754e43b`, `dffab5ee`, `1359caeb`, `7f2fac82`, `a9de4e77` | unit, live reads, CI |
+| 2 | Goal-name fills (11), the checklist clock (12), the intermittents at their cause (13, P12), `qs` 6.16.1 (14) | 1 / 3 (dependency) | `32e37f7c`, `b187118e`, `0ded7bae`, `c77fa396`, `3981aed5`, `ca1568e0` | unit, local, CI |
+| 3 | ZIGi: the owner's decisions pinned (8), the open real-model gaps fixed for the device (9), the daily check-in v2, honest insight confidence, eight pairings, the mascot (10, D14) | 1 / 3 (stored format) | `612d0441`, `0c62bba8`, `50169562`, `cc22456c` | unit, local, CI |
+| 4 | Wealth: the slim versioned catalog (5, D8, A4), history by source (6, D7), price alerts (15, D9), trader tools (30, D11), watch a Bitcoin wallet by xpub (36, D2b, A5) | 3 (stored format, dependency) | `613a3a28`, `c8df9714`, `ed583b26`, `46d37acf`, `d5649595`, `326ff45a`, `78886d80`, `e4f9add4`, `1a55c97a`, `abbaa5d1` | unit, frozen readers, local, CI |
+| 5 | Health: one trend and a maintenance estimate (25), sleep balance (26), GPX/TCX import with a strict XML reader (27, D12), the focus window (28), the Swiss food database (22) | 3 (stored format, egress routes) | `7712703c`, `7cdd93db`, `dcd5c1da` | unit, local, CI |
+| 6 | Life Score (29, D10), Focus Sessions and Guided Journeys (34, D13, A7), a habit's everyday time on every device (35) | 3 (stored format, auth/sync) | `7712703c`, `db25f9d2`, `77747265`, `581bae14` | unit, frozen readers, local, CI |
+| 7 | One notice (17, D4, already true), backup anchors (19), undo from Activity (18), the wizard's skip link (20), contrast and tables (21), the reopened M41/M43/M47 and AF13/H3 items (24, A8), Earn's Start here in the orbit look (16, D3), Customize (32, D5) | 1 / 3 (stored format) | `d5339e88`, `39203e7f`, `a804f02a`, `b8be8fa5`, `725d8160`, `8f2807f0` | unit, local, CI |
+| 8 | Guide phase 2 and "Ask ZIGi about this" (33, D6); chess overlay research (31) | 1 | `ffa78ad2`, `eae8a0f8` | unit |
+| 9 | Landing lines checked against the app; privacy and terms (23) | 1 | `17e5bd8f` | landing specs |
+| 10 | What's new and Help, Erase everything and the A6 coverage test, PRIVACY.md for AH/AI/AJ, known limitations, the CI and sweep fixes, the closing table | 1 | `cf2f53ea`, `b0439a4d`, `fe0b600b`, `d8623fc8`, `50a6e2a9`, `df6c8c64`, `51a3f94e`, `2ee8251c`, `8196bdb8` | unit, local, CI |
+
+## Tier 3, in plain words (risk → rollback)
+- **Chain config (`5754e43b`):** one reviewed-versions table: any patch of v5.1 and v6.0 passes; a newer minor or major says "The network was upgraded; checks are pending" and nothing signs. *Risk:* a node reporting an odd version string is refused. *Rollback:* revert; the app goes back to v5.1.0–v5.1.2 only (Staking on zig-test-2 then refuses, as on Alpha #51).
+- **Wallet (`dffab5ee`):** on v6 the quote reads the base fee at quote time and uses max(floor, base fee × 1.5) per gas; the fee shown on the review sheet is the fee Keplr signs (`preferNoSetFee`); v5 quotes are byte-identical; no base fee on v6 → "Nothing was signed." No message, key or sign-mode change; no AI can sign. *Rollback:* revert with the chain-config commit.
+- **Verifier (`1359caeb`):** stage 4 prints the base fee and accepts v5.1.x/v6.0.x; stage 7 drops the pre-#50 landing set. *Rollback:* revert.
+- **Activation tooling (`7f2fac82`):** names each missing template variable (names, never values); `--add-missing-template-vars` copies only the template's default. *Rollback:* revert.
+- **Dependency (`c77fa396`, `78886d80`):** `express>qs` 6.16.1 (an override, dev/deploy tooling only); `@scure/bip32` 1.7.0 declared directly (already in the lockfile; nothing new downloaded). *Rollback:* revert each.
+- **Stored format (all additive and loose; in Export everything, restore, Erase everything and the catalog; frozen readers #37–#51 PASS, `docs/verification/session-aj/frozen-readers-part4.txt` and `frozen-readers-final.txt`):** `zigoals:market-catalog-v1` (IndexedDB, device-only), `zigoals:reading-sources:v1`, `zigoals:price-alerts:v1`, the xpub store `zigoals-xpub-v1` (never exported or synced), ui-prefs groups `trader`, `lifeScore`, `focusWindow`, `look`, workouts' optional `imported`, `zigoals:focus-sessions:v1`, `zigoals:guided-journeys:v1`, the check-in v2 fields, habit-extras' optional `times`. *Rollback:* revert the feature; older builds keep or ignore every one (proven).
+- **Auth/sync (`db25f9d2`):** the `times` map rides the existing encrypted extras sync; the strict synced habit format is untouched. *Rollback:* revert; the map stays in the record, unused.
+- **Egress routes (`dcd5c1da`):** the food Worker gains `/search` on the Swiss food database (FSVO), allow-listed, rate-limited, with the source named on each result; `egress-policy.json` and PRIVACY.md updated. *Rollback:* revert; the Worker deploy is the owner's.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each change is named in its commit. Moved with product changes at equal strength: Help's topics (nineteen, the "aj" topic) and its in-sentence link count 39 → 43 (Known limitations' four links, the spec's own rule); the What's new release pin and positions; page titles (`/app/guided`); send-feedback's count; `wallet-menu.test`'s list. Made robust at their cause, every check unchanged: the undo fixture's past times, the Customize first-paint watcher, For you's mount before "Show more", the tasks-ai settle before leaving Today, What's new's budget 90 → 120 s for its twelfth visit. Strengthened: the contrast scanner reads `color(srgb …)` and four pages joined it (`/app/guided`, `/app/journey`, `/app/earn`, `/app/habits`), finding two misses that are fixed; theme parity gains a 'customized' state; the A6 coverage test fails on any key or database not erased, exported or catalogued.
+
+## Evidence (final head)
+- **Unit:** all pass in CI; in this sandbox 5,064 passed with the four sandbox-only failures (visual-format ja-JP, finance-homes ×3), as in earlier sessions.
+- **Frozen readers:** #37 `32cb9c5` … #51 `65d0b85` PASS, the fixture carrying every Part 4–7 format.
+- **Local browser (production build):** the session's specs and the touched areas — activity, customize, help, page titles, checklist phone, ZIGi page awareness, earn (path, hub, plain words, polish2), What's new, a11y-wcag-x (all), theme parity (59), landing and settings (103), the AJ feature specs — pass.
+- **Audit:** `pnpm audit` (all dependencies) and `--prod --audit-level high`: no known vulnerabilities.
+- **Alpha gate:** build:alpha, check:alpha, the packaged contracts and the Workers security gate pass in CI.
+- **CI:** on `8196bdb8` (run 40995396865), the last code change, every job finished green — checks (lint, types, unit, build, audit, secret scan), contract, integration with page weights, the Alpha gate, browser shards 1 and 3–6, both WebKit shards, canonical reproducibility — while shard 2 was still running when this documents-only commit was pushed and restarted the run. The full run on this head is on the PR; the PR leaves Draft only once it is green.
+
+## Weights (gzip; budgets never raised for existing pages)
+Today 548.2 of 567.0 kB, Settings 502.1 of 531.0, the shell 407.1 of 447.0, Earn 469.2 of 496.0, Journey 453.9 of 488.0; the new route `/app/guided` 423.7 of its own 466.0 (measured + 10 %, `581bae14`); every page within its line.
+
+## Closing table summary (ADR-035)
+Every item 1–36 has a row: built, or already done and pinned (8, 17); item 7 (J14 Bitpanda/Bitvavo) excluded by the owner. Amendments A1–A9 each land in their item. Catalog measured (P16): 4.5 MB / 1.52 MB gz → 0.78 MB / 0.31 MB gz.
+
+## Owner follow-ups (A9) and open items
+- After #52 is deployed: one practice delegate and claim on zig-test-2, to see the v6 fee on the review sheet.
+- After zigchain-1's upgrade (proposal #45, height 13,466,800, about Tue 3 Nov 09:30 UTC): one small real delegate and claim, to confirm the v6 fee there.
+- The food Worker redeploy (FSVO search), the landing deploy (item 23), the real-model run (`REAL_MODEL_TODO.md`).
+- Known CI intermittents: the WebKit navigation stall (`zigi-memory:188`, "Return to my data"; seen once on `df6c8c64`, passed on `8196bdb8`), as recorded in earlier sessions. This session fixed at their cause: `checklist-overlay-af:425/578`, `coherence:25`, `account-browser`, `zigi-local-answers:32`, `execute.test.ts:116`, `domain-review-race:41`, `run9-2-product:30`, the WebKit "ZIGi box empty" class and `zigi-knock:60/105` (P12), and `tasks-ai` SE5's aborted goto.
+- Not merged, not deployed: the owner merges and deploys.
+
+---
+
 # Session AI — "ZIGi, the best companion" (ADR-034, Tracks A and B) (2026-10-28, `feature/session-ai-zigi`, [PR #97](https://github.com/reyals1111-ux/ZIGoals/pull/97); not merged, not deployed)
 **Evidence labels:** unit = vitest from the repository root; local = the owner's Mac (Node 22 against the project's 24), Chrome headless (Playwright's Chrome channel), at most 2 workers, one run at a time, against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`, :3103); real model = the Anthropic API on the owner's credits through `apps/web/lib/ai/evals/real-model.test.ts`, the key read from its 0600 file by the harness only (N6); frozen readers = `scripts/frozen-readers.mjs` over releases #37–#50; CI = Milestone quality on the PR.
 **Base:** `main` `80570b5` (Alpha #50). **Rules (owner):** the brief (Track A real-model testing under a $95 cap with a $7 reserve; Track B every ZIGi fix, nine features and the mascot, Session AH's upgrade list and the competitor gaps, a final sweep), the approved plan and four owner amendments (ADR-034). One plan, one approval; no owner step during the session.

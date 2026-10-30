@@ -29,6 +29,7 @@ import {AF_ZIGI_DISPLAY_KEYS, AF_ZIGI_PERSONAL_KEYS} from './af-zigi-keys';
 import {AF_EXTRAS_DISPLAY_KEYS, AF_EXTRAS_PERSONAL_KEYS} from './af-extras-keys';
 import {AH_DISPLAY_KEYS, AH_PERSONAL_KEYS} from './ah-device-keys';
 import {AI_PERSONAL_KEYS} from './ai-device-keys';
+import {AJ_PERSONAL_KEYS} from './aj-device-keys';
 // AA-Cloud's six device keys as literals (ADR-022 B53): importing their store modules here would carry every schema into
 // each page that asks "is this device new?"; lib/onboarding.test.ts keeps the literals equal to the stores' constants.
 const GOAL_EXTRAS_KEY = 'zigoals:goal-extras:v1', AVERAGE_GOALS_KEY = 'zigoals:average-goals:v1', CALCULATOR_KEY = 'zigoals:calculator:v1', SEARCH_RECENT_KEY = 'zigoals:search-recent:v1', LIFE_REVIEW_KEY = 'zigoals:life-review:v1', TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
@@ -71,7 +72,7 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
   // Session AH (lib/ah-device-keys.ts): workouts and Portfolio's last-visit note.
   ...AH_PERSONAL_KEYS,
   // Session AI: the expense log, journal, energy, meal ranges, tasks and the Portfolio's side records.
-  ...AI_PERSONAL_KEYS];
+  ...AI_PERSONAL_KEYS, ...AJ_PERSONAL_KEYS];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as

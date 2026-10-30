@@ -50,6 +50,32 @@ export const uiPrefsSchema = z.looseObject({
     nudges: z.boolean().optional().catch(undefined),
     celebratedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
   }).optional().catch(undefined),
+  /**
+   * Session AJ (item 30, D11; TIER 3 (stored format), optional in this loose record): the Portfolio's trader tools, off
+   * unless turned on here (`on`); `tiltHiddenUntil` is the day (YYYY-MM-DD) until which the tilt check stays quiet after
+   * "Not now". Nothing else of the tools is stored. Older builds keep or ignore the group; exported and erased with the rest.
+   */
+  /** Session AJ (item 28; TIER 3 (stored format), optional): `false` hides "Your best focus window today" on Today. */
+  focusWindow: z.boolean().optional().catch(undefined),
+  /** Session AJ (item 29, D10; TIER 3 (stored format), optional): `true` shows the Life Score (My Universe, and Today). */
+  lifeScore: z.boolean().optional().catch(undefined),
+  trader: z.looseObject({
+    on: z.boolean().optional().catch(undefined),
+    tiltHiddenUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
+  }).optional().catch(undefined),
+  /**
+   * Session AJ (item 32, D5; TIER 3 (stored format)): Settings → Appearance → Customize, on this device only. Each field is
+   * optional and stored only when it is not the default (font "system", text "standard", density "comfortable", glow
+   * "full"); a value this build cannot read is dropped on the next write and never makes the record unreadable. Applied
+   * before the first paint by public/theme-boot.js (scripts/themes/build-themes.mjs). Older builds keep or ignore the group;
+   * never synced; exported, restored and erased with the rest of these preferences.
+   */
+  look: z.looseObject({
+    font: z.enum(['system', 'inter']).optional().catch(undefined),
+    textSize: z.enum(['standard', 'large']).optional().catch(undefined),
+    density: z.enum(['comfortable', 'compact']).optional().catch(undefined),
+    glow: z.enum(['full', 'soft']).optional().catch(undefined),
+  }).optional().catch(undefined),
 });
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
 export const emptyUiPrefs = (): UiPrefs => ({version: 1});

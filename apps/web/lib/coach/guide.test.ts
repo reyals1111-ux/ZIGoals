@@ -114,3 +114,25 @@ test('the Showcase data (buildShowcase) gives a fixed, deterministic nudge seque
   }
   expect(sequence).toEqual(['review-ready', 'habits-open', 'habits-open', 'habits-open', 'habits-open', 'habits-open', 'habits-open', 'review-ready', 'habits-open', 'habits-open', 'habits-open', 'habits-open', 'habits-open', 'habits-open']);
 });
+
+// Session AJ (item 33, D6; Guide phase 2): two more notes from the person's own records.
+describe('Guide phase 2: a habit picked up again, and a goal close to its target', () => {
+  test('a habit done again today after three or more scheduled days without it', () => {
+    let data = habits([ids[0]!, input('Walk')]);
+    data = logHabitValue(data, ids[0]!, addLocalDays(TODAY, -5), 1, {}, new Date(AT));
+    data = logHabitValue(data, ids[0]!, TODAY, 1, {}, new Date(AT));
+    expect(guideNudge(base({habits: data, now: morning()}))).toMatchObject({id: `habit-back:${ids[0]}:${TODAY}`, heading: 'Walk is back: done again today after a few days off.', body: 'Picking it up again is what counts.'});
+    let close = habits([ids[0]!, input('Walk')]);
+    close = logHabitValue(close, ids[0]!, addLocalDays(TODAY, -2), 1, {}, new Date(AT));
+    close = logHabitValue(close, ids[0]!, TODAY, 1, {}, new Date(AT));
+    expect(guideNudge(base({habits: close, now: morning()}))?.kind).not.toBe('habit-back'); // one day off: no note
+  });
+  test('a goal at 90 % or more of its target, with what is left; not when reached or needing review', () => {
+    const n = guideNudge(base({now: morning(), goals: [goal({target: '1000', current: '920', progressPct: '92.4', remaining: '80', currency: 'EUR'})]}));
+    expect(n).toMatchObject({id: 'goal-near:private:g1', heading: 'Trip is at 92% of its target.', action: {label: 'Open goal', href: '/app/goals/tracked/g1'}});
+    expect(n?.body).toMatch(/^€80\.00 to go\. The next step is yours to choose\.$/);
+    expect(guideNudge(base({now: morning(), goals: [goal({target: '1000', progressPct: '100', remaining: '0', currency: 'EUR'})]}))?.kind).not.toBe('goal-near');
+    expect(guideNudge(base({now: morning(), goals: [goal({target: '1000', progressPct: '95', remaining: '50', currency: 'EUR', requiresReview: true})]}))?.kind).not.toBe('goal-near');
+    expect(guideNudge(base({now: morning(), goals: [goal({target: '1000', progressPct: '60', remaining: '400', currency: 'EUR'})]}))?.kind).not.toBe('goal-near');
+  });
+});

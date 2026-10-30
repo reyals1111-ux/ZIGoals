@@ -289,12 +289,18 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   await expect(page.getByRole('dialog', {name: /lit!$/})).toHaveCount(0);
 });
 
-/** A longer fictional day: eight custom items across the three orbits. */
-function longDay() {
+/** A longer fictional day: eight custom items across the three orbits, added in the ten days before `now`. */
+function longDay(now = Date.now()) {
   let r = emptyChecklist(); const sections = ['morning', 'morning', 'morning', 'afternoon', 'afternoon', 'evening', 'evening', 'evening'];
-  sections.forEach((section, i) => { r = addCustom(r, {label: `Fictional star ${i + 1}`, colour: ['cyan', 'pink', 'gold', 'purple', 'blue', 'teal', 'magenta', 'gold'][i]!, section}, {id: `ck_fixture-${i + 1}`, at: new Date(Date.now() - (10 - i) * 86_400_000)}); });
+  sections.forEach((section, i) => { r = addCustom(r, {label: `Fictional star ${i + 1}`, colour: ['cyan', 'pink', 'gold', 'purple', 'blue', 'teal', 'magenta', 'gold'][i]!, section}, {id: `ck_fixture-${i + 1}`, at: new Date(now - (10 - i) * 86_400_000)}); });
   return r;
 }
+/**
+ * Session AJ (item 12): a fixed midday for the landing test below. Its ticks, the reload and ZIGi's rest were measured on
+ * the real clock, so a run near midnight (the day turning between the ticks and the reload) or at another time of day
+ * (which orbit is "now") could land elsewhere (CI and `main`'s own build, Session AI). The clock only runs from here.
+ */
+const LANDING_NOON = new Date('2026-10-21T12:00:00Z');
 /** Round 5 (L3b): the parts of the path ZIGi's drawn figure — its picture's own box, as painted — comes within 12 px of:
  *  nodes (with their 6 px dark halo; Session AG), names, banners, chests and their names, the NEXT tag, an open panel. */
 const zigiClash = (page: Page) => page.evaluate(() => {
@@ -422,77 +428,85 @@ async function zigiAtRest(page: Page) {
 }
 const rect = (page: Page, selector: string) => page.locator(selector).first().evaluate(el => { const r = el.getBoundingClientRect(); return {top: r.top, bottom: r.bottom, left: r.left, right: r.right, vh: innerHeight, vw: innerWidth}; });
 
-test('it opens on the next planet, ZIGi beside it; the Undo toast never covers either; the timers are on the first screen', async ({page}, info) => {
-  await open(page, {path: longDay()});
-  for (const n of [1, 2, 3, 4, 5]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
-  await page.reload(); await settled(page);
-  await expect(overlay(page)).toHaveAttribute('data-loaded');
-  // Lands on the next planet (the sixth), at about 40 % of the screen's height.
-  const next = page.locator('[data-next] [data-path-point]');
-  await expect(next).toHaveAttribute('aria-label', 'Fictional star 6: not done yet');
-  await expect.poll(async () => { const r = await rect(page, '[data-next] [data-path-point]'); return Math.round(((r.top + r.bottom) / 2) / r.vh * 100); }).toBeGreaterThanOrEqual(28);
-  const n = await rect(page, '[data-next] [data-path-point]');
-  expect(((n.top + n.bottom) / 2) / n.vh, 'the next planet near 40 % of the screen').toBeLessThanOrEqual(.55);
-  // ZIGi stands beside it, whole on the screen, at least 130 px tall. Round 5 (L3b), moved at equal strength: "beside" is
-  // read from the next planet's ring (its outer edge, which ZIGi must now clear by 12 px) instead of its body: ZIGi's drawn
-  // figure stands 12 to 36 px from the ring — the same 24 px of play the old check allowed, past the new clearance.
-  await zigiAtRest(page);
-  const z = await rect(page, '[data-next] .path-zigi img');
-  const ringEdge = await page.locator('[data-next] .path-dot').evaluate(dot => { const b = dot.getBoundingClientRect(), e = 6 * (b.width / (dot as HTMLElement).offsetWidth); return {left: b.left - e, right: b.right + e, top: b.top - e, bottom: b.bottom + e}; });
-  const beside = z.left >= ringEdge.right ? z.left - ringEdge.right : ringEdge.left - z.right;
-  expect(beside, 'ZIGi beside the next planet').toBeGreaterThanOrEqual(12);
-  // Round 7, moved (iteration-6 critique: pointing at the next planet comes before size, and size before nearness): on a
-  // phone and a tablet still 12–36 px from the ring; on a computer, where at this landing no place within 36 px both points
-  // at the planet and holds a 140 px figure (the free band left of it is 106 px tall), 12–104 px from the ring, its arm
-  // through the planet's body (`expectRest`) and nothing on the path between its arm and the ring.
-  const wide = page.viewportSize()!.width >= 1180;
-  // Gate C test audit (tightened): the computer's bound is the landing's measured distance (78 px from the ring at 1280 px,
-  // the figure as drawn) plus 8 px of play, not 104.
-  // Session AG Polish 3 (ADR-032 L13), moved at equal strength: on a phone's river the next node's own name tab can stand
-  // between it and ZIGi (the name hangs toward the column's middle, where ZIGi has room); there ZIGi's nearest clear place
-  // is just past the name, and `expectRest` below holds it 12–36 px past the name — Gate C's rule, unchanged.
-  if ((await restFacts(page)).pastName === null) expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 86 : 36);
-  test.info().annotations.push({type: 'zigi-landing', description: `${page.viewportSize()!.width}px: ${Math.round(beside)}`});
-  const sight = await page.evaluate(() => {
-    const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
-    const arm = img.top + img.height * .31, from = img.right <= d.left ? img.right : d.right, to = img.right <= d.left ? d.left : img.left;
-    return [...document.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')].filter(o => o !== dot && !dot.contains(o))
-      .filter(o => { const b = o.getBoundingClientRect(); return b.top <= arm && b.bottom >= arm && b.right > from && b.left < to; }).map(o => `${o.className.toString().split(' ')[0]} ${(o.textContent ?? '').slice(0, 20)}`);
+test.describe('the landing on a fixed midday (Session AJ item 12)', () => {
+  test.use({timezoneId: 'UTC'});
+  test('it opens on the next planet, ZIGi beside it; the Undo toast never covers either; the timers are on the first screen', async ({page}, info) => {
+    await page.clock.install({time: LANDING_NOON}); // the clock runs on from a fixed midday: animations and timers move as before
+    await open(page, {path: longDay(LANDING_NOON.getTime())});
+    for (const n of [1, 2, 3, 4, 5]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
+    await page.reload(); await settled(page);
+    await expect(overlay(page)).toHaveAttribute('data-loaded');
+    // Lands on the next planet (the sixth), at about 40 % of the screen's height.
+    const next = page.locator('[data-next] [data-path-point]');
+    await expect(next).toHaveAttribute('aria-label', 'Fictional star 6: not done yet');
+    // Session AJ (CI, a slow runner): the landing scroll can still be under way, and a planet far below the fold already
+    // passes "at least 28 %"; wait until it rests inside the same band, then assert both bounds on one reading.
+    const at = async () => { const r = await rect(page, '[data-next] [data-path-point]'); return ((r.top + r.bottom) / 2) / r.vh; };
+    await expect.poll(async () => { const v = await at(); return v >= .28 && v <= .55; }, {timeout: 10_000}).toBe(true);
+    const n = await rect(page, '[data-next] [data-path-point]');
+    expect(((n.top + n.bottom) / 2) / n.vh, 'the next planet near 40 % of the screen').toBeGreaterThanOrEqual(.28);
+    expect(((n.top + n.bottom) / 2) / n.vh, 'the next planet near 40 % of the screen').toBeLessThanOrEqual(.55);
+    // ZIGi stands beside it, whole on the screen, at least 130 px tall. Round 5 (L3b), moved at equal strength: "beside" is
+    // read from the next planet's ring (its outer edge, which ZIGi must now clear by 12 px) instead of its body: ZIGi's drawn
+    // figure stands 12 to 36 px from the ring — the same 24 px of play the old check allowed, past the new clearance.
+    await zigiAtRest(page);
+    const z = await rect(page, '[data-next] .path-zigi img');
+    const ringEdge = await page.locator('[data-next] .path-dot').evaluate(dot => { const b = dot.getBoundingClientRect(), e = 6 * (b.width / (dot as HTMLElement).offsetWidth); return {left: b.left - e, right: b.right + e, top: b.top - e, bottom: b.bottom + e}; });
+    const beside = z.left >= ringEdge.right ? z.left - ringEdge.right : ringEdge.left - z.right;
+    expect(beside, 'ZIGi beside the next planet').toBeGreaterThanOrEqual(12);
+    // Round 7, moved (iteration-6 critique: pointing at the next planet comes before size, and size before nearness): on a
+    // phone and a tablet still 12–36 px from the ring; on a computer, where at this landing no place within 36 px both points
+    // at the planet and holds a 140 px figure (the free band left of it is 106 px tall), 12–104 px from the ring, its arm
+    // through the planet's body (`expectRest`) and nothing on the path between its arm and the ring.
+    const wide = page.viewportSize()!.width >= 1180;
+    // Gate C test audit (tightened): the computer's bound is the landing's measured distance (78 px from the ring at 1280 px,
+    // the figure as drawn) plus 8 px of play, not 104.
+    // Session AG Polish 3 (ADR-032 L13), moved at equal strength: on a phone's river the next node's own name tab can stand
+    // between it and ZIGi (the name hangs toward the column's middle, where ZIGi has room); there ZIGi's nearest clear place
+    // is just past the name, and `expectRest` below holds it 12–36 px past the name — Gate C's rule, unchanged.
+    if ((await restFacts(page)).pastName === null) expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(wide ? 86 : 36);
+    test.info().annotations.push({type: 'zigi-landing', description: `${page.viewportSize()!.width}px: ${Math.round(beside)}`});
+    const sight = await page.evaluate(() => {
+      const z = document.querySelector<HTMLElement>('[data-next] .path-zigi')!, img = z.querySelector('img')!.getBoundingClientRect(), dot = document.querySelector<HTMLElement>('[data-next] .path-dot')!, d = dot.getBoundingClientRect();
+      const arm = img.top + img.height * .31, from = img.right <= d.left ? img.right : d.right, to = img.right <= d.left ? d.left : img.left;
+      return [...document.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-next-tag')].filter(o => o !== dot && !dot.contains(o))
+        .filter(o => { const b = o.getBoundingClientRect(); return b.top <= arm && b.bottom >= arm && b.right > from && b.left < to; }).map(o => `${o.className.toString().split(' ')[0]} ${(o.textContent ?? '').slice(0, 20)}`);
+    });
+    expect(sight, 'nothing between ZIGi\'s arm and the next planet').toEqual([]);
+    expect(Math.min(z.bottom, ringEdge.bottom) - Math.max(z.top, ringEdge.top), 'level with it').toBeGreaterThan(0);
+    expect(z.left).toBeGreaterThanOrEqual(0); expect(z.right).toBeLessThanOrEqual(z.vw); expect(z.top).toBeGreaterThanOrEqual(0); expect(z.bottom).toBeLessThanOrEqual(z.vh);
+    // Round 7, moved at greater strength: the figure as seen (`restFacts`), never the box — 106 px or more on a phone (was: a
+    // 130 px box of the uncropped picture, 81 % of it figure: 106 px) and 140 on a computer; pointing at the planet.
+    await expectRest(page, page.viewportSize()!.width, 'on opening');
+    expect(await cutNames(page), 'no name cut by the foot bar: it fades into it').toEqual([]);
+    expect((await restFacts(page)).h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 641 ? 76 : 66);
+    // The corner timers are on the first screen: the side column's Sleep on a computer, the foot bar's Sleep chip on a phone.
+    // (Round 4: on a phone the timers are the foot bar's own chips, so Sleep itself is on the first screen everywhere.)
+    await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
+    // Round 4 → round 5 (L3b), moved at greater strength: the old check read an inset box (the figure's sides and top left
+    // out) and only at the opening, so it passed while the frames showed ZIGi over a name and a chest after a tick. Now ZIGi's
+    // drawn figure is at least 12 px clear of every planet (and the next one's ring), name, banner, chest and tag — here, and
+    // after a tick, an orbit and under reduced motion in the test below.
+    expect(await zigiClash(page), 'ZIGi 12 px clear of the path').toEqual([]);
+    // The shell's own strips are not drawn inside the Checklist.
+    await expect(overlay(page)).not.toContainText('NOTHING MOVES UNLESS YOU SIGN');
+    // A tick: the toast is 52 px at most and covers neither the new next planet nor ZIGi — round 3 (L3b), at greater strength:
+    // nor any planet, name, banner, chest or ZIGi on the screen; on a phone it sits inside the foot bar, on a computer beside
+    // the path (right of it).
+    await page.getByRole('button', {name: 'Fictional star 6: not done yet', exact: true}).click();
+    await expect(page.locator('.aa-toast')).toBeVisible();
+    await expect(page.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', 'Fictional star 7: not done yet');
+    await page.waitForTimeout(1800);
+    const t = await rect(page, '.aa-toast'), a = await rect(page, '[data-next] [data-path-point]'), b = await rect(page, '[data-next] .path-zigi');
+    expect(t.bottom - t.top).toBeLessThanOrEqual(52);
+    for (const o of [a, b]) expect(o.bottom <= t.top || o.top >= t.bottom || o.right <= t.left || o.left >= t.right, 'the toast covers no planet or ZIGi').toBe(true);
+    // (What shows of each part of the path: between the top bar and the foot bar, where there is one.)
+    const hits = await page.evaluate(([l, r, tp, bt]) => { const dock = document.querySelector('.checklist-dock'), foot = dock && getComputedStyle(dock).display !== 'none' ? dock.getBoundingClientRect().top : innerHeight, head = document.querySelector('.checklist-topbar')!.getBoundingClientRect().bottom;
+      return [...document.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest, .path-zigi')].filter(el => { const o = el.getBoundingClientRect(), top = Math.max(o.top, head), bottom = Math.min(o.bottom, foot); return bottom > top && o.left < r! && o.right > l! && top < bt! && bottom > tp!; }).map(el => el.className.toString().split(' ')[0]); }, [t.left, t.right, t.top, t.bottom] as const);
+    expect(hits, 'the toast covers nothing of the path').toEqual([]);
+    if (info.project.name === 'mobile') { const bar = await rect(page, '.checklist-dock'); expect(t.top).toBeGreaterThanOrEqual(bar.top - 1); }
+    else { const stage = await rect(page, '.path-stage'); expect(t.left).toBeGreaterThanOrEqual(stage.right); }
   });
-  expect(sight, 'nothing between ZIGi\'s arm and the next planet').toEqual([]);
-  expect(Math.min(z.bottom, ringEdge.bottom) - Math.max(z.top, ringEdge.top), 'level with it').toBeGreaterThan(0);
-  expect(z.left).toBeGreaterThanOrEqual(0); expect(z.right).toBeLessThanOrEqual(z.vw); expect(z.top).toBeGreaterThanOrEqual(0); expect(z.bottom).toBeLessThanOrEqual(z.vh);
-  // Round 7, moved at greater strength: the figure as seen (`restFacts`), never the box — 106 px or more on a phone (was: a
-  // 130 px box of the uncropped picture, 81 % of it figure: 106 px) and 140 on a computer; pointing at the planet.
-  await expectRest(page, page.viewportSize()!.width, 'on opening');
-  expect(await cutNames(page), 'no name cut by the foot bar: it fades into it').toEqual([]);
-  expect((await restFacts(page)).h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 641 ? 76 : 66);
-  // The corner timers are on the first screen: the side column's Sleep on a computer, the foot bar's Sleep chip on a phone.
-  // (Round 4: on a phone the timers are the foot bar's own chips, so Sleep itself is on the first screen everywhere.)
-  await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
-  // Round 4 → round 5 (L3b), moved at greater strength: the old check read an inset box (the figure's sides and top left
-  // out) and only at the opening, so it passed while the frames showed ZIGi over a name and a chest after a tick. Now ZIGi's
-  // drawn figure is at least 12 px clear of every planet (and the next one's ring), name, banner, chest and tag — here, and
-  // after a tick, an orbit and under reduced motion in the test below.
-  expect(await zigiClash(page), 'ZIGi 12 px clear of the path').toEqual([]);
-  // The shell's own strips are not drawn inside the Checklist.
-  await expect(overlay(page)).not.toContainText('NOTHING MOVES UNLESS YOU SIGN');
-  // A tick: the toast is 52 px at most and covers neither the new next planet nor ZIGi — round 3 (L3b), at greater strength:
-  // nor any planet, name, banner, chest or ZIGi on the screen; on a phone it sits inside the foot bar, on a computer beside
-  // the path (right of it).
-  await page.getByRole('button', {name: 'Fictional star 6: not done yet', exact: true}).click();
-  await expect(page.locator('.aa-toast')).toBeVisible();
-  await expect(page.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', 'Fictional star 7: not done yet');
-  await page.waitForTimeout(1800);
-  const t = await rect(page, '.aa-toast'), a = await rect(page, '[data-next] [data-path-point]'), b = await rect(page, '[data-next] .path-zigi');
-  expect(t.bottom - t.top).toBeLessThanOrEqual(52);
-  for (const o of [a, b]) expect(o.bottom <= t.top || o.top >= t.bottom || o.right <= t.left || o.left >= t.right, 'the toast covers no planet or ZIGi').toBe(true);
-  // (What shows of each part of the path: between the top bar and the foot bar, where there is one.)
-  const hits = await page.evaluate(([l, r, tp, bt]) => { const dock = document.querySelector('.checklist-dock'), foot = dock && getComputedStyle(dock).display !== 'none' ? dock.getBoundingClientRect().top : innerHeight, head = document.querySelector('.checklist-topbar')!.getBoundingClientRect().bottom;
-    return [...document.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest, .path-zigi')].filter(el => { const o = el.getBoundingClientRect(), top = Math.max(o.top, head), bottom = Math.min(o.bottom, foot); return bottom > top && o.left < r! && o.right > l! && top < bt! && bottom > tp!; }).map(el => el.className.toString().split(' ')[0]); }, [t.left, t.right, t.top, t.bottom] as const);
-  expect(hits, 'the toast covers nothing of the path').toEqual([]);
-  if (info.project.name === 'mobile') { const bar = await rect(page, '.checklist-dock'); expect(t.top).toBeGreaterThanOrEqual(bar.top - 1); }
-  else { const stage = await rect(page, '.path-stage'); expect(t.left).toBeGreaterThanOrEqual(stage.right); }
 });
 
 test('a learning path’s density: six planets or more on the opening screen, between the bars; the foot bar keeps the path clear', async ({page}, info) => {
@@ -582,9 +596,14 @@ test('a tick moves nothing but its own node: every name keeps its place, the new
     for (const n of [1, 2, 3]) {
       const before = await boxes(), ticked = `name ck_fixture-${n}`, next = `name ck_fixture-${n + 1}`;
       const cheer = await watchCheer(page);
+      // Session AJ (item 13): the travelling light exists for a moment only; a poll could miss it on a busy runner. An
+      // observer set before the tick records every travelling segment that appears, so the check sees it whenever it ran.
+      await page.evaluate(() => { const w = window as unknown as {__travel?: string[]}; w.__travel = []; const seen = (el: Element) => { if (el.matches('.orbit-flow-segment[data-travel]')) w.__travel!.push(el.getAttribute('data-segment') ?? ''); };
+        document.querySelectorAll('.orbit-flow-segment[data-travel]').forEach(seen);
+        new MutationObserver(list => { for (const m of list) { if (m.type === 'attributes' && m.target instanceof Element) seen(m.target); for (const node of m.addedNodes) if (node instanceof Element) { seen(node); node.querySelectorAll('.orbit-flow-segment[data-travel]').forEach(seen); } } }).observe(document.body, {subtree: true, childList: true, attributes: true, attributeFilter: ['data-travel']}); });
       await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
       // Session AG, moved (was: a comet 12 px from every name): the light runs along the line itself, from the node just lit.
-      await expect(page.locator(`.orbit-flow-segment[data-travel][data-segment^="ck_fixture-${n}>"]`)).toHaveCount(1);
+      await expect.poll(() => page.evaluate(prefix => ((window as unknown as {__travel?: string[]}).__travel ?? []).filter(s => s.startsWith(prefix)).length > 0, `ck_fixture-${n}>`)).toBe(true);
       await zigiAtRest(page);
       // Round 9: every frame of the cheer — the hop's top, its sparkles — off the names.
       expect(await cheer(), `${size.width}px, star ${n}: ZIGi's cheer and its sparkles off every name`).toEqual([]);

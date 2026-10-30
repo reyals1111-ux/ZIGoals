@@ -39,8 +39,9 @@ import './path.css';
  * orbit ring, a gentle pulse and a START / NEXT bubble, a tick bursts into sparks and sends a comet along the line to the
  * next dot, an orbit's banner fills its own bar and celebrates once when the orbit is complete, chests sit on the path,
  * the day's end is a trophy planet, and ZIGi is a large figure beside the next dot. The owner allowed that motion inside
- * the Checklist only; reduced motion and Motion Off still show every final state at once. The default look (Earn's
- * Start-here path and Academy) is unchanged.
+ * the Checklist; reduced motion and Motion Off still show every final state at once. Session AJ (owner decision D3):
+ * Earn's Start-here path wears the orbit look too, with its one-time motion, inside the page (`follow={false}`: it never
+ * moves the page by itself) and with its orbits' own names (`bannerTitle`). The Academy keeps the default look.
  *
  * Round 3 (a learning path's density): each planet's name and the next one's NEXT bubble stand beside it, off the line,
  * on the side toward the path's middle; ZIGi stands on the other side, and cheers (arms up, hops, sparkles) beside a
@@ -66,6 +67,12 @@ export type PathProps = {
   jumpDock?: HTMLElement | null;
   /** Session AG Polish 2 (owner Part 5): a step just added — the path brings it into view and it blooms once. */
   arrive?: string | null;
+  /** Session AJ (owner D3): the orbit look lands on the next planet on opening and glides on after a tick (true: the
+   *  full-screen Checklist). False leaves the page where the person put it (a path inside a page: Earn's Start here), and
+   *  ZIGi keeps its one-line `say` there, as in the default look. */
+  follow?: boolean;
+  /** Session AJ (owner D3): an orbit banner's title. Default: "<name> Orbit", the Checklist's. */
+  bannerTitle?: (section: PathSection) => string;
 };
 
 /** The orbit look's finale node: where the line ends (Session AG). */
@@ -233,7 +240,7 @@ function useJust(ids: string[], key: string): Set<string> {
   return just;
 }
 
-export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null, arrive = null}: PathProps) {
+export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null, arrive = null, follow = true, bannerTitle}: PathProps) {
   const orbit = variant === 'orbit', swingOf = orbit ? orbitOffset : snakeOffset;
   const model = useMemo(() => normalisePath(raw), [raw]);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, ''), stage = useRef<HTMLDivElement>(null);
@@ -321,8 +328,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // next one would otherwise slip off the top).
   const landed = useRef(false), measured = geo !== null, orbitsDone = useRef<string[] | null>(null), orbitsKey = completeIds.join('|');
   useEffect(() => {
-    // (Owner amendment 2: on a phone, only once the path has settled.)
-    if (!orbit || !measured || !next || !ready) return;
+    // (Owner amendment 2: on a phone, only once the path has settled. Session AJ: never for a path inside a page.)
+    if (!orbit || !follow || !measured || !next || !ready) return;
     // (Read here, in the same commit as the new next planet: the `just` marks only arrive a render later.)
     const before = orbitsDone.current, finished = before !== null && completeIds.some(id => !before.includes(id)); orbitsDone.current = completeIds;
     const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
@@ -344,7 +351,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     if (!landed.current) { landed.current = true; go(false); return; }
     // (A tick that completes an orbit waits for its celebration on the banner before the path moves on.)
     const t = window.setTimeout(() => go(true), finished ? ORBIT_LAND_AFTER_MS : 300); return () => window.clearTimeout(t);
-  }, [orbit, measured, ready, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [orbit, follow, measured, ready, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Jump to next": wanted while the next dot is out of view (always, where the browser cannot tell).
   const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);
@@ -459,7 +466,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading} style={lanes ? {'--banner-top': `${scaled!.banners[si]?.top ?? 0}px`, ...(scaled!.banners[si]?.planetX != null ? {'--planet-x': `${scaled!.banners[si]!.planetX}px`} : {})} as CSSProperties : undefined}>
-        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
+        {orbit ? <OrbitBanner section={section} done={p.done} total={p.total} headingId={heading} justComplete={just.has(`s:${section.id}`)} planet={planets[si] ?? null} planetLit={!!reached[si]} planetJust={just.has(`p:${section.id}`)} box={!!lanes} title={bannerTitle?.(section)}/> : <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>}
         <ol className="path-steps">
           {section.steps.map(step => {
             const i = index++, lane = lanes?.[i] ?? null, offset = layout === 'snake' ? swingOf(i) : 0, side = labelSides ? labelSides[i]! : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
@@ -475,7 +482,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
                   {/* Round 4: the next planet wears a one-word tag (a learning path's START); its name stays an ordinary name. */}
                   {orbit && isNext && <span className="path-next-tag" aria-hidden="true">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}
                   <span className={orbit ? 'path-label orbit-tab' : 'path-label'} data-side={lane?.side ?? side} data-room={sides?.full[i] ? 'full' : undefined} data-wrap={lane?.wrap || undefined} data-zigi-slot={lane && isNext ? lane.zigi : undefined} data-path-box={lane ? `tab:${step.id}` : undefined} title={orbit ? step.label : undefined} style={orbit ? {'--node': PATH_COLOURS[step.colour].token, ...(lane?.wrap ? {'--tab-max': `${Math.floor(lane.maxTab)}px`} : {}), ...(lane ? {'--tab-dy': `${lane.tabDy}px`, '--tab-out': `${lane.tabOut}px`} : {})} as CSSProperties : undefined}><span className="path-label-text">{orbit ? step.short ?? step.label : step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit && isNext && !cheering && sides ? sides.zigi : side === 'left' ? 'right' : 'left'} say={zigi === false || (orbit && follow) ? undefined : zigi.say} alive={orbit} cheer={orbit && cheering?.id === step.id} clip={orbit && cheering?.id === step.id && completeIds.some(id => just.has(id)) ? ORBIT_CHEER_CLIP : null} fit={zigiFit}/>}
                   {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
@@ -492,7 +499,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
         </ol>
       </section>;
     })}
-    {zigiAtEnd && !endTrophy && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false || orbit ? undefined : zigi.say} alive={orbit}/></div>}
+    {zigiAtEnd && !endTrophy && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false || (orbit && follow) ? undefined : zigi.say} alive={orbit}/></div>}
     {next && wantJump && (() => {
       // (Docked, it is the dock's own button and follows its theme; on the path it is the path's night bubble.)
       const button = <button ref={bubble} type="button" className={jumpDock ? 'path-dock-jump' : 'path-jump'} data-clear={(docked || jumpClear) || undefined} data-direction={nextAbove ? 'up' : 'down'} onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>;

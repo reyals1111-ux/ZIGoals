@@ -252,7 +252,7 @@ test('a batch applies in order on the latest stores, stops at the first failure,
   expect(UNDO_WINDOW_MS).toBe(10_000);
 });
 test('cards name records by title, never by identifier, and every kind the parser accepts has a planner', () => {
-  const samples: Record<string, unknown>[] = [{kind: 'log-expense', amount: 12.5, currency: 'EUR', note: 'lunch'}, {kind: 'log-income', amount: 100, currency: 'EUR'}, {kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
+  const samples: Record<string, unknown>[] = [{kind: 'create-price-alert', coin: 'bitcoin', direction: 'above', price: 70000}, {kind: 'log-expense', amount: 12.5, currency: 'EUR', note: 'lunch'}, {kind: 'log-income', amount: 100, currency: 'EUR'}, {kind: 'log-water', glasses: 1}, {kind: 'log-weight', value: 70, unit: 'kg'}, {kind: 'log-steps', steps: 10}, {kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f2'}, {kind: 'log-measurement', kind_of: 'hips', value: 90, unit: 'cm'}, {kind: 'check-in', habit: 'h4'}, {kind: 'skip', habit: 'h5'}, {kind: 'create-habit', title: 'x'}, {kind: 'start-fast', targetHours: 12}, {kind: 'create-goal', name: 'x', target: 1, currency: 'USD'}, {kind: 'add-goal-note', goal: 'g2', note: 'x'}, {kind: 'prefill-holding', category: 'Cash', name: 'x', quantity: '1'},
     // Session V Part 7
     {kind: 'create-food', name: 'Shake', serving_ml: 300, estimate: {kcal: 200}}, {kind: 'create-recipe', name: 'Soup', ingredients: [{name: 'Lentils', grams: 250}]}, {kind: 'plan-meal', recipe: 'r1', meal: 'Dinner'},
     {kind: 'grocery-item', items: ['Oat milk']}, {kind: 'counter', counter: 'Push-ups', count: 20}, {kind: 'create-reminder', for: 'water', time: '10:00'}, {kind: 'review-intention', intention: 'Walk after lunch'},
@@ -506,4 +506,49 @@ test('a drink\'s serving in millilitres makes a food measured by volume; a nap w
   expect(nap.card.title).toBe('Add a nap'); expect(nap.card.lines[0]).toMatch(/^18:30 to 19:00 · 30 min in bed$/);
   expect(refusal({kind: 'log-sleep', minutes: 30, nap: true, day: 'yesterday'})).toMatch(/Say when the nap ended/);
   expect(() => actionSchema.parse({kind: 'log-sleep', hours: 7.5})).toThrow(/wake/);
+});
+
+// Session AJ (item 9; ADR-034 N20's gap): plan-meal can point at a recipe a create-recipe card of the same reply makes.
+test('a plan-meal for a recipe this reply creates: both cards share its id; Add all writes the recipe, then the plan', async () => {
+  const {recipeRef} = await import('./refs');
+  const refs = new Map([[recipeRef('Lentil soup'), {id: 'health_ref-lentil-soup', title: 'Lentil soup'}]]);
+  const e = env({refs});
+  const recipe = plan({kind: 'create-recipe', name: 'Lentil soup', servings: 4, ingredients: [{name: 'Red lentils', grams: 250}]}, e);
+  const meal = plan({kind: 'plan-meal', recipe_name: 'lentil soup ', meal: 'Dinner', day: DAY}, e);
+  expect(meal.card.title).toBe('Plan Lentil soup');
+  expect(meal.card.lines).toContain('Add the recipe "Lentil soup" first: this plan uses it');
+  // Added alone first, the plan writes nothing and says why.
+  expect(() => applyPlan(meal, stores)).toThrow('Add the recipe "Lentil soup" first: this plan uses it. Nothing was planned.');
+  // In the reply's order: the recipe, then the plan, which uses that same recipe.
+  const afterRecipe = applyPlan(recipe, stores);
+  expect(afterRecipe.health.recipes.find(r => r.id === 'health_ref-lentil-soup')?.name).toBe('Lentil soup');
+  const afterBoth = applyPlan(meal, afterRecipe);
+  const saved = dailyData(afterBoth.health).savedMeals.find(m => m.name === 'Lentil soup');
+  expect(saved).toBeDefined();
+  expect(dailyData(afterBoth.health).plans.filter(p => p.savedMealId === saved!.id).map(p => [p.date, p.meal])).toEqual([[DAY, 'Dinner']]);
+});
+test('a recipe_name the reply does not create falls back to one recipe of that exact name, never a guess', () => {
+  const recipeId = 'health_ai-existing-soup';
+  const withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Garden soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};
+  expect(plan({kind: 'plan-meal', recipe_name: 'Garden soup', meal: 'Lunch', day: DAY}, env({stores: withRecipe})).card.title).toBe('Plan Garden soup');
+  expect(refusal({kind: 'plan-meal', recipe_name: 'Moon soup', meal: 'Lunch', day: DAY})).toBe('ZIGi named a recipe ("Moon soup") that neither this reply nor Health has, so nothing was proposed.');
+  expect(() => action({kind: 'plan-meal', recipe: 'r1', recipe_name: 'Garden soup', meal: 'Lunch'})).toThrow(/one recipe/);
+});
+
+// Session AJ (item 15, D9): a price alert for a coin the person holds, written by its own registered writer, never automatic.
+test('a price alert card names the coin and the figure, and writes only the alert record through its writer', async () => {
+  const {applyDeviceWrite} = await import('./device-writes');
+  const {emptyPriceAlerts} = await import('../../price-alerts/schema');
+  const p = plan({kind: 'create-price-alert', coin: 'Bitcoin', direction: 'above', price: 70000.5});
+  expect(p.card.title).toBe('Price alert: BTC above 70000.5 USD');
+  expect(p.undo).toBeNull();
+  expect(p.device).toMatchObject({key: 'zigoals:price-alerts:v1', patch: {add: {kind: 'price', coin: 'bitcoin', direction: 'above', price: '70000.5', currency: 'USD', active: true, channels: {inApp: true, push: false}}}});
+  const after = applyDeviceWrite('zigoals:price-alerts:v1', emptyPriceAlerts(), p.device!.patch) as ReturnType<typeof emptyPriceAlerts>;
+  expect(after.alerts).toHaveLength(1);
+  expect(() => applyDeviceWrite('zigoals:price-alerts:v1', after, p.device!.patch)).toThrow('already set');
+  const g = plan({kind: 'create-price-alert', coin: 'btc', goal: 'g4', percent: 100});
+  expect(g.device).toMatchObject({patch: {add: {kind: 'goal', goalName: 'My first 0.1 BTC', percent: 100}}});
+  expect(refusal({kind: 'create-price-alert', coin: 'Dogecoin', direction: 'below', price: 0.1})).toMatch(/coins you hold/);
+  expect(() => action({kind: 'create-price-alert', coin: 'btc', direction: 'above'})).toThrow();
+  expect(() => applyDeviceWrite('zigoals:price-alerts:v1', emptyPriceAlerts(), {add: {...(p.device!.patch as {add: object}).add, channels: {inApp: true, push: true}}})).toThrow();
 });

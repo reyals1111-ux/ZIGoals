@@ -81,7 +81,7 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
         {voting.error && <p role="alert" className="notice">{voting.error}</p>}
         <button type="submit" className="primary" disabled={!choice || voting.reviewing}>{voting.reviewing ? 'Estimating the fee…' : 'Review my vote'}</button>
         <p className="fine">The review shows exactly what you sign. Your vote is public and tied to your address forever.</p>
-      </> : <p className="notice">You have no stake with an active validator on this network, so a vote from this address would not count. Stake first on <Link href="/app/staking">Staking</Link>, then come back to vote.</p>}
+      </> : <p className="notice">Voting needs at least 1 ZIG staked with active validators on this network, so a vote from this address would not count yet. Stake first on <Link href="/app/staking">Staking</Link>, then come back to vote.</p>}
     </form>}
   </article>;
 }

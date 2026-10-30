@@ -318,9 +318,10 @@ at your release SHA.
 
 **The new var (owner switch, ADR-019 C35):** `STEP_UP_REQUIRED` = `"on"` in the committed template
 (`workers/private-sync/wrangler.local.jsonc`). A private copy made by `make-private-configs.mjs` carries it; an existing
-copy needs it added (`make-private-configs.mjs` update, or by hand), or `activation-check` says "a template var is
-missing". With it "on", a vault whose verifier the new app registered needs the recovery secret's proof for those
-actions; any other value turns the check off. Unlock, sync and sessions never ask.
+copy needs it added (`node scripts/run11/make-private-configs.mjs --add-missing-template-vars`, Session AJ, or by hand),
+or `activation-check` says "private: template var missing: STEP_UP_REQUIRED". With it "on", a vault whose verifier the
+new app registered needs the recovery secret's proof for those actions; "off" turns the check off, and any other value
+is refused by `activation-check` ("STEP_UP_REQUIRED must be "on" or "off""). Unlock, sync and sessions never ask.
 
 **Order:** private sync and auth admission (each with step 4's checks), then the app (step 5). The proof travels in a
 header, so the new app works against the old Worker (the proof is ignored) and the old app against the new Worker

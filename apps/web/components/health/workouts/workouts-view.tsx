@@ -16,6 +16,7 @@ import {allExercises, searchExercises, type LibraryExercise} from '../../../lib/
 import {CATEGORIES, MEASURES, SET_KINDS, type ExerciseEntry, type Measure, type Workout, type WorkoutSet, type Workouts} from '../../../lib/workouts/schema';
 import {clock, fromUnit, readClock, setText, toUnit, weightShown} from './units';
 import {useWorkouts} from './use-workouts';
+import {WorkoutsImport, importedLine, type ImportChoice} from './workouts-import';
 import './workouts.css';
 
 /**
@@ -62,6 +63,21 @@ export default function WorkoutsView() {
       setRestUntil(null); setSummary({workout, bests});
       showToast({message: `${workout.name} saved · ${minutes} min${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`});
     } catch (e) { setNote(plainErrorMessage(e, 'The workout could not be finished.')); }
+  }
+  // Session AJ (item 27, D12): an imported GPX or TCX workout is saved like a finished one, minutes in Health included.
+  async function addImported(list: ImportChoice[]): Promise<string> {
+    const {addImportedWorkout} = await import('../../../lib/workouts/import-file');
+    const names: string[] = []; let missed = 0;
+    for (const {summary, day} of list) {
+      let made: Workout | undefined;
+      record.update(x => { const next = addImportedWorkout(x, summary, new Date(), day); made = next.workouts.find(y => y.imported?.importId === summary.importId); return next; });
+      const workout = made as Workout | undefined; if (!workout) continue;
+      names.push(workout.name);
+      const activityId = newHealthId(), minutes = Math.min(1440, Math.max(1, durationMinutes(workout)));
+      try { await health.update(h => saveActivity(h, {id: activityId, date: workout.date, name: workout.name, steps: 0, minutes}, new Date().toISOString())); record.update(x => withActivity(x, workout.id, activityId)); }
+      catch { missed++; }
+    }
+    return `${names.length === 1 ? `${names[0]} is added` : `${names.length} workouts are added`} to your workouts.${missed ? ` ${missed < names.length ? 'Some' : names.length === 1 ? 'Its' : 'Their'} minutes could not be added to Health.` : ''}`;
   }
   async function remove(id: string) {
     const target = w.workouts.find(x => x.id === id); setAsking(null);
@@ -110,12 +126,14 @@ export default function WorkoutsView() {
 
     <section className="panel workouts-history" aria-labelledby="workouts-history-title">
       <h2 id="workouts-history-title">Your workouts</h2>
+      <WorkoutsImport w={w} dayOf={iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))} onAdd={addImported}/>
       {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
-        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {durationMinutes(x)} min · {x.exercises.length} {plural(x.exercises.length, 'exercise')}</span></summary>
+        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {durationMinutes(x)} min · {x.imported ? (x.imported.distanceKm !== undefined ? `${formatNumber(x.imported.distanceKm, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
+          {x.imported && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
-            {!current && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
-            <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>
+            {!current && !x.imported && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
+            {!x.imported && <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>}
             <button className="quiet" type="button" onClick={() => setAsking({remove: x.id})} aria-label={`Delete ${x.name} on ${formatDate(x.date)}`}>Delete</button>
           </div>
           {typeof asking === 'object' && asking?.remove === x.id && <ConfirmInline title={`Delete ${x.name}?`} confirmLabel="Delete workout" cancelLabel="Keep it" onConfirm={() => void remove(x.id)} onCancel={() => setAsking(null)}><p>Its sets and the minutes it added to Health are removed.</p></ConfirmInline>}

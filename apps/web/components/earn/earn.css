@@ -350,3 +350,17 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 /* Session AH (ST6, AF12): an end chest not reached yet says it lies ahead ("Start here, complete" at 0 of 6 had read as done).
    Earn's own paths only; the Checklist path is untouched. Screen readers already hear "(not reached yet)". */
 :is(.earn-start-path, .earn-academy-path) .path-chest:not([data-reached]) .path-chest-text strong::before { content: "Ahead · " / ""; font-weight: 500; opacity: .8; }
+/* Session AJ (owner decision D3): Start here wears the Checklist's orbit look (components/path/path-orbit.css, loaded by
+   start-here-path.tsx). Its planets' rings and mist run on toward the card's edge and are cut there, sideways only (`clip`
+   makes no scroll box, so "Jump to next" still rides the screen), as the Checklist's shell cuts them at the screen's edge.
+   On a phone the path also takes 12 px of the card's side padding on each side, so the names keep the room the
+   Checklist's column gives them. No colour of its own: the orbit pieces are theme islands. */
+.earn-start { overflow-x: clip; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  .earn-start-path[data-variant=orbit] { margin-inline: -12px; }
+}
+/* Session AJ (item 16, D3): Start here's end node stays dimmed until reached (the old path's rule, kept on the orbit look). */
+.path-stage.earn-start-path[data-variant=orbit] .path-finale:not([data-reached]) .path-chest-art { opacity: .8; }
+/* Session AJ (item 16, D3): by day, Start here's jump button keeps the orbit's shape and accents (theme parity: only its
+   night surface and shade turn light; the Checklist's own day button is unchanged). */
+:root[data-theme=light] .path-stage.earn-start-path[data-variant=orbit] .path-jump { border-color: #8cc8ff80; background: linear-gradient(100deg, #fffffff5, #eef0fbf5); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59; }

@@ -2898,6 +2898,9 @@
     .ai-card-first-note:not(#\-) {
         border-left-color: color-mix(in srgb,var(--cyan,#6fd3ff) 60%,transparent)
     }
+    .zigi-checkin-mood:not(#\-) {
+        border-color: currentcolor
+    }
 }
 /*  components/ai/care-note.css  */
 @scope (:root[data-theme=dark]) {
@@ -6049,6 +6052,13 @@
         background-color: transparent;
         color: var(--text-secondary)
     }
+    :scope[data-theme=light] .path-stage.earn-start-path[data-variant=orbit] .path-jump:not(#\-) {
+        border-color: #8cc8ff80;
+        background-image: linear-gradient(100deg, #fffffff5, #eef0fbf5);
+        background-color: transparent;
+        color: #23264d;
+        box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59
+    }
 }
 /*  components/earn/today-earn-card.css  */
 @scope (:root[data-theme=dark]) {
@@ -6546,6 +6556,9 @@
     }
     .journey-badge-grid small:not(#\-) {
         color: var(--text-meta)
+    }
+    .journey-badge-grid li:not([data-earned]) small:not(#\-) {
+        color: var(--text-secondary)
     }
     .journey-path:not(#\-)::before {
         background-image: linear-gradient(180deg, #6fe6f6, #9e78ff, #ed75df, #a184e233);
@@ -7445,6 +7458,64 @@
         color: var(--text-secondary,#b7c8de)
     }
 }
+/*  components/guided/guided.css  */
+@scope (:root[data-theme=dark]) {
+    .guided-section > h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-section > h2:focus-visible:not(#\-), .guided-journey h3:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan)
+    }
+    .guided-empty:not(#\-), .guided-message:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-journey h3:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .guided-meta:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-care:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-on:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview summary:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-preview ol:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-step:not(#\-) {
+        border-color: var(--line);
+        border-left-color: var(--pillar, var(--line))
+    }
+    .guided-journey[data-pillar=goals]:not(#\-) {
+        --pillar: var(--pillar-goals)
+    }
+    .guided-journey[data-pillar=habits]:not(#\-) {
+        --pillar: var(--pillar-habits)
+    }
+    .guided-journey[data-pillar=health]:not(#\-) {
+        --pillar: var(--pillar-health)
+    }
+    .guided-journey[data-pillar=wealth]:not(#\-) {
+        --pillar: var(--pillar-wealth)
+    }
+    .guided-step[data-done]:not(#\-) {
+        border-left-color: var(--line)
+    }
+    .guided-note:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .guided-locked .guided-note:not(#\-) {
+        color: var(--text-meta)
+    }
+    .guided-done-mark:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=dark]) {
     .habit-section:not(#\-) {
@@ -7533,6 +7604,12 @@
         background-color: #d88aa03a;
         border-color: #d88aa088;
         color: #ffd9e3
+    }
+    .habit-quit-before:not(#\-), .habit-quit-ahead:not(#\-) {
+        background-image: none;
+        background-color: #86f0d606;
+        border-color: #86f0d612;
+        color: #a3bcb7
     }
     .habit-skip-form:not(#\-), .habit-note-form:not(#\-) {
         border-color: #c3a8f93a;
@@ -9452,6 +9529,18 @@
     .workouts-progress-line:not(#\-) {
         color: var(--brand-cyan, #6fe6f6)
     }
+    .workouts-import:not(#\-) {
+        border-top-color: var(--line, #8fb6ff26)
+    }
+    .workouts-import-preview:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-import-problem:not(#\-) {
+        color: var(--danger-text, #ffb4c8)
+    }
+    :scope[data-theme=light] .workouts-import-problem:not(#\-) {
+        color: #a3123a
+    }
 }
 /*  components/help/help.css  */
 @scope (:root[data-theme=dark]) {
@@ -9603,6 +9692,12 @@
     }
     .journal-entry-date:not(#\-) {
         color: var(--muted,#a1afc8)
+    }
+    .journal-week-day:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .journal-week-dot:not(#\-) {
+        border-color: currentColor
     }
 }
 /*  components/layout-edit.css  */
@@ -9920,6 +10015,13 @@
     }
     .life-values .life-value-rate:not(#\-) {
         border-color: currentcolor
+    }
+    :scope .cross-label:not(#\-) {
+        border-color: var(--border-strong, currentColor);
+        color: var(--text-secondary)
+    }
+    :scope .cross-label.is-consistent:not(#\-) {
+        color: var(--text-primary)
     }
 }
 /*  components/links/links.css  */
@@ -13267,6 +13369,18 @@
     .trade-chip input:focus-visible+span:not(#\-) {
         outline-color: var(--cyan,#6fd3ff)
     }
+    .trader-figures dt:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .trader-months [data-direction="up"]:not(#\-) {
+        color: #83e0b9
+    }
+    .trader-months [data-direction="down"]:not(#\-) {
+        color: #ff9ab0
+    }
+    .trader-tilt:not(#\-) {
+        border-left-color: var(--cyan, #6fd3ff)
+    }
 }
 /*  components/portfolio/value-chart.css  */
 @scope (:root[data-theme=dark]) {
@@ -13303,6 +13417,12 @@
     .portfolio-chart-empty:not(#\-) {
         color: var(--muted,#aab3cf);
         border-color: rgba(160,180,255,.2)
+    }
+}
+/*  components/price-alerts/price-alerts.css  */
+@scope (:root[data-theme=dark]) {
+    .price-alert-kind:not(#\-) {
+        border-color: currentcolor
     }
 }
 /*  components/progress/glass-progress.css  */
@@ -13550,6 +13670,15 @@
 @scope (:root[data-theme=dark]) {
     .af-signing-setting-row small:not(#\-) {
         color: var(--muted, #a4b2cd)
+    }
+}
+/*  components/settings/customize-settings.css  */
+@scope (:root[data-theme=dark]) {
+    .customize-group:not(#\-) {
+        border-color: var(--line)
+    }
+    .customize-note:not(#\-) {
+        color: var(--text-muted)
     }
 }
 /*  components/settings/pages-settings.css  */
@@ -14401,6 +14530,19 @@
     .today-universe-skeleton:not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+    .life-score-of:not(#\-) {
+        color: var(--text-meta, #c2d0e5)
+    }
+    .focus-sprout:not(#\-) {
+        color: #86f0d6
+    }
+    .focus-stage[data-state="withered"] .focus-sprout:not(#\-) {
+        color: #c2b48a;
+        filter: saturate(.4)
+    }
+    .focus-lengths button[aria-pressed="true"]:not(#\-) {
+        outline-color: currentColor
     }
 }
 /*  components/wallet/wallet-card.css  */

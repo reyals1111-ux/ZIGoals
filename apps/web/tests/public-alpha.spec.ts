@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import {typeGoalName} from './goal-name';
 import {expectAlphaMode} from "./ab-shell";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -212,7 +213,7 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.goto("/app/goals/new");
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("group",{name:"Category / artwork"}).getByRole("radio",{name:"Travel"}).check();
-  await page.getByLabel("Goal name",{exact:true}).fill(sentinel); await page.getByLabel("Target amount").fill("1200");
+  await typeGoalName(page, sentinel); await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); await page.getByRole("button",{name:"Continue"}).click(); await page.getByRole("button",{name:"Continue"}).click();
   await page.getByRole("button",{name:"Create goal",exact:true}).click();
   await page.getByRole("button",{name:"Confirm simulation"}).focus(); await page.keyboard.press("Tab"); await expect(page.getByRole("button",{name:"Cancel",exact:true})).toBeFocused();

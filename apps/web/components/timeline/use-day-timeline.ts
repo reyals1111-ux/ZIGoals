@@ -8,6 +8,7 @@ import {useFasting} from '../health/use-fasting';
 import {usePlatform} from '../platform/use-platform';
 import {useReminders} from '../reminders/use-reminders';
 import {useWeeklyReview} from '../weekly-review/use-weekly-review';
+import {HABIT_EXTRAS} from '../../lib/habits-extras/schema';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {REMINDERS_PLAN} from '../../lib/reminders-plan/schema';
@@ -24,7 +25,7 @@ import {loadTimelineSources, runTimelineSources, subscribeTimelineSources, timel
 const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };
 export function useDayTimeline({sources: wantSources = true}: {sources?: boolean} = {}) {
   const habits = useHabits(), health = useHealth(), sleep = useSleep(), meditation = useMeditation(), fasting = useFasting(), platform = usePlatform();
-  const reminders = useReminders(), weekly = useWeeklyReview(), wReminders = useDeviceRecord(W_REMINDERS), plan = useDeviceRecord(REMINDERS_PLAN), record = useDeviceRecord(DAY_TIMELINE);
+  const reminders = useReminders(), weekly = useWeeklyReview(), wReminders = useDeviceRecord(W_REMINDERS), plan = useDeviceRecord(REMINDERS_PLAN), record = useDeviceRecord(DAY_TIMELINE), extras = useDeviceRecord(HABIT_EXTRAS);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const tick = () => { if (document.visibilityState === 'visible') setNow(new Date()); };
@@ -50,11 +51,11 @@ export function useDayTimeline({sources: wantSources = true}: {sources?: boolean
     return buildDayTimeline({
       date: habits.today, healthDay: hDay, now, zone, habits: habits.error ? {...habits.data, habits: []} : habits.data, health: health.error ? null : health.data,
       reminders: reminders.unreadable ? null : reminders.data, wReminders: wReminders.unreadable ? null : wReminders.data, plan: plan.unreadable ? null : plan.data,
-      reviewWeekday: weekly.loaded ? weekly.data.weekday : undefined, times: record.unreadable ? {} : record.data.times,
+      reviewWeekday: weekly.loaded ? weekly.data.weekday : undefined, times: record.unreadable ? {} : record.data.times, habitTimes: extras.loaded && !extras.unreadable ? extras.data.times ?? {} : {},
       fasting: fasting.unreadable ? null : fasting.data, meditationRun: meditation.runUnreadable ? null : meditation.run.data, sleep: sleep.error ? null : sleep.sleep, extra,
     });
-  }, [loaded, habits.data, habits.today, habits.error, health.data, health.error, hDay, sleep.sleep, sleep.zone, sleep.error, meditation.meditation, meditation.run.data, meditation.runUnreadable, fasting.data, fasting.unreadable, platform.data, reminders.data, reminders.unreadable, wReminders.data, wReminders.unreadable, plan.data, plan.unreadable, weekly.loaded, weekly.data, record.data, record.unreadable, loadedSources, now, zone]);
+  }, [extras.loaded, extras.unreadable, extras.data, loaded, habits.data, habits.today, habits.error, health.data, health.error, hDay, sleep.sleep, sleep.zone, sleep.error, meditation.meditation, meditation.run.data, meditation.runUnreadable, fasting.data, fasting.unreadable, platform.data, reminders.data, reminders.unreadable, wReminders.data, wReminders.unreadable, plan.data, plan.unreadable, weekly.loaded, weekly.data, record.data, record.unreadable, loadedSources, now, zone]);
   const refresh = useCallback(() => setNow(new Date()), []);
-  return {loaded, day, now, refresh, habits, health, record, failed: !!(habits.error || health.error)};
+  return {loaded, day, now, refresh, habits, health, record, extras, failed: !!(habits.error || health.error)};
 }
 export type DayTimelineState = ReturnType<typeof useDayTimeline>;

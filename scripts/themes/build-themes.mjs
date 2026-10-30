@@ -15,7 +15,7 @@
 // twin where it has one). Every rule that sets a colour (or a longhand a colour shorthand resets) is carried into the
 // sheet, mapped or not, so the sheet's cascade is Nebula's own. Dark deepens only its neutral and night panels.
 //
-// Usage: node scripts/themes/build-themes.mjs          writes apps/web/public/themes/{light,dark}.css and the hashes
+// Usage: node scripts/themes/build-themes.mjs          writes apps/web/public/themes/{light,dark,text-large,density-compact}.css and the hashes
 //        node scripts/themes/build-themes.mjs --check  exits 1 when the committed files are not what this builds
 // The parser is the postcss that Next already ships (resolved through apps/web's next); nothing is added to the project.
 import {createRequire} from 'node:module';
@@ -59,9 +59,13 @@ export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '
   // (Session AG Polish 3: the progress bar and its sparkle are gone.)
   '.checklist-quick-preview', '.checklist-row-tab'];
 
+/** Session AJ (item 32, D5): the Customize sheet is keyed only on its own <html> attributes (data-font, data-density,
+ *  data-glow, data-look-loading) and is written for every theme at once, so it is not a source of the theme sheets or of
+ *  the large-text sheet: the theme sheets stay byte for byte what they were. */
+export const NOT_SOURCES = ['app/customize.css'];
 export function sourceFiles() {
   const out = [];
-  const walk = dir => { for (const name of readdirSync(join(WEB, dir))) { const rel = `${dir}/${name}`, full = join(WEB, rel); if (statSync(full).isDirectory()) { if (name !== 'node_modules') walk(rel); } else if (name.endsWith('.css')) out.push(rel); } };
+  const walk = dir => { for (const name of readdirSync(join(WEB, dir))) { const rel = `${dir}/${name}`, full = join(WEB, rel); if (statSync(full).isDirectory()) { if (name !== 'node_modules') walk(rel); } else if (name.endsWith('.css') && !NOT_SOURCES.includes(rel)) out.push(rel); } };
   walk('app'); walk('components');
   const rest = out.filter(f => !GLOBAL_ORDER.includes(f)).sort();
   return [...GLOBAL_ORDER.filter(f => out.includes(f)), ...rest];
@@ -434,30 +438,149 @@ export function handLayers(theme) {
   return [...(existsSync(extra) ? [extra] : []), ...parts];
 }
 
+// ---- Session AJ (item 32, D5): the Customize sheets (Large text, Compact density) ----
+// Settings → Appearance → Customize. Two of its choices change sizes the app's CSS sets in thousands of rules, so each is
+// a sheet built here from that CSS, the way the theme sheets are: every rule that sets the property is carried under the
+// choice's <html> attribute (added with :where(), so it weighs nothing) with the same one id of weight as the theme sheets
+// (`:not(#\-)`), in the same @media/@supports/@container blocks, with the same !important, so among the sheet's rules the
+// cascade is the app's own. Each sheet is fetched only when its choice is made (public/theme-boot.js before the first
+// paint; lib/ui-prefs/look.ts after a choice), so the defaults never load it and never change.
+//
+// Large text (data-text=large): not browser zoom. Every font-size is multiplied by TEXT_SCALE. Sizes in em, % or keywords
+// (alone or inside a min()/max()) follow their (already larger) parent and are left alone; sizes fitted to their box
+// (container units, the `--chars` fit) keep fitting it. Widths, paddings and line breaks are not touched: only the words
+// grow.
+//
+// Compact (data-density=compact): the vertical spacing of lists, cards and panels (padding and margin above and below,
+// the gap between rows) is multiplied by DENSITY_SCALE. Only plain positive lengths shrink (never %, auto, env(), var() or
+// a negative margin), nothing horizontal changes, and minimum heights stay, so every target keeps its 44 px. A rule of
+// anything else that sets the same spacing (a hero, the art) is carried as it is, so it keeps winning where it did.
+export const TEXT_SCALE = 1.125;
+export const DENSITY_SCALE = 0.75;
+/** A selector list under `:root<attr>` (no added weight) with the one id of weight before any pseudo-element. */
+export function scopedSelector(selector, attr) {
+  return selector.split(/,(?![^(]*\))/).map(part => {
+    const s0 = part.trim(); if (!s0) return s0;
+    const lead = /^(?::root|html)(?![\w-])/.exec(s0);
+    const s = lead ? `${lead[0]}:where(${attr})${s0.slice(lead[0].length)}` : `:where(:root${attr}) ${s0}`;
+    const pe = PSEUDO_ELEMENT.exec(s);
+    return pe ? `${s.slice(0, pe.index)}${BOOST}${pe[0]}` : `${s}${BOOST}`;
+  }).join(', ');
+}
+export const textSelector = selector => scopedSelector(selector, '[data-text=large]');
+/** The larger value of a font-size declaration, or null where it already follows its parent or its box. */
+export function largeSize(value) {
+  const v = value.trim();
+  if (/\dcq(?:i|w|h|b|min|max)\b|--chars|title-fit/.test(v)) return null;
+  if (/\d(?:em|%)/.test(v)) return null; // partly the parent's size, which is already larger
+  if (!/\d(?:px|rem)\b|\dv(?:w|h|i|b|min|max)\b|var\(/.test(v)) return null;
+  return `calc(${v} * ${TEXT_SCALE})`;
+}
+/** Splits a value at its top-level spaces. */
+const spaced = value => { const out = []; let depth = 0, cur = ''; for (const ch of value.trim()) { if (ch === '(') depth++; else if (ch === ')') depth--; if (/\s/.test(ch) && !depth) { if (cur) out.push(cur); cur = ''; } else cur += ch; } if (cur) out.push(cur); return out; };
+/** The vertical spacing a declaration sets, as longhands ([prop, value][]); the whole declaration where a var() hides its
+ *  parts; null where it sets none. */
+export function verticalLonghands(prop, value) {
+  const m = /^(padding|margin)(?:-(top|bottom|block|block-start|block-end))?$/.exec(prop);
+  if (m) {
+    const [, base, side] = m, parts = spaced(value);
+    if (side === 'top' || side === 'block-start') return [[`${base}-top`, value]];
+    if (side === 'bottom' || side === 'block-end') return [[`${base}-bottom`, value]];
+    if (/var\(/.test(value) && parts.length < (side ? 2 : 4)) return [[prop, value]];
+    if (side === 'block') return [[`${base}-top`, parts[0]], [`${base}-bottom`, parts[1] ?? parts[0]]];
+    if (!parts.length || parts.length > 4) return null;
+    return [[`${base}-top`, parts[0]], [`${base}-bottom`, parts[2] ?? parts[0]]];
+  }
+  if (prop === 'gap' || prop === 'grid-gap') { const parts = spaced(value); return /var\(/.test(value) && parts.length < 2 ? [[prop, value]] : [['row-gap', parts[0]]]; }
+  if (prop === 'row-gap' || prop === 'grid-row-gap') return [['row-gap', value]];
+  return null;
+}
+/** A plain positive length, shrunk; anything else as it is. */
+export function compactLength(value) {
+  const m = /^(\d+\.?\d*|\.\d+)(px|rem|em)$/.exec(value.trim()); if (!m) return value;
+  const n = Math.round(parseFloat(m[1]) * DENSITY_SCALE * 100) / 100;
+  return `${n}${m[2]}`;
+}
+/** A selector's own element is a list, a list's row, a card or a panel (and not a hero or a piece of art). */
+const SPACED_CONTAINER = /\.[\w-]*(?:panel|card|list|row|item|tile|entry|stack|module|section|feed|grid|group)(?![\w])|^(?:li|ul|ol|dl|dt|dd|tr|fieldset|details|summary)(?![\w-])/;
+const NOT_SPACED = /hero|-art\b|art-|orbit|planet|path-|sky|logo|intro|footer|banner|launcher|medallion|figure|celebration/;
+export function isSpacedContainer(part) {
+  const s = part.trim().replace(PSEUDO_ELEMENT, '');
+  if (s !== part.trim() || NOT_SPACED.test(s)) return false;
+  const own = spaced(s.replace(/\s*([>+~])\s*/g, ' ')).pop() ?? '';
+  return SPACED_CONTAINER.test(own);
+}
+/** Builds one Customize sheet: `pick(rule, decl)` gives the declarations a rule carries ([[prop, value, important]]). */
+function customizeSheet(files, pick) {
+  const out = postcss.root();
+  for (const file of files) {
+    const ast = postcss.parse(readFileSync(join(WEB, file), 'utf8'), {from: file});
+    let added = false;
+    ast.walkRules(rule => {
+      for (let p = rule.parent; p && p.type === 'atrule'; p = p.parent) if (/keyframes$/i.test(p.name) || p.name === 'font-face') return;
+      for (const [selector, decls] of pick(rule)) {
+        if (!decls.length) continue;
+        // One line per rule: the sheet is fetched only when chosen, so it is kept small.
+        let node = postcss.rule({selector, raws: {between: ' ', after: ' ', semicolon: true}});
+        node.append(decls.map(([prop, value, important]) => postcss.decl({prop, value, important, raws: {before: ' ', between: ': '}})));
+        for (let p = rule.parent; p && p.type === 'atrule'; p = p.parent) { node.raws.before = ' '; const wrap = postcss.atRule({name: p.name, params: p.params, raws: {afterName: ' ', between: ' ', after: ' '}}); wrap.append(node); node = wrap; }
+        node.raws.before = '\n';
+        if (!added) { out.append(postcss.comment({text: ` ${file} `, raws: {before: '\n'}})); added = true; }
+        out.append(node);
+      }
+    });
+  }
+  return out.toString().trimStart() + '\n';
+}
+const declsOf = rule => (rule.nodes ?? []).filter(d => d.type === 'decl');
+export function buildTextSheet(files = sourceFiles()) {
+  const head = `/* Generated by scripts/themes/build-themes.mjs (Session AJ, item 32, D5) from the app's own CSS: every font-size, ${TEXT_SCALE}×,\n   under :root[data-text=large]. Do not edit: change the CSS or the generator, then run it again. */\n`;
+  return head + customizeSheet(files, rule => [[textSelector(rule.selector), declsOf(rule).filter(d => d.prop === 'font-size').map(d => ['font-size', largeSize(d.value), d.important]).filter(([, v]) => v)]]);
+}
+export function buildDensitySheet(files = sourceFiles()) {
+  const head = `/* Generated by scripts/themes/build-themes.mjs (Session AJ, item 32, D5) from the app's own CSS: the vertical spacing of lists,\n   cards and panels, ${DENSITY_SCALE}×, under :root[data-density=compact]. Do not edit: change the CSS or the generator, then run it again. */\n`;
+  return head + customizeSheet(files, rule => {
+    const carried = declsOf(rule).flatMap(d => (verticalLonghands(d.prop, d.value) ?? []).map(([prop, value]) => [prop, value, d.important]));
+    if (!carried.length) return [];
+    const parts = rule.selector.split(/,(?![^(]*\))/).map(p => p.trim()).filter(Boolean);
+    const spacedParts = parts.filter(isSpacedContainer), others = parts.filter(p => !isSpacedContainer(p));
+    const shrunk = carried.map(([prop, value, important]) => [prop, compactLength(value), important]);
+    return [...(others.length ? [[scopedSelector(others.join(', '), '[data-density=compact]'), carried]] : []), ...(spacedParts.length ? [[scopedSelector(spacedParts.join(', '), '[data-density=compact]'), shrunk]] : [])];
+  });
+}
+
 /**
  * The one script that runs before the page paints (ADR-026 F5; TIER 3 security headers/CSP), served as a same-origin file
  * (public/theme-boot.js) and loaded by the root layout with the request's CSP nonce, synchronously in <head>. It reads the
  * theme from this device's own display record (zigoals:ui-prefs:v1) and, for Light or Dark only, sets data-theme on <html>
  * and adds that theme's same-origin stylesheet; while the sheet loads the page stays unpainted (data-theme-loading, at most
  * 1.5 s). Nebula, no record, unreadable bytes or storage refused: nothing. No Trusted Types sink (an attribute and a link).
+ * Session AJ (item 32, D5): first, the record's `look` group (Settings → Appearance → Customize): data-font="inter" and
+ * data-glow="soft" on <html> (app/customize.css); for Large text data-text="large" and for Compact data-density="compact",
+ * each with its own generated sheet, holding the paint the same way (data-look-loading, at most 1.5 s; a sheet that fails
+ * takes its attribute away). Defaults and any value it cannot read: no attribute. A broken look never stops the theme.
  */
-export function bootScript(sheets) {
+export function bootScript(sheets, look) {
   const map = JSON.stringify(sheets);
-  return `/* ZIGoals theme bootstrap (generated by scripts/themes/build-themes.mjs; Session AD, ADR-026 F5). */\n(function(){try{var d=document.documentElement,r=localStorage.getItem("zigoals:ui-prefs:v1");if(!r)return;var p=JSON.parse(r),m=${map},t=p&&p.version===1&&typeof p.theme==="string"?p.theme:"";if(!Object.prototype.hasOwnProperty.call(m,t))return;var s=m[t];d.setAttribute("data-theme",t);d.setAttribute("data-theme-loading","");var l=document.createElement("link"),done=function(){d.removeAttribute("data-theme-loading")};l.id="zigoals-theme-sheet";l.rel="stylesheet";l.href=s;l.setAttribute("blocking","render");l.onload=done;l.onerror=function(){d.removeAttribute("data-theme");done();l.remove()};setTimeout(done,1500);document.head.appendChild(l)}catch(e){}})();\n`;
+  const add = `add=function(a,v,h,id){d.setAttribute(a,v);n++;d.setAttribute("data-look-loading","");var x=document.createElement("link");x.id=id;x.rel="stylesheet";x.href=h;x.setAttribute("blocking","render");x.onload=fin;x.onerror=function(){d.removeAttribute(a);fin();x.remove()};document.head.appendChild(x)}`;
+  const lookPart = `try{var k=p&&p.version===1?p.look:null;if(k&&typeof k==="object"){var n=0,fin=function(){if(--n<=0)d.removeAttribute("data-look-loading")},${add};if(k.font==="inter")d.setAttribute("data-font","inter");if(k.glow==="soft")d.setAttribute("data-glow","soft");if(k.textSize==="large")add("data-text","large",${JSON.stringify(look.text)},"zigoals-text-sheet");if(k.density==="compact")add("data-density","compact",${JSON.stringify(look.density)},"zigoals-density-sheet");if(n)setTimeout(function(){n=0;d.removeAttribute("data-look-loading")},1500)}}catch(e){}`;
+  return `/* ZIGoals theme bootstrap (generated by scripts/themes/build-themes.mjs; Session AD, ADR-026 F5; Session AJ, item 32: the look). */\n(function(){try{var d=document.documentElement,r=localStorage.getItem("zigoals:ui-prefs:v1");if(!r)return;var p=JSON.parse(r);${lookPart}var m=${map},t=p&&p.version===1&&typeof p.theme==="string"?p.theme:"";if(!Object.prototype.hasOwnProperty.call(m,t))return;var s=m[t];d.setAttribute("data-theme",t);d.setAttribute("data-theme-loading","");var l=document.createElement("link"),done=function(){d.removeAttribute("data-theme-loading")};l.id="zigoals-theme-sheet";l.rel="stylesheet";l.href=s;l.setAttribute("blocking","render");l.onload=done;l.onerror=function(){d.removeAttribute("data-theme");done();l.remove()};setTimeout(done,1500);document.head.appendChild(l)}catch(e){}})();\n`;
 }
 
 export function buildAll() {
   const files = sourceFiles(), sheets = {}, hashes = {};
   for (const theme of ['light', 'dark']) { sheets[theme] = buildTheme(theme, files); hashes[theme] = createHash('sha256').update(sheets[theme]).digest('hex').slice(0, 12); }
   const sheetsMap = {light: `/themes/light.css?v=${hashes.light}`, dark: `/themes/dark.css?v=${hashes.dark}`};
-  const boot = bootScript(sheetsMap), bootHash = createHash('sha256').update(boot).digest('hex').slice(0, 12);
-  const sheetModule = `// Generated by scripts/themes/build-themes.mjs (Session AD, Part 3): the theme stylesheets and the early script, with\n// their content hashes.\nexport const THEME_SHEETS = ${JSON.stringify(sheetsMap).replace(/"(light|dark)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ')} as const;\nexport const THEME_BOOT_SRC = '/theme-boot.js?v=${bootHash}';\n`;
-  return {sheets, module: sheetModule, boot};
+  const textLarge = buildTextSheet(files), densityCompact = buildDensitySheet(files), hash = text => createHash('sha256').update(text).digest('hex').slice(0, 12);
+  const lookMap = {text: `/themes/text-large.css?v=${hash(textLarge)}`, density: `/themes/density-compact.css?v=${hash(densityCompact)}`};
+  const boot = bootScript(sheetsMap, lookMap), bootHash = createHash('sha256').update(boot).digest('hex').slice(0, 12);
+  const sheetModule = `// Generated by scripts/themes/build-themes.mjs (Session AD, Part 3): the theme stylesheets and the early script, with\n// their content hashes.\nexport const THEME_SHEETS = ${JSON.stringify(sheetsMap).replace(/"(light|dark)":/g, '$1: ').replace(/"/g, "'").replace(/,/g, ', ')} as const;\nexport const THEME_BOOT_SRC = '/theme-boot.js?v=${bootHash}';\n// Session AJ (item 32, D5): the Customize sheets, Large text and Compact (Settings → Appearance → Customize).\nexport const LOOK_SHEETS = {text: '${lookMap.text}', density: '${lookMap.density}'} as const;\n`;
+  return {sheets, module: sheetModule, boot, textLarge, densityCompact};
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const {sheets, module: sheetModule, boot} = buildAll(), check = process.argv.includes('--check');
-  const targets = [[join(WEB, 'public', 'themes', 'light.css'), sheets.light], [join(WEB, 'public', 'themes', 'dark.css'), sheets.dark], [join(WEB, 'public', 'theme-boot.js'), boot], [join(WEB, "lib", "ui-prefs", "theme-sheets.ts"), sheetModule]];
+  const {sheets, module: sheetModule, boot, textLarge, densityCompact} = buildAll(), check = process.argv.includes('--check');
+  const targets = [[join(WEB, 'public', 'themes', 'light.css'), sheets.light], [join(WEB, 'public', 'themes', 'dark.css'), sheets.dark], [join(WEB, 'public', 'themes', 'text-large.css'), textLarge], [join(WEB, 'public', 'themes', 'density-compact.css'), densityCompact], [join(WEB, 'public', 'theme-boot.js'), boot], [join(WEB, "lib", "ui-prefs", "theme-sheets.ts"), sheetModule]];
   let stale = 0;
   for (const [file, text] of targets) {
     if (check) { if (!existsSync(file) || readFileSync(file, 'utf8') !== text) { console.error(`stale: ${relative(ROOT, file)}`); stale++; } }

@@ -12,6 +12,7 @@ import {useGame} from './use-game';
 import {CelebrationHost} from './celebration';
 import {GameSetting} from './game-setting';
 import {UniverseSection} from '../universe/universe-section';
+import {FocusGarden} from '../universe/focus-garden';
 import {applyFreeze} from '../../lib/game/freeze';
 import {weekStart} from '../../lib/game/xp';
 import {keepWords} from '../today/keep-words';
@@ -40,6 +41,8 @@ export function JourneyPage() {
       mark={<span className="pillar-mark" data-pillar="journey" aria-hidden="true"><span className="pillar-mark-disc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15c-1.5 1.5-3.5 2-5 2 0-1.5.5-3.5 2-5M9 12l3-3c2.5-2.5 6-4 9-4 0 3-1.5 6.5-4 9l-3 3M9 12l3 3"/><circle cx="15.5" cy="8.5" r="1.4"/></svg></span></span>}><LayoutLockButton /></PillarHero>
     {/* Session AF (L5b; P9.1, ADR-028 H77): My Universe, the full view, above the game sections — with Gamify on or off. */}
     <UniverseSection />
+    {/* Session AJ (item 34, D13): Focus Sessions, with something growing in My Universe while you stay. */}
+    <FocusGarden />
     {!game.loaded ? <p role="status">Loading your journey…</p> : !game.enabled ? <section className="panel journey-off"><p className="eyebrow">Optional</p><h2><NebulaFlow identity="journey-off">The game layer is off.</NebulaFlow></h2><p>Turn it on to see your level, three quests a day and the badge cabinet, all from your own records. Off again whenever you like; nothing is stored but the switch.</p><GameSetting /></section> : d && <>
       <section className="panel journey-level" aria-labelledby="journey-level-title"><div className="journey-orb" aria-hidden="true"/>
         <GlassRing identity="journey-ring" className="journey-ring" arcs={[{key: 'level', end: d.xp.level.share * 100}]} role="img" aria-label={`Level ${d.xp.level.level}, ${d.xp.level.name}: ${d.xp.level.into} of ${d.xp.level.span} XP to level ${d.xp.level.level + 1}`}><strong>{d.xp.level.level}</strong><small>level</small></GlassRing>

@@ -20,7 +20,14 @@ export const habitExtrasSchema = z.looseObject({
   quitCost: z.record(habitId, quitCostSchema).optional(),
   bells: z.record(habitId, z.literal(true)).optional(),
   folds: z.partialRecord(z.enum(TIME_SECTIONS), z.boolean()).optional(),
-}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400, 'Too many habits remembered.');
+  /**
+   * Session AJ (item 35; TIER 3 (stored format) and TIER 3 (auth/sync)): a habit's own clock time ("HH:MM"), set from the
+   * Day Timeline's "Every day, on all my devices". Optional in this loose record, which syncs through the encrypted extras
+   * sections, so the strict synced habit record keeps no clock time and stays exactly as it is; older builds keep the map
+   * through a read-modify-write (frozen readers) and simply do not show it.
+   */
+  times: z.record(habitId, z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/)).optional(),
+}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});
 export const HABIT_EXTRAS: DeviceRecordSpec<HabitExtras> = {key: HABIT_EXTRAS_KEY, schema: habitExtrasSchema, empty: emptyHabitExtras};

@@ -284,6 +284,9 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       {hasKeplr ? <>
         <p>Connect Keplr for the {network === 'real' ? 'real' : 'practice'} network to stake from your own wallet. ZIGoals reads your address only; every action asks you to sign in Keplr.</p>
         <button type="button" className="primary" onClick={connect} disabled={connecting}>{connecting ? 'Waiting for Keplr…' : `Connect Keplr for ${network === 'real' ? 'REAL' : 'PRACTICE'}`}</button>
+        {/* Session AJ: a connection that failed (Keplr refused, the network changed or was upgraded) says so here; the
+            message was only rendered inside the connected form before, so nothing showed. */}
+        {error && <p role="alert" className="notice">{error}</p>}
       </> : phone ? <>
         <p>On a phone, staking works inside the Keplr app&rsquo;s own browser.</p>
         {origin && <a className="primary staking-open-keplr" href={keplrMobileLink(origin, android)}>Open ZIGoals in Keplr</a>}

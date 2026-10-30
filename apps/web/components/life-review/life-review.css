@@ -88,3 +88,6 @@
 .life-values .life-value-rate { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border: 0; padding: 0; margin: 10px 0; }
 .life-values .life-value-rate legend { font-weight: 600; margin-bottom: 4px; }
 .life-values .life-value-rate label { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; }
+/* Session AJ (item 10): a pairing's confidence label, readable in every theme (text, not colour alone). */
+:root .cross-label { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 650; line-height: 1.4; border: 1px solid var(--border-strong, currentColor); color: var(--text-secondary); vertical-align: middle; }
+:root .cross-label.is-consistent { color: var(--text-primary); }

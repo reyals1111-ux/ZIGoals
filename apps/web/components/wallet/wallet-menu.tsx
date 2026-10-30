@@ -1,6 +1,7 @@
 'use client';
 import './wallet.css';
 import {Suspense, lazy, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
+import {useRouter} from 'next/navigation';
 import {useGoals} from '../goal-provider';
 import {SHOWCASE_WALLET_MESSAGE, useLinkedWallets} from './use-linked-wallets';
 import {LinkedWalletError, LINK_LIMIT_MESSAGE, LINK_UNREADABLE_MESSAGE, MAX_LINKED_WALLETS, withoutWallet, type LinkedWallet, type WalletVia} from '../../lib/linked-wallets';
@@ -11,6 +12,7 @@ import {SOLANA_LINK_ERROR, discoverSolanaWallets, forgetSolanaConnection, readSo
 import {l2bLink} from '../../lib/wallets/links';
 import {phoneWalletPaths} from './phone-wallet-paths';
 import {LoadBoundary} from '../load-boundary';
+import {XPUB_OPEN_EVENT} from '../../lib/wallets/xpub/events';
 /** Session AF (L2b): the WalletConnect panel and, through it, the package load only when the person opens it. */
 const WalletConnectPanel = lazy(() => import('./walletconnect-panel'));
 import {forgetWalletBalances} from '../../lib/wallets/balances/store';
@@ -47,7 +49,7 @@ function WalletIcon({icon}: {icon: string | null}) {
 }
 
 export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 'sheet'; id?: string; onClose?: (focusTrigger: boolean) => void}) {
-  const s = useGoals(), linked = useLinkedWallets(), own = useId(), menuId = id ?? own;
+  const s = useGoals(), linked = useLinkedWallets(), own = useId(), menuId = id ?? own, router = useRouter();
   const [evm, setEvm] = useState<EvmWallet[]>([]), [sol, setSol] = useState<SolanaWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState(''), [wcOpen, setWcOpen] = useState(false);
   const menu = useRef<HTMLDivElement>(null), focusNext = useRef<string | null>(null);
   // EIP-6963: the page's EVM wallets announce themselves when asked, each time the choices open.
@@ -109,7 +111,10 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
   groups.push({key: 'solana', title: 'Solana wallets · read-only', items: sol.length
     ? sol.map(w => ({key: `sol:${w.key}`, label: `${w.name}: link Solana address`, detail: 'Asks only for your Solana address', icon: <WalletIcon icon={w.icon}/>, busy: busy === `sol:${w.key}`, onSelect: () => void run(`sol:${w.key}`, 'solana', w.key, w.name, () => readSolanaAddress(w))}))
     : [{key: 'get:solana', label: 'Get Phantom for Solana', detail: `${new URL(l2bLink('phantom-site').url).host} · opens in a new tab`, href: l2bLink('phantom-site').url}]});
-  groups.push({key: 'btc', title: 'Bitcoin · watch-only', items: [{key: 'btc', label: 'Watch a Bitcoin address', detail: 'Checked on this device; nothing is sent', icon: <WalletGlyph/>, onSelect: () => { if (blocked) { setStatus(blocked); return; } setBtcOpen(true); setBtcError(''); }}]});
+  groups.push({key: 'btc', title: 'Bitcoin · watch-only', items: [
+    // Session AJ (item 36, D2b): a whole wallet by its extended public key, on Wealth (its key stays on this device).
+    {key: 'xpub', label: 'Watch a Bitcoin wallet (xpub)', detail: 'Every address of one wallet; read from mempool.space', icon: <WalletGlyph/>, onSelect: () => { onClose?.(false); window.dispatchEvent(new Event(XPUB_OPEN_EVENT)); router.push('/app/wealth#xpub'); }},
+    {key: 'btc', label: 'Watch a Bitcoin address', detail: 'Checked on this device; nothing is sent', icon: <WalletGlyph/>, onSelect: () => { if (blocked) { setStatus(blocked); return; } setBtcOpen(true); setBtcError(''); }}]});
   if (linked.wallets.length) groups.push({key: 'linked', title: 'Linked on this device', items: linked.wallets.map((w, i, all) => ({key: `remove:${w.id}`, label: `${w.label} · ${shortAddress(w.address)}`, name: `Remove ${w.label} ${shortAddress(w.address)}`, detail: 'Remove · disconnects it on this device', title: w.address, onSelect: () => remove(w, all[i + 1] ? `remove:${all[i + 1]!.id}` : all[i - 1] ? `remove:${all[i - 1]!.id}` : 'btc')}))});
 
   // Menu focus: the first item on open, the next one after a Remove, the Bitcoin item after its form closes.

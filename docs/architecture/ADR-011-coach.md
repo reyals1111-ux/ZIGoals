@@ -2,6 +2,8 @@
 
 Status: **Accepted; phase 1 implemented on-device (Session P, PR 4, 2026-10-04), phase 2 design only.** The addendum at the end records where the code differs from the first draft. Owner decision P4 at the approval of the Session P plan: the name "Guide", the tone, the placement, opt-in and off by default. Phase 1 adds no service, no model, no network call and no dependency. Phase 2 (a model on the device or through a proxy Worker) is described for a later owner decision; no cloud AI code is written. Code references are to `main` at `d439dc9`.
 
+**Session AJ (2026-10-30, owner decision D6; ADR-035):** phase 2 is built as "better nudges plus Ask ZIGi about this", inside phase 1's rules: two more fixed notes from the person's own records (a habit picked up again after three or more scheduled days without it; a goal at 90 % or more of its target, with what is left), in the same tone table and tests; and, only when the person has connected their own AI (ADR-012), an "Ask ZIGi about this" button that opens ZIGi with a question about the note in the box and sends nothing by itself. The Guide itself still uses no model and no AI service, and its label is unchanged. The owner decided on 20 Oct that the lawyer questions below no longer gate this phase; they stay listed for the record. Options (a)–(c) below remain unbuilt.
+
 ## Context
 - **The person's records already live on the device**, and the app already computes from them:
   - habit days and streaks (`apps/web/lib/habits.ts`, `computeHabitStats`);

@@ -55,3 +55,8 @@ overrides:
   # resolves jsdom's undici >=8.12.2 without them.
   "miniflare>undici": 7.30.1
   "jsdom>undici": 8.12.2
+  # Session AJ Part 2 (item 14), audit fix (GHSA-6pq8-jhm2-2vcw, moderate): express
+  # 5.2.1 (through @opennextjs/aws; build and local tooling) declares qs ^6.14.0 and
+  # the lock holds 6.16.0; 6.16.1 is the first fixed patch and is already in the lock
+  # (body-parser). Remove once the lock resolves express's qs >=6.16.1 without it.
+  "express>qs": 6.16.1

@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {openZigi, sendToZigi, typeInZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -38,7 +39,8 @@ async function seed(page: Page, settings: Partial<AiSettings> | null) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+// Session AJ (item 13): open and wait for the box's focus (tests/zigi-open.ts; the WebKit "box empty" class).
+const openChat = openZigi;
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 /** The composer's own button (the same on phones and desktops). */
 const send = (page: Page) => panel(page).locator('.ai-composer button[type=submit]').click();
@@ -80,8 +82,7 @@ test('with no AI the note still shows under the message, and nothing is sent any
   await seed(page, null);
   await page.goto('/app');
   await openChat(page);
-  await page.getByLabel('Ask ZIGi about your records').fill('I want to eat 500 calories a day');
-  await send(page);
+  await sendToZigi(page, 'I want to eat 500 calories a day');
   await expect(panel(page).getByRole('note', {name: CARE_LABEL})).toContainText(CARE_NOTES['very-low-intake']);
   expect(bodies).toEqual([]);
 });
@@ -90,7 +91,7 @@ test('the subscription bridge: the note under the question, and careful mode in 
   await seed(page, {mode: 'subscription', provider: null, model: null, baseUrl: null, localServer: null, subscriptionApp: 'chatgpt'});
   await page.goto('/app');
   await openChat(page);
-  await panel(page).getByLabel('Your question').fill("I'm doing a 72 hour fast, what should I log?");
+  await typeInZigi(page, "I'm doing a 72 hour fast, what should I log?", {field: panel(page).getByLabel('Your question'), submitEnabled: false});
   await expect(panel(page).getByRole('note', {name: CARE_LABEL})).toContainText(CARE_NOTES['extreme-fasting']);
   await panel(page).getByText('What will be copied').click();
   await expect(panel(page).locator('.ai-context-preview pre')).toContainText('Careful mode: ');

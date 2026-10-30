@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import {typeGoalName} from './goal-name';
 import { HABITS_KEY } from "../lib/habits";
 
 // QA-32 (Session F, docs/qa/QA_SWEEP_2026-09-30.md): a title made only of zero-width characters passed trim(), so it
@@ -24,7 +25,7 @@ test("a habit titled only with zero-width characters is refused, and nothing is 
 
 test("a Goal named only with zero-width characters is refused, and nothing is saved", async ({ page }) => {
   await page.goto("/app/goals/new");
-  await page.getByLabel("Goal name", { exact: true }).fill(INVISIBLE);
+  await typeGoalName(page, INVISIBLE);
   await page.getByRole("radio", { name: "Value", exact: true }).check();
   await page.getByLabel("Target amount", { exact: true }).fill("1000");
   await page.getByRole("button", { name: "Create goal", exact: true }).click();

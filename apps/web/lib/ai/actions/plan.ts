@@ -4,6 +4,7 @@ import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, st
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
 import {earliestHabitChange} from '../../habit-actions';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
+import {recipeRef} from './refs';
 import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
 import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
 import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseData} from '../../health-counters';
@@ -68,6 +69,9 @@ import {MONEY_LOG_KEY} from '../../money-log/schema';
 import {expenseCategory, incomeCategory} from '../../money-log/category';
 // Session AI: the expense log's writer, registered before any money card can be added.
 import './money-writes';
+import './price-alert-writes';
+import {PRICE_ALERTS_KEY} from '../../price-alerts/schema';
+import {alertLine, newAlertId} from '../../price-alerts/engine';
 import './meal-estimate-writes';
 import {MEAL_ESTIMATES_KEY, NUTRIENT_RANGES, middleOf, rangeText} from '../../meal-estimates/schema';
 
@@ -415,7 +419,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         activity: {id, title: `Food added: ${action.name}`}}};
     }
     case 'create-recipe': {
-      const recipeId = healthId(), created: HealthFood[] = [], items: {foodId: string; quantityMilli: number}[] = [], lines: string[] = [];
+      // Session AJ (item 9): a recipe a plan-meal card of the same reply names ("recipe_name") gets the id it was given.
+      const recipeId = env.refs?.get(recipeRef(action.name))?.id ?? healthId(), created: HealthFood[] = [], items: {foodId: string; quantityMilli: number}[] = [], lines: string[] = [];
       for (const raw of action.ingredients) {
         // Phase 2: millilitres count 1 ml = 1 g; a quantity with a kitchen unit becomes grams or millilitres; a bare quantity is servings.
         const UNIT_ML: Record<string, number> = {ml: 1, millilitre: 1, millilitres: 1, milliliter: 1, milliliters: 1, cl: 10, dl: 100, l: 1000, litre: 1000, litres: 1000, liter: 1000, liters: 1000, cup: 240, cups: 240, tbsp: 15, tablespoon: 15, tablespoons: 15, tsp: 5, teaspoon: 5, teaspoons: 5};
@@ -465,18 +470,28 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (day.day < env.healthDay) return refuse('A meal plan is for today or a later day; log a past meal in the diary instead.');
       if (day.day > addLocalDays(env.healthDay, PLAN_AHEAD_DAYS)) return refuse(`Meals can be planned up to ${PLAN_AHEAD_DAYS} days ahead.`);
       const planId = healthId(), quantityMilli = Math.round(action.servings * 1000);
-      let savedMealId: string, name: string, recipeId: string | null = null;
+      let savedMealId: string, name: string, recipeId: string | null = null, pendingRecipe: string | null = null;
       if (action.saved_meal) {
         const handle = env.handles.find(h => h.handle === action.saved_meal && h.kind === 'meal'), meal = handle ? dailyData(stores.health).savedMeals.find(m => m.id === handle.id) : undefined;
         if (!meal) return refuse('ZIGi named a saved meal that is not in this page\'s context, so nothing was proposed. Ask again from Health.');
         savedMealId = meal.id; name = meal.name;
+      } else if (action.recipe_name !== undefined) {
+        // Session AJ (item 9; ADR-034 N20's gap): a recipe a create-recipe card of this same reply makes. The plan is written
+        // after that card (Add all keeps the reply's order); added alone first, it says so and writes nothing.
+        const ref = env.refs?.get(recipeRef(action.recipe_name)), existing = ref ? undefined : stores.health.recipes.filter(r => r.name.trim().toLowerCase() === action.recipe_name!.trim().toLowerCase());
+        if (ref) { savedMealId = healthId(); name = ref.title; recipeId = ref.id; pendingRecipe = ref.title; }
+        else if (existing?.length === 1) { savedMealId = healthId(); name = existing[0]!.name; recipeId = existing[0]!.id; }
+        else return refuse(existing && existing.length > 1 ? `You have ${existing.length} recipes called "${action.recipe_name}", so nothing was proposed. Ask again from Health.` : `ZIGi named a recipe ("${action.recipe_name}") that neither this reply nor Health has, so nothing was proposed.`);
       } else {
         const handle = env.handles.find(h => h.handle === action.recipe && h.kind === 'recipe'), recipe = handle ? stores.health.recipes.find(r => r.id === handle.id) : undefined;
         if (!recipe) return refuse('ZIGi named a recipe that is not in this page\'s context, so nothing was proposed. Ask again from Health.');
         savedMealId = healthId(); name = recipe.name; recipeId = recipe.id;
       }
-      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Plan ${name}`, lines: [`${action.meal} · ${recipeId ? `${num(action.servings, 2)} serving${action.servings === 1 ? '' : 's'} of your recipe` : 'your saved meal as saved'}`, 'Planned only: log it from Meals & planning when you eat it'], where: 'Health · Meals & planning', day: dayLabel(day.day, env.healthDay), estimate: false},
-        write: s => { const h = recipeId ? saveMealFromRecipe(s.health, savedMealId, recipeId, quantityMilli, at) : s.health; return {health: saveMealPlan(h, {id: planId, savedMealId, date: day.day, meal: action.meal}, at)}; },
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Plan ${name}`, lines: [`${action.meal} · ${recipeId ? `${num(action.servings, 2)} serving${action.servings === 1 ? '' : 's'} of ${pendingRecipe ? 'the recipe proposed above' : 'your recipe'}` : 'your saved meal as saved'}`, ...(pendingRecipe ? [`Add the recipe "${pendingRecipe}" first: this plan uses it`] : []), 'Planned only: log it from Meals & planning when you eat it'], where: 'Health · Meals & planning', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => {
+          if (pendingRecipe && !s.health.recipes.some(r => r.id === recipeId)) throw new Error(`Add the recipe "${pendingRecipe}" first: this plan uses it. Nothing was planned.`);
+          const h = recipeId ? saveMealFromRecipe(s.health, savedMealId, recipeId, quantityMilli, at) : s.health; return {health: saveMealPlan(h, {id: planId, savedMealId, date: day.day, meal: action.meal}, at)};
+        },
         undo: {label: 'Remove this planned meal', write: s => { const h = removeMealPlan(s.health, planId); return {health: recipeId ? removeSavedMeal(h, savedMealId) : h}; },
           unchanged: (after, current) => same(dailyData(after.health).plans.find(p => p.id === planId), dailyData(current.health).plans.find(p => p.id === planId)) && (!recipeId || (same(dailyData(after.health).savedMeals.find(m => m.id === savedMealId), dailyData(current.health).savedMeals.find(m => m.id === savedMealId)) && !dailyData(current.health).plans.some(p => p.savedMealId === savedMealId && p.id !== planId)))},
         activity: {id: planId, title: `Meal planned: ${name}`}}};
@@ -737,6 +752,28 @@ export function planAction(action: Action, env: Env): PlanResult {
       const entry = {id: crypto.randomUUID(), kind: spent ? 'expense' : 'income', amount, currency, category, ...(action.note ? {note: action.note} : {}), date: day.day, createdAt: at, source: 'zigi'};
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${spent ? 'Spent' : 'Received'} ${amount} ${currency}`, lines: [`${category}${action.note ? ` · ${action.note}` : ''}`, 'Kept in Wealth → Spending on this device; never converted; remove it there'], where: 'Wealth → Spending', day: dayLabel(day.day, env.healthDay), estimate: false},
         write: () => ({}), undo: null, device: {key: MONEY_LOG_KEY, patch: {add: entry}, label: `${spent ? 'Spent' : 'Received'} ${amount} ${currency} · ${category}, logged in Spending`}}};
+    }
+    // Session AJ (item 15, D9): a price alert for a coin the person holds with a market price, kept on this device by its own
+    // writer; checked with prices the app already reads; never buys, sells or moves anything.
+    case 'create-price-alert': {
+      const q = action.coin.trim().toLowerCase(), held = stores.platform.positions.filter(p => p.marketRef?.kind === 'coin');
+      const position = held.find(p => p.marketRef!.id.toLowerCase() === q) ?? held.find(p => p.asset.toLowerCase() === q);
+      if (!position || position.marketRef?.kind !== 'coin') return refuse(`ZIGi sets alerts for coins you hold with a market price. For ${action.coin}, use "Price alert" on its Portfolio page.`);
+      const coinName = position.asset, base = {id: newAlertId(), coin: position.marketRef.id, coinName, currency: action.currency, createdAt: at, active: true, channels: {inApp: true, push: false}};
+      let alert: Record<string, unknown> & {kind: 'price' | 'goal'};
+      if (action.goal !== undefined) {
+        const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+        const goalId = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+        if (!goal) return refuse('A goal alert needs one of your own goals in Goals.');
+        alert = {...base, kind: 'goal', goalId: goal.id, goalName: goal.name.slice(0, 100), percent: action.percent!};
+      } else {
+        const price = action.price!.toFixed(12).replace(/\.?0+$/, '');
+        if (!/^\d{1,18}(\.\d{1,12})?$/.test(price) || price === '0') return refuse('That price cannot be set; use a figure such as 65000 or 0.25.');
+        alert = {...base, kind: 'price', direction: action.direction!, price};
+      }
+      const line = alertLine(alert as Parameters<typeof alertLine>[0]);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Price alert: ${line}`, lines: ['Checked with the prices ZIGoals already reads, when the app opens and when prices refresh', 'Shown on Today and in Activity; never buys, sells or moves anything; not advice'], where: 'Today', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: PRICE_ALERTS_KEY, patch: {add: alert}, label: `Price alert set: ${line}`}}};
     }
     case 'log-mood': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);

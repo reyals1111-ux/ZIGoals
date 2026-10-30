@@ -1,7 +1,8 @@
 <!--
 For the owner: a one-page welcome to send to friends as it is, or adapt. It matches the in-app Help (/app/help) as of
 Session L (2026-10-02), updated with Sessions T–W, Session X (2026-10-08: parts 7–9 below) and Session Z-Cloud
-(2026-10-10: parts 3, 8 and 9 below), and follows the owner
+(2026-10-10: parts 3, 8 and 9 below), Session AH (part 8c) and Session AJ (2026-10-30: part 8d and the
+last seven lines of part 9), and follows the owner
 principle: sync is switched on once, backups are optional, and the one thing to keep safe is the recovery secret.
 Accounts and encrypted sync are only available after Stage 7/8 activation; until then, part 2 "Before accounts open"
 applies, and so does the first line of part 8.
@@ -114,6 +115,27 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **Tablets.** A slim rail on the left replaces the big navigation block at the top.
 - **Earn and Ecosystem.** Plain words for staking, and the value locked in the projects Earn covers, with its source.
 
+## 8d. New in this release (Session AJ, "The Big Leap")
+
+All optional. Help explains each one.
+
+- **Staking on ZIGChain version 6.** The practice network moved to version 6. Its fee now follows the network's base fee, which can rise when blocks are busy. ZIGoals reads it when it prepares your review and shows the gas price it used; your wallet signs exactly that fee.
+- **Price alerts.** On a coin's Portfolio page or a goal's page: a price above or below a figure, or when a coin puts a goal at a percent. A reached alert shows on Today and in Activity. Alerts never buy or sell anything.
+- **Net worth by source.** Wealth's history chart has a "By source" switch: market prices, values you entered, wallets, exchanges and staking. Older readings say "Source not recorded".
+- **Trader tools (optional).** On a portfolio with sales, Insights offers them: wins and losses, fees, results by month, a gentle check after a run of losses or late-night sales, and a cost-of-leverage illustration. Information, not advice.
+- **Watch a Bitcoin wallet by its xpub.** Wallet menu → "Watch a Bitcoin wallet (xpub)". The key stays on your device; mempool.space sees the wallet's addresses. Never paste a private key.
+- **Workouts from a file.** Import a GPX or TCX file from your watch or app in Workouts. Only a summary is kept (time, distance, climb, average heart rate), never the route.
+- **Sleep balance** in Health → Sleep: your sleep against your own goal over the last 14 days, in kind words.
+- **Your best focus window today** on Today: an estimate from last night. You can turn it off in Health → Sleep.
+- **The Life Score (optional)** on My Universe: 0 to 100 for the last two weeks of your own records, with the reasons. Off until you turn it on.
+- **Focus Sessions** on Journey: a sprout grows while the page stays in front. A session ended early is kept, as a withered one.
+- **Guided journeys:** short programs (an emergency fund, a sleep reset, a walking start…). One small step a day, and you tick it yourself. Find them from Goals, Habits, My Universe or search.
+- **A habit's everyday time.** In the Day timeline, "Every day, on all my devices" gives a habit one time on every device you sync.
+- **Swiss food search** (once we switch the food lookup on): when a barcode isn't found, search the Swiss Food Composition Database instead. Only the words you type are sent, through ZIGoals' food service.
+- **Customize** in Settings → Appearance: the font (System or Inter), text size, density and glow, on this device.
+- **Erase everything on this device** at the end of Settings → Backup & restore. Type ERASE and every ZIGoals record leaves this browser. Make Export everything first if you want a copy.
+- **The Guide** has two new notes: a habit that is back after a few missed days, and a goal close to its target. With your own AI connected, "Ask ZIGi about this" opens ZIGi with a question about the note. Nothing is sent until you send it.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
@@ -127,6 +149,13 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **Your last backup isn't recorded.** Settings → Your data says "Not recorded", because making a backup writes nothing on your device; your browser's downloads list shows when you made one.
 - **The Alpha's facts** (practice money, nothing moves unless you sign, not a backup, unaudited) are in the notice on your first visit, in Settings → Your data and in Help → "About this Alpha".
 - **English only** for the app's words for now; ZIGi understands you spoken in English and Dutch.
+- **Price alerts only check while ZIGoals is open.** Nothing reaches your phone yet.
+- **The Bitcoin wallet watch** reads mempool.space only, and shows the confirmed balance.
+- **Focus Sessions can't block other apps.** A web page can't, so time away from the page counts as away.
+- **GPX and TCX imports keep only a summary,** never the route.
+- **The Swiss food search** waits until we switch on its service.
+- **Foods from the Swiss database** show their source in the brand line; there is no separate source record yet.
+- **The Inter font** is downloaded, from ZIGoals itself, only when you choose it in Customize.
 
 The full list, kept up to date, is in **Help → Known limitations**.
 

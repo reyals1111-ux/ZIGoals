@@ -108,3 +108,21 @@ export const G6: G6Case[] = [];
     make('chat', 'today', 'today')('ai-g6-rule-long', `${'Notes from a long day at work and nothing else of note. '.repeat(150)}How much water today?`, {kinds: [], mustNot: ['Notes from a long day at work and nothing else of note. Notes from']}, {mock: 'You have had no water logged today.'}),
   );
 }
+// ---- Session AJ (item 9; ADR-034 N20's real-model gaps): the device's half of each fix ----
+{
+  const l = (area: CorpusArea, page: PageArea) => make('local-first', area, page);
+  G6.push(
+    // The Dutch false start before "rekenmachine" (sp-aac-nav-calculator-nl-filler) and its English twin.
+    l('wealth', 'wealth')('ai-g6-aj-nav-false-start-nl', 'Euh, kun je de, eh, open de rekenmachine even', {localFirst: true, mustContain: ['Wealth → Compound interest calculator']}, {lang: 'nl'}),
+    l('wealth', 'wealth')('ai-g6-aj-nav-false-start-en', 'Uh, can you the, open my calculator please', {localFirst: true, mustContain: ['Wealth → Compound interest calculator']}),
+  );
+  const RECIPE = block('[{"kind":"create-recipe","name":"Lentil soup","servings":4,"ingredients":[{"name":"Red lentils","grams":250}]},{"kind":"plan-meal","recipe_name":"Lentil soup","meal":"Dinner","day":"today"}]');
+  G6.push(
+    // A recipe and its plan in one reply (p2-long-recipe-and-meal, ai-ab-meal-plan-nl): both cards survive the device rules.
+    make('propose', 'health', 'health')('ai-g6-aj-recipe-and-plan', 'Make a lentil soup recipe and plan it for dinner tonight', {kinds: ['create-recipe', 'plan-meal']}, {mock: `Here is the recipe, and dinner planned with it.${RECIPE}`}),
+    make('propose', 'health', 'health')('ai-g6-aj-recipe-and-plan-nl', 'Maak een recept voor linzensoep en plan het vanavond als avondeten', {kinds: ['create-recipe', 'plan-meal']}, {lang: 'nl', mock: `Hier is het recept, en het avondeten ermee gepland.${RECIPE}`}),
+    // The coach's "keep" (sp-aa-coach-keep-*): a command, so its card stays.
+    make('propose', 'health', 'health')('ai-g6-aj-coach-keep', 'Keep my calorie target the same for this whole week', {kinds: ['coach-answer']}, {mock: `Kept for this week.${block('{"kind":"coach-answer","answer":"keep"}')}`}),
+    make('propose', 'health', 'health')('ai-g6-aj-coach-keep-nl', 'houd mijn caloriedoel deze week zo', {kinds: ['coach-answer']}, {lang: 'nl', mock: `Deze week zo gehouden.${block('{"kind":"coach-answer","answer":"keep"}')}`}),
+  );
+}

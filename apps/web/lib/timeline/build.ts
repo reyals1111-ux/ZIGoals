@@ -36,7 +36,7 @@ export type TimelineBlock = {
   /** The override key a move writes (`habit:<id>`, `meal:<slot>`). */
   timeKey?: string;
   /** Where the time comes from, in plain words. */
-  timeFrom: 'moved here' | 'its reminder' | 'its part of the day' | 'its meal slot' | 'its record' | 'Settings' | 'the Checklist' | 'no time yet';
+  timeFrom: 'moved here' | 'its habit time' | 'its reminder' | 'its part of the day' | 'its meal slot' | 'its record' | 'Settings' | 'the Checklist' | 'no time yet';
   action: 'habit-done' | 'meal-log' | 'open';
   habitId?: string; mealPlanId?: string; slot?: MealSlot;
   /** The habit's reminder time ("HH:MM"), shown beside a moved block. */
@@ -57,6 +57,8 @@ export type TimelineInput = {
   habits: HabitData; health?: HealthData | null;
   reminders?: Reminders | null; wReminders?: WReminders | null; plan?: RemindersPlan | null; reviewWeekday?: number;
   times?: DayTimelineRecord['times'];
+  /** Session AJ (item 35): each habit's own clock time, synced (zigoals:habit-extras:v1 `times`). */
+  habitTimes?: Readonly<Record<string, string>>;
   fasting?: Fasting | null; meditationRun?: MeditationRun | null; sleep?: Sleep | null;
   extra?: readonly TimelineSourceItem[];
 };
@@ -93,11 +95,12 @@ export function buildDayTimeline(input: TimelineInput): DayTimeline {
     if (!rule || !day.scheduled) continue;
     const key = habitTimeKey(h.id), moved = times[key], reminder = input.reminders?.habits[h.id]?.time;
     const part = h.timeOfDay === 'anytime' ? null : PART_OF_DAY[h.timeOfDay];
-    const time = moved?.time ?? reminder ?? part;
+    const own = input.habitTimes?.[h.id];
+    const time = moved?.time ?? own ?? reminder ?? part;
     const block: TimelineBlock = {
       id: `habit:${h.id}`, kind: 'habit', title: h.title, start: time ? clockMinutes(time) : null, minutes: moved?.minutes ?? habitMinutes(rule),
       pillar: 'habits', href: `/app/habits#habit-${h.id}`, done: day.status === 'complete', ...(day.status === 'skipped' ? {skipped: true} : {}),
-      movable: true, timeKey: key, timeFrom: moved ? 'moved here' : reminder ? 'its reminder' : part ? 'its part of the day' : 'no time yet',
+      movable: true, timeKey: key, timeFrom: moved ? 'moved here' : own ? 'its habit time' : reminder ? 'its reminder' : part ? 'its part of the day' : 'no time yet',
       action: rule.type === 'build' && day.status !== 'complete' && day.status !== 'skipped' ? 'habit-done' : 'open', habitId: h.id,
       ...(reminder ? {reminder} : {}),
       ...(day.status === 'partial' ? {note: `${day.count} of ${day.target} so far`} : {}),
@@ -190,6 +193,10 @@ export function nextBlocks(day: DayTimeline, count = 3): TimelineBlock[] {
 export function defaultHabitTime(habits: HabitData, habitId: string, reminders?: Reminders | null): string | null {
   const h = habits.habits.find(x => x.id === habitId); if (!h) return null;
   return reminders?.habits[habitId]?.time ?? (h.timeOfDay === 'anytime' ? null : PART_OF_DAY[h.timeOfDay]);
+}
+/** Session AJ (item 35): the habit's time on every device, if one is set (it outranks the reminder, as above). */
+export function ownHabitTime(habitTimes: Readonly<Record<string, string>> | undefined, habitId: string): string | null {
+  return habitTimes?.[habitId] ?? null;
 }
 /** Whether a habit is a "build" habit whose Done is one tap (the Habits page's own smart Done). */
 export const oneTapDone = (habits: HabitData, habitId: string) => { const h = habits.habits.find(x => x.id === habitId); return !!h && latestHabitRule(h).type === 'build'; };

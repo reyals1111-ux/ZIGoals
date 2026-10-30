@@ -1,11 +1,11 @@
 'use client';
 import {useEffect, useMemo, useState} from 'react';
-import {createCatalogLoader} from '../../lib/market-catalog-client';
+import {loadMarketCatalog} from '../../lib/market-catalog-client';
 import {isVerifiedAsset, searchMarketAssets, type MarketAssetRef, type MarketCatalogAsset} from '../../lib/market-assets';
 import {FEATURED_MARKETS} from '../../lib/product-insights';
 import {coinKey, type PortfolioCoin} from '../../lib/portfolio/schema';
 
-const loadCatalog = createCatalogLoader();
+const loadCatalog = loadMarketCatalog; // Session AJ (WE16): the app's one shared catalog loader
 type CoinRef = Extract<MarketAssetRef, {kind: 'coin'}>;
 const isCoin = (ref: MarketAssetRef): ref is CoinRef => ref.kind === 'coin';
 /** The coins Markets already features (BTC, ETH, ZIG, USDC, SOL): offered when the full catalog cannot load (owner decision g). */

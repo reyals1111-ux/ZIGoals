@@ -53,3 +53,15 @@
 /* Session AH (L1): the progression line above the history table. */
 .workouts-progress-line { margin: 12px 0 0; color: var(--brand-cyan, #6fe6f6); }
 .workouts-progress-line svg { display: block; width: 100%; max-width: 420px; height: 72px; }
+/* Session AJ (item 27, D12): import a GPX or TCX file; the summary only. */
+.workouts-import { border-top: 1px solid var(--line, #8fb6ff26); padding: 6px 0; }
+.workouts-import > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.workouts-import-body { display: grid; gap: 10px; padding: 4px 0 8px; }
+.workouts-import-body p { margin: 0; }
+.workouts-import-body input[type="file"] { min-height: 44px; max-width: 100%; }
+.workouts-import-preview { display: grid; gap: 12px; padding: 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.workouts-import-item { display: grid; gap: 8px; }
+.workouts-import-item h3 { margin: 0; font-size: 1.1rem; overflow-wrap: anywhere; }
+.workouts-import-problem { color: var(--danger-text, #ffb4c8); font-size: 14px; }
+.workouts-imported-line { margin: 8px 0 0; }
+:root[data-theme=light] .workouts-import-problem { color: #a3123a; }

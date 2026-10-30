@@ -56,7 +56,9 @@
 .habit-quit-grid small { text-align: center; color: #b7cfca; font-size: 14px; }
 .habit-quit-day { display: grid; place-items: center; aspect-ratio: 1; border-radius: 8px; font-size: 14px; color: #d8ece8; background: #86f0d614; border: 1px solid #86f0d622; }
 .habit-quit-slip { background: #d88aa03a; border-color: #d88aa088; color: #ffd9e3; }
-.habit-quit-before, .habit-quit-ahead { opacity: .35; }
+/* Session AJ (item 21, AF15): days outside the run are told apart by a fainter box and quieter digits, never by fading
+   the digits below 4.5:1 (they were 2.57:1 at 35 % opacity). */
+.habit-quit-before, .habit-quit-ahead { background: #86f0d606; border-color: #86f0d612; color: #a3bcb7; }
 @media (max-width: 600px) { .habit-quit-cost-form { grid-template-columns: 1fr; } }
 
 /* H4: skip with a reason, note and mood */

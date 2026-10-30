@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { IDBFactory } from "fake-indexeddb";
-import { TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { AuthInfo, TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { TransactionJournal } from "./transaction-journal";
 import { signedTransactionHash } from "./receipt-reconciliation";
@@ -363,8 +363,11 @@ test.each([
         typeUrl: string;
         value: Parameters<typeof MsgExecuteContract.encode>[0];
       }[],
+      fee: { amount: { denom: string; amount: string }[]; gas: string },
     ) => {
       const raw = TxRaw.fromPartial({
+        // Session AJ (A1): the signature carries the fee it was given; executeQuote compares it with the quote's.
+        authInfoBytes: AuthInfo.encode(AuthInfo.fromPartial({ fee: { amount: fee.amount, gasLimit: BigInt(fee.gas) } })).finish(),
         bodyBytes: TxBody.encode(
           TxBody.fromPartial({
             messages: messages.map((message) => ({
@@ -478,4 +481,16 @@ test("readGoals validates untrusted contract pages and releases its client", asy
   const {readGoals}=await import("./wallet");
   await expect(readGoals(owner)).rejects.toThrow("Invalid Goal Manager response");
   expect(read.disconnect).toHaveBeenCalledOnce();
+});
+// Session AJ (ADR-035 A1): the Goal Manager path asks Keplr with preferNoSetFee, so the reviewed fee is the one signed.
+test("the Goal Manager quote asks Keplr for a signer that keeps the app's fee", async () => {
+  clients.read.mockResolvedValue(readClient());
+  const signing = {getChainId:async()=>TESTNET.chainId,simulate:async()=>100000,disconnect:vi.fn(),sign:vi.fn(),broadcastTxSync:vi.fn()};
+  clients.signing.mockResolvedValue(signing);
+  const keplr = wallet().keplr;
+  const getSigner = vi.spyOn(keplr,"getOfflineSignerAuto");
+  const { quoteExecute } = await import("./wallet");
+  const quote = await quoteExecute(keplr,owner,1,{create_goal:{}});
+  expect(getSigner).toHaveBeenCalledWith(TESTNET.chainId, {preferNoSetFee: true});
+  expect(quote.fee.amount).toEqual([{denom: "azig", amount: (130000n * 2500000000n).toString()}]);
 });

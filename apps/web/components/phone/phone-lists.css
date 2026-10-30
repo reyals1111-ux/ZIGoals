@@ -21,6 +21,9 @@
   :root .activity-page .unified-activity .timeline-icon { width: 40px; height: 40px; border-radius: 13px; }
   :root .activity-page .unified-activity .activity-event a { font-size: 17px; line-height: 1.35; }
   :root .activity-page .unified-activity .activity-event a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+  /* Session AJ (item 18): the row's own Remove / "Reverse on its goal" sit above the row's link, which they do not stretch. */
+  :root .activity-page .unified-activity .activity-event .activity-remove { position: relative; z-index: 1; }
+  :root .activity-page .unified-activity .activity-event a.activity-remove::after { content: none; }
   :root .activity-page .unified-activity .activity-event p { margin: 4px 0; font-size: 15px; line-height: 1.45; }
   :root .activity-page .unified-activity .activity-event :is(small, time), :root .activity-page .activity-category-label { font-size: 15px; }
   :root .activity-page .activity-category-label { margin-bottom: 2px; }

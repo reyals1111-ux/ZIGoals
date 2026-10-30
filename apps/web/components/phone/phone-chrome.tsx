@@ -63,6 +63,14 @@ export type PhoneRoute = { title: string; back?: { href: string; label: string }
 /** Session AF (ADR-028 H68): a phone tab is always one of the navigation's pages, never an extra another lane registers. */
 const isNavPage = (href: string) => NAV_ITEMS.some(([h]) => h === href);
 
+/**
+ * Session AJ (A8; LA9, N-177/M-075): the pages reached from cards rather than the navigation name themselves for screen
+ * readers too (Journey's had said "ZIGoals"), in the same words as each page's tab title.
+ */
+const OFF_NAV_TITLES: Readonly<Record<string, string>> = {
+  "/app/journey": "Journey", "/app/review": "Life review", "/app/journal": "Journal", "/app/guided": "Guided journeys",
+  "/app/zigi/memory": "What ZIGi remembers", "/app/share": "Shared with ZIGoals",
+};
 export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/goals/new") return { title: "New Goal", back: { href: "/app/goals", label: "Goals" } };
   if (/^\/app\/goals\/(tracked\/)?[^/]+$/.test(path) && ![LEGACY_STAKING_PATH, "/app/goals/tracked"].includes(path)) return { title: "Goal", back: { href: "/app/goals", label: "Goals" } };
@@ -78,7 +86,7 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/timeline") return { title: "Day timeline", back: { href: "/app", label: "Today" } };
   if (path === "/app/stories") return { title: "Stories", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
-  return { title: item ? item[1] : "ZIGoals" };
+  return { title: item ? item[1] : OFF_NAV_TITLES[path] ?? "ZIGoals" };
 }
 
 /**

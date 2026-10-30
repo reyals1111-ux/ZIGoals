@@ -145,8 +145,9 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('create-recipe'), name: text(100), servings: positive.max(100).default(1),
     ingredients: z.array(z.strictObject({name: text(100), food: handleOf('f', 'f3').optional(), grams: positive.max(100_000).optional(), millilitres: positive.max(100_000).optional(), quantity: positive.max(1000).optional(), unit: text(24).optional(), servings: positive.max(1000).optional(), estimate_per_100g: nutrients.optional()})
       .refine(i => i.grams === undefined || i.servings === undefined, 'Give an ingredient in grams or in servings, not both.')).min(1).max(30)}),
-  z.strictObject({kind: z.literal('plan-meal'), recipe: handleOf('r', 'r1').optional(), saved_meal: handleOf('m', 'm1').optional(), servings: positive.max(100).default(1), meal: z.enum(MEALS), day: daySchema})
-    .refine(a => (a.recipe === undefined) !== (a.saved_meal === undefined), 'Plan one recipe (r1) or one saved meal (m1).'),
+  // Session AJ (item 9; ADR-034 N20's gap): `recipe_name` names a recipe a create-recipe card of the same reply makes.
+  z.strictObject({kind: z.literal('plan-meal'), recipe: handleOf('r', 'r1').optional(), recipe_name: text(100).optional(), saved_meal: handleOf('m', 'm1').optional(), servings: positive.max(100).default(1), meal: z.enum(MEALS), day: daySchema})
+    .refine(a => [a.recipe, a.recipe_name, a.saved_meal].filter(x => x !== undefined).length === 1, 'Plan one recipe (r1, or the name of a recipe this reply creates) or one saved meal (m1).'),
   z.strictObject({kind: z.literal('grocery-item'), items: z.array(text(100)).min(1).max(30)}),
   z.strictObject({kind: z.literal('counter'), counter: z.string().trim().min(1).max(40), count: z.number().int().min(-1000).max(1000).refine(n => n !== 0, 'A count other than zero.'), day: daySchema}),
   z.strictObject({kind: z.literal('create-reminder'), for: z.enum(REMINDER_FOR), habit: habitName.optional(), goal: goalName.optional(), time: clock, weekday: z.number().int().min(0).max(6).optional()})
@@ -256,6 +257,10 @@ export const actionSchema = z.discriminatedUnion('kind', [
   // Session AI (B3, J10, feature 5; TIER 3 data formats): money spent or received, written to the device's expense log
   // (`zigoals:money-log:v1`) through its registered writer; the person's own words, never converted, never advice.
   z.strictObject({kind: z.literal('log-expense'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  // Session AJ (item 15, D9; TIER 3 stored format via its registered writer): a price alert for a coin the person holds,
+  // "above/below a price" or "when it puts a goal at X %"; in the app only; never buys, sells or moves anything.
+  z.strictObject({kind: z.literal('create-price-alert'), coin: text(100), direction: z.enum(['above', 'below']).optional(), price: positive.max(1_000_000_000_000).optional(), currency: z.enum(['USD', 'EUR']).default('USD'), goal: text(250).optional(), percent: z.number().int().min(1).max(1000).optional()})
+    .refine(a => a.goal ? a.percent !== undefined && a.price === undefined : !!a.direction && a.price !== undefined, 'A price alert needs "direction" and "price"; a goal alert "goal" and "percent".'),
   z.strictObject({kind: z.literal('log-income'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
@@ -272,7 +277,9 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   // Session AF (L4)
   'checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief', 'prefill-staking',
   // Session AI
-  'log-expense', 'log-income'] as const satisfies readonly ActionKind[];
+  'log-expense', 'log-income',
+  // Session AJ
+  'create-price-alert'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -385,6 +392,8 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   widget: 'add-widget', 'add_widget': 'add-widget', 'pin-widget': 'add-widget', 'pin-to-today': 'add-widget', 'create-widget': 'add-widget',
   // Session AI: money spent or received.
   expense: 'log-expense', 'add-expense': 'log-expense', 'log_expense': 'log-expense', spending: 'log-expense', 'log-spending': 'log-expense', 'spent': 'log-expense', income: 'log-income', 'add-income': 'log-income', 'log_income': 'log-income',
+  // Session AJ: a price alert. No alias for buy, sell or order: an unknown kind stays refused.
+  'create_price_alert': 'create-price-alert', 'price-alert': 'create-price-alert', 'price_alert': 'create-price-alert', 'set-price-alert': 'create-price-alert', 'add-price-alert': 'create-price-alert', alert: 'create-price-alert',
   // Session AF (L4): the new kinds' plain names. No alias for a bare stake, unstake, claim, sign, send or broadcast: an unknown kind stays refused.
   'checklist_tick': 'checklist-tick', tick: 'checklist-tick', 'tick-off': 'checklist-tick', 'check-off': 'checklist-tick', 'mark-done': 'checklist-tick', 'checklist-check': 'checklist-tick',
   'checklist_add_favourite': 'checklist-add-favourite', 'checklist-add-favorite': 'checklist-add-favourite', 'checklist_add_favorite': 'checklist-add-favourite', 'checklist-favourite': 'checklist-add-favourite', 'checklist-favorite': 'checklist-add-favourite', 'star-habit': 'checklist-add-favourite',

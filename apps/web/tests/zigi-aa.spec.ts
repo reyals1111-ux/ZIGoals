@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {openZigi, sendToZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -42,11 +43,9 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
  * opens, and WebKit lost text typed while that focus was still moving (the "ZIGi box empty" class). As in
  * zigi-chat-polish's openChat (Session AF Gate C), a person types once the cursor is there, and so does the test.
  */
-async function openChat(page: Page) {
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
-  await expect(page.getByLabel('Message to your AI')).toBeFocused();
-}
-async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); await expect(panel(page).locator('.ai-card').last()).toBeVisible(); }
+const openChat = openZigi;
+// Session AJ (item 13): the text is confirmed in the box, and Send enabled, before the press (tests/zigi-open.ts).
+async function send(page: Page, text: string) { await sendToZigi(page, text); await expect(panel(page).locator('.ai-card').last()).toBeVisible(); }
 const stored = (page: Page, key: string) => page.evaluate(k => localStorage.getItem(k), key);
 
 test('set-game-layer: Add writes only the game device record, the card shows at once, and off takes it away again', async ({page}) => {

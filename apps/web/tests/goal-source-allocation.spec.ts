@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import {typeGoalName} from './goal-name';
 import { manualSourcePosition } from "../lib/manual-source";
 import { allocate, emptyPlatform, privateGoalSchema, type Platform } from "../lib/positions";
 import { setup } from "./run9-1-fixture";
@@ -17,7 +18,7 @@ function fixture(allocated: boolean): Platform {
 
 async function startValueGoal(page: Page) {
   await page.goto("/app/goals/new");
-  await page.getByLabel("Goal name", { exact: true }).fill("Second chapter");
+  await typeGoalName(page, "Second chapter");
   await page.getByRole("radio", { name: "Value", exact: true }).check();
   await page.getByLabel("Target amount", { exact: true }).fill("5000");
   await page.getByRole("button", { name: "Continue →", exact: true }).click();

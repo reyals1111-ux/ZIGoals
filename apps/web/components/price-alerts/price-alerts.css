@@ -1,0 +1,9 @@
+/* Session AJ (item 15): price alerts — readable text, 44 px targets, the theme's own colours. */
+.price-alerts-card h3 { margin: 4px 0 8px; }
+.price-alerts-list { display: grid; gap: 8px; margin: 8px 0; padding: 0; list-style: none; font-size: 16px; }
+.price-alerts-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
+.price-alerts-list .text-link, .price-alerts-card .actions > * { min-height: 44px; }
+.price-alert-form > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+.price-alert-form form { display: grid; gap: 10px; margin: 8px 0; }
+.price-alert-kind { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+.price-alert-kind label { min-height: 44px; display: flex; align-items: center; gap: 8px; }

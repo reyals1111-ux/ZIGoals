@@ -14,6 +14,7 @@ import {storageMessageOr} from '../../lib/storage-error-copy';
 import {BANDS, bandOf, defaultHabitTime, MEAL_TIMES, type TimelineBlock} from '../../lib/timeline/build';
 import {clearTime, minutesClock, restoreTime, setTime, type TimeOverride} from '../../lib/timeline/store';
 import {entryOn, restoreHabitEntry, type HabitEntry} from '../../lib/timeline/actions';
+import {setHabitTime} from '../../lib/habits-extras/store';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {useDayTimeline} from './use-day-timeline';
 import {TimelineBlockRow, clockLabel, type BlockActions} from './timeline-block';
@@ -27,7 +28,7 @@ import './timeline.css';
  * this device only. Viewing writes nothing.
  */
 export function DayTimelinePage() {
-  const state = useDayTimeline(), {day, loaded, habits, health, record} = state;
+  const state = useDayTimeline(), {day, loaded, habits, health, record, extras} = state;
   const [busy, setBusy] = useState(false);
   const run = useCallback(async (work: () => Promise<void>) => { setBusy(true); try { await work(); } finally { setBusy(false); } }, []);
   const actions = useMemo<BlockActions>(() => ({
@@ -72,8 +73,25 @@ export function DayTimelinePage() {
       try { record.update(r => clearTime(r, key)); showToast({message: `${b.title} is back at its own time.`, undo: () => record.update(r => restoreTime(r, key, previous)), undone: `${b.title} moved again.`}); }
       catch (e) { showToast({message: storageMessageOr(e, 'The time could not be changed on this device.')}); }
     },
-    defaultTime: b => b.habitId ? b.reminder ?? defaultHabitTime(habits.data, b.habitId, null) : b.slot ? MEAL_TIMES[b.slot] : null,
-  }), [run, day, habits, health, record]);
+    defaultTime: b => b.habitId ? (extras.data.times?.[b.habitId] ?? b.reminder ?? defaultHabitTime(habits.data, b.habitId, null)) : b.slot ? MEAL_TIMES[b.slot] : null,
+    // Session AJ (item 35): a habit's time on every device (synced with the habit extras); the device-only move is cleared.
+    everyDay: (b, minutes) => {
+      if (!b.habitId || !b.timeKey || extras.unreadable) return;
+      const id = b.habitId, key = b.timeKey, time = minutesClock(minutes), before = extras.data.times?.[id] ?? null, moved = record.data.times[key];
+      try {
+        extras.update(r => setHabitTime(r, id, time));
+        if (moved) record.update(r => clearTime(r, key));
+        showToast({message: `${b.title}: every day at ${formatClock(time)}, on all your devices.`, undo: () => { extras.update(r => setHabitTime(r, id, before)); if (moved) record.update(r => restoreTime(r, key, moved)); }, undone: `${b.title} is back as it was.`});
+      } catch (e) { showToast({message: storageMessageOr(e, 'The time could not be kept.')}); }
+    },
+    clearEveryDay: b => {
+      if (!b.habitId || extras.unreadable) return;
+      const id = b.habitId, before = extras.data.times?.[id] ?? null;
+      if (!before) return;
+      try { extras.update(r => setHabitTime(r, id, null)); showToast({message: `${b.title}: its everyday time is removed on all your devices.`, undo: () => extras.update(r => setHabitTime(r, id, before)), undone: `${b.title}: every day at ${formatClock(before)} again.`}); }
+      catch (e) { showToast({message: storageMessageOr(e, 'The time could not be changed.')}); }
+    },
+  }), [run, day, habits, health, record, extras]);
 
   const bands = useMemo(() => {
     if (!day) return [];
@@ -104,7 +122,7 @@ export function DayTimelinePage() {
           <TimelineBlockRow block={b} actions={actions} busy={busy} />
         </Fragment>)}{band.hasNow && (band.blocks.length === 0 || band.blocks.at(-1)!.start! <= day.nowMinute) && <NowLine minute={day.nowMinute} />}</ol>
       </section>)}
-      <p className="fine timeline-fine">Times you move here are kept on this device only; your habits and their reminders stay as they are. Fasts and running timers keep their own clocks.</p>
+      <p className="fine timeline-fine">Times you move here are kept on this device only; your habits and their reminders stay as they are. A habit time you set with “Every day, on all my devices” goes with your habit to every device. Fasts and running timers keep their own clocks.</p>
     </>}
   </div>;
 }

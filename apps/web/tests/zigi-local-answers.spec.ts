@@ -25,6 +25,9 @@ async function seed(page: Page, settings: AiSettings | null, records: Record<str
   // c9b123c9 and c1db750e hit it after this seed in four specs).
   await page.waitForLoadState('networkidle');
 }
+// Session AJ (item 13): the fixture's clock is a UTC instant (19:00Z on 20 Sep) and the answers name local days ("Sep 1 to
+// Sun, Sep 20"); east of UTC+5 that instant is already 21 Sep. The page runs in UTC, so the days are the fixture's own.
+test.use({timezoneId: 'UTC'});
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });

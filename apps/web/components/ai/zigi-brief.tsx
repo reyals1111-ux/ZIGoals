@@ -1,7 +1,6 @@
 'use client';
-import {useEffect, useId, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef} from 'react';
 import {BRIEF_WHY, eveningRecap, morningBrief, recapDue, type Brief} from '../../lib/ai/proactive/brief';
-import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import '../journal/journal.css';
 import {BRIEF_ID, dismissedOn, dismissFor} from '../../lib/ai/proactive/dismiss';
 import {briefPrefs, ZIGI, zigiPrefs} from '../../lib/ai/store/records';
@@ -14,6 +13,9 @@ import {localClock, ReadAloudButton, useBriefClock} from './brief-parts';
 import {useAiContext} from './use-ai-context';
 import {useAiSettings} from './use-ai-settings';
 import {useDeviceRecord} from './use-device-record';
+import {zigiSignals} from '../zigi/bus';
+import {lastEntryDay, welcomeBack} from '../../lib/checkin/checkin';
+import {ZigiCheckIn} from './zigi-checkin';
 import './ai.css';
 
 /**
@@ -29,7 +31,7 @@ import './ai.css';
  * → ZIGi · Your day (`zigoals:zigi:v1` `brief`).
  */
 export const RECAP_ID = 'recap';
-export type DayBrief = {brief: Brief | null; day: string; recap?: Brief | null};
+export type DayBrief = {brief: Brief | null; day: string; recap?: Brief | null; /** Session AJ: back after 7 days or more without an entry. */ back?: boolean};
 export function BriefProbe({onBrief}: {onBrief: (brief: DayBrief | null) => void}) {
   const settings = useAiSettings(), {toolSources, gates} = useAiContext(settings.data, 'your AI', false), zigi = useDeviceRecord(ZIGI), now = useBriefClock();
   // Made again only when the records, the gates, the ZIGi record or the half-minute clock change (the context object
@@ -43,7 +45,8 @@ export function BriefProbe({onBrief}: {onBrief: (brief: DayBrief | null) => void
     const prefs = briefPrefs(zigi.data), hidden = dismissedOn(zigi.data, sources.habitDay), env = toolEnv(sources, gates, 'local'), extras = {snapshot: sources.earn, earning: prefs.earning};
     const morning = prefs.morning && !hidden.has(BRIEF_ID) ? morningBrief(env, extras) : null;
     const recap = prefs.evening && due && !hidden.has(RECAP_ID) ? eveningRecap(env, extras) : null;
-    return morning || recap ? {brief: morning, day: sources.habitDay, ...(recap ? {recap} : {})} : null;
+    const last = lastEntryDay(sources.habits, sources.health, sources.habitDay), back = !!last && last < sources.habitDay && welcomeBack(last, sources.habitDay);
+    return morning || recap ? {brief: morning, day: sources.habitDay, ...(recap ? {recap} : {}), ...(back ? {back} : {})} : null;
   }, [toolSources, gates, zigi.loaded, zigi.data, due]);
   const sent = useRef<string | null>(null);
   useEffect(() => { const key = JSON.stringify(brief); if (key === sent.current) return; sent.current = key; onBrief(brief); }, [brief, onBrief]);
@@ -52,7 +55,7 @@ export function BriefProbe({onBrief}: {onBrief: (brief: DayBrief | null) => void
 function hideFor(day: string, id: string) {
   try { dismissFor(getAppStorage(), day, id); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_KEY})); } catch { /* it stays; nothing else changes */ }
 }
-export function BriefCard({brief, day, recap}: DayBrief) {
+export function BriefCard({brief, day, recap, back = false}: DayBrief) {
   // One root for the For-you slot (a layout item keeps one DOM root): the recap, once its time has come, sits above the morning brief.
   return <div className="zigi-brief-stack">
     {recap && <article className="panel zigi-brief-card zigi-recap-card" aria-label="ZIGi's evening recap">
@@ -62,25 +65,22 @@ export function BriefCard({brief, day, recap}: DayBrief) {
     </article>}
     {brief && <article className="panel zigi-brief-card" aria-label="ZIGi's morning brief">
       <p className="eyebrow">ZIGI · YOUR DAY</p>
+      {back && <WelcomeBack/>}
       <BriefLines brief={brief} footer={<ReadAloudButton brief={brief} intro="Your morning brief."/>}/>
       <details className="zigi-brief-why"><summary>Why these lines?</summary><ul className="fine">{(['due', 'win', 'focus'] as const).filter(k => brief[k]).map(k => <li key={k}>{BRIEF_WHY[k]}</li>)}</ul><p className="fine">Made on this device from your own records by these rules; no AI used.</p></details>
-      <MorningCheckIn day={day}/>
+      <ZigiCheckIn day={day}/>
       <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => askZigi('')}>Open ZIGi</button><button type="button" className="text-link" onClick={() => hideFor(day, BRIEF_ID)}>Not today</button></div>
     </article>}
   </div>;
 }
+
 /**
- * Session AI (feature 7, the daily check-in): one tap on the morning brief for today's energy (1–5, the same record as the
- * Journal's), then a short line that it is noted. Device only; nothing is sent; the Journal shows the last 14 days.
+ * Session AJ (item 10; COMPANIONS.md P4 moment 7): back after 7 days or more without a single entry (and none yet today),
+ * ZIGi says "Welcome back" and never how long it was. Read from the person's own records, so nothing is written on view;
+ * it goes once they log anything today.
  */
-function MorningCheckIn({day}: {day: string}) {
-  const energy = useDeviceRecord(ENERGY), id = useId(), [status, setStatus] = useState('');
-  if (!energy.loaded) return null;
-  const today = energy.data.days[day]?.energy ?? null;
-  const rate = (n: number) => { try { energy.update(current => rateEnergy(current, day, n, new Date().toISOString())); setStatus(`Energy today: ${ENERGY_WORDS.en[n - 1]}. Noted on this device; the Journal shows your last 14 days.`); } catch { setStatus('This could not be saved on this device.'); } };
-  return <fieldset className="journal-energy zigi-checkin"><legend>{today ? 'Your energy today' : 'Check in: how is your energy this morning?'}</legend>
-    {[1, 2, 3, 4, 5].map(n => <label key={n} className="journal-energy-dot" title={ENERGY_WORDS.en[n - 1]}><input type="radio" name={`${id}-energy`} checked={today === n} onChange={() => rate(n)}/><span aria-hidden="true">{n}</span><span className="sr-only">{n} of 5, {ENERGY_WORDS.en[n - 1]}</span></label>)}
-    <span className="fine journal-energy-word">{today ? ENERGY_WORDS.en[today - 1] : '1 drained · 5 full of energy'}</span>
-    {status && <p role="status" className="fine">{status}</p>}
-  </fieldset>;
+function WelcomeBack() {
+  const cheered = useRef(false);
+  useEffect(() => { if (cheered.current) return; cheered.current = true; zigiSignals.emit('hint_encouraging'); }, []);
+  return <p className="zigi-welcome-back">Welcome back. Good to see you.</p>;
 }

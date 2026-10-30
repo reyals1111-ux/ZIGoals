@@ -3,6 +3,10 @@ import {WORKOUTS_KEY, workoutsSchema, type Workouts} from '../workouts/schema';
 import {MONEY_LOG_KEY, moneyLogSchema, type MoneyLog} from '../money-log/schema';
 import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
+import {READING_SOURCES_KEY} from '../wealth-sources/schema';
+import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
+import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
+import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
 import {IMPORTS_KEY} from '../portfolio/wallet-import';
 import {EXCHANGES_KEY} from '../exchanges/record';
@@ -94,6 +98,11 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   portfolioReceipts: RECEIPTS_KEY,
   // Session AI (WE20): which Portfolio rows came from a linked wallet.
   portfolioImports: IMPORTS_KEY,
+  // Session AJ (CO6, D7): where each wealth reading came from.
+  readingSources: READING_SOURCES_KEY,
+  priceAlerts: PRICE_ALERTS_KEY,
+  focusSessions: FOCUS_SESSIONS_KEY,
+  guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).
   exchanges: EXCHANGES_KEY,
   // Session AI (G14): ZIGi's own counts, when the person turned them on.

@@ -13,7 +13,7 @@ test('the never list is exactly weight, fasting and the two money pre-fills; eve
   // Session AA-Local, merged second (ADR-022 B53): calculator-scenario, open-search and open-review are navigations too.
   // Session AF (ADR-028 D7, H47): the staking review, filled in, joins them (a money hand-off: the person reviews and signs).
   // Session AI: money spent or received joins them (anything about money is never automatic).
-  expect([...AUTO_ACCEPT_NEVER].sort()).toEqual(['calculator-scenario', 'delete-record', 'import-recipe', 'log-expense', 'log-income', 'log-weight', 'open-page', 'open-review', 'open-search', 'prefill-account', 'prefill-contribution', 'prefill-holding', 'prefill-staking', 'set-quit-cost', 'start-fast', 'start-routine', 'stop-fast', 'update-account-balance']);
+  expect([...AUTO_ACCEPT_NEVER].sort()).toEqual(['calculator-scenario', 'create-price-alert', 'delete-record', 'import-recipe', 'log-expense', 'log-income', 'log-weight', 'open-page', 'open-review', 'open-search', 'prefill-account', 'prefill-contribution', 'prefill-holding', 'prefill-staking', 'set-quit-cost', 'start-fast', 'start-routine', 'stop-fast', 'update-account-balance']);
   for (const kind of PREFILL_KINDS) expect(AUTO_ACCEPT_NEVER).toContain(kind);
   expect([...AUTO_ACCEPT_KINDS].sort()).toEqual(WRITING_KINDS.filter(k => !(AUTO_ACCEPT_NEVER as readonly string[]).includes(k)).sort());
   for (const kind of AUTO_ACCEPT_NEVER) expect(autoAcceptVerdict(on(kind), kind, DAY, true)).toEqual({ok: false, reason: 'never'});

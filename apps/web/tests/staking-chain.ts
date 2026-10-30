@@ -65,6 +65,11 @@ export async function fakeKeplr(page: Page, options: {address?: string; ledger?:
 /** What a fake broadcast answers: CheckTx accepted (code 0) or refused with a code; and what the receipt says. */
 export type ChainScript = {
   liquid?: string;
+  /** Session AJ (ADR-035): the node's application version (default the recorded v5.1.2) and, for a v6 node, its
+   *  x/feemarket base fee as the chain stores it (a LegacyDec scaled by 10^18). A v5 node answers the base-fee query
+   *  with "unknown query path", as zigchain-1 does today. */
+  version?: string;
+  baseFee?: string;
   broadcast?: (n: number) => {code: number; log: string} | undefined;
   receipt?: (n: number) => 'never' | {code: number; log?: string} | undefined;
 };
@@ -92,6 +97,8 @@ export async function fakeChain(page: Page, network: 'practice' | 'real' = 'prac
   const chainId = CHAIN[network];
   const status = JSON.parse(JSON.stringify(recorded.status).replaceAll('zig-test-2', chainId));
   const query = (value: Uint8Array | string) => ({response: {...recorded.abciQueryShape, value: typeof value === 'string' ? value : toBase64(value)}});
+  const abciInfo = script.version ? {response: {...recorded.abciInfo.response, version: script.version}} : recorded.abciInfo;
+  const baseFeeAnswer = (raw: string) => { const text = new TextEncoder().encode(raw); return Uint8Array.from([0x0a, text.length, ...text]); };
   const handler = async (route: Route) => {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({status: 204, headers: CORS});
@@ -99,7 +106,7 @@ export async function fakeChain(page: Page, network: 'practice' | 'real' = 'prac
     if (request.method() === 'GET') {
       methods.push(`GET ${url.pathname}`);
       if (url.pathname === '/status') return route.fulfill({headers: CORS, json: {jsonrpc: '2.0', id: -1, result: status}});
-      if (url.pathname === '/abci_info') return route.fulfill({headers: CORS, json: {jsonrpc: '2.0', id: -1, result: recorded.abciInfo}});
+      if (url.pathname === '/abci_info') return route.fulfill({headers: CORS, json: {jsonrpc: '2.0', id: -1, result: abciInfo}});
       return route.fulfill({status: 404, headers: CORS, body: ''});
     }
     const {id, method, params} = JSON.parse(request.postData() ?? '{}') as {id: number; method: string; params: Record<string, unknown>};
@@ -107,15 +114,16 @@ export async function fakeChain(page: Page, network: 'practice' | 'real' = 'prac
     const reply = (result: unknown) => route.fulfill({headers: CORS, json: {jsonrpc: '2.0', id, result}});
     switch (method) {
       case 'status': return reply(status);
-      case 'abci_info': return reply(recorded.abciInfo);
+      case 'abci_info': return reply(abciInfo);
       case 'abci_query': switch (params.path) {
         case '/cosmos.auth.v1beta1.Query/Account': return reply(query(QueryAccountResponse.encode({account: {typeUrl: '/cosmos.auth.v1beta1.BaseAccount', value: BaseAccount.encode(BaseAccount.fromPartial({address: ME, accountNumber: 42n, sequence: BigInt(sequence)})).finish()}}).finish()));
         case '/cosmos.staking.v1beta1.Query/Params': return reply(query(recorded.stakingParamsValue));
         case '/cosmos.bank.v1beta1.Query/DenomMetadata': return reply(query(recorded.denomMetadataValue));
         case '/cosmos.bank.v1beta1.Query/Balance': return reply(query(QueryBalanceResponse.encode(QueryBalanceResponse.fromPartial({balance: {denom: 'azig', amount: script.liquid ?? ZIG(100)}})).finish()));
+        case '/cosmos.evm.feemarket.v1.Query/BaseFee': if (script.baseFee) return reply(query(baseFeeAnswer(script.baseFee))); break;
         case '/cosmos.tx.v1beta1.Service/Simulate': return reply(query(SimulateResponse.encode(SimulateResponse.fromPartial({gasInfo: {gasWanted: 0n, gasUsed: 187701n}, result: {data: new Uint8Array(), log: '', events: [], msgResponses: []}})).finish()));
-        default: return reply({response: {...recorded.abciQueryShape, code: 6, log: `unknown query path ${String(params.path)}`, value: null}});
       }
+      return reply({response: {...recorded.abciQueryShape, code: 6, log: `unknown query path ${String(params.path)}`, value: null}});
       case 'broadcast_tx_sync': {
         const tx = fromBase64(String(params.tx)), hash = createHash('sha256').update(tx).digest('hex').toUpperCase();
         const refused = script.broadcast?.(broadcasts.length + 1);

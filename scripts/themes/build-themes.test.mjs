@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST, GRADIENT_TEXT_CONTRAST, GRADIENT_TEXT_TOKENS} from './build-themes.mjs';
+import {sourceFiles, NOT_SOURCES, largeSize, textSelector, scopedSelector, verticalLonghands, compactLength, isSpacedContainer, TEXT_SCALE, DENSITY_SCALE} from './build-themes.mjs';
 import * as parity from '../../apps/web/tests/parity/classify.ts';
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'apps', 'web');
@@ -174,3 +175,52 @@ describe('Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by 
     expect([parity.NEUTRAL_CHROMA, parity.NIGHT_L, parity.NIGHT_CHROMA]).toEqual([NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA]);
   });
 });
+
+describe('Session AJ (item 32, D5): the Customize sheets and the look in the early script', () => {
+  const {boot, module: sheetModule, textLarge, densityCompact} = buildAll();
+  it('are what the generator builds (run node scripts/themes/build-themes.mjs after a CSS change)', () => {
+    expect(readFileSync(join(WEB, 'public', 'themes', 'text-large.css'), 'utf8')).toBe(textLarge);
+    expect(readFileSync(join(WEB, 'public', 'themes', 'density-compact.css'), 'utf8')).toBe(densityCompact);
+    expect(sheetModule).toMatch(/export const LOOK_SHEETS = \{text: '\/themes\/text-large\.css\?v=[0-9a-f]{12}', density: '\/themes\/density-compact\.css\?v=[0-9a-f]{12}'\} as const;/);
+  });
+  it('the Customize sheet is no source of any generated sheet, so the theme sheets do not change with it', () => {
+    expect(NOT_SOURCES).toEqual(['app/customize.css']);
+    expect(sourceFiles()).not.toContain('app/customize.css');
+    expect(sourceFiles()).toContain('app/globals.css');
+  });
+  it('the early script reads the look: four attributes, two sheets, the paint held, all inside its own try', () => {
+    for (const piece of ['p.look', 'd.setAttribute("data-font","inter")', 'd.setAttribute("data-glow","soft")', 'add("data-text","large"', 'add("data-density","compact"', 'data-look-loading', 'zigoals-text-sheet', 'zigoals-density-sheet', 'setTimeout(function(){n=0;d.removeAttribute("data-look-loading")},1500)']) expect(boot, piece).toContain(piece);
+    expect(boot).toMatch(/try\{var k=p&&p\.version===1\?p\.look:null;.*\}catch\(e\)\{\}var m=/);
+    expect(boot).not.toMatch(/innerHTML|outerHTML|document\.write|eval\(|new Function|\.src\s*=|https?:/);
+  });
+  it('Large text: every font-size it can grow, ×TEXT_SCALE, keyed on data-text=large with the one id of weight', () => {
+    expect(TEXT_SCALE).toBe(1.125);
+    expect(largeSize('14px')).toBe('calc(14px * 1.125)');
+    expect(largeSize('clamp(22px, 2.5vw, 30px)')).toBe('calc(clamp(22px, 2.5vw, 30px) * 1.125)');
+    expect(largeSize('var(--text-meta-size)')).toBe('calc(var(--text-meta-size) * 1.125)');
+    for (const kept of ['max(.5em, 12px)', 'calc(1em + 2px)', '1.1em', '90%', 'inherit', 'smaller', '0', 'clamp(12px, calc(100cqi / (var(--chars, 8) * .6)), 30px)', 'min(1rem, 4cqi)']) expect(largeSize(kept), kept).toBeNull();
+    expect(textSelector('.a .b::before, :root .c, html[data-x] .d')).toBe(':where(:root[data-text=large]) .a .b:not(#\\-)::before, :root:where([data-text=large]) .c:not(#\\-), html:where([data-text=large])[data-x] .d:not(#\\-)');
+    expect(textLarge).toContain(':where(:root[data-text=large]) body:not(#\\-) { font-size: calc(');
+    const rules = textLarge.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').filter(Boolean);
+    for (const line of rules) { expect(line, line).toMatch(/\[data-text=large\]/); expect(line, line).not.toMatch(/(?:^|[ ;{])(?:padding|margin|width|height|gap|row-gap|color|background)(?:-[a-z]+)?\s*:/); }
+  });
+  it('Compact: only vertical spacing, only plain positive lengths shrink, only lists, cards and panels', () => {
+    expect(DENSITY_SCALE).toBe(0.75);
+    expect(verticalLonghands('padding', '30px')).toEqual([['padding-top', '30px'], ['padding-bottom', '30px']]);
+    expect(verticalLonghands('padding', '0 20px 20px')).toEqual([['padding-top', '0'], ['padding-bottom', '20px']]);
+    expect(verticalLonghands('margin-block', '8px 12px')).toEqual([['margin-top', '8px'], ['margin-bottom', '12px']]);
+    expect(verticalLonghands('gap', '12px 20px')).toEqual([['row-gap', '12px']]);
+    expect(verticalLonghands('padding', 'var(--pad)')).toEqual([['padding', 'var(--pad)']]);
+    for (const none of ['padding-left', 'width', 'min-height', 'column-gap', 'font-size']) expect(verticalLonghands(none, '10px'), none).toBeNull();
+    expect(compactLength('24px')).toBe('18px');
+    expect(compactLength('1.5rem')).toBe('1.13rem');
+    for (const kept of ['0', 'auto', '10%', '-8px', 'env(safe-area-inset-bottom)', 'calc(env(safe-area-inset-bottom) + 12px)', 'var(--x)', '50vh']) expect(compactLength(kept), kept).toBe(kept);
+    for (const yes of ['.panel', '.settings-overview .panel', '.goal-card', 'ul.list > li', '.pages-switches', '.customize-group']) expect(isSpacedContainer(yes), yes).toBe(yes !== '.pages-switches');
+    for (const no of ['.today-hero', '.today-hero.panel', '.site-footer .card-row', '.panel::before', '.primary', 'h2']) expect(isSpacedContainer(no), no).toBe(false);
+    expect(scopedSelector('.a', '[data-density=compact]')).toBe(':where(:root[data-density=compact]) .a:not(#\\-)');
+    expect(densityCompact).toMatch(/:where\(:root\[data-density=compact\]\) \.panel:not\(#\\-\) \{ padding-top: 22\.5px; padding-bottom: 22\.5px; margin-bottom: 18px; \}/);
+    const rules = densityCompact.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').filter(Boolean);
+    for (const line of rules) { expect(line, line).toMatch(/\[data-density=compact\]/); expect(line, line).not.toMatch(/(?:^|[ ;{])(?:padding-(?:left|right)|margin-(?:left|right)|column-gap|width|height|min-height|font-size|color|background)\s*:/); }
+  });
+});
+

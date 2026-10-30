@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {typeGoalName} from './goal-name';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
 import {PLATFORM_KEY} from '../lib/positions';
 import {HABITS_KEY} from '../lib/habits';
@@ -8,7 +9,7 @@ test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(pa
 const stored = <T,>(page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key) as Promise<T>;
 async function create(page: Page, name: string, type: 'Value' | 'Quantity' | 'Project', target = '2') {
   await page.goto('/app/goals/new'); await hydrated(page);
-  await page.getByLabel('Goal name', {exact: true}).fill(name);
+  await typeGoalName(page, name);
   await page.getByRole('radio', {name: type, exact: true}).check();
   if (type === 'Project') await page.getByLabel('Milestones, one per line', {exact: true}).fill('2 hours\nA day');
   else await page.getByLabel('Target amount', {exact: true}).fill(target);
@@ -47,7 +48,7 @@ test('GO2: closing a goal can pause its supporting habit; Delete says in words w
 
 test('GO3: the wizard has Cancel and Escape, and "€5000" is a money goal in euros', async ({page}) => {
   await page.goto('/app/goals/new'); await hydrated(page);
-  await page.getByLabel('Goal name', {exact: true}).fill('Fictional trip');
+  await typeGoalName(page, 'Fictional trip');
   await page.getByLabel('Target amount', {exact: true}).fill('€5000');
   await expect(page.getByRole('radio', {name: 'Value', exact: true})).toBeChecked();
   await expect(page.getByLabel('Target amount', {exact: true})).toHaveValue('5000');

@@ -78,7 +78,7 @@ export function goalMarketRequests(s:Platform,goalId?:string):MarketQuoteRequest
  return deduplicatedRequests(requests);
 }
 
-export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string;/** Session AB-Design (owner request 26): the same total split by asset class, for the chart's series; derived, never stored. */classes?:Record<string,string>}[];change:string;changePercent?:string};
+export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string;/** Session AB-Design (owner request 26): the same total split by asset class, for the chart's series; derived, never stored. */classes?:Record<string,string>;/** Session AJ (CO6, D7): the same total split by each reading's source, when asked for (wealthHistoryBySource). */sources?:Record<string,string>}[];change:string;changePercent?:string};
 /** Reconstruct only complete currency totals from recorded local facts; never backfill a missing Position. */
 // Session G, Part 2: Platform records are never changed in place, so derived indexes and results are kept per object
 // (and rebuilt if the arrays they read were replaced). Results are identical to computing them afresh.
@@ -100,25 +100,27 @@ export function wealthHistory(s:Platform):WealthHistory[]{
  if(cached&&cached.positions===s.positions&&cached.snapshots===s.valuationSnapshots&&cached.events===s.assetEvents)return cached.result;
  const result=computeWealthHistory(s);historyCache.set(s,{positions:s.positions,snapshots:s.valuationSnapshots,events:s.assetEvents,result});return result;
 }
-function computeWealthHistory(s:Platform):WealthHistory[]{
+/** Session AJ (item 6, CO6; D7): the history with each point also split by the source of the readings behind it (`sourceOf` a reading id). Not cached; the asset-class history above is unchanged. */
+export function wealthHistoryBySource(s:Platform,sourceOf:(snapshotId:string)=>string):WealthHistory[]{return computeWealthHistory(s,sourceOf);}
+function computeWealthHistory(s:Platform,sourceOf?:(snapshotId:string)=>string):WealthHistory[]{
  const byId=new Map(s.positions.map(p=>[p.id,p]));
  const currencyOf=(p:Position)=>p.valuation?.currency??(p.valuationMode==='automatic'||p.marketRef||isNativeZig(p)?p.quoteCurrency??'USD':undefined);
  const currencies=[...new Set(s.positions.flatMap(p=>currencyOf(p)?[currencyOf(p)!]:[]))];
  return currencies.flatMap(currency=>{
   const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id),requiredIds=new Set(required);
   const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&requiredIds.has(v.positionId)).sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt));
-  const latest=new Map<string,bigint>(),points:WealthHistory['points']=[];
+  const latest=new Map<string,bigint>(),latestId=new Map<string,string>(),points:WealthHistory['points']=[];
   for(let index=0;index<snapshots.length;){
    const at=snapshots[index]!.capturedAt;
    const simultaneous=new Map<string,typeof snapshots>();
    while(index<snapshots.length&&Date.parse(snapshots[index]!.capturedAt)===Date.parse(at)){const snapshot=snapshots[index++]!;simultaneous.set(snapshot.positionId,[...simultaneous.get(snapshot.positionId)??[],snapshot]);}
    for(const [id,group]of simultaneous){
     const facts=group.map(({id,capturedAt,...value})=>{void id;void capturedAt;return JSON.stringify(value);});
-    if(new Set(facts).size!==1){latest.delete(id);continue;} // competing device observations stay unresolved
-    const snapshot=group[0]!,value=BigInt(snapshot.value)*100n/10n**BigInt(snapshot.decimals);latest.set(id,value);
+    if(new Set(facts).size!==1){latest.delete(id);latestId.delete(id);continue;} // competing device observations stay unresolved
+    const snapshot=group[0]!,value=BigInt(snapshot.value)*100n/10n**BigInt(snapshot.decimals);latest.set(id,value);latestId.set(id,snapshot.id);
    }
    const active=required.filter(id=>positionTrackedAt(s,byId.get(id)!,at));
-   if(active.length&&active.every(id=>latest.has(id))){const classes:Record<string,bigint>={};for(const id of active){const held=byId.get(id)!,c=isEtf(held)?'ETFs':held.assetClass??'Other';classes[c]=(classes[c]??0n)+latest.get(id)!;}points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString(),classes:Object.fromEntries(Object.entries(classes).map(([c,v])=>[c,v.toString()]))});}
+   if(active.length&&active.every(id=>latest.has(id))){const classes:Record<string,bigint>={};for(const id of active){const held=byId.get(id)!,c=isEtf(held)?'ETFs':held.assetClass??'Other';classes[c]=(classes[c]??0n)+latest.get(id)!;}const sources:Record<string,bigint>={};if(sourceOf)for(const id of active){const k=sourceOf(latestId.get(id)!);sources[k]=(sources[k]??0n)+latest.get(id)!;}points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString(),classes:Object.fromEntries(Object.entries(classes).map(([c,v])=>[c,v.toString()])),...(sourceOf?{sources:Object.fromEntries(Object.entries(sources).map(([c,v])=>[c,v.toString()]))}:{})});}
   }
   if(!points.length)return [];
   const first=BigInt(points[0]!.value),last=BigInt(points.at(-1)!.value),change=last-first;

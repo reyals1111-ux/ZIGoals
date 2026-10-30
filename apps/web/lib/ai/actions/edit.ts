@@ -105,6 +105,8 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   // Session AI: money spent or received.
   'log-expense': [num('amount', 'Amount'), text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
   'log-income': [num('amount', 'Amount'), text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
+  // Session AJ (D9): the coin and the goal are named by the card (ask again to change them).
+  'create-price-alert': [select('direction', 'Goes', ['above', 'below'], true), num('price', 'Price', true), select('currency', 'Currency', ['USD', 'EUR']), int('percent', 'At (%)', true)],
   'add-link': [text('label', 'Name'), text('url', 'Address (https://…)'), select('icon', 'Icon', LINK_ICONS, true)],
   'add-widget': [select('widget', 'Widget', WIDGET_KINDS), text('metric', 'Metric', true), text('title', 'Title', true), select('size', 'Size', ['compact', 'wide'])],
   // Session AF (L4). A starred habit is named by the card (ask again to change it); the staking review's own fields are all editable here and again on the review.

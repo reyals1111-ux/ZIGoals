@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import {typeGoalName} from './goal-name';
 import {expectAlphaMode} from "./ab-shell";
 import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
@@ -116,7 +117,7 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await page.goto("/app/goals/new");
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("radio", {name:"Travel",exact:true}).check();
-  await page.getByLabel("Goal name", {exact:true}).fill("Blocked demo creation");
+  await typeGoalName(page, "Blocked demo creation");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", {name:"Continue"}).click();
   await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
@@ -238,7 +239,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await page.getByRole("link", { name: "Plan my first goal" }).click();
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("radio", {name:"Travel",exact:true}).check();
-  await page.getByLabel("Goal name", {exact:true}).fill("Kyoto in spring");
+  await typeGoalName(page, "Kyoto in spring");
   await page.getByLabel("Target amount").fill("1200");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("ZIGoals funding / Local simulation", {exact:true}).check();
