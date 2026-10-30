@@ -3,8 +3,17 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AG Polish 2 (release `2026-10-session-ag-polish-2-checklist`, ADR-031): the Checklist's final pass. Each link opens its Help answer. */
+/** Session AJ (release `2026-10-session-aj-big-leap`, ADR-035): the big leap. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-aj-alerts', label: 'Price alerts on your device, and net worth by where it came from'},
+  {href: '/app/help#help-aj-guided', label: 'Guided journeys, Focus Sessions and an optional Life Score'},
+  {href: '/app/help#help-aj-health', label: 'Sleep balance, your best focus window and GPX or TCX workouts'},
+  {href: '/app/help#help-aj-wealth', label: 'Trader tools, and watching a Bitcoin wallet by its public key'},
+  {href: '/app/help#help-aj-look', label: 'Customize the app’s look, and erase everything on this device'},
+  {href: '/app/help#help-aj-v6', label: 'Staking on ZIGChain v6: the review shows the network fee you sign'},
+];
+/** Session AG Polish 2 (release `2026-10-session-ag-polish-2-checklist`, ADR-031); Session AJ followed it, so these lead "Earlier updates". */
+const SESSION_AG_POLISH_2_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ag2-quick-add', label: 'Quick add: “+” puts a new habit on your Checklist in one step'},
   {href: '/app/help#help-ag2-planets', label: 'Each orbit’s planet lights up the moment you reach it'},
   {href: '/app/help#help-ag2-progress', label: 'A progress bar made of your day’s own planets'},
@@ -153,6 +162,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AG_POLISH_2_LINKS,
   ...SESSION_AG_POLISH_LINKS,
   ...SESSION_AG_LINKS,
   ...SESSION_AF_LINKS,
