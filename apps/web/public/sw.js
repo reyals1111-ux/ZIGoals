@@ -137,10 +137,19 @@ self.addEventListener('activate', event => {
     await self.clients.claim();
   })());
 });
+// Session AK (journey bug J6-1): after Erase everything this worker keeps nothing more: "zigoals:sw-forget" stops every
+// cache write (the requests go straight to the network) for as long as this worker runs, then its caches leave, then it
+// answers on the message's port so the page knows. The page unregisters it too; the next load registers a fresh one.
+let forgotten = false;
 self.addEventListener('message', event => {
   const type = event.data && event.data.type;
   if (type === 'zigoals:sw-reload') event.waitUntil(self.skipWaiting());
-  if (type === 'zigoals:sw-forget') event.waitUntil((async () => { for (const key of await caches.keys()) if (key.startsWith('zigoals-')) await caches.delete(key); })());
+  if (type === 'zigoals:sw-forget') {
+    forgotten = true;
+    event.waitUntil((async () => {
+      try { for (const key of await caches.keys()) if (key.startsWith('zigoals-')) await caches.delete(key); } finally { const port = event.ports && event.ports[0]; if (port) port.postMessage({type: 'zigoals:sw-forgotten'}); }
+    })());
+  }
 });
 
 // ---- Offline ---------------------------------------------------------------------------------------------------
@@ -164,7 +173,7 @@ async function networkFirst(request, url) {
   const cache = await caches.open(PAGES), keep = storable(url);
   try {
     const response = await race(request);
-    if (keep && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); }
+    if (keep && !forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); }
     return response;
   } catch {
     // Only this page's own copy: another page's would open at the wrong address. An address with a query opens its page's
@@ -178,7 +187,7 @@ async function cacheFirst(request) {
   const cache = await caches.open(STATIC), cached = await cache.match(request);
   if (cached) return cached;
   const response = await fetch(request);
-  if (cacheable(response)) { await cache.put(request, response.clone()); trim(STATIC, MAX_STATIC); }
+  if (!forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(STATIC, MAX_STATIC); }
   return response;
 }
 /** Security review F7: an unhashed file (an icon, a font, the manifest) can change under its name, so the network comes first. */
@@ -186,7 +195,7 @@ async function assetNetworkFirst(request) {
   const cache = await caches.open(ASSETS);
   try {
     const response = await race(request);
-    if (cacheable(response)) { await cache.put(request, response.clone()); trim(ASSETS, MAX_STATIC); }
+    if (!forgotten && cacheable(response)) { await cache.put(request, response.clone()); trim(ASSETS, MAX_STATIC); }
     return response;
   } catch {
     const cached = await cache.match(request);
@@ -195,7 +204,7 @@ async function assetNetworkFirst(request) {
   }
 }
 self.addEventListener('fetch', event => {
-  if (!OFFLINE) return;
+  if (!OFFLINE || forgotten) return;
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
