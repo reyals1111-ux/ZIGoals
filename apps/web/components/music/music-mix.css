@@ -1,0 +1,69 @@
+/* Session AK (lane U, owner decision MUSIC): the mix, the playlist links and "use my own Spotify app", in the music
+   panel's NOVA look (music-panel.css): nebula gradients, glass cards, one pillar accent per sound. Every control is at
+   least 44 px; the level bars move only while the mix plays and motion is welcome. */
+.music-mix{--mix-accent:var(--pillar-goals,#9273ff);display:grid;gap:12px;text-align:left}
+.music-mix fieldset{margin:0;padding:0;border:0;min-width:0;display:flex;flex-wrap:wrap;gap:8px}
+.music-mix legend{width:100%;margin-bottom:6px;font-size:.9375rem;font-weight:600;color:#dfe6ff}
+.music-mix-presets{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.music-mix-preset{display:grid;gap:2px;min-height:56px;padding:8px 12px;border-radius:16px;border:1px solid #ffffff26;background:linear-gradient(135deg,#ffffff12,#ffffff05);color:var(--text,#eef1ff);text-align:left;font-size:.9375rem;line-height:1.3;cursor:pointer}
+.music-mix-preset span{color:#c3cdf0;font-size:.875rem}
+.music-mix-preset:hover{border-color:#b9a8ff}
+.music-mix-chip[data-sound=rain],.music-mix-chip[data-sound=ocean],.music-mix-level[data-sound=rain],.music-mix-level[data-sound=ocean]{--mix-accent:var(--pillar-habits,#23eaff)}
+.music-mix-chip[data-sound=tones],.music-mix-level[data-sound=tones]{--mix-accent:var(--pillar-health,#ff74be)}
+.music-mix-chip[data-sound=pad],.music-mix-chip[data-sound=drone],.music-mix-level[data-sound=pad],.music-mix-level[data-sound=drone]{--mix-accent:var(--pillar-goals,#9273ff)}
+.music-mix-chip[data-sound=brown],.music-mix-chip[data-sound=pink],.music-mix-chip[data-sound=white],.music-mix-level[data-sound=brown],.music-mix-level[data-sound=pink],.music-mix-level[data-sound=white]{--mix-accent:var(--pillar-wealth,#ffd27a)}
+.music-mix-chip[aria-pressed=true]{border-color:var(--mix-accent);box-shadow:0 0 0 1px var(--mix-accent),0 6px 18px -10px var(--mix-accent)}
+.music-mix-hint{margin:0;color:#c3cdf0;font-size:.9375rem;line-height:1.45}
+.music-mix-levels{display:grid;gap:10px;padding:10px 12px;border-radius:16px;border:1px solid #ffffff1a;background:#ffffff08}
+.music-mix-level{display:grid;gap:4px}
+.music-mix-level .field,.music-mix-master .field{display:grid;gap:4px;font-size:.9375rem}
+.music-mix input[type=range]{width:100%;min-height:44px;accent-color:var(--mix-accent)}
+.music-mix-master input[type=range]{accent-color:#6f7ff5}
+.music-mix select{min-height:44px;font-size:16px}
+.music-mix .checkbox{min-height:44px;font-size:.9375rem}
+.music-mix-meter{display:block;height:6px;border-radius:999px;background:#ffffff1a;overflow:hidden}
+.music-mix-meter>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--mix-accent),#826cff);transform-origin:left center}
+.music-mix-master{display:grid;gap:10px}
+.music-mix-silent{display:grid;gap:4px}
+.music-mix-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.music-mix-actions>button{min-width:160px;min-height:48px}
+.music-mix-viz{display:inline-flex;align-items:flex-end;gap:4px;height:28px}
+.music-mix-viz>span{width:5px;height:30%;border-radius:3px;background:linear-gradient(180deg,#63e7ff,#826cff 55%,#c664ff);opacity:.45}
+.music-mix[data-playing] .music-mix-viz>span{opacity:1;height:60%;animation:music-mix-bar 2.6s ease-in-out infinite}
+.music-mix[data-playing] .music-mix-viz>span:nth-child(2){animation-delay:-.6s;animation-duration:3.1s}
+.music-mix[data-playing] .music-mix-viz>span:nth-child(3){animation-delay:-1.3s;animation-duration:2.2s}
+.music-mix[data-playing] .music-mix-viz>span:nth-child(4){animation-delay:-.9s;animation-duration:3.6s}
+.music-mix[data-playing] .music-mix-viz>span:nth-child(5){animation-delay:-1.8s;animation-duration:2.8s}
+.music-mix[data-playing] .music-mix-meter>span{animation:music-mix-breathe 5s ease-in-out infinite}
+@keyframes music-mix-bar{0%,100%{height:25%}50%{height:95%}}
+@keyframes music-mix-breathe{0%,100%{opacity:1}50%{opacity:.7}}
+@media (prefers-reduced-motion:reduce){.music-mix[data-playing] .music-mix-viz>span,.music-mix[data-playing] .music-mix-meter>span{animation:none}}
+:root[data-app-motion=off] .music-mix[data-playing] .music-mix-viz>span,:root[data-app-motion=off] .music-mix[data-playing] .music-mix-meter>span{animation:none}
+.music-mix-note{margin:0;min-height:1.4em;color:#dfe6ff;font-size:.9375rem}
+.music-mix-preset:focus-visible,.music-links a:focus-visible,.music-links button:focus-visible,.music-byo button:focus-visible,.music-byo input:focus-visible,.music-full-link:focus-visible,.music-more>summary:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+/* "Open in your music app": a mood row, then one glass card per service. */
+.music-links{display:grid;gap:10px;text-align:left}
+.music-links-moods{margin:0;padding:0;border:0;min-width:0;display:flex;flex-wrap:wrap;gap:8px}
+.music-links-moods legend{width:100%;margin-bottom:6px;font-size:.9375rem;font-weight:600;color:#dfe6ff}
+.music-links ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.music-links a{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:6px 14px;border-radius:16px;border:1px solid #ffffff26;background:linear-gradient(135deg,#ffffff12,#ffffff05);color:var(--text,#eef1ff);text-decoration:none;font-size:.9375rem}
+.music-links a:hover{border-color:#9fefff}
+.music-links a strong{font-weight:600}
+.music-links a span{color:#c3cdf0}
+/* "Use my own Spotify app". */
+.music-byo{display:grid;gap:10px;text-align:left}
+.music-byo ol{margin:0;padding-left:1.4em;display:grid;gap:6px;font-size:.9375rem;line-height:1.45;color:#dfe6ff}
+.music-byo code{padding:1px 6px;border-radius:6px;background:#ffffff14;font-size:.875rem;overflow-wrap:anywhere}
+.music-byo-copy{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.music-byo input[type=text]{width:100%;min-height:44px;padding:0 12px;border-radius:12px;border:1px solid #ffffff33;background:#0a1029;color:var(--text,#eef1ff);font:inherit;font-size:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.music-byo .actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.music-byo .actions>button,.music-byo-copy>button{min-height:44px}
+.music-full-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;color:#9fefff;font-size:.9375rem;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+@media (forced-colors:active){.music-mix-chip[aria-pressed=true]{outline:2px solid Highlight}.music-mix-viz>span,.music-mix-meter>span{background:CanvasText}}
+/* /app/music: the panel's parts as glass cards in the panel's nebula, two columns on wide screens, one on phones. */
+.music-page{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+.music-page-card{display:grid;gap:12px;min-width:0;padding:18px 20px;border-radius:24px;border:1px solid #ffffff1f;background:radial-gradient(140% 80% at 15% 0%,#21306f 0%,#111a45 45%,#0a1029 100%);color:var(--text,#eef1ff);box-shadow:0 30px 70px -30px #000e,0 0 0 1px #ffffff08 inset}
+.music-page-now{grid-row:span 2}
+.music-page>.music-footer,.music-page>.music-problem,.music-page>.fine{grid-column:1/-1}
+@media (max-width:640px){.music-page{gap:12px}.music-page-card{padding:16px;border-radius:20px}.music-page-now{grid-row:auto}.music-page .music-disc{width:160px;height:160px}}
+@media (forced-colors:active){.music-page-card{border-color:CanvasText}}

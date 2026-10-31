@@ -97,6 +97,25 @@ test('writes wait for a staged rotation; a deletion counts a generation; a Healt
   expect(await json('/v1/extras')).toEqual({status:410,body:{error:'ACCOUNT_DELETED'}});
  }finally{await r.mf.dispose();}
 },60000);
+test('AK 8.10 (AFL8): the Checklist section is listed only when asked for by name, written and read like the four, and goes with the account erase',async()=>{
+ const {r,vault,json,put}=await setup();
+ try{
+  // An older client reads the heads strictly: the default list stays exactly the four.
+  expect(await json('/v1/extras')).toEqual({status:200,body:{protocol:1,sections:{goals:EMPTY,life:EMPTY,habits:EMPTY,health:EMPTY}}});
+  expect(await json('/v1/extras?with=checklist')).toEqual({status:200,body:{protocol:1,sections:{goals:EMPTY,life:EMPTY,habits:EMPTY,health:EMPTY,checklist:EMPTY}}});
+  for(const bad of ['portfolio','goals','Checklist','']) expect((await json('/v1/extras?with='+encodeURIComponent(bad))).status,bad).toBe(400);
+  expect(await put('checklist',0)).toEqual({status:200,body:{revision:1,generation:0}});
+  expect((await json('/v1/extras?with=checklist')).body.sections.checklist).toEqual({revision:1,generation:0,epoch:vault.manifest.epoch,parts:1});
+  expect(Object.keys((await json('/v1/extras')).body.sections)).toEqual(['goals','life','habits','health']);
+  const read=extrasSectionCloudSchema.parse((await json('/v1/extras?section=checklist')).body);
+  expect(await openSection(vault.key,vault.manifest,read)).toBe(TEXT);
+  await expect(openSection(vault.key,vault.manifest,{...read,section:'goals'})).rejects.toThrow();
+  expect(await storedKeys(r.persist,'extras-part:checklist:')).toEqual(['extras-part:checklist:0']);
+  expect((await json('/v1/account',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'})).status).toBe(200);
+  expect(await storedKeys(r.persist,'extras-part:checklist:')).toEqual([]);
+ }finally{await r.mf.dispose();}
+},60000);
+
 test('receipts are kept for the newest 64 writes across sections (FIX_PLAN B5 horizon)',async()=>{
  const {r,vault,json,put}=await setup();
  try{

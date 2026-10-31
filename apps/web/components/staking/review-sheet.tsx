@@ -2,7 +2,8 @@
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {NETWORK_WORDS} from '@zigoals/chain-config/networks';
 import {getAppStorage} from '../../lib/showcase-storage';
-import {executeSigned, StakingFailure, type StakingReceipt} from '../../lib/staking/execute';
+import {executeSigned, StakingFailure, walletConnectKeplr, type StakingReceipt} from '../../lib/staking/execute';
+import {walletConnectSession} from '../../lib/wallets/walletconnect';
 import {STAKING_TYPE_URLS, type StakingMessage} from '../../lib/staking/messages';
 import {formatGazig} from '@zigoals/chain-config/reviewed-versions';
 import {GAS_MULTIPLIER, type StakingQuote} from '../../lib/staking/quote';
@@ -64,7 +65,8 @@ export function ReviewSheet({quote, names, facts, rewards, expired, progress, on
   const sign = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (signing || expired) return;
-    const keplr = typeof window === 'undefined' ? undefined : window.keplr;
+    // Session AK (AFL9): Keplr in this browser, or Keplr Mobile over this tab's WalletConnect session for the quote's chain.
+    const keplr = typeof window === 'undefined' ? undefined : window.keplr ?? walletConnectKeplr(walletConnectSession(), quote.chainId) ?? undefined;
     if (!keplr) { setError(NO_KEPLR); return; }
     const activation = press.current;
     press.current = null;

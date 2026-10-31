@@ -40,6 +40,7 @@ export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Par
     try { celebrations.update(n => ({...n, seen: {...n.seen, [current.id]: today}})); } catch { /* shown once in this session anyway */ }
     try { if (current.kind === 'level') game.game.update(g => markLevelSeen(g, Number(current.id.split(':')[1]))); if (current.kind === 'badge') game.game.update(g => markBadgeSeen(g, current.id.split(':')[1]!, today)); } catch { /* the seen map above holds it */ }
     if (current.semantic) { try { zigiSignals.emitValidated(current.semantic); } catch { /* decoration */ } }
+    else { try { zigiSignals.emitValidated('journey_step'); } catch { /* decoration */ } } // Session AK Part 12: a Journey step (streak, fast, Checklist orbit), a Studio-4 reaction once its art lands
   }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!current) return null;
   const still = !motionAllowed();

@@ -210,3 +210,15 @@
 :root dialog.routine-sheet { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; color: inherit; overflow: auto; }
 :root dialog.routine-sheet:not([open]) { display: none; }
 :root dialog.routine-sheet::backdrop { background: #050916; }
+/* Session AK (5.6, 5.7, 5.4): the list tools (cards or compact, Reorder), the rules section, routine sharing. */
+.habit-list-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.habit-list-tools > button { min-height: 44px; }
+.habit-auto-rules { margin-top: 16px; }
+.habit-auto-rules .habit-section-heading > button { min-height: 44px; flex-shrink: 0; }
+.habit-routines .habit-section-heading .actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.habit-routine-share { display: grid; gap: 12px; margin: 12px 0; }
+.habit-routine-share h3 { margin: 0; }
+.habit-routine-share fieldset { display: grid; gap: 8px; margin: 0; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.habit-routine-share button, .habit-routine-share input[type=file] { min-height: 44px; }
+.routine-player-head .actions { display: flex; gap: 4px; }
+.routine-player-head .actions button { min-height: 44px; }

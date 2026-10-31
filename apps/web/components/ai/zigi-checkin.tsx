@@ -15,6 +15,8 @@ import {usePagesView} from '../pages/use-pages-view';
 import {zigiSignals} from '../zigi/bus';
 import {useDeviceRecord} from './use-device-record';
 import '../for-you/for-you.css';
+// Session AK (lane S, item 6): the optional feeling word after the 1–5 (its grid loads when opened).
+import {MoodWordsFold} from '../mood-words/mood-words-fold';
 
 /**
  * Session AJ (item 10, D14; docs/research/session-aj/COMPANIONS.md P1, P4): "ZIGi · Your day" check-in v2, on the morning
@@ -45,6 +47,8 @@ export function ZigiCheckIn({day}: {day: string}) {
     if (!moment) return;
     if (moment.ledgerId && celebrations.loaded && !celebrations.unreadable) { const ledgerId = moment.ledgerId; try { celebrations.update(n => ({...n, seen: {...n.seen, [ledgerId]: day}})); } catch { /* the moment still plays once in this view */ } }
     if (moment.validated) zigiSignals.emitValidated(moment.signal); else zigiSignals.emit(moment.signal);
+    // Session AK Part 12: the Studio-4 reactions for a low day and a counted check-in milestone (noted only until their art lands).
+    if (low) zigiSignals.emit('checkin_low'); else if (moment.ledgerId && moment.validated) zigiSignals.emitValidated('checkin_milestone');
   };
   const rate = (n: number) => {
     const first = todayEnergy === null && todayMood === null;
@@ -79,6 +83,7 @@ export function ZigiCheckIn({day}: {day: string}) {
     {moodDay && <fieldset className="zigi-checkin-mood"><legend>{todayMood ? 'How the day feels' : 'And how does the day feel?'}</legend>
       <div className="wrap-up-mood-choices">{MOOD_WORDS.map((word, i) => <button key={word} type="button" className="secondary" aria-pressed={todayMood === i + 1} onClick={() => void feel(i + 1)}>{word}</button>)}</div>
     </fieldset>}
+    {(todayEnergy !== null || todayMood !== null) && <MoodWordsFold day={day}/>}
     {moodDay && todayMood !== null && <div className="zigi-checkin-note">
       <label className="field">One line about today (optional)<input value={note} maxLength={NOTE_MAX} onChange={event => setDraft(event.target.value)} onBlur={() => void saveNote()} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void saveNote(); } }} placeholder="Only you see this"/></label>
       <span className="fine">{note.length} of {NOTE_MAX} characters · kept with the day&rsquo;s mood, on this device</span>

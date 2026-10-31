@@ -51,3 +51,15 @@ test('a bad search is refused before the Worker; a bad answer or a Worker error 
  bound(()=>Response.json({error:'PROVIDER_SETUP_REQUIRED'},{status:503}));expect((await find('q=apple')).status).toBe(503);
  bound(()=>Response.json({error:'PROVIDER_THROTTLED',retryAfter:42},{status:429}));const wait=await find('q=apple');expect(wait.status).toBe(429);expect(wait.headers.get('retry-after')).toBe('42');expect(await wait.json()).toEqual({error:'TRY_LATER',retryAfter:42});
 });
+
+// Session AK (item 15): the Nutri-Score grade only for a client that asks (`grade=1`); an older tab's strict reader never
+// sees it. Any other `grade` value is refused like a bad query.
+test('the Nutri-Score grade reaches only a client that asks for it',async()=>{
+ const off={status:'success',product:{code:'4006381333931',product_name:'Fictional muesli',nutriments:{'energy-kcal_100g':380},nutriscore_grade:'B'}};
+ bound(()=>Response.json(off));
+ const plain=await (await GET(new Request('https://alpha.test/api/food-lookup?code=4006381333931'))).json();
+ expect(plain.name).toBe('Fictional muesli');expect('nutriscoreGrade' in plain).toBe(false);
+ const asked=await (await GET(new Request('https://alpha.test/api/food-lookup?code=4006381333931&grade=1'))).json();
+ expect(asked.nutriscoreGrade).toBe('b');
+ expect((await GET(new Request('https://alpha.test/api/food-lookup?code=4006381333931&grade=2'))).status).toBe(400);
+});

@@ -85,6 +85,10 @@ export function assertEnvironment(env, policies) {
   assert.deepEqual(policies.branch_policies?.map(p => ({ name: p.name, type: p.type })), [{ name: "main", type: "branch" }], "alpha must allow only the main branch, never tags");
 }
 
+/** Session AK (A10): the food Worker the Alpha binds; it must exist before an Alpha deploy (docs/run11/FOOD_WORKER_PUBLIC_ALPHA.md). */
+export const FOOD_LOOKUP_SERVICE = "zigoals-acctest-food-lookup";
+export const FOOD_DEPLOY_ORDER = `FOOD_LOOKUP binds ${FOOD_LOOKUP_SERVICE}: deploy the food Worker first, then the Alpha (docs/run11/FOOD_WORKER_PUBLIC_ALPHA.md).`;
+
 export function assertAlphaConfig(config) {
   // Deliberately stricter than the general config checker. Changing this reviewed
   // deployment envelope requires a code review, even for an Alpha-only route.
@@ -99,6 +103,9 @@ export function assertAlphaConfig(config) {
       { binding: "WORKER_SELF_REFERENCE", service: WORKER },
       // Session S: live prices through the shared market coordinator's named entrypoint, never a provider key.
       { binding: "MARKET_QUOTES", service: MARKET_COORDINATOR, entrypoint: "QuoteService" },
+      // Session AK (Part 1b, ADR-036 Q5/A10): barcode and food search through the acceptance stack's food Worker, the
+      // same precedent as MARKET_QUOTES. That Worker must be deployed before the Alpha (FOOD_WORKER_PUBLIC_ALPHA.md).
+      { binding: "FOOD_LOOKUP", service: FOOD_LOOKUP_SERVICE },
     ],
     vars: { ZIGOALS_MARKET_QUOTES_MODE: "durable-v1" },
     limits: { cpu_ms: 2000 }, observability: { enabled: false },

@@ -5,6 +5,26 @@ import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
+import {NOTIFY_KEY} from '../notify/prefs';
+import {MUSIC_MIX_KEY} from '../music/mix-store';
+import {BILLS_KEY} from '../bills/schema';
+import {BUDGETS_KEY} from '../budgets/schema';
+import {TARGET_ALLOCATION_KEY} from '../allocation/target';
+import {CSV_MAPPINGS_KEY} from '../csv/templates/saved';
+import {AUTO_RULES_KEY} from '../auto-rules/schema';
+import {BACKUP_REMINDER_KEY} from '../backup-reminder';
+import {FOOD_SCANS_KEY} from '../food-scans/schema';
+import {NUTRIENT_EXTRAS_KEY} from '../health-vitamins/extras';
+import {GROCERY_KEY} from '../grocery/schema';
+import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
+import {COMPARE_PAIR_KEY} from '../compare/schema';
+import {MONEY_RULES_KEY} from '../money-rules/schema';
+import {MONEY_REVIEW_KEY} from '../money-review/review';
+import {FI_MODEL_KEY} from '../fi-model/store';
+import {EMERGENCY_SHEET_KEY} from '../emergency-sheet/schema';
+import {MUSCLE_RECOVERY_KEY} from '../muscle-freshness/model';
+import {FOOD_DISPLAY_KEY} from '../food-display/schema';
+import {REWARDS_SHELF_KEY} from '../rewards-shelf/store';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
@@ -101,6 +121,31 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AJ (CO6, D7): where each wealth reading came from.
   readingSources: READING_SOURCES_KEY,
   priceAlerts: PRICE_ALERTS_KEY,
+  // Session AK Part 2: which notifications this device wants (never the device's push identity, which stays in IndexedDB).
+  notify: NOTIFY_KEY,
+  // Session AK Part 1d: the sound mix, its own volume and timer, and the play-on-silent choice.
+  musicMix: MUSIC_MIX_KEY,
+  // Session AK Parts 5 and 7: habit rules, bills, budgets, the target mix and saved CSV column matches.
+  autoRules: AUTO_RULES_KEY,
+  bills: BILLS_KEY,
+  budgets: BUDGETS_KEY,
+  targetAllocation: TARGET_ALLOCATION_KEY,
+  csvMappings: CSV_MAPPINGS_KEY,
+  // Session AK Part 8.9: the person's own 'I saved a copy' mark and the monthly reminder's switch.
+  backupReminder: BACKUP_REMINDER_KEY,
+  // Session AK Part 4: scan history, extra nutrients, grocery ticks and pantry, the weekly calorie budget.
+  foodScans: FOOD_SCANS_KEY,
+  nutrientExtras: NUTRIENT_EXTRAS_KEY,
+  grocery: GROCERY_KEY,
+  calorieWeek: CALORIE_WEEK_KEY,
+  comparePair: COMPARE_PAIR_KEY,
+  moneyRules: MONEY_RULES_KEY,
+  moneyReview: MONEY_REVIEW_KEY,
+  fiModel: FI_MODEL_KEY,
+  emergencySheet: EMERGENCY_SHEET_KEY,
+  muscleRecovery: MUSCLE_RECOVERY_KEY,
+  foodDisplay: FOOD_DISPLAY_KEY,
+  rewardsShelf: REWARDS_SHELF_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
   guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).

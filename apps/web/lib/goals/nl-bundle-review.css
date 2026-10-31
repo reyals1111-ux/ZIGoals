@@ -1,0 +1,11 @@
+/* Session AK (6.1): the goal bundle review card. Theme colours only; 44 px targets. */
+.nl-bundle { display: grid; gap: 10px; }
+.nl-bundle h3 { margin: 0; }
+.nl-bundle-parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.nl-bundle-parts > li { display: grid; gap: 6px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 14px; }
+.nl-bundle-check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; color: var(--text); }
+.nl-bundle-check input { width: 22px; height: 22px; margin-top: 2px; flex: none; }
+.nl-bundle-detail { color: var(--text-secondary, var(--muted)); }
+.nl-bundle-amount { display: grid; gap: 4px; font-size: 14px; color: var(--text-secondary, var(--text)); }
+.nl-bundle-amount input { min-height: 44px; max-width: 14em; }
+.nl-bundle .actions button { min-height: 44px; }

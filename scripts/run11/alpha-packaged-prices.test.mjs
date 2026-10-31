@@ -38,7 +38,9 @@ async function alpha(stub){
 
 test.runIf(enabled)('the generated Alpha artifact carries exactly the reviewed market binding and mode',()=>{
  expect(app.bindings).toEqual({ZIGOALS_MARKET_QUOTES_MODE:'durable-v1'});
- expect(Object.keys(app.serviceBindings??{}).sort()).toEqual(['MARKET_QUOTES','WORKER_SELF_REFERENCE']);
+ // Session AK (Q5, A10): plus the food lookup, bound to the acceptance stack's food Worker (deploy that Worker first).
+ expect(Object.keys(app.serviceBindings??{}).sort()).toEqual(['FOOD_LOOKUP','MARKET_QUOTES','WORKER_SELF_REFERENCE']);
+ expect(JSON.stringify(app.serviceBindings.FOOD_LOOKUP)).toContain('zigoals-acctest-food-lookup');
 });
 
 test.runIf(enabled)('a coordinator with a fresh BTC/USD quote gives VERIFIED through the packaged Alpha',async()=>{

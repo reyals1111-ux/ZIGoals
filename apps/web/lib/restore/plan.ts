@@ -36,6 +36,24 @@ import {MEAL_ESTIMATES} from '../meal-estimates/schema';
 import {TASKS} from '../tasks/schema';
 import {READING_SOURCES} from '../wealth-sources/schema';
 import {PRICE_ALERTS} from '../price-alerts/schema';
+import {MUSIC_MIX} from '../music/mix-store';
+import {BILLS} from '../bills/schema';
+import {BUDGETS} from '../budgets/schema';
+import {TARGET_ALLOCATION} from '../allocation/target';
+import {CSV_MAPPINGS} from '../csv/templates/saved';
+import {AUTO_RULES} from '../auto-rules/schema';
+import {FOOD_SCANS} from '../food-scans/schema';
+import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
+import {GROCERY_RECORD} from '../grocery/schema';
+import {CALORIE_WEEK} from '../health-aa/calorie-week';
+import {COMPARE_PAIR} from '../compare/schema';
+import {MONEY_RULES} from '../money-rules/schema';
+import {MONEY_REVIEW} from '../money-review/review';
+import {FI_MODEL} from '../fi-model/store';
+import {EMERGENCY_SHEET} from '../emergency-sheet/schema';
+import {MUSCLE_RECOVERY} from '../muscle-freshness/model';
+import {FOOD_DISPLAY} from '../food-display/schema';
+import {REWARDS_SHELF} from '../rewards-shelf/store';
 import {FOCUS_SESSIONS} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS} from '../guided/schema';
 import {RECEIPTS} from '../portfolio/receipts';
@@ -93,6 +111,26 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
   dev('readingSources', 'Where wealth readings came from', 'Goals and Wealth', READING_SOURCES),
   dev('priceAlerts', 'Price alerts', 'Goals and Wealth', PRICE_ALERTS),
+  // Session AK: the sound mix, bills, budgets, the target mix, saved CSV matches, habit rules.
+  dev('musicMix', 'Sound mix and timer', 'Today and Life', MUSIC_MIX),
+  dev('bills', 'Bills', 'Goals and Wealth', BILLS),
+  dev('budgets', 'Budgets', 'Goals and Wealth', BUDGETS),
+  dev('targetAllocation', 'Target mix', 'Goals and Wealth', TARGET_ALLOCATION),
+  dev('csvMappings', 'Saved CSV column matches', 'Goals and Wealth', CSV_MAPPINGS),
+  dev('autoRules', 'Habit rules', 'Habits', AUTO_RULES),
+  // Session AK Part 4: Health-describing, so restored only with the Health choice.
+  dev('foodScans', 'Barcodes you scanned', 'Health', FOOD_SCANS, true),
+  dev('nutrientExtras', 'Extra nutrients', 'Health', NUTRIENT_EXTRAS_RECORD, true),
+  dev('grocery', 'Grocery ticks and pantry', 'Health', GROCERY_RECORD, true),
+  dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
+  dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
+  dev('moneyRules', 'Money log rules', 'Goals and Wealth', MONEY_RULES),
+  dev('moneyReview', 'Imported entries to review', 'Goals and Wealth', MONEY_REVIEW),
+  dev('fiModel', 'Financial freedom inputs', 'Goals and Wealth', FI_MODEL),
+  dev('emergencySheet', 'Emergency sheet', 'Goals and Wealth', EMERGENCY_SHEET),
+  dev('muscleRecovery', 'Recovery days per muscle group', 'Health', MUSCLE_RECOVERY, true),
+  dev('foodDisplay', 'Food quality letter choices', 'Health', FOOD_DISPLAY, true),
+  dev('rewardsShelf', 'Rewards shelf', 'Today and Life', REWARDS_SHELF),
   dev('focusSessions', 'Focus sessions', 'Today and Life', FOCUS_SESSIONS),
   dev('guidedJourneys', 'Guided journeys', 'Today and Life', GUIDED_JOURNEYS),
   dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),

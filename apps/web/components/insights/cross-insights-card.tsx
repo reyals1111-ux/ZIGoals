@@ -37,7 +37,7 @@ export function CrossInsightsCard({habits, health, today, compact = false}: {hab
     if (Object.entries(celebrations.data.seen).some(([k, d]) => k.startsWith('insight:') && d === today)) return;
     const fresh = ready.find(i => i.label === 'consistent' && !celebrations.data.seen[`insight:${i.id}:consistent`]);
     if (!fresh) return;
-    try { celebrations.update(n => ({...n, seen: {...n.seen, [`insight:${fresh.id}:consistent`]: today}})); zigiSignals.emit('hint_insight'); } catch { /* it plays another day */ }
+    try { celebrations.update(n => ({...n, seen: {...n.seen, [`insight:${fresh.id}:consistent`]: today}})); zigiSignals.emit('hint_insight'); zigiSignals.emitValidated('insight_consistent'); /* Session AK Part 12: the Studio-4 reaction, once its art lands */ } catch { /* it plays another day */ }
   }, [compact, celebrations, ready, today]);
   const dismiss = (id: string, title: string) => { try { setHidden(hiddenInsights(dismissInsight(localStorage, id, today), today)); setNote(`“${title}” is hidden for 28 days.`); } catch (cause) { setNote(cause instanceof Error ? cause.message : 'This pairing could not be hidden on this device.'); } };
   return <section className={`panel cross-insights${compact ? ' is-compact' : ''}`} aria-labelledby={compact ? 'cross-insights-today' : 'cross-insights-title'}>

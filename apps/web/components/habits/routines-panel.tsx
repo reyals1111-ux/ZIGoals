@@ -1,5 +1,6 @@
 'use client';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
+import {LoadBoundary} from '../load-boundary';
 import {NebulaFlow} from '../nebula-flow';
 import {routines, liveRun} from '../../lib/routines/engine';
 import {createRoutineFromTemplate, previewRoutineTemplate, ROUTINE_TEMPLATES} from '../../lib/routines/templates';
@@ -8,6 +9,8 @@ import {ROUTINE_RUN} from '../../lib/routines/run-schema';
 import {habitDay, type HabitData} from '../../lib/habits';
 import {useDeviceRecord} from '../ai/use-device-record';
 import type {HabitsStore} from './use-habits';
+// Session AK (5.4): sharing a routine's structure and adding a shared one, its own chunk, loaded when opened.
+const RoutineShare = lazy(() => import('./routine-share'));
 
 /**
  * H5: "Routines": every stack as a routine with Start (or Resume) and the four templates; a template creates its habits
@@ -20,6 +23,7 @@ export function RoutinesPanel({store, onPlay, onView}: {store: HabitsStore; onPl
   const [busy, setBusy] = useState<string | null>(null), [message, setMessage] = useState(''), [templates, setTemplates] = useState(list.length === 0);
   // Session AH (HA4, T-141): "Add routine" first shows what it will create and what it reuses; nothing is written before.
   const [asking, setAsking] = useState<(typeof ROUTINE_TEMPLATES)[number]['id'] | null>(null);
+  const [sharing, setSharing] = useState(false);
   const done = (habits: HabitData['habits']) => habits.filter(h => habitDay(h, store.today, store.today).status === 'complete').length;
   async function add(id: (typeof ROUTINE_TEMPLATES)[number]['id']) {
     const template = ROUTINE_TEMPLATES.find(t => t.id === id)!; setBusy(id); setMessage('');
@@ -30,7 +34,8 @@ export function RoutinesPanel({store, onPlay, onView}: {store: HabitsStore; onPl
     } catch (e) { setMessage(e instanceof Error && e.message ? e.message : 'The routine was not created.'); } finally { setBusy(null); }
   }
   return <section className="panel habit-routines" aria-labelledby="habit-routines-title">
-    <div className="habit-section-heading"><div><p className="eyebrow">One step at a time</p><h2 id="habit-routines-title"><NebulaFlow identity="habit-routines-title">Routines</NebulaFlow></h2></div>{list.length > 0 && <button type="button" className="quiet" aria-expanded={templates} onClick={() => setTemplates(t => !t)}>Templates</button>}</div>
+    <div className="habit-section-heading"><div><p className="eyebrow">One step at a time</p><h2 id="habit-routines-title"><NebulaFlow identity="habit-routines-title">Routines</NebulaFlow></h2></div><div className="actions">{list.length > 0 && <button type="button" className="quiet" aria-expanded={templates} onClick={() => setTemplates(t => !t)}>Templates</button>}<button type="button" className="quiet" aria-expanded={sharing} onClick={() => setSharing(v => !v)}>Share or add</button></div></div>
+    {sharing && <LoadBoundary quiet><Suspense fallback={null}><RoutineShare routines={list} store={store} onClose={() => setSharing(false)}/></Suspense></LoadBoundary>}
     {list.length > 0 && <ul className="habit-routine-list">{list.map(r => { const n = done(r.habits); return <li key={r.headId}><div className="habit-routine-copy"><strong>{r.title}</strong><small>{r.habits.map(h => h.title).join(' → ')}</small><span className="habit-routine-progress"><span aria-hidden="true">{Array.from({length: r.habits.length}, (_, i) => <i key={i} data-done={i < n || undefined} />)}</span><span className="sr-only">{`${n} of ${r.habits.length} done today`}</span></span></div><div className="actions"><button type="button" className="primary" onClick={() => onPlay(r.headId)}>{live?.headId === r.headId ? 'Resume' : n === r.habits.length ? 'Play again' : 'Start'}</button><button type="button" className="quiet" onClick={() => onView(r.habits[0]!.id)}>View habits</button></div></li>; })}</ul>}
     {(templates || list.length === 0) && <div className="habit-routine-templates" role="group" aria-label="Routine templates">{list.length === 0 && <p className="habit-section-empty">A routine plays a habit stack one step at a time, with a timer where it helps. Start from a template, or stack habits in the editor.</p>}<ul>{ROUTINE_TEMPLATES.map(t => <li key={t.id}><div className="habit-routine-copy"><strong>{t.title}</strong><small>{t.blurb}</small><small className="habit-routine-steps">{t.steps.map(s => s.title).join(' → ')}</small></div><button type="button" className="secondary" disabled={busy !== null || !store.loaded || !!store.error} onClick={() => { setMessage(''); setAsking(t.id); }}>{busy === t.id ? 'Adding…' : 'Add routine'}</button>{asking === t.id && (() => { const p = previewRoutineTemplate(store.data, t); return <ConfirmInline tone="neutral" title={`Add the ${t.title.toLowerCase()}?`} confirmLabel={p.create.length ? `Add ${p.create.length} ${p.create.length === 1 ? 'habit' : 'habits'}` : 'Link them as a routine'} busy={busy === t.id} onConfirm={() => { setAsking(null); void add(t.id); }} onCancel={() => setAsking(null)}>{p.create.length > 0 && <p>New: {p.create.join(', ')}.</p>}{p.reuse.length > 0 && <p>Already yours, used as steps: {p.reuse.join(', ')}.</p>}<p className="fine">Each is a daily habit you can edit or archive later.</p></ConfirmInline>; })()}</li>)}</ul></div>}
     {message && <p role="status" className="fine">{message}</p>}

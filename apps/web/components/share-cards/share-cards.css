@@ -1,0 +1,16 @@
+/* Session AK Part 8.5: the one share-card sheet (preview, the sensitive-numbers box, the action). Theme colours; 44 px targets; text ≥ 14 px. */
+.share-sheet { display: grid; gap: 12px; min-width: 0; }
+.share-sheet h3 { margin: 0; }
+.share-sheet-body { display: flex; flex-wrap: wrap; gap: 16px; align-items: start; }
+.share-sheet-preview { margin: 0; display: grid; gap: 6px; padding: 20px; aspect-ratio: 1080 / 1350; width: min(100%, 260px); box-sizing: border-box; border-radius: 18px; background: linear-gradient(135deg, var(--bg), var(--surface-2, var(--panel))); border: 1px solid var(--line); align-content: center; overflow: hidden; }
+.share-sheet-preview p { margin: 0; overflow-wrap: anywhere; }
+.share-sheet-eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary, var(--muted)); }
+.share-sheet-title { font-size: 22px; font-weight: 800; color: var(--text); }
+.share-sheet-line { font-size: 14px; color: var(--text); }
+.share-sheet-footer { margin-top: auto; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.share-sheet-side { display: grid; gap: 10px; flex: 1 1 220px; min-width: 0; }
+.share-sheet-side label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
+.share-sheet-side input[type=checkbox] { width: 22px; height: 22px; flex: none; }
+.share-sheet-side .fine { margin: 0; }
+.share-sheet .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.share-sheet .actions button { min-height: 44px; }

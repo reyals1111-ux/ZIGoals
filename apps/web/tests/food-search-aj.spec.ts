@@ -22,7 +22,8 @@ test('not found → search the Swiss food database → pick a food → the revie
   await expect(lookup).toContainText('Not found. Search the Swiss food database instead?');
   await lookup.getByRole('button', {name: 'Search the Swiss food database'}).click();
   const search = lookup.getByRole('search', {name: 'Swiss food database search'});
-  await expect(search).toContainText('Search sends only the words you type');
+  // Session AK Part 1c: the offline library is searched on the device first; then only the typed words leave it.
+  await expect(search).toContainText('only the words you type go to the Swiss food database');
   await search.getByLabel('Food name').fill('apple');
   await search.getByLabel('Food name').press('Enter');
   const results = lookup.getByRole('list', {name: 'Swiss food database results'});

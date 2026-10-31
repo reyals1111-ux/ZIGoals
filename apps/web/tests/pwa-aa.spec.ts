@@ -21,7 +21,7 @@ test('the shortcuts: Quick add opens; water is ready to tap, never logged by its
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole('article', {name: 'Focus: water today'})).toContainText('0 entries today');
   const manifest = await (await page.request.get('/manifest.webmanifest')).json();
-  expect(manifest.shortcuts.map((s: {url: string}) => s.url)).toEqual(['/app?shortcut=quick-add', '/app?shortcut=water', '/app/habits', '/app?shortcut=ask', '/app/checklist']);
+  expect(manifest.shortcuts.map((s: {url: string}) => s.url)).toEqual(['/app?shortcut=quick-add', '/app?shortcut=water', '/app/habits', '/app?shortcut=ask', '/app/checklist', '/app/today', '/app/health?shortcut=weight#weight']);
 });
 
 test('the share target: what another app shared waits on its own page, nothing saved until a choice', async ({page}) => {

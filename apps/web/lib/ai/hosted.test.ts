@@ -48,7 +48,8 @@ test('a reply goes to /api/zigi only (never a provider origin), same-origin, and
 });
 test('the browser never gains a relay origin: connect-src is unchanged, and the policy names the relay as server-side only', () => {
   expect(egress.serverOnly.zigiRelay).toMatch(/ZIGOALS_ZIGI_RELAY_ORIGIN/);
-  expect(CONNECT_SOURCES.some(s => /relay|zigi/i.test(s))).toBe(false);
+  // Session AK (1a): the one relay the browser may reach is WalletConnect's own websocket (phone wallets); never ZIGi's.
+  expect(CONNECT_SOURCES.filter(s => /relay|zigi/i.test(s))).toEqual(['wss://relay.walletconnect.org']);
   expect(Object.values(egress.aiProviderOrigins)).toHaveLength(5);
 });
 

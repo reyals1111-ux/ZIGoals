@@ -36,14 +36,14 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   // The link is not followed: the tap opens a note on it instead.
   await create.click();
   await expect(page).toHaveURL(/\/app\/goals$/);
-  const sheet = page.getByRole('dialog', {name: /^Note on .*Create a goal/});
+  const sheet = page.getByRole('dialog', {name: /^Note on link\b/});
   await expect(sheet).toBeVisible();
   await expect(sheet.getByLabel('Your note')).toBeFocused();
   await sheet.getByLabel('Your note').fill('Make this button easier to find');
   await sheet.getByRole('button', {name: 'Save note'}).click();
   await expect(sheet).toHaveCount(0);
-  await expect(page.getByText(/^Note saved on .*Create a goal/)).toBeVisible();
-  await expect(page.getByRole('button', {name: /^Note 1: .*Create a goal/})).toBeVisible();
+  await expect(page.getByText(/^Note saved on link\b/)).toBeVisible();
+  await expect(page.getByRole('button', {name: /^Note 1: link\b/})).toBeVisible();
   const saved = (await stored(page)).pins;
   expect(saved).toHaveLength(1);
   expect(saved[0]).toMatchObject({n: 1, path: '/app/goals', note: 'Make this button easier to find'});
@@ -53,7 +53,7 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   await create.focus();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/app\/goals$/);
-  await expect(page.getByRole('dialog', {name: /^Note on .*Create a goal/})).toBeVisible();
+  await expect(page.getByRole('dialog', {name: /^Note on link\b/})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', {name: /^Note on/})).toHaveCount(0);
   await expect(launcher(page)).toBeFocused();
@@ -84,7 +84,9 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   for await (const chunk of await file.createReadStream()) chunks.push(Buffer.from(chunk));
   const text = Buffer.concat(chunks).toString('utf8');
   expect(file.suggestedFilename()).toBe(`zigoals-point-tell-${DAY}.txt`);
-  expect(text).toMatch(/^ZIGoals Point & tell notes \(1\) · app .+ · 2026-10-14\n\n1\. \/app\/goals — [^\n]*Create a goal[^\n]*\n {3}Bigger and higher on the page\n$/);
+  expect(text).toMatch(/^ZIGoals Point & tell notes \(1\) · app .+ · 2026-10-14\n\n1\. \/app\/goals — link[^\n]*\n {3}Bigger and higher on the page\n$/);
+  // Session AK (A17): a pin names the part by its role and a developer-made name only, never the words on the page.
+  expect(text).not.toContain('Create a goal');
   await list.getByRole('button', {name: 'Close'}).click();
   await expect(list).toHaveCount(0);
 

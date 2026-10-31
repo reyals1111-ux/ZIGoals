@@ -13,11 +13,12 @@ test("production policy has per-request unpredictable nonces and exact connectio
   expect(a.nonce).toMatch(/^[A-Za-z0-9+/]{43}=$/);
   expect(a.csp).toContain(`script-src 'self' 'nonce-${a.nonce}' 'strict-dynamic'`);
   expect(a.csp.split(";").find(s=>s.includes("script-src"))).not.toMatch(/unsafe-inline|unsafe-eval/);
-  // No scheme source, no bare wildcard and no websocket anywhere in production. The one wildcard shape allowed is the
+  // No scheme source, no bare wildcard and no websocket in production but WalletConnect's relay (Session AK). The one wildcard shape allowed is the
   // port of the two loopback names (http://localhost:*, http://127.0.0.1:*) for a local model (ADR-012).
   for (const directive of a.csp.split(";")) {
     const sources = directive.trim().split(/\s+/).slice(1);
-    expect(sources, directive).not.toContain("*"); expect(sources, directive).not.toContain("https:"); expect(sources.some(s => /^wss?:/.test(s)), directive).toBe(false);
+    expect(sources, directive).not.toContain("*"); expect(sources, directive).not.toContain("https:"); // Session AK (Part 1a, TIER 3 (CSP)): the one websocket is WalletConnect's relay, on connect-src, with the owner's project id.
+    expect(sources.filter(s => /^wss?:/.test(s)), directive).toEqual(directive.trim().startsWith('connect-src') ? ['wss://relay.walletconnect.org'] : []);
     for (const source of sources.filter(s => s.includes("*"))) expect(egress.localModelSources, directive).toContain(source);
   }
   // connect-src comes from one data file: self, the two Testnet endpoints, the AI providers a person may connect (their
@@ -32,7 +33,7 @@ test("production policy has per-request unpredictable nonces and exact connectio
   // of linked wallets — PublicNode's Cosmos REST, its six EVM JSON-RPC hosts and its Solana RPC, and mempool.space — in
   // the order of lib/wallets/balances/chains.ts; still exactly these and nothing else (no ZIGChain mainnet REST host).
   expect(CONNECT_SOURCES).not.toContain("https://api.zigchain.com");
-  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com", "https://cosmos-rest.publicnode.com", "https://ethereum-rpc.publicnode.com", "https://arbitrum-one-rpc.publicnode.com", "https://base-rpc.publicnode.com", "https://optimism-rpc.publicnode.com", "https://polygon-bor-rpc.publicnode.com", "https://bsc-rpc.publicnode.com", "https://solana-rpc.publicnode.com", "https://mempool.space"]);
+  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com", "wss://relay.walletconnect.org", "https://verify.walletconnect.org", "https://verify.walletconnect.com", "https://cosmos-rest.publicnode.com", "https://ethereum-rpc.publicnode.com", "https://arbitrum-one-rpc.publicnode.com", "https://base-rpc.publicnode.com", "https://optimism-rpc.publicnode.com", "https://polygon-bor-rpc.publicnode.com", "https://bsc-rpc.publicnode.com", "https://solana-rpc.publicnode.com", "https://mempool.space"]);
   for (const origin of Object.values(egress.aiProviderOrigins)) expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+$/);
   expect(a.csp).toContain("frame-ancestors 'none'");
   expect(a.csp).toContain("worker-src 'self'");

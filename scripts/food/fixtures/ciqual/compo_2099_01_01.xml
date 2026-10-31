@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SYNTHETIC FIXTURE: made-up values in CIQUAL 2025 compo layout (comma decimals, -, traces, &lt; values). -->
+<TABLE>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 328 </const_code>
+      <teneur> 52 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 10110 </const_code>
+      <teneur> &lt; 0,5 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 10190 </const_code>
+      <teneur> 107 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 25000 </const_code>
+      <teneur> 0,3 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 31000 </const_code>
+      <teneur> 11,4 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 32000 </const_code>
+      <teneur> 10,1 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 34100 </const_code>
+      <teneur> 2,04 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 40000 </const_code>
+      <teneur> traces </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 40302 </const_code>
+      <teneur> - </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 41833 </const_code>
+      <teneur> 0,02 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 42053 </const_code>
+      <teneur> 0 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 42263 </const_code>
+      <teneur> 0 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 53100 </const_code>
+      <teneur> - </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 55100 </const_code>
+      <teneur> 5 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 71010 </const_code>
+      <teneur> 0,18 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 328 </const_code>
+      <teneur> 206 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 10260 </const_code>
+      <teneur> 0,34 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 25000 </const_code>
+      <teneur> 20,4 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 40000 </const_code>
+      <teneur> 13,4 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 40302 </const_code>
+      <teneur> 3,05 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 41833 </const_code>
+      <teneur> 0,1 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 42053 </const_code>
+      <teneur> 0,7 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 42263 </const_code>
+      <teneur> &lt; 0,01 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 52100 </const_code>
+      <teneur> 10,9 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 53100 </const_code>
+      <teneur> 1,2 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 56600 </const_code>
+      <teneur> 3,2 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990002 </alim_code>
+      <const_code> 71010 </const_code>
+      <teneur> 0,9 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990003 </alim_code>
+      <const_code> 328 </const_code>
+      <teneur> 287 </teneur>
+      <min missing=" " />
+      <code_confiance> D </code_confiance>
+   </COMPO>
+   <COMPO>
+      <alim_code> 990001 </alim_code>
+      <const_code> 10120 </const_code>
+      <teneur missing=" " />
+   </COMPO>
+</TABLE>

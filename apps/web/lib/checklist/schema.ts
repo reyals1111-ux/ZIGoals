@@ -15,7 +15,7 @@ import type {DeviceRecordSpec} from '../device-record';
  * stay in each page's own record, and a dot's state is derived from them (lib/checklist/derive.ts).
  *
  * `zigoals:checklist-days:v1` holds the day history as counts (`days`), and today's tick receipts (which dot was ticked on
- * the path, when, and the id of the entry that tick created) and today's custom ticks. Never synced in Session AF.
+ * the path, when, and the id of the entry that tick created) and today's custom ticks. Never synced in Session AF; from Session AK (AFL8) both travel in the extras section `checklist`, with `healthItems` and `today` kept on each device.
  */
 const ID = z.string().min(1).max(120);
 const STAMP = z.string().max(40);

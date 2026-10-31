@@ -56,13 +56,13 @@ test('arranging Today: the chooser turns a card off and on, kept on this device,
   await expect(updates.locator('#for-you-life-review')).toHaveCount(0);
 });
 
-test('a new device: no cards until chosen; the chooser offers all four', async ({page}) => {
+test('a new device: no cards until chosen; the chooser offers all five', async ({page}) => {
   await page.goto('/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(cards(page)).toHaveCount(0);
   await page.getByRole('button', {name: /Customize Today/}).first().click();
   const chooser = page.getByRole('group', {name: 'Cards kept on this device'});
-  await expect(chooser.getByRole('button')).toHaveCount(4);
+  await expect(chooser.getByRole('button')).toHaveCount(5); // Session AK Part 8.2: the Daily orbit card joined the four
   for (const b of await chooser.getByRole('button').all()) await expect(b).toHaveAttribute('aria-pressed', 'false');
   expect(await page.evaluate(() => localStorage.getItem('zigoals:today-cards:v1'))).toBeNull();
 });

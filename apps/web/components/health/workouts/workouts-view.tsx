@@ -1,23 +1,32 @@
 'use client';
 import Link from 'next/link';
 import {LoggingFor, useLinkedDay} from '../health-day';
-import {useEffect, useMemo, useState} from 'react';
+import {lazy, Suspense, useEffect, useMemo, useState} from 'react';
 import {NebulaFlow} from '../../nebula-flow';
 import {ConfirmInline} from '../../ui/confirm-inline';
 import {showToast} from '../../ui/undo-toast';
 import {useHealth} from '../use-health';
-import {dailyData, healthDay} from '../../../lib/health-daily';
+import {dailyData, healthDay, healthZone} from '../../../lib/health-daily';
 import {newHealthId, removeHealthItem, saveActivity} from '../../../lib/health';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {formatDate, formatNumber, formatTime} from '../../../lib/visual-format';
 import {plural} from '../../../lib/plural';
 import {addCustomExercise, addExercise, addSet, discardWorkout, doneSets, durationMinutes, exerciseHistory, finished, oneRepMax, finishWorkout, inProgress, lastEntryFor, moveExercise, removeExercise, removeSet, removeTemplate, removeWorkout, renameWorkout, saveTemplate, setExerciseNote, setReady, setRest, startWorkout, updateSet, volumeKg, weekSummary, withActivity, type PersonalBest} from '../../../lib/workouts/engine';
 import {allExercises, searchExercises, type LibraryExercise} from '../../../lib/workouts/library';
+import {leaveSuperset, restAfter, restFor, RPE_VALUES, RPE_WORDS, setExerciseRest, setRpe, supersetLabels, supersetWithNext} from '../../../lib/workouts/depth';
+import {importInfo} from '../../../lib/workouts/import-file';
+import type {LiftsPlan} from '../../../lib/workouts/import-lifts';
 import {CATEGORIES, MEASURES, SET_KINDS, type ExerciseEntry, type Measure, type Workout, type WorkoutSet, type Workouts} from '../../../lib/workouts/schema';
 import {clock, fromUnit, readClock, setText, toUnit, weightShown} from './units';
 import {useWorkouts} from './use-workouts';
 import {WorkoutsImport, importedLine, type ImportChoice} from './workouts-import';
 import './workouts.css';
+
+// Session AK (4.9): the warm-up and plate calculators and the muscle-group view load only when used.
+const WorkoutTools = lazy(() => import('./workouts-tools'));
+const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
+// Session AK (item 8): "Fresh today: legs, back" on the start sheet, its own small chunk.
+const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
 
 /**
  * Workouts, the full view (Session AH Part 6, DE8; /app/health?view=workouts, a view of Health like Sleep and Meditation).
@@ -27,6 +36,8 @@ import './workouts.css';
  */
 const KIND_WORDS: Record<WorkoutSet['kind'], string> = {warmup: 'Warm-up', normal: 'Working', drop: 'Drop set', failure: 'To failure'};
 const MEASURE_WORDS: Record<Measure, string> = {'weight-reps': 'Weight and reps', reps: 'Reps', time: 'Time', 'distance-time': 'Distance and time'};
+/** Session AK (4.9): one calm line for the new bests, shown once when the workout is saved. */
+const celebration = (bests: PersonalBest[], unit: 'kg' | 'lb') => bests.length === 1 ? `A new personal best: ${bestWords(bests[0]!, unit)}. Well earned.` : `${bests.length} new personal bests today. Well earned.`;
 const bestWords = (b: PersonalBest, unit: 'kg' | 'lb') => `${b.name}: ${b.what === 'weight' ? `heaviest ${weightShown(b.value, unit)}` : b.what === 'one-rep max' ? `estimated one-rep max ${weightShown(b.value, unit)}` : b.what === 'reps' ? `most reps, ${b.value}` : b.what === 'time' ? `longest, ${clock(b.value)}` : `farthest, ${formatNumber(b.value)} km`}`;
 
 export default function WorkoutsView() {
@@ -64,20 +75,43 @@ export default function WorkoutsView() {
       showToast({message: `${workout.name} saved · ${minutes} min${bests.length ? ` · ${bests.length} new ${plural(bests.length, 'personal best')}` : ''}.`});
     } catch (e) { setNote(plainErrorMessage(e, 'The workout could not be finished.')); }
   }
-  // Session AJ (item 27, D12): an imported GPX or TCX workout is saved like a finished one, minutes in Health included.
+  // Session AJ (item 27, D12): an imported workout is saved like a finished one, minutes in Health included. Session AK
+  // (4.7, A15): a whole export can hold hundreds, so the log and Health are each written once for the lot.
+  async function keepMinutes(made: Workout[]): Promise<number> {
+    if (!made.length) return 0;
+    const at = new Date().toISOString(), ids = made.map(() => newHealthId());
+    try {
+      await health.update(h => made.reduce((acc, x, i) => saveActivity(acc, {id: ids[i]!, date: x.date, name: x.name, steps: 0, minutes: Math.min(1440, Math.max(1, durationMinutes(x)))}, at), h));
+      record.update(x => made.reduce((acc, y, i) => withActivity(acc, y.id, ids[i]!), x));
+      return 0;
+    } catch { return made.length; }
+  }
+  const addedWords = (names: string[], missed: number) => `${names.length === 1 ? `${names[0]} is added` : `${names.length} workouts are added`} to your workouts.${missed ? ` ${missed < names.length ? 'Some' : names.length === 1 ? 'Its' : 'Their'} minutes could not be added to Health.` : ''}`;
   async function addImported(list: ImportChoice[]): Promise<string> {
     const {addImportedWorkout} = await import('../../../lib/workouts/import-file');
-    const names: string[] = []; let missed = 0;
-    for (const {summary, day} of list) {
-      let made: Workout | undefined;
-      record.update(x => { const next = addImportedWorkout(x, summary, new Date(), day); made = next.workouts.find(y => y.imported?.importId === summary.importId); return next; });
-      const workout = made as Workout | undefined; if (!workout) continue;
-      names.push(workout.name);
-      const activityId = newHealthId(), minutes = Math.min(1440, Math.max(1, durationMinutes(workout)));
-      try { await health.update(h => saveActivity(h, {id: activityId, date: workout.date, name: workout.name, steps: 0, minutes}, new Date().toISOString())); record.update(x => withActivity(x, workout.id, activityId)); }
-      catch { missed++; }
-    }
-    return `${names.length === 1 ? `${names[0]} is added` : `${names.length} workouts are added`} to your workouts.${missed ? ` ${missed < names.length ? 'Some' : names.length === 1 ? 'Its' : 'Their'} minutes could not be added to Health.` : ''}`;
+    const made: Workout[] = [];
+    record.update(x => { made.length = 0; return list.reduce((acc, {summary, day}) => {
+      const next = addImportedWorkout(acc, summary, new Date(), day), workout = next.workouts.find(y => importInfo(y)?.importId === summary.importId);
+      if (workout) made.push(workout);
+      return next;
+    }, x); });
+    return addedWords(made.map(x => x.name), await keepMinutes(made));
+  }
+  async function addLifts(plan: LiftsPlan): Promise<string> {
+    const {addLiftWorkouts} = await import('../../../lib/workouts/import-lifts');
+    let result: ReturnType<typeof addLiftWorkouts> | undefined;
+    record.update(x => { result = addLiftWorkouts(x, plan, {now: new Date(), dayOf: iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))}); return result.workouts; });
+    const r = result!;
+    if (!r.added.length) return r.duplicates ? `Every workout in this ${plan.label} export is already in your workouts.` : `Nothing in this ${plan.label} export could be added.`;
+    const missed = await keepMinutes(r.added);
+    return [addedWords(r.added.map(x => x.name), missed), r.duplicates ? `${r.duplicates} already in your log ${r.duplicates === 1 ? 'was' : 'were'} skipped.` : '',
+      r.newExercises.length ? `${r.newExercises.length} new ${plural(r.newExercises.length, 'exercise')} added to your list.` : '', r.future ? `${r.future} dated in the future ${r.future === 1 ? 'was' : 'were'} left out.` : '',
+      r.trimmed ? 'Some very long workouts were shortened to 40 exercises and 50 sets each.' : ''].filter(Boolean).join(' ');
+  }
+  // Session AK (4.9): the rest after a ticked set is the exercise's own, and in a superset only after the round's last exercise.
+  function startRest(entryId: string) {
+    const workout = inProgress(w), seconds = workout ? restAfter(w, workout, entryId) : 0;
+    setRestUntil(seconds > 0 ? new Date().getTime() + seconds * 1000 : null); // an event handler: the tap that ticked the set
   }
   async function remove(id: string) {
     const target = w.workouts.find(x => x.id === id); setAsking(null);
@@ -98,11 +132,12 @@ export default function WorkoutsView() {
     {record.unreadable && <p className="notice" role="alert">The workout log on this device could not be read. Its bytes are kept; nothing was changed. Starting a workout writes a new log.</p>}
 
     {current ? <CurrentWorkout workout={current} w={w} unit={unit} now={now} library={library} restUntil={restUntil} change={change}
-        onRest={() => { if (w.restSeconds > 0) setRestUntil(Date.now() + w.restSeconds * 1000); }} onSkipRest={() => setRestUntil(null)}
+        onRest={startRest} onSkipRest={() => setRestUntil(null)}
         onFinish={() => { const open = current.exercises.reduce((n, e) => n + e.sets.filter(s => !s.done && setReady(e.measure, s)).length, 0); if (open) setAsking('finish'); else void finish(); }}
         onDiscard={() => setAsking('discard')}/>
       : <section className="panel workouts-start" aria-labelledby="workouts-start-title">
         <h2 id="workouts-start-title">Start a workout</h2>
+        {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>
@@ -120,20 +155,21 @@ export default function WorkoutsView() {
     {summary && <section className="panel workouts-summary" aria-labelledby="workouts-summary-title">
       <h2 id="workouts-summary-title">{summary.workout.name}, done</h2>
       <p>{durationMinutes(summary.workout)} min · {doneSets(summary.workout).length} {plural(doneSets(summary.workout).length, 'set')}{(() => { const v = summary.workout.exercises.reduce((t, e) => t + volumeKg(e), 0); return v ? ` · ${weightShown(v, unit)} lifted` : ''; })()}.</p>
+      {summary.bests.length > 0 && <p className="workouts-celebrate" role="status"><span aria-hidden="true">★ </span>{celebration(summary.bests, unit)}</p>}
       {summary.bests.length > 0 ? <><h3>New personal bests</h3><ul>{summary.bests.map(b => <li key={`${b.exerciseId}-${b.what}`}>{bestWords(b, unit)}</li>)}</ul></> : <p className="fine">No new personal best this time; consistency is what counts.</p>}
       <SaveRoutine workout={summary.workout} onSave={name => change(x => saveTemplate(x, summary.workout, name, new Date()), `Routine ${name || summary.workout.name} saved. Start it from here next time.`)}/>
     </section>}
 
     <section className="panel workouts-history" aria-labelledby="workouts-history-title">
       <h2 id="workouts-history-title">Your workouts</h2>
-      <WorkoutsImport w={w} dayOf={iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))} onAdd={addImported}/>
+      <WorkoutsImport w={w} dayOf={iso => healthDay(dailyData(health.data).preferences.timezone, new Date(iso))} zone={healthZone(dailyData(health.data).preferences.timezone)} unit={unit} onAdd={addImported} onAddLifts={addLifts}/>
       {past.length ? <ul className="workouts-past">{past.slice(0, 30).map(x => <li key={x.id}>
-        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {durationMinutes(x)} min · {x.imported ? (x.imported.distanceKm !== undefined ? `${formatNumber(x.imported.distanceKm, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
-          {x.imported && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
+        <details><summary><strong>{x.name}</strong> <span>{formatDate(x.date)} · {durationMinutes(x)} min · {!x.exercises.length && importInfo(x) ? (importInfo(x)!.distanceKm !== undefined ? `${formatNumber(importInfo(x)!.distanceKm!, {maximumFractionDigits: 2})} km` : 'imported') : `${x.exercises.length} ${plural(x.exercises.length, 'exercise')}`}</span></summary>
+          {importInfo(x) && <p className="fine workouts-imported-line">{importedLine(x)}</p>}
           <ul className="workouts-past-exercises">{x.exercises.map(e => <li key={e.id}><strong>{e.name}</strong> <span>{e.sets.map(s => `${s.kind === 'warmup' ? 'W ' : ''}${setText(e.measure, s, unit)}`).join(' · ')}</span></li>)}</ul>
           <div className="workouts-row-actions">
-            {!current && !x.imported && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
-            {!x.imported && <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>}
+            {!current && x.exercises.length > 0 && <button className="secondary" type="button" onClick={() => begin({date: logDay, now: new Date(), repeat: x})}>Repeat</button>}
+            {x.exercises.length > 0 && <SaveRoutine compact workout={x} onSave={name => change(y => saveTemplate(y, x, name, new Date()), `Routine ${name || x.name} saved.`)}/>}
             <button className="quiet" type="button" onClick={() => setAsking({remove: x.id})} aria-label={`Delete ${x.name} on ${formatDate(x.date)}`}>Delete</button>
           </div>
           {typeof asking === 'object' && asking?.remove === x.id && <ConfirmInline title={`Delete ${x.name}?`} confirmLabel="Delete workout" cancelLabel="Keep it" onConfirm={() => void remove(x.id)} onCancel={() => setAsking(null)}><p>Its sets and the minutes it added to Health are removed.</p></ConfirmInline>}
@@ -142,6 +178,7 @@ export default function WorkoutsView() {
     </section>
 
     <ExerciseProgress w={w} unit={unit} library={library} value={historyOf} onChange={setHistoryOf}/>
+    {past.some(x => x.exercises.length) && <Suspense fallback={<section className="panel"><p className="fine">Opening muscle groups…</p></section>}><WorkoutsMuscles w={w} unit={unit} library={library} today={today}/></Suspense>}
 
     <section className="panel workouts-settings" aria-labelledby="workouts-settings-title">
       <h2 id="workouts-settings-title">Rest timer</h2>
@@ -149,14 +186,16 @@ export default function WorkoutsView() {
         <select value={String(w.restSeconds)} onChange={e => change(x => setRest(x, Number(e.target.value)), Number(e.target.value) ? `Rest timer: ${clock(Number(e.target.value))}.` : 'Rest timer off.')}>
           {[0, 30, 60, 90, 120, 180, 240, 300].map(s => <option key={s} value={s}>{s ? clock(s) : 'Off'}</option>)}
         </select></label>
+      <p className="fine">Each exercise can keep its own rest time (under the exercise while you train). In a superset the rest comes after the last exercise of the round.</p>
       <p className="fine">Weights use your Health weight unit ({unit}); change it in Health → Journal settings.</p>
     </section>
   </div>;
 }
 
 function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRest, onSkipRest, onFinish, onDiscard}: {workout: Workout; w: Workouts; unit: 'kg' | 'lb'; now: number; library: LibraryExercise[]; restUntil: number | null;
-  change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onRest: () => void; onSkipRest: () => void; onFinish: () => void; onDiscard: () => void}) {
+  change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onRest: (entryId: string) => void; onSkipRest: () => void; onFinish: () => void; onDiscard: () => void}) {
   const [picking, setPicking] = useState(workout.exercises.length === 0);
+  const letters = supersetLabels(workout.exercises);
   const elapsed = Math.max(0, Math.floor((now - Date.parse(workout.startedAt)) / 1000));
   return <section className="panel workouts-now" id="workout-now" aria-labelledby="workout-now-title">
     <div className="workouts-now-head">
@@ -164,30 +203,47 @@ function CurrentWorkout({workout, w, unit, now, library, restUntil, change, onRe
       <p className="workouts-elapsed"><span>Started {formatTime(workout.startedAt)}</span> <strong>{clock(elapsed)}</strong></p>
     </div>
     {restUntil !== null && <p className="workouts-rest" role="timer" aria-live="off">Rest <strong>{clock(Math.max(0, Math.ceil((restUntil - now) / 1000)))}</strong> <button className="text-link" type="button" onClick={onSkipRest}>Skip rest</button></p>}
-    {workout.exercises.map((e, i) => <ExerciseBlock key={e.id} entry={e} index={i} count={workout.exercises.length} previous={lastEntryFor(w, e.exerciseId, workout.startedAt)} unit={unit} change={change} onRest={onRest}/>)}
+    {workout.exercises.map((e, i) => <ExerciseBlock key={e.id} entry={e} index={i} count={workout.exercises.length} previous={lastEntryFor(w, e.exerciseId, workout.startedAt)} unit={unit} change={change} onRest={() => onRest(e.id)}
+      w={w} letter={letters.get(e.id)} nextLetter={letters.get(workout.exercises[i + 1]?.id ?? '')}/>)}
     {picking ? <ExercisePicker library={library} onPick={x => { if (change(y => addExercise(y, x))) setPicking(false); }} onCreate={input => { let made: LibraryExercise | undefined; if (change(y => { const r = addCustomExercise(y, input); made = r.exercise; return addExercise(r.workouts, r.exercise); })) { setPicking(false); void made; } }} onClose={workout.exercises.length ? () => setPicking(false) : undefined}/>
       : <button className="secondary workouts-add" type="button" onClick={() => setPicking(true)}>+ Add an exercise</button>}
     <div className="workouts-now-actions"><button className="primary" type="button" onClick={onFinish}>Finish workout</button><button className="quiet" type="button" onClick={onDiscard}>Discard</button></div>
   </section>;
 }
 
-function ExerciseBlock({entry, index, count, previous, unit, change, onRest}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onRest: () => void}) {
-  const headId = `ex-${entry.id}`;
-  return <article className="workouts-exercise" aria-labelledby={headId}>
-    <header><h3 id={headId}>{entry.name}</h3><div className="workouts-row-actions">
+function ExerciseBlock({entry, index, count, previous, unit, change, onRest, w, letter, nextLetter}: {entry: ExerciseEntry; index: number; count: number; previous?: ExerciseEntry; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onRest: () => void;
+  w: Workouts; letter?: string; nextLetter?: string}) {
+  const headId = `ex-${entry.id}`, [tools, setTools] = useState(false), rpe = entry.measure === 'weight-reps' || entry.measure === 'reps';
+  return <article className="workouts-exercise" aria-labelledby={headId} data-superset={letter ? '' : undefined}>
+    <header><h3 id={headId}>{letter && <span className="workouts-superset-tag">Superset {letter}<span className="sr-only">:</span></span>} {entry.name}</h3><div className="workouts-row-actions">
       <button className="quiet" type="button" disabled={index === 0} aria-label={`Move ${entry.name} up`} onClick={() => change(x => moveExercise(x, entry.id, -1))}>↑</button>
       <button className="quiet" type="button" disabled={index === count - 1} aria-label={`Move ${entry.name} down`} onClick={() => change(x => moveExercise(x, entry.id, 1))}>↓</button>
       <button className="quiet" type="button" aria-label={`Remove ${entry.name}`} onClick={() => change(x => removeExercise(x, entry.id), `${entry.name} removed from this workout.`)}>Remove</button></div></header>
     <table className="workouts-sets"><caption className="sr-only">{entry.name}: sets</caption>
-      <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
-      <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest}/>)}</tbody>
+      <thead><tr><th scope="col">Set</th><th scope="col">Last time</th>{entry.measure === 'weight-reps' && <th scope="col">{unit}</th>}{entry.measure === 'distance-time' && <th scope="col">km</th>}{(entry.measure === 'weight-reps' || entry.measure === 'reps') && <th scope="col">Reps</th>}{(entry.measure === 'time' || entry.measure === 'distance-time') && <th scope="col">Time</th>}{rpe && <th scope="col"><abbr title="Rate of perceived exertion: 10 is nothing left, 8 is about two reps left">RPE</abbr></th>}<th scope="col"><span className="sr-only">Done</span></th><th scope="col"><span className="sr-only">Remove</span></th></tr></thead>
+      <tbody>{entry.sets.map((s, i) => <SetRow key={s.id} entry={entry} set={s} n={i + 1} previous={previous?.sets[i]} unit={unit} change={change} onDone={onRest} rpe={rpe}/>)}</tbody>
     </table>
     <div className="workouts-exercise-foot"><button className="secondary" type="button" onClick={() => change(x => addSet(x, entry.id))}>+ Add set</button>
       <label className="field workouts-ex-note"><span className="sr-only">Note for {entry.name}</span><input placeholder="Note (seat height, grip…)" maxLength={500} defaultValue={entry.note ?? ''} onBlur={e => { if ((entry.note ?? '') !== e.target.value) change(x => setExerciseNote(x, entry.id, e.target.value)); }}/></label></div>
+    {/* Session AK (4.9): supersets and this exercise's own rest time. */}
+    <div className="workouts-exercise-foot">
+      {letter ? <button className="quiet" type="button" onClick={() => change(x => leaveSuperset(x, entry.id), `${entry.name} is out of superset ${letter}.`)}>Leave superset {letter}</button>
+        : index < count - 1 && <button className="quiet" type="button" onClick={() => change(x => supersetWithNext(x, entry.id), `${entry.name} is in a superset with the next exercise: do them back to back, then rest.`)}>{nextLetter ? `Join superset ${nextLetter}` : 'Superset with next'}</button>}
+      <label className="field workouts-ex-rest"><span>Rest after a set</span>
+        <select value={entry.restSeconds === undefined ? '' : String(entry.restSeconds)} onChange={e => change(x => setExerciseRest(x, entry.id, e.target.value === '' ? null : Number(e.target.value)))}>
+          <option value="">{w.restSeconds ? `As set below (${clock(w.restSeconds)})` : 'As set below (off)'}</option>
+          {[0, 30, 45, 60, 90, 120, 150, 180, 240, 300].map(sec => <option key={sec} value={sec}>{sec ? clock(sec) : 'Off'}</option>)}
+        </select></label>
+      {entry.restSeconds !== undefined && <span className="fine">{restFor(w, entry) ? `${clock(restFor(w, entry))} for this exercise` : 'No rest timer for this exercise'}</span>}
+    </div>
+    {entry.measure === 'weight-reps' && <details className="workouts-tools-sheet" onToggle={e => setTools((e.currentTarget as HTMLDetailsElement).open)}>
+      <summary>Warm-up and plates</summary>
+      {tools && <Suspense fallback={<p className="fine">Opening…</p>}><WorkoutTools entry={entry} w={w} unit={unit} change={change}/></Suspense>}
+    </details>}
   </article>;
 }
 
-function SetRow({entry, set, n, previous, unit, change, onDone}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onDone: () => void}) {
+function SetRow({entry, set, n, previous, unit, change, onDone, rpe}: {entry: ExerciseEntry; set: WorkoutSet; n: number; previous?: WorkoutSet; unit: 'kg' | 'lb'; change: (fn: (w: Workouts) => Workouts, said?: string) => boolean; onDone: () => void; rpe: boolean}) {
   const m = entry.measure, label = `${entry.name}, set ${n}`;
   const [weight, setWeight] = useState(set.weightKg === undefined ? '' : String(Math.round(toUnit(set.weightKg, unit) * 100) / 100));
   const [reps, setReps] = useState(set.reps === undefined ? '' : String(set.reps)), [time, setTime] = useState(set.seconds ? clock(set.seconds) : ''), [dist, setDist] = useState(set.distanceKm === undefined ? '' : String(set.distanceKm));
@@ -217,9 +273,11 @@ function SetRow({entry, set, n, previous, unit, change, onDone}: {entry: Exercis
     {m === 'distance-time' && <td><input className="workouts-num" inputMode="decimal" aria-label={`${label}: distance in km`} value={dist} onChange={e => setDist(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
     {(m === 'weight-reps' || m === 'reps') && <td><input className="workouts-num" inputMode="numeric" aria-label={`${label}: reps`} value={reps} onChange={e => setReps(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
     {(m === 'time' || m === 'distance-time') && <td><input className="workouts-num" inputMode="numeric" aria-label={`${label}: time, minutes:seconds`} placeholder="1:30" value={time} onChange={e => setTime(e.target.value)} onBlur={commit} disabled={set.done}/></td>}
+    {rpe && <td><select className="workouts-rpe" value={set.rpe === undefined ? '' : String(set.rpe)} aria-label={`${label}: RPE, how hard it felt`} title={set.rpe !== undefined ? RPE_WORDS[set.rpe] : undefined}
+      onChange={e => change(x => setRpe(x, entry.id, set.id, e.target.value === '' ? null : Number(e.target.value)))}><option value="">—</option>{RPE_VALUES.map(v => <option key={v} value={v}>{v}</option>)}</select></td>}
     <td><button className="workouts-tick" type="button" aria-pressed={set.done} aria-label={set.done ? `${label} done; undo` : `Mark ${label} done`} onClick={tick}>✓</button></td>
     <td><button className="quiet workouts-remove" type="button" aria-label={`Remove ${label}`} onClick={() => change(x => removeSet(x, entry.id, set.id))}>×</button></td>
-  </tr>{problem && <tr className="workouts-problem"><td colSpan={7}><p role="alert">{problem}</p></td></tr>}</>;
+  </tr>{problem && <tr className="workouts-problem"><td colSpan={8}><p role="alert">{problem}</p></td></tr>}</>;
 }
 
 function ExercisePicker({library, onPick, onCreate, onClose}: {library: LibraryExercise[]; onPick: (x: LibraryExercise) => void; onCreate: (input: {name: string; category: typeof CATEGORIES[number]; measure: Measure}) => void; onClose?: () => void}) {

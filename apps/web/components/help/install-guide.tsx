@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useSyncExternalStore} from 'react';
 import {currentInstallContext, type InstallContext} from '../../lib/install/platform';
+import {installState, promptInstall, subscribeInstall} from '../../lib/install/prompt-store';
 
 const STATUS: Record<InstallContext, string> = {
   installed: 'You’re using ZIGoals as an installed app. Keep opening it from its icon.',
@@ -16,8 +17,11 @@ const STATUS: Record<InstallContext, string> = {
 export function InstallGuide() {
   const [context, setContext] = useState<InstallContext | null>(null);
   useEffect(() => { setContext(currentInstallContext()); }, []);
+  // Session AK Part 3: where the browser offers to install (Chromium on Android and computers), one button does it.
+  const offer = useSyncExternalStore(subscribeInstall, installState, () => ({available: false, installed: false}));
   return <div className="install-guide">
     <p className="help-status" data-context={context ?? 'pending'}>{context ? STATUS[context] : ' '}</p>
+    {offer.available && context !== 'installed' && <p><button type="button" className="primary" onClick={() => void promptInstall()}>Install ZIGoals on this device</button></p>}
     <ol className="help-steps">
       <li>Open ZIGoals in <strong>Safari</strong> on your iPhone. Some other iPhone browsers offer this in their Share menu too.</li>
       <li>Tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</li>

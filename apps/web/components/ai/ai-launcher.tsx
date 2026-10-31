@@ -105,6 +105,7 @@ export function AiLauncher() {
     return () => navigator.serviceWorker?.removeEventListener('message', onMessage);
   }, []);
   const hide = () => {
+    zigiSignals.emit('companion_hidden'); // Session AK Part 12: a Studio-4 reaction once its art lands
     setOpen(false); launcher.setLauncherHidden(true); setUndoUntil(Date.now() + HIDE_UNDO_MS);
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => { timer.current = null; setUndoUntil(null); }, HIDE_UNDO_MS);

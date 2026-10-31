@@ -65,3 +65,40 @@
 .workouts-import-problem { color: var(--danger-text, #ffb4c8); font-size: 14px; }
 .workouts-imported-line { margin: 8px 0 0; }
 :root[data-theme=light] .workouts-import-problem { color: #a3123a; }
+/* Session AK (4.9): supersets, RPE, rest per exercise, the warm-up and plate sheet, a calm personal-best line. */
+.workouts-exercise[data-superset] { border-inline-start: 3px solid var(--brand-cyan, #6fe6f6); padding-inline-start: 10px; }
+.workouts-superset-tag { display: inline-block; margin-inline-end: 6px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 650; color: inherit; background: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 22%, transparent); vertical-align: middle; }
+.workouts-rpe { min-height: 44px; min-width: 60px; border-radius: 10px; font-variant-numeric: tabular-nums; }
+.workouts-ex-rest { flex: 0 1 220px; }
+.workouts-ex-rest select { min-height: 44px; }
+.workouts-tools-sheet > summary, .workouts-tool > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.workouts-tools { display: grid; gap: 10px; padding: 10px 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33); }
+.workouts-tools p, .workouts-tool h4 { margin: 0; }
+.workouts-tool { display: grid; gap: 6px; }
+.workouts-tool h4 { font-size: 1rem; }
+.workouts-ramp { margin: 0; padding-inline-start: 1.4em; font-variant-numeric: tabular-nums; display: grid; gap: 2px; }
+.workouts-plates-form { display: grid; gap: 10px; padding-top: 6px; }
+.workouts-plates-form fieldset { border: 0; padding: 0; margin: 0; }
+.workouts-plates-form legend { font-weight: 600; margin-bottom: 6px; }
+.workouts-plates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.workouts-plates-form select { min-height: 44px; }
+.workouts-celebrate { margin: 0; padding: 10px 12px; border-radius: 12px; font-weight: 600; background: color-mix(in srgb, var(--success, #47d6a1) 16%, transparent); }
+@media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .workouts-celebrate { animation: workouts-celebrate-in 600ms ease-out both; } }
+@keyframes workouts-celebrate-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.workouts-import-notes, .workouts-import-lifts { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 4px; }
+.workouts-import-lifts span { color: var(--text-secondary, #c9d6ea); font-size: 15px; }
+/* Session AK (4.9): muscle groups — a table with bars, and freshness (an estimate). */
+.workouts-muscles h3 { margin: 12px 0 6px; font-size: 1.05rem; }
+.workouts-bar-cell { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.workouts-bar { display: block; block-size: 10px; min-inline-size: 2px; max-inline-size: 140px; border-radius: 6px; background: var(--brand-cyan, #6fe6f6); }
+.workouts-freshness { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.workouts-freshness li { display: grid; grid-template-columns: minmax(80px, 110px) minmax(80px, 1fr); gap: 4px 10px; align-items: center; }
+.workouts-freshness li > span:last-child { grid-column: 1 / -1; font-size: 15px; color: var(--text-secondary, #c9d6ea); }
+.workouts-freshness-name { font-weight: 600; }
+.workouts-freshness-track { display: block; block-size: 10px; border-radius: 6px; background: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent); overflow: hidden; }
+.workouts-freshness-fill { display: block; block-size: 100%; background: var(--success, #47d6a1); }
+:root[data-theme=light] .workouts-celebrate { background: #e3f6ee; color: #0b4d34; }
+:root[data-theme=light] .workouts-bar { background: #0b6f84; }
+:root[data-theme=light] .workouts-freshness-fill { background: #16865c; }
+:root[data-theme=light] .workouts-superset-tag { color: #08394a; background: #d6f3f8; }
+@media (forced-colors: active) { .workouts-bar, .workouts-freshness-fill { background: CanvasText; } .workouts-freshness-track { outline: 1px solid CanvasText; } .workouts-exercise[data-superset] { border-inline-start-color: CanvasText; } }

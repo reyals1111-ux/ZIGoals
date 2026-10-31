@@ -6,6 +6,7 @@ import {dailyData, healthDay, waterSummary} from '../../lib/health-daily';
 import {waterText} from '../../lib/health-units';
 import {MOOD_WORDS, moodOn, setMood} from '../../lib/wrap-up/engine';
 import {useHealth} from '../health/use-health';
+import {zigiSignals} from '../zigi/bus';
 
 /**
  * The evening wrap-up card (Session W Part 13), in Today's "For you" once its time has come: the day from the person's
@@ -27,7 +28,7 @@ export function WrapUpCard({habits, health, now, showHabits, showHealth, onWrap}
     try { await store.update(h => setMood(h, healthToday, value, new Date().toISOString())); setNote(`Saved for today: ${MOOD_WORDS[value - 1]}.`); }
     catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'Not saved. Your Health journal is unchanged.'); }
   }
-  async function wrap(text: string | null) { setBusy(true); setError(''); try { if (!await onWrap(text)) setError('Not saved on this device. Try again.'); } finally { setBusy(false); } }
+  async function wrap(text: string | null) { setBusy(true); setError(''); try { if (!await onWrap(text)) setError('Not saved on this device. Try again.'); else if (text !== null) zigiSignals.emitValidated('wrapup_finished'); /* Session AK Part 12: saved, a Studio-4 reaction once its art lands */ } finally { setBusy(false); } }
   return <article className="panel wrap-up-card" aria-label="Your evening wrap-up">
     <p className="eyebrow">Evening wrap-up</p>
     <h2>How did today go?</h2>

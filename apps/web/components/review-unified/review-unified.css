@@ -1,0 +1,12 @@
+/* Session AK Part 8.1–8.4: the unified review's glance row and ZIGi's notes. Theme colours; 44 px targets; text ≥ 14 px. */
+:root .review-notes { display: grid; gap: 16px; }
+:root .review-glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+:root .review-glance a { display: grid; gap: 4px; min-height: 44px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2, var(--panel)); color: var(--text); text-decoration: none; }
+:root .review-glance a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+:root .review-glance strong { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+:root .review-glance span.review-glance-line { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+:root .review-glance a[data-quiet] span.review-glance-line { font-style: italic; }
+:root .review-note { display: grid; gap: 8px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2, var(--panel)); min-width: 0; }
+:root .review-note h4 { margin: 0; font-size: 16px; }
+:root .review-note ul { display: grid; gap: 6px; margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.5; }
+:root .review-note .fine { margin: 0; }

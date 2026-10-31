@@ -1,0 +1,73 @@
+/* Session AK (lane M): Money tools inside Wealth → Spending (theme tokens as spending.css uses them, 44 px targets, no motion). */
+.money-tools{display:grid;gap:14px;padding-top:12px;border-top:1px solid var(--line,rgba(140,160,220,.18))}
+.money-tools h3{font-size:17px;margin:0}
+.money-buffer{display:grid;gap:6px;padding:14px 16px;border-radius:18px;background:color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);border:1px solid var(--line,rgba(140,160,220,.25))}
+.money-buffer .eyebrow{margin:0}
+.money-buffer p{margin:0}
+.money-buffer-row{display:grid;gap:4px}
+.money-buffer-days{font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.money-buffer-days span{font-size:16px;font-weight:500}
+.money-tools-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.money-tools-buttons button{min-height:44px;display:inline-flex;align-items:center;gap:8px}
+.money-review-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber,#f5b65b);flex:none}
+.money-panel{display:grid;gap:12px;min-width:0}
+.money-panel h4{font-size:16px;margin:0}
+.money-panel h5{font-size:15px;margin:6px 0 0}
+.money-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.money-list li{display:grid;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line,rgba(140,160,220,.18));min-width:0}
+.money-review-row{grid-template-columns:1fr auto}
+.money-review-what,.money-rule-text{min-width:0;overflow-wrap:anywhere}
+.money-review-cat,.money-review-row .money-row-actions{grid-column:1 / -1}
+.money-row-actions{display:flex;flex-wrap:wrap;gap:6px}
+.money-row-actions button,.money-list button,.money-actions button,.money-form button{min-height:44px;min-width:44px}
+.money-rules li{grid-template-columns:1fr}
+.money-rule-off .money-rule-text{opacity:.7}
+.money-form{display:grid;gap:10px}
+.money-fieldset{border:1px solid var(--line,rgba(140,160,220,.25));border-radius:14px;margin:0;padding:10px 12px;min-width:0}
+.money-fieldset legend{padding:0 6px;font-size:14px}
+.money-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:10px;align-items:end}
+.money-wide{grid-column:1 / -1}
+.money-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.money-parts{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.money-sum{margin:0;font-variant-numeric:tabular-nums}
+.money-status{min-height:22px;margin:0}
+.money-table-wrap{overflow-x:auto;max-width:100%}
+.money-table{width:100%;border-collapse:collapse;font-size:14px}
+.money-table th,.money-table td{padding:6px;text-align:left;border-bottom:1px solid var(--line,rgba(140,160,220,.18));vertical-align:top;overflow-wrap:anywhere}
+.money-panel .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.emergency-account{grid-template-columns:1fr}
+.emergency-row{grid-template-columns:1fr auto}
+.emergency-warnings,.emergency-refusal ul{margin:0;padding-left:20px}
+.emergency-refusal{padding:10px 12px;border-radius:12px;border:1px solid var(--amber,#f5b65b)}
+.emergency-refusal p{margin:0 0 6px}
+.emergency-sheet textarea{width:100%;min-height:88px}
+/* The print-only copy of the emergency sheet. Paper is always black on white, so it uses plain print colours, not the
+   app's theme; on screen it is never shown, and while it prints everything else on the page is hidden. */
+.emergency-print-root{display:none}
+@media print{
+  html.emergency-printing body>*:not(.emergency-print-root){display:none!important}
+  html.emergency-printing body{background:#fff!important}
+  html.emergency-printing .emergency-print-root{display:block;color:#000;background:#fff;font:11pt/1.45 Georgia,"Times New Roman",serif;padding:0}
+  .emergency-print-root h1{font-size:18pt;margin:0 0 6pt}
+  .emergency-print-root h2{font-size:13pt;margin:14pt 0 4pt}
+  .emergency-print-root table{width:100%;border-collapse:collapse}
+  .emergency-print-root th,.emergency-print-root td{border:1px solid #000;padding:4pt;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+  .emergency-print-root tr{break-inside:avoid}
+  .emergency-print-note{white-space:pre-wrap}
+}
+/* Charts of the calculator tools (fee drag, Financial freedom): inline SVG, theme tokens, no motion. */
+.money-chart{display:block;width:100%;max-width:640px;height:auto}
+.money-chart-axis{stroke:var(--line,rgba(140,160,220,.35));stroke-width:1}
+.money-chart-a{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2.5;stroke-linejoin:round}
+.money-chart-b{fill:none;stroke:var(--amber,#f5b65b);stroke-width:2.5;stroke-dasharray:6 4;stroke-linejoin:round}
+.money-chart-band{fill:color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent);stroke:none}
+.money-chart-mid{fill:none;stroke:var(--cyan,#6fd3ff);stroke-width:2.5;stroke-linejoin:round}
+.money-chart-target{stroke:var(--amber,#f5b65b);stroke-width:1.5;stroke-dasharray:4 4}
+.money-chart text{fill:currentColor;font-size:11px}
+.money-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.money-key{display:inline-block;width:18px;height:0;border-top:3px solid var(--cyan,#6fd3ff)}
+.money-key-b,.money-key-target{border-top:3px dashed var(--amber,#f5b65b)}
+.money-key-band{height:10px;border:0;background:color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent)}
+.fee-drag-result,.fi-result{margin:0;font-variant-numeric:tabular-nums}
+.money-calc-tools{display:grid;gap:16px}
+.money-calc-tools .money-tools-buttons{margin:0}

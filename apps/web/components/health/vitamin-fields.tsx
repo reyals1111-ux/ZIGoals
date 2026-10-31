@@ -11,10 +11,10 @@ import {readHealth} from '../../lib/sync-homes-store';
  * food form does for the seven. The food's earlier diary entries keep the vitamins they were logged with.
  * One element in FoodEditor; AB-Design may restyle it.
  */
-export function VitaminFields({foodId, basis, amount}: {foodId: string; basis: string; amount: string}) {
+export function VitaminFields({foodId, basis, amount, initial}: {foodId: string; basis: string; amount: string; /** Session AK (item 3): values read from a label photo, as typed text in the label's basis; they count as typed. */ initial?: Partial<Record<string, string>>}) {
   const id = useId(), record = useDeviceRecord(HEALTH_VITAMINS), root = useRef<HTMLFieldSetElement>(null);
   const held: Vitamins | undefined = record.loaded && !record.unreadable ? record.data.foods?.[foodId] : undefined;
-  const [values, setValues] = useState<Partial<Record<VitaminKey, string>> | null>(null), [error, setError] = useState('');
+  const [values, setValues] = useState<Partial<Record<VitaminKey, string>> | null>(() => initial && Object.keys(initial).length ? Object.fromEntries(VITAMINS.map(([k]) => [k, initial[k] ?? ''])) : null), [error, setError] = useState('');
   const shown = values ?? Object.fromEntries(VITAMINS.map(([k]) => [k, vitaminText(held?.[k])]));
   const latest = useRef({shown, basis, amount, record, foodId});
   latest.current = {shown, basis, amount, record, foodId};

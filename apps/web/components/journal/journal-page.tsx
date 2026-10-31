@@ -1,5 +1,5 @@
 'use client';
-import {useMemo, useState} from 'react';
+import {lazy, useMemo, useState} from 'react';
 import {formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
@@ -14,6 +14,10 @@ import {isShown} from '../../lib/pages/visibility';
 import {useHealth} from '../health/use-health';
 import {usePagesView} from '../pages/use-pages-view';
 import './journal.css';
+// Session AK (lane S, item 13): Year in Pixels, its code loaded when its fold is opened.
+import {OnDemandFold} from '../insights/compare/on-demand-fold';
+
+const YearPixels = lazy(() => import('./year-pixels'));
 
 /**
  * Session AI (feature 6): the Journal page — write, ZIGi's question, the entries (newest first, delete with Undo), the
@@ -51,6 +55,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-energy-title"><h2 id="journal-energy-title">Energy, the last 14 days</h2>
       <ol className="journal-energy-bars" aria-label="Energy per day">{days.map(d => { const v = energy.data.days[d]?.energy; return <li key={d} title={`${d}: ${v ? `${v} of 5, ${ENERGY_WORDS.en[v - 1]}` : 'not rated'}`}><span className="journal-energy-bar" style={{height: `${v ? v * 20 : 4}%`}} data-empty={v ? undefined : ''}/><span className="sr-only">{d}: {v ? `${v} of 5` : 'not rated'}</span></li>; })}</ol>
     </section>
+    <OnDemandFold className="year-pixels-fold" summary="Year: one square a day" label="Your year"><YearPixels today={today}/></OnDemandFold>
     {found.length > 0 && <section className="panel" aria-labelledby="journal-patterns"><h2 id="journal-patterns">Patterns</h2><ul>{found.slice(0, 4).map(p => <li key={p.theme}>{patternLine(p, 'en')}</li>)}</ul><p className="fine">Counts from your own entries, never a diagnosis.</p></section>}
     <section className="panel" aria-labelledby="journal-entries"><h2 id="journal-entries">Entries</h2>
       <label className="field"><span>Search your journal</span><input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>

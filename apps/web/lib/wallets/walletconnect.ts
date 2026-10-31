@@ -23,11 +23,15 @@ export const WALLETCONNECT_VERSION = '2.26.0';
  *  socket and the Verify API, plus Verify's attestation frame. Added to the CSP only with the project ID. */
 export const WALLETCONNECT_CSP = Object.freeze({
   connect: Object.freeze(['wss://relay.walletconnect.org', 'https://verify.walletconnect.org', 'https://verify.walletconnect.com']),
-  frame: Object.freeze(['https://verify.walletconnect.org', 'https://verify.walletconnect.com']),
+  // Session AK: written as pages (a trailing "/" matches every path on the host, as the bare origin did), the form the
+  // deploy smoke's frame-src rule accepts (scripts/lib/alpha-smoke.mjs: exact https pages only).
+  frame: Object.freeze(['https://verify.walletconnect.org/', 'https://verify.walletconnect.com/']),
 });
 /** Solana mainnet's CAIP-2 id in WalletConnect (its genesis hash prefix). */
 export const WC_SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 export const WC_ZIGCHAIN = 'cosmos:zigchain-1';
+/** Session AK (AFL9): the ZIGChain testnet, for practice with Keplr Mobile where it offers the chain (optional only). */
+export const WC_ZIGTEST = 'cosmos:zig-test-2';
 export type WcNamespace = {chains: string[]; methods: string[]; events: string[]};
 export function readOnlyNamespaces(cosmosMethods: readonly string[] = ['cosmos_getAccounts']): Record<'eip155' | 'solana' | 'cosmos', WcNamespace> {
   // Gate C security review S9 (ADR-028 H133): read-only means exactly that — the one Cosmos method that reads accounts.
@@ -39,6 +43,18 @@ export function readOnlyNamespaces(cosmosMethods: readonly string[] = ['cosmos_g
     solana: {chains: [WC_SOLANA_MAINNET], methods: [], events: []},
     cosmos: {chains: [WC_ZIGCHAIN], methods: [...new Set(cosmosMethods)], events: []},
   };
+}
+/**
+ * Session AK (AFL9, A7; `TIER 3 (wallet)`): the namespaces of a pairing that may also stake with Keplr Mobile. The two
+ * Cosmos methods are handed in by lib/staking/execute.ts (WC_STAKING_METHODS: reading the account and signing one reviewed
+ * document); this file still names no signing method. Only ZIGChain mainnet and testnet are asked, optionally; Ethereum-
+ * family and Solana stay read-only. A wallet that does not offer ZIGChain simply leaves it out, and the session links the
+ * rest read-only.
+ */
+export function stakingNamespaces(stakingMethods: readonly string[]): Record<'eip155' | 'solana' | 'cosmos', WcNamespace> {
+  if (stakingMethods.length !== 2 || !stakingMethods.includes('cosmos_getAccounts') || !stakingMethods.every(m => /^cosmos_[A-Za-z]{4,30}$/.test(m))) throw Error('A staking pairing asks for exactly the account read and one signing method.');
+  const base = readOnlyNamespaces();
+  return {...base, cosmos: {chains: [WC_ZIGCHAIN, WC_ZIGTEST], methods: [...stakingMethods], events: []}};
 }
 export type WcAccount = {kind: AddressKind; address: string; chainId: string};
 /** The addresses an approved session's namespaces hold (CAIP-10), checked; anything else is left out. */
@@ -82,13 +98,13 @@ export class WalletConnectUnavailable extends Error {}
  * app plus the approval, which resolves to the session's checked accounts. Refuses before loading anything when the project
  * ID is not set.
  */
-export async function startWalletConnect({projectId, origin, cosmosMethods, loader = () => import('@walletconnect/sign-client') as unknown as ReturnType<Loader>}: {projectId: string | null; origin: string; cosmosMethods?: readonly string[]; loader?: Loader}): Promise<{uri: string; approval: Promise<{accounts: WcAccount[]; wallet: string}>}> {
+export async function startWalletConnect({projectId, origin, cosmosMethods, stakingMethods, loader = () => import('@walletconnect/sign-client') as unknown as ReturnType<Loader>}: {projectId: string | null; origin: string; cosmosMethods?: readonly string[]; stakingMethods?: readonly string[]; loader?: Loader}): Promise<{uri: string; approval: Promise<{accounts: WcAccount[]; wallet: string}>}> {
   if (!projectId || !/^[0-9a-f]{32}$/.test(projectId)) throw new WalletConnectUnavailable('WalletConnect is not set up in this build yet.');
   const url = new URL(origin);
   if (url.protocol !== 'https:' && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') throw new WalletConnectUnavailable('WalletConnect needs this app\'s own https address.');
   const {SignClient} = await loader();
   const client = await SignClient.init({projectId, telemetryEnabled: false, storage: memoryStorage(), metadata: {name: 'ZIGoals', description: 'Goals, habits and wealth. Wallets are linked read-only.', url: url.origin, icons: [`${url.origin}/apple-touch-icon.png`]}}) as Client;
-  const {uri, approval} = await client.connect({optionalNamespaces: readOnlyNamespaces(cosmosMethods)});
+  const {uri, approval} = await client.connect({optionalNamespaces: stakingMethods ? stakingNamespaces(stakingMethods) : readOnlyNamespaces(cosmosMethods)});
   if (typeof uri !== 'string' || !uri.startsWith('wc:')) throw new WalletConnectUnavailable('WalletConnect did not give a pairing link.');
   live = {client, session: null};
   return {uri, approval: approval().then(session => {
@@ -107,3 +123,23 @@ export const trustWalletConnectLink = (uri: string) => {
   if (!uri.startsWith('wc:') || uri.length > 2000) throw Error('Not a WalletConnect link.');
   return fromPrefix('trust-wc', `https://link.trustwallet.com/wc?uri=${encodeURIComponent(uri)}`);
 };
+
+/**
+ * Session AK (Part 1a, A7; docs/research/session-ak/WALLETS.md (c)–(d)): the pairing link handed to each wallet app, by
+ * each wallet's own documented or registry link form, with what that wallet links in plain words (A7: no wallet is listed
+ * for more than it does). MetaMask, Trust, OKX and Ledger Wallet link Ethereum-family and Solana addresses; Keplr Mobile
+ * its ZIGChain address (where it offers the chain). Keplr appends the link raw; the others take it encoded.
+ */
+export type WcWalletLink = {key: string; label: string; detail: string; href: string};
+export function walletConnectLinks(uri: string, android: boolean): WcWalletLink[] {
+  if (!uri.startsWith('wc:') || uri.length > 2000 || /[\s<>"]/.test(uri)) throw Error('Not a WalletConnect link.');
+  const encoded = encodeURIComponent(uri);
+  return [
+    {key: 'wc-keplr', label: 'Open in Keplr Mobile', detail: 'Your ZIGChain address, where Keplr Mobile offers ZIGChain', href: android ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;` : `keplrwallet://wcV2?${uri}`},
+    {key: 'wc-trust', label: 'Open in Trust Wallet', detail: 'Ethereum-family and Solana addresses', href: trustWalletConnectLink(uri)},
+    {key: 'wc-metamask', label: 'Open in MetaMask', detail: 'Ethereum-family addresses', href: `metamask://wc?uri=${encoded}`},
+    {key: 'wc-ledger', label: 'Open in Ledger Wallet', detail: 'Ethereum-family addresses', href: `ledgerlive://wc?uri=${encoded}`},
+  ];
+}
+/** A9: what to say when WalletConnect refuses to start (the owner's allowed domains may not include this site yet). */
+export const PHONE_WALLETS_SWITCHING_ON = 'Phone wallets are being switched on. Open ZIGoals in your wallet’s own browser meanwhile (the links above).';

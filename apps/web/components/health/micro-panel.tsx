@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassBar} from '../progress/glass-progress';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -9,6 +9,8 @@ import {readFormNumber} from '../../lib/decimal-input';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {VitaminRows} from './vitamin-rows';
 import './health-aa.css';
+// Session AK (task 4.4): the full report (every nutrient, 7-day averages, top sources) loads only when opened.
+const NutrientReport = lazy(() => import('./nutrient-report').then(m => ({default: m.NutrientReport})));
 
 /**
  * N4: micronutrient targets (the seven the format holds, ADR-022 B6; default reference values the person can edit on
@@ -17,6 +19,7 @@ import './health-aa.css';
  */
 export function MicroPanel({data, date}: {data: HealthData; date: string}) {
   const record = useDeviceRecord(MICRO_TARGETS), r = record.loaded && !record.unreadable ? record.data : {version: 1 as const};
+  const [report, setReport] = useState(false);
   const rows = microDay(data, date, r), [editing, setEditing] = useState<MicroKey | null>(null), [draft, setDraft] = useState(''), [error, setError] = useState(''), [pick, setPick] = useState<MicroKey>('ironMg');
   const scaleOf = (key: MicroKey) => additionalNutrients.find(([k]) => k === key)![3];
   function save(key: MicroKey) {
@@ -34,6 +37,8 @@ export function MicroPanel({data, date}: {data: HealthData; date: string}) {
     {error && <p role="alert">{error}</p>}
     <p className="fine">Default reference values, yours to edit; an entry without a value stays unknown, never zero. Not medical advice.</p>
     <VitaminRows data={data} date={date} />
+    <div className="actions"><button type="button" className="secondary" aria-expanded={report} onClick={() => setReport(!report)}>{report ? 'Close the nutrient report' : 'Open the nutrient report'}</button></div>
+    {report && <Suspense fallback={<p className="fine">Opening the report…</p>}><NutrientReport data={data} date={date} /></Suspense>}
     <div className="health-rich"><h3>Which of my foods are high in…</h3><div className="health-rich-row" role="group" aria-label="Nutrient">{additionalNutrients.map(([key, label]) => <button type="button" key={key} className="quiet" aria-pressed={pick === key} onClick={() => setPick(key)}>{label}</button>)}</div>
       {rich.length ? <ol>{rich.map(f => <li key={f.id}>{f.name} <small>· {formatNutrient(f.mgPerServing / scaleOf(pick))} {additionalNutrients.find(([k]) => k === pick)![2]} {f.serving === 'per serving' ? 'per serving' : `per ${f.serving}`}{f.kind === 'recipe' ? ' · recipe' : ''}</small></li>)}</ol> : <p className="health-empty-inline">None of your foods carries a value for this yet. Add it on the food’s label.</p>}</div>
   </section>;

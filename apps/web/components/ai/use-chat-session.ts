@@ -232,6 +232,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     if (hosted && !account) { setFailure({kind: 'blocked', title: 'Sign in again to use ZIGoals hosted.', steps: ['ZIGoals hosted works with your account; sign in under Settings → Account & sync.']}); return; }
     if (!hosted && key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · Your Personal AI Companion. Keys stay on the device where you typed them; they are never synced.']}); return; }
     const controller = new AbortController(); abort.current = controller;
+    // Session AK Part 12: ZIGi took the message (a Studio-4 reaction once its art lands; noted only until then).
+    zigiSignals.emit('assistant_acknowledged');
     setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiSignals.emit('assistant_thinking');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
     // Session Z-Local Part 3: the prompt-cache counts go to the usage meter only; the stored turn keeps its two fields.
@@ -459,6 +461,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const setFeedback = useCallback((turnId: string, value: 'up' | 'down' | undefined) => {
     const turns = chatRef.current.turns.map(t => { if (t.id !== turnId || t.role !== 'assistant') return t; const next = {...t}; if (value) next.feedback = value; else delete next.feedback; return next; });
     const next = {...chatRef.current, turns}; setChat(next); persist(next);
+    if (value) zigiSignals.emit('feedback_received'); // Session AK Part 12: ZIGi got the person's note on its answer (a Studio-4 reaction once its art lands).
   }, [persist, setChat]);
   return {chat, status, draft, failure, confirmation, saveNote, parsed, handlesFor, claimFresh, send, stop, regenerate, dismissFailure, cancelConfirmation, ask, choose, askMore, moreText, localFor, startNew, open, list, search, rename, remove, removeAll,
     looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState, pin, setFeedback, say};

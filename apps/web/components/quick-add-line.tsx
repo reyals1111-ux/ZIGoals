@@ -15,6 +15,9 @@ import {lineLanguage, splitItems} from '../lib/quick-log/multi';
 import {QuickAddMic} from './quick-add-mic';
 // Session AI (J10): several items in one line, or an item Quick add's own reader does not know, as ZIGi's cards.
 const QuickLogCards = lazy(() => import('./quick-log-cards'));
+// Session AK (6.1): a goal sentence ("save €5,000 for a trip by June and walk 8k steps") as a reviewed bundle, read on this
+// device; its code loads only for a line the reader above did not take. A chunk that cannot load leaves the usual path.
+const QuickAddBundle = lazy(() => import('./quick-add-bundle').catch(() => ({default: ({otherwise}: {otherwise: React.ReactNode}) => <>{otherwise}</>})));
 
 /**
  * A2: the Quick-add line. One field, Enter or Preview shows exactly what would be saved, and nothing is written before
@@ -26,7 +29,7 @@ const QuickLogCards = lazy(() => import('./quick-log-cards'));
  * `initialText`: they are previewed at once, and with `onlyIfUnderstood` nothing shows unless the parser understood them.
  * Nothing is written before Save, exactly as in Quick add.
  */
-export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialText?: string; onlyIfUnderstood?: boolean} = {}) {
+export function QuickAddLine({initialText, onlyIfUnderstood = false, close}: {initialText?: string; onlyIfUnderstood?: boolean; /** Closes Quick add when a confirmed goal opens the goal form. */ close?: () => void} = {}) {
   const health = useHealth(), habits = useHabits();
   const [text, setText] = useState(''), [result, setResult] = useState<QuickAddResult | null>(null), [chosen, setChosen] = useState<QuickAddKnown | null>(null);
   const [saved, setSaved] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [wake, setWake] = useState('');
@@ -78,8 +81,8 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
         <div className="actions"><button type="button" className="primary" disabled={busy || needsWake} onClick={() => void save(active)}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="quiet" disabled={busy} onClick={() => { setResult(null); setChosen(null); setText(''); setWake(''); field.current?.focus(); }}>Clear</button></div></div>}
       {result?.kind === 'ambiguous' && !chosen && <div className="quick-add-line-card"><p>Did you mean…</p><div className="actions">{result.choices.map((choice, index) => <button key={index} type="button" className="secondary" onClick={() => setChosen(choice)}>{describeChoice(choice)}</button>)}</div></div>}
       {result?.kind === 'needs-more' && <p className="quick-add-line-hint">{result.hint}</p>}
-      {multi && <Suspense fallback={null}><QuickLogCards line={multi} lang={lineLanguage(multi)} fallback={<p className="quick-add-line-hint" role="status">I didn’t understand those yet. Try: 2 glasses of water, read 20 minutes, a banana.</p>}/></Suspense>}
-      {result?.kind === 'unknown' && <Suspense fallback={null}><QuickLogCards line={text} fallback={<p className="quick-add-line-hint" role="status">I didn’t understand that yet. Try: {result.examples.join(' · ')}</p>}/></Suspense>}
+      {multi && <Suspense fallback={null}><QuickAddBundle key={multi} line={multi} several today={habits.today} close={close} otherwise={<QuickLogCards line={multi} lang={lineLanguage(multi)} fallback={<p className="quick-add-line-hint" role="status">I didn’t understand those yet. Try: 2 glasses of water, read 20 minutes, a banana.</p>}/>}/></Suspense>}
+      {result?.kind === 'unknown' && <Suspense fallback={null}><QuickAddBundle key={text} line={text} today={habits.today} close={close} otherwise={<QuickLogCards line={text} fallback={<p className="quick-add-line-hint" role="status">I didn’t understand that yet. Try: {result.examples.join(' · ')}</p>}/>}/></Suspense>}
       {saved && <p role="status" className="quick-add-line-saved">{saved}</p>}
       {error && <p role="alert">{error}</p>}
     </div>

@@ -2,10 +2,11 @@
  * Session U Part 6 (FIX_PLAN D4, FINDINGS Q-WEB-04): the Trusted Types default policy. Browsers call it only for a page
  * whose CSP requires Trusted Types: every production page since Session V Part 19 (TRUSTED_TYPES in
  * lib/security-policy.ts, docs/security/TRUSTED_TYPES.md), and the report-only trial. It allows script URLs only from this
- * origin's /_next/static/ (the framework's chunks) and /push-sw.js (the push-only service worker, ADR-010), and nothing
+ * origin's /_next/static/ (the framework's chunks), /push-sw.js (the push-only service worker, ADR-010) and /sw.js (the
+ * app's one service worker since Session AK, ADR-036 Q4; its build version is the only query it takes), and nothing
  * else: no HTML string and no script string is ever made trusted.
  */
-export const TRUSTED_SCRIPT_PATHS = ['/_next/static/', '/push-sw.js'] as const;
+export const TRUSTED_SCRIPT_PATHS = ['/_next/static/', '/push-sw.js', '/sw.js'] as const;
 /**
  * The value itself when it resolves, against the document's base URL as the browser will resolve it, to an allowed path
  * on this origin; otherwise null. An allowed value is returned unchanged, never rewritten: Turbopack recognises a loaded
@@ -15,6 +16,7 @@ export function trustedScriptURL(value: string, origin: string, base: string = o
   let url: URL;
   try { url = new URL(value, base); } catch { return null; }
   if (url.origin !== origin) return null;
+  if (url.pathname === '/sw.js') return url.hash === '' && [...url.searchParams.keys()].every(k => k === 'v') && /^[0-9a-z-]{0,40}$/.test(url.searchParams.get('v') ?? '') ? value : null;
   return url.pathname === '/push-sw.js' || url.pathname.startsWith('/_next/static/') ? value : null;
 }
 type TrustedTypesFactory = {defaultPolicy?: unknown; createPolicy: (name: string, rules: {createScriptURL: (value: string) => string | null}) => unknown};

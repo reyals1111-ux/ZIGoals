@@ -53,6 +53,9 @@ import {JOURNAL_KEY} from './journal/schema';
 import {showcaseJournal} from './journal/showcase';
 import {ENERGY_KEY} from './energy/schema';
 import {showcaseEnergy} from './energy/showcase';
+import {BILLS_KEY} from './bills/schema';
+import {BUDGETS_KEY} from './budgets/schema';
+import {showcaseBills,showcaseBudgets} from './bills/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -160,6 +163,9 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
  records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
+ // Session AK (7.3, 7.7): four fictional bills and three category budgets beside that log (lib/bills/showcase.ts).
+ records[BILLS_KEY]=JSON.stringify(showcaseBills(day));
+ records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
  // Session AI (B3, feature 6): a fictional journal with ZIGi's questions answered, and two weeks of energy ratings.

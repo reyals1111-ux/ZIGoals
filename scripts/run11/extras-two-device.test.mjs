@@ -6,7 +6,7 @@ import {setGoalCardArt,setGoalReasons,emptyGoalExtras} from '../../apps/web/lib/
 
 // Session AB-Cloud Part 2 ([TIER 3] (sync), ADR-023 C1–C5, C11): two devices on one account against the real
 // private-sync Worker in Miniflare, through the extras sync the Settings provider runs. Fictional records only.
-const GOALS='zigoals:goal-extras:v1',AVG='zigoals:average-goals:v1',CALC='zigoals:calculator:v1',HABITS='zigoals:habit-extras:v1',MICRO='zigoals:micro-targets:v1',COACH='zigoals:health-coach:v1';
+const CHECKLIST='zigoals:checklist:v1',DAYS='zigoals:checklist-days:v1',GOALS='zigoals:goal-extras:v1',AVG='zigoals:average-goals:v1',CALC='zigoals:calculator:v1',HABITS='zigoals:habit-extras:v1',MICRO='zigoals:micro-targets:v1',COACH='zigoals:health-coach:v1';
 const at='2026-10-13T08:00:00.000Z',later='2026-10-13T09:00:00.000Z';
 function memoryStorage(){const m=new Map();return {get length(){return m.size;},key:i=>[...m.keys()][i]??null,getItem:k=>m.get(k)??null,setItem:(k,v)=>{m.set(k,String(v));},removeItem:k=>{m.delete(k);},clear:()=>m.clear()};}
 function memoryBases(){const m=new Map();return {get:async s=>m.get(s)??null,put:async(s,b)=>{m.set(s,structuredClone(b));},clear:async()=>m.clear(),map:m};}
@@ -17,7 +17,8 @@ async function setup(){
  expect((await r.call('/v1/vault',{protocol:1,vault:vault.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[],manifest:vault.manifest})).status).toBe(200);
  let failNextWrite=false;
  const transport={
-  heads:async()=>(await r.call('/v1/extras')).json(),
+  // As the app asks (lib/vault/extras-sync.ts extrasTransport): the optional Checklist section by name (AK 8.10, AFL8).
+  heads:async()=>(await r.call('/v1/extras?with=checklist')).json(),
   read:async section=>(await r.call('/v1/extras?section='+section)).json(),
   write:async operation=>{const res=await r.call('/v1/extras',operation);const body=await res.json();if(failNextWrite){failNextWrite=false;throw Error('The answer was lost.');}if(!res.ok){if(body.error==='REVISION_CONFLICT'){const {RevisionConflict}=await import('../../apps/web/lib/vault/cloud-sync');throw new RevisionConflict();}throw Error(body.error);}return body;},
  };
@@ -37,15 +38,21 @@ test('migration: the first device uploads its records as they are; the second re
   a.storage.setItem(CALC,JSON.stringify({version:1,scenarios:[]}));
   a.storage.setItem(HABITS,JSON.stringify({version:1,areas:{h1:'fun'},folds:{morning:true}}));
   b.storage.setItem(HABITS,JSON.stringify({version:1,folds:{evening:true}}));
-  expect(states(await sync(a))).toEqual({goals:'pushed',life:'pushed',habits:'pushed',health:'unchanged'});
-  expect(states(await sync(b))).toEqual({goals:'pulled',life:'pulled',habits:'pulled',health:'unchanged'});
+  // The Checklist: its items travel; its Health quick inputs and today's ticks stay on each device (AK 8.10, AFL8).
+  a.storage.setItem(CHECKLIST,JSON.stringify({version:1,items:[{id:'c1',kind:'custom',label:'Fictional piano',addedAt:at}],healthItems:[{id:'c2',kind:'health',input:'water',addedAt:at}],order:['c1','c2']}));
+  a.storage.setItem(DAYS,JSON.stringify({version:1,days:{'2026-10-12':{total:3,done:3,perfect:true}},today:{date:'2026-10-13',ticks:[]}}));
+  expect(states(await sync(a))).toEqual({goals:'pushed',life:'pushed',habits:'pushed',health:'unchanged',checklist:'pushed'});
+  expect(states(await sync(b))).toEqual({goals:'pulled',life:'pulled',habits:'pulled',health:'unchanged',checklist:'pulled'});
+  expect(read(b,CHECKLIST).items.map(i=>i.label)).toEqual(['Fictional piano']);expect(read(b,CHECKLIST).healthItems??[]).toEqual([]);
+  expect(read(b,DAYS).days['2026-10-12'].perfect).toBe(true);expect(read(b,DAYS).today).toBeUndefined();
+  expect(read(a,CHECKLIST).healthItems.map(i=>i.input)).toEqual(['water']);expect(read(a,DAYS).today.date).toBe('2026-10-13');
   expect(read(b,GOALS).goals['private:1']).toEqual({why:'See the sea',cardArt:'nebula-1',updatedAt:at});
   // A's dormant extras and folds never travel; B keeps its own folds.
   expect(read(b,GOALS).dormant).toBeUndefined();expect(read(b,HABITS)).toEqual({version:1,areas:{h1:'fun'},folds:{evening:true}});
   expect(read(a,GOALS).dormant).toEqual({'private:9':{why:'Old',dormantSince:'2026-10-01'}});
   // Nothing left to do on either side.
-  expect(states(await sync(a))).toEqual({goals:'unchanged',life:'unchanged',habits:'unchanged',health:'unchanged'});
-  expect(states(await sync(b))).toEqual({goals:'unchanged',life:'unchanged',habits:'unchanged',health:'unchanged'});
+  expect(states(await sync(a))).toEqual({goals:'unchanged',life:'unchanged',habits:'unchanged',health:'unchanged',checklist:'unchanged'});
+  expect(states(await sync(b))).toEqual({goals:'unchanged',life:'unchanged',habits:'unchanged',health:'unchanged',checklist:'unchanged'});
  }finally{await r.mf.dispose();}
 },60000);
 
@@ -124,5 +131,23 @@ test('"Remove from the cloud": every section deleted, this device stops; another
   expect((await (await r.call('/v1/extras')).json()).sections.goals).toMatchObject({generation:1,parts:0});
   expect(states(await sync(b)).goals).toBe('deleted');
   expect(read(b,GOALS).goals['private:1'].why).toBe('Kept here');expect(read(a,GOALS).goals['private:1'].why).toBe('Kept here');
+ }finally{await r.mf.dispose();}
+},60000);
+
+test('AK 8.10 (AFL8): an app talking to a private-sync that predates the Checklist section (heads without it) syncs the other four and leaves the Checklist untouched; deletion skips it',async()=>{
+ const {r,vault,device}=await setup();
+ try{
+  const oldHeads=async()=>{const body=await (await r.call('/v1/extras')).json();expect(Object.keys(body.sections).sort()).toEqual(['goals','habits','health','life']);return body;};
+  const transport={heads:oldHeads,read:async section=>(await r.call('/v1/extras?section='+section)).json(),write:async operation=>{const res=await r.call('/v1/extras',operation);const body=await res.json();if(!res.ok)throw Error(body.error);return body;}};
+  const a=device();
+  a.storage.setItem(GOALS,JSON.stringify(setGoalReasons(emptyGoalExtras(),'private:1',{why:'Old service'},at)));
+  const checklist=JSON.stringify({version:1,items:[{id:'c1',kind:'custom',label:'Stays',addedAt:at}],healthItems:[],order:['c1']});
+  a.storage.setItem(CHECKLIST,checklist);
+  const outcomes=await syncExtras({transport,key:vault.key,manifest:vault.manifest,storage:a.storage,bases:a.bases,fence:()=>{},health:true});
+  expect(states(outcomes)).toEqual({goals:'pushed',life:'unchanged',habits:'unchanged',health:'unchanged',checklist:'skipped'});
+  expect(outcomes.find(o=>o.section==='checklist').message).toMatch(/once the sync service is updated/);
+  expect(a.storage.getItem(CHECKLIST)).toBe(checklist);expect(a.bases.map.has('checklist')).toBe(false);
+  await deleteExtrasCopies({transport,manifest:vault.manifest,storage:a.storage,bases:a.bases,fence:()=>{}});
+  expect((await (await r.call('/v1/extras')).json()).sections.goals).toMatchObject({generation:1,parts:0});
  }finally{await r.mf.dispose();}
 },60000);

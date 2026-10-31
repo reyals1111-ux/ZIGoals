@@ -1,0 +1,24 @@
+/* Session AK (A14): bank statement file import (nebula style, theme tokens, 44 px targets, no motion). */
+.bankfile-body{display:grid;gap:12px}
+.bankfile-file input{min-height:44px}
+.bankfile-preview{display:grid;gap:10px}
+.bankfile-preview h3{margin:0;font-size:17px;overflow-wrap:anywhere}
+.bankfile-table-wrap{max-width:100%;overflow-x:auto}
+.bankfile-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.bankfile-table caption{text-align:left;padding-bottom:6px}
+.bankfile-table th,.bankfile-table td{padding:6px;text-align:left;border-bottom:1px solid var(--line,rgba(140,160,220,.18));vertical-align:middle}
+.bankfile-table td:first-child{width:44px}
+.bankfile-table input[type=checkbox]{width:24px;height:24px;margin:10px}
+.bankfile-payee{min-width:140px;overflow-wrap:anywhere}
+.bankfile-in{color:var(--green,#7ee2a8)}
+.bankfile-actions{display:flex;flex-wrap:wrap;gap:8px}
+.bankfile-actions button{min-height:44px}
+.bankfile-refused summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.bankfile-status{min-height:22px;margin:0}
+/* Session AK (7.1): CSV template downloads and saved column matches. */
+.csv-templates ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.csv-templates li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;min-height:44px;border-bottom:1px solid var(--line,rgba(140,160,220,.18));padding:4px 0}
+@media (max-width:560px){.csv-templates li{grid-template-columns:1fr}}
+.csv-templates button,.csv-saved button{min-height:44px}
+.csv-saved{display:grid;gap:8px}
+.csv-saved-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}

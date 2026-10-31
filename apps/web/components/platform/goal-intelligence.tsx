@@ -14,13 +14,27 @@ import {GlassBar} from '../progress/glass-progress';
 import './intelligence.css';
 import {ContributionFlow} from './contribution-flow';
 import {ProgressRing,MetricCard} from './financial-ui';
-import {effectiveContributionPlan,planDay} from '../../lib/plan-revisions';
+import {effectiveContributionPlan,planDay,planZone} from '../../lib/plan-revisions';
 import {goalProgress} from '../../lib/positions';
 import {amountWithUnit} from '../../lib/asset-unit';
 import { formatDate } from '../../lib/visual-format';
 import { localDate } from '../../lib/local-date';
 import {ShowcaseTag} from '../ui/showcase-tag';
 import {plainErrorMessage} from '../../lib/plain-error';
+/**
+ * Session AK (7.6): "Fill in" from the contribution rhythm opens this Goal with `?contribute=1&amount=<base units>`.
+ * The amount is read once (whole base units only, as lib/allocation/autopilot.ts writes it) and taken off the URL, so
+ * a reload or Back never fills it again. It only fills the form; the person still previews and confirms.
+ */
+export function takeAmountParam():string|undefined{
+ if(typeof window==='undefined')return undefined;
+ const current=new URL(window.location.href),raw=current.searchParams.get('amount');
+ if(raw===null)return undefined;
+ current.searchParams.delete('amount');
+ const state={...window.history.state};delete state.__NA;delete state._N;
+ window.history.replaceState(state,'',`${current.pathname}${current.search}${current.hash}`);
+ return /^[1-9]\d{0,77}$/.test(raw)?raw:undefined;
+}
 const display=(value:string,goal:PrivateGoal)=>formatSignedGoalAmount(value.startsWith('-'),amount(value.replace(/^-/,''),goal.decimals),goal.asset);
 export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{data:Platform;goal:PrivateGoal;quotes:readonly MarketQuote[];now:number;update:(fn:(s:Platform)=>Platform)=>Promise<void>;disabled?:boolean}){
  const showcase=useShowcase(),device=useDeviceZone();
@@ -44,7 +58,7 @@ export function GoalIntelligence({data,goal,quotes,now,update,disabled=false}:{d
  const bound=valuationBound(goalProgress(data,goal.id,now,quotes)).bound;
  const max=health?[BigInt(health.actual),BigInt(health.plannedThroughToday),1n].reduce((a,b)=>a>b?a:b):1n;
  const share=(value:string)=>Number((BigInt(value)>0n?BigInt(value):0n)*10000n/max)/10000;
- return <div className="goal-intelligence"><ActionIntent param="contribute" value="1" ready={canEdit} onAction={()=>{setEntry(true);setDue(health&&BigInt(health.dueToday)>0n?{date:planDay(now,health.planZone),amount:health.dueToday}:undefined);}}/>
+ return <div className="goal-intelligence"><ActionIntent param="contribute" value="1" ready={canEdit} onAction={()=>{setEntry(true);const asked=takeAmountParam();setDue(asked?{date:planDay(now,health?.planZone??planZone(goal)),amount:asked}:health&&BigInt(health.dueToday)>0n?{date:planDay(now,health.planZone),amount:health.dueToday}:undefined);}}/>
   {health&&<section className="intelligence-panel" aria-label="Funding Wealth overview">
    <div className="funding-wealth-hero"><div><p className="eyebrow">WHERE YOU ARE. WHAT COMES NEXT.</p><h2>Funding Wealth</h2><div className="funding-status-line"><span className="intelligence-status" data-status={health.status}>{health.status==='NO_PLAN'?'No plan':health.status==='REVIEW'?'Needs review':health.status==='COMPLETED'?'Complete':health.status.replaceAll('_',' ').toLowerCase()}</span><p>{health.status==='COMPLETED'?'Your Goal is fully funded.':health.status==='NO_PLAN'?'Give your Goal a contribution rhythm.':health.overdue?'Your recorded contributions are behind your plan.':BigInt(health.dueToday)>0n?`${money(health.dueToday)} is due today.`:'Your wealth and contribution pace, together.'}</p></div><div className="intelligence-actions">{/* Session AH (GO4, N-166): a Reward Goal grows with the rewards it counts; funding it from a reserve is not a contribution, so it says so instead of offering a button that would refuse */}{goal.type==='REWARD'?<p className="fine">A Reward Goal grows with your unclaimed rewards. Claim or keep them in Staking; funding from elsewhere does not count here.</p>:<button className="primary" disabled={!canEdit} onClick={()=>{setEntry(true);setDue(undefined);setError('');}}>Fund Goal</button>}<a className="text-link" href="#contribution-plan">{goal.plan?'Review contribution plan':'Create contribution plan'} →</a></div></div><div className="funding-wealth-progress"><ProgressRing percent={Number(goalProgress(data,goal.id,now,quotes).progressPct)} size={148} bound={bound}/><div><strong>{bound==='unavailable'?'Value unavailable':`${bound==='at-least'?'At least ':''}${money(health.current)}`}</strong><p>of {money(health.target)}</p><span>{bound==='unavailable'?'Remaining unknown':<>{bound==='at-least'&&'At most '}{money(health.remaining)} remaining</>}</span></div></div></div>
    <div className="funding-preview-metrics"><MetricCard label="Target date" value={goal.targetDate??'No date set'}/><MetricCard label="Next contribution" value={health.nextDate??'No plan scheduled'} detail={nextPlan?`${shownAmount(nextPlan.amount,nextPlan.decimals)} ${nextPlan.asset} · ${nextPlan.cadence}`:'Choose an amount and rhythm that works for you'}/><MetricCard label="Latest contribution" value={health.latest?localDate(new Date(health.latest.occurredAt)):'No contribution yet'} detail={health.latest?amountWithUnit(data,shownAmount(health.latest.quantity,health.latest.decimals),health.latest.asset,health.latest.positionId):'New funding will appear here'}/></div>

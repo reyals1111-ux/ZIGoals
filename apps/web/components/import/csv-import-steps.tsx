@@ -1,7 +1,8 @@
 'use client';
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState, type ReactNode} from 'react';
 import {CSV_TOO_LARGE, MAX_CSV_BYTES, parseCsv, type CsvDelimiter, type ParsedCsv} from '../../lib/csv/parse';
-import {guessMapping, type FieldSpec} from '../../lib/csv/mapping';
+import {HOLDINGS_FIELDS, TRANSACTION_FIELDS, guessMapping, type FieldSpec} from '../../lib/csv/mapping';
+import type {ImportTarget} from '../../lib/csv/templates/presets';
 import {guessNumberStyle, type NumberStyle} from '../../lib/csv/numbers';
 import {DATE_FORMAT_LABELS, guessDateFormat, type DateFormat} from '../../lib/csv/dates';
 import type {ImportRecord} from '../../lib/import/undo-schema';
@@ -19,6 +20,16 @@ export type CsvFile = {name: string; text: string};
 export type Mapping = Partial<Record<string, number>>;
 export type CsvSetup = {parsed: ParsedCsv; mapping: Mapping; numberStyle: NumberStyle; dateFormat: DateFormat; ambiguousDates: boolean};
 export type SetupOptions = {fields: readonly FieldSpec[]; numberFields: readonly string[]; dateField?: string};
+// Session AK (7.1): template files and saved column matches load in their own chunk, only inside an open import.
+const CsvTemplateDownloads = lazy(() => import('./bankfiles/csv-templates').then(m => ({default: m.CsvTemplateDownloads})));
+const SavedMappingControls = lazy(() => import('./bankfiles/csv-templates').then(m => ({default: m.SavedMappingControls})));
+/** Which presets and saved matches fit these fields: Portfolio trades, holdings, or the money log (it has Money out / Money in). */
+export function importTargetOf(fields: readonly FieldSpec[]): ImportTarget | undefined {
+  if (fields === TRANSACTION_FIELDS) return 'transactions';
+  if (fields === HOLDINGS_FIELDS) return 'holdings';
+  const ids = new Set(fields.map(f => f.id));
+  return ids.has('date') && ids.has('debit') && ids.has('credit') ? 'money' : undefined;
+}
 const DELIMITER_LABELS: Record<CsvDelimiter, string> = {',': 'Comma', ';': 'Semicolon', '\t': 'Tab'};
 const column = (parsed: ParsedCsv, index: number | undefined) => index === undefined ? [] : parsed.rows.map(row => row[index] ?? '');
 const samples = (cells: readonly string[], n = 3) => cells.map(c => c.trim()).filter(Boolean).slice(0, n);
@@ -38,7 +49,7 @@ export function withGuesses(setup: CsvSetup, options: SetupOptions, what: {numbe
 }
 
 /** Step 1: the file, read with File.text() on this device. */
-export function FileStep({onFile}: {onFile: (file: CsvFile) => string | null}) {
+export function FileStep({onFile, target}: {onFile: (file: CsvFile) => string | null; target?: ImportTarget}) {
   const [problem, setProblem] = useState('');
   return <div className="import-step">
     <label className="field import-file"><span>CSV file</span><input type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain" data-sheet-focus onChange={async event => {
@@ -49,6 +60,7 @@ export function FileStep({onFile}: {onFile: (file: CsvFile) => string | null}) {
     }} /></label>
     <p className="fine">Read on this device only. Nothing is uploaded. The first row must name the columns.</p>
     {problem && <p role="alert">{problem}</p>}
+    {target && <details className="import-templates"><summary>No file yet? Download a template to fill in</summary><Suspense fallback={null}><CsvTemplateDownloads target={target}/></Suspense></details>}
   </div>;
 }
 
@@ -65,6 +77,7 @@ export function MappingStep({setup, options, text, onChange, children}: {setup: 
   const example = (index: number) => samples(column(parsed, index), 1)[0];
   const numberSamples = samples(options.numberFields.flatMap(id => column(parsed, mapping[id])));
   const dateSamples = options.dateField ? samples(column(parsed, mapping[options.dateField])) : [];
+  const target = importTargetOf(options.fields);
   return <div className="import-step import-mapping">
     <p className="fine">{parsed.rows.length} {parsed.rows.length === 1 ? 'row' : 'rows'} in {parsed.header.length} columns. Match each column; “Not in this file” leaves a field blank.</p>
     <label className="field"><span>Delimiter</span><select value={parsed.delimiter} onChange={event => { try { onChange(setupFromText(text, options, event.target.value as CsvDelimiter)); } catch { /* the first parse already succeeded; a worse delimiter keeps the current one */ } }}>{(Object.keys(DELIMITER_LABELS) as CsvDelimiter[]).map(d => <option key={d} value={d}>{DELIMITER_LABELS[d]}</option>)}</select></label>
@@ -75,6 +88,8 @@ export function MappingStep({setup, options, text, onChange, children}: {setup: 
     {options.numberFields.length > 0 && <label className="field"><span>Numbers use</span><select value={setup.numberStyle} onChange={event => onChange({...setup, numberStyle: event.target.value as NumberStyle})}><option value="point">Point for decimals · 1,234.56</option><option value="comma">Comma for decimals · 1.234,56</option></select>{numberSamples.length > 0 && <small>In this file: {numberSamples.join(' · ')}</small>}</label>}
     {options.dateField && <label className="field"><span>Dates are</span><select value={setup.dateFormat} onChange={event => onChange({...setup, dateFormat: event.target.value as DateFormat, ambiguousDates: false})}>{(Object.keys(DATE_FORMAT_LABELS) as DateFormat[]).map(f => <option key={f} value={f}>{DATE_FORMAT_LABELS[f]}</option>)}</select>{dateSamples.length > 0 && <small>In this file: {dateSamples.join(' · ')}</small>}</label>}
     {setup.ambiguousDates && <p role="status" className="import-ambiguous">These dates could be read both ways. Choose the order.</p>}
+    {target && <Suspense fallback={null}><SavedMappingControls target={target} current={{header: parsed.header, mapping, delimiter: parsed.delimiter, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat}}
+      onApply={(next, saved) => onChange(withGuesses({...setup, mapping: next, numberStyle: saved.numberStyle ?? setup.numberStyle, dateFormat: saved.dateFormat ?? setup.dateFormat, ambiguousDates: false}, options, {numbers: !saved.numberStyle, dates: !saved.dateFormat}))}/></Suspense>}
     {children}
     {parsed.warnings.length > 0 && <details className="import-warnings"><summary>{parsed.warnings.length} {parsed.warnings.length === 1 ? 'note' : 'notes'} about this file</summary><ul>{parsed.warnings.slice(0, 20).map(w => <li key={w}>{w}</li>)}</ul></details>}
   </div>;

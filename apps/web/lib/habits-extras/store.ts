@@ -6,7 +6,7 @@ const prune = <T>(map: Record<string, T> | undefined, keep: ReadonlySet<string> 
   const next = Object.fromEntries(Object.entries(map).filter(([id]) => !keep || keep.has(id)));
   return Object.keys(next).length ? next : undefined;
 };
-const tidy = (r: HabitExtras, keep: ReadonlySet<string> | null): HabitExtras => habitExtrasSchema.parse({...r, areas: prune(r.areas, keep), quitCost: prune(r.quitCost, keep), bells: prune(r.bells, keep), times: prune(r.times, keep)});
+const tidy = (r: HabitExtras, keep: ReadonlySet<string> | null): HabitExtras => habitExtrasSchema.parse({...r, areas: prune(r.areas, keep), quitCost: prune(r.quitCost, keep), bells: prune(r.bells, keep), times: prune(r.times, keep), order: prune(r.order, keep)});
 export function setHabitArea(r: HabitExtras, habitId: string, areaId: string | null, keep: ReadonlySet<string> | null = null): HabitExtras {
   const areas = {...(r.areas ?? {})};
   if (areaId) areas[habitId] = areaId; else delete areas[habitId];

@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
-  "reownProjectId": null,
+  "reownProjectId": "a769fc3cf950f7408189e14bac0633b1",
   "rampHostApiKey": null,
   "rampHostAppName": "ZIGoals",
-  "banxaPartnerRef": null
+  "banxaPartnerRef": null,
+  "pushDeviceEnabled": false,
+  "pushVapidPublicKey": null
 }

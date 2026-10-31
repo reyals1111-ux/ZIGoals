@@ -247,6 +247,16 @@
           "chatInput": null,
           "viewer": null,
           "target": null
+        },
+        "celebrations": {
+          "cheer": null
+        },
+        "variants": {
+          "X050": null,
+          "X051": null,
+          "X052": null,
+          "X053": null,
+          "X054": null
         }
       }
     }

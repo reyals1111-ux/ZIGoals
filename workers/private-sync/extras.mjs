@@ -16,6 +16,13 @@ import {sessionAllowed} from './sessions.mjs';
  * part contents beyond the sealed envelopes.
  */
 export const EXTRAS_SECTIONS = ['goals', 'life', 'habits', 'health'];
+/**
+ * Session AK (8.10, AFL8; `TIER 3 (auth/sync)`): sections a newer client asks for by name. They are stored, written and
+ * deleted like the four, but the default list of heads stays exactly the four, so an older client (which reads that list
+ * strictly) never sees a section it does not know; a client that knows them asks with `?with=checklist`.
+ */
+export const EXTRAS_SECTIONS_OPTIONAL = ['checklist'];
+const KNOWN_SECTIONS = [...EXTRAS_SECTIONS, ...EXTRAS_SECTIONS_OPTIONAL];
 /** Per section, as the Portfolio: one snapshot fits one relay request (the app's relay reads at most 1,010,000 bytes). */
 export const EXTRAS_PARTS_MAX = 16, EXTRAS_BYTES_MAX = 1_000_000, EXTRAS_RECEIPTS_KEPT = 64;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -62,15 +69,16 @@ export async function settleHealthExtras(store) { await head(store, 'health'); }
  */
 export async function extrasRequest(request, state, readJSON, validEnvelope, sessionHash) {
   if (request.method === 'GET') {
-    const asked = new URL(request.url).searchParams.get('section');
-    if (asked !== null && !EXTRAS_SECTIONS.includes(asked)) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
+    const params = new URL(request.url).searchParams, asked = params.get('section'), withOptional = params.get('with');
+    if (asked !== null && !KNOWN_SECTIONS.includes(asked)) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
+    if (withOptional !== null && !EXTRAS_SECTIONS_OPTIONAL.includes(withOptional)) return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
     return state.storage.transaction(async store => {
       if (await store.get('account-deleted')) return reply({error: 'ACCOUNT_DELETED'}, 410);
       if (!await sessionAllowed(store, sessionHash)) return reply({error: 'SESSION_REVOKED'}, 401);
       if (asked === null) {
         /** @type {Record<string, {revision:number,generation:number,epoch:number|null,parts:number}>} */
         const sections = {};
-        for (const section of EXTRAS_SECTIONS) { const h = await head(store, section); sections[section] = {revision: h.revision, generation: h.generation, epoch: h.epoch, parts: h.parts}; }
+        for (const section of withOptional ? [...EXTRAS_SECTIONS, withOptional] : EXTRAS_SECTIONS) { const h = await head(store, section); sections[section] = {revision: h.revision, generation: h.generation, epoch: h.epoch, parts: h.parts}; }
         return reply({protocol: 1, sections});
       }
       const current = await head(store, asked), parts = current.parts ? await store.get(partKeys(asked, current.parts)) : new Map();
@@ -84,7 +92,7 @@ export async function extrasRequest(request, state, readJSON, validEnvelope, ses
   try { input = await readJSON(request, 1_010_000); } catch { return reply({error: 'INVALID_OR_OVERSIZED_REQUEST'}, 400); }
   const put = input?.action === 'put';
   if (!exact(input, put ? ['protocol', 'action', 'vault', 'operation', 'section', 'base', 'generation', 'epoch', 'parts'] : ['protocol', 'action', 'vault', 'operation', 'section', 'base', 'generation'])
-    || input.protocol !== 1 || !['put', 'delete'].includes(input.action) || !EXTRAS_SECTIONS.includes(input.section) || !UUID.test(input.vault) || !UUID.test(input.operation) || !count(input.base) || !count(input.generation)
+    || input.protocol !== 1 || !['put', 'delete'].includes(input.action) || !KNOWN_SECTIONS.includes(input.section) || !UUID.test(input.vault) || !UUID.test(input.operation) || !count(input.base) || !count(input.generation)
     || put && (!Number.isSafeInteger(input.epoch) || input.epoch < 1 || !Array.isArray(input.parts) || !input.parts.length || input.parts.length > EXTRAS_PARTS_MAX || !input.parts.every(validEnvelope)))
     return reply({error: 'INVALID_EXTRAS_REQUEST'}, 400);
   const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(input))))].map(v => v.toString(16).padStart(2, '0')).join('');

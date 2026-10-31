@@ -1,3 +1,16 @@
+# Session AK — "NUMBER ONE" (ADR-036) (2026-10-31…, `feature/session-ak-number-one`; in progress, Draft PR, not merged, not deployed)
+**Base:** `main` `7000807` (Merge #98, Session AJ; live as Alpha #52). **Rules (owner):** the brief (Parts 0–16, D1–D12, MUSIC, RAMP/BANXA), the approved plan and the owner amendments A1–A22 (ADR-036). One plan, one approval; no owner step during the session.
+
+## Part 0 — records (owner-reported, 31 Oct)
+- **Session AJ** merged into `main` as `7000807` ([PR #98](https://github.com/reyals1111-ux/ZIGoals/pull/98)) and deployed as **Alpha #52**: Manual Alpha deployment run 55 (30 Oct, about 09:25 Brussels); version `226adce0-19b2-4069-8159-4e7711cb5f4c`, rollback `8c844fee-8b60-4ce0-b6f4-8d00bc7543fa` (#51). Answering on every route after 3 reads; live prices VERIFIED; market policy window 2 installed (ends 2026-11-30 16:00 UTC). Rollback floor #32. The next deploy is run 56 = #53.
+- **31 Oct:** the repository secret `ANTHROPIC_API_KEY` and the variable `PR_REVIEW_MODEL` are set, so the PR-review Action (RM6) can run; it reviews only a non-Draft PR (A21: Part 16).
+- **Hosted verifier on #52:** not run yet (owner).
+- Frozen readers are #37–#52 from now on (`scripts/frozen-readers.mjs`, #52 = `7000807`).
+
+Decisions: `docs/architecture/ADR-036-session-ak.md` (owner decisions, A1–A22, readings Q1…, the verify-then-do table, the closing table). Research: `docs/research/session-ak/`. Resume file: `docs/handoff/AK_RESUME.md`.
+
+---
+
 # Session AJ — "The Big Leap" (ADR-035) (2026-10-29/30, `feature/session-aj-big-leap`, [PR #98](https://github.com/reyals1111-ux/ZIGoals/pull/98); complete, not merged, not deployed)
 **Base:** `main` `65d0b85` (Merge #97, Session AI; live as Alpha #51). **Rules (owner):** the brief (Parts 0–10, items 1–36 without item 7, D1–D15), the approved plan and the owner amendments A1–A9 (ADR-035). One plan, one approval; no owner step during the session.
 

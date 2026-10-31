@@ -1,10 +1,11 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {useId, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {W_REMINDERS} from '../../../lib/reminders/w-schema';
 import {setWindDown} from '../../../lib/reminders/wind-down';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
 import {formatClock} from '../../../lib/visual-format';
+import {startSoundscape} from '../../music/soundscape-start';
 
 /**
  * The wind-down reminder's setting (Session W Part 4): a time on this device. Today shows a card once it has passed, and
@@ -23,4 +24,23 @@ export function WindDownSetting() {
     <p className="fine">{time ? `Today shows a card from ${formatClock(time)} until you go to bed.` : 'Off.'} ZIGi can knock too if you turned knocking on, outside its quiet hours.</p>
     {note && <p role={note.failed ? 'alert' : 'status'}>{note.text}</p>}
   </form>;
+}
+
+/**
+ * Session AK (4.9, owner decision MUSIC): the wind-down step itself — calm sound on this device. The soundscape is
+ * generated here (nothing is downloaded) and starts only from this tap, because phones allow sound only from a tap;
+ * the music button stops it or changes it.
+ */
+export function WindDownSounds() {
+  const [state, setState] = useState<'idle' | 'starting' | 'playing' | 'failed'>('idle'), said = useId();
+  const start = () => {
+    setState('starting');
+    // Called inside the tap's own handler, so iPhone and iPad let the audio start.
+    void startSoundscape('wind-down').then(ok => setState(ok ? 'playing' : 'failed'));
+  };
+  return <div className="sleep-wind-down-sounds" role="group" aria-label="Wind-down sounds">
+    <p className="fine">Winding down: dim the lights, put the phone face down, and let a calm sound play for about half an hour.</p>
+    <button type="button" className="secondary" onClick={start} disabled={state === 'starting'} aria-describedby={said}>{state === 'playing' ? 'Play wind-down sounds again' : 'Play wind-down sounds'}</button>
+    <p id={said} className="fine" role="status">{state === 'starting' ? 'Starting…' : state === 'playing' ? 'Playing rain and a soft pad for about 30 minutes. Stop or change it with the music button.' : state === 'failed' ? 'The sound could not start in this browser. Try the music button instead.' : ''}</p>
+  </div>;
 }

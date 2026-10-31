@@ -1,13 +1,16 @@
 'use client';
 import {useSyncExternalStore} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {AMBIENT_LABELS, playAmbient, stopAmbient} from '../../lib/audio/ambient';
+import {AMBIENT_LABELS, playAmbient, playMix, stopAmbient} from '../../lib/audio/ambient';
+import {LAYER_LABELS, playingLabel} from '../../lib/audio/ambient-labels';
+import {mixIsActive, mixVolume, savedLayers} from '../../lib/audio/mix';
 import {ambientState, serverAmbientState, subscribeAmbient} from '../../lib/audio/ambient-state';
 import {APPLE_MUSIC_HOME} from '../../lib/music/brand';
 import {MUSIC} from '../../lib/music/schema';
 import {useSpotifyClientId} from './music-config';
 import {ControlIcon, Disc} from './music-ui';
 import {useSpotify} from './use-spotify';
+import {useMusicMix} from './use-music-mix';
 import './music-panel.css';
 
 /**
@@ -17,12 +20,14 @@ import './music-panel.css';
  * panel is closed.
  */
 export default function MusicMini({phone, onOpen, expanded}: {phone: boolean; onOpen: () => void; expanded: boolean}) {
-  const prefs = useDeviceRecord(MUSIC), ambient = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState);
+  const prefs = useDeviceRecord(MUSIC), mixRecord = useMusicMix(), ambient = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState);
   const source = prefs.data.source, config = useSpotifyClientId();
   const spotify = useSpotify({clientId: source === 'spotify' ? config.clientId : null, active: source === 'spotify' && !expanded});
   if (!prefs.loaded) return null;
-  const {sound, timerMin, stopOnHide} = prefs.data.ambient;
-  const label = source === 'ambient' ? (ambient.playing ? AMBIENT_LABELS[ambient.sound] : `Focus sounds · ${AMBIENT_LABELS[sound]}`) : source === 'spotify' ? 'Spotify' : 'Apple Music';
+  const {sound, timerMin, stopOnHide} = prefs.data.ambient, playOnSilent = !!mixRecord.data.playOnSilent;
+  // Session AK: the saved mix plays from here too once it was played last (previous or next in the panel picks one sound again).
+  const mix = savedLayers(mixRecord.data), mixMode = mixIsActive(mixRecord.data), mixTimer = mixRecord.data.timerMin;
+  const label = source === 'ambient' ? (ambient.playing ? playingLabel(ambient) : mixMode ? `Your mix · ${mix.map(l => LAYER_LABELS[l.sound]).join(' + ')}` : `Focus sounds · ${AMBIENT_LABELS[sound]}`) : source === 'spotify' ? 'Spotify' : 'Apple Music';
   const playing = source === 'ambient' ? ambient.playing : source === 'spotify' ? !!spotify.playback?.playing : false;
   return <div className={`music-mini${phone ? ' music-mini-phone' : ''}`} role="group" aria-label="Music player">
     <button type="button" className="music-mini-open" aria-haspopup="dialog" aria-expanded={expanded} aria-label={`${label}: open the music player`} onClick={onOpen}>
@@ -32,7 +37,7 @@ export default function MusicMini({phone, onOpen, expanded}: {phone: boolean; on
       : source === 'spotify' && !(spotify.available && spotify.connected) ? null
       : <button type="button" className="music-mini-play" disabled={spotify.busy && source === 'spotify'} aria-label={playing ? (source === 'ambient' ? 'Stop the focus sound' : 'Pause Spotify') : (source === 'ambient' ? 'Play the focus sound' : 'Play on Spotify')}
           onClick={() => {
-            if (source === 'ambient') { if (ambient.playing) stopAmbient(); else void playAmbient({sound, volume: prefs.data.volume, ...(timerMin ? {timerMin} : {}), stopOnHide}); }
+            if (source === 'ambient') { if (ambient.playing) stopAmbient(); else if (mixMode) void playMix({layers: mix, volume: mixVolume(mixRecord.data, prefs.data), ...(mixTimer ? {timerMin: mixTimer} : {}), stopOnHide, playOnSilent}); else void playAmbient({sound, volume: prefs.data.volume, ...(timerMin ? {timerMin} : {}), stopOnHide, playOnSilent}); }
             else void spotify.act(p => playing ? p.pause() : p.play());
           }}><ControlIcon name={playing ? (source === 'ambient' ? 'stop' : 'pause') : 'play'}/></button>}
   </div>;

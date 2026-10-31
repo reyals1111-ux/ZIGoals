@@ -17,10 +17,20 @@ export type ZigiState = keyof typeof raw.states;
 export type StateKind = 'loop' | 'one-shot';
 export type SizeName = '1x' | '2x' | 'large';
 export type Frame = {file: string; width: number; height: number};
-export type StateFiles = Partial<Record<SizeName, string>> & {animated?: string | null; animatedFallback?: string | null; wears?: string};
+export type StateFiles = Partial<Record<SizeName, string>> & {animated?: string | null; animatedFallback?: string | null; wears?: string;
+  /** Session AK Part 12: the clip's own length once Studio-4 states it (optional; the state's durationMs otherwise). */
+  durationMs?: number};
 /** A Studio-4 slot: the clip's own files, plus the name the studio gave it; `null` while the files have not landed. */
-export type ExtraClip = {name: string; files: StateFiles; kind: 'loop' | 'one-shot'; durationMs: number};
-export type SkinExtras = {reactions: Record<string, ExtraClip | null>; idleVariants: Record<string, ExtraClip | null>; transitions: {greetingInPlace: ExtraClip | null; chain: ExtraClip[]}; gaze: {chatInput: ExtraClip | null; viewer: ExtraClip | null; target: ExtraClip | null}};
+export type ExtraClip = {name: string; files: StateFiles; kind: 'loop' | 'one-shot'; durationMs: number;
+  /** Session AK Part 12: a variant's pool (speaking, listening, thinking, celebrate-small); read from the name when absent. */
+  pool?: string};
+/**
+ * The Studio-4 slots. Session AK Part 12 adds, all optional so an older manifest still reads: `celebrations.cheer` (X030,
+ * the Checklist's cheer), `variants` (X050–X054, the speaking/listening/thinking/celebrate-small pools) and, filled by the
+ * importer when it lands, `idleVariants.X012`. `transitions.chain` holds in-place transitions in play order.
+ */
+export type SkinExtras = {reactions: Record<string, ExtraClip | null>; idleVariants: Record<string, ExtraClip | null>; transitions: {greetingInPlace: ExtraClip | null; chain: ExtraClip[]}; gaze: {chatInput: ExtraClip | null; viewer: ExtraClip | null; target: ExtraClip | null};
+  celebrations?: {cheer?: ExtraClip | null}; variants?: Record<string, ExtraClip | null>};
 export type Skin = {label: string; placeholder: boolean; opticalOffset: {x: number; y: number}; sizes: Record<SizeName, Frame>; states: Partial<Record<string, StateFiles>>; extras?: SkinExtras};
 export type StateSpec = {code: string; label: string; kind: StateKind; durationMs: number; fallback: string | null};
 export type Manifest = {version: 2; name: string; alt: string; defaultSkin: string; skins: Record<string, Skin>; comingSoon: number; budgetBytes: Record<SizeName | 'animated', number>; reactionTriggers?: Record<string, string | null>; states: Record<string, StateSpec>};
@@ -73,4 +83,21 @@ export const idleVariantsOf = (skin: Skin): ExtraClip[] => Object.values(extrasO
 export function reactionOf(skin: Skin, code: string, manifest: Manifest = ZIGI_MANIFEST): {clip: ExtraClip; trigger: string} | null {
   const clip = extrasOf(skin).reactions[code] ?? null, trigger = manifest.reactionTriggers?.[code] ?? null;
   return clip && trigger ? {clip, trigger} : null;
+}
+/** Session AK Part 12: whether a Studio-4 clip has landed with something to play (its animated file or the APNG). */
+export const clipLanded = (clip: ExtraClip | null | undefined): clip is ExtraClip => !!clip && typeof clip === 'object' && !!(clip.files?.animated || clip.files?.animatedFallback);
+/** The X030 cheer (the Checklist's celebration), or null while it has not landed. */
+export const cheerOf = (skin: Skin): ExtraClip | null => { const clip = extrasOf(skin).celebrations?.cheer; return clipLanded(clip) ? clip : null; };
+/** The X050–X054 variant clips that have landed, in slot order. */
+export const variantsOf = (skin: Skin): ExtraClip[] => Object.values(extrasOf(skin).variants ?? {}).filter(clipLanded);
+/** The events whose reaction clip has landed and is named by a trigger (reactionTriggers: R0nn → semantic event). */
+export function reactionArtOf(skin: Skin, manifest: Manifest = ZIGI_MANIFEST): {event: string; code: string; clip: ExtraClip}[] {
+  const out: {event: string; code: string; clip: ExtraClip}[] = [];
+  for (const [code, event] of Object.entries(manifest.reactionTriggers ?? {})) { const clip = extrasOf(skin).reactions[code]; if (typeof event === 'string' && clipLanded(clip) && !out.some(r => r.event === event)) out.push({event, code, clip}); }
+  return out;
+}
+/** How long a state's own clip plays: the clip's stated length when Studio-4 gives one, else the state's. */
+export function clipDurationMs(skin: Skin, state: string, manifest: Manifest = ZIGI_MANIFEST): number {
+  const own = skin.states[state]?.durationMs;
+  return typeof own === 'number' && Number.isFinite(own) && own > 0 ? own : manifest.states[state]?.durationMs ?? 0;
 }

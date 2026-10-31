@@ -31,3 +31,9 @@ test('the default policy is created once, makes no HTML or script string trusted
   expect(installTrustedTypesDefault({location: {origin}})).toBe(false);
   expect(installTrustedTypesDefault({trustedTypes: {createPolicy: () => { throw new TypeError('refused by CSP'); }}, location: {origin}})).toBe(false);
 });
+
+// Session AK (ADR-036 Q4): the app's one service worker, with its build version and nothing else.
+test('the app worker /sw.js is trusted with its version only', () => {
+  for (const value of ['/sw.js?v=abc123def456', '/sw.js', '/sw.js?v=dev-d']) expect(trustedScriptURL(value, 'https://alpha.zigoals.app')).toBe(value);
+  for (const value of ['/sw.js?v=abc&x=1', '/sw.js?v=<script>', 'https://attacker.invalid/sw.js?v=1', '/sw.js#x', '/sw.jsx']) expect(trustedScriptURL(value, 'https://alpha.zigoals.app')).toBeNull();
+});

@@ -35,6 +35,26 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   portfolioImports: ['Portfolio rows from wallets', 'Wealth'],
   readingSources: ['Where wealth readings came from', 'Wealth'],
   priceAlerts: ['Price alerts', 'Wealth'],
+  notify: ['Notification choices', 'Settings'],
+  musicMix: ['Sound mix and timer', 'Music'],
+  autoRules: ['Habits ticked off by your rules', 'Habits'],
+  bills: ['Bills and subscriptions', 'Wealth'],
+  budgets: ['Monthly category budgets', 'Wealth'],
+  targetAllocation: ['Your target mix', 'Wealth'],
+  csvMappings: ['Saved CSV column matches', 'Wealth'],
+  backupReminder: ['Backup reminder', 'Settings'],
+  foodScans: ['Barcodes you scanned', 'Health'],
+  nutrientExtras: ['Extra nutrients (magnesium, zinc, B vitamins, omega-3)', 'Health'],
+  grocery: ['Grocery ticks, pantry and added items', 'Health'],
+  calorieWeek: ['Weekly calorie budget', 'Health'],
+  comparePair: ['The comparison you chose last (Insights)', 'Health'],
+  moneyRules: ['Money log rules', 'Wealth'],
+  moneyReview: ['Imported entries still to review', 'Wealth'],
+  fiModel: ['Financial freedom model inputs', 'Wealth'],
+  emergencySheet: ['If something happens to me (emergency sheet)', 'Wealth'],
+  muscleRecovery: ['Recovery days per muscle group', 'Health'],
+  foodDisplay: ['Food quality letters (Nutri-Score) choice', 'Health'],
+  rewardsShelf: ['Rewards shelf', 'Journey'],
   focusSessions: ['Focus sessions', 'Journey'],
   guidedJourneys: ['Guided journeys', 'Journey'],
   exchanges: ['Exchanges read (balances only)', 'Wealth'],
@@ -73,6 +93,8 @@ export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home
   calculator: {home: 'sync', area: 'Wealth'}, lifeReview: {home: 'sync', area: 'Life review'}, todayCards: {home: 'sync', area: 'Today'}, remindersPlan: {home: 'sync', area: 'Today'},
   habitExtras: {home: 'sync', area: 'Habits'}, routineRun: {home: 'sync', area: 'Habits'}, game: {home: 'sync', area: 'Journey'},
   healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'}, healthVitamins: {home: 'sync-consent', area: 'Health'},
+  // Session AK (8.10, AFL8): the Checklist section; its Health quick inputs and today's ticks stay on each device.
+  checklist: {home: 'sync', area: 'Checklist'}, checklistDays: {home: 'sync', area: 'Checklist'},
 };
 const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
 export const SYNCED: readonly CatalogEntry[] = [
@@ -87,7 +109,7 @@ export const DEVICE_ONLY: readonly CatalogEntry[] = [
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
-export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)'] as const;
+export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)'] as const;
 /** Worked out each time from the records above, never stored. */
 export const NEVER_STORED = ['Calculator results', 'Life review figures', 'Insights and pairings', 'Search results', 'Pace forecasts', 'The life balance wheel'] as const;
 export const HOME_LABEL: Record<Home, string> = {sync: 'Encrypted sync with an account', 'sync-consent': 'Encrypted sync after this device\'s consent', device: 'This device only'};

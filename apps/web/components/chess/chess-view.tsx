@@ -1,6 +1,6 @@
 'use client';
 import {removeWithUndo} from '../ui/remove-with-undo';
-import {useEffect, useState, type FormEvent} from 'react';
+import {lazy, Suspense, useEffect, useState, type FormEvent} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
 import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
@@ -17,6 +17,11 @@ import {ChessFrames, PlayLinks} from './chess-frames';
 import {useChessCheckIn} from './use-chess-check-in';
 import './chess.css';
 import {ShowcaseTag} from '../ui/showcase-tag';
+import type {HabitsStore} from '../habits/use-habits';
+
+// Session AK (ADR-036 Q8, lane C): Play (the in-app board, Lichess's Board API and the daily puzzle) is its own chunk,
+// loaded only when the person opens it or comes back from connecting Lichess (/app/chess?lichess=callback).
+const PlayPanel = lazy(() => import('./board/play-panel'));
 
 /**
  * The Chess page (Session W Part 14; /app/chess, its own chunk): ratings and recent games from chess.com and Lichess by
@@ -61,11 +66,21 @@ export function ChessView() {
       <label className="field">On a day you finish a game, tick off<select value={chess?.habit?.id ?? ''} disabled={showcase} onChange={e => void settings.update(s => setChessHabit(s, e.target.value || null, new Date().toISOString()))}><option value="">No habit</option>{habits.data.habits.filter(h => h.rules.at(-1)?.state === 'active').map(h => <option key={h.id} value={h.id}>{h.title}</option>)}</select></label>
       <p className="fine">Once a day, while that habit is still due; undo it on the habit like any check-in, and chess will not tick it off again that day.</p>
     </section>}
+    <PlayHere state={state} habits={habits} />
     <ChessFrames />
     <PlayLinks />
     {(hasUser || showcase) && <details className="panel chess-settings"><summary>Your usernames</summary><ChessUsernames state={state} onSaved={() => void refresh()} /></details>}
     <p className="fine chess-credit">Ratings, games and puzzles belong to chess.com and Lichess; this page links to them. <Link href="/app/settings#chess">Chess in Settings</Link></p>
   </div>;
+}
+function PlayHere({state, habits}: {state: ReturnType<typeof useChess>; habits: HabitsStore}) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => { const q = new URLSearchParams(window.location.search); if (q.get('lichess') === 'callback' || window.location.hash === '#play') setOpen(true); }, []);
+  return <section className="panel chess-play-here" id="play" aria-labelledby="chess-play-here-title">
+    <div className="chess-head"><h2 id="chess-play-here-title">Play here</h2><button type="button" className="secondary" aria-expanded={open} aria-controls="chess-play-body" onClick={() => setOpen(o => !o)}>{open ? 'Close Play' : 'Open Play'}</button></div>
+    <p>Your Lichess games on a board in ZIGoals, and Lichess&apos;s daily puzzle. Nothing loads until you open it.</p>
+    <div id="chess-play-body">{open && <Suspense fallback={<p role="status">Loading the board…</p>}><PlayPanel state={state} habits={habits} /></Suspense>}</div>
+  </section>;
 }
 function ChessGoals({state}: {state: ReturnType<typeof useChess>}) {
   const {settings, cache, chess, showcase} = state, [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null);

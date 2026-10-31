@@ -1,0 +1,4 @@
+/* Session AK Part 3: "A new version is ready · Reload" — a calm bar above the phone bar / at the bottom on computers. */
+.sw-update{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 88px);z-index:60;display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:min(560px,calc(100vw - 32px));padding:10px 14px;border-radius:16px;background:var(--panel-strong,#0b1430);color:var(--text,#eef2ff);border:1px solid var(--line,rgba(255,255,255,.14));box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:15px}
+.sw-update span{flex:1 1 220px}.sw-update button{min-height:44px}
+@media (min-width:1024px){.sw-update{bottom:24px}}

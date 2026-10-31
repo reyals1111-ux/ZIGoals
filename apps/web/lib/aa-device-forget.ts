@@ -1,3 +1,4 @@
+import {AK_DATABASES, AK_ERASE_KEYS} from './ak-device-keys';
 import {getAppStorage} from './showcase-storage';
 import {AA_PERSONAL_KEYS} from './aa-device-keys';
 import {ZIGI_STORE_EVENT} from './ai/store/keys';
@@ -31,7 +32,7 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { target ??= getAppStorage(); } catch { return; }
   // Session AB-Cloud (ADR-023 C8): AB-Design's display preferences and AB-Cloud's own records go with the account too.
   // Session AE (Part 6, ADR-027): and the wallets linked read-only (public addresses, personal).
-  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS, ...AF_ZIGI_ERASE_KEYS, ...AF_EXTRAS_ERASE_KEYS, ...AH_ERASE_KEYS, ...AI_ERASE_KEYS, ...AJ_ERASE_KEYS];
+  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS, ...AK_ERASE_KEYS, ...AF_ZIGI_ERASE_KEYS, ...AF_EXTRAS_ERASE_KEYS, ...AH_ERASE_KEYS, ...AI_ERASE_KEYS, ...AJ_ERASE_KEYS];
   for (const key of keys) { try { target.removeItem(key); } catch { /* kept */ } }
   try { for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); } catch { /* no window */ }
   // Gate B F3: the progress-photo bytes live in IndexedDB beside the index key; the erase removes the database as a whole (every scope on this device).
@@ -40,4 +41,4 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { if (typeof indexedDB !== 'undefined') for (const name of ERASED_DATABASES) indexedDB.deleteDatabase(name); } catch { /* no IndexedDB: nothing was stored there */ }
 }
 /** Session AJ (A6): every IndexedDB database the account erase deletes (lib/erase-coverage.test.ts keeps it complete). */
-export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1', 'zigoals-xpub-v1'];
+export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1', 'zigoals-xpub-v1', ...AK_DATABASES];

@@ -96,7 +96,7 @@ test('computers: MetaMask links over EIP-6963 and Phantom over the Wallet Standa
   expect((await stored(page)).wallets.map((x: {kind: string}) => x.kind)).toEqual(['evm']);
 });
 
-test('phones: the Status & wallet sheet offers the wallets\' own browsers and says WalletConnect is not here yet', async ({page}) => {
+test('phones: the Status & wallet sheet offers the wallets\' own browsers and, with the owner\'s project ID (Session AK), WalletConnect for linking and for staking with Keplr Mobile', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await apis(page); await fakeWallets(page);
   await ready(page, '/app');
@@ -104,7 +104,10 @@ test('phones: the Status & wallet sheet offers the wallets\' own browsers and sa
   const host = new URL(page.url()).host;
   await expect(choices.getByRole('link', {name: 'Open ZIGoals in MetaMask', exact: true})).toHaveAttribute('href', `https://link.metamask.io/dapp/${host}/app`);
   await expect(choices.getByRole('link', {name: 'Open ZIGoals in Trust Wallet', exact: true})).toHaveAttribute('href', `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(`http://${host}/app`)}`);
-  await expect(choices).toContainText('WalletConnect (Trust, Ledger Wallet, Keplr Mobile without its own browser): available soon on phones.');
+  // Session AK (Part 1a, AFL9): the "available soon" line went with the owner's Reown project ID; both WalletConnect rows are here.
+  await expect(choices.getByRole('button', {name: /^Connect by WalletConnect/})).toBeVisible();
+  await expect(choices.getByRole('button', {name: /^Stake with Keplr Mobile/})).toBeVisible();
+  await expect(choices).not.toContainText('available soon on phones');
   await expect(choices).not.toContainText('Preview');
   await expect(sheet.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
   for (const control of await choices.locator('button, a').all()) { const box = (await control.boundingBox())!; expect(box.height).toBeGreaterThanOrEqual(44); }

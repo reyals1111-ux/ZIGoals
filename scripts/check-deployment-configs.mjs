@@ -203,22 +203,27 @@ export function validateDeploymentConfigs({ landing, alpha, root = repositoryRoo
     errors.push("alpha routes may target only alpha.zigoals.app");
   }
 
-  // Exactly the reviewed service bindings: the self-reference, and (Session S) the market coordinator's QuoteService
-  // entrypoint for live prices. Any other binding, service, entrypoint or field is refused.
+  // Exactly the reviewed service bindings: the self-reference, (Session S) the market coordinator's QuoteService
+  // entrypoint for live prices and (Session AK, ADR-036 Q5) the food Worker for barcode lookups and food search. Any
+  // other binding, service, entrypoint or field is refused.
   const alphaServices = Array.isArray(alpha?.services) ? alpha.services : [];
   const reviewedServices = [
     { binding: "WORKER_SELF_REFERENCE", service: "zigoals-alpha" },
     { binding: "MARKET_QUOTES", service: "zigoals-acctest-market-coordinator", entrypoint: "QuoteService" },
+    { binding: "FOOD_LOOKUP", service: "zigoals-acctest-food-lookup" },
   ];
   const sameService = (actual, reviewed) =>
     actual !== null && typeof actual === "object" && !Array.isArray(actual) &&
     Object.keys(actual).length === Object.keys(reviewed).length &&
     Object.entries(reviewed).every(([key, value]) => actual[key] === value);
-  if (!Array.isArray(alpha?.services) || alphaServices.length !== 2 || !sameService(alphaServices[0], reviewedServices[0])) {
+  if (!Array.isArray(alpha?.services) || alphaServices.length !== 3 || !sameService(alphaServices[0], reviewedServices[0])) {
     errors.push("Alpha WORKER_SELF_REFERENCE must target zigoals-alpha");
   }
-  if (!Array.isArray(alpha?.services) || alphaServices.length !== 2 || !sameService(alphaServices[1], reviewedServices[1])) {
+  if (!Array.isArray(alpha?.services) || alphaServices.length !== 3 || !sameService(alphaServices[1], reviewedServices[1])) {
     errors.push("Alpha MARKET_QUOTES must target zigoals-acctest-market-coordinator's QuoteService, and no other binding is allowed");
+  }
+  if (!Array.isArray(alpha?.services) || alphaServices.length !== 3 || !sameService(alphaServices[2], reviewedServices[2])) {
+    errors.push("Alpha FOOD_LOOKUP must target zigoals-acctest-food-lookup, and no other binding is allowed");
   }
   const alphaVars = alpha?.vars;
   if (
@@ -295,5 +300,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     process.exitCode = 1;
   } else {
     console.log("Deployment configs are isolated and internally consistent.");
+    // Session AK (A10): a service binding to a Worker that does not exist can fail the Alpha deploy, so say the order plainly.
+    console.log("Deploy order: FOOD_LOOKUP binds zigoals-acctest-food-lookup: deploy the food Worker first, then the Alpha (docs/run11/FOOD_WORKER_PUBLIC_ALPHA.md).");
   }
 }

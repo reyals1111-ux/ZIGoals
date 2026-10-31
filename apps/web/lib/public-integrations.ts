@@ -7,7 +7,10 @@ import configured from '../config/public-integrations.json';
  * - `reownProjectId`: WalletConnect's project ID (public by design: the protection is Reown's domain allowlist); null keeps
  *   the WalletConnect module unloaded and phones show "available soon" (H6, H38);
  * - `rampHostApiKey` + `rampHostAppName`: Ramp Network's hosted-mode key (public by design, sent in the page address);
- * - `banxaPartnerRef`: the subdomain Banxa assigns (`<ref>.banxa.com`).
+ * - `banxaPartnerRef`: the subdomain Banxa assigns (`<ref>.banxa.com`);
+ * - `pushDeviceEnabled` + `pushVapidPublicKey` (Session AK Part 2, ADR-036 Q3): the one switch that turns device
+ *   notifications on for this build, and the device push Worker's VAPID public key (public by design: the browser hands
+ *   it to the push service). Off and null until the owner activates push (docs/run11/PUSH_PUBLIC_ALPHA.md).
  * No secret ever goes here: the names say what is public, the values are never key-shaped, and
  * lib/public-integrations.test.ts runs the repository's secret scan on the file. An empty ID makes its provider link to
  * its plain consumer page with nothing pre-filled. Read at build time; a file that fails the schema stops the build.
@@ -19,8 +22,12 @@ export const publicIntegrationsSchema = z.object({
   rampHostApiKey: publicId.nullable(),
   rampHostAppName: z.string().regex(/^[A-Za-z0-9 ._-]{1,40}$/),
   banxaPartnerRef: z.string().regex(/^[a-z0-9-]{2,40}$/, 'A Banxa partner reference is the lower-case subdomain Banxa assigns.').nullable(),
-}).strict();
+  pushDeviceEnabled: z.boolean(),
+  pushVapidPublicKey: z.string().regex(/^[A-Za-z0-9_-]{87}$/, 'A VAPID public key is 87 base64url characters (an uncompressed P-256 point).').nullable(),
+}).strict().refine(c => !c.pushDeviceEnabled || c.pushVapidPublicKey !== null, 'Device notifications need the VAPID public key.');
 export type PublicIntegrations = z.infer<typeof publicIntegrationsSchema>;
 export const PUBLIC_INTEGRATIONS: PublicIntegrations = Object.freeze(publicIntegrationsSchema.parse(configured));
 /** WalletConnect is offered only with the owner's project ID (H6, H38). */
+/** Device notifications are offered only with the owner's switch on and the public key set (ADR-036 Q3). */
+export const pushDeviceConfigured = (config: PublicIntegrations = PUBLIC_INTEGRATIONS) => config.pushDeviceEnabled && config.pushVapidPublicKey !== null;
 export const walletConnectConfigured = (config: PublicIntegrations = PUBLIC_INTEGRATIONS) => config.reownProjectId !== null;

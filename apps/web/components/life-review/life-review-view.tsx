@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useMemo, useState} from 'react';
+import {Suspense, lazy, useMemo, useState} from 'react';
 import {lifeReview, reviewPeriod, type Period} from '../../lib/life-review/engine';
 import {LIFE_REVIEW, MAX_VALUES, VALUE_SUGGESTIONS, previousFocus, rateValue, setFocus, setPeriod, setValues} from '../../lib/life-review/store';
 import {yourDays} from '../../lib/life-review/your-days';
@@ -12,7 +12,6 @@ import {reviewState, reviewWindow, weekSummary} from '../../lib/weekly-review/en
 import {wealthMarketRequests, wealthOverview} from '../../lib/wealth';
 import {useMarketQuotes} from '../platform/use-market-quotes';
 import {formatMoney, formatSignedMoney} from '../../lib/visual-format';
-import {drawShareCard, shareOrSave} from '../../lib/share-image';
 import {isShown} from '../../lib/pages/visibility';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {FOCUS_SESSIONS} from '../../lib/focus-sessions/schema';
@@ -36,6 +35,11 @@ import {showToast} from '../ui/undo-toast';
 import {formatDay} from '../goals/format';
 import './life-review.css';
 import { unitFor } from '../../lib/plural';
+import {LoadBoundary} from '../load-boundary';
+// Session AK Part 8.1–8.5 (lane X): the unified review's glance row and ZIGi's notes, and the one share-card sheet, each
+// loaded after the review (or on the tap), never in the route's first JS.
+const ReviewNotes = lazy(() => import('../review-unified/review-notes'));
+const ReviewShare = lazy(() => import('../review-unified/review-share'));
 
 /**
  * The Life review (Session AA-Cloud Part 5, S2): a week or a month across Goals, Habits, Health and Wealth, beside the
@@ -72,15 +76,7 @@ export function LifeReviewView() {
       showToast({message: focusText.trim() ? 'Your focus is saved on this device.' : 'Focus cleared.', undo: () => record.update(s => setFocus(s, window.key, before, new Date().toISOString())), undone: 'Focus put back.'});
     } catch { showToast({message: 'Your focus could not be saved on this device.'}); }
   };
-  const share = async () => {
-    if (!review) return;
-    const lines = [...review.highlights.filter(l => !/[$€]|put in/.test(l)), ...review.wins.slice(0, 2)].slice(0, 5);
-    try {
-      const blob = await drawShareCard({eyebrow: `Life review · ${formatDay(window.start)} – ${formatDay(window.end)}`, title: period === 'week' ? 'My week' : 'My month', lines: lines.length ? lines : ['A quiet stretch, and that is fine.'], footer: 'Made on this device with ZIGoals'});
-      const how = await shareOrSave(blob, `life-review-${window.key.replace(':', '-')}.png`, period === 'week' ? 'My week' : 'My month');
-      showToast({message: how === 'shared' ? 'Shared.' : 'Image saved.'});
-    } catch { showToast({message: 'The image could not be made on this device.'}); }
-  };
+  const [sharing, setSharing] = useState(false);
   const financial = isShown(pages, 'wealth') || isShown(pages, 'goals');
 
   return <div className="life-review">
@@ -92,7 +88,7 @@ export function LifeReviewView() {
       <section className="panel life-review-hero life-review-cover" aria-labelledby="life-review-highlights">
         {/* Phase 2, Part 9 (owner request 35): the review as a small magazine — this cover, then one chapter per pillar. */}
         <p className="life-cover-kicker" aria-hidden="true">{period === 'week' ? 'Your week' : 'Your month'}, in {financial ? 'four' : 'three'} chapters.</p>
-        <SectionHeading id="life-review-highlights" eyebrow={`${formatDay(window.start)} – ${formatDay(window.end)}`} title="Highlights" action={<button type="button" className="secondary" onClick={() => void share()}>Share as an image</button>} />
+        <SectionHeading id="life-review-highlights" eyebrow={`${formatDay(window.start)} – ${formatDay(window.end)}`} title="Highlights" action={<button type="button" className="secondary" aria-expanded={sharing} onClick={() => setSharing(v => !v)}>Share as an image</button>} />
         {review.highlights.length ? <ul className="life-highlights">{review.highlights.map(h => <li key={h}>{h}</li>)}</ul> : <div className="aa-empty"><h3>A quiet {period}.</h3><p>Check in a habit, log a meal or water, or record a contribution, and your review fills from your own records.</p><Link className="primary" href="/app/habits">Open Habits</Link></div>}
         <dl className="life-counts">
           <div><dt>Habit check-ins</dt><dd>{review.counts.habitCheckIns}</dd></div>
@@ -101,7 +97,9 @@ export function LifeReviewView() {
           {/* Session AJ (item 34, D13): the period's focused minutes, from Focus Sessions (shown once there is one). */}
           {focus && focus.sessions > 0 && <div><dt>Minutes of focus</dt><dd>{focus.minutes}</dd></div>}
         </dl>
+        {sharing && <LoadBoundary quiet><Suspense fallback={null}><ReviewShare review={review} range={`${formatDay(window.start)} – ${formatDay(window.end)}`} onClose={() => setSharing(false)} /></Suspense></LoadBoundary>}
       </section>
+      <LoadBoundary quiet><Suspense fallback={null}><ReviewNotes review={review} period={period} financial={financial} habits={habits.error ? {...habits.data, habits: []} : habits.data} health={health.data} today={today} /></Suspense></LoadBoundary>
 
       <div className="life-review-grid life-chapters">
         <section className="panel life-wins" aria-labelledby="life-review-wins">

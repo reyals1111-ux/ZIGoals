@@ -9,12 +9,14 @@
  * - takes only contract files: `<code>-<state>.webp`, `-2x.webp`, `-large.webp`, `.anim.webp`, `.anim.png`, codes
  *   F001–F099, T001, E001, X0nn, R0nn; refuses everything else (reviews, large animations, videos, `.blend`, unknown names);
  * - verifies every file's SHA-256 against the receipt (an unlisted file is refused unless `--allow-unlisted`, and then
- *   printed loudly), its byte budget by role (1× 40 kB, 2× 100 kB, large 200 kB, animated 400 kB), its format from the
- *   bytes and its pixel size (96×126, 192×253, 480×632; animated 96×126), and that loops loop and one-shots play once;
+ *   printed loudly), its byte budget by role (1× 40 kB, 2× 100 kB, large 200 kB, animated 400 kB; the 2× animated WebP
+ *   2.6 MB, ADR-036 D6), its format from the bytes and its pixel size (96×126, 192×253, 480×632; an animated WebP
+ *   192×253 (the 2× set) or 96×126 (the app set), the APNG fallback 96×126), and that loops loop and one-shots play once;
  * - prints the diff against the repository (new, identical, changed, orphaned in the repo);
  * - with `--apply`, copies the files to `apps/web/public/brand/figures/zigi/<skin>/` byte for byte (never re-encoded) and
- *   fills the manifest's slots: the eleven states' own files, the extras (X001 greeting in place, X010/X011 idle
- *   variants, X020–X022 gaze, R001–R013 reactions) and, when the delivery ships a `reactions.json`
+ *   fills the manifest's slots: the twenty-five states' own files (Session AK Part 12 adds F010–F023), the extras (X001
+ *   greeting in place, X010–X012 idle variants, X020–X022 gaze, X030 the Checklist's cheer, X050–X054 the speaking/
+ *   listening/thinking/celebrate-small variants, R001–R013 reactions) and, when the delivery ships a `reactions.json`
  *   (`{"R001": "<semantic event>"}`), the reaction triggers. Without `--apply` nothing is written.
  * Exit 0 only when every file verified; 1 on any refusal, with each reason on its own line.
  */
@@ -23,14 +25,25 @@ import {existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSyn
 import {basename, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-export const BUDGETS = {'1x': 40_000, '2x': 100_000, large: 200_000, animated: 400_000};
-export const PIXELS = {'1x': [96, 126], '2x': [192, 253], large: [480, 632], animated: [96, 126]};
+export const BUDGETS = {'1x': 40_000, '2x': 100_000, large: 200_000, animated: 400_000, animated2x: 2_600_000};
+/** Session AK Part 12 (ADR-036 D6): Studio-4's animated WebP is the 2× set (192×253, ≤ 2.6 MB, loaded lazily one clip at a
+ * time); the 96×126 app size stays the fallback (an app-set WebP, and every APNG) at its 400 kB budget. */
+export const PIXELS = {'1x': [96, 126], '2x': [192, 253], large: [480, 632], animated: [192, 253], animatedFallback: [96, 126]};
+/** Session AK Part 12: the notification art slot public/sw.js reads (PUSH_ART there); Studio-4's push images replace these paths. */
+export const PUSH_ART = {icon: '/icons/zigoals-192.png', badge: '/icons/zigoals-badge-96.png'};
 export const NAME = /^(?<code>F0[0-9]{2}|T001|E001|X0\d\d|R0\d\d)-(?<state>[a-z]+(?:-[a-z0-9]+)*?)(?<suffix>-2x|-large)?\.webp$|^(?<acode>F0[0-9]{2}|T001|E001|X0\d\d|R0\d\d)-(?<astate>[a-z]+(?:-[a-z0-9]+)*)\.anim\.(?<aext>webp|png)$/;
 /** The app's states by code (manifest.json keys), so a delivered state file lands in the right slot. */
-const STATE_BY_CODE = {F001: 'idle', F002: 'greeting', F003: 'insight', F004: 'listening', F005: 'speaking', F006: 'presenting', F007: 'attention', F008: 'sleepy', F009: 'celebrate', T001: 'thinking', E001: 'error'};
-const EXTRA_SLOT = {X001: ['transitions', 'greetingInPlace'], X010: ['idleVariants', 'X010'], X011: ['idleVariants', 'X011'], X020: ['gaze', 'chatInput'], X021: ['gaze', 'viewer'], X022: ['gaze', 'target']};
+export const STATE_BY_CODE = {F001: 'idle', F002: 'greeting', F003: 'insight', F004: 'listening', F005: 'speaking', F006: 'presenting', F007: 'attention', F008: 'sleepy', F009: 'celebrate', T001: 'thinking', E001: 'error',
+  // Session AK Part 12: the fourteen states that wear a delivered clip today get their own.
+  F010: 'reading-your-data', F011: 'writing-proposal', F012: 'success', F013: 'proud', F014: 'curious', F015: 'surprised', F016: 'confused', F017: 'empathetic', F018: 'encouraging', F019: 'wave-goodbye', F020: 'reminder', F021: 'offline', F022: 'peek', F023: 'loading-model'};
+export const EXTRA_SLOT = {X001: ['transitions', 'greetingInPlace'], X010: ['idleVariants', 'X010'], X011: ['idleVariants', 'X011'], X020: ['gaze', 'chatInput'], X021: ['gaze', 'viewer'], X022: ['gaze', 'target'],
+  // Session AK Part 12: a third idle variant, the Checklist's cheer, the variant pools.
+  X012: ['idleVariants', 'X012'], X030: ['celebrations', 'cheer'], X050: ['variants', 'X050'], X051: ['variants', 'X051'], X052: ['variants', 'X052'], X053: ['variants', 'X053'], X054: ['variants', 'X054']};
 /** Loop modes the studio's contract fixes per code (loops loop, one-shots play once); extras by their documented kind. */
-const LOOPS = new Set(['F001', 'F004', 'F005', 'F007', 'F008', 'T001', 'X010', 'X011', 'X020', 'X021', 'X022']);
+export const LOOPS = new Set(['F001', 'F004', 'F005', 'F007', 'F008', 'T001', 'X010', 'X011', 'X020', 'X021', 'X022',
+  'F010', 'F011', 'F021', 'F022', 'F023', 'R003', 'R010', 'R011', 'X012', 'X050', 'X051', 'X052', 'X053']);
+/** The Studio-4 extras a manifest starts with when it has none (every slot empty). */
+const emptyExtras = () => ({reactions: {}, idleVariants: {}, transitions: {greetingInPlace: null, chain: []}, gaze: {chatInput: null, viewer: null, target: null}, celebrations: {cheer: null}, variants: {}});
 
 export function parseName(name) {
   const m = NAME.exec(name); if (!m) return null;
@@ -86,12 +99,15 @@ export function checkFile(name, bytes, receipt, {allowUnlisted = false} = {}) {
     if (listed.sha !== sha256(bytes)) problems.push(`${name}: SHA-256 differs from the receipt`);
     if (listed.bytes !== null && listed.bytes !== bytes.length) problems.push(`${name}: ${bytes.length} bytes, the receipt says ${listed.bytes}`);
   }
-  if (bytes.length > BUDGETS[parsed.role]) problems.push(`${name}: ${bytes.length} bytes is over the ${parsed.role} budget of ${BUDGETS[parsed.role]}`);
   const header = parsed.ext === 'png' ? pngHeader(bytes) : webpHeader(bytes);
+  // An animated WebP may be the 2× set (192×253) or the app set (96×126); an APNG is the 96×126 fallback only.
+  const sizes = parsed.role !== 'animated' ? [PIXELS[parsed.role]] : parsed.key === 'animated' ? [PIXELS.animated, PIXELS.animatedFallback] : [PIXELS.animatedFallback];
+  const twoX = parsed.key === 'animated' && !!header && header.width === PIXELS.animated[0] && header.height === PIXELS.animated[1];
+  const budget = twoX ? BUDGETS.animated2x : BUDGETS[parsed.role], budgetName = twoX ? '2× animated' : parsed.role;
+  if (bytes.length > budget) problems.push(`${name}: ${bytes.length} bytes is over the ${budgetName} budget of ${budget}`);
   if (!header) problems.push(`${name}: not a ${parsed.ext === 'png' ? 'PNG' : 'WebP'} file by its bytes`);
   else {
-    const [w, h] = PIXELS[parsed.role];
-    if (header.width !== w || header.height !== h) problems.push(`${name}: ${header.width}×${header.height}, expected ${w}×${h}`);
+    if (!sizes.some(([w, h]) => header.width === w && header.height === h)) problems.push(`${name}: ${header.width}×${header.height}, expected ${sizes.map(([w, h]) => `${w}×${h}`).join(' or ')}`);
     if (header.animated !== (parsed.role === 'animated')) problems.push(`${name}: ${header.animated ? 'animated where a still was expected' : 'a still where an animation was expected'}`);
     if (parsed.role === 'animated' && header.loops !== null) { const loop = LOOPS.has(parsed.code); if (header.loops !== (loop ? 0 : 1)) problems.push(`${name}: loop count ${header.loops}, expected ${loop ? '0 (a loop)' : '1 (plays once)'}`); }
   }
@@ -110,7 +126,7 @@ export function slotFor(parsed) {
 export function fillManifest(manifest, skinName, entries, publicPrefix, reactions = {}) {
   const next = JSON.parse(JSON.stringify(manifest)), skin = next.skins[skinName];
   if (!skin) throw new Error(`The manifest has no skin "${skinName}"`);
-  skin.extras ??= {reactions: {}, idleVariants: {}, transitions: {greetingInPlace: null, chain: []}, gaze: {chatInput: null, viewer: null, target: null}};
+  skin.extras ??= emptyExtras();
   const clip = (holder, code, state) => holder ?? {name: `${code}-${state}`, files: {}, kind: LOOPS.has(code) ? 'loop' : 'one-shot', durationMs: 0};
   for (const {name, parsed} of entries) {
     const file = `${publicPrefix}${name}`, slot = slotFor(parsed);
@@ -118,7 +134,8 @@ export function fillManifest(manifest, skinName, entries, publicPrefix, reaction
       const own = skin.states[slot.state] ?? {}; delete own.wears; own[slot.key] = file; skin.states[slot.state] = own;
       if (slot.state === 'idle' && (slot.key === '1x' || slot.key === '2x' || slot.key === 'large')) skin.sizes[slot.key] = {...skin.sizes[slot.key], file};
     } else if (slot.kind === 'extra') {
-      const [group, key] = slot.path, c = clip(skin.extras[group][key], parsed.code, parsed.state); c.files[slot.key] = file; skin.extras[group][key] = c;
+      const [group, key] = slot.path; skin.extras[group] ??= {};
+      const c = clip(skin.extras[group][key], parsed.code, parsed.state); c.files[slot.key] = file; skin.extras[group][key] = c;
     } else if (slot.kind === 'reaction') {
       const c = clip(skin.extras.reactions[slot.code], parsed.code, parsed.state); c.files[slot.key] = file; skin.extras.reactions[slot.code] = c;
       next.reactionTriggers ??= {}; if (reactions[slot.code] && !next.reactionTriggers[slot.code]) next.reactionTriggers[slot.code] = reactions[slot.code];

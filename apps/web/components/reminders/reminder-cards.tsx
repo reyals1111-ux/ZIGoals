@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {startSoundscape} from '../music/soundscape-start';
 import {Suspense, lazy, useEffect, useState} from 'react';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {ZIGI_REMINDERS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
@@ -99,6 +100,8 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
       <p>Your wind-down time. When you go to bed, tap “I’m going to bed” in Sleep.</p>
       <div className="reminder-card-actions">
         <Link className="secondary" href={windDown.href}>Open Sleep</Link>
+        {/* Session AK (MUSIC): rain and a soft pad for 30 minutes, made on this device; started inside the tap. */}
+        <button type="button" className="secondary" onClick={() => { void startSoundscape('wind-down'); }}>Play wind-down sounds</button>
         <button type="button" className="quiet" onClick={() => { try { wReminders.update(r => dismissWindDown(r, windDown.day)); setError(''); } catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); } }}>Not tonight</button>
       </div>
     </article>}

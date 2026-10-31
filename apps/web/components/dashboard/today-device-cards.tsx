@@ -1,5 +1,5 @@
 'use client';
-import type {ReactNode} from 'react';
+import {Suspense, lazy, type ReactNode} from 'react';
 import type {GoalSummary} from '../../lib/goal-summary';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
@@ -11,12 +11,16 @@ import {LifeBalanceCard} from '../goals/life-balance-card';
 import {PaceForecastsCard} from '../goals/pace-forecasts-card';
 import {LifeReviewTeaser} from '../life-review/life-review-teaser';
 import {PhoneFold} from '../phone/phone-fold';
+import {LoadBoundary} from '../load-boundary';
+// Session AK Part 8.2 (lane X): the Daily orbit card loads on its own, only when the person keeps it on Today.
+const OrbitCard = lazy(() => import('../orbit-card/orbit-card'));
 
 export const TODAY_CARD_LABELS: Record<TodayCardId, {label: string; description: string}> = {
   balance: {label: 'Life balance', description: 'How each life area moved this month'},
   forecasts: {label: 'Pace forecasts', description: 'Estimated dates from each goal’s own pace'},
   calculator: {label: 'Compound interest calculator', description: 'A door to the calculator'},
   review: {label: 'Life review', description: 'Your week at a glance, here instead of in Updates'},
+  orbit: {label: 'Daily orbit', description: 'Today across your pillars and what is next, with a door to the Checklist'},
 };
 
 /**
@@ -34,6 +38,7 @@ export default function TodayDeviceCards({shown, customize, onToggle, platform, 
       case 'forecasts': return <PaceForecastsCard platform={platform} quotes={quotes} now={now} today={today} />;
       case 'calculator': return <CalculatorCard compact />;
       case 'review': return <LifeReviewTeaser habits={habits} health={health} platform={platform} goals={goals} today={today} />;
+      case 'orbit': return <LoadBoundary quiet><Suspense fallback={null}><OrbitCard /></Suspense></LoadBoundary>;
     }
   };
   return <section className="today-device-cards" aria-label="Cards kept on this device">
