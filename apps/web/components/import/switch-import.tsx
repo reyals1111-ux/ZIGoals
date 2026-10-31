@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
 import {useHealth} from '../health/use-health';
 import {useHabits} from '../habits/use-habits';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -36,6 +36,8 @@ type Stage =
 // The preview, apply and undo code (and the export parsers behind it) loads with the reader or with "Undo this import",
 // not with Settings (Session X Part 5); a module loads once, so later imports reuse it.
 type Review = typeof import('./switch-import-review');
+// Session AK (A15): Daylio, Habitica and YNAB, loaded when their fold opens.
+const SwitchImportMore = lazy(() => import('./switch-import-more'));
 const loadReview = () => import('./switch-import-review');
 
 export function SwitchImport() {
@@ -111,12 +113,20 @@ export function SwitchImport() {
     {error && <p role="alert">{error}</p>}
     {health.error && <p className="notice">{health.error}</p>}
     <RecentImports batches={batches.data.batches} unreadable={batches.unreadable} health={health} habits={habits} onChange={change => batches.update(change)} />
+    <MoreApps />
     <details className="switch-formats"><summary>Which apps, and how to export from each</summary>
       <ul>{FORMATS.map(f => <li key={f.id}><strong>{f.label}</strong>{f.state === 'off' ? <span className="switch-off"> · not read yet</span> : f.state === 'meals' ? <span> · in Health → Diary → Import a nutrition CSV</span> : null}
         <p>{f.steps}</p><p className="fine">{f.state === 'off' ? f.offReason : `Reads: ${f.reads}`} {f.basis}</p></li>)}</ul>
+      <p className="fine">Daylio (moods and notes), Habitica (habits and dailies) and YNAB (spending and income) are under “From Daylio, Habitica or YNAB”. Strong and Hevy workouts are in Health → Workouts → “Import a GPX or TCX file, a FIT file, or another app’s export”.</p>
       <p className="fine">ZIGoals reads only what each app documents about its export. Garmin and Streaks are not read; Fitbit&apos;s old connection has ended, so Fitbit is no longer imported.</p>
     </details>
   </section>;
+}
+
+function MoreApps() {
+  const [open, setOpen] = useState(false);
+  return <details className="switch-more-fold" onToggle={e => setOpen(e.currentTarget.open)}><summary>From Daylio, Habitica or YNAB</summary>
+    {open && <Suspense fallback={<p className="fine">Opening…</p>}><SwitchImportMore /></Suspense>}</details>;
 }
 
 function ChooseStep({onFiles, disabled}: {onFiles: (files: FileList | null) => void; disabled: boolean}) {
