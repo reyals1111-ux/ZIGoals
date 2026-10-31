@@ -8511,6 +8511,22 @@
         border-color: color-mix(in srgb,#ff8a8a 45%,var(--line,#2a325a))
     }
 }
+/*  components/habits/recurrence-phrase.css  */
+@scope (:root[data-theme=dark]) {
+    .recurrence-phrase-filler:not(#\-) {
+        color: var(--muted)
+    }
+    .recurrence-phrase-unknown:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-behind) 22%, transparent);
+        color: inherit
+    }
+    .recurrence-phrase-chips li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-ahead) 12%, transparent)
+    }
+}
 /*  components/habits/reorder.css  */
 @scope (:root[data-theme=dark]) {
     .habit-reorder-hint:not(#\-) {
@@ -8763,6 +8779,15 @@
     }
     .meditation-heart span:not(#\-) {
         color: #c45bb0
+    }
+}
+/*  components/health/diet-templates.css  */
+@scope (:root[data-theme=dark]) {
+    .diet-templates-choice:not(#\-) {
+        border-color: currentcolor
+    }
+    .diet-templates-option:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/health/exercise-counters.css  */
@@ -9558,6 +9583,18 @@
         color: var(--text-secondary, #c9d6ea)
     }
 }
+/*  components/health/label-scan.css  */
+@scope (:root[data-theme=dark]) {
+    .label-scan:not(#\-) {
+        border-color: var(--line)
+    }
+    .label-scan-done:not(#\-) {
+        border-inline-start-color: var(--health-on-track)
+    }
+    .label-scan-problem:not(#\-) {
+        border-inline-start-color: var(--health-behind)
+    }
+}
 /*  components/health/meditation/meditation.css  */
 @scope (:root[data-theme=dark]) {
     .meditation-segment:not(#\-), .meditation-moods:not(#\-) {
@@ -9636,6 +9673,29 @@
     @media (forced-colors: active) {
         .meditation-segment > label input:checked + span:not(#\-), .meditation-chip[aria-pressed="true"]:not(#\-) {
             outline-color: currentcolor
+        }
+    }
+}
+/*  components/health/nutri-score.css  */
+@scope (:root[data-theme=dark]) {
+    .nutri-score-letter:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-on-track) 18%, transparent)
+    }
+    .nutri-score[data-grade="a"] .nutri-score-letter:not(#\-), .nutri-score[data-grade="b"] .nutri-score-letter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-ahead) 30%, transparent)
+    }
+    .nutri-score[data-grade="d"] .nutri-score-letter:not(#\-), .nutri-score[data-grade="e"] .nutri-score-letter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-behind) 30%, transparent)
+    }
+    @media (forced-colors: active) {
+        .nutri-score-letter:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            border-color: CanvasText
         }
     }
 }
@@ -9786,6 +9846,52 @@
     }
     .sleep-wind-down-sounds:not(#\-) {
         border-top-color: var(--line, #7fc8ff1a)
+    }
+}
+/*  components/health/workouts/muscle-freshness.css  */
+@scope (:root[data-theme=dark]) {
+    .muscle-freshness-body .mf-head:not(#\-) {
+        fill: none;
+        stroke: var(--muted)
+    }
+    .muscle-freshness-body .mf-region:not(#\-) {
+        stroke: var(--muted)
+    }
+    .muscle-freshness-body .mf-fresh:not(#\-) {
+        fill: color-mix(in srgb, var(--health-ahead) 75%, transparent)
+    }
+    .muscle-freshness-body .mf-recovering:not(#\-) {
+        fill: color-mix(in srgb, var(--health-on-track) 45%, transparent)
+    }
+    .muscle-freshness-body .mf-tired:not(#\-) {
+        fill: color-mix(in srgb, var(--health-behind) 70%, transparent)
+    }
+    .muscle-freshness-body .mf-unknown:not(#\-) {
+        fill: transparent
+    }
+    .muscle-freshness-body .mf-leader:not(#\-) {
+        stroke: var(--muted)
+    }
+    .muscle-freshness-body text:not(#\-) {
+        fill: var(--text)
+    }
+    .muscle-freshness-body .mf-view:not(#\-) {
+        fill: var(--muted)
+    }
+    @media (forced-colors: active) {
+        .muscle-freshness-body .mf-region:not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .muscle-freshness-body .mf-fresh:not(#\-), .muscle-freshness-body .mf-recovering:not(#\-), .muscle-freshness-body .mf-tired:not(#\-) {
+            fill: Canvas
+        }
+    }
+    @media (forced-colors: active) {
+        .muscle-freshness-body text:not(#\-) {
+            fill: CanvasText
+        }
     }
 }
 /*  components/health/workouts/workouts.css  */
@@ -11231,6 +11337,26 @@
     }
     .onboarding-pillars small:not(#\-) {
         color: var(--text-secondary, #c9d6ea)
+    }
+}
+/*  components/orbit-card/orbit-card.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .orbit-card-count:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    :scope .orbit-card-next li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+    :scope .orbit-card-next a:not(#\-) {
+        color: var(--text)
+    }
+    :scope .orbit-card-next a:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    :scope .orbit-card-next small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/orbit-path/flow-line.css  */
@@ -14281,6 +14407,37 @@
         background-color: #8ab9ff07
     }
 }
+/*  components/review-unified/review-unified.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .review-glance a:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel));
+        color: var(--text)
+    }
+    :scope .review-glance a:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    :scope .review-glance span.review-glance-line:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    :scope .review-note:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+}
+/*  components/rewards-shelf/rewards-shelf.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .rewards-list > li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+    :scope .rewards-list small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
 /*  components/search/search.css  */
 @scope (:root[data-theme=dark]) {
     :scope .search-palette:not(#\-) {
@@ -14472,6 +14629,26 @@
         border-color: #e886ff59;
         background-image: none;
         background-color: #04020fd9
+    }
+}
+/*  components/share-cards/share-cards.css  */
+@scope (:root[data-theme=dark]) {
+    .share-sheet-preview:not(#\-) {
+        background-image: linear-gradient(135deg, var(--bg), var(--surface-2, var(--panel)));
+        background-color: transparent;
+        border-color: var(--line)
+    }
+    .share-sheet-eyebrow:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .share-sheet-title:not(#\-) {
+        color: var(--text)
+    }
+    .share-sheet-line:not(#\-) {
+        color: var(--text)
+    }
+    .share-sheet-footer:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/share/share.css  */
@@ -15587,6 +15764,87 @@
         background-color: var(--amber,#f5b65b)
     }
 }
+/*  components/wealth/money-tools/money-tools.css  */
+@scope (:root[data-theme=dark]) {
+    .money-tools:not(#\-) {
+        border-top-color: var(--line,rgba(140,160,220,.18))
+    }
+    .money-buffer:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .money-review-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--amber,#f5b65b)
+    }
+    .money-list li:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .money-fieldset:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .money-table th:not(#\-), .money-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .emergency-refusal:not(#\-) {
+        border-color: var(--amber,#f5b65b)
+    }
+    @media print {
+        :scope.emergency-printing body:not(#\-) {
+            background-image: none !important;
+            background-color: #fff !important
+        }
+    }
+    @media print {
+        :scope.emergency-printing .emergency-print-root:not(#\-) {
+            color: #000;
+            background-image: none;
+            background-color: #fff
+        }
+    }
+    @media print {
+        .emergency-print-root th:not(#\-), .emergency-print-root td:not(#\-) {
+            border-color: #000
+        }
+    }
+    .money-chart-axis:not(#\-) {
+        stroke: var(--line,rgba(140,160,220,.35))
+    }
+    .money-chart-a:not(#\-) {
+        fill: none;
+        stroke: var(--cyan,#6fd3ff)
+    }
+    .money-chart-b:not(#\-) {
+        fill: none;
+        stroke: var(--amber,#f5b65b)
+    }
+    .money-chart-band:not(#\-) {
+        fill: color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent);
+        stroke: none
+    }
+    .money-chart-mid:not(#\-) {
+        fill: none;
+        stroke: var(--cyan,#6fd3ff)
+    }
+    .money-chart-target:not(#\-) {
+        stroke: var(--amber,#f5b65b)
+    }
+    .money-chart text:not(#\-) {
+        fill: currentColor
+    }
+    .money-key:not(#\-) {
+        border-top-color: var(--cyan,#6fd3ff)
+    }
+    .money-key-b:not(#\-), .money-key-target:not(#\-) {
+        border-top-color: var(--amber,#f5b65b)
+    }
+    .money-key-band:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent)
+    }
+}
 /*  components/wealth/spending/spending.css  */
 @scope (:root[data-theme=dark]) {
     .spending-room:not(#\-) {
@@ -15632,6 +15890,10 @@
     .spending-bar span:not(#\-) {
         background-image: linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
         background-color: transparent
+    }
+    .spending-review-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--amber,#f5b65b)
     }
 }
 /*  components/wealth/wealth-history-chart.css  */

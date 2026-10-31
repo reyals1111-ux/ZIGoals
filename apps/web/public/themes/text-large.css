@@ -1503,6 +1503,9 @@
 :where(:root[data-text=large]) .sleep-wind-down input:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .sleep-nights > li > div:first-child span:not(#\-) { font-size: calc(.9375rem * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .sleep-stats dd:not(#\-) { font-size: calc(18px * 1.125); } }
+/*  components/health/workouts/muscle-freshness.css  */
+:where(:root[data-text=large]) .muscle-freshness-body text:not(#\-) { font-size: calc(10px * 1.125); }
+:where(:root[data-text=large]) .muscle-freshness-body .mf-view:not(#\-) { font-size: calc(10px * 1.125); }
 /*  components/health/workouts/workouts.css  */
 :where(:root[data-text=large]) .workouts-routines span:not(#\-), :where(:root[data-text=large]) .workouts-past summary span:not(#\-), :where(:root[data-text=large]) .workouts-picker-list span:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .workouts-elapsed strong:not(#\-) { font-size: calc(1.6rem * 1.125); }
@@ -1732,6 +1735,11 @@
 :where(:root[data-text=large]) .onboarding-undo p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .onboarding-pillars strong:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .onboarding-pillars small:not(#\-) { font-size: calc(14px * 1.125); }
+/*  components/orbit-card/orbit-card.css  */
+:root:where([data-text=large]) .orbit-card h2:not(#\-) { font-size: calc(20px * 1.125); }
+:root:where([data-text=large]) .orbit-card-count:not(#\-) { font-size: calc(15px * 1.125); }
+:root:where([data-text=large]) .orbit-card-next li:not(#\-) { font-size: calc(15px * 1.125); }
+:root:where([data-text=large]) .orbit-card-next small:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/page-actions.css  */
 :where(:root[data-text=large]) .page-minor-actions .page-ask-zigi:not(#\-), :where(:root[data-text=large]) .page-minor-actions .page-backup-link:not(#\-) { font-size: calc(15px * 1.125); }
 @media (max-width: 600px) { :where(:root[data-text=large]) .page-minor-actions .page-ask-zigi:not(#\-), :where(:root[data-text=large]) .page-minor-actions .page-backup-link:not(#\-) { font-size: calc(14px * 1.125); } }
@@ -2385,6 +2393,17 @@
 :root:where([data-text=large]) .rb-problem:not(#\-) { font-size: calc(14px * 1.125); }
 :root:where([data-text=large]) .rb-group legend:not(#\-) { font-size: calc(14px * 1.125); }
 :root:where([data-text=large]) .rb-what strong:not(#\-) { font-size: calc(16px * 1.125); }
+/*  components/review-unified/review-unified.css  */
+:root:where([data-text=large]) .review-glance strong:not(#\-) { font-size: calc(15px * 1.125); }
+:root:where([data-text=large]) .review-glance span.review-glance-line:not(#\-) { font-size: calc(14px * 1.125); }
+:root:where([data-text=large]) .review-note h4:not(#\-) { font-size: calc(16px * 1.125); }
+:root:where([data-text=large]) .review-note ul:not(#\-) { font-size: calc(15px * 1.125); }
+/*  components/rewards-shelf/rewards-shelf.css  */
+:root:where([data-text=large]) .rewards-points:not(#\-) { font-size: calc(16px * 1.125); }
+:root:where([data-text=large]) .rewards-points strong:not(#\-) { font-size: calc(22px * 1.125); }
+:root:where([data-text=large]) .rewards-list small:not(#\-) { font-size: calc(14px * 1.125); }
+:root:where([data-text=large]) .rewards-add .field:not(#\-) { font-size: calc(15px * 1.125); }
+:root:where([data-text=large]) .rewards-add input:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/search/search.css  */
 :root:where([data-text=large]) .search-field input:not(#\-) { font-size: calc(17px * 1.125); }
 :root:where([data-text=large]) .search-group-label:not(#\-) { font-size: calc(14px * 1.125); }
@@ -2417,6 +2436,12 @@
 :where(:root[data-text=large]) .pages-preview-sidebar li:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .pages-preview-tabs li:not(#\-) { font-size: calc(.875rem * 1.125); }
 :where(:root[data-text=large]) .pages-preview-more:not(#\-) { font-size: calc(.875rem * 1.125); }
+/*  components/share-cards/share-cards.css  */
+:where(:root[data-text=large]) .share-sheet-eyebrow:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .share-sheet-title:not(#\-) { font-size: calc(22px * 1.125); }
+:where(:root[data-text=large]) .share-sheet-line:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .share-sheet-footer:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .share-sheet-side label:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/share/share.css  */
 :root:where([data-text=large]) .share-card strong:not(#\-) { font-size: calc(18px * 1.125); }
 :root:where([data-text=large]) .share-card p:not(#\-) { font-size: calc(16px * 1.125); }
@@ -2611,6 +2636,15 @@
 :where(:root[data-text=large]) .budgets-month-nav button:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .budgets-total strong:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .budgets-table thead th:not(#\-) { font-size: calc(13px * 1.125); }
+/*  components/wealth/money-tools/money-tools.css  */
+:where(:root[data-text=large]) .money-tools h3:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .money-buffer-days:not(#\-) { font-size: calc(28px * 1.125); }
+:where(:root[data-text=large]) .money-buffer-days span:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .money-panel h4:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .money-panel h5:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .money-fieldset legend:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .money-table:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .money-chart text:not(#\-) { font-size: calc(11px * 1.125); }
 /*  components/wealth/spending/spending.css  */
 :where(:root[data-text=large]) .spending-room-text strong:not(#\-) { font-size: calc(24px * 1.125); }
 :where(:root[data-text=large]) .spending-cats legend:not(#\-) { font-size: calc(14px * 1.125); }
