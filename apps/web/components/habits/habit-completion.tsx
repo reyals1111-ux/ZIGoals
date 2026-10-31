@@ -14,6 +14,7 @@ import {formatNumber} from "../../lib/visual-format";
 import {unitFor} from "../../lib/plural";
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabitHealthLinks} from "./use-habit-health-links";
+import {useAutoRulesContext} from "./auto-rules-context";
 import {zigiSignals} from '../zigi/bus';
 import {plainErrorMessage} from "../../lib/plain-error";
 
@@ -33,6 +34,8 @@ function afterPaint(run: () => void) {
 export function HabitCompletion({part='both',  habit, store, compact = false }: {/** Session AB-Design (owner request 20): the card shows the counter first and keeps the form behind its expander. */ part?: 'both' | 'controls' | 'quick-log';  habit: Habit; store: HabitCardStore; compact?: boolean }) {
   // H7: this device's automatic check-in for today, if any (lib/habit-health-links); read once per card, written only by Undo.
   const links = useHabitHealthLinks(); const marker = links.loaded ? appliedCheckIn(links.data, habit.id, store.today) : undefined;
+  // Session AK (5.6): a tick an auto-complete rule made today, with its Undo (Habits page only; null elsewhere).
+  const autoRules = useAutoRulesContext();
   // Paint first, then save (Session I, Part 9): a tap shows its result on the next frame, and the save runs after that
   // frame. If the save fails, the card returns to what is saved and says why (Part 5's coded message), so a check-in is
   // never left showing as saved when it was not.
@@ -112,6 +115,7 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
     </div>}
     {!compact && part !== 'controls' && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary aria-label={`${habit.title}: set or add a value`}>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div><p className="fine">Set value replaces today’s total; Add value adds to it.</p></form></details>}
     {part !== 'quick-log' && <AutoCheckInBadge habitId={habit.id} marker={marker} link={links.data.links[habit.id]} />}
+    {part !== 'quick-log' && autoRules?.badge(habit.id, habit.title)}
     {error && <p className="habit-inline-error" role="alert">{error}</p>}
   </div>;
 }

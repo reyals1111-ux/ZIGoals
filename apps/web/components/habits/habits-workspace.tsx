@@ -65,6 +65,8 @@ import { HabitExtrasContext } from "./habit-extras-context";
 import { HabitSections } from "./habit-sections";
 import { groupByTimeOfDay } from "../../lib/habits-extras/sections";
 import { habitArea } from "../../lib/habits-extras/store";
+import { habitListModeOf, orderedHabits, withHabitListMode, withHabitOrder } from "../../lib/habits-order/extras";
+import { AutoRulesContext, type AutoRulesApi } from "./auto-rules-context";
 import "./habits-aa.css";
 import { ProgressSlot } from "../game/slot-local";
 import {Skeleton} from '../ui/skeleton';
@@ -91,6 +93,15 @@ function sortHabits(list: Habit[], sort: HabitSort, today: string): Habit[] {
   return [...list].sort((a, b) => by[sort](a, b) || a.title.localeCompare(b.title, "en", { sensitivity: "base" }));
 }
 const HabitIdeas = lazy(() => import("./habit-ideas").then((m) => ({ default: m.HabitIdeas })));
+// Session AK (5.6, 5.7): the auto-complete rules (their runner and their editor), the reorder list and the compact list,
+// each its own chunk after the page (scripts/weight-budgets.json is never raised); the order and the list mode are read
+// here from the habit extras (lib/habits-order/extras.ts, small).
+const AutoRulesKeeper = lazy(() => import("./auto-rules-keeper"));
+const AutoRulesEditor = lazy(() => import("./auto-rules-editor"));
+const HabitReorderList = lazy(() => import("./reorder-list"));
+const HabitCompactView = lazy(() => import("./habit-compact-view"));
+// The Cards / Compact switch: fetched with the page (withPage, above), beside the Reorder button that holds the row's height.
+const HabitListModeSwitch = withPage(() => import("./reorder-compact-list").then((m) => m.HabitListModeSwitch));
 
 /** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
 function useStackSuggestions(data: HabitData, today: string) {
@@ -144,6 +155,10 @@ export function HabitsWorkspace() {
   const [area, setArea] = useState<string>("all");
   const [routine, setRoutine] = useState<string | null>(null);
   const [yearOpen, setYearOpen] = useState(false);
+  // Session AK (5.6): the rules runner hands its state here once it runs; (5.7) the reorder mode.
+  const [autoRules, setAutoRules] = useState<AutoRulesApi | null>(null), [rulesOpen, setRulesOpen] = useState(false), [reordering, setReordering] = useState(false);
+  const healthApplied = useMemo(() => links.data.applied, [links.data.applied]);
+  const healthLinkedIds = useMemo(() => Object.keys(links.data.links), [links.data.links]);
   useEffect(() => {
     const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
     follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow);
@@ -196,7 +211,12 @@ export function HabitsWorkspace() {
   // Session AH (TR6): the shared count — a skipped (rest) day is not due.
   const due = store.data.habits.filter((habit) => { const day = habitDay(habit, store.today, store.today); return day.scheduled && day.status !== "skipped"; });
   const completed = due.filter((habit) => habitDay(habit, store.today, store.today).status === "complete");
-  const visible = store.data.habits.filter((habit) => {
+  // Session AK (5.7): "Your order" is the order the person set (habit extras `order`); habits added since follow it.
+  const yours = useMemo(() => extras.loaded ? orderedHabits(store.data.habits, extras.data) : store.data.habits, [extras.loaded, extras.data, store.data.habits]);
+  const listMode = extras.loaded && !extras.unreadable ? habitListModeOf(extras.data) : "cards";
+  const saveExtras = (change: Parameters<typeof extras.update>[0]) => { if (!extras.loaded || extras.unreadable) throw Error("Your habit settings on this device could not be read, so nothing was changed."); extras.update(change); };
+  const reorderable = yours.filter((habit) => habitRuleOn(habit, store.today)?.state !== "archived");
+  const visible = yours.filter((habit) => {
     const day = habitDay(habit, store.today, store.today); const archived = habitRuleOn(habit,store.today)?.state === "archived";
     if (filter === "Archived") return archived;
     if (archived) return false;
@@ -241,7 +261,8 @@ export function HabitsWorkspace() {
             const linkFields = (link: typeof healthLink) => JSON.stringify(link ? { ...link, updatedAt: undefined } : null);
             if (healthLink !== undefined && !links.unreadable && linkFields(links.data.links[id] ?? null) !== linkFields(healthLink)) { try { await links.update(current => setHabitHealthLink(current, id, healthLink, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch (error) { saved += ` The Health link was not saved on this device. ${deviceSettingFailureMessage(error)}`; } }
             setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
-  return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><LayoutPage page="habits"><div className="habits-workspace">
+  return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><AutoRulesContext.Provider value={autoRules}><LayoutPage page="habits"><div className="habits-workspace">
+    {store.loaded && !store.error && <LoadBoundary quiet><Suspense fallback={null}><AutoRulesKeeper store={store} health={health} healthApplied={healthApplied} healthLinkedIds={healthLinkedIds} goals={platform.data.goals} events={platform.data.contributions} goalsReady={platform.loaded && !platform.error} onApi={setAutoRules}/></Suspense></LoadBoundary>}
     {routine && <RoutineSheet onClose={() => setRoutine(null)}><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></RoutineSheet>}
     {/* Session AB-Design Phase 2 (ADR-024 P5): the shared pillar header, cut from this page's own. Habit ideas opens from the new-habit editor as "Start from an idea"; Vacation is a small button beside the lock (PageTools). */}
     <PillarHero pillar="habits" titleId="habits-title" className="habit-hero" actionsClass="habit-hero-actions" eyebrow="Small steps. Your own rhythm." title="Find your daily cadence." lede="Make room for what matters. Every small return adds to the pattern." about="habits"
@@ -266,10 +287,18 @@ export function HabitsWorkspace() {
           {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => { setFilter(item); setShown(PAGE); }}>{item}</button>)}<label className="habit-sort"><span>Sort</span><select aria-label="Sort habits" value={sort} onChange={(event) => { setSort(event.target.value as HabitSort); setShown(PAGE); }}>{HABIT_SORTS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
           {usedAreas.length > 0 && <div className="habit-area-bar" role="group" aria-label="Filter by area"><span className="eyebrow">Area</span><button className="quiet" aria-pressed={area === "all"} onClick={() => setArea("all")}>All areas</button>{usedAreas.map((a) => <button className="quiet" key={a.id} aria-pressed={area === a.id} onClick={() => setArea(a.id)}>{a.label}</button>)}</div>}
-          {visible.length && sectioned ? <section className="habit-grid-sections" aria-label={`${filter} habits`}><HabitSections sections={groupByTimeOfDay(page, store.today)} extras={extras} hour={new Date().getHours()} onNew={() => { setEditor("new"); setMessage(""); }} render={(section) => <section className="habit-grid" aria-label={`${section.label} habits`}><LayoutRegion region={regionOf(`cards:${section.id}`)} grid allIds={section.habits.map((h) => entityLayoutId(h.id))} items={section.habits.map(cardEntry)} /></section>} /></section>
-          : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region={regionOf("cards")} grid allIds={(sort === "yours" ? store.data.habits : ordered).map(h => entityLayoutId(h.id))} items={page.map(cardEntry)}/></section> : <EmptyState as="section" level={2} className="panel habit-empty" zigi="encouraging" title={store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."} action={filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>}>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</EmptyState>}
+          {/* Session AK (5.7): cards or the compact list (a display choice on this device), and Reorder for "Your order". */}
+          {store.data.habits.length > 0 && <div className="habit-list-tools"><button type="button" className="quiet" aria-expanded={reordering} disabled={!extras.loaded || extras.unreadable || reorderable.length < 2} onClick={() => { setReordering((open) => !open); setSort("yours"); setMessage(""); }}>Reorder</button><HabitListModeSwitch mode={listMode} onChange={(mode) => { try { saveExtras((r) => withHabitListMode(r, mode)); } catch (error) { setMessage(`The list view was not changed. ${deviceSettingFailureMessage(error)}`); } }} /></div>}
+          {reordering && <LoadBoundary quiet><Suspense fallback={null}><HabitReorderList habits={reorderable} onReorder={(ids) => { const live = new Set(store.data.habits.map((habit) => habit.id)); saveExtras((r) => withHabitOrder(r, [...ids, ...yours.filter((habit) => !ids.includes(habit.id)).map((habit) => habit.id)], live)); }} onDone={() => setReordering(false)} /></Suspense></LoadBoundary>}
+          {visible.length && listMode === "compact" ? <section className="habit-compact-section" aria-label={`${filter} habits`}><LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the compact list…" block/>}><HabitCompactView habits={page} store={store} onOpen={editHabit} /></Suspense></LoadBoundary></section>
+          : visible.length && sectioned ? <section className="habit-grid-sections" aria-label={`${filter} habits`}><HabitSections sections={groupByTimeOfDay(page, store.today)} extras={extras} hour={new Date().getHours()} onNew={() => { setEditor("new"); setMessage(""); }} render={(section) => <section className="habit-grid" aria-label={`${section.label} habits`}><LayoutRegion region={regionOf(`cards:${section.id}`)} grid allIds={section.habits.map((h) => entityLayoutId(h.id))} items={section.habits.map(cardEntry)} /></section>} /></section>
+          : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region={regionOf("cards")} grid allIds={(sort === "yours" ? yours : ordered).map(h => entityLayoutId(h.id))} items={page.map(cardEntry)}/></section> : <EmptyState as="section" level={2} className="panel habit-empty" zigi="encouraging" title={store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."} action={filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>}>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</EmptyState>}
           {ordered.length > shown && <p className="habit-show-more"><button type="button" className="secondary" onClick={() => setShown(n => n + PAGE)}>Show {Math.min(PAGE, ordered.length - shown)} more of {ordered.length}</button></p>}
           {store.data.habits.length > 0 && <LoadBoundary quiet>{yearOpen ? <Suspense fallback={<section className="panel habit-year"><Skeleton label="Opening the year view…" block/></section>}><YearView habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-year habit-year-closed" aria-labelledby="habit-year-title"><div className="habit-section-heading"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2><p className="fine">A full year per habit, and every habit at once.</p></div><button type="button" className="secondary" onClick={() => setYearOpen(true)}>Open the year view</button></div></section>}</LoadBoundary>}
+          {/* Session AK (5.6): "When steps ≥ 8,000 → Walk is done", each rule a plain sentence; the editor loads when opened. */}
+          {store.data.habits.length > 0 && <section className="panel habit-auto-rules" aria-labelledby="habit-auto-rules-title"><div className="habit-section-heading"><div><p className="eyebrow">Done for you</p><h2 id="habit-auto-rules-title">Auto-complete rules</h2><p className="fine">{autoRules?.rules.length ? `${autoRules.rules.length} ${autoRules.rules.length === 1 ? "rule" : "rules"}: ` : ""}Tick a habit off from what this device already records, such as “When steps ≥ 8,000 → Walk is done”.</p></div><button type="button" className="secondary" aria-expanded={rulesOpen} onClick={() => setRulesOpen((open) => !open)}>{rulesOpen ? "Close rules" : "Set up rules"}</button></div>
+            {rulesOpen && (autoRules ? autoRules.unreadable ? <p role="alert">Your rules on this device could not be read, so they are not shown or changed.</p> : <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening your rules…" block/>}><AutoRulesEditor rules={autoRules.rules} habits={reorderable.filter((habit) => habitRuleOn(habit, store.today)?.type === "build").map((habit) => ({ id: habit.id, title: habit.title }))} goals={platform.data.goals.filter((goal) => goal.status === "active").map((goal) => ({ id: goal.id, name: goal.name }))} onSave={autoRules.save} onRemove={autoRules.remove} onPause={autoRules.pause} /></Suspense></LoadBoundary> : <Skeleton label="Opening your rules…" block/>)}
+          </section>}
         </div>},
         // Session AE (Part 4, ADR-027): the owner's S4. Routines and your stacks (the same chains, played or listed) are their own
         // movable block, by default right after the groups; the filters, the groups and the year view stay one block.
@@ -287,5 +316,5 @@ export function HabitsWorkspace() {
       <p className="fine habit-privacy">Private Habit records · No wallet required · Days use {store.data.timeZone??(journalZone?`${journalZone}, your time zone`:"this device’s timezone until you save your time zone in Settings")}.</p>
       {store.loaded&&!store.error&&<details className="panel habit-timezone"><summary>Habit journal timezone</summary><form onSubmit={async e=>{e.preventDefault();const zone=String(new FormData(e.currentTarget).get('timezone'));try{await store.update(data=>saveHabitTimezone(data,zone));setZoneMessage('Habit timezone saved. Existing date-only entries and saved timer timestamps remain unchanged.');}catch{setZoneMessage('Choose a valid IANA timezone, such as Europe/Brussels.');}}}><label className="field">Habit timezone<input name="timezone" required maxLength={100} defaultValue={store.data.timeZone??Intl.DateTimeFormat().resolvedOptions().timeZone}/></label><button className="secondary" type="submit">Save Habit timezone</button><p className="fine">This journal setting travels with your private data. Old dates stay as recorded. A timer started under another timezone requires explicit review.</p>{zoneMessage&&<p role="status">{zoneMessage}</p>}</form></details>}
     </section>
-  </div></LayoutPage></HabitExtrasContext.Provider></HealthLinkContext.Provider>;
+  </div></LayoutPage></AutoRulesContext.Provider></HabitExtrasContext.Provider></HealthLinkContext.Provider>;
 }

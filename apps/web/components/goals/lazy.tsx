@@ -24,3 +24,8 @@ export const LazyAverageGoalCard = deferred(() => import('./average-goals').then
 // The figures keep their own size while they load, so the cards under them never move.
 export const LazyGoalsFigures = deferred(() => import('./goals-sections').then(m => m.FiguresSection), <div className="goals-figures is-placeholder" aria-hidden="true"><div /><div /><div /><div /></div>);
 export const LazyExtrasKeeper = deferred(() => import('./extras-keeper').then(m => m.ExtrasKeeper), false);
+// Session AK (6.2, 6.3/8.5, 6.4): the goal page's what-if, its progress image and its milestone suggestions and habit
+// links, each its own chunk after the page (a projection is worked out on the page and never stored).
+export const LazyWhatIfPanel = deferred(() => import('./what-if-panel').then(m => m.WhatIfPanel));
+export const LazyProgressCard = deferred(() => import('./progress-card').then(m => m.ProgressCard));
+export const LazyMilestonePlanner = deferred(() => import('./milestone-planner').then(m => m.MilestonePlanner), false);
