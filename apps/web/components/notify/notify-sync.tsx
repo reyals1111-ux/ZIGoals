@@ -1,5 +1,7 @@
 'use client';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
+import {catchInstallPrompt} from '../../lib/install/prompt-store';
+import './notify-sync.css';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {readDeviceRecord} from '../../lib/device-record';
 import {NOTIFY_PREFS} from '../../lib/notify/prefs';
@@ -17,12 +19,22 @@ const accountPushOn = () => { try { return readPushRecord(getAppStorage()).data 
  * - On a device with notifications on: keeps the snapshot and the wake list current (on open, focus, leaving the page,
  *   record changes, every 10 minutes) and applies taps queued while ZIGoals was closed, each once, with an Undo toast.
  * The notification code loads only on such a device.
+ * Session AK Part 3: it also keeps the browser's install offer for Settings and Help, and says when a new version of the
+ * app is ready ("A new version is ready · Reload"): the new worker takes over only on that tap, so nothing is lost.
  */
 export function NotifySync() {
+  const [waiting, setWaiting] = useState<ServiceWorker | null>(null);
+  useEffect(() => catchInstallPrompt(window), []);
   useEffect(() => {
     let active = true, timer = 0;
     const idle = (fn: () => void) => { const w = window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}; if (w.requestIdleCallback) w.requestIdleCallback(fn, {timeout: 4000}); else window.setTimeout(fn, 1500); };
-    idle(() => { if (active && !accountPushOn()) void import('../../lib/sw/register').then(m => m.registerAppWorker()); });
+    const watch = (reg: ServiceWorkerRegistration | null) => {
+      if (!reg || !active) return;
+      const offer = () => { if (active && reg.waiting && navigator.serviceWorker.controller) setWaiting(reg.waiting); };
+      offer();
+      reg.addEventListener('updatefound', () => { const next = reg.installing; next?.addEventListener('statechange', () => { if (next.state === 'installed') offer(); }); });
+    };
+    idle(() => { if (active && !accountPushOn()) void import('../../lib/sw/register').then(m => m.registerAppWorker()).then(watch); });
     const apply = async () => {
       if (!active || !hereOn()) return;
       const [{applyQueuedActions}, {localDate}] = await Promise.all([import('../../lib/notify/actions'), import('../../lib/local-date')]);
@@ -33,10 +45,28 @@ export function NotifySync() {
     const onVisible = () => { if (document.visibilityState === 'hidden') void refresh(); else { void apply().then(refresh); } };
     const onMessage = (event: MessageEvent) => { const type = (event.data as {type?: unknown} | null)?.type; if (type === 'zigoals:notify-action') void apply().then(refresh); };
     idle(() => { void apply().then(refresh); });
+    // Session AK Part 3: what the person asked for while offline is offered again, never run by itself.
+    const onOnline = async () => {
+      if (!active) return;
+      try {
+        const queue = await import('../../lib/offline-queue/queue');
+        for (const job of await queue.readJobs()) {
+          if (job.kind === 'food-lookup') showToast({message: `You’re back online. Look up barcode ${job.value} now?`, link: {href: `/app/health?barcode=${job.value}#foods`, label: 'Look it up'}});
+          else window.dispatchEvent(new CustomEvent('zigoals:exchange-refresh', {detail: job.value}));
+          await queue.removeJob(job.id);
+        }
+      } catch { /* no queue on this device */ }
+    };
+    window.addEventListener('online', onOnline);
     const every = window.setInterval(() => { void refresh(); }, 10 * 60_000);
     window.addEventListener(REMINDERS_CHANGE, later); window.addEventListener(PRIVATE_CHANGE, later); window.addEventListener(NOTIFY_CHANGE, later); window.addEventListener('storage', later); document.addEventListener('visibilitychange', onVisible);
     navigator.serviceWorker?.addEventListener('message', onMessage);
-    return () => { active = false; window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener('storage', later); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
+    return () => { active = false; window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
   }, []);
-  return null;
+  if (!waiting) return null;
+  const reload = () => {
+    navigator.serviceWorker?.addEventListener('controllerchange', () => window.location.reload(), {once: true});
+    waiting.postMessage({type: 'zigoals:sw-reload'});
+  };
+  return <div className="sw-update" role="status"><span>A new version of ZIGoals is ready. Your records are saved on this device.</span><button type="button" className="primary" onClick={reload}>Reload</button><button type="button" className="quiet" onClick={() => setWaiting(null)}>Later</button></div>;
 }

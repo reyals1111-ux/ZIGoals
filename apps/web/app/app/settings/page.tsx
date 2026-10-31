@@ -22,6 +22,7 @@ import { SwitchImport } from "../../../components/import/switch-import";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
 import {NotificationsCard} from "../../../components/notify/notifications-card";
+import {InstallCard} from "../../../components/install/install-card";
 import { Slot } from "../../../components/progress/slot";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
@@ -220,6 +221,7 @@ export default function Settings() {
         <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>
         <ChessSettings/>
         <GuideSettings/>
+        <InstallCard/>
         <NotificationsCard/>
         <PushRemindersPanel/>
         {/* Session AA-Cloud: a named place for Session AA-Local's reminders plan link. */}

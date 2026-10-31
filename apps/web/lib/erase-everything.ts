@@ -15,6 +15,8 @@ export const KNOWN_DATABASES = [
   'zigoals-food-generic-v1',
   // Session AK (Part 1d): the person's own Spotify client id, on this device only.
   'zigoals-music-byo-v1',
+  // Session AK (Part 3): network actions asked for while offline, offered again on reconnect.
+  'zigoals-offline-queue-v1',
 ] as const;
 export const ERASE_PREFIX = 'zigoals';
 export const ERASE_CONFIRM = 'ERASE';
@@ -62,7 +64,7 @@ export async function eraseDeviceServices(deps: DeviceServices): Promise<void> {
 }
 /** Erase everything, as the Settings button runs it: the device services first, then every key and database. */
 export async function eraseEverythingOnThisDevice(): Promise<EraseResult> {
-  const [{turnOffNotifications}, {forgetOfflineCaches}] = await Promise.all([import('./notify/device'), import('./sw/register')]);
-  await eraseDeviceServices({turnOffNotifications, forgetOfflineCaches});
+  const [{turnOffNotifications}, {forgetOfflineCaches}, {forgetOfflineQueue}] = await Promise.all([import('./notify/device'), import('./sw/register'), import('./offline-queue/queue')]);
+  await eraseDeviceServices({turnOffNotifications, forgetOfflineCaches, forgetOfflineQueue});
   return eraseEverything();
 }
