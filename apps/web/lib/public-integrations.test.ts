@@ -9,11 +9,10 @@ import {PUBLIC_INTEGRATIONS, publicIntegrationsSchema, pushDeviceConfigured, wal
 const FILE = 'apps/web/config/public-integrations.json';
 const read = (file: string) => readFileSync(join(__dirname, '..', '..', '..', file), 'utf8');
 
-test('every value empty by default except the app name; strict; WalletConnect is off without the project ID', () => {
-  expect(JSON.parse(read(FILE))).toEqual({schemaVersion: 1, reownProjectId: null, rampHostApiKey: null, rampHostAppName: 'ZIGoals', banxaPartnerRef: null, pushDeviceEnabled: false, pushVapidPublicKey: null});
-  expect(PUBLIC_INTEGRATIONS.reownProjectId).toBeNull();
-  expect(walletConnectConfigured()).toBe(false);
-  expect(walletConnectConfigured({...PUBLIC_INTEGRATIONS, reownProjectId: '0123456789abcdef0123456789abcdef'})).toBe(true);
+test('the owner\'s Reown project ID (Session AK, public by design); every other value empty except the app name; strict', () => {
+  expect(JSON.parse(read(FILE))).toEqual({schemaVersion: 1, reownProjectId: 'a769fc3cf950f7408189e14bac0633b1', rampHostApiKey: null, rampHostAppName: 'ZIGoals', banxaPartnerRef: null, pushDeviceEnabled: false, pushVapidPublicKey: null});
+  expect(walletConnectConfigured()).toBe(true);
+  expect(walletConnectConfigured({...PUBLIC_INTEGRATIONS, reownProjectId: null})).toBe(false);
 });
 test('the schema accepts public identifiers only and refuses unknown keys, secrets\' shapes and URLs', () => {
   const base = {schemaVersion: 1, reownProjectId: null, rampHostApiKey: null, rampHostAppName: 'ZIGoals', banxaPartnerRef: null, pushDeviceEnabled: false, pushVapidPublicKey: null};

@@ -28,8 +28,8 @@ function fakeLoader() {
 }
 
 describe('dormant without the project ID', () => {
-  test('the committed config has no ID; no static import of the package anywhere; the only dynamic import is in startWalletConnect', () => {
-    expect(PUBLIC_INTEGRATIONS.reownProjectId).toBeNull();
+  test('the committed config holds the owner\'s public ID (Session AK); no static import of the package anywhere; the only dynamic import is in startWalletConnect', () => {
+    expect(PUBLIC_INTEGRATIONS.reownProjectId).toBe('a769fc3cf950f7408189e14bac0633b1');
     const files = [...sources('lib'), ...sources('components'), ...sources('app')];
     expect(files.length).toBeGreaterThan(500);
     for (const f of files) {
@@ -93,5 +93,23 @@ describe('read-only pairing with a fake client', () => {
   test('Trust\'s WalletConnect link carries the pairing link encoded', () => {
     expect(trustWalletConnectLink('wc:abc@2?relay-protocol=irn&symKey=def')).toBe('https://link.trustwallet.com/wc?uri=wc%3Aabc%402%3Frelay-protocol%3Dirn%26symKey%3Ddef');
     expect(() => trustWalletConnectLink('https://evil.example')).toThrow();
+  });
+});
+
+// Session AK (Part 1a, A7–A9): each wallet's own link for the pairing URI, listed only for what it links.
+describe('the pairing link handed to each wallet (A7)', () => {
+  const URI = 'wc:' + 'a'.repeat(64) + '@2?relay-protocol=irn&symKey=' + 'b'.repeat(64) + '&expiryTimestamp=1793000000';
+  test('Keplr gets the link raw (iOS scheme, Android intent); the others encoded; no wallet is promised more than it links', async () => {
+    const {walletConnectLinks, PHONE_WALLETS_SWITCHING_ON} = await import('./walletconnect');
+    const ios = walletConnectLinks(URI, false), android = walletConnectLinks(URI, true);
+    expect(ios.map(l => l.key)).toEqual(['wc-keplr', 'wc-trust', 'wc-metamask', 'wc-ledger']);
+    expect(ios[0]!.href).toBe(`keplrwallet://wcV2?${URI}`);
+    expect(android[0]!.href).toBe(`intent://wcV2?${URI}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`);
+    expect(ios[1]!.href).toBe(`https://link.trustwallet.com/wc?uri=${encodeURIComponent(URI)}`);
+    expect(ios[2]!.href).toBe(`metamask://wc?uri=${encodeURIComponent(URI)}`);
+    expect(ios[3]!.href).toBe(`ledgerlive://wc?uri=${encodeURIComponent(URI)}`);
+    expect(ios.filter(l => /ZIGChain/.test(l.detail)).map(l => l.key)).toEqual(['wc-keplr']);
+    for (const bad of ['http://x', 'wc:' + 'x'.repeat(2100), 'wc:a b']) expect(() => walletConnectLinks(bad, false)).toThrow();
+    expect(PHONE_WALLETS_SWITCHING_ON).toMatch(/being switched on/);
   });
 });

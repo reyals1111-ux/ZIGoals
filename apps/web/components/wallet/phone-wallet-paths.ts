@@ -18,7 +18,7 @@ export function phoneWalletPaths(origin: string = typeof window === 'undefined' 
   try { items.push({key: 'open-keplr', label: 'Open ZIGoals in Keplr', detail: 'In Keplr’s own browser: connect Keplr there to stake and vote', href: keplrMobileLink(origin, android, '/app')}); }
   catch { /* not this app's own page (a preview host): no path is offered */ }
   // With the owner's project ID: WalletConnect first (components/wallet/walletconnect-panel.tsx; the package loads on tap).
-  if (walletConnectConfigured() && onWalletConnect) items.push({key: 'walletconnect', label: 'Connect by WalletConnect', detail: 'Trust, Ledger Wallet, Keplr Mobile and other WalletConnect wallets · addresses only', onSelect: onWalletConnect});
+  if (walletConnectConfigured() && onWalletConnect) items.push({key: 'walletconnect', label: 'Connect by WalletConnect', detail: 'Keplr Mobile’s ZIGChain address; Trust, MetaMask, OKX and Ledger Wallet’s Ethereum-family and Solana addresses · read-only', onSelect: onWalletConnect});
   try {
     items.push({key: 'open-metamask', label: 'Open ZIGoals in MetaMask', detail: 'In MetaMask’s own browser, then link from the rows above', href: metaMaskInAppLink(origin)});
     items.push({key: 'open-trust', label: 'Open ZIGoals in Trust Wallet', detail: 'In Trust Wallet’s own browser, then link from the rows above', href: trustInAppLink(origin)});
