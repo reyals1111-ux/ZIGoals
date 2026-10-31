@@ -9,7 +9,7 @@ import {getAppStorage} from '../../lib/showcase-storage';
 import {MUSIC_KEY} from '../../lib/w-device-keys';
 import {usePagesView} from '../pages/use-pages-view';
 import {usePhoneActive} from '../phone/use-phone-layout';
-import {MUSIC_OPEN_EVENT} from './music-events';
+import {MUSIC_OPEN_EVENT, SOUNDSCAPE_EVENT, SOUNDSCAPE_RESULT_EVENT} from './music-events';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import './music-launcher.css';
 
@@ -42,6 +42,17 @@ export function MusicLauncher() {
     const onSaved = (event: Event) => { const key = (event as CustomEvent<string>).detail; if (!key || key === MUSIC_KEY) read(); };
     window.addEventListener(ZIGI_STORE_EVENT, onSaved); window.addEventListener('storage', read); window.addEventListener(ACCOUNT_CHANGE, read);
     return () => { window.removeEventListener(ZIGI_STORE_EVENT, onSaved); window.removeEventListener('storage', read); window.removeEventListener(ACCOUNT_CHANGE, read); };
+  }, []);
+  // Session AK (owner decision MUSIC): Focus Sessions and Sleep wind-down start a soundscape through components/music/
+  // soundscape-start.ts; the player loads here on first use, whether or not the music button shows.
+  useEffect(() => {
+    const onStart = (event: Event) => {
+      const preset = (event as CustomEvent<{preset?: unknown}>).detail?.preset;
+      const answer = (ok: boolean) => window.dispatchEvent(new CustomEvent(SOUNDSCAPE_RESULT_EVENT, {detail: {preset, ok}}));
+      void import('../../lib/audio/soundscape').then(m => m.playSoundscapePreset(preset as never)).then(answer, () => answer(false));
+    };
+    window.addEventListener(SOUNDSCAPE_EVENT, onStart);
+    return () => window.removeEventListener(SOUNDSCAPE_EVENT, onStart);
   }, []);
   const show = useCallback(() => { setLoaded(true); setOpen(true); }, []);
   useEffect(() => { const onOpen = () => { if (shown) show(); }; window.addEventListener(MUSIC_OPEN_EVENT, onOpen); return () => window.removeEventListener(MUSIC_OPEN_EVENT, onOpen); }, [shown, show]);

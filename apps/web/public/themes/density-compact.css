@@ -2902,6 +2902,36 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact])[data-zigi-side=left] .music-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .music-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact])[data-zigi-side=left] .music-edge-tab:not(#\-) { padding-top: 0; padding-bottom: 0; }
+/*  components/music/music-mix.css  */
+:where(:root[data-density=compact]) .music-mix:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .music-mix fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .music-mix legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .music-mix-preset:not(#\-) { row-gap: 2px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .music-mix-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .music-mix-levels:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .music-mix-level:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .music-mix-level .field:not(#\-), :where(:root[data-density=compact]) .music-mix-master .field:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .music-mix-master:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .music-mix-silent:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .music-mix-actions:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .music-mix-viz:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .music-mix-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .music-links:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .music-links-moods:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .music-links-moods legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .music-links ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .music-links a:not(#\-) { row-gap: 10px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .music-byo:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .music-byo ol:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .music-byo code:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .music-byo-copy:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .music-byo input[type=text]:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .music-byo .actions:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .music-full-link:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .music-page:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .music-page-card:not(#\-) { row-gap: 9px; padding-top: 13.5px; padding-bottom: 13.5px; }
+@media (max-width:640px) { :where(:root[data-density=compact]) .music-page:not(#\-) { row-gap: 12px; } }
+@media (max-width:640px) { :where(:root[data-density=compact]) .music-page-card:not(#\-) { padding-top: 12px; padding-bottom: 12px; } }
 /*  components/music/music-panel.css  */
 :where(:root[data-density=compact]) .music-panel:not(#\-) { row-gap: 10.5px; padding-top: 13.5px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .music-panel-head:not(#\-) { row-gap: 9px; }
@@ -2943,6 +2973,17 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav [data-group-start]:not(#\-) { margin-top: 18px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar:not(#\-) { padding-top: 16px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav:not(#\-) { margin-top: 12px; row-gap: 0; } }
+/*  components/notify/notifications.css  */
+:where(:root[data-density=compact]) .notify-card .notify-state:not(#\-) { margin-top: 6px; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .notify-card .notify-server:not(#\-) { margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .notify-card .notify-server ul:not(#\-) { margin-top: 4.5px; margin-bottom: 4.5px; }
+:where(:root[data-density=compact]) .notify-card .notify-actions:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .notify-types:not(#\-) { margin-top: 8px; margin-bottom: 4px; padding-top: 0; padding-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .notify-types legend:not(#\-) { margin-bottom: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .notify-types .ai-switch-row:not(#\-) { row-gap: 9px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .notify-types .ai-switch-copy:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .notify-times:not(#\-) { row-gap: 10px; margin-top: 10px; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .notify-times .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/offline-notice.css  */
 :where(:root[data-density=compact]) .offline-notice:not(#\-) { margin-top: 0; margin-bottom: 16px; padding-top: 12px; padding-bottom: 12px; }
 :root:where([data-density=compact]) .offline-pill:not(#\-) { row-gap: 6px; padding-top: 4px; padding-bottom: 4px; }

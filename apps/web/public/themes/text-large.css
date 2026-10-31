@@ -1611,6 +1611,21 @@
 :where(:root[data-text=large]) .data-coin-link .asset-orb:not(#\-) { font-size: calc(13px * 1.125); }
 /*  components/music/music-launcher.css  */
 :where(:root[data-text=large]) .music-launcher-fold:not(#\-)::after { font-size: calc(13px * 1.125); }
+/*  components/music/music-mix.css  */
+:where(:root[data-text=large]) .music-mix legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-mix-preset:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-mix-preset span:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .music-mix-hint:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-mix-level .field:not(#\-), :where(:root[data-text=large]) .music-mix-master .field:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-mix select:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .music-mix .checkbox:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-mix-note:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-links-moods legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-links a:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-byo ol:not(#\-) { font-size: calc(.9375rem * 1.125); }
+:where(:root[data-text=large]) .music-byo code:not(#\-) { font-size: calc(.875rem * 1.125); }
+:where(:root[data-text=large]) .music-byo input[type=text]:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .music-full-link:not(#\-) { font-size: calc(.9375rem * 1.125); }
 /*  components/music/music-panel.css  */
 :where(:root[data-text=large]) .music-eyebrow:not(#\-) { font-size: calc(.875rem * 1.125); }
 :where(:root[data-text=large]) .music-tool:not(#\-) { font-size: calc(.9375rem * 1.125); }
@@ -1626,6 +1641,16 @@
 /*  components/navigation.css  */
 @media (min-width:901px) { :where(:root[data-text=large]) .sidebar-destination .brand-wordmark:not(#\-) { font-size: calc(37px * 1.125); } }
 :where(:root[data-text=large]) .workspace-status:not(#\-) { font-size: calc(.875rem * 1.125); }
+/*  components/notify/notifications.css  */
+:where(:root[data-text=large]) .notify-card .notify-state:not(#\-) { font-size: calc(16px * 1.125); }
+:where(:root[data-text=large]) .notify-card .notify-server summary:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .notify-card .notify-server ul:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .notify-card .notify-server p:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .notify-card .notify-message:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .notify-types legend:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .notify-types .ai-switch-copy:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .notify-types .ai-switch-copy small:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .notify-times input:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/offline-notice.css  */
 :where(:root[data-text=large]) .offline-notice:not(#\-) { font-size: calc(15px * 1.125); }
 :root:where([data-text=large]) .offline-pill:not(#\-) { font-size: calc(14px * 1.125); }

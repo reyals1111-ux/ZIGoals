@@ -1,11 +1,23 @@
 'use client';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {SPOTIFY_HOME, SPOTIFY_LOGO} from '../../lib/music/brand';
 import {useShowcase} from '../showcase-controls';
 import {useSpotifyClientId} from './music-config';
 import {Controls, Disc, Progress} from './music-ui';
 import {useSpotify} from './use-spotify';
 
+const SpotifyByo = lazy(() => import('./spotify-byo'));
+/**
+ * Session AK (owner decision MUSIC): "Use my own Spotify app", folded away under every Spotify state but the Showcase;
+ * its form loads only when opened.
+ */
+function ByoDetails({own}: {own: boolean}) {
+  const [opened, setOpened] = useState(false);
+  return <details className="music-more" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setOpened(true); }}>
+    <summary>{own ? 'Your own Spotify app (this device)' : 'Use my own Spotify app (advanced)'}</summary>
+    <div className="music-more-body">{opened && <Suspense fallback={<p className="fine">Loading…</p>}><SpotifyByo/></Suspense>}</div>
+  </details>;
+}
 /** Whether the owner's copy of Spotify's logo loads; Spotify's music is shown only with it (lib/music/brand.ts). */
 function useLogo(wanted: boolean): ['loading' | 'ok' | 'missing', (img: HTMLImageElement | null) => void, () => void, () => void] {
   const [state, setState] = useState<'loading' | 'ok' | 'missing'>('loading');
@@ -42,15 +54,17 @@ export function SpotifySource({active}: {active: boolean}) {
 
   if (showcase) return <div className="music-source-body"><Disc/><h2 className="music-title">Spotify</h2><p className="music-sub">The Showcase connects nothing. With your own account, Spotify plays here once the site’s owner has set it up.</p>{open}</div>;
   if (!config.loaded) return <div className="music-source-body"><Disc/><p className="music-sub" role="status">Checking whether Spotify is set up…</p></div>;
-  if (!config.clientId) return <div className="music-source-body"><Disc/><h2 className="music-title">Spotify</h2><p className="music-sub">Spotify isn’t set up on this site yet: its owner needs to register a Spotify app first. You can still open Spotify.</p>{open}</div>;
-  if (!spotify.scope) return <div className="music-source-body"><Disc/><h2 className="music-title">Spotify</h2><p className="music-sub">Unlock your account to use Spotify here. Nothing about Spotify is kept while it is locked.</p>{open}</div>;
+  const byo = <ByoDetails own={config.own}/>;
+  if (!config.clientId) return <div className="music-source-body"><Disc/><h2 className="music-title">Spotify</h2><p className="music-sub">Spotify isn’t set up on this site yet: its owner needs to register a Spotify app first. You can still open Spotify, or use your own Spotify app below.</p>{open}{byo}</div>;
+  if (!spotify.scope) return <div className="music-source-body"><Disc/><h2 className="music-title">Spotify</h2><p className="music-sub">Unlock your account to use Spotify here. Nothing about Spotify is kept while it is locked.</p>{open}{byo}</div>;
   if (spotify.connected === null) return <div className="music-source-body"><Disc/><p className="music-sub" role="status">Checking your Spotify connection…</p></div>;
   if (!spotify.connected) return <div className="music-source-body">
     <Disc/><h2 className="music-title">Connect Spotify</h2>
-    <p className="music-sub">Control what Spotify plays on your phone, computer or speaker. Controlling playback needs Spotify Premium; while ZIGoals is in Spotify’s development mode, only accounts its owner listed can connect.</p>
+    <p className="music-sub">{config.own ? 'Control what Spotify plays on your phone, computer or speaker, through your own Spotify app (this device only). Controlling playback needs Spotify Premium; in development mode only the accounts you added can connect.' : 'Control what Spotify plays on your phone, computer or speaker. Controlling playback needs Spotify Premium; while ZIGoals is in Spotify’s development mode, only accounts its owner listed can connect.'}</p>
     <button type="button" className="primary music-connect" onClick={() => void spotify.connect()}>Connect Spotify</button>
     <p className="fine">You go to Spotify to agree, then come back. The sign-in stays sealed on this device: never synced, exported or in an address.</p>
     {spotify.problem && <p className="music-problem" role="alert">{spotify.problem}</p>}
+    {byo}
   </div>;
   return <div className="music-source-body">
     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -84,5 +98,6 @@ export function SpotifySource({active}: {active: boolean}) {
         </details>
       </>}
     {spotify.problem && <p className="music-problem" role="alert">{spotify.problem}</p>}
+    {byo}
   </div>;
 }
