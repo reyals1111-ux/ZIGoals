@@ -16,7 +16,11 @@ const MAX_ACTIVITIES = 50;
 /** Climbs smaller than this are treated as GPS or barometer noise. */
 const CLIMB_NOISE_M = 1;
 
-export type ImportSource = 'gpx' | 'tcx';
+/**
+ * Session AK (4.7): FIT files read by lib/import/fit, and Strava archive rows that came without a readable file; their
+ * summaries are kept under the workout's new `fileImport` key.
+ */
+export type ImportSource = 'gpx' | 'tcx' | 'fit' | 'strava';
 export type ImportSummary = {
   source: ImportSource;
   /** Stable for the same workout: start (to the minute), length (to 10 s) and distance (to 10 m). */
@@ -185,7 +189,13 @@ export function readWorkoutFile(text: string, parser: XmlParser): ImportSummary[
   return out;
 }
 
-export const alreadyImported = (w: Workouts, importId: string) => w.workouts.some(x => x.imported?.importId === importId);
+/**
+ * Session AK (4.7): where a workout's import summary lives. GPX and TCX keep `imported` (the key older builds read); every
+ * newer source (FIT, Strava's archive, Strong, Hevy) keeps `fileImport`, a new optional key older builds pass through.
+ */
+export type ImportInfo = {source: string; importId: string; sport?: string; distanceKm?: number; elevationM?: number; avgHr?: number; durationSeconds?: number};
+export const importInfo = (x: Workout): ImportInfo | undefined => x.imported ?? x.fileImport;
+export const alreadyImported = (w: Workouts, importId: string) => w.workouts.some(x => importInfo(x)?.importId === importId);
 /**
  * Adds an imported workout as a normal finished workout (no exercises; the summary under `imported`). Refuses one already
  * imported and one that starts in the future. `day` is the local date of the start (the Health time zone's, from the page);
@@ -196,9 +206,10 @@ export function addImportedWorkout(w: Workouts, s: ImportSummary, now: Date, day
   const startMs = Date.parse(s.startedAt);
   if (!Number.isFinite(startMs)) impossible('time');
   if (startMs > now.getTime() + 10 * 60_000) refuse('This workout starts in the future. Check the date on the device that recorded it.');
+  const summary = {source: s.source, importId: s.importId, sport: clean(s.sport, 40), durationSeconds: s.durationSeconds,
+    ...(s.distanceKm !== null ? {distanceKm: s.distanceKm} : {}), ...(s.elevationM !== null ? {elevationM: s.elevationM} : {}), ...(s.avgHr !== null ? {avgHr: s.avgHr} : {})};
   const workout: Workout = {id: `workout-${crypto.randomUUID()}`, name: clean(s.name, 80) || `${s.label} (imported)`, date: day, type: s.type,
     startedAt: new Date(startMs).toISOString(), endedAt: new Date(startMs + s.durationSeconds * 1000).toISOString(), exercises: [],
-    imported: {source: s.source, importId: s.importId, sport: clean(s.sport, 40), durationSeconds: s.durationSeconds,
-      ...(s.distanceKm !== null ? {distanceKm: s.distanceKm} : {}), ...(s.elevationM !== null ? {elevationM: s.elevationM} : {}), ...(s.avgHr !== null ? {avgHr: s.avgHr} : {})}};
+    ...(s.source === 'gpx' || s.source === 'tcx' ? {imported: {...summary, source: s.source}} : {fileImport: summary})};
   return workoutsSchema.parse({...w, workouts: [...w.workouts, workout]});
 }

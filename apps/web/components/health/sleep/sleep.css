@@ -88,3 +88,7 @@
 /* Session AB-Design Phase 2 closing pass (Gate C captures): six figures read as 3 × 2 on wide screens instead of five in a
    row and one alone underneath. */
 @media (min-width: 1024px) { .sleep-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* Session AK (4.9): the wind-down step's sound. */
+.sleep-wind-down-sounds { display: grid; gap: 8px; max-width: 460px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line, #7fc8ff1a); }
+.sleep-wind-down-sounds p { margin: 0; }
+.sleep-wind-down-sounds button { min-height: 44px; justify-self: start; }

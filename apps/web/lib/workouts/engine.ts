@@ -18,11 +18,13 @@ const blankSet = (measure: Measure, from?: Partial<WorkoutSet>): WorkoutSet => (
 export function startWorkout(w: Workouts, input: {name?: string; date: string; now: Date; template?: WorkoutTemplate; repeat?: Workout}): Workouts {
   if (inProgress(w)) throw Error('A workout is already in progress. Finish or discard it first.');
   const source = input.template ?? input.repeat;
-  const exercises: ExerciseEntry[] = (source?.exercises ?? []).map(e => ({id: uid('ex'), exerciseId: e.exerciseId, name: e.name, measure: e.measure, sets: e.sets.map(s => blankSet(e.measure, s))}));
+  // Session AK (4.9): a superset and an exercise's own rest time carry over from the routine or the repeated workout.
+  const exercises: ExerciseEntry[] = (source?.exercises ?? []).map(e => ({id: uid('ex'), exerciseId: e.exerciseId, name: e.name, measure: e.measure, sets: e.sets.map(s => blankSet(e.measure, s)), ...carried(e)}));
   const workout: Workout = {id: uid('workout'), name: (input.name ?? source?.name ?? 'Workout').trim() || 'Workout', date: input.date, type: source?.type ?? 'strength',
     startedAt: input.now.toISOString(), exercises, ...(input.template ? {templateId: input.template.id} : {})};
   return parse({...w, workouts: [...w.workouts, workout]});
 }
+const carried = (e: {supersetId?: string; restSeconds?: number}) => ({...(e.supersetId ? {supersetId: e.supersetId} : {}), ...(e.restSeconds !== undefined ? {restSeconds: e.restSeconds} : {})});
 const editCurrent = (w: Workouts, change: (x: Workout) => Workout): Workouts => {
   const current = inProgress(w); if (!current) throw Error('No workout is in progress.');
   return parse({...w, workouts: w.workouts.map(x => x.id === current.id ? change(x) : x)});
@@ -33,7 +35,7 @@ export function addExercise(w: Workouts, exercise: Pick<LibraryExercise, 'id' | 
   return editCurrent(w, x => {
     if (x.exercises.length >= 40) throw Error('Up to 40 exercises fit in one workout.');
     const sets = last ? last.sets.filter(s => s.kind !== 'warmup' || last.sets.length === 1).map(s => blankSet(exercise.measure, s)) : [blankSet(exercise.measure)];
-    return {...x, exercises: [...x.exercises, {id: uid('ex'), exerciseId: exercise.id, name: exercise.name, measure: exercise.measure, sets}]};
+    return {...x, exercises: [...x.exercises, {id: uid('ex'), exerciseId: exercise.id, name: exercise.name, measure: exercise.measure, sets, ...(last?.restSeconds !== undefined ? {restSeconds: last.restSeconds} : {})}]};
   });
 }
 export const removeExercise = (w: Workouts, entryId: string) => editCurrent(w, x => ({...x, exercises: x.exercises.filter(e => e.id !== entryId)}));
@@ -72,7 +74,7 @@ export const withActivity = (w: Workouts, workoutId: string, activityId: string)
 export function saveTemplate(w: Workouts, from: Workout, name: string, now: Date): Workouts {
   if (w.templates.length >= 50) throw Error('Up to 50 routines fit. Remove one first.');
   const template: WorkoutTemplate = {id: uid('routine'), name: name.trim() || from.name, type: from.type, createdAt: now.toISOString(),
-    exercises: from.exercises.map(e => ({exerciseId: e.exerciseId, name: e.name, measure: e.measure, sets: e.sets.map(({id: _i, done: _d, ...s}) => { void _i; void _d; return s; })}))};
+    exercises: from.exercises.map(e => ({exerciseId: e.exerciseId, name: e.name, measure: e.measure, sets: e.sets.map(({id: _i, done: _d, ...s}) => { void _i; void _d; return s; }), ...carried(e)}))};
   return parse({...w, templates: [template, ...w.templates.filter(t => t.name.toLowerCase() !== template.name.toLowerCase())]});
 }
 export const removeTemplate = (w: Workouts, templateId: string) => parse({...w, templates: w.templates.filter(t => t.id !== templateId)});

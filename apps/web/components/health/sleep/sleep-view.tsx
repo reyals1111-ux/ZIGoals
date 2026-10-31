@@ -2,7 +2,7 @@
 import {showToast} from '../../ui/undo-toast';
 import Link from 'next/link';
 import {useState} from 'react';
-import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary} from '../../../lib/sleep/engine';
+import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary, wakeConsistency} from '../../../lib/sleep/engine';
 import {sleepInsights} from '../../../lib/sleep/insights';
 import type {SleepNight} from '../../../lib/sleep/schema';
 import {formatMinutes} from '../../../lib/zone-time';
@@ -13,7 +13,7 @@ import {SleepDurationChart, SleepQualityChart, SleepTimesChart} from './sleep-ch
 import {NightForm, SleepGoalForm} from './sleep-forms';
 import {SleepTonight} from './sleep-tonight';
 import {useSleep} from './use-sleep';
-import {WindDownSetting} from './wind-down';
+import {WindDownSetting, WindDownSounds} from './wind-down';
 import {FocusWindowSetting} from './focus-window-card';
 import {SleepScoreCard} from '../sleep-score-card';
 import './sleep.css';
@@ -36,7 +36,7 @@ export default function SleepView() {
   if (!store.loaded) return <section className="panel"><h1>Sleep</h1><p>Opening your sleep log…</p></section>;
   if (store.error) return <section className="panel"><h1>Sleep</h1><p role="alert">Sleep lives in your Health journal, which could not be read. Nothing was changed.</p><Link className="text-link" href="/app/health">Back to Health</Link></section>;
   const {sleep, today} = store, points = dailySeries(sleep, today, range), week = summary(dailySeries(sleep, today, 7));
-  const debt = sleepDebt(sleep, today), steady = consistency(sleep, today), patterns = sleepInsights(sleep, today), balance = sleepBalance(sleep, today);
+  const debt = sleepDebt(sleep, today), steady = consistency(sleep, today), steadyWake = wakeConsistency(sleep, today), patterns = sleepInsights(sleep, today), balance = sleepBalance(sleep, today);
   const nights = sleep.nights.filter(n => n.end !== null).sort((a, b) => b.end!.localeCompare(a.end!)).slice(0, 14);
   // Each save starts the log form afresh (its key), so the next night begins from the defaults.
   // Session AH (HE3; N-006, D-120): a save also says so in the app's toast, where it is seen, not only at the top.
@@ -54,7 +54,7 @@ export default function SleepView() {
       <p className="page-lede">Nights and naps you log or bring in. Private to your Health journal; it syncs only with Health, under the same consent.</p>
     </div><HeaderArtCorner><OrbitArt glyph={SleepGlyph} tone="health" spin={6}/></HeaderArtCorner></div>
     {note && <p className="sleep-note">{note}</p>}
-    <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSetting/><FocusWindowSetting/></section>
+    <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSounds/><WindDownSetting/><FocusWindowSetting/></section>
     {/* Session AH (HE3, D-199): the log form sits near the top, full width, not squeezed beside the goal at the bottom. */}
     <section className="panel sleep-log" aria-labelledby="sleep-log-title"><h2 id="sleep-log-title">Log a night or a nap</h2><NightForm key={`new-${saves}`} store={store} onDone={done}/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}
@@ -69,6 +69,8 @@ export default function SleepView() {
         {/* Session AJ (item 26): the 14-night balance against the person's own goal, in kind words. */}
         <div className="sleep-stat-wide"><dt>Sleep balance, last 14 days</dt><dd>{balance ? balanceWords(balance, formatMinutes) : sleep.goal ? 'Not yet' : 'Set a goal'}</dd><small>{balance ? `Your time asleep against your goal (${formatMinutes(balance.goal)}), on average over the ${balance.nights} nights you logged. Every night is a fresh start.` : sleep.goal ? `Needs at least ${BALANCE_MIN_NIGHTS} logged nights in the last 14 days.` : 'Needs your own sleep goal (below).'}</small></div>
         <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd><small>{steady ? `How much your bedtimes vary: the standard deviation of ${steady.nights} bedtimes in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></div>
+        {/* Session AK (4.9): wake-time consistency beside the bedtime one; a steady wake time is the usual first step. */}
+        <div className="sleep-stat-wide"><dt>Wake-time consistency</dt><dd>{steadyWake ? `± ${formatMinutes(steadyWake.minutes)}` : 'Not yet'}</dd><small>{steadyWake ? `How much your wake times vary: the standard deviation of ${steadyWake.nights} wake times in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></div>
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
