@@ -267,6 +267,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ak-health-more", "Supplements, measurement trends and habit plans: what is new?"],
   ["ak-journal-more", "What are On this day, Experiments, Your first week and ZIGoals Wrapped?"],
   ["ak-safety-more", "Why does ZIGoals warn me about recovery words?"],
+  ["ak-zigi-more", "What can ZIGi do with the new features?"],
   ["auto-checkins", "Can a habit tick itself off from my Health journal?"],
   ["health-goals", "What is a health goal, and where does its progress come from?"],
   ["skips", "I’m away for a week. Will my streak break?"],
