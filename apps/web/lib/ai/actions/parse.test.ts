@@ -187,3 +187,17 @@ test('Session AI (A4 photos): a meal estimate\'s "from" and "range" beside the e
   expect(out.rejected).toEqual([]);
   expect(out.proposals[0]).toMatchObject({kind: 'log-food', estimate: {serving_g: 150, range: {kcal: [170, 230]}, from: 'photo'}});
 });
+test('Session AK (journey bug J8-1): the goal form card keeps its "date"; the log cards still read "date" as "day"', () => {
+  // The protocol's own example (lib/ai/context/specialists.ts) and the shape the journey's model answered.
+  for (const body of ['{"kind":"goal-draft","name":"Fictional new bike","target":900,"currency":"EUR","date":"2027-05-01"}',
+    '{"kind":"goal_draft","name":"Fictional new bike","target":900,"currency":"EUR","day":"2027-05-01"}',
+    '{type:"goal-form",name:"Fictional new bike",target:"900",currency:"EUR",date:"2027-05-01"}']) {
+    const out = parseReply(`\`\`\`zigoals-action\n${body}\n\`\`\``);
+    expect(out.rejected, body).toEqual([]);
+    expect(out.proposals[0], body).toMatchObject({kind: 'goal-draft', name: 'Fictional new bike', target: 900, currency: 'EUR', date: '2027-05-01'});
+    expect(out.proposals[0], body).not.toHaveProperty('day');
+  }
+  const log = parseReply('```zigoals-action\n{"kind":"log-water","glasses":2,"date":"2026-10-04"}\n```');
+  expect(log.rejected).toEqual([]);
+  expect(log.proposals[0]).toMatchObject({kind: 'log-water', day: '2026-10-04'});
+});

@@ -5,7 +5,7 @@ import {deviceZone} from '../push/support';
 import {appRegistration, registerAppWorker} from '../sw/register';
 import {forgetNotifyDatabases, kvDelete, kvGet, kvPut, readActions} from './db';
 import {currentPlan} from './sync';
-import {registrationKey, type Registration} from './plan';
+import {registrationKey, type Registration, type Snooze} from './plan';
 
 /**
  * Session AK Part 2 (ADR-036 Q3, Q15, A1–A4): this device's notifications. Everything starts from a tap (permission is
@@ -65,6 +65,10 @@ export async function turnOnNotifications(publicKey: string): Promise<TurnOn> {
   return {ok: true, note: result.message};
 }
 export type Refresh = {ok: boolean; message: string; sent: boolean};
+/** The "Snooze 1 h" taps the worker queued (applied or not: applying one changes no record); none when the queue cannot be read. */
+export async function queuedSnoozes(): Promise<Snooze[]> {
+  try { return (await readActions()).filter(a => a.type === 'snooze' && Array.isArray(a.items)).map(a => ({at: a.at, items: a.items!})); } catch { return []; }
+}
 /** Nothing to wake for: the Worker refuses an empty wake list (security review F2). */
 export const emptyRegistration = (r: Registration) => r.wakes.length + r.once.length === 0;
 /**
@@ -76,7 +80,8 @@ export const emptyRegistration = (r: Registration) => r.wakes.length + r.once.le
 export async function refreshNotifications({force = false, endpoint, now = Date.now()}: {force?: boolean; endpoint?: string; now?: number} = {}): Promise<Refresh> {
   const identity = await kvGet<Identity>('device').catch(() => undefined);
   if (!identity) return {ok: true, message: '', sent: false};
-  const plan = await currentPlan(now);
+  // Session AK (journey bug J5-2): a "Snooze 1 h" the worker queued stays in the snapshot and the wake list.
+  const plan = await currentPlan(now, await queuedSnoozes());
   if (!plan) return {ok: true, message: '', sent: false};
   await kvPut('snapshot', plan.snapshot).catch(() => {});
   const zone = deviceZone(), key = registrationKey(zone, plan.snapshot.quiet, plan.registration), stored = await kvGet<StoredRegistration>('registration').catch(() => undefined);

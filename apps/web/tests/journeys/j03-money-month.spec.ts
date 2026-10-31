@@ -173,7 +173,7 @@ test('@journey 3 money month: CSV and bank files → review inbox → a rule →
   await expect(prefilled).toBeVisible();
   await expect(prefilled.getByRole('button', {name: 'Fund Goal'})).toHaveAttribute('aria-pressed', 'true');
   await prefilled.getByRole('button', {name: /^EUR Cash/}).click();
-  await expect(prefilled.getByLabel('Contribution quantity (EUR)', {exact: true})).toBeVisible(); // the person checks and confirms (bug J3-2: not filled in)
+  await expect(prefilled.getByLabel('Contribution quantity (EUR)', {exact: true})).toBeVisible(); // the person checks and confirms (with a cash asset the amount is filled in: journey 3c, bug J3-2, fixed)
   expect((await stored<{contributions: unknown[]}>(page, PLATFORM_KEY))!.contributions).toHaveLength(before); // nothing moved by itself
   await prefilled.getByRole('button', {name: 'Close dialog'}).click();
 
@@ -186,7 +186,7 @@ test('@journey 3 money month: CSV and bank files → review inbox → a rule →
 // Bug J3-1 (docs/review/session-ak/JOURNEY_BUGS.md): a contribution made with "Fund Goal" from a cash asset is recorded in
 // the asset's units (18 decimals), so the contribution rhythm, which counts only events in the goal's own decimals (2),
 // never sees it: someone who funds their goal every Monday is never offered "Fill in".
-test.fixme('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rhythm the autopilot offers to fill in', async ({page}) => {
+test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rhythm the autopilot offers to fill in', async ({page}) => {
   await page.clock.install({time: at('2026-10-12', '10:00')});
   await offlineApis(page);
   await seedRecords(page, {[PLATFORM_KEY]: {...emptyPlatform(), goals: [goal]}});
@@ -207,7 +207,7 @@ test.fixme('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash mak
 
 // Bug J3-2 (docs/review/session-ak/JOURNEY_BUGS.md): "Fill in €50.00" opens the goal's Fund form, but with the person's
 // EUR cash asset (18 decimals, as the app makes cash assets) chosen the amount is never filled in.
-test.fixme('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amount in with a cash asset', async ({page}) => {
+test('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amount in with a cash asset', async ({page}) => {
   await page.clock.install({time: at('2026-11-09', '09:00')});
   await offlineApis(page);
   await seedRecords(page, {[PLATFORM_KEY]: {...emptyPlatform(), goals: [goal], contributions: earlier}});

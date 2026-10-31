@@ -19,7 +19,7 @@ import {readHabitHealthLinks} from '../habit-health-links/store';
 import {deviceZone} from '../push/support';
 import {NOTIFY_PREFS} from './prefs';
 import {addDays, wallClock} from './zone';
-import {buildPlan, type Plan, type PlanInput} from './plan';
+import {buildPlan, withSnoozes, type Plan, type PlanInput, type Snooze} from './plan';
 import {BILLS} from '../bills/schema';
 import {upcomingBills} from '../bills/store';
 import {SUPPLEMENTS} from '../supplements/schema';
@@ -85,8 +85,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { input.votes = governanceEvents(readDeviceRecord(storage, GOV_REMINDERS).data, {now, timeZone: zone}).map(e => ({id: e.id, at: Date.parse(e.at)})); } catch { /* unreadable: no wakes */ }
   return input;
 }
-/** The plan for now, or null in the Showcase. */
-export async function currentPlan(now = Date.now()): Promise<Plan | null> {
+/** The plan for now, or null in the Showcase; with the live "Snooze 1 h" taps kept (journey bug J5-2, lib/notify/plan.ts withSnoozes). */
+export async function currentPlan(now = Date.now(), snoozes: readonly Snooze[] = []): Promise<Plan | null> {
   const input = await gatherPlanInput(now);
-  return input ? buildPlan(input) : null;
+  return input ? withSnoozes(buildPlan(input), input, snoozes, now) : null;
 }

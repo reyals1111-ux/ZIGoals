@@ -10,6 +10,7 @@ import {GUIDES, KEY_LABELS} from '../../lib/exchanges/guides';
 import {formatDateTime, formatExactNumber} from '../../lib/visual-format';
 import {useSearchParams} from 'next/navigation';
 import {READ_PARAM, takeOfferedRead} from '../../lib/notify/offline-offer';
+import {offlineQueue, warmOfflineQueue} from '../../lib/offline-queue/warm';
 // Session AK (7.2): "Last synced … · Refresh now" and the automatic read while ZIGoals is open, visible and online, in its own chunk.
 const ExchangeAutoRefresh = lazy(() => import('../wealth/allocation/last-synced').then(m => ({default: m.ExchangeAutoRefresh})));
 
@@ -103,13 +104,15 @@ export function ExchangesPanel({showcase}: {showcase: boolean}) {
     const e = exchange as ExchangeId;
     readers[e]().then(n => setNote(`${EXCHANGE_NAMES[e]}: ${n} ${n === 1 ? 'asset' : 'assets'} read.`), () => { /* the connection shows its own error */ });
   }, [connectedIds, readers]);
+  // Session AK (journey bug J4-2): the queue's code is loaded while online, so a read asked for offline can be kept.
+  useEffect(() => showcase ? undefined : warmOfflineQueue(), [showcase]);
   /** "Read balances": while offline, kept and offered again on reconnect (lib/offline-queue), never read in the background. */
   async function readNow(e: ExchangeId) {
     setBusy(true); setError(''); setNote('');
     try { const n = await read(e); setNote(`${EXCHANGE_NAMES[e]}: ${n} ${n === 1 ? 'asset' : 'assets'} read.`); }
     catch (cause) {
       let kept = false;
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) { try { kept = await (await import('../../lib/offline-queue/queue')).enqueue('exchange-refresh', e); } catch { kept = false; } }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) { try { kept = await (await offlineQueue()).enqueue('exchange-refresh', e); } catch { kept = false; } }
       setError(kept ? `You’re offline. When you’re back online, ZIGoals offers to read ${EXCHANGE_NAMES[e]} again.` : cause instanceof Error ? cause.message : 'Not read.');
     } finally { setBusy(false); }
   }

@@ -16,6 +16,7 @@ import {ChecklistSky} from './checklist-sky';
 import {AmbientSky} from './ambient-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
+import {LoadBoundary} from '../load-boundary';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
 
@@ -210,7 +211,9 @@ export function ChecklistPage() {
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
     {sheet === 'quick' && !state.unreadable && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening quick add…</p>}><OrbitQuickAdd state={state} onClose={() => setSheet(null)} onAdded={id => { setSheet(null); setArrive(id); }}/></Suspense></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
+    {/* Session AK (journey bug J4-1): the celebration is a decoration; offline its chunk (or its stylesheet) may never have
+        been cached, and a failed load closes it quietly instead of taking the Checklist down. Nothing else changes. */}
+    {celebrate && state.date && <LoadBoundary quiet onFail={() => { setCelebrate(false); setReplay(false); }}><Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense></LoadBoundary>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>

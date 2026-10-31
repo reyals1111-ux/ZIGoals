@@ -24,7 +24,7 @@ const FIRST = [
   {kind: 'set-bill-reminder', title: 'Fictional gym', amount: 29, currency: 'EUR', cadence: 'monthly', next_due: '2026-11-15'},
   {kind: 'grocery-list', items: ['Fictional oats', 'Fictional apples']},
 ];
-const THIRD = [{kind: 'goal-draft', name: 'Fictional new bike', target: 900, currency: 'EUR'}]; // with a date: bug J8-1, below
+const THIRD = [{kind: 'goal-draft', name: 'Fictional new bike', target: 900, currency: 'EUR'}]; // with a date: journey 8b (bug J8-1, fixed)
 const SECOND = [
   {kind: 'what-if', goal: 'Fictional bike fund', extra_per_month: 50},
   {kind: 'scan-food', mode: 'barcode', barcode: '4006381333931'},
@@ -115,7 +115,7 @@ test('@journey 8 ZIGi: every new AK card is proposed and confirmed by the person
 // Bug J8-1 (docs/review/session-ak/JOURNEY_BUGS.md): ZIGi's parser rewrites every card's "date" to "day" (a repair for
 // log cards), but the goal form card's own field is "date" (as the protocol example the model is given shows), so a
 // goal-draft with a date is refused: "Unrecognized key: \"day\"".
-test.fixme('@journey 8b bug J8-1: the goal form card with a date is proposed, not refused', async ({page}) => {
+test('@journey 8b bug J8-1: the goal form card with a date is proposed, not refused', async ({page}) => {
   await page.clock.install({time: new Date('2026-11-04T17:00:00Z')});
   await offlineApis(page);
   const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;

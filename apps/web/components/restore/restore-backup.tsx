@@ -9,6 +9,7 @@ import {useVaultControls} from '../vault-sync-controls';
 import {formatDate} from '../../lib/visual-format';
 import './restore-backup.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {CHECKLIST_NOT_RESTORED} from '../../lib/restore/checklist-note';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): Settings → Your data → "Restore from a backup". The
@@ -21,7 +22,8 @@ import {plainErrorMessage} from '../../lib/plain-error';
  * works after a reload (lib/restore/apply.ts) until the person changes those records or chooses "Keep the restore".
  */
 type Row = PlannedPart & {current: PartSummary | null; currentUnreadable: boolean; replaceBlocked: string | null};
-type Preview = {opened: OpenedBackup; rows: Row[]; groups: RestoreGroup[]; visionCount: number; progressCount: number};
+/** `never` (Session AK, J6-2): lib/restore/plan.ts NEVER_RESTORED, shown as it is instead of a shorter hand-made list. */
+type Preview = {opened: OpenedBackup; rows: Row[]; groups: RestoreGroup[]; visionCount: number; progressCount: number; never: string};
 /** `note`: for a restore made before this page loaded (another visit or a reload), when it ran and until when it can be undone. */
 type UndoInfo = {afterReload: boolean; note: string | null};
 const MODE_LABEL: Record<RestoreMode, string> = {leave: 'Leave as it is', merge: 'Merge: add what is missing', replace: 'Replace with the backup'};
@@ -53,7 +55,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
     setPreview(null); setOutcome(null); setNotes([]); setUndone(''); setConfirm(false); setModes({});
     if (!file) return;
     if (isShowcase()) throw Error('You are in the Showcase. Return to your own data to restore a backup.');
-    const [{openBackup}, {planParts, replaceRefused, summarizePart, RESTORE_GROUPS, OLDER_THAN_DEVICE_MESSAGE}, {currentValue}] = await lib();
+    const [{openBackup}, {planParts, replaceRefused, summarizePart, RESTORE_GROUPS, OLDER_THAN_DEVICE_MESSAGE, NEVER_RESTORED}, {currentValue}] = await lib();
     const opened = await openBackup(file), storage = getAppStorage(), rows: Row[] = [];
     for (const part of planParts(opened.json)) {
       let current: PartSummary | null = null, currentUnreadable = false, replaceBlocked: string | null = null;
@@ -61,7 +63,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
       rows.push({...part, current, currentUnreadable, replaceBlocked});
     }
     const progressCount = Array.isArray((opened.json.device.progressPhotos as {photos?: unknown[]} | undefined)?.photos) ? opened.photos.length : 0;
-    setPreview({opened, rows, groups: RESTORE_GROUPS.filter(g => g !== 'Photos' && rows.some(r => r.group === g)), visionCount: opened.vision.length, progressCount});
+    setPreview({opened, rows, groups: RESTORE_GROUPS.filter(g => g !== 'Photos' && rows.some(r => r.group === g)), visionCount: opened.vision.length, progressCount, never: NEVER_RESTORED});
     setModes(Object.fromEntries(rows.map(r => [r.id, 'leave' as RestoreMode])));
     setPhotos({vision: false, progress: false});
   });
@@ -92,7 +94,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
   const mergeAll = () => preview && setModes(Object.fromEntries(preview.rows.map(r => [r.id, r.problem ? 'leave' : 'merge'])));
 
   return <div className="restore-backup">
-    <p className="fine">Choose a ZIP made by &ldquo;Export everything&rdquo;. You see what it holds before anything changes; keys and secrets are never in it and never restored.</p>
+    <p className="fine">Choose a ZIP made by &ldquo;Export everything&rdquo;. You see what it holds before anything changes; keys and secrets are never in it and never restored. {CHECKLIST_NOT_RESTORED}</p>
     <label className="rb-file">Export everything ZIP<input key={fileKey} type="file" accept=".zip,application/zip" disabled={busy} onChange={e => void open(e.target.files?.[0])} /></label>
     {busy && <p className="fine" aria-live="polite">{restoring ? 'Restoring… You can stop between two parts.' : 'Working…'}</p>}
     {restoring && <div className="dh-actions"><button type="button" className="secondary" onClick={() => stop.current?.abort()}>Stop restoring</button></div>}
@@ -114,7 +116,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
         {preview.progressCount > 0 && <label className="checkbox"><input type="checkbox" checked={photos.progress} onChange={e => { setPhotos({...photos, progress: e.target.checked}); setConfirm(false); }} />Add the missing progress photos ({preview.progressCount} in the file)</label>}
         {preview.opened.oversized > 0 && <p className="fine">{oversizedPhotosNote(preview.opened.oversized)}</p>}
       </fieldset>}
-      <p className="fine">Merge adds what the backup has and this device does not; nothing this device holds is changed. Replace puts the backup&rsquo;s copy in place of this device&rsquo;s, which is kept as a recovery copy for the four main records. Never restored: notifications, ZIGi&rsquo;s settings, notes and conversations, an import&rsquo;s undo, a timer or routine in progress, the welcome&rsquo;s setup, display choices, recent searches and Point &amp; tell notes.</p>
+      <p className="fine">Merge adds what the backup has and this device does not; nothing this device holds is changed. Replace puts the backup&rsquo;s copy in place of this device&rsquo;s, which is kept as a recovery copy for the four main records. {preview.never}</p>
       <label className="checkbox"><input id={`${id}-confirm`} type="checkbox" checked={confirm} disabled={!anything} onChange={e => setConfirm(e.target.checked)} />I checked my choices. Restore them on this device; I can undo it afterwards.</label>
       <div className="dh-actions">
         <button type="button" className="primary" disabled={busy || !confirm || !anything} onClick={() => void restore()}>Restore the chosen parts</button>

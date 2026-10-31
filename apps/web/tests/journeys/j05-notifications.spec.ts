@@ -148,7 +148,7 @@ test('@journey 5 notifications: the snapshot stays here, wake minutes leave, Don
   expect(snoozed.once?.length).toBe(1);
   expect(Math.abs(snoozed.once![0]! * 60_000 - (Date.now() + 3_600_000))).toBeLessThan(5 * 60_000);
   expect(snoozed.secret).toBeTruthy();
-  // (The snoozed item an hour on does not survive the open page's next snapshot: bug J5-2, below.)
+  // (The snoozed item an hour on survives the open page's next snapshot: journey 5c, bug J5-2, fixed.)
   expect(await habitDone(page)).toBe(0); // a snooze changes no record
 });
 
@@ -156,7 +156,7 @@ test('@journey 5 notifications: the snapshot stays here, wake minutes leave, Don
 // lib/notify/actions.ts, which sends no change event: the open Habits page keeps showing "Due" under the toast that says
 // the habit was marked done, and after Undo the device's snapshot is not rewritten, so until the page is reopened,
 // refocused or the 10-minute refresh comes, the next push finds nothing due for that habit.
-test.fixme('@journey 5b bug J5-1: Done from a notification shows on the open page, and its Undo puts the habit back in the snapshot', async ({page, context}) => {
+test('@journey 5b bug J5-1: Done from a notification shows on the open page, and its Undo puts the habit back in the snapshot', async ({page, context}) => {
   await stubPush(context);
   await seedRecords(page, {}, {settings: 'habits-health'});
   const soon = new Date(Date.now() + 60_000 + OFFSET * 3_600_000), hhmm = `${String(soon.getUTCHours()).padStart(2, '0')}:${String(soon.getUTCMinutes()).padStart(2, '0')}`;
@@ -185,7 +185,7 @@ test.fixme('@journey 5b bug J5-1: Done from a notification shows on the open pag
 // the open page answers the worker's message by rebuilding the snapshot from the records (lib/notify/device.ts
 // refreshNotifications), which know nothing of the snooze: the item is back at its first time, so the push an hour later
 // finds nothing due. Any ZIGoals page opened during that hour does the same.
-test.fixme('@journey 5c bug J5-2: a snoozed reminder is still due an hour later, with a ZIGoals page open', async ({page, context}) => {
+test('@journey 5c bug J5-2: a snoozed reminder is still due an hour later, with a ZIGoals page open', async ({page, context}) => {
   await stubPush(context);
   await seedRecords(page, {}, {settings: 'habits-health'});
   const soon = new Date(Date.now() + 60_000 + OFFSET * 3_600_000), hhmm = `${String(soon.getUTCHours()).padStart(2, '0')}:${String(soon.getUTCMinutes()).padStart(2, '0')}`;

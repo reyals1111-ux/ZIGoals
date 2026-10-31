@@ -76,6 +76,18 @@ export function repairJson(body: string): unknown {
 const UNIT_ALIASES: Readonly<Record<string, string>> = {uur: 'hours', uren: 'hours', hour: 'hours', h: 'hours', hr: 'hours', hrs: 'hours', u: 'hours', min: 'minutes', mins: 'minutes', minuut: 'minutes', minuten: 'minutes', minute: 'minutes', glas: 'glasses', glazen: 'glasses', glass: 'glasses', kilo: 'kg', kilogram: 'kg', kilos: 'kg', pond: 'lb', pounds: 'lb', pound: 'lb', stappen: 'steps', step: 'steps', liter: 'l', liters: 'l', litre: 'l', litres: 'l', gram: 'g', grams: 'g', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml'};
 const NUMERIC_KEYS = new Set(['millilitres', 'glasses', 'value', 'steps', 'minutes', 'hours', 'quantity', 'target', 'targetHours', 'servings', 'count', 'weekday', 'quality', 'mood', 'days', 'serving_g', 'serving_ml', 'grams', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'balance']);
 const NUMBER = /^-?\d+(?:[.,]\d+)?$/;
+/**
+ * Session AK (journey bug J8-1): the kinds whose own schema field is `date` (an ISO day), not `day`. The "date" → "day"
+ * repair below is for the log cards; for these kinds it would turn a valid card into an unknown key ("Unrecognized
+ * key: day"). A `day` sent to one of them is read back as its `date`.
+ */
+export const KINDS_WITH_DATE: ReadonlySet<string> = new Set(['goal-draft']);
+const kindWord = (kind: unknown): string | undefined => { if (typeof kind !== 'string') return undefined; const k = kind.trim().toLowerCase().replace(/[\s_]+/g, '-'); return KIND_ALIASES[k] ?? KIND_ALIASES[kind.trim().toLowerCase()] ?? k; };
+/** The date repair for one card: "date" → "day" for the log cards, "day" → "date" for the kinds that keep a `date`. */
+function repairDate(o: Record<string, unknown>, kind: string | undefined): void {
+  if (kind !== undefined && KINDS_WITH_DATE.has(kind)) { if (o.date === undefined && typeof o.day === 'string') { o.date = o.day; delete o.day; } return; }
+  if (typeof o.date === 'string' && o.day === undefined) { o.day = o.date; delete o.date; }
+}
 function coerceNumbers(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(coerceNumbers);
   if (!value || typeof value !== 'object') return value;
@@ -85,7 +97,7 @@ function coerceNumbers(value: unknown): unknown {
   const o = value as Record<string, unknown>;
   if (o.kind === 'check-in' && typeof o.minutes === 'number' && o.value === o.minutes && o.quantity === undefined) delete o.value;
   // Session Z-Local L53: a card that says "date" means "day" (gemma4 wrote {"date": "2026-10-04"} and the block was refused for the unknown key).
-  if (typeof o.date === 'string' && o.day === undefined) { o.day = o.date; delete o.date; }
+  repairDate(o, kindWord(o.kind ?? o.type));
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
     // Session Z-Local L63: an empty string is an absent field (Sonnet wrote "wake": "" for a nap and the block was refused).
     if (v === '') continue;
@@ -121,7 +133,7 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   // as bare words, "night" for the evening, an unknown goal category. Each is a rewrite of a shape, never a new ability.
   if (record.kind === undefined && typeof record.type === 'string' && (KIND_ALIASES[record.type.trim().toLowerCase()] ?? record.type.trim().toLowerCase()) in KIND_SET) { record.kind = record.type; delete record.type; }
   if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase().replace(/\s+/g, '-'); record.kind = KIND_ALIASES[kind] ?? kind; }
-  if (record.day === undefined && typeof record.date === 'string') { record.day = record.date; delete record.date; }
+  repairDate(record, typeof record.kind === 'string' ? record.kind : undefined);
   // Session AI (A4 photos, seen on Opus): a meal estimate's "from" and "range" written beside the estimate instead of in it.
   if (record.kind === 'log-food' && (record.from !== undefined || record.range !== undefined)) {
     const estimate = {...(record.estimate && typeof record.estimate === 'object' ? record.estimate as Record<string, unknown> : {})};

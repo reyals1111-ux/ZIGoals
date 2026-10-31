@@ -8,9 +8,12 @@ import {Component, useEffect, useState, type ReactNode} from 'react';
  * floating button simply stays away); the rest of the page keeps working. A failed load is remembered by the browser
  * until the page reloads, so the way back is a reload once online.
  */
-export class LoadBoundary extends Component<{children: ReactNode; label?: string; title?: string; quiet?: boolean; className?: string; noteClassName?: string; rest?: string}, {failed: boolean}> {
+// Session AK (journey bug J4-1): `onFail` lets the owner close what failed to open (a decoration that would otherwise stay
+// "open" with nothing on screen); it runs once per failed load, after the boundary has caught it.
+export class LoadBoundary extends Component<{children: ReactNode; label?: string; title?: string; quiet?: boolean; className?: string; noteClassName?: string; rest?: string; onFail?: () => void}, {failed: boolean}> {
   state = {failed: false};
   static getDerivedStateFromError() { return {failed: true}; }
+  componentDidCatch() { this.props.onFail?.(); }
   render() {
     if (!this.state.failed) return this.props.children;
     if (this.props.quiet) return null;

@@ -43,11 +43,39 @@ function usualAmount(amounts: readonly bigint[]): string {
   return sorted[Math.floor((sorted.length - 1) / 2)]!.toString();
 }
 
+/**
+ * Session AK (journey bug J3-1): one contribution in the Goal's own base units, or null when it cannot be read in them.
+ * A "Fund Goal" contribution is recorded in the funding position's units (a manual asset has 18 decimals) with its value
+ * in the Goal's currency and decimals beside it; a "Record history only" one is in the Goal's units already. Read only:
+ * the stored record is unchanged.
+ */
+export function inGoalUnits(e: Pick<ContributionEvent, 'quantity' | 'asset' | 'decimals' | 'valueAtEvent'>, goal: Pick<PrivateGoal, 'asset' | 'decimals'>): bigint | null {
+  const v = e.valueAtEvent;
+  if (v && v.currency === goal.asset && v.decimals === goal.decimals) return BigInt(v.value);
+  if (e.asset !== goal.asset) return null;
+  const q = BigInt(e.quantity), shift = goal.decimals - e.decimals;
+  if (shift >= 0) return q * 10n ** BigInt(shift);
+  // Fewer decimals in the Goal: the nearest base unit (half up).
+  const unit = 10n ** BigInt(-shift);
+  return (q + unit / 2n) / unit;
+}
+/**
+ * Session AK (journey bug J3-2): a Goal-unit amount (the plan's or the rhythm's) in a funding asset's own base units, for
+ * the Fund form to fill in. Only for an asset in the Goal's own currency, and only when it is exact; otherwise undefined
+ * and the field stays empty for the person to type.
+ */
+export function goalUnitsInAsset(amount: string, goal: Pick<PrivateGoal, 'asset' | 'decimals'>, asset: {asset: string; decimals: number}): string | undefined {
+  if (asset.asset !== goal.asset || !/^\d{1,78}$/.test(amount)) return undefined;
+  const q = BigInt(amount), shift = asset.decimals - goal.decimals;
+  if (shift >= 0) return (q * 10n ** BigInt(shift)).toString();
+  const unit = 10n ** BigInt(-shift);
+  return q % unit === 0n ? (q / unit).toString() : undefined;
+}
 export function contributionRhythm(goal: Pick<PrivateGoal, 'id' | 'name' | 'status' | 'asset' | 'decimals' | 'plan'>, events: readonly ContributionEvent[], today: string, dayOf: (iso: string) => string = iso => localDate(new Date(iso))): AutopilotSuggestion | null {
   if (goal.status !== 'active') return null;
   const reversed = new Set(events.flatMap(e => e.reversesId ? [e.reversesId] : []));
-  const mine = events.filter(e => e.goalId === goal.id && e.direction === 'IN' && !e.reversesId && !reversed.has(e.id) && e.provenance !== 'REWARD_INCOME' && e.asset === goal.asset && e.decimals === goal.decimals)
-    .map(e => ({day: dayOf(e.occurredAt), quantity: BigInt(e.quantity)})).filter(e => e.day <= today && daysBetween(e.day, today) <= LOOKBACK_DAYS).sort((a, b) => a.day.localeCompare(b.day));
+  const mine = events.filter(e => e.goalId === goal.id && e.direction === 'IN' && !e.reversesId && !reversed.has(e.id) && e.provenance !== 'REWARD_INCOME')
+    .flatMap(e => { const quantity = inGoalUnits(e, goal); return quantity === null || quantity <= 0n ? [] : [{day: dayOf(e.occurredAt), quantity}]; }).filter(e => e.day <= today && daysBetween(e.day, today) <= LOOKBACK_DAYS).sort((a, b) => a.day.localeCompare(b.day));
   // One per day: two records on one day are one contribution moment.
   const byDay = new Map<string, bigint>();
   for (const e of mine) byDay.set(e.day, (byDay.get(e.day) ?? 0n) + e.quantity);

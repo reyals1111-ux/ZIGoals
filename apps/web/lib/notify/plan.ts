@@ -116,3 +116,38 @@ export function buildPlan(input: PlanInput): Plan {
 }
 /** A stable string of the registration, to send it again only when it changed. */
 export const registrationKey = (zone: string, quiet: {from: string; to: string}, r: Registration) => JSON.stringify([zone, quiet.from, quiet.to, r.wakes, r.once, r.skips]);
+/**
+ * Session AK (journey bug J5-2): a "Snooze 1 h" tapped on a notification, as the service worker queues it
+ * (lib/notify/db.ts QueuedAction, type 'snooze': the tap's time and the items it named). The worker moves the items an
+ * hour on in the snapshot and adds that wake minute; the page, which rewrites the snapshot from the records, keeps both.
+ */
+export const SNOOZE_MS = 3_600_000;
+export type Snooze = {at: number; items: {kind: string; id: string; at: number}[]};
+/**
+ * The plan with each live snooze kept: the snoozed item comes back at the tap's time plus an hour (with the text it had
+ * then), and its minute stays in the one-off wakes. An item done since (or switched off) is no longer in the plan built
+ * for the tap's moment from today's records, so it does not come back. A snooze stays live as long as the plan keeps a
+ * passed item (an hour). Pure; `input` is the one the plan was built from.
+ */
+export function withSnoozes(plan: Plan, input: PlanInput, snoozes: readonly Snooze[], now: number): Plan {
+  const live = snoozes.filter(s => Number.isFinite(s.at) && s.at <= now && s.at + SNOOZE_MS > now - SNOOZE_MS && Array.isArray(s.items) && s.items.length);
+  if (!live.length) return plan;
+  const items = [...plan.snapshot.items], once = new Set(plan.registration.once), seen = new Set(items.map(i => `${i.kind}:${i.id}:${i.at}`));
+  const then = new Map<number, Plan>();
+  for (const s of live) {
+    const until = s.at + SNOOZE_MS, earlier = then.get(s.at) ?? buildPlan({...input, now: s.at});
+    then.set(s.at, earlier);
+    for (const wanted of s.items) {
+      const matches = earlier.snapshot.items.filter(i => i.kind === wanted.kind && i.id === wanted.id && Math.abs(i.at - wanted.at) < 40 * 60_000);
+      const item = matches.find(i => i.at === wanted.at) ?? matches[0];
+      if (!item || seen.has(`${item.kind}:${item.id}:${until}`)) continue;
+      seen.add(`${item.kind}:${item.id}:${until}`);
+      items.push({...item, at: until});
+      if (until > now) once.add(Math.floor(until / 60_000));
+    }
+  }
+  items.sort((a, b) => a.at - b.at || a.kind.localeCompare(b.kind));
+  const onceList = [...once].sort((a, b) => a - b).slice(0, MAX_WAKES), room = MAX_WAKES - onceList.length;
+  const dropped = plan.dropped + Math.max(0, plan.registration.wakes.length - room);
+  return {...plan, snapshot: {...plan.snapshot, items: items.slice(0, 200)}, registration: {...plan.registration, once: onceList, wakes: plan.registration.wakes.slice(0, room)}, dropped};
+}

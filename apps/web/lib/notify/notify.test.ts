@@ -245,6 +245,22 @@ describe('the service worker’s offline cache and openings (security review)', 
     expect(aborted).toBe(upgrades);
     expect(aborted).toBeGreaterThan(1);
   });
+  it('Session AK (journey bug J6-1): after "zigoals:sw-forget" the worker caches nothing more, empties its caches and answers', async () => {
+    const caches = fakeCaches(), fetched: string[] = [];
+    (await caches.impl.open('zigoals-static-v1')).put({url: 'https://app.test/_next/static/chunks/a.js'}, 'cached chunk');
+    const sw = swSandbox({cachesImpl: caches.impl, fetchImpl: async r => { fetched.push((r as unknown as {url: string}).url); return ok(); }});
+    const answers: unknown[] = [], waits: Promise<unknown>[] = [];
+    sw.handlers.message!({data: {type: 'zigoals:sw-forget'}, ports: [{postMessage: (m: unknown) => answers.push(m)}], waitUntil: (p: Promise<unknown>) => waits.push(p)});
+    await Promise.all(waits);
+    expect(caches.deleted).toEqual(['zigoals-static-v1']);
+    expect(answers).toEqual([{type: 'zigoals:sw-forgotten'}]);
+    const get = (path: string) => ({method: 'GET', url: 'https://app.test' + path, mode: 'no-cors', headers: new Headers()});
+    // The browser fetches them itself: the worker answers none, so no cache can come back.
+    expect(await fetchThrough(sw, get('/_next/static/chunks/b.js'))).toBe('not handled');
+    expect(await fetchThrough(sw, page('/app/habits'))).toBe('not handled');
+    expect(await fetchThrough(sw, get('/icons/zigoals-192.png'))).toBe('not handled');
+    expect([...caches.stores.keys()]).toEqual([]);
+  });
   it('I1: a notification opens only this app’s /app addresses', async () => {
     const sw = swSandbox();
     for (const bad of ['//evil.test/app', '/\\evil.test/app', 'https://evil.test/app', 'javascript:alert(1)', '/settings', '/application', '', null])

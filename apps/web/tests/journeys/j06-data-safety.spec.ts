@@ -89,6 +89,8 @@ test('@journey 6 data safety: Export everything → Test a backup → Erase ever
   const snapshotBefore = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:') && !k.includes('notify')).sort()));
   await page.getByLabel(/^Test a backup: choose a backup file/).setInputFiles({name: 'zigoals-export.zip', mimeType: 'application/zip', buffer: zip});
   await expect(page.locator('.test-backup [role=status]')).toContainText(/^All \d+ parts would restore\./, {timeout: 20_000});
+  // Owner question J6-2: the Checklist is never restored (lib/restore/plan.ts NEVER_RESTORED), and Test a backup says so.
+  await expect(page.locator('.test-backup [role=status]')).toContainText('The Checklist is never restored from a backup');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).filter(([k]) => k.startsWith('zigoals:') && !k.includes('notify')).sort()))).toBe(snapshotBefore);
 
   // Erase everything: typed confirmation; the server's device record, the caches and every database and key go.
@@ -103,7 +105,7 @@ test('@journey 6 data safety: Export everything → Test a backup → Erase ever
   const after = await zigoals(page);
   expect({keys: after.keys, databases: after.databases}).toEqual({keys: 0, databases: []});
   expect(after.caches.filter(k => !k.startsWith('zigoals-static-'))).toEqual([]); // no cached page is left
-  // What is left (bug J6-1, below) is only the build's public hashed files, refilled by the still-running worker.
+  // Nothing but the build's public hashed files may be here; journey 6b (bug J6-1, fixed) checks that no ZIGoals cache is left.
   const leftover = await page.evaluate(async () => { const out: string[] = []; for (const k of await caches.keys()) if (k.startsWith('zigoals')) for (const r of await (await caches.open(k)).keys()) out.push(new URL(r.url).pathname); return out; });
   expect(leftover.filter(p => !p.startsWith('/_next/static/'))).toEqual([]);
 
@@ -131,7 +133,7 @@ test('@journey 6 data safety: Export everything → Test a backup → Erase ever
 
 // Bug J6-1 (docs/review/session-ak/JOURNEY_BUGS.md): right after "Erase everything" the offline worker is still running
 // and caches the next hashed files the page loads, so a "zigoals-static-v1" cache is back at once.
-test.fixme('@journey 6b bug J6-1: after Erase everything no ZIGoals cache is left', async ({page, context}) => {
+test('@journey 6b bug J6-1: after Erase everything no ZIGoals cache is left', async ({page, context}) => {
   await context.route(url => url.pathname.startsWith('/api/'), route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
   await seedRecords(page, records());
   await page.goto('/app');

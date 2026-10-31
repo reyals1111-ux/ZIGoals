@@ -61,7 +61,7 @@ test('@journey 4 offline: install, every pillar offline, back online, the update
     await page.goto('/app');
     await expect(page.locator('main h1').first()).toBeVisible();
     await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
-    // The Checklist opens with today's path (ticking the day's last dot offline: bug J4-1, below).
+    // The Checklist opens with today's path (ticking the day's last dot offline: journey 4b, bug J4-1, fixed).
     await page.goto('/app/checklist'); await hydrated(page);
     await expect(page.getByRole('button', {name: `${HABIT}: not done yet`, exact: true})).toHaveAttribute('aria-pressed', 'false');
     // Habits: a check-in is recorded on the device.
@@ -73,7 +73,7 @@ test('@journey 4 offline: install, every pillar offline, back online, the update
     await page.goto('/app/health'); await hydrated(page);
     await page.getByRole('button', {name: 'Add 250 mL', exact: true}).click();
     await expect.poll(async () => (await stored<{daily?: {water: unknown[]}}>(page, 'zigoals:health:v1'))?.daily?.water.length ?? 0).toBe(1);
-    // A barcode asked for offline is kept for later: bug J4-2, below.
+    // A barcode asked for offline is kept for later: journey 4c (bug J4-2, fixed).
     // Goals: the goal opens.
     await page.goto('/app/goals'); await hydrated(page);
     await expect(page.getByRole('link', {name: GOAL}).first()).toBeVisible();
@@ -105,7 +105,7 @@ test('@journey 4 offline: install, every pillar offline, back online, the update
 // Bug J4-1 (docs/review/session-ak/JOURNEY_BUGS.md): offline, a Checklist whose day is complete asks for the celebration's
 // stylesheet chunk (never fetched online, so not in the worker's cache); the chunk fails and the whole page shows
 // "This page could not be shown." instead of the done path.
-test.fixme('@journey 4b bug J4-1: offline, the Checklist with its day complete still opens', async ({page, context}) => {
+test('@journey 4b bug J4-1: offline, the Checklist with its day complete still opens', async ({page, context}) => {
   await context.route(url => url.pathname.startsWith('/api/'), route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
   const created = new Date(Date.now() - 10 * 86_400_000);
   const habits = createHabit(emptyHabitData(), {title: HABIT, category: 'Fictional', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, created, HABIT_ID);
@@ -129,7 +129,7 @@ test.fixme('@journey 4b bug J4-1: offline, the Checklist with its day complete s
 // Bug J4-2 (docs/review/session-ak/JOURNEY_BUGS.md): the barcode kept offline needs lib/offline-queue/queue, which the
 // barcode lookup imports only at the moment it finds the device offline; that chunk was never fetched online, so it fails
 // to load, nothing is kept, and the page says "Food lookup is unavailable" instead of offering it again on reconnect.
-test.fixme('@journey 4c bug J4-2: a barcode asked for offline is kept, and offered (never run) back online', async ({page, context}) => {
+test('@journey 4c bug J4-2: a barcode asked for offline is kept, and offered (never run) back online', async ({page, context}) => {
   let disconnected = false;
   await context.route(url => url.pathname.startsWith('/api/'), route => disconnected ? route.abort('internetdisconnected') : route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
   await seedRecords(page, {});

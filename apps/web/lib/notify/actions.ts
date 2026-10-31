@@ -19,6 +19,16 @@ let running: Promise<Applied[]> | null = null;
 const updateHabits = (storage: Storage, change: (d: HabitData) => HabitData) =>
   isDurableMarker(storage.getItem(HABITS_KEY)) ? updateDurableStore(storage, HABITS_KEY, habitDataSchema, change) : updatePrivateStore(storage, HABITS_KEY, habitDataSchema, emptyHabitData, change);
 
+/**
+ * Session AK (journey bug J5-1): a habit write made here is announced like any module edit (lib/sync-homes-store.ts
+ * announceModuleChange): the open Habits page re-reads, account sync schedules an upload, other tabs refresh, and
+ * NotifySync rewrites the snapshot (after Undo the habit is due again for the next push).
+ */
+export function announceHabitsChange(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('zigoals:private-change', {detail: HABITS_KEY}));
+  if (!isShowcase() && typeof BroadcastChannel !== 'undefined') { const channel = new BroadcastChannel('zigoals:private-updates:v1'); channel.postMessage(HABITS_KEY); channel.close(); }
+}
 /** One action against the records: a pure step, exported for the tests. Already-complete or unknown habits are left alone. */
 export function doneChange(action: QueuedAction, today: string): {change: (d: HabitData) => HabitData; ids: string[]} {
   const date = action.date && /^\d{4}-\d{2}-\d{2}$/.test(action.date) ? action.date : today;
@@ -39,9 +49,10 @@ async function applyOne(action: QueuedAction, today: string): Promise<Applied | 
     if (!ids.length) return null;
     let before: HabitData | null = null;
     const after = await updateHabits(storage, d => { before = d; return change(d); });
+    announceHabitsChange();
     const titles = after.habits.filter(h => ids.includes(h.id)).map(h => h.title);
     const previous = before as HabitData | null;
-    return {actionId: action.actionId, message: `${titles.length === 1 ? titles[0] : `${titles.length} habits`} marked done from a notification`, ...(previous ? {undo: async () => { await updateHabits(storage, d => ({...d, habits: d.habits.map(h => ids.includes(h.id) ? previous.habits.find(p => p.id === h.id) ?? h : h)})); }} : {})};
+    return {actionId: action.actionId, message: `${titles.length === 1 ? titles[0] : `${titles.length} habits`} marked done from a notification`, ...(previous ? {undo: async () => { await updateHabits(storage, d => ({...d, habits: d.habits.map(h => ids.includes(h.id) ? previous.habits.find(p => p.id === h.id) ?? h : h)})); announceHabitsChange(); }} : {})};
   }
   if (action.type === 'price-fired' && action.alertId) {
     const record = readDeviceRecord(storage, PRICE_ALERTS).data, alert = record.alerts.find(a => a.id === action.alertId);

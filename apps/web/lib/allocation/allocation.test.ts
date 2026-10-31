@@ -2,7 +2,7 @@ import {describe, expect, test} from 'vitest';
 import type {ContributionEvent, PrivateGoal, ValuationSnapshot} from '../positions';
 import {TARGET_ALLOCATION_KEY, assetPerformance, driftByCurrency, emptyTargetAllocation, holdingRows, setTargets, targetAllocationSchema, targetSum, type HoldingRow} from './target';
 import {AVAILABLE, layoutFlows, purposeAssets, purposeFlows} from './purpose';
-import {autopilotSuggestions, contributionPrefillHref, contributionRhythm, dayWords} from './autopilot';
+import {autopilotSuggestions, contributionPrefillHref, contributionRhythm, dayWords, goalUnitsInAsset, inGoalUnits} from './autopilot';
 import {AUTO_EVERY_MS, backoff, canRefreshNow, lastSyncedText, nextRefresh} from './exchange-refresh';
 
 const h = (positionId: string, wealthClass: string, value: bigint | undefined, currency = 'EUR', asset = positionId): HoldingRow => ({positionId, assetKey: asset.toUpperCase(), assetLabel: asset, wealthClass, currency, ...(value !== undefined ? {value} : {})});
@@ -102,6 +102,29 @@ describe('contribution autopilot (Session AK 7.6)', () => {
     expect(contributionRhythm(goal('5', {status: 'closed'}), ['2026-08-03', '2026-09-03', '2026-10-03'].map(d => event('5', d, '1')), '2026-10-31', dayOf)).toBeNull();
     const all = autopilotSuggestions({goals: [goal('1'), goal('2')], contributions: [...weekly, ...['2026-08-03', '2026-09-03', '2026-10-03'].map(d => event('1', d, '5'))]}, '2026-10-31', dayOf);
     expect(all.map(s => s.goalId)).toEqual(['2', '1']);
+  });
+  test('Session AK (journey bug J3-1): "Fund Goal" contributions from cash, recorded at 18 decimals, count in the Goal\'s units', () => {
+    // As lib/contribution-funding.ts records them: the cash position's units, and the value in the Goal's currency beside it.
+    const funded = (day: string) => event('6', day, '50000000000000000000', {decimals: 18, positionId: 'cash', provenance: 'MANUAL_ATTRIBUTION', fundingMode: 'FUND_GOAL', valueAtEvent: {value: '5000', decimals: 2, currency: 'EUR', source: 'MANUAL'}});
+    const s = contributionRhythm(goal('6'), ['2026-10-05', '2026-10-12', '2026-10-19'].map(funded), '2026-10-26', dayOf);
+    expect(s).toMatchObject({rhythm: 'weekly', day: 1, amount: '5000', asset: 'EUR', decimals: 2, occurrences: 3});
+    expect(s!.prefillHref).toBe('/app/goals/tracked/6?contribute=1&amount=5000#funding-wealth');
+    // Without a value beside it, the same asset at other decimals is rescaled; another asset with no value in the Goal's currency still is not counted.
+    expect(inGoalUnits({quantity: '50000000000000000000', asset: 'EUR', decimals: 18}, {asset: 'EUR', decimals: 2})).toBe(5000n);
+    expect(inGoalUnits({quantity: '5', asset: 'EUR', decimals: 0}, {asset: 'EUR', decimals: 2})).toBe(500n);
+    expect(inGoalUnits({quantity: '1000', asset: 'USD', decimals: 2}, {asset: 'EUR', decimals: 2})).toBeNull();
+    expect(inGoalUnits({quantity: '1000', asset: 'ZIG', decimals: 6, valueAtEvent: {value: '1234', decimals: 2, currency: 'EUR', source: 'COINGECKO'}}, {asset: 'EUR', decimals: 2})).toBe(1234n);
+    // History-only and funded contributions on the same rhythm are one rhythm.
+    expect(contributionRhythm(goal('7'), [event('7', '2026-10-05', '5000'), event('7', '2026-10-12', '5000'), {...funded('2026-10-19'), goalId: '7'}], '2026-10-26', dayOf)).toMatchObject({rhythm: 'weekly', amount: '5000', occurrences: 3});
+  });
+  test('Session AK (journey bug J3-2): the due amount is filled in for a cash asset in the Goal\'s currency, rescaled to its decimals', () => {
+    expect(goalUnitsInAsset('5000', {asset: 'EUR', decimals: 2}, {asset: 'EUR', decimals: 18})).toBe('50000000000000000000');
+    expect(goalUnitsInAsset('5000', {asset: 'EUR', decimals: 2}, {asset: 'EUR', decimals: 2})).toBe('5000');
+    expect(goalUnitsInAsset('5000', {asset: 'EUR', decimals: 2}, {asset: 'EUR', decimals: 0})).toBe('50');
+    // Not exact in the asset's units, another currency, or not an amount: left for the person to type.
+    expect(goalUnitsInAsset('5050', {asset: 'EUR', decimals: 2}, {asset: 'EUR', decimals: 0})).toBeUndefined();
+    expect(goalUnitsInAsset('5000', {asset: 'EUR', decimals: 2}, {asset: 'USD', decimals: 18})).toBeUndefined();
+    expect(goalUnitsInAsset('50.5', {asset: 'EUR', decimals: 2}, {asset: 'EUR', decimals: 18})).toBeUndefined();
   });
   test('the pre-fill link carries only a valid base-unit amount', () => {
     expect(contributionPrefillHref('12', '0')).toBe('/app/goals/tracked/12?contribute=1#funding-wealth');

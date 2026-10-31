@@ -2,6 +2,7 @@
 import {useId, useState} from 'react';
 import type {TestReport} from '../../lib/restore/test-restore';
 import {formatDate} from '../../lib/visual-format';
+import {CHECKLIST_NOT_RESTORED} from '../../lib/restore/checklist-note';
 
 /**
  * Session AK Part 8.9: "Test a backup" — choose an Export everything ZIP and see that every part would restore, replayed
@@ -22,6 +23,8 @@ export default function TestBackup() {
     <div role="status" aria-live="polite">
       {busy && <p>Testing every part in a sandbox…</p>}
       {report && <p><strong>{failed.length ? `${report.ok} of ${report.parts.length} parts would restore.` : `All ${report.parts.length} parts would restore.`}</strong>{report.exportedAt && <> Made {formatDate(report.exportedAt.slice(0, 10))}{report.app ? ` by ZIGoals ${report.app}` : ''}.</>}{report.photos ? ` ${report.photos} photos.` : ''}{report.demo ? ' This is a Showcase (example) backup.' : ''}</p>}
+      {/* Session AK (J6-2): what a restore never brings back, said beside "would restore" (lib/restore/plan.ts NEVER_RESTORED). */}
+      {report && <p className="fine">{CHECKLIST_NOT_RESTORED} {report.never}</p>}
     </div>
     {failed.length > 0 && <ul className="test-backup-problems">{failed.map(p => <li key={p.label}><strong>{p.label}</strong>: {p.reason}</li>)}</ul>}
     {error && <p role="alert">{error}</p>}
