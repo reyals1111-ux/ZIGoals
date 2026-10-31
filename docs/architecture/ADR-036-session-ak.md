@@ -148,7 +148,7 @@ Every still-open row of ADR-028 to ADR-035 and the STATUS entries since AG Polis
 | H133 S9 | WalletConnect Verify `frame-src` | ADR-028 | a → 1a (the id is set, so the frame hosts enter with it) |
 | AFL9 | Keplr Mobile signing over WalletConnect | owner | a if Keplr Mobile supports the ZIGChain namespaces, else c → 1a |
 | AFL8 (owner's numbering, Q16) | Checklist extras sync | ADR-028 H10 | a → 8.10 (encrypted extras sync, AJ item 35 precedent) |
-| AFL1 | REStake auto-compound | ADR-028 H45 | c (no ZIGChain operator; CosmJS 0.38 has no authz amino) — re-verified in 14 |
+| AFL1 | REStake auto-compound | ADR-028 H45 | c — re-verified 31 Oct (F0): the installed @cosmjs/stargate 0.38.1 still ships no authz Amino converters (`modules/authz/aminomessages.js`: "IMPLEMENT ME"), so Keplr's Amino path cannot sign a grant; stays recorded |
 | AFL2 | Feegrant (a funded ZIGoals key) | ADR-028 H7 | d (non-custodial) |
 | AFL3 | Habit pacts (escrow contract) | ADR-028 | c (contract uploads governance-whitelisted) — re-verified in 14 |
 | AFL4 | Memo attestations on mainnet | ADR-028 H48, H105 | d (privacy); the prefix-free practice-badge memo (H133 S6) is a → 14 (TIER 3 wallet) |
@@ -168,7 +168,7 @@ Every still-open row of ADR-028 to ADR-035 and the STATUS entries since AG Polis
 | H118 | ZIGi's brief and recap English only | ADR-028 | d (languages are Beta, D4) |
 | H125/H137(a) | Right-edge launchers over content | ADR-028 | d (an owner item; recorded) |
 | K19 | `eslint-config-next` not pinned with `next` | ADR-031 | d (a dependency change needs owner approval) |
-| RM4 | `www` → apex redirect | ADR-033 | b (Cloudflare dashboard); workers.dev and preview URLs already off — re-verified in 14 |
+| RM4 | `www` → apex redirect | ADR-033 | b (Cloudflare dashboard) — re-verified 31 Oct (F0): landing/wrangler.jsonc keeps `workers_dev: false` and `preview_urls: false`; the redirect stays an owner dashboard step |
 | RM7/M28 | Fitbit import off; Google Fit wording | ADR-033 | d (owner's note); the wording re-checked in 4.7 |
 | AF10 | Ecosystem glow by day | ADR-033 | Done (AH) |
 | AF16 | CI intermittents at their cause | ADR-033 | a → 14 (row above) |
