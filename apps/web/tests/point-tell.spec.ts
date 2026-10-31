@@ -120,7 +120,7 @@ test('a button with its own action is picked, not pressed, by pointer and by key
   await expect(zigi).toBeVisible();
   await launcher(page).click();
   await zigi.click();
-  const sheet = page.getByRole('dialog', {name: /^Note on .*ZIGi/});
+  const sheet = page.getByRole('dialog', {name: /^Note on button\b/});
   await expect(sheet).toBeVisible();
   await expect(chat).toHaveCount(0);
   await page.keyboard.press('Escape');
@@ -128,7 +128,7 @@ test('a button with its own action is picked, not pressed, by pointer and by key
   await launcher(page).click();
   await zigi.focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog', {name: /^Note on .*ZIGi/})).toBeVisible();
+  await expect(page.getByRole('dialog', {name: /^Note on button\b/})).toBeVisible();
   await expect(chat).toHaveCount(0);
   await page.keyboard.press('Escape');
   // Out of picking mode the same button does its own work again.
