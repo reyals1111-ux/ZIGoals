@@ -14,6 +14,11 @@ import type {ImportRecord} from '../../lib/import/undo-schema';
 import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
 import {plainErrorMessage} from '../../lib/plain-error';
+// Session AK (lane M, items 1 and 10): the person's rules in the money preview, and imported entries marked for review.
+import {MONEY_RULES} from '../../lib/money-rules/schema';
+import {applyRules} from '../../lib/money-rules/engine';
+import {loggedWithRules, ruleHint} from '../../lib/money-rules/imports';
+import {MONEY_REVIEW, markForReview} from '../../lib/money-review/review';
 
 const OPTIONS: SetupOptions = {fields: HOLDINGS_FIELDS, numberFields: ['quantity', 'value']};
 const REQUIRED = ['name', 'currency'];
@@ -94,12 +99,12 @@ export function MoneyImportPanel({onClose}: {onClose: () => void}) {
  * say why, and nothing is added until the person confirms. Undo removes exactly what this import added.
  */
 export function MoneyCsvImport({onClose}: {onClose: () => void}) {
-  const log = useDeviceRecord(MONEY_LOG);
+  const log = useDeviceRecord(MONEY_LOG), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1), [file, setFile] = useState<CsvFile | null>(null), [setup, setSetup] = useState<CsvSetup | null>(null), [currency, setCurrency] = useState<string>('EUR');
   const [picked, setPicked] = useState<ReadonlySet<number> | null>(null), [error, setError] = useState('');
   const [done, setDone] = useState<{added: number; refused: RefusedRow[]; ids: ReadonlySet<string>; undone?: boolean} | null>(null);
   const plan = useMemo(() => setup ? planMoneyRows({rows: setup.parsed.rows, mapping: setup.mapping, numberStyle: setup.numberStyle, dateFormat: setup.dateFormat, currency}) : null, [setup, currency]);
-  const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data)).map(t => t.index) : []), [plan, log.loaded, log.data]);
+  const logged = useMemo(() => new Set(plan && log.loaded ? plan.transactions.filter(t => alreadyLogged(t, log.data) || loggedWithRules(t, log.data, rules.data.rules)).map(t => t.index) : []), [plan, log.loaded, log.data, rules.data.rules]);
   const included = picked ?? new Set(plan?.transactions.filter(t => !t.duplicate && !logged.has(t.index)).map(t => t.index) ?? []);
   const chosen = plan?.transactions.filter(t => included.has(t.index)) ?? [];
   const mappingReady = !!setup && setup.mapping.date !== undefined && ['amount', 'debit', 'credit'].some(f => setup.mapping[f] !== undefined);
@@ -108,8 +113,10 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     setError('');
     try {
       const out = toMoneyEntries(chosen, log.data, new Date(), () => crypto.randomUUID());
-      if (out.entries.length) log.update(current => addEntries(current, out.entries));
-      setDone({added: out.entries.length, refused: out.refused, ids: new Set(out.entries.map(e => e.id))});
+      const entries = applyRules(out.entries, rules.data.rules).entries; // Session AK (lane M): the rules, first match wins
+      if (entries.length) log.update(current => addEntries(current, entries));
+      if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
+      setDone({added: entries.length, refused: out.refused, ids: new Set(entries.map(e => e.id))});
     } catch (cause) { setError(plainErrorMessage(cause, 'Nothing was added on this device.')); }
   }
   function undo() {
@@ -121,6 +128,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
   if (log.unreadable) return <p role="alert">This device&rsquo;s money log could not be read, so nothing can be added to it now. Its bytes are kept.</p>;
   if (done) return <div className="import-step import-done">
     <p role="status">{done.undone ? 'The import was undone: the entries it added are removed.' : `${done.added} ${done.added === 1 ? 'entry' : 'entries'} added to your money log${done.refused.length ? `; ${done.refused.length} could not be added (listed below)` : ''}.`}</p>
+    {!done.undone && done.added > 0 && <p className="fine">They are listed under Money tools → To review on Wealth → Spending, so you can check their categories.</p>}
     {!done.undone && done.refused.length > 0 && <RefusedRows refused={done.refused.map(r => ({row: r.index, reason: `Row ${r.index}: ${r.reason}`}))}/>}
     {error && <p role="alert">{error}</p>}
     <div className="actions">{!done.undone && done.added > 0 && <button type="button" className="secondary" onClick={undo}>Undo this import</button>}<button type="button" className="secondary" onClick={onClose}>Done</button></div>
@@ -142,7 +150,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
           <td>{formatDate(t.date)}</td>
           <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
-          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ''}</td>
+          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules.data.rules) ?? ''}</td>
         </tr>)}</tbody>
       </table></div>}
       {plan.transactions.length > PREVIEW_ROWS && <p className="fine">The first {PREVIEW_ROWS} rows are shown; the rest are added as ticked.</p>}
@@ -152,7 +160,7 @@ export function MoneyCsvImport({onClose}: {onClose: () => void}) {
     </>}
     {step === 4 && plan && <><StepHeading step={4} title="Confirm" />
       <p className="import-summary">{chosen.length} {chosen.length === 1 ? 'entry' : 'entries'} will be added to your money log: {chosen.filter(t => t.direction === 'out').length} spent, {chosen.filter(t => t.direction === 'in').length} received.</p>
-      <p className="fine">The category is read from each payee and note, as the log&rsquo;s own form does; you can change any entry afterwards. You can undo this import right after it.</p>
+      <p className="fine">The category is read from each payee and note, as the log&rsquo;s own form does{rules.data.rules.length ? ', then your rules run (the first that matches wins)' : ''}; you can change any entry afterwards. You can undo this import right after it.</p>
       {error && <p role="alert">{error}</p>}
       <StepActions onBack={() => setStep(3)} onNext={confirm} nextLabel={`Add ${chosen.length} to my money log`} primary />
     </>}

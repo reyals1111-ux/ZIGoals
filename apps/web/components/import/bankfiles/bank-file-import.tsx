@@ -5,6 +5,11 @@ import {formatDate} from '../../../lib/visual-format';
 import {MONEY_LOG, type MoneyLog} from '../../../lib/money-log/schema';
 import {BANK_FILE_TOO_LARGE, FORMAT_LABELS, MAX_BANK_FILE_BYTES, addEntries, alreadyLogged, decodeBankFile, parseBankFile, removeEntries, toMoneyEntries, type BankStatement, type BankTransaction, type RefusedRow} from '../../../lib/bankfiles';
 import './bankfiles.css';
+// Session AK (lane M, items 1 and 10): the person's rules in the preview and on the added entries, and the review mark.
+import {MONEY_RULES, type MoneyRule} from '../../../lib/money-rules/schema';
+import {applyRules} from '../../../lib/money-rules/engine';
+import {loggedWithRules, ruleHint} from '../../../lib/money-rules/imports';
+import {MONEY_REVIEW, markForReview} from '../../../lib/money-review/review';
 
 /**
  * Session AK (A14): a bank statement file (CAMT.053, OFX/QFX, MT940) into the money log. The file is read on this
@@ -15,12 +20,13 @@ import './bankfiles.css';
 const money = (amount: string, currency: string) => { try { return new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(Number(amount)); } catch { return `${amount} ${currency}`; } };
 const PREVIEW_ROWS = 200;
 
-export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[]) => {added: number; refused: RefusedRow[]}; onUndo?: () => void};
-export function BankFileImportView({log, onAdd, onUndo}: BankImportViewProps) {
+export type BankImportViewProps = {log: Pick<MoneyLog, 'entries'>; onAdd: (rows: BankTransaction[]) => {added: number; refused: RefusedRow[]}; onUndo?: () => void; rules?: readonly MoneyRule[]};
+const NO_RULES: readonly MoneyRule[] = [];
+export function BankFileImportView({log, onAdd, onUndo, rules = NO_RULES}: BankImportViewProps) {
   const id = useId();
   const [statement, setStatement] = useState<BankStatement | null>(null), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const [included, setIncluded] = useState<ReadonlySet<number>>(new Set()), [later, setLater] = useState<RefusedRow[]>([]), [canUndo, setCanUndo] = useState(false);
-  const logged = useMemo(() => new Set(statement?.transactions.filter(t => alreadyLogged(t, log)).map(t => t.index) ?? []), [statement, log]);
+  const logged = useMemo(() => new Set(statement?.transactions.filter(t => alreadyLogged(t, log) || loggedWithRules(t, log, rules)).map(t => t.index) ?? []), [statement, log, rules]);
   const read = async (file: File | undefined) => {
     setProblem(''); setStatus(''); setStatement(null); setLater([]); setCanUndo(false);
     if (!file) return;
@@ -30,7 +36,7 @@ export function BankFileImportView({log, onAdd, onUndo}: BankImportViewProps) {
     const result = parseBankFile(text);
     if (!result.ok) { setProblem(result.error); return; }
     setStatement(result);
-    setIncluded(new Set(result.transactions.filter(t => !t.duplicate && !alreadyLogged(t, log)).map(t => t.index)));
+    setIncluded(new Set(result.transactions.filter(t => !t.duplicate && !alreadyLogged(t, log) && !loggedWithRules(t, log, rules)).map(t => t.index)));
   };
   const toggle = (index: number) => setIncluded(current => { const next = new Set(current); if (next.has(index)) next.delete(index); else next.add(index); return next; });
   const chosen = statement?.transactions.filter(t => included.has(t.index)) ?? [];
@@ -59,7 +65,7 @@ export function BankFileImportView({log, onAdd, onUndo}: BankImportViewProps) {
           <td>{formatDate(t.date)}</td>
           <td className="bankfile-payee">{t.payee || '—'}{t.description && t.description !== t.payee && <span className="fine"> · {t.description}</span>}</td>
           <td className={t.direction === 'in' ? 'bankfile-in' : undefined}>{t.direction === 'in' ? '+' : '−'}{money(t.amount, t.currency)}</td>
-          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ''}</td>
+          <td className="fine">{t.duplicate ? 'Possible repeat in this file' : logged.has(t.index) ? 'Already in your log' : ruleHint(t, rules) ?? ''}</td>
         </tr>)}</tbody>
       </table></div>}
       {statement.transactions.length > PREVIEW_ROWS && <p className="fine">The first {PREVIEW_ROWS} rows are shown; the rest are added as ticked.</p>}
@@ -76,12 +82,15 @@ function RefusedList({rows, title}: {rows: readonly RefusedRow[]; title: string}
 }
 export default function BankFileImport() {
   const log = useDeviceRecord(MONEY_LOG), [lastIds, setLastIds] = useState<ReadonlySet<string>>(new Set());
+  const rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   if (!log.loaded) return <p className="fine">Loading your money log…</p>;
   if (log.unreadable) return <p role="alert">This device&rsquo;s money log could not be read, so nothing can be added to it now. Its bytes are kept.</p>;
-  return <BankFileImportView log={log.data} onAdd={rows => {
+  return <BankFileImportView log={log.data} rules={rules.data.rules} onAdd={rows => {
     const out = toMoneyEntries(rows, log.data, new Date(), () => crypto.randomUUID());
-    if (out.entries.length) log.update(current => addEntries(current, out.entries));
-    setLastIds(new Set(out.entries.map(e => e.id)));
-    return {added: out.entries.length, refused: out.refused};
+    const entries = applyRules(out.entries, rules.data.rules).entries; // Session AK (lane M): the rules, first match wins
+    if (entries.length) log.update(current => addEntries(current, entries));
+    if (entries.length) try { review.update(r => markForReview(r, entries.map(e => e.id))); } catch { /* the entries are added; only the review mark is missing */ }
+    setLastIds(new Set(entries.map(e => e.id)));
+    return {added: entries.length, refused: out.refused};
   }} onUndo={() => { log.update(current => removeEntries(current, lastIds)); setLastIds(new Set()); }}/>;
 }

@@ -33,3 +33,6 @@
 .spending-bar span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff))}
 .spending-budget{display:grid;grid-template-columns:1fr 160px auto;gap:10px;align-items:end}
 @media (max-width:620px){.spending-budget{grid-template-columns:1fr}}
+/* Session AK (lane M, item 10): an imported entry still to review (Money tools → To review). */
+.spending-review-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--amber,#f5b65b);vertical-align:middle}
+.spending-review-dot .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
