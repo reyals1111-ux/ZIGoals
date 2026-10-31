@@ -16,27 +16,25 @@ Parts in order: 0 records → 1 integrations (WalletConnect, food Worker, EU foo
 ## Done (pushed; Draft PR #99)
 - Part 0 (`9c5d7ee6`): records, ADR-036 (A12 table filled), this file, frozen readers #37–#52.
 - Research (`e417ca9b`): docs/research/session-ak/ COMPETITORS (23 ranked build items → Part 10), EXCHANGES_NEXT, LICENCES, WALLETS, FORMATS.
-- Part 1a: QR encoder (`75ed3a6d`); WalletConnect with the Reown id, CSP, the pairing panel (`249bf461`); AFL9 Keplr Mobile signing (`f9ccc351`).
-- Part 1b: Alpha binds FOOD_LOOKUP (`8b0ae98c`); FDC step + the barcode UI (`f3ac1031`); runbook (`74902dcd`).
-- Part 1c: CIQUAL + CoFID offline library (`f3ac1031`); Fineli waits on review/ak-food-data (A11).
-- Part 1d: music mix, links, BYO Spotify, /app/music (`95952388`); keys and erase lists (`9277df6e`).
-- Part 2: push-device Worker (`fa38be77`); the app side, sw.js, card, erase (`f9e103f7`); runbook, VAPID script, egress, PRIVACY (`28da0157`).
-- Frozen readers #37–#52 PASS with the new keys (`215d3b11`, docs/verification/session-ak/frozen-readers-part2.txt).
+- Part 1a: QR (`75ed3a6d`); WalletConnect (`249bf461`); AFL9 Keplr Mobile signing (`f9ccc351`).
+- Part 1b: FOOD_LOOKUP binding (`8b0ae98c`); FDC + barcode UI (`f3ac1031`); runbook (`74902dcd`). Part 1c: CIQUAL + CoFID (`f3ac1031`); Fineli waits on review/ak-food-data.
+- Part 1d: music (`95952388`, `9277df6e`).
+- Part 2: push-device Worker (`fa38be77`); app side, sw.js, card, erase (`f9e103f7`); runbook, VAPID, egress, PRIVACY (`28da0157`).
+- Part 3 PWA (`afce4a4f`, `02ec25f2`). A6 storage headroom (`883d1dcb`). 8.8–8.9 export bridges, test restore, backup reminder (`3110c81f`).
+- Wave B libraries: lane H (`e7cecde0`), W (`92b94a8f`), G (`ca810a31`); registries (`e3f99620`).
+- 8.10 AFL8 Checklist extras section (`e7d9951e`, TIER 3 auth/sync; effective at private-sync redeploy).
+- Part 7 wiring (`5074567f`); Parts 5–6 wiring (`a74c33af`); Part 4 health (`7d435846`); Part 9 Lichess (`1f84a28e`).
 
-## Lanes in flight
-- None. Next waves: B (H health, W wealth, G goals/habits) after Part 3.
+## Lanes in flight (wave C, started ~31 Oct late)
+- M money (COMPETITORS 1, 10, 11, 12, 17, 18, 22), S self/insights (2, 6, 9, 13, 14), X cross-pillar (8.1–8.7, item 19), T training/nutrition (3, 5, 8, 15, 20, 21). Rules for lanes: scratchpad lane-rules.md (recreate from this list if lost).
 
-## Open readings
-- Q17 (in code, to record in ADR-036): Playwright blocks service workers by default; SW specs opt in.
-- Q18 (to record): AFL9 lives in lib/staking/execute.ts (the one signer file) as walletConnectKeplr; WC_STAKING_METHODS there.
-- Q19 (to record): /push-sw.js stays unchanged for ADR-010 account devices; the shell does not register /sw.js there (no shim).
-- Q20 (to record): price-alert pushes ride the morning and evening notifications (no silent price wakes, A2).
+## To do by the lead (after wave C)
+- PRIVACY.md lines: food scans, nutrient extras, grocery, calorie week, meal photos (opt-in, IndexedDB, exported as files), Lichess token (device-only, revoke on Disconnect).
+- Help/What's new for Parts 4–9; Daylio/Habitica/YNAB importers wiring (IMPORT_FORMATS); startSoundscape in Focus Sessions and wind-down; frozen readers rerun with all new keys; route weights on a build.
+- Known limitation to record: new grocery ticks are device-only (earlier ticks in the Health journal still count).
+- Then Parts 11–16 as planned.
 
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Sandbox-only unit failures (as earlier sessions): vault/finance-homes ×3, scripts/pre-run11-setup ×2.
-- Still to wire in Part 1d/Part 4: startSoundscape in Focus Sessions and wind-down; the /app/music weight line (measure on a build).
-- Badge icon /icons/zigoals-badge-96.png referenced by sw.js: create in Part 3 (A18 assets).
-
-## Next step (exact)
-- Part 3: manifest (Today, Log weight shortcuts, screenshots, iOS startup images), install entry in Settings and Help, the update prompt, lib/offline-queue, a production build, then Playwright specs (offline open, update flow, notifications card, push via CDP) with test.use({serviceWorkers:'allow'}).
+- Vitest runs from the repo root (root vitest.config.ts parses JSX).
