@@ -2879,6 +2879,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .switch-formats li:not(#\-) { row-gap: 1.5px; padding-top: 6px; }
 :where(:root[data-density=compact]) .switch-formats li p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .import-preset:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/insights/compare/compare.css  */
+:where(:root[data-density=compact]) .ondemand-fold > .ondemand-fold-summary:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .ondemand-fold[open] > .ondemand-fold-summary:not(#\-) { margin-bottom: 10px; }
+:where(:root[data-density=compact]) .compare-explorer:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .compare-form:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .compare-lag:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .compare-card:not(#\-) { row-gap: 7.5px; padding-top: 10.5px; padding-bottom: 10.5px; }
+:where(:root[data-density=compact]) .compare-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .compare-bars:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .compare-bar-row:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .compare-bar-row dd:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .compare-label:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
 /*  components/insights/insights.css  */
 :where(:root[data-density=compact]) .insights-card .insight:not(#\-) { row-gap: 4px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .insight-row:not(#\-) { row-gap: 3px; }
@@ -2905,6 +2917,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .journal-week-days li:not(#\-) { row-gap: 3px; padding-top: 4.5px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .journal-week-lines:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .journal-week-legend:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/journal/year-pixels.css  */
+:where(:root[data-density=compact]) .year-pixels:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .year-pixels-controls:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .year-pixels-toggle:not(#\-), :where(:root[data-density=compact]) .year-pixels-nav:not(#\-), :where(:root[data-density=compact]) .year-pixels-day-nav:not(#\-), :where(:root[data-density=compact]) .year-pixels-actions:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .year-pixels-summary:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .year-pixels-scroll:not(#\-) { padding-top: 4px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .year-pixels-grid:not(#\-) { row-gap: var(--gap); }
+:where(:root[data-density=compact]) .year-pixels-row:not(#\-) { gap: var(--gap); }
+:where(:root[data-density=compact]) :is(.year-pixels-cell, .year-pixels-legend i)[data-entry]:not(#\-)::after { margin-top: -2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .year-pixels-legend:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .year-pixels-legend li:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .year-pixels-day:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .year-pixels-day h3:not(#\-), :where(:root[data-density=compact]) .year-pixels-day p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .year-pixels-entries:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
 /*  components/layout-edit.css  */
 :where(:root[data-density=compact]) .layout-lock:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .status-row:not(#\-) { row-gap: 9px; }
@@ -3031,6 +3057,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .data-table th:not(#\-), :where(:root[data-density=compact]) .data-table td:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .data-coin-link:not(#\-) { row-gap: 10px; }
 @media (max-width: 639.98px) { :where(:root[data-density=compact]) .data-table :is(th, td):not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
+/*  components/mood-words/mood-words.css  */
+:where(:root[data-density=compact]) .mood-words-fold:not(#\-) { margin-top: 4px; }
+:where(:root[data-density=compact]) .mood-words-trigger:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .mood-words:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .mood-words-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .mood-words-axes:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .mood-words-quadrants:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .mood-words-quadrant:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .mood-words-list:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .mood-words-word:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .mood-words-step:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .mood-words-actions:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 16px; }
 /*  components/music/music-launcher.css  */
 :where(:root[data-density=compact]) .music-launcher-stack:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .music-launcher:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -4253,6 +4291,24 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .reminder-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .reminder-card-actions:not(#\-) { row-gap: 7.5px; margin-top: 3px; }
 :where(:root[data-density=compact]) .reminder-time-field:not(#\-) { row-gap: 6px; }
+/*  components/report/report.css  */
+:where(:root[data-density=compact]) .report-builder:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .report-builder fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .report-builder legend:not(#\-) { margin-bottom: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .report-presets:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .report-date-fields:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .report-check:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .report-toolbar:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .report-sheet:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 16px; padding-bottom: 48px; row-gap: 18px; }
+:where(:root[data-density=compact]) .report-sheet h1:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .report-sheet h2:not(#\-) { margin-top: 0; margin-bottom: 8px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .report-sheet h3:not(#\-) { margin-top: 10px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .report-sheet p:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .report-facts:not(#\-) { margin-top: 4px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .report-chart:not(#\-) { margin-top: 6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .report-sheet table:not(#\-) { margin-top: 6px; }
+:where(:root[data-density=compact]) .report-sheet th:not(#\-), :where(:root[data-density=compact]) .report-sheet td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+@media print { html:where([data-density=compact]).report-open .report-sheet:not(#\-) { padding-top: 0; padding-bottom: 0; row-gap: 12px; } }
 /*  components/restore/restore-backup.css  */
 :root:where([data-density=compact]) .restore-backup:not(#\-) { row-gap: 12px; }
 :root:where([data-density=compact]) .rb-file:not(#\-) { row-gap: 6px; }
@@ -4379,6 +4435,15 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 901px) { :where(:root[data-density=compact]) .app-sidebar .sidebar-destination:not(#\-) { margin-bottom: 0; } }
 @media (min-width: 901px) { :where(:root[data-density=compact]) .app-sidebar:not(#\-) { padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); } }
 :where(:root[data-density=compact]) .theme-switch-note:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+/*  components/sleep/energy-curve.css  */
+:where(:root[data-density=compact]) .energy-curve:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .energy-curve-empty:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .energy-curve-lead:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 2px; }
+:where(:root[data-density=compact]) .energy-curve-meaning:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .energy-curve-key:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .energy-curve-key li:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .energy-curve-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .energy-curve-list dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/staking/staking.css  */
 :where(:root[data-density=compact]) .staking-actions:not(#\-) { row-gap: 18px; }
 :where(:root[data-density=compact]) .staking-actions h2:not(#\-) { margin-top: 4px; margin-bottom: 0; }
