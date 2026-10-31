@@ -13,12 +13,15 @@ import {keplrMobileLink} from '../../lib/wallets/keplr-session';
  * connect. With the ID, "Connect by WalletConnect" comes right after Keplr.
  */
 export const WALLETCONNECT_SOON = 'WalletConnect (Trust, Ledger Wallet, Keplr Mobile without its own browser): available soon on phones.';
-export function phoneWalletPaths(origin: string = typeof window === 'undefined' ? 'https://alpha.zigoals.app' : window.location.origin, onWalletConnect?: () => void, android: boolean = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+export function phoneWalletPaths(origin: string = typeof window === 'undefined' ? 'https://alpha.zigoals.app' : window.location.origin, onWalletConnect?: () => void, android: boolean = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent), onStake?: () => void) {
   const items: {key: string; label: string; detail: string; href?: string; onSelect?: () => void}[] = [];
   try { items.push({key: 'open-keplr', label: 'Open ZIGoals in Keplr', detail: 'In Keplr’s own browser: connect Keplr there to stake and vote', href: keplrMobileLink(origin, android, '/app')}); }
   catch { /* not this app's own page (a preview host): no path is offered */ }
   // With the owner's project ID: WalletConnect first (components/wallet/walletconnect-panel.tsx; the package loads on tap).
   if (walletConnectConfigured() && onWalletConnect) items.push({key: 'walletconnect', label: 'Connect by WalletConnect', detail: 'Keplr Mobile’s ZIGChain address; Trust, MetaMask, OKX and Ledger Wallet’s Ethereum-family and Solana addresses · read-only', onSelect: onWalletConnect});
+  // Session AK (AFL9, A7): staking from Keplr Mobile over WalletConnect, where Keplr Mobile offers ZIGChain; each action
+  // is still reviewed here and approved in Keplr Mobile.
+  if (walletConnectConfigured() && onStake) items.push({key: 'walletconnect-stake', label: 'Stake with Keplr Mobile', detail: 'Over WalletConnect, where Keplr Mobile offers ZIGChain: you review here, then approve in Keplr Mobile', onSelect: onStake});
   try {
     items.push({key: 'open-metamask', label: 'Open ZIGoals in MetaMask', detail: 'In MetaMask’s own browser, then link from the rows above', href: metaMaskInAppLink(origin)});
     items.push({key: 'open-trust', label: 'Open ZIGoals in Trust Wallet', detail: 'In Trust Wallet’s own browser, then link from the rows above', href: trustInAppLink(origin)});

@@ -141,3 +141,49 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
     throw new StakingFailure(plainWords(code ? Object.assign(Error(failure.message), {code}) : failure, {chainId: quote.chainId, hash: failure.hash, code}), failure.state, failure.uncertain, failure.hash);
   } finally { chain.disconnect(); }
 }
+
+/**
+ * Session AK (AFL9, owner amendment A7; `TIER 3 (wallet)`): Keplr Mobile signing over WalletConnect, as a KeplrSigner for
+ * executeSigned — the same one signer path, after the same review sheet, sign ticket, mainnet one-time confirm, v6 fee
+ * quote and signed-bytes checks. It exists only when this tab's WalletConnect session (lib/wallets/walletconnect.ts) holds
+ * an account on the quote's own chain (`cosmos:<chainId>`) AND the wallet approved `cosmos_signDirect` for it; otherwise
+ * null, and phones keep Keplr's own browser or read-only linking (Keplr Mobile's support for ZIGChain over WalletConnect
+ * is unproven until a real-phone test, docs/research/session-ak/WALLETS.md). The wallet signs exactly the document sent:
+ * a `signed` document that differs in any byte (chain, account number, body or fee) is refused before anything is
+ * broadcast, and executeSigned's verifySignedMessages / verifySignedFee check the bytes once more. No AI and no other
+ * caller reaches it; the review sheet's submit handler is its only user.
+ */
+export const WC_STAKING_METHODS = Object.freeze(['cosmos_getAccounts', 'cosmos_signDirect'] as const);
+type WcLive = {client: unknown; session: {topic: string; namespaces: unknown} | null} | null;
+type WcRequester = {request(args: {topic: string; chainId: string; request: {method: string; params: unknown}}): Promise<unknown>};
+const b64 = (bytes: Uint8Array) => { let text = ''; for (const byte of bytes) text += String.fromCharCode(byte); return btoa(text); };
+const unb64 = (text: unknown) => { if (typeof text !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(text) || text.length > 8192) throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.'); let raw: string; try { raw = atob(text); } catch { throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.'); } const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; };
+export function walletConnectKeplr(live: WcLive, chainId: string): KeplrSigner | null {
+  const session = live?.session;
+  if (!session || typeof session.topic !== 'string' || !/^[a-z0-9-]{1,64}$/.test(chainId)) return null;
+  const caip = `cosmos:${chainId}`, cosmos = (session.namespaces as Record<string, {accounts?: unknown; methods?: unknown}> | null)?.cosmos;
+  const methods = Array.isArray(cosmos?.methods) ? cosmos.methods : [], accounts = Array.isArray(cosmos?.accounts) ? cosmos.accounts : [];
+  if (!methods.includes('cosmos_signDirect') || !accounts.some(a => typeof a === 'string' && a.startsWith(`${caip}:`))) return null;
+  const client = live!.client as WcRequester, ask = (method: string, params: unknown) => client.request({topic: session.topic, chainId: caip, request: {method, params}});
+  const read = async () => {
+    const answer = await ask('cosmos_getAccounts', {});
+    const list = Array.isArray(answer) ? answer as {address?: unknown; algo?: unknown; pubkey?: unknown}[] : [];
+    const first = list[0];
+    if (!first || typeof first.address !== 'string' || first.algo !== 'secp256k1') throw Error('The wallet shared no ZIGChain account. Nothing was signed.');
+    return [{address: first.address, algo: 'secp256k1' as const, pubkey: unb64(first.pubkey)}];
+  };
+  const signer = {
+    getAccounts: read,
+    signDirect: async (signerAddress: string, signDoc: {chainId: string; accountNumber: bigint; authInfoBytes: Uint8Array; bodyBytes: Uint8Array}) => {
+      const sent = {chainId: signDoc.chainId, accountNumber: signDoc.accountNumber.toString(), authInfoBytes: b64(signDoc.authInfoBytes), bodyBytes: b64(signDoc.bodyBytes)};
+      if (sent.chainId !== chainId) throw Error('Wrong network. Nothing was signed.');
+      const answer = await ask('cosmos_signDirect', {signerAddress, signDoc: sent}) as {signed?: Record<string, unknown>; signature?: {pub_key?: {type?: unknown; value?: unknown}; signature?: unknown}} | null;
+      const signed = answer?.signed, signature = answer?.signature;
+      if (!signed || String(signed.chainId) !== sent.chainId || String(signed.accountNumber) !== sent.accountNumber || signed.authInfoBytes !== sent.authInfoBytes || signed.bodyBytes !== sent.bodyBytes)
+        throw Error('The wallet changed what it was asked to sign (the network, the account, the actions or the fee). Nothing was broadcast.');
+      if (!signature || typeof signature.signature !== 'string' || typeof signature.pub_key?.value !== 'string' || unb64(signature.signature).length !== 64) throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.');
+      return {signed: signDoc, signature: {pub_key: {type: String(signature.pub_key.type ?? 'tendermint/PubKeySecp256k1'), value: signature.pub_key.value}, signature: signature.signature}};
+    },
+  };
+  return {getKey: async () => ({bech32Address: (await read())[0]!.address}), getOfflineSignerAuto: async () => signer as unknown as OfflineSigner};
+}

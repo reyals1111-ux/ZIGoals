@@ -17,7 +17,7 @@ const QrCode = lazy(() => import('../qr/qr-code'));
  * signed here, and nothing is stored but the linked addresses. If WalletConnect will not start (the owner's allowed
  * domains, A9), it says phone wallets are being switched on.
  */
-export default function WalletConnectPanel({onDone}: {onDone: (message: string) => void}) {
+export default function WalletConnectPanel({onDone, staking = false}: {onDone: (message: string) => void; staking?: boolean}) {
   const linked = useLinkedWallets(), [uri, setUri] = useState(''), [status, setStatus] = useState('Starting WalletConnect…'), started = useRef(false);
   const [phone] = useState(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches === true);
   const android = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
@@ -27,16 +27,20 @@ export default function WalletConnectPanel({onDone}: {onDone: (message: string) 
     let alive = true;
     void (async () => {
       try {
-        const pairing = await startWalletConnect({projectId: PUBLIC_INTEGRATIONS.reownProjectId, origin: window.location.origin});
+        // Session AK (AFL9): a staking pairing also asks Keplr Mobile for the account read and one signing method, handed
+        // in by the one signer file; linking stays read-only either way.
+        const stakingMethods = staking ? (await import('../../lib/staking/execute')).WC_STAKING_METHODS : undefined;
+        const pairing = await startWalletConnect({projectId: PUBLIC_INTEGRATIONS.reownProjectId, origin: window.location.origin, ...(stakingMethods ? {stakingMethods} : {})});
         if (!alive) return;
-        setUri(pairing.uri); setStatus(phone ? 'Open the link in your wallet app, then approve there. ZIGoals asks only for your addresses.' : 'Scan the code with your phone’s wallet, then approve there. ZIGoals asks only for your addresses.');
+        setUri(pairing.uri); setStatus(staking ? 'Open the link in Keplr Mobile and approve. ZIGoals asks for your ZIGChain account and, later, your approval of each staking action you review here.' : phone ? 'Open the link in your wallet app, then approve there. ZIGoals asks only for your addresses.' : 'Scan the code with your phone’s wallet, then approve there. ZIGoals asks only for your addresses.');
         const {accounts, wallet} = await pairing.approval;
         let count = 0;
         for (const a of accounts) {
           try { await linked.link({kind: a.kind, wallet: `walletconnect:${wallet}`.slice(0, 120), label: wallet, address: a.address, via: 'walletconnect'}); count++; }
           catch (error) { if (!(error instanceof LinkedWalletError)) throw error; }
         }
-        if (alive) onDone(count ? `${wallet}: ${count} ${count === 1 ? 'address' : 'addresses'} linked, read-only (${accounts.map(a => shortAddress(a.address)).join(', ')}).` : 'The wallet shared no address ZIGoals reads, so nothing was linked.');
+        const zig = accounts.some(a => a.chainId === 'cosmos:zigchain-1');
+        if (alive) onDone(staking ? (zig ? `${wallet} is ready: review a staking action here and press Sign, then approve it in ${wallet}. Its ZIGChain address is linked read-only.` : `${wallet} did not offer ZIGChain over WalletConnect, so it cannot stake from here. Open ZIGoals in Keplr’s own browser (above) to stake.`) : count ? `${wallet}: ${count} ${count === 1 ? 'address' : 'addresses'} linked, read-only (${accounts.map(a => shortAddress(a.address)).join(', ')}).` : 'The wallet shared no address ZIGoals reads, so nothing was linked.');
       } catch (error) {
         if (alive) setStatus(error instanceof WalletConnectUnavailable ? error.message : uri ? 'WalletConnect did not connect (it was refused, closed or timed out), so nothing was linked.' : PHONE_WALLETS_SWITCHING_ON);
       }

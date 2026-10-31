@@ -30,6 +30,8 @@ export const WALLETCONNECT_CSP = Object.freeze({
 /** Solana mainnet's CAIP-2 id in WalletConnect (its genesis hash prefix). */
 export const WC_SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 export const WC_ZIGCHAIN = 'cosmos:zigchain-1';
+/** Session AK (AFL9): the ZIGChain testnet, for practice with Keplr Mobile where it offers the chain (optional only). */
+export const WC_ZIGTEST = 'cosmos:zig-test-2';
 export type WcNamespace = {chains: string[]; methods: string[]; events: string[]};
 export function readOnlyNamespaces(cosmosMethods: readonly string[] = ['cosmos_getAccounts']): Record<'eip155' | 'solana' | 'cosmos', WcNamespace> {
   // Gate C security review S9 (ADR-028 H133): read-only means exactly that — the one Cosmos method that reads accounts.
@@ -41,6 +43,18 @@ export function readOnlyNamespaces(cosmosMethods: readonly string[] = ['cosmos_g
     solana: {chains: [WC_SOLANA_MAINNET], methods: [], events: []},
     cosmos: {chains: [WC_ZIGCHAIN], methods: [...new Set(cosmosMethods)], events: []},
   };
+}
+/**
+ * Session AK (AFL9, A7; `TIER 3 (wallet)`): the namespaces of a pairing that may also stake with Keplr Mobile. The two
+ * Cosmos methods are handed in by lib/staking/execute.ts (WC_STAKING_METHODS: reading the account and signing one reviewed
+ * document); this file still names no signing method. Only ZIGChain mainnet and testnet are asked, optionally; Ethereum-
+ * family and Solana stay read-only. A wallet that does not offer ZIGChain simply leaves it out, and the session links the
+ * rest read-only.
+ */
+export function stakingNamespaces(stakingMethods: readonly string[]): Record<'eip155' | 'solana' | 'cosmos', WcNamespace> {
+  if (stakingMethods.length !== 2 || !stakingMethods.includes('cosmos_getAccounts') || !stakingMethods.every(m => /^cosmos_[A-Za-z]{4,30}$/.test(m))) throw Error('A staking pairing asks for exactly the account read and one signing method.');
+  const base = readOnlyNamespaces();
+  return {...base, cosmos: {chains: [WC_ZIGCHAIN, WC_ZIGTEST], methods: [...stakingMethods], events: []}};
 }
 export type WcAccount = {kind: AddressKind; address: string; chainId: string};
 /** The addresses an approved session's namespaces hold (CAIP-10), checked; anything else is left out. */
@@ -84,13 +98,13 @@ export class WalletConnectUnavailable extends Error {}
  * app plus the approval, which resolves to the session's checked accounts. Refuses before loading anything when the project
  * ID is not set.
  */
-export async function startWalletConnect({projectId, origin, cosmosMethods, loader = () => import('@walletconnect/sign-client') as unknown as ReturnType<Loader>}: {projectId: string | null; origin: string; cosmosMethods?: readonly string[]; loader?: Loader}): Promise<{uri: string; approval: Promise<{accounts: WcAccount[]; wallet: string}>}> {
+export async function startWalletConnect({projectId, origin, cosmosMethods, stakingMethods, loader = () => import('@walletconnect/sign-client') as unknown as ReturnType<Loader>}: {projectId: string | null; origin: string; cosmosMethods?: readonly string[]; stakingMethods?: readonly string[]; loader?: Loader}): Promise<{uri: string; approval: Promise<{accounts: WcAccount[]; wallet: string}>}> {
   if (!projectId || !/^[0-9a-f]{32}$/.test(projectId)) throw new WalletConnectUnavailable('WalletConnect is not set up in this build yet.');
   const url = new URL(origin);
   if (url.protocol !== 'https:' && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') throw new WalletConnectUnavailable('WalletConnect needs this app\'s own https address.');
   const {SignClient} = await loader();
   const client = await SignClient.init({projectId, telemetryEnabled: false, storage: memoryStorage(), metadata: {name: 'ZIGoals', description: 'Goals, habits and wealth. Wallets are linked read-only.', url: url.origin, icons: [`${url.origin}/apple-touch-icon.png`]}}) as Client;
-  const {uri, approval} = await client.connect({optionalNamespaces: readOnlyNamespaces(cosmosMethods)});
+  const {uri, approval} = await client.connect({optionalNamespaces: stakingMethods ? stakingNamespaces(stakingMethods) : readOnlyNamespaces(cosmosMethods)});
   if (typeof uri !== 'string' || !uri.startsWith('wc:')) throw new WalletConnectUnavailable('WalletConnect did not give a pairing link.');
   live = {client, session: null};
   return {uri, approval: approval().then(session => {
