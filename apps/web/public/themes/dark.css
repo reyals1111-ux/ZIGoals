@@ -15344,6 +15344,15 @@
         background-color: #ffffff0d
     }
 }
+/*  components/tour/tour.css  */
+@scope (:root[data-theme=dark]) {
+    .ak-tour:not(#\-) {
+        border-color: var(--line)
+    }
+    .ak-tour :is(a, button, h3):focus-visible:not(#\-) {
+        outline-color: currentColor
+    }
+}
 /*  components/ui/card-header.css  */
 @scope (:root[data-theme=dark]) {
     :scope :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :first-child > p:not(.eyebrow):not(#\-) {

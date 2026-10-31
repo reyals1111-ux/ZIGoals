@@ -4665,6 +4665,17 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .timeline-block:not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .timeline-block:not(#\-) { row-gap: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .today-timeline-card:not(#\-) { row-gap: 3px; padding-top: 9px; padding-bottom: 9px; } }
+/*  components/tour/tour.css  */
+:where(:root[data-density=compact]) .tour-offer:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .ak-tour:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .ak-tour-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .ak-tour-head h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ak-tour-stop h4:not(#\-) { margin-top: 2px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .ak-tour-stop p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ak-tour-count:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ak-tour-show:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .ak-tour-nav:not(#\-) { row-gap: 10px; }
+@media (max-width: 420px) { :where(:root[data-density=compact]) .ak-tour:not(#\-) { padding-top: 12px; padding-bottom: 12px; } }
 /*  components/ui/card-header.css  */
 :root:where([data-density=compact]) :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head):not(#\-) { row-gap: 7.5px; margin-top: 0; margin-bottom: 13.5px; }
 :root:where([data-density=compact]) :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :is(.card-options, .pin-to-today):not(#\-) { margin-top: -6px; }

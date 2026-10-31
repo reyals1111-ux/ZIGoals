@@ -2551,6 +2551,9 @@
 :where(:root[data-text=large]) .today-timeline-open:not(#\-) { font-size: calc(16px * 1.125); }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .timeline-time:not(#\-) { font-size: calc(14px * 1.125); } }
 @media (max-width: 767.98px) { :where(:root[data-text=large]) .today-timeline-next > li:not(#\-) { font-size: calc(15px * 1.125); } }
+/*  components/tour/tour.css  */
+:where(:root[data-text=large]) .ak-tour-head h3:not(#\-) { font-size: calc(18px * 1.125); }
+:where(:root[data-text=large]) .ak-tour-stop h4:not(#\-) { font-size: calc(16px * 1.125); }
 /*  components/ui/card-header.css  */
 :root:where([data-text=large]) :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) :is(h2, h3):not(.eyebrow):not(#\-) { font-size: calc(clamp(22px, .6vw + 17px, 27px) * 1.125); }
 :root:where([data-text=large]) .panel :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) :is(h2, h3):not(.eyebrow):not(#\-), :root:where([data-text=large]) :is(.panel, .panel-card) > header > :is(h2, h3):not(#\-), :root:where([data-text=large]) :is(.panel, .panel-card) > header > div > :is(h2, h3):not(#\-) { font-size: calc(clamp(19px, .3vw + 16px, 22px) * 1.125); }
