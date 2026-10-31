@@ -11,6 +11,10 @@ export const KNOWN_DATABASES = [
   'zigoals-progress-photos', 'zigoals-push-labels-v1', 'zigoals-vision-v1', 'zigoals-xpub-v1',
   // Session AK (ADR-036 A1): the notification snapshot and identity, and the queue of notification taps.
   'zigoals-notify-v1', 'zigoals-notify-actions-v1',
+  // Session AK (Part 1c): the offline generic food library (public data kept for offline search).
+  'zigoals-food-generic-v1',
+  // Session AK (Part 1d): the person's own Spotify client id, on this device only.
+  'zigoals-music-byo-v1',
 ] as const;
 export const ERASE_PREFIX = 'zigoals';
 export const ERASE_CONFIRM = 'ERASE';
