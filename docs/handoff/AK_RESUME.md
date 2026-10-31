@@ -24,13 +24,15 @@ Parts in order: 0 records → 1 integrations (WalletConnect, food Worker, EU foo
 - Wave B libraries: lane H (`e7cecde0`), W (`92b94a8f`), G (`ca810a31`); registries (`e3f99620`).
 - 8.10 AFL8 Checklist extras section (`e7d9951e`, TIER 3 auth/sync; effective at private-sync redeploy).
 - Part 7 wiring (`5074567f`); Parts 5–6 wiring (`a74c33af`); Part 4 health (`7d435846`); Part 9 Lichess (`1f84a28e`).
+- PRIVACY lines (`4948628d`); Daylio/Habitica/YNAB (`322096dc`); focus and wind-down sounds (`9c902707`); CI pin fixes (`8c718525`); theme sheets (`987460f9`, build them from a clean worktree at HEAD, never from the shared tree while lanes run); ADR closing rows (`9c6fc39c`); verifier stage 11 (`d80a1d0d`).
 
 ## Lanes in flight (wave C, started ~31 Oct late)
 - M money (COMPETITORS 1, 10, 11, 12, 17, 18, 22), S self/insights (2, 6, 9, 13, 14), X cross-pillar (8.1–8.7, item 19), T training/nutrition (3, 5, 8, 15, 20, 21). Rules for lanes: scratchpad lane-rules.md (recreate from this list if lost).
 
 ## To do by the lead (after wave C)
 - PRIVACY.md lines: food scans, nutrient extras, grocery, calorie week, meal photos (opt-in, IndexedDB, exported as files), Lichess token (device-only, revoke on Disconnect).
-- Help/What's new for Parts 4–9; Daylio/Habitica/YNAB importers wiring (IMPORT_FORMATS); startSoundscape in Focus Sessions and wind-down; frozen readers rerun with all new keys; route weights on a build.
+- Help/What's new for Parts 4–10 + the A19 tour (a 'Take the tour' button in the What's-new card, sheet lazy, device key); frozen readers rerun with all new keys; route weights on a build; browser runs: switch-more-ak, chess-play-ak, hosted-verifier-order (stage 11), page-order-aa.
+- Brief text for Parts 10–16 saved in scratchpad brief-parts-10-16.md (Part 12 Studio-4 constants are there).
 - Known limitation to record: new grocery ticks are device-only (earlier ticks in the Health journal still count).
 - Then Parts 11–16 as planned.
 
