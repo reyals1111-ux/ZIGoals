@@ -124,11 +124,14 @@ test("the Alpha self-reference must bind back to zigoals-alpha", () => {
 // Session S Part 8: the Alpha binds the market coordinator's QuoteService for live prices, and nothing else.
 const MARKET = "Alpha MARKET_QUOTES must target zigoals-acctest-market-coordinator's QuoteService, and no other binding is allowed";
 const VARS = 'Alpha vars must be exactly ZIGOALS_MARKET_QUOTES_MODE "durable-v1"';
-test("the Alpha binds exactly the self-reference and the coordinator's QuoteService, with only the durable mode var", () => {
+// Session AK Part 1b (ADR-036 Q5, A10; TIER 3 deploy config): and the food Worker, for barcode lookups and food search.
+const FOOD = "Alpha FOOD_LOOKUP must target zigoals-acctest-food-lookup, and no other binding is allowed";
+test("the Alpha binds exactly the self-reference, the coordinator's QuoteService and the food Worker, with only the durable mode var", () => {
   const { alpha } = pair();
   expect(alpha.services).toEqual([
     { binding: "WORKER_SELF_REFERENCE", service: "zigoals-alpha" },
     { binding: "MARKET_QUOTES", service: "zigoals-acctest-market-coordinator", entrypoint: "QuoteService" },
+    { binding: "FOOD_LOOKUP", service: "zigoals-acctest-food-lookup" },
   ]);
   expect(alpha.vars).toEqual({ ZIGOALS_MARKET_QUOTES_MODE: "durable-v1" });
 });
@@ -139,11 +142,15 @@ test.each([
   ["a wrong service", (a: WranglerConfig) => { a.services[1].service = "zigoals-acctest-private-sync"; }, MARKET],
   ["a renamed binding", (a: WranglerConfig) => { a.services[1].binding = "MARKETS"; }, MARKET],
   ["an extra field", (a: WranglerConfig) => { a.services[1].environment = "production"; }, MARKET],
-  ["a third binding", (a: WranglerConfig) => { a.services.push({ binding: "FOOD_LOOKUP", service: "zigoals-acctest-food-lookup" }); }, MARKET],
-  ["the market binding missing", (a: WranglerConfig) => { a.services.pop(); }, MARKET],
+  ["a fourth binding", (a: WranglerConfig) => { a.services.push({ binding: "HEALTH_LINK", service: "zigoals-acctest-health-link" }); }, MARKET],
+  ["the market binding missing", (a: WranglerConfig) => { a.services.splice(1, 1); }, MARKET],
+  ["the food binding missing", (a: WranglerConfig) => { a.services.pop(); }, FOOD],
+  ["a wrong food service", (a: WranglerConfig) => { a.services[2].service = "zigoals-food-lookup-local"; }, FOOD],
+  ["a renamed food binding", (a: WranglerConfig) => { a.services[2].binding = "FOOD"; }, FOOD],
+  ["an entrypoint on the food binding", (a: WranglerConfig) => { a.services[2].entrypoint = "QuoteService"; }, FOOD],
   ["the bindings swapped", (a: WranglerConfig) => { a.services.reverse(); }, "Alpha WORKER_SELF_REFERENCE must target zigoals-alpha"],
   ["an entrypoint on the self-reference", (a: WranglerConfig) => { a.services[0].entrypoint = "QuoteService"; }, "Alpha WORKER_SELF_REFERENCE must target zigoals-alpha"],
-  ["services that are not a list", (a: WranglerConfig) => { a.services = { 0: a.services[0], 1: a.services[1], length: 2 }; }, MARKET],
+  ["services that are not a list", (a: WranglerConfig) => { a.services = { 0: a.services[0], 1: a.services[1], 2: a.services[2], length: 3 }; }, MARKET],
   ["another var", (a: WranglerConfig) => { a.vars.ZIGOALS_MARKET_LOCAL_MODE = "direct"; }, VARS],
   ["a key var", (a: WranglerConfig) => { a.vars.COINGECKO_DEMO_API_KEY = "x"; }, VARS],
   ["another mode", (a: WranglerConfig) => { a.vars.ZIGOALS_MARKET_QUOTES_MODE = "direct"; }, VARS],

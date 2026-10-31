@@ -4,7 +4,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateRepositoryDeploymentConfigs, readDeploymentConfigs } from "./check-deployment-configs.mjs";
-import { REPOSITORY, WORKER, alphaDeploymentEnvironment, alphaDeployArgs, assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, currentDeployment, performDeployment } from "./lib/alpha-deployment.mjs";
+import { REPOSITORY, WORKER, alphaDeploymentEnvironment, alphaDeployArgs, assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, FOOD_DEPLOY_ORDER, currentDeployment, performDeployment } from "./lib/alpha-deployment.mjs";
 import { readHostedBuilds, smokeAlpha } from "./lib/alpha-smoke.mjs";
 import { policyWindowNote } from "./lib/market-policy-window.mjs";
 
@@ -54,6 +54,7 @@ async function checkSource() {
   });
   assert.deepEqual(validateRepositoryDeploymentConfigs(root), [], "Deployment config isolation check failed");
   assertAlphaConfig(readDeploymentConfigs(root).alpha);
+  console.log(FOOD_DEPLOY_ORDER);
   assert.equal(read(resolve(root, "package.json")).packageManager, "pnpm@11.19.0");
   assert.equal(read(resolve(root, "package.json")).engines.node, "24.19.0");
   assert.equal(readFileSync(resolve(root, ".node-version"), "utf8").trim(), "24.19.0");
