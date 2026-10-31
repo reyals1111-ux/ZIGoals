@@ -1,0 +1,52 @@
+/* Session AK (7.2, 7.4–7.6): target mix, purpose flows, contribution rhythm and the exchange sync line (nebula style,
+   theme tokens, 44 px targets, no motion: nothing here animates, so reduced motion and Motion Off need no override). */
+.alloc-body,.purpose-body,.autopilot-body{display:grid;gap:14px}
+.alloc-currency h3,.alloc-body h3{font-size:17px;margin:0 0 6px}
+.alloc-table-wrap{max-width:100%;overflow-x:auto}
+.alloc-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.alloc-table caption{text-align:left;padding-bottom:6px}
+.alloc-table th,.alloc-table td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line,rgba(140,160,220,.18));vertical-align:middle}
+.alloc-table thead th{font-size:13px;font-weight:500;color:var(--muted,inherit)}
+.alloc-table small{display:block}
+.alloc-table tfoot th,.alloc-table tfoot td{font-weight:600}
+.alloc-table tr[data-status=above] td:nth-child(4),.alloc-table tr[data-status=below] td:nth-child(4){color:var(--amber,#f5b65b)}
+.alloc-bar-cell{width:30%;min-width:90px}
+.alloc-bar{position:relative;display:block;height:10px;border-radius:6px;background:color-mix(in srgb,var(--text,#e8eefc) 10%,transparent)}
+.alloc-bar-now{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff))}
+.alloc-bar-target{position:absolute;top:-4px;width:2px;height:18px;margin-left:-1px;background:var(--text,#e8eefc)}
+@media (max-width:560px){.alloc-bar-cell{display:none}}
+.alloc-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.alloc-actions button,.alloc-actions a{min-height:44px;display:inline-flex;align-items:center}
+.alloc-edit{display:grid;gap:10px;padding:14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.25))}
+.alloc-target-field{display:grid;grid-template-columns:1fr 120px;align-items:center;gap:10px}
+.alloc-input{display:inline-flex;align-items:center;gap:6px}
+.alloc-input input{width:80px;min-height:44px}
+.alloc-basis{display:flex;flex-wrap:wrap;gap:8px}
+.alloc-chip{display:inline-flex;align-items:center;min-height:44px;cursor:pointer}
+.alloc-chip input{position:absolute;opacity:0;width:1px;height:1px}
+.alloc-chip span{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.35));font-size:14px}
+.alloc-chip input:checked+span{background:color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);border-color:var(--violet,#8b7cff)}
+.alloc-chip input:focus-visible+span{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.alloc-status{min-height:22px;margin:0}
+.alloc-body .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.purpose-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+.purpose-top button{min-height:44px}
+.purpose-summary{margin:0;flex:1 1 260px}
+.purpose-summary strong{font-size:22px}
+.purpose-figure{margin:0;padding:12px;border-radius:18px;background:color-mix(in srgb,var(--violet,#8b7cff) 8%,transparent);border:1px solid var(--line,rgba(140,160,220,.22))}
+.purpose-svg{display:block;width:100%;height:auto}
+.purpose-band{fill:none;stroke:var(--cyan,#6fd3ff);stroke-opacity:.42}
+.purpose-band-free{stroke-opacity:.22;stroke-dasharray:none}
+.purpose-node{fill:var(--cyan,#6fd3ff)}
+.purpose-node-goal{fill:var(--violet,#8b7cff)}
+.purpose-node-available{fill:color-mix(in srgb,var(--text,#e8eefc) 45%,transparent)}
+.purpose-label{fill:var(--text,#e8eefc);font-size:12px;font-weight:600}
+.purpose-value{fill:var(--muted,var(--text,#e8eefc));font-size:11px;font-weight:400}
+@media (forced-colors:active){.purpose-band{stroke:CanvasText;stroke-opacity:.5}.purpose-node{fill:CanvasText}.purpose-label,.purpose-value{fill:CanvasText}}
+.autopilot-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.autopilot-row{display:grid;gap:8px;padding:12px 14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.22))}
+.autopilot-row p{margin:0}
+.autopilot-time{max-width:200px}
+.autopilot-time input{min-height:44px}
+.last-synced{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0}
+.last-synced-button{min-height:44px;min-width:44px}

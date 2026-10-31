@@ -1,0 +1,30 @@
+/* Session AK (7.3): Upcoming bills (nebula style, theme tokens, 44 px targets, no motion). */
+.bills-body{display:grid;gap:16px}
+.bills-head{display:grid;gap:12px}
+.bills-window{display:flex;flex-wrap:wrap;gap:8px}
+.bills-chip{display:inline-flex;align-items:center;min-height:44px;cursor:pointer}
+.bills-chip input{position:absolute;opacity:0;width:1px;height:1px}
+.bills-chip span{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line,rgba(140,160,220,.35));font-size:14px}
+.bills-chip input:checked+span{background:color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);border-color:var(--violet,#8b7cff)}
+.bills-chip input:focus-visible+span{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+.bills-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0}
+.bills-totals div{padding:14px 16px;border-radius:16px;background:color-mix(in srgb,var(--violet,#8b7cff) 10%,transparent);border:1px solid var(--line,rgba(140,160,220,.25))}
+.bills-totals dt{font-size:14px;color:var(--muted,inherit)}
+.bills-totals dd{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.bills-body h3{font-size:17px;margin:0 0 8px}
+.bills-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.bills-row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:8px 12px;min-height:44px;padding:4px 0;border-bottom:1px solid var(--line,rgba(140,160,220,.18))}
+.bills-row:not(:has(.bills-date)){grid-template-columns:1fr auto auto}
+@media (max-width:620px){.bills-row,.bills-row:not(:has(.bills-date)){grid-template-columns:1fr auto}.bills-actions{grid-column:1 / -1}}
+.bills-date{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:14px}
+.bills-what{min-width:0;overflow-wrap:anywhere}
+.bills-note-line{display:block}
+.bills-amount{font-variant-numeric:tabular-nums;white-space:nowrap}
+.bills-actions{display:flex;flex-wrap:wrap;gap:8px}
+.bills-actions button,.bills-add{min-height:44px;min-width:44px}
+.bills-add{justify-self:start}
+.bills-note-form,.bills-form{grid-column:1 / -1;display:grid;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--line,rgba(140,160,220,.25))}
+.bills-form-row{display:grid;grid-template-columns:1fr 110px 1fr 1fr;gap:10px}
+@media (max-width:620px){.bills-form-row{grid-template-columns:1fr 1fr}}
+.bills-notes{margin:0;padding:12px 16px 12px 32px;border-radius:14px;border:1px solid color-mix(in srgb,var(--amber,#f5b65b) 50%,transparent)}
+.bills-status{min-height:22px;margin:0}
