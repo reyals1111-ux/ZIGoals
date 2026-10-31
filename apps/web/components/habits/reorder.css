@@ -1,0 +1,29 @@
+/* Session AK (5.7): reorder and the compact list. Theme colours only; 44 px targets; no motion beyond the theme's own. */
+.habit-reorder { display: grid; gap: 10px; }
+.habit-reorder-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.habit-reorder-head h3 { margin: 0; }
+.habit-reorder-hint { margin: 0; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.habit-reorder-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.habit-reorder-list li { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-1, var(--panel)); }
+.habit-reorder-list li:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.habit-reorder-list li[data-dragging] { opacity: .6; }
+.habit-reorder-grip { color: var(--text-secondary, var(--muted)); cursor: grab; }
+.habit-reorder-title { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--text); font-weight: 600; }
+.habit-reorder-buttons { display: inline-flex; gap: 4px; }
+.habit-reorder-buttons button, .habit-reorder-head button, .habit-list-mode button { min-height: 44px; min-width: 44px; }
+.habit-reorder-error { margin: 0; color: var(--pink); }
+.habit-list-mode { display: inline-flex; gap: 4px; }
+.habit-list-mode button[aria-pressed='true'] { color: var(--text); font-weight: 700; border-color: var(--cyan); }
+.habit-compact { overflow-x: auto; }
+.habit-compact-table { width: 100%; border-collapse: collapse; }
+.habit-compact-table th, .habit-compact-table td { padding: 2px; text-align: center; }
+.habit-compact-table thead th { font-size: 12px; font-weight: 600; color: var(--text-secondary, var(--muted)); }
+.habit-compact-table abbr { text-decoration: none; }
+.habit-compact-table tbody th { text-align: left; width: 100%; }
+.habit-compact-title { display: block; min-height: 44px; padding: 10px 4px; border: 0; background: none; color: var(--text); font: inherit; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
+button.habit-compact-title { cursor: pointer; }
+.habit-compact-cell { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; }
+button.habit-compact-cell { cursor: pointer; }
+.habit-compact-cell[aria-pressed='true'] { background: color-mix(in srgb, var(--cyan) 28%, transparent); border-color: var(--cyan); }
+.habit-compact-cell.is-static { opacity: .55; }
+.habit-compact-empty { margin: 0; color: var(--text-secondary, var(--muted)); }

@@ -1,0 +1,14 @@
+/* Session AK (6.3): the progress share card's preview and options. Theme colours only; 44 px targets. */
+.progress-card { display: grid; gap: 12px; }
+.progress-card h3 { margin: 0; }
+.progress-card-preview { margin: 0; display: grid; gap: 6px; padding: 20px; aspect-ratio: 1080 / 1350; max-width: 280px; border-radius: 18px; background: linear-gradient(135deg, var(--bg), var(--surface-2, var(--panel))); border: 1px solid var(--line); align-content: center; }
+.progress-card-eyebrow { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary, var(--muted)); }
+.progress-card-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--text); overflow-wrap: anywhere; }
+.progress-card-line { margin: 0; color: var(--text); }
+.progress-card-footer { margin-top: auto; font-size: 11px; color: var(--text-secondary, var(--muted)); }
+.progress-card-options { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.progress-card-options legend { font-weight: 600; margin-bottom: 4px; }
+.progress-card-options label { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+.progress-card-options input { width: 22px; height: 22px; }
+.progress-card-fine { margin: 0; font-size: 13px; color: var(--text-secondary, var(--muted)); }
+.progress-card .actions button { min-height: 44px; }
