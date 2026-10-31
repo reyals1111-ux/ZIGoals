@@ -6,6 +6,11 @@
 export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:notify:v1',
   'zigoals:music-mix:v1',
+  'zigoals:auto-rules:v1',
+  'zigoals:bills:v1',
+  'zigoals:budgets:v1',
+  'zigoals:target-allocation:v1',
+  'zigoals:csv-mappings:v1',
 ];
 /** The account erase removes them all. */
 export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;

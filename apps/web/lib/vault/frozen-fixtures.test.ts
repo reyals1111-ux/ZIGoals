@@ -24,6 +24,11 @@ import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {NOTIFY_KEY} from '../notify/prefs';
 import {MUSIC_MIX_KEY} from '../music/mix-store';
+import {BILLS_KEY} from '../bills/schema';
+import {BUDGETS_KEY} from '../budgets/schema';
+import {TARGET_ALLOCATION_KEY} from '../allocation/target';
+import {CSV_MAPPINGS_KEY} from '../csv/templates/saved';
+import {AUTO_RULES_KEY} from '../auto-rules/schema';
 import {WORKOUTS_KEY} from '../workouts/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {UI_PREFS_KEY} from '../ab-design-keys';
@@ -196,7 +201,11 @@ export function frozenFixture() {
   checks.push({key: FOCUS_SESSIONS_KEY, module: './focus-sessions/schema', spec: 'FOCUS_SESSIONS', expect: {'sessions.0.outcome': 'grown'}});
   // Session AJ (item 27, D12; TIER 3 (stored format)): a workout imported from a GPX file keeps an optional summary
   // (`imported`) in the loose workouts record; an older build keeps or ignores it (fictional figures).
-  records[WORKOUTS_KEY] = JSON.stringify({version: 1, workouts: [{id: 'w_fixture-1', name: 'Run (imported)', date: '2026-10-28', type: 'cardio', startedAt: '2026-10-28T07:00:00.000Z', endedAt: '2026-10-28T07:30:00.000Z', exercises: [], imported: {source: 'gpx', importId: '20261028T0700Z-1800s-5000m', sport: 'running', distanceKm: 5, elevationM: 40, avgHr: 148, durationSeconds: 1800}}], templates: [], exercises: [], restSeconds: 90});
+  records[WORKOUTS_KEY] = JSON.stringify({version: 1, workouts: [{id: 'w_fixture-1', name: 'Run (imported)', date: '2026-10-28', type: 'cardio', startedAt: '2026-10-28T07:00:00.000Z', endedAt: '2026-10-28T07:30:00.000Z', exercises: [], imported: {source: 'gpx', importId: '20261028T0700Z-1800s-5000m', sport: 'running', distanceKm: 5, elevationM: 40, avgHr: 148, durationSeconds: 1800}},
+    // Session AK (4.7, 4.9; TIER 3 (stored format)): RPE, supersets, rest per exercise, a FIT summary and the plate set, all optional.
+    {id: 'w_fixture-2', name: 'Strength', date: '2026-10-29', type: 'strength', startedAt: '2026-10-29T07:00:00.000Z', endedAt: '2026-10-29T07:45:00.000Z', exercises: [{id: 'e1', exerciseId: 'bench-press', name: 'Bench press', measure: 'weight-reps', supersetId: 'A', restSeconds: 120, sets: [{id: 's1', kind: 'normal', reps: 5, weightKg: 60, done: true, rpe: 8.5}]}]},
+    {id: 'w_fixture-3', name: 'Ride (FIT)', date: '2026-10-30', type: 'cardio', startedAt: '2026-10-30T07:00:00.000Z', endedAt: '2026-10-30T08:00:00.000Z', exercises: [], fileImport: {source: 'fit', importId: 'fit-20261030-1', sport: 'cycling', distanceKm: 30, durationSeconds: 3600}}],
+    templates: [], exercises: [], restSeconds: 90, plates: {unit: 'kg', bar: 20, plates: [{size: 20, pairs: 2}, {size: 10, pairs: 2}]}});
   checks.push({key: WORKOUTS_KEY, module: './workouts/schema', spec: 'WORKOUTS', expect: {'workouts.0.name': 'Run (imported)'}});
   // Session AJ (item 34, D13; TIER 3 (stored format)): Guided journeys, a new device-only key (fictional).
   records[GUIDED_JOURNEYS_KEY] = JSON.stringify({version: 1, journeys: [{programId: 'walking-start', startedOn: '2026-10-27', done: ['walk-1']}]});
@@ -207,6 +216,17 @@ export function frozenFixture() {
   // Session AK Part 1d (MUSIC; TIER 3 (stored format)): the sound mix, a new device-only key (zigoals:music:v1 unchanged).
   records[MUSIC_MIX_KEY] = JSON.stringify({version: 1, mix: {v: 1, active: true, layers: [{sound: 'rain', level: 0.6}, {sound: 'pad', level: 0.3}]}, master: 40, timerMin: 30, preset: 'wind-down', playOnSilent: false});
   checks.push({key: MUSIC_MIX_KEY, module: './music/mix-store', spec: 'MUSIC_MIX', expect: {timerMin: 30}});
+  // Session AK Parts 5 and 7 (TIER 3 (stored format)): five new device-only keys (fictional values).
+  records[BILLS_KEY] = JSON.stringify({version: 1, bills: [{id: 'b1', title: 'Fictional rent', amount: '900.00', currency: 'EUR', cadence: 'monthly', nextDue: '2026-11-01', origin: 'manual', createdAt: '2026-10-27T12:00:00.000Z'}], dismissed: []});
+  checks.push({key: BILLS_KEY, module: './bills/schema', spec: 'BILLS', expect: {'bills.0.amount': '900.00'}});
+  records[BUDGETS_KEY] = JSON.stringify({version: 1, budgets: [{id: 'g1', category: 'Food', currency: 'EUR', monthly: '400.00', rollover: true, since: '2026-10'}]});
+  checks.push({key: BUDGETS_KEY, module: './budgets/schema', spec: 'BUDGETS', expect: {'budgets.0.category': 'Food'}});
+  records[TARGET_ALLOCATION_KEY] = JSON.stringify({version: 1, basis: 'class', targets: [{key: 'crypto', label: 'Crypto', percent: 20}], band: 5});
+  checks.push({key: TARGET_ALLOCATION_KEY, module: './allocation/target', spec: 'TARGET_ALLOCATION', expect: {band: 5}});
+  records[CSV_MAPPINGS_KEY] = JSON.stringify({version: 1, mappings: [{id: 'm1', name: 'Fictional bank', target: 'money', columns: {date: 'Date', amount: 'Amount'}, savedAt: '2026-10-27T12:00:00.000Z'}]});
+  checks.push({key: CSV_MAPPINGS_KEY, module: './csv/templates/saved', spec: 'CSV_MAPPINGS', expect: {'mappings.0.name': 'Fictional bank'}});
+  records[AUTO_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', source: 'steps', comparator: 'at-least', threshold: 8000, habitId: '00000000-0000-4000-8000-000000000001'}], applied: []});
+  checks.push({key: AUTO_RULES_KEY, module: './auto-rules/schema', spec: 'AUTO_RULES', expect: {'rules.0.threshold': 8000}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -216,7 +236,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

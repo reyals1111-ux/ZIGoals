@@ -36,6 +36,13 @@ import {MEAL_ESTIMATES} from '../meal-estimates/schema';
 import {TASKS} from '../tasks/schema';
 import {READING_SOURCES} from '../wealth-sources/schema';
 import {PRICE_ALERTS} from '../price-alerts/schema';
+import {NOTIFY_PREFS} from '../notify/prefs';
+import {MUSIC_MIX} from '../music/mix-store';
+import {BILLS} from '../bills/schema';
+import {BUDGETS} from '../budgets/schema';
+import {TARGET_ALLOCATION} from '../allocation/target';
+import {CSV_MAPPINGS} from '../csv/templates/saved';
+import {AUTO_RULES} from '../auto-rules/schema';
 import {FOCUS_SESSIONS} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS} from '../guided/schema';
 import {RECEIPTS} from '../portfolio/receipts';
@@ -93,6 +100,14 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
   dev('readingSources', 'Where wealth readings came from', 'Goals and Wealth', READING_SOURCES),
   dev('priceAlerts', 'Price alerts', 'Goals and Wealth', PRICE_ALERTS),
+  // Session AK: notification choices, the sound mix, bills, budgets, the target mix, saved CSV matches, habit rules.
+  dev('notify', 'Notification choices', 'Today and Life', NOTIFY_PREFS),
+  dev('musicMix', 'Sound mix and timer', 'Today and Life', MUSIC_MIX),
+  dev('bills', 'Bills', 'Goals and Wealth', BILLS),
+  dev('budgets', 'Budgets', 'Goals and Wealth', BUDGETS),
+  dev('targetAllocation', 'Target mix', 'Goals and Wealth', TARGET_ALLOCATION),
+  dev('csvMappings', 'Saved CSV column matches', 'Goals and Wealth', CSV_MAPPINGS),
+  dev('autoRules', 'Habit rules', 'Habits', AUTO_RULES),
   dev('focusSessions', 'Focus sessions', 'Today and Life', FOCUS_SESSIONS),
   dev('guidedJourneys', 'Guided journeys', 'Today and Life', GUIDED_JOURNEYS),
   dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),

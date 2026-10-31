@@ -7,6 +7,11 @@ import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
 import {NOTIFY_KEY} from '../notify/prefs';
 import {MUSIC_MIX_KEY} from '../music/mix-store';
+import {BILLS_KEY} from '../bills/schema';
+import {BUDGETS_KEY} from '../budgets/schema';
+import {TARGET_ALLOCATION_KEY} from '../allocation/target';
+import {CSV_MAPPINGS_KEY} from '../csv/templates/saved';
+import {AUTO_RULES_KEY} from '../auto-rules/schema';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
@@ -107,6 +112,12 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   notify: NOTIFY_KEY,
   // Session AK Part 1d: the sound mix, its own volume and timer, and the play-on-silent choice.
   musicMix: MUSIC_MIX_KEY,
+  // Session AK Parts 5 and 7: habit rules, bills, budgets, the target mix and saved CSV column matches.
+  autoRules: AUTO_RULES_KEY,
+  bills: BILLS_KEY,
+  budgets: BUDGETS_KEY,
+  targetAllocation: TARGET_ALLOCATION_KEY,
+  csvMappings: CSV_MAPPINGS_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
   guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).

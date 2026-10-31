@@ -5,12 +5,17 @@ import {NOTIFY_KEY} from './notify/prefs';
 import {NOTIFY_ACTIONS_DB, NOTIFY_DB} from './notify/db';
 import {GENERIC_FOOD_DATABASE} from './food-generic/store';
 import {MUSIC_MIX_KEY} from './music/mix-store';
+import {AUTO_RULES_KEY} from './auto-rules/schema';
+import {BILLS_KEY} from './bills/schema';
+import {BUDGETS_KEY} from './budgets/schema';
+import {TARGET_ALLOCATION_KEY} from './allocation/target';
+import {CSV_MAPPINGS_KEY} from './csv/templates/saved';
 import {EVERYTHING_KEYS} from './export/everything';
 import {KNOWN_DATABASES} from './erase-everything';
 
 // Session AK: this session's keys are the owners' constants, are exported, and go with the account's erase.
 test('the literals equal the owners\' constants', () => {
-  expect(AK_PERSONAL_KEYS).toEqual([NOTIFY_KEY, MUSIC_MIX_KEY]);
+  expect(AK_PERSONAL_KEYS).toEqual([NOTIFY_KEY, MUSIC_MIX_KEY, AUTO_RULES_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY]);
   expect(AK_DATABASES).toEqual([NOTIFY_DB, NOTIFY_ACTIONS_DB, GENERIC_FOOD_DATABASE, 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1']);
 });
 test('each key is exported and the account erase removes it; each database is erased by both erases', async () => {
