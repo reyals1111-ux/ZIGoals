@@ -85,7 +85,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
         {text: 'The review screen shows when it is confirmed. Come back here: this dot lights by itself.'},
       ]}/>
       <p className="fine">About 10 minutes; the faucet can take a minute or two.</p>
-      <Suspense fallback={null}><PracticeJourney/></Suspense>
+      <Suspense fallback={null}><PracticeJourney faucetLink={false}/></Suspense>
       <p><Link className="primary" href="/app/staking">Practise on Staking</Link></p>
     </>;
     case 'add-money': return <>

@@ -13,7 +13,8 @@ import './zigchain-eco.css';
  * device's own staking journal (confirmed entries on zig-test-2 only), with the official faucet link and the opt-in
  * practice badge. Test ZIG has no value; nothing here signs or reads the chain.
  */
-export function PracticeJourney() {
+/** `faucetLink` false where the surrounding guide already links the faucet (Earn's start-here practice step). */
+export function PracticeJourney({faucetLink = true}: {faucetLink?: boolean} = {}) {
   const journal = useDeviceRecord(STAKING_JOURNAL), prefs = useDeviceRecord(STAKING_PREFS);
   const [connected, setConnected] = useState(false);
   useEffect(() => { queueMicrotask(() => { let storage: Storage | null = null; try { storage = window.sessionStorage; } catch { storage = null; } setConnected(!!readStakingSession(storage, 'practice')); }); }, []);
@@ -25,7 +26,7 @@ export function PracticeJourney() {
     <ol className="zeco-steps">{steps.map(s => <li key={s.id} data-done={s.done}>
       <span className="zeco-step-title">{s.done ? 'Done: ' : ''}{s.title}{s.optional ? ' (optional)' : ''}</span>
       <br/><span className="fine">{s.how}</span>
-      {s.id === 'faucet' && !s.done && <> <VerifiedLink provider="zig-finance" kind="faucet" className="text-link" mark="compact">ZIGChain faucet</VerifiedLink></>}
+      {faucetLink && s.id === 'faucet' && !s.done && <> <VerifiedLink provider="zig-finance" kind="faucet" className="text-link" mark="compact">ZIGChain faucet</VerifiedLink></>}
     </li>)}</ol>
   </section>;
 }
