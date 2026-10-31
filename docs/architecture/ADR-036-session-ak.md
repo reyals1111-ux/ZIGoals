@@ -318,7 +318,7 @@ RELEASE_REVIEW summary, journeys, COMPETITORS_2 summary, ZIGChain findings, land
 performance numbers, owner list: food Worker FIRST, then merge and deploy #53 and the verifier; Reown allowed domains;
 push activation; landing deploy; A13 mainnet check; the Studio-4 swap session; the real-model run); short report.
 
-Readings: Q22 — Part 13's swap is out of this PR (F11 instead); A13 is an owner check after the deploy (the A13 reminder was cancelled). Q23 — the push Worker's service binding waits for push activation (adding it now would fail the Alpha deploy until that Worker exists, the 10056 rule); the runbook's rate-limited route covers it.
+Readings: Q22 — Part 13's swap is out of this PR (F11 instead); A13 is an owner check after the deploy (the A13 reminder was cancelled). Q23 — the push Worker's service binding waits for push activation (adding it now would fail the Alpha deploy until that Worker exists, the 10056 rule); the runbook's rate-limited route covers it. Q24 — ZIGoals Wrapped's door is on Journey and in Search; a Today For you card is built (`TodayWrappedCard`) but not mounted, because Today's weight and its Showcase layout specs are pinned and the card matters from 1 December; mounting it is one lazy element when the season starts. Q25 — the vote reminder (F4) is its own opt-in per proposal, so it has no separate Notifications switch (a switch named for governance would show chain words to everyone, against "chain invisible"); unbonding dates go to the Agenda only, not to notifications (they come from Wealth's records, which a notification snapshot does not read).
 
 ## Per-surface quality lines (A22)
 Compared with COMPETITORS.md (c); "meets" = the pattern's essentials are there, "gap" = what F1/F6 should raise.
@@ -397,18 +397,18 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | Part 9 Lichess Board play and daily puzzle | Built | `1f84a28e` | lib/chess tests; tests/chess-play-ak.spec.ts |
 | Part 13 Studio-4 art swap | Moved to a separate session (owner follow-up 1); preparation is F11 | — | — |
 | A13 mainnet v6 day | Recorded: owner check after the deploy (owner follow-up 1) | — | the app accepts v6.0 on zigchain-1 (ADR-035) |
-| F0 finish what is open | Open | — | — |
+| F0 finish what is open | Built: first-Monday schedules (optional `monthWeekday`), visible sync status, 6.5 progress toast, 7.8, M42, H113, M4, missing tests ZI4/ZI8/ZI9/ZI14/G15/landing skip link, four intermittents at their cause (zigi-memory:188 navigation, zigi-knock FIRST, zigi-memory-af about:blank, zigi-accept-correct page clock); M8, market-status socket and WebKit-phone fetches recorded (no recurrence in 12 runs) | `d2105402` | unit tests per item; frozen fixture monthWeekday |
 | F1 release-readiness review | Open | — | — |
 | F2 full app testing (journeys) | Open | — | — |
 | F3 competitor research round 2 | Built: BUILD list 2 (21 items) — #2 to F4, #1 #3 #5 #8 to lane B2a, the rest in later waves or recorded | `8c5f2d1a` | docs/research/session-ak/COMPETITORS_2.md |
-| F4 ZIGChain ecosystem, deeper | Open | — | — |
-| F5 new features | Open | — | — |
+| F4 ZIGChain ecosystem, deeper | Built, read-only: staking clarity, validator spread, token check (/api/chain/denom, no new host), governance summaries and vote reminders, practice round, ecosystem status; EVM balances not built (no live mainnet RPC; testnet RPC behind a challenge) | `920de5bf` | lib/zigchain-eco tests (45 files with staking guards) |
+| F5 new features | Built: health and habits (`c8afc7f1`), goals and money, cross-pillar (agenda + .ics, Wrapped, search actions) (`d2105402`); BUILD list 2 #1 #3 #5 #8 (`d2105402`) | `c8afc7f1`, `d2105402` | unit tests per feature; 8 new keys in every registry |
 | F6 visual upgrade | Open | — | — |
-| F7 landing visual refresh | Open | — | — |
+| F7 landing visual refresh | Built (owner deploys): hero, Example data labels, offline/install mockups, Private by design, Switch to ZIGoals, FAQ; phone weight lower, desktop within 6 MB | `7cadc0e5` | scripts/landing-f7-visual.test.mjs; check:landing |
 | F8 performance and accessibility | Open | — | — |
 | F9 ZIGi for everything new | Open | — | — |
 | F10 security delta review | Open | — | — |
-| F11 Studio-4 preparation complete and proven | Open | — | — |
+| F11 Studio-4 preparation complete and proven | Built: every Part 12 slot verified wired (X030 cheer unused by the PROTECTED Checklist until the owner says yes); dry run of studio4-deliver/ through the importer; runbook | `a845d339` | scripts/zigi/studio4-dry-run.test.mjs (17 tests); docs/handoff/STUDIO4_SWAP_RUNBOOK.md |
 | F12 finish | Open | — | — |
 | 5.1 schedules: "first Monday of the month" | Open (F0x lane) | — | — |
 | 5.7 time-of-day sections (COMPETITORS #23) | Already done | components/habits/habit-sections.tsx (Session AA) | habits-aa specs |
