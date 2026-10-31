@@ -4157,6 +4157,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width:720px) { :where(:root[data-density=compact]) .wealth-split>div:not(#\-) { padding-top: 15px; padding-bottom: 15px; } }
 @media (max-width:720px) { :where(:root[data-density=compact]) .wealth-category-body:not(#\-) { padding-top: 20px; padding-bottom: 20px; } }
 @media (max-width:390px) { :where(:root[data-density=compact]) .wealth-hero:not(#\-) { padding-top: 20px; padding-bottom: 20px; } }
+:where(:root[data-density=compact]) .spending>.wealth-section-heading:not(#\-) { row-gap: 9px; }
 /*  components/point-tell/point-tell.css  */
 :where(:root[data-density=compact]) .point-tell .pt-launch:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .point-tell .pt-button:not(#\-), :where(:root[data-density=compact]) .point-tell .pt-count:not(#\-) { padding-top: 0; padding-bottom: 0; }
