@@ -13,7 +13,7 @@ const moneyCount = (page: import('@playwright/test').Page) => page.evaluate(() =
 test('YNAB: preview, import into the money log, then undo removes exactly those entries', async ({page}) => {
   await page.goto('/app/settings#switch-import');
   const section = page.locator('#switch-import');
-  await section.getByText('From Daylio, Habitica or YNAB').click();
+  await section.locator('summary', {hasText: 'From Daylio, Habitica or YNAB'}).click();
   await section.getByRole('radio', {name: 'YNAB (spending and income)'}).check();
   await section.getByLabel('Choose the Register CSV').setInputFiles({name: 'register.csv', mimeType: 'text/csv', buffer: Buffer.from(YNAB)});
   await expect(section.getByText(/YNAB: 2 entries for your money log/)).toBeVisible();
@@ -32,7 +32,7 @@ test('YNAB: preview, import into the money log, then undo removes exactly those 
 test('Daylio: notes become journal entries; moods go to Health only when ticked', async ({page}) => {
   await page.goto('/app/settings#switch-import');
   const section = page.locator('#switch-import');
-  await section.getByText('From Daylio, Habitica or YNAB').click();
+  await section.locator('summary', {hasText: 'From Daylio, Habitica or YNAB'}).click();
   await section.getByLabel('Choose the Daylio CSV').setInputFiles({name: 'daylio.csv', mimeType: 'text/csv', buffer: Buffer.from(DAYLIO)});
   await expect(section.getByText(/Daylio: 2 entries/)).toBeVisible();
   await expect(section.getByRole('checkbox', {name: /Add each day.s mood to your Health journal/})).not.toBeChecked();
