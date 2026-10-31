@@ -1,6 +1,7 @@
 import {addMonths} from '../bills/cadence';
 import {cents, monthOf} from '../money-log/engine';
 import {amountText, currencyCode, type MoneyEntry} from '../money-log/schema';
+import {entryParts} from '../money-split/parts';
 import {MAX_BUDGETS, MAX_ROLLOVER_MONTHS, budgetsSchema, type Budget, type BudgetsRecord} from './schema';
 
 /**
@@ -14,7 +15,8 @@ export const shiftMonth = (month: string, n: number) => addMonths(`${month}-01`,
 const spentIn = (entries: readonly MoneyEntry[], month: string, category: string, currency: string) => {
   const {start, end} = monthOf(`${month}-01`), name = category.toLowerCase();
   let total = 0;
-  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && e.category.toLowerCase() === name && e.date >= start && e.date <= end) total += cents(e.amount);
+  // Session AK (lane M, item 22): a split entry counts by its parts (the whole entry otherwise), in exact cents.
+  for (const e of entries) if (e.kind === 'expense' && e.currency === currency && e.date >= start && e.date <= end) for (const p of entryParts(e)) if (p.category.toLowerCase() === name) total += p.cents;
   return total;
 };
 /** What earlier months left unspent and carried into `month` (0 without rollover). */
@@ -37,9 +39,12 @@ export function monthView(entries: readonly MoneyEntry[], record: BudgetsRecord,
   const budgeted = new Set(active.map(b => `${b.currency}|${b.category.toLowerCase()}`)), {start, end} = monthOf(`${month}-01`);
   const loose = new Map<string, {category: string; currency: string; spent: number}>();
   for (const e of entries) {
-    if (e.kind !== 'expense' || e.date < start || e.date > end || budgeted.has(`${e.currency}|${e.category.toLowerCase()}`)) continue;
-    const k = `${e.currency}|${e.category}`, row = loose.get(k) ?? {category: e.category, currency: e.currency, spent: 0};
-    row.spent += cents(e.amount); loose.set(k, row);
+    if (e.kind !== 'expense' || e.date < start || e.date > end) continue;
+    for (const p of entryParts(e)) {
+      if (budgeted.has(`${e.currency}|${p.category.toLowerCase()}`)) continue;
+      const k = `${e.currency}|${p.category}`, row = loose.get(k) ?? {category: p.category, currency: e.currency, spent: 0};
+      row.spent += p.cents; loose.set(k, row);
+    }
   }
   const totals = new Map<string, {currency: string; available: number; spent: number; left: number}>();
   for (const r of rows) { const t = totals.get(r.currency) ?? {currency: r.currency, available: 0, spent: 0, left: 0}; t.available += r.available; t.spent += r.spent; t.left += r.left; totals.set(r.currency, t); }
