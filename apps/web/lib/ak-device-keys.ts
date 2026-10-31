@@ -19,6 +19,15 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:calorie-week:v1',
   // Lane S: the last pair chosen in Health → Insights → Compare.
   'zigoals:compare-pair:v1',
+  // Lanes T and X: recovery days per muscle group, food quality letter choices, the rewards shelf.
+  'zigoals:muscle-recovery:v1',
+  'zigoals:food-display:v1',
+  'zigoals:rewards-shelf:v1',
+  // Lane M: money-log rules, imported entries still to review, the financial freedom inputs, the emergency sheet.
+  'zigoals:money-rules:v1',
+  'zigoals:money-review:v1',
+  'zigoals:fi-model:v1',
+  'zigoals:emergency-sheet:v1',
 ];
 /** The account erase removes them all. */
 export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;

@@ -35,6 +35,13 @@ import {NUTRIENT_EXTRAS_KEY} from '../health-vitamins/extras';
 import {GROCERY_KEY} from '../grocery/schema';
 import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
+import {MONEY_RULES_KEY} from '../money-rules/schema';
+import {MONEY_REVIEW_KEY} from '../money-review/review';
+import {FI_MODEL_KEY} from '../fi-model/store';
+import {EMERGENCY_SHEET_KEY} from '../emergency-sheet/schema';
+import {MUSCLE_RECOVERY_KEY} from '../muscle-freshness/model';
+import {FOOD_DISPLAY_KEY} from '../food-display/schema';
+import {REWARDS_SHELF_KEY} from '../rewards-shelf/store';
 import {WORKOUTS_KEY} from '../workouts/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {UI_PREFS_KEY} from '../ab-design-keys';
@@ -89,6 +96,11 @@ export function frozenFixture() {
   // Session AJ (item 35; TIER 3 (stored format) + TIER 3 (auth/sync)): a habit's everyday clock time in the synced habit
   // extras (optional `times` map); an older build reads the record with it and keeps or ignores the map.
   { const hx = JSON.parse(a.get('zigoals:habit-extras:v1') ?? '{"version":1}') as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, times: {'fixture-habit-1': '07:15'}})); }
+  // Session AK (5.7, 6.4, 8.6; TIER 3 (stored format)): optional fields on synced records — the habit order and list
+  // mode, a milestone's linked habits, and the badges setting on the game record. Older builds keep or ignore them.
+  { const hx = JSON.parse(a.get('zigoals:habit-extras:v1')!) as Record<string, unknown>; a.set('zigoals:habit-extras:v1', JSON.stringify({...hx, order: {'fixture-habit-1': 0}, listMode: 'compact'})); }
+  { const gx = JSON.parse(a.get(GOAL_EXTRAS_KEY) ?? '{"version":1,"goals":{},"areas":[]}') as {goals: Record<string, Record<string, unknown>>}; const first = Object.keys(gx.goals ?? {})[0]; if (first) { gx.goals[first] = {...gx.goals[first], milestoneHabits: {m1: ['fixture-habit-1']}}; a.set(GOAL_EXTRAS_KEY, JSON.stringify(gx)); } }
+  { const game = JSON.parse(a.get('zigoals:game:v1') ?? '{"version":1}') as Record<string, unknown>; a.set('zigoals:game:v1', JSON.stringify({...game, badges: false})); }
   const storageA = {getItem: (k: string) => a.get(k) ?? null, setItem: (k: string, v: string) => { a.set(k, v); }, removeItem: (k: string) => { a.delete(k); }};
   for (const section of EXTRAS_SECTIONS) {
     const local = collectSection(storageA, section), other = structuredClone(local.records) as Record<string, {goals: Record<string, Record<string, unknown>>; scenarios?: {name: string}[]; answers?: Record<string, unknown>}>;
@@ -161,8 +173,8 @@ export function frozenFixture() {
   records[STORIES_KEY] = JSON.stringify({version: 1, seen: {'week:2026-10-11': '2026-10-17'}});
   checks.push({key: STORIES_KEY, module: './stories/store', spec: 'STORIES', expect: {version: 1}});
   // Session AI (B3, TIER 3 (stored format)): the expense and income log, a new device-only key (fictional entries).
-  records[MONEY_LOG_KEY] = JSON.stringify({version: 1, entries: [{id: 'm1', kind: 'expense', amount: '12.50', currency: 'EUR', category: 'Food & drink', note: 'Fictional lunch', date: '2026-10-27', createdAt: '2026-10-27T12:00:00.000Z', source: 'form'}], budget: {weekly: '200.00', currency: 'EUR'}, weekStartsOn: 'monday', currency: 'EUR'});
-  checks.push({key: MONEY_LOG_KEY, module: './money-log/schema', spec: 'MONEY_LOG', expect: {version: 1, 'entries.0.amount': '12.50'}});
+  records[MONEY_LOG_KEY] = JSON.stringify({version: 1, entries: [{id: 'm1', kind: 'expense', amount: '12.50', currency: 'EUR', category: 'Food & drink', note: 'Fictional lunch', date: '2026-10-27', createdAt: '2026-10-27T12:00:00.000Z', source: 'form', parts: [{amount: '10.00', category: 'Food & drink'}, {amount: '2.50', category: 'Coffee'}]}], budget: {weekly: '200.00', currency: 'EUR'}, weekStartsOn: 'monday', currency: 'EUR'});
+  checks.push({key: MONEY_LOG_KEY, module: './money-log/schema', spec: 'MONEY_LOG', expect: {version: 1, 'entries.0.amount': '12.50', 'entries.0.parts.1.category': 'Coffee'}});
   // Session AI (B3, TIER 3 (stored format)): the journal and the daily energy rating, two new device-only keys (fictional).
   records[JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{id: 'j1', date: '2026-10-27', text: 'Fictional calm day.', createdAt: '2026-10-27T21:00:00.000Z', followUp: {question: 'What made it calm?', from: 'device', answer: 'A walk.', answeredAt: '2026-10-27T21:05:00.000Z'}}], shareWithAi: false, followUps: true});
   checks.push({key: JOURNAL_KEY, module: './journal/schema', spec: 'JOURNAL', expect: {version: 1, 'entries.0.followUp.answer': 'A walk.'}});
@@ -246,6 +258,20 @@ export function frozenFixture() {
   checks.push({key: CALORIE_WEEK_KEY, module: './health-aa/calorie-week', spec: 'CALORIE_WEEK', expect: {'rollover.maxKcal': 300}});
   records[COMPARE_PAIR_KEY] = JSON.stringify({version: 1, factor: 'workout', outcome: 'energy', lag: 'next'});
   checks.push({key: COMPARE_PAIR_KEY, module: './compare/schema', spec: 'COMPARE_PAIR', expect: {lag: 'next'}});
+  records[MONEY_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', field: 'payee', op: 'contains', text: 'fictional grocer', direction: 'out', category: 'Groceries', enabled: true}]});
+  checks.push({key: MONEY_RULES_KEY, module: './money-rules/schema', spec: 'MONEY_RULES', expect: {'rules.0.category': 'Groceries'}});
+  records[MONEY_REVIEW_KEY] = JSON.stringify({version: 1, ids: ['m-fixture-1']});
+  checks.push({key: MONEY_REVIEW_KEY, module: './money-review/review', spec: 'MONEY_REVIEW', expect: {'ids.0': 'm-fixture-1'}});
+  records[FI_MODEL_KEY] = JSON.stringify({version: 1, inputs: {invested: 10000, yearlySpend: 24000, monthlyContribution: 500, withdrawalPct: 4, returnPct: 5, volatilityPct: 15, years: 30, currency: 'EUR'}});
+  checks.push({key: FI_MODEL_KEY, module: './fi-model/store', spec: 'FI_MODEL', expect: {'inputs.withdrawalPct': 4}});
+  records[EMERGENCY_SHEET_KEY] = JSON.stringify({version: 1, documents: {}, accounts: [{id: 'a1', name: 'Fictional current account'}], wallets: [], insurance: [], note: 'Fictional note'});
+  checks.push({key: EMERGENCY_SHEET_KEY, module: './emergency-sheet/schema', spec: 'EMERGENCY_SHEET', expect: {note: 'Fictional note'}});
+  records[MUSCLE_RECOVERY_KEY] = JSON.stringify({version: 1, days: {Legs: 4}});
+  checks.push({key: MUSCLE_RECOVERY_KEY, module: './muscle-freshness/model', spec: 'MUSCLE_RECOVERY', expect: {'days.Legs': 4}});
+  records[FOOD_DISPLAY_KEY] = JSON.stringify({version: 1, nutriScore: true, abFirst: true, grades: [{barcode: '4006381333931', grade: 'b'}]});
+  checks.push({key: FOOD_DISPLAY_KEY, module: './food-display/schema', spec: 'FOOD_DISPLAY', expect: {nutriScore: true}});
+  records[REWARDS_SHELF_KEY] = JSON.stringify({version: 1, on: true, rewards: [{id: 'r1', name: 'Fictional cinema night', price: 300, createdAt: '2026-10-31T10:00:00.000Z'}], claims: []});
+  checks.push({key: REWARDS_SHELF_KEY, module: './rewards-shelf/store', spec: 'REWARDS_SHELF', expect: {'rewards.0.price': 300}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -255,7 +281,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
