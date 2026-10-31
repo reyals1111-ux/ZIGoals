@@ -56,6 +56,12 @@ import {showcaseEnergy} from './energy/showcase';
 import {BILLS_KEY} from './bills/schema';
 import {BUDGETS_KEY} from './budgets/schema';
 import {showcaseBills,showcaseBudgets} from './bills/showcase';
+import {MONEY_RULES_KEY} from './money-rules/schema';
+import {showcaseMoneyRules} from './money-rules/showcase';
+import {REWARDS_SHELF_KEY} from './rewards-shelf/store';
+import {showcaseRewardsShelf} from './rewards-shelf/showcase';
+import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
+import {showcaseMuscleRecovery} from './muscle-freshness/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -166,6 +172,12 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AK (7.3, 7.7): four fictional bills and three category budgets beside that log (lib/bills/showcase.ts).
  records[BILLS_KEY]=JSON.stringify(showcaseBills(day));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
+ // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
+ records[MONEY_RULES_KEY]=JSON.stringify(showcaseMoneyRules(day));
+ // Session AK (8.6, item 8): the rewards shelf on with two fictional treats (the game layer is on in the Showcase), and
+ // the Showcase person's own muscle recovery days beside the training log. Additive; no existing figure changes.
+ records[REWARDS_SHELF_KEY]=JSON.stringify(showcaseRewardsShelf(day));
+ records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
  // Session AI (B3, feature 6): a fictional journal with ZIGi's questions answered, and two weeks of energy ratings.

@@ -58,7 +58,8 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session AF Gate C (CI on 1a7624d6 and 14cf1987): every release moves links under "Earlier updates", and each one is
   // opened from a fresh Today; eleven visits now take about 45 s on CI's runners, the default budget. Its own budget is
   // 90 s; every check is unchanged. Session AJ (ADR-035): one more release, one more visit (twelve); 120 s, checks unchanged.
-  test.setTimeout(120_000);
+  // Session AK (ADR-036): one more release, one more visit (thirteen); 150 s, checks unchanged.
+  test.setTimeout(150_000);
   await seed(page);
   await page.goto('/app');
   await revealUpdates(page);
@@ -82,15 +83,28 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // updates", so its Checklist link is no longer on the card itself and opens its answer from there (its own assertions, kept).
   // Session AJ (ADR-035, deliberate): this release's six links are the card's own; AG Polish 2's four lead "Earlier
   // updates", so its quick-add link opens its answer from there (its own assertions, kept, moved under "Earlier updates").
+  // Session AK (ADR-036, deliberate): this release's eight links are the card's own, with "Take the 1-minute tour" under
+  // them (a button, so the card's link count is unchanged); AJ's six lead "Earlier updates", so AJ's alerts link opens its
+  // answer from there (its own assertions, kept, moved under "Earlier updates").
+  await card.getByRole('link', {name: 'Notifications on this device, and ZIGoals offline once installed'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-ak-notify$/);
+  await expect(page.locator('#help-ak-notify')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-ak-notify')).toContainText('every message it sends is empty');
+  await page.goto('/app');
+  await revealUpdates(page);
+  for (const [name, id] of [['Food: recent scans, a food library that works offline, a nutrient report', 'ak-food'], ['Habits in your own order, a compact list and rules that tick a habit off', 'ak-habits'], ['A what-if for each goal, a progress card and milestone plans', 'ak-goals'], ['Bills, budgets, your target mix and money rules on Wealth', 'ak-wealth'], ['Music: mix up to three sounds, or open a playlist', 'ak-music'], ['Feeling words, a year in pixels and a report for a visit', 'ak-days'], ['Test a backup, a monthly reminder, and honest ways to take your data elsewhere', 'ak-data']] as const) await expect(card.getByRole('link', {name}), id).toHaveAttribute('href', `/app/help#help-${id}`);
+  await expect(card.getByRole('button', {name: 'Take the 1-minute tour', exact: true})).toBeVisible();
+  await expect(card.getByRole('link', {name: 'Price alerts on your device, and net worth by where it came from'})).toHaveCount(0);
+  await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Price alerts on your device, and net worth by where it came from'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-aj-alerts$/);
   await expect(page.locator('#help-aj-alerts')).toHaveAttribute('open', '');
   await expect(page.locator('#help-aj-alerts')).toContainText('never buy, sell or move anything');
   await page.goto('/app');
   await revealUpdates(page);
-  for (const [name, id] of [['Guided journeys, Focus Sessions and an optional Life Score', 'aj-guided'], ['Sleep balance, your best focus window and GPX or TCX workouts', 'aj-health'], ['Trader tools, and watching a Bitcoin wallet by its public key', 'aj-wealth'], ['Customize the app’s look, and erase everything on this device', 'aj-look'], ['Staking on ZIGChain v6: the review shows the network fee you sign', 'aj-v6']] as const) await expect(card.getByRole('link', {name}), id).toHaveAttribute('href', `/app/help#help-${id}`);
   await expect(card.getByRole('link', {name: 'Quick add: “+” puts a new habit on your Checklist in one step'})).toHaveCount(0);
   await card.getByText('Earlier updates', {exact: true}).click();
+  for (const [name, id] of [['Guided journeys, Focus Sessions and an optional Life Score', 'aj-guided'], ['Sleep balance, your best focus window and GPX or TCX workouts', 'aj-health'], ['Trader tools, and watching a Bitcoin wallet by its public key', 'aj-wealth'], ['Customize the app’s look, and erase everything on this device', 'aj-look'], ['Staking on ZIGChain v6: the review shows the network fee you sign', 'aj-v6']] as const) await expect(card.getByRole('link', {name}), id).toHaveAttribute('href', `/app/help#help-${id}`);
   await card.getByRole('link', {name: 'Quick add: “+” puts a new habit on your Checklist in one step'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-ag2-quick-add$/);
   await expect(page.locator('#help-ag2-quick-add')).toHaveAttribute('open', '');
@@ -170,25 +184,28 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session AG Polish (ADR-030, deliberate): AG's one link leads now, so every pinned position moves by one more.
   // Session AG Polish 2 (ADR-031, deliberate): AG Polish's two links lead now, so every pinned position moves by two more.
   // Session AJ (ADR-035, deliberate): AG Polish 2's four links lead now, so every pinned position moves by four more.
-  await expect(earlier.nth(0)).toHaveText('Quick add: “+” puts a new habit on your Checklist in one step');
-  await expect(earlier.nth(3)).toHaveText('Finish your day with a short film and your streak');
-  await expect(earlier.nth(4)).toHaveText('The Checklist, finished: a planet for every orbit and a celebration every day');
-  await expect(earlier.nth(5)).toHaveText('On a phone: your Checklist one tap away in the header');
-  await expect(earlier.nth(6)).toHaveText('The Checklist, redrawn: glowing planets on one flowing line');
-  await expect(earlier.nth(7)).toHaveText('Earn: every way to earn in the ZIG Finance ecosystem, with live numbers and risks');
-  await expect(earlier.nth(15)).toHaveText('Today’s welcome header: one scene, with no box or edge');
-  await expect(earlier.nth(24)).toHaveText('Three looks: Light and Dark beside Nebula');
-  await expect(earlier.nth(31)).toHaveText('Habit cards show their last 28 days under the counter');
-  await expect(earlier.nth(39)).toHaveText('One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today');
-  await expect(earlier.nth(47)).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
-  await expect(earlier.nth(53)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
-  await expect(earlier.nth(60)).toHaveText('Every page starts with what matters most');
-  await expect(earlier.nth(68)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
-  await expect(earlier.nth(72)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
-  await expect(earlier.nth(79)).toHaveText('End a vacation early');
-  await expect(earlier.nth(83)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  // Session AK (ADR-036, deliberate): AJ's six links lead now, so every pinned position moves by six more.
+  await expect(earlier.nth(0)).toHaveText('Price alerts on your device, and net worth by where it came from');
+  await expect(earlier.nth(5)).toHaveText('Staking on ZIGChain v6: the review shows the network fee you sign');
+  await expect(earlier.nth(6)).toHaveText('Quick add: “+” puts a new habit on your Checklist in one step');
+  await expect(earlier.nth(9)).toHaveText('Finish your day with a short film and your streak');
+  await expect(earlier.nth(10)).toHaveText('The Checklist, finished: a planet for every orbit and a celebration every day');
+  await expect(earlier.nth(11)).toHaveText('On a phone: your Checklist one tap away in the header');
+  await expect(earlier.nth(12)).toHaveText('The Checklist, redrawn: glowing planets on one flowing line');
+  await expect(earlier.nth(13)).toHaveText('Earn: every way to earn in the ZIG Finance ecosystem, with live numbers and risks');
+  await expect(earlier.nth(21)).toHaveText('Today’s welcome header: one scene, with no box or edge');
+  await expect(earlier.nth(30)).toHaveText('Three looks: Light and Dark beside Nebula');
+  await expect(earlier.nth(37)).toHaveText('Habit cards show their last 28 days under the counter');
+  await expect(earlier.nth(45)).toHaveText('One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today');
+  await expect(earlier.nth(53)).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
+  await expect(earlier.nth(59)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
+  await expect(earlier.nth(66)).toHaveText('Every page starts with what matters most');
+  await expect(earlier.nth(74)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
+  await expect(earlier.nth(78)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
+  await expect(earlier.nth(85)).toHaveText('End a vacation early');
+  await expect(earlier.nth(89)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
   // AA-Local's release follows AB-Cloud's (its own assertions, kept): the habits answer.
-  await earlier.nth(53).click();
+  await earlier.nth(59).click();
   await expect(page).toHaveURL(/\/app\/help#help-aa-habits$/);
   await expect(page.locator('#help-aa-habits')).toHaveAttribute('open', '');
   await expect(page.locator('#help-aa-habits')).toContainText('the section the clock is in opens first');

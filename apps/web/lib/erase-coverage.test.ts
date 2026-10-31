@@ -44,6 +44,7 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:motion:v1': 'the Motion setting of this device (display); not a record',
   'zigoals:onboarding:v1': 'whether the welcome was seen; a display mark',
   'zigoals:whats-new:v1': 'which What\'s new card was dismissed; a display mark',
+  'zigoals:ak-tour:v1': 'when this device opened the New in ZIGoals tour and the stop to continue from; a display mark (Session AK, A19)',
   'zigoals:portfolio-last-visit:v1': 'the Portfolio value at the last visit, for "since your last visit"; recomputed',
   'zigoals:public-market-insights:v1': 'a cache of public market data; nothing personal',
   'zigoals:public-market-quotes:v1': 'a cache of public prices; nothing personal',

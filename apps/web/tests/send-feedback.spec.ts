@@ -95,7 +95,19 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AF (ADR-028, deliberate): two more (was 16), each checked by its words and its link below.
   // Session AF, at the ZIGi and extras merges (deliberate): three more (was 18), each checked by its words and link below.
   // Session AJ (ADR-035, deliberate): five more (was 21), each checked by its words below.
-  await expect(items).toHaveCount(26);
+  // Session AK (ADR-036, deliberate): seven more (was 26), each checked by its words and its link below.
+  await expect(items).toHaveCount(33);
+  for (const [words, name, href] of [
+    ['Notifications on this device are being switched on', 'How do notifications on this device work?', '#help-ak-notify'],
+    ['Barcode lookups and US foods need the food service too', 'What changed in food logging?', '#help-ak-food'],
+    ['Reading a label or estimating a meal from a photo needs your own AI', 'Photos and food', '#help-ak-food'],
+    ['Grocery ticks stay on this device', 'The grocery list', '#help-ak-nutrition'],
+    ['staking with Keplr Mobile over WalletConnect hasn’t been tried on a real phone yet', 'Can I link a wallet on my phone?', '#help-ak-wallets'],
+    ['Garmin workouts come in only as FIT files', 'Bring your data', '#help-ak-switch'],
+    ['Lichess games found from ZIGoals are rapid or classical only', 'Can I play Lichess inside ZIGoals?', '#help-ak-chess'],
+  ] as const) { await expect(section).toContainText(words); await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href); }
+  await expect(section).toContainText('the Finnish Fineli table isn’t in it yet');
+  await expect(section).toContainText('It can travel as an optional, encrypted part of your sync once the sync service is updated.');
   for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'GPX and TCX imports keep only a summary', 'The food search waits for its service']) await expect(section).toContainText(words);
   await expect(section).toContainText('ZIGi never stakes, signs or moves money');
   await expect(section).toContainText('Timeline times stay on this device');

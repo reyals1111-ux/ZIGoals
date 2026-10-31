@@ -68,6 +68,8 @@ export default function YearPixels({today}: {today: string}) {
       <div className="year-pixels-nav"><button type="button" className="quiet" aria-label="Previous year" disabled={year <= years[0]!} onClick={() => { setYear(y => y - 1); setAt(null); setSelected(null); }}>←</button><strong>{year}</strong><button type="button" className="quiet" aria-label="Next year" disabled={year >= years.at(-1)!} onClick={() => { setYear(y => y + 1); setAt(null); setSelected(null); }}>→</button></div>
     </div>
     <p className="year-pixels-summary" role="status">{grid.summary}</p>
+    {/* Session AK (lane D, empty start): say how a square fills in, not only that none has. */}
+    {grid.rated === 0 && <p className="fine">{shownMetric === 'mood' ? 'Rate your mood in Health' : 'Rate your energy in the daily check-in or the Journal'} and that day&rsquo;s square fills in here.</p>}
     <div className="year-pixels-scroll" ref={scroller}>
       <div className="year-pixels-months" aria-hidden="true" style={{'--weeks': grid.weeks.length} as React.CSSProperties}>{grid.months.map(m => <span key={m.label} style={{gridColumnStart: m.week + 1}}>{m.label}</span>)}</div>
       <div ref={gridRef} className="year-pixels-grid" role="grid" aria-label={`${year}, by ${shownMetric}. Arrow keys move by a day or a week; Enter shows the day.`} tabIndex={0} aria-activedescendant={cellId(focus.w, focus.d)} onKeyDown={onKey}>
