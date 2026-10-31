@@ -21,6 +21,8 @@ import {LIFE_REVIEW_KEY} from '../../life-review/store';
 import type {Env, PlanResult, Stores} from './plan';
 // Session AF (L4): this session's planner rides in the same lazy chunk, so loading it costs no extra request (plan.ts installs both).
 export {planAfAction} from './plan-af';
+// Session AK (Part 12): and this session's (its kinds and the goal bundle's reader).
+export {planAkAction, readGoalBundle} from './plan-ak';
 
 /**
  * Session AA-Local Part 5 (ADR-022 B37): the planner's cases for this session's kinds, in their own module so

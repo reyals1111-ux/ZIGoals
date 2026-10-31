@@ -1,5 +1,6 @@
 import type {CorpusArea, CorpusKind, Expect, ModelCase} from './corpus';
 import type {PageArea} from '../settings';
+import {G6_AK} from './g6-ak';
 
 /**
  * Session AI (ADR-034 N2; picklist 1 #21, the owner's G6): the ZIGi regression set — every suggested chip ZIGi shows
@@ -126,3 +127,5 @@ export const G6: G6Case[] = [];
     make('propose', 'health', 'health')('ai-g6-aj-coach-keep-nl', 'houd mijn caloriedoel deze week zo', {kinds: ['coach-answer']}, {lang: 'nl', mock: `Deze week zo gehouden.${block('{"kind":"coach-answer","answer":"keep"}')}`}),
   );
 }
+// ---- Session AK (Part 12): this session's ZIGi cards and tools (g6-ak.ts) ----
+G6.push(...G6_AK);

@@ -23,6 +23,7 @@ import type {MoneyLog} from '../../money-log/schema';
 import type {Journal} from '../../journal/schema';
 import type {Energy} from '../../energy/schema';
 import type {HealthCoach} from '../../health-aa/coach-schema';
+import type {AkToolSources} from './ak-tools';
 
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
@@ -71,6 +72,8 @@ export type ToolSources = {
   pageView?: PageView | null;
   /** Session AF (L4): the plans ZIGi proposed as bundles and their steps' outcomes (titles only). */
   plans?: ZigiPlans | null;
+  /** Session AK (Part 12): the auto-complete rules (Habits), the bills and the price alerts (Wealth) on this device, for ak-tools.ts. */
+  ak?: AkToolSources | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;

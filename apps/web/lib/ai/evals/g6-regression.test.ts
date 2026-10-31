@@ -1,4 +1,5 @@
-import {describe, expect, test} from 'vitest';
+import {beforeAll, describe, expect, test} from 'vitest';
+import {loadAaPlanner} from '../actions/plan';
 import {answerOnly, stripDeclinedBlocks} from '../actions/decline';
 import {SPECIALISTS} from '../context/specialists';
 import {localAnswer} from '../local-answers/engine';
@@ -18,6 +19,8 @@ import {score} from './score';
  */
 const sources = goldenSources(withPortfolios(withHandHealth(showcaseSources())));
 const results: {id: string; pass: boolean; why: string}[] = [];
+// Session AK (Part 12): a goal bundle's words are read by the lazy planner chunk, so it is loaded before the weak replies are scored.
+beforeAll(() => loadAaPlanner());
 describe('the G6 regression set', () => {
   test('at least 40 checks, unique ids, none shared with the Session AI corpus', () => {
     expect(G6.length).toBeGreaterThanOrEqual(40);

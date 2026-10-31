@@ -21,7 +21,10 @@ export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'pref
   // Session AI: money spent or received is about money, so never automatic either.
   'log-expense', 'log-income',
   // Session AJ (D9): a price alert is about money too, so never automatic.
-  'create-price-alert'] as const satisfies readonly ActionKind[];
+  'create-price-alert',
+  // Session AK (Part 12): a bill reminder and the goal form filled in are about money; a rule, the grocery list, a what-if,
+  // a scan and a soundscape are cards that change a device record, open a page or start sound on the person's own tap.
+  'set-bill-reminder', 'goal-draft', 'set-auto-rule', 'grocery-list', 'what-if', 'scan-food', 'start-soundscape'] as const satisfies readonly ActionKind[];
 // Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night and the bell are Health kinds too.
 export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement', 'set-micro-target', 'set-macro-mode', 'coach-answer',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
@@ -87,6 +90,9 @@ export const AUTO_ACCEPT_GROUPS: readonly {title: string; kinds: readonly Action
 ];
 export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
   'log-expense': 'Spending', 'log-income': 'Income', 'create-price-alert': 'Price alerts',
+  // Session AK (Part 12): never automatic, so never offered as a switch.
+  'set-auto-rule': 'Auto-complete rules (never automatic)', 'set-bill-reminder': 'Bill reminders (never automatic)', 'grocery-list': 'Grocery list items (never automatic)', 'goal-draft': 'The goal form, filled in (never automatic)',
+  'what-if': 'What-if projections (never automatic)', 'scan-food': 'Opening a scan or photo (never automatic)', 'start-soundscape': 'Starting a soundscape (never automatic)',
   'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
   'edit-diary-entry': 'Changes to a diary entry', 'log-meal-plan': 'Logging a planned meal', 'grocery-notes': 'Grocery notes', 'set-favorite': 'Favourite foods and recipes', 'create-counter': 'New counters', 'edit-counter': 'Changes to a counter', 'set-target': 'Health targets', 'set-health-preference': 'Health units', 'start-night': 'Starting a night', 'end-night': 'Ending a night', 'set-bells': 'The meditation bell',
   'set-today-preset': 'Today presets', 'edit-link': 'Changes to a link', 'skip-review': 'Skipping a weekly review', 'set-review-weekday': 'The weekly review\'s day', 'set-wrap-up': 'The evening wrap-up', 'set-page-visibility': 'Showing or hiding pages and buttons', 'set-start-page': 'The start page', 'set-zigi-look': 'ZIGi\'s look and feel',

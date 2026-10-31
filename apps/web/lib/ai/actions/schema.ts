@@ -10,6 +10,8 @@ import {type DashboardPreset} from '../../dashboard-settings';
 import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
 import {ACCOUNT_KINDS} from '../../accounts/schema';
 import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
+// Session AK (Part 12): this session's card kinds, their composite and their plain names (schema-ak.ts).
+import {AK_ACTION_KINDS, AK_ACTION_SCHEMAS, AK_ALIASES, goalBundleParts, goalBundleSchema} from './schema-ak';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -210,7 +212,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('calculator-scenario'), start: z.number().finite().min(0).max(1e12).optional(), contribution: z.number().finite().min(0).max(1e12).optional(), frequency: z.enum(['weekly', 'monthly', 'yearly']).optional(), ratePercent: z.number().finite().min(-50).max(100).optional(), years: z.number().int().min(1).max(60).optional(), compounding: z.enum(['yearly', 'quarterly', 'monthly', 'daily']).optional(), currency: z.enum(['USD', 'EUR']).optional()})
     .refine(a => Object.keys(a).length > 1, 'Say at least one figure: the start amount, the contribution, the rate or the years.'),
   z.strictObject({kind: z.literal('open-search'), query: text(120)}),
-  z.strictObject({kind: z.literal('open-review'), period: z.enum(['week', 'month'])}),
+  z.strictObject({kind: z.literal('open-review'), period: z.enum(['week', 'month']).default('week')}), // Session AK (Part 12): "open my weekly review" is the week
   z.strictObject({kind: z.literal('vacation'), from: isoDay, to: isoDay, clear: z.boolean().default(false), habits: z.array(habitName).max(20).optional()}).refine(a => a.from <= a.to, 'The vacation ends before it starts.'),
   z.strictObject({kind: z.literal('unskip'), habit: habitName, day: daySchema}),
   z.strictObject({kind: z.literal('remove-reminder'), for: z.enum(['habit', 'water']), habit: habitName.optional()}).superRefine((a, ctx) => { if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'}); }),
@@ -262,6 +264,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('create-price-alert'), coin: text(100), direction: z.enum(['above', 'below']).optional(), price: positive.max(1_000_000_000_000).optional(), currency: z.enum(['USD', 'EUR']).default('USD'), goal: text(250).optional(), percent: z.number().int().min(1).max(1000).optional()})
     .refine(a => a.goal ? a.percent !== undefined && a.price === undefined : !!a.direction && a.price !== undefined, 'A price alert needs "direction" and "price"; a goal alert "goal" and "percent".'),
   z.strictObject({kind: z.literal('log-income'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  // Session AK (Part 12): auto-complete rules, bill reminders, the grocery list, the goal wizard filled in, a what-if, a scan, a soundscape.
+  ...AK_ACTION_SCHEMAS,
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -279,7 +283,9 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   // Session AI
   'log-expense', 'log-income',
   // Session AJ
-  'create-price-alert'] as const satisfies readonly ActionKind[];
+  'create-price-alert',
+  // Session AK (Part 12)
+  ...AK_ACTION_KINDS] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -307,9 +313,11 @@ export const compositeSchema = z.discriminatedUnion('kind', [
     remember: z.array(part).max(2).default([]),
     earn: z.strictObject({step: z.enum(EARN_STEPS), network: z.enum(STAKING_NETWORKS).optional(), amount: z.union([z.number(), z.string().max(40)]).optional(), validator: z.string().max(120).optional()}).optional(),
   }),
+  // Session AK (Part 12): a goal bundle in the person's own words, read on the device (lib/goals/nl-bundle.ts) into cards.
+  goalBundleSchema,
 ]);
 export type Composite = z.infer<typeof compositeSchema>;
-export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template', 'plan-bundle'] as const;
+export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template', 'plan-bundle', 'goal-bundle'] as const;
 /** The most cards one plan-bundle becomes (the reply's own cap, MAX_PROPOSALS, holds for all of them). */
 export const MAX_BUNDLE_STEPS = 10;
 /** The cards a composite request becomes; `next` numbers the new habits of the reply (new1, new2, …). */
@@ -325,6 +333,8 @@ export function expandComposite(composite: Composite, next: () => string): Recor
     if (t.kind === 'health-weight') return [{kind: 'open-page', page: 'health'}]; // a weight goal is set in Health → Health goals; the card opens Health
     return [{kind: 'create-goal', name: t.title, type: t.kind === 'project' ? 'PROJECT' : 'VALUE', ...(t.milestones?.length ? {milestones: [...t.milestones]} : {}), notes: t.summary}];
   }
+  // Session AK (Part 12): the parser asks for the parts itself (to say why when there are none); an empty list here otherwise.
+  if (composite.kind === 'goal-bundle') { const parts = goalBundleParts(composite.words, next); return typeof parts === 'string' ? [] : parts; }
   if (composite.kind === 'plan-bundle') {
     const parts: Record<string, unknown>[] = [];
     if (composite.goal) { const {kind, ...goal} = composite.goal; void kind; parts.push({...goal, kind: 'create-goal'}); }
@@ -400,4 +410,6 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   'checklist_add_custom': 'checklist-add-custom', 'checklist-add': 'checklist-add-custom', 'add-to-checklist': 'checklist-add-custom', 'checklist-item': 'checklist-add-custom', checklist: 'checklist-add-custom',
   'set_brief': 'set-brief', 'brief-settings': 'set-brief', brief: 'set-brief', 'evening-recap': 'set-brief',
   'prefill_staking': 'prefill-staking', 'staking-review': 'prefill-staking', 'start-staking': 'prefill-staking', 'staking-prefill': 'prefill-staking', 'prefill-stake': 'prefill-staking',
-  'plan_bundle': 'plan-bundle', bundle: 'plan-bundle', 'set-up': 'plan-bundle', program: 'plan-bundle', programme: 'plan-bundle', 'plan-week': 'plan-bundle'};
+  'plan_bundle': 'plan-bundle', bundle: 'plan-bundle', 'set-up': 'plan-bundle', program: 'plan-bundle', programme: 'plan-bundle', 'plan-week': 'plan-bundle',
+  // Session AK (Part 12)
+  ...AK_ALIASES};

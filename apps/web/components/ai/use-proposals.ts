@@ -29,6 +29,8 @@ import {readDeviceRecord} from '../../lib/device-record';
 import {CHECKLIST, CHECKLIST_DAYS} from '../../lib/checklist/schema';
 import {checklistDay} from '../../lib/checklist/day';
 import type {ChecklistEnv} from '../../lib/ai/actions/plan';
+import {AK_SOUNDSCAPE_STATUS, akEffect} from '../../lib/ai/actions/ak-effects';
+import {startSoundscape} from '../music/soundscape-start';
 
 /** Session AF (L4): the Checklist as this device holds it now, for a Checklist card; null when the storage cannot be read at all. */
 function checklistEnv(now: Date): ChecklistEnv | null {
@@ -157,6 +159,11 @@ export function useProposals(): ProposalRunner {
   }, [router]);
   const look = useDeviceRecord(ZIGI);
   const effect = useCallback((p: Plan) => {
+    // Session AK (Part 12): a soundscape starts here, inside the card's own tap (the browser allows sound only then); a
+    // draft for the Goal wizard is kept before its page opens (the wizard reads it once; nothing is saved until it is created).
+    const ak = akEffect(p);
+    if (ak?.soundscape) { void startSoundscape(ak.soundscape); return {text: AK_SOUNDSCAPE_STATUS, navigated: false}; }
+    if (ak?.stash) { try { window.sessionStorage.setItem(ak.stash.key, JSON.stringify(ak.stash.value)); } catch { throw new Error('This browser did not keep the draft; fill in the goal form yourself.'); } }
     // Session AF (ADR-028 D7, H47): the staking review, filled in. Only the plain fields are handed over; the Staking page
     // reads them once, and nothing is signed until the person reviews them there and signs in their own wallet.
     if (p.staking) {

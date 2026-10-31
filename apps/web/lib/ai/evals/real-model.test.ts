@@ -32,6 +32,7 @@ import {SPOKEN} from './corpus-spoken';
 import {CORPUS, IMPORTANT, type ModelCase} from './corpus';
 import {AA} from './corpus-aa';
 import {AF} from './corpus-af';
+import {AK} from './corpus-ak';
 import {CORPUS_AI} from './corpus-ai';
 import {G6} from './g6-regression';
 import {todayView, withChecklist, withEarn, withPage} from './fixtures-af';
@@ -100,6 +101,8 @@ const keyNow = (): string | null => KEY ??= PROVIDER === 'anthropic' ? env.ANTHR
 const SETS: Record<string, {all: readonly ModelCase[]; important: readonly ModelCase[]}> = {
   typed: {all: CORPUS, important: IMPORTANT}, spoken: {all: SPOKEN, important: SPOKEN.filter(c => c.important)}, aa: {all: AA, important: AA.filter(c => c.important)}, af: {all: AF, important: AF.filter(c => c.important)},
   ai: {all: CORPUS_AI, important: CORPUS_AI.filter(c => c.important)}, g6: {all: G6, important: G6},
+  // Session AK (Part 12): ZIGI_SET=ak, this session's cards and tools (owner's run, D5).
+  ak: {all: AK, important: AK.filter(c => c.important)},
 };
 const SET_NAMES = (env.ZIGI_SET || 'typed').split(',').map(s => s.trim()).flatMap(s => s === 'corpus' ? ['typed', 'af', 'aa', 'spoken', 'ai'] : [s]).filter(s => { if (!SETS[s]) throw new Error(`Unknown ZIGI_SET ${s}`); return true; });
 const SET: readonly ModelCase[] = SET_NAMES.flatMap(s => SETS[s]!.all);

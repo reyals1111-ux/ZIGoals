@@ -39,6 +39,7 @@ import {MONEY_LOG} from '../../lib/money-log/schema';
 import {JOURNAL} from '../../lib/journal/schema';
 import {ENERGY} from '../../lib/energy/schema';
 import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
+import {readAkToolSources} from '../../lib/ai/tools/ak-sources';
 import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
 import {CHESS_CACHE} from '../../lib/skills/chess/schema';
 import {chessOf} from '../../lib/skills/chess/engine';
@@ -157,6 +158,8 @@ export function useAiContext(settings: AiSettings, providerName: string, sensiti
       // Session AF (L4): read at the moment of the question, like the rest; the page view is titles only, Health cards only with the gate.
       checklist: checklist.loaded && checklistDays.loaded ? {record: checklist.data, days: checklistDays.data, date: checklistDay(now), unreadable: checklist.unreadable || checklistDays.unreadable} : null,
       earn, plans: plans.loaded && !plans.unreadable ? plans.data : null,
+      // Session AK (Part 12): the auto-complete rules, bills and price alerts, read at the moment of the question.
+      ak: (() => { try { return readAkToolSources(getAppStorage()); } catch { return null; } })(),
       pageView: (() => { try { return readPageView(document, pathname, {healthOpen: toolGates.localHealth, sensitive}); } catch { return null; } })()};
   }, [journal.loaded, journal.unreadable, journal.data, energy.loaded, energy.unreadable, energy.data, coach.loaded, coach.unreadable, coach.data, moneyLog.loaded, moneyLog.unreadable, moneyLog.data, ready, sensitive, health.data, habits.data, fasting.data, platform.data, legacy.goals, legacy.metadata, legacy.mode, legacy.activity, market.quotes, portfolios.data, portfolios.showcase, portfolioMarket.quotes, portfolioMarket.now, weekly.loaded, weekly.error, weekly.data, options.data, options.loaded, memory.data, memory.loaded, accounts.loaded, accounts.unreadable, accounts.data, milestoneDates.loaded, milestoneDates.unreadable, milestoneDates.data, chessCache.loaded, chessCache.unreadable, chessCache.data, dashboard.loaded, dashboard.error, dashboard.data, checklist.loaded, checklist.data, checklist.unreadable, checklistDays.loaded, checklistDays.data, checklistDays.unreadable, earn, plans.loaded, plans.unreadable, plans.data, pathname, toolGates.localHealth]);
   return {area, pathname, attaches, consent: gates, context, preview, ready, gates: toolGates, toolSources};

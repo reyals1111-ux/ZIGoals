@@ -1,4 +1,5 @@
 import {ACTION_FENCE} from '../context/specialists';
+import {GOAL_BUNDLE_TITLE, goalBundleParts} from './schema-ak';
 import {ACTION_KINDS, COMPOSITE_KINDS, GOAL_CATEGORIES, KIND_ALIASES, MAX_BUNDLE_STEPS, MAX_PROPOSALS, actionSchema, compositeSchema, expandComposite, type Action} from './schema';
 const KIND_SET: Record<string, true> = Object.fromEntries([...ACTION_KINDS, ...COMPOSITE_KINDS].map(k => [k, true]));
 const GOAL_CATEGORY_SET = new Set<string>(GOAL_CATEGORIES);
@@ -213,12 +214,15 @@ export function parseReply(reply: string): ParsedReply {
       // Session AI (A3-r2, AF5): a habit's own reminder (build-habit) rides with its habit and does not count toward the cap.
       let itemCounted = false; const ridesAlong = normalised.kind === 'build-habit';
       if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
-        if (normalised.kind === 'plan-bundle' && bundle) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: ONE_BUNDLE}); continue; }
+        if ((normalised.kind === 'plan-bundle' || normalised.kind === 'goal-bundle') && bundle) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: ONE_BUNDLE}); continue; }
         const composite = compositeSchema.safeParse(normalised);
         if (!composite.success) { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: firstIssue(composite.error)}); continue; }
-        parts = expandComposite(composite.data, nextRef);
+        // Session AK (Part 12): a goal bundle's words are read on the device; when they name no goal or habit, the reason is shown.
+        if (composite.data.kind === 'goal-bundle') { const read = goalBundleParts(composite.data.words, nextRef); if (typeof read === 'string') { rejected.push({raw: JSON.stringify(item).slice(0, 200), reason: read}); continue; } parts = read; }
+        else parts = expandComposite(composite.data, nextRef);
         // Session AF (L4): a plan's cards are counted from here; each step is still validated alone (a bad step is refused, the rest stay).
         if (composite.data.kind === 'plan-bundle') plan = {title: composite.data.title, first: proposals.length, count: 0, steps: parts.length};
+        if (composite.data.kind === 'goal-bundle') plan = {title: GOAL_BUNDLE_TITLE, first: proposals.length, count: 0, steps: parts.length};
       }
       for (const part of parts) {
         const result = actionSchema.safeParse(withDayAlias(part));

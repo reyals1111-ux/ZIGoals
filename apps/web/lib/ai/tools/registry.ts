@@ -16,6 +16,7 @@ import {WHY_TOOLS} from './why-ai';
 import {MONEY_TOOLS} from './money-ai';
 import {JOURNAL_TOOLS} from './journal-ai';
 import {coachCheckinTool} from './coach-ai';
+import {AK_TOOLS} from './ak-tools';
 
 /**
  * The one list of ZIGi's read-only tools and the one way to run them (Session V Part 2). Every path calls `runTool`:
@@ -27,8 +28,9 @@ import {coachCheckinTool} from './coach-ai';
  */
 // Session W Part 21 (W7): each area's new tools after its own (challenges, sleep to devices, milestones, accounts and net
 // worth), and chess and My links with Today's.
+// Session AK (Part 12): auto-complete rules, bills, price alerts, a goal's what-if and the purpose allocation, last.
 // Session AF (L4): the Earn coach's figures (earn_rates), this page's titles (page_view), the Checklist and ZIGi's plans.
-export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS] as unknown as readonly AnyTool[];
+export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS, ...AK_TOOLS] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
 /** Why the tool may not run in this environment (without running anything), or null when it may. */

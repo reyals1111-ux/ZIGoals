@@ -33,6 +33,8 @@ import {STALE_HANDLE} from '../handles';
 import {LIFE_REVIEW_KEY} from '../../life-review/store';
 import type {planAaAction as PlanAa} from './plan-aa';
 import type {planAfAction as PlanAf} from './plan-af';
+import type {AkEffect, AkRecords, planAkAction as PlanAk} from './plan-ak';
+import {installGoalBundleReader} from './schema-ak';
 import type {StakingPrefillValues} from './staking-prefill';
 import type {Checklist, ChecklistDays} from '../../checklist/schema';
 /**
@@ -45,10 +47,13 @@ export function installAaPlanner(fn: typeof PlanAa) { aaPlanner = fn; }
 /** Session AF (L4): this session's kinds travel in the same lazy chunk (plan-aa.ts re-exports plan-af.ts): no new request at load. */
 let afPlanner: typeof PlanAf | null = null;
 export function installAfPlanner(fn: typeof PlanAf) { afPlanner = fn; }
+/** Session AK (Part 12): this session's kinds and the goal bundle's reader ride in the same lazy chunk too. */
+let akPlanner: typeof PlanAk | null = null;
+export function installAkPlanner(fn: typeof PlanAk) { akPlanner = fn; }
 let aaLoading: Promise<void> | null = null;
 export function loadAaPlanner(): Promise<void> {
-  if (aaPlanner && afPlanner) return Promise.resolve();
-  aaLoading ??= import('./plan-aa').then(m => { installAaPlanner(m.planAaAction); installAfPlanner(m.planAfAction); });
+  if (aaPlanner && afPlanner && akPlanner) return Promise.resolve();
+  aaLoading ??= import('./plan-aa').then(m => { installAaPlanner(m.planAaAction); installAfPlanner(m.planAfAction); installAkPlanner(m.planAkAction); installGoalBundleReader(m.readGoalBundle); });
   return aaLoading;
 }
 void loadAaPlanner().catch(() => { aaLoading = null; });
@@ -95,7 +100,9 @@ export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitD
   /** Session AF (L4): the Checklist's records on this device and its day (null: no Checklist read), for its cards. */
   checklist?: ChecklistEnv | null;
   /** Session AF (L4): the validators the Earn page read in this visit (lib/earn/snapshot.ts), to name one by its moniker. */
-  earn?: {validators: readonly {operator: string; moniker: string}[]} | null};
+  earn?: {validators: readonly {operator: string; moniker: string}[]} | null;
+  /** Session AK (Part 12): the auto-complete rules and bills, when the caller read them (else plan-ak.ts reads this device's). */
+  akRecords?: AkRecords};
 export type ChecklistEnv = {record: Checklist; days: ChecklistDays; date: string; unreadable: boolean};
 /** ZIGi's current look and the looks this build has, when the runner knows them (a change to the same value is then refused). */
 export type ZigiLookEnv = {prefs: ZigiPrefs; skins: readonly string[]};
@@ -124,7 +131,9 @@ export type Plan = {card: Card; target: Target; write: (current: Stores) => Part
   /** Session Z-Local Part 6 (L21): the day already holds this very entry (the same water amount, the same library food for the same meal); the card still shows, auto-accept never takes it. */
   duplicate?: boolean;
   /** Session AF (ADR-028 D7, H47): the Staking page's review, filled in (a hand-off; the person reviews and signs in their own wallet). */
-  staking?: StakingPrefillValues};
+  staking?: StakingPrefillValues;
+  /** Session AK (Part 12): a draft kept for the Goal wizard, a soundscape the card's own tap starts, the button's words. */
+  ak?: AkEffect};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -833,6 +842,10 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'checklist-tick': case 'checklist-add-favourite': case 'checklist-add-custom': case 'set-brief': case 'prefill-staking':
       if (!afPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
       return afPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf, plan: planAction}) ?? refuse('That card is not one ZIGi can make.');
+    // Session AK (Part 12): this session's kinds live in plan-ak.ts, in the same lazy chunk.
+    case 'set-auto-rule': case 'set-bill-reminder': case 'grocery-list': case 'goal-draft': case 'what-if': case 'scan-food': case 'start-soundscape':
+      if (!akPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
+      return akPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
       const habit = found.habit, current = latestHabitRule(habit).state;

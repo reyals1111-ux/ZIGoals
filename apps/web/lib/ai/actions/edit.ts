@@ -114,6 +114,13 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'checklist-add-favourite': [],
   'checklist-add-custom': [text('text', 'Your item (up to 60 characters)')],
   'set-brief': [{key: 'eveningTime', label: 'Evening recap from (HH:MM)', type: 'text', optional: true}],
+  // Session AK (Part 12). The habit, the goal and the bill are named by the card (ask again to change them); the source stays (a new source is a new rule).
+  'set-auto-rule': [num('threshold', 'At least', true)],
+  'set-bill-reminder': [num('amount', 'Amount', true), text('currency', 'Currency (EUR, USD, …)', true), select('cadence', 'Every', ['weekly', 'monthly', 'quarterly', 'yearly'], true), {key: 'next_due', label: 'Next due', type: 'date', optional: true}, text('note', 'Note to yourself', true)],
+  'grocery-list': [lines('items', 'Items (one per line)')],
+  'goal-draft': [text('name', 'Name'), num('target', 'Target', true), text('currency', 'Currency (EUR or USD)', true), {key: 'date', label: 'By', type: 'date', optional: true}],
+  'what-if': [num('extra_per_month', 'Extra a month', true), num('regular_amount', 'A regular amount', true), {key: 'target_date', label: 'Target date', type: 'date', optional: true}],
+  'scan-food': [], 'start-soundscape': [select('preset', 'Soundscape', ['focus', 'wind-down', 'sleep'])],
   'prefill-staking': [select('action', 'What to fill in', STAKING_ACTIONS), select('network', 'Network', STAKING_NETWORKS, false), text('validator', 'Validator (its zigvaloper address or its name)', true), text('amount', 'Amount in ZIG', true)],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];

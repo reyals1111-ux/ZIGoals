@@ -88,7 +88,8 @@ const EXPLAIN_ASK = new RegExp(`^${FILLERS}(?:explain|tell me|show me|summari[sz
 const QUESTION_LEAD = new RegExp(`^${FILLERS}(?:how|what(?:'s)?|which|when|where|why|who|whose|average|avg|total|list|show|hoe|hoeveel|wat|welke?|wanneer|waar|waarom|wie|did (?:i|my)|do i|does my|have i|has my|am i|is (?:my|there|it)|are (?:my|there|we)|was (?:my|it)|were my|can i|should i|heb ik|ben ik|is mijn|zijn mijn|was mijn|kan ik|moet ik)\\b`, 'i');
 const WRITE_VERB = '(?:log|record|track|add|set|make|create|mark|tick|put|use|move|rename|call|pause|resume|stack|switch|turn|remember|remind|start|stop|skip|save|plan|note|change|hide|unhide|noteer|voeg|zet|maak|vink|markeer|herinner|onthoud|pauzeer|hernoem|plan|sla|stel|gebruik|verplaats|begin)';
 const COMMAND = new RegExp(`^${FILLERS}${WRITE_VERB}\\b|\\b(?:and|then|en|dan|also|ook)\\s+(?:also\\s+|ook\\s+)?${WRITE_VERB}\\b|\\blog (?:it|that|this)\\b|\\bput (?:it|that|this) (?:in|down|on)\\b|\\bzet (?:dat|het|dit) er\\b|\\bshow\\b.{0,60}\\b(?:view|mode|on today|keto|net carbs|again)\\b|\\blaat\\b.{0,60}\\b(?:weergave|pagina|netto|keto|weer zien|op vandaag)\\b`, 'i');
-const READ_ONLY_BLOCK = /"kind"\s*:\s*"(?:open-page|open-search|open-review|calculator-scenario)"/i;
+// Session AK (Part 12): a what-if (a projection card) and a scan (opens a page) write nothing either.
+const READ_ONLY_BLOCK = /"kind"\s*:\s*"(?:open-page|open-search|open-review|calculator-scenario|what-if|scan-food)"/i;
 const clausesOf = (message: string): string[] => normalizeSpoken(message).split(/(?<=[.!?])\s+|\n+|;\s*|:\s+|,\s*(?=(?:and|then|en|dan)\s)/i).map(s => s.replace(/^(?:and|then|en|dan)\s+/i, '').trim()).filter(Boolean);
 const asksOnly = (clause: string): boolean => {
   if (POLITE_REQUEST.test(clause) || COMMAND.test(clause)) return false;
