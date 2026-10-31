@@ -407,7 +407,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F7 landing visual refresh | Built (owner deploys): hero, Example data labels, offline/install mockups, Private by design, Switch to ZIGoals, FAQ; phone weight lower, desktop within 6 MB | `7cadc0e5` | scripts/landing-f7-visual.test.mjs; check:landing |
 | F8 performance and accessibility | Open | — | — |
 | F9 ZIGi for everything new | Open | — | — |
-| F10 security delta review | Open | — | — |
+| F10 security delta review | Built: three fresh reviewers on 9401dcbb..HEAD — no High; 1 Medium fixed (the agenda's unbonding titles); 11 Low (8 fixed, 3 recorded); 6 Info (3 fixed, 3 recorded) | `6e049943` | docs/security/review-2026-10/SESSION_AK_F10.md; unbonding-privacy, denoms, guard, notify tests |
 | F11 Studio-4 preparation complete and proven | Built: every Part 12 slot verified wired (X030 cheer unused by the PROTECTED Checklist until the owner says yes); dry run of studio4-deliver/ through the importer; runbook | `a845d339` | scripts/zigi/studio4-dry-run.test.mjs (17 tests); docs/handoff/STUDIO4_SWAP_RUNBOOK.md |
 | F12 finish | Open | — | — |
 | 5.1 schedules: "first Monday of the month" | Open (F0x lane) | — | — |
