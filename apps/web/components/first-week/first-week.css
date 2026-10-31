@@ -16,3 +16,13 @@
 :root .first-week-steps a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
 :root .first-week-steps button { flex: none; min-height: 44px; min-width: 88px; }
 :root .first-week-steps li[data-done] a { color: var(--text-secondary, var(--muted)); }
+/* Session AK (F6): richer card — depth, the nebula's cyan along the left edge, the start row beside its illustration,
+   the steps brightening their rim on hover (nothing follows the pointer, nothing moves), a ring on keyboard focus. */
+:root .first-week-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 70%, transparent), 0 18px 40px -30px color-mix(in srgb, var(--brand-violet) 75%, transparent); }
+:root .first-week-start > div { display: grid; gap: 10px; }
+:root .first-week-steps li { transition: border-color 160ms ease, background-color 160ms ease; }
+:root .first-week-steps li[data-done] { border-color: color-mix(in srgb, var(--brand-cyan) 40%, var(--line)); background: color-mix(in srgb, var(--brand-cyan) 6%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root .first-week-steps li:hover { border-color: color-mix(in srgb, var(--brand-violet) 55%, var(--line)); } }
+:root .first-week-all > summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { :root .first-week-steps li { transition: none; } }
+:root[data-app-motion=off] .first-week-steps li { transition: none; }

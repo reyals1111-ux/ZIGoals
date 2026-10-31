@@ -16,6 +16,7 @@ import {DEFAULT_LENGTH, EXPERIMENT_FACTOR_KINDS, EXPERIMENT_LENGTHS, endExperime
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabits} from '../habits/use-habits';
 import {EmptyState} from '../ui/empty-state';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import {ShowcaseTag} from '../ui/showcase-tag';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import './compare/compare.css';
@@ -49,9 +50,9 @@ export default function Experiments({health, today}: {health: HealthData; today:
         onRemove={() => write(c => removeExperiment(c, r.experiment.id), 'Experiment removed. Your records are unchanged.')}
         onNote={text => write(c => noteExperiment(c, r.experiment.id, text), 'Note kept with the experiment.')}/>
     </li>)}</ol>}
-    {!factors.length || !outcomes.length ? <EmptyState title="Nothing to try yet" level={3} action={<Link className="secondary" href="/app/habits">Open Habits</Link>}>
+    {!factors.length || !outcomes.length ? <div className="pillar-art-host"><EmptyState title="Nothing to try yet" level={3} action={<Link className="secondary" href="/app/habits">Open Habits</Link>}>
       {!factors.length ? 'Add a habit, or tag your journal entries or nights. ' : ''}{!outcomes.length ? 'Rate your mood or energy, or log sleep or steps. ' : ''}Then try one change here for 14 days and see how your mood, energy or sleep went alongside it, for example “On the days you tried it, your energy averaged 3.8 of 5; on the days before, without it, 3.1 of 5.”
-    </EmptyState> : <NewExperiment factors={factors} outcomes={outcomes} today={today} onStart={(input, title) => write(c => startExperiment(c, {...input, id: crypto.randomUUID().replace(/-/g, '').slice(0, 24), start: today}, today), `“${title}” starts today.`)}/>}
+    </EmptyState><LazyPillarArt pillar="health"/></div> : <NewExperiment factors={factors} outcomes={outcomes} today={today} onStart={(input, title) => write(c => startExperiment(c, {...input, id: crypto.randomUUID().replace(/-/g, '').slice(0, 24), start: today}, today), `“${title}” starts today.`)}/>}
     {note && <p className="fine" role="status">{note}</p>}
     <p className="fine">From your own records on this device. What happened together over these weeks, never a cause and not advice.</p>
   </div>;

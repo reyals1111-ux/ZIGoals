@@ -24,3 +24,12 @@
   :root:not([data-app-motion=off]) .nwm-celebration{animation:nwm-in .6s ease-out both}
 }
 @keyframes nwm-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* Session AK (F6): richer card — the celebration gets depth, Wealth's gold along its edge and a glass wash; the settings
+   fold shows a ring on keyboard focus; the remove buttons brighten on hover (nothing moves, nothing follows the pointer). */
+.nwm-celebration{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 70%,transparent),0 18px 40px -30px color-mix(in srgb,var(--brand-violet) 80%,transparent);background-image:radial-gradient(at 100% 0,color-mix(in srgb,var(--pillar-wealth) 12%,transparent),transparent 60%)}
+.nwm-symbol{color:var(--pillar-wealth-ink,var(--pillar-wealth))}
+.nwm-settings summary:focus-visible{outline:3px solid var(--cyan);outline-offset:2px;border-radius:8px}
+.nwm-list li{transition:background-color 160ms ease}
+@media (hover:hover) and (pointer:fine){.nwm-list li:hover{background-color:color-mix(in srgb,var(--brand-violet) 5%,transparent)}}
+@media (prefers-reduced-motion:reduce){.nwm-list li{transition:none}}
+:root[data-app-motion=off] .nwm-list li{transition:none}

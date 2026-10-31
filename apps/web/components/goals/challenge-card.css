@@ -25,3 +25,15 @@
 .challenge-days button[aria-pressed=true]{background:color-mix(in srgb,var(--cyan,#6fd3ff) 22%,transparent);border-color:var(--cyan,#6fd3ff)}
 .challenge-round-weeks{margin:0;padding-left:18px}
 .challenge-status{min-height:0}
+/* Session AK (F6): richer card. The intro beside its illustration keeps the card's own rhythm; depth from a soft shadow,
+   Goals' violet along the left edge and a faint glass wash; the week squares and day buttons brighten their rim on hover
+   (nothing follows the pointer, nothing moves); keyboard focus shows the ring. */
+.challenge-intro>div{display:grid;gap:10px;min-width:0}
+:root .challenge-card{background-image:radial-gradient(at 100% 0,color-mix(in srgb,var(--pillar-goals) 12%,transparent),transparent 58%);box-shadow:inset 3px 0 0 color-mix(in srgb,var(--pillar-goals) 70%,transparent),0 18px 40px -30px color-mix(in srgb,var(--brand-violet) 75%,transparent)}
+.challenge-weeks li[data-covered]{background:linear-gradient(135deg,var(--brand-cyan),var(--pillar-goals))}
+.challenge-bar i{background:linear-gradient(90deg,var(--brand-cyan),var(--pillar-goals))}
+.challenge-days button{transition:border-color 160ms ease,background-color 160ms ease}
+@media (hover:hover) and (pointer:fine){.challenge-days button:hover{border-color:color-mix(in srgb,var(--pillar-goals) 60%,transparent)}}
+.challenge-days button:focus-visible,.challenge-schedule summary:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.challenge-days button{transition:none}}
+:root[data-app-motion=off] .challenge-days button{transition:none}

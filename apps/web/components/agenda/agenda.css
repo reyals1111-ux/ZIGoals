@@ -78,3 +78,18 @@
   .agenda-item { grid-template-columns: 64px minmax(0, 1fr); padding: 4px 8px; }
   .agenda-range { font-size: 18px; }
 }
+
+/* Session AK (F6): richer cards. Each item keeps its pillar's edge, now with a faint wash of the same colour and a soft
+   depth; rows and day cells brighten their rim on hover (liquid glass without pointer tracking: nothing follows the
+   pointer, nothing moves); an item whose link has keyboard focus shows it on the whole row. */
+.agenda-item { background: linear-gradient(90deg, color-mix(in srgb, var(--agenda-accent, var(--line)) 9%, transparent), transparent 55%); box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)), 0 10px 24px -22px color-mix(in srgb, var(--brand-violet) 70%, transparent); transition: border-color 160ms ease, background-color 160ms ease; }
+.agenda-item:has(.agenda-item-title:focus-visible) { border-color: var(--brand-cyan, var(--cyan)); }
+.agenda-item-title:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+.agenda-cell { transition: border-color 160ms ease, background-color 160ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .agenda-item:hover { border-color: color-mix(in srgb, var(--agenda-accent, var(--brand-violet)) 55%, var(--line, transparent)); background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent); }
+  .agenda-cell:hover { border-color: color-mix(in srgb, var(--brand-cyan) 55%, var(--line, transparent)); background-color: color-mix(in srgb, var(--brand-cyan) 6%, transparent); }
+}
+.agenda-filter summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .agenda-item, .agenda-cell { transition: none; } }
+:root[data-app-motion=off] :is(.agenda-item, .agenda-cell) { transition: none; }

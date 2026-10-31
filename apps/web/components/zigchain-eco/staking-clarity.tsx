@@ -10,6 +10,8 @@ import {claimableOf, rewardsCsv, rewardsCsvName, rewardsHistory, unbondingCalend
 import {formatDate, formatDateTime} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {SectionHeading} from '../ui/section-heading';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
+import {ZgSkeleton} from '../skeleton/zg-skeleton';
 import './zigchain-eco.css';
 
 /**
@@ -35,10 +37,13 @@ export function StakingClarity({reads, now}: {reads: readonly ClarityRead[]; now
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   const tag = (network: string) => network === PRACTICE ? <> <span className="zeco-practice-tag">Practice</span></> : null;
+  // Nothing waiting, nothing unstaking and nothing claimed yet: the heading carries Wealth's illustration (loaded on use).
+  const empty = !claimable.length && !days.length && journal.loaded && !journal.unreadable && !history.length;
   const label = (account: string) => reads.find(r => r.address === account)?.label ?? shortAddress(account);
   return <section id="staking-clarity" className="panel zeco" aria-labelledby="staking-clarity-title">
     <SectionHeading id="staking-clarity-title" eyebrow="Your staking, read from the chain" title="Rewards, unstaking and history"
-      lede="What is waiting for you, when unstaked ZIG comes back, and what you claimed here. Read-only: claiming and unstaking happen on Staking, signed in your own wallet."/>
+      lede="What is waiting for you, when unstaked ZIG comes back, and what you claimed here. Read-only: claiming and unstaking happen on Staking, signed in your own wallet."
+      action={empty ? <LazyPillarArt pillar="wealth" size={104} className="zeco-art"/> : undefined}/>
     <div className="zeco-grid">
       <article className="zeco-card" aria-labelledby="zeco-claim-title">
         <h3 id="zeco-claim-title">Waiting to be claimed</h3>
@@ -60,7 +65,7 @@ export function StakingClarity({reads, now}: {reads: readonly ClarityRead[]; now
       </article>
       <article className="zeco-card" aria-labelledby="zeco-history-title">
         <h3 id="zeco-history-title">Rewards you claimed here</h3>
-        {!journal.loaded ? <p className="fine">Reading…</p> : journal.unreadable ? <p className="fine">Your staking history could not be read on this device.</p>
+        {!journal.loaded ? <ZgSkeleton label="Reading your staking history…" lines={2}/> : journal.unreadable ? <p className="fine">Your staking history could not be read on this device.</p>
           : !history.length ? <p className="fine">Claims you sign through ZIGoals on this device appear here.</p>
           : <ul className="zeco-list">{history.slice(0, 10).map(h => { const link = h.hash ? explorerLinksFor(h.network, 'transaction', h.hash)[0] : undefined; return <li key={`${h.at}:${h.hash ?? ''}`}>
             <span><strong>{h.action === 'sweep' ? 'Claimed and restaked' : 'Claimed'}</strong> · <time dateTime={h.at}>{formatDate(h.at)}</time>{tag(h.network)}</span>

@@ -6,6 +6,8 @@ import {OrbitArt} from '../header-art/orbit-art';
 import {RemindersGlyph} from '../header-art/glyphs/reminders';
 import {EmptyState} from '../ui/empty-state';
 import {LoadBoundary} from '../load-boundary';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
+import {ZgSkeleton} from '../skeleton/zg-skeleton';
 import {ActionIntent} from '../action-intent';
 import {formatClock, formatDate, formatMonth, formatNumber, formatWeekday} from '../../lib/visual-format';
 import {AGENDA_SOURCES, AGENDA_VIEWS, SOURCE_LABEL, agendaRange, buildAgenda, countBySource, shiftAnchor, sourcesWithRecords, type AgendaDay, type AgendaItem, type AgendaSource, type AgendaView} from '../../lib/agenda/build';
@@ -59,12 +61,12 @@ export function AgendaPage() {
       lede="Habits, planned contributions, bills, workouts, meals, unbonding dates and reviews, from your own records. Tap an item to open it where it lives. Nothing here leaves this device unless you export it."
       actions={<p className="agenda-links"><Link className="text-link" href="/app/timeline">Today as a timeline →</Link></p>}
       art={<OrbitArt glyph={RemindersGlyph} spin={22} />} />
-    {!loaded || !input || !days || !counts ? <div className="agenda-skeleton aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
+    {!loaded || !input || !days || !counts ? <ZgSkeleton label="Opening your agenda…" className="agenda-skeleton" block lines={3} /> : <>
       {showcase && <p className="agenda-showcase fine" role="note">Showcase · fictional. Items with no record of their own yet are marked Example.</p>}
       {unreadable.length > 0 && <p className="notice" role="status">Some records could not be read on this device ({unreadable.join(', ')}), so their items are left out rather than guessed.</p>}
-      {known.size === 0 && <EmptyState title="Your agenda fills itself" level={2} action={<p className="agenda-teach">{(['habit', 'meal', 'bill', 'review'] as const).map(s => <Link key={s} className="secondary" href={TEACH[s][1]}>{TEACH[s][0]}</Link>)}</p>}>
+      {known.size === 0 && <div className="pillar-art-host"><EmptyState title="Your agenda fills itself" level={2} action={<p className="agenda-teach">{(['habit', 'meal', 'bill', 'review'] as const).map(s => <Link key={s} className="secondary" href={TEACH[s][1]}>{TEACH[s][0]}</Link>)}</p>}>
         Add a habit, give a goal a contribution plan, add a bill, plan a meal or turn on the weekly review. Each one shows here on its days, and you can export them to your own calendar.
-      </EmptyState>}
+      </EmptyState><LazyPillarArt pillar="orbit" /></div>}
       <section className="panel agenda-panel" aria-labelledby="agenda-range">
         <div className="agenda-toolbar">
           <div className="agenda-views" role="group" aria-label="View">{AGENDA_VIEWS.map(v => <button key={v} type="button" className="secondary" aria-pressed={view === v} onClick={() => pickView(v)}>{VIEW_LABEL[v]}</button>)}</div>

@@ -7,6 +7,7 @@ import {WRAPPED, markWrappedOpened} from '../../lib/wrapped/store';
 import {wrappedShareCard} from '../../lib/wrapped/share';
 import type {Wrapped, WrappedCard} from '../../lib/wrapped/build';
 import {useWrapped} from './use-wrapped';
+import {ZgSkeleton} from '../skeleton/zg-skeleton';
 import '../stories/stories.css';
 import './wrapped.css';
 
@@ -25,7 +26,7 @@ export default function WrappedStory({onClose}: {onClose: () => void}) {
     try { record.update(r => markWrappedOpened(r, wrapped.year, today)); } catch { /* opened all the same; Today's card may show again */ }
   }, [wrapped, record, today]);
   return createPortal(<div className="story-player wrapped-player" role="dialog" aria-modal="true" aria-label={wrapped ? `ZIGoals Wrapped ${wrapped.year}` : 'ZIGoals Wrapped'}>
-    {!loaded ? <p className="story-note" role="status">Gathering your year…</p>
+    {!loaded ? <ZgSkeleton label="Gathering your year…" className="wrapped-skeleton" block lines={3} />
       : failed || !wrapped ? <div className="story-frame wrapped-fallback"><p className="story-note" role="status">Some of your records could not be read on this device, so your Wrapped waits until they can.</p><button type="button" className="primary" onClick={onClose}>Close</button></div>
       : <WrappedPlayer wrapped={wrapped} onClose={onClose} />}
   </div>, document.body);

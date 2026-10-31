@@ -9,6 +9,8 @@ import {FI_MODEL} from '../../../lib/fi-model/store';
 import {fiIssueField, fiSummary, type FiField} from '../../../lib/fi-model/summary';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {money} from './format';
+import {useChartWidth} from '../../charts/use-chart-width';
+import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import './money-tools.css';
 
 /**
@@ -20,7 +22,8 @@ import './money-tools.css';
 type Draft = {invested: string; yearlySpend: string; withdrawalPct: string; monthlyContribution: string; returnPct: string; volatilityPct: string; years: string; currency: string};
 const num = (raw: string) => raw.trim() === '' ? Number.NaN : Number(raw.trim().replace(/\s/g, '').replace(',', '.'));
 const START: Draft = {invested: '20000', yearlySpend: '30000', withdrawalPct: String(FI_DEFAULTS.withdrawalPct), monthlyContribution: '500', returnPct: String(FI_DEFAULTS.returnPct), volatilityPct: String(FI_DEFAULTS.volatilityPct), years: '40', currency: 'EUR'};
-const W = 340, H = 196, PAD = 10, BOTTOM = 26;
+// The chart is drawn at its measured width (FiChart), so its labels stay 14 px on every screen.
+const H = 196, PAD = 10, BOTTOM = 26;
 const years = (n: number | null) => n === null ? null : `${n} ${n === 1 ? 'year' : 'years'}`;
 
 export default function FiModelPanel() {
@@ -61,8 +64,6 @@ export default function FiModelPanel() {
   };
   const forget = () => { try { stored.clear(); setStatus('The kept inputs are removed from this device.'); } catch { setStatus('Not removed.'); } };
   const target = Number.isFinite(input.yearlySpend) && Number.isFinite(input.withdrawalPct) && input.withdrawalPct > 0 ? fiTarget(input.yearlySpend, input.withdrawalPct) : null;
-  const max = result ? Math.max(result.target * 1.15, ...result.bands.map(b => Math.min(b.p90, result.target * 3))) : 1;
-  const x = (y: number) => PAD + (W - 2 * PAD) * y / Math.max(1, input.years), yv = (v: number) => H - BOTTOM - (H - BOTTOM - PAD) * Math.min(v, max) / max;
   return <section className="money-panel fi-model" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">A MODEL, NOT ADVICE</p>
     <h3 id={`${id}-title`}>Financial freedom</h3>
@@ -83,16 +84,8 @@ export default function FiModelPanel() {
       <p className="fi-result" aria-live="polite">Target: <strong>{money(result.target.toFixed(2), d.currency)}</strong>. {result.yearsTo.p50 !== null
         ? <>In half of the paths it is reached within <strong>{years(result.yearsTo.p50)}</strong>{result.yearsTo.p10 !== null ? `; in the fastest tenth of paths within ${years(result.yearsTo.p10)}` : ''}{result.yearsTo.p90 !== null ? `; in nine of ten within ${years(result.yearsTo.p90)}` : `; one path in ten or more does not reach it within ${input.years} years`}.</>
         : <>Fewer than half of the paths reach it within {input.years} years ({Math.round(result.reached * 100)} % do).</>}</p>
-      <svg className="money-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`A band of possible values over ${input.years} years. After ${input.years} years the middle path is at ${money(result.bands.at(-1)!.p50.toFixed(0), d.currency)}; the target is ${money(result.target.toFixed(0), d.currency)}.`}>
-        <path className="money-chart-band" d={`${result.bands.map((b, i) => `${i ? 'L' : 'M'}${x(b.year).toFixed(1)} ${yv(b.p90).toFixed(1)}`).join(' ')} ${[...result.bands].reverse().map(b => `L${x(b.year).toFixed(1)} ${yv(b.p10).toFixed(1)}`).join(' ')} Z`}/>
-        <path className="money-chart-mid" d={result.bands.map((b, i) => `${i ? 'L' : 'M'}${x(b.year).toFixed(1)} ${yv(b.p50).toFixed(1)}`).join(' ')}/>
-        <line className="money-chart-target" x1={PAD} x2={W - PAD} y1={yv(result.target)} y2={yv(result.target)}/>
-        <line className="money-chart-axis" x1={PAD} x2={W - PAD} y1={H - BOTTOM} y2={H - BOTTOM}/>
-        <text x={PAD} y={H - 8}>Now</text>
-        <text x={W - PAD} y={H - 8} textAnchor="end">{years(input.years)}</text>
-        <text x={W - PAD} y={Math.max(12, yv(result.target) - 5)} textAnchor="end">Target</text>
-      </svg>
-      <ul className="fine money-legend fi-legend" aria-label="How to read the chart">
+      <FiChart result={result} years={input.years} currency={d.currency}/>
+      <ul className="fine money-legend fi-legend zg-legend" data-pillar="wealth" aria-label="How to read the chart">
         <li><span className="money-key money-key-band" aria-hidden="true"/>Shaded band: the middle 8 in 10 paths (from the 10th to the 90th percentile)</li>
         <li><span className="money-key" aria-hidden="true"/>Solid line: the middle path (the 50th percentile)</li>
         <li><span className="money-key money-key-target" aria-hidden="true"/>Dashed line: your target{target !== null ? ` (${money(target.toFixed(0), d.currency)})` : ''}</li>
@@ -107,4 +100,20 @@ export default function FiModelPanel() {
     </div>
     <p className="money-status" role="status" aria-live="polite">{status}</p>
   </section>;
+}
+
+function FiChart({result, years: span, currency}: {result: FiResult; years: number; currency: string}) {
+  const [plot, W] = useChartWidth(340, 220), look = useChartLook();
+  const max = Math.max(result.target * 1.15, ...result.bands.map(b => Math.min(b.p90, result.target * 3)));
+  const x = (y: number) => PAD + (W - 2 * PAD) * y / Math.max(1, span), yv = (v: number) => H - BOTTOM - (H - BOTTOM - PAD) * Math.min(v, max) / max;
+  return <div ref={plot}><svg className="money-chart zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`A band of possible values over ${span} years. After ${span} years the middle path is at ${money(result.bands.at(-1)!.p50.toFixed(0), currency)}; the target is ${money(result.target.toFixed(0), currency)}.`}>
+    <ChartLookDefs id={look.id} width={W} height={H}/>
+    <path className="money-chart-band zgc-band" style={{fill: look.stroke('band')}} d={`${result.bands.map((b, i) => `${i ? 'L' : 'M'}${x(b.year).toFixed(1)} ${yv(b.p90).toFixed(1)}`).join(' ')} ${[...result.bands].reverse().map(b => `L${x(b.year).toFixed(1)} ${yv(b.p10).toFixed(1)}`).join(' ')} Z`}/>
+    <path className="money-chart-mid zgc-line" style={{stroke: look.stroke('a')}} filter={look.glow} d={result.bands.map((b, i) => `${i ? 'L' : 'M'}${x(b.year).toFixed(1)} ${yv(b.p50).toFixed(1)}`).join(' ')}/>
+    <line className="money-chart-target" x1={PAD} x2={W - PAD} y1={yv(result.target)} y2={yv(result.target)}/>
+    <line className="money-chart-axis" x1={PAD} x2={W - PAD} y1={H - BOTTOM} y2={H - BOTTOM}/>
+    <text x={PAD} y={H - 8}>Now</text>
+    <text x={W - PAD} y={H - 8} textAnchor="end">{years(span)}</text>
+    <text x={W - PAD} y={Math.max(16, yv(result.target) - 6)} textAnchor="end">Target</text>
+  </svg></div>;
 }

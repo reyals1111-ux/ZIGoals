@@ -1,7 +1,8 @@
 'use client';
 import {useState} from 'react';
 import {useChartWidth} from '../charts/use-chart-width';
-import {ChartDefs, ChartGrid, ChartXAxis} from '../charts/chart-kit';
+import {ChartGrid, ChartXAxis} from '../charts/chart-kit';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {MEASUREMENTS_CUSTOM} from '../../lib/health-aa/measurements-custom';
 import {trendRows, type TrendPoint, type TrendRow} from '../../lib/measurement-trends/trends';
@@ -20,17 +21,17 @@ const one = (v: number) => formatNumber(v, {maximumFractionDigits: 1});
 const signed = (v: number) => { const r = Math.round(v * 10) / 10; return r === 0 ? '0' : `${r > 0 ? '+' : '−'}${one(Math.abs(r))}`; };
 const H = 150, PAD = {top: 12, right: 10, bottom: 24, left: 44};
 function TrendChart({row}: {row: TrendRow}) {
-  const [plot, width] = useChartWidth(320, 240), points: TrendPoint[] = row.points;
+  const [plot, width] = useChartWidth(320, 240), look = useChartLook(), points: TrendPoint[] = row.points;
   if (points.length < 2) return <div ref={plot}><p className="fine">One reading of {row.title.toLowerCase()} so far; a second draws the line.</p></div>;
   const vals = points.map(p => p.value), lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(hi - lo, 0.5);
   const t0 = Date.parse(`${points[0]!.date}T12:00:00Z`), t1 = Date.parse(`${points.at(-1)!.date}T12:00:00Z`), tSpan = Math.max(t1 - t0, 1);
   const x = (p: TrendPoint) => PAD.left + (Date.parse(`${p.date}T12:00:00Z`) - t0) / tSpan * (width - PAD.left - PAD.right), y = (v: number) => PAD.top + (1 - (v - lo) / span) * (H - PAD.top - PAD.bottom);
   const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(p).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   return <div className="measure-trend-chart" ref={plot}>
-    <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${row.title}: ${points.length} readings from ${one(points[0]!.value)} ${row.unit} on ${formatDate(points[0]!.date)} to ${one(points.at(-1)!.value)} ${row.unit} on ${formatDate(points.at(-1)!.date)}`}>
-      <ChartDefs id={`trend-${row.id.replace(/[^a-z0-9-]/g, '-')}`} pillar="health" />
+    <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${row.title}: ${points.length} readings from ${one(points[0]!.value)} ${row.unit} on ${formatDate(points[0]!.date)} to ${one(points.at(-1)!.value)} ${row.unit} on ${formatDate(points.at(-1)!.date)}`}>
+      <ChartLookDefs id={look.id} width={width} height={H} />
       <ChartGrid ticks={[{y: y(hi), label: one(hi)}, {y: y(lo), label: one(lo)}]} left={PAD.left} right={width - PAD.right} />
-      <path className="chart-ink" d={d} stroke={`url(#trend-${row.id.replace(/[^a-z0-9-]/g, '-')}-ink)`} />
+      <path className="chart-ink zgc-line" d={d} style={{stroke: look.stroke('a')}} filter={look.glow} />
       {points.map(p => <circle key={p.date} className="chart-dot" cx={x(p)} cy={y(p.value)} r="3.5" />)}
       <ChartXAxis ticks={[{x: x(points[0]!), label: formatDate(points[0]!.date, {year: false})}, {x: x(points.at(-1)!), label: formatDate(points.at(-1)!.date, {year: false})}]} y={H - 6} />
     </svg>

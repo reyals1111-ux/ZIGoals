@@ -14,6 +14,7 @@ import {addLocalDays, localDate} from '../../lib/local-date';
 import {calendarDay, formatDate, formatMoney, formatWeekday, isMoneyCurrency} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {showToast} from '../ui/undo-toast';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import './challenge-card.css';
 
 /**
@@ -53,11 +54,13 @@ function SetUp({goal, kind, update}: {goal: PrivateGoal; kind: ChallengeKind; up
     } catch (cause) { setError(plainErrorMessage(cause, 'Not saved on this device.')); }
   };
   return <section className="panel challenge-card" aria-labelledby={`${id}-t`}>
+    <div className="challenge-intro pillar-art-inline"><div>
     <p className="eyebrow">A SAVINGS CHALLENGE · FROM THE TEMPLATE</p>
     <h2 id={`${id}-t`}>{TITLE[kind]}</h2>
     {kind === '52-week' && <p>Each week you put aside one step more than the week before: one step in week 1, two in week 2, up to 52 in week 52. Counting down starts with the biggest week instead. You choose the step; this card follows what you record toward this goal.</p>}
     {kind === 'no-spend' && <p>A no-spend day is a day with nothing spent beyond what was already planned. You mark each one here; if your money log has a purchase that day, it is shown apart rather than counted. A day you did not mark is never guessed.</p>}
     {kind === 'round-up' && <p>Each purchase you log in your money log is rounded up to the next whole amount; the differences add up each week. Move that amount to savings yourself, then record it on this goal.</p>}
+    </div><LazyPillarArt pillar="goals" size={104}/></div>
     {(kind !== 'no-spend' && !moneyGoal) ? <p className="fine">This challenge counts money recorded toward a savings goal; this goal counts milestones, so start it on a savings goal instead.</p> : <div className="challenge-form">
       <label className="field"><span>Starts on</span><input type="date" value={start} onChange={e => setStart(e.target.value || today)}/></label>
       {kind === '52-week' && <>

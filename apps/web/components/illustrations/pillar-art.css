@@ -1,0 +1,32 @@
+/* Session AK (F6): the empty-state pillar illustrations (pillar-art.tsx, motifs.tsx). Every colour is one of the app's
+   pillar, brand or accent tokens (Nebula, Light and Dark share their values), mixed only with transparent; by day the
+   rim, ring and marks take each token's ink twin where Light defines one, so they keep their edge on white. Static. */
+.pillar-art {
+  --pa-a: var(--brand-cyan); --pa-ink: var(--brand-cyan-ink, var(--brand-cyan)); --pa-hi: var(--accent-cyan); --pa-body: var(--brand-violet); --pa-deep: var(--brand-magenta);
+  --pa-halo-o: .34;
+  display: block; flex: none; max-width: 100%; height: auto; overflow: visible; pointer-events: none;
+}
+.pillar-art[data-pillar=goals] { --pa-a: var(--pillar-goals); --pa-ink: var(--pillar-goals-ink, var(--pillar-goals)); --pa-hi: var(--accent-violet); --pa-body: var(--brand-violet); --pa-deep: var(--brand-blue); }
+.pillar-art[data-pillar=habits] { --pa-a: var(--pillar-habits); --pa-ink: var(--pillar-habits-ink, var(--pillar-habits)); --pa-hi: var(--accent-cyan); --pa-body: var(--brand-blue); --pa-deep: var(--brand-violet); }
+.pillar-art[data-pillar=health] { --pa-a: var(--pillar-health); --pa-ink: var(--pillar-health-ink, var(--pillar-health)); --pa-hi: var(--accent-magenta); --pa-body: var(--brand-magenta); --pa-deep: var(--brand-violet); }
+.pillar-art[data-pillar=wealth] { --pa-a: var(--pillar-wealth); --pa-ink: var(--pillar-wealth-ink, var(--pillar-wealth)); --pa-hi: var(--pillar-wealth); --pa-body: var(--brand-violet); --pa-deep: var(--brand-blue); }
+.pillar-art .pa-s-light { stop-color: color-mix(in oklab, var(--pa-a) 62%, var(--pa-body)); }
+.pillar-art .pa-s-body { stop-color: var(--pa-body); }
+.pillar-art .pa-s-deep { stop-color: var(--pa-deep); }
+.pillar-art .pa-s-halo { stop-color: var(--pa-a); stop-opacity: var(--pa-halo-o); }
+.pillar-art .pa-s-halo.pa-s-clear { stop-opacity: 0; }
+.pillar-art .pa-s-ring { stop-color: var(--pa-ink); stop-opacity: .95; }
+.pillar-art .pa-s-ring-mid { stop-color: var(--pa-hi); }
+.pillar-art .pa-ring { fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.pillar-art .pa-ring-back { stroke-width: 1.6; opacity: .5; }
+.pillar-art .pa-rim { fill: none; stroke: var(--pa-a); stroke-width: 1.6; stroke-linecap: round; opacity: .9; }
+.pillar-art .pa-mark { fill: none; stroke: var(--pa-hi); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.pillar-art .pa-days { stroke-width: 1.6; stroke-dasharray: 1 3.6; }
+.pillar-art .pa-bars { stroke-width: 4; }
+.pillar-art .pa-link { stroke-width: 1.6; opacity: .85; }
+.pillar-art .pa-dot { fill: var(--pa-hi); }
+.pillar-art .pa-moon { fill: var(--pa-hi); stroke: var(--pa-ink); stroke-width: 1; }
+.pillar-art .pa-spark { fill: var(--pa-hi); opacity: .8; }
+/* Customize → Glow: Soft halves the decorative halo. Forced colours: decoration steps aside. */
+:root[data-glow="soft"] .pillar-art { --pa-halo-o: .17; }
+@media (forced-colors: active) { .pillar-art { display: none; } }

@@ -1,0 +1,20 @@
+/* Session AK (F6): where the pillar illustrations sit (lazy-pillar-art.tsx loads this with the page, so the words never
+   reflow when the art arrives). */
+/* `.pillar-art-host` wraps an EmptyState card: the art sits in its top-right corner, the words keep clear of
+   it. `.pillar-art-inline` is a row of the words, then the art; narrower than 480 px the art comes first, smaller. */
+.pillar-art-host { position: relative; min-width: 0; container-type: inline-size; }
+.pillar-art-host > .pillar-art { position: absolute; top: 14px; right: 14px; z-index: 1; width: 56px; }
+.pillar-art-host > .aa-empty .empty-state-copy > :first-child { padding-right: 52px; }
+@container (min-width: 520px) {
+  .pillar-art-host > .pillar-art { top: 16px; right: 18px; width: 112px; }
+  .pillar-art-host > .aa-empty { padding-right: 148px; }
+  .pillar-art-host > .aa-empty .empty-state-copy > :first-child { padding-right: 0; }
+}
+.pillar-art-inline { display: flex; align-items: center; min-width: 0; }
+.pillar-art-inline > :first-child { flex: 1 1 auto; min-width: 0; }
+.pillar-art-inline > .pillar-art { margin-left: 16px; }
+@media (max-width: 479.98px) {
+  .pillar-art-inline { flex-direction: column-reverse; align-items: flex-start; }
+  .pillar-art-inline > :first-child { flex: none; width: 100%; }
+  .pillar-art-inline > .pillar-art { width: 72px; margin: 0 0 6px; }
+}

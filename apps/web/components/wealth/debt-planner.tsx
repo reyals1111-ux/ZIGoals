@@ -8,6 +8,10 @@ import {formatDate, formatMoney, formatMonth} from '../../lib/visual-format';
 import {EXAMPLE_DEBTS, EXAMPLE_EXTRA, addMonths, centsText, comparePlans, comparisonWords, firstPaymentMonth, parseCents, payoffMonth, planIssue, rateE4, toCents, type PlanComparison, type PlanDebt, type PlanResult} from '../../lib/debt-planner/plan';
 import {DEBT_PLANNER} from '../../lib/debt-planner/store';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {useChartWidth} from '../charts/use-chart-width';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
+import {ZgSkeleton} from '../skeleton/zg-skeleton';
 import './money-tools/money-tools.css';
 import './debt-planner.css';
 
@@ -21,7 +25,8 @@ import './debt-planner.css';
  */
 type Draft = {extra: string; minimums: Record<string, string>; rates: Record<string, string>};
 type Row = {id: string; name: string; owed: bigint; on: string; accountRate?: string};
-const W = 340, H = 190, PAD = 12, TOP = 18;
+// The chart is drawn at its measured width (labels stay 14 px); the plot keeps room for the labels above and below it.
+const H = 196, PAD = 12, TOP = 22, BOTTOM = 26;
 const months = (n: number) => `${n} ${n === 1 ? 'month' : 'months'}`;
 
 export default function DebtPlanner() {
@@ -99,12 +104,12 @@ export default function DebtPlanner() {
     <p className="eyebrow">A MODEL, NOT ADVICE</p>
     <h3 id={`${id}-title`}>Paying off debts: snowball or avalanche</h3>
     <p className="fine">Two common orders for paying off several debts. <strong>Snowball</strong>: pay the minimums, and put every extra amount on the smallest balance first. <strong>Avalanche</strong>: the same, but the highest rate first. When a debt is cleared, its minimum rolls on to the next one.</p>
-    {!accounts.loaded ? <p className="fine" aria-busy="true">Reading your debts…</p>
+    {!accounts.loaded ? <ZgSkeleton label="Reading your debts…" lines={3}/>
       : accounts.unreadable ? <p role="alert">Your accounts on this device could not be read, so the planner cannot use them. Nothing was changed.</p>
-      : !hasDebts && !example ? <div className="debt-planner-empty">
+      : !hasDebts && !example ? <div className="debt-planner-empty pillar-art-inline"><div className="debt-planner-empty-copy">
         <p><strong>No debts with a balance yet.</strong> Add a loan, mortgage or credit card under Wealth → Accounts, debts &amp; net worth, with what you owe and your yearly rate. Then come back here to compare the two orders and see when you could be debt-free.</p>
         <div className="money-actions"><button type="button" className="secondary" onClick={() => { setExample(true); setDraft(x => ({...(x ?? d), extra: x?.extra || centsText(EXAMPLE_EXTRA)})); }}>Try it with example figures</button></div>
-      </div>
+      </div><LazyPillarArt pillar="wealth" size={104}/></div>
       : <>
         {example ? <p className="notice debt-planner-example" role="note">Example figures, not yours: three fictional debts in euros. Nothing here is stored. {hasDebts && <button type="button" className="text-link" onClick={() => setExample(false)}>Use my debts instead</button>}{!hasDebts && <button type="button" className="text-link" onClick={() => setExample(false)}>Close the example</button>}</p>
           : currencies.length > 1 && <label className="field debt-planner-currency"><span>Debts in</span><select value={currency} onChange={e => { setCurrencyPick(e.target.value); setStatus(''); }}>{currencies.map(c => <option key={c} value={c}>{c}</option>)}</select></label>}
@@ -160,24 +165,26 @@ function Results({c, money, today}: {c: PlanComparison; money: (cents: bigint) =
 }
 
 function Chart({c, money, today}: {c: PlanComparison; money: (cents: bigint) => string; today: string}) {
+  const [plot, W] = useChartWidth(340, 220), look = useChartLook();
   const longest = Math.max(c.snowball.balances.length, c.avalanche.balances.length) - 1;
   const span = Math.max(1, Math.min(c.minimums.months ?? longest * 3, longest * 3, 1200)), start = c.avalanche.balances[0]!;
-  const top = Number(start) || 1, x = (m: number) => PAD + (W - 2 * PAD) * Math.min(m, span) / span, y = (v: bigint) => H - PAD - (H - PAD - TOP) * Math.min(Number(v), top) / top;
+  const top = Number(start) || 1, x = (m: number) => PAD + (W - 2 * PAD) * Math.min(m, span) / span, y = (v: bigint) => H - BOTTOM - (H - BOTTOM - TOP) * Math.min(Number(v), top) / top;
   const path = (values: readonly bigint[]) => { const n = Math.min(values.length - 1, span), step = Math.max(1, Math.ceil(n / 240)), pts: string[] = [];
     for (let m = 0; m <= n; m += step) pts.push(`${pts.length ? 'L' : 'M'}${x(m).toFixed(1)} ${y(values[m]!).toFixed(1)}`);
     if (n % step) pts.push(`L${x(n).toFixed(1)} ${y(values[n]!).toFixed(1)}`);
     return pts.join(' '); };
   const end = formatMonth(addMonths(firstPaymentMonth(today), span - 1));
   return <figure className="debt-plan-chart">
-    <svg className="money-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`What you owe over time, from ${money(start)} today. Snowball reaches zero ${c.snowball.months === null ? 'not within 100 years' : `after ${months(c.snowball.months)}`}; avalanche ${c.avalanche.months === null ? 'not within 100 years' : `after ${months(c.avalanche.months)}`}; minimums only ${c.minimums.months === null ? 'not within 100 years' : `after ${months(c.minimums.months)}`}.`}>
-      <line className="money-chart-axis" x1={PAD} x2={W - PAD} y1={H - PAD} y2={H - PAD}/>
+    <div ref={plot}><svg className="money-chart zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`What you owe over time, from ${money(start)} today. Snowball reaches zero ${c.snowball.months === null ? 'not within 100 years' : `after ${months(c.snowball.months)}`}; avalanche ${c.avalanche.months === null ? 'not within 100 years' : `after ${months(c.avalanche.months)}`}; minimums only ${c.minimums.months === null ? 'not within 100 years' : `after ${months(c.minimums.months)}`}.`}>
+      <ChartLookDefs id={look.id} width={W} height={H}/>
+      <line className="money-chart-axis" x1={PAD} x2={W - PAD} y1={H - BOTTOM} y2={H - BOTTOM}/>
       <path className="debt-chart-min" d={path(c.minimums.balances)}/>
-      <path className="money-chart-a" d={path(c.snowball.balances)}/>
-      <path className="money-chart-b" d={path(c.avalanche.balances)}/>
-      <text x={PAD} y={12}>{money(start)}</text>
-      <text x={PAD} y={H - 1} className="debt-chart-tick">Now</text>
-      <text x={W - PAD} y={H - 1} textAnchor="end" className="debt-chart-tick">{end}</text>
-    </svg>
-    <figcaption className="fine money-legend"><span className="money-key money-key-a" aria-hidden="true"/>Snowball <span className="money-key money-key-b" aria-hidden="true"/>Avalanche, dashed <span className="money-key debt-key-min" aria-hidden="true"/>Minimums only, dotted{c.minimums.months === null || c.minimums.months > span ? ' (continues past the chart)' : ''}</figcaption>
+      <path className="money-chart-a zgc-line" d={path(c.snowball.balances)} style={{stroke: look.stroke('a')}} filter={look.glow}/>
+      <path className="money-chart-b zgc-line" d={path(c.avalanche.balances)} style={{stroke: look.stroke('b')}} filter={look.glow}/>
+      <text x={PAD} y={15}>{money(start)}</text>
+      <text x={PAD} y={H - 7} className="debt-chart-tick">Now</text>
+      <text x={W - PAD} y={H - 7} textAnchor="end" className="debt-chart-tick">{end}</text>
+    </svg></div>
+    <figcaption className="fine money-legend zg-legend" data-pillar="wealth"><span className="money-key money-key-a" aria-hidden="true"/>Snowball <span className="money-key money-key-b" aria-hidden="true"/>Avalanche, dashed <span className="money-key debt-key-min" aria-hidden="true"/>Minimums only, dotted{c.minimums.months === null || c.minimums.months > span ? ' (continues past the chart)' : ''}</figcaption>
   </figure>;
 }

@@ -8,3 +8,11 @@
 .on-this-day-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; }
 .on-this-day-actions button { min-height: 44px; }
 .on-this-day-note { margin: 0; }
+/* Session AK (F6): richer card — depth and the nebula's violet along the left edge; each memory brightens on hover
+   (nothing moves, nothing follows the pointer); the summary shows a ring on keyboard focus. */
+:root .on-this-day { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+.on-this-day > summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+.on-this-day-list li { transition: background-color 160ms ease; border-radius: 10px; }
+@media (hover: hover) and (pointer: fine) { .on-this-day-list li:hover { background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .on-this-day-list li { transition: none; } }
+:root[data-app-motion=off] .on-this-day-list li { transition: none; }

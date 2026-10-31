@@ -16,6 +16,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabits} from '../habits/use-habits';
 import {useJournalZone} from '../use-journal-zone';
 import {ShowcaseTag} from '../ui/showcase-tag';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import './first-week.css';
 
 /** The journal zone's calendar day (the device's when none is chosen). */
@@ -60,10 +61,10 @@ export default function FirstWeekCard() {
     {!view ? <p className="fine" role="status">Reading your records…</p>
       : view.phase === 'not-started' ? view.alreadyActive
         ? <p>You already have a week or more of records here, so there is no first week to walk through. You can take this card off Today under Customize Today.</p>
-        : <>
+        : <div className="first-week-start pillar-art-inline"><div>
           <p>Seven small steps, one a day, to find your way around ZIGoals. Do them in any order. Skipping one costs nothing.</p>
           <div className="actions"><button type="button" className="primary" onClick={() => write(s => startFirstWeek(s, today!))}>Start my first week</button></div>
-        </>
+        </div><LazyPillarArt pillar="orbit" size={96}/></div>
       : view.phase === 'hidden' ? <>
         <p>This card is hidden. You can take it off Today under Customize Today.</p>
         <div className="actions"><button type="button" className="secondary" onClick={() => write(showFirstWeek)}>Show it again</button></div>
