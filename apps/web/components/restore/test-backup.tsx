@@ -18,7 +18,7 @@ export default function TestBackup() {
   };
   const failed = report?.parts.filter(p => !p.ok) ?? [];
   return <div className="test-backup">
-    <label className="field" htmlFor={id}><span>Test a backup: choose an Export everything ZIP. Nothing on this device changes.</span><input id={id} type="file" accept=".zip,application/zip" disabled={busy} onChange={e => void test(e.target.files?.[0])}/></label>
+    <label className="field" htmlFor={id}><span>Test a backup: choose a backup file (.zip) made by Export everything. Nothing on this device changes.</span><input id={id} type="file" accept=".zip,application/zip" disabled={busy} onChange={e => void test(e.target.files?.[0])}/></label>
     <div role="status" aria-live="polite">
       {busy && <p>Testing every part in a sandbox…</p>}
       {report && <p><strong>{failed.length ? `${report.ok} of ${report.parts.length} parts would restore.` : `All ${report.parts.length} parts would restore.`}</strong>{report.exportedAt && <> Made {formatDate(report.exportedAt.slice(0, 10))}{report.app ? ` by ZIGoals ${report.app}` : ''}.</>}{report.photos ? ` ${report.photos} photos.` : ''}{report.demo ? ' This is a Showcase (example) backup.' : ''}</p>}
