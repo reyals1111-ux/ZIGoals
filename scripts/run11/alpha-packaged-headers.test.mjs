@@ -147,6 +147,8 @@ test.runIf(enabled)('the packaged Alpha serves the web app manifest from the ass
   // same hash in L3's commit); the packaged asset is still pinned as a whole.
   // Session AK (Part 3, A18; deliberate, as strict): the manifest gained the Today and Log weight shortcuts and its
   // screenshots (install-manifest.spec.ts moved to the same hash in 02ec25f2); the packaged asset is still pinned as a whole.
-  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('97409c12f98e6c7bcbc60cb78a472c6c6d9022154ff9372d7bef721849b33af5');
+  // Session AK X1 (RELEASE_REVIEW R8; deliberate, as strict): the description became consumer words (install-manifest.spec.ts
+  // moved to the same hash and still checks 72ad872's other bytes); the packaged asset is still pinned as a whole.
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('600f548f617f91da6b5aa8baa2e781901ddd41b0c2c79cef4d43e29e4b584e35');
  }finally{await mf.dispose();}
 },60000);

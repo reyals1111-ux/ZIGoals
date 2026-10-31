@@ -26,11 +26,29 @@ async function openLocalSimulation(page) {
 }
 
 /**
+ * Session AK X1 (RELEASE_REVIEW R2–R5; `TIER 3 (verifier)`, behaviour-preserving for the live check): a new device speaks
+ * consumer words until the person chooses the chain, and the local simulation (ZIG) is a choice of that kind. The stage
+ * chooses it as a person does: Settings → Your pages & buttons → Earn on (a device-only switch; nothing leaves the
+ * browser). A build where Earn's switch is locked on (before Session AK X1) is left as it is. Ends back on Today.
+ */
+export async function chooseChainInSettings(page, expect) {
+  await page.goto(new URL('/app/settings', page.url()).href);
+  const earn = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Earn', exact: true});
+  await expect(earn).toBeVisible();
+  // The switch is usable once this device's choices are read; a build that locks it to Wealth shows it on already.
+  await expect.poll(async () => await earn.isChecked() || await earn.isEnabled()).toBe(true);
+  if (!await earn.isChecked()) { await earn.check(); await expect(earn).toBeChecked(); }
+  await page.goto(new URL('/app', page.url()).href);
+  await expect(todayQuickAdd(page)).toBeVisible();
+}
+
+/**
  * Today → Quick add → Goal → the current goal wizard (`UnifiedGoalWizard`, /app/goals/new): the category is a radio
  * inside "Personalize artwork and notes (optional)", the funding source is the "ZIGoals funding / Local simulation"
  * choice on the second step, then two more steps and "Create goal" with the simulation's own confirmation.
  */
 export async function createFictionalGoal(page, expect, {name = GOAL_SENTINELS.name, target = GOAL_SENTINELS.target} = {}) {
+  await chooseChainInSettings(page, expect);
   await todayQuickAdd(page).click();
   await page.getByRole('navigation', {name: 'Quick add actions'}).getByRole('link').filter({hasText: 'Goal'}).click();
   await page.getByText('Personalize artwork and notes (optional)', {exact: true}).click();

@@ -30,10 +30,13 @@ async function pinGoalAndHabit(page,name,path,habit){
  await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('button',{name:`Add ${habit} check-in to Today`,exact:true}).click();
  await navigate(page,'Today');await (await todayCard(page,name)).waitFor();await (await todayCard(page,habit)).waitFor();
 }
+/** Session AK X1 (RELEASE_REVIEW R5): until the chain is chosen the kinds of goal read in a person's words; either name is the same choice. */
+const KIND={Value:'Save an amount',Quantity:'Reach a number of something',Project:'Finish a project'};
+const kind=type=>new RegExp(`^(${type}|${KIND[type]})$`);
 async function create(page,type){
  const name=`Packaged ${type} continuity`;
  await navigate(page,'Today');await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
- await typeGoalName(page,name);await page.getByRole('radio',{name:type,exact:true}).check();
+ await typeGoalName(page,name);await page.getByRole('radio',{name:kind(type)}).check();
  if(type==='Project')await page.getByLabel('Milestones, one per line',{exact:true}).fill('Fictional research review\nFictional delivery review');
  else{await page.getByLabel('Target amount',{exact:true}).fill(type==='Value'?'1000':'10');if(type==='Quantity')await page.getByLabel('Goal asset',{exact:true}).fill('BTC');}
  await page.getByRole('button',{name:'Continue →',exact:true}).click();
