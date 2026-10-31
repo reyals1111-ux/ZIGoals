@@ -1,5 +1,5 @@
 'use client';
-import {useState, type FormEvent} from 'react';
+import {Suspense, lazy, useEffect, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {EXCHANGES, EXCHANGE_NAMES, type ExchangeCall, type ExchangeId} from '../../lib/exchanges/allowlist';
 import {signCall} from '../../lib/exchanges/sign';
@@ -8,6 +8,8 @@ import {forgetExchangeKey, openExchangeKey, sealExchangeKey} from '../../lib/exc
 import {EXCHANGES_RECORD, exchangesSchema, type ExchangesRecord} from '../../lib/exchanges/record';
 import {GUIDES, KEY_LABELS} from '../../lib/exchanges/guides';
 import {formatDateTime, formatExactNumber} from '../../lib/visual-format';
+// Session AK (7.2): "Last synced … · Refresh now" and the automatic read while ZIGoals is open, visible and online, in its own chunk.
+const ExchangeAutoRefresh = lazy(() => import('../wealth/allocation/last-synced').then(m => ({default: m.ExchangeAutoRefresh})));
 
 /**
  * Session AI (J14): exchanges read on this device, read-only. A key is checked on the exchange's own word before it is
@@ -59,16 +61,44 @@ export function ExchangesPanel({showcase}: {showcase: boolean}) {
     try { await forgetExchangeKey(exchange); save(r => { const c = {...r.connections}; delete c[exchange]; return {...r, connections: c}; }); setNote(`${EXCHANGE_NAMES[exchange]} removed: its key is erased from this device.`); }
     catch { setError('The key could not be erased here; clear this site\'s data to remove it.'); } finally { setBusy(false); }
   }
+  // One stable reader per exchange for the automatic refresh (its timer is planned once, not on every render).
+  const latest = useRef(read);
+  useEffect(() => { latest.current = read; });
+  const readers = useMemo(() => Object.fromEntries(EXCHANGES.map(e => [e, () => latest.current(e)])) as Record<ExchangeId, () => Promise<number>>, []);
+  // Session AK Part 3: a refresh asked for while offline is fired again on reconnect (components/notify/notify-sync.tsx).
+  const connectedIds = EXCHANGES.filter(e => record.loaded && record.data.connections[e]).join('|');
+  useEffect(() => {
+    if (showcase) return;
+    const onRefresh = (event: Event) => {
+      const exchange = (event as CustomEvent<unknown>).detail;
+      if (typeof exchange !== 'string' || !connectedIds.split('|').includes(exchange)) return;
+      const e = exchange as ExchangeId;
+      readers[e]().then(n => setNote(`${EXCHANGE_NAMES[e]}: ${n} ${n === 1 ? 'asset' : 'assets'} read.`), () => { /* the connection shows its own error */ });
+    };
+    window.addEventListener('zigoals:exchange-refresh', onRefresh);
+    return () => window.removeEventListener('zigoals:exchange-refresh', onRefresh);
+  }, [showcase, connectedIds, readers]);
+  /** "Read balances": while offline, kept and offered again on reconnect (lib/offline-queue), never read in the background. */
+  async function readNow(e: ExchangeId) {
+    setBusy(true); setError(''); setNote('');
+    try { const n = await read(e); setNote(`${EXCHANGE_NAMES[e]}: ${n} ${n === 1 ? 'asset' : 'assets'} read.`); }
+    catch (cause) {
+      let kept = false;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) { try { kept = await (await import('../../lib/offline-queue/queue')).enqueue('exchange-refresh', e); } catch { kept = false; } }
+      setError(kept ? `You’re offline. ZIGoals will read ${EXCHANGE_NAMES[e]} again when you’re back online.` : cause instanceof Error ? cause.message : 'Not read.');
+    } finally { setBusy(false); }
+  }
   if (!record.loaded) return null;
   const connected = EXCHANGES.filter(e => record.data.connections[e]);
   return <section className="panel exchanges-panel" aria-labelledby="exchanges-title">
     <h3 id="exchanges-title">Exchanges (read-only)</h3>
     {showcase ? <p className="fine">Exchanges are not connected in the Showcase.</p> : <>
       {connected.map(e => { const c = record.data.connections[e]!; return <article key={e} className="exchange-connection" aria-label={EXCHANGE_NAMES[e]}>
-        <p><strong>{EXCHANGE_NAMES[e]}</strong> · read-only{c.read ? ` · read ${formatDateTime(c.read.at)}` : ''}</p>
+        <p><strong>{EXCHANGE_NAMES[e]}</strong> · read-only</p>
+        <Suspense fallback={c.read ? <p className="last-synced fine">Read {formatDateTime(c.read.at)}</p> : null}><ExchangeAutoRefresh label={EXCHANGE_NAMES[e]} lastReadAt={c.read?.at} read={readers[e]} enabled={!showcase}/></Suspense>
         {c.read && <ul>{c.read.balances.map(b => <li key={b.asset}>{formatExactNumber(b.amount)} {b.asset}</li>)}</ul>}
         {c.error && <p role="alert" className="fine">{c.error} The last good read is kept.</p>}
-        <div className="actions"><button type="button" className="secondary" disabled={busy} onClick={() => { setBusy(true); setError(''); read(e).then(n => setNote(`${EXCHANGE_NAMES[e]}: ${n} ${n === 1 ? 'asset' : 'assets'} read.`), cause => setError(cause instanceof Error ? cause.message : 'Not read.')).finally(() => setBusy(false)); }}>Read balances</button>
+        <div className="actions"><button type="button" className="secondary" disabled={busy} onClick={() => void readNow(e)}>Read balances</button>
           <button type="button" className="text-link" disabled={busy} onClick={() => void remove(e)}>Remove exchange</button></div>
       </article>; })}
       {!adding && <div className="actions">{EXCHANGES.filter(e => !record.data.connections[e]).map(e => <button key={e} type="button" className="secondary" onClick={() => { setAdding(e); setError(''); setNote(''); }}>Connect {EXCHANGE_NAMES[e]}</button>)}</div>}
