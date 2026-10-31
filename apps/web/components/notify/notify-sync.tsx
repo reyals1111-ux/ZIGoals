@@ -12,6 +12,8 @@ const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:p
 export const NOTIFY_CHANGE = 'zigoals:notify-change';
 const hereOn = () => { try { return !isShowcase() && readDeviceRecord(getAppStorage(), NOTIFY_PREFS).data.here === true; } catch { return false; } };
 const accountPushOn = () => { try { return readPushRecord(getAppStorage()).data !== null; } catch { return false; } };
+/** ADR-010's account worker is registered (or on its way): never replaced by this build's worker (Q15, Q19). */
+const accountWorker = async () => { try { const reg = await navigator.serviceWorker?.getRegistration('/'); return [reg?.active, reg?.waiting, reg?.installing].some(w => w && new URL(w.scriptURL).pathname === '/push-sw.js'); } catch { return false; } };
 /**
  * Session AK Parts 2–3 (ADR-036 Q3, Q4, A1): renders nothing.
  * - Registers this build's service worker once the page is idle (offline use for everyone), unless the device runs
@@ -34,7 +36,7 @@ export function NotifySync() {
       offer();
       reg.addEventListener('updatefound', () => { const next = reg.installing; next?.addEventListener('statechange', () => { if (next.state === 'installed') offer(); }); });
     };
-    idle(() => { if (active && !accountPushOn()) void import('../../lib/sw/register').then(m => m.registerAppWorker()).then(watch); });
+    idle(() => { if (active && !accountPushOn()) void accountWorker().then(account => account || !active ? null : import('../../lib/sw/register').then(m => m.registerAppWorker())).then(reg => watch(reg ?? null)); });
     const apply = async () => {
       if (!active || !hereOn()) return;
       const [{applyQueuedActions}, {localDate}] = await Promise.all([import('../../lib/notify/actions'), import('../../lib/local-date')]);

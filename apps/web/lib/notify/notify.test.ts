@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, test} from 'vitest';
 import {buildPlan, registrationKey, type PlanInput} from './plan';
 import {emptyNotifyPrefs, notifyPrefsSchema, setType, setTime, typeOn} from './prefs';
 import {zonedInstant} from './zone';
@@ -99,7 +99,6 @@ function swSandbox({snapshot, failDb = false, fetchImpl}: {snapshot?: unknown; f
     crypto: {randomUUID: () => 'x'},
   };
   const context = vm.createContext({self, indexedDB: fakeIdb, caches: {keys: async () => [], open: async () => ({}), delete: async () => true}, fetch: fetchImpl ?? (async () => { throw Error('offline'); }), Request, Response, URL, Date, Promise, setTimeout, clearTimeout, Math, JSON, Number, String, Array, Set, Map, Object, Error, BigInt});
-  (context as unknown as {importScripts: (...p: string[]) => void}).importScripts = () => { vm.runInContext(readFileSync(new URL('../../public/sw-compose.js', import.meta.url), 'utf8'), context); };
   vm.runInContext(readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8'), context);
   const push = async () => { const waits: Promise<unknown>[] = []; handlers.push!({data: null, waitUntil: (p: Promise<unknown>) => waits.push(p)}); await Promise.all(waits); };
   return {handlers, shown, posted, push, compose: (self as unknown as {zigoalsCompose: (s: unknown, now: number) => {body: string; actions: {action: string}[]; data: {url: string}}}).zigoalsCompose};
@@ -141,8 +140,9 @@ describe('the service worker', () => {
   });
   it('a crossed price alert: the same rule as the app, both directions', () => {
     const {handlers} = swSandbox(); void handlers;
-    const sandbox = vm.createContext({BigInt, Array, String}); (sandbox as unknown as {self: object}).self = {};
-    vm.runInContext(readFileSync(new URL('../../public/sw-compose.js', import.meta.url), 'utf8'), sandbox);
+    const sw = swSandbox() as unknown as {compose: unknown}; void sw;
+    const sandbox = vm.createContext({BigInt, Array, String, URL, self: {location: {href: 'https://app.test/sw.js?v=x', origin: 'https://app.test'}, addEventListener() {}, registration: {}, clients: {}}});
+    vm.runInContext(readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8'), sandbox);
     const crossed = (sandbox as unknown as {self: {zigoalsCrossedAlerts: (w: unknown[], q: unknown[]) => {alertId: string}[]}}).self.zigoalsCrossedAlerts;
     const quotes = [{providerAssetId: 'bitcoin', currency: 'EUR', price: '6100000', priceDecimals: 2}];
     expect(crossed([{alertId: 'a', coin: 'bitcoin', currency: 'EUR', direction: 'above', price: '60000'}, {alertId: 'b', coin: 'bitcoin', currency: 'EUR', direction: 'below', price: '60000'}, {alertId: 'c', coin: 'bitcoin', currency: 'USD', direction: 'above', price: '1'}], quotes).map(w => w.alertId)).toEqual(['a']);
@@ -164,4 +164,9 @@ describe('applying a queued Done', () => {
     expect(habitDay(data.habits[0]!, '2026-10-05', '2026-10-05').status).toBe('complete');
     expect(change(data)).toEqual(data);
   });
+});
+
+test('the worker loads no other script: its own CSP (strict-dynamic, Trusted Types) would refuse importScripts', () => {
+  const source = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
+  expect(source).not.toMatch(/importScripts\s*\(/);
 });
