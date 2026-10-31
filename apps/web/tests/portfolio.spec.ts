@@ -1,5 +1,9 @@
 import {expect, test, type Page} from '@playwright/test';
 import {navLink} from './phone-nav';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Portfolio.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session I, Part 11: Portfolio, kept on this device (zigoals:portfolio:v1). Without prices, values stay unknown; it
 // never changes Wealth, Goals or Positions.

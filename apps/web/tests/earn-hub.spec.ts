@@ -1,6 +1,10 @@
 import {expect, test} from '@playwright/test';
 import {VERIFIED_URLS} from '../../../packages/ecosystem-registry/src/verified-links';
 import {earnRoutes, outgoing, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L1): the Earn hub, /app/earn, on a computer and a phone, with the Showcase's records and every live answer

@@ -11,7 +11,8 @@ const goals = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getIt
 async function valueGoal(page: Page, target: string) {
   await page.goto('/app/goals/new');
   await typeGoalName(page, 'Grouped target');
-  await page.getByRole('radio', {name: 'Value', exact: true}).check();
+  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
+  await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   await page.getByLabel('Target amount', {exact: true}).fill(target);
 }
 const preview = (page: Page) => page.getByRole('region', {name: 'Goal preview'}).locator('strong');

@@ -15,6 +15,8 @@ import {updateSettingsGroup} from '../../lib/w-homes-store';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, BUTTON_LABEL, PAGE_LABEL, hrefShown, isShown, phoneTabs, showEverything, startPage, viewOf, visiblePages, withChoice, withStart} from '../../lib/pages/visibility';
 import type {PageId, Pages, VisibilityId} from '../../lib/pages/schema';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {useChainChoice} from '../chain/use-chain-choice';
+import {chainChosenFrom} from '../../lib/chain-choice';
 
 const NOTES: Partial<Record<VisibilityId, string>> = {
   'quick-add': 'In the sidebar, the phone top bar and on Today.',
@@ -32,11 +34,13 @@ const NOTES: Partial<Record<VisibilityId, string>> = {
 export function PagesSettings() {
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
   const showcase = useShowcase(), launcher = useLauncherRecord(), prefs = useDeviceRecord(EARN_PREFS);
-  const governance = earnPrefsOf(prefs.data).governanceShown, prefsUsable = prefs.loaded && !prefs.unreadable;
+  const governance = earnPrefsOf(prefs.data).governanceShown, prefsUsable = prefs.loaded && !prefs.unreadable, chain = useChainChoice();
   const [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [confirming, setConfirming] = useState(false);
   const resetButton = useRef<HTMLButtonElement>(null);
   const ready = settings.loaded && !settings.error;
-  const view = viewOf(ready ? settingsGroupIn(settings.data, 'pages') : undefined, showcase);
+  // Session AK X1 (RELEASE_REVIEW R3): the crypto pages start off until the chain is chosen (lib/chain-choice.ts).
+  const pagesChoice = ready ? settingsGroupIn(settings.data, 'pages') : undefined;
+  const view = viewOf(pagesChoice, showcase, chainChosenFrom({linked: chain.linked, pages: pagesChoice, earn: chain.earn}));
   const save = (change: (pages: Pages) => Pages, done: string) => {
     setMessage(null);
     return updateSettingsGroup('pages', change).then(() => setMessage({text: done}), (error: unknown) => setMessage({text: plainErrorMessage(error, 'Could not save.'), failed: true}));
@@ -47,8 +51,14 @@ export function PagesSettings() {
     try { prefs.update(r => setEarnPref(r, {governanceShown: on})); setMessage({text: on ? 'Governance shows on this device.' : 'Governance is hidden. You can show it again here at any time.'}); }
     catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
   };
+  // Session AK X1: Earn's own switch on this device (`pageShown` in `zigoals:earn-prefs:v1`; absent follows the chain choice).
+  const showEarn = (on: boolean) => {
+    setMessage(null);
+    try { prefs.update(r => setEarnPref(r, {pageShown: on})); setMessage({text: on ? 'Earn shows on this device.' : 'Earn is hidden. You can show it again here at any time.'}); }
+    catch (cause) { setMessage({text: deviceSettingFailureMessage(cause), failed: true}); }
+  };
   const visible = visiblePages(view), start = startPage(view);
-  const nav = NAV_ITEMS.filter(([href]) => hrefShown(view, href, {governance})), {tabs, more} = phoneTabs(nav);
+  const nav = NAV_ITEMS.filter(([href]) => hrefShown(view, href, {governance, earn: chain.earnShown})), {tabs, more} = phoneTabs(nav);
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
   // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
   // Session AH (ST9, B-174, D-217): the sidebar as it really is, with the pages other parts add (the Checklist, Journey).
@@ -68,10 +78,10 @@ export function PagesSettings() {
             </label>
             {id === 'wealth' && <div className="pages-switch-row">
               <label className="pages-switch">
-                <input type="checkbox" role="switch" checked={isShown(view, 'wealth')} disabled aria-describedby="pages-note-earn"/>
+                <input type="checkbox" role="switch" checked={prefsUsable && chain.earnShown} disabled={!prefsUsable || !isShown(view, 'wealth')} aria-describedby="pages-note-earn" onChange={e => showEarn(e.currentTarget.checked)}/>
                 <span>Earn</span>
               </label>
-              <small className="pages-switch-note" id="pages-note-earn">Earn sits in the Wealth group: it shows and hides with Wealth.</small>
+              <small className="pages-switch-note" id="pages-note-earn">On this device. Earn sits in the Wealth group: it shows only while Wealth shows.</small>
             </div>}
             {id === 'chess' && <div className="pages-switch-row">
               <label className="pages-switch">
@@ -113,7 +123,7 @@ export function PagesSettings() {
       {confirming ? <div className="pages-reset-confirm" role="group" aria-labelledby="pages-reset-question">
         <p id="pages-reset-question">Show every page and button again? Your start page stays as it is.</p>
         <div className="actions">
-          <button type="button" className="primary" autoFocus onClick={() => { setConfirming(false); try { prefs.update(r => setEarnPref(r, {governanceShown: true})); } catch { /* this device refused: Governance stays as it was */ } void save(pages => showEverything(pages, new Date().toISOString()), 'Every page and button shows again.').then(() => resetButton.current?.focus()); }}>Show everything</button>
+          <button type="button" className="primary" autoFocus onClick={() => { setConfirming(false); try { prefs.update(r => setEarnPref(r, {governanceShown: true, pageShown: true})); } catch { /* this device refused: Governance stays as it was */ } void save(pages => showEverything(pages, new Date().toISOString()), 'Every page and button shows again.').then(() => resetButton.current?.focus()); }}>Show everything</button>
           <button type="button" className="quiet" onClick={() => { setConfirming(false); requestAnimationFrame(() => resetButton.current?.focus()); }}>Cancel</button>
         </div>
       </div> : <button ref={resetButton} type="button" className="secondary" onClick={() => setConfirming(true)}>Show everything again</button>}

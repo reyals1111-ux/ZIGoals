@@ -1,6 +1,10 @@
 import {expect, test} from '@playwright/test';
 import {verifiedLink} from '../../../packages/ecosystem-registry/src/verified-links';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn's guide.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L1, ADR-028 H5, H34): guide mode. "Open Valdora" opens a new tab exactly at the verified registry URL (an

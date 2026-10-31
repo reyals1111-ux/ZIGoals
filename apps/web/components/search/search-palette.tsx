@@ -3,7 +3,8 @@ import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'r
 import {useRouter} from 'next/navigation';
 import {KIND_LABEL, search, type SearchHit, type SearchItem} from '../../lib/search/engine';
 import {PillarMark, pillarOf, pillarOfHref} from '../pillars';
-import {HELP_ITEMS, PAGES, SETTINGS} from '../../lib/search/static';
+import {CHAIN_SETTINGS, HELP_ITEMS, PAGES, SETTINGS} from '../../lib/search/static';
+import {useChainChoice} from '../chain/use-chain-choice';
 import {SEARCH_RECENT, clearRecent, rememberQuery} from '../../lib/search/recent';
 import {GOAL_LIBRARY} from '../../lib/templates/goal-library';
 import {askZigiWhenShown} from '../zigi-door';
@@ -40,7 +41,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null), returnTo = useRef<Element | null>(null);
   const router = useRouter(), base = useId(), [query, setQuery] = useState(initial), [active, setActive] = useState(0);
   const recent = useDeviceRecord(SEARCH_RECENT);
-  const goals = useUnifiedGoals(), habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), healthGoals = useHealthGoals(), nav = useVisibleNav();
+  const goals = useUnifiedGoals(), habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), healthGoals = useHealthGoals(), nav = useVisibleNav(), chainChosen = useChainChoice().chosen;
 
   useEffect(() => {
     returnTo.current = document.activeElement;
@@ -54,7 +55,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     const shown = new Set<string>(nav.items.map(([href]) => href));
     // A page under a navigation entry the person hid stays out of the results with it; other pages are always found.
     const pageShown = (href: string) => { const root = href.split(/[?#]/)[0]!.split('/').slice(0, 3).join('/'); return !NAV_HREFS.has(root) || shown.has(root) || root === '/app'; };
-    const out: SearchItem[] = [...PAGES.filter(p => pageShown(p.href)), ...nav.items.filter(([href]) => !PAGES.some(p => p.href === href)).map(([href, label]): SearchItem => ({id: `page:${href}`, kind: 'page', title: label, href})), ...SETTINGS, ...HELP_ITEMS];
+    const out: SearchItem[] = [...PAGES.filter(p => pageShown(p.href)), ...nav.items.filter(([href]) => !PAGES.some(p => p.href === href)).map(([href, label]): SearchItem => ({id: `page:${href}`, kind: 'page', title: label, href})), ...SETTINGS.filter(item => chainChosen || !CHAIN_SETTINGS.has(item.id)) /* Session AK X1 (R4) */, ...HELP_ITEMS];
     if (goals.loaded) for (const g of goals.goals) out.push({id: `goal:${g.key}`, kind: 'goal', title: g.name, subtitle: `${g.type} · ${g.status}`, href: g.href});
     if (averages.loaded && !averages.unreadable) for (const g of averages.data.goals) out.push({id: `goal:average:${g.id}`, kind: 'goal', title: g.name, subtitle: `Keep an average · ${g.status}`, href: `/app/goals/average/${g.id}`});
     // Session AH (GO12, B-177): Health goals are found too, and open where they live on Goals.
@@ -67,7 +68,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     if (platform.loaded && !platform.error) for (const p of platform.data.positions) if (!p.archivedAt) out.push({id: `asset:${p.id}`, kind: 'asset', title: p.providerId === 'native-zig' ? `ZIG ${p.sourceType.replaceAll('_', ' ').toLowerCase()}` : p.providerId, subtitle: `${p.asset}${p.assetClass ? ` · ${p.assetClass}` : ''}`, href: `/app/wealth/asset/${encodeURIComponent(p.id)}`, keywords: [p.asset]});
     for (const t of GOAL_LIBRARY) out.push({id: `template:${t.id}`, kind: 'template', title: t.title, subtitle: `Template · ${t.summary}`, href: t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : `/app/goals/new?template=${t.id}`, keywords: t.keywords});
     return out;
-  }, [healthGoals.loaded, healthGoals.unreadable, healthGoals.data, goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items]);
+  }, [healthGoals.loaded, healthGoals.unreadable, healthGoals.data, goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items, chainChosen]);
 
   const trimmed = query.trim(), only = actionsOnly(trimmed), hits = useMemo(() => trimmed && !only ? search(items, trimmed) : [], [items, trimmed, only]);
   // Session AK (F5d): the actions the words name (">" for actions only), before the results when they match as well.

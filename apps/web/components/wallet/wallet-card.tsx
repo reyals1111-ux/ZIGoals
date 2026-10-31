@@ -6,7 +6,12 @@ import {Suspense, lazy, type ReactNode} from 'react';
 import {formatUnits, TESTNET} from '@zigoals/chain-config';
 import {AppIcon} from '../app-icon';
 import {useGoals} from '../goal-provider';
+import {useShowcase} from '../showcase-controls';
+import {initialLedger} from '../../lib/local-ledger';
 import {formatExactNumber} from '../../lib/visual-format';
+
+/** The practice ledger's starting balance (lib/local-ledger.ts), which no person put there. */
+const UNTOUCHED_BALANCE = initialLedger().balance;
 
 /** Session AE (Part 6, ADR-027): the wallet chooser and the display currency load after the page (Today's weight). */
 const WalletCardBody = lazy(() => import('./wallet-card-body'));
@@ -17,12 +22,16 @@ export function WalletCardFrame({pill, value, lines, controls}: {pill: string; v
 }
 /** The app's own wallet as the card has always shown it: the local demo's simulated balance, or Keplr's testnet account. */
 export function useAppWallet(plainWords: boolean) {
-  const legacy = useGoals(), local = legacy.mode === 'local';
-  return {local, balance: legacy.balance, pill: local ? plainWords ? 'Demo records' : 'Local demo' : 'Testnet',
-    zig: <strong className="account-value">{formatExactNumber(formatUnits(legacy.balance, TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong>,
-    line: local ? 'Simulated balance · this browser' : `${legacy.owner.slice(0, 10)}…${legacy.owner.slice(-5)}`,
+  const legacy = useGoals(), local = legacy.mode === 'local', showcase = useShowcase();
+  // Session AK X1 (RELEASE_REVIEW R2): the untouched practice ledger's starting 1,000 ZIG is not the person's money, so
+  // outside the Showcase it shows only once they have practice goals of their own (any other balance, a damaged ledger's 0
+  // included, is shown as it is); the default mode reads "On this device".
+  const practice = !local || showcase || legacy.goals.length > 0 || legacy.balance !== UNTOUCHED_BALANCE;
+  return {local, balance: legacy.balance, pill: local ? plainWords ? 'On this device' : 'Local demo' : 'Testnet',
+    zig: practice ? <strong className="account-value">{formatExactNumber(formatUnits(legacy.balance, TESTNET.nativeAsset.decimals))} <span>ZIG</span></strong> : <strong className="account-value">No balance yet</strong>,
+    line: local ? practice ? 'Simulated balance · this browser' : 'Connect Keplr or link a wallet to see one here.' : `${legacy.owner.slice(0, 10)}…${legacy.owner.slice(-5)}`,
     // Session AH (TR7): why the card shows ZIG only (ADR-027 G16).
-    why: local ? 'Practice money has no market value, so it is never shown in another currency.' : 'Testnet ZIG has no market price, so it is never shown in another currency.'};
+    why: local ? practice ? 'Practice money has no market value, so it is never shown in another currency.' : '' : 'Testnet ZIG has no market price, so it is never shown in another currency.'};
 }
 /** Today's wallet card: the app's wallet in ZIG at first paint; the chooser and the currency switch join it once loaded. */
 export function WalletCard({plainWords}: {plainWords: boolean}) {

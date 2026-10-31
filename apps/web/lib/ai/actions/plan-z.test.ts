@@ -322,13 +322,14 @@ test('set-wrap-up: on with a time, off, a new time; the same state is refused; U
   expect(() => act({kind: 'set-wrap-up'})).toThrow(); expect(() => act({kind: 'set-wrap-up', time: '25:00'})).toThrow();
 });
 test('set-page-visibility and set-start-page: hide and show a page or button, choose the start page; the same state, a hidden start page and the last page are refused; Undo reverses', () => {
+  // Release review R3: the crypto pages start hidden until the chain is chosen, so Activity is the page shown by default here.
   const s = base(), pages = (st: Stores) => viewOf(settingsGroupIn(st.settings, 'pages'));
-  expect(isShown(pages(s), 'markets')).toBe(true);
-  const hide = plan(s, {kind: 'set-page-visibility', page: 'markets', shown: false}); const hidden = applyPlan(hide, s); expect(isShown(pages(hidden), 'markets')).toBe(false);
+  expect(isShown(pages(s), 'activity')).toBe(true);
+  const hide = plan(s, {kind: 'set-page-visibility', page: 'activity', shown: false}); const hidden = applyPlan(hide, s); expect(isShown(pages(hidden), 'activity')).toBe(false);
   expect(hide.card.lines[0]).toContain('nothing is deleted');
-  expect(refused(hidden, {kind: 'set-page-visibility', page: 'markets', shown: false})).toContain('already hidden');
-  expect(refused(hidden, {kind: 'set-start-page', page: 'markets'})).toContain('hidden');
-  const back = {...hidden, ...hide.undo!.write(hidden)} as Stores; expect(isShown(pages(back), 'markets')).toBe(true);
+  expect(refused(hidden, {kind: 'set-page-visibility', page: 'activity', shown: false})).toContain('already hidden');
+  expect(refused(hidden, {kind: 'set-start-page', page: 'activity'})).toContain('hidden');
+  const back = {...hidden, ...hide.undo!.write(hidden)} as Stores; expect(isShown(pages(back), 'activity')).toBe(true);
   const music = isShown(pages(s), 'music'), button = applyPlan(plan(s, {kind: 'set-page-visibility', page: 'music', shown: !music}), s); expect(isShown(pages(button), 'music')).toBe(!music);
   const start = plan(s, {kind: 'set-start-page', page: 'habits'}); const started = applyPlan(start, s); expect(pages(started).start).toBe('habits');
   expect(refused(started, {kind: 'set-start-page', page: 'habits'})).toContain('already');

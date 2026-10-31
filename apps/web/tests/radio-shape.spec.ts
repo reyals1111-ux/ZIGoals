@@ -16,7 +16,8 @@ async function radios(page: Page) {
 }
 test('every visible radio is a circle of 20 to 22 px in the Goal wizard, Settings and Health', async ({page, isMobile}) => {
   await page.goto('/app/goals/new');
-  await page.getByRole('radio', {name: 'Value', exact: true}).check();
+  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
+  await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   const seen: {name: string; width: number; height: number; radius: string}[] = [];
   seen.push(...await radios(page));
   for (const path of ['/app/settings', '/app/health']) { await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible(); seen.push(...await radios(page)); }

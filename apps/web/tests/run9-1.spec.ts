@@ -6,6 +6,10 @@ import {manualSourcePosition} from '../lib/manual-source';
 import {automaticSourcePosition} from '../components/platform/asset-search';
 import {captureValuations} from '../lib/goal-intelligence';
 import {catalog,goal,setup} from './run9-1-fixture';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests goal sources from crypto positions.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 async function state(page:Page):Promise<Platform>{return page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:platform:v1')!));}
 async function addAutomatic(page:Page,category:string,name:string,quantity:string){await page.getByRole('button',{name:'+ Add asset',exact:true}).first().click();const d=page.getByRole('dialog');await d.getByRole('button',{name:category,exact:true}).click();await d.getByRole('searchbox').fill(name);await d.getByRole('list',{name:'Market assets'}).getByRole('button').first().click();await d.locator('input[name="quantity"]').fill(quantity);await d.getByRole('button',{name:'Save asset',exact:true}).click();await expect(d).toHaveCount(0);}
 async function fund(page:Page){await page.goto('/app/goals/tracked/91');await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();const d=page.getByRole('dialog');await d.getByRole('button',{name:'Cash',exact:true}).click();await d.getByLabel('Cash amount',{exact:true}).fill('20000');await d.getByRole('button',{name:'Continue with this asset',exact:true}).click();await d.getByRole('button',{name:'Preview contribution',exact:true}).click();await expect(d).toContainText('18,000 USD stays available');await d.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await expect(d).toHaveCount(0);}

@@ -1,6 +1,10 @@
 import {test,expect} from '@playwright/test';
 import {closeMore,navLink,closeFormSheet,isPhone} from './phone-nav';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests native ZIG staking positions in goals.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 const fixture=()=>({...emptyPlatform(),positions:['a','b'].map((id,i)=>positionSchema.parse({id,providerId:'native-zig',sourceType:'NATIVE_STAKING',network:'zigchain-1',account:'fictional-preview-account',asset:'ZIG',denom:'uzig',decimals:6,quantity:i?'63559957014':'200000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'BONDED',provenance:'Fictional owner-preview fixture; no live chain data',validator:{address:`fictional-validator-${id}`,name:`Example validator ${id.toUpperCase()}`,status:'BONDED',commission:'0.05',votingTokens:'1000000000000'}})),goals:[privateGoalSchema.parse({id:'81',name:'300K GOAL',network:'zigchain-1',type:'QUANTITY',status:'active',asset:'ZIG',denom:'azig',decimals:18,target:'300000000000000000000000',notes:'Fictional preview data',createdAt:new Date().toISOString(),milestones:[]})]});
 test('owner setup: stake allocation, contribution plan and supporting Habit stay private',async({page},info)=>{
  await page.goto('/app/goals/tracked');await page.evaluate(s=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(s)),fixture());await page.reload();

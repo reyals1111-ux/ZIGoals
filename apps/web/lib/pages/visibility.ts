@@ -1,4 +1,5 @@
 import {BUTTON_IDS, PAGE_IDS, type ButtonId, type PageId, type Pages, type PagesView, type VisibilityId} from './schema';
+import {CRYPTO_PAGES} from '../chain-choice';
 
 /**
  * "Your pages & buttons" (Session W Part 2, owner decision W4): which pages and buttons show, and the page ZIGoals opens
@@ -23,15 +24,24 @@ export const AVAILABLE_PAGES: readonly PageId[] = PAGE_IDS; // Session W Part 14
 export const AVAILABLE_BUTTONS: readonly ButtonId[] = BUTTON_IDS; // Session W Part 19: My links exists now; Part 20: the music player.
 /** Hidden until the person shows them (approved default): Chess and the music player. Showcase shows everything. */
 export const DEFAULT_HIDDEN: readonly VisibilityId[] = ['chess', 'music'];
+/**
+ * Session AK X1 (RELEASE_REVIEW R3; owner: "consumer first, chain invisible"): the four crypto pages also start hidden,
+ * as Governance does, until the chain is chosen (lib/chain-choice.ts: the Showcase, a wallet in use or linked, or a crypto
+ * page, Earn or Governance switched on); then they all show by default. A stamped choice wins either way.
+ */
+export const CHAIN_HIDDEN: readonly VisibilityId[] = CRYPTO_PAGES;
+/** A page that is off until the person turns it on (the hidden-page note says so instead of "hidden"). */
+export const offUntilChosen = (id: VisibilityId) => DEFAULT_HIDDEN.includes(id) || CHAIN_HIDDEN.includes(id);
 const ALL_IDS: readonly VisibilityId[] = [...PAGE_IDS, ...BUTTON_IDS];
 
-export const defaultView = (showcase = false): PagesView => ({version: 1, hidden: showcase ? [] : [...DEFAULT_HIDDEN]});
+/** The defaults: Chess and the music player hidden, and the crypto pages until the chain is chosen; the Showcase shows everything. */
+export const defaultView = (showcase = false, chosen = showcase): PagesView => ({version: 1, hidden: showcase ? [] : ALL_IDS.filter(id => DEFAULT_HIDDEN.includes(id) || (!chosen && CHAIN_HIDDEN.includes(id)))});
 /** What an unreadable settings record shows: every page and button (and no start page other than Today). */
 export const everythingView = (): PagesView => ({version: 1, hidden: []});
 
 /** The view a stored choice gives: each switch the person set, else its default; the start page if one was chosen. */
-export function viewOf(pages: Pages | undefined, showcase = false): PagesView {
-  const fallback = new Set(defaultView(showcase).hidden);
+export function viewOf(pages: Pages | undefined, showcase = false, chosen = showcase): PagesView {
+  const fallback = new Set(defaultView(showcase, chosen).hidden);
   const hidden = ALL_IDS.filter(id => (pages?.items[id]?.v ?? (fallback.has(id) ? 'hidden' : 'shown')) === 'hidden');
   const start = pages?.start?.id ?? undefined;
   return start ? {version: 1, hidden, start} : {version: 1, hidden};
@@ -70,10 +80,11 @@ export const FOLLOWS_PAGE: Readonly<Record<string, PageId>> = {'/app/earn': 'wea
  * hidden until the person shows it (new people and the Showcase too): its switch is `governanceShown` in the device-only
  * Earn preferences, never an id in the synced pages format, which builds #37–#47 would refuse. It still follows Staking.
  */
-export type DeviceShown = {governance?: boolean};
+export type DeviceShown = {governance?: boolean; /** Session AK X1: Earn's own switch on this device (lib/chain-choice.ts `earnShown`); false hides it, absent follows Wealth. */ earn?: boolean};
 /** Whether a navigation destination shows: Settings (and every address that is no page, like Help) always does. */
 export function hrefShown(view: PagesView, href: string, device: DeviceShown = {}): boolean {
   if (href === '/app/governance' && device.governance !== true) return false;
+  if (href === '/app/earn' && device.earn === false) return false;
   const id = pageIdForHref(href) ?? FOLLOWS_PAGE[href] ?? null;
   return id === null || (AVAILABLE_PAGES.includes(id) && isShown(view, id));
 }

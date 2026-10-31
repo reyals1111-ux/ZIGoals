@@ -2,6 +2,10 @@ import {expect, test, type Page} from '@playwright/test';
 import {toBech32} from '@cosmjs/encoding';
 import {ME, SIGNER_CALLS, V1, ZIG, fakeChain, fakeKeplr, openStaking, relay, validatorsWire} from './staking-chain';
 import {STAKING_PREFILL_KEY, STAKING_PREFS_KEY} from '../lib/af-signing-keys';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Staking.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF Gate C, the security review's fix round (ADR-028 H133; `TIER 3 (wallet/signing)`):

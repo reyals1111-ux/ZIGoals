@@ -1,6 +1,10 @@
 import {expect, test} from '@playwright/test';
 import {ACADEMY_LESSONS} from '../lib/earn/academy';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the Earn Academy.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF chunk 2 (P1.27): the Earn Academy as a mini path. Eight lessons; pressing a dot opens the lesson and its

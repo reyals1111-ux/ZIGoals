@@ -9,7 +9,11 @@ import {isPhone,navLink,openMore} from './phone-nav';
  */
 // Session AF (crit1, ADR-028 H124; `TIER 3 (public-safety labels)`): the label changed with real-network staking (it was
 // "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA"); every place that asserted it keeps asserting it, word for word.
-export const ALPHA_LABEL='PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN';
+// Session AK X1 (RELEASE_REVIEW R8; owner: "consumer first, chain invisible"; deliberate): "unless you sign" means nothing to a
+// person who never chose the chain, so a new device reads the neutral Alpha line; once the chain is chosen
+// (tests/chain-choice.ts) the label is the public-safety one, word for word. The sentence below is unchanged everywhere.
+export const ALPHA_LABEL='PUBLIC ALPHA';
+export const ALPHA_LABEL_CHOSEN='PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN';
 // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): the sentence changed with native-staking signing (it was
 // "Simulation + wallet connection only. No blockchain transactions or financial signatures.").
 export const ALPHA_SENTENCE='Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.';
@@ -46,14 +50,14 @@ export async function inAboutAlpha(page:Page,check:(about:Locator)=>Promise<void
  * Settings' block (label, sentence, mode). The second half is what the footer's disclaimer line asserted on every page;
  * since Session AC the page ends after the link columns, so the facts are asserted where they now live.
  */
-export async function expectAlphaFacts(page:Page,path=''){
- await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);
+export async function expectAlphaFacts(page:Page,path='',label=ALPHA_LABEL){
+ await expect(alphaNotice(page).locator('strong'),path).toHaveText(label);
  if(!await isPhone(page))await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
  await expect(page.locator('.site-footer .alpha-disclaimer, .site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
  // Session AC (owner item 8): the notice's essentials line is for a page that cannot show (no scripts, a stalled read).
  await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toHaveCount(0);
  await inAboutAlpha(page,async about=>{
-  await expect(about.locator('.network-banner strong'),path).toHaveText(ALPHA_LABEL);
+  await expect(about.locator('.network-banner strong'),path).toHaveText(label);
   await expect(about.locator('.network-banner'),path).toContainText(ALPHA_SENTENCE);
   await expect(about.locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
  });

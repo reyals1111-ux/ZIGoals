@@ -59,13 +59,17 @@ export const SETTINGS: readonly SearchItem[] = [
   {id: 'setting:chess', kind: 'setting', title: 'Chess settings', subtitle: 'Your areas', href: '/app/settings#chess', keywords: ['chess.com', 'lichess', 'username']},
   {id: 'setting:market-data', kind: 'setting', title: 'Market data sources', subtitle: 'Your areas', href: '/app/settings#market-data', keywords: ['prices', 'coingecko', 'quotes']},
   {id: 'setting:switch-import', kind: 'setting', title: 'Switch from another app', subtitle: 'Your areas', href: '/app/settings#switch-import', keywords: ['import', 'csv']},
-  {id: 'setting:account', kind: 'setting', title: 'Account & devices', subtitle: 'Account', href: '/app/settings#account', keywords: ['sign in', 'sync', 'devices', 'email']},
+  // Session AK X1 (RELEASE_REVIEW R4): the Account & devices group itself (its wallet panel shows once the chain is chosen).
+  {id: 'setting:account', kind: 'setting', title: 'Account & devices', subtitle: 'Account', href: '/app/settings#settings-account', keywords: ['sign in', 'sync', 'devices', 'email']},
   {id: 'setting:network', kind: 'setting', title: 'Network', subtitle: 'Account', href: '/app/settings#network', keywords: ['zigchain', 'testnet']},
   {id: 'setting:contract', kind: 'setting', title: 'The financial layer', subtitle: 'Account', href: '/app/settings#contract', keywords: ['contract', 'wallet']},
   {id: 'setting:your-ai', kind: 'setting', title: 'ZIGi, your assistant', subtitle: 'ZIGi', href: '/app/settings#your-ai', keywords: ['ai', 'assistant', 'model', 'voice', 'notes']},
   {id: 'setting:diagnostics', kind: 'setting', title: 'Advanced diagnostics', subtitle: 'Help & diagnostics', href: '/app/settings#diagnostics', keywords: ['debug', 'storage']},
   {id: 'setting:feedback', kind: 'setting', title: 'Send feedback', subtitle: 'Help & diagnostics', href: '/app/settings#send-feedback', keywords: ['report', 'bug', 'contact']},
 ];
+
+/** Session AK X1 (RELEASE_REVIEW R4): Settings entries that exist only once the chain is chosen (lib/chain-choice.ts). */
+export const CHAIN_SETTINGS: ReadonlySet<string> = new Set(['setting:network', 'setting:contract']);
 
 /** [section id, label] as components/help/help-page.tsx's TOPICS. */
 export const HELP_TOPICS: readonly [string, string][] = [

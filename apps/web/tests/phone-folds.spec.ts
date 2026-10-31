@@ -1,4 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests every Today fold, the wallet and Staking included.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session I, Part 9: on a phone, Today and Wealth fold their secondary modules to one row each. Nothing is removed: a
 // row opens its module in place, a #link into it opens it, and desktop shows every module as before.

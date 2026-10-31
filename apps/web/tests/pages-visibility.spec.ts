@@ -2,8 +2,13 @@ import {expect, test, type Page} from '@playwright/test';
 import {presetSettings} from '../lib/dashboard-settings';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES} from '../lib/pages/visibility';
 import {isPhone, mainNav, openMore} from './phone-nav';
+import {chooseChain} from './chain-choice';
 
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
+// Session AK X1 (RELEASE_REVIEW R3): the money tools (Earn, Markets, Staking, Portfolio, Ecosystem) are in the navigation
+// once the chain is chosen; this spec tests every switch with them there, so it chooses the chain first, as a person does
+// (tests/chain-choice.ts). A device that never chose is tested in tests/consumer-first-x1.spec.ts.
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 const SETTINGS = 'zigoals:settings:v1', MIRROR = 'zigoals:pages-view:v1', AT = '2026-10-07T09:00:00.000Z';
 // Session AF (ADR-028 H98): Earn follows Wealth's switch, so it is listed only where Wealth is.
 // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until this device's switch shows it.
@@ -82,10 +87,12 @@ test('every switch sits on its name\'s row, before the name, at its full size', 
   await seed(page, {[SETTINGS]: settingsWith()});
   await page.goto('/app/settings');
   const rows = section(page).locator('label.pages-switch');
-  // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth,
-  // shown and locked to Wealth's state.)
+  // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth.)
   await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2);
-  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeDisabled();
+  // Assertion changed (Session AK X1, RELEASE_REVIEW R3; deliberate): Earn's switch is its own now, on this device
+  // (`pageShown` in zigoals:earn-prefs:v1), so it is on and usable while Wealth shows (it was locked to Wealth's state).
+  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeEnabled();
+  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeChecked();
   const placed = await rows.evaluateAll(labels => labels.map(label => {
     const input = label.querySelector('input')!.getBoundingClientRect(), name = label.querySelector('span')!.getBoundingClientRect();
     return {name: label.textContent, beside: input.right <= name.left && Math.abs(input.top + input.height / 2 - (name.top + name.height / 2)) < 6, size: `${Math.round(input.width)}x${Math.round(input.height)}`};

@@ -1,5 +1,6 @@
 import {expect, test, type Browser, type Page, type TestInfo} from '@playwright/test';
 import {navLink} from './phone-nav';
+import {chooseChain} from './chain-choice';
 
 /**
  * Session Y Part 2 (owner edit 1, ADR-018): no page may render one thing on the server and another in the browser when
@@ -31,6 +32,9 @@ async function visit(browser: Browser, info: TestInfo, timezoneId: string, showc
   }
   // The step where #32's live run once saw #418: Wealth, then Portfolio as a person goes there, through the main
   // navigation (the sidebar on a computer, More on a phone), so the move is the app's own client navigation.
+  // Session AK X1 (RELEASE_REVIEW R3): Portfolio is in the navigation once the chain is chosen, so a new device chooses it
+  // here, as a person does (tests/chain-choice.ts); every page above was opened before that choice.
+  if (!showcase) await chooseChain(page);
   await page.goto('/app/wealth');
   await expect(page.locator('main h1').first()).toBeVisible();
   const portfolio = await navLink(page, 'Portfolio');

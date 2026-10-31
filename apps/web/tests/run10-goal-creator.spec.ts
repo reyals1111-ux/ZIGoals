@@ -1,5 +1,9 @@
 import {test,expect} from '@playwright/test';
 import {typeGoalName} from './goal-name';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests every goal kind, Reward included, and the ZIG-first wizard.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 test('Goal type cards keep shared details and confirm incompatible fields before clearing them',async({page},info)=>{
  await page.goto('/app/goals/new');
  await expect(page.getByRole('radio',{name:'Quantity',exact:true})).toBeChecked();

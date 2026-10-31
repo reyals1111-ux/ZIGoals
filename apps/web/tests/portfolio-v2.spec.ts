@@ -1,4 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Portfolio.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session W Part 15: Portfolio v2 (header, value over time, allocation, the holdings table, transactions, a coin's page,
 // favourites, finding a coin) with MOCK market answers for quotes, insights, details and history; nothing reaches a real

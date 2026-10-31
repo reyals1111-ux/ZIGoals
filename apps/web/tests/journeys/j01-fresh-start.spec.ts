@@ -23,6 +23,9 @@ test('@journey 1 fresh start: welcome → setup with a first goal → first habi
   await page.goto('/app'); await hydrated(page);
   const welcome = page.getByRole('region', {name: 'Set up your first goal and habit in about a minute.'});
   await expect(welcome).toBeVisible();
+  // Session AK X1 (RELEASE_REVIEW R2, R8): a fresh start meets no wallet button and no chain words in the Alpha line.
+  await expect(page.getByRole('button', {name: /Connect Keplr|Demo records/})).toHaveCount(0);
+  await expect(page.getByRole('complementary', {name: 'Alpha notice'}).locator('strong')).toHaveText('PUBLIC ALPHA');
   await welcome.getByRole('link', {name: 'Start setup', exact: true}).click();
   await page.waitForURL('**/app/welcome');
   const flow = page.locator('main');

@@ -1,5 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
-import {ALPHA_LABEL,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,expectAlphaMode,inAboutAlpha,openHabitDetails,openStatusSheet} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_LABEL_CHOSEN,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,expectAlphaMode,inAboutAlpha,openHabitDetails,openStatusSheet} from './ab-shell';
+import {chooseChain} from './chain-choice';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../lib/habits';
 import {scheduleHabitState} from '../lib/habit-actions';
 import {createEmptyHealth, HEALTH_STORAGE_KEY, saveWeight} from '../lib/health';
@@ -61,16 +62,28 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   // Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated in this sheet (nor the top bar); its
   // assertion moved to Today's wallet card below, as strict.
   await expect(sheet).not.toContainText(/demo balance/);
-  await expect(sheet.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
-  await expect(sheet.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
+  // Session AK X1 (RELEASE_REVIEW R2; deliberate): a device that never chose the chain has no wallet buttons in the sheet.
+  await expect(sheet.getByRole('button', {name: 'Connect Keplr', exact: true})).toHaveCount(0);
+  await expect(sheet.getByRole('button', {name: 'On this device', exact: true})).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
   await expect(page.getByRole('button', {name: 'More', exact: true})).toBeFocused();
-  // Moved from the sheet (was: `toContainText(/ZIG demo balance/)`): the amount in ZIG and its simulated kind, on Today's wallet card.
+  // Once the chain is chosen (as a person does, tests/chain-choice.ts) the sheet carries the wallet buttons and the
+  // public-safety label, as before; the default mode's button reads "On this device" (it read "Demo records").
+  await chooseChain(page);
+  await page.goto('/app/goals'); await expect(page.locator('main h1').first()).toBeVisible();
+  const chosenSheet = await openStatusSheet(page);
+  await expect(chosenSheet).toContainText(ALPHA_LABEL_CHOSEN);
+  await expect(chosenSheet.getByRole('button', {name: 'On this device', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  await expect(chosenSheet.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(chosenSheet).toBeHidden();
+  // Moved from the sheet (was: `toContainText(/ZIG demo balance/)`), Today's wallet card. Session AK X1 (R2; deliberate):
+  // the untouched practice ledger's 1,000 ZIG is not the person's money, so outside the Showcase the card shows no figure.
   await page.goto('/app'); await expect(page.locator('main h1').first()).toBeVisible();
   await openFold(page, 'Your wallet');
-  await expect(page.locator('.account-panel .account-value')).toContainText(/\d ZIG/);
-  await expect(page.locator('.account-panel')).toContainText('Simulated balance · this browser');
+  await expect(page.locator('.account-panel .account-value')).toHaveText('No balance yet');
+  await expect(page.locator('.account-panel')).not.toContainText(/1,000|Simulated balance/);
   for (const path of ['/app', '/app/wealth', '/app/staking', '/app/settings']) {
     await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible();
     await expect(alphaNotice(page), path).toBeInViewport();
@@ -80,19 +93,21 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   await expect(notice).toHaveCount(0);
   await page.reload(); await expect(page.locator('main h1').first()).toBeVisible();
   await expect(alphaNotice(page)).toHaveCount(0);
-  await inAboutAlpha(page, about => expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL));
+  await inAboutAlpha(page, about => expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL_CHOSEN));
   // Desktop: the wallet buttons sit in the status row, no sheet.
   await page.setViewportSize({width: 1280, height: 800});
   await page.goto('/app/goals');
   if (!await isPhone(page)) { await expect(page.getByRole('dialog', {name: 'Status'})).toHaveCount(0); await expect(page.locator('.status-row .status-wallet').getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible(); }
 });
 
-test('3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"', async ({page, isMobile}) => {
+test('3. plain words without a wallet: practice money, "On this device", "Give your savings a purpose"', async ({page, isMobile}) => {
   test.skip(isMobile, 'The desktop top bar shows the words in place; the phone shows them in the Status sheet (test 2).');
   await showcase(page);
   await page.goto('/app');
-  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL); // Session AB-Design: the compact notice
-  await expect(page.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Session AB-Design: the compact notice. Session AK X1 (R2, R8): the Showcase has chosen the chain (it shows everything),
+  // so the public-safety label stays; the default mode's button reads "On this device" (it read "Demo records").
+  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL_CHOSEN);
+  await expect(page.getByRole('button', {name: 'On this device', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', {name: 'Local demo', exact: true})).toHaveCount(0);
   await expect(page.locator('.hero-pillars')).toContainText('Give your savings a purpose.');
   await expect(page.locator('.hero-pillars')).not.toContainText('Give your ZIG a purpose.');

@@ -175,6 +175,9 @@ beforeEach(async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   window.localStorage.clear();
   window.sessionStorage.clear();
+  // Session AK X1 (RELEASE_REVIEW R2): the Shell's wallet buttons show once the chain is chosen (lib/chain-choice.ts); these
+  // tests drive Keplr through them, so the device chooses it first, as Settings → Your pages & buttons → Earn does.
+  window.localStorage.setItem("zigoals:earn-prefs:v1", JSON.stringify({ version: 1, pageShown: true }));
   window.keplr = {} as NonNullable<Window["keplr"]>;
   HTMLDialogElement.prototype.showModal = function () {
     this.open = true;
@@ -292,8 +295,8 @@ test("choosing Local demo clears the reconnect hint for later reloads", async ()
   window.sessionStorage.setItem(reconnectHintKey, "true");
   await remount();
 
-  // Session Z-Cloud Part 4.3: before Keplr is connected, the same button reads "Demo records" (plain words).
-  await click("Demo records");
+  // Session Z-Cloud Part 4.3: before Keplr is connected, the same button reads "On this device" (plain words; Session AK X1, R2: it read "Demo records").
+  await click("On this device");
   expect(window.sessionStorage.getItem(reconnectHintKey)).toBeNull();
   await remount();
 

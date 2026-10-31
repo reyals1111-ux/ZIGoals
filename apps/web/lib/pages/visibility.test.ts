@@ -6,22 +6,29 @@ import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, FOLLOWS_PAGE, defaultView, everythin
 const AT = '2026-10-07T10:00:00.000Z', LATER = '2026-10-07T11:00:00.000Z';
 const empty = (): Pages => ({version: 1, items: {}});
 const hide = (...ids: Parameters<typeof withChoice>[1][]) => ids.reduce((p, id) => withChoice(p, id, false, AT), empty());
-const nav = (pages: Pages | undefined, showcase = false, device: DeviceShown = {}) => NAV_ITEMS.filter(([href]) => hrefShown(viewOf(pages, showcase), href, device));
+const nav = (pages: Pages | undefined, showcase = false, device: DeviceShown = {}, chosen = showcase) => NAV_ITEMS.filter(([href]) => hrefShown(viewOf(pages, showcase, chosen), href, device));
+/** Session AK X1 (RELEASE_REVIEW R3): the money tools that wait until the chain is chosen (lib/chain-choice.ts). */
+const CHAIN_HREFS: readonly string[] = ['/app/earn', '/app/markets', '/app/staking', '/app/portfolio', '/app/ecosystem'];
 const labels = (items: readonly (readonly [string, string, ...unknown[]])[]) => items.map(item => item[1]);
 
 describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
   test('nothing chosen: exactly today\'s navigation, Chess, Governance and the music player hidden; Showcase shows every page but Governance', () => {
-    expect(viewOf(undefined)).toEqual({version: 1, hidden: ['chess', 'music']});
+    // Session AK X1 (RELEASE_REVIEW R3, owner: "consumer first, chain invisible"; deliberate): until the chain is chosen the
+    // four crypto pages are hidden as well (and Earn, by its own device rule); once chosen, the defaults are as before.
+    expect(viewOf(undefined)).toEqual({version: 1, hidden: ['markets', 'staking', 'portfolio', 'ecosystem', 'chess', 'music']});
+    expect(viewOf(undefined, false, true)).toEqual({version: 1, hidden: ['chess', 'music']});
     expect(viewOf(undefined, true)).toEqual({version: 1, hidden: []});
     // Session W Part 14: Chess is a page now; hidden by default, so the default navigation is exactly the one before it.
     // Session AG Polish 3 (ADR-032 L19, owner Part 8; deliberate): Governance is hidden too, in the Showcase as well, until
     // this device's switch shows it.
     const everyday = NAV_ITEMS.filter(([href]) => href !== '/app/chess' && href !== '/app/governance');
     expect(everyday).toHaveLength(NAV_ITEMS.length - 2);
-    expect(nav(undefined)).toEqual(everyday);
+    expect(nav(undefined, false, {earn: false})).toEqual(everyday.filter(([href]) => !CHAIN_HREFS.includes(href)));
+    expect(labels(nav(undefined, false, {earn: false}))).toEqual(['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Activity', 'Settings', 'Help']);
+    expect(nav(undefined, false, {}, true)).toEqual(everyday);
     expect(nav(undefined, true)).toEqual(NAV_ITEMS.filter(([href]) => href !== '/app/governance'));
     expect(nav(undefined, true, {governance: true})).toEqual(NAV_ITEMS);
-    expect(nav(undefined, false, {governance: true})).toEqual(NAV_ITEMS.filter(([href]) => href !== '/app/chess'));
+    expect(nav(undefined, false, {governance: true}, true)).toEqual(NAV_ITEMS.filter(([href]) => href !== '/app/chess'));
     expect(groupStarts(NAV_ITEMS, navGroupOf)).toEqual(NAV_GROUP_START);
     const {tabs, more} = phoneTabs(everyday);
     // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More (from the top bar) holds the rest.
@@ -88,7 +95,9 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(FOLLOWS_PAGE).toEqual({'/app/earn': 'wealth', '/app/governance': 'staking'});
     // Session AG Polish 3 (ADR-032 L19, owner Part 8): Governance needs this device's switch on and Staking shown.
     expect(hrefShown(viewOf(hide('staking')), '/app/governance', {governance: true})).toBe(false);
-    expect(hrefShown(viewOf(undefined), '/app/governance', {governance: true})).toBe(true);
+    expect(hrefShown(viewOf(undefined, false, true), '/app/governance', {governance: true})).toBe(true);
+    // Session AK X1: Staking waits for the chain choice, and Governance with it.
+    expect(hrefShown(viewOf(undefined), '/app/governance', {governance: true})).toBe(false);
     expect(hrefShown(viewOf(undefined), '/app/governance')).toBe(false);
     expect(hrefShown(viewOf(undefined, true), '/app/governance', {governance: false})).toBe(false);
     expect(pageIdForHref('/app/governance')).toBeNull();
@@ -97,7 +106,7 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(hrefShown(viewOf(hide('wealth')), '/app/earn')).toBe(false);
     expect(labels(nav(hide('wealth')))).not.toContain('Earn');
     expect(labels(nav(hide('markets', 'staking', 'portfolio')))).toContain('Earn');
-    expect(hrefShown(viewOf(hide('wealth')), '/app/markets')).toBe(true);
+    expect(hrefShown(viewOf(hide('wealth'), false, true), '/app/markets')).toBe(true);
   });
   test('Settings and every address that is no page always show; Chess shows once switched on (Part 14)', () => {
     const view = viewOf(hide(...AVAILABLE_PAGES));

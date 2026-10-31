@@ -2,6 +2,10 @@ import { test, expect } from "@playwright/test";
 import {expectAlphaMode} from "./ab-shell";
 import { installRun7Demo } from "./fixtures/run7-demo";
 import { openTodayWidgets, walletArea } from "./phone-nav";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the wallet buttons.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 test.use({ timezoneId: "Europe/Brussels" });
 test("V2.1 artwork, summary-first composition and stable decorative identities", async ({ page }, info) => {

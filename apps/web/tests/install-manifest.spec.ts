@@ -51,7 +51,9 @@ test('the manifest describes the installed ZIGoals app', async ({request}) => {
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(await response.json()).toEqual({
     id: '/app', name: 'ZIGoals', short_name: 'ZIGoals',
-    description: 'Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.',
+    // Session AK X1 (RELEASE_REVIEW R8, TIER 3 (PWA/manifest), deliberate): consumer words for the install sheet and search;
+    // the chain is no longer the first thing a new person reads. The identity fields are unchanged (the next test).
+    description: 'Goals, habits, health and wealth in one private app. Your records stay on your device.',
     start_url: '/app', scope: '/', display: 'standalone', background_color: '#020918', theme_color: '#020918', icons: ICONS,
     shortcuts: SHORTCUTS,
     // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): a GET share target; files and images are not accepted.
@@ -70,10 +72,17 @@ test('the static manifest keeps 72ad872\'s bytes first, at the same address, and
   const response = await request.get('/manifest.webmanifest');
   expect(response.status()).toBe(200);
   const body = await response.body(), text = body.toString('utf8'), prefix = text.slice(0, text.indexOf(',"shortcuts":'));
-  expect(createHash('sha256').update(`${prefix}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
+  // Session AK X1 (RELEASE_REVIEW R8): the description is the one field of 72ad872's that changed, to consumer words; with
+  // 72ad872's own description put back in its place, every other byte it served (id, name, start page, scope, display,
+  // colours, icons) still hashes to the pin, so saved Home Screen apps keep their identity.
+  const NEW_DESCRIPTION = '"description":"Goals, habits, health and wealth in one private app. Your records stay on your device."';
+  expect(prefix).toContain(NEW_DESCRIPTION);
+  const prefix72ad872 = prefix.replace(NEW_DESCRIPTION, '"description":"Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha."');
+  expect(createHash('sha256').update(`${prefix72ad872}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
   // Session AF (L3): the whole file re-pinned after the Checklist shortcut was appended (72ad872's prefix is unchanged).
   // Session AK Part 3: re-pinned after two shortcuts and the screenshots were appended (the prefix is unchanged).
-  expect(createHash('sha256').update(body).digest('hex')).toBe('97409c12f98e6c7bcbc60cb78a472c6c6d9022154ff9372d7bef721849b33af5');
+  // Session AK X1: re-pinned after the description changed (R8).
+  expect(createHash('sha256').update(body).digest('hex')).toBe('600f548f617f91da6b5aa8baa2e781901ddd41b0c2c79cef4d43e29e4b584e35');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');

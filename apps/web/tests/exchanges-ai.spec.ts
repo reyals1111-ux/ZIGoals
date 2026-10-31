@@ -1,6 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {PORTFOLIO_KEY} from '../lib/portfolio/schema';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests exchange imports.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AI (J14): read-only exchanges, with ZIGoals' relay answered by fixtures (never a real exchange or key). A key is

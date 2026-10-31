@@ -1,5 +1,9 @@
 import {expect,test,type Locator} from '@playwright/test';
 import {typeGoalName} from './goal-name';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the local ZIG simulation funding choice.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /** Tap where the device is touch-first, click otherwise: both must select a tile. */
 async function choose(radio:Locator,touch:boolean){if(touch)await radio.locator('xpath=ancestor::label[1]').tap();else await radio.locator('xpath=ancestor::label[1]').click();await expect(radio).toBeChecked();}

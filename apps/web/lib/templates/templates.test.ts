@@ -42,7 +42,8 @@ describe('pillars → pages, Today and starters (Session W Part 3)', () => {
   test('no pillar: nothing is written and Today stays as it is', () => {
     expect(pagesForPillars([], AT)).toBeNull();
     expect(presetForPillars([])).toBeNull();
-    expect(pagesShownFor([])).toEqual(['today', 'goals', 'habits', 'health', 'wealth', 'markets', 'staking', 'portfolio', 'ecosystem', 'activity']);
+    // Session AK X1 (RELEASE_REVIEW R3; deliberate): the crypto pages wait until the chain is chosen (lib/chain-choice.ts).
+    expect(pagesShownFor([])).toEqual(['today', 'goals', 'habits', 'health', 'wealth', 'activity']);
     expect(starterHabits([]).map(t => t.group)).toEqual(['fitness', 'health', 'learning', 'mind', 'sleep', 'money', 'home']);
   });
   test('Habits and Health & food: the money pages hide, Today starts with Habits + Health, the choice is stamped and valid', () => {
@@ -50,15 +51,17 @@ describe('pillars → pages, Today and starters (Session W Part 3)', () => {
     expect(pagesSchema.parse(pages)).toEqual(pages);
     expect(viewOf(pages).hidden).toEqual(['goals', 'wealth', 'markets', 'staking', 'portfolio', 'ecosystem', 'chess', 'music', 'wealth-shortcut']);
     expect(Object.values(pages.items).every(choice => choice!.at === AT)).toBe(true);
-    // Only what differs from the defaults is written (Chess and the music player are hidden by default anyway).
-    expect(Object.keys(pages.items).sort()).toEqual(['ecosystem', 'goals', 'markets', 'portfolio', 'staking', 'wealth', 'wealth-shortcut']);
+    // Only what differs from the defaults is written (Chess, the music player and, since Session AK X1, the crypto pages are
+    // hidden by default anyway, so no choice about the chain is stamped).
+    expect(Object.keys(pages.items).sort()).toEqual(['goals', 'wealth', 'wealth-shortcut']);
     expect(presetForPillars(['habits', 'health-food'])).toBe('habits-health');
     expect(pagesShownFor(['habits', 'health-food'])).toEqual(['today', 'habits', 'health', 'activity']);
   });
   test('every pillar: everything shows, Chess and the music player included; Today is Balanced', () => {
     const pages = pagesForPillars([...PILLARS], AT)!;
     expect(viewOf(pages).hidden).toEqual([]);
-    expect(pages.items).toEqual({chess: {v: 'shown', at: AT}, music: {v: 'shown', at: AT}});
+    // Session AK X1: "Goals & money" switches the crypto pages on, which is choosing the chain (lib/chain-choice.ts).
+    expect(pages.items).toEqual({chess: {v: 'shown', at: AT}, music: {v: 'shown', at: AT}, markets: {v: 'shown', at: AT}, staking: {v: 'shown', at: AT}, portfolio: {v: 'shown', at: AT}, ecosystem: {v: 'shown', at: AT}});
     expect(presetForPillars([...PILLARS])).toBe('balanced');
   });
   test('a re-run changes only what differs from the current choice, and returns null when nothing would change', () => {

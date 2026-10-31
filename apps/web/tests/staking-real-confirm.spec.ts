@@ -1,5 +1,9 @@
 import {expect, test} from '@playwright/test';
 import {ME, SIGNER_CALLS, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Staking.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (ADR-028 H46; L2 design §4): the network in big plain words; practice drawn apart (dashed amber ring) from

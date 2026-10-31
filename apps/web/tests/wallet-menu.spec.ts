@@ -2,6 +2,10 @@ import {expect, test, type Page} from '@playwright/test';
 import {toBech32} from '@cosmjs/encoding';
 import {expectAlphaMode, openStatusSheet} from './ab-shell';
 import {isPhone, openFold} from './phone-nav';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the wallet buttons and menu.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AE (Part 6, ADR-027; `TIER 3 (wallet)`): "Connect Keplr ▾". Injected test doubles only (not real extensions):
@@ -70,7 +74,8 @@ test('computers: the ▾ menu shows the choices, reads only addresses, offers of
   const row = page.locator('.status-row .status-wallet');
   // The main buttons keep their names and flow; the ▾ is a separate 44 px menu button.
   await expect(row.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
-  await expect(row.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Session AK X1 (RELEASE_REVIEW R2): the default mode's button reads "On this device" (it read "Demo records").
+  await expect(row.getByRole('button', {name: 'On this device', exact: true})).toHaveAttribute('aria-pressed', 'true');
   const trigger = row.getByRole('button', {name: 'More wallets', exact: true});
   await expect(trigger).toHaveAttribute('aria-haspopup', 'menu'); await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   const size = (await trigger.boundingBox())!; expect(size.width).toBeGreaterThanOrEqual(44); expect(size.height).toBeGreaterThanOrEqual(44);
@@ -135,7 +140,7 @@ test('computers: Keplr stays the main flow; Disconnect returns to the local demo
   await menu.getByRole('menuitem', {name: 'Disconnect', exact: true}).click();
   await expect(menu).toBeHidden(); await expect(row.getByRole('button', {name: 'More wallets', exact: true})).toBeFocused();
   await expect(row.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
-  await expect(row.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  await expect(row.getByRole('button', {name: 'On this device', exact: true})).toHaveAttribute('aria-pressed', 'true');
   expect(await page.evaluate(key => sessionStorage.getItem(key), HINT_KEY)).toBeNull();
   await expect.poll(() => calls).toEqual(['keplr.experimentalSuggestChain', 'keplr.enable', 'keplr.getKey', 'keplr.disable']);
   await expectAlphaMode(page, 'LOCAL SIMULATION');
@@ -152,7 +157,7 @@ test('phones: the same choices as 44 px rows in the Status & wallet sheet; Bitco
   for (const control of await choices.locator('button, a').all()) { const box = (await control.boundingBox())!; expect(box.height).toBeGreaterThanOrEqual(44); }
   // The main buttons keep their own names in the sheet (no row repeats them).
   await expect(sheet.getByRole('button', {name: 'Connect Keplr'})).toHaveCount(1);
-  await expect(sheet.getByRole('button', {name: 'Demo records'})).toHaveCount(1);
+  await expect(sheet.getByRole('button', {name: 'On this device'})).toHaveCount(1);
   // Bitcoin: a bad checksum is refused (both kinds); bech32, bech32m and base58check are accepted; no wallet is asked.
   const watch = async (address: string) => {
     if (!await choices.getByLabel('Bitcoin address', {exact: true}).isVisible()) await choices.getByRole('button', {name: 'Watch a Bitcoin address', exact: true}).click();
@@ -190,9 +195,12 @@ test('Today\'s wallet card: ZIG only, with why other currencies are not shown (n
   await openFold(page, 'Your wallet');
   const card = page.locator('.account-panel');
   await expect(card.getByLabel('Wallet shown on this card')).toBeVisible();
-  await expect(card.locator('.account-value')).toHaveText('1,000 ZIG');
-  await expect(card).toContainText('Simulated balance · this browser');
-  await expect(card).toContainText('Practice money has no market value, so it is never shown in another currency.');
+  // Assertion changed (Session AK X1, RELEASE_REVIEW R2; deliberate): the untouched practice ledger's 1,000 ZIG is not the
+  // person's money, so outside the Showcase the app's own wallet shows no figure until they have a practice goal (the
+  // Showcase test below keeps its 1,000 ZIG and its line). Still no money figure and no currency switch anywhere.
+  await expect(card.locator('.account-value')).toHaveText('No balance yet');
+  await expect(card).toContainText('Connect Keplr or link a wallet to see one here.');
+  await expect(card).not.toContainText(/1,000|Simulated balance/);
   await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
   for (const c of ['USD', 'EUR', 'BTC']) await expect(card.getByRole('button', {name: c, exact: true})).toHaveCount(0);
   await expect(card).not.toContainText(/unavailable|\$|€/);
@@ -209,7 +217,7 @@ test('Today\'s wallet card: ZIG only, with why other currencies are not shown (n
   await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
   expect((await stored(page))!.selected).toBe('w1');
   await card.getByLabel('Wallet shown on this card').selectOption('app');
-  await expect(card.locator('.account-value')).toHaveText('1,000 ZIG');
+  await expect(card.locator('.account-value')).toHaveText('No balance yet'); // Session AK X1 (R2), as above
   expect(calls).toEqual([]); // the card asks no wallet for anything
 });
 

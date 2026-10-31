@@ -1,6 +1,10 @@
 import {expect, test} from '@playwright/test';
 import {VERIFIED_URLS, verifiedLink} from '../../../packages/ecosystem-registry/src/verified-links';
 import {earnRoutes, live, outgoing, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF chunk 2 (amendment 3, H84, H88, H97, P1.12–P1.23): every way to earn, each its own section with the same

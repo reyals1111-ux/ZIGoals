@@ -1,6 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
 import {TxBody, TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {ME, SIGNER_CALLS, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests an attestation signed with Keplr.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 D4, H48): practice badges — opt-in, off by default, ZIGChain Testnet only. A 1 azig

@@ -2,6 +2,10 @@ import {expect, test} from '@playwright/test';
 import {AI_SETTINGS_KEY} from '../lib/ai/settings';
 import {earnRoutes} from './earn-fixtures';
 import {BASE, MORNING, panel, seed, server} from './zigi-af';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn's guide.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L1c, ledger P1.19; ADR-028 H5, H34): guide mode's ZIGi helper. "Ask ZIGi about this" in the guide panel

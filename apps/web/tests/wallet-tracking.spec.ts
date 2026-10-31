@@ -1,6 +1,10 @@
 import {expect, test, type Page, type Request} from '@playwright/test';
 import {toBech32} from '@cosmjs/encoding';
 import {openStatusSheet} from './ab-shell';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests linked wallets.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L2b, Part 3, ADR-028 H16, H40, H87; `TIER 3 (wallet)` + `TIER 3 (CSP)`): real read-only connections and

@@ -1,4 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Markets.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session W Part 16: Markets as a table (the shared market table, change and sparkline of Portfolio v2), with MOCK
 // market answers. Cards stay the default; only the table asks for coins' details (1h/7d change, market cap).

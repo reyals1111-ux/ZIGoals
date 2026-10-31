@@ -59,6 +59,7 @@ import {isShown} from '../../lib/pages/visibility';
 import {LoadBoundary} from '../load-boundary';
 import {everyHalfMinute} from '../half-minute';
 import {TodayEarnCard, useTodayEarnCard} from '../earn/today-earn-card';
+import {useChainChoice} from '../chain/use-chain-choice';
 import {TodayStoriesCard, useTodayStoriesCard} from '../stories/today-stories-card';
 import {TodayTimelineCard} from '../timeline/today-timeline-card';
 import {TodayUniverseCard} from '../universe/today-universe-card';
@@ -120,7 +121,8 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const guideNote = useMemo(() => guideOn ? guideWeekSummary({...window, habits, health, platform, financial, review: review.data, now}) : undefined, [guideOn, window, habits, health, platform, financial, review.data, now]);
   // Session AF (L1, P1.30; ADR-028 H104): the newcomer's "Learn to stake, earn and swap" card is a For you card, added
   // only while it shows (no position yet, not dismissed), so on a phone it folds behind the one open card like the others.
-  const earnCard = useTodayEarnCard();
+  // Session AK X1 (RELEASE_REVIEW R2): "Learn to stake, earn and swap" waits until the chain is chosen (lib/chain-choice.ts).
+  const earnCard = useTodayEarnCard(), chainChosen = useChainChoice().chosen;
   // Session AF (L5b, H104's rule for Today on a phone): the Day Timeline and My Universe are For you cards, and Stories' door
   // joins only while the week's story is ready and unopened; on a phone they wait behind "Show more" like every For you card.
   const storiesCard = useTodayStoriesCard({habits, health, platform, today});
@@ -129,7 +131,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
   if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <LoadBoundary quiet><Suspense fallback={null}><WhatsNewCard onDismiss={dismissNew} /></Suspense></LoadBoundary>});
   if (review.loaded && !review.unreadable) { const state = reviewOpen; if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
-  if (earnCard.state === 'shown') cards.push({id: 'earn-start', priority: 4.5, node: <TodayEarnCard />});
+  if (earnCard.state === 'shown' && chainChosen) cards.push({id: 'earn-start', priority: 4.5, node: <TodayEarnCard />});
   cards.push({id: 'timeline', priority: 3.5, node: <TodayTimelineCard />});
   if (storiesCard.state === 'shown') cards.push({id: 'stories', priority: 4.6, node: <TodayStoriesCard loggedDays={storiesCard.loggedDays} />});
   cards.push({id: 'universe', priority: 6.5, node: <TodayUniverseCard />});

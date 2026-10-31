@@ -11,7 +11,11 @@ import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseDa
 import {addLocalDays} from '../../local-date';
 import {closeGoal, deletePrivateGoal, platformSchema, privateGoalSchema, type Platform, type PrivateGoal} from '../../positions';
 import {reopenGoal} from '../../plan-revisions';
-import {BUTTON_LABEL, PAGE_LABEL, isShown, viewOf, visiblePages, withChoice, withStart} from '../../pages/visibility';
+import {BUTTON_LABEL, PAGE_LABEL, isShown, viewOf as viewOfPages, visiblePages, withChoice, withStart} from '../../pages/visibility';
+import {chainChosenFrom} from '../../chain-choice';
+import type {Pages} from '../../pages/schema';
+/** Release review R3: the pages as the person sees them, with the crypto pages shown only once the chain is chosen in the pages record. */
+const viewOf = (pages: Pages | undefined) => viewOfPages(pages, false, chainChosenFrom({linked: false, pages}));
 import {PAGE_IDS, emptyPages, type PageId} from '../../pages/schema';
 import {DEBT_KINDS} from '../../accounts/schema';
 import {ZIGI_KEY} from '../store/keys';

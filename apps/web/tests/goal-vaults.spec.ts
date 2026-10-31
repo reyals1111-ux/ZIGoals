@@ -1,6 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
 import {toBech32} from '@cosmjs/encoding';
 import {emptyPlatform, privateGoalSchema} from '../lib/positions';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests goal vaults on ZIGChain.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L2b, Part 6, ADR-028 H8, H11, H17, H44; P6.2–P6.4): Goal Vaults inside a Goal's detail. A fictional linked

@@ -1,12 +1,19 @@
 import { test, expect } from "@playwright/test";
 import { openFilm } from "./ab-shell";
-import { expectAlphaFacts } from "./ab-shell";
+import { ALPHA_LABEL_CHOSEN, expectAlphaFacts } from "./ab-shell";
 import { walletArea } from "./phone-nav";
 import {openFold} from "./phone-nav";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the wallet buttons on Today.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 test("dashboard destinations, safety and layout work at desktop and 320px", async ({ page }, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
+  // Session AK X1 (RELEASE_REVIEW R14): a brand-new device's Today shows the welcome and one empty card per area; a person who
+  // said "Not now" to the welcome (its device-only seen flag) sees the rest, the destination invitation included.
+  await page.addInitScript(() => localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})));
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const viewport of [{ width: 1440, height: 1050 }, { width: 320, height: 800 }]) {
     await page.setViewportSize(viewport);
@@ -35,7 +42,8 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await expect(page).toHaveURL(/\/app\/goals\/new$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     // Session AC: the notice and Settings' facts block (in the app, then back), after this page's own steps.
-    await expectAlphaFacts(page);
+    // Session AK X1 (R8): this device chose the chain, so the label is the public-safety one.
+    await expectAlphaFacts(page, '', ALPHA_LABEL_CHOSEN);
   }
   expect(errors).toEqual([]);
 });

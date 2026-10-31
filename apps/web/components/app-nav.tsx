@@ -8,8 +8,7 @@ import { AppIcon } from "./app-icon";
 import { entranceAllowed } from "./use-entrance";
 import { usePagesView } from "./pages/use-pages-view";
 import { groupStarts, hrefShown } from "../lib/pages/visibility";
-import { EARN_PREFS, earnPrefsOf } from "../lib/earn/records";
-import { useDeviceRecord } from "./ai/use-device-record";
+import { useChainChoice } from "./chain/use-chain-choice";
 
 /**
  * The single source of navigation order and grouping, for the desktop sidebar, the tablet header and the phone More sheet
@@ -52,9 +51,11 @@ export const navGroupOf = (href: string) => (NAV_GROUPS.findIndex(group => group
  * group's first visible one; with nothing hidden this is exactly NAV_ITEMS and NAV_GROUP_START.
  */
 export function useVisibleNav() {
-  const view = usePagesView(), extras = useNavExtras(), governance = earnPrefsOf(useDeviceRecord(EARN_PREFS).data).governanceShown;
+  const view = usePagesView(), extras = useNavExtras(), chain = useChainChoice(), governance = chain.earn.governanceShown === true;
+  // Session AK X1 (RELEASE_REVIEW R3): Earn shows with Wealth once the chain is chosen, or by its own switch (lib/chain-choice.ts).
+  const earn = chain.earnShown;
   // Session AA-Cloud: entries another lane registers (components/nav-extras.ts) sit before Settings, in its group.
-  const shown = NAV_ITEMS.filter(([href]) => hrefShown(view, href, { governance })) as readonly (readonly [string, string, string])[];
+  const shown = NAV_ITEMS.filter(([href]) => hrefShown(view, href, { governance, earn })) as readonly (readonly [string, string, string])[];
   const at = shown.findIndex(([href]) => href === '/app/settings');
   const items = (extras.length ? [...shown.slice(0, at < 0 ? shown.length : at), ...extras.filter(([href]) => !shown.some(([h]) => h === href)), ...shown.slice(at < 0 ? shown.length : at)] : shown) as typeof NAV_ITEMS;
   return { items, starts: groupStarts(items, navGroupOf), view };

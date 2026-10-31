@@ -89,7 +89,8 @@ test('accounts: a currency or a balance that does not read marks its own field a
 
 test('goal wizard: a missing name, then a target that does not read, each mark their field and take the focus', async ({page}) => {
   await page.goto('/app/goals/new');
-  await page.getByRole('radio', {name: 'Value', exact: true}).check();
+  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
+  await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   const name = page.getByLabel('Goal name', {exact: true}), target = page.getByLabel('Target amount', {exact: true});
   await page.getByRole('button', {name: 'Continue →'}).click();
   await invalidWithMessage(name, page, /^Give your Goal a name\.$/);

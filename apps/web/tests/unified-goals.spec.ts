@@ -3,6 +3,10 @@ import {typeGoalName} from './goal-name';
 import {navLink} from './phone-nav';
 import {applyLocal,initialLedger} from '../lib/local-ledger';
 import {emptyPlatform,positionSchema,privateGoalSchema} from '../lib/positions';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests goals funded from native ZIG stake and Quantity goals.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
 const fixture=()=>({...emptyPlatform(),positions:['a','b','c'].map((id,i)=>positionSchema.parse({id,providerId:'native-zig',sourceType:'NATIVE_STAKING',network:'zigchain-1',account:'fictional-preview-account',asset:'ZIG',denom:'uzig',decimals:6,quantity:['200000000000','63559957014','264000000'][i],verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'BONDED',provenance:'Fictional preview fixture',validator:{address:`fictional-validator-${id}`,name:`Example validator ${id.toUpperCase()}`,status:'BONDED',commission:'0.05',votingTokens:'1000000000000'}})),goals:['81','82','83'].map((id,i)=>privateGoalSchema.parse({id,name:['300K ZIG Goal','Small start','Reached destination'][i],type:'QUANTITY',status:'completed',asset:'ZIG',denom:'azig',decimals:18,target:i===2?'1000000000000000000':'300000000000000000000000',notes:'Fictional preview',createdAt:new Date().toISOString(),milestones:[]})),allocations:[{goalId:'81',positionId:'a',quantity:'200000000000'},{goalId:'81',positionId:'b',quantity:'63559957014'},{goalId:'82',positionId:'c',quantity:'263000000'},{goalId:'83',positionId:'c',quantity:'1000000'}]});
 // Chain RPC by hostname or pathname, or the Positions API. Query strings (e.g. Next's ?_rsc=) are ignored.

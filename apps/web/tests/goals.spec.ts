@@ -3,6 +3,10 @@ import {typeGoalName} from './goal-name';
 import {expectAlphaMode} from "./ab-shell";
 import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests local ZIG simulation goals and the wallet buttons.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 const ledgerKey = "zigoals:local-ledger:v1";
 const recoveryPlan = {
@@ -230,6 +234,9 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
 }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  // Session AK X1 (RELEASE_REVIEW R14): a brand-new device's Today shows the welcome and one empty card per area; a person who
+  // said "Not now" to the welcome (its device-only seen flag) sees the rest, the destination invitation included.
+  await page.addInitScript(() => localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})));
   await page.goto("/app");
   await expect(
     page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth" }),
@@ -332,7 +339,8 @@ test("missing wallet is explicit and local mode remains available", async ({
   await expect(
     page.getByRole("alert").filter({ hasText: "Install the Keplr" }),
   ).toBeVisible();
-  // Session Z-Cloud Part 4.3: without a connected wallet the demo button says "Demo records".
-  await (await walletArea(page)).getByRole("button", { name: "Demo records" }).click();
+  // Session Z-Cloud Part 4.3: without a connected wallet the demo button says plain words; Session AK X1 (RELEASE_REVIEW
+  // R2): "On this device" (it said "Demo records", though no demo was opened).
+  await (await walletArea(page)).getByRole("button", { name: "On this device" }).click();
   await expectAlphaMode(page, "LOCAL SIMULATION");
 });

@@ -209,7 +209,8 @@ test('J055: a Goal created offline is saved, and the wizard says so instead of l
   await page.context().setOffline(true);
   await expect(page.getByRole('alert').filter({hasText: 'You’re offline.'})).toBeVisible();
   await typeGoalName(page, 'Fictional offline plan');
-  await page.getByRole('radio', {name: 'Value', exact: true}).check();
+  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
+  await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   await page.getByLabel('Target amount', {exact: true}).fill('640');
   await page.getByRole('radio', {name: /^USD · /}).check();
   await page.getByRole('button', {name: 'Create goal', exact: true}).click();

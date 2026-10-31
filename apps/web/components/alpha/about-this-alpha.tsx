@@ -25,7 +25,8 @@ export function AboutThisAlpha() {
     </p>
     <div className="about-alpha-status">{showcase ? <p>{SHOWCASE_FOOTER}</p> : <WorkspaceStatus/>}</div>
     <p className="about-alpha-build">Build environment <span className="about-alpha-env">{APP_ENVIRONMENT}</span></p>
-    {/* Session AF (L2b; the WalletConnect licence's distribution notice, docs/dependencies/WALLETCONNECT.md). */}
-    <p className="about-alpha-notices fine">Portions © 2025 Reown, Inc. All Rights Reserved. <a className="text-link" href="/licenses/walletconnect.txt">WalletConnect notices</a></p>
+    {/* Session AF (L2b; the WalletConnect licence's distribution notice, docs/dependencies/WALLETCONNECT.md). Session AK X1
+        (RELEASE_REVIEW R4): third-party notices sit behind "Licences", word for word. */}
+    <details className="about-alpha-licences"><summary>Licences</summary><p className="about-alpha-notices fine">Portions © 2025 Reown, Inc. All Rights Reserved. <a className="text-link" href="/licenses/walletconnect.txt">WalletConnect notices</a></p></details>
   </div>;
 }

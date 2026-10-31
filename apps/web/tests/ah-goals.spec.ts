@@ -3,6 +3,10 @@ import {typeGoalName} from './goal-name';
 import {freshDevice, hydrated, offlineApi} from './ah-helpers';
 import {PLATFORM_KEY} from '../lib/positions';
 import {HABITS_KEY} from '../lib/habits';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Quantity and Value goals by their names.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session AH Part 8 (GO1, GO2, GO3): Goals on a new device. Fictional data only.
 test.beforeEach(async ({page}) => { await offlineApi(page); await freshDevice(page); });

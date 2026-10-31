@@ -48,6 +48,7 @@ import { AfChecklistSection } from "../../../components/settings/af-checklist-se
 import { AfEarnSection } from "../../../components/settings/af-earn-section";
 import { AfSigningSection } from "../../../components/settings/af-signing-section";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
+import { useChainChoice } from "../../../components/chain/use-chain-choice";
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -84,6 +85,8 @@ function SettingsSectionsNav() {
 }
 export default function Settings() {
   const s = useGoals();
+  // Session AK X1 (RELEASE_REVIEW R4): wallet, network and contract only once the chain is chosen (lib/chain-choice.ts).
+  const chain = useChainChoice().chosen;
   const [backup, setBackup] = useState("");
   const [legacyPlans, setLegacyPlans] = useState(false);
   useEffect(() => { try { setLegacyPlans(s.loaded && !!s.owner && Object.keys(loadMetadata(getAppStorage(), s.chain, s.owner).goals ?? {}).length > 0); } catch { setLegacyPlans(false); } }, [s.loaded, s.owner, s.chain]);
@@ -110,13 +113,13 @@ export default function Settings() {
           <p className="eyebrow page-eyebrow"><NebulaFlow identity="settings-eyebrow">Keep your plans with you</NebulaFlow></p>
           <h1><NebulaFlow identity="settings-title">Your data. Your control.</NebulaFlow></h1>
           <p className="page-lede">
-            Goal plans stay on this device. Your wallet controls onchain funds.
+            {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Everything you add stays on this device."}
           </p>
           <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help: install on iPhone, keep your data safe, send feedback →</Link></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
-      <PhoneSettingsList/>
+      <PhoneSettingsList chain={chain}/>
       <KeepSettingsJump/>
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
@@ -161,7 +164,7 @@ export default function Settings() {
               Export Goal Data
             </button>
           </section>}
-          <section className="panel">
+          {(chain || legacyPlans) && <section className="panel">
             <h2>Import Goal Data</h2>
             <p>
               Imports must match the current network and wallet. Matching goal IDs
@@ -199,15 +202,16 @@ export default function Settings() {
             >
               Import backup
             </button>
-          </section>
+          </section>}
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
         <PagesSettings/>
         <AfChecklistSection/>
-        <AfEarnSection/>
-        <AfSigningSection/>
+        {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
+        {chain && <AfEarnSection/>}
+        {chain && <AfSigningSection/>}
         <AfExtrasSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
@@ -226,16 +230,20 @@ export default function Settings() {
         <PushRemindersPanel/>
         {/* Session AA-Cloud: a named place for Session AA-Local's reminders plan link. */}
         <Slot place="settings:reminders"/>
-        <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div><Link className="text-link" href="/app/markets">Explore market references →</Link></section>
+        <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div>{chain && <Link className="text-link" href="/app/markets">Explore market references →</Link>}</section>
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">
         <VaultSyncControls/>
         <DeviceLockSettings/>
+        {/* Session AK X1 (RELEASE_REVIEW R4): the wallet, network and contract panels as one advanced group, once the chain is chosen. */}
+        {chain && <section className="settings-wallet-network" id="wallet-network" aria-labelledby="wallet-network-title">
+        <h2 className="settings-group-title" id="wallet-network-title">Wallet &amp; network (advanced)</h2>
         <div className="settings-overview">
           <section className="panel" id="account"><p className="eyebrow">ACCOUNT</p><h2>Your space.</h2><p>{s.mode === "local" ? "Local Demo · no account needed" : "Keplr · explicitly connected for this session"}</p><code>{shortAccount(s.owner)}</code><p className="fine">Habits and Health belong to this browser, independently of the active wallet. Switching wallets does not hide or move them.</p></section>
           <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain networks.</h2>{/* Session AH (DE1, ST1, AF4; the owner's 18 Oct decision): practice on zig-test-2, real on zigchain-1 after a one-time confirm, signed in Keplr. */}<p>Goals and the wallet control above: the practice network, zig-test-2 · ZIG (18 decimals), no real value. <WhatsThis term="practice-network"/></p><p>Staking: the practice network, or the real network (zigchain-1, real ZIG) after a one-time confirmation. You sign every step in Keplr.</p><p>Wealth, Earn and Staking read the real network&rsquo;s public figures, read-only.</p><span className="badge">Practice network · real staking opt-in</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
           <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Contract execution is disabled in the public Alpha.</p></section>
         </div>
+        </section>}
       </SettingsGroup>
       <SettingsGroup id="settings-zigi" title="ZIGi">
         <LoadBoundary label="ZIGi’s settings"><AiSettingsSection/></LoadBoundary>
@@ -260,14 +268,14 @@ export default function Settings() {
         <section className="panel" id="about-this-alpha" aria-labelledby="about-this-alpha-title">
           <h2 id="about-this-alpha-title">About this alpha</h2>
           <dl className="metrics">
-            <div>
+            {chain && <><div>
               <dt>Selected environment</dt>
               <dd>{s.chain}</dd>
             </div>
             <div>
               <dt>Wallet / demo identity</dt>
               <dd>{shortAccount(s.owner)}</dd>
-            </div>
+            </div></>}
             <div>
               <dt>Goal metadata</dt>
               <dd>Device-local · kept in this browser</dd>
@@ -277,13 +285,16 @@ export default function Settings() {
               <dd>Idle: nothing is invested, and no outside service is switched on.</dd>
             </div>
           </dl>
-          <p>
+          {chain ? <p>
             Funding Wealth assumes 0% future investment return. Scenario
             projections are illustrative. Practice money (testnet ZIG) has no
             monetary value; ZIG on the real network is real money. This alpha is
             unaudited: staking and votes sign in your own wallet, on the practice
             or the real network as you choose, and nothing else moves.
-          </p>
+          </p> : <p>
+            Funding Wealth assumes 0% future investment return. Scenario
+            projections are illustrative. This alpha is unaudited.
+          </p>}
           {/* Session AC (owner finding 3): the facts the footer used to carry, live, with the build environment. */}
           <AboutThisAlpha />
         </section>

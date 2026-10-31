@@ -3,6 +3,10 @@ import {seed} from './coherence-fixture';
 import {safeScreenshot} from './safe-screenshot';
 import {typeGoalName} from './goal-name';
 import {createHabit,emptyHabitData,logHabitCount} from '../lib/habits';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests native ZIG stake allocated to goals.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 test.beforeEach(async({page})=>{await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:[]}}));});
 async function shot(page:Page,name:string){if(process.env.COHERENCE_CAPTURE==='1')await safeScreenshot(page,{path:`../../docs/verification/run8-1-coherence/screenshots/${name}.png`,fullPage:true,animations:'disabled'});}
 test('release, reallocate, pin, lock and delete preserve wealth and Habit history',async({page})=>{

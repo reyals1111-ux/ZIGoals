@@ -8,7 +8,8 @@ import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
 import { Fragment, Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { setJournalTimeZone } from "../lib/journal-zone";
-import { setSyncedPages } from "../lib/pages/view-store";
+import { refreshPagesChain, setSyncedPages } from "../lib/pages/view-store";
+import { useChainChoice } from "./chain/use-chain-choice";
 import { homeHref, isShown, pageIdForPath } from "../lib/pages/visibility";
 import { settingsGroupIn } from "../lib/vault/w-homes";
 import { usePagesView } from "./pages/use-pages-view";
@@ -106,6 +107,10 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   // every page. A bare /app may move to the person's start page before Today renders (use-start-page.ts).
   const pagesState=preferences.loaded?(preferences.error?"unreadable":"ready"):"pending",pagesGroup=pagesState==="ready"?settingsGroupIn(preferences.data,"pages"):undefined;
   useLayoutEffect(()=>{setSyncedPages(pagesState==="ready"?{state:"ready",pages:pagesGroup}:{state:pagesState});},[pagesState,pagesGroup]);
+  // Session AK X1 (RELEASE_REVIEW R2, R3, R8): whether this person chose the chain (lib/chain-choice.ts). The pages store
+  // hears of a wallet in use in this tab, a newly linked wallet and the Earn switches here (the crypto pages' defaults).
+  const chain=useChainChoice();
+  useLayoutEffect(()=>{refreshPagesChain(chain.wallet);},[chain.wallet,chain.linkedWallets,chain.earn.pageShown,chain.earn.governanceShown,showcase]);
   const pagesView=usePagesView(),startHold=useStartPage(pagesState,pagesView),pathname=usePathname();
   const hiddenPage=pagesState==="ready"?pageIdForPath(pathname):null,showQuickAdd=isShown(pagesView,"quick-add");
   const dialog = useRef<HTMLDialogElement>(null);
@@ -119,7 +124,9 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   useEffect(() => { const open = () => setStatusOpen(true); window.addEventListener(PHONE_STATUS_EVENT, open); return () => window.removeEventListener(PHONE_STATUS_EVENT, open); }, []);
   // Session AF (crit1, ADR-028 H124; `TIER 3 (public-safety labels)`): "practice money (no real value)" stopped being true
   // when native staking began to sign on the real network too; the label says what holds on every network.
-  const networkLabel = plain ? "PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
+  // Session AK X1 (RELEASE_REVIEW R8): "unless you sign" means nothing to a person who never chose the chain; the neutral
+  // Alpha line until then (the sentence after it, which the owner's hosted check pins, is unchanged).
+  const networkLabel = plain ? chain.chosen ? "PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN" : "PUBLIC ALPHA" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
   // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): native staking signs in the person's own wallet on both networks.
   const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.";
   const modeText = s.mode === "local"
@@ -133,7 +140,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
             disabled={s.busy}
             aria-pressed={s.mode === "local"}
           >
-            {plain ? "Demo records" : "Local demo"}
+            {/* Session AK X1 (RELEASE_REVIEW R2): the default mode is what it is, records on this device (no demo was opened). */}
+            {plain ? "On this device" : "Local demo"}
           </button>
           <button
             className="secondary wallet-connect"
@@ -189,7 +197,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
       <div className="app-content">
       {/* Session AB-Design (owner request 8, ADR-024 D7): pages start with their header. One compact first-visit notice replaces the Alpha box, the Showcase bar, the storage line and the mode strip; the same facts stay in the footer's disclaimer line, the Showcase chip stays in the status row, and the phone's Status & wallet sheet (More) keeps every notice in full. */}
       {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"} stalled={slowRead&&settingsPending}/>}
-      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
+      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} showcase={showcase} wallet={chain.chosen}>{chain.chosen&&walletButtons}</PhoneStatusSheet></Suspense>}
       {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
         <h2>Your private data is taking longer than usual to open.</h2>
         <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
@@ -204,7 +212,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <div className="status-row">
         <ShowcaseChip/>
         {/* Session AE (Part 6, ADR-027): the ▾ opens the other wallet choices (read-only links, Disconnect); its menu is a lazy chunk. */}
-        {banners&&<div className="wallet status-wallet">{walletButtons}<WalletMoreButton disabled={showcase}/></div>}
+        {/* Session AK X1 (RELEASE_REVIEW R2): the wallet buttons wait until the chain is chosen (lib/chain-choice.ts). */}
+        {banners&&chain.chosen&&<div className="wallet status-wallet">{walletButtons}<WalletMoreButton disabled={showcase}/></div>}
         <div className="page-tools-slot" id={PAGE_TOOLS_SLOT}/>
         <GamifyButton/>
         <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>

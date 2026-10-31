@@ -40,27 +40,28 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
   ] },
   { title: "Account & devices", rows: [
     ["Account & sync", "Email sign-in, encrypted vault, devices", "encrypted-sync"],
-    ["Wallet account", "Local Demo or Keplr", "account"],
-    ["Testnet network", "Chain and wallet connection", "network"],
-    ["Contract status", "Deployment status", "contract"],
+    // Session AK X1 (RELEASE_REVIEW R4): the wallet, network and contract panels, one row, once the chain is chosen.
+    ["Wallet & network (advanced)", "Wallet account, networks and contract status", "wallet-network"],
   ] },
   { title: "ZIGi", rows: [
     ["ZIGi · Your Personal AI Companion", "Your own AI, page by page", "your-ai"],
   ] },
   { title: "Help & diagnostics", rows: [
-    ["Diagnostics & support", "Connection checks for this alpha", "diagnostics"],
+    ["Diagnostics & support", "Checks to share if something goes wrong", "diagnostics"],
     ["Send feedback", "Email us, with the details you choose", "send-feedback"],
   ] },
 ];
 
-export function PhoneSettingsList() {
+/** Rows shown only once the chain is chosen (lib/chain-choice.ts). */
+const CHAIN_ROWS = new Set(["wallet-network"]);
+export function PhoneSettingsList({ chain = true }: { chain?: boolean }) {
   const show = usePhoneChrome();
   if (!show) return null;
   return <nav className="phone-settings-list" aria-label="Settings sections">
     {GROUPS.map(group => <section key={group.title} aria-label={group.title}>
       <h2>{group.title}</h2>
       <ul>
-        {group.rows.map(([label, note, target]) => {
+        {group.rows.filter(([, , target]) => chain || !CHAIN_ROWS.has(target)).map(([label, note, target]) => {
           const content = <><span className="phone-settings-copy"><strong>{label}</strong><small>{note}</small></span><span className="phone-settings-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span></>;
           // Section rows jump within the page; the welcome row opens its own page (phones only, by the owner's choice).
           return <li key={`${target}:${label}`}>{target.startsWith("/") ? <Link href={target} aria-label={label}>{content}</Link> : <a href={`#${target}`} aria-label={label}>{content}</a>}</li>;

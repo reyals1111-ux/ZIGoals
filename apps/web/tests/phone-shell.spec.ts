@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import {closeMore,isPhone,mainNav,navLink,openMore} from './phone-nav';
-import {ALPHA_LABEL,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openStatusSheet} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_LABEL_CHOSEN,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openStatusSheet} from './ab-shell';
+import {chooseChain} from './chain-choice';
 
 // Session E, Part 2: the phone shell. Phone sizes are set explicitly so both projects run them (the desktop project with a
 // fine pointer, the mobile project with a coarse one); the landscape case needs the coarse pointer.
@@ -118,16 +119,24 @@ test('More → Status & wallet opens the Status sheet: every notice in full, the
  await expect(sheet).toContainText(ALPHA_LABEL);
  await expect(sheet).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
  await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet');
- await expect(sheet.getByRole('button',{name:'Demo records',exact:true})).toBeVisible();await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toBeVisible();
+ // Session AK X1 (RELEASE_REVIEW R2; deliberate): a device that never chose the chain has no wallet buttons in the sheet.
+ await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toHaveCount(0);await expect(sheet.getByRole('button',{name:'On this device',exact:true})).toHaveCount(0);
  for(const button of await sheet.getByRole('button').all()){const b=(await button.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
  // Gate C (persona round): the storage line the page shortens ("This device o…") is in the sheet in full.
  await expect(sheet.locator('.phone-status-storage')).toContainText('This device only · account sync is off');
  await sheet.getByRole('button',{name:'Close Status',exact:true}).click();
  await expect(sheet).toBeHidden();await expect(page.getByRole('button',{name:'More',exact:true})).toBeFocused();
+ // Once the chain is chosen (as a person does, tests/chain-choice.ts) the sheet carries the wallet buttons, 44 px each; the
+ // default mode's button reads "On this device" (it read "Demo records") and the label is the public-safety one.
+ await chooseChain(page);await page.goto('/app/habits');await expect(page.locator('main h1')).toBeVisible();
+ await openStatusSheet(page);await expect(sheet).toContainText(ALPHA_LABEL_CHOSEN);
+ await expect(sheet.getByRole('button',{name:'On this device',exact:true})).toBeVisible();await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toBeVisible();
+ for(const button of await sheet.getByRole('button').all()){const b=(await button.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
+ await sheet.getByRole('button',{name:'Close Status',exact:true}).click();await expect(sheet).toBeHidden();
  // At 320 px the wallet buttons stack, so no button's words are cut ("Connect Kep").
  await page.setViewportSize({width:320,height:640});
  await openStatusSheet(page);await expect(sheet).toBeVisible();
- for(const name of ['Demo records','Connect Keplr']){const button=sheet.getByRole('button',{name,exact:true});await expect(button).toBeVisible();expect(await button.evaluate(e=>[...e.querySelectorAll('*'),e].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).overflow==='visible')),name).toBe(true);}
+ for(const name of ['On this device','Connect Keplr']){const button=sheet.getByRole('button',{name,exact:true});await expect(button).toBeVisible();expect(await button.evaluate(e=>[...e.querySelectorAll('*'),e].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).overflow==='visible')),name).toBe(true);}
 });
 
 test('without JavaScript a phone still shows the tab bar, the top bar and the honesty labels',async({browser})=>{

@@ -57,17 +57,24 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.webmanifest",
     robots: { index: false, follow: false, nocache: true },
     openGraph: {
-      title: "ZIGoals Alpha",
-      description: "Local first. Staking signs in your own wallet; nothing else moves, and ZIGoals never holds keys.",
+      title: RELEASE_NAME,
+      description: APP_DESCRIPTION,
       ...(origin ? { images: [{ url: "/social-card.png", width: 1200, height: 630 }] } : {}),
     },
     // Session X Part 12 (WCAG 2.4.2): every page names itself ("Goals · ZIGoals Alpha"); a page without its own title
     // keeps this default.
-    title: { default: "ZIGoals Alpha — Your goals. Onchain.", template: "%s · ZIGoals Alpha" },
-    description:
-      "Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.",
+    title: { default: RELEASE_NAME, template: `%s · ${RELEASE_NAME}` },
+    description: APP_DESCRIPTION,
   };
 }
+/**
+ * Session AK X1 (RELEASE_REVIEW R8; owner: "consumer first, chain invisible"): the release name and the app's description
+ * in one place, for every tab title, the share card and search; public/manifest.webmanifest carries the same description
+ * (a static file, kept in step by tests/install-manifest.spec.ts). The release is still the Alpha ("Premium · free during
+ * the Alpha" stays as the owner decided).
+ */
+const RELEASE_NAME = "ZIGoals Alpha";
+const APP_DESCRIPTION = "Goals, habits, health and wealth in one private app. Your records stay on your device.";
 export default async function RootLayout({
   children,
 }: {

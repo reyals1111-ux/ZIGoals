@@ -7,6 +7,7 @@ import {addWater} from '../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../lib/positions';
 import {localDate} from '../lib/local-date';
+import {chooseChain} from './chain-choice';
 
 // Session X P2.1: what the fresh-eyes persona round (45 sessions, eight personas; docs/verification/x-cloud/PERSONAS_X.md)
 // found in the app, kept fixed. Fictional records; every /api request is answered by a fixture.
@@ -33,13 +34,16 @@ test('Complete, then Undo: today is Due again, not Failed, on Habits and on Toda
 
 test('Connect Keplr without the extension: the Local demo and its balance stay; only the reason is shown', async ({page, isMobile}) => {
   test.skip(isMobile, 'The wallet buttons sit in the desktop top bar.');
+  // Session AK X1 (RELEASE_REVIEW R2): the wallet buttons show once the chain is chosen; this test chooses it as a person does.
+  await chooseChain(page);
   await page.goto('/app');
   await expectAlphaMode(page, 'LOCAL SIMULATION');
   await page.getByRole('button', {name: 'Connect Keplr', exact: true}).click();
   await expect(page.getByRole('alert').filter({hasText: 'Install the Keplr'})).toBeVisible();
   await expectAlphaMode(page, 'LOCAL SIMULATION');
-  // Session Z-Cloud Part 4.3: without a connected wallet the button says "Demo records".
-  await expect(page.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Session Z-Cloud Part 4.3: without a connected wallet the button says plain words; Session AK X1 (RELEASE_REVIEW R2): "On
+  // this device" (it said "Demo records", though no demo was opened).
+  await expect(page.getByRole('button', {name: 'On this device', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('the Habits + Health layout names both areas under Today\'s title', async ({page}) => {

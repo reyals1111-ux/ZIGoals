@@ -99,6 +99,14 @@ test('@journey 7 wallet: read-only WalletConnect linking, then Keplr Mobile pair
   await offlineApis(page);
   await seedRecords(page, {});
 
+  // Session AK X1 (RELEASE_REVIEW R2–R5): a new device meets no wallet until the person chooses the chain; this journey is
+  // about wallets, so the person first switches a money tool on, in Settings → Your pages & buttons (as a person does).
+  await page.goto('/app/settings'); await hydrated(page);
+  const stakingSwitch = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Staking', exact: true});
+  await expect(stakingSwitch).not.toBeChecked();
+  await stakingSwitch.check();
+  await expect(stakingSwitch).toBeChecked();
+
   // 1. Read-only linking: a fictional wallet approves with a ZIGChain and an Ethereum address.
   const relay = await walletConnectRelay(page, [`cosmos:zigchain-1:${ZIG}`, `eip155:1:${EVM}`], 'Fictional Wallet');
   await page.goto('/app'); await hydrated(page);

@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { navLink } from "./phone-nav";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Ecosystem.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 test("ecosystem research is readable without connecting a wallet", async ({ page }, testInfo) => {
   const errors: string[] = [];

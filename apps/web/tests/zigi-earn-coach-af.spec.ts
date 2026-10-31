@@ -3,6 +3,10 @@ import {STAKING_PREFILL_KEY} from '../lib/af-signing-keys';
 import {earnRoutes} from './earn-fixtures';
 import {SIGNER_CALLS, fakeKeplr, relay} from './staking-chain';
 import {block, lastLocal, MORNING, openChat, panel, say, seed, server, stored} from './zigi-af';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests ZIGi's Earn coach.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L4, P8.5; ADR-028 D7, H47, H69): the Earn coach through the real app on a production build. A figure is

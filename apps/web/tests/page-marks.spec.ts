@@ -1,6 +1,10 @@
 import {expect,test,type Page} from '@playwright/test';
 import {goalsPositionsLink} from './ab-shell';
 import {isPhone,openMore} from './phone-nav';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the full navigation, money tools included.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session I, Part 2: the sidebar page marks, the navigation groups and the Staking rename.

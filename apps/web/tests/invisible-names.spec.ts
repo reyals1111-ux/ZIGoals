@@ -26,7 +26,8 @@ test("a habit titled only with zero-width characters is refused, and nothing is 
 test("a Goal named only with zero-width characters is refused, and nothing is saved", async ({ page }) => {
   await page.goto("/app/goals/new");
   await typeGoalName(page, INVISIBLE);
-  await page.getByRole("radio", { name: "Value", exact: true }).check();
+  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
+  await page.getByRole("radio", { name: "Save an amount", exact: true }).check();
   await page.getByLabel("Target amount", { exact: true }).fill("1000");
   await page.getByRole("button", { name: "Create goal", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Give your Goal a name with at least one visible character." })).toBeVisible();
