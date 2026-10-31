@@ -14,7 +14,8 @@ const QrCode = lazy(() => import('../qr/qr-code'));
  * ways: a QR code to scan with a wallet on another device (shown first on a computer), each wallet app's own link (shown
  * first on a phone), and the link to copy. Each wallet is listed only for what it links (A7). Once the wallet approves,
  * each address the session holds is linked read-only. Nothing is asked of the wallet beyond the session, nothing is
- * signed here, and nothing is stored but the linked addresses. If WalletConnect will not start (the owner's allowed
+ * signed here, and nothing is stored but the linked addresses. In staking mode Keplr Mobile's row says it asks for an
+ * approval of each staking action the person reviews (security review L2); the review sheet is where that happens. If WalletConnect will not start (the owner's allowed
  * domains, A9), it says phone wallets are being switched on.
  */
 export default function WalletConnectPanel({onDone, staking = false}: {onDone: (message: string) => void; staking?: boolean}) {
@@ -24,7 +25,7 @@ export default function WalletConnectPanel({onDone, staking = false}: {onDone: (
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    let alive = true;
+    let alive = true, shown = false; // security review I1: whether the link was shown, read here, not from a stale render
     void (async () => {
       try {
         // Session AK (AFL9): a staking pairing also asks Keplr Mobile for the account read and one signing method, handed
@@ -32,7 +33,7 @@ export default function WalletConnectPanel({onDone, staking = false}: {onDone: (
         const stakingMethods = staking ? (await import('../../lib/staking/execute')).WC_STAKING_METHODS : undefined;
         const pairing = await startWalletConnect({projectId: PUBLIC_INTEGRATIONS.reownProjectId, origin: window.location.origin, ...(stakingMethods ? {stakingMethods} : {})});
         if (!alive) return;
-        setUri(pairing.uri); setStatus(staking ? 'Open the link in Keplr Mobile and approve. ZIGoals asks for your ZIGChain account and, later, your approval of each staking action you review here.' : phone ? 'Open the link in your wallet app, then approve there. ZIGoals asks only for your addresses.' : 'Scan the code with your phone’s wallet, then approve there. ZIGoals asks only for your addresses.');
+        shown = true; setUri(pairing.uri); setStatus(staking ? 'Open the link in Keplr Mobile and approve. ZIGoals asks for your ZIGChain account and, later, your approval of each staking action you review here.' : phone ? 'Open the link in your wallet app, then approve there. ZIGoals asks only for your addresses.' : 'Scan the code with your phone’s wallet, then approve there. ZIGoals asks only for your addresses.');
         const {accounts, wallet} = await pairing.approval;
         let count = 0;
         for (const a of accounts) {
@@ -42,7 +43,7 @@ export default function WalletConnectPanel({onDone, staking = false}: {onDone: (
         const zig = accounts.some(a => a.chainId === 'cosmos:zigchain-1');
         if (alive) onDone(staking ? (zig ? `${wallet} is ready: review a staking action here and press Sign, then approve it in ${wallet}. Its ZIGChain address is linked read-only.` : `${wallet} did not offer ZIGChain over WalletConnect, so it cannot stake from here. Open ZIGoals in Keplr’s own browser (above) to stake.`) : count ? `${wallet}: ${count} ${count === 1 ? 'address' : 'addresses'} linked, read-only (${accounts.map(a => shortAddress(a.address)).join(', ')}).` : 'The wallet shared no address ZIGoals reads, so nothing was linked.');
       } catch (error) {
-        if (alive) setStatus(error instanceof WalletConnectUnavailable ? error.message : uri ? 'WalletConnect did not connect (it was refused, closed or timed out), so nothing was linked.' : PHONE_WALLETS_SWITCHING_ON);
+        if (alive) setStatus(error instanceof WalletConnectUnavailable ? error.message : shown ? 'WalletConnect did not connect (it was refused, closed or timed out), so nothing was linked.' : PHONE_WALLETS_SWITCHING_ON);
       }
     })();
     return () => { alive = false; };
@@ -53,7 +54,7 @@ export default function WalletConnectPanel({onDone, staking = false}: {onDone: (
     <p className="wallet-choices-note" role="status">{status}</p>
     {!phone && qr}
     {uri && <ul aria-label="Open the pairing link in a wallet app">
-      {links.map(link => <li key={link.key}><a className="wallet-row" href={link.href} rel="noopener noreferrer"><span className="wallet-row-text"><span className="wallet-row-label">{link.label}</span><span className="wallet-row-detail">{link.detail} · read-only</span></span><span className="wallet-row-external" aria-hidden="true">↗</span></a></li>)}
+      {links.map(link => <li key={link.key}><a className="wallet-row" href={link.href} rel="noopener noreferrer"><span className="wallet-row-text"><span className="wallet-row-label">{link.label}</span><span className="wallet-row-detail">{link.detail} · {staking && link.key === 'wc-keplr' ? 'asks you to approve each staking action you review' : 'read-only'}</span></span><span className="wallet-row-external" aria-hidden="true">↗</span></a></li>)}
       <li><button type="button" className="wallet-row" onClick={() => { void navigator.clipboard?.writeText(uri).then(() => setStatus('Link copied. Paste it in your wallet app’s WalletConnect screen.'), () => setStatus('Copying was refused; select the link below instead.')); }}><span className="wallet-row-text"><span className="wallet-row-label">Copy the WalletConnect link</span><span className="wallet-row-detail">For OKX Wallet or another WalletConnect wallet</span></span></button></li>
     </ul>}
     {phone && qr}

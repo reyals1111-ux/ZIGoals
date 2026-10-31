@@ -6,6 +6,8 @@
  * `followNdjson` keeps a stream open: it reconnects with a back-off after a drop, waits a minute after a 429, stops on
  * 401 (the connection was revoked), and stops for good when its signal is aborted or `reconnect` says the stream is done.
  */
+import {LICHESS} from './lichess';
+
 export class NdjsonError extends Error {
   constructor(readonly kind: 'line-too-long' | 'too-many-bad-lines', message: string) { super(message); this.name = 'NdjsonError'; }
 }
@@ -72,7 +74,10 @@ export type FollowOptions = {
   /** With keep-alive lines expected, a stream silent this long is treated as dropped. */
   idleMs?: number;
 };
+/** Security review I4: the bearer token goes only to Lichess's API, so a stream elsewhere is refused before any request. */
+export const lichessApiUrl = (url: string) => { try { return url.startsWith(`${LICHESS}/api/`) && new URL(url).href.startsWith(`${LICHESS}/api/`); } catch { return false; } };
 export async function followNdjson(o: FollowOptions): Promise<void> {
+  if (!lichessApiUrl(o.url)) throw new Error('That is not a Lichess stream this page follows.');
   const fetcher = o.fetcher ?? fetch, wait = o.wait ?? sleep, backoff = o.backoffMs ?? BACKOFF_MS;
   let attempt = 0;
   const pause = async (reason: 'dropped' | 'busy' | 'error', ms?: number) => {

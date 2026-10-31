@@ -87,4 +87,11 @@ describe('followNdjson', () => {
     await followNdjson({url: 'https://lichess.org/api/stream/event', token: 't0k3n-fixture', signal: controller.signal, onValue: () => undefined, fetcher: (async () => { asked++; return ndjson(''); }) as typeof fetch});
     expect(asked).toBe(0);
   });
+  it('security review I4: the token is sent only to a stream under https://lichess.org/api/; any other address is refused before a request', async () => {
+    for (const url of ['https://evil.example/api/stream/event', 'https://lichess.org.evil.example/api/stream/event', 'https://lichess.org/oauth', 'http://lichess.org/api/stream/event', 'https://lichess.org/api/../account/x', 'https://lichess.org@evil.example/api/x']) {
+      let asked = 0;
+      await expect(followNdjson({url, token: 'lio_fixture123', signal: new AbortController().signal, onValue: () => undefined, fetcher: (async () => { asked++; return new Response(''); }) as typeof fetch}), url).rejects.toThrow(/not a Lichess stream/);
+      expect(asked, url).toBe(0);
+    }
+  });
 });

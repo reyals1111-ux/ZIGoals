@@ -154,15 +154,23 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
  * caller reaches it; the review sheet's submit handler is its only user.
  */
 export const WC_STAKING_METHODS = Object.freeze(['cosmos_getAccounts', 'cosmos_signDirect'] as const);
-type WcLive = {client: unknown; session: {topic: string; namespaces: unknown} | null} | null;
+/** The chains a staking pairing asks for (lib/wallets/walletconnect.ts stakingNamespaces): signing exists on these only. */
+export const WC_STAKING_CHAINS = Object.freeze(['zigchain-1', 'zig-test-2'] as const);
+type WcLive = {client: unknown; session: {topic: string; namespaces: unknown} | null; staking?: unknown} | null;
 type WcRequester = {request(args: {topic: string; chainId: string; request: {method: string; params: unknown}}): Promise<unknown>};
 const b64 = (bytes: Uint8Array) => { let text = ''; for (const byte of bytes) text += String.fromCharCode(byte); return btoa(text); };
 const unb64 = (text: unknown) => { if (typeof text !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(text) || text.length > 8192) throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.'); let raw: string; try { raw = atob(text); } catch { throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.'); } const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; };
 export function walletConnectKeplr(live: WcLive, chainId: string): KeplrSigner | null {
   const session = live?.session;
-  if (!session || typeof session.topic !== 'string' || !/^[a-z0-9-]{1,64}$/.test(chainId)) return null;
-  const caip = `cosmos:${chainId}`, cosmos = (session.namespaces as Record<string, {accounts?: unknown; methods?: unknown}> | null)?.cosmos;
-  const methods = Array.isArray(cosmos?.methods) ? cosmos.methods : [], accounts = Array.isArray(cosmos?.accounts) ? cosmos.accounts : [];
+  // Security review L1: the wallet writes the session's namespaces, so they cannot decide on their own. Only a pairing
+  // ZIGoals itself started for staking (`staking === true`, set by startWalletConnect's stakingMethods path) may sign, and
+  // only what that pairing asked for: the session's methods and chains are intersected with WC_STAKING_METHODS and
+  // WC_STAKING_CHAINS, so a wallet that adds cosmos_signDirect to a read-only pairing, or another chain, gets nothing.
+  if (!session || live?.staking !== true || typeof session.topic !== 'string' || !(WC_STAKING_CHAINS as readonly string[]).includes(chainId)) return null;
+  const caip = `cosmos:${chainId}`, cosmos = (session.namespaces as Record<string, {accounts?: unknown; methods?: unknown; chains?: unknown}> | null)?.cosmos;
+  const methods = (Array.isArray(cosmos?.methods) ? cosmos.methods : []).filter(m => (WC_STAKING_METHODS as readonly unknown[]).includes(m));
+  const accounts = Array.isArray(cosmos?.accounts) ? cosmos.accounts : [];
+  if (cosmos?.chains !== undefined && !(Array.isArray(cosmos.chains) && cosmos.chains.includes(caip))) return null;
   if (!methods.includes('cosmos_signDirect') || !accounts.some(a => typeof a === 'string' && a.startsWith(`${caip}:`))) return null;
   const client = live!.client as WcRequester, ask = (method: string, params: unknown) => client.request({topic: session.topic, chainId: caip, request: {method, params}});
   const read = async () => {

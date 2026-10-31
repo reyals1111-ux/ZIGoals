@@ -1,14 +1,16 @@
 'use client';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore, type FormEvent} from 'react';
 import {beginLichess, exchangeLichessCode, isLichessCallback, readLichessCallback} from '../../../lib/chess/oauth';
-import {forgetLichess, lichessStorageAvailable, readLichessConnection, saveLichessConnection, type LichessConnection} from '../../../lib/chess/token-store';
+import {forgetLichess, lichessAccess, lichessStorageAvailable, readLichessConnection, saveLichessConnection, type LichessAccess, type LichessConnection} from '../../../lib/chess/token-store';
+import {ACCOUNT_CHANGE} from '../../../lib/account-session';
 import {answerChallenge, challengeAi, challengeUser, CLOCKS, gameUrl, getAccount, getPlaying, LICHESS, LichessError, readEvent, seek, type IncomingChallenge, type NowPlaying, type SeekColor} from '../../../lib/chess/lichess';
 import {followNdjson} from '../../../lib/chess/ndjson';
 import {GameView} from './game-view';
 
 /**
  * Session AK (ADR-036 Q8, lane C): "Play on Lichess inside ZIGoals". Connecting is Lichess's own OAuth page (PKCE, no
- * ZIGoals server); the token stays on this device (IndexedDB `zigoals-lichess-v1`) and goes only to lichess.org.
+ * ZIGoals server); the token stays on this device, sealed for the open account (lib/chess/token-store.ts), and goes only to
+ * lichess.org. While ZIGoals is locked (the screen lock or the account) and in the Showcase it is neither read nor used.
  * Connected, the page follows Lichess's event stream while Play is open, lists the ongoing games, and offers a seek
  * (rapid or classical: Lichess's Board API does not pair bullet or blitz seeks), a challenge to a friend, a game against
  * the Lichess AI, and the challenges sent to the person. On phones (a narrow screen or a touch-first pointer) the games
@@ -17,8 +19,14 @@ import {GameView} from './game-view';
 const COMPACT = '(max-width: 760px), (pointer: coarse)';
 const subscribeCompact = (change: () => void) => { const q = window.matchMedia?.(COMPACT); q?.addEventListener('change', change); return () => q?.removeEventListener('change', change); };
 const compactNow = () => !!window.matchMedia?.(COMPACT).matches;
+// Security review M1: whether the connection may be used is asked again whenever the lock or the account changes (and
+// every 1.5 s, since unlocking the screen lock sends no event), so locking drops the token from this page at once.
+const ACCESS_EVENTS = ['zigoals-device-lock', ACCOUNT_CHANGE, 'storage', 'focus', 'visibilitychange'] as const;
+const subscribeAccess = (change: () => void) => { for (const e of ACCESS_EVENTS) window.addEventListener(e, change); const t = window.setInterval(change, 1500); return () => { for (const e of ACCESS_EVENTS) window.removeEventListener(e, change); window.clearInterval(t); }; };
+const accessKey = (a: LichessAccess) => a.kind === 'open' ? `open:${a.scope}` : a.kind;
+const accessNow = () => accessKey(lichessAccess());
 type Message = {text: string; failed?: boolean} | null;
-type Connection = {status: 'loading'} | {status: 'none'} | {status: 'unavailable'} | {status: 'connecting'} | {status: 'connected'; conn: LichessConnection & {account: NonNullable<LichessConnection['account']>}};
+type Connection = {status: 'loading'} | {status: 'none'} | {status: 'locked'} | {status: 'unavailable'} | {status: 'connecting'} | {status: 'connected'; access: LichessAccess; conn: LichessConnection & {account: NonNullable<LichessConnection['account']>}};
 const plain = (e: unknown, fallback: string) => e instanceof Error && e.message ? e.message : fallback;
 const SPEED: Record<string, string> = {rapid: 'Rapid', classical: 'Classical', correspondence: 'Correspondence', blitz: 'Blitz', bullet: 'Bullet', ultraBullet: 'UltraBullet'};
 
@@ -26,16 +34,23 @@ export function LichessPlay({showcase}: {showcase: boolean}) {
   const [connection, setConnection] = useState<Connection>({status: 'loading'}), [message, setMessage] = useState<Message>(null);
   const [games, setGames] = useState<NowPlaying[]>([]), [challenges, setChallenges] = useState<IncomingChallenge[]>([]), [active, setActive] = useState<string | null>(null);
   const [seeking, setSeeking] = useState<AbortController | null>(null), [streamDown, setStreamDown] = useState(false);
-  const compact = useSyncExternalStore(subscribeCompact, compactNow, () => false), started = useRef(false), activeRef = useRef<string | null>(null);
+  const compact = useSyncExternalStore(subscribeCompact, compactNow, () => false), callbackDone = useRef(false), activeRef = useRef<string | null>(null);
+  const key = useSyncExternalStore(subscribeAccess, accessNow, () => 'pending');
   activeRef.current = active;
   const token = connection.status === 'connected' ? connection.conn.accessToken : null, me = connection.status === 'connected' ? connection.conn.account.id : null;
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    if (!lichessStorageAvailable()) { setConnection({status: 'unavailable'}); return; }
+    if (key === 'pending') return;
+    let alive = true;
+    const access: LichessAccess = showcase || key === 'showcase' ? {kind: 'showcase'} : key.startsWith('open:') ? {kind: 'open', scope: key.slice(5)} : {kind: 'locked'};
     void (async () => {
-      if (isLichessCallback(window.location.search)) {
+      setActive(null); setGames([]); setChallenges([]);
+      if (!lichessStorageAvailable()) { setConnection({status: 'unavailable'}); return; }
+      // The Showcase never reads a connection; while locked nothing is read, and a sign-in coming back waits for the unlock.
+      if (access.kind === 'showcase') { setConnection({status: 'none'}); return; }
+      if (access.kind === 'locked') { setConnection({status: 'locked'}); return; }
+      if (!callbackDone.current && isLichessCallback(window.location.search)) {
+        callbackDone.current = true;
         const answer = readLichessCallback(window.location.search);
         window.history.replaceState(window.history.state, '', `/app/chess${window.location.hash}`);
         if (answer.kind === 'code') {
@@ -44,24 +59,29 @@ export function LichessPlay({showcase}: {showcase: boolean}) {
             const grant = await exchangeLichessCode({origin: window.location.origin, code: answer.code, verifier: answer.verifier});
             const account = await getAccount(grant.accessToken);
             const conn = {version: 1 as const, accessToken: grant.accessToken, expiresAt: grant.expiresAt, connectedAt: new Date().toISOString(), account};
-            await saveLichessConnection(conn);
-            setConnection({status: 'connected', conn}); setMessage({text: `Connected to Lichess as ${account.username}. The connection stays on this device.`});
-          } catch (e) { setConnection({status: 'none'}); setMessage({text: plain(e, 'Lichess could not be connected. Nothing was kept.'), failed: true}); }
+            await saveLichessConnection(access, conn);
+            if (!alive) return;
+            setConnection({status: 'connected', access, conn}); setMessage({text: `Connected to Lichess as ${account.username}. The connection stays on this device.`});
+          } catch (e) { if (!alive) return; setConnection({status: 'none'}); setMessage({text: plain(e, 'Lichess could not be connected. Nothing was kept.'), failed: true}); }
           return;
         }
         if (answer.kind === 'denied') setMessage({text: 'You did not allow ZIGoals on Lichess. Nothing was kept.'});
         if (answer.kind === 'refused') setMessage({text: answer.message, failed: true});
       }
-      const kept = await readLichessConnection();
-      if (kept?.account) setConnection({status: 'connected', conn: {...kept, account: kept.account}});
+      const kept = await readLichessConnection(access);
+      if (!alive) return;
+      if (kept?.account) setConnection({status: 'connected', access, conn: {...kept, account: kept.account}});
       else setConnection({status: 'none'});
     })();
-  }, []);
+    return () => { alive = false; };
+  }, [key, showcase]);
+  const access = connection.status === 'connected' ? connection.access : null;
 
   const lost = useCallback(() => {
-    void forgetLichess(); setActive(null); setGames([]); setChallenges([]);
+    if (access) void forgetLichess(access);
+    setActive(null); setGames([]); setChallenges([]);
     setConnection({status: 'none'}); setMessage({text: 'Lichess no longer accepts this connection, so this device forgot it. Connect again to play.', failed: true});
-  }, []);
+  }, [access]);
   const refreshGames = useCallback(async () => {
     if (!token) return;
     try { setGames(await getPlaying(token)); }
@@ -94,7 +114,8 @@ export function LichessPlay({showcase}: {showcase: boolean}) {
   }
   async function disconnect() {
     seeking?.abort(); setSeeking(null); setActive(null);
-    const result = await forgetLichess();
+    if (!access) return;
+    const result = await forgetLichess(access);
     setConnection({status: 'none'}); setGames([]); setChallenges([]);
     setMessage({text: result.revoked ? 'Disconnected. This device forgot the connection and Lichess revoked it.' : 'Disconnected. This device forgot the connection; Lichess could not be reached to revoke it, so you can revoke it in your Lichess security settings.'});
   }
@@ -128,6 +149,7 @@ export function LichessPlay({showcase}: {showcase: boolean}) {
 
   const note = message && <p role={message.failed ? 'alert' : 'status'} className="chess-play-message">{message.text}</p>;
   if (connection.status === 'loading' || connection.status === 'connecting') return <section className="chess-block" aria-labelledby="chess-lichess-title"><h3 id="chess-lichess-title">Lichess</h3><p role="status">{connection.status === 'connecting' ? 'Connecting to Lichess…' : 'Checking for a Lichess connection…'}</p></section>;
+  if (connection.status === 'locked') return <section className="chess-block" aria-labelledby="chess-lichess-title"><h3 id="chess-lichess-title">Lichess</h3><p role="status">ZIGoals is locked, so your Lichess connection is not used. Unlock to play.</p></section>;
   if (connection.status === 'unavailable') return <section className="chess-block" aria-labelledby="chess-lichess-title"><h3 id="chess-lichess-title">Lichess</h3><p>This browser cannot keep a Lichess connection (no IndexedDB), so play on <a className="text-link" href={LICHESS} target="_blank" rel="noopener noreferrer">lichess.org</a>.</p></section>;
   if (connection.status === 'none') return <section className="chess-block" aria-labelledby="chess-lichess-title"><h3 id="chess-lichess-title">Play on Lichess here</h3>
     <p>Connect your Lichess account to play your Lichess games on this page. You sign in on Lichess itself; ZIGoals never sees your password.</p>

@@ -83,8 +83,27 @@ async function connect(page: Page, lichess: Lichess) {
   expect(createHash('sha256').update(form.code_verifier!).digest('base64url')).toBe(q.code_challenge);
   expect(await page.evaluate(() => sessionStorage.getItem('zigoals:lichess-pending:v1'))).toBeNull();
   const databases = await page.evaluate(async () => (await indexedDB.databases()).map(d => d.name));
-  expect(databases).toContain('zigoals-lichess-v1');
+  // Session AK Part 15 (M1): the token is sealed in the sign-in store under this account's scope, never in its own
+  // plaintext database, and no record there is readable as text.
+  expect(databases).toContain('zigoals-link-tokens-v1');
+  expect(databases).not.toContain('zigoals-lichess-v1');
+  expect(await lichessSlots(page)).toEqual([{key: 'local:lichess', readable: false}]);
 }
+/** The sign-in store's Lichess slots: each key, and whether the access token appears anywhere in its stored value. */
+const lichessSlots = (page: Page) => page.evaluate(async (token) => {
+  const db = await new Promise<IDBDatabase>((ok, no) => { const r = indexedDB.open('zigoals-link-tokens-v1'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+  try {
+    if (!db.objectStoreNames.contains('tokens')) return [];
+    const store = db.transaction('tokens', 'readonly').objectStore('tokens');
+    const keys = await new Promise<IDBValidKey[]>((ok, no) => { const r = store.getAllKeys(); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+    const out: {key: string; readable: boolean}[] = [];
+    for (const key of keys.map(String).filter(k => k.endsWith(':lichess'))) {
+      const value = await new Promise<unknown>((ok, no) => { const r = db.transaction('tokens', 'readonly').objectStore('tokens').get(key); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+      out.push({key, readable: JSON.stringify(value ?? null).includes(token)});
+    }
+    return out;
+  } finally { db.close(); }
+}, TOKEN);
 
 test('connect by PKCE, play by click, keyboard and text, a refused move is restored from the stream, resign, disconnect', async ({page}) => {
   const lichess = await mockLichess(page), egress = watchEgress(page);
@@ -138,6 +157,7 @@ test('connect by PKCE, play by click, keyboard and text, a refused move is resto
   await expect(page.getByText('Disconnected. This device forgot the connection and Lichess revoked it.')).toBeVisible();
   expect(lichess.seen.some(r => r.url() === 'https://lichess.org/api/token' && r.method() === 'DELETE' && r.headers().authorization === `Bearer ${TOKEN}`)).toBe(true);
   expect(await page.evaluate(async () => (await indexedDB.databases()).map(d => d.name))).not.toContain('zigoals-lichess-v1');
+  expect(await lichessSlots(page)).toEqual([]);
   await expect(page.getByRole('button', {name: 'Connect Lichess'})).toBeVisible();
   for (const r of lichess.seen.filter(r => new URL(r.url()).pathname.startsWith('/api/') && !r.url().endsWith('/api/token') && !r.url().endsWith('/api/puzzle/daily'))) expect(r.headers().authorization, r.url()).toBe(`Bearer ${TOKEN}`);
   expect([...new Set(egress.outside)]).toEqual(['https://lichess.org']);

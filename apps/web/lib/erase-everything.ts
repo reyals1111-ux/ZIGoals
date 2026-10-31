@@ -19,7 +19,8 @@ export const KNOWN_DATABASES = [
   'zigoals-offline-queue-v1',
   // Session AK (Part 4.2): meal photos kept on this device, by the person's choice.
   'zigoals-meal-photos-v1',
-  // Session AK (Part 9): the Lichess connection's token, on this device only (never exported or synced).
+  // Session AK (Part 9): the first build's plaintext Lichess store; since Part 15 (M1) the token is sealed per account in
+  // zigoals-link-tokens-v1, and a leftover of this one is revoked and deleted on sight.
   'zigoals-lichess-v1',
 ] as const;
 export const ERASE_PREFIX = 'zigoals';
@@ -61,14 +62,17 @@ export async function eraseEverything(scope: {localStorage?: KeyStore | null; se
  * and never stops the erase. The dependencies are passed in so a test can see the order.
  */
 export type DeviceServices = {turnOffNotifications: () => Promise<void>; forgetOfflineCaches: () => Promise<void>; forgetOfflineQueue?: () => Promise<void>};
-export async function eraseDeviceServices(deps: DeviceServices): Promise<void> {
+export async function eraseDeviceServices(deps: DeviceServices & {revokeLichess?: () => Promise<unknown>}): Promise<void> {
   try { await deps.turnOffNotifications(); } catch { /* the Worker deletes an unused device after 30 days */ }
   try { await deps.forgetOfflineCaches(); } catch { /* nothing cached */ }
   try { await deps.forgetOfflineQueue?.(); } catch { /* nothing queued */ }
+  // Security review L4 (lane W): every Lichess token kept on this device is revoked at Lichess before its database goes.
+  try { await deps.revokeLichess?.(); } catch { /* Lichess unreachable: it can be revoked in Lichess's own settings */ }
 }
 /** Erase everything, as the Settings button runs it: the device services first, then every key and database. */
 export async function eraseEverythingOnThisDevice(): Promise<EraseResult> {
   const [{turnOffNotifications}, {forgetOfflineCaches}, {forgetOfflineQueue}] = await Promise.all([import('./notify/device'), import('./sw/register'), import('./offline-queue/queue')]);
-  await eraseDeviceServices({turnOffNotifications, forgetOfflineCaches, forgetOfflineQueue});
+  const revokeLichess = async () => (await import('./chess/token-store')).revokeEveryLichess(); // Security review L4 (lane W)
+  await eraseDeviceServices({turnOffNotifications, forgetOfflineCaches, forgetOfflineQueue, revokeLichess});
   return eraseEverything();
 }

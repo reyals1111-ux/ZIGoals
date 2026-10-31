@@ -6,7 +6,9 @@ import {LINKED_WALLETS_KEY} from '../linked-wallets-key';
 
 // Session AF (L2b, ADR-028 D1, H38): the phone sheet's "Connect by WalletConnect" once a project ID is set (mocked here;
 // the committed file has none) with a fake sign-client (no relay is reached). The package is asked for only on the tap.
-const sdk = vi.hoisted(() => ({loaded: 0, approve: (() => undefined) as (session: unknown) => void, connect: vi.fn()}));
+const sdk = vi.hoisted(() => ({loaded: 0, approve: (() => undefined) as (session: unknown) => void, reject: (() => undefined) as (error: unknown) => void, connect: vi.fn()}));
+// A well-formed v2 pairing link (security review I2 refuses anything else).
+const PAIRING = vi.hoisted(() => 'wc:' + 'e'.repeat(64) + '@2?relay-protocol=irn&symKey=' + 'f'.repeat(64));
 vi.mock('../public-integrations', async original => {
   const real = await original<typeof import('../public-integrations')>();
   const configured = {...real.PUBLIC_INTEGRATIONS, reownProjectId: '0123456789abcdef0123456789abcdef'};
@@ -15,7 +17,7 @@ vi.mock('../public-integrations', async original => {
 vi.mock('@walletconnect/sign-client', () => {
   sdk.loaded++;
   return {SignClient: {init: async () => ({
-    connect: async (params: unknown) => { sdk.connect(params); return {uri: 'wc:pair@2?relay-protocol=irn&symKey=k', approval: () => new Promise(r => { sdk.approve = r; })}; },
+    connect: async (params: unknown) => { sdk.connect(params); return {uri: PAIRING, approval: () => new Promise((r, j) => { sdk.approve = r; sdk.reject = j; })}; },
     disconnect: async () => undefined,
   })}};
 });
@@ -36,7 +38,7 @@ test('Connect by WalletConnect: loads the package on the tap, offers the pairing
   await act(async () => { button.click(); });
   const trust = await vi.waitFor(() => { const a = container.querySelector<HTMLAnchorElement>('a[href^="https://link.trustwallet.com/wc?uri="]'); expect(a).not.toBeNull(); return a!; });
   expect(sdk.loaded).toBe(1);
-  expect(trust.getAttribute('href')).toBe(`https://link.trustwallet.com/wc?uri=${encodeURIComponent('wc:pair@2?relay-protocol=irn&symKey=k')}`);
+  expect(trust.getAttribute('href')).toBe(`https://link.trustwallet.com/wc?uri=${encodeURIComponent(PAIRING)}`);
   expect(trust.getAttribute('rel')).toBe('noopener noreferrer');
   expect(sdk.connect).toHaveBeenCalledWith(expect.objectContaining({optionalNamespaces: expect.objectContaining({eip155: expect.objectContaining({methods: []})})}));
   await act(async () => { sdk.approve({topic: 't', peer: {metadata: {name: 'Trust Wallet'}}, namespaces: {eip155: {accounts: [`eip155:1:${EVM}`]}}}); });
@@ -45,3 +47,21 @@ test('Connect by WalletConnect: loads the package on the tap, offers the pairing
   // Nothing of the client is stored on the device: only the linked-wallets record.
   expect(Object.keys(localStorage)).toEqual([LINKED_WALLETS_KEY]);
 });
+
+// Security review I1 and L2: a failure after the link was shown says so (never "being switched on"); the staking panel's
+// Keplr row says it asks for approvals, the other rows stay read-only.
+test('the staking panel: honest rows; a refusal after the link was shown says WalletConnect did not connect', async () => {
+  const {default: WalletConnectPanel} = await import('../../components/wallet/walletconnect-panel');
+  const {GoalProvider} = await import('../../components/goal-provider');
+  const {stopWalletConnect} = await import('./walletconnect');
+  await stopWalletConnect();
+  await act(async () => root.render(createElement(GoalProvider, null, createElement(WalletConnectPanel, {onDone: () => undefined, staking: true}))));
+  const rows = await vi.waitFor(() => { const list = [...container.querySelectorAll('.wallet-row-detail')].map(e => e.textContent); expect(list.length).toBeGreaterThan(3); return list; });
+  expect(rows[0]).toBe('Your ZIGChain address, where Keplr Mobile offers ZIGChain · asks you to approve each staking action you review');
+  expect(rows.slice(1, 4).every(r => r!.endsWith(' · read-only'))).toBe(true);
+  await act(async () => { sdk.reject(Error('timed out')); });
+  await vi.waitFor(() => expect(container.querySelector('[role="status"]')!.textContent).toBe('WalletConnect did not connect (it was refused, closed or timed out), so nothing was linked.'));
+  expect(container.textContent).not.toContain('being switched on');
+  await stopWalletConnect();
+});
+

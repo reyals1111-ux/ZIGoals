@@ -86,4 +86,16 @@ describe('the Board API client', () => {
     expect(readEvent({type: 'challengeDeclined', challenge: c}, 'fictional-me')).toEqual({type: 'challengeGone', id: 'ChAl0001'});
     expect(readEvent({type: 'gameStart', game: {gameId: 'nope'}}, 'x')).toEqual({type: 'other'});
   });
+  it('security review I4: an answer over 512 KB is refused while it is read, without reading the rest', async () => {
+    let pulled = 0;
+    const chunk = new Uint8Array(64 * 1024).fill(32);
+    const endless = new ReadableStream<Uint8Array>({pull(c) { pulled++; if (pulled > 100) { c.close(); return; } c.enqueue(chunk); }}, {highWaterMark: 0});
+    const big = mock(() => new Response(endless, {status: 200}));
+    await expect(getAccount(TOKEN, {fetcher: big.fetcher})).rejects.toMatchObject({kind: 'unreadable', message: 'Lichess sent more than this page reads.'});
+    expect(pulled).toBeLessThanOrEqual(10);
+    // A whole answer at the cap still reads.
+    const fits = mock(() => new Response(JSON.stringify({id: 'Fictional-Me', username: 'Fictional-Me', pad: ' '.repeat(512 * 1024 - 80)}), {status: 200}));
+    expect(await getAccount(TOKEN, {fetcher: fits.fetcher})).toEqual({id: 'fictional-me', username: 'Fictional-Me'});
+  });
 });
+

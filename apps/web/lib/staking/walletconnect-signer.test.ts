@@ -1,5 +1,5 @@
 import {describe, expect, test, vi} from 'vitest';
-import {WC_STAKING_METHODS, walletConnectKeplr} from './execute';
+import {WC_STAKING_CHAINS, WC_STAKING_METHODS, walletConnectKeplr} from './execute';
 import {stakingNamespaces, readOnlyNamespaces} from '../wallets/walletconnect';
 
 // Session AK (AFL9, A7; TIER 3 (wallet)): Keplr Mobile over WalletConnect as a KeplrSigner for the one signer path.
@@ -7,11 +7,12 @@ const ZIG = 'zig1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
 const PUB = btoa(String.fromCharCode(...new Uint8Array(33).fill(2))), SIG = btoa(String.fromCharCode(...new Uint8Array(64).fill(7)));
 const doc = {chainId: 'zig-test-2', accountNumber: 42n, authInfoBytes: new Uint8Array([1, 2, 3]), bodyBytes: new Uint8Array([9, 8, 7])};
 const b64 = (u: Uint8Array) => btoa(String.fromCharCode(...u));
-function live(over: {methods?: string[]; accounts?: string[]; answer?: (method: string, params: unknown) => unknown} = {}) {
+// Security review L1: only a pairing ZIGoals started for staking carries `staking: true` (set by startWalletConnect).
+function live(over: {methods?: string[]; accounts?: string[]; chains?: unknown; staking?: unknown; answer?: (method: string, params: unknown) => unknown} = {}) {
   const request = vi.fn(async ({request: r}: {request: {method: string; params: unknown}}) => over.answer ? over.answer(r.method, r.params)
     : r.method === 'cosmos_getAccounts' ? [{address: ZIG, algo: 'secp256k1', pubkey: PUB}]
     : {signed: {chainId: doc.chainId, accountNumber: '42', authInfoBytes: b64(doc.authInfoBytes), bodyBytes: b64(doc.bodyBytes)}, signature: {pub_key: {type: 'tendermint/PubKeySecp256k1', value: PUB}, signature: SIG}});
-  return {request, value: {client: {request}, session: {topic: 't', namespaces: {cosmos: {accounts: over.accounts ?? [`cosmos:zig-test-2:${ZIG}`], methods: over.methods ?? [...WC_STAKING_METHODS]}}}}};
+  return {request, value: {client: {request}, staking: 'staking' in over ? over.staking : true, session: {topic: 't', namespaces: {cosmos: {accounts: over.accounts ?? [`cosmos:zig-test-2:${ZIG}`], methods: over.methods ?? [...WC_STAKING_METHODS], ...('chains' in over ? {chains: over.chains} : {})}}}}};
 }
 describe('walletConnectKeplr', () => {
   test('null without a session, without an account on the quote\'s chain, or without the signing method', () => {
@@ -19,6 +20,19 @@ describe('walletConnectKeplr', () => {
     expect(walletConnectKeplr(live().value, 'zigchain-1')).toBeNull();
     expect(walletConnectKeplr(live({methods: ['cosmos_getAccounts']}).value, 'zig-test-2')).toBeNull();
     expect(walletConnectKeplr(live().value, 'zig-test-2')).not.toBeNull();
+  });
+  test('security review L1: a pairing not started for staking never signs, whatever methods the wallet says it approved; only ZIGChain\'s two chains', () => {
+    for (const staking of [undefined, false, 'true', 1]) expect(walletConnectKeplr(live({staking}).value, 'zig-test-2'), String(staking)).toBeNull();
+    // A read-only pairing whose wallet added cosmos_signDirect (and more) to the session: nothing.
+    expect(walletConnectKeplr(live({staking: false, methods: ['cosmos_getAccounts', 'cosmos_signDirect', 'cosmos_signAmino']}).value, 'zig-test-2')).toBeNull();
+    // Another Cosmos chain the wallet put in the session, even with an account and the method there: nothing.
+    expect(walletConnectKeplr(live({accounts: [`cosmos:cosmoshub-4:${ZIG}`]}).value, 'cosmoshub-4')).toBeNull();
+    // The session's chains, when it lists them, must include the quote's chain.
+    expect(walletConnectKeplr(live({chains: ['cosmos:zigchain-1']}).value, 'zig-test-2')).toBeNull();
+    expect(walletConnectKeplr(live({chains: 'cosmos:zig-test-2'}).value, 'zig-test-2')).toBeNull();
+    expect(walletConnectKeplr(live({chains: ['cosmos:zig-test-2']}).value, 'zig-test-2')).not.toBeNull();
+    expect(walletConnectKeplr(live({accounts: [`cosmos:zigchain-1:${ZIG}`]}).value, 'zigchain-1')).not.toBeNull();
+    expect(stakingNamespaces(WC_STAKING_METHODS).cosmos.chains).toEqual(WC_STAKING_CHAINS.map(c => `cosmos:${c}`));
   });
   test('the key and the account come from the wallet; the document sent is exactly the reviewed one; the answer keeps it', async () => {
     const l = live(), keplr = walletConnectKeplr(l.value, 'zig-test-2')!;

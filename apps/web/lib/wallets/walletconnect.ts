@@ -2,6 +2,7 @@ import {isEvmAddress, isSolanaAddress, isZigAddress} from '../wallet-address';
 import {EVM_CHAIN_IDS} from './eip6963';
 import {fromPrefix} from './links';
 import type {AddressKind} from '../wallet-address';
+import {ACCOUNT_CHANGE} from '../account-session';
 
 /**
  * Session AF (L2b, Part 3, ADR-028 D1, H6, H38; `TIER 3 (dependencies)`): WalletConnect for phones, through
@@ -89,9 +90,23 @@ type Client = {
   disconnect(params: {topic: string; reason: {code: number; message: string}}): Promise<void>;
 };
 type Loader = () => Promise<{SignClient: {init(options: Record<string, unknown>): Promise<unknown>}}>;
-let live: {client: Client; session: Session | null} | null = null;
+/**
+ * The live client and session of this tab. `staking` is set here, and only by a pairing started with `stakingMethods`
+ * (security review L1): the wallet controls the session's namespaces, so the signer trusts what ZIGoals asked for, not
+ * what the wallet says it approved.
+ */
+export type WalletConnectLive = {client: Client; session: Session | null; staking: boolean};
+let live: WalletConnectLive | null = null;
 /** For lane L2a's signer: the live client and approved session of this tab, or null. */
 export const walletConnectSession = () => live;
+/**
+ * Security review I2: a WalletConnect v2 pairing link exactly (topic, version 2, its parameters), checked before it is
+ * shown, drawn or put in any wallet's link.
+ */
+export const WC_URI = /^wc:[0-9a-f]{64}@2\?[A-Za-z0-9=&_.:%,\[\]-]+$/;
+export const isWalletConnectUri = (uri: unknown): uri is string => typeof uri === 'string' && uri.length <= 2000 && WC_URI.test(uri);
+/** Security review I3: a session never outlives the account it was paired under (a lock, a switch or a sign-out). */
+const endOnAccountChange = () => { void stopWalletConnect(); };
 export class WalletConnectUnavailable extends Error {}
 /**
  * Starts a pairing: loads the package (only now), creates the in-memory client and returns the `wc:` link for the wallet
@@ -102,13 +117,25 @@ export async function startWalletConnect({projectId, origin, cosmosMethods, stak
   if (!projectId || !/^[0-9a-f]{32}$/.test(projectId)) throw new WalletConnectUnavailable('WalletConnect is not set up in this build yet.');
   const url = new URL(origin);
   if (url.protocol !== 'https:' && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') throw new WalletConnectUnavailable('WalletConnect needs this app\'s own https address.');
+  const namespaces = stakingMethods ? stakingNamespaces(stakingMethods) : readOnlyNamespaces(cosmosMethods);
+  // Security review I3: one pairing at a time; an earlier one (and its client) is ended first, never left orphaned.
+  await stopWalletConnect();
   const {SignClient} = await loader();
-  const client = await SignClient.init({projectId, telemetryEnabled: false, storage: memoryStorage(), metadata: {name: 'ZIGoals', description: 'Goals, habits and wealth. Wallets are linked read-only.', url: url.origin, icons: [`${url.origin}/apple-touch-icon.png`]}}) as Client;
-  const {uri, approval} = await client.connect({optionalNamespaces: stakingMethods ? stakingNamespaces(stakingMethods) : readOnlyNamespaces(cosmosMethods)});
-  if (typeof uri !== 'string' || !uri.startsWith('wc:')) throw new WalletConnectUnavailable('WalletConnect did not give a pairing link.');
-  live = {client, session: null};
-  return {uri, approval: approval().then(session => {
-    live = {client, session};
+  // Security review L2: a staking pairing says what it asks of the wallet; a linking pairing stays read-only.
+  const description = stakingMethods ? 'Goals, habits and wealth. Asks you to approve each staking action you review.' : 'Goals, habits and wealth. Wallets are linked read-only.';
+  const client = await SignClient.init({projectId, telemetryEnabled: false, storage: memoryStorage(), metadata: {name: 'ZIGoals', description, url: url.origin, icons: [`${url.origin}/apple-touch-icon.png`]}}) as Client;
+  const {uri, approval} = await client.connect({optionalNamespaces: namespaces});
+  if (!isWalletConnectUri(uri)) throw new WalletConnectUnavailable('WalletConnect did not give a pairing link.');
+  const staking = !!stakingMethods;
+  live = {client, session: null, staking};
+  if (typeof window !== 'undefined') window.addEventListener(ACCOUNT_CHANGE, endOnAccountChange);
+  return {uri, approval: approval().then(async session => {
+    // A pairing that was ended (a newer one, Remove, or an account change) before the wallet approved is closed at once.
+    if (live?.client !== client) {
+      try { await client.disconnect({topic: session.topic, reason: {code: 6000, message: 'User disconnected'}}); } catch { /* gone anyway */ }
+      throw new WalletConnectUnavailable('This pairing was ended before the wallet approved it, so nothing was linked.');
+    }
+    live = {client, session, staking};
     const name = session.peer?.metadata?.name;
     return {accounts: accountsOf(session.namespaces), wallet: typeof name === 'string' ? name.slice(0, 40) : 'WalletConnect'};
   })};
@@ -116,6 +143,7 @@ export async function startWalletConnect({projectId, origin, cosmosMethods, stak
 /** Ends this tab's session, best effort; nothing stays on the device either way. */
 export async function stopWalletConnect(): Promise<void> {
   const current = live; live = null;
+  if (typeof window !== 'undefined') window.removeEventListener(ACCOUNT_CHANGE, endOnAccountChange);
   try { if (current?.session) await current.client.disconnect({topic: current.session.topic, reason: {code: 6000, message: 'User disconnected'}}); } catch { /* the in-memory session is gone anyway */ }
 }
 /** Trust Wallet's documented WalletConnect link for a `wc:` pairing link (lib/wallets/links.ts `trust-wc`). */
@@ -132,7 +160,7 @@ export const trustWalletConnectLink = (uri: string) => {
  */
 export type WcWalletLink = {key: string; label: string; detail: string; href: string};
 export function walletConnectLinks(uri: string, android: boolean): WcWalletLink[] {
-  if (!uri.startsWith('wc:') || uri.length > 2000 || /[\s<>"]/.test(uri)) throw Error('Not a WalletConnect link.');
+  if (!isWalletConnectUri(uri)) throw Error('Not a WalletConnect link.');
   const encoded = encodeURIComponent(uri);
   return [
     {key: 'wc-keplr', label: 'Open in Keplr Mobile', detail: 'Your ZIGChain address, where Keplr Mobile offers ZIGChain', href: android ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;` : `keplrwallet://wcV2?${uri}`},

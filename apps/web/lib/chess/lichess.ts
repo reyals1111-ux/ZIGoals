@@ -20,6 +20,24 @@ export const lichessPausedFor = (now = Date.now()) => Math.max(0, pausedUntil - 
 export const resetLichessQueue = () => { pausedUntil = 0; queue = Promise.resolve(); };
 function oneAtATime<T>(work: () => Promise<T>): Promise<T> { const next = queue.then(work, work); queue = next.catch(() => undefined); return next; }
 const MAX_BODY = 512 * 1024;
+/** Security review I4: the answer is read with a running byte count and the read stops at the cap, so an oversized
+ *  answer is never held whole. */
+async function cappedText(response: Response): Promise<string> {
+  const tooMuch = () => new LichessError('unreadable', 'Lichess sent more than this page reads.', response.status);
+  if (!response.body) { const text = await response.text(); if (new TextEncoder().encode(text).byteLength > MAX_BODY) throw tooMuch(); return text; }
+  const reader = response.body.getReader(), decoder = new TextDecoder('utf-8');
+  let bytes = 0, text = '';
+  try {
+    for (;;) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_BODY) { try { await reader.cancel(); } catch { /* already closed */ } throw tooMuch(); }
+      text += decoder.decode(value, {stream: true});
+    }
+    return text + decoder.decode();
+  } finally { try { reader.releaseLock(); } catch { /* still reading elsewhere */ } }
+}
 const short = (text: unknown) => typeof text === 'string' ? text.replace(/\s+/g, ' ').trim().slice(0, 160) : '';
 export type CallOptions = {fetcher?: Fetcher; now?: () => number; signal?: AbortSignal; queued?: boolean; form?: Record<string, string | number | boolean>; method?: 'GET' | 'POST' | 'DELETE'};
 /** One request to Lichess's API; its JSON answer (an empty object for an empty answer). */
@@ -37,8 +55,7 @@ export async function lichessCall(token: string | null, path: string, o: CallOpt
     try { response = await fetcher(`${LICHESS}${path}`, {method: o.method ?? (o.form ? 'POST' : 'GET'), headers, ...(body !== undefined ? {body} : {}), credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', mode: 'cors', ...(o.signal ? {signal: o.signal} : {})}); }
     catch (error) { if (o.signal?.aborted) throw error; throw new LichessError('offline', 'Lichess could not be reached. Check your connection and try again.'); }
     let text = '';
-    try { text = await response.text(); } catch (error) { if (o.signal?.aborted) throw error; throw new LichessError('unreadable', 'Lichess sent something this page cannot read.', response.status); }
-    if (text.length > MAX_BODY) throw new LichessError('unreadable', 'Lichess sent more than this page reads.', response.status);
+    try { text = await cappedText(response); } catch (error) { if (o.signal?.aborted || error instanceof LichessError) throw error; throw new LichessError('unreadable', 'Lichess sent something this page cannot read.', response.status); }
     let data: unknown = {};
     if (text.trim()) { try { data = JSON.parse(text); } catch { data = null; } }
     const said = data && typeof data === 'object' && !Array.isArray(data) ? data as Record<string, unknown> : null;
