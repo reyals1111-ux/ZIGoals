@@ -2412,6 +2412,32 @@
             color: var(--text-secondary)
         }
     }
+    .agenda-item:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--agenda-accent, var(--line)) 9%, transparent), transparent 55%);
+        background-color: transparent;
+        box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)), 0 10px 24px -22px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    .agenda-item:has(.agenda-item-title:focus-visible):not(#\-) {
+        border-color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-item-title:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .agenda-item:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--agenda-accent, var(--brand-violet)) 55%, var(--line, transparent));
+            background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent)
+        }
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .agenda-cell:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-cyan) 55%, var(--line, transparent));
+            background-color: color-mix(in srgb, var(--brand-cyan) 6%, transparent)
+        }
+    }
+    .agenda-filter summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
 }
 /*  components/ai/agent-tools.css  */
 @scope (:root[data-theme=dark]) {
@@ -4086,6 +4112,87 @@
         background-color: #01030ef2;
         border-color: #7fc8ff2e;
         box-shadow: 0 8px 24px #0008
+    }
+}
+/*  components/charts/chart-look.css  */
+@scope (:root[data-theme=dark]) {
+    :is(.zg-chart, .zg-legend):not(#\-) {
+        --zgc-a0: var(--brand-cyan-ink, var(--brand-cyan));
+        --zgc-a1: var(--brand-violet-ink, var(--brand-violet));
+        --zgc-a2: var(--brand-magenta-ink, var(--brand-magenta));
+        --zgc-b0: var(--pillar-wealth-ink, var(--pillar-wealth));
+        --zgc-b1: var(--nebula-pink-ink, var(--brand-magenta));
+        --zgc-band: var(--brand-violet)
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=goals]:not(#\-) {
+        --zgc-a2: var(--pillar-goals-ink, var(--pillar-goals))
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=habits]:not(#\-) {
+        --zgc-a2: var(--pillar-habits-ink, var(--pillar-habits))
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=health]:not(#\-) {
+        --zgc-a2: var(--pillar-health-ink, var(--pillar-health))
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=wealth]:not(#\-) {
+        --zgc-a2: var(--pillar-wealth-ink, var(--pillar-wealth))
+    }
+    .zg-chart .zgc-a0:not(#\-) {
+        stop-color: var(--zgc-a0)
+    }
+    .zg-chart .zgc-a1:not(#\-) {
+        stop-color: var(--zgc-a1)
+    }
+    .zg-chart .zgc-a2:not(#\-) {
+        stop-color: var(--zgc-a2)
+    }
+    .zg-chart .zgc-b0:not(#\-) {
+        stop-color: var(--zgc-b0)
+    }
+    .zg-chart .zgc-b1:not(#\-) {
+        stop-color: var(--zgc-b1)
+    }
+    .zg-chart .zgc-band0:not(#\-) {
+        stop-color: var(--zgc-band)
+    }
+    .zg-chart .zgc-band1:not(#\-) {
+        stop-color: var(--zgc-band)
+    }
+    svg.zg-chart .money-chart-target:not(#\-) {
+        stroke: var(--zgc-b0)
+    }
+    svg.zg-chart text:not(#\-) {
+        fill: var(--text-secondary);
+        stroke: var(--surface-1)
+    }
+    .zg-legend .money-key:not(.money-key-b, .money-key-target, .money-key-band, .debt-key-min):not(#\-) {
+        border-top-color: var(--zgc-a0)
+    }
+    .zg-legend :is(.money-key-b, .money-key-target):not(#\-) {
+        border-top-color: var(--zgc-b0)
+    }
+    .zg-legend .money-key-band:not(#\-) {
+        background-image: linear-gradient(180deg, color-mix(in srgb, var(--zgc-band) 40%, transparent), color-mix(in srgb, var(--zgc-band) 12%, transparent));
+        background-color: transparent
+    }
+    :scope[data-theme=light] .zg-chart [filter]:not(#\-) {
+        filter: none
+    }
+    @media (forced-colors: active) {
+        svg.zg-chart .zgc-line:not(#\-) {
+            stroke: CanvasText !important;
+            filter: none
+        }
+    }
+    @media (forced-colors: active) {
+        svg.zg-chart .zgc-band:not(#\-) {
+            fill: none !important
+        }
+    }
+    @media (forced-colors: active) {
+        svg.zg-chart text:not(#\-) {
+            fill: CanvasText;
+            stroke: Canvas
+        }
     }
 }
 /*  components/charts/charts.css  */
@@ -6496,6 +6603,22 @@
     :scope .first-week-steps li[data-done] a:not(#\-) {
         color: var(--text-secondary, var(--muted))
     }
+    :scope .first-week-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 70%, transparent), 0 18px 40px -30px color-mix(in srgb, var(--brand-violet) 75%, transparent)
+    }
+    :scope .first-week-steps li[data-done]:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, var(--line));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan) 6%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope .first-week-steps li:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-violet) 55%, var(--line))
+        }
+    }
+    :scope .first-week-all > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
 }
 /*  components/footer/site-footer.css  */
 @scope (:root[data-theme=dark]) {
@@ -7163,6 +7286,26 @@
         background-image: none;
         background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 22%,transparent);
         border-color: var(--cyan,#6fd3ff)
+    }
+    :scope .challenge-card:not(#\-) {
+        background-image: radial-gradient(at 100% 0,color-mix(in srgb,var(--pillar-goals) 12%,transparent),transparent 58%);
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-goals) 70%,transparent),0 18px 40px -30px color-mix(in srgb,var(--brand-violet) 75%,transparent)
+    }
+    .challenge-weeks li[data-covered]:not(#\-) {
+        background-image: linear-gradient(135deg,var(--brand-cyan),var(--pillar-goals));
+        background-color: transparent
+    }
+    .challenge-bar i:not(#\-) {
+        background-image: linear-gradient(90deg,var(--brand-cyan),var(--pillar-goals));
+        background-color: transparent
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .challenge-days button:hover:not(#\-) {
+            border-color: color-mix(in srgb,var(--pillar-goals) 60%,transparent)
+        }
+    }
+    .challenge-days button:focus-visible:not(#\-), .challenge-schedule summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
     }
 }
 /*  components/goals/goal-art-picker.css  */
@@ -10289,6 +10432,83 @@
         filter: blur(7px)
     }
 }
+/*  components/illustrations/pillar-art.css  */
+@scope (:root[data-theme=dark]) {
+    .pillar-art:not(#\-) {
+        --pa-a: var(--brand-cyan);
+        --pa-ink: var(--brand-cyan-ink, var(--brand-cyan));
+        --pa-hi: var(--accent-cyan);
+        --pa-body: var(--brand-violet);
+        --pa-deep: var(--brand-magenta)
+    }
+    .pillar-art[data-pillar=goals]:not(#\-) {
+        --pa-a: var(--pillar-goals);
+        --pa-ink: var(--pillar-goals-ink, var(--pillar-goals));
+        --pa-hi: var(--accent-violet);
+        --pa-body: var(--brand-violet);
+        --pa-deep: var(--brand-blue)
+    }
+    .pillar-art[data-pillar=habits]:not(#\-) {
+        --pa-a: var(--pillar-habits);
+        --pa-ink: var(--pillar-habits-ink, var(--pillar-habits));
+        --pa-hi: var(--accent-cyan);
+        --pa-body: var(--brand-blue);
+        --pa-deep: var(--brand-violet)
+    }
+    .pillar-art[data-pillar=health]:not(#\-) {
+        --pa-a: var(--pillar-health);
+        --pa-ink: var(--pillar-health-ink, var(--pillar-health));
+        --pa-hi: var(--accent-magenta);
+        --pa-body: var(--brand-magenta);
+        --pa-deep: var(--brand-violet)
+    }
+    .pillar-art[data-pillar=wealth]:not(#\-) {
+        --pa-a: var(--pillar-wealth);
+        --pa-ink: var(--pillar-wealth-ink, var(--pillar-wealth));
+        --pa-hi: var(--pillar-wealth);
+        --pa-body: var(--brand-violet);
+        --pa-deep: var(--brand-blue)
+    }
+    .pillar-art .pa-s-light:not(#\-) {
+        stop-color: color-mix(in oklab, var(--pa-a) 62%, var(--pa-body))
+    }
+    .pillar-art .pa-s-body:not(#\-) {
+        stop-color: var(--pa-body)
+    }
+    .pillar-art .pa-s-deep:not(#\-) {
+        stop-color: var(--pa-deep)
+    }
+    .pillar-art .pa-s-halo:not(#\-) {
+        stop-color: var(--pa-a)
+    }
+    .pillar-art .pa-s-ring:not(#\-) {
+        stop-color: var(--pa-ink)
+    }
+    .pillar-art .pa-s-ring-mid:not(#\-) {
+        stop-color: var(--pa-hi)
+    }
+    .pillar-art .pa-ring:not(#\-) {
+        fill: none
+    }
+    .pillar-art .pa-rim:not(#\-) {
+        fill: none;
+        stroke: var(--pa-a)
+    }
+    .pillar-art .pa-mark:not(#\-) {
+        fill: none;
+        stroke: var(--pa-hi)
+    }
+    .pillar-art .pa-dot:not(#\-) {
+        fill: var(--pa-hi)
+    }
+    .pillar-art .pa-moon:not(#\-) {
+        fill: var(--pa-hi);
+        stroke: var(--pa-ink)
+    }
+    .pillar-art .pa-spark:not(#\-) {
+        fill: var(--pa-hi)
+    }
+}
 /*  components/import/bankfiles/bankfiles.css  */
 @scope (:root[data-theme=dark]) {
     .bankfile-table th:not(#\-), .bankfile-table td:not(#\-) {
@@ -10392,6 +10612,16 @@
     .experiments-new:not(#\-) {
         border-color: var(--line)
     }
+    :scope .experiment-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    .experiments-new:not(#\-) {
+        background-image: radial-gradient(at 100% 0, color-mix(in srgb, var(--pillar-health) 9%, transparent), transparent 60%);
+        background-color: transparent
+    }
+    .experiment-note > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
 }
 /*  components/insights/insights.css  */
 @scope (:root[data-theme=dark]) {
@@ -10447,6 +10677,17 @@
 @scope (:root[data-theme=dark]) {
     .on-this-day-list li:not(#\-) {
         border-bottom-color: var(--line, rgba(140, 160, 220, .18))
+    }
+    :scope .on-this-day:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    .on-this-day > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .on-this-day-list li:hover:not(#\-) {
+            background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent)
+        }
     }
 }
 /*  components/journal/year-pixels.css  */
@@ -15054,6 +15295,16 @@
         --danger-ink: var(--danger)
     }
 }
+/*  components/skeleton/zg-skeleton.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .aa-skeleton.zg-skeleton:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet) 22%, transparent)
+    }
+    :scope .aa-skeleton.zg-skeleton:not(#\-)::after {
+        background-image: linear-gradient(100deg, transparent 22%, color-mix(in srgb, var(--brand-cyan) 10%, transparent) 42%, color-mix(in srgb, var(--brand-violet) 16%, transparent) 50%, color-mix(in srgb, var(--brand-magenta) 9%, transparent) 58%, transparent 78%);
+        background-color: transparent
+    }
+}
 /*  components/sleep/energy-curve.css  */
 @scope (:root[data-theme=dark]) {
     .energy-curve-meaning:not(#\-) {
@@ -16043,6 +16294,25 @@
     .debt-key-min:not(#\-) {
         border-top-color: var(--text-meta,currentColor)
     }
+    .debt-planner-empty:not(#\-) {
+        background-image: radial-gradient(at 92% 12%,color-mix(in srgb,var(--pillar-wealth) 10%,transparent),transparent 62%);
+        background-color: transparent
+    }
+    .debt-plan-card:not(#\-) {
+        border-color: color-mix(in srgb,var(--pillar-wealth) 22%,var(--line,transparent));
+        background-image: linear-gradient(150deg,color-mix(in srgb,var(--brand-cyan) 7%,transparent),color-mix(in srgb,var(--brand-violet) 7%,transparent));
+        background-color: transparent;
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 75%,transparent),0 16px 34px -28px color-mix(in srgb,var(--brand-violet) 70%,transparent)
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .debt-plan-card:hover:not(#\-) {
+            border-color: color-mix(in srgb,var(--pillar-wealth) 50%,var(--line,transparent));
+            background-color: color-mix(in srgb,var(--brand-violet) 6%,transparent)
+        }
+    }
+    .debt-plan-order summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
 }
 /*  components/wealth/money-tools/money-tools.css  */
 @scope (:root[data-theme=dark]) {
@@ -16150,6 +16420,21 @@
     }
     .nwm-list small:not(#\-) {
         color: var(--text-meta,var(--muted))
+    }
+    .nwm-celebration:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 70%,transparent),0 18px 40px -30px color-mix(in srgb,var(--brand-violet) 80%,transparent);
+        background-image: radial-gradient(at 100% 0,color-mix(in srgb,var(--pillar-wealth) 12%,transparent),transparent 60%)
+    }
+    .nwm-symbol:not(#\-) {
+        color: var(--pillar-wealth-ink,var(--pillar-wealth))
+    }
+    .nwm-settings summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .nwm-list li:hover:not(#\-) {
+            background-color: color-mix(in srgb,var(--brand-violet) 5%,transparent)
+        }
     }
 }
 /*  components/wealth/spending/spending.css  */
@@ -16265,6 +16550,9 @@
     .wrapped-include:not(#\-) {
         color: #dde7f7
     }
+    .wrapped-reveal:focus-visible:not(#\-), .wrapped-include:has(input:focus-visible):not(#\-) {
+        outline-color: var(--cyan)
+    }
 }
 /*  components/zigchain-eco/zigchain-eco.css  */
 @scope (:root[data-theme=dark]) {
@@ -16304,6 +16592,18 @@
         .zeco-status:not(#\-), .zeco-practice-tag:not(#\-), .zeco-warning:not(#\-) {
             border-color: CanvasText
         }
+    }
+    .zeco-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 65%,transparent),0 16px 34px -28px color-mix(in srgb,var(--brand-violet) 70%,transparent);
+        background-image: linear-gradient(150deg,color-mix(in srgb,var(--brand-cyan) 5%,transparent),color-mix(in srgb,var(--brand-violet) 6%,transparent))
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .zeco-card:hover:not(#\-) {
+            border-color: color-mix(in srgb,var(--pillar-wealth) 45%,var(--line,transparent))
+        }
+    }
+    .zeco-card :is(a,button):focus-visible:not(#\-) {
+        outline-color: var(--cyan)
     }
 }
 /*  components/zigi/knock.css  */

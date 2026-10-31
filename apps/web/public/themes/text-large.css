@@ -727,6 +727,8 @@
 /*  components/card-options.css  */
 :where(:root[data-text=large]) .card-options-trigger:not(#\-) { font-size: calc(1.45rem * 1.125); }
 :where(:root[data-text=large]) .pin-to-today-status:not(#\-) { font-size: calc(.78rem * 1.125); }
+/*  components/charts/chart-look.css  */
+:where(:root[data-text=large]) svg.zg-chart text:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/charts/charts.css  */
 :root:where([data-text=large]) .chart-grid text:not(#\-), :root:where([data-text=large]) .chart-axis text:not(#\-) { font-size: calc(14px * 1.125); }
 :root:where([data-text=large]) .chart-tip:not(#\-) { font-size: calc(14px * 1.125); }

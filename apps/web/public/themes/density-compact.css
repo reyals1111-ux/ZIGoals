@@ -1663,6 +1663,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .first-week-celebrate:not(#\-) { row-gap: 4px; padding-top: 10px; padding-bottom: 10px; }
 :root:where([data-density=compact]) .first-week-steps:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 8px; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .first-week-steps li:not(#\-) { row-gap: 7.5px; padding-top: 3px; padding-bottom: 3px; }
+:root:where([data-density=compact]) .first-week-start > div:not(#\-) { row-gap: 10px; }
 /*  components/footer/site-footer.css  */
 :where(:root[data-density=compact]) .site-footer:not(#\-) { margin-top: 64px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .site-footer-inner:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: clamp(60px, 6.4cqw, 132px); padding-bottom: 56px; }
@@ -1884,6 +1885,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .challenge-days:not(#\-) { row-gap: 4px; }
 :where(:root[data-density=compact]) .challenge-days button:not(#\-) { row-gap: 0; padding-top: 4px; padding-bottom: 4px; }
 :where(:root[data-density=compact]) .challenge-round-weeks:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .challenge-intro>div:not(#\-) { row-gap: 10px; }
 /*  components/goals/goal-art-picker.css  */
 :where(:root[data-density=compact]) .goal-art-dialog:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .goal-art-card:not(#\-) { padding-top: 22px; padding-bottom: 18px; row-gap: 18px; }
@@ -2930,6 +2932,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .send-feedback-add input:not(#\-) { margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .send-feedback-details:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .send-feedback-details textarea:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/illustrations/placement.css  */
+@media (max-width: 479.98px) { :where(:root[data-density=compact]) .pillar-art-inline > .pillar-art:not(#\-) { margin-top: 0; margin-bottom: 6px; } }
 /*  components/import/bankfiles/bankfiles.css  */
 :where(:root[data-density=compact]) .bankfile-body:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .bankfile-preview:not(#\-) { row-gap: 10px; }
@@ -4965,7 +4969,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .debt-planner:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .debt-planner h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .debt-planner h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .debt-planner-empty:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .debt-planner-empty:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .debt-planner-empty-copy:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .debt-planner-empty p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .debt-planner-example:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .debt-planner-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 3px; }
@@ -5079,6 +5084,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .wrapped-include input:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .today-wrapped-card:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .today-wrapped-card h2:not(#\-), :where(:root[data-density=compact]) .today-wrapped-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .story-player.wrapped-player:not(#\-) { padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+@media (max-width: 767.98px) { :where(:root[data-density=compact]) .story-player.wrapped-player:not(#\-) { padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: max(10px, env(safe-area-inset-bottom)); } }
 /*  components/zigchain-eco/zigchain-eco.css  */
 :where(:root[data-density=compact]) .zeco:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .zeco h3:not(#\-), :where(:root[data-density=compact]) .zeco h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
