@@ -32,24 +32,22 @@ Full text: ADR-036 "Owner follow-up 1". Work until about Sun 1 Nov 11:00 UTC and
 
 ### Browser slot protocol
 One build or browser run at a time: every Playwright run and every rebuild of the clean worktree goes through
-`flock /tmp/claude-0/-home-user-ZIGoals/a64d6793-df8d-5435-a8c1-37163e44c609/scratchpad/browser.lock -c '<command>'`.
-The production server runs on 127.0.0.1:3101 from the clean worktree (scratchpad/ak-build, a detached checkout of a
-pushed commit); only the lead rebuilds it. Chromium, ≤ 2 workers, `timeout 900`.
+`flock -o /tmp/claude-0/-home-user-ZIGoals/a64d6793-df8d-5435-a8c1-37163e44c609/scratchpad/browser.lock -c '<command>'`
+(`-o`: the lock is never inherited by a server the command starts; a server started inside a plain `flock -c` held the
+lock and deadlocked F1/F2 once). The production server runs on 127.0.0.1:3101 from the clean worktree
+(scratchpad/ak-build, a detached checkout of a pushed commit), started with `setsid … < /dev/null`; only the lead
+rebuilds it (scratchpad/scripts/rebuild.sh <sha>). Chromium, ≤ 2 workers, `timeout 900`. Before pushing a lane's work,
+typecheck what is committed (a lane's edit once slipped into another lane's commit: e9b3a8d6).
 
-### Lanes (wave F; files each lane owns)
-- F0x leftovers lane: intermittents' tests and causes, M4, H113, M8, missing tests (ZI4, ZI8, ZI9, ZI14, G15, landing
-  skip link), the 'first Monday of the month' schedule, a visible sync status, 6.5 toast, 7.8 wealth polish, M42 — files
-  named in its brief.
-- F3 research: docs/research/session-ak/COMPETITORS_2.md only.
-- F4 ZIGChain: docs/research/session-ak/ZIGCHAIN_ECOSYSTEM.md, lib/zigchain-eco/*, components/zigchain-eco/*, the staking
-  validator chooser and staking read-only views (components/staking/validator*, lib/staking read-only modules), the
-  ecosystem directory files; egress-policy/PRIVACY entries proposed in its report (the lead applies them).
-- F5a goals & money: lib/debt-planner/*, lib/savings-challenges/*, lib/networth-milestones/*, components/goals/{debt,challenges}*.
-- F5b health: lib/supplements/*, components/health/supplements*, the progress-photo compare and measurement trends.
-- F5c habits: lib/habit-stacks*/, lib/habit-intentions/*, lib/habit-time-suggest/*, components/habits/{stack,intention,time-suggest}*.
-- F5d cross-pillar: lib/agenda/*, lib/ics/*, lib/wrapped/*, components/agenda/*, components/wrapped/*, the command palette.
-- F1 release review (fresh, read-only; docs/review/session-ak/RELEASE_REVIEW.md) and F2 journeys (fresh; tests/journeys/*).
-- Later waves: F6 visual (lead + helper), F7 landing, F8 perf/a11y, F9 ZIGi, F10 security delta, F11 Studio-4 proof.
+### State (31 Oct, 22:15 UTC)
+- Integrated and pushed: F3 (8c5f2d1a), F5 health/habits (c8afc7f1), F4 (920de5bf), F0 + F5 goals/money + F5
+  cross-pillar + BUILD list 2 #1 #3 #5 #8 (d2105402), F7 landing (7cadc0e5), F11 Studio-4 proof (a845d339), themes
+  (c9f317ae), Help + ADR rows (97e86674). New keys are wired with scratchpad/scripts/wire_key.py (all registries).
+- Running: F1 release review (docs/review/session-ak/RELEASE_REVIEW.md), F2 journeys (tests/journeys/*), F9 ZIGi
+  (lib/ai/**, components/ai/**), F10 security delta (3 read-only reviewers from 9401dcbb).
+- To do: /app/agenda weight line (measure + 10 %); F6 visual (lead + helper), F8 perf/a11y; fix every F1 Blocker/Major,
+  F2 JOURNEY_BUGS, F10 High/Medium; STATUS.md:472 says the X030 swap is in components/checklist/celebration-zigi.ts
+  (removed in e30840fe; the slot is components/zigi/studio4.ts) — correct it in the final STATUS; F12.
 
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
