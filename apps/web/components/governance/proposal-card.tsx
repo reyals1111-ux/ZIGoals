@@ -46,12 +46,12 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
       <h3 id={`${id}-title`}>{proposal.title}</h3>
       <p className="governance-deadline"><strong>{deadlineWords(proposal, now)}</strong>{proposal.votingEndTime ? <> · <time dateTime={proposal.votingEndTime}>{formatDateTime(proposal.votingEndTime)}</time></> : null}</p>
     </header>
-    <section className="governance-changes" aria-label="What it would change">
+    <section className="governance-changes" aria-label={`What it would change, proposal #${proposal.id}`}>{/* F8: unique per card (landmark-unique) */}
       <h4>What it would change</h4>
       <ul>{whatChanges(proposal.messageTypes).map(line => <li key={line}>{line}</li>)}</ul>
     </section>
     <Suspense fallback={null}><ProposalExtras proposal={proposal} chainId={chainId} now={now}/></Suspense>
-    {proposal.tallyKind !== 'none' && <section className="governance-tally" aria-label={live ? 'Votes so far' : 'Final votes'}>
+    {proposal.tallyKind !== 'none' && <section className="governance-tally" aria-label={`${live ? 'Votes so far' : 'Final votes'}, proposal #${proposal.id}`}>
       <h4>{live ? 'Votes so far' : 'Final votes'}</h4>
       {view.total > 0n ? <>
         <div className="governance-bar" role="img" aria-label={SHARES.map(([k, label]) => `${label} ${view.shares[k]}`).join(', ')}>
