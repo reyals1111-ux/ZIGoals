@@ -67,6 +67,23 @@ Status: **In progress** on `feature/session-ak-number-one`, from `main` `7000807
 - **Q15 — One push path (A3).** Turning on the new Notifications card on a device that holds an ADR-010 account subscription replaces it: the app deletes that subscription from the account Worker first, then registers the device path.
 - **Q16 — AF's later list numbering.** ADR-028 "Later options" in order: AFL1 REStake auto-compound, AFL2 feegrant (a funded ZIGoals key), AFL3 habit pacts (an escrow contract; governance whitelist), AFL4 memo attestations, AFL5 the xpub watch, AFL6 Guided Journeys and Focus Sessions, AFL7 a synced per-habit clock, AFL8 the Checklist extras sync (H10's `checklist` section, named by the owner), AFL9 Keplr Mobile signing through WalletConnect (named by the owner). ADR-028's OroSwap pool and vault shares line is recorded beside them as AFL-x.
 
+- **Q17 — Service workers in the browser suite.** The app registers `/sw.js` on idle for offline use, so the Playwright
+  configs block service workers by default (a worker would serve navigations and assets past `page.route`); the specs
+  that test the worker, push and offline use opt in with `test.use({serviceWorkers: 'allow'})`. Real users get the worker.
+- **Q18 — Where AFL9 lives.** The static staking guard allows signer calls in `lib/staking/execute.ts` and `lib/wallet.ts`
+  only, and the wallet files may not name a signing method. Keplr Mobile signing over WalletConnect is therefore a
+  KeplrSigner adapter in `execute.ts` (`walletConnectKeplr`, `WC_STAKING_METHODS`), used by the review sheet when the
+  browser has no Keplr; the pairing namespaces take the methods from there.
+- **Q19 — No `/push-sw.js` shim.** `/push-sw.js` stays byte-identical for ADR-010's account devices (its specs and the
+  ADR-014 names rule stay pinned); the shell does not register `/sw.js` on a device holding an account push record, and
+  turning on the device path removes that record first (Q15). This replaces the plan's shim reading in Q4.
+- **Q20 — Price alerts by push.** A push must always show a notification (A2), so there are no silent price-check wakes:
+  price alerts are checked by the service worker with the morning and evening notifications (prices from the app's own
+  `/api/market-quotes`, compared on the device; a crossing is queued for the app to record once).
+- **Q21 — WalletConnect frame sources.** Verify's frame hosts are written `https://verify.walletconnect.org/` and `.com/`
+  (a trailing "/" matches every path, as the bare origin does), the form the deploy smoke's "exact https pages" rule
+  accepts, so `scripts/lib/alpha-smoke.mjs` stays unchanged.
+
 ## Verify-then-do (the brief's items checked against `main` before building)
 Legend: **C** exists, complete (verify and polish) · **U** exists, unfinished (finish) · **N** new (build).
 
