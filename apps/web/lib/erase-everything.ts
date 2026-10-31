@@ -17,6 +17,8 @@ export const KNOWN_DATABASES = [
   'zigoals-music-byo-v1',
   // Session AK (Part 3): network actions asked for while offline, offered again on reconnect.
   'zigoals-offline-queue-v1',
+  // Session AK (Part 4.2): meal photos kept on this device, by the person's choice.
+  'zigoals-meal-photos-v1',
 ] as const;
 export const ERASE_PREFIX = 'zigoals';
 export const ERASE_CONFIRM = 'ERASE';

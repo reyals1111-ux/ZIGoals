@@ -7,8 +7,11 @@ import {readFormNumber} from '../../lib/decimal-input';
 import type {HealthPerform} from './aa-types';
 import './health-aa.css';
 import { plural } from '../../lib/plural';
+import {foodLine, matchIngredient, type IngredientMatch} from '../../lib/health-aa/recipe-match';
 
-type Row = ParsedIngredient & {foodId: string; gramsText: string; existing: HealthFood | null; keep: boolean};
+// Session AK (task 4.8): each row shows its match (exact, close or none) and the person can point it at any of their foods
+// or make it a new one; a row the person pointed stays put while its name is edited, others follow the name.
+type Row = ParsedIngredient & {foodId: string; newId: string; gramsText: string; existing: HealthFood | null; keep: boolean; match: IngredientMatch; chosen: boolean};
 const CODES: Record<string, string> = {INVALID_URL: 'That is not a web address the import can read.', NOT_HTTPS: 'Only https addresses are read.', PRIVATE_HOST: 'That address is not a public website.', REDIRECT: 'That page redirects, which the import never follows.', TOO_LARGE: 'That page is too large to read (1 MB).', TIMEOUT: 'That site did not answer in time.', WRONG_TYPE: 'That address is not a web page.', NO_RECIPE: 'No recipe data on that page (it needs schema.org Recipe JSON-LD). Paste the recipe text instead.', UPSTREAM: 'That site could not be reached.', TRY_LATER: 'Too many imports just now; try again in a minute.'};
 /**
  * N6: basic recipe import. Paste recipe text (parsed on the device) or give a URL (the server reads only that page's
@@ -20,9 +23,8 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
   const [mode, setMode] = useState<'paste' | 'url'>('paste'), [text, setText] = useState(''), [url, setUrl] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [parsed, setParsed] = useState<ParsedRecipe | null>(null), [rows, setRows] = useState<Row[]>([]), [title, setTitle] = useState(''), [servings, setServings] = useState('4');
   function show(p: ParsedRecipe) {
-    const existing = (name: string) => data.foods.find(f => f.name.toLowerCase() === name.toLowerCase()) ?? null;
     setParsed(p); setTitle(p.title); setServings(String(p.servings ?? 4)); setError('');
-    setRows(p.ingredients.map(i => { const e = existing(i.name); return {...i, foodId: e?.id ?? newHealthId(), gramsText: i.grams !== null ? String(i.grams) : e?.servingGrams ? String(e.servingGrams) : '', existing: e, keep: true}; }));
+    setRows(p.ingredients.map(i => { const match = matchIngredient(i.name, data.foods), e = match.food, newId = newHealthId(); return {...i, foodId: e?.id ?? newId, newId, gramsText: i.grams !== null ? String(i.grams) : e?.servingGrams ? String(e.servingGrams) : '', existing: e, keep: true, match, chosen: false}; }));
   }
   async function fromUrl() {
     setBusy(true); setError('');
@@ -57,9 +59,23 @@ export function RecipeImport({data, perform}: {data: HealthData; perform: Health
       <label className="field"><span>Recipe name</span><input type="text" value={title} maxLength={80} onChange={e => setTitle(e.target.value)} /></label>
       <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>
       {rows.length ? <p className="fine">{rows.length} {plural(rows.length, 'ingredient')} found{parsed.steps ? `, ${parsed.steps} ${plural(parsed.steps, 'step')} left aside` : ''}. Check each name and amount; an existing food of the same name is reused.</p> : <p role="alert">No ingredient lines were found. Put one ingredient on each line, with its amount (“200 g lentils” or “Lentils, 200 g”), then read it again.</p>}
-      <ul className="health-import-rows">{rows.map((r, i) => <li key={i}><input type="text" aria-label={`Ingredient ${i + 1} name`} value={r.name} maxLength={80} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, name: e.target.value} : x))} /><input type="text" inputMode="numeric" aria-label={`Ingredient ${i + 1} grams`} placeholder="g" value={r.gramsText} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, gramsText: e.target.value} : x))} /><small>{r.existing ? 'known' : 'new food'}</small><button type="button" className="quiet" aria-label={`${r.keep ? 'Drop' : 'Keep'} ingredient ${i + 1}`} aria-pressed={!r.keep} onClick={() => setRows(rows.map((x, j) => j === i ? {...x, keep: !x.keep} : x))}>{r.keep ? 'Drop' : 'Keep'}</button></li>)}</ul>
+      <ul className="health-import-rows">{rows.map((r, i) => <li key={i}><input type="text" aria-label={`Ingredient ${i + 1} name`} value={r.name} maxLength={80} onChange={e => setRows(rows.map((x, j) => { if (j !== i) return x; const name = e.target.value; if (x.chosen) return {...x, name}; const match = matchIngredient(name, data.foods); return {...x, name, match, existing: match.food, foodId: match.food?.id ?? x.newId}; }))} /><input type="text" inputMode="numeric" aria-label={`Ingredient ${i + 1} grams`} placeholder="g" value={r.gramsText} onChange={e => setRows(rows.map((x, j) => j === i ? {...x, gramsText: e.target.value} : x))} /><small>{r.existing ? 'known' : 'new food'}</small><MatchLine row={r} index={i} foods={data.foods} onPick={id => setRows(rows.map((x, j) => { if (j !== i) return x; const food = id ? data.foods.find(f => f.id === id) ?? null : null; return {...x, chosen: true, existing: food, foodId: food?.id ?? x.newId, gramsText: x.gramsText || (food?.servingGrams ? String(food.servingGrams) : '')}; }))} /><button type="button" className="quiet" aria-label={`${r.keep ? 'Drop' : 'Keep'} ingredient ${i + 1}`} aria-pressed={!r.keep} onClick={() => setRows(rows.map((x, j) => j === i ? {...x, keep: !x.keep} : x))}>{r.keep ? 'Drop' : 'Keep'}</button></li>)}</ul>
       <div className="actions"><button type="submit" className="primary" disabled={!rows.some(r => r.keep)}>Save recipe</button><button type="button" className="quiet" onClick={() => { setParsed(null); setRows([]); }}>Cancel</button></div>
       {error && <p role="alert">{error}</p>}
     </form>}
   </section>;
+}
+/** Session AK (task 4.8): what an ingredient line will become: the matched food (with its calories), or a new food whose
+ *  nutrition stays unknown; the picker offers the closest of the person's foods first, then all of them. */
+function MatchLine({row, index, foods, onPick}: {row: Row; index: number; foods: readonly HealthFood[]; onPick: (foodId: string | null) => void}) {
+  const how = row.chosen ? 'chosen' : row.existing ? row.match.how : 'none';
+  const others = foods.filter(f => !row.match.candidates.some(c => c.id === f.id)).slice(0, 300);
+  return <span className="health-import-match" style={{gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center'}}>
+    <small>{row.raw !== row.name ? `“${row.raw}” · ` : ''}{row.existing ? `${how === 'exact' ? 'Matches' : how === 'close' ? 'Close match, check it:' : 'Uses'} your food ${row.existing.name} (${foodLine(row.existing)})` : 'A new food: its nutrition stays unknown until you fill it in'}</small>
+    <select aria-label={`Food for ingredient ${index + 1}`} style={{minHeight: 44}} value={row.existing?.id ?? ''} onChange={e => onPick(e.target.value || null)}>
+      <option value="">A new food</option>
+      {row.match.candidates.length > 0 && <optgroup label="Closest">{row.match.candidates.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup>}
+      {others.length > 0 && <optgroup label="All my foods">{others.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup>}
+    </select>
+  </span>;
 }

@@ -42,6 +42,10 @@ import {BUDGETS} from '../budgets/schema';
 import {TARGET_ALLOCATION} from '../allocation/target';
 import {CSV_MAPPINGS} from '../csv/templates/saved';
 import {AUTO_RULES} from '../auto-rules/schema';
+import {FOOD_SCANS} from '../food-scans/schema';
+import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
+import {GROCERY_RECORD} from '../grocery/schema';
+import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {FOCUS_SESSIONS} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS} from '../guided/schema';
 import {RECEIPTS} from '../portfolio/receipts';
@@ -106,6 +110,11 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('targetAllocation', 'Target mix', 'Goals and Wealth', TARGET_ALLOCATION),
   dev('csvMappings', 'Saved CSV column matches', 'Goals and Wealth', CSV_MAPPINGS),
   dev('autoRules', 'Habit rules', 'Habits', AUTO_RULES),
+  // Session AK Part 4: Health-describing, so restored only with the Health choice.
+  dev('foodScans', 'Barcodes you scanned', 'Health', FOOD_SCANS, true),
+  dev('nutrientExtras', 'Extra nutrients', 'Health', NUTRIENT_EXTRAS_RECORD, true),
+  dev('grocery', 'Grocery ticks and pantry', 'Health', GROCERY_RECORD, true),
+  dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
   dev('focusSessions', 'Focus sessions', 'Today and Life', FOCUS_SESSIONS),
   dev('guidedJourneys', 'Guided journeys', 'Today and Life', GUIDED_JOURNEYS),
   dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),

@@ -36,7 +36,10 @@ export function ExportEverything() {
       const collected = collectEverything(texts, {now, version: process.env.NEXT_PUBLIC_APP_VERSION ?? '', commit: process.env.NEXT_PUBLIC_APP_COMMIT ?? '', localSimulation, aiChats});
       // Session AA-Cloud: the goals' vision photos this device keeps (none in the Showcase, which keeps no photos).
       const images = kept || isShowcase() ? [] : await import('../lib/vision/store').then(async ({listImages}) => Promise.all((await listImages(getAccountScope() ?? 'local')).map(async i => ({id: i.id, type: i.type, bytes: new Uint8Array(await i.blob.arrayBuffer())})))).catch(() => []);
-      const photos = await import('../lib/health-aa/photos').then(m => m.exportPhotoEntries(now)).catch(() => []); // Session AA-Local: the progress photos as files (device-only; B7)
+      const progressPhotos = await import('../lib/health-aa/photos').then(m => m.exportPhotoEntries(now)).catch(() => []); // Session AA-Local: the progress photos as files (device-only; B7)
+      // Session AK (4.2): the meal photos the person chose to keep, as files beside them.
+      const mealPhotos = await Promise.all([import('../lib/health-aa/photos'), import('../lib/meal-estimates/photos')]).then(([a, m]) => m.exportMealPhotoEntries(a.photoScope(), now)).catch(() => []);
+      const photos = [...progressPhotos, ...mealPhotos];
       const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
       const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
       const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
