@@ -42,6 +42,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   budgets: ['Monthly category budgets', 'Wealth'],
   targetAllocation: ['Your target mix', 'Wealth'],
   csvMappings: ['Saved CSV column matches', 'Wealth'],
+  backupReminder: ['Backup reminder', 'Settings'],
   focusSessions: ['Focus sessions', 'Journey'],
   guidedJourneys: ['Guided journeys', 'Journey'],
   exchanges: ['Exchanges read (balances only)', 'Wealth'],

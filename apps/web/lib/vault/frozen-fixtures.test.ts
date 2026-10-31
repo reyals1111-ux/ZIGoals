@@ -29,6 +29,7 @@ import {BUDGETS_KEY} from '../budgets/schema';
 import {TARGET_ALLOCATION_KEY} from '../allocation/target';
 import {CSV_MAPPINGS_KEY} from '../csv/templates/saved';
 import {AUTO_RULES_KEY} from '../auto-rules/schema';
+import {BACKUP_REMINDER_KEY} from '../backup-reminder';
 import {WORKOUTS_KEY} from '../workouts/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {UI_PREFS_KEY} from '../ab-design-keys';
@@ -227,6 +228,8 @@ export function frozenFixture() {
   checks.push({key: CSV_MAPPINGS_KEY, module: './csv/templates/saved', spec: 'CSV_MAPPINGS', expect: {'mappings.0.name': 'Fictional bank'}});
   records[AUTO_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', source: 'steps', comparator: 'at-least', threshold: 8000, habitId: '00000000-0000-4000-8000-000000000001'}], applied: []});
   checks.push({key: AUTO_RULES_KEY, module: './auto-rules/schema', spec: 'AUTO_RULES', expect: {'rules.0.threshold': 8000}});
+  records[BACKUP_REMINDER_KEY] = JSON.stringify({version: 1, savedOn: '2026-10-01', askedOn: '2026-10-20'});
+  checks.push({key: BACKUP_REMINDER_KEY, module: './backup-reminder', spec: 'BACKUP_REMINDER', expect: {savedOn: '2026-10-01'}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -236,7 +239,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

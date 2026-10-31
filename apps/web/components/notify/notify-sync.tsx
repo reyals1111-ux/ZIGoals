@@ -61,6 +61,14 @@ export function NotifySync() {
       } catch { /* no queue on this device */ }
     };
     window.addEventListener('online', onOnline);
+    // Session AK (8.9): once a month, while there are records, a calm reminder to keep a copy (the person marks it).
+    idle(() => { if (!active || isShowcase()) return; void Promise.all([import('../../lib/backup-reminder'), import('../../lib/device-record'), import('../../lib/local-date')]).then(([b, d, l]) => {
+      const storage = getAppStorage(), today = l.localDate(), record = d.readDeviceRecord(storage, b.BACKUP_REMINDER).data;
+      const hasRecords = Object.keys(window.localStorage).some(k => /zigoals:(habits|health|platform):v1$/.test(k));
+      if (!b.backupDue(record, today, hasRecords)) return;
+      try { d.updateDeviceRecord(storage, b.BACKUP_REMINDER, x => ({...x, askedOn: today})); } catch { return; }
+      showToast({message: 'A month since your last copy, as far as ZIGoals knows. Export everything keeps your records safe outside this browser.', link: {href: '/app/settings/data#dh-copies', label: 'Keep a copy'}});
+    }).catch(() => {}); });
     // Session AK (A6): once per visit, if a module is nearly full, say so calmly with what to do.
     idle(() => { if (!active || headroomShown) return; headroomShown = true; void import('../../lib/storage-headroom').then(m => { const line = m.headroomMessage(m.moduleUse(window.localStorage)); if (line && active) showToast({message: line, link: {href: '/app/settings/data', label: 'Your data'}}); }).catch(() => {}); });
     const every = window.setInterval(() => { void refresh(); }, 10 * 60_000);

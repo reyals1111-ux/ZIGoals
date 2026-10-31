@@ -12,6 +12,7 @@ import {BUDGETS_KEY} from '../budgets/schema';
 import {TARGET_ALLOCATION_KEY} from '../allocation/target';
 import {CSV_MAPPINGS_KEY} from '../csv/templates/saved';
 import {AUTO_RULES_KEY} from '../auto-rules/schema';
+import {BACKUP_REMINDER_KEY} from '../backup-reminder';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
@@ -118,6 +119,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   budgets: BUDGETS_KEY,
   targetAllocation: TARGET_ALLOCATION_KEY,
   csvMappings: CSV_MAPPINGS_KEY,
+  // Session AK Part 8.9: the person's own 'I saved a copy' mark and the monthly reminder's switch.
+  backupReminder: BACKUP_REMINDER_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
   guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).

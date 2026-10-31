@@ -36,7 +36,6 @@ import {MEAL_ESTIMATES} from '../meal-estimates/schema';
 import {TASKS} from '../tasks/schema';
 import {READING_SOURCES} from '../wealth-sources/schema';
 import {PRICE_ALERTS} from '../price-alerts/schema';
-import {NOTIFY_PREFS} from '../notify/prefs';
 import {MUSIC_MIX} from '../music/mix-store';
 import {BILLS} from '../bills/schema';
 import {BUDGETS} from '../budgets/schema';
@@ -100,8 +99,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
   dev('readingSources', 'Where wealth readings came from', 'Goals and Wealth', READING_SOURCES),
   dev('priceAlerts', 'Price alerts', 'Goals and Wealth', PRICE_ALERTS),
-  // Session AK: notification choices, the sound mix, bills, budgets, the target mix, saved CSV matches, habit rules.
-  dev('notify', 'Notification choices', 'Today and Life', NOTIFY_PREFS),
+  // Session AK: the sound mix, bills, budgets, the target mix, saved CSV matches, habit rules.
   dev('musicMix', 'Sound mix and timer', 'Today and Life', MUSIC_MIX),
   dev('bills', 'Bills', 'Goals and Wealth', BILLS),
   dev('budgets', 'Budgets', 'Goals and Wealth', BUDGETS),
