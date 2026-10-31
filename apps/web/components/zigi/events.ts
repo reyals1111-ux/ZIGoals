@@ -59,6 +59,8 @@ export function transition(current: ZigiState, event: ZigiEvent, context: ZigiCo
     case 'speaking': return 'speaking';
     case 'idle': return current === 'sleepy' || current === 'listening' || current === 'speaking' || current === 'attention' ? restState(context) : null;
     case 'sleepy': return context.open && current === 'idle' ? 'sleepy' : null;
+    // Session AK Part 12: a reaction's clip plays over the current state (alive.ts); the state stays.
+    case 'reaction': return null;
   }
 }
 /** The state a single event maps to from idle with the panel open and the greeting still due (the manifest test's view). */

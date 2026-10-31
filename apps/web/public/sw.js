@@ -81,7 +81,11 @@ const OFFLINE = VERSION !== 'legacy' && /^[0-9a-z-]{4,40}$/.test(VERSION);
 const PAGES = 'zigoals-pages-' + VERSION, STATIC = 'zigoals-static-v1', KEEP = [PAGES, STATIC];
 const MAX_PAGES = 80, MAX_STATIC = 400, NETWORK_MS = 3500;
 const NOTIFY_DB = 'zigoals-notify-v1', ACTIONS_DB = 'zigoals-notify-actions-v1';
-const ICON = '/icons/zigoals-192.png', BADGE = '/icons/zigoals-badge-96.png';
+// The notification's art (Session AK Part 12, Studio-4 preparation): ONE slot that every notification below reads. Studio-4's
+// push images replace these two paths (scripts/zigi/import-studio.mjs PUSH_ART; lib/zigi-studio4/push-art.test.ts keeps
+// them equal); today the app icon and the monochrome badge.
+const PUSH_ART = {icon: '/icons/zigoals-192.png', badge: '/icons/zigoals-badge-96.png'};
+const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 
 self.addEventListener('install', event => {
   // The first worker takes over at once; a later one waits for the page's "Reload" (or for every window to close).

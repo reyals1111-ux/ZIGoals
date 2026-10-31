@@ -35,9 +35,28 @@ export const SEMANTIC_EVENTS = Object.freeze([
   'routine_finished', 'level_up', 'achievement_unlocked',
   // The AI's one hint per reply, from a fixed list (lib/ai/emotion-hint.ts); never a celebration, never a nudge.
   'hint_insight', 'hint_curious', 'hint_encouraging', 'hint_empathetic', 'hint_surprised', 'hint_confused',
+  // Session AK Part 12 (Studio-4 preparation): the reactions' own moments. Each plays a Studio-4 reaction clip over the
+  // current state once its art has landed (the manifest's reactionTriggers name it); until then each is only noted, so
+  // ZIGi looks exactly as before. connection_lost/connection_restored above already exist.
+  'assistant_acknowledged', 'assistant_unsure', 'assistant_working', 'insight_consistent', 'checkin_low', 'checkin_milestone', 'journey_step', 'action_undone', 'wrapup_finished', 'feedback_received', 'journal_reflecting', 'companion_hidden',
 ] as const);
 export type SemanticEventType = (typeof SEMANTIC_EVENTS)[number];
 export type SemanticEvent = {readonly type: SemanticEventType};
+/** Session AK Part 12: the Studio-4 reaction events. The machine never changes state for one (`reaction`); the clip plays over the current state. */
+export const REACTION_EVENTS: ReadonlySet<SemanticEventType> = new Set(['assistant_acknowledged', 'assistant_unsure', 'assistant_working', 'insight_consistent', 'checkin_low', 'checkin_milestone', 'journey_step', 'action_undone', 'wrapup_finished', 'feedback_received', 'journal_reflecting', 'companion_hidden']);
+/** The reactions that celebrate: host-validated only, never on a sensitive screen, inside the day's celebration cap. */
+export const CELEBRATING_REACTIONS: ReadonlySet<SemanticEventType> = new Set(['insight_consistent', 'checkin_milestone', 'journey_step', 'wrapup_finished']);
+/** The reactions that belong to the conversation's own flow: never rate-limited (like listening and speaking). */
+const FLOW_REACTIONS: ReadonlySet<SemanticEventType> = new Set(['assistant_acknowledged', 'assistant_unsure', 'assistant_working']);
+/** A reaction does not repeat inside this window (the same reaction, per controller). */
+export const REACTION_COOLDOWN_MS = 30_000;
+/**
+ * The reactions that follow a signal the chat already sends (the real moment, decided here so the chat chunk imports
+ * nothing new): a reply that needs a choice or could not be answered is unsure; reading the person's records is work.
+ */
+export const FOLLOW_UPS: Readonly<Partial<Record<SemanticEventType, SemanticEventType>>> = {
+  ambiguity: 'assistant_unsure', not_understood: 'assistant_unsure', hint_curious: 'assistant_unsure', hint_confused: 'assistant_unsure', assistant_reading_records: 'assistant_working',
+};
 /** Success events: they play only through `dispatchValidated` (the host validated the fact). */
 /** The meaningful validated moments that celebrate (D5); every other success is small. */
 /** Proactive nudges: the knock. One per session, none after a dismissal, none in quiet hours, none while typing. */
@@ -67,10 +86,11 @@ export const EVENT_TO_MACHINE: Readonly<Record<SemanticEventType, ZigiEvent | nu
   habit_completed: 'success', health_log_recorded: 'success', card_accepted: 'success',
   all_habits_done: 'action-applied', goal_milestone_reached: 'action-applied', goal_funded: 'action-applied', challenge_milestone: 'action-applied', meditation_finished: 'action-applied', first_sleep_logged: 'action-applied', routine_finished: 'action-applied', level_up: 'action-applied', achievement_unlocked: 'action-applied', streak_milestone: 'streak-milestone',
   hint_insight: 'reply-done', hint_curious: 'ambiguity', hint_encouraging: 'encourage', hint_empathetic: 'careful', hint_surprised: 'surprise', hint_confused: 'not-understood',
+  assistant_acknowledged: 'reaction', assistant_unsure: 'reaction', assistant_working: 'reaction', insight_consistent: 'reaction', checkin_low: 'reaction', checkin_milestone: 'reaction', journey_step: 'reaction', action_undone: 'reaction', wrapup_finished: 'reaction', feedback_received: 'reaction', journal_reflecting: 'reaction', companion_hidden: 'reaction',
 };
 /** The validated-only events (D4): every celebration plus the three small successes. Derived from the machine table so each name is written once. */
 export const CELEBRATIONS: ReadonlySet<SemanticEventType> = new Set((Object.keys(EVENT_TO_MACHINE) as SemanticEventType[]).filter(e => EVENT_TO_MACHINE[e] === 'action-applied' || e === 'streak_milestone'));
-export const VALIDATED_ONLY: ReadonlySet<SemanticEventType> = new Set([...CELEBRATIONS, 'habit_completed', 'health_log_recorded', 'card_accepted']);
+export const VALIDATED_ONLY: ReadonlySet<SemanticEventType> = new Set([...CELEBRATIONS, 'habit_completed', 'health_log_recorded', 'card_accepted', ...CELEBRATING_REACTIONS]);
 /** The state a machine event leads to from idle (for the rules: priority, cooldown, sensitive screens). */
 const EVENT_STATE: Readonly<Record<ZigiEvent, string>> = {
   open: 'greeting', close: 'wave-goodbye', 'reply-pending': 'thinking', 'reply-streaming': 'speaking', 'reply-done': 'insight', 'reply-with-proposals': 'presenting', 'action-applied': 'celebrate', error: 'error', listening: 'listening', speaking: 'speaking', idle: 'idle', sleepy: 'sleepy',
@@ -78,6 +98,8 @@ const EVENT_STATE: Readonly<Record<ZigiEvent, string>> = {
   offline: 'offline', online: 'idle', 'reminder-due': 'reminder', 'model-loading': 'loading-model', 'model-ready': 'idle', success: 'success', surprise: 'surprised',
   // Phase 2 (P2.5): not connected yet asks for attention at rest; set up, ZIGi rests.
   attention: 'attention', connected: 'idle',
+  // Session AK Part 12: a reaction keeps the state (its clip plays over it); handled before this table is read.
+  reaction: 'idle',
 };
 type Rule = {code: string; priority: number; cooldownSeconds: number; interruptibility: 'anytime' | 'after_settle' | 'never'; sensitiveContextAllowed: boolean; markers: {name: string; frame: number; kind: string}[]};
 const RULES = rules.states as Record<string, Rule>;
@@ -94,16 +116,18 @@ export type Decision = {
   state: string; code: string;
   /** The machine event to emit, or null when the controller held, refused or only noted the signal. */
   event: ZigiEvent | null;
-  reason: 'semantic_event' | 'validated_event' | 'needs_host_validation' | 'cooldown' | 'current_hold' | 'priority_hold' | 'nudge_budget_spent' | 'nudge_suppressed_after_dismissal' | 'nudge_suppressed_quiet_hours' | 'nudge_suppressed_while_typing' | 'sensitive_screen' | 'rate_limited' | 'celebration_cap' | 'dismissed' | 'typing' | 'typing_stopped' | 'noted' | 'replay';
+  reason: 'semantic_event' | 'validated_event' | 'needs_host_validation' | 'cooldown' | 'current_hold' | 'priority_hold' | 'nudge_budget_spent' | 'nudge_suppressed_after_dismissal' | 'nudge_suppressed_quiet_hours' | 'nudge_suppressed_while_typing' | 'sensitive_screen' | 'rate_limited' | 'celebration_cap' | 'dismissed' | 'typing' | 'typing_stopped' | 'noted' | 'replay' | 'reaction';
   mode: 'animated' | 'static' | 'hidden';
   playId: number | null; loop: 'loop' | 'once'; seconds: number;
   markers: readonly {name: string; frame: number; seconds: number}[];
+  /** Session AK Part 12: the reaction event whose Studio-4 clip plays now over the current state, or null. */
+  reaction: SemanticEventType | null;
 };
 export type ControllerOptions = {quietHours?: readonly [number, number]; maxNudgesPerSession?: number; hourOfDay?: (now: number) => number; dayOf?: (now: number) => string; celebrationsPerDay?: number};
 export class ZigiController {
   #current: string = 'idle'; #until = 0; #last = new Map<string, number>(); #prefs: Preferences = {motion: 'full', hidden: false, sensitive: false};
   #nudges = 0; #dismissed = false; #typing = false; #quiet: readonly [number, number]; #maxNudges: number; #playSeq = 0; #fired = new Set<string>(); #hour: (now: number) => number; #day: (now: number) => string;
-  #celebrations = {day: '', count: 0}; #perDay: number; #lastReactionAt = -Infinity;
+  #celebrations = {day: '', count: 0}; #perDay: number; #lastReactionAt = -Infinity; #reactionArt = new Set<SemanticEventType>();
   constructor(options: ControllerOptions = {}) {
     this.#quiet = options.quietHours ?? DEFAULT_QUIET;
     this.#maxNudges = options.maxNudgesPerSession ?? 1;
@@ -115,15 +139,24 @@ export class ZigiController {
     if (!p || typeof p !== 'object' || Object.keys(p).some(k => !['motion', 'hidden', 'sensitive'].includes(k)) || (Object.hasOwn(p, 'motion') && !['full', 'reduced', 'off'].includes(p.motion as string)) || (Object.hasOwn(p, 'hidden') && typeof p.hidden !== 'boolean') || (Object.hasOwn(p, 'sensitive') && typeof p.sensitive !== 'boolean')) throw new TypeError('INVALID_PREFERENCE');
     this.#prefs = {...this.#prefs, ...p};
   }
+  /**
+   * Session AK Part 12: the reaction events whose Studio-4 clip has landed for the skin shown (the alive chunk reads them
+   * from the manifest). Only these play; every other reaction is noted and changes nothing (today: none has art).
+   */
+  setReactionArt(events: Iterable<unknown>): void {
+    const next = new Set<SemanticEventType>();
+    for (const e of events) { if (!isSemanticEvent(e) || !REACTION_EVENTS.has(e)) throw new TypeError('INVALID_REACTION'); next.add(e); }
+    this.#reactionArt = next;
+  }
   /** The host's state machine told the controller where ZIGi is now (it rests after one-shots on its own timers). */
   sync(state: string): void { if (state !== this.#current) { this.#current = state; this.#until = 0; } }
   #inQuietHours(now: number): boolean { const h = this.#hour(now), [s, e] = this.#quiet; return s <= e ? h >= s && h < e : h >= s || h < e; }
-  #result(state: string, reason: Decision['reason'], now: number, event: ZigiEvent | null, newPlay: boolean): Decision {
+  #result(state: string, reason: Decision['reason'], now: number, event: ZigiEvent | null, newPlay: boolean, reaction: SemanticEventType | null = null): Decision {
     const spec = ZIGI_MANIFEST.states[state] ?? ZIGI_MANIFEST.states.idle!, rule = ruleFor(state);
     if (newPlay) { this.#playSeq += 1; this.#current = state; this.#until = spec.kind === 'one-shot' ? now + spec.durationMs : 0; }
     const mode = this.#prefs.hidden ? 'hidden' : this.#prefs.motion !== 'full' ? 'static' : 'animated';
     return Object.freeze({state, code: spec.code, event, reason, mode, playId: newPlay ? this.#playSeq : this.#current === state && this.#playSeq ? this.#playSeq : null, loop: spec.kind === 'loop' ? 'loop' : 'once', seconds: spec.durationMs / 1000,
-      markers: Object.freeze(rule.markers.filter(m => m.kind !== 'poster').map(m => Object.freeze({name: m.name, frame: m.frame, seconds: (m.frame - 1) / rules.fps})))});
+      markers: Object.freeze(rule.markers.filter(m => m.kind !== 'poster').map(m => Object.freeze({name: m.name, frame: m.frame, seconds: (m.frame - 1) / rules.fps}))), reaction});
   }
   /** Host-validated success events come through here; a plain dispatch of them is refused. */
   dispatchValidated(raw: unknown, now = Date.now()): Decision {
@@ -154,6 +187,7 @@ export class ZigiController {
   #select(event: SemanticEvent, now: number, validated: boolean): Decision {
     let machine = EVENT_TO_MACHINE[event.type];
     if (machine === null) return this.#result(this.#current, 'noted', now, null, false);
+    if (machine === 'reaction') return this.#reaction(event.type, now);
     if (NUDGES.has(event.type)) { const nudge = this.nudgeAllowed(now); if (nudge !== 'allowed') return this.#result(this.#current, nudge, now, null, false); }
     // Phase 2 (P2.5, found by the simulated-day spec): a knock consumes its nudge the moment it is allowed, whether or not
     // the clip is then held (the knock itself already shows); a held reminder used to leave the budget untouched.
@@ -191,6 +225,29 @@ export class ZigiController {
     if (CELEBRATIONS.has(event.type) && (target === 'celebrate' || target === 'proud')) this.#celebrations.count += 1;
     const reason: Decision['reason'] = CELEBRATIONS.has(event.type) && target === 'success' ? 'celebration_cap' : validated ? 'validated_event' : 'semantic_event';
     return this.#result(target, reason, now, machine, true);
+  }
+  /**
+   * Session AK Part 12: a reaction plays its Studio-4 clip over the current state, or nothing. Without its art it is
+   * noted only: no cooldown, rate limit or celebration is spent, so today's ZIGi is unchanged. With art: a celebrating
+   * reaction (validated only, checked before here) is refused on a sensitive screen and counts towards the day's cap;
+   * a settling one-shot (a celebration, an error) holds it; the same reaction waits REACTION_COOLDOWN_MS; reactions
+   * outside the conversation's flow keep the REACTION_GAP_MS between them.
+   */
+  #reaction(type: SemanticEventType, now: number): Decision {
+    if (!this.#reactionArt.has(type)) return this.#result(this.#current, 'noted', now, null, false);
+    const celebrating = CELEBRATING_REACTIONS.has(type);
+    if (this.#prefs.sensitive && celebrating) return this.#result(this.#current, 'sensitive_screen', now, null, false);
+    if (SETTLES.has(this.#current) && now < this.#until) return this.#result(this.#current, 'priority_hold', now, null, false);
+    if (now - (this.#last.get(`reaction:${type}`) ?? -Infinity) < REACTION_COOLDOWN_MS) return this.#result(this.#current, 'cooldown', now, null, false);
+    if (!FLOW_REACTIONS.has(type) && now - this.#lastReactionAt < REACTION_GAP_MS) return this.#result(this.#current, 'rate_limited', now, null, false);
+    if (celebrating) {
+      const day = this.#day(now); if (this.#celebrations.day !== day) this.#celebrations = {day, count: 0};
+      if (this.#celebrations.count >= this.#perDay) return this.#result(this.#current, 'celebration_cap', now, null, false);
+      this.#celebrations.count += 1;
+    }
+    this.#last.set(`reaction:${type}`, now);
+    if (!FLOW_REACTIONS.has(type)) this.#lastReactionAt = now;
+    return this.#result(this.#current, 'reaction', now, null, false, type);
   }
   /** True the first time a marker fires for a given play; a replay or seeking back never re-fires it (no double knock). */
   markerFired(playId: number, name: string): boolean {

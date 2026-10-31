@@ -7,9 +7,10 @@ import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {isSensitiveScreen} from '../ai/use-sensitive-screen';
 import {zigiEvents, zigiFrames, zigiIdleVariant, zigiSignals, zigiState, type ZigiFrame, type ZigiFrames, type ZigiSignal} from './bus';
 import {startZigiMachine} from './events';
-import {isSemanticEvent, ZigiController, type Decision} from './semantic';
+import {FOLLOW_UPS, isSemanticEvent, REACTION_EVENTS, ZigiController, type Decision, type SemanticEventType} from './semantic';
 import {idlePool, nextGapMs, pickIdle, variantFrame, type IdleHistory, type IdleVariant} from './idle';
-import {filesFor, skinOf, ZIGI_STATES, type Skin} from './manifest';
+import {filesFor, reactionArtOf, skinOf, ZIGI_STATES, type Skin, type StateFiles} from './manifest';
+import {BASE, pickVariant, poolForState, variantPools, type VariantPool} from './variants';
 import {motionAllowed, supportsAnimatedWebp, watchMotion, zigiAnimation} from './motion';
 
 /**
@@ -35,14 +36,41 @@ let lastDecision: Decision | null = null;
 export const lastZigiDecision = () => lastDecision;
 /** Whether the alive chunk runs on this page (the controller then hears every signal); before that a knock counts its own nudge. */
 export const zigiAliveRunning = () => started !== null;
-function connectController(): () => void {
-  const handle = (signal: ZigiSignal) => {
-    if (!isSemanticEvent(signal.type)) return;
+/**
+ * Session AK Part 12 (Studio-4 preparation): a clip shown in place of a state's own for one play, a variant (variants.ts)
+ * or a reaction (semantic.ts). It ends when the state changes or, for a reaction, when its clip has played. With no
+ * Studio-4 art there is never one, so the frames published are exactly today's.
+ */
+let override: {state: string; frame: ZigiFrame; timer: number | null} | null = null;
+let republish: () => void = () => undefined;
+function setOverride(next: {state: string; frame: ZigiFrame; ms: number} | null): void {
+  if (override?.timer) window.clearTimeout(override.timer);
+  if (!next && !override) return;
+  override = next ? {state: next.state, frame: next.frame, timer: next.ms > 0 ? window.setTimeout(() => { override = null; republish(); }, next.ms) : null} : null;
+  republish();
+}
+const overrideFrame = (files: StateFiles, apng: boolean, skin: Skin): ZigiFrame => ({...variantFrame({id: '', files, accent: false, durationMs: 0, weight: 0}, apng, {x1: skin.sizes['1x'].file, x2: skin.sizes['2x'].file}), override: true});
+/** The reaction events whose Studio-4 clip has landed for this skin (none today). */
+const reactionArt = (skin: Skin): SemanticEventType[] => reactionArtOf(skin).map(r => r.event).filter((e): e is SemanticEventType => isSemanticEvent(e) && REACTION_EVENTS.has(e));
+function connectController(skin: () => Skin = () => skinOf(null), apng: () => boolean = () => false): () => void {
+  const decide = (type: SemanticEventType, validated: boolean) => {
     zigiController.setPreferences({motion: motionAllowed() ? 'full' : 'reduced', sensitive: isSensitiveScreen()});
     zigiController.sync(zigiState.get());
-    const decision = signal.validated ? zigiController.dispatchValidated({type: signal.type}) : zigiController.dispatch({type: signal.type});
+    const decision = validated ? zigiController.dispatchValidated({type}) : zigiController.dispatch({type});
     lastDecision = decision;
     if (decision.event) zigiEvents.emit(decision.event);
+    // A reaction the controller allowed plays its clip over the current state (only once its art has landed).
+    if (decision.reaction && decision.mode === 'animated') {
+      const found = reactionArtOf(skin()).find(r => r.event === decision.reaction);
+      if (found) setOverride({state: zigiState.get(), frame: overrideFrame(found.clip.files, apng(), skin()), ms: found.clip.durationMs > 0 ? found.clip.durationMs : 2000});
+    }
+  };
+  const handle = (signal: ZigiSignal) => {
+    if (!isSemanticEvent(signal.type)) return;
+    decide(signal.type, signal.validated);
+    // Session AK Part 12: the reaction that follows a signal the chat already sends (an unsure reply, records read).
+    const follow = FOLLOW_UPS[signal.type];
+    if (follow) decide(follow, false);
   };
   const off = zigiSignals.on(handle);
   const offState = zigiState.subscribe(() => zigiController.sync(zigiState.get()));
@@ -50,6 +78,11 @@ function connectController(): () => void {
 }
 const isTextField = (target: EventTarget | null) => target instanceof HTMLElement && (target.matches('input, textarea, select') || target.isContentEditable);
 function framesFor(skin: Skin, apng: boolean): ZigiFrames {
+  const table = baseFrames(skin, apng);
+  if (override && table[override.state]) table[override.state] = override.frame;
+  return table;
+}
+function baseFrames(skin: Skin, apng: boolean): ZigiFrames {
   const motion = motionAllowed(), table: ZigiFrames = {};
   for (const state of ZIGI_STATES) {
     const {files} = filesFor(skin, state);
@@ -99,6 +132,27 @@ function startRotation(skinOf_: () => Skin, apngOf: () => boolean, random: () =>
   schedule();
   return () => { clear(); if (typingTimer) window.clearTimeout(typingTimer); offState(); offMotion(); document.removeEventListener('keydown', onKey, true); document.removeEventListener('visibilitychange', onVisibility); };
 }
+/**
+ * Session AK Part 12: the variant rotation (variants.ts) as each play of a pooled state starts: speaking, listening,
+ * thinking and the small celebration play their own clip, or now and then a Studio-4 variant, only under Full animation
+ * with motion allowed. A pool without landed variants plays its own clip: today, every pool.
+ */
+function startVariants(skin: () => Skin, apng: () => boolean, random: () => number = Math.random): () => void {
+  const history: Partial<Record<VariantPool, string>> = {};
+  let previous = zigiState.get();
+  const onState = () => {
+    const state = zigiState.get(); if (state === previous) return; previous = state;
+    if (override && override.state !== state) setOverride(null);
+    const pool = poolForState(state); if (!pool) return;
+    const variants = variantPools(skin())[pool]; if (!variants.length) return;
+    if (zigiAnimation() !== 'full' || !motionAllowed()) return;
+    const pick = pickVariant(variants, history[pool] ?? null, random());
+    history[pool] = pick ? pick.id : BASE;
+    if (pick) setOverride({state, frame: overrideFrame(pick.files, apng(), skin()), ms: 0});
+  };
+  const off = zigiState.subscribe(onState);
+  return () => { off(); setOverride(null); };
+}
 /** Tests only: a fixed random number in the tab's session storage makes the rotation's picks and gaps exact. */
 export const TEST_RANDOM_KEY = 'zigoals:zigi:test-random';
 function randomSource(): (() => number) | undefined {
@@ -109,8 +163,9 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   options = {random: options.random ?? randomSource()};
   let apng = false;
   const skin = () => skinOf(readZigiLook(getAppStorage()).skin);
-  const publish = () => zigiFrames.set(framesFor(skin(), apng));
-  const stopMachine = startZigiMachine(), stopController = connectController();
+  const publish = () => { const now = skin(); zigiController.setReactionArt(reactionArt(now)); zigiFrames.set(framesFor(now, apng)); };
+  republish = publish;
+  const stopMachine = startZigiMachine(), stopController = connectController(skin, () => apng);
   const stopMotion = watchMotion(publish);
   const onStore = (event: Event) => { if (!(event instanceof CustomEvent) || !event.detail || event.detail === ZIGI_KEY) publish(); };
   const onStorage = (event: StorageEvent) => { if (event.key === null || event.key === ZIGI_KEY) publish(); };
@@ -127,7 +182,7 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   window.addEventListener(AI_SETTINGS_EVENT, watchSetup); window.addEventListener('storage', watchSetup);
   publish();
   void supportsAnimatedWebp().then(ok => { apng = !ok; publish(); });
-  const stopRotation = startRotation(skin, () => apng, options.random);
-  started = () => { stopRotation(); stopController(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
+  const stopRotation = startRotation(skin, () => apng, options.random), stopVariants = startVariants(skin, () => apng, options.random);
+  started = () => { stopVariants(); republish = () => undefined; stopRotation(); stopController(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
   return started;
 }

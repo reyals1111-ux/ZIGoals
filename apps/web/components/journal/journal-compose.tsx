@@ -7,6 +7,7 @@ import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import {JOURNAL, MAX_TEXT, type JournalEntry} from '../../lib/journal/schema';
 import {followUpFor, patternLine, patterns} from '../../lib/journal/reflect';
 import {lineLanguage} from '../../lib/quick-log/multi';
+import {zigiSignals} from '../zigi/bus';
 import './journal.css';
 // Session AK (lane S, item 6): the optional feeling word after the 1–5 (its grid loads when opened).
 import {MoodWordsFold} from '../mood-words/mood-words-fold';
@@ -30,6 +31,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     const question = journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
     setText(''); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
   const saveAnswer = (event: FormEvent) => {

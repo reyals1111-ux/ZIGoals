@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {createPortal} from 'react-dom';
+import {zigiSignals} from '../zigi/bus';
 
 /**
  * One toast for every reversible action (Session AA-Cloud): "Water logged · Undo". A single toast at a time, announced
@@ -92,6 +93,7 @@ export function UndoToastHost() {
     try {
       const out = await toast.undo();
       showToast({message: saidBy(out) ?? toast.undone ?? 'Undone.'});
+      zigiSignals.emit('action_undone'); // Session AK Part 12: the undo applied (a Studio-4 reaction once its art lands)
     } catch (e) {
       showToast({message: e instanceof Error && e.message ? `Could not undo: ${e.message}` : 'Could not undo this change.'});
     } finally {

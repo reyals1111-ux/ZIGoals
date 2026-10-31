@@ -47,6 +47,8 @@ export function ZigiCheckIn({day}: {day: string}) {
     if (!moment) return;
     if (moment.ledgerId && celebrations.loaded && !celebrations.unreadable) { const ledgerId = moment.ledgerId; try { celebrations.update(n => ({...n, seen: {...n.seen, [ledgerId]: day}})); } catch { /* the moment still plays once in this view */ } }
     if (moment.validated) zigiSignals.emitValidated(moment.signal); else zigiSignals.emit(moment.signal);
+    // Session AK Part 12: the Studio-4 reactions for a low day and a counted check-in milestone (noted only until their art lands).
+    if (low) zigiSignals.emit('checkin_low'); else if (moment.ledgerId && moment.validated) zigiSignals.emitValidated('checkin_milestone');
   };
   const rate = (n: number) => {
     const first = todayEnergy === null && todayMood === null;

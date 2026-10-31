@@ -18,7 +18,9 @@ export type ZigiEvent =
   // Session X-Local Part 4: a small success (an accepted card, a logged entry) and a surprise (an AI hint).
   | 'success' | 'surprise'
   // Session X-Local Phase 2 (P2.5): ZIGi is on but not set up (no model chosen yet): attention at rest; set-up ends it.
-  | 'attention' | 'connected';
+  | 'attention' | 'connected'
+  // Session AK Part 12: a Studio-4 reaction clip plays over the current state; the machine itself never changes for it.
+  | 'reaction';
 type Listener = (event: ZigiEvent) => void;
 const listeners = new Set<Listener>(), early: ZigiEvent[] = [];
 export const zigiEvents = {
@@ -76,7 +78,9 @@ export function useZigiState(): ZigiState { return useSyncExternalStore(zigiStat
  * the browser can play, and whether the clip is the state's own (then the CSS move rests while it plays) or a worn one
  * (the state's own CSS move stays on top). Until the chunk arrives the shell shows its one constant frame.
  */
-export type ZigiFrame = {poster: {x1: string; x2: string}; animated: string | null; own: boolean};
+export type ZigiFrame = {poster: {x1: string; x2: string}; animated: string | null; own: boolean;
+  /** Session AK Part 12: a Studio-4 variant or reaction clip shown in place of the state's own for this play (live figures only). */
+  override?: true};
 export type ZigiFrames = Partial<Record<string, ZigiFrame>>;
 export const zigiFrames = store<ZigiFrames | null>(null);
 const none = (): ZigiFrames | null => null;
