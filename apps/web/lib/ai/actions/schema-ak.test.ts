@@ -5,7 +5,7 @@ import {BILL_CADENCES, BILLS_KEY, emptyBills, type BillsRecord} from '../../bill
 import {SOUNDSCAPE_PRESET_IDS} from '../../audio/mix';
 import {AUTO_RULES_KEY, emptyAutoRules, type AutoRules} from '../../auto-rules/schema';
 import {GROCERY_KEY, emptyGroceryRecord} from '../../grocery/schema';
-import {ACTION_PROTOCOL} from '../context/specialists';
+import {AK_KINDS_BY_AREA, akKindsNote} from '../context/specialists';
 import {parseReply} from './parse';
 import {ACTION_KINDS, KIND_ALIASES, actionSchema} from './schema';
 import {AK_ACTION_KINDS, AK_BILL_CADENCES, AK_SOUNDSCAPES, GOAL_BUNDLE_TITLE} from './schema-ak';
@@ -16,8 +16,10 @@ import {readGoalBundle} from './plan-ak';
 /** Session AK (Part 12): the whitelist entries for this session's cards, their composite and the rules no argument can widen. */
 const block = (json: string) => `\n\n\`\`\`zigoals-action\n${json}\n\`\`\``;
 test('the kinds are in the whitelist and the protocol; the enums written out here match their owners\' lists', () => {
-  for (const kind of AK_ACTION_KINDS) { expect(ACTION_KINDS).toContain(kind); expect(ACTION_PROTOCOL).toContain(`"kind":"${kind}"`); }
-  expect(ACTION_PROTOCOL).toContain('"kind":"goal-bundle"');
+  // Offered on the pages where they belong (Part 12): each AK kind on at least one page; goal bundles on Today too.
+  for (const kind of AK_ACTION_KINDS) { expect(ACTION_KINDS).toContain(kind); expect(Object.values(AK_KINDS_BY_AREA).flat(), kind).toContain(kind); }
+  expect(akKindsNote('today')).toContain('"kind":"goal-bundle"');
+  for (const [area, kinds] of Object.entries(AK_KINDS_BY_AREA)) for (const kind of kinds) expect(akKindsNote(area as keyof typeof AK_KINDS_BY_AREA), `${area} ${kind}`).toContain(`"kind":"${kind}"`);
   expect([...AK_BILL_CADENCES]).toEqual([...BILL_CADENCES]);
   expect([...AK_SOUNDSCAPES].sort()).toEqual([...SOUNDSCAPE_PRESET_IDS].sort());
   expect(KIND_ALIASES['weekly-review']).toBe('open-review'); expect(KIND_ALIASES.soundscape).toBe('start-soundscape'); expect(KIND_ALIASES.bill).toBe('set-bill-reminder');
