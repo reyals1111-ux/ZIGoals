@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {lazy, Suspense, useEffect, useRef, useState} from 'react';
 import {entranceAllowed} from '../use-entrance';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassBar} from '../progress/glass-progress';
@@ -16,6 +16,8 @@ import {zigiSignals} from '../zigi/bus';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import type {HealthPerform} from './aa-types';
 import './health-aa.css';
+// Session AK (item 20): diet-style week templates, loaded when their fold opens.
+const DietTemplates = lazy(() => import('./diet-templates'));
 
 /**
  * N5: the meal planner as a week grid (Monday first) with a slot per meal: plan a recipe or a food into it, log it in one
@@ -34,7 +36,7 @@ export function PlannerView({data, date, today, perform}: {data: HealthData; dat
   const grocery = useDeviceRecord(GROCERY_RECORD), gRecord: GroceryRecord = grocery.loaded && !grocery.unreadable ? grocery.data : {version: 1};
   const {items, pantry} = groceryItems(groceries, gRecord, from);
   const grouped = groupByAisle(items, aisleRecord), bought = items.filter(g => g.checked).length;
-  const [adding, setAdding] = useState(''), [shareNote, setShareNote] = useState('');
+  const [adding, setAdding] = useState(''), [shareNote, setShareNote] = useState(''), [templatesOpen, setTemplatesOpen] = useState(false);
   const often = gRecord.showFrequent ? frequentItems(data, today, items.map(i => i.name), gRecord) : [];
   const keep = (change: (r: GroceryRecord) => GroceryRecord, done?: string) => { try { grocery.update(change); if (done) setShareNote(done); } catch (cause) { void perform(l => l, `Not kept on this device. ${deviceSettingFailureMessage(cause)}`); } };
   const exportGroups: GroceryGroup[] = grouped.map(g => ({aisle: g.aisle, items: g.rows}));
@@ -70,7 +72,8 @@ const dayLabel = (d: string) => `${formatWeekday(d)} ${Number(d.slice(8))}`;
         {slot?.date === d && slot.meal === meal ? <form className="health-planner-form" aria-label={`Plan ${meal} on ${dayLabel(d)}`} onSubmit={e => { e.preventDefault(); plan(); }}><label className="field"><span>From</span><select value={kind} onChange={e => { setKind(e.target.value as 'recipe' | 'food'); setSource(''); }}><option value="recipe">A recipe</option><option value="food">A food</option></select></label><label className="field"><span>{kind === 'recipe' ? 'Recipe' : 'Food'}</span><select value={source} required onChange={e => setSource(e.target.value)}><option value="">Choose</option>{(kind === 'recipe' ? data.recipes : data.foods).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>{kind === 'food' && <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>}<div className="actions"><button type="submit" className="secondary">Plan</button><button type="button" className="quiet" onClick={() => setSlot(null)}>Cancel</button></div></form>
           : <button type="button" className="quiet health-planner-add" aria-label={`Plan ${meal} on ${dayLabel(d)}`} onClick={() => setSlot({date: d, meal})}>+ Plan</button>}
       </div>; })}</div>)}</div>
-      <p className="fine">Plans are separate from your diary: a plan is logged only when you tap Log. {data.recipes.length === 0 && data.foods.length === 0 ? 'Add a food or a recipe first.' : ''}</p>
+      <p className="fine">Plans are separate from your diary: a plan is logged only when you tap Log. {data.recipes.length === 0 && data.foods.length === 0 ? 'Add a food or a recipe first, or start from a template below.' : ''}</p>
+      <details className="health-planner-templates" onToggle={e => setTemplatesOpen((e.currentTarget as HTMLDetailsElement).open)}><summary style={{minHeight: 44, display: 'flex', alignItems: 'center', cursor: 'pointer'}}>Start from a template (Mediterranean, high-protein, vegetarian)</summary>{templatesOpen && <Suspense fallback={<p className="fine">Opening…</p>}><DietTemplates data={data} anyDay={from} perform={perform}/></Suspense>}</details>
     </section>
     <section className="panel health-aa-card" aria-labelledby="grocery-title">
       <p className="eyebrow">From this week’s plans</p><h2 id="grocery-title"><NebulaFlow identity="grocery-title">Grocery list</NebulaFlow></h2>

@@ -1,0 +1,8 @@
+/* Session AK (item 3): the label photo reader inside New food and "Add it yourself". Theme tokens only. */
+.label-scan { display: grid; gap: 6px; border: 1px dashed var(--line); border-radius: 14px; padding: 12px; margin-block: 8px; max-inline-size: 100%; }
+.label-scan-title { margin: 0; font-weight: 700; }
+.label-scan p { margin: 0; overflow-wrap: anywhere; }
+.label-scan .actions button, .label-scan .actions a { min-height: 44px; }
+.label-scan-done { border-inline-start: 3px solid var(--health-on-track); padding-inline-start: 10px; }
+.label-scan-problem { border-inline-start: 3px solid var(--health-behind); padding-inline-start: 10px; }
+.label-scan ul { margin: 4px 0 0; padding-inline-start: 18px; }

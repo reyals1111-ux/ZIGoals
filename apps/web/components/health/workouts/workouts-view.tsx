@@ -25,6 +25,8 @@ import './workouts.css';
 // Session AK (4.9): the warm-up and plate calculators and the muscle-group view load only when used.
 const WorkoutTools = lazy(() => import('./workouts-tools'));
 const WorkoutsMuscles = lazy(() => import('./workouts-muscles'));
+// Session AK (item 8): "Fresh today: legs, back" on the start sheet, its own small chunk.
+const MuscleFreshToday = lazy(() => import('./muscle-freshness-today'));
 
 /**
  * Workouts, the full view (Session AH Part 6, DE8; /app/health?view=workouts, a view of Health like Sleep and Meditation).
@@ -135,6 +137,7 @@ export default function WorkoutsView() {
         onDiscard={() => setAsking('discard')}/>
       : <section className="panel workouts-start" aria-labelledby="workouts-start-title">
         <h2 id="workouts-start-title">Start a workout</h2>
+        {past.some(x => x.exercises.length) && <Suspense fallback={null}><MuscleFreshToday w={w} library={library} today={today}/></Suspense>}
         <p className="fine">This week: {week.workouts} {plural(week.workouts, 'workout')}{week.workouts ? ` · ${week.minutes} min · ${week.sets} ${plural(week.sets, 'set')}${week.volumeKg ? ` · ${weightShown(week.volumeKg, unit)} lifted` : ''}` : ''}.</p>
         <div className="workouts-start-actions">
           <button className="primary" type="button" onClick={() => begin({date: logDay, now: new Date()})}>Start an empty workout</button>

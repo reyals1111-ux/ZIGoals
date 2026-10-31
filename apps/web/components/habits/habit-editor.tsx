@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState, type FormEvent } from "react";
+import { lazy, Suspense, useId, useState, type FormEvent } from "react";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type HabitInput, type HabitRule } from "../../lib/habits";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
@@ -10,6 +10,9 @@ import type { HabitHealthLinkV4 as HabitHealthLink } from "../../lib/habit-healt
 import type { ExerciseCounter } from "../../lib/health-counters";
 import { useFieldErrors } from "../field-errors";
 import {plainErrorMessage} from "../../lib/plain-error";
+import type { PhraseChoice } from "./recurrence-phrase";
+// Session AK (item 21): "Type the schedule in words" loads only when that fold is opened.
+const RecurrencePhrase = lazy(() => import("./recurrence-phrase"));
 
 export type HabitGoalOption = { label: string; link: HabitGoalLink };
 type MeasurementKind = HabitRule["measurement"]["kind"];
@@ -62,6 +65,8 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
   const [frequencyPeriod, setFrequencyPeriod] = useState<"week" | "month" | "year">(rule?.schedule.kind === "frequency" ? rule.schedule.period : "week");
   const [monthDates, setMonthDates] = useState(rule?.schedule.kind === "month-dates" ? rule.schedule.days.join(", ") : "1, 15");
   const [timeOfDay, setTimeOfDay] = useState(habit?.timeOfDay ?? "anytime");
+  // Session AK (item 21): "every other tue" starts on the next Tuesday; null keeps the form's own start (today).
+  const [phraseAnchor, setPhraseAnchor] = useState<string | null>(null), [phraseOpen, setPhraseOpen] = useState(false);
   const [endKind, setEndKind] = useState(habit?.endCondition.kind ?? "none");
   const [endDate, setEndDate] = useState(habit?.endCondition.kind === "date" ? habit.endCondition.date : "");
   const [endCount, setEndCount] = useState(String(habit?.endCondition.kind === "completions" ? habit.endCondition.count : 30));
@@ -86,6 +91,16 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
     setTitle(template.title); setCategory(template.category); setType(template.type); setMeasurement(template.measurement); setUnit(template.unit); setTarget(String(template.target));
     setTargetPeriod(template.targetPeriod); setScheduleKind(template.schedule); setDays([1, 2, 3, 4, 5]); setFrequency("1"); setFrequencyPeriod(template.title === "My ZIG plan" ? "month" : "week");
   }
+  /** Session AK (item 21): the phrase box fills the schedule fields (and the reminder and part of the day it read); nothing is saved until Create habit. */
+  function applyPhrase({ schedule, time, partOfDay }: PhraseChoice) {
+    setScheduleKind(schedule.kind); setPhraseAnchor(schedule.kind === "interval" ? schedule.anchor : null);
+    if (schedule.kind === "weekdays") setDays(schedule.days);
+    if (schedule.kind === "interval") setInterval(String(schedule.every));
+    if (schedule.kind === "frequency") { setFrequency(String(schedule.times)); setFrequencyPeriod(schedule.period); }
+    if (schedule.kind === "month-dates") setMonthDates(schedule.days.join(", "));
+    if (time) setReminderTime(time);
+    if (partOfDay) setTimeOfDay(partOfDay);
+  }
   function measurementValue() {
     if (measurement === "boolean") return { kind: "boolean" as const };
     if (measurement === "duration") return { kind: "duration" as const, unit: unit === "hours" ? "hours" as const : "minutes" as const };
@@ -94,7 +109,7 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
   function scheduleValue(every: number, times: number): HabitRule["schedule"] {
     if (scheduleKind === "daily") return { kind: "daily" };
     if (scheduleKind === "weekdays") return { kind: "weekdays", days: [...days].sort() };
-    if (scheduleKind === "interval") return { kind: "interval", every, anchor: rule?.schedule.kind === "interval" ? rule.schedule.anchor : today };
+    if (scheduleKind === "interval") return { kind: "interval", every, anchor: rule?.schedule.kind === "interval" ? rule.schedule.anchor : phraseAnchor ?? today };
     if (scheduleKind === "frequency") return { kind: "frequency", times, period: frequencyPeriod };
     return { kind: "month-dates", days: [...new Set(monthDates.split(",").map(Number).filter((day) => Number.isInteger(day) && day >= 1 && day <= 31))].sort((a, b) => a - b) };
   }
@@ -136,6 +151,7 @@ export function HabitEditor({ habit, goals, habits,today, reminder = "", healthL
         <label className="field">Target value<input {...fe.field("target")} aria-label="Target value" type="text" inputMode={wholeTarget ? "numeric" : "decimal"} autoComplete="off" disabled={type === "quit" || measurement === "boolean"} value={type === "quit" ? "0" : target} onChange={(event) => setTarget(event.target.value)} /></label>
         <label className="field">Target period<select value={scheduleKind === "frequency" ? "each" : targetPeriod} disabled={scheduleKind === "frequency"} onChange={(event) => setTargetPeriod(event.target.value as HabitRule["targetPeriod"])}>{scheduleKind === "frequency" && <option value="each">Each time</option>}<option value="day">Per day</option><option value="week">Per week</option><option value="month">Per month</option><option value="year">Per year</option></select>{/* Session AH (HA10, L-065): with X times per period the target is for each time, said plainly, never shown as "per week" */}{scheduleKind === "frequency" && <small>The target is for each time: {type === "quit" ? "0" : target || "…"}{measurement !== "boolean" && unit ? ` ${unit}` : ""} each time, {frequency || "…"} {frequency.trim() === "1" ? "time" : "times"} a {frequencyPeriod}.</small>}</label>
       </div>
+      {!habit && <details className="habit-phrase" onToggle={(event) => setPhraseOpen((event.currentTarget as HTMLDetailsElement).open)}><summary style={{ minHeight: 44, display: "flex", alignItems: "center", cursor: "pointer" }}>Type the schedule in words</summary>{phraseOpen && <Suspense fallback={<p className="fine">Opening…</p>}><RecurrencePhrase today={today} onUse={applyPhrase} /></Suspense>}</details>}
       <label className="field">Schedule<select value={scheduleKind} onChange={(event) => setScheduleKind(event.target.value as ScheduleKind)}><option value="daily">Every day</option><option value="weekdays">Selected weekdays</option><option value="interval">Every N days</option><option value="frequency">X times per period</option><option value="month-dates">Specific dates each month</option></select></label>
       <div className="fine habit-rest-days">Rest days are simply the days off your schedule: choose the weekdays you do this, or X times per period. Days off the schedule never count against you. <button type="button" className="quiet" onClick={() => { setScheduleKind("weekdays"); setDays([1, 2, 3, 4, 5]); }}>Weekdays only</button></div>
       {scheduleKind === "weekdays" && <fieldset className="habit-weekdays"><legend>Scheduled weekdays</legend>{[1, 2, 3, 4, 5, 6, 0].map((day) => <label key={day}><input type="checkbox" checked={days.includes(day)} onChange={(event) => setDays(event.target.checked ? [...days, day] : days.filter((item) => item !== day))} /><span aria-hidden="true">{weekdayLabels[day]!.slice(0, 3)}</span><span className="sr-only">{weekdayLabels[day]}</span></label>)}</fieldset>}
