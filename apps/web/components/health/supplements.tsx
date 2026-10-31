@@ -55,7 +55,7 @@ export function SupplementsCard({date, today}: {date: string; today: string}) {
         <div><strong>{i.name}</strong><small>{[i.dose, scheduleText(i), i.remind ? 'reminder on' : null].filter(Boolean).join(' · ')}</small>
           {s && <small>Last 14 days: {s.taken} taken{s.skipped ? ` · ${s.skipped} skipped` : ''}{s.notLogged ? ` · ${s.notLogged} not logged` : ''}</small>}</div>
         <div className="actions">
-          {i.times.length > 0 && <button type="button" className="quiet" aria-pressed={i.remind === true} onClick={() => run(c => setSupplementReminder(c, i.id, !i.remind), i.remind ? 'Reminder off.' : 'Reminder on, on this device. It never shows the name.')}>Reminder</button>}
+          {i.times.length > 0 && <button type="button" className="quiet" aria-pressed={i.remind === true} aria-label={`Reminder for ${i.name}`} onClick={() => run(c => setSupplementReminder(c, i.id, !i.remind), i.remind ? 'Reminder off.' : 'Reminder on, on this device. It never shows the name.')}>Reminder</button>}
           <button type="button" className="quiet" aria-label={`Edit ${i.name}`} onClick={() => { setEditing(i.id); setAdding(false); setForm(formOf(i)); setNote(''); }}>Edit</button>
           <button type="button" className="quiet" aria-label={`Remove ${i.name}`} onClick={() => { removeWithUndo(record.update, c => removeSupplement(c, i.id), `${i.name} removed with its log.`, `${i.name} is back.`).catch(e => setNote(`Not removed. ${deviceSettingFailureMessage(e)}`)); if (editing === i.id) setEditing(null); }}>Remove</button>
         </div>
@@ -76,7 +76,7 @@ export function SupplementsCard({date, today}: {date: string; today: string}) {
       <label className="field"><span>Note (optional)</span><input type="text" maxLength={NOTE_MAX} value={form.note} onChange={e => set('note', e.target.value)} /></label>
       <div className="actions"><button type="submit" className="primary">{editing ? 'Save' : 'Add'}</button><button type="button" className="quiet" onClick={() => { setAdding(false); setEditing(null); setNote(''); }}>Cancel</button></div>
     </form>}
-    {note && <p className="fine" aria-live="polite">{note}</p>}
+    {/* Session AK (F8): always present, so the first note is announced too. */}<p className="fine" role="status" aria-live="polite">{note}</p>
     <p className="fine">Kept in this browser only and never synced; included in Export everything and removed by the account’s erase. Reminders follow this device’s notification settings and quiet hours.</p>
   </div>;
 }

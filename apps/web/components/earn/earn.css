@@ -364,3 +364,10 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 /* Session AJ (item 16, D3): by day, Start here's jump button keeps the orbit's shape and accents (theme parity: only its
    night surface and shade turn light; the Checklist's own day button is unchanged). */
 :root[data-theme=light] .path-stage.earn-start-path[data-variant=orbit] .path-jump { border-color: #8cc8ff80; background: linear-gradient(100deg, #fffffff5, #eef0fbf5); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59; }
+
+/* Session AK (F8, release review R9): the sections below the first screen skip their layout and paint until they near
+   the screen (content-visibility), so the first load lays out the summary and Start here, not all 16 sections: at 4× CPU
+   the longest task fell from 4.0 s to 2.6 s and blocking time from 8.0 s to 5.9 s (median of 3, injected into the 8a98bdf0
+   build). Content, names, find-in-page and the chips' jumps are unchanged (each chip lands its section at the same place);
+   the Academy keeps full layout, as its path banners reach past its padding. `auto` remembers each section's real height. */
+.earn-sections > .panel:not(#summary):not(#start-here):not(#staking-clarity):not(#academy) { content-visibility: auto; contain-intrinsic-size: auto 1100px; }

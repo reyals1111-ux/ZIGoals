@@ -19,13 +19,26 @@ import './wrapped.css';
  * ticked for that share — off every time the story opens. Opening it is the one write: the day, so Today's card rests.
  */
 export default function WrappedStory({onClose}: {onClose: () => void}) {
-  const {loaded, failed, wrapped, today} = useWrapped(), record = useDeviceRecord(WRAPPED), marked = useRef(false);
+  const {loaded, failed, wrapped, today} = useWrapped(), record = useDeviceRecord(WRAPPED), marked = useRef(false), box = useRef<HTMLDivElement>(null);
+  // (Focus enters the dialog at once, so Escape works while the year is still gathered; the player then moves it to the card.)
+  useEffect(() => { box.current?.focus(); }, []);
   useEffect(() => {
     if (!wrapped || !record.loaded || marked.current) return;
     marked.current = true;
     try { record.update(r => markWrappedOpened(r, wrapped.year, today)); } catch { /* opened all the same; Today's card may show again */ }
   }, [wrapped, record, today]);
-  return createPortal(<div className="story-player wrapped-player" role="dialog" aria-modal="true" aria-label={wrapped ? `ZIGoals Wrapped ${wrapped.year}` : 'ZIGoals Wrapped'}>
+  // Session AK (F8, WCAG 2.4.3 / 2.1.2): a modal keeps the keyboard inside it — Tab and Shift+Tab wrap around its own
+  // controls instead of walking into the page behind — and Escape closes it from any of them, also while it loads.
+  const trap = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+    if (e.key !== 'Tab') return;
+    const all = [...e.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href], [tabindex="0"]')];
+    if (!all.length) { e.preventDefault(); return; }
+    const first = all[0]!, last = all.at(-1)!, at = document.activeElement;
+    if (e.shiftKey && (at === first || at === e.currentTarget || !e.currentTarget.contains(at) || at === e.currentTarget.querySelector('.story-stage'))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+  };
+  return createPortal(<div className="story-player wrapped-player" role="dialog" aria-modal="true" aria-label={wrapped ? `ZIGoals Wrapped ${wrapped.year}` : 'ZIGoals Wrapped'} ref={box} tabIndex={-1} onKeyDown={trap}>
     {!loaded ? <ZgSkeleton label="Gathering your year…" className="wrapped-skeleton" block lines={3} />
       : failed || !wrapped ? <div className="story-frame wrapped-fallback"><p className="story-note" role="status">Some of your records could not be read on this device, so your Wrapped waits until they can.</p><button type="button" className="primary" onClick={onClose}>Close</button></div>
       : <WrappedPlayer wrapped={wrapped} onClose={onClose} />}
@@ -43,7 +56,6 @@ function WrappedPlayer({wrapped, onClose}: {wrapped: Wrapped; onClose: () => voi
   const keys = (e: KeyboardEvent) => {
     if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
-    else if (e.key === 'Escape') { e.preventDefault(); onClose(); }
   };
   const share = async (c: WrappedCard) => {
     setBusy(true);

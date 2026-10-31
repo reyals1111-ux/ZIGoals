@@ -125,7 +125,7 @@ function NoSpend({c, today, log, weekStart, toggle}: {c: Challenge; today: strin
   return <>
     <p className="challenge-headline"><strong>{p.counted}</strong> of {p.target} no-spend days{p.run > 1 ? ` · ${p.run} in a row` : ''}{p.thisWeek ? ` · ${p.thisWeek} this week` : ''}</p>
     <div className="challenge-bar" role="img" aria-label={`${p.counted} of ${p.target} days`}><i style={{width: `${pct}%`}}/></div>
-    {days.length > 0 ? <div className="challenge-days" role="group" aria-label="Mark the last seven days">{days.map(d => <button key={d} type="button" aria-pressed={marked.has(d)} aria-label={`${formatDate(d, {weekday: true})}: ${marked.has(d) ? 'marked as a no-spend day' : 'not marked'}`} onClick={() => toggle(d, marked.has(d))}><span>{d === today ? 'Today' : formatWeekday(d)}</span><small>{marked.has(d) ? '✓' : '·'}</small></button>)}</div>
+    {days.length > 0 ? <div className="challenge-days" role="group" aria-label="Mark the last seven days">{days.map(d => <button key={d} type="button" aria-pressed={marked.has(d)} aria-label={`${d === today ? 'Today, ' : ''}${formatDate(d, {weekday: true})}: ${marked.has(d) ? 'marked as a no-spend day' : 'not marked'}`} onClick={() => toggle(d, marked.has(d))}><span>{d === today ? 'Today' : formatWeekday(d)}</span><small>{marked.has(d) ? '✓' : '·'}</small></button>)}</div>
       : <p>The challenge starts on {formatDate(c.startedOn)}.</p>}
     {p.conflicts.length > 0 && <p className="fine">Marked, but your money log has a purchase that day, so not counted: {p.conflicts.map(d => formatDate(d)).join(', ')}.</p>}
     <p className="fine">Only the days you mark count; a day you did not mark is never guessed. Tick this goal&rsquo;s milestones yourself when you reach them.</p>

@@ -113,7 +113,8 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
         <input ref={input} type="search" role="combobox" aria-expanded={rows.length > 0} aria-controls={listId} aria-activedescendant={activeId} aria-autocomplete="list" aria-label="Search goals, habits, foods, assets, pages, settings and Help" placeholder="Search goals, habits, foods, assets, pages…" value={query} onChange={e => { setQuery(e.target.value); setActive(0); }} onKeyDown={keys} autoComplete="off" spellCheck={false} enterKeyHint="go" />
         <button type="button" className="quiet search-close" onClick={close}>Close</button>
       </div>
-      <p className="sr-only" role="status">{trimmed ? `${hits.length} ${hits.length === 1 ? 'result' : 'results'}` : ''}</p>
+      {/* Session AK (F8): the count spoken includes the actions listed (">log" read "0 results" over four actions). */}
+      <p className="sr-only" role="status">{trimmed ? `${hits.length + actionRows.length} ${hits.length + actionRows.length === 1 ? 'result' : 'results'}` : ''}</p>
       {!trimmed && <nav className="search-pillars search-quick" aria-label="Quick actions">{SUGGESTED_ACTIONS.map(id => PALETTE_ACTIONS.find(a => a.id === id)!).map(a => <button key={a.id} type="button" className="search-pillar" onClick={() => { close(); router.push(a.href); }}><span>{a.title}</span></button>)}</nav>}
       {!trimmed && <nav className="search-pillars" aria-label="Go to a pillar">{PILLAR_LINKS.map(([pillar, label, href]) => <button key={pillar} type="button" className="search-pillar" onClick={() => { close(); router.push(href); }}><PillarMark pillar={pillar} size={16}/><span>{label}</span></button>)}</nav>}
       <div className="search-body">

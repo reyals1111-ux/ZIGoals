@@ -169,6 +169,10 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
       const near = others.filter(o => o.bottom > cy - 220 && o.top < cy + 220);
       const gapsFor = (side: Side) => [...GAPS, ...near.map(o => side === 'left' ? ring.left - o.left + CLEAR + .5 : o.right + CLEAR + .5 - ring.right).filter(g => g >= 13 && g <= 175)];
       for (const s of [side, side === 'left' ? 'right' : 'left'] as Side[]) for (const gap of gapsFor(s)) for (const dy of dys) {
+        // Session AK (F8, R10): a place whose cost before its collisions and its aim (both never below zero) already
+        // reaches the best cost so far can never win (`cost < best.cost` below), so its obstacles are not read at all.
+        // Same terms in the same order, so the bound never exceeds the cost: the place chosen is exactly as before.
+        if (best && 0 + gap * 1.4 + Math.abs(dy) * 1 + (s === side ? 0 : 24) + (1 - scale) * SIZE + 0 + (h < least - .5 ? SMALL : 0) >= best.cost) continue;
         const left = s === 'right' ? ring.right + gap : ring.left - gap - w, top = cy + dy - h / 2, box = {left, top, right: left + w, bottom: top + h};
         const near0 = others.reduce((sum, o) => sum + overlap(swept(box), o, CLEAR), 0), hit = near0 > 0 ? near0 + 1 : onLine(swept(box)), out = Math.max(0, EDGE - box.left) + Math.max(0, box.right - right);
         // (Near and level with its planet, then full size, then the open side of the wave, and pointing at it.)

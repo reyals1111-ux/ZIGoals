@@ -1,5 +1,5 @@
 'use client';
-import {useId, useMemo, useState} from 'react';
+import {useEffect, useId, useMemo, useRef, useState} from 'react';
 import {AGENDA_SOURCES, SOURCE_LABEL, buildAgenda, type AgendaInput, type AgendaSource, type AgendaView} from '../../lib/agenda/build';
 import {buildIcs} from '../../lib/ics/ics';
 import {addLocalDays} from '../../lib/local-date';
@@ -14,7 +14,10 @@ import {formatNumber} from '../../lib/visual-format';
 type Range = 'view' | 'next30' | 'next60';
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
 export default function AgendaExport({input, hidden, view, viewFrom, viewTo, viewLabel, today, showcase, onClose}: {input: AgendaInput; hidden: readonly AgendaSource[]; view: AgendaView; viewFrom: string; viewTo: string; viewLabel: string; today: string; showcase: boolean; onClose: () => void}) {
-  const id = useId();
+  const id = useId(), box = useRef<HTMLDivElement>(null);
+  // Session AK (F8, WCAG 2.4.3): the button that opened the choices is gone, so focus moves to the first choice (the range
+  // picked) rather than falling to the page; Close returns it to "Choose what to export" (agenda-page.tsx).
+  useEffect(() => { box.current?.querySelector<HTMLInputElement>('input:checked')?.focus(); }, []);
   const [range, setRange] = useState<Range>('view'), [details, setDetails] = useState(false), [status, setStatus] = useState('');
   const [chosen, setChosen] = useState<ReadonlySet<AgendaSource>>(() => new Set(AGENDA_SOURCES.filter(s => !hidden.includes(s))));
   const [from, to] = range === 'view' ? [viewFrom, viewTo] : [today, addLocalDays(today, range === 'next30' ? 29 : 59)];
@@ -32,7 +35,7 @@ export default function AgendaExport({input, hidden, view, viewFrom, viewTo, vie
       setStatus(`Saved ${name} with ${plural(picked.length, 'event')}. Open it with your calendar app to add them.`);
     } catch { setStatus('The file could not be made on this device.'); }
   };
-  return <div className="agenda-export" role="group" aria-labelledby={`${id}-title`}>
+  return <div ref={box} className="agenda-export" role="group" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`} className="sr-only">Export choices</h3>
     <fieldset><legend>Which days</legend>
       <label className="agenda-check"><input type="radio" name={`${id}-range`} checked={range === 'view'} onChange={() => setRange('view')} /><span>This {view}: {viewLabel}</span></label>

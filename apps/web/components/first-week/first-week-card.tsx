@@ -83,7 +83,7 @@ export default function FirstWeekCard() {
         <details className="first-week-all"><summary>All seven steps</summary>
           <ol className="first-week-steps">{STEPS.map(step => { const on = view.done.has(step.id); return <li key={step.id} data-done={on ? '' : undefined}>
             <Link href={step.href}>{step.title}</Link>
-            <button type="button" className="secondary" aria-pressed={on} disabled={showcase} aria-label={`${step.title}: ${on ? 'done' : 'not done yet'}`} onClick={() => write(s => markStep(s, step.id, today!, !on))}>{on ? 'Done' : 'Not yet'}</button>
+            <button type="button" className="secondary" aria-pressed={on} disabled={showcase} aria-label={`${step.title}: ${on ? 'done' : 'not yet'}`} onClick={() => write(s => markStep(s, step.id, today!, !on))}>{on ? 'Done' : 'Not yet'}</button>
           </li>; })}</ol>
           <p className="fine">Done steps keep a tick here. Open steps simply wait; nothing is counted against you.</p>
         </details>

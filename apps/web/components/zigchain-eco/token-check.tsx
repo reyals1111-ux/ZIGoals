@@ -1,5 +1,5 @@
 'use client';
-import {useId, useState, type FormEvent} from 'react';
+import {useEffect, useId, useRef, useState, type FormEvent} from 'react';
 import {checkToken, type TokenCheck} from '../../lib/zigchain-eco/denom-client';
 import {KNOWN_TOKENS_READ_ON, KNOWN_TOKENS_SOURCE} from '../../lib/zigchain-eco/denoms';
 import {formatDate} from '../../lib/visual-format';
@@ -12,7 +12,9 @@ import './zigchain-eco.css';
  * coin under another denom is called a look-alike. Read-only; nothing is stored; asks only ZIGoals' own route.
  */
 export function TokenCheckForm() {
-  const id = useId();
+  const id = useId(), field = useRef<HTMLInputElement>(null);
+  // Session AK (F8, WCAG 2.4.3): this form replaces the "Check a token" button that opened it, so focus moves to its field.
+  useEffect(() => { field.current?.focus(); }, []);
   const [network, setNetwork] = useState<'zigchain-1' | 'zig-test-2'>('zigchain-1');
   const [denom, setDenom] = useState(''), [busy, setBusy] = useState(false), [result, setResult] = useState<TokenCheck | null>(null);
   const submit = async (event: FormEvent) => {
@@ -25,7 +27,7 @@ export function TokenCheckForm() {
     <form className="zeco-form" onSubmit={submit} aria-describedby={`${id}-help`}>
       <p id={`${id}-help`} className="fine">Paste a token’s full denom (it starts with ibc/, coin.zig1 or zig1). ZIGoals names it by its denom, never by the name its maker chose.</p>
       <label>Network<select value={network} onChange={e => setNetwork(e.target.value as typeof network)}><option value="zigchain-1">ZIGChain</option><option value="zig-test-2">ZIGChain practice network (test tokens)</option></select></label>
-      <label>Token denom<input value={denom} onChange={e => setDenom(e.target.value)} spellCheck={false} autoCapitalize="off" autoComplete="off" maxLength={140} placeholder="ibc/… or coin.zig1…"/></label>
+      <label>Token denom<input ref={field} value={denom} onChange={e => setDenom(e.target.value)} spellCheck={false} autoCapitalize="off" autoComplete="off" maxLength={140} placeholder="ibc/… or coin.zig1…"/></label>
       <p className="zeco-actions"><button type="submit" className="secondary" disabled={busy || !denom.trim()}>{busy ? 'Checking…' : 'Check this token'}</button></p>
     </form>
     <div role="status" aria-live="polite">

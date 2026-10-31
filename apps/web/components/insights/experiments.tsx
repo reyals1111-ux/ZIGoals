@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useId, useMemo, useState, type FormEvent} from 'react';
+import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import type {HealthData} from '../../lib/health';
 import {OUTCOME_LABELS, factorOptions, outcomeOptions, outcomeText, type CompareSources, type Lag, type OutcomeId} from '../../lib/compare/engine';
 import {LABEL_WORDS} from '../../lib/insights/cross-pillar';
@@ -94,7 +94,7 @@ function scaleOf(r: ExperimentResult): number {
   return Math.max(r.withValue ?? 0, r.withoutValue ?? 0) * 1.1 || 1;
 }
 function ExperimentCard({result: r, today, onEnd, onRemove, onNote}: {result: ExperimentResult; today: string; onEnd: () => void; onRemove: () => void; onNote: (text: string) => void}) {
-  const x: Experiment = r.experiment, d = r.dates, [text, setText] = useState(x.note ?? ''), [sure, setSure] = useState(false);
+  const x: Experiment = r.experiment, d = r.dates, [text, setText] = useState(x.note ?? ''), [sure, setSure] = useState(false), back = useRef(false);
   const status = d.phase === 'upcoming' ? `Starts ${formatDate(x.start)}` : d.phase === 'running' ? `Day ${d.day} of ${x.days}` : d.endedEarly ? `Ended early, ${formatDate(d.end)}` : `Finished ${formatDate(d.plannedEnd)}`;
   return <article className="compare-card experiment-card" aria-labelledby={`experiment-${x.id}`}>
     <p className="eyebrow">{status}</p>
@@ -124,8 +124,10 @@ function ExperimentCard({result: r, today, onEnd, onRemove, onNote}: {result: Ex
     </details>
     <div className="actions">
       {d.phase === 'running' && today >= x.start && <button type="button" className="secondary" onClick={onEnd}>End it today</button>}
-      {sure ? <><button type="button" className="secondary" onClick={onRemove}>Remove “{x.title}”</button><button type="button" className="text-link" onClick={() => setSure(false)}>Keep it</button></>
-        : <button type="button" className="text-link" onClick={() => setSure(true)}>Remove</button>}
+      {/* Session AK (F8, WCAG 2.4.3): the button pressed is replaced, so focus moves to its replacement (the confirm, or
+          Remove again after "Keep it") instead of falling to the page. */}
+      {sure ? <><button type="button" className="secondary" autoFocus onClick={onRemove}>Remove “{x.title}”</button><button type="button" className="text-link" onClick={() => { back.current = true; setSure(false); }}>Keep it</button></>
+        : <button type="button" className="text-link" ref={el => { if (el && back.current) { back.current = false; el.focus(); } }} onClick={() => setSure(true)}>Remove</button>}
     </div>
   </article>;
 }

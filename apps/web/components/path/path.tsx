@@ -180,9 +180,15 @@ const phoneTabWidth = (label: string, measured?: number) => measured !== undefin
  * in the stage with the tab's own font — on mount, once the web fonts are ready, as each font loads and on a resize. (AG
  * Polish measured on a canvas once, before the font had settled, and cut the tab to exactly that width: "Wa…".)
  */
-/** Each name's width on one line, as the probe draws it (the probe is emptied again after). */
+/** Each name's width on one line, as the probe draws it (the probe is emptied again after).
+ *  Session AK (F8, R9/R10): every name goes into the probe at once, each in its own inline-block (the same font, the
+ *  same max-content width the probe itself took), and all are read after one layout. Writing them one by one forced a
+ *  full page layout per name: 16 names took 2.9 s on Earn at 4× CPU, against 0.16 s now, with identical widths (measured
+ *  in the browser on Earn and on the Showcase Checklist). */
 function measureLabels(probe: HTMLElement, labels: readonly string[]): number[] {
-  const w = labels.map(label => { probe.textContent = label; return Math.round(probe.getBoundingClientRect().width * 10) / 10; });
+  const spans = labels.map(label => { const s = document.createElement('span'); s.style.display = 'inline-block'; s.textContent = label; return s; });
+  probe.replaceChildren(...spans);
+  const w = spans.map(s => Math.round(s.getBoundingClientRect().width * 10) / 10);
   probe.textContent = '';
   return w;
 }
