@@ -6,6 +6,8 @@ import {navLink} from './phone-nav';
 // a reminder-time change re-sends the schedule, turn off unsubscribes and unregisters, nothing on view, never in Showcase.
 // The account and the push route are fixtures; the browser's push subscription is stubbed (no push service is reachable
 // here), while the service worker registration and the panel are real.
+// Session AK (ADR-036 Q17): this spec needs the service worker the suite otherwise blocks.
+test.use({serviceWorkers: 'allow'});
 const ACCOUNT = '10000000-0000-4000-8000-000000000001';
 // A real P-256 point (RFC 8291 Appendix A, the application server's public key), so the key bytes are valid.
 const PUBLIC_KEY = 'BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8';
