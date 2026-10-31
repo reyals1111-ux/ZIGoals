@@ -398,7 +398,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | Part 13 Studio-4 art swap | Moved to a separate session (owner follow-up 1); preparation is F11 | — | — |
 | A13 mainnet v6 day | Recorded: owner check after the deploy (owner follow-up 1) | — | the app accepts v6.0 on zigchain-1 (ADR-035) |
 | F0 finish what is open | Built: first-Monday schedules (optional `monthWeekday`), visible sync status, 6.5 progress toast, 7.8, M42, H113, M4, missing tests ZI4/ZI8/ZI9/ZI14/G15/landing skip link, four intermittents at their cause (zigi-memory:188 navigation, zigi-knock FIRST, zigi-memory-af about:blank, zigi-accept-correct page clock); M8, market-status socket and WebKit-phone fetches recorded (no recurrence in 12 runs) | `d2105402` | unit tests per item; frozen fixture monthWeekday |
-| F1 release-readiness review | Open | — | — |
+| F1 release-readiness review | Built: docs/review/session-ak/RELEASE_REVIEW.md (1 Blocker, 12 Major, 11 Minor, 7 Polish). Fixed so far: R1 (Blocker), R6, R7, R12 (`1800da09`); R2–R5, R8, R14 in lane X1; R9–R11, R15 in lane F8 | `1800da09` | goals-best-aa R1 spec; install-pages test; onboarding spec |
 | F2 full app testing (journeys) | Open | — | — |
 | F3 competitor research round 2 | Built: BUILD list 2 (21 items) — #2 to F4, #1 #3 #5 #8 to lane B2a, the rest in later waves or recorded | `8c5f2d1a` | docs/research/session-ak/COMPETITORS_2.md |
 | F4 ZIGChain ecosystem, deeper | Built, read-only: staking clarity, validator spread, token check (/api/chain/denom, no new host), governance summaries and vote reminders, practice round, ecosystem status; EVM balances not built (no live mainnet RPC; testnet RPC behind a challenge) | `920de5bf` | lib/zigchain-eco tests (45 files with staking guards) |
@@ -406,7 +406,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F6 visual upgrade | Built (helper part): pillar illustrations in the new surfaces' empty states, one chart look on the new charts, skeleton sheen, richer cards with pillar edges, safe areas in Wrapped; page transitions designed, not switched on (Q26); micro-interactions as they are (Q27) | `a2e74f32`, themes `8b0608f1` | lib/illustrations/pillar-art.test.ts; theme sheets regenerated |
 | F7 landing visual refresh | Built (owner deploys): hero, Example data labels, offline/install mockups, Private by design, Switch to ZIGoals, FAQ; phone weight lower, desktop within 6 MB | `7cadc0e5` | scripts/landing-f7-visual.test.mjs; check:landing |
 | F8 performance and accessibility | Open | — | — |
-| F9 ZIGi for everything new | Open | — | — |
+| F9 ZIGi for everything new | Built: five confirm cards (never auto-accepted), five read-only tools, on-device answers; Today's prompt unchanged; every page ≤ 9,000 tokens | `8f6e7629` | lib/ai tests (1,201); budget-ak.test.ts; evals ak-f9 and G6 |
 | F10 security delta review | Built: three fresh reviewers on 9401dcbb..HEAD — no High; 1 Medium fixed (the agenda's unbonding titles); 11 Low (8 fixed, 3 recorded); 6 Info (3 fixed, 3 recorded) | `6e049943` | docs/security/review-2026-10/SESSION_AK_F10.md; unbonding-privacy, denoms, guard, notify tests |
 | F11 Studio-4 preparation complete and proven | Built: every Part 12 slot verified wired (X030 cheer unused by the PROTECTED Checklist until the owner says yes); dry run of studio4-deliver/ through the importer; runbook | `a845d339` | scripts/zigi/studio4-dry-run.test.mjs (17 tests); docs/handoff/STUDIO4_SWAP_RUNBOOK.md |
 | F12 finish | Open | — | — |
