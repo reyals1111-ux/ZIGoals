@@ -22,5 +22,5 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
 export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;
 /** This session's device-only databases: the notification snapshot and identity, the queue of notification taps, and the
  * offline generic food library (public data, a cache), the person's own Spotify client id (device-only, never exported),
- * the offline queue, and the meal photos the person chose to keep (exported as files). */
-export const AK_DATABASES: readonly string[] = ['zigoals-notify-v1', 'zigoals-notify-actions-v1', 'zigoals-food-generic-v1', 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', 'zigoals-meal-photos-v1'];
+ * the offline queue, the meal photos the person chose to keep (exported as files), and the Lichess token (never exported). */
+export const AK_DATABASES: readonly string[] = ['zigoals-notify-v1', 'zigoals-notify-actions-v1', 'zigoals-food-generic-v1', 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', 'zigoals-meal-photos-v1', 'zigoals-lichess-v1'];

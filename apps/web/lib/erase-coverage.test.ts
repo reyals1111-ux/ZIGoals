@@ -21,6 +21,7 @@ const DATABASES = [...new Set(sources.flatMap(s => [...s.matchAll(/['"`](zigoals
 
 /** Keys that are not personal records, so neither Export everything nor the catalog lists them; each with its reason. */
 const NOT_RECORDS: Record<string, string> = {
+  'zigoals:lichess-pending:v1': 'sessionStorage for one Lichess sign-in round trip (PKCE state and verifier), removed when it ends',
   'zigoals:account-lock:v1': 'a BroadcastChannel name that locks the account in other tabs; nothing is stored',
   'zigoals:private-updates:v1': 'a BroadcastChannel name that tells other tabs a record changed; nothing is stored',
   'zigoals:step-up:v1': 'a key-derivation label (HKDF info), not a storage key',
