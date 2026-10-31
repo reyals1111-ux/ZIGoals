@@ -89,3 +89,9 @@ Added by Session AJ item 22 (TIER 3 egress routes); research in [FOOD_SOURCES.md
 - **Fields:** checked on 2026-10-29 with one real search (`foods?search=apple&lang=en&limit=10`: hits carry a numeric `id`, the DBID, and `foodName`) and FSVO's OpenAPI document (`food/{DBID}` returns `name` and `values[]` with `value`, `component.code` and `unit.code`). Component codes ENERCC, PROT625, CHO, FAT, FIBT, SUGAR and NACL come from the research note; a value in another unit, out of range or missing stays unknown.
 - **Tests:** `scripts/run11/food-search.test.mjs` (fictional fixtures only, no real FSVO call), `apps/web/lib/food-search.test.ts`, `apps/web/lib/server/food-lookup-route.test.ts`.
 - **Open:** the dataset version (V 7.1) is fixed in the code; when FSVO publishes a new version (`BLV-api/versiondb`), update the attribution in `workers/food-lookup/worker.mjs` and `apps/web/lib/food-search.ts` together. A food from this source is saved with the brand "Swiss Food Composition Database (FSVO)" and without a provenance record, because the stored provenance record describes Open Food Facts only; widening it is a Health schema change for a later, owner-approved session.
+
+## Session AK (31 Oct): USDA FoodData Central and the public Alpha binding
+The food Worker now looks a barcode up in USDA FoodData Central Branded Foods when Open Food Facts answers "not found",
+only with the Worker secret `FDC_API_KEY` (sent as `X-Api-Key`, never in a URL). The public Alpha binds this Worker
+(`FOOD_LOOKUP`). Owner steps, in order: [FOOD_WORKER_PUBLIC_ALPHA.md](FOOD_WORKER_PUBLIC_ALPHA.md) — deploy the food
+Worker first, then the Alpha.
