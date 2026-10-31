@@ -9,7 +9,8 @@ import type {DeviceRecordSpec} from '../device-record';
  * card name from a newer build is kept and ignored, never an error.
  */
 export const TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
-export const TODAY_CARD_IDS = ['balance', 'forecasts', 'calculator', 'review'] as const;
+// Session AK Part 8.2 (lane X): `orbit`, the Daily orbit card (components/orbit-card), at the end so earlier orders hold.
+export const TODAY_CARD_IDS = ['balance', 'forecasts', 'calculator', 'review', 'orbit'] as const;
 export type TodayCardId = typeof TODAY_CARD_IDS[number];
 export const todayCardsSchema = z.looseObject({
   version: z.literal(1),

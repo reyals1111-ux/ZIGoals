@@ -1,0 +1,15 @@
+/* Session AK (COMPETITORS item 19): the rewards shelf on the Journey page. Theme colours; 44 px targets; text ≥ 14 px. */
+:root .rewards-shelf { display: grid; gap: 14px; }
+:root .rewards-shelf h2 { margin: 0; }
+:root .rewards-points { margin: 0; font-size: 16px; }
+:root .rewards-points strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+:root .rewards-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+:root .rewards-list > li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2, var(--panel)); min-width: 0; }
+:root .rewards-list .rewards-name { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+:root .rewards-list small { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+:root .rewards-list .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+:root .rewards-shelf button { min-height: 44px; }
+:root .rewards-add { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+:root .rewards-add .field { display: grid; gap: 6px; font-size: 15px; flex: 1 1 200px; min-width: 0; }
+:root .rewards-add .field.rewards-price { flex: 0 1 140px; }
+:root .rewards-add input { min-height: 44px; font-size: 16px; }

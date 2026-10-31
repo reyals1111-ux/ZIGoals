@@ -1,5 +1,7 @@
 'use client';
 import {useState} from 'react';
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
 import type {WeekSummary} from '../../lib/weekly-review/engine';
 import {reviewState} from '../../lib/weekly-review/engine';
 import {finishReview, reviewFor, saveReviewNotes, skipReview} from '../../lib/weekly-review/store';
@@ -14,6 +16,8 @@ import {localDate} from '../../lib/local-date';
 /** Today's "Your week" card (G1): due or a draft; it opens the review, or skips the week with one tap. */
 export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial, formatWealth, onDone, guideNote}: {store: WeeklyReviewStore; weekStart: string; weekEnd: string; summary: () => WeekSummary; financial: boolean; formatWealth: (subtotal: {currency: string; value: bigint}) => string; onDone?: (status: string) => void; guideNote?: string}) {
   const [open, setOpen] = useState(false); const [error, setError] = useState('');
+  // Session AK Part 8.1: the unified review is /app/review; this card links to it wherever it is shown outside it.
+  const onReview = usePathname() === '/app/review';
   const state = reviewState(store.data, weekStart);
   if (state === 'done' || state === 'skipped') return null;
   // The finished or skipped week leaves this card; the line that says so is shown by the "For you" area (onDone).
@@ -24,6 +28,7 @@ export function WeeklyReviewCard({store, weekStart, weekEnd, summary, financial,
       <p className="eyebrow">Your week</p><h2 id="weekly-review-title">{state === 'draft' ? 'Continue your review.' : 'A short look back at your week.'}</h2>
       <p className="fine">{formatDate(weekStart)} – {formatDate(weekEnd)}{weekEnd === localDate() ? ' (ends today)' : ''}. A few short steps, all optional.</p>
       <div className="actions"><button type="button" className="primary" onClick={() => setOpen(true)}>{state === 'draft' ? 'Continue' : 'Start review'}</button><button type="button" className="quiet" onClick={() => void act(current => skipReview(current, weekStart), 'Skipped this week.')}>Skip this week</button></div>
+      {!onReview && <p className="fine"><Link className="text-link" href="/app/review">See the whole week in your Life review →</Link></p>}
       {error && <p role="alert">{error}</p>}
     </section>
     {open && <WeeklyReviewDialog weekStart={weekStart} weekEnd={weekEnd} summary={summary()} review={reviewFor(store.data, weekStart)} financial={financial} formatWealth={formatWealth} guideNote={guideNote}
