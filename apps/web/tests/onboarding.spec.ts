@@ -109,7 +109,7 @@ test('a first goal: a kind needs a name and a target; it is saved on Finish, onc
  await stepTo(page,'A few things to start with.');
  await flow.getByRole('radio',{name:'A trip',exact:true}).check();
  await expect(flow.getByLabel('Goal name')).toHaveValue('');await expect(flow.getByLabel('Target amount')).toHaveValue('');
- await flow.getByRole('button',{name:'Continue',exact:true}).click();await expect(flow.getByRole('alert')).toHaveText('Give your Goal a name.');
+ await flow.getByRole('button',{name:'Continue',exact:true}).click();await expect(flow.getByRole('alert')).toHaveText('Give your goal a name, or choose No goal for now.');await expect(flow.getByLabel('Goal name')).toHaveAttribute('aria-invalid','true');await expect(flow.getByLabel('Goal name')).toHaveAttribute('aria-describedby','onboarding-goal-error');/* Release review R7: the message sits beside its field and names the way out */
  await typeGoalName(flow, 'Lisbon in spring');await flow.getByLabel('Target amount').fill('1200');
  await flow.getByRole('radio',{name:'EUR',exact:true}).check();await flow.getByRole('button',{name:'Continue',exact:true}).click();
  await throughToData(page);

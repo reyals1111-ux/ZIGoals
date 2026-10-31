@@ -130,3 +130,13 @@ test('the Hall’s share image is made on the device (a download, nothing upload
   expect((await download).suggestedFilename()).toBe('Drink-2-litres-a-day.png');
   expect(requests).toEqual([]);
 });
+
+// Release review R1 (Blocker): the Showcase's average goal with a smaller goal under it opens (it crashed: an average goal
+// has no money summary to roll up), and says how many smaller goals are done instead.
+test('an average goal with a smaller goal under it opens and counts its smaller goals', async ({page}) => {
+  await showcase(page);
+  await page.goto('/app/goals/average/showcase-create');
+  await expect(page.getByRole('heading', {name: 'Bigger and smaller goals'})).toBeVisible({timeout: 15_000});
+  await expect(page.getByText('This page could not be shown.')).toHaveCount(0);
+  await expect(page.locator('.goal-rollup')).toContainText(/\d+ of \d+ smaller goals? done/);
+});

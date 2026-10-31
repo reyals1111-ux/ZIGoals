@@ -104,10 +104,30 @@ const NOTIFY_DB = 'zigoals-notify-v1', ACTIONS_DB = 'zigoals-notify-actions-v1';
 const PUSH_ART = {icon: '/icons/zigoals-192.png', badge: '/icons/zigoals-badge-96.png'};
 const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 
+// Release review R12: the pages the manifest's shortcuts and the bottom bar open are kept at install, with the hashed
+// files each one loads, so an installed app's shortcuts work offline before each page was visited. They hold no
+// personal data (the records live in this browser's storage); a page or file that fails is simply left for later.
+const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings'];
+const MAX_INSTALL_FILES = 160;
+async function precache() {
+  const pages = await caches.open(PAGES), files = new Set();
+  await Promise.all(INSTALL_PAGES.map(async path => {
+    try {
+      const response = await fetch(new Request(path, {credentials: 'same-origin'}));
+      if (!cacheable(response) || response.redirected) return; // a redirected answer cannot be served to a navigation
+      await pages.put(new Request(path), response.clone());
+      for (const match of (await response.text()).matchAll(/\/_next\/static\/[A-Za-z0-9_\-./~]+?\.(?:js|css)/g)) files.add(match[0]);
+    } catch { /* offline install: this page is cached when it is visited */ }
+  }));
+  const statics = await caches.open(STATIC);
+  await Promise.all([...files].slice(0, MAX_INSTALL_FILES).map(async file => {
+    try { if (!(await statics.match(file))) { const response = await fetch(file); if (cacheable(response)) await statics.put(file, response); } } catch { /* fetched on first use */ }
+  }));
+}
 self.addEventListener('install', event => {
   // The first worker takes over at once; a later one waits for the page's "Reload" (or for every window to close).
   event.waitUntil((async () => {
-    if (OFFLINE) { try { const cache = await caches.open(PAGES); await cache.add(new Request('/app', {credentials: 'same-origin'})); } catch { /* offline install: pages are cached as they are visited */ } }
+    if (OFFLINE) await precache();
     if (!self.registration.active) await self.skipWaiting();
   })());
 });

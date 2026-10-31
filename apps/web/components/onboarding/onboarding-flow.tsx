@@ -96,6 +96,7 @@ export function OnboardingFlow() {
   // Session AA-Local S4: two or three focuses, which pre-select starters, a goal and Today's widgets; the setup is recorded for a day so it can be undone.
   const [focuses, setFocuses] = useState<FocusId[]>([]), [setupDone, setSetupDone] = useState(() => { try { return readDeviceRecord(getAppStorage(), ONBOARDING_SETUP).data; } catch { return null; } }), [undoBusy, setUndoBusy] = useState(false);
   const [draft, setDraft] = useState<GoalDraft>(NO_GOAL), [goal, setGoal] = useState<PrivateGoal | null>(null);
+  const [goalError, setGoalError] = useState<{field: 'name' | 'target' | 'date'; text: string} | null>(null);
   const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null), first = useRef(true), id = useId();
@@ -133,7 +134,8 @@ export function OnboardingFlow() {
     if (!touched.current.steps) setSteps(titles.includes("walk") ? 8000 : null);
     if (!touched.current.water) setWater(titles.includes("drink water") ? 2000 : null);
   }, [pickedTitles]);
-  function go(next: Step) { setError(""); setStep(next); }
+  // Release review R7: the goal's own problem is said next to its field (aria-invalid, aria-describedby), in plain words.
+  function go(next: Step) { setError(""); setGoalError(null); setStep(next); }
   function leaveFocuses() {
     const wanted = starters.filter(t => suggested.habits.some(h => h.toLowerCase() === t.title.toLowerCase())).map(t => t.id);
     setHabitIds(list => [...new Set([...list, ...wanted])]);
@@ -156,13 +158,17 @@ export function OnboardingFlow() {
 
   /** The goal draft, checked when leaving the starters step: a kind chosen means a name and a target are needed. */
   function checkGoal(): boolean {
+    setGoalError(null);
     if (!showGoal || !draft.category) { setGoal(null); return true; }
+    const fail = (field: 'name' | 'target' | 'date', text: string) => { setGoalError({field, text}); return false; };
+    if (!draft.name.trim()) return fail('name', 'Give your goal a name, or choose No goal for now.');
+    if (!hasVisibleText(draft.name)) return fail('name', 'Give your goal a name with at least one visible character.');
+    if (draft.date && draft.date < localDate()) return fail('date', 'Choose today or a future target date.');
+    if (!draft.target.trim()) return fail('target', 'Add a target amount, or choose No goal for now.');
+    let units: bigint;
+    try { units = parseAmountInput(draft.target, 2); } catch { return fail('target', 'Enter a target amount such as 1500 or 1500.50.'); }
+    if (units <= 0n) return fail('target', 'Enter a target above zero.');
     try {
-      if (!draft.name.trim()) throw Error("Give your Goal a name.");
-      if (!hasVisibleText(draft.name)) throw Error("Give your Goal a name with at least one visible character.");
-      if (draft.date && draft.date < localDate()) throw Error("Choose today or a future target date.");
-      const units = parseAmountInput(draft.target, 2);
-      if (units <= 0n) throw Error("Enter a positive target.");
       // One id per draft, so finishing again after a partial save never creates the Goal twice.
       const goalId = goal?.id ?? BigInt("0x" + crypto.randomUUID().replaceAll("-", "")).toString();
       setGoal(privateGoalSchema.parse({ id: goalId, name: draft.name, category: draft.category, network: "zigchain-1", type: "VALUE", status: "active", asset: draft.currency, denom: draft.currency, decimals: 2, target: units.toString(), notes: "", createdAt: goal?.createdAt ?? new Date().toISOString(), targetDate: draft.date || undefined, milestones: [] }));
@@ -293,14 +299,16 @@ export function OnboardingFlow() {
             {GOAL_TEMPLATES.map(t => <Choice key={t.category} type="radio" name="onboarding-goal" checked={draft.category === t.category} onChange={() => setDraft(d => ({...d, category: t.category}))} label={t.label} />)}
           </div>
           <fieldset className="onboarding-fields" disabled={!draft.category}><legend className="sr-only">Goal details</legend>
-            <label className="field">Goal name<input required maxLength={100} value={draft.name} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
+            <label className="field">Goal name<input required maxLength={100} value={draft.name} aria-invalid={goalError?.field === 'name' || undefined} aria-describedby={goalError?.field === 'name' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
             <div className="onboarding-row">
-              <label className="field">Target amount<input required inputMode="decimal" value={draft.target} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
+              <label className="field">Target amount<input required inputMode="decimal" value={draft.target} aria-invalid={goalError?.field === 'target' || undefined} aria-describedby={goalError?.field === 'target' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
               <fieldset className="onboarding-currency"><legend>Currency</legend>{(["USD", "EUR"] as const).map(c => <label key={c}><input type="radio" name="onboarding-currency" value={c} checked={draft.currency === c} onChange={() => setDraft(d => ({...d, currency: c}))} /><span>{c}</span></label>)}</fieldset>
             </div>
-            <label className="field">Target date (optional)<input type="date" min={localDate()} value={draft.date} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
+            <label className="field">Target date (optional)<input type="date" min={localDate()} value={draft.date} aria-invalid={goalError?.field === 'date' || undefined} aria-describedby={goalError?.field === 'date' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
           </fieldset>
-          <p className="fine">A plan, not a promise: nothing is invested or moved.{draft.category && <> <button type="button" className="text-link" onClick={() => { setDraft(NO_GOAL); setGoal(null); }}>No goal for now</button></>}</p>
+          {goalError && <p id="onboarding-goal-error" className="field-error" role="alert">{goalError.text}</p>}
+          <p className="fine">A plan, not a promise: nothing is invested or moved.</p>
+          {draft.category && <button type="button" className="secondary onboarding-no-goal" onClick={() => { setDraft(NO_GOAL); setGoal(null); setGoalError(null); }}>No goal for now</button>}
         </fieldset>}
         {showHealth && <fieldset className="onboarding-targets"><legend>Health targets (optional)</legend>
           <div className="onboarding-choices" role="radiogroup" aria-label="Daily steps">

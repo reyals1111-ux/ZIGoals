@@ -122,7 +122,8 @@ function SubGoals({goalKey, summary, goals, extras}: {goalKey: string; summary?:
     </label>
     {parentGoal && <p className="fine">Part of <Link href={parentGoal.href}>{parentGoal.name}</Link>.</p>}
     {kids.length > 0 ? <>
-      <p className="goal-rollup"><strong>{rollUpWords(r!, (v, c) => formatGoalAmount(v, c))}</strong></p>
+      {/* Release review R1 (Blocker): a goal with no summary of its own (an average goal) shows the count, never a crash. */}
+      <p className="goal-rollup"><strong>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : `${kids.filter(k => k.status === 'completed').length} of ${kids.length} smaller goals done`}</strong></p>
       <ul className="goal-tree" aria-label="Sub-goals">{kids.map(k => <li key={k.key}><Link href={k.href}>{k.name}</Link><span className="goal-tree-meta">{k.status === 'completed' ? 'Done' : k.progressBound === 'unavailable' ? 'Progress unknown' : `${Math.floor(Number(k.progressPct))}%`}</span>{childrenOf(x, k.key).length > 0 && <ul>{childrenOf(x, k.key).map(c => byKey.get(c)).filter((g): g is GoalSummary => !!g).map(c => <li key={c.key}><Link href={c.href}>{c.name}</Link><span className="goal-tree-meta">{c.status === 'completed' ? 'Done' : `${Math.floor(Number(c.progressPct))}%`}</span></li>)}</ul>}</li>)}</ul>
     </> : <p className="fine">No smaller goals yet. On another goal, choose this one under “Part of a bigger goal” (year → quarter → month, three levels at most).</p>}
   </article>;
