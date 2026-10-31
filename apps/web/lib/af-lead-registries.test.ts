@@ -55,8 +55,11 @@ describe('Session AF lanes: every device key is wired into the shared registries
     });
     test(`${lane}: the data catalog lists each key once, on this device only, with the lane's label and area`, () => {
       for (const [name, key] of Object.entries(exportKeys)) {
-        expect(DEVICE_ONLY.filter(entry => entry.key === key)).toEqual([{key, label: labels[name]![0], home: 'device', area: labels[name]![1]}]);
-        expect(SYNCED.map(entry => entry.key)).not.toContain(key);
+        // Session AK (8.10, AFL8): the Checklist's two keys travel in the encrypted extras section `checklist`, so the
+        // catalog lists each once under "synced" (account consent), with the lane's label and area, and not as device-only.
+        const synced = lane === 'Checklist (L3)';
+        expect((synced ? SYNCED : DEVICE_ONLY).filter(entry => entry.key === key)).toEqual([{key, label: labels[name]![0], home: synced ? 'sync' : 'device', area: labels[name]![1]}]);
+        expect((synced ? DEVICE_ONLY : SYNCED).map(entry => entry.key)).not.toContain(key);
       }
     });
     test(`${lane}: the account erase removes every key and leaves other records alone`, () => {
