@@ -1,0 +1,13 @@
+/* Session AK (F5b): the before/after slider. The "before" photo is clipped to the left of the divider over the "after"
+   photo; no transition, so Motion Off and reduced motion need nothing more. */
+.photo-compare { margin: 0; display: grid; gap: 8px; max-width: 520px; }
+.photo-compare-stage { position: relative; aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--panel); }
+.photo-compare-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.photo-compare-before { clip-path: inset(0 calc(100% - var(--photo-split, 50%)) 0 0); }
+.photo-compare-divider { position: absolute; top: 0; bottom: 0; left: var(--photo-split, 50%); width: 2px; margin-left: -1px; background: var(--text, #fff); box-shadow: 0 0 0 1px #0008; }
+.photo-compare-tag { position: absolute; top: 8px; font-size: 13px; padding: 2px 8px; border-radius: 99px; background: #000a; color: #fff; }
+.photo-compare-tag-before { left: 8px; }
+.photo-compare-tag-after { right: 8px; }
+.photo-compare-range input[type="range"] { width: 100%; min-height: 44px; }
+.photo-compare-jumps .quiet { min-height: 44px; }
+.photo-compare figcaption { font-size: 14px; color: var(--text-meta); }

@@ -23,6 +23,9 @@ import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vau
 import {withHealthGroup,withSettingsGroup} from './vault/w-homes';
 import {showcaseSleep} from './sleep/showcase';
 import {showcaseHabitsAa,showcaseHabitExtras} from './habits-extras/showcase';
+import {showcaseHabitIntentions} from './habit-intentions/showcase';
+import {SUPPLEMENTS_KEY} from './supplements/schema';
+import {showcaseSupplements} from './supplements/showcase';
 import {showcaseHealthAa,showcaseHealthAaDevice} from './health-aa/showcase';
 import {showcaseGame} from './game/showcase';
 import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
@@ -162,7 +165,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  if(options.aa!==false){ // the vault's size fixtures ask for the lean Showcase (lib/vault/power-user-fixture.ts)
  {const aaHabits=showcaseHabitsAa(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day,zone),aaHealth=showcaseHealthAa(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day),dev=showcaseHealthAaDevice(day);
   records[HABITS_KEY]=JSON.stringify(aaHabits);records[HEALTH_STORAGE_KEY]=JSON.stringify(aaHealth);
-  records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitExtras(aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
+  records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitIntentions(showcaseHabitExtras(aaHabits),aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
   records[HEALTH_COACH_KEY]=JSON.stringify(dev.coach);records[MICRO_TARGETS_KEY]=JSON.stringify(dev.micro);records[MACRO_MODE_KEY]=JSON.stringify(dev.macro);records[MEASUREMENTS_CUSTOM_KEY]=JSON.stringify(dev.measurements);records[REMINDERS_PLAN_KEY]=JSON.stringify(dev.reminders);}
  }
  // Session AH Part 6 (DE8): a fictional training log and two routines (lib/workouts/showcase.ts).
@@ -171,6 +174,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
  // Session AK (7.3, 7.7): four fictional bills and three category budgets beside that log (lib/bills/showcase.ts).
  records[BILLS_KEY]=JSON.stringify(showcaseBills(day));
+ // Owner follow-up 1 (F5): a fictional supplements log (labelled in its own view as example data).
+ records[SUPPLEMENTS_KEY]=JSON.stringify(showcaseSupplements(day));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
  // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
  records[MONEY_RULES_KEY]=JSON.stringify(showcaseMoneyRules(day));

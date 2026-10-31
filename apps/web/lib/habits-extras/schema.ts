@@ -15,6 +15,10 @@ export type TimeSection = (typeof TIME_SECTIONS)[number];
 export const HABIT_LIST_MODES = ['cards', 'compact'] as const;
 export const quitCostSchema = z.looseObject({perDay: z.number().finite().min(0).max(100_000), currency: z.enum(['EUR', 'USD'])});
 export type QuitCost = z.infer<typeof quitCostSchema>;
+/** Session AK (F5b): the when and where of a habit, each a short plain text (control characters are refused). */
+const intentionText = z.string().trim().min(1).max(80).regex(/^[^\u0000-\u001f\u007f]*$/);
+export const habitIntentionSchema = z.looseObject({when: intentionText.optional(), where: intentionText.optional()});
+export type HabitIntention = z.infer<typeof habitIntentionSchema>;
 export const habitExtrasSchema = z.looseObject({
   version: z.literal(1),
   areas: z.record(habitId, z.string().min(1).max(60)).optional(),
@@ -39,7 +43,14 @@ export const habitExtrasSchema = z.looseObject({
    * kept on this device (a device field of the extras section, as `folds` is). A mode a later build adds reads as absent.
    */
   listMode: z.enum(HABIT_LIST_MODES).optional().catch(undefined),
-}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400, 'Too many habits remembered.');
+  /**
+   * Session AK (F5b; TIER 3 (stored format)): a habit's implementation intention, {habitId: {when?, where?}}, each a short
+   * text the person wrote ("After I pour my coffee", "in the kitchen"), at most 400 entries. Optional and additive in this
+   * loose record, so it syncs with the habit extras section as `times` does; older builds keep it through a
+   * read-modify-write and simply do not show it (lib/habit-intentions writes it).
+   */
+  intentions: z.record(habitId, habitIntentionSchema).optional(),
+}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});
 export const HABIT_EXTRAS: DeviceRecordSpec<HabitExtras> = {key: HABIT_EXTRAS_KEY, schema: habitExtrasSchema, empty: emptyHabitExtras};

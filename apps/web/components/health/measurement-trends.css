@@ -1,0 +1,10 @@
+/* Session AK (F5b): measurement trends, inside the Measurements view's fold; theme colours from the design tokens. */
+.measure-trends { display: grid; gap: 12px; padding: 4px 0 0; }
+.measure-trend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.measure-trend-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 4px 12px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); }
+.measure-trend-list li > div { display: grid; gap: 2px; min-width: 0; }
+.measure-trend-list strong { font-size: 15px; }
+.measure-trend-list small { font-size: 14px; color: var(--text-meta); overflow-wrap: anywhere; }
+.measure-trends .field select { min-height: 44px; }
+.measure-trend-chart svg { width: 100%; height: auto; }
+@media (max-width: 420px) { .measure-trend-list li { grid-template-columns: minmax(0, 1fr); } }

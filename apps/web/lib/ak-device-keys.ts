@@ -28,6 +28,8 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:money-review:v1',
   'zigoals:fi-model:v1',
   'zigoals:emergency-sheet:v1',
+  // Owner follow-up 1 (F5): the supplements and medication log.
+  'zigoals:supplements:v1',
 ];
 /** The account erase removes them all. */
 export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;

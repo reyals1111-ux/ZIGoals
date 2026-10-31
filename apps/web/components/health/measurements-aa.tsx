@@ -2,7 +2,11 @@
 import {removeWithUndo} from '../ui/remove-with-undo';
 import {ConfirmInline} from '../ui/confirm-inline';
 /* eslint-disable @next/next/no-img-element -- the progress photos are blob URLs of the person's own device-only files; next/image cannot optimise them */
-import {useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useState} from 'react';
+import {LoadBoundary} from '../load-boundary';
+// Session AK (F5b): measurement trends and the before/after slider, each its own chunk, loaded when opened.
+const MeasurementTrends = lazy(() => import('./measurement-trends').then(m => ({default: m.MeasurementTrends})));
+const PhotoCompare = lazy(() => import('./photo-compare'));
 import {NebulaFlow} from '../nebula-flow';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartDefs, ChartGrid, ChartXAxis} from '../charts/chart-kit';
@@ -37,7 +41,7 @@ function MiniChart({title, points, unit, id}: {title: string; points: {date: str
 /** N9: charts per measurement kind (the synced kinds and the person's own), custom kinds, and progress photos. */
 export function MeasurementsAa({data, today}: {data: HealthData; today: string}) {
   const custom = useDeviceRecord(MEASUREMENTS_CUSTOM), photos = useDeviceRecord(PROGRESS_PHOTOS);
-  const [label, setLabel] = useState(''), [unit, setUnit] = useState<'cm' | 'in'>('cm'), [kind, setKind] = useState(''), [value, setValue] = useState(''), [date, setDate] = useState(today), [error, setError] = useState('');
+  const [label, setLabel] = useState(''), [unit, setUnit] = useState<'cm' | 'in'>('cm'), [kind, setKind] = useState(''), [value, setValue] = useState(''), [date, setDate] = useState(today), [error, setError] = useState(''), [trendsOpen, setTrendsOpen] = useState(false);
   const synced = measurementKinds.filter(k => k !== 'weight').map(k => { const h = measurementHistory(data, k); return {id: k, title: k[0]!.toUpperCase() + k.slice(1), unit: h.readings[0]?.unit === 'in' ? 'in' : 'cm', points: h.readings.map(r => ({date: r.observedAt.slice(0, 10), value: Math.round((r.unit === 'in' ? r.canonical / 25400 : r.canonical / 10000) * 10) / 10}))}; });
   const customKinds = custom.loaded && !custom.unreadable ? custom.data.kinds ?? [] : [];
   const customCharts = customKinds.map(k => ({id: k.id, title: k.label, unit: k.unit, points: customHistory(custom.data, k.id).map(r => ({date: r.date, value: Math.round(r.valueMilli / 100) / 10}))}));
@@ -45,6 +49,8 @@ export function MeasurementsAa({data, today}: {data: HealthData; today: string})
   return <div className="health-measurements-aa">
     <section className="panel health-aa-card" aria-labelledby="measure-charts-title"><p className="eyebrow">Over time</p><h2 id="measure-charts-title"><NebulaFlow identity="measure-charts-title">Measurement charts</NebulaFlow></h2>
       <div className="health-measure-charts">{[...synced, ...customCharts].map(c => <MiniChart key={c.id} id={c.id} title={c.title} unit={c.unit} points={c.points} />)}</div>
+      {/* Session AK (F5b): the week's change and the eight-week trend per kind, in the journal's units; loaded when opened. */}
+      <details className="health-measure-trends" onToggle={e => setTrendsOpen(e.currentTarget.open)}><summary>Trends and weekly change</summary>{trendsOpen && <LoadBoundary quiet><Suspense fallback={null}><MeasurementTrends data={data} /></Suspense></LoadBoundary>}</details>
       <form className="health-custom-form" aria-label="Add a reading" onSubmit={e => { e.preventDefault(); keep(() => { const v = readFormNumber(value, {min: 0.1, max: 5000}); custom.update(r => addCustomReading(r, kind, date, v, new Date().toISOString())); setValue(''); }); }}>
         <label className="field"><span>Your own measurement</span><select value={kind} onChange={e => setKind(e.target.value)} required><option value="">Choose</option>{customKinds.map(k => <option key={k.id} value={k.id}>{k.label} ({k.unit})</option>)}</select></label><label className="field"><span>Value</span><input type="text" inputMode="decimal" value={value} onChange={e => setValue(e.target.value)} /></label><label className="field"><span>Date</span><input type="date" max={today} value={date} onChange={e => setDate(e.target.value)} /></label><div className="actions"><button type="submit" className="secondary" disabled={!kind}>Add reading</button></div></form>
       <form className="health-custom-form" aria-label="Add a measurement kind" onSubmit={e => { e.preventDefault(); keep(() => { custom.update(r => addCustomKind(r, label, unit)); setLabel(''); }); }}><label className="field"><span>Add any measurement</span><input type="text" maxLength={40} value={label} onChange={e => setLabel(e.target.value)} placeholder="Neck, calf, shoulders…" /></label><label className="field"><span>Unit</span><select value={unit} onChange={e => setUnit(e.target.value as 'cm' | 'in')}><option value="cm">cm</option><option value="in">in</option></select></label><div className="actions"><button type="submit" className="secondary" disabled={!label.trim()}>Add</button>{customKinds.length > 0 && <button type="button" className="quiet" onClick={() => keep(() => { const id = kind || customKinds[customKinds.length - 1]!.id; /* Session AH Part 3 (DS5): Undo puts the kind and its readings back. */ removeWithUndo(custom.update, r => removeCustomKind(r, id), 'Measurement removed with its readings.', 'The measurement and its readings are back.').catch(e => setError(`Not removed. ${deviceSettingFailureMessage(e)}`)); setKind(''); })}>Remove the chosen one</button>}</div></form>
@@ -66,15 +72,18 @@ function ProgressPhotos({photos, today}: {photos: ReturnType<typeof useDeviceRec
     catch (e) { setError(plainErrorMessage(e, 'The photo was not saved.')); } finally { setBusy(false); }
   }
   // Session AH Part 3 (DS5): a photo's image is deleted from this device for good, so removing one asks first, in place.
-  const [removing, setRemoving] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null), [slider, setSlider] = useState(false);
   async function remove(id: string) { setRemoving(null); try { photos.update(r => removePhotoEntry(r, id)); await deletePhotoBlob(scope, id); setPicked(p => p.filter(x => x !== id)); } catch (e) { setError(plainErrorMessage(e, 'The photo was not removed.')); } }
   const pair = picked.map(id => list.find(p => p.id === id)).filter((p): p is PhotoEntry => !!p);
   return <section className="panel health-aa-card" aria-labelledby="photos-title"><p className="eyebrow">On this device only</p><h2 id="photos-title"><NebulaFlow identity="photos-title">Progress photos</NebulaFlow></h2>
     <form className="health-photo-add" aria-label="Add a progress photo" onSubmit={e => e.preventDefault()}><label className="field"><span>Photo</span><input type="file" accept="image/*" disabled={busy} onChange={e => { const f = e.target.files?.[0]; if (f) void add(f); e.target.value = ''; }} /></label><label className="field"><span>Pose</span><select value={pose} onChange={e => setPose(e.target.value as PhotoEntry['pose'])}><option value="front">Front</option><option value="side">Side</option><option value="back">Back</option><option value="other">Other</option></select></label><label className="field"><span>Date</span><input type="date" max={today} value={date} onChange={e => setDate(e.target.value)} /></label></form>
     {busy && <p role="status">Shrinking and saving…</p>}{error && <p role="alert">{error}</p>}
     {list.length ? <><div className="health-photos-grid">{list.map(p => <figure key={p.id} className="health-photo" data-picked={picked.includes(p.id) || undefined}>{urls[p.id] ? /* a device-only blob URL: next/image cannot optimise it and must never fetch it */ <img src={urls[p.id]} alt={`${p.pose} photo, ${formatDate(p.date)}`} /> : <div className="health-photo-missing">Photo unavailable</div>}<small>{formatDate(p.date)} · {p.pose} · {Math.round(p.bytes / 1024)} kB</small><div className="actions"><button type="button" className="quiet" aria-pressed={picked.includes(p.id)} onClick={() => setPicked(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev.slice(-1), p.id])}>Compare</button><button type="button" className="quiet" aria-expanded={removing === p.id} aria-label={`Remove the ${p.pose} photo of ${formatDate(p.date)}`} onClick={() => setRemoving(p.id)}>Remove</button></div>{removing === p.id && <ConfirmInline title="Remove this photo?" confirmLabel="Remove photo" cancelLabel="Keep it" onConfirm={() => void remove(p.id)} onCancel={() => setRemoving(null)}><p>The image is deleted from this device for good. Export a backup first if you want to keep a copy.</p></ConfirmInline>}</figure>)}</div>
-      {pair.length === 2 && <div className="health-photo-compare" aria-label="Side by side">{pair.map(p => <figure key={p.id}><img src={urls[p.id]} alt="" /><figcaption>{formatDate(p.date)} · {p.pose}</figcaption></figure>)}</div>}</>
-      : <p className="health-empty-inline">Add two photos and compare them side by side. Shrunk on your device, never synced, included in Export everything.</p>}
+      {pair.length === 2 && <div className="health-photo-compare" aria-label="Side by side">{pair.map(p => <figure key={p.id}><img src={urls[p.id]} alt="" /><figcaption>{formatDate(p.date)} · {p.pose}</figcaption></figure>)}</div>}
+      {/* Session AK (F5b): the before/after slider, opt-in per comparison, over the same device-only images; loaded when opened. */}
+      {pair.length === 2 && <div className="actions"><button type="button" className="quiet" aria-expanded={slider} onClick={() => setSlider(open => !open)}>{slider ? 'Close the slider' : 'Compare with a slider'}</button></div>}
+      {pair.length === 2 && slider && <LoadBoundary quiet><Suspense fallback={null}><PhotoCompare a={pair[0]!} b={pair[1]!} urls={urls} /></Suspense></LoadBoundary>}</>
+      : <p className="health-empty-inline">Add two photos and compare them side by side or with a before/after slider. Shrunk on your device, never synced or uploaded, included in Export everything.</p>}
     <p className="fine">Stored in this browser only (at most 60); the account’s erase removes them.</p>
   </section>;
 }

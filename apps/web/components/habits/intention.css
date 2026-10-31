@@ -1,0 +1,12 @@
+/* Session AK (F5b): a habit's when and where, and the usual-time offer, inside the card's Details. */
+.habit-intention { display: grid; gap: 6px; margin: 8px 0; }
+.habit-intention-line, .habit-intention-empty { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; overflow-wrap: anywhere; }
+.habit-intention-line > span { font-size: 15px; }
+.habit-intention .quiet { min-height: 44px; }
+.habit-intention-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 10px; align-items: end; }
+.habit-intention-form .actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.habit-intention-form .actions > button { min-height: 44px; }
+.habit-time-suggest { display: grid; gap: 4px; }
+.habit-time-suggest .fine { margin: 0; }
+.habit-time-suggest .actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.habit-time-suggest .actions > button { min-height: 44px; }

@@ -48,6 +48,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   grocery: ['Grocery ticks, pantry and added items', 'Health'],
   calorieWeek: ['Weekly calorie budget', 'Health'],
   comparePair: ['The comparison you chose last (Insights)', 'Health'],
+  supplements: ['Supplements and medication log', 'Health'],
   moneyRules: ['Money log rules', 'Wealth'],
   moneyReview: ['Imported entries still to review', 'Wealth'],
   fiModel: ['Financial freedom model inputs', 'Wealth'],

@@ -18,6 +18,7 @@ import {NUTRIENT_EXTRAS_KEY} from '../health-vitamins/extras';
 import {GROCERY_KEY} from '../grocery/schema';
 import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
+import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {MONEY_RULES_KEY} from '../money-rules/schema';
 import {MONEY_REVIEW_KEY} from '../money-review/review';
 import {FI_MODEL_KEY} from '../fi-model/store';
@@ -139,6 +140,7 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   grocery: GROCERY_KEY,
   calorieWeek: CALORIE_WEEK_KEY,
   comparePair: COMPARE_PAIR_KEY,
+  supplements: SUPPLEMENTS_KEY,
   moneyRules: MONEY_RULES_KEY,
   moneyReview: MONEY_REVIEW_KEY,
   fiModel: FI_MODEL_KEY,

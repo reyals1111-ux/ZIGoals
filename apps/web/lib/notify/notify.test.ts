@@ -258,3 +258,14 @@ describe('the service worker’s offline cache and openings (security review)', 
     expect(sw.posted).toEqual([{type: 'zigoals:push-open', url: '/app'}]);
   });
 });
+
+// Session AK (F5): supplement and medication reminders wake only when the person turned the type on, and never carry a
+// name or a dose, even with names allowed (the plan gets times only).
+test('supplement reminders: off by default; on, they wake at their times and are never named', () => {
+  const supplements = [{id: 'supplement:supp_abcd:09:00', time: '09:00', weekdays: 127, doneToday: false}];
+  expect(buildPlan(base({supplements})).snapshot.items.filter(i => i.kind === 'supplement')).toEqual([]);
+  const prefs = {...emptyNotifyPrefs(), types: {supplements: true}};
+  const items = buildPlan(base({supplements, prefs, labels: true})).snapshot.items.filter(i => i.kind === 'supplement');
+  expect(items.length).toBeGreaterThan(0);
+  for (const i of items) { expect(i.label).toBeUndefined(); expect(i.detail).toBeUndefined(); expect(i.href).toBe('/app/health'); }
+});
