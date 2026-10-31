@@ -141,7 +141,7 @@ export function planAkAction(action: Action, env: Env, h: Helpers): PlanResult |
     }
     case 'scan-food': {
       const views = {
-        barcode: {href: `/app/health${action.barcode ? `?barcode=${action.barcode}` : ''}#diary`, label: 'Health → Diary → Scan or look up a food barcode', line: action.barcode ? `Barcode ${action.barcode}, filled in: open the barcode fold and look it up` : 'Open the barcode fold under the diary; the camera asks first'},
+        barcode: {href: `/app/health${action.barcode ? `?barcode=${action.barcode}` : ''}#diary`, label: 'Health → Diary → Scan or look up a food barcode', line: action.barcode ? `Barcode ${action.barcode}, filled in: the barcode fold opens with it; press Look up barcode` : 'Open the barcode fold under the diary; the camera asks first'},
         label: {href: '/app/health#foods', label: 'Health → Foods & recipes → Read the label from a photo', line: 'In a new food, “Read the label from a photo”: the photo goes to your own AI when you send it'},
         'meal-photo': {href: '/app/health#foods', label: 'Health → Foods & recipes → A photo of a meal', line: 'Under “A photo of a meal”: the estimate goes to your own AI when you send it'},
       }[action.mode];

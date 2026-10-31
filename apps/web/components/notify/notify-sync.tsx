@@ -54,7 +54,7 @@ export function NotifySync() {
       try {
         const queue = await import('../../lib/offline-queue/queue');
         for (const job of await queue.readJobs()) {
-          if (job.kind === 'food-lookup') showToast({message: `You’re back online. Look up barcode ${job.value} now?`, link: {href: `/app/health?barcode=${job.value}#foods`, label: 'Look it up'}});
+          if (job.kind === 'food-lookup') showToast({message: `You’re back online. Look up barcode ${job.value} now?`, link: {href: `/app/health?barcode=${job.value}`, label: 'Look it up'}});
           else window.dispatchEvent(new CustomEvent('zigoals:exchange-refresh', {detail: job.value}));
           await queue.removeJob(job.id);
         }
