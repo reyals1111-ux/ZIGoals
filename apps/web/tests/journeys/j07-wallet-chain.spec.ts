@@ -1,0 +1,139 @@
+import {createCipheriv, createDecipheriv, createHash, createPublicKey, diffieHellman, generateKeyPairSync, hkdfSync, randomBytes} from 'node:crypto';
+import {test, type Page, type WebSocketRoute} from '@playwright/test';
+import {toBech32} from '@cosmjs/encoding';
+import {desktopOnly, expect, hydrated, offlineApis, seedRecords, stored} from './journey-helpers';
+import {openStatusSheet} from '../ab-shell';
+
+/**
+ * Session AK F2, journey 7: phone wallets over WalletConnect, MOCKED end to end. The WalletConnect relay
+ * (wss://relay.walletconnect.org) is answered by this test (Playwright's routeWebSocket), and a fictional wallet on
+ * "another phone" is emulated here with the protocol's own cryptography (X25519, HKDF-SHA256, ChaCha20-Poly1305): it
+ * reads the pairing proposal the app publishes, approves it with fictional accounts and settles the session. Nothing
+ * reaches WalletConnect's servers or any chain.
+ * 1. Read-only linking: the proposal asks for accounts only (no Ethereum or Solana method; Cosmos only
+ *    cosmos_getAccounts); the approved addresses are linked read-only.
+ * 2. Keplr Mobile for staking on the testnet: the staking pairing asks for the account read and exactly one signing
+ *    method, for ZIGChain mainnet and testnet only; once approved, nothing at all is asked of the wallet: no signature
+ *    without a reviewed action and the person's own Sign press.
+ */
+test.use({actionTimeout: 20_000, timezoneId: 'UTC', viewport: {width: 390, height: 844}});
+desktopOnly();
+const ZIG = toBech32('zig', new Uint8Array(20).fill(7)), EVM = '0x52908400098527886E0F7030069857D2E4169EE7';
+type Json = Record<string, unknown>;
+const seal = (key: Buffer, text: string) => { const iv = randomBytes(12), c = createCipheriv('chacha20-poly1305', key, iv, {authTagLength: 16}); const ct = Buffer.concat([c.update(text, 'utf8'), c.final()]); return Buffer.concat([Buffer.from([0]), iv, ct, c.getAuthTag()]).toString('base64'); };
+const open = (key: Buffer, b64: string) => { const b = Buffer.from(b64, 'base64'), iv = b.subarray(1, 13), sealed = b.subarray(13), d = createDecipheriv('chacha20-poly1305', key, iv, {authTagLength: 16}); d.setAuthTag(sealed.subarray(sealed.length - 16)); return Buffer.concat([d.update(sealed.subarray(0, sealed.length - 16)), d.final()]).toString('utf8'); };
+/** The raw JSON id of a message (WalletConnect's ids exceed a double's precision, so they are echoed as written). */
+const rawId = (text: string) => /"id"\s*:\s*("?[0-9]+"?)/.exec(text)?.[1] ?? '0';
+
+/** The relay, answered here, with a fictional wallet that approves the proposal with `accounts` (CAIP-10). */
+async function walletConnectRelay(page: Page, accounts: string[], walletName: string) {
+  const state = {proposals: [] as Json[], sessionRequests: [] as Json[], pairingKey: null as Buffer | null, sessionKey: null as Buffer | null, sessionTopic: '', approved: false};
+  const subs = new Map<string, string>();
+  const wallet = generateKeyPairSync('x25519'), walletPub = Buffer.from(wallet.publicKey.export({format: 'jwk'}).x!, 'base64url').toString('hex');
+  let ws: WebSocketRoute | null = null, n = 1;
+  const pending: Json[] = [];
+  const deliver = (topic: string, message: string, tag: number) => ws!.send(JSON.stringify({id: Date.now() * 1000 + n++, jsonrpc: '2.0', method: 'irn_subscription', params: {id: subs.get(topic) ?? createHash('sha256').update(topic).digest('hex'), data: {topic, message, publishedAt: Date.now(), tag}}}));
+  const settle = () => {
+    const chains = [...new Set(accounts.map(a => a.split(':').slice(0, 2).join(':')))];
+    const namespaces: Json = {};
+    for (const ns of new Set(chains.map(c => c.split(':')[0]!))) {
+      const proposal = state.proposals.at(-1) as {requiredNamespaces?: Record<string, {methods: string[]}>; optionalNamespaces?: Record<string, {methods: string[]}>};
+      const methods = proposal.optionalNamespaces?.[ns]?.methods ?? proposal.requiredNamespaces?.[ns]?.methods ?? [];
+      namespaces[ns] = {chains: chains.filter(c => c.startsWith(`${ns}:`)), accounts: accounts.filter(a => a.startsWith(`${ns}:`)), methods, events: []};
+    }
+    deliver(state.sessionTopic, seal(state.sessionKey!, JSON.stringify({id: Date.now() * 1000 + n++, jsonrpc: '2.0', method: 'wc_sessionSettle', params: {relay: {protocol: 'irn'}, namespaces, controller: {publicKey: walletPub, metadata: {name: walletName, description: 'A fictional wallet in a test', url: 'https://wallet.invalid', icons: []}}, expiry: Math.floor(Date.now() / 1000) + 7 * 86400}})), 1102);
+    state.approved = true;
+  };
+  await page.routeWebSocket(/^wss:\/\/relay\.walletconnect\.(org|com)/, route => {
+    ws = route;
+    route.onMessage(raw => {
+      const text = String(raw), msg = JSON.parse(text) as {id?: number; method?: string; params?: Json; result?: unknown};
+      if (!msg.method) return; // the app's acknowledgement of a delivered message
+      const reply = (result: unknown) => route.send(`{"id":${rawId(text)},"jsonrpc":"2.0","result":${JSON.stringify(result)}}`);
+      const p = msg.params ?? {};
+      if (msg.method.endsWith('_subscribe')) { const id = createHash('sha256').update(String(p.topic)).digest('hex'); subs.set(String(p.topic), id); reply(id); if (p.topic === state.sessionTopic && !state.approved) setTimeout(settle, 50); return; }
+      if (msg.method.endsWith('_batchSubscribe')) { const ids = (p.topics as string[]).map(t => { const id = createHash('sha256').update(t).digest('hex'); subs.set(t, id); return id; }); reply(ids); if ((p.topics as string[]).includes(state.sessionTopic) && !state.approved) setTimeout(settle, 50); return; }
+      if (msg.method.endsWith('_batchFetchMessages')) return reply({messages: [], hasMore: false});
+      if (msg.method === 'wc_proposeSession') {
+        reply(true);
+        if (!state.pairingKey) { pending.push(p); return; }
+        answer(p);
+        return;
+      }
+      if (msg.method.endsWith('_publish') && state.sessionKey && p.topic === state.sessionTopic) {
+        const body = JSON.parse(open(state.sessionKey, String(p.message))) as Json;
+        if (body.method === 'wc_sessionRequest') state.sessionRequests.push(body);
+      }
+      reply(true);
+    });
+  });
+  /** The fictional wallet reads the proposal and answers it on the pairing topic with its own public key. */
+  function answer(p: Json) {
+    const proposalText = open(state.pairingKey!, String(p.sessionProposal)), proposal = JSON.parse(proposalText) as {params: Json & {proposer: {publicKey: string}}};
+    state.proposals.push(proposal.params);
+    const peer = createPublicKey({key: {kty: 'OKP', crv: 'X25519', x: Buffer.from(proposal.params.proposer.publicKey, 'hex').toString('base64url')}, format: 'jwk'});
+    state.sessionKey = Buffer.from(hkdfSync('sha256', diffieHellman({privateKey: wallet.privateKey, publicKey: peer}), Buffer.alloc(0), Buffer.alloc(0), 32));
+    state.sessionTopic = createHash('sha256').update(state.sessionKey).digest('hex');
+    // The wallet answers the proposal on the pairing topic with its own public key.
+    const response = `{"id":${rawId(proposalText)},"jsonrpc":"2.0","result":${JSON.stringify({relay: {protocol: 'irn'}, responderPublicKey: walletPub})}}`;
+    setTimeout(() => deliver(String(p.pairingTopic), seal(state.pairingKey!, response), 1101), 50);
+  }
+  // WalletConnect's Verify page and API: answered empty (nothing reaches it).
+  await page.route(/^https:\/\/verify\.walletconnect\.(org|com)\//, route => route.fulfill({status: 200, contentType: route.request().resourceType() === 'document' ? 'text/html' : 'application/json', body: route.request().resourceType() === 'document' ? '<!doctype html><title>verify</title>' : '{}'}));
+  return {state, takeKey: (uri: string) => { state.pairingKey = Buffer.from(new URL(uri.replace(/^wc:/, 'wc://x/')).searchParams.get('symKey')!, 'hex'); for (const p of pending.splice(0)) answer(p); }};
+}
+async function pair(page: Page, button: RegExp, relay: Awaited<ReturnType<typeof walletConnectRelay>>) {
+  const sheet = await openStatusSheet(page);
+  await sheet.locator('.wallet-choices').getByRole('button', {name: button}).click();
+  const uri = sheet.locator('code.wallet-wc-uri');
+  await expect(uri).toHaveText(/^wc:[0-9a-f]{64}@2\?/, {timeout: 20_000});
+  relay.takeKey((await uri.textContent())!);
+  await expect(sheet.getByRole('list', {name: 'Open the pairing link in a wallet app'})).toBeVisible();
+  return sheet;
+}
+
+test('@journey 7 wallet: read-only WalletConnect linking, then Keplr Mobile paired for testnet staking and never asked to sign by itself', async ({page}) => {
+  test.setTimeout(150_000);
+  const outside: string[] = [];
+  page.on('request', r => { const u = new URL(r.url()); if (u.protocol.startsWith('http') && !['127.0.0.1', 'localhost'].includes(u.hostname) && !/verify\.walletconnect/.test(u.hostname)) outside.push(r.url()); });
+  await offlineApis(page);
+  await seedRecords(page, {});
+
+  // 1. Read-only linking: a fictional wallet approves with a ZIGChain and an Ethereum address.
+  const relay = await walletConnectRelay(page, [`cosmos:zigchain-1:${ZIG}`, `eip155:1:${EVM}`], 'Fictional Wallet');
+  await page.goto('/app'); await hydrated(page);
+  const sheet = await pair(page, /^Connect by WalletConnect/, relay);
+  await expect.poll(() => relay.state.proposals.length, {timeout: 20_000}).toBe(1);
+  const proposal = relay.state.proposals[0] as {requiredNamespaces?: Record<string, {methods: string[]}>; optionalNamespaces?: Record<string, {chains: string[]; methods: string[]}>};
+  const asked = {...proposal.requiredNamespaces, ...proposal.optionalNamespaces};
+  expect(asked.eip155?.methods).toEqual([]);
+  expect(asked.solana?.methods).toEqual([]);
+  expect(asked.cosmos?.methods).toEqual(['cosmos_getAccounts']);
+  await expect(sheet.getByRole('status').filter({hasText: /Fictional Wallet: 2 addresses linked, read-only/})).toBeVisible({timeout: 20_000});
+  const linked = (await stored<{wallets: {kind: string; address: string; via?: string}[]}>(page, 'zigoals:linked-wallets:v1'))!.wallets;
+  expect(linked.map(w => [w.kind, w.address, w.via]).sort()).toEqual([['cosmos', ZIG, 'walletconnect'], ['evm', EVM, 'walletconnect']]);
+  expect(relay.state.sessionRequests).toEqual([]); // nothing asked of the wallet beyond the session
+
+  // 2. Keplr Mobile for staking, on a fresh page: the pairing asks for the account read and one signing method, ZIGChain only.
+  const keplr = await walletConnectRelay(page, [`cosmos:zigchain-1:${ZIG}`, `cosmos:zig-test-2:${ZIG}`], 'Fictional Keplr');
+  await page.goto('/app'); await hydrated(page);
+  const stake = await pair(page, /^Stake with Keplr Mobile/, keplr);
+  await expect.poll(() => keplr.state.proposals.length, {timeout: 20_000}).toBe(1);
+  const staking = keplr.state.proposals[0] as {requiredNamespaces?: Record<string, {chains: string[]; methods: string[]}>; optionalNamespaces?: Record<string, {chains: string[]; methods: string[]}>};
+  const cosmos = {...staking.requiredNamespaces, ...staking.optionalNamespaces}.cosmos!;
+  expect(cosmos.chains.sort()).toEqual(['cosmos:zig-test-2', 'cosmos:zigchain-1']);
+  expect(cosmos.methods).toHaveLength(2);
+  expect(cosmos.methods).toContain('cosmos_getAccounts');
+  expect({...staking.requiredNamespaces, ...staking.optionalNamespaces}.eip155?.methods ?? []).toEqual([]);
+  await expect(stake.getByRole('status').filter({hasText: 'Fictional Keplr is ready: review a staking action here and press Sign'})).toBeVisible({timeout: 20_000});
+  // Never auto-signed: once paired, the wallet is asked for nothing until a reviewed action's Sign press.
+  await page.goto('/app/staking'); await hydrated(page);
+  await expect(page.locator('main h1').first()).toBeVisible();
+  expect(keplr.state.sessionRequests).toEqual([]);
+  expect(outside).toEqual([]);
+});
+
+test.fixme('@journey 7b Keplr Mobile signs one reviewed testnet delegation through the review sheet (stubbed signer)', async () => {
+  // Needs the relay double above to answer cosmos_signDirect with a stubbed signature and the testnet chain doubles of
+  // tests/staking-chain.ts on the WalletConnect path (they cover the Keplr-extension path today); not built in F2.
+});
