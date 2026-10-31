@@ -81,6 +81,8 @@ export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home
   calculator: {home: 'sync', area: 'Wealth'}, lifeReview: {home: 'sync', area: 'Life review'}, todayCards: {home: 'sync', area: 'Today'}, remindersPlan: {home: 'sync', area: 'Today'},
   habitExtras: {home: 'sync', area: 'Habits'}, routineRun: {home: 'sync', area: 'Habits'}, game: {home: 'sync', area: 'Journey'},
   healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'}, healthVitamins: {home: 'sync-consent', area: 'Health'},
+  // Session AK (8.10, AFL8): the Checklist section; its Health quick inputs and today's ticks stay on each device.
+  checklist: {home: 'sync', area: 'Today'}, checklistDays: {home: 'sync', area: 'Today'},
 };
 const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
 export const SYNCED: readonly CatalogEntry[] = [
