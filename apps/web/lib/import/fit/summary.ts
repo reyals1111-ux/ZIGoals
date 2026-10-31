@@ -39,25 +39,24 @@ const SEMICIRCLE = 180 / 2 ** 31;
 export function readFitFile(bytes: Uint8Array): ImportSummary[] {
   // Pass 1: the file's own summaries (file_id, session, lap, activity). Records are skipped here.
   let fileType: number | null = null, sawFileId = false, anyRecord = false;
-  const sessions: Session[] = [], laps: Session[] = [];
+  // Session AK Part 15 (F7): a file of a million session messages is refused at the 51st, inside the read, instead of
+  // after keeping them all; laps are added up as they come (a long run can have hundreds of real laps), never kept.
+  const sessions: Session[] = [], laps = lapTotals();
   decodeFit(bytes, m => {
     if (m.global === 0) { sawFileId = true; fileType = num(m, 0); }
     else if (m.global === 18 || m.global === 19) {
+      if (m.global === 18 && sessions.length >= MAX_SESSIONS) refuse(TOO_MANY_SESSIONS);
       const start = fitTimeMs(num(m, 2)), end = fitTimeMs(num(m, TIMESTAMP_FIELD));
       const s: Session = {start, end, sport: m.global === 18 ? num(m, 5) : null, elapsed: scaled(m, 7, 1000), timer: scaled(m, 8, 1000), meters: scaled(m, 9, 100),
         avgHr: hr(num(m, m.global === 18 ? 16 : 15)), ascent: m.global === 18 ? num(m, 22) : num(m, 21)};
-      (m.global === 18 ? sessions : laps).push(s);
+      if (m.global === 18) sessions.push(s); else laps.add(s);
     } else if (m.global === 20) anyRecord = true;
   });
   if (sawFileId && fileType !== null && fileType !== 4) refuse('This FIT file is not a recorded activity (it holds a course, a workout plan or settings). Export the activity itself.');
-  if (!sessions.length && !laps.length && !anyRecord) refuse('This FIT file has no recorded activity in it. Export the activity itself.');
+  if (!sessions.length && !laps.count() && !anyRecord) refuse('This FIT file has no recorded activity in it. Export the activity itself.');
   // Without a session message, the laps (or else the points) stand in for one session.
-  const plan: Session[] = sessions.length ? sessions : [laps.length ? {
-    start: laps.map(l => l.start).filter((t): t is number => t !== null).sort((a, b) => a - b)[0] ?? null,
-    end: laps.map(l => l.end).filter((t): t is number => t !== null).sort((a, b) => b - a)[0] ?? null, sport: null,
-    elapsed: sumOrNull(laps.map(l => l.elapsed)), timer: sumOrNull(laps.map(l => l.timer)), meters: sumOrNull(laps.map(l => l.meters)), avgHr: weightedHr(laps), ascent: sumOrNull(laps.map(l => l.ascent)),
-  } : {start: null, end: null, sport: null, elapsed: null, timer: null, meters: null, avgHr: null, ascent: null}];
-  if (plan.length > 50) refuse('This file holds more than 50 workouts. Export fewer at a time.');
+  const plan: Session[] = sessions.length ? sessions : [laps.count() ? laps.session() : {start: null, end: null, sport: null, elapsed: null, timer: null, meters: null, avgHr: null, ascent: null}];
+  if (plan.length > MAX_SESSIONS) refuse(TOO_MANY_SESSIONS);
 
   // Pass 2: points, only to fill in what a session does not say. Each point goes to the session whose time holds it.
   const windows = plan.map(s => ({from: s.start, to: s.start !== null && (s.elapsed ?? s.timer) !== null ? s.start + (s.elapsed ?? s.timer)! * 1000 : s.end}));
@@ -107,9 +106,24 @@ export function readFitFile(bytes: Uint8Array): ImportSummary[] {
       elevationM: gain === null ? null : Math.round(gain), avgHr: avgHr !== null && avgHr >= 20 && avgHr <= 250 ? avgHr : null} satisfies ImportSummary;
   });
 }
-function sumOrNull(xs: (number | null)[]): number | null { return xs.some(x => x !== null) ? xs.reduce<number>((t, x) => t + (x ?? 0), 0) : null; }
-function weightedHr(laps: Session[]): number | null {
-  const known = laps.filter(l => l.avgHr !== null).map(l => ({hr: l.avgHr!, w: l.elapsed ?? l.timer ?? 1}));
-  const total = known.reduce((t, x) => t + x.w, 0);
-  return known.length && total > 0 ? known.reduce((t, x) => t + x.hr * x.w, 0) / total : null;
+const MAX_SESSIONS = 50, TOO_MANY_SESSIONS = 'This file holds more than 50 workouts. Export fewer at a time.';
+/**
+ * The laps standing in for a session, added up one at a time: the earliest start, the latest end, the sums (unknown
+ * when no lap says) and the heart rate weighted by each lap's length.
+ */
+function lapTotals() {
+  let n = 0, start: number | null = null, end: number | null = null, hrN = 0, hrWeight = 0, hrSum = 0;
+  const sums = {elapsed: null as number | null, timer: null as number | null, meters: null as number | null, ascent: null as number | null};
+  const add = (key: keyof typeof sums, v: number | null) => { if (v !== null) sums[key] = (sums[key] ?? 0) + v; };
+  return {
+    add(l: Session) {
+      n++;
+      if (l.start !== null && (start === null || l.start < start)) start = l.start;
+      if (l.end !== null && (end === null || l.end > end)) end = l.end;
+      add('elapsed', l.elapsed); add('timer', l.timer); add('meters', l.meters); add('ascent', l.ascent);
+      if (l.avgHr !== null) { const w = l.elapsed ?? l.timer ?? 1; hrN++; hrWeight += w; hrSum += l.avgHr * w; }
+    },
+    count: () => n,
+    session: (): Session => ({start, end, sport: null, elapsed: sums.elapsed, timer: sums.timer, meters: sums.meters, avgHr: hrN && hrWeight > 0 ? hrSum / hrWeight : null, ascent: sums.ascent}),
+  };
 }

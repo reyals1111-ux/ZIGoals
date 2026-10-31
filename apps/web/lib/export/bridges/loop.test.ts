@@ -18,3 +18,16 @@ test('one row per day done; Loop\'s header; a check is 1; skipped and failed day
   expect(out).toMatchObject({rows: 2, habits: 1});
   expect(habitsToHabitBullCsv(emptyHabitData(), '2026-10-05')).toEqual({csv: HABITBULL_HEADER + '\n', rows: 0, habits: 0});
 });
+// Session AK Part 15 (F3): Loop's cells use the app's one formula guard, so leading whitespace and full-width signs are neutralised too.
+test('a formula after leading spaces, or in full-width signs, is neutralised; the HabitBull layout stays valid', () => {
+  let data = emptyHabitData();
+  data = createHabit(data, {title: 'Walk', category: '＋cmd', description: '  =1+1', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date('2026-10-01T08:00:00Z'), ID + '1');
+  data = logHabitValue(data, ID + '1', '2026-10-02', 1, {note: '　＝HYPERLINK("http://x")'}, new Date('2026-10-02T20:00:00Z'));
+  data = logHabitValue(data, ID + '1', '2026-10-03', 1, {note: ' @SUM(1)'}, new Date('2026-10-03T20:00:00Z'));
+  const lines = habitsToHabitBullCsv(data, '2026-10-05').csv.trim().split('\n');
+  expect(lines.slice(1)).toEqual([
+    'Walk,\'  =1+1,\'＋cmd,2026-10-02,1,"\'　＝HYPERLINK(""http://x"")"',
+    'Walk,\'  =1+1,\'＋cmd,2026-10-03,1,\' @SUM(1)',
+  ]);
+  for (const line of lines.slice(1)) expect(line.match(/,\d{4}-\d{2}-\d{2},1,/)).not.toBeNull();
+});

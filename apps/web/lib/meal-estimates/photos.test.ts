@@ -1,6 +1,6 @@
 import {describe, expect, test} from 'vitest';
 import {emptyMealEstimates, mealEstimatesSchema} from './schema';
-import {MAX_MEAL_PHOTOS, MEAL_PHOTO_DB, MEAL_PHOTO_MAX_BYTES, MEAL_PHOTO_STEPS, keepsPhotos, mealPhotoKey, mealPhotoValueSchema, setKeepPhotos, shrinkToLimit} from './photos';
+import {MAX_MEAL_PHOTOS, MEAL_PHOTO_DB, MEAL_PHOTO_MAX_BYTES, MEAL_PHOTO_STEPS, keepsPhotos, mealPhotoFileName, mealPhotoKey, mealPhotoValueSchema, setKeepPhotos, shrinkToLimit} from './photos';
 
 describe('4.2 keep a meal photo on this device', () => {
   test('the opt-in is a loose field of the meal-estimates record: off when absent, removed when turned off', () => {
@@ -26,5 +26,14 @@ describe('4.2 keep a meal photo on this device', () => {
     tried.length = 0;
     await expect(shrinkToLimit(sized(MEAL_PHOTO_STEPS.map(() => 300_000)))).rejects.toThrow('200 kB');
     expect(tried).toHaveLength(MEAL_PHOTO_STEPS.length);
+  });
+  // Session AK Part 15 (F9): ids that read the same once made safe for a path no longer share a file in the ZIP.
+  test('meal photo file names are unique per food id and still safe for a path', () => {
+    const ids = ['a.b', 'a_b', 'a b', `${'x'.repeat(80)}1`, `${'x'.repeat(80)}2`, 'health_f-0001'];
+    const names = ids.map(id => mealPhotoFileName(id, 'image/webp'));
+    expect(new Set(names).size).toBe(ids.length);
+    for (const name of names) expect(name).toMatch(/^meal-photos\/[A-Za-z0-9_-]{1,80}-[0-9a-f]{8}\.webp$/);
+    expect(mealPhotoFileName('health_f-0001', 'image/jpeg')).toBe(mealPhotoFileName('health_f-0001', 'image/jpeg'));
+    expect(mealPhotoFileName('health_f-0001', 'image/jpeg')).toMatch(/^meal-photos\/health_f-0001-[0-9a-f]{8}\.jpg$/);
   });
 });

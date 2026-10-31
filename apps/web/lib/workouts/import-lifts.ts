@@ -99,7 +99,7 @@ const stamp = (ms: number) => new Date(Math.floor(ms / 60_000) * 60_000).toISOSt
 export const liftImportId = (source: LiftSource, startMs: number, name: string) => `${source}-${stamp(startMs)}Z-${stableHash(fold(name)).slice(0, 10)}`;
 
 export type LiftsAdded = {workouts: Workouts; added: Workout[]; duplicates: number; newExercises: string[]; trimmed: number; future: number};
-const TWO_MINUTES = 2 * 60_000;
+const TWO_MINUTES = 2 * 60_000, MAX_LOG_WORKOUTS = 3000;
 /**
  * Adds the plan's workouts to the log as finished strength workouts, skipping one already imported or one that starts
  * within two minutes of a strength workout already in the log. `dayOf` gives a start's day in the person's Health time
@@ -109,28 +109,39 @@ const TWO_MINUTES = 2 * 60_000;
 export function addLiftWorkouts(w: Workouts, plan: LiftsPlan, {now, dayOf}: {now: Date; dayOf: (iso: string) => string}): LiftsAdded {
   const custom: CustomExercise[] = [...w.exercises], added: Workout[] = [], newExercises: string[] = [];
   const known = new Set(w.workouts.map(x => importInfo(x)?.importId).filter(Boolean));
-  const starts = w.workouts.filter(x => x.type === 'strength').map(x => Date.parse(x.startedAt));
+  // Session AK Part 15 (F4): strength starts in two-minute buckets, so "within two minutes of one already there" looks at
+  // three buckets instead of every start (a crafted export of 60,000 rows was quadratic), and exercise names are matched
+  // once each.
+  const starts = new Map<number, number[]>();
+  const addStart = (ms: number) => { const key = Math.floor(ms / TWO_MINUTES), list = starts.get(key); if (list) list.push(ms); else starts.set(key, [ms]); };
+  const nearStart = (ms: number) => { const key = Math.floor(ms / TWO_MINUTES); for (let k = key - 1; k <= key + 1; k++) if (starts.get(k)?.some(s => Math.abs(s - ms) <= TWO_MINUTES)) return true; return false; };
+  for (const x of w.workouts) if (x.type === 'strength') { const ms = Date.parse(x.startedAt); if (Number.isFinite(ms)) addStart(ms); }
+  const matches = new Map<string, LibraryExercise | null>();
+  let library = allExercises(custom);
+  const match = (name: string) => { let found = matches.get(name); if (found === undefined) { found = matchExercise(name, library); matches.set(name, found); } return found; };
   let duplicates = 0, trimmed = 0, future = 0;
   for (const lw of plan.workouts) {
     const importId = liftImportId(plan.source, lw.startMs, lw.name);
-    if (known.has(importId) || starts.some(s => Math.abs(s - lw.startMs) <= TWO_MINUTES)) { duplicates++; continue; }
+    if (known.has(importId) || nearStart(lw.startMs)) { duplicates++; continue; }
     if (lw.startMs > now.getTime() + 10 * 60_000) { future++; continue; }
     const entries: ExerciseEntry[] = [];
     for (const le of lw.exercises.slice(0, 40)) {
       const name = safeLine(le.name, 80); if (!name) continue;
       const measure = measureOf(le.sets);
-      let match = matchExercise(name, allExercises(custom));
-      if (!match) {
+      let found = match(name);
+      if (!found) {
         if (custom.length >= 200) throw Error('ZIGoals keeps up to 200 of your own exercises, and this export needs more. Nothing was imported.');
         const mine: CustomExercise = {id: `custom-${stableHash(`${plan.source}|${fold(name)}`)}`, name, category: guessCategory(name), measure};
-        custom.push(mine); newExercises.push(name); match = mine;
+        custom.push(mine); newExercises.push(name); found = mine;
+        library = allExercises(custom); matches.clear();
       }
+      const matched = found;
       const sets: WorkoutSet[] = le.sets.slice(0, 50).map((s, i) => ({id: `set-${stableHash(`${importId}|${entries.length}|${i}`)}`, kind: s.kind, done: true,
         ...(s.weightKg !== undefined ? {weightKg: Math.round(s.weightKg * 1000) / 1000} : {}), ...(s.reps !== undefined ? {reps: s.reps} : {}),
         ...(s.distanceKm !== undefined ? {distanceKm: Math.round(s.distanceKm * 1000) / 1000} : {}), ...(s.seconds !== undefined ? {seconds: s.seconds} : {}), ...(s.rpe !== undefined ? {rpe: s.rpe} : {})}));
       if (le.sets.length > 50 || lw.exercises.length > 40) trimmed++;
       if (!sets.length) continue;
-      entries.push({id: `ex-${stableHash(`${importId}|${entries.length}`)}`, exerciseId: match.id, name: match.name, measure: match.measure, sets,
+      entries.push({id: `ex-${stableHash(`${importId}|${entries.length}`)}`, exerciseId: matched.id, name: matched.name, measure: matched.measure, sets,
         ...(le.note ? {note: safeNote(le.note, 500)} : {}), ...(le.supersetKey ? {supersetId: `ss-${stableHash(`${importId}|${le.supersetKey}`).slice(0, 12)}`} : {})});
     }
     if (!entries.length) continue;
@@ -139,8 +150,10 @@ export function addLiftWorkouts(w: Workouts, plan: LiftsPlan, {now, dayOf}: {now
     const startedAt = new Date(lw.startMs).toISOString(), end = lw.endMs !== null && lw.endMs > lw.startMs ? Math.min(lw.endMs, lw.startMs + 24 * 3_600_000) : lw.startMs + 60_000;
     const workout: Workout = {id: `workout-${stableHash(importId)}`, name: safeLine(lw.name, 80) || 'Workout', date: dayOf(startedAt), type: 'strength', startedAt, endedAt: new Date(end).toISOString(),
       exercises: entries, ...(lw.notes ? {notes: safeNote(lw.notes, 1000)} : {}), fileImport: {source: plan.source, importId, durationSeconds: Math.round((end - lw.startMs) / 1000)}};
-    added.push(workout); known.add(importId); starts.push(lw.startMs);
+    // Session AK Part 15 (F4): refused as soon as one more would pass the log's limit, not after building them all.
+    if (w.workouts.length + added.length >= MAX_LOG_WORKOUTS) throw Error(`ZIGoals keeps up to 3,000 workouts; you have ${w.workouts.length} and this export adds more than ${Math.max(0, MAX_LOG_WORKOUTS - w.workouts.length)}. Nothing was imported.`);
+    added.push(workout); known.add(importId); addStart(lw.startMs);
   }
-  if (w.workouts.length + added.length > 3000) throw Error(`ZIGoals keeps up to 3,000 workouts; you have ${w.workouts.length} and this export adds ${added.length}. Nothing was imported.`);
+  if (w.workouts.length + added.length > MAX_LOG_WORKOUTS) throw Error(`ZIGoals keeps up to 3,000 workouts; you have ${w.workouts.length} and this export adds ${added.length}. Nothing was imported.`);
   return {workouts: workoutsSchema.parse({...w, exercises: custom, workouts: [...w.workouts, ...added]}), added, duplicates, newExercises, trimmed, future};
 }

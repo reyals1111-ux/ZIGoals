@@ -1,4 +1,5 @@
 import {habitDay, habitRuleOn, type HabitData} from '../../habits';
+import {CSV_FORMULA_START} from '../csv-safe';
 
 /**
  * Session AK Part 8.8 (owner amendment A16): take your habits to Loop Habit Tracker (Android). Loop imports its own backup
@@ -12,7 +13,9 @@ import {habitDay, habitRuleOn, type HabitData} from '../../habits';
 export const HABITBULL_HEADER = 'HabitName,HabitDescription,HabitCategory,CalendarDate,Value,CommentText';
 const cell = (value: string) => {
   let text = value.replace(/[\r\n]+/g, ' ').slice(0, 500);
-  if (/^[=+\-@\t]/.test(text)) text = `'${text}`;
+  // Session AK Part 15 (F3): the app's one formula guard (lib/export/csv-safe.ts), so leading whitespace and the full-width
+  // ＝ ＋ － ＠ are neutralised too. Cells stay unquoted unless they need it, as HabitBull's own files are.
+  if (CSV_FORMULA_START.test(text)) text = `'${text}`;
   return /[",]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 export function habitsToHabitBullCsv(data: HabitData, today: string): {csv: string; rows: number; habits: number} {

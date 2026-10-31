@@ -4,7 +4,8 @@
  * starts, after any whitespace, with = + - @, a tab, a carriage return or a line feed (OWASP "CSV Injection"), or with the
  * full-width ＝ ＋ － ＠ that some spreadsheets read the same way. Every cell is quoted and its quotes doubled.
  */
-export const CSV_FORMULA_START = /^[\s]*[=+\-@\t\r\n＝＋－＠]/;
+// Session AK Part 15: zero-width and other invisible format characters before a formula sign count as leading space too.
+export const CSV_FORMULA_START = /^[\s\u200B-\u200D\u2060\uFEFF]*[=+\-@\t\r\n＝＋－＠]/;
 export function csvSafeCell(value: string | number | boolean | null | undefined): string {
   if (value === null || value === undefined) return '""';
   const text = String(value);

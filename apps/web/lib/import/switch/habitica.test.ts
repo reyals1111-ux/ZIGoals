@@ -63,4 +63,14 @@ describe('Habitica userdata.json', () => {
     expect(() => readHabitica(JSON.stringify({tasks: {todos: []}}), ctx)).toThrow(/not Habitica’s userdata.json/);
     expect(() => readHabitica(JSON.stringify({tasks: {habits: [{text: ''}]}}), ctx)).toThrow(/no habits or dailies ZIGoals can read/);
   });
+  // Session AK Part 15 (F6): the security review's input, a list of millions; refused before any list is copied or mapped.
+  test('more than 2,000 habits and dailies are refused before the lists are mapped', () => {
+    const text = '{"tasks":{"dailys":[' + '0,'.repeat(1500) + '0],"habits":[' + '0,'.repeat(1_000_000) + '0]}}';
+    const map = Array.prototype.map;
+    let largest = 0;
+    Array.prototype.map = function (this: unknown[], ...args: Parameters<typeof map>) { largest = Math.max(largest, this.length); return map.apply(this, args); } as typeof map;
+    try { expect(() => readHabitica(text, ctx)).toThrow('This export has more than 2,000 habits and dailies, more than ZIGoals reads at once.'); }
+    finally { Array.prototype.map = map; }
+    expect(largest).toBeLessThanOrEqual(2000);
+  });
 });

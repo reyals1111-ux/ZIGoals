@@ -66,8 +66,19 @@ export async function deleteAllMealPhotos(scope: string): Promise<number> {
   if (ids.length) await run('readwrite', s => { for (const id of ids) s.delete(mealPhotoKey(scope, id)); });
   return ids.length;
 }
-/** Session AK (4.2): the file name of a kept meal photo inside Export everything (a food id is made safe for a path). */
-export const mealPhotoFileName = (foodId: string, type: string) => `meal-photos/${foodId.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 80)}.${type === 'image/jpeg' ? 'jpg' : 'webp'}`;
+/**
+ * Session AK (4.2): the file name of a kept meal photo inside Export everything (a food id is made safe for a path).
+ * Session AK Part 15 (F9): a short hash of the id itself follows, so ids that read the same once made safe ("a.b" and
+ * "a_b", or two long ids alike in their first 80 characters) never share a file name and overwrite each other in the ZIP.
+ * Restore does not read meal photos back (Help and docs/PRIVACY.md say so).
+ */
+export const mealPhotoFileName = (foodId: string, type: string) => `meal-photos/${foodId.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 80)}-${idHash(foodId)}.${type === 'image/jpeg' ? 'jpg' : 'webp'}`;
+/** 32-bit FNV-1a of the id's UTF-16 code units, as 8 hexadecimal characters. */
+function idHash(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
 /** Every kept meal photo of this scope as a zip entry, beside the progress photos; a photo that does not read is skipped. */
 export async function exportMealPhotoEntries(scope: string, now = new Date()): Promise<{name: string; data: Uint8Array; modified: Date}[]> {
   const out: {name: string; data: Uint8Array; modified: Date}[] = [];

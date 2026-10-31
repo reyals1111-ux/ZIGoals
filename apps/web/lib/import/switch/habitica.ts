@@ -14,7 +14,7 @@ import {uuidFrom} from './loop';
  * The plan has the same shape as Loop's (lib/import/switch/loop.ts `HabitsPlan`) and is applied with `previewHabits`.
  */
 export const HABITICA_LABEL = 'Habitica';
-export const HABITICA_MAX_BYTES = 30 * 1024 * 1024;
+export const HABITICA_MAX_BYTES = 30 * 1024 * 1024, HABITICA_MAX_TASKS = 2000;
 export type HabiticaPlan = {format: 'habitica'; label: string; habits: Habit[]; summarised: string[]; warnings: string[]};
 type Schedule = Habit['rules'][number]['schedule'];
 type Task = {id?: unknown; _id?: unknown; text?: unknown; notes?: unknown; type?: unknown; frequency?: unknown; everyX?: unknown; startDate?: unknown; createdAt?: unknown;
@@ -59,8 +59,10 @@ export function readHabitica(text: string, {now, zone}: {now: number; zone: stri
   if (!tasks || typeof tasks !== 'object' || (!Array.isArray(tasks.habits) && !Array.isArray(tasks.dailys))) throw Error('This is not Habitica’s userdata.json (it has no habits or dailies). In Habitica: Settings → Site Data → Export → userdata.json.');
   const today = localDay(now, zone), at = isoOf(now), habits: Habit[] = [], warnings: string[] = [], approximate: string[] = [];
   let compressed = 0, invalid = 0;
-  const list = [...(Array.isArray(tasks.dailys) ? tasks.dailys : []).map(t => ['daily', t] as const), ...(Array.isArray(tasks.habits) ? tasks.habits : []).map(t => ['habit', t] as const)];
-  if (list.length > 2000) throw Error('This export has more than 2,000 habits and dailies, more than ZIGoals reads at once.');
+  const dailys: unknown[] = Array.isArray(tasks.dailys) ? tasks.dailys : [], habitList: unknown[] = Array.isArray(tasks.habits) ? tasks.habits : [];
+  // Session AK Part 15 (F6): the cap is checked on the lengths, before any list is copied or mapped.
+  if (dailys.length + habitList.length > HABITICA_MAX_TASKS) throw Error('This export has more than 2,000 habits and dailies, more than ZIGoals reads at once.');
+  const list = [...dailys.map(t => ['daily', t] as const), ...habitList.map(t => ['habit', t] as const)];
   for (const [kind, raw] of list) {
     if (!raw || typeof raw !== 'object') { invalid++; continue; }
     const t = raw as Task, title = safeLine(typeof t.text === 'string' ? t.text : '', 100);

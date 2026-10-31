@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {formatDate, formatNumber} from '../../../lib/visual-format';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {plural} from '../../../lib/plural';
@@ -17,24 +17,27 @@ import {clock} from './units';
 export type ImportChoice = {summary: ImportSummary; day: string};
 type Found = {kind: 'summaries'; list: ImportChoice[]; notes: string[]} | {kind: 'lifts'; plan: LiftsPlan};
 const SHOWN = 20;
+export const STOPPED_NOTE = 'The import was stopped. Nothing was added.';
 const SOURCE_WORDS: Record<string, string> = {gpx: 'GPX', tcx: 'TCX', fit: 'FIT', strava: 'Strava', strong: 'Strong', hevy: 'Hevy'};
 export const sourceWord = (source: string) => SOURCE_WORDS[source] ?? source.toUpperCase();
 
 export function WorkoutsImport({w, dayOf, zone, unit, onAdd, onAddLifts}: {w: Workouts; dayOf: (iso: string) => string; zone: string; unit: 'kg' | 'lb';
   onAdd: (list: ImportChoice[]) => Promise<string>; onAddLifts: (plan: LiftsPlan) => Promise<string>}) {
   const [found, setFound] = useState<Found | null>(null), [problem, setProblem] = useState(''), [said, setSaid] = useState(''), [busy, setBusy] = useState(false), [inputKey, setInputKey] = useState(0);
+  // Session AK Part 15 (F5): a Stop button while a file is read; a Strava export stops between its files.
+  const stopper = useRef<AbortController | null>(null);
   const done = new Set(w.workouts.map(x => importInfo(x)?.importId).filter(Boolean));
   const fresh = found?.kind === 'summaries' ? found.list.filter(c => !done.has(c.summary.importId)) : [];
   const reset = () => { setFound(null); setInputKey(k => k + 1); };
   const summaries = (list: ImportSummary[], notes: string[] = []): Found => ({kind: 'summaries', list: list.map(summary => ({summary, day: dayOf(summary.startedAt)})), notes});
 
-  async function read(file: File): Promise<Found> {
+  async function read(file: File, signal: AbortSignal): Promise<Found> {
     const name = file.name.toLowerCase();
     if (/\.zip$/.test(name) || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
       const [{filesFrom}, strava] = await Promise.all([import('../../../lib/import/switch/source'), import('../../../lib/import/switch/strava')]);
       const files = await filesFrom([file]);
       if (!strava.isStravaExport(files)) throw new Error('This ZIP is not a Strava export (it has no activities.csv). Choose the ZIP from Strava’s “Download your account” e-mail, or a single workout file.');
-      const plan = await strava.readStrava(files), {fresh: left, duplicates} = strava.notInLog(w, plan.summaries);
+      const plan = await strava.readStrava(files, {signal}), {fresh: left, duplicates} = strava.notInLog(w, plan.summaries);
       if (!left.length) throw new Error(`Every activity in this export is already in your workouts (${plan.summaries.length} checked).`);
       return summaries(left, [...plan.warnings, ...(duplicates ? [`${duplicates} ${plural(duplicates, 'activity', 'activities')} already in your workouts ${duplicates === 1 ? 'is' : 'are'} left out.`] : [])]);
     }
@@ -59,9 +62,10 @@ export function WorkoutsImport({w, dayOf, zone, unit, onAdd, onAddLifts}: {w: Wo
     setProblem(''); setSaid(''); setFound(null);
     if (!file) return;
     setBusy(true);
-    try { setFound(await read(file)); }
-    catch (e) { setProblem(plainErrorMessage(e, 'This file could not be read. Choose a GPX, TCX or FIT file, a Strava ZIP, or a Strong or Hevy CSV.')); setInputKey(k => k + 1); }
-    finally { setBusy(false); }
+    const controller = new AbortController(); stopper.current = controller;
+    try { const result = await read(file, controller.signal); if (controller.signal.aborted) throw new Error(STOPPED_NOTE); setFound(result); }
+    catch (e) { setProblem(controller.signal.aborted ? STOPPED_NOTE : plainErrorMessage(e, 'This file could not be read. Choose a GPX, TCX or FIT file, a Strava ZIP, or a Strong or Hevy CSV.')); setInputKey(k => k + 1); }
+    finally { if (stopper.current === controller) stopper.current = null; setBusy(false); }
   }
   async function add() {
     if (!found) return;
@@ -77,7 +81,7 @@ export function WorkoutsImport({w, dayOf, zone, unit, onAdd, onAddLifts}: {w: Wo
       <p className="fine">A GPX, TCX or FIT file from your watch, bike computer or app; Strava’s whole-account ZIP; or a Strong or Hevy workouts CSV. It is read on this device. Only the summary is kept; the route’s points are not stored. From Strong and Hevy, your sets come in as well.</p>
       <label className="field"><span>GPX or TCX file, FIT file, Strava ZIP, or Strong or Hevy CSV</span>
         <input key={inputKey} type="file" accept=".gpx,.tcx,.fit,.gz,.zip,.csv,application/gpx+xml,application/vnd.garmin.tcx+xml,application/zip,text/csv" disabled={busy} onChange={e => void choose(e.target.files?.[0])}/></label>
-      {busy && !found && <p className="fine" role="status">Reading the file…</p>}
+      {busy && !found && <div className="workouts-row-actions"><p className="fine" role="status">Reading the file…</p><button className="quiet" type="button" onClick={() => stopper.current?.abort()}>Stop</button></div>}
       {said && <p className="fine" role="status">{said}</p>}
       {problem && <p className="workouts-import-problem" role="alert">{problem}</p>}
       {found?.kind === 'summaries' && <div className="workouts-import-preview" role="group" aria-label="What this file holds">

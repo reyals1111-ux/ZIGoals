@@ -40,5 +40,18 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   // Session AJ (WE16, A6): and the coin catalog kept for offline search, with every other database the app keeps.
   try { if (typeof indexedDB !== 'undefined') for (const name of ERASED_DATABASES) indexedDB.deleteDatabase(name); } catch { /* no IndexedDB: nothing was stored there */ }
 }
+/**
+ * Session AK Part 15 (F1): the account's erase, in the right order. The device's notification record on the push Worker
+ * can only be removed with the device's own id and secret, which live in `zigoals-notify-v1` — a database
+ * forgetAaDeviceRecords deletes. So notifications are turned off first (a DELETE with that secret, best effort and
+ * bounded in time, as lib/erase-everything.ts eraseDeviceServices does), and only then are the records forgotten.
+ */
+export async function forgetAaDeviceRecordsInOrder(deps: {turnOffNotifications: () => Promise<void>; timeoutMs?: number}, storage: Pick<Storage, 'removeItem'> | null = null): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([deps.turnOffNotifications(), new Promise<void>(resolve => { timer = setTimeout(resolve, deps.timeoutMs ?? 15_000); })]);
+  } catch { /* the Worker deletes an unused device after 30 days */ } finally { if (timer !== undefined) clearTimeout(timer); }
+  forgetAaDeviceRecords(storage);
+}
 /** Session AJ (A6): every IndexedDB database the account erase deletes (lib/erase-coverage.test.ts keeps it complete). */
 export const ERASED_DATABASES: readonly string[] = ['zigoals-progress-photos', VISION_DATABASE, 'zigoals-exchange-keys-v1', 'zigoals-market-catalog-v1', 'zigoals-xpub-v1', ...AK_DATABASES];

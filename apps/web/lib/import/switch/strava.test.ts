@@ -5,7 +5,8 @@ import {addImportedWorkout} from '../../workouts/import-file';
 import {emptyWorkouts} from '../../workouts/schema';
 import {FitWriter, fitTime, T} from '../fit/test-encoder';
 import {filesFrom, type ImportFile} from './source';
-import {isStravaExport, notInLog, readStrava, stravaDate, stravaKind} from './strava';
+import {STOPPED} from './common';
+import {isStravaExport, notInLog, readStrava, stravaDate, stravaKind, STRAVA_TOO_LARGE} from './strava';
 
 // Session AK (4.7): Strava's bulk export ZIP. Fictional activities.
 const fit = (iso: string, seconds: number, meters: number) => new FitWriter().define(0, 0, [[0, T.enum]]).data(0, [4])
@@ -71,5 +72,48 @@ describe('Strava’s bulk export', () => {
     await expect(readStrava([file('activities.csv', 'Aktivitäts-ID,Datum\n1,2')])).rejects.toThrow(/other columns/);
     await expect(readStrava([file('activities.csv', 'Activity Date,Activity Type\nnever,Run')])).rejects.toThrow(/no activity ZIGoals can read/);
     await expect(readStrava([file('activities.csv', '')])).rejects.toThrow(/empty/);
+  });
+
+  // Session AK Part 15 (F5): the security review's archive: hundreds of rows naming one big file.
+  const bigGpx = '<?xml version="1.0"?><gpx xmlns="http://www.topografix.com/GPX/1/1"><trk><trkseg>' + Array.from({length: 2000}, (_, i) => `<trkpt lat="${(i / 1e5).toFixed(5)}" lon="0"><time>2026-01-01T08:${String(Math.floor(i / 60) % 60).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}Z</time></trkpt>`).join('') + '</trkseg></trk></gpx>';
+  const counted = (f: ImportFile, opens: {n: number}): ImportFile => ({...f, open: () => { opens.n++; return f.open(); }});
+  test('a file named by many rows is read once', async () => {
+    const csv = ['Activity ID,Activity Date,Activity Name,Activity Type,Elapsed Time,Filename', ...Array.from({length: 200}, (_, i) => `${i},"Jan 1, 2026, 8:00:00 AM",x,Run,600,activities/a.gpx`)];
+    const opens = {n: 0};
+    const plan = await readStrava([file('activities.csv', csv.join('\n')), counted(file('activities/a.gpx', bigGpx), opens)]);
+    expect(opens.n).toBe(1);
+    expect(plan.summaries).toHaveLength(1);
+    expect(plan.duplicates).toBe(199);
+  });
+  test('a damaged file named by many rows is read once and counted for each row', async () => {
+    const opens = {n: 0};
+    const plan = await readStrava([file('activities.csv', ['Activity Date,Activity Type,Elapsed Time,Filename', '"Oct 4, 2026, 7:00:00 AM",Run,900,activities/444.fit', '"Oct 5, 2026, 7:00:00 AM",Run,900,activities/444.fit'].join('\n')), counted(file('activities/444.fit', new Uint8Array([1, 2, 3, 4])), opens)]);
+    expect(opens.n).toBe(1);
+    expect(plan).toMatchObject({failed: 2, fromCsvOnly: 2});
+  });
+  test('the whole archive has an unpacking budget, refused in plain words', async () => {
+    const gz = gzipSync(new Uint8Array(400_000)), rows = ['Activity Date,Activity Type,Elapsed Time,Filename'];
+    const files = [file('activities.csv', '')];
+    for (let i = 0; i < 10; i++) { rows.push(`"Oct ${i + 1}, 2026, 7:00:00 AM",Run,900,activities/${i}.fit.gz`); files.push(file(`activities/${i}.fit.gz`, gz)); }
+    files[0] = file('activities.csv', rows.join('\n'));
+    await expect(readStrava(files, {maxUnpackedBytes: 1_000_000})).rejects.toThrow(STRAVA_TOO_LARGE);
+    expect(STRAVA_TOO_LARGE).toBe('This export’s activity files unpack to more than 1 GB, more than ZIGoals reads at once. Nothing was imported.');
+    // Within the budget the same files are read (as damaged FIT files, which they are) and nothing is refused.
+    expect((await readStrava(files, {maxUnpackedBytes: 10_000_000})).failed).toBe(10);
+  });
+  test('Stop ends the read between files', async () => {
+    const controller = new AbortController(), rows = ['Activity Date,Activity Type,Elapsed Time,Filename'], files = [file('activities.csv', '')];
+    for (let i = 0; i < 20; i++) { rows.push(`"Oct ${i + 1}, 2026, 7:00:00 AM",Run,900,activities/${i}.gpx`); files.push(i === 3 ? {...file(`activities/${i}.gpx`, gpx), open: () => { controller.abort(); return file('x', gpx).open(); }} : file(`activities/${i}.gpx`, gpx)); }
+    files[0] = file('activities.csv', rows.join('\n'));
+    await expect(readStrava(files, {signal: controller.signal})).rejects.toThrow(STOPPED);
+  });
+  test('duplicates among 5,000 activities are found without comparing every pair', async () => {
+    const rows = ['Activity Date,Activity Type,Elapsed Time,Filename'];
+    for (let i = 0; i < 5000; i++) rows.push(`${new Date(Date.UTC(2020, 0, 1) + i * 3_600_000).toISOString().slice(0, 19).replace('T', ' ')},Run,900,`);
+    const started = performance.now(), plan = await readStrava([file('activities.csv', rows.join('\n'))]);
+    expect(plan.summaries).toHaveLength(5000);
+    const log = {...emptyWorkouts(), workouts: plan.summaries.slice(0, 2500).map((s, i) => ({id: `w${i}`, name: 'x', date: s.startedAt.slice(0, 10), type: s.type, startedAt: new Date(Date.parse(s.startedAt) + 90_000).toISOString(), endedAt: s.startedAt, exercises: []}))};
+    expect(notInLog(log as never, plan.summaries).duplicates).toBe(2500);
+    expect(performance.now() - started).toBeLessThan(3000);
   });
 });

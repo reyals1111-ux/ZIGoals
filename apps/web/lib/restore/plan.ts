@@ -157,6 +157,9 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
 export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, notes, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, Checklist favourites and day history, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
+export const MAX_DEVICE_PART_CHARS = 5_000_000;
+export const TOO_LARGE_PART_MESSAGE = 'This part is larger than this device can keep for it (about 5 MB), so it is left out.';
+const serializedLength = (value: unknown): number => { try { return JSON.stringify(value)?.length ?? 0; } catch { return Number.POSITIVE_INFINITY; } };
 export const MERGE_REFUSED_MESSAGE = 'These records cannot be merged safely. Choose Replace, or leave them as they are.';
 /**
  * Session AD item 11 (ADR-026), backups older than this build. Every section's version 1 and later is still read (each
@@ -243,6 +246,9 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     const value = part.name === 'portfolio' ? json.portfolio : json.device?.[part.name];
     if (value === undefined) continue;
     const version = isObject(value) ? value.version : undefined;
+    // Session AK Part 15 (F8): a device record lives in this browser's storage, which holds about five million
+    // characters for the whole site; a part larger than that (a loose record keeps unknown fields) is left out unread.
+    if (serializedLength(value) > MAX_DEVICE_PART_CHARS) { out.push({...part, problem: TOO_LARGE_PART_MESSAGE, summary: null}); continue; }
     const parsed = part.schema.safeParse(value);
     if (parsed.success) out.push({...part, value: parsed.data, summary: summarizeValue(parsed.data)});
     else out.push({...part, problem: typeof version === 'number' && version > 1 ? NEWER_PART_MESSAGE : typeof version === 'number' && version < 1 ? OLDER_PART_MESSAGE : INVALID_PART_MESSAGE, summary: null});

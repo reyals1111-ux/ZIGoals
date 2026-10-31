@@ -5,7 +5,7 @@ import {importIdFor, importInfo, IMPORT_MAX_CHARS, IMPORT_MAX_SECONDS, readWorko
 import {miniXmlParser} from '../../workouts/mini-xml';
 import {safeLine} from '../../workouts/import-lifts';
 import type {Workouts} from '../../workouts/schema';
-import {checkStop} from './common';
+import {checkStop, STOPPED} from './common';
 import {csvRows, headerIndex} from './csv-stream';
 import {baseName, progressCounter, textStream, type ImportFile} from './source';
 
@@ -52,30 +52,66 @@ export function stravaKind(type: string): Pick<ImportSummary, 'sport' | 'label' 
   if (/yoga|pilates|stretch/i.test(sport)) return {sport, label: 'Workout', type: 'mobility'};
   return {sport, ...sportLabel(sport)};
 }
-async function bytesOf(file: ImportFile, limit: number, counter: {add: (n: number) => void}): Promise<Uint8Array> {
+/**
+ * Session AK Part 15 (F5): a whole export reads at most this many bytes of activity files, counted as they come out of
+ * the ZIP and again as a `.gz` unpacks (each file is still capped on its own). A crafted archive of thousands of small
+ * files that each expand to the per-file cap is refused in plain words instead of running for hours.
+ */
+export const STRAVA_MAX_UNPACKED_BYTES = 1024 * 1024 * 1024;
+export const STRAVA_TOO_LARGE = 'This export’s activity files unpack to more than 1 GB, more than ZIGoals reads at once. Nothing was imported.';
+class ArchiveTooLarge extends Error {}
+type Budget = {spend: (bytes: number) => void; left: () => number};
+function archiveBudget(max = STRAVA_MAX_UNPACKED_BYTES): Budget {
+  let spent = 0;
+  return {spend(bytes) { spent += bytes; if (spent > max) throw new ArchiveTooLarge(STRAVA_TOO_LARGE); }, left: () => max - spent};
+}
+async function bytesOf(file: ImportFile, limit: number, counter: {add: (n: number) => void}, budget?: Budget, signal?: AbortSignal): Promise<Uint8Array> {
   if (file.size > limit) throw Error('larger than one workout');
   const reader = (await file.open()).getReader(), parts: Uint8Array[] = [];
   let total = 0;
-  for (;;) {
-    const {done, value} = await reader.read();
-    if (done) break;
-    total += value.length; counter.add(value.length);
-    if (total > limit) { void reader.cancel().catch(() => undefined); throw Error('larger than one workout'); }
-    parts.push(value);
-  }
+  try {
+    for (;;) {
+      checkStop(signal);
+      const {done, value} = await reader.read();
+      if (done) break;
+      total += value.length; counter.add(value.length); budget?.spend(value.length);
+      if (total > limit) throw Error('larger than one workout');
+      parts.push(value);
+    }
+  } catch (error) { void reader.cancel().catch(() => undefined); throw error; }
   const out = new Uint8Array(total); let at = 0;
   for (const p of parts) { out.set(p, at); at += p.length; }
   return out;
 }
-/** One activity file (by its own name, `.gz` unpacked) as summaries. */
-export async function readActivityFile(name: string, raw: Uint8Array): Promise<ImportSummary[]> {
-  const bytes = isGzip(raw) ? await gunzip(raw, FIT_MAX_BYTES) : raw, plain = name.toLowerCase().replace(/\.gz$/, '');
+/** One activity file's bytes (already unpacked) as summaries, by its own name without `.gz`. */
+function readActivityBytes(plain: string, bytes: Uint8Array): ImportSummary[] {
   if (plain.endsWith('.fit')) return readFitFile(bytes);
   if (plain.endsWith('.gpx') || plain.endsWith('.tcx')) {
     if (bytes.length > IMPORT_MAX_CHARS) throw Error('This file is larger than 5 MB.');
     return readWorkoutFile(new TextDecoder('utf-8').decode(bytes), miniXmlParser);
   }
   throw Error('This kind of activity file is not read.');
+}
+/** One activity file (by its own name, `.gz` unpacked) as summaries. */
+export async function readActivityFile(name: string, raw: Uint8Array): Promise<ImportSummary[]> {
+  const bytes = isGzip(raw) ? await gunzip(raw, FIT_MAX_BYTES) : raw;
+  return readActivityBytes(name.toLowerCase().replace(/\.gz$/, ''), bytes);
+}
+/**
+ * One file of the archive, within the budget: a `.gz` unpacks no further than what is left of it, and one that fails
+ * to unpack counts as if it had used its whole allowance (so damaged files cannot be used to get round the budget).
+ */
+async function readArchiveFile(file: ImportFile, counter: {add: (n: number) => void}, budget: Budget, signal?: AbortSignal): Promise<ImportSummary[]> {
+  if (budget.left() <= 0) throw new ArchiveTooLarge(STRAVA_TOO_LARGE);
+  const raw = await bytesOf(file, FIT_MAX_BYTES, counter, budget, signal);
+  let bytes = raw;
+  if (isGzip(raw)) {
+    const limit = Math.max(1, Math.min(FIT_MAX_BYTES, budget.left()));
+    try { bytes = await gunzip(raw, limit); } catch (error) { budget.spend(limit); throw error; }
+    budget.spend(bytes.length);
+  }
+  checkStop(signal);
+  return readActivityBytes(file.path.toLowerCase().replace(/\.gz$/, ''), bytes);
 }
 
 /** True when a summary is the same activity as one already kept: the same import, or the same type starting within 2 minutes. */
@@ -85,18 +121,45 @@ export function sameActivity(a: {startedAt: string; type: string; importId?: str
 }
 /** The summaries not yet in the log (by import, or the same type starting within two minutes). */
 export function notInLog(w: Workouts, summaries: readonly ImportSummary[]): {fresh: ImportSummary[]; duplicates: number} {
-  const have = w.workouts.map(x => ({startedAt: x.startedAt, type: x.type, importId: importInfo(x)?.importId}));
-  const fresh = summaries.filter(s => !have.some(h => sameActivity(h, s)));
+  const have = activityIndex();
+  for (const x of w.workouts) have.add({startedAt: x.startedAt, type: x.type, importId: importInfo(x)?.importId});
+  const fresh = summaries.filter(s => !have.has(s));
   return {fresh, duplicates: summaries.length - fresh.length};
 }
+/**
+ * Session AK Part 15 (F5): sameActivity over a set, without comparing every pair: import ids in a Set, starts by type in
+ * two-minute buckets (a neighbour within two minutes is in the same bucket or the one either side).
+ */
+const TWO_MINUTES = 2 * 60_000;
+function activityIndex() {
+  const ids = new Set<string>(), buckets = new Map<string, number[]>();
+  const bucket = (type: string, ms: number) => `${type}|${Math.floor(ms / TWO_MINUTES)}`;
+  return {
+    add(a: {startedAt: string; type: string; importId?: string}) {
+      if (a.importId) ids.add(a.importId);
+      const ms = Date.parse(a.startedAt); if (!Number.isFinite(ms)) return;
+      const key = bucket(a.type, ms), list = buckets.get(key);
+      if (list) list.push(ms); else buckets.set(key, [ms]);
+    },
+    has(a: {startedAt: string; type: string; importId?: string}): boolean {
+      if (a.importId && ids.has(a.importId)) return true;
+      const ms = Date.parse(a.startedAt); if (!Number.isFinite(ms)) return false;
+      const key = Math.floor(ms / TWO_MINUTES);
+      for (let k = key - 1; k <= key + 1; k++) if (buckets.get(`${a.type}|${k}`)?.some(s => Math.abs(s - ms) <= TWO_MINUTES)) return true;
+      return false;
+    },
+  };
+}
 
-export async function readStrava(files: readonly ImportFile[], {onProgress, signal}: {onProgress?: (done: number) => void; signal?: AbortSignal} = {}): Promise<StravaPlan> {
+export async function readStrava(files: readonly ImportFile[], {onProgress, signal, maxUnpackedBytes}: {onProgress?: (done: number) => void; signal?: AbortSignal; maxUnpackedBytes?: number} = {}): Promise<StravaPlan> {
   const list = files.filter(f => /(^|\/)activities\.csv$/i.test(f.path)).sort((a, b) => a.path.split('/').length - b.path.split('/').length)[0];
   if (!list) throw Error('This is not a Strava export: activities.csv is missing. In Strava: Settings → My Account → Download your account, then choose the ZIP from the e-mail.');
   const root = list.path.slice(0, list.path.length - baseName(list.path).length), counter = progressCounter(onProgress);
   const byPath = new Map(files.map(f => [f.path.toLowerCase(), f]));
   let header: Map<string, number> | null = null, failed = 0, fromCsvOnly = 0, unreadableRows = 0, rowsSeen = 0;
-  const kept: ImportSummary[] = [], warnings: string[] = [];
+  const kept: ImportSummary[] = [], warnings: string[] = [], seen = activityIndex();
+  // Session AK Part 15 (F5): each file of the archive is read once, however many rows name it; the whole read has a budget.
+  const outcomes = new Map<string, ImportSummary[] | null>(), budget = archiveBudget(maxUnpackedBytes);
   let duplicates = 0;
   for await (const row of csvRows(textStream(list, counter))) {
     checkStop(signal);
@@ -111,7 +174,16 @@ export async function readStrava(files: readonly ImportFile[], {onProgress, sign
     let found: ImportSummary[] = [], csvOnly = false;
     const file = fileName ? byPath.get(`${root}${fileName}`.toLowerCase()) ?? byPath.get(fileName.toLowerCase()) : undefined;
     if (file) {
-      try { found = await readActivityFile(file.path, await bytesOf(file, FIT_MAX_BYTES, counter)); } catch { failed++; }
+      const key = file.path.toLowerCase();
+      let outcome = outcomes.get(key);
+      if (outcome === undefined) {
+        try { outcome = await readArchiveFile(file, counter, budget, signal); } catch (error) {
+          if (error instanceof ArchiveTooLarge || (error instanceof Error && error.message === STOPPED)) throw error;
+          outcome = null;
+        }
+        outcomes.set(key, outcome);
+      }
+      if (outcome) found = outcome; else failed++;
     }
     if (!found.length) {
       // The CSV alone: its date (UTC) and elapsed time, nothing more.
@@ -124,8 +196,8 @@ export async function readStrava(files: readonly ImportFile[], {onProgress, sign
     for (const s of found) {
       const summary: ImportSummary = {...s, ...(kind.sport ? kind : {}), name: name || s.name || `${kind.label || s.label || 'Workout'} (imported)`};
       if (!summary.label) Object.assign(summary, {label: 'Workout'});
-      if (kept.some(k => sameActivity(k, summary))) { duplicates++; continue; }
-      kept.push(summary);
+      if (seen.has(summary)) { duplicates++; continue; }
+      kept.push(summary); seen.add(summary);
       if (csvOnly) fromCsvOnly++;
     }
   }

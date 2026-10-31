@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
-import {NOT_RECOVERY_WORDS_FOR_TEST, RUN, findSecrets, findingText, secretKinds} from './secrets';
+import {ACROSS_FIELDS, NOT_RECOVERY_WORDS_FOR_TEST, RUN, findSecrets, findingText, secretKinds} from './secrets';
 import {addressIssue, printable, putRow, removeRow, setDocuments, setNote, sheetView} from './sheet';
 import {MAX_SHEET_ROWS, emergencySheetSchema, emptyEmergencySheet} from './schema';
 import type {Account} from '../accounts/schema';
@@ -41,6 +41,59 @@ describe('the secret guard (Session AK lane M, item 17)', () => {
   });
   test('public addresses pass', () => {
     for (const address of [`0x${'ab'.repeat(20)}`, `bc1q${'a'.repeat(38)}`, `zig1${'q'.repeat(38)}`, `1${b58(33)}`, `xpub${b58(107)}`]) expect(secretKinds(address), address).toEqual([]);
+  });
+  // Session AK Part 15 (F2): the layouts an independent security review found the guard missed.
+  test('recovery words in every common layout: bullets, #1, w(1), 001, dots, hyphens, quotes, JSON, tabs, other alphabets', () => {
+    const list = readFileSync(join(__dirname, '../../../../scripts/bip39-english.txt'), 'utf8').trim().split('\n'), w = list.slice(0, 12);
+    const layouts: Record<string, string> = {
+      dash: w.map(x => `- ${x}`).join('\n'), star: w.map(x => `* ${x}`).join('\n'), bullet: w.map(x => `\u2022 ${x}`).join('\n'),
+      hash: w.map((x, i) => `#${i + 1} ${x}`).join(' '), wordNumber: w.map((x, i) => `${x}(${i + 1})`).join(' '), zeroPadded: w.map((x, i) => `${String(i + 1).padStart(3, '0')} ${x}`).join(' '),
+      colon: w.map((x, i) => `${i + 1}: ${x}`).join(' '), joinedNumber: w.map((x, i) => `${i + 1}.${x}`).join(' '), dots: w.join('.'), hyphens: w.join('-'), tabs: w.join('\t'),
+      quoted: w.map(x => `"${x}"`).join(', '), json: JSON.stringify(w),
+      spanish: ['\u00e1baco', 'abdomen', 'abeja', 'abierto', 'abogado', 'abono', 'aborto', 'abrazo', 'abrir', 'abuelo', 'abuso', 'acabar'].join(' '),
+      spanishDecomposed: ['\u00e1baco', 'abdomen', 'abeja', 'abierto', 'abogado', 'abono', 'aborto', 'abrazo', 'abrir', 'abuelo', 'abuso', 'acabar'].join(' ').normalize('NFD'),
+      french: 'abaisser abandon abdiquer abeille abolir aborder aboutir aboyer abrasif abreuver abriter abroger',
+      titleCase: w.map(x => x[0]!.toUpperCase() + x.slice(1)).join(' '), phoneLines: w.map((x, i) => `${i + 1}. ${x[0]!.toUpperCase()}${x.slice(1)}`).join('\n'),
+    };
+    for (const [name, text] of Object.entries(layouts)) expect(secretKinds(text), name).toEqual(['recovery-words']);
+  });
+  test('six and six words in two fields are found when the fields are read together', () => {
+    const f = findSecrets([['Wallet 1 (Cold): where the documents are', words(6)], ['The note', words(6, 'pear')]]);
+    expect(f).toEqual([{field: ACROSS_FIELDS, kind: 'recovery-words'}]);
+    expect(findingText(f[0]!)).toBe('Everything read together looks like recovery words (12 or more short words in a row).');
+    expect(findSecrets([['A', words(6)], ['B', 'no'], ['C', words(5)]])).toEqual([]);
+  });
+  test('ordinary notes still print', () => {
+    for (const note of [
+      'Call Ann about the house insurance on Monday morning',
+      'Mum: phone 0612 345 678. Dad: 0698-765-432. Will is at the notary office. Pension number 1234-5678-90.',
+      'IBAN DE89 3704 0044 0532 0130 00, BIC COBADEFFXXX. Second account NL91 ABNA 0417 1643 00.',
+      'Life insurance with Example Insurer, policy POL-2026-001. Deeds in safe deposit box 42 at Example Bank, key in kitchen drawer left side.',
+      'Querida familia, los papeles est\u00e1n en la caja gris del \u00e1tico. Llamad primero a Ana, luego al notario por la casa y el coche.',
+      'Scores: [1, 2, 3] and [10, 20, 30, 40].',
+    ]) expect(secretKinds(note), note).toEqual([]);
+    // A whole sheet read together: Wealth's rows mix capitals, lowercase and currency codes, which no recovery phrase does.
+    const rows = ['Rainy day Example Bank Savings about 12345.00 EUR (2026-10-01)', 'Grey box, attic', 'Joint Acme Savings about 2300.00 EUR (2026-10-01)', 'Blue folder in the study', 'Pension Example Fund about 40,000', 'Savings wallet Bitcoin', 'Example Insurer Life POL-123', 'Call Anna first.'];
+    expect(findSecrets(rows.map((text, i) => [`Field ${i}`, text] as const))).toEqual([]);
+  });
+  test('a 64-character key in groups, over two lines, with colons or hyphens', () => {
+    const key = 'e9873d79c6d87dc0fb6a5778633389f4453213303da61f20bd67fc233aa33262', groups = key.match(/.{8}/g)!;
+    for (const text of [groups.join(' '), `${key.slice(0, 32)}\n${key.slice(32)}`, key.match(/.{2}/g)!.join(':'), groups.join('-'), `a ${groups.join(' ')}`, `${groups.slice(0, 4).join(' ')} ${key.slice(32)}`]) expect(secretKinds(text), text).toEqual(['hex-key']);
+    expect(findSecrets([['A', key.slice(0, 32)], ['B', key.slice(32)]])).toEqual([{field: ACROSS_FIELDS, kind: 'hex-key'}]);
+    expect(secretKinds(groups.slice(0, 7).join(' '))).toEqual([]); // 56 characters: not a key
+  });
+  test('base58 64-byte secrets, nsec1, AGE-SECRET-KEY-1 and byte lists', () => {
+    expect(secretKinds(b58(88))).toEqual(['base58-key']);
+    expect(secretKinds(`key: ${b58(85)} `)).toEqual(['base58-key']);
+    expect(secretKinds(b58(84))).toEqual([]);
+    expect(secretKinds(b58(91))).toEqual([]);
+    expect(secretKinds(`nsec1${'q'.repeat(58)}`)).toEqual(['nsec']);
+    expect(secretKinds(`npub1${'q'.repeat(58)}`)).toEqual([]);
+    expect(secretKinds(['AGE', 'SECRET', 'KEY', `1${'Q'.repeat(58)}`].join('-'))).toEqual(['age-key']);
+    expect(secretKinds(JSON.stringify(Array.from({length: 64}, (_, i) => (i * 37) % 256)))).toEqual(['byte-array']);
+    expect(secretKinds(`[${Array.from({length: 32}, (_, i) => i * 8).join(', ')}]`)).toEqual(['byte-array']);
+    expect(secretKinds(JSON.stringify(Array.from({length: 64}, (_, i) => i * 5)))).toEqual([]); // above 255: not bytes
+    expect(secretKinds(JSON.stringify(Array.from({length: 33}, () => 1)))).toEqual([]);
   });
   test('findings name the field and the reason', () => {
     const f = findSecrets([['The note', words(12)], ['Wallet 1 (Savings): address', hex64], ['Other', undefined]]);

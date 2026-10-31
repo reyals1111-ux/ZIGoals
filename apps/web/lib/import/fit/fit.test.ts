@@ -150,3 +150,30 @@ describe('.fit.gz and keeping the summary', () => {
     expect(workoutsSchema.parse(damaged).workouts[0]!.fileImport).toBeUndefined();
   });
 });
+
+// Session AK Part 15 (F7): sessions are refused at the 51st inside the read; laps are added up as they come.
+describe('many sessions and laps', () => {
+  test('the 51st session is refused while the file is read, before anything after it', () => {
+    const w = new FitWriter().define(2, 18, [[253, T.uint32], [2, T.uint32], [7, T.uint32]]);
+    for (let i = 0; i < 51; i++) w.data(2, [start + i * 700 + 600, start + i * 700, 600_000]);
+    // A course file_id after the sessions: refused as a course only if the reader got that far.
+    w.define(0, 0, [[0, T.enum]]).data(0, [6]);
+    expect(() => readFitFile(w.file())).toThrow('This file holds more than 50 workouts. Export fewer at a time.');
+    const fifty = new FitWriter().define(2, 18, [[253, T.uint32], [2, T.uint32], [7, T.uint32]]);
+    for (let i = 0; i < 50; i++) fifty.data(2, [start + i * 700 + 600, start + i * 700, 600_000]);
+    expect(readFitFile(fifty.file())).toHaveLength(50);
+  });
+  test('the security review\'s file of a million sessions is refused quickly', () => {
+    const w = new FitWriter().define(0, 18, [[253, T.uint32]]);
+    for (let i = 0; i < 1_000_000; i++) w.data(0, [start]);
+    const file = w.file(), started = performance.now();
+    expect(() => readFitFile(file)).toThrow(/more than 50 workouts/);
+    expect(performance.now() - started).toBeLessThan(500);
+  });
+  test('three hundred laps without a session are one workout, added up as before', () => {
+    const w = new FitWriter().define(3, 19, [[253, T.uint32], [2, T.uint32], [7, T.uint32], [9, T.uint32], [15, T.uint8], [21, T.uint16]]);
+    for (let i = 0; i < 300; i++) w.data(3, [start + i * 60 + 60, start + i * 60, 60_000, 20_000, i % 2 ? 150 : 130, 1]);
+    const [s] = readFitFile(w.file());
+    expect(s).toMatchObject({startedAt: START.replace('Z', '.000Z'), durationSeconds: 18_000, distanceKm: 60, avgHr: 140, elevationM: 300});
+  });
+});
