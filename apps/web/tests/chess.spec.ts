@@ -138,7 +138,8 @@ test('puzzles and TV load only on a tap, sandboxed with no referrer; the CSP nam
   await page.addInitScript(() => { window.open = ((url: string, _t: string, features: string) => { void (window as unknown as {recordOpen: (u: string, f: string) => void}).recordOpen(String(url), String(features)); return null; }) as typeof window.open; });
   const response = await page.goto('/app/chess');
   const csp = response!.headers()['content-security-policy']!;
-  expect(csp).toContain("frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/;");
+  // Session AK (1a, Q21): the app's frame list also names WalletConnect's Verify pages (phone wallets), after the chess frames.
+  expect(csp).toContain("frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/ https://verify.walletconnect.org/ https://verify.walletconnect.com/;");
   expect(csp).toMatch(/connect-src [^;]*https:\/\/api\.chess\.com https:\/\/lichess\.org/);
   await expect(page.locator('iframe')).toHaveCount(0);
   await page.getByRole('button', {name: 'Daily puzzle', exact: true}).click();
