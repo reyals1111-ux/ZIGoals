@@ -16,7 +16,7 @@
 <main id="main" class="legal-page">
 <a class="legal-back" href="https://zigoals.app/">← ZIGoals</a>
 <h1>Privacy, in plain words</h1>
-<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 30 October 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
+<p class="legal-meta">For the ZIGoals public Alpha at alpha.zigoals.app. Last updated 31 October 2026. This is a plain-language summary of how the app works today; it promises nothing the app does not do.</p>
 
 <h2>The short version</h2>
 <ul>
@@ -32,8 +32,11 @@
 <li><strong>Prices and market figures:</strong> the public identity of an asset (for example "bitcoin, in euros") goes to ZIGoals' market service and from there to CoinGecko. Never your amounts, addresses or names.</li>
 <li><strong>Wallets you connect or link:</strong> public addresses go to the chain services that answer for them (ZIGChain's own services, PublicNode and others for other chains), which can see your IP address. ZIGoals never holds your keys and never signs for you: your wallet does that, on your device, only when you approve.</li>
 <li><strong>A Bitcoin wallet watched by its public key (xpub):</strong> the key stays on your device. To read the balance, your browser works out the wallet's addresses and asks mempool.space about each one, so mempool.space sees those addresses (and that they belong together) and your IP address. A private key is refused.</li>
-<li><strong>Food lookup (when it is switched on):</strong> only the barcode, or the words you type to search, go to ZIGoals' food service and from there to Open Food Facts or the Swiss Food Composition Database. Never your diary, your name or your IP address.</li>
-<li><strong>ZIGi with your own AI (off until you connect one):</strong> when you ask ZIGi something, your message and the records it needs go straight from your browser to the AI provider <em>you</em> chose (for example Anthropic or OpenAI), under your own account and their privacy policy. You see which records go with each message and can remove them. Health, your journal and your notes go only when you allow each. A meal photo goes once to your provider and is not kept by ZIGoals. Without an AI, ZIGi answers on your device and sends nothing.</li>
+<li><strong>Food lookup (when it is switched on):</strong> only the barcode, or the words you type to search, go to ZIGoals&rsquo; food service and from there to Open Food Facts or the Swiss Food Composition Database; a barcode Open Food Facts does not know may also be asked of USDA FoodData Central. Never your diary, your name or your IP address. The offline food library (generic foods from France and the UK) is downloaded from ZIGoals itself and searched on your device: your search words in it never leave the device.</li>
+<li><strong>ZIGi with your own AI (off until you connect one):</strong> when you ask ZIGi something, your message and the records it needs go straight from your browser to the AI provider <em>you</em> chose (for example Anthropic or OpenAI), under your own account and their privacy policy. You see which records go with each message and can remove them. Health, your journal and your notes go only when you allow each. A meal photo, or a photo of a nutrition label, goes once to your provider and is not kept by ZIGoals. Without an AI, ZIGi answers on your device and sends nothing.</li>
+<li><strong>Phone wallets (WalletConnect, when it is switched on):</strong> pairing and messages go through WalletConnect&rsquo;s relay and its Verify service (run by Reown), encrypted between ZIGoals and your wallet. They see your IP address and when messages pass, not what they say. Your wallet shares only the public addresses you approve, and signs only what you approve.</li>
+<li><strong>Notifications while ZIGoals is closed (off by default; being switched on):</strong> ZIGoals&rsquo; notification service receives a random id made on your device, the push address your browser hands out, your time zone, your quiet hours and the minutes your device should wake. Never a habit&rsquo;s name, an amount or anything you record: every message is empty, and the text is written on your device. Your browser&rsquo;s push service (Apple, Google, Mozilla or Microsoft) sees when a message was sent, not what. Turning notifications off deletes your record there.</li>
+<li><strong>Lichess (when you connect it to play):</strong> the access token Lichess gives ZIGoals stays on this device and is sent only to lichess.org. Your games and the daily puzzle go between your browser and Lichess.</li>
 <li><strong>Your browser's speech recognition</strong> (when you tap the microphone): the browser maker's speech service may hear the audio (Chrome: Google; Safari: Apple). Nothing goes through ZIGoals.</li>
 <li><strong>Add money and other apps:</strong> these are links to independent providers (such as Ramp Network or Banxa) that open on their own site, under their own policy. ZIGoals never sees the payment or the identity check.</li>
 <li><strong>Feedback you send</strong> goes to ZIGoals with only what you type.</li>
@@ -42,6 +45,9 @@
 <h2>Your files and your choices</h2>
 <ul>
 <li><strong>Exports</strong> you download are files you control. Readable exports are <strong>not encrypted</strong>; encrypted backups are protected by their own secret, which only you have.</li>
+<li><strong>Files you import</strong> (bank files, or exports from Daylio, Habitica, YNAB, Strong or Hevy) are read on your device and sent nowhere.</li>
+<li><strong>Offline use:</strong> copies of the app&rsquo;s pages and scripts are kept in your browser&rsquo;s cache so it opens without a connection. They hold none of your records.</li>
+<li><strong>Music:</strong> focus and sleep sounds are made on your device; nothing is downloaded or recorded.</li>
 <li><strong>Showcase</strong> (the example data) lives in the current tab only and never mixes with your records.</li>
 <li><strong>Price alerts, Customize and your look:</strong> alerts are checked on your device with prices the app already reads, and your text size, font and density choices stay on your device. The Inter font, when you choose it, comes from ZIGoals itself.</li>
 <li><strong>Delete:</strong> clearing this site's data in your browser removes your records from this device. It cannot erase anything already public on a blockchain.</li>
