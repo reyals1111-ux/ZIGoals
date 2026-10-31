@@ -19,6 +19,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
 
 ## J3-1: a "Fund Goal" contribution from a cash asset never counts in the contribution rhythm
 
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
+
 - **Spec:** `j03-money-month.spec.ts`, `@journey 3b bug J3-1`.
 - **Steps:** Create a EUR value goal. On three Mondays in a row, open the goal → Record contribution → Fund Goal → EUR
   cash, created the first time and chosen after that → quantity 50 → Preview → Confirm & fund Goal. The next Monday,
@@ -37,6 +39,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
 
 ## J3-2: "Fill in" from the contribution rhythm does not fill in the amount with a cash asset
 
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
+
 - **Spec:** `j03-money-month.spec.ts`, `@journey 3c bug J3-2`. The main journey 3 checks that the form opens and that
   nothing moved.
 - **Steps:** A goal with three weekly history contributions of €50 and one "Fund Goal" contribution from a new EUR cash
@@ -49,6 +53,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
   to the asset's and fill it. Leave it empty only for an asset in another currency.
 
 ## J4-1: offline, the Checklist with its day complete cannot be shown
+
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
 
 - **Spec:** `j04-offline.spec.ts`, `@journey 4b bug J4-1`. The main journey 4 opens the Checklist offline before the
   day's last tick.
@@ -66,6 +72,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
 
 ## J4-2: offline, a barcode is never kept for later
 
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
+
 - **Spec:** `j04-offline.spec.ts`, `@journey 4c bug J4-2`. The main journey 4 leaves this step out.
 - **Steps:** Worker in control. Open Health → "Scan or look up a food barcode" once online. Go offline, type barcode
   4006381333931, Look up barcode, then come back online.
@@ -80,6 +88,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
   so the worker caches it. Keep the `catch` for storage refusals.
 
 ## J5-1: Done or Undo from a notification does not show on the open page, and Undo leaves the snapshot without the habit
+
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
 
 - **Spec:** `j05-notifications.spec.ts`, `@journey 5b bug J5-1`.
 - **Steps:** Notifications on, a habit with a reminder now, Habits open. A push shows "1 habit due" → Done. The toast
@@ -97,6 +107,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
 
 ## J5-2: "Snooze 1 h" is lost when a ZIGoals page is open
 
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
+
 - **Spec:** `j05-notifications.spec.ts`, `@journey 5c bug J5-2`. The main journey 5 checks the wake minute that is
   sent, which is correct.
 - **Steps:** Notifications on, a habit due now, a ZIGoals page open. A push → "Snooze 1 h".
@@ -112,6 +124,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
 
 ## J6-1: right after Erase everything a ZIGoals cache is back
 
+**Status: fixed in `07058ae3`; its journey test is a plain test again.**
+
 - **Spec:** `j06-data-safety.spec.ts`, `@journey 6b bug J6-1`. The main journey 6 checks that no page cache and nothing
   but `/_next/static/` files remain.
 - **Steps:** Worker in control. Settings → Erase everything… → type ERASE → Erase everything. List `caches.keys()`.
@@ -123,6 +137,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
   worker a "stop caching until reload" message.
 
 ## J8-1: ZIGi's goal form card with a date is refused
+
+**Status: fixed in `c53dbfaf`; its journey test is a plain test again.**
 
 - **Spec:** `j08-zigi.spec.ts`, `@journey 8b bug J8-1`. The main journey 8 proposes the goal form card without a date.
 - **Steps:** The person's AI (mock) answers `{"kind":"goal-draft","name":"Fictional new bike","target":900,
@@ -136,6 +152,8 @@ production build of `8a98bdf0` on 127.0.0.1:3101 (desktop, Chromium) and failed 
   back to `date` for those kinds before validation. Add a parse test with the protocol's own example.
 
 ## J6-2 (question for the owner, not a fixme): Erase → Restore never brings the Checklist back
+
+**Status: answered on screen in `c53dbfaf`: the restore screen and Test a backup say the Checklist is never restored (the rule is unchanged).**
 
 `lib/restore/plan.ts` `NEVER_RESTORED` lists "Checklist favourites and day history", so after Erase everything and a
 restore from the person's own Export everything, the Checklist path is gone. "Test a backup" still says "All N parts
