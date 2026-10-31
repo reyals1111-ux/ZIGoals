@@ -19,6 +19,8 @@ import {deviceZone} from '../push/support';
 import {NOTIFY_PREFS} from './prefs';
 import {addDays, wallClock} from './zone';
 import {buildPlan, type Plan, type PlanInput} from './plan';
+import {BILLS} from '../bills/schema';
+import {upcomingBills} from '../bills/store';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -68,6 +70,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
       }
     } catch { /* finance unreadable: no contribution wakes */ }
   }
+  // Session AK Part 7.3: bills the person confirmed or added, due within the next 30 days (the plan wakes the morning before).
+  try { input.bills = upcomingBills(readDeviceRecord(storage, BILLS).data, today, 30); } catch { /* bills unreadable: no bill wakes */ }
   return input;
 }
 /** The plan for now, or null in the Showcase. */

@@ -10,6 +10,7 @@ import {showToast} from '../ui/undo-toast';
 
 const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:private-change';
 export const NOTIFY_CHANGE = 'zigoals:notify-change';
+let headroomShown = false;
 const hereOn = () => { try { return !isShowcase() && readDeviceRecord(getAppStorage(), NOTIFY_PREFS).data.here === true; } catch { return false; } };
 const accountPushOn = () => { try { return readPushRecord(getAppStorage()).data !== null; } catch { return false; } };
 /** ADR-010's account worker is registered (or on its way): never replaced by this build's worker (Q15, Q19). */
@@ -60,6 +61,8 @@ export function NotifySync() {
       } catch { /* no queue on this device */ }
     };
     window.addEventListener('online', onOnline);
+    // Session AK (A6): once per visit, if a module is nearly full, say so calmly with what to do.
+    idle(() => { if (!active || headroomShown) return; headroomShown = true; void import('../../lib/storage-headroom').then(m => { const line = m.headroomMessage(m.moduleUse(window.localStorage)); if (line && active) showToast({message: line, link: {href: '/app/settings/data', label: 'Your data'}}); }).catch(() => {}); });
     const every = window.setInterval(() => { void refresh(); }, 10 * 60_000);
     window.addEventListener(REMINDERS_CHANGE, later); window.addEventListener(PRIVATE_CHANGE, later); window.addEventListener(NOTIFY_CHANGE, later); window.addEventListener('storage', later); document.addEventListener('visibilitychange', onVisible);
     navigator.serviceWorker?.addEventListener('message', onMessage);
