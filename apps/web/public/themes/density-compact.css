@@ -979,6 +979,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .about-alpha-status p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .about-alpha-build:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .about-alpha-env:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .about-alpha-licences > .about-alpha-notices:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 /*  components/audio/ambient.css  */
 :where(:root[data-density=compact]) .ambient-player:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .ambient-player h3:not(#\-) { margin-top: 0; margin-bottom: 0; }

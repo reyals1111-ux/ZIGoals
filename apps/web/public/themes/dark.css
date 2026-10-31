@@ -3583,6 +3583,9 @@
         border-color: #8fa6c840;
         color: #c9d6ea
     }
+    .about-alpha-licences > summary:not(#\-) {
+        color: inherit
+    }
 }
 /*  components/audio/ambient.css  */
 @scope (:root[data-theme=dark]) {
@@ -15015,6 +15018,10 @@
             color: var(--text-secondary)
         }
     }
+    :scope .search-field:has(input:focus-visible):not(#\-) {
+        border-bottom-color: #8fe6f4;
+        box-shadow: inset 0 -2px 0 #8fe6f4
+    }
 }
 /*  components/secret-guard/secret-guard.css  */
 @scope (:root[data-theme=dark]) {
@@ -16552,6 +16559,9 @@
     }
     .wrapped-reveal:focus-visible:not(#\-), .wrapped-include:has(input:focus-visible):not(#\-) {
         outline-color: var(--cyan)
+    }
+    .story-player.wrapped-player:focus:not(#\-) {
+        outline-color: currentcolor
     }
 }
 /*  components/zigchain-eco/zigchain-eco.css  */

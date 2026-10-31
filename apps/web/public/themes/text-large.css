@@ -659,6 +659,7 @@
 :where(:root[data-text=large]) .about-alpha-status:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .about-alpha-build:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .about-alpha-env:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .about-alpha-licences > summary:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/audio/ambient.css  */
 :where(:root[data-text=large]) .ambient-sounds legend:not(#\-) { font-size: calc(.9375rem * 1.125); }
 :where(:root[data-text=large]) .ambient-chip:not(#\-) { font-size: calc(.9375rem * 1.125); }
