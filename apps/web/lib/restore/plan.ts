@@ -46,6 +46,7 @@ import {FOOD_SCANS} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
 import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
+import {COMPARE_PAIR} from '../compare/schema';
 import {FOCUS_SESSIONS} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS} from '../guided/schema';
 import {RECEIPTS} from '../portfolio/receipts';
@@ -115,6 +116,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('nutrientExtras', 'Extra nutrients', 'Health', NUTRIENT_EXTRAS_RECORD, true),
   dev('grocery', 'Grocery ticks and pantry', 'Health', GROCERY_RECORD, true),
   dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
+  dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
   dev('focusSessions', 'Focus sessions', 'Today and Life', FOCUS_SESSIONS),
   dev('guidedJourneys', 'Guided journeys', 'Today and Life', GUIDED_JOURNEYS),
   dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),

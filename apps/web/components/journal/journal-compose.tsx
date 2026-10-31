@@ -8,6 +8,8 @@ import {JOURNAL, MAX_TEXT, type JournalEntry} from '../../lib/journal/schema';
 import {followUpFor, patternLine, patterns} from '../../lib/journal/reflect';
 import {lineLanguage} from '../../lib/quick-log/multi';
 import './journal.css';
+// Session AK (lane S, item 6): the optional feeling word after the 1–5 (its grid loads when opened).
+import {MoodWordsFold} from '../mood-words/mood-words-fold';
 
 /**
  * Session AI (feature 6, the journal and the daily energy rating): today's energy (1–5) in one tap, a few lines of
@@ -42,6 +44,7 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
       {[1, 2, 3, 4, 5].map(n => <label key={n} className="journal-energy-dot" title={ENERGY_WORDS.en[n - 1]}><input type="radio" name={`${id}-energy`} checked={todayEnergy === n} onChange={() => rate(n)}/><span aria-hidden="true">{n}</span><span className="sr-only">{n} of 5, {ENERGY_WORDS.en[n - 1]}</span></label>)}
       <span className="fine journal-energy-word">{todayEnergy ? ENERGY_WORDS.en[todayEnergy - 1] : '1 drained · 5 full of energy'}</span>
     </fieldset>
+    {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
       {problem && <p role="alert">{problem}</p>}

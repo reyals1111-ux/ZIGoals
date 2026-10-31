@@ -17,6 +17,8 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:nutrient-extras:v1',
   'zigoals:grocery:v1',
   'zigoals:calorie-week:v1',
+  // Lane S: the last pair chosen in Health → Insights → Compare.
+  'zigoals:compare-pair:v1',
 ];
 /** The account erase removes them all. */
 export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;

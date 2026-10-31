@@ -1,7 +1,7 @@
 'use client';
 import {showToast} from '../../ui/undo-toast';
 import Link from 'next/link';
-import {useState} from 'react';
+import {lazy, useState} from 'react';
 import {asleep, balanceWords, BALANCE_MIN_NIGHTS, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepBalance, sleepDebt, summary, wakeConsistency} from '../../../lib/sleep/engine';
 import {sleepInsights} from '../../../lib/sleep/insights';
 import type {SleepNight} from '../../../lib/sleep/schema';
@@ -17,9 +17,13 @@ import {WindDownSetting, WindDownSounds} from './wind-down';
 import {FocusWindowSetting} from './focus-window-card';
 import {SleepScoreCard} from '../sleep-score-card';
 import './sleep.css';
+// Session AK (lane S, item 9): the estimated energy curve, its code loaded when its fold is opened.
+import {OnDemandFold} from '../../insights/compare/on-demand-fold';
 import {sourceName} from '../../../lib/health-sources';
 import {formatClock, formatDate, formatTime} from '../../../lib/visual-format';
 import {plainErrorMessage} from '../../../lib/plain-error';
+
+const EnergyCurve = lazy(() => import('../../sleep/energy-curve'));
 
 const nightLine = (n: SleepNight) => {
   const a = asleep(n)!;
@@ -74,6 +78,7 @@ export default function SleepView() {
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
     <SleepScoreCard sleep={sleep} today={today}/>
+    <OnDemandFold className="energy-curve-fold" summary="Your energy today: an estimate from your sleep" label="The energy curve"><EnergyCurve sleep={sleep} today={today} now={store.now} zone={store.zone}/></OnDemandFold>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>
         <div className="sleep-range" role="group" aria-label="Range">{([7, 30] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r} days</button>)}</div>

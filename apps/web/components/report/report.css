@@ -1,0 +1,56 @@
+/* Session AK (lane S, item 14): "Report for a visit". On screen it is a full-page dialog in the theme's own tokens; in
+   print only the report is printed, on paper colours (the system colours Canvas/CanvasText, which the theme sheets leave
+   alone). Charts draw in currentColor and are told apart by line style and marker shape. No motion. */
+.report-launcher .secondary, .report-builder .secondary, .report-builder .primary { min-height: 44px; }
+.report-builder { display: grid; gap: 12px; min-width: 0; }
+.report-builder fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0; }
+.report-builder legend { font-weight: 650; margin-bottom: 6px; padding: 0; }
+.report-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.report-date-fields { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.report-date-fields input { min-height: 44px; width: 100%; max-width: 100%; font-size: 16px; }
+.report-check { display: flex; gap: 10px; align-items: center; min-height: 44px; }
+.report-check input { width: 22px; height: 22px; flex: none; }
+
+html.report-open { overflow: hidden; }
+.report-root { position: fixed; inset: 0; z-index: 2147483000; overflow: auto; background: var(--bg); color: var(--text); overscroll-behavior: contain; }
+.report-toolbar { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.report-toolbar .primary, .report-toolbar .secondary { min-height: 44px; }
+.report-toolbar-title { flex: 1 1 160px; font-weight: 650; font-size: 17px; }
+.report-toolbar-title:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.report-sheet { max-width: 820px; margin: 0 auto; padding: 16px 16px 48px; display: grid; gap: 18px; min-width: 0; }
+.report-sheet h1 { font-size: 24px; margin: 0 0 6px; }
+.report-sheet h2 { font-size: 19px; margin: 0 0 8px; padding-bottom: 4px; border-bottom: 1px solid currentColor; }
+.report-sheet h3 { font-size: 16px; margin: 10px 0 4px; }
+.report-sheet p { margin: 4px 0; overflow-wrap: anywhere; }
+.report-head p { font-size: 15px; }
+.report-facts { margin: 4px 0 8px; padding-left: 18px; font-size: 15px; }
+.report-chart { display: block; width: 100%; height: auto; color: inherit; margin: 6px 0; }
+.report-chart text { font-size: 11px; fill: currentColor; }
+.report-grid line, .report-axis line { stroke: currentColor; stroke-opacity: .25; stroke-width: 1; }
+.report-bar { fill: currentColor; fill-opacity: .55; }
+.report-goal { stroke: currentColor; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.report-line { fill: none; stroke: currentColor; stroke-width: 1.6; }
+.report-line.is-dashed { stroke-dasharray: 5 3; stroke-opacity: .75; }
+.report-dot { fill: currentColor; }
+.report-dot.is-open { fill: none; stroke: currentColor; stroke-width: 1.2; }
+.report-legend, .report-more, .report-none { font-size: 14px; opacity: .85; }
+.report-sheet table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
+.report-sheet th, .report-sheet td { text-align: left; padding: 4px 6px; border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent); vertical-align: top; }
+.report-sheet thead th { font-weight: 650; }
+.report-sheet tbody th { font-weight: 500; white-space: nowrap; }
+.report-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.report-section { min-width: 0; overflow-x: auto; }
+.report-foot { font-size: 14px; opacity: .85; }
+
+@media print {
+  html.report-open, html.report-open body { overflow: visible !important; height: auto !important; background: Canvas !important; }
+  html.report-open body > *:not(.report-root) { display: none !important; }
+  html.report-open .report-root { position: static; overflow: visible; color-scheme: light; background: Canvas; color: CanvasText; }
+  html.report-open .report-toolbar { display: none !important; }
+  html.report-open .report-sheet { max-width: none; padding: 0; gap: 12px; }
+  html.report-open .report-section { overflow: visible; break-inside: auto; }
+  html.report-open .report-chart, html.report-open .report-facts, html.report-open .report-sheet h2, html.report-open .report-sheet tr { break-inside: avoid; }
+  html.report-open .report-sheet h2 { break-after: avoid; }
+  html.report-open .report-sheet thead { display: table-header-group; }
+  @page { margin: 14mm; }
+}

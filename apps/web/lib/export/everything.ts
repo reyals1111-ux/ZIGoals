@@ -17,6 +17,7 @@ import {FOOD_SCANS_KEY} from '../food-scans/schema';
 import {NUTRIENT_EXTRAS_KEY} from '../health-vitamins/extras';
 import {GROCERY_KEY} from '../grocery/schema';
 import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
+import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
@@ -130,6 +131,7 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   nutrientExtras: NUTRIENT_EXTRAS_KEY,
   grocery: GROCERY_KEY,
   calorieWeek: CALORIE_WEEK_KEY,
+  comparePair: COMPARE_PAIR_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
   guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).

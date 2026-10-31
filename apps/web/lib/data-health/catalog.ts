@@ -47,6 +47,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   nutrientExtras: ['Extra nutrients (magnesium, zinc, B vitamins, omega-3)', 'Health'],
   grocery: ['Grocery ticks, pantry and added items', 'Health'],
   calorieWeek: ['Weekly calorie budget', 'Health'],
+  comparePair: ['The comparison you chose last (Insights)', 'Health'],
   focusSessions: ['Focus sessions', 'Journey'],
   guidedJourneys: ['Guided journeys', 'Journey'],
   exchanges: ['Exchanges read (balances only)', 'Wealth'],

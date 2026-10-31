@@ -7,6 +7,7 @@ import {DataHealthView} from '../../../../components/data-health/data-health-vie
 import {AboutThisAlpha} from '../../../../components/alpha/about-this-alpha';
 import {SectionHeading} from '../../../../components/ui/section-heading';
 import ExportBridges from '../../../../components/export/export-bridges';
+import {ReportLauncher} from '../../../../components/report/report-launcher';
 // Session AA-Cloud Part 6: Settings → Your data, where each part of your data lives.
 // Settings' layout carries the root template on (Session AC), so the title is "Your data · ZIGoals Alpha".
 export const metadata: Metadata = {title: 'Your data'};
@@ -16,6 +17,8 @@ export default function Page() {
     {/* Session AC (owner finding 3): this Alpha's facts, always here (they left the footer). */}
     <section className="panel about-alpha-panel" aria-labelledby="about-alpha-title"><SectionHeading id="about-alpha-title" eyebrow="Settings · your data" title="About this Alpha"/><AboutThisAlpha/></section>
     <DataHealthView />
+    {/* Session AK (lane S, item 14): a printable report of the person's own log for a visit; its code loads on use. */}
+    <ReportLauncher />
     {/* Session AK Part 8.8 (A16): what other apps really import. */}
     <ExportBridges />
   </div>;
