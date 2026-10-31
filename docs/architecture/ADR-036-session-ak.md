@@ -123,7 +123,44 @@ Legend: **C** exists, complete (verify and polish) · **U** exists, unfinished (
 | 14 zigi-memory:188 | U | `tests/zigi-memory.spec.ts:184-188` (`networkidle` then reload) | Fix at the cause |
 
 ### A12 leftover sweep
-Filled in from the earlier records (ADR-028 to ADR-035, STATUS) in Part 0; each row is built in its matching part or recorded with the blocker.
+Every still-open row of ADR-028 to ADR-035 and the STATUS entries since AG Polish 2 (a read-only sweep, 31 Oct). Class: **a** buildable now (built in the named part), **b** needs the owner, **c** blocked by an outside fact, **d** excluded by an owner decision or a protected rule. Rows closed by a later session are left out (AH, AI and AJ closed most of the picklists).
+
+| ID | What | Where | Class → AK part |
+|---|---|---|---|
+| H6/H38/H87, P3.1 | Phone wallets over WalletConnect | ADR-028 | a → 1a (Reown allowed domains: b, A9) |
+| H133 S9 | WalletConnect Verify `frame-src` | ADR-028 | a → 1a (the id is set, so the frame hosts enter with it) |
+| AFL9 | Keplr Mobile signing over WalletConnect | owner | a if Keplr Mobile supports the ZIGChain namespaces, else c → 1a |
+| AFL8 (owner's numbering, Q16) | Checklist extras sync | ADR-028 H10 | a → 8.10 (encrypted extras sync, AJ item 35 precedent) |
+| AFL1 | REStake auto-compound | ADR-028 H45 | c (no ZIGChain operator; CosmJS 0.38 has no authz amino) — re-verified in 14 |
+| AFL2 | Feegrant (a funded ZIGoals key) | ADR-028 H7 | d (non-custodial) |
+| AFL3 | Habit pacts (escrow contract) | ADR-028 | c (contract uploads governance-whitelisted) — re-verified in 14 |
+| AFL4 | Memo attestations on mainnet | ADR-028 H48, H105 | d (privacy); the prefix-free practice-badge memo (H133 S6) is a → 14 (TIER 3 wallet) |
+| AFL5–AFL7, ADR-028's OroSwap shares | xpub, Journeys/Focus, synced habit clock, pool/vault shares | ADR-028 | Done (AJ items 36, 34, 35; AH AF3) |
+| H113 | `goalId` prop on TodayIntelligence | ADR-028 | a → 14 |
+| M4 (QA2-04) | ZIGi knock reminders use the device clock, not the journal's zone | ADR-033 | a → 14 |
+| M42 | "Net worth this week" on Today's line | ADR-033 | a → 8 (check AI N37 first) |
+| LA6 D-196 | Dark: column widths differ between pages | A8 | a → 11 |
+| AF15 (parts 2, 3) | Health import stress readings; Academy name under the lesson bubble | A8 | a → 11 |
+| F3 | Cold load 1.3–1.4 s | ADR-033, ADR-034 | a → 3 (the offline shell) and 11 |
+| Missing tests | ZI4, ZI8, ZI9, ZI14, G15; the landing privacy/terms skip link | ADR-034 | a → 14 |
+| M8 | One-offs: `hosted-verifier-order:16`, WebKit "Target crashed" | ADR-033 | a (investigate) → 14 |
+| Intermittents | `zigi-memory:188`, `zigi-accept-correct:260` (Tokyo), `zigi-memory-af:15`, `market-status` socket closed, `zigi-knock` on /app/habits, WebKit-phone cancelled fetches (AF16) | STATUS | a → 14 |
+| WE17/J11, CO11, MO3 | Price alerts and complete/snooze by push; push activation | ADR-033 | a → 2 (activation: b) |
+| M28 | USDA FoodData Central | ADR-033 | a → 1b (the key at deploy: b) |
+| HE4/J5/L4, AJ 22 | Barcode and FSVO need the food Worker deployed and bound | ADR-033, ADR-035 | a → 1b (deploy: b, A10) |
+| H118 | ZIGi's brief and recap English only | ADR-028 | d (languages are Beta, D4) |
+| H125/H137(a) | Right-edge launchers over content | ADR-028 | d (an owner item; recorded) |
+| K19 | `eslint-config-next` not pinned with `next` | ADR-031 | d (a dependency change needs owner approval) |
+| RM4 | `www` → apex redirect | ADR-033 | b (Cloudflare dashboard); workers.dev and preview URLs already off — re-verified in 14 |
+| RM7/M28 | Fitbit import off; Google Fit wording | ADR-033 | d (owner's note); the wording re-checked in 4.7 |
+| AF10 | Ecosystem glow by day | ADR-033 | Done (AH) |
+| AF16 | CI intermittents at their cause | ADR-033 | a → 14 (row above) |
+| WE15 | Six doc 404s; the FSCA notice PDF | ADR-033 | c (hosts answer 403 to the sandbox; no official replacement URL) |
+| M48 | Widgets, Apple Health live, watch, Screen Time, receipt OCR | ADR-033 | c / d (D2: Beta) |
+| M37 | LP tokens staked in a farm | ADR-033 | c (not in the wallet) |
+| Owner items | Lawyer checklist (H36/H126), logo trademarks (H39), refs-branch deletion, Face ID/passkey test on an iPhone (RM8), undescribed BUG ids (NO1, M31), the API Console vs ledger (N44), real-key exchange tests (N34), the real-model re-score (N20, D5), the practice and mainnet delegates (A9 of AJ), the landing redeploy, the verifier on #52, the market policy renewal before 30 Nov, DMARC and the acceptance redeploy | ADR-028 to ADR-035, STATUS | b (listed in STATUS's owner list) |
+| Protected or decided | H72, H126, H129, H131/AF13, H138(c), I11, I13, K11, L26, L28/M54, "Evening Orbit" fade, M44, TR7/M19, M23, GO3/M33, TO1/M40, WE2, ST4/LA5, M39, TO5, TO7, TO11, H3, SE1, SE4, SE10, SE13, F1, MO4 pricing, RM1 local models, N15, N18–N31 (device-only records), D12, D6, P20 | ADR-028 to ADR-035 | d (each keeps its recorded reason) |
+| P2, P10 | v6 on mainnet only if #45 passes; the 1-ZIG voting threshold on v5 | ADR-035 | c → A13 in 14 |
 
 ## Per-surface quality lines (A22)
 One line per new surface, compared with COMPETITORS.md's best equivalent; added as each surface lands.

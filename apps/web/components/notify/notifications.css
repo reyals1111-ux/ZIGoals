@@ -1,0 +1,16 @@
+/* Settings → Notifications (Session AK Part 2). The panel's own look; the nebula card system does the rest. */
+.notify-card .notify-state{font-size:16px;margin:6px 0 10px}
+.notify-card .notify-server{margin:0 0 12px}.notify-card .notify-server summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:15px}
+.notify-card .notify-server ul{margin:6px 0;padding-left:20px;font-size:15px}.notify-card .notify-server p{font-size:15px}
+.notify-card .notify-actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}.notify-card .notify-actions button{min-height:44px}
+.notify-card .notify-message{font-size:15px}
+.notify-types{border:0;margin:8px 0 4px;padding:0;display:grid;gap:2px}
+.notify-types legend{font-weight:600;font-size:15px;margin-bottom:6px;padding:0}
+.notify-types .ai-switch-row{display:flex;gap:12px;align-items:flex-start;padding:6px 0}
+.notify-types .ai-switch-row [role=switch]{min-width:64px;min-height:44px;flex:none}
+.notify-types .ai-switch-copy{display:grid;gap:2px;font-size:15px;line-height:1.4}
+.notify-types .ai-switch-copy small{color:var(--muted,#aab2d9);font-size:14px}
+.notify-times{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.notify-times .field{margin:0}.notify-times input{min-height:44px;font-size:16px}
+@media (max-width:480px){.notify-times{grid-template-columns:1fr}}
+.notify-card .fine a{display:inline-flex;align-items:center;min-height:44px}

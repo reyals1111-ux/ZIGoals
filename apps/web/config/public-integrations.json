@@ -3,5 +3,7 @@
   "reownProjectId": null,
   "rampHostApiKey": null,
   "rampHostAppName": "ZIGoals",
-  "banxaPartnerRef": null
+  "banxaPartnerRef": null,
+  "pushDeviceEnabled": false,
+  "pushVapidPublicKey": null
 }

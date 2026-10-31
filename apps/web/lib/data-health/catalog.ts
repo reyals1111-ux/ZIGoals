@@ -35,6 +35,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   portfolioImports: ['Portfolio rows from wallets', 'Wealth'],
   readingSources: ['Where wealth readings came from', 'Wealth'],
   priceAlerts: ['Price alerts', 'Wealth'],
+  notify: ['Notification choices', 'Settings'],
   focusSessions: ['Focus sessions', 'Journey'],
   guidedJourneys: ['Guided journeys', 'Journey'],
   exchanges: ['Exchanges read (balances only)', 'Wealth'],
@@ -87,7 +88,7 @@ export const DEVICE_ONLY: readonly CatalogEntry[] = [
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
-export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)'] as const;
+export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)'] as const;
 /** Worked out each time from the records above, never stored. */
 export const NEVER_STORED = ['Calculator results', 'Life review figures', 'Insights and pairings', 'Search results', 'Pace forecasts', 'The life balance wheel'] as const;
 export const HOME_LABEL: Record<Home, string> = {sync: 'Encrypted sync with an account', 'sync-consent': 'Encrypted sync after this device\'s consent', device: 'This device only'};

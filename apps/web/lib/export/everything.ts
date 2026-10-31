@@ -5,6 +5,7 @@ import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
+import {NOTIFY_KEY} from '../notify/prefs';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
@@ -101,6 +102,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AJ (CO6, D7): where each wealth reading came from.
   readingSources: READING_SOURCES_KEY,
   priceAlerts: PRICE_ALERTS_KEY,
+  // Session AK Part 2: which notifications this device wants (never the device's push identity, which stays in IndexedDB).
+  notify: NOTIFY_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
   guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).

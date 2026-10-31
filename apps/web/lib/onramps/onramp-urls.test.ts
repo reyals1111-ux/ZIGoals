@@ -11,7 +11,7 @@ import type {LinkedWallet} from '../linked-wallets';
 const EVM = '0x52908400098527886E0F7030069857D2E4169EE7', SOL = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', BTC = 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4';
 const ZIG = toBech32('zig', new Uint8Array(20).fill(9)), HUB = toBech32('cosmos', new Uint8Array(20).fill(9));
 const ORIGIN = 'https://alpha.zigoals.app', AT = '2026-10-19T08:00:00.000Z';
-const SANDBOX: PublicIntegrations = {schemaVersion: 1, reownProjectId: null, rampHostApiKey: 'demoHostKey_123', rampHostAppName: 'ZIGoals', banxaPartnerRef: 'zigoals'};
+const SANDBOX: PublicIntegrations = {schemaVersion: 1, reownProjectId: null, rampHostApiKey: 'demoHostKey_123', rampHostAppName: 'ZIGoals', banxaPartnerRef: 'zigoals', pushDeviceEnabled: false, pushVapidPublicKey: null};
 const W = (id: string, kind: LinkedWallet['kind'], address: string, extra: Partial<LinkedWallet> = {}): LinkedWallet => ({id, kind, wallet: 'test', label: id, address, addedAt: AT, ...extra});
 const wallets = [W('w-evm', 'evm', EVM), W('w-base-only', 'evm', '0x0000000000000000000000000000000000000001', {chains: ['eip155:8453']}), W('w-sol', 'solana', SOL), W('w-btc', 'btc', BTC), W('w-zig', 'cosmos', ZIG)];
 const addressFor = (network: keyof typeof NETWORKS) => destinationsFor(network, wallets)[0]!;

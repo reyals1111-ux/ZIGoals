@@ -9,6 +9,8 @@ export const KNOWN_DATABASES = [
   'zigoals-account-sync-v1', 'zigoals-ai-chats-v1', 'zigoals-ai-keys-v1', 'zigoals-attestation-v1', 'zigoals-device-unlock-v1',
   'zigoals-exchange-keys-v1', 'zigoals-extras-sync-v1', 'zigoals-link-tokens-v1', 'zigoals-market-catalog-v1', 'zigoals-private-vault-v1',
   'zigoals-progress-photos', 'zigoals-push-labels-v1', 'zigoals-vision-v1', 'zigoals-xpub-v1',
+  // Session AK (ADR-036 A1): the notification snapshot and identity, and the queue of notification taps.
+  'zigoals-notify-v1', 'zigoals-notify-actions-v1',
 ] as const;
 export const ERASE_PREFIX = 'zigoals';
 export const ERASE_CONFIRM = 'ERASE';
@@ -40,4 +42,23 @@ export async function eraseEverything(scope: {localStorage?: KeyStore | null; se
     if (ok) databases++; else failed.push(name);
   }
   return {keys, databases, failed};
+}
+
+/**
+ * Session AK (ADR-036 A4): before the records go, what lives outside the key list leaves too — the device's notification
+ * record on the push Worker (a DELETE with the device's own secret, which is in a database about to be deleted, so this
+ * runs first), the browser's push subscription, the offline page caches and the offline queue. Each step is best effort
+ * and never stops the erase. The dependencies are passed in so a test can see the order.
+ */
+export type DeviceServices = {turnOffNotifications: () => Promise<void>; forgetOfflineCaches: () => Promise<void>; forgetOfflineQueue?: () => Promise<void>};
+export async function eraseDeviceServices(deps: DeviceServices): Promise<void> {
+  try { await deps.turnOffNotifications(); } catch { /* the Worker deletes an unused device after 30 days */ }
+  try { await deps.forgetOfflineCaches(); } catch { /* nothing cached */ }
+  try { await deps.forgetOfflineQueue?.(); } catch { /* nothing queued */ }
+}
+/** Erase everything, as the Settings button runs it: the device services first, then every key and database. */
+export async function eraseEverythingOnThisDevice(): Promise<EraseResult> {
+  const [{turnOffNotifications}, {forgetOfflineCaches}] = await Promise.all([import('./notify/device'), import('./sw/register')]);
+  await eraseDeviceServices({turnOffNotifications, forgetOfflineCaches});
+  return eraseEverything();
 }

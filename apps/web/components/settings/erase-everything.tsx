@@ -15,9 +15,9 @@ export function EraseEverything() {
   const erase = async () => {
     setBusy(true); setStatus('');
     try {
-      const {eraseEverything, ERASE_CONFIRM} = await import('../../lib/erase-everything');
+      const {eraseEverythingOnThisDevice, ERASE_CONFIRM} = await import('../../lib/erase-everything');
       if (typed.trim() !== ERASE_CONFIRM) { setStatus('Type ERASE to confirm.'); return; }
-      const result = await eraseEverything();
+      const result = await eraseEverythingOnThisDevice();
       setStatus(result.failed.length ? `Erased ${result.keys} records. ${result.failed.length} stores are open in another ZIGoals tab: close it and erase again.` : `Erased ${result.keys} records and ${result.databases} stores from this browser. The app starts fresh when you reload.`);
       setOpen(false); setTyped('');
     } catch { setStatus('Nothing could be erased just now. Your records are as they were.'); }

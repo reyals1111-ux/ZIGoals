@@ -96,3 +96,13 @@ describe('Erase everything', () => {
     expect(result.failed).toEqual(['zigoals-ai-chats-v1']);
   });
 });
+
+// Session AK (ADR-036 A4): the device services leave first, in order, and a failing step never stops the erase.
+describe('Erase everything, the device services (A4)', () => {
+  test('notifications off (the Worker DELETE needs the secret still on the device), then the caches, then the queue', async () => {
+    const {eraseDeviceServices} = await import('./erase-everything');
+    const order: string[] = [];
+    await eraseDeviceServices({turnOffNotifications: async () => { order.push('notifications'); throw Error('offline'); }, forgetOfflineCaches: async () => { order.push('caches'); }, forgetOfflineQueue: async () => { order.push('queue'); }});
+    expect(order).toEqual(['notifications', 'caches', 'queue']);
+  });
+});
