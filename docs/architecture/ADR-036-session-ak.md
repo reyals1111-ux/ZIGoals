@@ -400,7 +400,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F0 finish what is open | Open | — | — |
 | F1 release-readiness review | Open | — | — |
 | F2 full app testing (journeys) | Open | — | — |
-| F3 competitor research round 2 | Open | — | — |
+| F3 competitor research round 2 | Built: BUILD list 2 (21 items) — #2 to F4, #1 #3 #5 #8 to lane B2a, the rest in later waves or recorded | `8c5f2d1a` | docs/research/session-ak/COMPETITORS_2.md |
 | F4 ZIGChain ecosystem, deeper | Open | — | — |
 | F5 new features | Open | — | — |
 | F6 visual upgrade | Open | — | — |
