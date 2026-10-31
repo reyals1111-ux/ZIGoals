@@ -187,4 +187,44 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 
 | Item | Outcome | Where | Evidence |
 |---|---|---|---|
-| Part 0 records, ADR-036, resume file, Draft PR, frozen readers #37–#52 | Built | Part 0 commit | — |
+| Part 0 records, ADR-036, resume file, Draft PR, frozen readers #37–#52 | Built | `9c5d7ee6` | scripts/frozen-readers.mjs #52 |
+| Research: COMPETITORS, EXCHANGES_NEXT, LICENCES, WALLETS, FORMATS | Built | `e417ca9b` | docs/research/session-ak/ |
+| 1a WalletConnect (Reown id, CSP, QR, deep links, A7 honesty, A8 QR, A9 copy) | Built | `75ed3a6d`, `249bf461` | lib/qr tests; walletconnect.test, csp-compose.test, public-safety.test |
+| AFL9 Keplr Mobile staking over WalletConnect (review sheet only) | Built | `f9ccc351` | lib/staking/walletconnect-signer.test.ts; staking guard holds |
+| 1b food Worker: FDC after OFF, FOOD_LOOKUP binding, A10 deploy order | Built | `8b0ae98c`, `f3ac1031`, `74902dcd` | food-lookup Worker tests; check-deployment-configs prints the order; packaged pin `8c718525` |
+| 1c EU generic library (CIQUAL, CoFID; Fineli waits on review/ak-food-data, A11) | Built (Fineli: waiting) | `f3ac1031` | public/food-generic manifest; licences in LICENCES.json |
+| 1d music for everyone (mix, links, BYO Spotify, /app/music, focus and wind-down hooks) | Built | `95952388`, `9c902707` | lib/audio tests; music-mix key |
+| 1e PR review | Moved to Part 16 (A21) | — | — |
+| Part 2 push (device Worker, snapshot A1, actions, A2 always a notification, A3 one path, A5 sizing, Q12, Q15) | Built (switched off until the owner's activation) | `fa38be77`, `f9e103f7`, `28da0157` | scripts/run11/push-device.test.mjs; lib/notify tests; pwa-ak.spec |
+| Part 3 PWA (A4 caching, A18 assets, install, update prompt, offline queue) | Built | `afce4a4f`, `02ec25f2` | tests/pwa-ak.spec.ts; install-manifest pin |
+| A6 storage headroom | Built | `883d1dcb` | lib/storage-headroom.test.ts |
+| 4.1 barcode (history, library-first, amounts, not-found draft) | Built | `7d435846` | lib/food-scans tests |
+| 4.2 meal photo (honest copy, opt-in device photo, exported as files) | Built | `7d435846` | lib/meal-estimates/photos.test.ts |
+| 4.3 voice / natural language | Already done (polish in Part 11) | existing J10 multi-item logging | — |
+| 4.4 micronutrients (7 extras, report, top sources) | Built | `7d435846` | nutrition-ak.test.ts |
+| 4.5 weekly coach card | Finished | `7d435846` | health-aa.test.ts |
+| 4.6 planner and grocery | Finished | `7d435846` | lib/grocery tests |
+| 4.7 wearables (FIT, Strava ZIP; Garmin via FIT, Q11) | Built | `e7cecde0` | lib/import/fit tests, strava.test.ts |
+| 4.8 recipe polish | Finished | `7d435846` | recipe-match tests |
+| 4.9 training and sleep (supersets, RPE, plates, rest, PRs, volume, wake consistency) | Built | `e7cecde0` | lib/workouts tests; lib/sleep tests |
+| A15 Switch to ZIGoals: Strong, Hevy, Daylio, Habitica, YNAB (Bearable: not documented, recorded) | Built | `e7cecde0`, `322096dc` | importer tests; tests/switch-more-ak.spec.ts |
+| 5.1–5.4 habits (due/optional, skip reasons, Strength, routine full screen and share) | Built / Finished | `ca810a31`, `a74c33af` | habits-order and routines tests |
+| 5.5 J3 (Q7, M31 holds) | Already done | ADR-033 M31 | — |
+| 5.6 auto-complete rules | Built | `ca810a31`, `a74c33af` | lib/auto-rules tests |
+| 5.7 reorder, compact list | Built | `ca810a31`, `a74c33af` | compact-toggle.test.ts |
+| 6.1 goal bundles from Quick add | Built | `ca810a31`, `a74c33af` | nl-bundle-wiring.test.ts |
+| 6.2 30-day pace (Q14) and what-if | Built | `ca810a31`, `a74c33af` | what-if tests |
+| 6.3 progress card | Built | `ca810a31`, `a74c33af` | progress-card tests |
+| 6.4 milestone templates, habit links | Built | `ca810a31`, `a74c33af` | milestone-suggest |
+| 6.6 household | Recorded (ADR only, D-decision) | — | — |
+| 7.1 CSV templates, saved mappings; A14 CAMT.053, OFX, MT940 | Built | `92b94a8f`, `5074567f` | lib/bankfiles tests; money-csv-import.test.ts |
+| 7.2 exchange auto-refresh | Built | `92b94a8f`, `5074567f` | wiring.test.ts |
+| 7.3 bills with push | Built | `92b94a8f`, `5074567f`, `883d1dcb` | lib/bills tests |
+| 7.4 target mix and drift | Built | `92b94a8f`, `5074567f` | lib/allocation tests |
+| 7.5 purpose flow | Built | `92b94a8f`, `5074567f` | lib/allocation tests |
+| 7.6 contribution rhythm (pre-fill only) | Built | `92b94a8f`, `5074567f` | wiring.test.ts |
+| 7.7 category and month budgets | Built | `92b94a8f`, `5074567f` | lib/budgets tests |
+| 8.8 export bridges (A16) | Built | `3110c81f` | lib/export/bridges tests |
+| 8.9 test restore, backup reminder | Built | `3110c81f` | test-restore, backup-reminder tests |
+| 8.10 AFL8 Checklist extras section | Built (effective at the owner's private-sync redeploy) | `e7d9951e` | extras-two-device, extras-keyspace, private-account tests |
+| Part 9 Lichess Board play and daily puzzle | Built | `1f84a28e` | lib/chess tests; tests/chess-play-ak.spec.ts |
