@@ -1,0 +1,60 @@
+/* Session AK F7 (owner follow-up 1): the visual refresh. Loaded last. A nebula and orbit hero whose motion plays once
+   (none under reduced motion, ?motion=off or without script), an "Example data" label on every Showcase screen, phone
+   mockups in Install, "Switch to ZIGoals" and "Private by design". Labels 14-15 px, body copy 15-17 px. */
+
+/* ---------- Hero: a nebula from the middle to the right, and four pillars settling on their orbits ---------- */
+.hero-atmosphere{background:radial-gradient(ellipse 42% 52% at 72% 44%,#5a3fa438,transparent 72%),radial-gradient(ellipse 30% 38% at 88% 66%,#c24a9a26,transparent 72%),radial-gradient(ellipse 34% 40% at 60% 26%,#1f9cc22e,transparent 72%),linear-gradient(180deg,#020918,#020817 74%,#030815)}
+.hero-nebula{position:absolute;inset:-16%;pointer-events:none;border-radius:50%;background:radial-gradient(closest-side at 36% 38%,#29d3f036,transparent),radial-gradient(closest-side at 66% 60%,#9a63ff3a,transparent),radial-gradient(closest-side at 74% 30%,#ff6fbb26,transparent),radial-gradient(closest-side,#2c256355,transparent);filter:blur(26px)}
+@keyframes f7-nebula{from{opacity:0;transform:scale(.8)}}
+@keyframes f7-orbits{from{opacity:0;transform:rotate(-12deg) scale(.92)}}
+@keyframes f7-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes f7-planet{from{opacity:0}}
+/* Once, on arrival. The planets' glide along their orbits is SVG motion that scripts/main.js starts only when motion is
+   allowed; otherwise they simply sit where the glide would end. */
+@media (prefers-reduced-motion:no-preference){
+  html:not(.motion-off) .hero-nebula{animation:f7-nebula 2.6s var(--ease) .1s both}
+  html:not(.motion-off) .hero-orbits{animation:f7-orbits 2.2s var(--ease) .15s both}
+  html:not(.motion-off) .orbit-line{stroke-dasharray:1;animation:f7-draw 2s var(--ease) .3s both}
+  html:not(.motion-off) .hero-orbits .planet{animation:f7-planet .9s ease-out .45s both}
+}
+
+/* ---------- "Example data" on every Showcase screen ---------- */
+.shot{position:relative}
+.example-tag{position:absolute;z-index:2;top:12px;left:12px;display:inline-block;padding:4px 12px;border-radius:999px;background:#eaf6ff;color:#06101f;font-size:14px;font-weight:650;line-height:1.5;letter-spacing:.01em;white-space:nowrap;box-shadow:0 4px 18px #0007;pointer-events:none}
+
+/* ---------- Private by design ---------- */
+.privacy-facts{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.privacy-facts li{padding:7px 16px;border:1px solid #a6eaf74d;border-radius:999px;font-size:15px;line-height:1.5;color:#e3f4fb;background:#0b173080}
+
+/* ---------- Works offline, installs like an app: two phones and three short points ---------- */
+.install-show{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(32px,5vw,80px);align-items:center;margin:0 0 56px}
+.phone-pair{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:clamp(14px,2.4vw,28px);margin:0}
+.phone{width:min(44%,250px);padding:8px;border-radius:40px;background:linear-gradient(155deg,#43537a,#141c31 36%,#0a1020 64%,#2e3758);box-shadow:0 0 0 1px #a9c1ec38,0 30px 80px #000a,0 0 70px #6d5cff1f}
+.phone+.phone{margin-top:48px}
+.phone-screen{position:relative;overflow:hidden;border-radius:32px;background:#020918;padding-top:13%}
+.phone-screen:before{content:"";position:absolute;top:0;left:34%;width:32%;aspect-ratio:3.4;margin-top:3.4%;border-radius:999px;background:#000;box-shadow:0 0 0 1px #ffffff14}
+.phone-screen img{display:block;width:100%;height:auto}
+.phone-screen .example-tag{top:auto;bottom:12px;left:50%;transform:translateX(-50%)}
+.phone-pair figcaption{flex-basis:100%;margin-top:10px;text-align:center;font-size:15px;line-height:1.6;color:#c9d6ea}
+.offline-points{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.offline-points li{padding:24px 0;border-top:1px solid var(--line)}
+.offline-points li:last-child{border-bottom:1px solid var(--line)}
+.offline-points h3{font-size:23px;margin-bottom:10px}
+.offline-points p{font-size:16px;line-height:1.75;color:#dce7f7}
+@media (max-width:950px){.install-show{grid-template-columns:1fr}}
+@media (max-width:700px){.phone{width:min(47%,220px);padding:6px;border-radius:30px}.phone-screen{border-radius:25px}.phone+.phone{margin-top:28px}.phone-screen .example-tag{bottom:8px;padding:3px 9px}}
+
+/* ---------- Switch to ZIGoals: the importers the app ships ---------- */
+.switch-section{background:#030916}
+.switch-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.switch-list>li{padding:26px 28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,#0b1730cc,#060d1fcc);min-width:0}
+.switch-list h3{font-size:15px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:#c1e7e7;margin-bottom:10px}
+.switch-list p{font-size:18px;line-height:1.6;color:#eef4fd}
+.switch-note{margin-top:26px;max-width:760px;font-size:16px;line-height:1.75;color:#dce7f7}
+@media (max-width:950px){.switch-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.switch-list{grid-template-columns:1fr}.switch-list>li{padding:22px}}
+
+@media (forced-colors:active){
+  .hero-nebula{display:none}
+  .example-tag,.privacy-facts li{forced-color-adjust:none;background:Canvas;color:CanvasText;border:1px solid CanvasText}
+}
