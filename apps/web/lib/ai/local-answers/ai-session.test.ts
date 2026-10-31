@@ -86,7 +86,7 @@ describe('money questions and the weekly money recap (feature 5)', () => {
   test('Dutch', () => expect(textOf(ask('Hoeveel heb ik deze week uitgegeven?'))).toMatch(/Je gaf deze week/));
 });
 describe('the journal and the energy (feature 6)', () => {
-  test('patterns from the journal, on the device', () => expect(textOf(ask('What patterns do you see in my journal?'))).toMatch(/You wrote about sleep and tiredness in \d+ of your last 10 entries/));
+  test('patterns from the journal, on the device', () => expect(textOf(ask('What patterns do you see in my journal?'))).toMatch(/You wrote about sleep and tiredness in \d+ of your last 12 entries/)); // owner follow-up 1: + the Showcase's two "On this day" memories
   test('energy, the last 7 days', () => expect(textOf(ask('How was my energy this week?'))).toMatch(/Your energy, the last 7 days: [\d.]+ of 5/));
   test('energy with Health not shared is not read', () => expect(ask('How was my energy this week?', closed).kind).toBe('refusal'));
   test('"energy ratings" is the daily rating, never food kcal (found by the feature cases)', () => { for (const q of ['What is the average of my energy ratings?', 'How have my energy ratings averaged this week?', 'Wat is mijn energiescore deze week?']) expect(textOf(ask(q)), q).not.toMatch(/kcal/); expect(textOf(ask('What is the average of my energy ratings?'))).toMatch(/of 5/); });

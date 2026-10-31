@@ -53,3 +53,6 @@
   :root .search-preview-where { margin: 8px 0 0; font-size: 14px; color: var(--text-secondary); }
   :root .search-preview-tip { margin: 0; font-size: 15px; color: var(--text-secondary); }
 }
+/* Session AK (F5d): quick actions before typing, in the pillar shortcuts' look (no mark, so even padding). */
+:root .search-quick { padding-bottom: 0; }
+:root .search-quick .search-pillar { padding: 0 14px; }

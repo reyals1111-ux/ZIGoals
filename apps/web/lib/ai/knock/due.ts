@@ -1,13 +1,13 @@
-import {localDate} from '../../local-date';
 import type {Platform} from '../../positions';
-import {localClock} from '../../reminders/due';
+import {zoneNow} from '../../reminders/zone-now';
 import type {ZigiReminders} from '../store/records';
 
 /**
  * ZIGi's own reminders that are due now (Session V Part 13): the weekly goal check-ins, the weekly look at Wealth and
  * the weekly context-pack refresh, kept on this device in `zigoals:zigi-reminders:v1` (T's `zigoals:reminders:v1` keeps
- * the habit and water ones). Like T's reminders they follow this device's clock: due once the weekday's time has
- * passed, until the person dismisses it for the day. Nothing here is synced or sent.
+ * the habit and water ones). Like T's reminders they follow the journal's zone (the device's when none is set; Session AK
+ * F0, M4): due once the weekday's time has passed there, until the person dismisses it for that day. Nothing here is
+ * synced or sent.
  */
 export type ZigiDue = {id: string; kind: 'goal' | 'wealth' | 'pack'; title: string; time: string; day: string; href: string};
 export type GoalRef = {title: string; href: string};
@@ -15,8 +15,8 @@ export const WEALTH_LOOK = 'wealth-look', PACK_REFRESH = 'pack-refresh';
 export const goalReminderId = (key: string) => `goal:${key}`;
 const KEEP_DAYS = 14;
 type Weekly = {weekday: number; time: string} | null | undefined;
-export function zigiDue({reminders, goal, now}: {reminders: ZigiReminders; goal: (key: string) => GoalRef | null; now: Date}): ZigiDue[] {
-  const day = localDate(now), weekday = now.getDay(), clock = localClock(now), dismissed = new Set(reminders.dismissed?.[day] ?? []), due: ZigiDue[] = [];
+export function zigiDue({reminders, goal, now, zone}: {reminders: ZigiReminders; goal: (key: string) => GoalRef | null; now: Date; zone?: string | null}): ZigiDue[] {
+  const {day, weekday, clock} = zoneNow(now, zone), dismissed = new Set(reminders.dismissed?.[day] ?? []), due: ZigiDue[] = [];
   const on = (when: Weekly): when is {weekday: number; time: string} => !!when && when.weekday === weekday && when.time <= clock;
   for (const [key, when] of Object.entries(reminders.goalCheckIns ?? {})) {
     const id = goalReminderId(key), found = goal(key);

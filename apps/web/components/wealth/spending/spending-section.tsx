@@ -10,6 +10,8 @@ import './spending.css';
 import {MONEY_RULES} from '../../../lib/money-rules/schema';
 import {applyRules} from '../../../lib/money-rules/engine';
 import {MONEY_REVIEW} from '../../../lib/money-review/review';
+// Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
+import {SecretGuard} from '../../secret-guard/secret-guard';
 const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 
 /**
@@ -84,6 +86,7 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         </div>
         <fieldset className="spending-cats"><legend>Category</legend>{categories.map(c => <label key={c} className="spending-chip"><input type="radio" name={`${id}-cat`} checked={category === c} onChange={() => setCategory(c)}/><span>{c}</span></label>)}</fieldset>
         <label className="field"><span>Note — optional</span><input maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
+        <SecretGuard text={note} onRemove={() => setNote('')}/>
         {problem && <p role="alert">{problem}</p>}
         <button type="submit" className="primary">Save</button>
       </form>

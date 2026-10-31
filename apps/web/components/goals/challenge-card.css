@@ -1,0 +1,27 @@
+/* Session AK (F5a, item 2): a savings challenge on its goal's page (theme tokens, 44 px targets, no motion). */
+.challenge-card{display:grid;gap:10px;min-width:0}
+.challenge-card h2{margin:0}
+.challenge-card p{margin:0;overflow-wrap:anywhere}
+.challenge-card .eyebrow{margin:0}
+.challenge-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px 14px;align-items:end}
+.challenge-form>p,.challenge-form>.challenge-actions,.challenge-form>[role=alert],.challenge-form>.challenge-choice{grid-column:1 / -1}
+.challenge-form input,.challenge-form select{min-height:44px;width:100%;box-sizing:border-box}
+.challenge-choice{border:1px solid var(--line,rgba(140,160,220,.25));border-radius:14px;margin:0;padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px 18px}
+.challenge-choice label{display:flex;align-items:center;gap:8px;min-height:44px}
+.challenge-choice input{width:20px;height:20px;min-height:0}
+.challenge-actions{display:flex;flex-wrap:wrap;gap:8px}
+.challenge-actions button,.challenge-days button,.challenge-schedule summary{min-height:44px}
+.challenge-headline{font-size:17px;font-variant-numeric:tabular-nums}
+.challenge-weeks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:4px;max-width:420px}
+.challenge-weeks li{aspect-ratio:1;border-radius:4px;border:1px solid var(--line,rgba(140,160,220,.35))}
+.challenge-weeks li[data-covered]{background:var(--cyan,#6fd3ff);border-color:transparent}
+.challenge-weeks li[data-now]{outline:2px solid var(--amber,#f5b65b);outline-offset:1px}
+.challenge-schedule summary{display:flex;align-items:center;cursor:pointer}
+.challenge-schedule-list{columns:2 140px;margin:6px 0;padding-left:0;list-style:none;font-size:14px;font-variant-numeric:tabular-nums}
+.challenge-bar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--cyan,#6fd3ff) 14%,transparent);overflow:hidden;max-width:420px}
+.challenge-bar i{display:block;height:100%;background:var(--cyan,#6fd3ff)}
+.challenge-days{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:4px;max-width:480px}
+.challenge-days button{display:grid;justify-items:center;gap:0;padding:4px 0;min-width:0;font-size:13px}
+.challenge-days button[aria-pressed=true]{background:color-mix(in srgb,var(--cyan,#6fd3ff) 22%,transparent);border-color:var(--cyan,#6fd3ff)}
+.challenge-round-weeks{margin:0;padding-left:18px}
+.challenge-status{min-height:0}

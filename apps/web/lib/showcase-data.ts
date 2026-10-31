@@ -52,8 +52,19 @@ import {MONEY_LOG_KEY} from './money-log/schema';
 import {showcaseMoneyLog} from './money-log/showcase';
 import {PRICE_ALERTS_KEY} from './price-alerts/schema';
 import {showcasePriceAlerts} from './price-alerts/showcase';
-import {JOURNAL_KEY} from './journal/schema';
+import {JOURNAL_KEY, journalSchema} from './journal/schema';
 import {showcaseJournal} from './journal/showcase';
+import {showcaseOnThisDayEntries} from './on-this-day/showcase';
+import {EXPERIMENTS_KEY} from './experiments/store';
+import {showcaseExperiments} from './experiments/showcase';
+import {DEBT_PLANNER_KEY} from './debt-planner/store';
+import {showcaseDebtPlanner} from './debt-planner/showcase';
+import {SAVINGS_CHALLENGES_KEY} from './savings-challenges/challenges';
+import {showcaseSavingsChallenges} from './savings-challenges/showcase';
+import {NETWORTH_MILESTONES_KEY} from './networth-milestones/milestones';
+import {showcaseNetworthMilestones} from './networth-milestones/showcase';
+import {FOCUS_SESSIONS_KEY} from './focus-sessions/schema';
+import {showcaseFocusSessions} from './wrapped/showcase';
 import {ENERGY_KEY} from './energy/schema';
 import {showcaseEnergy} from './energy/showcase';
 import {BILLS_KEY} from './bills/schema';
@@ -176,6 +187,12 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[BILLS_KEY]=JSON.stringify(showcaseBills(day));
  // Owner follow-up 1 (F5): a fictional supplements log (labelled in its own view as example data).
  records[SUPPLEMENTS_KEY]=JSON.stringify(showcaseSupplements(day));
+ // Owner follow-up 1 (BUILD list 2 #8): one finished, labelled experiment, its result computed honestly from the Showcase habits.
+ // Owner follow-up 1 (F5): the debt planner's figures, a 52-week and a no-spend challenge, net-worth milestones (one already
+ // seen), and fictional focus sessions for Wrapped and the focus garden — all labelled example data.
+ records[DEBT_PLANNER_KEY]=JSON.stringify(showcaseDebtPlanner(day));records[SAVINGS_CHALLENGES_KEY]=JSON.stringify(showcaseSavingsChallenges(day));
+ records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(showcaseFocusSessions(day));
+ records[EXPERIMENTS_KEY]=JSON.stringify(showcaseExperiments(day,habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!))));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
  // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
  records[MONEY_RULES_KEY]=JSON.stringify(showcaseMoneyRules(day));
@@ -186,7 +203,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
  // Session AI (B3, feature 6): a fictional journal with ZIGi's questions answered, and two weeks of energy ratings.
- records[JOURNAL_KEY]=JSON.stringify(showcaseJournal(day));
+ // Owner follow-up 1 (BUILD list 2 #3): two labelled memories from one and two years ago, for "On this day" (oldest first).
+ {const j=showcaseJournal(day);records[JOURNAL_KEY]=JSON.stringify(journalSchema.parse({...j,entries:[...showcaseOnThisDayEntries(day).sort((a,b)=>a.date.localeCompare(b.date)),...j.entries]}));}
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));

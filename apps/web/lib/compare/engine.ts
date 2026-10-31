@@ -41,7 +41,7 @@ export type CompareSources = {
 };
 
 /** Each outcome's meaningful gap (as the cross-pillar pairings: 0.4 points, 20 minutes, 10 percentage points). */
-const GAP: Readonly<Record<OutcomeId, number>> = {mood: 0.4, energy: 0.4, sleep: 20, habits: 0.1, steps: 1000, feeling: 0.1};
+export const GAP: Readonly<Record<OutcomeId, number>> = {mood: 0.4, energy: 0.4, sleep: 20, habits: 0.1, steps: 1000, feeling: 0.1};
 export const OUTCOME_LABELS: Readonly<Record<OutcomeId, string>> = {mood: 'Mood (1–5)', energy: 'Energy (1–5)', sleep: 'Time asleep', habits: 'Habit completion', steps: 'Steps', feeling: 'Pleasant feeling words'};
 export const CONFOUNDERS: Readonly<Record<FactorKind, string>> = {
   habit: 'a calm or a busy stretch can shape both the habit and the rest of the day',
@@ -150,17 +150,37 @@ function factorTest(src: CompareSources, factor: FactorOption, today: string, am
   }
   return null;
 }
-function outcomeValue(src: CompareSources, outcome: OutcomeId, today: string): DayValue {
+function outcomeValue(src: CompareSources, outcome: OutcomeId, today: string, span = CROSS_WINDOW_DAYS + 3): DayValue {
   if (outcome === 'mood') { const moods = src.health ? healthGroupIn(src.health, 'moods')?.days ?? {} : {}; return d => moods[d]?.mood ?? null; }
   if (outcome === 'energy') return d => src.energy?.days[d]?.energy ?? null;
   if (outcome === 'feeling') return d => { const w = src.energy?.words?.[d]; return w ? (w.pleasantness === 'pleasant' ? 1 : 0) : null; };
   if (outcome === 'sleep') {
-    const series = src.health?.sleep ? dailySeries(src.health.sleep, addLocalDays(today, 1), CROSS_WINDOW_DAYS + 3) : [];
+    const series = src.health?.sleep ? dailySeries(src.health.sleep, addLocalDays(today, 1), span) : [];
     const ending = new Map(series.filter(p => p.asleep !== null).map(p => [p.date, p.asleep!]));
     return d => ending.get(addLocalDays(d, 1)) ?? null; // the night that follows the day
   }
   if (outcome === 'habits') return d => src.habits && d < today ? habitShare(src.habits, d, today) : null; // today is still open
   return d => src.health && d < today && src.health.activity.some(a => a.date === d) ? dailyHealthSummary(src.health, d).steps : null;
+}
+/**
+ * Session AK (BUILD list 2 #8, lane B2a; Experiments): the same factor test and outcome as `compare`, day by day over
+ * any span (an experiment and the days just before it), so an experiment never loosens or re-implements Compare's rules.
+ * `a` is true (with), false (without) or null (neither: unknown, skipped, not yet started); `value` is the outcome on the
+ * day it is measured (the same day, or the next with lag "next"), null when unknown or still to come. Null when the
+ * factor is gone (a removed habit) or unknown to this build.
+ */
+export function daySample(src: CompareSources, factorId: string, outcome: OutcomeId, lag: Lag, today: string, from: string, to: string, amount?: number): {factor: FactorOption; phrase: string; days: {date: string; a: boolean | null; value: number | null}[]} | null {
+  const kind = factorId.split(':')[0] as FactorKind;
+  if (!(kind in CONFOUNDERS) || from > to) return null;
+  const factor = factorOptions(src, today).find(f => f.id === factorId) ?? {id: factorId, kind, label: factorId, group: ''};
+  const made = factorTest(src, factor, today, amount);
+  if (!made) return null;
+  const span = Math.max(CROSS_WINDOW_DAYS, Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000)) + 3;
+  const value = outcomeValue(src, outcome, today, span);
+  return {factor, phrase: made.phrase, days: daysBetween(from, to).map(d => {
+    const target = lag === 'same' ? d : addLocalDays(d, 1), v = target > today ? null : value(target);
+    return {date: d, a: made.test(d), value: v !== null && Number.isFinite(v) ? v : null};
+  })};
 }
 /** One value in its outcome's own words ("3.8 of 5", "7 h 20 min", "64%", "8,210"). */
 export function outcomeText(outcome: OutcomeId, v: number): string {

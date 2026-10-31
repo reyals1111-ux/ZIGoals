@@ -1,0 +1,10 @@
+/* Session AK (BUILD list 2 #3): "On this day" in the Journal (theme tokens, 44 px targets, no motion). */
+.on-this-day > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-height: 44px; cursor: pointer; }
+.on-this-day-title { font-size: 18px; font-weight: 650; }
+.on-this-day-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
+.on-this-day-list li { border-bottom: 1px solid var(--line, rgba(140, 160, 220, .18)); padding-bottom: 10px; }
+.on-this-day-list .eyebrow { margin: 0; }
+.on-this-day-text { margin: 4px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.on-this-day-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; }
+.on-this-day-actions button { min-height: 44px; }
+.on-this-day-note { margin: 0; }

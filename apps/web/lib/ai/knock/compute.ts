@@ -1,6 +1,7 @@
 import type {KnockCandidate} from './rules';
 import {dismissZigiReminder, goalRefs, zigiDue} from './due';
-import {dueReminders, localClock} from '../../reminders/due';
+import {dueReminders, zoneClock} from '../../reminders/due';
+import {journalTimeZone} from '../../journal-zone';
 import {dismissForToday} from '../../reminders/store';
 import {dismissWindDown, windDownDue} from '../../reminders/wind-down';
 import {dismissMeditationTime, meditationDue} from '../../reminders/meditation-time';
@@ -35,7 +36,8 @@ export function knockCandidates({reminders, habits, health, w, meditationRunning
   const doneToday = (healthGroupIn(health, 'meditation')?.sessions ?? []).some(s => sessionDay(s) === localDate(now)), meditation = w === null ? null : meditationDue({w, doneToday, running: meditationRunning, now});
   // Session W Part 10: a stack's chained reminder, once the habit before it is done today.
   let chained: KnockCandidate[] = [];
-  try { chained = w === null ? [] : chainedDue(w, habits, habitCalendarDay(habits, now), localClock(now)); } catch { chained = []; }
+  // Session AK F0 (M4): the chained reminder's clock in the same zone as the habit journal's day.
+  try { chained = w === null ? [] : chainedDue(w, habits, habitCalendarDay(habits, now), zoneClock(habits.timeZone ?? journalTimeZone(), now)); } catch { chained = []; }
   // Session W Part 12: a contribution plan's reminder on a day an amount is due.
   try { if (w !== null) chained = [...chained, ...contributionDue(w, platform, now)]; } catch { /* the other reminders still knock */ }
   return [...base, ...zigiDue({reminders: zigiReminders, goal: goalRefs(platform, legacyNames), now}), ...(windDown ? [windDown] : []), ...(meditation ? [meditation] : []), ...chained].sort((a, b) => a.time.localeCompare(b.time));

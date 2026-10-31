@@ -1,4 +1,5 @@
 'use client';
+import {ShowcaseTag} from '../../ui/showcase-tag';
 import {useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
@@ -39,7 +40,7 @@ export function BillsView({record, entries, today, showcase = false, unreadable 
   const dismiss = (c: BillCandidate) => change(r => dismissCandidate(r, c.key, today), `${c.title} will not be suggested again.`);
   const remove = (bill: Bill) => change(r => removeBill(r, bill.id), `${bill.title} removed from your bills.`);
   return <div className="bills-body">
-    {showcase && <p className="fine">Fictional Showcase entries.</p>}
+    {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
     {unreadable && <p role="alert">This device&rsquo;s bills could not be read; nothing was changed. New bills start a fresh list.</p>}
     <div className="bills-head">
       <div className="bills-window" role="radiogroup" aria-label="How far ahead">
@@ -115,6 +116,6 @@ function ManualBillForm({today, onSave, onCancel}: {today: string; onSave: (inpu
 /** The section the Wealth page lazy-loads: the device records in, the view out. */
 export default function UpcomingBills({showcase = false}: {showcase?: boolean}) {
   const bills = useDeviceRecord(BILLS), log = useDeviceRecord(MONEY_LOG), today = localDate();
-  if (!bills.loaded || !log.loaded) return <p className="fine">Loading your bills…</p>;
+  if (!bills.loaded || !log.loaded) return <p className="fine" role="status">Loading your bills…</p>;
   return <BillsView record={bills.data} entries={log.data.entries} today={today} showcase={showcase} unreadable={bills.unreadable} onChange={fn => { bills.update(fn); }}/>;
 }

@@ -17,6 +17,7 @@ import {GlassBar} from '../progress/glass-progress';
 import {FundingAgenda,NeedsAttention} from './product-modules';
 import {Watchlist} from './watchlist';
 import {habitCalendarDay} from '../../lib/habits';
+import {intelligenceGoal} from '../../lib/today/goal-roles';
 import {dailyHealthSummary} from '../../lib/health';
 import type {DashboardSources} from '../../lib/dashboard-metrics';
 import './intelligence.css';
@@ -24,11 +25,12 @@ import './wealth-product.css';
 import {NebulaFlow} from '../nebula-flow';
 import { formatDate, formatNumber } from "../../lib/visual-format";
 import { plural } from "../../lib/plural";
-export function TodayIntelligence({sources,habitsReady,healthReady,module='all'}:{sources:DashboardSources;habitsReady:boolean;healthReady:boolean;module?:'all'|'life'|'attention'|'funding'|'needs-attention'|'watchlist'}){
+/** `goalId` (Session AK F0, H113): the goal "What matters today" shows (lib/today/goal-roles.ts `intelligenceGoal`). */
+export function TodayIntelligence({sources,habitsReady,healthReady,module='all',goalId}:{sources:DashboardSources;habitsReady:boolean;healthReady:boolean;module?:'all'|'life'|'attention'|'funding'|'needs-attention'|'watchlist';goalId?:string|null}){
  const {platform,quotes,now}=sources;
  const today=sources.habits.timeZone?habitCalendarDay(sources.habits,new Date(now)):sources.today;
  const wealth=wealthOverview(platform,now,quotes);
- const goal=[...platform.goals].filter(g=>g.status!=='closed'&&g.type!=='PROJECT').sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||Number(a.status==='completed')-Number(b.status==='completed'))[0];
+ const goal=intelligenceGoal(platform.goals,goalId);
  const pulse=goal?fundingHealth(platform,goal.id,now,quotes):undefined,bound=goal?valuationBound(goalProgress(platform,goal.id,now,quotes)).bound:undefined,money=(n:string)=>goal?formatSignedGoalAmount(n.startsWith('-'),amount(n.replace(/^-/,'')||'0',goal.decimals),goal.asset):'';
  // Session AH (TR6): the shared counts (lib/numbers/counts.ts) — a rest day is not due; Goals by derived status, averages too.
  const {due,done}=habitsReady?habitsOnDay(sources.habits.habits,today,today):{due:0,done:0};

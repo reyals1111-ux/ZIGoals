@@ -71,7 +71,7 @@ export const listHabits: ToolDefinition<{include_archived?: boolean}> = {
     const rows = habits.map(habit => {
       const rule = latestHabitRule(habit), day = habitDay(habit, env.habitDay, env.habitDay), stats = habitStats(habit, env.habitDay);
       const entry = habit.entries.find(e => e.date === env.habitDay);
-      return {handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), type: rule.type, measure: unitOf(rule), schedule: scheduleLabel(rule.schedule), target: `${rule.target}${measurementUnit(rule) ? ` ${measurementUnit(rule)}` : ''} per ${rule.targetPeriod}`, state: rule.state, today: day.status, todayValue: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count || 0, streak: `${stats.currentStreak} ${stats.streakUnit}`, timeOfDay: habit.timeOfDay};
+      return {handle: env.handles.add('habit', habit.id, habit.title), title: text(habit.title), type: rule.type, measure: unitOf(rule), schedule: scheduleLabel(rule.schedule, habit.id), target: `${rule.target}${measurementUnit(rule) ? ` ${measurementUnit(rule)}` : ''} per ${rule.targetPeriod}`, state: rule.state, today: day.status, todayValue: entry && heldBack(env, entry) ? 'from Health, not shared' : day.count || 0, streak: `${stats.currentStreak} ${stats.streakUnit}`, timeOfDay: habit.timeOfDay};
     });
     const capped = capRows(rows, env, false);
     return ok('list_habits', 'Your habits', provenance(env, 'Habits journal', null, null, null), {habits: capped.rows, count: rows.length, today: env.habitDay}, capped.truncated);

@@ -1,7 +1,7 @@
 'use client';
 import {holdingsBySource, SOURCE_LABEL, type SourceKind} from '../../lib/accounts/by-source';
 import {isMoneyCurrency} from '../../lib/visual-format';
-import {useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useState} from 'react';
 import {accountForPrefill, BALANCE_PREFILL_EVENT, takeBalancePrefill} from '../../lib/ai/actions/balance-prefill';
 import {showToast} from '../ui/undo-toast';
 import {ACCOUNTS, accountsSchema, ASSET_KINDS, DEBT_KINDS, isDebtKind, type Account, type AccountKind, type Accounts} from '../../lib/accounts/schema';
@@ -20,6 +20,9 @@ import './accounts.css';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {formatDate, formatMoney, formatNumber} from '../../lib/visual-format';
 import {amountIssue, moneyUnitsIssue, within} from '../../lib/limits/plausibility';
+// Session AK (F5a, items 1 and 3): the debt payoff planner (on its button) and the net-worth milestones, each its own chunk.
+const DebtPlanner = lazy(() => import('./debt-planner'));
+const NetWorthMilestones = lazy(() => import('./networth-milestones'));
 
 /**
  * Accounts, debts and net worth (Session W Part 12; Wealth's "wealth:accounts" section). Balances are the person's own,
@@ -34,7 +37,7 @@ const toMoney = (text: string, date: string): Money & {date: string} => { const 
 /** Session AC: inside Wealth's one holdings list, `only` follows its chips (Accounts: what you own; Debts: what you owe). */
 export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?: 'all' | 'accounts' | 'debts'}) {
   const accounts = useDeviceRecord(ACCOUNTS), platform = usePlatform(), today = localDate();
-  const [adding, setAdding] = useState(false), [open, setOpen] = useState<{id: string; mode: 'balance' | 'payment' | 'edit'} | null>(null), [message, setMessage] = useState(''), [error, setError] = useState('');
+  /* Session AK (F5a, item 1) */ const [planOpen, setPlanOpen] = useState(false), [adding, setAdding] = useState(false), [open, setOpen] = useState<{id: string; mode: 'balance' | 'payment' | 'edit'} | null>(null), [message, setMessage] = useState(''), [error, setError] = useState('');
   // Session W Part 21: ZIGi's balance hand-off, read once (on arrival, or when told while Wealth is already open); the
   // named account's balance form opens filled in, and the person saves it.
   const [handed, setHanded] = useState(takeBalancePrefill), [prefill, setPrefill] = useState<{id: string; amount: string; date: string} | null>(null);
@@ -81,10 +84,14 @@ export function AccountsSection({only = 'all', ...layout}: LayoutAttrs & {only?:
       </article>)}
       <p className="fine">Net worth = accounts + Wealth holdings with a value − debts, per currency, never converted between currencies.{worth.unvaluedHoldings ? ` Not counted, no value yet: ${worth.unvaluedNames.join(', ')}.` : ''}</p>
     </div>}
+    {/* Session AK (F5a, item 3): net-worth milestones, off by default; one calm card the first time one is passed. */}
+    {worth.rows.length > 0 && <Suspense fallback={null}><NetWorthMilestones rows={worth.rows.map(r => ({currency: r.currency, net: r.net}))} today={today} /></Suspense>}
     {history.length > 1 && <details className="accounts-history"><summary>Net worth over time (accounts only)</summary><table><caption>Month-end net worth from your accounts and debts</caption><thead><tr><th scope="col">Date</th><th scope="col">Currency</th><th scope="col">Net worth</th><th scope="col">Accounts counted</th></tr></thead>
       <tbody>{history.map(h => <tr key={`${h.date}-${h.currency}`}><th scope="row">{formatDate(h.date)}</th><td>{h.currency}</td><td>{show(h.net, h.currency)}</td><td>{h.counted}</td></tr>)}</tbody></table></details>}
     {active.length === 0 && !adding && <p>No accounts yet. Add a savings account, a pension, a loan or a credit card to see your net worth here.</p>}
-    {(['assets', 'debts'] as const).filter(group => only === 'all' || (group === 'debts') === (only === 'debts')).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} />)}</ul></div>; })}
+    {(['assets', 'debts'] as const).filter(group => only === 'all' || (group === 'debts') === (only === 'debts')).map(group => { const list = active.filter(a => isDebtKind(a.kind) === (group === 'debts')); return list.length > 0 && <div key={group} className="accounts-group"><h3>{group === 'assets' ? 'What you own' : 'What you owe'}</h3><ul className="accounts-list">{list.map(a => <AccountRow key={a.id} account={a} today={today} open={open?.id === a.id ? open.mode : null} setOpen={mode => { setOpen(mode ? {id: a.id, mode} : null); setPrefill(null); }} change={change} {...(prefill?.id === a.id ? {prefill} : {})} />)}</ul>
+      {/* Session AK (F5a, item 1): snowball or avalanche, from these debts; loads on the button. */}
+      {group === 'debts' && <><button type="button" className="secondary accounts-plan-button" aria-expanded={planOpen} onClick={() => setPlanOpen(o => !o)}>{planOpen ? 'Close the payoff planner' : 'Plan paying off your debts'}</button>{planOpen && <Suspense fallback={<p className="fine">Loading…</p>}><DebtPlanner /></Suspense>}</>}</div>; })}
     {archived.length > 0 && <details className="accounts-archived"><summary>Archived ({archived.length})</summary><ul className="accounts-list">{archived.map(a => <li key={a.id}><span>{a.name} · {KIND_LABEL[a.kind]}</span><div className="actions"><button type="button" className="quiet" onClick={() => change(g => editAccount(g, a.id, {archived: false}, new Date().toISOString()), `${a.name} restored.`)}>Restore</button><button type="button" className="quiet" onClick={() => { const at = items.findIndex(x => x.id === a.id); change(g => removeAccount(g, a.id), `${a.name} removed from this device.`, {fn: g => g.items.some(x => x.id === a.id) ? g : accountsSchema.parse({...g, items: [...g.items.slice(0, at), a, ...g.items.slice(at)]}), done: `${a.name} is back.`}); }}>Remove</button></div></li>)}</ul></details>}
     {message && <p role="status">{message}</p>}
     {error && <p role="alert">{error}</p>}

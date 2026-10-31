@@ -5,6 +5,7 @@ import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo
 import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
+import {chatMode} from './chat-mode';
 import {INPUT_COUNTER_FROM, MAX_INPUT_CHARS, type ChatTurn} from '../../lib/ai/chats';
 import {usageLine} from '../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
@@ -94,6 +95,7 @@ import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
 import {ZIGI, zigiPersonality, zigiPrefs} from '../../lib/ai/store/records';
 import {greetingWords} from '../../lib/zigi-personality';
 import {inQuietHours} from '../../lib/ai/knock/rules';
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -120,11 +122,10 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const data = useMemo(() => hosted ? hostedSettings(settings.data, {version: 1, hostedConsent: {at: '', health: hostedState.health}}) : settings.data, [settings.data, hosted, hostedState.health]);
   const provider = !hosted && data.provider ? PROVIDERS[data.provider] : null;
   const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : data.provider === 'local' ? (data.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider?.name ?? 'your AI';
-  const connected = !!hosted || (data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model), bridge = !hosted && data.enabled && data.mode === 'subscription';
+  const {connected, bridge, localOnly} = chatMode(!!hosted, data);
   // Session V Part 3: with no AI connected, ZIGi still answers lookups from the records on this device. Session AI (ZI4;
   // Grok's N-067, N-022): a subscription (the copy path) is no AI connection either, so the device's answers, cards and
   // examples stay; the copy path is offered above them instead of replacing them.
-  const localOnly = !connected;
   const context = useAiContext(data, providerName, sensitive), session = useChatSession({settings: data, scope, context, hosted}), runner = useProposals(), zigi = useZigiState();
   // Session X-Local Part 5b: auto-accept against the Health gate of this very moment (the page's consent, fail-closed).
   const autoAccept = useAutoAccept(context.consent.health);
@@ -710,6 +711,8 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
     {text.length >= INPUT_COUNTER_FROM && <p className="ai-note ai-length" role="status" aria-live="polite">{text.length >= MAX_INPUT_CHARS ? `That is the limit: ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters. A shorter message gets a better answer.` : `${text.length.toLocaleString('en-US')} of ${MAX_INPUT_CHARS.toLocaleString('en-US')} characters`}</p>}
+    {/* Session AK (BUILD list 2 #1): a calm line while the words look like recovery words or a key (never sent). */}
+    <SecretGuard text={text} onRemove={() => setText('')} chat/>
     <div className="ai-composer">
       <textarea ref={ref} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} enterKeyHint="send" maxLength={MAX_INPUT_CHARS} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} aria-describedby={logMode ? logNoteId : undefined} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}

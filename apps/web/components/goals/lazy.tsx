@@ -29,3 +29,5 @@ export const LazyExtrasKeeper = deferred(() => import('./extras-keeper').then(m 
 export const LazyWhatIfPanel = deferred(() => import('./what-if-panel').then(m => m.WhatIfPanel));
 export const LazyProgressCard = deferred(() => import('./progress-card').then(m => m.ProgressCard));
 export const LazyMilestonePlanner = deferred(() => import('./milestone-planner').then(m => m.MilestonePlanner), false);
+// Session AK (F5a, item 2): a savings challenge's schedule and progress on its goal's page (renders nothing for other goals).
+export const LazyChallengeCard = deferred(() => import('./challenge-card').then(m => m.ChallengeCard), false);

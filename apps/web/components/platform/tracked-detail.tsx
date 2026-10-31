@@ -1,7 +1,7 @@
 'use client';
 import {GoalPlan} from '../goals/goal-plan';
 import {GoalForecastPanel} from '../goals/goal-forecast-panel';
-import {LazyMilestonePlanner,LazyProgressCard,LazyWhatIfPanel} from '../goals/lazy';
+import {LazyChallengeCard,LazyMilestonePlanner,LazyProgressCard,LazyWhatIfPanel} from '../goals/lazy';
 import {privateGoalPoints} from '../../lib/goal-forecast';
 import {useUnifiedGoals} from '../use-unified-goals';
 import '../goal-creator.css';
@@ -165,7 +165,7 @@ export function TrackedDetail({id}:{id:string}){
  {sharing&&<div id="goal-share-progress" className="panel goal-share-panel"><LazyProgressCard goal={goal.type==='PROJECT'?{title:goal.name,current:goal.milestones.filter(m=>m.done).length,target:goal.milestones.length||null,unit:'milestones',date:goal.targetDate}:{title:goal.name,current:summary.progressBound==='unavailable'?null:Number(summary.current),target:summary.target?Number(summary.target):null,...(isMoneyCurrency(summary.currency)?{currency:summary.currency}:{unit:summary.currency}),date:goal.targetDate}}/></div>}
  {/* Session AA-Cloud Part 2: the pace forecast (G1) and the goal's plan, area, vision and sub-goals (G2–G5, G7). */}
  {goal.type!=='PROJECT'&&goal.status==='active'&&summary.progressBound!=='unavailable'&&summary.target&&<GoalForecastPanel goal={goal} events={store.data.contributions??[]} current={Number(summary.current)} target={Number(summary.target)} currency={summary.currency}/>}
- {goal.status==='completed'&&<GoalFinished goalId={id} name={goal.name}/>}<GoalPlan goalKey={`private:${id}`} name={goal.name} summary={summary} goals={unifiedGoals.goals} finished={goal.status==='completed'}/>
+ {goal.status==='completed'&&<GoalFinished goalId={id} name={goal.name}/>}<GoalPlan goalKey={`private:${id}`} name={goal.name} summary={summary} goals={unifiedGoals.goals} finished={goal.status==='completed'}/>{/* Session AK (F5a, item 2): a savings challenge beside its goal, from the person's own records. */}<LazyChallengeCard goal={goal} events={store.data.contributions??[]}/>
  {goal.type==='VALUE'&&!!summary.assetMix?.length&&<section className="panel asset-mix" aria-label="Asset mix"><h2>Asset mix</h2><p className="fine">Share of your Goal target · current allocated wealth</p><div className="asset-mix-grid">{summary.assetMix.map(m=><div key={m.assetClass}><span className="asset-swatch" style={{background:m.color}}/><strong>{m.assetClass}</strong><span>{formatGoalAmount(amount(m.value,goal.decimals),goal.asset)} · {formatPlainDecimal(m.percent.toFixed(2))}%</span></div>)}<div><span className="asset-swatch asset-remaining"/><strong>Remaining</strong><span>{formatGoalAmount(summary.remaining!,goal.asset)} · {formatPlainDecimal(Math.max(0,100-Number(summary.progressPct)).toFixed(2))}%</span></div></div>{progress.missingValuation&&<p className="fine">Valuation incomplete. Unvalued sources do not count toward progress.</p>}</section>}
  <div id="funding-wealth"/><GoalIntelligence data={store.data} goal={goal} quotes={market.quotes} now={evidenceNow} update={store.update} disabled={!!store.error}/>
  {goal.locked&&<p className="notice">Editing locked. Unlock from Goal actions to make changes.</p>}

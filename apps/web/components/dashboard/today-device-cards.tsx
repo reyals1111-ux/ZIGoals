@@ -14,12 +14,15 @@ import {PhoneFold} from '../phone/phone-fold';
 import {LoadBoundary} from '../load-boundary';
 // Session AK Part 8.2 (lane X): the Daily orbit card loads on its own, only when the person keeps it on Today.
 const OrbitCard = lazy(() => import('../orbit-card/orbit-card'));
+// Session AK (BUILD list 2 #5): "Your first week" loads on its own, only when the person keeps it on Today.
+const FirstWeekCard = lazy(() => import('../first-week/first-week-card'));
 
 export const TODAY_CARD_LABELS: Record<TodayCardId, {label: string; description: string}> = {
   balance: {label: 'Life balance', description: 'How each life area moved this month'},
   forecasts: {label: 'Pace forecasts', description: 'Estimated dates from each goal’s own pace'},
   calculator: {label: 'Compound interest calculator', description: 'A door to the calculator'},
   review: {label: 'Life review', description: 'Your week at a glance, here instead of in Updates'},
+  'first-week': {label: 'Your first week', description: 'One small step a day for seven days, in any order'},
   orbit: {label: 'Daily orbit', description: 'Today across your pillars and what is next, with a door to the Checklist'},
 };
 
@@ -38,6 +41,7 @@ export default function TodayDeviceCards({shown, customize, onToggle, platform, 
       case 'forecasts': return <PaceForecastsCard platform={platform} quotes={quotes} now={now} today={today} />;
       case 'calculator': return <CalculatorCard compact />;
       case 'review': return <LifeReviewTeaser habits={habits} health={health} platform={platform} goals={goals} today={today} />;
+      case 'first-week': return <LoadBoundary quiet><Suspense fallback={null}><FirstWeekCard /></Suspense></LoadBoundary>;
       case 'orbit': return <LoadBoundary quiet><Suspense fallback={null}><OrbitCard /></Suspense></LoadBoundary>;
     }
   };

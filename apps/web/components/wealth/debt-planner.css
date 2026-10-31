@@ -1,0 +1,31 @@
+/* Session AK (F5a, item 1): the debt payoff planner (theme tokens as money-tools.css uses them, 44 px targets, no motion). */
+.debt-planner{display:grid;gap:12px;min-width:0}
+.debt-planner h3{margin:0}
+.debt-planner h4{font-size:16px;margin:0}
+.debt-planner-empty{display:grid;gap:8px;padding:12px 14px;border-radius:14px;border:1px dashed var(--line,rgba(140,160,220,.3))}
+.debt-planner-empty p{margin:0}
+.debt-planner-example{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.debt-planner-example .text-link,.debt-planner button{min-height:44px}
+.debt-planner-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.debt-planner-row{display:grid;gap:8px;padding:10px 0;border-bottom:1px solid var(--line,rgba(140,160,220,.18));min-width:0}
+.debt-planner-what{display:grid;gap:2px;min-width:0;overflow-wrap:anywhere}
+.debt-planner-what small{color:var(--text-meta,var(--muted))}
+.debt-planner-fixed{margin:0}
+.debt-planner-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px 12px;align-items:end}
+.debt-planner input,.debt-planner select{min-height:44px;width:100%;box-sizing:border-box}
+.debt-planner-extra,.debt-planner-currency{max-width:360px}
+.debt-planner-issue{margin:0;padding:8px 12px;border-radius:12px;border:1px solid var(--amber,#f5b65b)}
+.debt-plan-results{display:grid;gap:12px;min-width:0}
+.debt-plan-summary{margin:0;font-variant-numeric:tabular-nums}
+.debt-plan-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.debt-plan-card{display:grid;gap:4px;padding:12px 14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.25));background:color-mix(in srgb,var(--cyan,#6fd3ff) 6%,transparent);min-width:0}
+.debt-plan-card p{margin:0}
+.debt-plan-date{font-size:18px}
+.debt-plan-card dl{display:grid;gap:4px;margin:6px 0 0}
+.debt-plan-card dl div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px}
+.debt-plan-card dd{margin:0;font-variant-numeric:tabular-nums}
+.debt-plan-chart{margin:0;display:grid;gap:6px;min-width:0}
+.debt-chart-min{fill:none;stroke:var(--text-meta,currentColor);stroke-width:2;stroke-dasharray:1.5 4;stroke-linecap:round;opacity:.8}
+.debt-chart-tick{opacity:.85}
+.debt-key-min{border-top:3px dotted var(--text-meta,currentColor)}
+.debt-plan-order summary{min-height:44px;display:flex;align-items:center;cursor:pointer}

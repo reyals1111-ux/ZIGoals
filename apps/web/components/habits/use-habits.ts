@@ -8,6 +8,10 @@ import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
 import { deletedHabitIds, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
 import { localDate } from "../../lib/local-date";
+import { installMonthWeekdayOverlay } from "../../lib/habit-month-weekday/install";
+
+// Session AK F0 (5.1): "the first Monday of the month" reads its overlay from the habit extras in the browser (lib/habits.ts setHabitScheduleOverlay).
+installMonthWeekdayOverlay();
 
 /** The previous read's unchanged habit objects are kept (lib/habit-sharing.ts), so memoized cards and caches hold. */
 function useSharedHabitData(next: HabitData): HabitData {

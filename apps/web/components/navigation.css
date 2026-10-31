@@ -115,3 +115,8 @@
 @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) {
   :root:has(.today-hero .quick-add-trigger) .app-sidebar .sidebar-actions .quick-add-trigger { display: none; }
 }
+/* Session AK F0 (8.9): the sync line's calm dot; the words carry the meaning, the dot only echoes it (never colour alone). */
+.workspace-status [data-sync-tone]::before{content:"";display:inline-block;width:.5rem;height:.5rem;margin-inline-end:.5rem;border-radius:50%;background:var(--muted);vertical-align:.08em}
+.workspace-status [data-sync-tone=synced]::before{background:var(--cyan)}
+.workspace-status :is([data-sync-tone=syncing],[data-sync-tone=waiting])::before{background:var(--violet)}
+.workspace-status [data-sync-tone=attention]::before{background:var(--pink)}

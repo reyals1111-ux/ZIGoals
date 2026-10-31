@@ -84,6 +84,8 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/checklist") return { title: "Checklist", back: { href: "/app", label: "Today" } };
   // Session AF (crit1): the Day timeline and Stories are reached from Today's cards, so they lead back there too.
   if (path === "/app/timeline") return { title: "Day timeline", back: { href: "/app", label: "Today" } };
+  // Owner follow-up 1 (F5): the agenda is reached from Today's timeline card and Search, so it leads back to Today.
+  if (path === "/app/agenda") return { title: "Agenda", back: { href: "/app", label: "Today" } };
   if (path === "/app/stories") return { title: "Stories", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : OFF_NAV_TITLES[path] ?? "ZIGoals" };

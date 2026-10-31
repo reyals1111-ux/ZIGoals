@@ -18,6 +18,8 @@ import {badgesShown, setBadgesShown} from '../../lib/game/schema';
 import {LoadBoundary} from '../load-boundary';
 // Session AK (COMPETITORS item 19, lane X): the opt-in rewards shelf, loaded after the Journey.
 const RewardsShelf = lazy(() => import('../rewards-shelf/rewards-shelf'));
+// Owner follow-up 1 (F5): ZIGoals Wrapped's line on Journey (shown only while Wrapped is available), its own chunk.
+const JourneyWrappedLink = lazy(() => import('../wrapped/wrapped-door').then(m => ({default: m.JourneyWrappedLink})));
 import {weekStart} from '../../lib/game/xp';
 import {keepWords} from '../today/keep-words';
 import {formatDate, formatNumber} from '../../lib/visual-format';
@@ -81,6 +83,7 @@ export function JourneyPage() {
         {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(r.date, {weekday: true, year: false})}</span><button type="button" className="secondary" disabled={busy} onClick={() => setAsking(`${r.habitId}:${r.date}`)}>Use a freeze</button>{asking === `${r.habitId}:${r.date}` && <ConfirmInline tone="neutral" title={`Use a freeze on ${r.title}, ${formatDate(r.date, {weekday: true, year: false})}?`} confirmLabel="Use a freeze" busy={busy} onConfirm={() => void repair(r.habitId, r.date)} onCancel={() => setAsking(null)}><p>That missed day becomes a rest day and the streak holds. You will have {d.freezes - 1} left.</p></ConfirmInline>}</li>)}</ul>}
         {d.freezes > 0 && d.repairable.length === 0 && <p className="fine">Nothing to repair this week.</p>}
         {message && <p role="status" className="fine">{message}</p>}</section>
+      <LoadBoundary quiet><Suspense fallback={null}><JourneyWrappedLink /></Suspense></LoadBoundary>
       <LoadBoundary quiet><Suspense fallback={null}><RewardsShelf xpTotal={d.xp.total} /></Suspense></LoadBoundary>
       <section className="panel journey-settings"><GameSetting /></section>
       <CelebrationHost game={game} />

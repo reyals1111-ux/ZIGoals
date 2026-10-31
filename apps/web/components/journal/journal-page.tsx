@@ -1,5 +1,5 @@
 'use client';
-import {lazy, useMemo, useState} from 'react';
+import {Suspense, lazy, useMemo, useState} from 'react';
 import {formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {addLocalDays, localDate} from '../../lib/local-date';
@@ -16,8 +16,12 @@ import {usePagesView} from '../pages/use-pages-view';
 import './journal.css';
 // Session AK (lane S, item 13): Year in Pixels, its code loaded when its fold is opened.
 import {OnDemandFold} from '../insights/compare/on-demand-fold';
+import {LoadBoundary} from '../load-boundary';
 
 const YearPixels = lazy(() => import('./year-pixels'));
+// Session AK (BUILD list 2 #3): "On this day" and its Privacy switch, each loaded on its own after the page.
+const OnThisDay = lazy(() => import('./on-this-day'));
+const OnThisDaySwitch = lazy(() => import('./on-this-day-switch'));
 
 /**
  * Session AI (feature 6): the Journal page — write, ZIGi's question, the entries (newest first, delete with Undo), the
@@ -40,6 +44,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
   return <div className="journal-page">
     {showcase && <p className="fine">Fictional Showcase entries.</p>}
     {journal.unreadable && <p role="alert">This device&rsquo;s journal could not be read; it is not written over.</p>}
+    <LoadBoundary quiet><Suspense fallback={null}><OnThisDay entries={journal.data.entries} today={today} energy={energy.data.days} moods={moodDays}/></Suspense></LoadBoundary>
     <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose/></section>
     <section className="panel journal-week" aria-labelledby="journal-week-title"><h2 id="journal-week-title">Your week</h2>
       <ol className="journal-week-days" aria-label="This week's check-ins">{week.week.map(d => <li key={d.date} data-empty={d.energy === null && d.mood === null ? '' : undefined}>
@@ -69,6 +74,7 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     <section className="panel" aria-labelledby="journal-privacy"><h2 id="journal-privacy">Privacy</h2>
       <label className="switch-row"><input type="checkbox" checked={journal.data.followUps} onChange={e => journal.update(c => ({...c, followUps: e.target.checked}))}/> <span>ZIGi asks one question after an entry (made on this device)</span></label>
       <label className="switch-row"><input type="checkbox" checked={journal.data.shareWithAi} onChange={e => journal.update(c => ({...c, shareWithAi: e.target.checked}))}/> <span>Let ZIGi send journal entries to my own AI when I ask about them (off by default)</span></label>
+      <LoadBoundary quiet><Suspense fallback={null}><OnThisDaySwitch/></Suspense></LoadBoundary>
       <p className="fine">The journal stays on this device and is in Export everything. Turning sharing off keeps every entry here.</p>
     </section>
   </div>;

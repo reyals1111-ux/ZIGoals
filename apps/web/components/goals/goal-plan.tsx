@@ -15,6 +15,8 @@ import {useLocalToday} from '../use-local-today';
 import {GRADIENT_CSS, VisionArt} from './vision-art';
 import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+// Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 const now = () => new Date().toISOString();
 const AREA_COLORS = ['#7fd8c9', '#a3b5ff', '#f5c97a', '#f39ccf', '#8fdcf4', '#d2a6f6', '#ffb09e', '#b9e88f'];
@@ -94,6 +96,7 @@ function Reasons({goalKey, extras}: {goalKey: string; extras: Extras}) {
         <label className="field"><span>Why it matters to you</span><textarea value={why} maxLength={1000} onChange={e => setWhy(e.target.value)} placeholder="So I can sleep without money worries" /></label>
         <label className="field"><span>What could get in the way</span><textarea value={obstacle} maxLength={1000} onChange={e => setObstacle(e.target.value)} placeholder="Weekend spending" /></label>
         <label className="field"><span>Your if-then plan</span><textarea value={ifThen} maxLength={1000} onChange={e => setIfThen(e.target.value)} placeholder="If I want to buy something big, then I wait one day" /></label>
+        <SecretGuard text={why} onRemove={() => setWhy('')}/><SecretGuard text={obstacle} onRemove={() => setObstacle('')}/><SecretGuard text={ifThen} onRemove={() => setIfThen('')}/>
         <button className="secondary" disabled={!dirty}>Save the plan</button>
       </fieldset>
     </form>
@@ -131,6 +134,7 @@ function Story({goalKey, extras}: {goalKey: string; extras: Extras}) {
     <h3 id={`${id}-title`}>Your story</h3>
     <form onSubmit={e => { e.preventDefault(); extras.change(goalKey, x => setGoalStory(x, goalKey, story, now()), 'Your story is on the Hall of achievements.'); }}>
       <label className="field"><span>A few words for the Hall of achievements</span><textarea value={story} maxLength={2000} onChange={e => setStory(e.target.value)} /></label>
+      <SecretGuard text={story} onRemove={() => setStory('')}/>
       <button className="secondary" disabled={!extras.writable || story === (extras.data.goals[goalKey]?.story ?? '')}>Save the story</button>
     </form>
   </article>;

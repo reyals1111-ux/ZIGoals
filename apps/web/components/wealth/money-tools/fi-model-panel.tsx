@@ -6,6 +6,7 @@ import {balanceOn} from '../../../lib/accounts/net-worth';
 import {localDate} from '../../../lib/local-date';
 import {FI_DEFAULTS, fiIssue, fiTarget, runFiModel, type FiInput, type FiResult} from '../../../lib/fi-model/model';
 import {FI_MODEL} from '../../../lib/fi-model/store';
+import {fiIssueField, fiSummary, type FiField} from '../../../lib/fi-model/summary';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {money} from './format';
 import './money-tools.css';
@@ -19,7 +20,7 @@ import './money-tools.css';
 type Draft = {invested: string; yearlySpend: string; withdrawalPct: string; monthlyContribution: string; returnPct: string; volatilityPct: string; years: string; currency: string};
 const num = (raw: string) => raw.trim() === '' ? Number.NaN : Number(raw.trim().replace(/\s/g, '').replace(',', '.'));
 const START: Draft = {invested: '20000', yearlySpend: '30000', withdrawalPct: String(FI_DEFAULTS.withdrawalPct), monthlyContribution: '500', returnPct: String(FI_DEFAULTS.returnPct), volatilityPct: String(FI_DEFAULTS.volatilityPct), years: '40', currency: 'EUR'};
-const W = 340, H = 180, PAD = 10;
+const W = 340, H = 196, PAD = 10, BOTTOM = 26;
 const years = (n: number | null) => n === null ? null : `${n} ${n === 1 ? 'year' : 'years'}`;
 
 export default function FiModelPanel() {
@@ -46,6 +47,13 @@ export default function FiModelPanel() {
     return n ? (Number(cents) / 100).toFixed(2) : null;
   }, [accounts.loaded, accounts.unreadable, accounts.data.items, d.currency]);
   const set = (key: keyof Draft) => (e: {target: {value: string}}) => { setStatus(''); setDraft(x => ({...(x ?? START), [key]: e.target.value})); };
+  const issueField: FiField | null = issue ? fiIssueField(input) : null;
+  const field = (key: FiField, label: string, hint: string, mode: 'decimal' | 'numeric' = 'decimal') => <label className="field" htmlFor={`${id}-${key}`}>
+    <span>{label}</span>
+    <input id={`${id}-${key}`} inputMode={mode} autoComplete="off" spellCheck={false} enterKeyHint="next" value={d[key]} onChange={set(key)}
+      aria-describedby={`${id}-${key}-hint${issueField === key ? ` ${id}-issue` : ''}`} {...(issueField === key ? {'aria-invalid': true as const} : {})}/>
+    <small id={`${id}-${key}-hint`} className="fi-hint">{hint}</small>
+  </label>;
   const keep = () => {
     if (issue) return;
     try { stored.update(r => ({...r, inputs: {invested: input.invested, yearlySpend: input.yearlySpend, withdrawalPct: input.withdrawalPct, monthlyContribution: input.monthlyContribution, returnPct: input.returnPct, volatilityPct: input.volatilityPct, years: input.years, currency: d.currency}})); setStatus('These inputs are kept on this device.'); }
@@ -54,23 +62,24 @@ export default function FiModelPanel() {
   const forget = () => { try { stored.clear(); setStatus('The kept inputs are removed from this device.'); } catch { setStatus('Not removed.'); } };
   const target = Number.isFinite(input.yearlySpend) && Number.isFinite(input.withdrawalPct) && input.withdrawalPct > 0 ? fiTarget(input.yearlySpend, input.withdrawalPct) : null;
   const max = result ? Math.max(result.target * 1.15, ...result.bands.map(b => Math.min(b.p90, result.target * 3))) : 1;
-  const x = (y: number) => PAD + (W - 2 * PAD) * y / Math.max(1, input.years), yv = (v: number) => H - PAD - (H - 2 * PAD) * Math.min(v, max) / max;
+  const x = (y: number) => PAD + (W - 2 * PAD) * y / Math.max(1, input.years), yv = (v: number) => H - BOTTOM - (H - BOTTOM - PAD) * Math.min(v, max) / max;
   return <section className="money-panel fi-model" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">A MODEL, NOT ADVICE</p>
     <h3 id={`${id}-title`}>Financial freedom</h3>
     <p className="fine">When could your investments cover your yearly spending? The target is your yearly spending ÷ the withdrawal rate. 1,000 possible paths are drawn from the return and volatility you choose, after inflation. A model, not advice: real returns can be very different.</p>
-    <div className="money-grid">
+    <div className="money-grid fi-fields">
       <label className="field"><span>Currency</span><select value={d.currency} onChange={set('currency')}>{['EUR', 'USD', 'GBP', 'CHF'].map(c => <option key={c} value={c}>{c}</option>)}</select></label>
-      <label className="field"><span>Invested today</span><input inputMode="decimal" value={d.invested} onChange={set('invested')}/></label>
-      <label className="field"><span>Yearly spending</span><input inputMode="decimal" value={d.yearlySpend} onChange={set('yearlySpend')}/></label>
-      <label className="field"><span>Withdrawal rate (%)</span><input inputMode="decimal" value={d.withdrawalPct} onChange={set('withdrawalPct')}/></label>
-      <label className="field"><span>Added each month</span><input inputMode="decimal" value={d.monthlyContribution} onChange={set('monthlyContribution')}/></label>
-      <label className="field"><span>Expected return a year (%)</span><input inputMode="decimal" value={d.returnPct} onChange={set('returnPct')}/></label>
-      <label className="field"><span>Volatility a year (%)</span><input inputMode="decimal" value={d.volatilityPct} onChange={set('volatilityPct')}/></label>
-      <label className="field"><span>Years to look ahead (1 to 60)</span><input inputMode="numeric" value={d.years} onChange={set('years')}/></label>
+      {field('invested', `Invested today (${d.currency})`, 'What your investments and pension are worth now.')}
+      {field('yearlySpend', `Your yearly spending (${d.currency})`, 'What a year of your life costs, in today’s money.')}
+      {field('withdrawalPct', 'Withdrawal rate a year (%)', '4 is a common rule of thumb; a lower rate is more cautious. From 1 to 10.')}
+      {field('monthlyContribution', `Added each month (${d.currency})`, 'Zero or more.')}
+      {field('returnPct', 'Expected return a year, after inflation (%)', 'An assumption, not a promise. From −10 to 20.')}
+      {field('volatilityPct', 'Ups and downs a year, volatility (%)', 'About 15 is typical of a broad share fund. From 0 to 60.')}
+      {field('years', 'Years to look ahead', 'Whole years, from 1 to 60.', 'numeric')}
     </div>
     {fromAccounts && fromAccounts !== String(num(d.invested).toFixed(2)) && <div className="money-actions"><button type="button" className="quiet" onClick={() => setDraft(x => ({...(x ?? START), invested: fromAccounts}))}>Use my investment and pension accounts ({money(fromAccounts, d.currency)})</button></div>}
-    {issue ? <p role="alert">{issue}</p> : result && <>
+    {issue ? <p role="alert" id={`${id}-issue`}>{issue}</p> : result && <>
+      <p className="fi-summary">{fiSummary(result, input.years, v => money(v.toFixed(0), d.currency))}</p>
       <p className="fi-result" aria-live="polite">Target: <strong>{money(result.target.toFixed(2), d.currency)}</strong>. {result.yearsTo.p50 !== null
         ? <>In half of the paths it is reached within <strong>{years(result.yearsTo.p50)}</strong>{result.yearsTo.p10 !== null ? `; in the fastest tenth of paths within ${years(result.yearsTo.p10)}` : ''}{result.yearsTo.p90 !== null ? `; in nine of ten within ${years(result.yearsTo.p90)}` : `; one path in ten or more does not reach it within ${input.years} years`}.</>
         : <>Fewer than half of the paths reach it within {input.years} years ({Math.round(result.reached * 100)} % do).</>}</p>
@@ -78,12 +87,19 @@ export default function FiModelPanel() {
         <path className="money-chart-band" d={`${result.bands.map((b, i) => `${i ? 'L' : 'M'}${x(b.year).toFixed(1)} ${yv(b.p90).toFixed(1)}`).join(' ')} ${[...result.bands].reverse().map(b => `L${x(b.year).toFixed(1)} ${yv(b.p10).toFixed(1)}`).join(' ')} Z`}/>
         <path className="money-chart-mid" d={result.bands.map((b, i) => `${i ? 'L' : 'M'}${x(b.year).toFixed(1)} ${yv(b.p50).toFixed(1)}`).join(' ')}/>
         <line className="money-chart-target" x1={PAD} x2={W - PAD} y1={yv(result.target)} y2={yv(result.target)}/>
-        <line className="money-chart-axis" x1={PAD} x2={W - PAD} y1={H - PAD} y2={H - PAD}/>
+        <line className="money-chart-axis" x1={PAD} x2={W - PAD} y1={H - BOTTOM} y2={H - BOTTOM}/>
+        <text x={PAD} y={H - 8}>Now</text>
+        <text x={W - PAD} y={H - 8} textAnchor="end">{years(input.years)}</text>
+        <text x={W - PAD} y={Math.max(12, yv(result.target) - 5)} textAnchor="end">Target</text>
       </svg>
-      <p className="fine money-legend"><span className="money-key money-key-band" aria-hidden="true"/>10 to 90 % of paths <span className="money-key" aria-hidden="true"/>the middle path <span className="money-key money-key-target" aria-hidden="true"/>the target{target !== null ? ` (${money(target.toFixed(0), d.currency)})` : ''}</p>
-      <table className="money-table"><caption className="fine">Possible values, an estimate</caption>
-        <thead><tr><th scope="col">After</th><th scope="col">Low (10 %)</th><th scope="col">Middle</th><th scope="col">High (90 %)</th></tr></thead>
-        <tbody>{result.bands.filter(b => b.year > 0 && (b.year % 10 === 0 || b.year === input.years)).map(b => <tr key={b.year}><th scope="row">{years(b.year)}</th><td>{money(b.p10.toFixed(0), d.currency)}</td><td>{money(b.p50.toFixed(0), d.currency)}</td><td>{money(b.p90.toFixed(0), d.currency)}</td></tr>)}</tbody></table>
+      <ul className="fine money-legend fi-legend" aria-label="How to read the chart">
+        <li><span className="money-key money-key-band" aria-hidden="true"/>Shaded band: the middle 8 in 10 paths (from the 10th to the 90th percentile)</li>
+        <li><span className="money-key" aria-hidden="true"/>Solid line: the middle path (the 50th percentile)</li>
+        <li><span className="money-key money-key-target" aria-hidden="true"/>Dashed line: your target{target !== null ? ` (${money(target.toFixed(0), d.currency)})` : ''}</li>
+      </ul>
+      <div className="money-table-wrap"><table className="money-table fi-table"><caption className="fine">Possible values, an estimate</caption>
+        <thead><tr><th scope="col">After</th><th scope="col">Low <small>(1 in 10 below)</small></th><th scope="col">Middle</th><th scope="col">High <small>(1 in 10 above)</small></th></tr></thead>
+        <tbody>{result.bands.filter(b => b.year > 0 && (b.year % 10 === 0 || b.year === input.years)).map(b => <tr key={b.year}><th scope="row">{years(b.year)}</th><td>{money(b.p10.toFixed(0), d.currency)}</td><td>{money(b.p50.toFixed(0), d.currency)}</td><td>{money(b.p90.toFixed(0), d.currency)}</td></tr>)}</tbody></table></div>
     </>}
     <div className="money-actions">
       <button type="button" className="secondary" disabled={!!issue || !stored.loaded || stored.unreadable} onClick={keep}>Keep these inputs on this device</button>

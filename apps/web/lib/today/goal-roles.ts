@@ -80,3 +80,15 @@ export function todayGoalRoles(active: readonly GoalSummary[], goals: Goals, tod
  *  pinned ones first): the chosen goal first and the only one marked first. A view for that panel only: nothing is
  *  written, and every other place reads the records as they are. */
 export const attentionFirst = <G extends {id: string; pinned?: boolean}>(goals: readonly G[], roles: GoalRoles): G[] => { const id = roles.attention?.id; const first = id ? goals.find(g => g.id === id) : undefined; if (!first) return [...goals]; return [{...first, pinned: true}, ...goals.filter(g => g !== first).map(g => g.pinned ? {...g, pinned: false} : g)]; };
+
+/**
+ * Session AK F0 (H113, ADR-028): the goal Today's intelligence panel shows. "What matters today" passes the chosen goal's
+ * id (`roles.attention.id`) instead of a reordered view of the records; without an id, or when that goal is closed, a
+ * project or gone, the panel's own rule applies as before: pinned first, a completed goal after the others, then the
+ * records' order. Pure; the records are read as they are.
+ */
+export function intelligenceGoal<G extends {id: string; status: string; type: string; pinned?: boolean}>(goals: readonly G[], goalId?: string | null): G | undefined {
+  const shown = goals.filter(g => g.status !== 'closed' && g.type !== 'PROJECT');
+  const chosen = goalId ? shown.find(g => g.id === goalId) : undefined;
+  return chosen ?? [...shown].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || Number(a.status === 'completed') - Number(b.status === 'completed'))[0];
+}

@@ -1,4 +1,5 @@
 'use client';
+import {ShowcaseTag} from '../../ui/showcase-tag';
 import {useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {localDate} from '../../../lib/local-date';
@@ -33,7 +34,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     setAmount('');
   };
   return <div className="budgets-body">
-    {showcase && <p className="fine">Fictional Showcase entries.</p>}
+    {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
     {unreadable && <p role="alert">This device&rsquo;s budgets could not be read; nothing was changed.</p>}
     <div className="budgets-month-nav" role="group" aria-label="Month">
       <button type="button" className="quiet" onClick={() => setMonth(shiftMonth(month, -1))} aria-label="Previous month">‹</button>
@@ -66,6 +67,6 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
 }
 export default function BudgetsMonth({showcase = false}: {showcase?: boolean}) {
   const budgets = useDeviceRecord(BUDGETS), log = useDeviceRecord(MONEY_LOG), today = localDate();
-  if (!budgets.loaded || !log.loaded) return <p className="fine">Loading your budgets…</p>;
+  if (!budgets.loaded || !log.loaded) return <p className="fine" role="status">Loading your budgets…</p>;
   return <BudgetsView record={budgets.data} entries={log.data.entries} today={today} showcase={showcase} unreadable={budgets.unreadable} onChange={fn => { budgets.update(fn); }}/>;
 }

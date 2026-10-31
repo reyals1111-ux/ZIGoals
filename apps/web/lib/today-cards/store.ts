@@ -10,7 +10,9 @@ import type {DeviceRecordSpec} from '../device-record';
  */
 export const TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
 // Session AK Part 8.2 (lane X): `orbit`, the Daily orbit card (components/orbit-card), at the end so earlier orders hold.
-export const TODAY_CARD_IDS = ['balance', 'forecasts', 'calculator', 'review', 'orbit'] as const;
+// Session AK (BUILD list 2 #5, lane B2a): `first-week`, "Your first week" (components/first-week). Cards are stored by
+// name in the person's own order, so this list only orders the chooser's buttons; it sits before `orbit`, which stays last.
+export const TODAY_CARD_IDS = ['balance', 'forecasts', 'calculator', 'review', 'first-week', 'orbit'] as const;
 export type TodayCardId = typeof TODAY_CARD_IDS[number];
 export const todayCardsSchema = z.looseObject({
   version: z.literal(1),

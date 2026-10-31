@@ -11,6 +11,8 @@ import {zigiSignals} from '../zigi/bus';
 import './journal.css';
 // Session AK (lane S, item 6): the optional feeling word after the 1–5 (its grid loads when opened).
 import {MoodWordsFold} from '../mood-words/mood-words-fold';
+// Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 /**
  * Session AI (feature 6, the journal and the daily energy rating): today's energy (1–5) in one tap, a few lines of
@@ -49,12 +51,14 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
+      <SecretGuard text={text} onRemove={() => setText('')}/>
       {problem && <p role="alert">{problem}</p>}
       <div className="journal-actions"><button type="submit" className="primary">Save entry</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}</div>
     </form>}
     {pending?.followUp && <form className="journal-followup" onSubmit={saveAnswer} aria-label="ZIGi's question">
       <p className="journal-question"><span className="eyebrow">ZIGi asks</span> {pending.followUp.question}</p>
       <label className="field"><span>Your answer — optional</span><textarea rows={2} maxLength={2000} value={answer} onChange={e => setAnswer(e.target.value)}/></label>
+      <SecretGuard text={answer} onRemove={() => setAnswer('')}/>
       <div className="journal-actions"><button type="submit" className="primary" disabled={!answer.trim()}>Save answer</button><button type="button" className="text-link" onClick={() => setAsked(null)}>Not now</button></div>
     </form>}
     <p className="journal-status" role="status" aria-live="polite">{status}</p>

@@ -20,6 +20,14 @@ import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
+import {SAVINGS_CHALLENGES_KEY} from '../savings-challenges/challenges';
+import {DEBT_PLANNER_KEY} from '../debt-planner/store';
+import {WRAPPED_KEY} from '../wrapped/store';
+import {AGENDA_KEY} from '../agenda/store';
+import {JOURNAL_DISPLAY_KEY} from '../on-this-day/store';
+import {FIRST_WEEK_KEY} from '../first-week/store';
+import {EXPERIMENTS_KEY} from '../experiments/store';
 import {MONEY_RULES_KEY} from '../money-rules/schema';
 import {MONEY_REVIEW_KEY} from '../money-review/review';
 import {FI_MODEL_KEY} from '../fi-model/store';
@@ -144,6 +152,14 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   supplements: SUPPLEMENTS_KEY,
   // Owner follow-up 1 (F4): governance vote reminders.
   govReminders: GOV_REMINDERS_KEY,
+  networthMilestones: NETWORTH_MILESTONES_KEY,
+  savingsChallenges: SAVINGS_CHALLENGES_KEY,
+  debtPlanner: DEBT_PLANNER_KEY,
+  wrapped: WRAPPED_KEY,
+  agenda: AGENDA_KEY,
+  journalDisplay: JOURNAL_DISPLAY_KEY,
+  firstWeek: FIRST_WEEK_KEY,
+  experiments: EXPERIMENTS_KEY,
   moneyRules: MONEY_RULES_KEY,
   moneyReview: MONEY_REVIEW_KEY,
   fiModel: FI_MODEL_KEY,

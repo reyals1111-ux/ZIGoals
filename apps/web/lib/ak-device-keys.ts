@@ -31,6 +31,22 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   // Owner follow-up 1 (F5): the supplements and medication log.
   'zigoals:supplements:v1',
   // Owner follow-up 1 (F4): opt-in reminders a day before a governance vote ends.
+  // Owner follow-up 1 (BUILD list 2 #8): experiments, one change compared with the days before.
+  'zigoals:experiments:v1',
+  // Owner follow-up 1 (BUILD list 2 #5): the optional Your first week card.
+  'zigoals:first-week:v1',
+  // Owner follow-up 1 (BUILD list 2 #3): On this day, its switch and the memories hidden from it.
+  'zigoals:journal-display:v1',
+  // Owner follow-up 1 (F5): the agenda view and filters.
+  'zigoals:agenda:v1',
+  // Owner follow-up 1 (F5): ZIGoals Wrapped, the day each year was opened.
+  'zigoals:wrapped:v1',
+  // Owner follow-up 1 (F5): the debt payoff planner figures.
+  'zigoals:debt-planner:v1',
+  // Owner follow-up 1 (F5): savings challenges on goals.
+  'zigoals:savings-challenges:v1',
+  // Owner follow-up 1 (F5): net-worth milestones.
+  'zigoals:networth-milestones:v1',
   'zigoals:gov-reminders:v1',
 ];
 /** The account erase removes them all. */

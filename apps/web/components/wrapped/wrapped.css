@@ -1,0 +1,12 @@
+/* Session AK (F5d): ZIGoals Wrapped on Stories' player (stories.css), plus its numbers toggle and the doors. */
+.wrapped-player .story-frame { grid-template-rows: auto minmax(0, 1fr) auto auto auto; }
+.wrapped-fallback { align-content: center; justify-items: center; height: auto; }
+.wrapped-number { font-weight: 650; color: #f4f8ff; }
+.wrapped-reveal { justify-self: start; min-height: 44px; color: #dde7f7; }
+.wrapped-share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.wrapped-include { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; color: #dde7f7; }
+.wrapped-include input { width: 22px; height: 22px; margin: 0; }
+.wrapped-player .story-card { overflow-y: auto; }
+.today-wrapped-card { display: grid; gap: 6px; }
+.today-wrapped-card h2, .today-wrapped-card p { margin: 0; }
+.today-wrapped-card button, .wrapped-link { justify-self: start; min-height: 44px; }

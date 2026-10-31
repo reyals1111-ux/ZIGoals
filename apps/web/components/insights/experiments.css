@@ -1,0 +1,13 @@
+/* Session AK (BUILD list 2 #8): Experiments, on Compare's own card styles (theme tokens, 44 px targets, no motion). */
+.experiments { display: grid; gap: 14px; min-width: 0; }
+.experiments > p { margin: 0; }
+.experiments-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.experiment-card h3 { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
+.experiment-card .eyebrow { margin: 0; }
+.experiments .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.experiments .actions button { min-height: 44px; }
+.experiments-new { display: grid; gap: 10px; padding: 14px; border: 1px dashed var(--line); border-radius: 16px; min-width: 0; }
+.experiments-new h3 { margin: 0; font-size: 17px; }
+.experiments-new p { margin: 0; }
+.experiment-note > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+.experiment-note textarea { width: 100%; max-width: 100%; }

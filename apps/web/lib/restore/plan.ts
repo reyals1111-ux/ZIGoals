@@ -49,6 +49,14 @@ import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {GOV_REMINDERS} from '../zigchain-eco/governance';
+import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
+import {SAVINGS_CHALLENGES} from '../savings-challenges/challenges';
+import {DEBT_PLANNER} from '../debt-planner/store';
+import {WRAPPED} from '../wrapped/store';
+import {AGENDA} from '../agenda/store';
+import {JOURNAL_DISPLAY} from '../on-this-day/store';
+import {FIRST_WEEK} from '../first-week/store';
+import {EXPERIMENTS} from '../experiments/store';
 import {MONEY_RULES} from '../money-rules/schema';
 import {MONEY_REVIEW} from '../money-review/review';
 import {FI_MODEL} from '../fi-model/store';
@@ -128,6 +136,14 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
   dev('supplements', 'Supplements and medication', 'Health', SUPPLEMENTS, true),
   dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
+  dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),
+  dev('savingsChallenges', 'Savings challenges', 'Goals and Wealth', SAVINGS_CHALLENGES),
+  dev('debtPlanner', 'Debt payoff planner', 'Goals and Wealth', DEBT_PLANNER),
+  dev('wrapped', 'ZIGoals Wrapped', 'Today and Life', WRAPPED),
+  dev('agenda', 'Agenda view and filters', 'Today and Life', AGENDA),
+  dev('journalDisplay', 'On this day choices', 'Today and Life', JOURNAL_DISPLAY),
+  dev('firstWeek', 'Your first week', 'Today and Life', FIRST_WEEK),
+  dev('experiments', 'Experiments', 'Health', EXPERIMENTS, true),
   dev('moneyRules', 'Money log rules', 'Goals and Wealth', MONEY_RULES),
   dev('moneyReview', 'Imported entries to review', 'Goals and Wealth', MONEY_REVIEW),
   dev('fiModel', 'Financial freedom inputs', 'Goals and Wealth', FI_MODEL),

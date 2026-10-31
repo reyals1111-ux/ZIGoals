@@ -68,7 +68,7 @@ import {CardOptions} from '../card-options';
 import {AskZigiItem} from '../ai/ask-zigi-item';
 import {wealthMarketRequests} from '../../lib/wealth';
 import {unifiedGoalSummaries} from '../../lib/goal-summary';
-import {attentionFirst,todayGoalRoles} from '../../lib/today/goal-roles';
+import {todayGoalRoles} from '../../lib/today/goal-roles';
 import {dailyData,healthDay} from '../../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,TODAY_GROUPS,todayGroup,twinOf,type TodayGroup,emptyDashboardSettings,saveWidget,removeWidget,visibleDomains,WIDGET_CATALOG,DASHBOARD_BUILTINS,reconcileDashboardPlacement,moveDashboardItem,setDashboardBuiltinHidden,applyDashboardPreset,resetDashboardPlacement,type DashboardPreset,type DashboardWidget,type DashboardSettings,type WidgetKind,type DashboardBuiltinId,type DashboardItemRef,type DashboardRegion} from '../../lib/dashboard-settings';
 import {dashboardIntegrityWarning,widgetMetric,type DashboardSources,type WidgetMetric} from '../../lib/dashboard-metrics';
@@ -203,7 +203,7 @@ export function TodayDashboard(){
    <CardOptions label={metric.title}><AskZigiItem kind={w.kind} metric={w.metric} name={habit?.title??(w.entity?goals.find(g=>g.key===w.entity)?.name:undefined)}/><button type="button" disabled={busy} onClick={()=>setEditor(w)}>Edit widget</button><button type="button" disabled={busy} onClick={()=>apply(s=>saveWidget(s,{...w,hidden:!w.hidden},w.revision))}>{w.hidden?'Show widget':'Hide widget'}</button><button type="button" aria-label={`Move ${metric.title} up`} disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,metric.title)}>Move earlier</button><button type="button" aria-label={`Move ${metric.title} down`} disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,metric.title)}>Move later</button><button type="button" onClick={()=>moveLane(ref,region,metric.title)} disabled={busy}>Move to {region==='main'?'rail':'main'}</button><button type="button" disabled={busy||w.size==='compact'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'compact'},w.revision),'Compact size saved.')}>Compact size</button><button type="button" disabled={busy||w.size==='wide'} onClick={()=>apply(s=>saveWidget(s,{...w,size:'wide'},w.revision),'Wide size saved.')}>Wide size</button><button type="button" disabled={busy} onClick={()=>apply(s=>removeWidget(s,w.id),'Widget removed. Your underlying record was kept.')}>Remove widget</button></CardOptions>
   </article>;
  }
- const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={module==='attention'?{...sources,platform:{...platform.data,goals:attentionFirst(platform.data.goals,roles)}}:sources} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module}/>;
+ const intelligence=(module:'life'|'attention'|'funding'|'needs-attention'|'watchlist')=><TodayIntelligence sources={sources} goalId={module==='attention'?roles.attention?.id:undefined} habitsReady={habits.loaded&&!habits.error} healthReady={health.loaded&&!health.error} module={module}/>;
  function renderBuiltin(id:DashboardBuiltinId){
   if(['whole-life','attention','funding','needs-attention','watchlist'].includes(id)){
    if(!financial||!platform.loaded||!!platform.error||id==='attention'&&!hasFundingGoal)return null;

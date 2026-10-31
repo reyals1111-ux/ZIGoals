@@ -15,6 +15,8 @@ import {usePlatform} from '../platform/use-platform';
 import {useAverageGoals} from '../goals/use-average-goals';
 import {useHealthGoals} from '../health-goals/use-health-goals';
 import {NAV_ITEMS, useVisibleNav} from '../app-nav';
+// Session AK (F5d): actions in the palette (lib/search/actions.ts); each only opens the page or flow that confirms.
+import {PALETTE_ACTIONS, SUGGESTED_ACTIONS, actionsOnly, effectLine, goalContributionActions, searchActions, type PaletteAction} from '../../lib/search/actions';
 
 const NAV_HREFS = new Set<string>(NAV_ITEMS.map(([href]) => href));
 import './search.css';
@@ -27,8 +29,8 @@ import './search.css';
  * full-screen sheet.
  */
 /** Session AB-Design (owner request 28): a hit's pillar — by record kind, or by the page's path. */
-const rowPillar = (row: Row) => row.hit ? (row.hit.kind === 'page' ? pillarOfHref(row.hit.href) : pillarOf(row.hit.kind)) : null;
-type Row = {id: string; label: string; detail?: string; kind: 'hit' | 'recent' | 'ask'; hit?: SearchHit; query?: string};
+const rowPillar = (row: Row) => row.action ? row.action.pillar ?? null : row.hit ? (row.hit.kind === 'page' ? pillarOfHref(row.hit.href) : pillarOf(row.hit.kind)) : null;
+type Row = {id: string; label: string; detail?: string; kind: 'hit' | 'recent' | 'ask' | 'action'; hit?: SearchHit; query?: string; action?: PaletteAction};
 /** Phase 2, Part 10 (owner request 36): the four pillars as shortcuts before typing, and where a result opens. */
 const PILLAR_LINKS = [['goals', 'Goals', '/app/goals'], ['habits', 'Habits', '/app/habits'], ['health', 'Health', '/app/health'], ['wealth', 'Wealth', '/app/wealth']] as const;
 const placeOf = (href: string) => { const seg = href.split(/[?#]/)[0]!.split('/')[2]; return seg ? seg[0]!.toUpperCase() + seg.slice(1).replace(/-/g, ' ') : 'Today'; };
@@ -67,9 +69,15 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     return out;
   }, [healthGoals.loaded, healthGoals.unreadable, healthGoals.data, goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items]);
 
-  const trimmed = query.trim(), hits = useMemo(() => trimmed ? search(items, trimmed) : [], [items, trimmed]);
+  const trimmed = query.trim(), only = actionsOnly(trimmed), hits = useMemo(() => trimmed && !only ? search(items, trimmed) : [], [items, trimmed, only]);
+  // Session AK (F5d): the actions the words name (">" for actions only), before the results when they match as well.
+  const actions = useMemo(() => [...PALETTE_ACTIONS, ...(platform.loaded && !platform.error ? goalContributionActions(platform.data.goals) : [])], [platform.loaded, platform.error, platform.data]);
+  const actionHits = useMemo(() => trimmed ? searchActions(actions, trimmed, only ? 12 : 3) : [], [actions, trimmed, only]);
+  const actionsFirst = only || (actionHits.length > 0 && actionHits[0]!.score >= Math.max(-Infinity, ...hits.map(h => h.score)));
+  const actionRows = actionHits.map((a): Row => ({id: a.id, label: a.title, detail: a.subtitle, kind: 'action', action: a}));
+  const hitRows = hits.map((hit): Row => ({id: hit.id, label: hit.title, detail: hit.subtitle, kind: 'hit', hit}));
   const rows: Row[] = trimmed
-    ? [...hits.map((hit): Row => ({id: hit.id, label: hit.title, detail: hit.subtitle, kind: 'hit', hit})), {id: 'ask', label: `Ask ZIGi: “${trimmed}”`, detail: zigi ? 'Opens ZIGi with these words; nothing is sent until you send it.' : 'ZIGi is off or hidden. Turn it on in Settings → ZIGi.', kind: 'ask', query: trimmed}]
+    ? [...(actionsFirst ? [...actionRows, ...hitRows] : [...hitRows, ...actionRows]), {id: 'ask', label: `Ask ZIGi: “${trimmed}”`, detail: zigi ? 'Opens ZIGi with these words; nothing is sent until you send it.' : 'ZIGi is off or hidden. Turn it on in Settings → ZIGi.', kind: 'ask', query: trimmed}]
     : (recent.loaded && !recent.unreadable ? recent.data.queries : []).map((q, i): Row => ({id: `recent-${i}`, label: q, detail: 'Recent search', kind: 'recent', query: q}));
   const current = Math.min(active, Math.max(0, rows.length - 1));
 
@@ -80,7 +88,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
     if (row.kind === 'ask') { if (!zigi) return; remember(row.query!); close(); void askZigiWhenShown(row.query!); return; }
     remember(trimmed);
     close();
-    router.push(row.hit!.href);
+    router.push(row.action ? row.action.href : row.hit!.href);
   }
   function keys(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (rows.length) setActive((current + (e.key === 'ArrowDown' ? 1 : rows.length - 1)) % rows.length); }
@@ -105,12 +113,15 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
         <button type="button" className="quiet search-close" onClick={close}>Close</button>
       </div>
       <p className="sr-only" role="status">{trimmed ? `${hits.length} ${hits.length === 1 ? 'result' : 'results'}` : ''}</p>
+      {!trimmed && <nav className="search-pillars search-quick" aria-label="Quick actions">{SUGGESTED_ACTIONS.map(id => PALETTE_ACTIONS.find(a => a.id === id)!).map(a => <button key={a.id} type="button" className="search-pillar" onClick={() => { close(); router.push(a.href); }}><span>{a.title}</span></button>)}</nav>}
       {!trimmed && <nav className="search-pillars" aria-label="Go to a pillar">{PILLAR_LINKS.map(([pillar, label, href]) => <button key={pillar} type="button" className="search-pillar" onClick={() => { close(); router.push(href); }}><PillarMark pillar={pillar} size={16}/><span>{label}</span></button>)}</nav>}
       <div className="search-body">
       <ul id={listId} role="listbox" aria-label={trimmed ? 'Results' : 'Recent searches'} className="search-results">
         {trimmed ? <>
+          {actionsFirst && actionRows.length > 0 && <li role="presentation" className="search-group"><span className="search-group-label" id={`${base}-g-actions`}>Actions</span><ul role="group" aria-labelledby={`${base}-g-actions`}>{actionRows.map(option)}</ul></li>}
           {groups.map(kind => <li key={kind} role="presentation" className="search-group"><span className="search-group-label" id={`${base}-g-${kind}`}>{KIND_LABEL[kind]}</span><ul role="group" aria-labelledby={`${base}-g-${kind}`}>{rows.filter(r => r.hit?.kind === kind).map(option)}</ul></li>)}
-          {!hits.length && <li role="presentation" className="search-empty">Nothing on this device matches “{trimmed}”.</li>}
+          {!actionsFirst && actionRows.length > 0 && <li role="presentation" className="search-group"><span className="search-group-label" id={`${base}-g-actions`}>Actions</span><ul role="group" aria-labelledby={`${base}-g-actions`}>{actionRows.map(option)}</ul></li>}
+          {!hits.length && !actionRows.length && <li role="presentation" className="search-empty">Nothing on this device matches “{trimmed}”.</li>}
           {rows.filter(r => r.kind === 'ask').map(option)}
         </> : rows.map(option)}
       </ul>
@@ -118,15 +129,15 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
       <aside className="search-preview" aria-hidden="true">{(() => { const row = rows[current]; if (!row) return <p className="search-preview-tip">Search goals, habits, foods, assets, pages, settings and Help. Everything stays on this device.</p>;
         const pillar = rowPillar(row);
         return <>
-          {pillar ? <PillarMark pillar={pillar} size={26}/> : <span className="search-preview-mark">{row.kind === 'ask' ? '✦' : row.kind === 'recent' ? '↺' : '•'}</span>}
-          <p className="search-preview-kind">{row.kind === 'hit' && row.hit ? KIND_LABEL[row.hit.kind] : row.kind === 'ask' ? 'ZIGi' : 'Recent search'}</p>
+          {pillar ? <PillarMark pillar={pillar} size={26}/> : <span className="search-preview-mark">{row.kind === 'action' ? '→' : row.kind === 'ask' ? '✦' : row.kind === 'recent' ? '↺' : '•'}</span>}
+          <p className="search-preview-kind">{row.kind === 'hit' && row.hit ? KIND_LABEL[row.hit.kind] : row.kind === 'action' ? 'Action' : row.kind === 'ask' ? 'ZIGi' : 'Recent search'}</p>
           <p className="search-preview-title">{row.label}</p>
           {row.detail && <p className="search-preview-detail">{row.detail}</p>}
-          <p className="search-preview-where">{row.kind === 'hit' && row.hit ? <>Opens in <strong>{placeOf(row.hit.href)}</strong> · Enter</> : row.kind === 'ask' ? 'Opens ZIGi with these words · Enter' : 'Searches again · Enter'}</p>
+          <p className="search-preview-where">{row.kind === 'action' && row.action ? <>{effectLine(row.action)} · Enter</> : row.kind === 'hit' && row.hit ? <>Opens in <strong>{placeOf(row.hit.href)}</strong> · Enter</> : row.kind === 'ask' ? 'Opens ZIGi with these words · Enter' : 'Searches again · Enter'}</p>
         </>; })()}</aside>
       </div>
       {!trimmed && <div className="search-foot">
-        {rows.length ? <button type="button" className="text-link" onClick={() => { try { recent.update(clearRecent); } catch { /* nothing to clear */ } }}>Clear recent searches</button> : <p>Type to search everything on this device. Recent searches stay on this device.</p>}
+        {rows.length ? <button type="button" className="text-link" onClick={() => { try { recent.update(clearRecent); } catch { /* nothing to clear */ } }}>Clear recent searches</button> : <p>Type to search everything on this device, or “&gt;” for actions. Recent searches stay on this device.</p>}
         <p className="search-keys" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close</p>
       </div>}
     </div>

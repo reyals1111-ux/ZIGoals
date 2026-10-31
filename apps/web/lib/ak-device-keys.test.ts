@@ -5,6 +5,14 @@ import {FOOD_SCANS_KEY} from './food-scans/schema';
 import {COMPARE_PAIR_KEY} from './compare/schema';
 import {SUPPLEMENTS_KEY} from './supplements/schema';
 import {GOV_REMINDERS_KEY} from './zigchain-eco/governance';
+import {NETWORTH_MILESTONES_KEY} from './networth-milestones/milestones';
+import {SAVINGS_CHALLENGES_KEY} from './savings-challenges/challenges';
+import {DEBT_PLANNER_KEY} from './debt-planner/store';
+import {WRAPPED_KEY} from './wrapped/store';
+import {AGENDA_KEY} from './agenda/store';
+import {JOURNAL_DISPLAY_KEY} from './on-this-day/store';
+import {FIRST_WEEK_KEY} from './first-week/store';
+import {EXPERIMENTS_KEY} from './experiments/store';
 import {MONEY_RULES_KEY} from './money-rules/schema';
 import {MONEY_REVIEW_KEY} from './money-review/review';
 import {FI_MODEL_KEY} from './fi-model/store';
@@ -31,7 +39,7 @@ import {KNOWN_DATABASES} from './erase-everything';
 
 // Session AK: this session's keys are the owners' constants, are exported, and go with the account's erase.
 test('the literals equal the owners\' constants', () => {
-  expect(AK_PERSONAL_KEYS).toEqual([NOTIFY_KEY, MUSIC_MIX_KEY, AUTO_RULES_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY]);
+  expect(AK_PERSONAL_KEYS).toEqual([NOTIFY_KEY, MUSIC_MIX_KEY, AUTO_RULES_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, EXPERIMENTS_KEY, FIRST_WEEK_KEY, JOURNAL_DISPLAY_KEY, AGENDA_KEY, WRAPPED_KEY, DEBT_PLANNER_KEY, SAVINGS_CHALLENGES_KEY, NETWORTH_MILESTONES_KEY, GOV_REMINDERS_KEY]);
   expect(AK_DATABASES).toEqual([NOTIFY_DB, NOTIFY_ACTIONS_DB, GENERIC_FOOD_DATABASE, 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', MEAL_PHOTO_DB, 'zigoals-lichess-v1']);
 });
 test('each key is exported and the account erase removes it; each database is erased by both erases', async () => {

@@ -71,3 +71,14 @@
 .fee-drag-result,.fi-result{margin:0;font-variant-numeric:tabular-nums}
 .money-calc-tools{display:grid;gap:16px}
 .money-calc-tools .money-tools-buttons{margin:0}
+/* Session AK (F5a, item 4): Financial freedom polish — hints under fields, the plain line, a legend list, phones at 320 px. */
+.fi-fields .field{display:grid;gap:4px;min-width:0;align-self:start}
+.fi-fields input,.fi-fields select{min-height:44px;width:100%;box-sizing:border-box}
+.fi-fields input[aria-invalid=true]{border-color:var(--amber,#f5b65b);box-shadow:0 0 0 1px var(--amber,#f5b65b)}
+.fi-hint{font-size:13px;line-height:1.35;color:var(--text-meta,var(--muted))}
+.fi-summary{margin:0;font-size:17px;line-height:1.45}
+.fi-legend{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.fi-legend li{display:flex;align-items:center;gap:8px;min-width:0}
+.fi-legend .money-key{flex:none}
+.fi-table th small{display:block;font-weight:400;font-size:12px}
+@media (max-width:400px){.fi-table{font-size:13px}.fi-table th,.fi-table td{padding:5px 4px}}

@@ -52,6 +52,8 @@ import type {HostedState} from './use-hosted';
 import {getAccountScope} from '../../lib/account-session';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, onDevicePrompts, parseRewrite, readAs, shortReply} from '../../lib/ai/on-device-chat';
 import {staleHandles} from '../../lib/ai/handles';
+// Session AK (BUILD list 2 #1): recovery words or a key are never sent to an AI provider, nor kept in a chat.
+import {looksSecret, messagesHoldSecret, ZIGI_SECRET_STEPS, ZIGI_SECRET_TITLE} from '../../lib/secret-guard/guard';
 
 /**
  * One conversation with the person's own AI (ADR-012, Part 6). The request goes from this browser straight to the
@@ -179,6 +181,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const rememberArea = useCallback((chatId: string) => { if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
+    if (looksSecret(text)) { setFailure({kind: 'blocked', title: ZIGI_SECRET_TITLE, steps: [...ZIGI_SECRET_STEPS]}); return; } // Session AK (B2a #1): refused before anything is stored or sent
     // Session Y Part 4 (SECURITY_REVIEW_Y F4): a resend (Regenerate, Think deeper, "Send anyway", the monthly cap's confirm)
     // replays what the first send carried. It meets the gates of this moment: with Health no longer shared, a meal photo
     // and records chosen while Health was shared stay on the device.
@@ -262,7 +265,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       if (!frame.current) frame.current = nextFrame(flush);
     };
     // A request counts once the provider answers it (a refused one costs nothing and is not counted).
-    const counted = async function* (r: Parameters<typeof streamChat>[0]) { let seen = false; for await (const event of hosted && account ? streamHosted(r, account) : streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
+    const counted = async function* (r: Parameters<typeof streamChat>[0]) { if (messagesHoldSecret(r.messages)) throw new AiError('blocked', ZIGI_SECRET_TITLE); let seen = false; for await (const event of hosted && account ? streamHosted(r, account) : streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
     const record = () => {
       if (!requests) return;
       try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, {...(usage ?? {input: null, output: null}), ...cache}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
@@ -415,6 +418,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   }, [answerLocally]);
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
+    if (looksSecret(text)) { setFailure({kind: 'blocked', title: ZIGI_SECRET_TITLE, steps: [...ZIGI_SECRET_STEPS]}); return; } // Session AK (B2a #1): not answered, kept or sent
     if (connected && (options.images?.length || options.log || options.direct || options.plan)) return send(text, options);
     const env = localEnv();
     let reply: LocalReply = {kind: 'none'};

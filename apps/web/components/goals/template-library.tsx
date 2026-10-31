@@ -4,7 +4,7 @@ import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useState} from 'react';
 import {BUILT_IN_AREAS, type BuiltInArea} from '../../lib/goal-extras/store';
-import {searchTemplates, type LibraryTemplate} from '../../lib/templates/goal-library';
+import {GOAL_LIBRARY, searchTemplates, type LibraryTemplate} from '../../lib/templates/goal-library';
 import {SectionHeading} from '../ui/section-heading';
 import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
 import {TemplatesGlyph} from '../header-art/glyphs/templates';
@@ -15,7 +15,7 @@ const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goa
 export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals#goals-health' : `/app/goals/new?template=${t.id}`;
 
 /**
- * G6, the template library: 42 ready goals across every life area, searchable and filtered by area. A template fills
+ * G6, the template library: ready goals (Session AK F5a: the count is the library's own, savings challenges included) across every life area, searchable and filtered by area. A template fills
  * in the goal wizard (name, kind, area, milestones) and offers the habits that help; a money template never suggests an
  * amount. Nothing is saved until the wizard's own Save.
  */
@@ -26,7 +26,7 @@ export function TemplateLibrary() {
     <div className="page-heading header-art-host"><div>
       <p className="eyebrow page-eyebrow">Start from something proven</p>
       <h1>Goal templates</h1>
-      <p className="page-lede">Forty-two ready goals for every part of life. Pick one; the name, steps and habits are yours to change.</p>
+      <p className="page-lede">{GOAL_LIBRARY.length} ready goals for every part of life, savings challenges included. Pick one; the name, steps and habits are yours to change.</p>
     </div><HeaderArtCorner><OrbitArt glyph={TemplatesGlyph} tone="goals" spin={30}/></HeaderArtCorner></div>
     <div className="template-controls">
       <label className="field template-search"><span>Search templates</span><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Run, savings, sleep, language…" /></label>
@@ -57,7 +57,7 @@ function TemplateCard({t}: {t: LibraryTemplate}) {
 export function TemplateTeaser(layout: LayoutAttrs) {
   const picks = ['run-10k', 'emergency-fund', 'read-12'].map(id => searchTemplates('').find(t => t.id === id)!).filter(Boolean);
   return <section className="panel template-teaser" aria-labelledby="template-teaser-title" {...layout}>
-    <SectionHeading id="template-teaser-title" eyebrow="Start from something proven" title="Goal templates" lede="Forty-two ready goals across every life area." action={<Link className="secondary" href="/app/goals/templates">Browse all</Link>} />
+    <SectionHeading id="template-teaser-title" eyebrow="Start from something proven" title="Goal templates" lede={`${GOAL_LIBRARY.length} ready goals across every life area.`} action={<Link className="secondary" href="/app/goals/templates">Browse all</Link>} />
     <ul className="template-teaser-list">{picks.map(t => <li key={t.id}><Link href={templateHref(t)}><strong>{t.title}</strong><small>{t.summary}</small></Link></li>)}</ul>
     {/* Session AJ (item 34, A7): one step a day toward a goal, chosen by the person. */}
     <GuidedJourneysLink />

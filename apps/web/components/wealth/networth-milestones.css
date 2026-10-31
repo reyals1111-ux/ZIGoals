@@ -1,0 +1,26 @@
+/* Session AK (F5a, item 3): net-worth milestones (theme tokens, 44 px targets; the card's fade only with motion allowed). */
+.nwm{display:grid;gap:10px;margin:8px 0;min-width:0}
+.nwm-celebration{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:14px 16px;border-radius:18px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 45%,transparent);background:color-mix(in srgb,var(--violet,#8b7cff) 12%,transparent)}
+.nwm-celebration h3{margin:2px 0 4px;font-size:18px;overflow-wrap:anywhere}
+.nwm-celebration p{margin:0 0 8px}
+.nwm-celebration .eyebrow{margin:0}
+.nwm-symbol{font-size:22px;line-height:1;color:var(--violet,#8b7cff)}
+.nwm button,.nwm select,.nwm input[type=text],.nwm input:not([type]){min-height:44px}
+.nwm-settings summary{min-height:44px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;cursor:pointer}
+.nwm-settings summary small{color:var(--text-meta,var(--muted))}
+.nwm-body{display:grid;gap:10px;padding:4px 0 8px}
+.nwm-body p{margin:0}
+.nwm-row{display:flex;flex-wrap:wrap;align-items:end;gap:8px 16px}
+.nwm-check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.nwm-check input{width:22px;height:22px;flex:none;margin:0}
+.nwm-add{display:flex;flex-wrap:wrap;align-items:end;gap:8px}
+.nwm-add .field{flex:1 1 200px;min-width:0}
+.nwm-add input{width:100%;box-sizing:border-box}
+.nwm-list{list-style:none;margin:0;padding:0;display:grid}
+.nwm-list li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 12px;padding:6px 0;border-top:1px solid var(--line,rgba(140,160,220,.18))}
+.nwm-list small{color:var(--text-meta,var(--muted))}
+.nwm-status{margin:0;min-height:0}
+@media (prefers-reduced-motion:no-preference){
+  :root:not([data-app-motion=off]) .nwm-celebration{animation:nwm-in .6s ease-out both}
+}
+@keyframes nwm-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
