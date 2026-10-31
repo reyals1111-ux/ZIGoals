@@ -24,7 +24,10 @@ export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'pref
   'create-price-alert',
   // Session AK (Part 12): a bill reminder and the goal form filled in are about money; a rule, the grocery list, a what-if,
   // a scan and a soundscape are cards that change a device record, open a page or start sound on the person's own tap.
-  'set-bill-reminder', 'goal-draft', 'set-auto-rule', 'grocery-list', 'what-if', 'scan-food', 'start-soundscape'] as const satisfies readonly ActionKind[];
+  'set-bill-reminder', 'goal-draft', 'set-auto-rule', 'grocery-list', 'what-if', 'scan-food', 'start-soundscape',
+  // Owner follow-up 1 (F9): the debt planner's figures and a savings challenge are about money; a supplement is a health
+  // log the person confirms each time; the agenda and Wrapped open a page.
+  'log-supplement', 'set-debt-plan', 'start-savings-challenge', 'open-agenda', 'open-wrapped'] as const satisfies readonly ActionKind[];
 // Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night and the bell are Health kinds too.
 export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement', 'set-micro-target', 'set-macro-mode', 'coach-answer',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
@@ -93,6 +96,7 @@ export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
   // Session AK (Part 12): never automatic, so never offered as a switch.
   'set-auto-rule': 'Auto-complete rules (never automatic)', 'set-bill-reminder': 'Bill reminders (never automatic)', 'grocery-list': 'Grocery list items (never automatic)', 'goal-draft': 'The goal form, filled in (never automatic)',
   'what-if': 'What-if projections (never automatic)', 'scan-food': 'Opening a scan or photo (never automatic)', 'start-soundscape': 'Starting a soundscape (never automatic)',
+  'log-supplement': 'Supplements and medication (never automatic)', 'set-debt-plan': 'Debt planner figures (never automatic)', 'start-savings-challenge': 'Savings challenges (never automatic)', 'open-agenda': 'Opening the agenda', 'open-wrapped': 'Opening ZIGoals Wrapped',
   'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
   'edit-diary-entry': 'Changes to a diary entry', 'log-meal-plan': 'Logging a planned meal', 'grocery-notes': 'Grocery notes', 'set-favorite': 'Favourite foods and recipes', 'create-counter': 'New counters', 'edit-counter': 'Changes to a counter', 'set-target': 'Health targets', 'set-health-preference': 'Health units', 'start-night': 'Starting a night', 'end-night': 'Ending a night', 'set-bells': 'The meditation bell',
   'set-today-preset': 'Today presets', 'edit-link': 'Changes to a link', 'skip-review': 'Skipping a weekly review', 'set-review-weekday': 'The weekly review\'s day', 'set-wrap-up': 'The evening wrap-up', 'set-page-visibility': 'Showing or hiding pages and buttons', 'set-start-page': 'The start page', 'set-zigi-look': 'ZIGi\'s look and feel',

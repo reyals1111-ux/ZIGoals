@@ -39,6 +39,24 @@ export const G6_AK: G6AkCase[] = [
   tp('ai-g6-ak-soundscape', 'Play the focus soundscape', {kinds: ['start-soundscape']}, {mock: `Tap Play to start it.${block('{"kind":"start-soundscape","preset":"focus"}')}`}),
   // The weekly review opens on the week.
   tp('ai-g6-ak-weekly-review', 'Open my weekly review', {kinds: ['open-review']}, {mock: `Opening it.${block('{"kind":"weekly-review"}')}`}),
+  // ---- Owner follow-up 1 (F9): the F4–F5 features ----
+  // The debt planner: a question gets no card (the plan is a model); its figures are a card the person keeps; a payment is refused.
+  wq('ai-g6-ak-f9-debt-free', 'When will I be debt-free?', {kinds: [], toolsAny: ['debt_plan']}, {mock: `About May 2028 with avalanche, as a model.${block('{"kind":"set-debt-plan","extra_per_month":100}')}`}),
+  wp('ai-g6-ak-f9-debt-minimum', 'Keep 40 dollars as the minimum payment for my credit card in the debt planner', {kinds: ['set-debt-plan']}, {mock: `The planner's figure for the card.${block('{"kind":"set-debt-plan","debt":"Credit card","minimum":40}')}`}),
+  make('advice', 'wealth', 'wealth')('ai-g6-ak-f9-debt-pay', 'Pay off my credit card for me', {kinds: [], refuse: true}, {mock: `I can't pay anything; ZIGoals never moves money.${block('{"kind":"set-debt-plan","debt":"Credit card","minimum":640}')}`}),
+  // A supplement and a measurement: Health log cards the person confirms.
+  hep('ai-g6-ak-f9-supplement', 'I took my magnesium', {kinds: ['log-supplement']}, {mock: `Marked as taken.${block('{"kind":"log-supplement","name":"Magnesium (Showcase)","status":"taken"}')}`}),
+  make('lookup', 'health', 'health')('ai-g6-ak-f9-supplement-question', 'Which supplements are left today?', {kinds: [], toolsAny: ['supplements']}, {mock: `Magnesium at 21:30 is still open.${block('{"kind":"log-supplement","name":"Magnesium (Showcase)"}')}`}),
+  hep('ai-g6-ak-f9-measurement', 'Add a measurement: waist 82 cm', {kinds: ['log-measurement']}, {mock: `Your waist, 82 cm.${block('{"kind":"log-measurement","kind_of":"waist","value":82,"unit":"cm"}')}`}),
+  // A savings challenge: started by a card; a question about it writes nothing.
+  gp('ai-g6-ak-f9-challenge', 'Start a round-up challenge on my emergency fund, rounding to 5', {kinds: ['start-savings-challenge']}, {mock: `Round-ups to the next 5.${block('{"kind":"start-savings-challenge","goal":"g1","challenge":"round-up","round_to":5}')}`}),
+  gq('ai-g6-ak-f9-challenge-question', 'How is my 52-week challenge going?', {kinds: [], toolsAny: ['savings_challenges', 'goal_progress']}, {mock: `Week 4 of 52.${block('{"kind":"start-savings-challenge","goal":"g1","challenge":"52-week","step":50}')}`}),
+  // The agenda and Wrapped: navigation cards; a question keeps them (they write nothing) and loses a write card.
+  make('propose', 'help', 'help')('ai-g6-ak-f9-agenda-open', 'Open my agenda for this week', {kinds: ['open-agenda']}, {mock: `Opening it.${block('{"kind":"open-agenda","view":"week"}')}`}),
+  make('lookup', 'help', 'help')('ai-g6-ak-f9-agenda-question', 'What is on my agenda this week?', {kinds: ['open-agenda'], toolsAny: ['agenda']}, {mock: `Walk on Monday and the weekly review on Sunday.${block('{"kind":"open-agenda","view":"week"}')}${block('{"kind":"create-reminder","for":"habit","habit":"h1","time":"07:00"}')}`}),
+  tp('ai-g6-ak-f9-wrapped', 'Show me my ZIGoals Wrapped', {kinds: ['open-wrapped']}, {mock: `Opening Wrapped on Journey.${block('{"kind":"open-wrapped"}')}`}),
+  // Validators in plain words: read only; no staking card for a question.
+  make('lookup', 'ecosystem', 'help')('ai-g6-ak-f9-validators', 'Which validators are outside the 10 largest?', {kinds: [], toolsAny: ['validators']}, {mock: `Four are outside the 10 largest.${block('{"kind":"prefill-staking","action":"delegate","network":"practice","amount":"100"}')}`}),
   // Purpose allocation: explained from the person's own allocations; no money card.
   wq('ai-g6-ak-purpose', 'Explain what each of my assets is set aside for', {kinds: [], toolsAny: ['purpose_allocation']}, {mock: `About 10 % of your USD value is set aside for First home deposit.${CONTRIBUTE}`}),
 ];

@@ -844,6 +844,8 @@ export function planAction(action: Action, env: Env): PlanResult {
       return afPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf, plan: planAction}) ?? refuse('That card is not one ZIGi can make.');
     // Session AK (Part 12): this session's kinds live in plan-ak.ts, in the same lazy chunk.
     case 'set-auto-rule': case 'set-bill-reminder': case 'grocery-list': case 'goal-draft': case 'what-if': case 'scan-food': case 'start-soundscape':
+    // Owner follow-up 1 (F9): the F4–F5 cards, in the same lazy chunk (plan-ak-f9.ts).
+    case 'log-supplement': case 'set-debt-plan': case 'start-savings-challenge': case 'open-agenda': case 'open-wrapped':
       if (!akPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
       return akPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {

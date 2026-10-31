@@ -119,15 +119,22 @@ const AK_KIND: Record<string, string> = {
   'what-if': '- {"kind":"what-if","goal":"g1","extra_per_month":100} (or "regular_amount","regular_every":"week"|"two-weeks"|"month", or "target_date"; a projection, never a promise)',
   'scan-food': '- {"kind":"scan-food","mode":"barcode"|"label"|"meal-photo","barcode":"…"} (opens the reader; nothing logged until they confirm)',
   'start-soundscape': '- {"kind":"start-soundscape","preset":"focus"|"wind-down"|"sleep"}',
+  // Owner follow-up 1 (F9).
+  'log-supplement': '- {"kind":"log-supplement","name":"Vitamin D","status":"taken"|"skipped","time":"08:00"} (their own supplements and medication log; no advice)',
+  'set-debt-plan': '- {"kind":"set-debt-plan","debt":"Car loan","minimum":300,"rate_percent":5.9} or {"kind":"set-debt-plan","extra_per_month":100} (the debt planner\'s figures; pays nothing)',
+  'start-savings-challenge': '- {"kind":"start-savings-challenge","goal":"g1","challenge":"52-week","step":5} ("no-spend" with "target_days", "round-up" with "round_to":1|5|10; never moves money)',
+  'open-agenda': '- {"kind":"open-agenda","view":"day"|"week"|"month"} (the calendar of their plans)',
+  'open-wrapped': '- {"kind":"open-wrapped"} (their year, ZIGoals Wrapped)',
 };
 export const AK_KINDS_BY_AREA: Record<PageArea, readonly string[]> = {
   // Today carries no AK note: its prompt and records already sit near the default budget (zigi-page-awareness-af).
   today: [],
-  goals: ['goal-bundle', 'goal-draft', 'what-if'],
+  goals: ['goal-bundle', 'goal-draft', 'what-if', 'start-savings-challenge'],
   habits: ['set-auto-rule', 'goal-bundle'],
-  health: ['grocery-list', 'scan-food', 'start-soundscape'],
-  wealth: ['set-bill-reminder', 'goal-draft', 'what-if'],
-  help: [],
+  health: ['grocery-list', 'scan-food', 'start-soundscape', 'log-supplement'],
+  wealth: ['set-bill-reminder', 'goal-draft', 'what-if', 'set-debt-plan'],
+  // Owner follow-up 1 (F9): the Agenda, Journey and the Ecosystem pages are Help's area.
+  help: ['open-agenda', 'open-wrapped'],
 };
 export function akKindsNote(area: PageArea): string | null {
   const kinds = AK_KINDS_BY_AREA[area];

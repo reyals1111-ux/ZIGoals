@@ -121,6 +121,11 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'goal-draft': [text('name', 'Name'), num('target', 'Target', true), text('currency', 'Currency (EUR or USD)', true), {key: 'date', label: 'By', type: 'date', optional: true}],
   'what-if': [num('extra_per_month', 'Extra a month', true), num('regular_amount', 'A regular amount', true), {key: 'target_date', label: 'Target date', type: 'date', optional: true}],
   'scan-food': [], 'start-soundscape': [select('preset', 'Soundscape', ['focus', 'wind-down', 'sleep'])],
+  // Owner follow-up 1 (F9). The item, the debt and the goal are named by the card (ask again to change them).
+  'log-supplement': [select('status', 'Taken or skipped', ['taken', 'skipped']), text('time', 'Time (HH:MM)', true), DAY, text('dose', 'Dose (as you write it)', true)],
+  'set-debt-plan': [num('minimum', 'Minimum payment a month', true), num('rate_percent', 'Yearly rate (%)', true), num('extra_per_month', 'Extra a month', true)],
+  'start-savings-challenge': [num('step', 'Step (52-week)', true), select('order', 'Order', ['up', 'down'], true), int('target_days', 'No-spend days to aim for', true), {key: 'start', label: 'From', type: 'date', optional: true}],
+  'open-agenda': [select('view', 'View', ['day', 'week', 'month'], true)], 'open-wrapped': [],
   'prefill-staking': [select('action', 'What to fill in', STAKING_ACTIONS), select('network', 'Network', STAKING_NETWORKS, false), text('validator', 'Validator (its zigvaloper address or its name)', true), text('amount', 'Amount in ZIG', true)],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];

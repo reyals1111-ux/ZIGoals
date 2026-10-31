@@ -18,6 +18,7 @@ import type {AaHelpers} from './plan-aa';
 import type {Env, PlanResult} from './plan';
 import type {Action} from './schema';
 import {AK_SOUNDSCAPES} from './schema-ak';
+import {planAkF9Action, type F9Records} from './plan-ak-f9';
 
 /**
  * Session AK (Part 12): the planner's cases for this session's kinds, in the lazy planner chunk (plan-aa.ts re-exports
@@ -27,7 +28,7 @@ import {AK_SOUNDSCAPES} from './schema-ak';
  * Arguments are data: a name is matched against the person's own records (one match, never a guess), a figure is checked
  * against the owner's own rules, and the patch a card carries has one fixed shape (ak-writes.ts checks it again).
  */
-export type AkRecords = {autoRules: AutoRules; bills: BillsRecord; unreadable?: boolean};
+export type AkRecords = {autoRules: AutoRules; bills: BillsRecord; unreadable?: boolean; /** Owner follow-up 1 (F9): the F4–F5 records, when the caller read them (plan-ak-f9.ts). */ f9?: F9Records};
 /** The effects only the runner can perform (components/ai/use-proposals.ts): a draft kept for a form, a soundscape. */
 export type AkEffect = {stash?: {key: typeof GOAL_WIZARD_DRAFT_KEY; value: Record<string, unknown>}; soundscape?: (typeof AK_SOUNDSCAPES)[number]; button?: string};
 const AK_RECORDS_UNREADABLE = 'The records for this card cannot be read on this device, so nothing was proposed.';
@@ -153,7 +154,8 @@ export function planAkAction(action: Action, env: Env, h: Helpers): PlanResult |
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Play the ${preset.label} soundscape`, lines: ['Made on this device: nothing is downloaded', minutes ? `Fades out after ${minutes} minutes` : 'Plays until you stop it', 'Stop it from the music button'], where: 'Music', day: null, estimate: false},
         write: () => ({}), undo: null, ak: {soundscape: action.preset, button: 'Play'}}};
     }
-    default: return null;
+    // Owner follow-up 1 (F9): the F4–F5 cards (plan-ak-f9.ts).
+    default: return planAkF9Action(action, env, h);
   }
 }
 const newUnit = (source: AutoRule['source']) => ({steps: 'steps', sleep: 'hours', workout: 'minutes', water: 'mL', contribution: 'goal-unit', 'active-minutes': 'minutes'} as const)[source];

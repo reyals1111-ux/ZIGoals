@@ -15,6 +15,7 @@ import type {ToolEnv} from './env';
 import {capRows, num, ok, plural, provenance, refuse, text} from './format';
 import {findGoal} from './goals';
 import {NO_ARGS, type ToolDefinition} from './types';
+import type {F9ToolSources} from './f9-tools';
 
 /**
  * Session AK (Part 12): ZIGi's read-only tools for this session's features, over the person's own device records only
@@ -23,7 +24,7 @@ import {NO_ARGS, type ToolDefinition} from './types';
  * for). Nothing here writes, fetches or suggests an amount; money stays per currency, never converted; a value the app
  * does not know is "unknown", never 0. Names are the person's own words, escaped as data (text()).
  */
-export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord | null; priceAlerts?: PriceAlerts | null};
+export type AkToolSources = {autoRules?: AutoRules | null; bills?: BillsRecord | null; priceAlerts?: PriceAlerts | null} & F9ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 
 export const autoRulesTool: ToolDefinition<Record<string, never>> = {
