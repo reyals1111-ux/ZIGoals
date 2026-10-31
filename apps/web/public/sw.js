@@ -4,9 +4,12 @@
 //    action queue (zigoals-notify-actions-v1); the page applies them once, with Undo. Nothing about an item ever leaves
 //    the device: a snooze only adds a wake minute to this device's registration.
 // 2. Offline (QA-23, A4): navigations and the app's own page data are network-first with a short timeout, the cached
-//    copy used only offline; hashed /_next/static files and brand assets are cache-first. Never cached: /api/*, any
-//    other origin, anything but GET, and anything but a 200 basic response. Caches carry the build version and leave
-//    when a new version takes over. The pages cached hold no personal data (all records live in the browser's storage).
+//    copy used only offline; only hashed /_next/static files are cache-first; icons, brand art, fonts and the manifest
+//    are network-first in this build's own cache. Never cached: /api/*, any other origin, anything but GET, anything but
+//    a 200 basic response, and (security review F3) any address with a query other than _rsc (a shared text, a name
+//    typed into a link, a barcode, an OAuth code), the share target and the OAuth callbacks: those come from the network
+//    and are never stored. Caches carry the build version and leave when a new version takes over (the hashed files'
+//    cache excepted: a hashed name never changes content). The pages cached hold no personal data.
 // 3. Updates: a new version waits until the page says "Reload" (or no window is open).
 // The composer (sw-compose part): kept inline because this worker's own CSP ('strict-dynamic', Trusted Types) refuses
 // importScripts — a worker that loads no other script is also one less thing to trust.
@@ -47,7 +50,7 @@
     if (kinds.morning) lines.unshift(summary ? 'Good morning. ' + summary : 'Good morning. Your orbit is ready.');
     if (kinds.evening) lines.unshift(summary ? 'Evening wrap-up. ' + summary : 'Evening wrap-up: how did today go?');
     var first = due[0], actionable = habits.filter(function (h) { return h.actionable; });
-    var url = kinds.morning ? '/app/checklist' : first && typeof first.href === 'string' && first.href.charAt(0) === '/' ? first.href : '/app';
+    var url = kinds.morning ? '/app/checklist' : (first && appPath(first.href)) || '/app';
     if (!lines.length) return {title: 'ZIGoals', body: summary ? summary + ' Nothing is due right now.' : 'Nothing is due right now.', tag: 'zigoals-summary', actions: [], data: {url: '/app', items: []}};
     var actions = actionable.length ? [{action: 'done', title: 'Done'}, {action: 'snooze', title: 'Snooze 1 h'}] : (kinds.morning || kinds.evening || kinds.review) ? [] : [{action: 'snooze', title: 'Snooze 1 h'}];
     return {title: 'ZIGoals', body: lines.join(' · ').slice(0, 240), tag: 'zigoals-reminder', actions: actions, data: {url: url, date: snapshot && snapshot.summary ? snapshot.summary.date : null, items: due.filter(function (i) { return i.kind !== 'morning' && i.kind !== 'evening'; }).map(function (i) { return {kind: i.kind, id: i.id, at: i.at}; })}};
@@ -72,13 +75,25 @@
     });
     return out;
   }
+  // Security review I1: a notification opens only an address of this app: same origin (so never //host or /\host) and
+  // under /app. Anything else is null and the caller opens /app.
+  function appPath(href) {
+    if (typeof href !== 'string' || !href) return null;
+    try {
+      var origin = scope.location && scope.location.origin, url = new URL(href, origin);
+      return url.origin === origin && (url.pathname === '/app' || url.pathname.indexOf('/app/') === 0) ? url.pathname + url.search + url.hash : null;
+    } catch { return null; }
+  }
   scope.zigoalsCompose = compose;
+  scope.zigoalsAppPath = appPath;
   scope.zigoalsCrossedAlerts = crossedAlerts;
 })(typeof self !== 'undefined' ? self : this);
 
 const VERSION = new URL(self.location.href).searchParams.get('v') || 'legacy';
 const OFFLINE = VERSION !== 'legacy' && /^[0-9a-z-]{4,40}$/.test(VERSION);
-const PAGES = 'zigoals-pages-' + VERSION, STATIC = 'zigoals-static-v1', KEEP = [PAGES, STATIC];
+// STATIC holds only hashed /_next/static files (content never changes under a name); ASSETS holds the unhashed public
+// files for this build and leaves with it.
+const PAGES = 'zigoals-pages-' + VERSION, STATIC = 'zigoals-static-v1', ASSETS = 'zigoals-assets-' + VERSION, KEEP = [PAGES, STATIC, ASSETS];
 const MAX_PAGES = 80, MAX_STATIC = 400, NETWORK_MS = 3500;
 const NOTIFY_DB = 'zigoals-notify-v1', ACTIONS_DB = 'zigoals-notify-actions-v1';
 // The notification's art (Session AK Part 12, Studio-4 preparation): ONE slot that every notification below reads. Studio-4's
@@ -107,19 +122,32 @@ self.addEventListener('message', event => {
 });
 
 // ---- Offline ---------------------------------------------------------------------------------------------------
-const isStatic = url => url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/brand/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/fonts/') || url.pathname === '/theme-boot.js' || url.pathname === '/manifest.webmanifest';
+const isHashed = url => url.pathname.startsWith('/_next/static/');
+const isAsset = url => url.pathname.startsWith('/brand/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/fonts/') || url.pathname === '/theme-boot.js' || url.pathname === '/manifest.webmanifest';
 const isPage = (request, url) => request.mode === 'navigate' || (request.headers.get('RSC') === '1' && url.pathname.startsWith('/app'));
+// Never stored, with or without a query: the share target and the OAuth callbacks (Spotify's path; Lichess's and the
+// Health links' carry a query, which is never stored either).
+const NEVER_STORED = ['/app/share', '/app/music/spotify'];
+const neverStored = url => NEVER_STORED.some(p => url.pathname === p || url.pathname.startsWith(p + '/'));
+/** A page or page-data address that may be kept: no query but the router's own _rsc, and not one of the above. */
+function storable(url) {
+  if (neverStored(url)) return false;
+  for (const key of url.searchParams.keys()) if (key !== '_rsc') return false;
+  return true;
+}
+const race = request => Promise.race([fetch(request), new Promise((_, reject) => setTimeout(() => reject(Error('slow')), NETWORK_MS))]);
 async function trim(name, max) { const cache = await caches.open(name), keys = await cache.keys(); for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]); }
 function cacheable(response) { return response && response.status === 200 && response.type === 'basic' && !response.headers.get('content-disposition'); }
-async function networkFirst(request) {
-  const cache = await caches.open(PAGES);
+async function networkFirst(request, url) {
+  const cache = await caches.open(PAGES), keep = storable(url);
   try {
-    const response = await Promise.race([fetch(request), new Promise((_, reject) => setTimeout(() => reject(Error('slow')), NETWORK_MS))]);
-    if (cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); }
+    const response = await race(request);
+    if (keep && cacheable(response)) { await cache.put(request, response.clone()); trim(PAGES, MAX_PAGES); }
     return response;
   } catch {
-    // Only this page's own copy: another page's would open at the wrong address. A page never visited gets the plain line below.
-    const cached = await cache.match(request, {ignoreVary: false});
+    // Only this page's own copy: another page's would open at the wrong address. An address with a query opens its page's
+    // plain copy (the address, query and all, stays in the browser). A page never visited gets the plain line below.
+    const cached = keep ? await cache.match(request, {ignoreVary: false}) : request.mode === 'navigate' && !neverStored(url) ? await cache.match(new Request(url.origin + url.pathname), {ignoreVary: false}) : null;
     if (cached) return cached;
     return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline · ZIGoals</title><body style="font:16px system-ui;background:#020918;color:#eef;padding:24px"><h1>You are offline</h1><p>This page was not saved on this device yet. Open ZIGoals once while online and it will work offline next time.</p><p><a style="color:#9cf" href="/app">Open Today</a></p>', {status: 503, headers: {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store'}});
   }
@@ -131,28 +159,52 @@ async function cacheFirst(request) {
   if (cacheable(response)) { await cache.put(request, response.clone()); trim(STATIC, MAX_STATIC); }
   return response;
 }
+/** Security review F7: an unhashed file (an icon, a font, the manifest) can change under its name, so the network comes first. */
+async function assetNetworkFirst(request) {
+  const cache = await caches.open(ASSETS);
+  try {
+    const response = await race(request);
+    if (cacheable(response)) { await cache.put(request, response.clone()); trim(ASSETS, MAX_STATIC); }
+    return response;
+  } catch {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw Error('offline');
+  }
+}
 self.addEventListener('fetch', event => {
   if (!OFFLINE) return;
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
-  if (isStatic(url)) { event.respondWith(cacheFirst(request)); return; }
-  if (isPage(request, url) && url.pathname.startsWith('/app')) event.respondWith(networkFirst(request));
+  if (isHashed(url)) { event.respondWith(cacheFirst(request)); return; }
+  if (isAsset(url)) { event.respondWith(assetNetworkFirst(request)); return; }
+  if (isPage(request, url) && url.pathname.startsWith('/app')) event.respondWith(networkFirst(request, url));
 });
 
 // ---- IndexedDB (read the snapshot; queue actions) ----------------------------------------------------------------
-function openDb(name, store, keyPath) {
+// Security review F8: this worker never creates a database. The page makes both (lib/notify/db.ts, when notifications go
+// on); after "Turn off" or Erase everything they are gone, and a late push or tap must not bring them back. Opened with
+// no version, a missing database asks for an upgrade, which is aborted (so nothing is created) and read as null; a
+// database without the store is null too. Null means: skip the work.
+function openDb(name, store) {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(name, 1);
-    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(store)) request.result.createObjectStore(store, keyPath ? {keyPath} : undefined); };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    const request = indexedDB.open(name);
+    let missing = false;
+    request.onupgradeneeded = () => { missing = true; try { request.transaction.abort(); } catch { /* the open fails below */ } };
+    request.onsuccess = () => {
+      const db = request.result;
+      if (missing || !db.objectStoreNames.contains(store)) { db.close(); resolve(null); return; }
+      resolve(db);
+    };
+    request.onerror = () => { if (missing) resolve(null); else reject(request.error); };
     request.onblocked = () => reject(Error('blocked'));
   });
 }
-async function dbRun(name, store, mode, work, keyPath) {
-  const db = await openDb(name, store, keyPath);
+async function dbRun(name, store, mode, work) {
+  const db = await openDb(name, store);
+  if (!db) return undefined;
   try {
     return await new Promise((resolve, reject) => {
       const tx = db.transaction(store, mode), request = work(tx.objectStore(store));
@@ -163,7 +215,7 @@ async function dbRun(name, store, mode, work, keyPath) {
 }
 const kvGet = key => dbRun(NOTIFY_DB, 'kv', 'readonly', s => s.get(key));
 const kvPut = (key, value) => dbRun(NOTIFY_DB, 'kv', 'readwrite', s => { s.put(value, key); });
-const queue = action => dbRun(ACTIONS_DB, 'actions', 'readwrite', s => { s.put(action); }, 'actionId');
+const queue = action => dbRun(ACTIONS_DB, 'actions', 'readwrite', s => { s.put(action); });
 const withTimeout = (promise, ms, fallback) => Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
 async function tell(message) { for (const client of await self.clients.matchAll({type: 'window', includeUncontrolled: true})) client.postMessage(message); }
 
@@ -225,7 +277,7 @@ self.addEventListener('notificationclick', event => {
     })());
     return;
   }
-  const url = typeof data.url === 'string' && data.url.charAt(0) === '/' ? data.url : '/app';
+  const url = self.zigoalsAppPath(data.url) || '/app';
   event.waitUntil(self.clients.matchAll({type: 'window', includeUncontrolled: true}).then(clients => {
     const open = clients.find(client => typeof client.focus === 'function');
     if (open) { open.postMessage({type: 'zigoals:push-open', url}); return open.focus(); }

@@ -1,6 +1,7 @@
 import {pushDeviceRequest} from '../../../lib/server/push-device-route';
 import {loadRuntimeBindings} from '../../../lib/server/runtime-bindings';
 import {PUBLIC_INTEGRATIONS} from '../../../lib/public-integrations';
+import {marketClientGroup} from '../../../lib/server/market-client-address';
 export const dynamic='force-dynamic';
 type Fetcher={fetch:(request:Request)=>Promise<Response>};
 type Bindings={ZIGOALS_PUSH_DEVICE_ORIGIN?:string;PUSH_DEVICE?:Fetcher};
@@ -11,12 +12,15 @@ type Bindings={ZIGOALS_PUSH_DEVICE_ORIGIN?:string;PUSH_DEVICE?:Fetcher};
  * build answers 503 "being switched on" (docs/run11/PUSH_PUBLIC_ALPHA.md).
  */
 async function handle(request:Request){
+ // The Worker's per-client share of new devices counts against the edge address group (IPv4, or IPv6 by /48), taken only
+ // from Cloudflare's cf-connecting-ip; the forwarded request is built anew, so an x-push-client the caller sent never travels.
+ const client=marketClientGroup(request.headers.get('cf-connecting-ip'));
  const bindings=await loadRuntimeBindings<Bindings>();
  const workerOrigin=bindings.ZIGOALS_PUSH_DEVICE_ORIGIN??null;
  // As in the account route: the middleware's inbound origin is the only same-origin authority.
  const inbound=request.headers.get('x-zigoals-origin');if(inbound){const url=new URL(request.url),trusted=new URL(inbound);if(trusted.origin!==inbound||!['https:','http:'].includes(trusted.protocol))return Response.json({error:'ORIGIN_DENIED'},{status:403});request=new Request(new URL(url.pathname+url.search,inbound),request);}
  const fetcher:typeof fetch=async(input,init)=>{const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;if(workerOrigin&&new URL(url).origin===workerOrigin&&bindings.PUSH_DEVICE)return bindings.PUSH_DEVICE.fetch(new Request(input,init));return fetch(input,init);};
- return pushDeviceRequest(request,{enabled:PUBLIC_INTEGRATIONS.pushDeviceEnabled,publicKey:PUBLIC_INTEGRATIONS.pushVapidPublicKey,workerOrigin},fetcher);
+ return pushDeviceRequest(request,{enabled:PUBLIC_INTEGRATIONS.pushDeviceEnabled,publicKey:PUBLIC_INTEGRATIONS.pushVapidPublicKey,workerOrigin},fetcher,client);
 }
 export const GET=handle;
 export const PUT=handle;

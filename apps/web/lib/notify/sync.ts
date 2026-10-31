@@ -15,6 +15,7 @@ import {formatNumber} from '../visual-format';
 import {habitWeekdays} from '../push/schedule';
 import {storedHabits} from '../push/device';
 import {namesOn} from '../push/labels-sync';
+import {readHabitHealthLinks} from '../habit-health-links/store';
 import {deviceZone} from '../push/support';
 import {NOTIFY_PREFS} from './prefs';
 import {addDays, wallClock} from './zone';
@@ -32,7 +33,10 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   const storage = getAppStorage(), zone = deviceZone(), today = wallClock(now, zone).date;
   const prefs = readDeviceRecord(storage, NOTIFY_PREFS).data, plan = readDeviceRecord(storage, REMINDERS_PLAN).data, w = readDeviceRecord(storage, W_REMINDERS).data;
   const reminders = readReminders(storage).data, locked = !!readLock(storage);
-  const input: PlanInput = {now, zone, prefs, quiet: quietHours(plan), labels: namesOn(storage) && !locked, habits: [], contributions: [], bills: [], orbit: {done: 0, total: 0}, prices: []};
+  // ADR-010's rule (lib/push/labels-sync.ts; security review F4): a habit that ticks itself off from Health never shows its
+  // name; when the links cannot be read, no name shows at all.
+  const links = readHabitHealthLinks(storage), healthLinked = links.unreadable ? null : new Set(Object.keys(links.data.links));
+  const input: PlanInput = {now, zone, prefs, quiet: quietHours(plan), labels: namesOn(storage) && !locked && healthLinked !== null, habits: [], contributions: [], bills: [], orbit: {done: 0, total: 0}, prices: []};
   try {
     const habits = await storedHabits(storage);
     if (habits) {
@@ -42,7 +46,7 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
         if (status === 'due' || status === 'partial' || status === 'complete') { input.orbit.total++; if (status === 'complete') input.orbit.done++; }
         const reminder = reminders.habits[habit.id];
         if (!reminder) continue;
-        input.habits.push({id: habit.id, title: habit.title, time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
+        input.habits.push({id: habit.id, ...(healthLinked?.has(habit.id) ? {} : {title: habit.title}), time: reminder.time, weekdays: habitWeekdays(habits, habit.id, day), doneToday: !(status === 'due' || status === 'partial') || reminders.dismissed[habit.id] === day});
       }
     }
   } catch { /* habits unreadable: no habit wakes */ }

@@ -17,7 +17,8 @@ export const registrationSchema = z.object({
   quiet: z.object({from: time, to: time}).strict(),
   wakes: z.array(z.object({m: z.number().int().min(0).max(1439), d: z.number().int().min(1).max(127)}).strict()).max(48),
   once: z.array(minute).max(48), skips: z.array(minute).max(96),
-}).strict().refine(r => r.wakes.length + r.once.length <= 48);
+  // At least one wake or one-off (security review F2): a device with nothing to wake for turns off with DELETE instead.
+}).strict().refine(r => r.wakes.length + r.once.length >= 1 && r.wakes.length + r.once.length <= 48);
 const identitySchema = z.object({id, secret}).strict();
 const reply = (data: unknown, status = 200) => Response.json(data, {status, headers: {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'}});
 async function bounded(source: Request | Response, max: number): Promise<unknown> {
@@ -29,7 +30,12 @@ async function bounded(source: Request | Response, max: number): Promise<unknown
   return JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(all));
 }
 const originOk = (value: string | null) => { if (!value) return false; try { const u = new URL(value); return u.origin === value && (u.protocol === 'https:' || u.hostname === '127.0.0.1'); } catch { return false; } };
-export async function pushDeviceRequest(request: Request, config: PushDeviceConfig, fetcher: typeof fetch = fetch): Promise<Response> {
+/**
+ * `client` is the edge address group from marketClientGroup (built from cf-connecting-ip only, never a header the caller
+ * sent). It travels only with a registration, as `x-push-client`, so the Worker can count each group's share of the new
+ * devices an hour (security review F1); the Worker stores no address or group.
+ */
+export async function pushDeviceRequest(request: Request, config: PushDeviceConfig, fetcher: typeof fetch = fetch, client: string | null = null): Promise<Response> {
   const self = new URL(request.url).origin, ready = config.enabled && !!config.publicKey && originOk(config.workerOrigin);
   if (request.method === 'GET') return reply(ready ? {enabled: true, publicKey: config.publicKey} : {enabled: false, ...SWITCHING_ON});
   if (!['PUT', 'DELETE', 'POST'].includes(request.method)) return reply({error: 'METHOD_NOT_ALLOWED'}, 405);
@@ -43,7 +49,8 @@ export async function pushDeviceRequest(request: Request, config: PushDeviceConf
   if (!ready && !(request.method === 'DELETE' && originOk(config.workerOrigin))) return reply(SWITCHING_ON, 503);
   try {
     const path = request.method === 'POST' ? '/v1/device/test' : '/v1/device';
-    const remote = await fetcher(`${config.workerOrigin}${path}`, {method: request.method, headers: {origin: self, 'content-type': 'application/json'}, body: JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(10_000), cache: 'no-store'});
+    const headers: Record<string, string> = {origin: self, 'content-type': 'application/json', ...(request.method === 'PUT' && client ? {'x-push-client': client} : {})};
+    const remote = await fetcher(`${config.workerOrigin}${path}`, {method: request.method, headers, body: JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(10_000), cache: 'no-store'});
     return reply(await bounded(remote, 8192), remote.status);
   } catch { return reply({error: 'PUSH_SERVICE_UNAVAILABLE', message: 'Notifications could not be reached right now. Try again later.'}, 503); }
 }

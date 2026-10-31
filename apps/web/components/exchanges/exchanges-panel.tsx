@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useEffect, useMemo, useRef, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {EXCHANGES, EXCHANGE_NAMES, type ExchangeCall, type ExchangeId} from '../../lib/exchanges/allowlist';
 import {signCall} from '../../lib/exchanges/sign';
@@ -8,6 +8,8 @@ import {forgetExchangeKey, openExchangeKey, sealExchangeKey} from '../../lib/exc
 import {EXCHANGES_RECORD, exchangesSchema, type ExchangesRecord} from '../../lib/exchanges/record';
 import {GUIDES, KEY_LABELS} from '../../lib/exchanges/guides';
 import {formatDateTime, formatExactNumber} from '../../lib/visual-format';
+import {useSearchParams} from 'next/navigation';
+import {READ_PARAM, takeOfferedRead} from '../../lib/notify/offline-offer';
 // Session AK (7.2): "Last synced … · Refresh now" and the automatic read while ZIGoals is open, visible and online, in its own chunk.
 const ExchangeAutoRefresh = lazy(() => import('../wealth/allocation/last-synced').then(m => ({default: m.ExchangeAutoRefresh})));
 
@@ -24,6 +26,22 @@ async function relay(exchange: ExchangeId, call: ExchangeCall, keyId: string, se
   if (!res.ok || !out || out.error) throw Error(out?.error ?? 'The relay could not be reached.');
   if ((out.status ?? 500) >= 400 && exchange !== 'kraken') throw Error(`${EXCHANGE_NAMES[exchange]} refused the request (HTTP ${out.status}). Check the key and its permissions.`);
   return out.data;
+}
+/**
+ * Security review F6: the "Read now" link of the back-online toast (components/notify/notify-sync.tsx) carries a one-time
+ * token only this tab knows; the read runs here, on that tap, once. Any other `?read=` reads nothing. The token leaves the
+ * address at once. Its own Suspense boundary, as useSearchParams needs on a prerendered page.
+ */
+function OfferedRead({ready, onRead}: {ready: boolean; onRead: (exchange: string) => void}) {
+  // Null outside Next's router (a component test renders the panel bare): then nothing was offered.
+  const params = useSearchParams() as ReturnType<typeof useSearchParams> | null, token = params?.get(READ_PARAM) ?? null;
+  useEffect(() => {
+    if (!ready || !token) return;
+    const exchange = takeOfferedRead(token);
+    try { const url = new URL(window.location.href); url.searchParams.delete(READ_PARAM); window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* the address keeps a spent token */ }
+    if (exchange) onRead(exchange);
+  }, [ready, token, onRead]);
+  return null;
 }
 export function ExchangesPanel({showcase}: {showcase: boolean}) {
   const record = useDeviceRecord(EXCHANGES_RECORD), [adding, setAdding] = useState<ExchangeId | null>(null), [busy, setBusy] = useState(false);
@@ -65,7 +83,8 @@ export function ExchangesPanel({showcase}: {showcase: boolean}) {
   const latest = useRef(read);
   useEffect(() => { latest.current = read; });
   const readers = useMemo(() => Object.fromEntries(EXCHANGES.map(e => [e, () => latest.current(e)])) as Record<ExchangeId, () => Promise<number>>, []);
-  // Session AK Part 3: a refresh asked for while offline is fired again on reconnect (components/notify/notify-sync.tsx).
+  // Session AK Part 3: a page-level request to read one exchange now (kept for other callers). A refresh asked for while
+  // offline is no longer fired by itself on reconnect: it is offered as a toast and read only on its tap (OfferedRead).
   const connectedIds = EXCHANGES.filter(e => record.loaded && record.data.connections[e]).join('|');
   useEffect(() => {
     if (showcase) return;
@@ -78,6 +97,12 @@ export function ExchangesPanel({showcase}: {showcase: boolean}) {
     window.addEventListener('zigoals:exchange-refresh', onRefresh);
     return () => window.removeEventListener('zigoals:exchange-refresh', onRefresh);
   }, [showcase, connectedIds, readers]);
+  // The read a tapped "Read now" asked for (OfferedRead below): only an exchange connected on this device.
+  const readOffered = useCallback((exchange: string) => {
+    if (!connectedIds.split('|').includes(exchange)) return;
+    const e = exchange as ExchangeId;
+    readers[e]().then(n => setNote(`${EXCHANGE_NAMES[e]}: ${n} ${n === 1 ? 'asset' : 'assets'} read.`), () => { /* the connection shows its own error */ });
+  }, [connectedIds, readers]);
   /** "Read balances": while offline, kept and offered again on reconnect (lib/offline-queue), never read in the background. */
   async function readNow(e: ExchangeId) {
     setBusy(true); setError(''); setNote('');
@@ -85,13 +110,14 @@ export function ExchangesPanel({showcase}: {showcase: boolean}) {
     catch (cause) {
       let kept = false;
       if (typeof navigator !== 'undefined' && navigator.onLine === false) { try { kept = await (await import('../../lib/offline-queue/queue')).enqueue('exchange-refresh', e); } catch { kept = false; } }
-      setError(kept ? `You’re offline. ZIGoals will read ${EXCHANGE_NAMES[e]} again when you’re back online.` : cause instanceof Error ? cause.message : 'Not read.');
+      setError(kept ? `You’re offline. When you’re back online, ZIGoals offers to read ${EXCHANGE_NAMES[e]} again.` : cause instanceof Error ? cause.message : 'Not read.');
     } finally { setBusy(false); }
   }
   if (!record.loaded) return null;
   const connected = EXCHANGES.filter(e => record.data.connections[e]);
   return <section className="panel exchanges-panel" aria-labelledby="exchanges-title">
     <h3 id="exchanges-title">Exchanges (read-only)</h3>
+    {!showcase && <Suspense fallback={null}><OfferedRead ready={connectedIds !== ''} onRead={readOffered} /></Suspense>}
     {showcase ? <p className="fine">Exchanges are not connected in the Showcase.</p> : <>
       {connected.map(e => { const c = record.data.connections[e]!; return <article key={e} className="exchange-connection" aria-label={EXCHANGE_NAMES[e]}>
         <p><strong>{EXCHANGE_NAMES[e]}</strong> · read-only</p>

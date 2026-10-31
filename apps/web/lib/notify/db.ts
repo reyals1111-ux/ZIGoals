@@ -41,6 +41,9 @@ export const putAction = (action: QueuedAction) => run(NOTIFY_ACTIONS_DB, 'actio
 /**
  * Claims an action for this tab: in ONE read-write transaction, the action is read and, only when it is still unapplied,
  * marked applied. IndexedDB runs read-write transactions on a store one at a time, so two tabs can never both claim it.
+ * AT-MOST-ONCE (security review I3): the mark is written before the action is applied, so a tab that closes or fails
+ * between the claim and the change leaves that tap unapplied, never applied twice; the person sees no toast for it and
+ * can tick the habit by hand.
  */
 export async function claimAction(actionId: string, now: number): Promise<boolean> {
   const db = await open(NOTIFY_ACTIONS_DB, 'actions', 'actionId');

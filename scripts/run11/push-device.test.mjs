@@ -52,6 +52,12 @@ test('pure: a registration says exactly what it may, within limits',()=>{
  expect(validRegistration({...ok,secret:'short'},MONDAY_07)).toBeNull();
  expect(validRegistration({...ok,id:'not-a-uuid'},MONDAY_07)).toBeNull();
  expect(validRegistration({...ok,quiet:{from:'25:00',to:'07:00'}},MONDAY_07)).toBeNull();
+ // F2 (Session AK security review): nothing to wake for is refused; the device turns off with DELETE instead.
+ expect(validRegistration({...ok,wakes:[],once:[]},MONDAY_07)).toBeNull();
+ expect(validRegistration({...ok,wakes:[],once:[(MONDAY_07+60*60000)/60000]},MONDAY_07)).toMatchObject({wakes:[],once:[(MONDAY_07+60*60000)/60000]});
+ // The front door checks the shape only (now null): the device's own object checks the times.
+ expect(validRegistration({...ok,once:[(MONDAY_07+40*DAY)/60000]},null)).not.toBeNull();
+ expect(validRegistration({...ok,wakes:[],once:[]},null)).toBeNull();
 });
 
 test('routes: the key, the origin pin, unknown paths and an unconfigured Worker',async()=>{
@@ -168,5 +174,67 @@ test('the fixture route does not exist outside the test runtime',async()=>{
  const r=await deviceRuntime({fixture:false});try{
   expect((await r.call('/v1/device/fixture',{id:crypto.randomUUID(),now:1,alarm:true})).status).toBe(404);
   expect(APP_ORIGIN).toBe('https://app.test');
+ }finally{await r.dispose();}
+},60_000);
+
+// Session AK security review F1: junk PUTs (any Origin from a script) used to count against the deployment's hourly
+// registrations before validation, the endpoint allowlist and the secret check, so 3,000 of them blocked every
+// registration, refresh and the service worker's Snooze for an hour. Now only a NEW, valid device counts, in all and per
+// client group; a known device's refresh with its own secret never does.
+test('F1: junk never counts against the hourly registrations; only a new valid device does, in all and per client group; a refresh never does',async()=>{
+ const r=await deviceRuntime();try{
+  const put=async(who,over={},headers={})=>{await r.clock(who.id,MONDAY_07);const res=await r.call('/v1/device',registration(who,over),{method:'PUT',headers});const out={status:res.status,body:await res.json()};return out;};
+  const junk={};
+  for(let i=0;i<DEVICE_LIMITS.globalPutsPerHour+50;i++){
+   const who=deviceIdentity(),kind=i%3;
+   const res=await r.call('/v1/device',kind===0?registration(who,{endpoint:'https://not-allowed.example/x'}):kind===1?registration(who,{wakes:[],once:[]}):{...registration(who),label:'Walk'},{method:'PUT'});
+   junk[res.status]=(junk[res.status]??0)+1;await res.arrayBuffer();
+  }
+  expect(junk).toEqual({400:DEVICE_LIMITS.globalPutsPerHour+50});
+  // A forged client value is refused, not counted.
+  expect((await put(deviceIdentity(),{},{'x-push-client':'not-a-group'})).status).toBe(400);
+  // One client group's share of new devices an hour; another group still registers.
+  const group='v4:203.0.113.9',other='v6:2001:0db8:0001::/48';let admitted=0;
+  for(let i=0;i<DEVICE_LIMITS.groupPutsPerHour;i++)if((await put(deviceIdentity(),{},{'x-push-client':group})).status===200)admitted++;
+  expect(admitted).toBe(DEVICE_LIMITS.groupPutsPerHour);
+  expect(await put(deviceIdentity(),{},{'x-push-client':group})).toEqual({status:429,body:{error:'TRY_LATER'}});
+  const known=deviceIdentity();expect((await put(known,{},{'x-push-client':other})).status).toBe(200);
+  // The rest of the hour's budget, then the next new device waits; a known device's refresh still goes through.
+  for(let i=DEVICE_LIMITS.groupPutsPerHour+1;i<DEVICE_LIMITS.globalPutsPerHour;i++)expect((await put(deviceIdentity())).status).toBe(200);
+  expect(await put(deviceIdentity())).toEqual({status:429,body:{error:'TRY_LATER'}});
+  const refresh=await put(known,{wakes:[{m:480,d:ALL},{m:540,d:ALL}]});
+  expect(refresh).toEqual({status:200,body:{registered:true,next:MONDAY_08,wakes:2}});
+  // A taken id with the wrong secret still answers like an unknown one, and counts nothing.
+  expect((await put({id:known.id,secret:deviceIdentity().secret})).status).toBe(404);
+ }finally{await r.dispose();}
+},300_000);
+
+test('F1: a known device\'s refreshes are held by its own hourly and daily limits',async()=>{
+ const r=await deviceRuntime();try{
+  const {who}=await registered(r);
+  const refresh=async now=>{await r.clock(who.id,now);return (await r.call('/v1/device',registration(who),{method:'PUT'})).status;};
+  for(let i=1;i<DEVICE_LIMITS.putsPerHour;i++)expect(await refresh(MONDAY_07)).toBe(200);
+  expect(await refresh(MONDAY_07)).toBe(429);
+  const left=DEVICE_LIMITS.putsPerDay-DEVICE_LIMITS.putsPerHour;
+  for(let i=0;i<left;i++)expect(await refresh(MONDAY_07+3_600_000)).toBe(200);
+  expect(await refresh(MONDAY_07+3_600_000)).toBe(429);
+  // The next UTC day starts again.
+  expect(await refresh(MONDAY_07+DAY)).toBe(200);
+ }finally{await r.dispose();}
+},120_000);
+
+test('F2: a registration with nothing to wake for is refused; a device whose one-offs all passed sleeps until its 30-day end, never daily',async()=>{
+ const r=await deviceRuntime();try{
+  const empty=deviceIdentity();await r.clock(empty.id,MONDAY_07);
+  const refused=await r.call('/v1/device',registration(empty,{wakes:[],once:[]}),{method:'PUT'});
+  expect(refused.status).toBe(400);expect(await refused.json()).toEqual({error:'INVALID_DEVICE_REQUEST'});
+  expect((await r.clock(empty.id,MONDAY_07)).record).toBeNull();
+  const {who,answer}=await registered(r,{wakes:[],once:[MONDAY_08/60000]});
+  expect(answer).toEqual({registered:true,next:MONDAY_08,wakes:1});
+  expect((await r.clock(who.id,MONDAY_07)).alarmAt).toBe(MONDAY_08);
+  const ran=await r.clock(who.id,MONDAY_08+5000,true);
+  expect(ran.run).toEqual({sent:true,skipped:null,deleted:false});
+  expect(ran.record.next).toBeNull();
+  expect(ran.alarmAt).toBe(MONDAY_07+DEVICE_LIMITS.ttlMs+60_000);
  }finally{await r.dispose();}
 },60_000);

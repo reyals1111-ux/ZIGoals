@@ -73,7 +73,7 @@ describe('the preferences', () => {
 });
 
 type Shown = {title: string; options: {body: string; actions?: unknown[]; data?: {url: string; items: unknown[]}}};
-function swSandbox({snapshot, failDb = false, fetchImpl}: {snapshot?: unknown; failDb?: boolean; fetchImpl?: (url: string, init?: unknown) => Promise<unknown>} = {}) {
+function swSandbox({snapshot, failDb = false, fetchImpl, idb, cachesImpl}: {snapshot?: unknown; failDb?: boolean; fetchImpl?: (url: string, init?: unknown) => Promise<unknown>; idb?: unknown; cachesImpl?: unknown} = {}) {
   const handlers: Record<string, (e: unknown) => void> = {}, shown: Shown[] = [], posted: unknown[] = [];
   const store = new Map<string, unknown>([['snapshot', snapshot]]);
   const fakeIdb = {
@@ -98,10 +98,10 @@ function swSandbox({snapshot, failDb = false, fetchImpl}: {snapshot?: unknown; f
     registration: {active: null, showNotification: async (title: string, options: Shown['options']) => { shown.push({title, options}); }},
     crypto: {randomUUID: () => 'x'},
   };
-  const context = vm.createContext({self, indexedDB: fakeIdb, caches: {keys: async () => [], open: async () => ({}), delete: async () => true}, fetch: fetchImpl ?? (async () => { throw Error('offline'); }), Request, Response, URL, Date, Promise, setTimeout, clearTimeout, Math, JSON, Number, String, Array, Set, Map, Object, Error, BigInt});
+  const context = vm.createContext({self, indexedDB: idb ?? fakeIdb, caches: cachesImpl ?? {keys: async () => [], open: async () => ({}), delete: async () => true}, fetch: fetchImpl ?? (async () => { throw Error('offline'); }), Request, Response, URL, Date, Promise, setTimeout, clearTimeout, Math, JSON, Number, String, Array, Set, Map, Object, Error, BigInt});
   vm.runInContext(readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8'), context);
   const push = async () => { const waits: Promise<unknown>[] = []; handlers.push!({data: null, waitUntil: (p: Promise<unknown>) => waits.push(p)}); await Promise.all(waits); };
-  return {handlers, shown, posted, push, compose: (self as unknown as {zigoalsCompose: (s: unknown, now: number) => {body: string; actions: {action: string}[]; data: {url: string}}}).zigoalsCompose};
+  return {handlers, shown, posted, push, compose: (self as unknown as {zigoalsCompose: (s: unknown, now: number) => {body: string; actions: {action: string}[]; data: {url: string}}}).zigoalsCompose, appPath: (self as unknown as {zigoalsAppPath: (h: unknown) => string | null}).zigoalsAppPath};
 }
 
 describe('the service worker', () => {
@@ -169,4 +169,92 @@ describe('applying a queued Done', () => {
 test('the worker loads no other script: its own CSP (strict-dynamic, Trusted Types) would refuse importScripts', () => {
   const source = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
   expect(source).not.toMatch(/importScripts\s*\(/);
+});
+
+// Session AK security review F3, F7, F8, I1: what the offline cache keeps, the unhashed files, databases the worker must
+// not create, and the address a notification may open.
+type FakeCache = {put: (r: {url: string}, v: unknown) => Promise<void>; match: (r: {url: string}) => Promise<unknown>; keys: () => Promise<unknown[]>; delete: () => Promise<boolean>};
+function fakeCaches() {
+  const stores = new Map<string, Map<string, unknown>>(), deleted: string[] = [];
+  const open = async (name: string): Promise<FakeCache> => {
+    const entries = stores.get(name) ?? new Map<string, unknown>(); stores.set(name, entries);
+    return {put: async (r, v) => { entries.set(r.url, v); }, match: async r => entries.get(r.url), keys: async () => [...entries.keys()], delete: async () => true};
+  };
+  return {stores, deleted, impl: {open, keys: async () => [...stores.keys()], delete: async (name: string) => { deleted.push(name); stores.delete(name); return true; }}};
+}
+const ok = () => ({status: 200, type: 'basic', headers: new Headers(), clone() { return this; }});
+const page = (path: string, rsc = false) => ({method: 'GET', url: 'https://app.test' + path, mode: rsc ? 'cors' : 'navigate', headers: new Headers(rsc ? {RSC: '1'} : {})});
+async function fetchThrough(sw: ReturnType<typeof swSandbox>, request: unknown) {
+  let answer: Promise<unknown> | undefined;
+  sw.handlers.fetch!({request, respondWith: (p: Promise<unknown>) => { answer = p; }});
+  return answer ? await answer.catch(e => e) : 'not handled';
+}
+
+describe('the service worker’s offline cache and openings (security review)', () => {
+  it('F3: keeps a page only without a query (but _rsc); never the share target or an OAuth callback', async () => {
+    const caches = fakeCaches(), fetched: string[] = [];
+    const sw = swSandbox({cachesImpl: caches.impl, fetchImpl: async r => { fetched.push((r as unknown as {url: string}).url); return ok(); }});
+    for (const path of ['/app/habits', '/app/share?title=Hi&text=secret&url=https%3A%2F%2Fx.test', '/app/share', '/app/goals/new?name=My%20plan', '/app/health?barcode=4006381333931', '/app/music/spotify?code=abc&state=xyz', '/app/music/spotify', '/app/chess?lichess=callback&code=abc&state=xyz', '/app/health?code=abc&state=xyz'])
+      await fetchThrough(sw, page(path));
+    await fetchThrough(sw, page('/app/habits?_rsc=1a2b', true));
+    await fetchThrough(sw, page('/app/habits?view=list&_rsc=1a2b', true));
+    expect(fetched).toHaveLength(11); // every one went to the network
+    expect([...caches.stores.get('zigoals-pages-abc123')!.keys()].sort()).toEqual(['https://app.test/app/habits', 'https://app.test/app/habits?_rsc=1a2b']);
+  });
+  it('F3: offline, an address with a query opens its page’s plain copy; the share target gets the offline line', async () => {
+    const caches = fakeCaches();
+    (await caches.impl.open('zigoals-pages-abc123')).put({url: 'https://app.test/app/health'}, 'health page');
+    (await caches.impl.open('zigoals-pages-abc123')).put({url: 'https://app.test/app/share'}, 'never stored, but even so');
+    const sw = swSandbox({cachesImpl: caches.impl});
+    expect(await fetchThrough(sw, page('/app/health?view=sleep'))).toBe('health page');
+    const share = await fetchThrough(sw, page('/app/share?text=x')) as Response;
+    expect(share.status).toBe(503);
+  });
+  it('F7: only hashed /_next/static files are cache-first; icons and the manifest come from the network, in this build’s cache', async () => {
+    const caches = fakeCaches(), fetched: string[] = [];
+    (await caches.impl.open('zigoals-static-v1')).put({url: 'https://app.test/_next/static/chunks/a.js'}, 'cached chunk');
+    (await caches.impl.open('zigoals-static-v1')).put({url: 'https://app.test/icons/zigoals-192.png'}, 'old icon');
+    const sw = swSandbox({cachesImpl: caches.impl, fetchImpl: async r => { fetched.push((r as unknown as {url: string}).url); return ok(); }});
+    const get = (path: string) => ({method: 'GET', url: 'https://app.test' + path, mode: 'no-cors', headers: new Headers()});
+    expect(await fetchThrough(sw, get('/_next/static/chunks/a.js'))).toBe('cached chunk');
+    await fetchThrough(sw, get('/icons/zigoals-192.png'));
+    await fetchThrough(sw, get('/manifest.webmanifest'));
+    expect(fetched).toEqual(['https://app.test/icons/zigoals-192.png', 'https://app.test/manifest.webmanifest']);
+    expect([...caches.stores.get('zigoals-assets-abc123')!.keys()]).toEqual(['https://app.test/icons/zigoals-192.png', 'https://app.test/manifest.webmanifest']);
+    // A new build's worker drops the older build's pages and assets, and keeps the hashed files.
+    (await caches.impl.open('zigoals-assets-old1'));
+    (await caches.impl.open('zigoals-pages-old1'));
+    const waits: Promise<unknown>[] = [];
+    sw.handlers.activate!({waitUntil: (p: Promise<unknown>) => waits.push(p)}); await Promise.all(waits);
+    expect(caches.deleted.sort()).toEqual(['zigoals-assets-old1', 'zigoals-pages-old1']);
+  });
+  it('F8: a missing database is never created: the upgrade is aborted, the push still shows one notification, a tap queues nothing', async () => {
+    let aborted = 0, upgrades = 0;
+    const idb = {open: (_name: string, version?: number) => {
+      expect(version).toBeUndefined();
+      const request: Record<string, unknown> = {transaction: {abort: () => { aborted++; }}};
+      setTimeout(() => { upgrades++; (request.onupgradeneeded as () => void)(); (request.onerror as () => void)(); });
+      return request;
+    }};
+    const sw = swSandbox({idb});
+    await sw.push();
+    expect(sw.shown).toHaveLength(1);
+    const waits: Promise<unknown>[] = [];
+    sw.handlers.notificationclick!({action: 'done', notification: {data: {items: [{kind: 'habit', id: 'h1', at: NOW}]}, close() {}}, waitUntil: (p: Promise<unknown>) => waits.push(p)});
+    await Promise.all(waits);
+    expect(aborted).toBe(upgrades);
+    expect(aborted).toBeGreaterThan(1);
+  });
+  it('I1: a notification opens only this app’s /app addresses', async () => {
+    const sw = swSandbox();
+    for (const bad of ['//evil.test/app', '/\\evil.test/app', 'https://evil.test/app', 'javascript:alert(1)', '/settings', '/application', '', null])
+      expect(sw.appPath(bad), String(bad)).toBeNull();
+    expect(sw.appPath('/app/habits?x=1#y')).toBe('/app/habits?x=1#y');
+    expect(sw.appPath('/app')).toBe('/app');
+    expect(sw.compose({items: [{at: NOW, kind: 'water', id: 'water', href: '//evil.test/x'}]}, NOW).data.url).toBe('/app');
+    const waits: Promise<unknown>[] = [];
+    sw.handlers.notificationclick!({action: '', notification: {data: {url: '//evil.test/app'}, close() {}}, waitUntil: (p: Promise<unknown>) => waits.push(p)});
+    await Promise.all(waits);
+    expect(sw.posted).toEqual([{type: 'zigoals:push-open', url: '/app'}]);
+  });
 });

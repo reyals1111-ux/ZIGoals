@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {expect, test, vi} from 'vitest';
 vi.mock('server-only', () => ({}));
 const {pushDeviceRequest, SWITCHING_ON} = await import('./push-device-route');
@@ -41,4 +43,23 @@ test('DELETE and the test send carry the identity only; DELETE still reaches the
   const del = await pushDeviceRequest(req('DELETE', who), {enabled: false, publicKey: null, workerOrigin: WORKER}, fetcher as unknown as typeof fetch);
   expect(del.status).toBe(200);
   expect((fetcher.mock.calls[1] as unknown as [string, RequestInit])[1].method).toBe('DELETE');
+});
+
+// Session AK security review F1, F2: an empty wake list is refused here too; the client group travels only with a
+// registration, from the route's own value, never from a header the caller sent.
+test('a registration with nothing to wake for is refused; the client group goes with PUT only', async () => {
+  const fetcher = vi.fn(async () => Response.json({registered: true}));
+  expect((await pushDeviceRequest(req('PUT', {...registration, wakes: [], once: []}), on, fetcher as unknown as typeof fetch, 'v4:203.0.113.9')).status).toBe(400);
+  expect(fetcher).not.toHaveBeenCalled();
+  expect((await pushDeviceRequest(req('PUT', {...registration, wakes: [], once: [29_000_000]}), on, fetcher as unknown as typeof fetch)).status).toBe(200);
+  await pushDeviceRequest(req('PUT', registration, {'x-push-client': 'v4:198.51.100.1'}), on, fetcher as unknown as typeof fetch, 'v4:203.0.113.9');
+  await pushDeviceRequest(req('PUT', registration, {'x-push-client': 'v4:198.51.100.1'}), on, fetcher as unknown as typeof fetch, null);
+  await pushDeviceRequest(req('DELETE', who), on, fetcher as unknown as typeof fetch, 'v4:203.0.113.9');
+  const sent = (fetcher.mock.calls as unknown as [string, RequestInit][]).map(([, init]) => (init.headers as Record<string, string>)['x-push-client'] ?? null);
+  expect(sent).toEqual([null, 'v4:203.0.113.9', null, null]);
+});
+test('the route takes the client group from cf-connecting-ip only', () => {
+  const source = readFileSync(join(__dirname, '..', '..', 'app', 'api', 'push-device', 'route.ts'), 'utf8');
+  expect(source).toMatch(/marketClientGroup\(request\.headers\.get\('cf-connecting-ip'\)\)/);
+  expect(source).not.toMatch(/headers\.get\(['"]x-push-client/i);
 });

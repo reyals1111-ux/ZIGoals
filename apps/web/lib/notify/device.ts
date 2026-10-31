@@ -3,7 +3,7 @@ import {getAccountScope} from '../account-session';
 import {applicationServerKey, clearPushRecord, postPush, readPushRecord} from '../push/client';
 import {deviceZone} from '../push/support';
 import {appRegistration, registerAppWorker} from '../sw/register';
-import {forgetNotifyDatabases, kvDelete, kvGet, kvPut} from './db';
+import {forgetNotifyDatabases, kvDelete, kvGet, kvPut, readActions} from './db';
 import {currentPlan} from './sync';
 import {registrationKey, type Registration} from './plan';
 
@@ -57,15 +57,21 @@ export async function turnOnNotifications(publicKey: string): Promise<TurnOn> {
     return {ok: false, message: error instanceof Error && error.name === 'NotAllowedError' ? BLOCKED : 'This browser could not set up notifications right now. Try again later.'};
   }
   const identity = newIdentity();
-  try { await kvPut('device', identity); } catch { await sub.unsubscribe().catch(() => {}); return {ok: false, message: 'This device could not keep the setting (its storage refused), so nothing was set up.'}; }
+  // The action queue is made here, by the page: the service worker never creates a database (security review F8), so a
+  // "Done" tapped before ZIGoals opens again still has somewhere to wait.
+  try { await kvPut('device', identity); await readActions(); } catch { await sub.unsubscribe().catch(() => {}); return {ok: false, message: 'This device could not keep the setting (its storage refused), so nothing was set up.'}; }
   const result = await refreshNotifications({force: true, endpoint: sub.endpoint});
   if (!result.ok) { await turnOffNotifications(); return {ok: false, message: result.message}; }
   return {ok: true, note: result.message};
 }
 export type Refresh = {ok: boolean; message: string; sent: boolean};
+/** Nothing to wake for: the Worker refuses an empty wake list (security review F2). */
+export const emptyRegistration = (r: Registration) => r.wakes.length + r.once.length === 0;
 /**
  * Keeps the snapshot and the wake list current: the snapshot is rewritten every time; the wake list is sent again only
- * when it changed, or once a day (which also keeps the Worker's 30-day record alive).
+ * when it changed, or once a day (which also keeps the Worker's 30-day record alive). With nothing to wake for, the
+ * device's server record leaves instead (DELETE with its secret), once per change: the identity and the subscription
+ * stay, so the next reminder registers again.
  */
 export async function refreshNotifications({force = false, endpoint, now = Date.now()}: {force?: boolean; endpoint?: string; now?: number} = {}): Promise<Refresh> {
   const identity = await kvGet<Identity>('device').catch(() => undefined);
@@ -75,11 +81,20 @@ export async function refreshNotifications({force = false, endpoint, now = Date.
   await kvPut('snapshot', plan.snapshot).catch(() => {});
   const zone = deviceZone(), key = registrationKey(zone, plan.snapshot.quiet, plan.registration), stored = await kvGet<StoredRegistration>('registration').catch(() => undefined);
   const message = [plan.refused.length ? `${plan.refused.length} reminder ${plan.refused.length === 1 ? 'time falls' : 'times fall'} inside your quiet hours and will not notify.` : '', plan.dropped ? `Only the ${48} earliest wake times are kept; ${plan.dropped} later ${plan.dropped === 1 ? 'one is' : 'ones are'} left out.` : ''].filter(Boolean).join(' ');
-  if (!force && stored && stored.key === key && now - stored.at < 20 * 3_600_000) return {ok: true, message, sent: false};
+  const empty = emptyRegistration(plan.registration);
+  if (!force && stored && stored.key === key && (empty || now - stored.at < 20 * 3_600_000)) return {ok: true, message, sent: false};
   const sub = endpoint ? null : await (await appRegistration())?.pushManager.getSubscription();
   const target = endpoint ?? sub?.endpoint;
   if (!target) { await turnOffNotifications(); return {ok: false, message: 'Your browser gave up its push subscription, so notifications are off on this device. Turn them on again when you like.', sent: false}; }
   const body = {endpoint: target, zone, quiet: plan.snapshot.quiet, ...plan.registration};
+  if (empty) {
+    try {
+      const res = await api('DELETE', identity);
+      if (!res.ok && res.status !== 404) return {ok: false, message: 'The notification times could not be sent right now; ZIGoals tries again later.', sent: false};
+    } catch { return {ok: false, message: 'The notification times could not be sent right now; ZIGoals tries again later.', sent: false}; }
+    await kvPut('registration', {key, at: now, body} satisfies StoredRegistration).catch(() => {});
+    return {ok: true, message, sent: true};
+  }
   try {
     const res = await api('PUT', {...body, ...identity});
     if (res.status === 404) { await kvDelete('device').catch(() => {}); return {ok: false, message: 'The notification service no longer knew this device. Turn notifications on again.', sent: false}; }
@@ -88,16 +103,27 @@ export async function refreshNotifications({force = false, endpoint, now = Date.
   await kvPut('registration', {key, at: now, body} satisfies StoredRegistration).catch(() => {});
   return {ok: true, message, sent: true};
 }
-/** Off on this device: the server record (DELETE with the secret), the browser subscription and both databases leave. The worker stays for offline use. */
+/**
+ * Off on this device (and the first step of Erase everything): the notifications already shown close (security review
+ * F8), then the server record (DELETE with the secret), the browser subscription and both databases leave. The worker
+ * stays for offline use.
+ */
 export async function turnOffNotifications(): Promise<void> {
+  await closeShownNotifications();
   const identity = await kvGet<Identity>('device').catch(() => undefined);
   if (identity) { try { await api('DELETE', identity); } catch { /* the Worker deletes it after 30 days, or at its first 404/410 */ } }
   try { const sub = await (await appRegistration())?.pushManager.getSubscription(); await sub?.unsubscribe(); } catch { /* nothing to undo */ }
   await forgetNotifyDatabases();
 }
+/** Every notification this app's worker shows (its own and ADR-010's, one scope) closes; never throws. */
+export async function closeShownNotifications(): Promise<void> {
+  try { for (const note of await (await appRegistration())?.getNotifications() ?? []) note.close(); } catch { /* nothing shown */ }
+}
 export async function sendTestNotification(): Promise<string> {
   const identity = await kvGet<Identity>('device').catch(() => undefined);
   if (!identity) return 'Turn notifications on first.';
+  const stored = await kvGet<StoredRegistration>('registration').catch(() => undefined);
+  if (stored && emptyRegistration(stored.body)) return 'Nothing is set to notify yet. Turn on a notification type or give a habit a reminder time, then try again.';
   try {
     const res = await api('POST', identity);
     return res.ok ? 'A test notification is on its way. It can take up to a minute.' : res.status === 429 ? 'Three test notifications an hour at most. Try again later.' : 'The test notification could not be sent right now.';

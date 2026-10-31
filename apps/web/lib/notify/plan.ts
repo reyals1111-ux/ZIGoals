@@ -16,8 +16,11 @@ export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'
 export type Registration = {wakes: {m: number; d: number}[]; once: number[]; skips: number[]};
 export type PlanInput = {
   now: number; zone: string; prefs: NotifyPrefs; quiet: {from: string; to: string}; labels: boolean;
-  /** A habit with a reminder time: its weekday mask for the coming week and whether today is already done. */
-  habits: {id: string; title: string; time: string; weekdays: number; doneToday: boolean}[];
+  /**
+   * A habit with a reminder time: its weekday mask for the coming week and whether today is already done. `title` only for
+   * a habit not linked to Health (ADR-010's rule, security review F4): a Health-linked habit never shows its name.
+   */
+  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean}[];
   water?: {time: string; toGo: string | null; done: boolean};
   windDown?: {time: string; doneToday: boolean};
   review?: {time: string; weekday: number};
@@ -37,7 +40,7 @@ export function buildPlan(input: PlanInput): Plan {
   const {now, zone, prefs, quiet, labels} = input, today = wallClock(now, zone).date, until = now + WINDOW_MS;
   const items: PlanItem[] = [], recurring: {m: number; d: number; kind: ItemKind; id: string; done: (date: string) => boolean}[] = [], once = new Map<number, ItemKind>(), refused: Plan['refused'] = [];
   const dates = [today, addDays(today, 1), addDays(today, 2)];
-  const label = (text: string) => labels ? text.slice(0, 60) : undefined;
+  const label = (text: string | undefined) => labels && text ? text.slice(0, 60) : undefined;
   const push = (item: Omit<PlanItem, 'label'> & {label?: string}) => { if (item.at > now - 3_600_000 && item.at <= until) items.push(item.label === undefined ? withoutLabel(item) as PlanItem : item as PlanItem); };
   /** A recurring reminder: refused inside quiet hours (said on the card), otherwise a wake and its items for 48 h. */
   const daily = (kind: ItemKind, id: string, time: string, mask: number, make: (date: string, at: number) => Omit<PlanItem, 'at' | 'kind' | 'id'> | null, done: (date: string) => boolean) => {

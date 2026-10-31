@@ -9,6 +9,8 @@ import {readPushRecord} from '../../lib/push/client';
 import {showToast} from '../ui/undo-toast';
 
 const REMINDERS_CHANGE = 'zigoals:reminders-change', PRIVATE_CHANGE = 'zigoals:private-change';
+/** The device lock's event (components/device-lock.tsx LOCK_EVENT): locking hides names from notifications at once (F5). */
+const LOCK_EVENT = 'zigoals-device-lock';
 export const NOTIFY_CHANGE = 'zigoals:notify-change';
 let headroomShown = false;
 const hereOn = () => { try { return !isShowcase() && readDeviceRecord(getAppStorage(), NOTIFY_PREFS).data.here === true; } catch { return false; } };
@@ -48,27 +50,32 @@ export function NotifySync() {
     const onVisible = () => { if (document.visibilityState === 'hidden') void refresh(); else { void apply().then(refresh); } };
     const onMessage = (event: MessageEvent) => { const type = (event.data as {type?: unknown} | null)?.type; if (type === 'zigoals:notify-action') void apply().then(refresh); };
     idle(() => { void apply().then(refresh); });
-    // Session AK Part 3: what the person asked for while offline is offered again, never run by itself.
+    // Session AK Part 3 (security review F6): what the person asked for while offline is OFFERED again, never run by
+    // itself: one toast per reconnect (a toast replaces the one before), and the job leaves only once it was offered. An
+    // exchange is read only when "Read now" is tapped (lib/notify/offline-offer.ts).
     const onOnline = async () => {
       if (!active) return;
       try {
-        const queue = await import('../../lib/offline-queue/queue');
+        const [queue, {offerFor}] = await Promise.all([import('../../lib/offline-queue/queue'), import('../../lib/notify/offline-offer')]);
         for (const job of await queue.readJobs()) {
-          if (job.kind === 'food-lookup') showToast({message: `You’re back online. Look up barcode ${job.value} now?`, link: {href: `/app/health?barcode=${job.value}`, label: 'Look it up'}});
-          else window.dispatchEvent(new CustomEvent('zigoals:exchange-refresh', {detail: job.value}));
+          const offer = offerFor(job);
+          if (offer && active) showToast(offer);
           await queue.removeJob(job.id);
+          if (offer) break;
         }
       } catch { /* no queue on this device */ }
     };
+    // Security review F5: locking (or unlocking) rewrites the snapshot at once, so no name shows after the lock goes on.
+    const onLock = () => { void refresh(); };
     window.addEventListener('online', onOnline);
     // Session AK (8.9): the backup reminder is shown on Settings → Your data (components/restore/backup-reminder.tsx), never
     // as a toast on another page, and nothing is written until the person acts.
     // Session AK (A6): once per visit, if a module is nearly full, say so calmly with what to do.
     idle(() => { if (!active || headroomShown) return; headroomShown = true; void import('../../lib/storage-headroom').then(m => { const line = m.headroomMessage(m.moduleUse(window.localStorage)); if (line && active) showToast({message: line, link: {href: '/app/settings/data', label: 'Your data'}}); }).catch(() => {}); });
     const every = window.setInterval(() => { void refresh(); }, 10 * 60_000);
-    window.addEventListener(REMINDERS_CHANGE, later); window.addEventListener(PRIVATE_CHANGE, later); window.addEventListener(NOTIFY_CHANGE, later); window.addEventListener('storage', later); document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener(REMINDERS_CHANGE, later); window.addEventListener(PRIVATE_CHANGE, later); window.addEventListener(NOTIFY_CHANGE, later); window.addEventListener(LOCK_EVENT, onLock); window.addEventListener('storage', later); document.addEventListener('visibilitychange', onVisible);
     navigator.serviceWorker?.addEventListener('message', onMessage);
-    return () => { active = false; window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
+    return () => { active = false; window.clearTimeout(timer); window.clearInterval(every); window.removeEventListener(REMINDERS_CHANGE, later); window.removeEventListener(PRIVATE_CHANGE, later); window.removeEventListener(NOTIFY_CHANGE, later); window.removeEventListener(LOCK_EVENT, onLock); window.removeEventListener('storage', later); window.removeEventListener('online', onOnline); document.removeEventListener('visibilitychange', onVisible); navigator.serviceWorker?.removeEventListener('message', onMessage); };
   }, []);
   if (!waiting) return null;
   const reload = () => {
