@@ -16,6 +16,7 @@ import {appNonceFindings, priceFinding, readLiveBaseFee, reviewReason, reviewedR
 import {BASE_FEE_REST_PATH, TESTNET, checkVersion, formatGazig, parseBaseFee} from '../../packages/chain-config/src/index.ts';
 import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
 import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
+import {AK_STAGE} from './hosted-alpha-ak.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 
@@ -247,6 +248,8 @@ export const VERIFIER_STAGES = Object.freeze([
   // Session AF (ADR-028 H57): new stages are appended, never inserted; existing numbers never change.
   EARN_STAGE,
   CHECKLIST_STAGE,
+  // Session AK Part 14 (TIER 3 (verifier)): the AK stage; its off switches are recorded, never a failure.
+  AK_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**
