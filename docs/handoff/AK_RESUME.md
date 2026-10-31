@@ -26,15 +26,30 @@ Parts in order: 0 records → 1 integrations (WalletConnect, food Worker, EU foo
 - Part 7 wiring (`5074567f`); Parts 5–6 wiring (`a74c33af`); Part 4 health (`7d435846`); Part 9 Lichess (`1f84a28e`).
 - PRIVACY lines (`4948628d`); Daylio/Habitica/YNAB (`322096dc`); focus and wind-down sounds (`9c902707`); CI pin fixes (`8c718525`); theme sheets (`987460f9`, build them from a clean worktree at HEAD, never from the shared tree while lanes run); ADR closing rows (`9c6fc39c`); verifier stage 11 (`d80a1d0d`).
 
-## Lanes in flight (wave C, started ~31 Oct late)
-- M money (COMPETITORS 1, 10, 11, 12, 17, 18, 22), S self/insights (2, 6, 9, 13, 14), X cross-pillar (8.1–8.7, item 19), T training/nutrition (3, 5, 8, 15, 20, 21). Rules for lanes: scratchpad lane-rules.md (recreate from this list if lost).
+## Owner follow-up 1 (F0–F12, 31 Oct evening) — the current plan
+Full text: ADR-036 "Owner follow-up 1". Work until about Sun 1 Nov 11:00 UTC and beyond until done; Part 13 swap moved out
+(F11 instead); A13 is an owner check after the deploy. Up to 6 helper lanes + fresh F1/F2 agents.
 
-## To do by the lead (after wave C)
-- PRIVACY.md lines: food scans, nutrient extras, grocery, calorie week, meal photos (opt-in, IndexedDB, exported as files), Lichess token (device-only, revoke on Disconnect).
-- Help/What's new for Parts 4–10 + the A19 tour (a 'Take the tour' button in the What's-new card, sheet lazy, device key); frozen readers rerun with all new keys; route weights on a build; browser runs: switch-more-ak, chess-play-ak, hosted-verifier-order (stage 11), page-order-aa.
-- Brief text for Parts 10–16 saved in scratchpad brief-parts-10-16.md (Part 12 Studio-4 constants are there).
-- Known limitation to record: new grocery ticks are device-only (earlier ticks in the Health journal still count).
-- Then Parts 11–16 as planned.
+### Browser slot protocol
+One build or browser run at a time: every Playwright run and every rebuild of the clean worktree goes through
+`flock /tmp/claude-0/-home-user-ZIGoals/a64d6793-df8d-5435-a8c1-37163e44c609/scratchpad/browser.lock -c '<command>'`.
+The production server runs on 127.0.0.1:3101 from the clean worktree (scratchpad/ak-build, a detached checkout of a
+pushed commit); only the lead rebuilds it. Chromium, ≤ 2 workers, `timeout 900`.
+
+### Lanes (wave F; files each lane owns)
+- F0x leftovers lane: intermittents' tests and causes, M4, H113, M8, missing tests (ZI4, ZI8, ZI9, ZI14, G15, landing
+  skip link), the 'first Monday of the month' schedule, a visible sync status, 6.5 toast, 7.8 wealth polish, M42 — files
+  named in its brief.
+- F3 research: docs/research/session-ak/COMPETITORS_2.md only.
+- F4 ZIGChain: docs/research/session-ak/ZIGCHAIN_ECOSYSTEM.md, lib/zigchain-eco/*, components/zigchain-eco/*, the staking
+  validator chooser and staking read-only views (components/staking/validator*, lib/staking read-only modules), the
+  ecosystem directory files; egress-policy/PRIVACY entries proposed in its report (the lead applies them).
+- F5a goals & money: lib/debt-planner/*, lib/savings-challenges/*, lib/networth-milestones/*, components/goals/{debt,challenges}*.
+- F5b health: lib/supplements/*, components/health/supplements*, the progress-photo compare and measurement trends.
+- F5c habits: lib/habit-stacks*/, lib/habit-intentions/*, lib/habit-time-suggest/*, components/habits/{stack,intention,time-suggest}*.
+- F5d cross-pillar: lib/agenda/*, lib/ics/*, lib/wrapped/*, components/agenda/*, components/wrapped/*, the command palette.
+- F1 release review (fresh, read-only; docs/review/session-ak/RELEASE_REVIEW.md) and F2 journeys (fresh; tests/journeys/*).
+- Later waves: F6 visual (lead + helper), F7 landing, F8 perf/a11y, F9 ZIGi, F10 security delta, F11 Studio-4 proof.
 
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.

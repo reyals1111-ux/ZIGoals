@@ -179,6 +179,147 @@ Every still-open row of ADR-028 to ADR-035 and the STATUS entries since AG Polis
 | Protected or decided | H72, H126, H129, H131/AF13, H138(c), I11, I13, K11, L26, L28/M54, "Evening Orbit" fade, M44, TR7/M19, M23, GO3/M33, TO1/M40, WE2, ST4/LA5, M39, TO5, TO7, TO11, H3, SE1, SE4, SE10, SE13, F1, MO4 pricing, RM1 local models, N15, N18–N31 (device-only records), D12, D6, P20 | ADR-028 to ADR-035 | d (each keeps its recorded reason) |
 | P2, P10 | v6 on mainnet only if #45 passes; the 1-ZIG voting threshold on v5 | ADR-035 | c → A13 in 14 |
 
+## Owner follow-up 1 (F0–F12), 31 Oct evening (pre-approved; worked through without questions)
+
+Keep building at full depth through the night (~14 h, until about Sun 1 Nov 11:00 UTC; finishing well beats the clock).
+Same branch, same PR.
+
+CHANGES: Studio-4 swap (Part 13) moves to a separate session → here F11 (preparation complete and proven); do not wait
+for review/studio4-assets; Fineli only if review/ak-food-data appears. A13 (mainnet v6, 3 Nov) NOT in this PR: owner
+check after the deploy. Helpers: up to 6 at a time (disjoint lanes, files named in AK_RESUME) plus fresh read-only agents
+for F1 and F2. Browser slot: one build/browser run at a time, Chromium, max 2 workers; the F2 test agent owns the slot
+between the lead's checks (the lead schedules). Push ≥ every 45 min. All non-negotiables, PROTECTED, stored-format rules,
+no new deps, no secrets, never merge/deploy: unchanged.
+
+F0 FINISH WHAT IS OPEN (first)
+1. ADR-036 closing table: every remaining row (6.5, 7.8, 8.1–8.7, each Part 10 item, Parts 11–16, A1–A22, D1–D12, MUSIC,
+   F0–F12) and one A22 quality line per new surface vs COMPETITORS.md (c).
+2. Part 14 / A12 rows without a commit: intermittents at their cause (zigi-memory:188, zigi-accept-correct:260 in
+   Asia/Tokyo, zigi-memory-af:15, the market-status socket, zigi-knock on /app/habits, WebKit-phone cancelled fetches);
+   M4 (knock reminders in the journal's zone), H113, M8 (investigate); missing tests ZI4, ZI8, ZI9, ZI14, G15 and the
+   landing skip link; AFL4 prefix-free practice-badge memo (TIER 3 wallet) if still class a; re-verify and record AFL1,
+   AFL3, RM4.
+3. Brief items to build/finish or prove done: 6.5 cross-pillar progress toast; 7.8 wealth polish; 8.1 unified weekly Life
+   review in /app/review; 8.3 weekly ZIGi insight; 8.4 monthly balance note; M42; COMPETITORS items 5 (warm-up), 7 (weekly
+   calorie budget view), 16 (Loop export), 23 (time-of-day sections); habit schedule "first Monday of the month" (5.1); a
+   visible sync status (8.9); the Settings → Notifications card explaining "being switched on" while push is off.
+4. CI failures on the current head fixed at their cause (shard 3: the three ZIGi specs).
+
+F1 RELEASE-READINESS REVIEW "as if 1.0": fresh read-only agent (built none of AK); every route, Showcase AND fresh empty
+start, 390 and 1440 px, Nebula/Light/Dark, reading code and running the production build in the browser slot it is given.
+Judges as App Store reviewer + design lead + first-time non-crypto consumer: first-run clarity/onboarding; copy (plain,
+kind, no jargon, no tiny grey text, no crypto words outside chosen modules); consistency (components, spacing, icons,
+charts, toasts); dead ends, broken/confusing flows, duplicates, unfinished pages; empty/loading/error/offline states;
+phone ergonomics (thumb reach, sheets, safe areas, keyboard over inputs); accessibility (keyboard-only, focus order,
+names, contrast, reduced motion, Motion Off); performance (cold load, route weights, long tasks, INP); trust (privacy
+wording, honest labels, no fake data, no projections as guarantees). Output docs/review/session-ak/RELEASE_REVIEW.md
+(severity Blocker/Major/Minor/Polish, route, width, theme, exact problem, proposed fix). Lead fixes every Blocker and
+Major and as many Minor/Polish as possible, with tests; PROTECTED stays; every finding gets a status line.
+
+F2 FULL APP TESTING: fresh agent owning the browser slot; end-to-end journey specs (Chromium, ≤2 workers, production
+build) over several simulated days: 1 fresh start → onboarding → first goal → first habit → Checklist → contribution →
+weekly review; 2 health day: barcode (mocked) → generic EU food → meal photo estimate (mock) → water → workout with
+supersets, RPE, plates → sleep → coach card; 3 money month: CSV and CAMT.053/OFX/MT940 import → review inbox → rules →
+split entries → budgets with rollover → bills → purpose flow → contribution pre-fill; 4 offline: install, offline, every
+pillar, back online, queue drains, update prompt; 5 notifications: snapshot, wake list, both action paths with Undo,
+nothing doubled; 6 data safety: export → Test a backup → Erase everything (caches, IndexedDB, push device record gone)
+→ restore → every value back; 7 wallet/chain (mocked): read-only WalletConnect linking, Keplr Mobile signing via the
+review sheet on testnet, never auto-signed; 8 ZIGi: every new tool's confirm card, money never auto-accepted; 9 Lichess
+(mocked streams): a game, the daily puzzle ticks the habit; 10 Switch to ZIGoals: each importer's fixture; 11
+keyboard-only and screen-reader-name runs through journeys 1–3. Every bug fixed at its cause. Journeys stay in the suite
+(tagged, sharded so CI time stays reasonable).
+
+F3 COMPETITOR RESEARCH ROUND 2 (research helper; official pages, help centres, App Store listings and public reviews;
+sources listed): each pillar leader's newest 2026 features; onboarding/retention patterns (first 7 days, streaks,
+reminders, celebrations); top recent review complaints (paywalls, ads, privacy, sync loss, nagging, clutter) → ZIGoals
+advantages to make visible; delight details worth copying. Apps: round 1 plus Bevel, Gentler Streak, Athlytic, Welltory,
+Stoic, Reflectly, Rosebud, Structured, Sunsama, Tiimo, Copilot Money, Lunch Money, Actual Budget, Wealthfolio, Ghostfolio,
+Keplr, Leap's successors, Cosmostation's successors, ZIGChain ecosystem apps. Output
+docs/research/session-ak/COMPETITORS_2.md with ranked BUILD list 2 (web-possible, not in AK, inside the non-negotiables);
+build it in rank order in the F-streams; the rest recorded with reasons.
+
+F4 ZIGCHAIN ECOSYSTEM DEEPER (chain invisible for people who didn't choose these modules; testnet first; non-custodial;
+ONLY message types the app already signs, through the one review sheet; nothing new signed). Research first:
+docs/research/session-ak/ZIGCHAIN_ECOSYSTEM.md from official docs, v6 release notes, ecosystem projects' own pages: what
+v6 changed for apps (fee market/base fee; EVM module, JSON-RPC, chain id if officially live); live ecosystem apps (DEXs,
+liquid staking, vaults, launchpads, RWA, bridges) and their official keyless read-only APIs; announced-but-not-live.
+Build (read-only, info only; each host TIER 3 (egress routes)/(CSP) + egress-policy + PRIVACY): validator chooser upgrade
+(commission, uptime/missed blocks where LCD gives them, voting power with a gentle decentralisation hint — prefer outside
+the top 10 — jailed/slashing status, from the network's own LCD); staking clarity (claimable rewards, rewards history,
+unbonding calendar with local reminders via Part 2 notification types, info-only rewards CSV export); purpose staking
+(staked ZIG assignable to a goal in the purpose flow 7.5, unbonding shown as "available in N days"); IBC and token
+clarity (IBC denoms → readable names via denom traces; CW20/known token metadata from the network); governance (still
+hidden by default): plain-language proposal summaries from the proposal text, the deadline, opt-in reminder, voting only
+if the app already signs votes; ecosystem directory refresh (official link, plain words, live status where an official
+keyless API exists, honest "not live yet"; Zignaly-dependent items keep the closure notice); if ZIGChain EVM is
+officially live: read-only EVM balances for linked EVM addresses (official RPC, CSP entry, documented chain id; no EVM
+signing); testnet practice journey polish (official faucet link, practice staking step by step, a practice badge).
+Tests for each (mocked LCD/RPC, v5.1 and v6.0 shapes).
+
+F5 NEW FEATURES (helper lanes; each with tests, Showcase examples, empty-start teaching, Help lines,
+export/erase/catalog coverage): Goals & money — debt payoff planner (snowball vs avalanche, payoff date, interest saved,
+info only); savings challenges as goal templates (52-week, no-spend days, round-ups by hand); net-worth milestones with a
+calm celebration; Financial freedom model polish; goal templates gallery expanded with BUILD list 2's winners. Health —
+body measurements (waist, hips, chest, arms…) with trends; device-only progress photos with a compare slider (opt-in, in
+the ZIP export, never uploaded); supplements and medication-reminder log (info only: names, dose text, schedule,
+taken/skipped; local reminders; no medical advice, no interaction claims); weekly calorie budget view and warm-up
+calculator if F0 hasn't. Habits & routines — habit stacking ("after I pour coffee → 2 min stretch") shown in order on the
+Checklist without changing its protected look; implementation intentions (when/where); smart time suggestions learned
+on the device ("you usually do this at 07:40"); time-of-day sections (if F0 hasn't). Cross-pillar — one unified
+calendar/agenda (habits, contributions, bills, planned workouts and meals, unbonding dates, reviews) with day/week/month
+views + .ics export (download only); "ZIGoals Wrapped 2026" year-in-review story on the device (top habits, streaks,
+goals funded, health trends, focus hours), shown from 1 December or after 30 days of data, share cards (sensitive numbers
+off by default), reduced-motion safe; command palette upgrade for the existing search: actions ("log water", "start
+focus", "add contribution", "open review"), keyboard and phone friendly.
+
+F6 VISUAL UPGRADE ACROSS THE APP (D12; inside PROTECTED; one lead-owned design pass with a helper): premium
+cosmic/nebula finish beating COMPETITORS.md (c): hand-made SVG pillar illustrations (planet/orbit) for headers and empty
+states within weights; one upgraded chart language (gradient strokes, soft glow, readable labels, same axes/tooltips);
+richer cards (depth, liquid-glass hover without pointer tracking, pillar accents); skeletons with reduced-motion-safe
+shimmer; one-time tasteful completion micro-interactions (Motion Off silent); View Transitions API page transitions
+where supported (off under reduced motion / Motion Off); phone sheets, safe areas, thumb reach; consistent type scale and
+spacing. Headings white on the left with the nebula from the middle to the right; readable text; theme parity (Nebula,
+Light with dark islands, Dark, every Customize option). Layout audit at 320/390/768/1024/1440/1920 × 3 themes passes;
+route weights never above budget (lazy-load illustrations).
+
+F7 LANDING VISUAL REFRESH (owner deploys): new hero (nebula + orbit, one-time motion, reduced-motion safe); pillar
+chapters with real Showcase screens (labelled example data, optimised WebP/AVIF within the weight budget; 1.6 MB must
+not grow, aim lower); phone mockups; "Works offline, installs like an app"; "Private by design"; "Switch to ZIGoals"
+(real importers); an FAQ; the waitlist/friends CTA as today. Keep CSP/headers, Privacy/Terms, MO6 claim rules and tests,
+accessibility (skip link, contrast, keyboard), check:landing passing. Document changes for the owner's deploy in STATUS.
+
+F8 PERFORMANCE AND ACCESSIBILITY (one helper lane): cold load (1.3–1.4 s): measure and cut (code splitting, deferring
+non-critical work, image sizes, offline shell); INP and long tasks on the heaviest routes; A6 headroom on a slow phone
+profile; WCAG 2.2 AA across every new surface (keyboard-only journeys, focus order, names, contrast, target size,
+reduced motion). Before/after numbers in STATUS.
+
+F9 ZIGi FOR EVERYTHING NEW: tools and confirm cards for every F4–F5 feature (debt planner questions, add a measurement,
+log a supplement, schedule from the calendar, ask about validators in plain words, open Wrapped); money never
+auto-accepted; mock evals + G6; REAL_MODEL_TODO.md.
+
+F10 SECURITY DELTA REVIEW (Part 15 again on everything built since 20:34): fresh reviewers (≤3): new parsers and
+importers, calendar/.ics export, progress photos and supplement log (erase, export, device-only), ZIGChain read-only
+hosts and denom resolution (spoofed metadata, phishing names), the command palette, the landing. Fix every High and
+Medium; record the Lows.
+
+F11 STUDIO-4 PREPARATION COMPLETE AND PROVEN: verify every Part 12 prep item is done and wired (semantic events at real
+triggers, variant rotation, X030 cheer slot, push icon/badge slot, importer constants, manifest slots, fallbacks); a
+dry-run test: a synthetic fixture in the exact delivery layout (studio4-deliver/ with app/, app-2x-anim/, push/,
+reactions.json, SHA256SUMS, RECEIPT.md) through import-studio.mjs, the SHA check, the manifest update and the budget
+checks (1× 40 KB, 2× 100 KB, large 200 KB, animated 400 KB, the 2× animated set ≤ 2.6 MB per file lazy), then thrown
+away; docs/handoff/STUDIO4_SWAP_RUNBOOK.md (commands, files touched, the three tests to update at equal strength, the
+optical-offset re-measure).
+
+F12 FINISH (Part 16): full sweep of the Showcase and a fresh empty start, 390 and 1440 px, every route, 3 themes; the full
+gate (lint, typecheck, unit, production and OpenNext builds, check:alpha dry run, the full browser suite incl. F2
+journeys, theme parity, layout audit, weights, frozen readers #37–#52, pnpm audit, erase coverage); PR out of Draft, the
+PR-review Action once (A21), findings as data, final push, CI green; the STATUS entry as the final commit (F0–F12,
+RELEASE_REVIEW summary, journeys, COMPETITORS_2 summary, ZIGChain findings, landing changes for the owner's deploy,
+performance numbers, owner list: food Worker FIRST, then merge and deploy #53 and the verifier; Reown allowed domains;
+push activation; landing deploy; A13 mainnet check; the Studio-4 swap session; the real-model run); short report.
+
+Readings: Q22 — Part 13's swap is out of this PR (F11 instead); A13 is an owner check after the deploy (the A13 reminder was cancelled). Q23 — the push Worker's service binding waits for push activation (adding it now would fail the Alpha deploy until that Worker exists, the 10056 rule); the runbook's rate-limited route covers it.
+
 ## Per-surface quality lines (A22)
 One line per new surface, compared with COMPETITORS.md's best equivalent; added as each surface lands.
 
@@ -228,3 +369,18 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | 8.9 test restore, backup reminder | Built | `3110c81f` | test-restore, backup-reminder tests |
 | 8.10 AFL8 Checklist extras section | Built (effective at the owner's private-sync redeploy) | `e7d9951e` | extras-two-device, extras-keyspace, private-account tests |
 | Part 9 Lichess Board play and daily puzzle | Built | `1f84a28e` | lib/chess tests; tests/chess-play-ak.spec.ts |
+| Part 13 Studio-4 art swap | Moved to a separate session (owner follow-up 1); preparation is F11 | — | — |
+| A13 mainnet v6 day | Recorded: owner check after the deploy (owner follow-up 1) | — | the app accepts v6.0 on zigchain-1 (ADR-035) |
+| F0 finish what is open | Open | — | — |
+| F1 release-readiness review | Open | — | — |
+| F2 full app testing (journeys) | Open | — | — |
+| F3 competitor research round 2 | Open | — | — |
+| F4 ZIGChain ecosystem, deeper | Open | — | — |
+| F5 new features | Open | — | — |
+| F6 visual upgrade | Open | — | — |
+| F7 landing visual refresh | Open | — | — |
+| F8 performance and accessibility | Open | — | — |
+| F9 ZIGi for everything new | Open | — | — |
+| F10 security delta review | Open | — | — |
+| F11 Studio-4 preparation complete and proven | Open | — | — |
+| F12 finish | Open | — | — |
