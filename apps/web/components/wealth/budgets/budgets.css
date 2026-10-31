@@ -23,3 +23,9 @@
 .budgets-form button{justify-self:start;min-height:44px}
 .budgets-status{min-height:22px;margin:0}
 .budgets-body .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Session AK Part 11 (layout audit, 320 px): the section never grows past its panel; long totals and names wrap. */
+.budgets-body{grid-template-columns:minmax(0,1fr)}
+.budgets-body>*{min-width:0}
+.budgets-table{table-layout:fixed}
+.budgets-table td,.budgets-table th,.budgets-total,.budgets-body .fine{overflow-wrap:anywhere}
+.budgets-table td:last-child,.budgets-table th:last-child{width:76px}
