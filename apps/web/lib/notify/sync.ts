@@ -24,6 +24,7 @@ import {BILLS} from '../bills/schema';
 import {upcomingBills} from '../bills/store';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {supplementReminders} from '../supplements/log';
+import {GOV_REMINDERS, governanceEvents} from '../zigchain-eco/governance';
 
 /**
  * Session AK Part 2 (ADR-036 A1): gathers this device's records into the plan's input. Reads only; never throws (a record
@@ -80,6 +81,8 @@ export async function gatherPlanInput(now = Date.now()): Promise<PlanInput | nul
   try { input.bills = upcomingBills(readDeviceRecord(storage, BILLS).data, today, 30); } catch { /* bills unreadable: no bill wakes */ }
   // Session AK (F5): supplement and medication reminders the person switched on — times only, never a name.
   try { input.supplements = supplementReminders(readDeviceRecord(storage, SUPPLEMENTS).data, today); } catch { /* unreadable: no wakes */ }
+  // Owner follow-up 1 (F4): governance vote reminders the person set on a proposal — an instant and an id, never a title.
+  try { input.votes = governanceEvents(readDeviceRecord(storage, GOV_REMINDERS).data, {now, timeZone: zone}).map(e => ({id: e.id, at: Date.parse(e.at)})); } catch { /* unreadable: no wakes */ }
   return input;
 }
 /** The plan for now, or null in the Showcase. */

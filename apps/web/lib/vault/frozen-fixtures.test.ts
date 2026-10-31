@@ -36,6 +36,7 @@ import {GROCERY_KEY} from '../grocery/schema';
 import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
+import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
 import {MONEY_RULES_KEY} from '../money-rules/schema';
 import {MONEY_REVIEW_KEY} from '../money-review/review';
 import {FI_MODEL_KEY} from '../fi-model/store';
@@ -261,6 +262,9 @@ export function frozenFixture() {
   checks.push({key: COMPARE_PAIR_KEY, module: './compare/schema', spec: 'COMPARE_PAIR', expect: {lag: 'next'}});
   records[SUPPLEMENTS_KEY] = JSON.stringify({version: 1, items: [{id: 'supp_fixture1', name: 'Fictional vitamin D', dose: '1 drop', kind: 'supplement', times: ['09:00'], weekdays: 127, remind: true, createdAt: '2026-10-31T09:00:00.000Z'}], log: [{itemId: 'supp_fixture1', date: '2026-10-31', slot: '09:00', status: 'taken', at: '2026-10-31T09:01:00.000Z'}]});
   checks.push({key: SUPPLEMENTS_KEY, module: './supplements/schema', spec: 'SUPPLEMENTS', expect: {'items.0.name': 'Fictional vitamin D'}});
+  // Owner follow-up 1 (F4, TIER 3 (stored format)): governance vote reminders (fictional proposal).
+  records[GOV_REMINDERS_KEY] = JSON.stringify({version: 1, reminders: {'zig-test-2:7': {endsAt: '2026-11-05T10:00:00.000Z', title: 'Fictional proposal', setAt: '2026-10-31T09:00:00.000Z'}}});
+  checks.push({key: GOV_REMINDERS_KEY, module: './zigchain-eco/governance', spec: 'GOV_REMINDERS', expect: {'reminders.zig-test-2:7.title': 'Fictional proposal'}});
   records[MONEY_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', field: 'payee', op: 'contains', text: 'fictional grocer', direction: 'out', category: 'Groceries', enabled: true}]});
   checks.push({key: MONEY_RULES_KEY, module: './money-rules/schema', spec: 'MONEY_RULES', expect: {'rules.0.category': 'Groceries'}});
   records[MONEY_REVIEW_KEY] = JSON.stringify({version: 1, ids: ['m-fixture-1']});
@@ -284,7 +288,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

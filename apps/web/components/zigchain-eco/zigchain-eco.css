@@ -1,0 +1,31 @@
+/* Session AK (F4): the ZIGChain ecosystem's read-only panels (staking clarity, staked ZIG in the purpose picture, the
+   token check, proposal extras, the practice journey). Theme variables only; every control at least 44 px; no motion. */
+.zeco{display:grid;gap:16px;min-width:0;overflow-wrap:anywhere}
+.zeco h3,.zeco h4{margin:0}
+.zeco-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
+.zeco-card{display:grid;gap:8px;align-content:start;padding:14px;border:1px solid var(--line,#25334f);border-radius:14px;background:var(--surface-1,#0b1327);min-width:0}
+.zeco-figure{font-size:22px;font-weight:750;margin:0}
+.zeco-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.zeco-list li{display:grid;gap:2px;min-width:0}
+.zeco-day{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line,#25334f)}
+.zeco-day:first-child{border-top:0;padding-top:0}
+.zeco-practice-tag{display:inline-block;padding:0 8px;border-radius:8px;border:2px dashed var(--warning,#e8a33d);color:var(--text,#eef4ff);font-size:14px;font-weight:700}
+.zeco-denom{font-family:ui-monospace,monospace;font-size:14px;word-break:break-all;color:var(--text-secondary,#dde7f7)}
+.zeco-warning{margin:0;padding:8px 12px;border-left:4px solid var(--danger,#f5a7af);color:var(--text,#eef4ff)}
+.zeco-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.zeco-actions :is(button,a,select,input){min-height:44px}
+.zeco-form{display:grid;gap:10px;grid-template-columns:minmax(0,1fr);max-width:640px}
+.zeco-form label{display:grid;gap:4px;font-size:16px}
+.zeco-form :is(input,select){min-height:44px;font-size:16px;min-width:0;width:100%;box-sizing:border-box}
+.zeco-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px;cursor:pointer}
+.zeco-toggle input{width:22px;height:22px;flex:none}
+.zeco-status{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;border:1px solid var(--line,#25334f);font-size:14px;font-weight:650;color:var(--text,#eef4ff)}
+.zeco-status[data-kind="live"],.zeco-status[data-kind="tool"]{border-color:var(--accent-teal,#86f0d6)}
+.zeco-status:is([data-kind="closing"],[data-kind="paused"],[data-kind="winding-down"]){border-color:var(--danger,#f5a7af)}
+.zeco-status:is([data-kind="not-live"],[data-kind="partner"],[data-kind="private"]){border-style:dashed}
+.zeco-steps{margin:0;padding-left:1.4em;display:grid;gap:8px}
+.zeco-step-title{font-weight:650}
+@media (forced-colors: active){.zeco-status,.zeco-practice-tag,.zeco-warning{border-color:CanvasText}}
+/* The Ecosystem card's status line sits in the card's first column, with its words. */
+.ecosystem-project .ecosystem-status{grid-column:1;margin:.1rem 0;max-width:72ch;font-size:.95rem;line-height:1.55}
+.ecosystem-status small{font-size:.85rem}

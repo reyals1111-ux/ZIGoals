@@ -3,6 +3,8 @@ import { explorers, hubLinks, mainnetExplorers } from "@zigoals/ecosystem-regist
 import { EcosystemDirectory } from "../../../components/ecosystem-directory";
 import { idleStrategy } from "@zigoals/strategy-types";
 import { StrategyTransparency } from "../../../components/strategy-transparency";
+// Session AK (F4): the token check (denom → what the token really is), its form loaded on use.
+import { TokenCheckFold } from "../../../components/zigchain-eco/token-check-fold";
 import type {Metadata} from "next";
 // Session X Part 12 (WCAG 2.4.2): each page has its own title, "<page> · ZIGoals Alpha" (app/layout.tsx).
 export const metadata: Metadata = {title: "Ecosystem"};
@@ -13,6 +15,7 @@ export default function EcosystemPage() {
       <EcosystemDirectory />
       <p className="fine">External investment and funding integrations are disabled.</p>
       <details className="ecosystem-tools"><summary>Network tools &amp; integration readiness</summary>
+      <TokenCheckFold />
       <section className="panel" id="network-tools" aria-label="Onchain verification tools">
         <h2>Check the public record.</h2>
         <p>

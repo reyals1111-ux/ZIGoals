@@ -9,7 +9,7 @@ import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
  * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
  * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
  */
-export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement';
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote';
 export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
 export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
 export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
@@ -29,6 +29,8 @@ export type PlanInput = {
   bills: {id: string; title: string; due: string; amount: string}[];
   /** Session AK (F5): supplement and medication reminders — times and weekdays only; never a name or a dose. */
   supplements?: {id: string; time: string; weekdays: number; doneToday: boolean}[];
+  /** Owner follow-up 1 (F4): the governance reminders the person set on a proposal (its own opt-in): when to remind, nothing else. */
+  votes?: {id: string; at: number}[];
   orbit: {done: number; total: number};
   prices: PriceWatch[];
 };
@@ -76,6 +78,17 @@ export function buildPlan(input: PlanInput): Plan {
     const at = zonedInstant(day, morningTime(prefs), zone); if (at < now) continue;
     once.set(Math.floor(at / 60000), 'bill');
     push({at, kind: 'bill', id: `bill:${b.id}`, label: label(b.title), ...(labels && b.amount ? {detail: `${b.amount} due tomorrow`} : {}), href: '/app/wealth?view=bills', actionable: false});
+  }
+  // Owner follow-up 1 (F4): a vote reminder is a one-off a day before voting ends; inside quiet hours it moves to that
+  // morning (or is dropped when the morning has passed). Never labelled: the snapshot says only that a vote ends soon.
+  for (const v of input.votes ?? []) {
+    let at = v.at;
+    const wall = wallClock(at, zone);
+    if (inQuiet(wall.time, quiet)) at = zonedInstant(wall.date, morningTime(prefs), zone);
+    if (at < now - 60_000 || at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
+    const minute = Math.max(Math.floor(at / 60000), Math.ceil(now / 60000));
+    once.set(minute, 'vote');
+    push({at: minute * 60000, kind: 'vote', id: v.id, href: '/app/governance', actionable: false});
   }
   // Wakes: one per minute of the day, its weekday masks joined; skips: today's instants whose items are all done.
   const byMinute = new Map<number, number>();

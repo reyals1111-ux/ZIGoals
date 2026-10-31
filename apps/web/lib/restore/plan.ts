@@ -48,6 +48,7 @@ import {GROCERY_RECORD} from '../grocery/schema';
 import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
 import {SUPPLEMENTS} from '../supplements/schema';
+import {GOV_REMINDERS} from '../zigchain-eco/governance';
 import {MONEY_RULES} from '../money-rules/schema';
 import {MONEY_REVIEW} from '../money-review/review';
 import {FI_MODEL} from '../fi-model/store';
@@ -126,6 +127,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
   dev('supplements', 'Supplements and medication', 'Health', SUPPLEMENTS, true),
+  dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
   dev('moneyRules', 'Money log rules', 'Goals and Wealth', MONEY_RULES),
   dev('moneyReview', 'Imported entries to review', 'Goals and Wealth', MONEY_REVIEW),
   dev('fiModel', 'Financial freedom inputs', 'Goals and Wealth', FI_MODEL),

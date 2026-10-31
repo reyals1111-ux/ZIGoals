@@ -45,6 +45,7 @@
     var bills = kinds.bill || [];
     if (bills.length) lines.push(named && bills.every(function (b) { return b.label; }) ? bills.slice(0, 2).map(function (b) { return b.label + (b.detail ? ' · ' + b.detail : ''); }).join(' · ') : plural(bills.length, 'bill due tomorrow', 'bills due tomorrow'));
     if (kinds.supplement) lines.push('A reminder you set in Health');
+    if (kinds.vote) lines.push(plural(kinds.vote.length, 'vote you follow ends within a day', 'votes you follow end within a day'));
     if (kinds.windDown) lines.push('Time to wind down');
     if (kinds.review) lines.push('Your weekly Life review is ready');
     var summary = summaryLine(snapshot);

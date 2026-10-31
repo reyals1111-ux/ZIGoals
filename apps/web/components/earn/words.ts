@@ -4,7 +4,7 @@
  * when the first word is an ordinary word: a name (an app, a company, a network) or a word with more than one capital
  * (ZIGChain, USDC, OroSwap) keeps its case.
  */
-const NAMES = new Set(['Circle', 'Valdora', 'Nawa', 'Zignaly', 'Permapod', 'Noble', 'Keplr', 'Injective', 'Skip', 'Binance', 'Ethereum', 'Cosmos', 'Osmosis', 'Leap', 'Banxa', 'InvoiceMate', 'DeFa', 'DefiLlama', 'Shariah']);
+const NAMES = new Set(['Circle', 'Valdora', 'Nawa', 'Zignaly', 'Permapod', 'Noble', 'Keplr', 'Injective', 'Skip', 'Binance', 'Ethereum', 'Cosmos', 'Osmosis', 'Banxa', 'InvoiceMate', 'DeFa', 'DefiLlama', 'Shariah']);
 export function continueSentence(text: string): string {
   const first = /^[A-Za-z][A-Za-z’'-]*/.exec(text)?.[0] ?? '';
   if (!first || NAMES.has(first.replace(/[’'-].*$/, '')) || /[A-Z]/.test(first.slice(1))) return text;

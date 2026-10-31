@@ -9,6 +9,7 @@ import {formatDate} from '../lib/visual-format';
 import {EcosystemLiveLine} from './ecosystem-live';
 import type {LiveState} from '../lib/earn/client';
 import type {DefillamaData} from '../lib/earn/live/types';
+import {directoryStatusOf} from '../lib/zigchain-eco/directory-status';
 
 /**
  * One Ecosystem project (Session I, Part 6). The header is a button (inside the heading, so the heading keeps the
@@ -44,6 +45,8 @@ export function EcosystemCard({entry, open, onToggle, llama}: {entry: DirectoryE
     </header>
     <p className="ecosystem-description">{entry.description}<small><a href={entry.descriptionSource} {...external}>Description source ↗</a></small></p>
     {llama && <EcosystemLiveLine id={entry.id} llama={llama}/>}
+    {/* Session AK (F4): one dated status per project (live, closing, paused, not live yet…), with its source. */}
+    {(() => { const status = directoryStatusOf(entry.id); return status ? <p className="ecosystem-status"><span className="zeco-status" data-kind={status.kind}>{status.label}</span> {status.detail} <small>({status.source}, read <time dateTime={status.readOn}>{formatDate(status.readOn)}</time>)</small></p> : null; })()}
     <div className="ecosystem-labels"><span>{entry.inclusion}</span><span>{p.phase === 'READ_ONLY' ? 'Read-only links' : 'Research only'}</span></div>
     <div className="ecosystem-project-actions">{entry.actions.map(action => <a key={action.kind} href={action.url} {...external}>{ACTION_LABEL[action.kind]} ↗</a>)}{!entry.actions.length && <span className="fine">No checked website link yet</span>}</div>
     <div className="ecosystem-details" id={detailsId} role="region" aria-labelledby={titleId} hidden={!open}>

@@ -7,6 +7,7 @@ import {VerifiedLink} from '../links/verified-link';
 import {SourceLine, Unavailable} from './live-figure';
 import {SectionHeading} from '../ui/section-heading';
 import {WhatsThis} from './whats-this';
+import {chooserOrder, powerRanks, spreadLine, TOP_N} from '../../lib/zigchain-eco/validators';
 
 /**
  * Session AF (L1): the validators of ZIGChain mainnet, live from GET /api/chain/validators (lane L2a's route; until it is
@@ -16,7 +17,9 @@ import {WhatsThis} from './whats-this';
  */
 // Critique round 2 (L5c): the list opens in a neutral order, by name, right under the advice to spread stake; every sort
 // option stays (most voting power, lowest commission, best uptime).
-type Sort = 'name' | 'power' | 'commission' | 'uptime';
+// Session AK (F4): one more fact-only order, outside the 10 largest by stake first (each group by name), and each
+// validator's rank by stake with the 10 largest marked; the spread line says how many together hold a third.
+type Sort = 'name' | 'outside' | 'power' | 'commission' | 'uptime';
 const byName = (a: Validator, b: Validator) => (a.moniker || '').localeCompare(b.moniker || '', 'en') || a.operator.localeCompare(b.operator, 'en');
 const share = (n: number, digits = 1) => `${formatNumber(n * 100, {maximumFractionDigits: digits})} %`;
 export function foundationShare(validators: readonly Validator[]): number | null {
@@ -25,7 +28,8 @@ export function foundationShare(validators: readonly Validator[]): number | null
 }
 export function filterValidators(list: readonly Validator[], {active, hideJailed, maxCommission, sort}: {active: boolean; hideJailed: boolean; maxCommission: number | null; sort: Sort}): Validator[] {
   const out = list.filter(v => (!active || v.status === 'bonded') && (!hideJailed || !v.jailed) && (maxCommission === null || v.commission.rate <= maxCommission + 1e-12));
-  const key: Record<Exclude<Sort, 'name'>, (v: Validator) => number> = {power: v => -v.votingPowerShare, commission: v => v.commission.rate, uptime: v => -(v.uptime?.signedShare ?? -1)};
+  const key: Record<Exclude<Sort, 'name' | 'outside'>, (v: Validator) => number> = {power: v => -v.votingPowerShare, commission: v => v.commission.rate, uptime: v => -(v.uptime?.signedShare ?? -1)};
+  if (sort === 'outside') { const order = chooserOrder(list, true).map(v => v.operator); return out.sort((a, b) => order.indexOf(a.operator) - order.indexOf(b.operator)); }
   return out.sort((a, b) => sort === 'name' ? byName(a, b) : key[sort](a) - key[sort](b) || byName(a, b));
 }
 export function ValidatorsSection({validators, now}: {validators: LiveState<ValidatorsAnswer>; now: number}) {
@@ -34,13 +38,14 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
   const rates = useMemo(() => [...new Set(list.filter(v => v.status === 'bonded').map(v => v.commission.rate))].sort((a, b) => a - b), [list]);
   const rows = useMemo(() => filterValidators(list, {active, hideJailed, maxCommission, sort}), [list, active, hideJailed, maxCommission, sort]);
   const foundation = foundationShare(list), jailed = list.filter(v => v.jailed).length;
+  const ranks = useMemo(() => powerRanks(list), [list]), spread = useMemo(() => spreadLine(list), [list]);
   return <section id="validators" className="earn-validators panel" aria-labelledby="validators-title">
     <SectionHeading id="validators-title" eyebrow="Native staking · who you delegate to" title="Choose a validator from facts"
       lede={<>A validator runs part of ZIGChain and keeps a commission from the rewards of the ZIG delegated to it. Your ZIG never leaves your account. <WhatsThis term="validator"/></>}/>
     <div className="earn-guidance" role="note">
       <h3 className="earn-subhead">In plain words</h3>
       <ul>
-        <li><b>Spread the stake.</b> {foundation !== null ? <>Validators named “Foundation” hold {share(foundation)} of all stake right now.</> : validators.phase === 'ok' ? null : <>Who holds how much is <Unavailable reason={validators.phase === 'unavailable' ? validators.reason : 'UPSTREAM_DOWN'} short/>.</>} Delegating to a smaller validator helps keep the network in many hands. <WhatsThis term="voting-power"/></li>
+        <li><b>Spread the stake.</b> {foundation !== null ? <>Validators named “Foundation” hold {share(foundation)} of all stake right now.</> : validators.phase === 'ok' ? null : <>Who holds how much is <Unavailable reason={validators.phase === 'unavailable' ? validators.reason : 'UPSTREAM_DOWN'} short/>.</>} Delegating to a smaller validator helps keep the network in many hands.{spread ? ` ${spread}` : ''} <WhatsThis term="voting-power"/></li>
         <li><b>Avoid jailed validators.</b> A jailed validator earns nothing for you until it is back.{validators.phase === 'ok' ? jailed ? ` ${jailed} ${jailed === 1 ? 'is' : 'are'} jailed now.` : ' None is jailed now.' : ''} <WhatsThis term="jailed"/></li>
         <li><b>Mind the commission.</b> A lower commission leaves you more of the reward; it can change, up to the validator’s own limit per day. <WhatsThis term="commission"/></li>
         <li><b>Look at uptime.</b> A validator that misses many blocks can be paused, and then its delegators earn nothing for a while.</li>
@@ -53,7 +58,7 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
           <label className="earn-check"><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)}/><span>Active only</span></label>
           <label className="earn-check"><input type="checkbox" checked={hideJailed} onChange={e => setHideJailed(e.target.checked)}/><span>Hide jailed</span></label>
           <label className="earn-select"><span>Commission at most</span><select value={maxCommission === null ? '' : String(maxCommission)} onChange={e => setMax(e.target.value === '' ? null : Number(e.target.value))}><option value="">Any</option>{rates.map(r => <option key={r} value={String(r)}>{share(r, 2)}</option>)}</select></label>
-          <label className="earn-select"><span>Sort by</span><select value={sort} onChange={e => setSort(e.target.value as Sort)}><option value="name">Name (A to Z)</option><option value="power">Most voting power</option><option value="commission">Lowest commission</option><option value="uptime">Best uptime</option></select></label>
+          <label className="earn-select"><span>Sort by</span><select value={sort} onChange={e => setSort(e.target.value as Sort)}><option value="name">Name (A to Z)</option>{ranks.size > TOP_N && <option value="outside">Outside the {TOP_N} largest first</option>}<option value="power">Most voting power</option><option value="commission">Lowest commission</option><option value="uptime">Best uptime</option></select></label>
         </form>
         {/* Session AF chunk 2: the figure is the list with its count and its source line, so the source sits inside it (verifier stage 9). */}
         <div className="earn-validators-live" data-live-figure="validators" data-state="ok">
@@ -64,7 +69,7 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
             <tbody>{rows.map(v => <tr key={v.operator} data-validator={v.operator}>
               <th scope="row" data-label="Validator"><span className="earn-moniker">{v.moniker || 'Unnamed validator'}</span>{v.website ? <span className="earn-website" title="The validator’s own website, as it wrote it on the chain. Not checked by ZIGoals.">{v.website.slice(0, 80)}</span> : null}</th>
               <td data-label="Commission">{share(v.commission.rate, 2)}<small> · max {share(v.commission.maxRate, 0)}</small></td>
-              <td data-label="Voting power">{share(v.votingPowerShare)}</td>
+              <td data-label="Voting power">{share(v.votingPowerShare)}{ranks.get(v.operator) ? <small> · number {ranks.get(v.operator)}{ranks.size > TOP_N && ranks.get(v.operator)! <= TOP_N ? `, one of the ${TOP_N} largest` : ''}</small> : null}</td>
               <td data-label="Uptime">{v.uptime ? <>{share(v.uptime.signedShare, 2)}<small> · {formatNumber(v.uptime.missed)} missed of {formatNumber(v.uptime.window)}</small></> : <Unavailable reason="NOT_PUBLISHED" short/>}</td>
               <td data-label="Self-bond">{v.selfBond !== null ? zig(v.selfBond.split('.')[0]!, {compact: true}) : <Unavailable reason="NOT_PUBLISHED" short/>}</td>
               <td data-label="Status"><span className="earn-status" data-status={v.tombstoned ? 'tombstoned' : v.jailed ? 'jailed' : v.status}>{v.tombstoned ? 'Removed for good' : v.jailed ? 'Jailed' : v.status === 'bonded' ? 'Active' : v.status === 'unbonding' ? 'Leaving' : 'Inactive'}</span></td>

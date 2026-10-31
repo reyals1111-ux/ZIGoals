@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import {describe, expect, it, test} from 'vitest';
 import {buildPlan, registrationKey, type PlanInput} from './plan';
 import {emptyNotifyPrefs, notifyPrefsSchema, setType, setTime, typeOn} from './prefs';
-import {zonedInstant} from './zone';
+import {addDays, wallClock, zonedInstant} from './zone';
 import {doneChange} from './actions';
 import {createHabit, emptyHabitData, habitDay} from '../habits';
 
@@ -268,4 +268,16 @@ test('supplement reminders: off by default; on, they wake at their times and are
   const items = buildPlan(base({supplements, prefs, labels: true})).snapshot.items.filter(i => i.kind === 'supplement');
   expect(items.length).toBeGreaterThan(0);
   for (const i of items) { expect(i.label).toBeUndefined(); expect(i.detail).toBeUndefined(); expect(i.href).toBe('/app/health'); }
+});
+
+// Owner follow-up 1 (F4): a governance vote reminder the person set is a one-off wake a day before voting ends, never
+// named (the snapshot says only that a vote ends); inside quiet hours it moves to that morning.
+test('vote reminders: a one-off wake, never named; quiet hours move it to the morning', () => {
+  const day = wallClock(NOW, ZONE).date, tomorrow = addDays(day, 1);
+  const plan = buildPlan(base({labels: true, votes: [{id: 'governance:zig-test-2:7', at: at(tomorrow, '15:00')}]}));
+  expect(plan.registration.once).toContain(Math.floor(at(tomorrow, '15:00') / 60000));
+  const items = plan.snapshot.items.filter(i => i.kind === 'vote');
+  expect(items).toEqual([{at: at(tomorrow, '15:00'), kind: 'vote', id: 'governance:zig-test-2:7', href: '/app/governance', actionable: false}]);
+  const quiet = buildPlan(base({votes: [{id: 'governance:zig-test-2:8', at: at(tomorrow, '23:30')}]}));
+  expect(quiet.snapshot.items.filter(i => i.kind === 'vote').map(i => i.at)).toEqual([at(tomorrow, '08:00')]);
 });

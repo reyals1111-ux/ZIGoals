@@ -127,3 +127,8 @@
 .staking-choice input{margin-top:4px;width:20px;height:20px;flex:none}
 .staking-choice span{display:grid;gap:2px}
 .staking-choice span span{font-size:14px;color:var(--text-secondary,#b7c8de)}
+/* Session AK (F4): the chooser's read-only facts — the order toggle (44 px), the gentle top-10 hint and the spread line. */
+.staking-order-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px;cursor:pointer}
+.staking-order-toggle input{width:22px;height:22px;flex:none}
+.staking-validator-hint{color:var(--text-secondary,#b7c8de);font-size:15px}
+.staking-spread{margin:0}

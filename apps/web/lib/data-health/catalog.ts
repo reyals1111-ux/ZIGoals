@@ -49,6 +49,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   calorieWeek: ['Weekly calorie budget', 'Health'],
   comparePair: ['The comparison you chose last (Insights)', 'Health'],
   supplements: ['Supplements and medication log', 'Health'],
+  govReminders: ['Governance vote reminders', 'Wealth'],
   moneyRules: ['Money log rules', 'Wealth'],
   moneyReview: ['Imported entries still to review', 'Wealth'],
   fiModel: ['Financial freedom model inputs', 'Wealth'],
