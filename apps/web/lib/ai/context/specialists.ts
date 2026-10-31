@@ -121,7 +121,8 @@ const AK_KIND: Record<string, string> = {
   'start-soundscape': '- {"kind":"start-soundscape","preset":"focus"|"wind-down"|"sleep"}',
 };
 export const AK_KINDS_BY_AREA: Record<PageArea, readonly string[]> = {
-  today: ['goal-bundle', 'start-soundscape'],
+  // Today carries no AK note: its prompt and records already sit near the default budget (zigi-page-awareness-af).
+  today: [],
   goals: ['goal-bundle', 'goal-draft', 'what-if'],
   habits: ['set-auto-rule', 'goal-bundle'],
   health: ['grocery-list', 'scan-food', 'start-soundscape'],

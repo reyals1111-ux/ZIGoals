@@ -16,9 +16,9 @@ import {readGoalBundle} from './plan-ak';
 /** Session AK (Part 12): the whitelist entries for this session's cards, their composite and the rules no argument can widen. */
 const block = (json: string) => `\n\n\`\`\`zigoals-action\n${json}\n\`\`\``;
 test('the kinds are in the whitelist and the protocol; the enums written out here match their owners\' lists', () => {
-  // Offered on the pages where they belong (Part 12): each AK kind on at least one page; goal bundles on Today too.
+  // Offered on the pages where they belong (Part 12): each AK kind on at least one page; Today's prompt stays as before.
   for (const kind of AK_ACTION_KINDS) { expect(ACTION_KINDS).toContain(kind); expect(Object.values(AK_KINDS_BY_AREA).flat(), kind).toContain(kind); }
-  expect(akKindsNote('today')).toContain('"kind":"goal-bundle"');
+  expect(akKindsNote('today')).toBeNull(); expect(akKindsNote('goals')).toContain('"kind":"goal-bundle"'); expect(akKindsNote('health')).toContain('"kind":"start-soundscape"');
   for (const [area, kinds] of Object.entries(AK_KINDS_BY_AREA)) for (const kind of kinds) expect(akKindsNote(area as keyof typeof AK_KINDS_BY_AREA), `${area} ${kind}`).toContain(`"kind":"${kind}"`);
   expect([...AK_BILL_CADENCES]).toEqual([...BILL_CADENCES]);
   expect([...AK_SOUNDSCAPES].sort()).toEqual([...SOUNDSCAPE_PRESET_IDS].sort());
