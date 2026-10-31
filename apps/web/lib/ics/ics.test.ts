@@ -6,7 +6,7 @@ const bytes = (s: string) => new TextEncoder().encode(s).length;
 
 describe('an iCalendar file made on the device (RFC 5545; Session AK, F5d)', () => {
   it('escapes TEXT: backslash, semicolon, comma and line breaks; drops other control characters', () => {
-    expect(escapeText('a\\b;c,d')).toBe('a\\\\b\;c\\,d');
+    expect(escapeText('a\\b;c,d')).toBe('a\\\\b\\;c\\,d'); // security review F10 (R1-F2): the semicolon is escaped too
     expect(escapeText('one\r\ntwo\nthree\rfour')).toBe('one\\ntwo\\nthree\\nfour');
     expect(escapeText('tab\there\u0000\u0007\u007f')).toBe('tabhere');
   });

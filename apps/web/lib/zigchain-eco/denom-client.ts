@@ -1,4 +1,4 @@
-import {classifyToken, isCheckableDenom, traceMatches, type TokenView} from './denoms';
+import {classifyToken, isCheckableDenom, normalDenom, traceMatches, type TokenView} from './denoms';
 import {denomWireSchema, type DenomWire} from './denom-wire';
 
 /**
@@ -11,7 +11,7 @@ export type TokenCheck =
   | {phase: 'unavailable'; reason: string};
 export const NOT_IN_THIS_BUILD = 'Token checks are not available in this build yet.';
 export async function checkToken(network: 'zigchain-1' | 'zig-test-2', denom: string, fetcher: typeof fetch = fetch): Promise<TokenCheck> {
-  const value = denom.trim();
+  const value = normalDenom(denom.trim());
   if (!isCheckableDenom(value)) return {phase: 'unavailable', reason: 'That is not a ZIGChain token denom. Paste the full denom: it starts with ibc/, coin.zig1 or zig1, or is azig.'};
   const offline = classifyToken({network, denom: value});
   if (offline.kind === 'zig' || offline.kind === 'known') return {phase: 'ok', view: offline, wire: null};

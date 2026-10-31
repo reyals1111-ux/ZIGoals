@@ -272,12 +272,16 @@ test('supplement reminders: off by default; on, they wake at their times and are
 
 // Owner follow-up 1 (F4): a governance vote reminder the person set is a one-off wake a day before voting ends, never
 // named (the snapshot says only that a vote ends); inside quiet hours it moves to that morning.
-test('vote reminders: a one-off wake, never named; quiet hours move it to the morning', () => {
+test('vote reminders: a one-off at the morning of their day, never at the proposal\'s own minute, never named, never in quiet hours', () => {
   const day = wallClock(NOW, ZONE).date, tomorrow = addDays(day, 1);
-  const plan = buildPlan(base({labels: true, votes: [{id: 'governance:zig-test-2:7', at: at(tomorrow, '15:00')}]}));
-  expect(plan.registration.once).toContain(Math.floor(at(tomorrow, '15:00') / 60000));
-  const items = plan.snapshot.items.filter(i => i.kind === 'vote');
-  expect(items).toEqual([{at: at(tomorrow, '15:00'), kind: 'vote', id: 'governance:zig-test-2:7', href: '/app/governance', actionable: false}]);
-  const quiet = buildPlan(base({votes: [{id: 'governance:zig-test-2:8', at: at(tomorrow, '23:30')}]}));
-  expect(quiet.snapshot.items.filter(i => i.kind === 'vote').map(i => i.at)).toEqual([at(tomorrow, '08:00')]);
+  // Due tomorrow at 13:37 (a proposal's public end time minus a day): the wake is tomorrow's morning time, not 13:37.
+  const plan = buildPlan(base({labels: true, votes: [{id: 'governance:zig-test-2:7', at: at(tomorrow, '13:37')}]}));
+  expect(plan.registration.once).toEqual([Math.floor(at(tomorrow, '08:00') / 60000)]);
+  expect(plan.snapshot.items.filter(i => i.kind === 'vote')).toEqual([{at: at(tomorrow, '08:00'), kind: 'vote', id: 'governance:zig-test-2:7', href: '/app/governance', actionable: false}]);
+  // R3-F1: a morning inside quiet hours (07:30 with quiet 22:00–08:00) moves to the end of quiet hours.
+  const early = buildPlan(base({prefs: setTime(emptyNotifyPrefs(), 'morning', '07:30'), quiet: {from: '22:00', to: '08:00'}, votes: [{id: 'governance:zig-test-2:8', at: at(tomorrow, '23:30')}]}));
+  expect(early.snapshot.items.filter(i => i.kind === 'vote').map(i => i.at)).toEqual([at(tomorrow, '08:00')]);
+  // Due today after the morning: it wakes now (rounded up to the minute), never at the proposal's minute.
+  const late = buildPlan(base({now: at(day, '15:00') + 20_000, votes: [{id: 'governance:zig-test-2:9', at: at(day, '15:10')}]}));
+  expect(late.registration.once).toEqual([Math.ceil((at(day, '15:00') + 20_000) / 60000)]);
 });

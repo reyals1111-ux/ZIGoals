@@ -50,7 +50,13 @@ export const habitExtrasSchema = z.looseObject({
    * read-modify-write and simply do not show it (lib/habit-intentions writes it).
    */
   intentions: z.record(habitId, habitIntentionSchema).optional(),
-}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400, 'Too many habits remembered.');
+  /**
+   * Owner follow-up 1 (F0, 5.1): "first Monday of the month" (lib/habit-month-weekday), {habitId: {weekday, nth, from}}.
+   * Declared here for its bound only (security review F10, R3-F5): at most 400 entries; each entry is checked where it is
+   * read, so one odd entry never makes the whole record unreadable.
+   */
+  monthWeekday: z.record(habitId, z.unknown()).optional(),
+}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});
 export const HABIT_EXTRAS: DeviceRecordSpec<HabitExtras> = {key: HABIT_EXTRAS_KEY, schema: habitExtrasSchema, empty: emptyHabitExtras};

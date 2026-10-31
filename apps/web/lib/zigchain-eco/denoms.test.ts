@@ -80,6 +80,27 @@ describe('classifyToken', () => {
     const other = parseTraceAnswer({denom: {base: 'umy', trace: [{port_id: 'transfer', channel_id: 'channel-45'}]}})!;
     expect(classifyToken({network: 'zig-test-2', denom: await ibcDenomOf(other.path), verifiedTrace: other, metadata: {name: 'ZIG', symbol: 'ZIG'}}).kind).toBe('lookalike');
   });
+  // Security review F10 (R2-F1, R2-F2, R2-I2, R2-I5).
+  it('folds capitals by their own shape and other scripts\' look-alikes, so imitations are caught', () => {
+    for (const name of ['ΑΤΟΜ', 'ΕΤΗ', 'ΒΙΤCΟΙΝ', 'ZӀG', 'ZıG', 'ᴢɪɢ', 'ꓜꓲꓖ', 'ᏃᏆᏀ', 'սsdc', 'ZIG✓Official', 'ZIG—Rewards', 'Z\u2067IG\u2069\u061c']) {
+      expect(imitatedFamily(name), name).not.toBeNull();
+      expect(classifyToken({network: 'zigchain-1', denom: FACTORY, metadata: {name, symbol: 'X'}}).kind, name).toBe('lookalike');
+    }
+    expect(classifyToken({network: 'zig-test-2', denom: FACTORY, metadata: {name: 'Ne\u2066on\ufe0f', symbol: 'N'}}).ownName).toBe('Neon · N');
+  });
+  it('a checked IBC route is never an endorsement: every IBC token not on the curated list carries a caution; "uusd" is not USDC', async () => {
+    for (const base of ['uatom', 'uusdc', 'uzig', 'uusd']) {
+      const trace = parseTraceAnswer({denom: {base, trace: [{port_id: 'transfer', channel_id: 'channel-999'}]}})!;
+      const view = classifyToken({network: 'zig-test-2', denom: await ibcDenomOf(trace.path), verifiedTrace: trace});
+      expect(view.warning, base).toMatch(/not on ZIGChain’s curated token list/);
+    }
+    const uusd = parseTraceAnswer({denom: {base: 'uusd', trace: [{port_id: 'transfer', channel_id: 'channel-999'}]}})!;
+    expect(classifyToken({network: 'zig-test-2', denom: await ibcDenomOf(uusd.path), verifiedTrace: uusd, metadata: {name: 'USDC', symbol: 'USDC'}}).kind).toBe('lookalike');
+  });
+  it('a known IBC token pasted with a lower-case hash is still the known token', () => {
+    const known = KNOWN_TOKENS.find(t => t.base.startsWith('ibc/'));
+    if (known) expect(classifyToken({network: known.network, denom: known.base.toLowerCase().replace(/^ibc\//, 'ibc/')}).kind).toBe('known');
+  });
   it('strips control characters from a token’s own name', () => {
     expect(classifyToken({network: 'zig-test-2', denom: FACTORY, metadata: {name: 'Ne‮on\u0007', symbol: 'N'}}).ownName).toBe('Neon · N');
   });

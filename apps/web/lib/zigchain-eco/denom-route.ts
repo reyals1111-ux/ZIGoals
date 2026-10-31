@@ -1,7 +1,7 @@
 import {CHAIN_READS_LIMITED, chainRelay} from '../server/chain-relay';
 import {isChainNetwork, type ChainNetwork} from '../server/chain-lcd';
 import {marketClientGroup} from '../server/market-client-address';
-import {isCheckableDenom} from './denoms';
+import {isCheckableDenom, normalDenom} from './denoms';
 import {readDenom, unavailableDenom, type DenomWire} from './denom-reader';
 
 /**
@@ -18,7 +18,7 @@ export const DENOM_TTL_MS = 10 * 60_000;
 export function denomRoute(read: (network: ChainNetwork, denom: string) => Promise<DenomWire> = readDenom) {
   const relay = chainRelay<DenomWire>({read: key => { const at = key.indexOf(':'); return read(key.slice(0, at) as ChainNetwork, key.slice(at + 1)); }, ttl: () => DENOM_TTL_MS, entries: 200});
   return async function GET(request: Request): Promise<Response> {
-    const query = new URL(request.url).searchParams, network = query.get('network'), denom = query.get('denom') ?? '';
+    const query = new URL(request.url).searchParams, network = query.get('network'), denom = normalDenom(query.get('denom') ?? '');
     if ([...query.keys()].some(k => k !== 'network' && k !== 'denom') || query.getAll('network').length !== 1 || query.getAll('denom').length !== 1 || !isChainNetwork(network) || !isCheckableDenom(denom))
       return Response.json({error: 'A supported network (zigchain-1 or zig-test-2) and a token denom (ibc/…, coin.zig1….name, a zig1… token contract, azig or uzig) are required.'}, {status: 400, headers});
     try {

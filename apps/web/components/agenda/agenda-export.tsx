@@ -21,9 +21,10 @@ export default function AgendaExport({input, hidden, view, viewFrom, viewTo, vie
   const items = useMemo(() => buildAgenda(input, from, to).flatMap(d => d.items), [input, from, to]);
   const picked = items.filter(i => chosen.has(i.source));
   const count = (s: AgendaSource) => items.filter(i => i.source === s).length;
+  // Security review F10 (R1-F3): a Showcase file marks every event, since a calendar app ignores the file's own name.
   const download = () => {
     try {
-      const ics = buildIcs(picked.map(i => ({id: i.id, date: i.date, time: i.time, minutes: i.minutes, summary: i.title, ...(details && i.detail ? {description: i.detail} : {})})), {stamp: new Date(), name: showcase ? 'ZIGoals agenda (Example)' : 'ZIGoals agenda'});
+      const ics = buildIcs(picked.map(i => ({id: i.id, date: i.date, time: i.time, minutes: i.minutes, summary: showcase ? `Example · ${i.title}` : i.title, ...(details && i.detail ? {description: i.detail} : {})})), {stamp: new Date(), name: showcase ? 'ZIGoals agenda (Example)' : 'ZIGoals agenda'});
       const name = exportFileName(`zigoals-agenda-${from}-to-${to}.ics`, showcase);
       const url = URL.createObjectURL(new Blob([ics], {type: 'text/calendar;charset=utf-8'})), link = document.createElement('a');
       link.href = url; link.download = name; document.body.append(link); link.click(); link.remove();

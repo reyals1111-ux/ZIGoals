@@ -55,6 +55,10 @@ describe('the recovery-words guard (Session AK, BUILD list 2 #1)', () => {
   test('ZIGi\'s transport check reads only the person\'s own messages', () => {
     expect(messagesHoldSecret([{role: 'user', content: 'How did I sleep?'}, {role: 'assistant', content: 'About 7 h.'}])).toBe(false);
     expect(messagesHoldSecret([{role: 'user', content: 'Hello'}, {role: 'user', content: phrase()}])).toBe(true);
+    // Security review F10 (R1-F4): the words split over two messages are read together.
+    const words = phrase().split(/\s+/);
+    expect(looksSecret(words.slice(0, 6).join(' '))).toBe(false);
+    expect(messagesHoldSecret([{role: 'user', content: words.slice(0, 6).join(' ')}, {role: 'assistant', content: 'Go on.'}, {role: 'user', content: words.slice(6).join(' ')}])).toBe(true);
     expect(messagesHoldSecret([{role: 'assistant', content: phrase()}, {role: 'tool', content: hex64}])).toBe(false);
   });
   test('calm words: no exclamation, no blame', () => {

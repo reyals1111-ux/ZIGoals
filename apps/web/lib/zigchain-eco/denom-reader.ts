@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import {CHAIN_LCDS, isChainNetwork, type ChainNetwork} from '../server/chain-lcd';
-import {isCheckableDenom, isCw20Contract, isIbcDenom, parseTraceAnswer, traceMatches, type IbcTrace} from './denoms';
+import {INVISIBLE, isCheckableDenom, isCw20Contract, isIbcDenom, parseTraceAnswer, traceMatches, type IbcTrace} from './denoms';
 import {denomWireSchema, type DenomWire} from './denom-wire';
 export {denomWireSchema, type DenomWire} from './denom-wire';
 
@@ -16,7 +16,7 @@ export {denomWireSchema, type DenomWire} from './denom-wire';
 export const DENOM_SOURCES = CHAIN_LCDS;
 const MAX_BODY = 200_000;
 
-const clean = (value: unknown, max: number) => typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁤﻿]/g, '').trim().slice(0, max) : '';
+const clean = (value: unknown, max: number) => typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f-\u009f]/g, '').replace(INVISIBLE, '').trim().slice(0, max) : '';
 export class DenomRefused extends Error {}
 const PATHS = ['/cosmos/base/tendermint/v1beta1/blocks/latest', '/ibc/apps/transfer/v1/denoms/', '/ibc/apps/transfer/v1/denom_traces/', '/cosmos/bank/v1beta1/denoms_metadata/', '/cosmwasm/wasm/v1/contract/'];
 export async function readDenom(network: ChainNetwork, denom: string, fetcher: typeof fetch = fetch): Promise<DenomWire> {

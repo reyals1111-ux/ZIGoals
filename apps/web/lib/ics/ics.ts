@@ -24,7 +24,7 @@ export function escapeText(value: string): string {
   return value
     .replace(/\r\n|\r|\n/g, '\n')
     .replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '')
-    .replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 }
 const encoder = new TextEncoder();
 /** Folds one content line at 75 octets (the continuation's leading space counts), never inside a UTF-8 character. */

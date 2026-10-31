@@ -44,5 +44,7 @@ export const looksSecret = (text: string | null | undefined): boolean => guardTe
  * the person's saved data, which the guard does not second-guess.
  */
 export function messagesHoldSecret(messages: readonly {role: string; content: string}[]): boolean {
-  return messages.some(m => m.role === 'user' && looksSecret(m.content));
+  const own = messages.filter(m => m.role === 'user');
+  // Security review F10 (R1-F4): words split across messages ("the first six, then the rest") are read together too.
+  return own.some(m => looksSecret(m.content)) || (own.length > 1 && looksSecret(own.map(m => m.content).join('\n')));
 }

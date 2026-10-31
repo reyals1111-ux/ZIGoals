@@ -50,9 +50,24 @@ const CONFUSABLES: Readonly<Record<string, string>> = Object.freeze({
  * A name folded for comparison: NFKC (fullwidth and styled letters to plain), invisible and combining marks removed,
  * lower case, look-alike letters and digits folded, everything but letters dropped. "ＺＩＧ", "Z​IG", "ZΙG", "Z1G" → "zig".
  */
+/**
+ * Security review F10 (R2-F2): capitals folded by their own shape BEFORE lower-casing (Greek Η, Μ, Ν look like H, M, N
+ * but lower-case to η, μ, ν), and the look-alike letters of other scripts (Cyrillic palochka, dotless i, small capitals,
+ * Armenian, Lisu, Cherokee) from Unicode's confusables, for the letters of the names a token could imitate.
+ */
+const UPPER_CONFUSABLES: Readonly<Record<string, string>> = Object.freeze({
+  'Α': 'a', 'Β': 'b', 'Ε': 'e', 'Ζ': 'z', 'Η': 'h', 'Ι': 'i', 'Κ': 'k', 'Μ': 'm', 'Ν': 'n', 'Ο': 'o', 'Ρ': 'p', 'Τ': 't', 'Υ': 'y', 'Χ': 'x',
+  'А': 'a', 'В': 'b', 'Е': 'e', 'К': 'k', 'М': 'm', 'Н': 'h', 'О': 'o', 'Р': 'p', 'С': 'c', 'Т': 't', 'Х': 'x', 'Ѕ': 's', 'І': 'i', 'Ј': 'j', 'Ӏ': 'i', 'Ԁ': 'd', 'Ԍ': 'g',
+  'ꓐ': 'b', 'ꓚ': 'c', 'ꓓ': 'd', 'ꓰ': 'e', 'ꓝ': 'f', 'ꓖ': 'g', 'ꓧ': 'h', 'ꓲ': 'i', 'ꓙ': 'j', 'ꓗ': 'k', 'ꓡ': 'i', 'ꓟ': 'm', 'ꓠ': 'n', 'ꓳ': 'o', 'ꓑ': 'p', 'ꓣ': 'r', 'ꓢ': 's', 'ꓔ': 't', 'ꓴ': 'u', 'ꓦ': 'v', 'ꓪ': 'w', 'ꓫ': 'x', 'ꓬ': 'y', 'ꓜ': 'z',
+  'Ꭺ': 'a', 'Ᏼ': 'b', 'Ꮯ': 'c', 'Ꭰ': 'd', 'Ꭼ': 'e', 'Ꮐ': 'g', 'Ᏻ': 'g', 'Ꮋ': 'h', 'Ꮖ': 'i', 'Ꭻ': 'j', 'Ꮶ': 'k', 'Ꮮ': 'i', 'Ꮇ': 'm', 'Ꮲ': 'p', 'Ꮪ': 's', 'Ꮃ': 'w', 'Ꭲ': 't', 'Ꮩ': 'v', 'Ꮓ': 'z', 'Ꮤ': 'w', 'Ᏽ': 'v',
+});
+const LOWER_EXTRA: Readonly<Record<string, string>> = Object.freeze({'ӏ': 'i', 'ı': 'i', 'ɪ': 'i', 'ɢ': 'g', 'ʟ': 'i', 'ᴀ': 'a', 'ʙ': 'b', 'ᴄ': 'c', 'ᴅ': 'd', 'ᴇ': 'e', 'ʜ': 'h', 'ᴋ': 'k', 'ᴍ': 'm', 'ɴ': 'n', 'ᴏ': 'o', 'ᴘ': 'p', 'ʀ': 'r', 'ꜱ': 's', 'ᴛ': 't', 'ᴜ': 'u', 'ᴠ': 'v', 'ᴡ': 'w', 'ʏ': 'y', 'օ': 'o', 'ս': 'u', 'ց': 'g', 'հ': 'h', 'ո': 'n', 'ա': 'w', 'ɩ': 'i', 'ꭵ': 'i'});
+/** Invisible characters, bidi controls and isolates, the Arabic letter mark, variation selectors and tag characters. */
+export const INVISIBLE = /[\u0300-\u036f\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff\u00ad\u061c\ufe00-\ufe0f\u{e0000}-\u{e007f}]/gu;
 export function foldName(value: string): string {
-  const plain = value.normalize('NFKD').replace(/[̀-ͯ​-‏‪-‮⁠-⁤﻿­]/g, '').normalize('NFKC').toLowerCase();
-  return [...plain].map(ch => CONFUSABLES[ch] ?? ch).join('').replace(/[^a-z]/g, '');
+  const plain = value.normalize('NFKD').replace(INVISIBLE, '').normalize('NFKC');
+  const lower = [...plain].map(ch => UPPER_CONFUSABLES[ch] ?? ch).join('').toLowerCase();
+  return [...lower].map(ch => CONFUSABLES[ch] ?? LOWER_EXTRA[ch] ?? ch).join('').replace(/[^a-z]/g, '');
 }
 const FAMILY_WORDS: ReadonlyMap<string, string> = (() => {
   const map = new Map<string, string>(Object.entries(EXTRA_WORDS).map(([word, family]) => [foldName(word), family]));
@@ -70,7 +85,7 @@ export function imitatedFamily(name: string | null | undefined): string | null {
   if (!name) return null;
   const whole = wholeFamily(name);
   if (whole) return whole;
-  for (const word of name.split(/[\s._\-/:()]+/)) { const folded = foldName(word); if (folded.length >= 3 && FAMILY_WORDS.has(folded)) return FAMILY_WORDS.get(folded)!; }
+  for (const word of name.split(/[^\p{L}\p{N}\p{M}\u200b-\u200f\u2060-\u2069\ufeff]+/u)) { const folded = foldName(word); if (folded.length >= 3 && FAMILY_WORDS.has(folded)) return FAMILY_WORDS.get(folded)!; }
   return null;
 }
 
@@ -111,6 +126,16 @@ export async function ibcDenomOf(path: string): Promise<string> {
   return `ibc/${hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(path)))}`;
 }
 export const isIbcDenom = (denom: string) => /^ibc\/[0-9A-Fa-f]{64}$/.test(denom);
+/** Security review F10 (R2-I5): an IBC denom's hash in capitals (as the chain writes it), so a pasted lower-case one matches. */
+export const normalDenom = (denom: string) => isIbcDenom(denom) ? `ibc/${denom.slice(4).toUpperCase()}` : denom;
+/** The known family an IBC base denom IS ("uusdc" → usdc, "uatom" → atom; "uusd" → none). */
+export function baseFamily(base: string): string | null {
+  const last = (base.split('/').at(-1) ?? '').toLowerCase();
+  for (const candidate of [last, /^[uanmp][a-z]{3,}$/.test(last) ? last.slice(1) : null]) {
+    if (candidate && candidate !== 'usd' && FAMILY_WORDS.has(candidate)) return FAMILY_WORDS.get(candidate)!;
+  }
+  return null;
+}
 /** True only when the trace's own hash is the denom (case-insensitive hex). */
 export async function traceMatches(denom: string, trace: IbcTrace): Promise<boolean> {
   return isIbcDenom(denom) && (await ibcDenomOf(trace.path)) === `ibc/${denom.slice(4).toUpperCase()}`;
@@ -139,7 +164,7 @@ export type TokenView = {
   warning?: string;
   source?: string;
 };
-const clip = (value: string | undefined, max = 60) => value ? value.replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁤﻿]/g, '').trim().slice(0, max) : '';
+const clip = (value: string | undefined, max = 60) => value ? value.replace(/[\u0000-\u001f\u007f-\u009f]/g, '').replace(INVISIBLE, '').trim().slice(0, max) : '';
 export const isFactoryDenom = (denom: string) => /^coin\.zig1[02-9ac-hj-np-z]{38,58}\.[a-zA-Z0-9._\-]{1,64}$/.test(denom);
 export const isCw20Contract = (value: string) => /^zig1[02-9ac-hj-np-z]{58}$/.test(value);
 export function factoryParts(denom: string): {creator: string; subdenom: string} | null {
@@ -148,8 +173,8 @@ export function factoryParts(denom: string): {creator: string; subdenom: string}
   return {creator, subdenom: rest.join('.')};
 }
 const shortAddr = (address: string) => address.length > 20 ? `${address.slice(0, 10)}…${address.slice(-6)}` : address;
-export function classifyToken(facts: TokenFacts): TokenView {
-  const {denom, network} = facts;
+export function classifyToken(input: TokenFacts): TokenView {
+  const facts = {...input, denom: normalDenom(input.denom)}, {denom, network} = facts;
   const known = KNOWN_TOKENS.find(t => t.base === denom && t.network === network);
   const ownBits = [clip(facts.cw20?.name ?? facts.metadata?.name), clip(facts.cw20?.symbol ?? facts.metadata?.symbol ?? facts.metadata?.display, 24)].filter(Boolean);
   const ownName = ownBits.length ? [...new Set(ownBits)].join(' · ') : undefined;
@@ -161,7 +186,8 @@ export function classifyToken(facts: TokenFacts): TokenView {
   const realOf = (family: string) => KNOWN_TOKENS.filter(t => t.family === family && t.network === network).map(t => t.symbol);
   // A checked IBC trace whose own base denom carries the family ("uusdc" for USDC) is that coin from another route, not a
   // look-alike; its name is still only its own.
-  const traceCarries = (family: string) => !!facts.verifiedTrace && isIbcDenom(denom) && [...FAMILY_WORDS].some(([word, f]) => f === family && foldName(facts.verifiedTrace!.base.split('/').at(-1) ?? '').includes(word));
+  // Security review F10 (R2-F1): one rule — the base without a one-letter scale prefix (u, a, n, m, p) must BE a family word.
+  const traceCarries = (family: string) => !!facts.verifiedTrace && isIbcDenom(denom) && baseFamily(facts.verifiedTrace.base) === family;
   if (imitated && !traceCarries(imitated)) {
     const real = realOf(imitated);
     return {kind: 'lookalike', denom, identity: 'A look-alike token', ...(ownName ? {ownName} : {}), ...(factoryParts(denom) ? {maker: factoryParts(denom)!.creator} : isCw20Contract(denom) ? {maker: denom} : {}),
@@ -169,9 +195,10 @@ export function classifyToken(facts: TokenFacts): TokenView {
   }
   if (isIbcDenom(denom)) {
     if (!facts.verifiedTrace) return {kind: 'unknown', denom, identity: 'A token from another chain whose route could not be checked', ...(ownName ? {ownName} : {}), warning: 'ZIGoals could not confirm where it comes from. Go by the denom only.'};
-    const t = facts.verifiedTrace, family = imitatedFamily(t.base.split('/').at(-1));
-    const hops = t.hops.map(h => h.channel).join(' → ');
-    return {kind: 'ibc', denom, identity: `${t.base} from another chain`, ...(ownName ? {ownName} : {}), source: `Its route (${hops}) was read from the network and its hash checked by ZIGoals.${family && !KNOWN_TOKENS.some(k => k.base === denom) ? ' It is not on ZIGChain’s curated token list.' : ''}`};
+    const t = facts.verifiedTrace, hops = t.hops.map(h => h.channel).join(' → ');
+    // Security review F10 (R2-F1): a checked route says where a token came from, not that it is the coin its name says.
+    return {kind: 'ibc', denom, identity: `${t.base} from another chain`, ...(ownName ? {ownName} : {}), source: `Its route (${hops}) was read from the network and its hash checked by ZIGoals.`,
+      warning: 'It is not on ZIGChain’s curated token list. The chain it came from chose its name, and anyone can open a route; go by the denom, not the name.'};
   }
   const factory = factoryParts(denom);
   if (factory) return {kind: 'factory', denom, identity: `A token made on ZIGChain by ${shortAddr(factory.creator)}`, ...(ownName ? {ownName} : {}), maker: factory.creator, warning: 'Anyone can make a token and give it any name. Its name is the maker’s own words.'};

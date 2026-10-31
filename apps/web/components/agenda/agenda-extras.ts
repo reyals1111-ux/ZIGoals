@@ -10,9 +10,13 @@ import {journalTimeZone} from '../../lib/journal-zone';
  * day it becomes usable in the journal's zone. Planned workouts stay empty until a feature keeps them. The Showcase shows
  * its labelled examples.
  */
+/** The agenda's words for an unbonding date: no amount, no validator. */
+export const unbondingTitle = (practice: boolean) => practice ? 'Unstaked test ZIG becomes usable' : 'Unstaked ZIG becomes usable';
 export function agendaExtras({platform, showcase, day}: {platform: Platform | null; showcase: boolean; day: string}): {unbonding: AgendaUnbonding[]; plannedWorkouts: AgendaPlanned[]} {
   if (showcase) return showcaseAgendaExtras(day);
   const zone = journalTimeZone() ?? undefined;
-  const unbonding = unbondingEvents(platform?.positions ?? [], {now: Date.now(), ...(zone ? {timeZone: zone} : {})}).map(e => ({id: e.id, date: e.date, title: e.title, href: e.href}));
+  // Security review F10 (R1-F1, R2-F3): the agenda and its calendar file never carry a figure or a validator's name —
+  // only that unstaked ZIG becomes usable that day (the amount stays on Earn).
+  const unbonding = unbondingEvents(platform?.positions ?? [], {now: Date.now(), ...(zone ? {timeZone: zone} : {})}).map(e => ({id: e.id, date: e.date, title: unbondingTitle(e.practice), href: e.href}));
   return {unbonding, plannedWorkouts: []};
 }

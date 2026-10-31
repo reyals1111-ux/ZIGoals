@@ -11,8 +11,9 @@ const SecretGuardNote = lazy(() => import('./secret-guard-note'));
  * private key. `onRemove` empties the field ("Remove it"). For a note the person may still save (the line says so);
  * `chat` is ZIGi's box, which never sends such a message. Renders nothing for ordinary or short text.
  */
-export function SecretGuard({text, onRemove, chat = false}: {text: string; onRemove?: () => void; chat?: boolean}) {
+/** `leaves`: the text is sent from the device (the feedback email), so the line says so (security review F10, R1-F8). */
+export function SecretGuard({text, onRemove, chat = false, leaves = false}: {text: string; onRemove?: () => void; chat?: boolean; leaves?: boolean}) {
   const deferred = useDeferredValue(text);
   if (deferred.length < GUARD_MIN_CHARS) return null;
-  return <LoadBoundary quiet><Suspense fallback={null}><SecretGuardNote text={deferred} onRemove={onRemove} chat={chat}/></Suspense></LoadBoundary>;
+  return <LoadBoundary quiet><Suspense fallback={null}><SecretGuardNote text={deferred} onRemove={onRemove} chat={chat} leaves={leaves}/></Suspense></LoadBoundary>;
 }

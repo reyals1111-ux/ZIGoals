@@ -79,16 +79,17 @@ export function buildPlan(input: PlanInput): Plan {
     once.set(Math.floor(at / 60000), 'bill');
     push({at, kind: 'bill', id: `bill:${b.id}`, label: label(b.title), ...(labels && b.amount ? {detail: `${b.amount} due tomorrow`} : {}), href: '/app/wealth?view=bills', actionable: false});
   }
-  // Owner follow-up 1 (F4): a vote reminder is a one-off a day before voting ends; inside quiet hours it moves to that
-  // morning (or is dropped when the morning has passed). Never labelled: the snapshot says only that a vote ends soon.
+  // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
+  // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end
+  // time, which would tell the push Worker which proposal this device follows. A morning inside quiet hours moves to
+  // their end; a day whose morning has passed wakes now, unless now is quiet (then nothing). Never labelled.
   for (const v of input.votes ?? []) {
-    let at = v.at;
-    const wall = wallClock(at, zone);
-    if (inQuiet(wall.time, quiet)) at = zonedInstant(wall.date, morningTime(prefs), zone);
-    if (at < now - 60_000 || at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
-    const minute = Math.max(Math.floor(at / 60000), Math.ceil(now / 60000));
-    once.set(minute, 'vote');
-    push({at: minute * 60000, kind: 'vote', id: v.id, href: '/app/governance', actionable: false});
+    const day = wallClock(v.at, zone).date, time = inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs);
+    let at = zonedInstant(day, time, zone);
+    if (at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
+    if (at < now) { if (day !== today || inQuiet(wallClock(now, zone).time, quiet)) continue; at = Math.ceil(now / 60000) * 60000; }
+    once.set(Math.floor(at / 60000), 'vote');
+    push({at, kind: 'vote', id: v.id, href: '/app/governance', actionable: false});
   }
   // Wakes: one per minute of the day, its weekday masks joined; skips: today's instants whose items are all done.
   const byMinute = new Map<number, number>();
