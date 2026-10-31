@@ -321,7 +321,33 @@ push activation; landing deploy; A13 mainnet check; the Studio-4 swap session; t
 Readings: Q22 — Part 13's swap is out of this PR (F11 instead); A13 is an owner check after the deploy (the A13 reminder was cancelled). Q23 — the push Worker's service binding waits for push activation (adding it now would fail the Alpha deploy until that Worker exists, the 10056 rule); the runbook's rate-limited route covers it.
 
 ## Per-surface quality lines (A22)
-One line per new surface, compared with COMPETITORS.md's best equivalent; added as each surface lands.
+Compared with COMPETITORS.md (c); "meets" = the pattern's essentials are there, "gap" = what F1/F6 should raise.
+- **Barcode and food (4.1, 4.4, Part 10 #3/#15):** meets — barcode miss falls through to "Add it yourself" with the label
+  reader; nutrient report as bars with top sources. Gap: Search/Barcode/Label/Photo are separate folds, not one "+" sheet.
+- **Weekly calorie budget, coach card (4.5, #7):** meets — one number (left) and 7 bars; floors respected.
+- **Grocery and diet templates (4.6, #20):** meets — check-off, pantry, review before writing; gap: no swipe to tick.
+- **Workouts (4.9, #5, #8):** meets — warm-up and plates as small tools, muscle freshness body drawing with words;
+  gap: the set table has no greyed "previous" column like Strong/Hevy.
+- **Sleep energy curve (#9):** meets — one curve with "likely dip"/"focus window" labels, labelled an estimate.
+- **Feeling words, compare, year in pixels (#2, #6, #13):** meets — quadrant grid with words, with/without counts and a
+  confidence label; gap: no drag-to-quadrant on phones.
+- **Habits: order, compact list, auto rules, schedule in words (5.6, 5.7, #21):** meets Loop's density in compact mode;
+  gap: no last-5-days checkboxes per row.
+- **Goals: what-if, milestone planner, progress card, bundles (6.x):** meets — pace line and projection labelled; gap:
+  goal rows have no mini pace line in the list.
+- **Wealth: bills, budgets, target mix, purpose flow, rhythm (7.x):** meets — budget left per category, upcoming bills;
+  gap: no single widget dashboard with drill-ins.
+- **Money tools: rules, review inbox, buffer days, split, emergency sheet (#1, #10, #11, #17, #22):** meets — "To review
+  (n)", "Make a rule" from review; gap: "Create rule" not offered right after a manual recategorisation in the list.
+- **FI model, fee drag (#12, #18):** meets — bands and plain summary; labelled models.
+- **Review notes, orbit card, share cards, badges, rewards shelf (8.x, #19):** meets — calm, numbers off by default.
+- **Notifications card, install card, offline page (Parts 2–3):** meets — permission only after a tap, honest "being
+  switched on"; one primary action each.
+- **Music page and mix (1d):** meets — presets, timer, volume; Open-in links.
+- **Lichess play (Part 9):** meets — accessible board, keyboard and typed moves; phones continue on Lichess.
+- **Switch to ZIGoals (A15):** meets — preview before writing, Undo right after.
+- **Tour (A19):** meets — 7 stops, never modal, Show me links.
+F1's review (docs/review/session-ak/RELEASE_REVIEW.md) and the F6 pass refine these lines; each gap above is tracked there.
 
 ## Closing table (every item in the brief)
 Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished/polished** (existed, now complete; commit, tests) · **Not possible** (evidence and reason) · **Recorded** (outside AK by the owner's list). Rows are completed as the parts land.
@@ -384,3 +410,80 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F10 security delta review | Open | — | — |
 | F11 Studio-4 preparation complete and proven | Open | — | — |
 | F12 finish | Open | — | — |
+| 5.1 schedules: "first Monday of the month" | Open (F0x lane) | — | — |
+| 5.7 time-of-day sections (COMPETITORS #23) | Already done | components/habits/habit-sections.tsx (Session AA) | habits-aa specs |
+| 6.5 cross-pillar progress toast | Open (F0x lane) | — | — |
+| 7.8 Wealth polish | Partly: layout fixes `efdd361e`; rest open (F0x lane) | — | layout audit 320 px |
+| 8.1 unified weekly Life review in /app/review | Built ("At a glance" per pillar in the existing Week/Month review; Today's week card links to it) | `a56f9d18` | lib/review-unified tests |
+| 8.2 daily orbit card | Built | `a56f9d18` | lib/orbit-card tests; showcase-today-aa.spec |
+| 8.3 weekly ZIGi insight | Built (deterministic local note in the review) | `a56f9d18` | lib/insight-notes tests |
+| 8.4 monthly balance note | Built | `a56f9d18` | lib/insight-notes tests |
+| 8.5 one share-card system | Built | `a56f9d18` | lib/share-cards tests |
+| 8.6 badges off by default; Checklist no-XP pinned | Built | `a56f9d18` | lib/game/badges-setting.test.ts |
+| 8.7 point-and-tell (A17) | Built: the existing Point & tell records role + developer name, never visible text | `165b495d` | lib/point-tell tests; point-tell.spec |
+| 8.9 a visible sync status | Open (F0x lane) | — | — |
+| Notifications card "being switched on" while push is off | Already done | `f9e103f7` | tests/pwa-ak.spec.ts ("Notifications are being switched on…") |
+| Part 10 #1 transaction rules | Built | `d3ad9fdf` | lib/money-rules tests |
+| Part 10 #2 "does X affect Y?" | Built | `e12ec91b` | lib/compare tests |
+| Part 10 #3 nutrition-label scan | Built | `0dd757d1` | lib/label-scan tests |
+| Part 10 #4 top sources of a nutrient | Built | `7d435846` | nutrition-ak.test.ts |
+| Part 10 #5 warm-up calculator | Built (Part 4.9) | `e7cecde0` | lib/workouts/depth tests (warmupRamp) |
+| Part 10 #6 mood words | Built | `e12ec91b` | lib/mood-words tests |
+| Part 10 #7 weekly calorie budget view | Built | `7d435846` | nutrition-ak.test.ts |
+| Part 10 #8 muscle freshness | Built | `0dd757d1` | lib/muscle-freshness tests |
+| Part 10 #9 energy curve | Built | `e12ec91b` | lib/energy-curve tests |
+| Part 10 #10 review inbox | Built | `d3ad9fdf` | lib/money-review tests |
+| Part 10 #11 buffer days | Built | `d3ad9fdf` | lib/buffer-days tests |
+| Part 10 #12 financial-independence model | Built (a calculator tool, "a model, not advice") | `d3ad9fdf` | lib/fi-model tests |
+| Part 10 #13 year in pixels | Built | `e12ec91b` | lib/year-pixels tests |
+| Part 10 #14 report for a visit | Built | `e12ec91b` | lib/clinician-report tests |
+| Part 10 #15 Nutri-Score (off by default) | Built | `0dd757d1` | food-lookup-route test (grade=1 gate) |
+| Part 10 #16 export to Loop | Built (8.8) | `3110c81f` | lib/export/bridges tests |
+| Part 10 #17 family emergency sheet | Built; detector hardened in Part 15 | `d3ad9fdf`, `fd074085` | lib/emergency-sheet tests |
+| Part 10 #18 fee drag | Built | `d3ad9fdf` | lib/fee-drag tests |
+| Part 10 #19 rewards shelf | Built | `a56f9d18` | lib/rewards-shelf tests |
+| Part 10 #20 diet templates | Built | `0dd757d1` | lib/diet-templates tests |
+| Part 10 #21 recurrence phrase box | Built | `0dd757d1` | lib/recurrence-phrase tests |
+| Part 10 #22 split an entry | Built | `6d0f4f38` | lib/money-split tests |
+| Part 10 #23 time-of-day sections | Already done (see 5.7) | — | — |
+| Part 11 visual, layout audit, A19 tour | Partly: tour `44a44fe2`, layout fixes `efdd361e`; the full pass is F6 | — | — |
+| Part 12 ZIGi tools and Studio-4 preparation | Built | `14287040`, `82343a53`, `768d383d` | lib/ai AK tests, G6 cases; lib/zigi-studio4 tests |
+| Part 14 leftovers, verifier, docs, landing | Partly: verifier stage 11 `d80a1d0d`; Help/What's new/limitations `44a44fe2`; landing `ac6c2d86`; PRIVACY lines; the rest F0x | — | — |
+| Part 15 security review (RM12) | Built: no High; 6 Medium and 14 Low fixed | `2e27d8c3`, `fd074085`, `bafa240c`, `9401dcbb` | docs/security/review-2026-10/SESSION_AK_RM12.md |
+| Part 16 finish | Open (F12) | — | — |
+| A1 notification snapshot and action queue | Built | `f9e103f7` | lib/notify tests |
+| A2 every push shows a notification; exact wake list | Built | `f9e103f7` | sw tests; pwa-ak.spec |
+| A3 one push path; subscription survives | Built | `f9e103f7` | push-reminders/pwa-ak specs |
+| A4 caching rules; Erase clears caches | Built; hardened in Part 15 | `afce4a4f`, `2e27d8c3` | lib/notify sw tests; pwa-ak.spec |
+| A5 free-plan sizing | Built; re-sized in Part 15 | `28da0157`, `2e27d8c3` | PUSH_PUBLIC_ALPHA.md |
+| A6 storage headroom | Built | `883d1dcb` | storage-headroom.test.ts |
+| A7 wallet honesty | Built | `249bf461`, `e417ca9b` | WALLETS.md; walletconnect tests |
+| A8 QR v1–20 | Built | `75ed3a6d` | lib/qr tests |
+| A9 Reown allowed domains | Built (copy); owner follow-up | `249bf461` | runbook |
+| A10 food binding deploy order | Built | `8b0ae98c`, `74902dcd` | check-deployment-configs |
+| A11 review/ak-food-data (Fineli) | Waiting: the branch never appeared | — | `git ls-remote` checks |
+| A12 leftover sweep | Partly; rest in F0 | — | ADR-036 A12 table |
+| A13 mainnet v6 day | Recorded: owner check after the deploy | — | — |
+| A14 bank files | Built | `92b94a8f` | lib/bankfiles tests |
+| A15 importers | Built (Bearable: no documented export) | `e7cecde0`, `322096dc` | importer tests; switch-more-ak.spec |
+| A16 honest export bridges | Built | `3110c81f` | lib/export/bridges tests |
+| A17 point-and-tell never records visible text | Built | `165b495d` | lib/point-tell tests |
+| A18 manifest screenshots, iOS startup images | Built | `02ec25f2` | install-manifest.spec |
+| A19 first-run tour | Built | `44a44fe2` | lib/tour tests; help-page.spec |
+| A20 landing refresh | Built (copy); visual refresh is F7 | `ac6c2d86` | scripts/landing-ak-claims.test.mjs; landing specs |
+| A21 PR-review Action on the non-Draft PR | Open (F12) | — | — |
+| A22 pacing and per-surface quality lines | Built (quality lines below) | this commit | — |
+| D1 push built, switched off | Built | Part 2 | — |
+| D2 widgets | Recorded: not possible on the web (Beta native) | — | — |
+| D3 household | Recorded: ADR only | — | — |
+| D4 languages, units, currency | Recorded: Beta | — | — |
+| D5 no real-model calls | Held: mock + G6; REAL_MODEL_TODO.md | `14287040` | — |
+| D6 Studio-4 art | Moved to a separate session; preparation `82343a53` (F11) | — | — |
+| D7 exchanges refresh, no new exchanges | Built | `5074567f` | wiring.test.ts; EXCHANGES_NEXT.md |
+| D8 stocks/ETFs | Recorded: skipped (paid feed) | — | — |
+| D9 helpers | Held (4; 6 after owner follow-up 1) | — | — |
+| D10 model and effort | Held | — | — |
+| D11 security review | Built (Part 15) | see Part 15 | — |
+| D12 visual polish | Partly; F6 | — | — |
+| MUSIC (Web Audio mix, Open-in links, BYO Spotify) | Built | `95952388`, `9c902707` | lib/audio tests |
+| RAMP/BANXA | Recorded: not needed | — | — |
