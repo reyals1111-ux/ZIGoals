@@ -940,12 +940,12 @@ Readings:
 |---|---|---|---|
 | P1 WIRING_AUDIT_2 to zero | Done: N2 coverage, M3's Running now chips, WIRING_AUDIT_2 status after P1 (Working 76, Partly 7 with owners, Not reachable 0) | `82fde1c7` | tests/p1-nova-make.spec.ts, p1-nova-live.spec.ts |
 | P2 RELEASE_REVIEW_2 to zero | Done: a status line under every RELEASE_REVIEW_2 finding (24 fixed, R2-24 not reproducible and pinned); R2-7 with the owner's hosted check moved in the same change | `53c085e1` | tests/release-review-2-p2.spec.ts; scripts/lib/hosted-alpha-stages.test.mjs |
-| P3 NOVA "wow" review (NOVA_DESIGN_REVIEW.md) and polish | Built: a fresh critic's 26 findings implemented (ND-24's NOVA-orb finale left for the owner); its specs are being made green on the production build | `cf5e77bf`, `a5486a76` | NOVA_DESIGN_REVIEW.md "Fixes"; tests/p3-nova-polish.spec.ts |
+| P3 NOVA "wow" review (NOVA_DESIGN_REVIEW.md) and polish | Built: a fresh critic's 26 findings implemented (ND-24's NOVA-orb finale left for the owner); round 2 fixed the production-build spec failures at their cause (browser re-run pending) | `cf5e77bf`, `a5486a76`, `23adbc80` | NOVA_DESIGN_REVIEW.md "Fixes"; tests/p3-nova-polish.spec.ts |
 | P4 First-run experience review (FIRST_RUN_REVIEW.md) and fixes | Done: a fresh first-run review (23 findings); 21 fixed at their cause, FR-6 and FR-21 verified, FR-17 folded by the owner's decision (D-FR17) | `9a13d0ab`, `c8d0a44d`, `ae0fcc18` | FIRST_RUN_REVIEW.md "Fixes"; tests/p4-first-run.spec.ts |
 | P5 Landing fresh review and fixes | Done: a fresh landing review (12 findings) fixed; first view 258,004 → 246,698 B; owner decisions OD-1…OD-5 recorded and decided (follow-up 5) | `bf617b8d` | LANDING_REVIEW.md; scripts/landing-p5-review.test.mjs; check:landing green |
 | P6 Accessibility sweep (axe and keyboard, every route, three themes) | In progress: lane P6 (axe and keyboard on every route × 3 themes) | — | — |
 | P7 Exploratory round 3 (NOVA, guides, Notes, Tasks) | Done: exploratory round 3 with real local servers in four states; 6 bugs fixed at their cause | `af155d1d` | EXPLORATORY_ROUND3.md; tests/exploratory-round3.spec.ts |
-| P8 Performance after-measurements (M5 + NOVA's opening) | Built: after-measurements (M7) and both regressions fixed at their cause (NOVA's opening; :has() invalidation and the resting-spot scan); real after-numbers on the next build | `5ed28b27`, `00f3a69d`, `e123fe36` | docs/performance/SESSION_AK_MOTION.md |
+| P8 Performance after-measurements (M5 + NOVA's opening) | Built: after-measurements (M7) and both regressions fixed at their cause (NOVA's opening; :has() invalidation and the resting-spot scan); real after-numbers (median of 3, phone, CPU 4×): Today scroll TBT 991 → 23 ms, Earn scroll 260 → 30 ms, Earn load 5001 → 3899 ms (inside the before range) | `5ed28b27`, `00f3a69d`, `e123fe36`, `8ce89709` | docs/performance/SESSION_AK_MOTION.md |
 
 ## Owner decisions and last checks (follow-up 5)
 Verbatim (1 Nov, pre-approved):
@@ -969,12 +969,12 @@ Then Z4 exactly as written.
 
 | Row | Status | Commits | Evidence |
 |---|---|---|---|
-| D-FR17 Fold the habit form's counting fields under More options (cards unchanged) | Open | — | — |
-| D-OD1 "Jarvis" replaced in all public copy | Open | — | — |
+| D-FR17 Fold the habit form's counting fields under More options (cards unchanged) | Done: type, measurement, unit, target and period in "More options" ("How it is counted"); closed for a new habit, open on edit, opens itself for a template, a refusal or the browser's required check; cards unchanged. The four specs that fill those fields (not 13: reminder and Health-link specs are not folded) open it first, every assertion kept | `84c00a46` | lib/habit-form-fold.test.ts; tests/fr17-habit-more-options.spec.ts |
+| D-OD1 "Jarvis" replaced in all public copy | Done: the one public line (landing's NOVA lede) reads "Build your own AI command center, with a real life to run."; a guard test keeps the word out of the landing, Help, search, What's new and NOVA's code; research and review records keep it as history | `c8dcaffb` | scripts/landing-nova-m6.test.mjs |
 | D-OD2 STATUS owner list: deploy the landing only after Alpha #53 is live | Open (Z4) | — | — |
-| D-OD4 "Private by design" directly after the NOVA chapter | Open | — | — |
-| D-OD5 zigoals-mark-v3.webp re-encoded visually lossless, sizes in STATUS | Open | — | — |
+| D-OD4 "Private by design" directly after the NOVA chapter | Done: privacy is chapter 06 after NOVA; "Privacy" joins both menus after NOVA (phone menu NOVA 06, Privacy 07); numbering follows | `c8dcaffb` | scripts/landing-p5-review.test.mjs (OD-4) |
+| D-OD5 zigoals-mark-v3.webp re-encoded visually lossless, sizes in STATUS | Done at the native size: 54,908 → 51,134 B (PSNR 42.25 dB, SSIM 0.998, alpha within 2/255). The 2× retina file for the desktop hero (~940 px) needs a larger original than the repo's 422×480: Known limitations and the owner list | `c8dcaffb` | check:landing green |
 | C1 Closing table true for every row | Open | — | — |
 | C2 WIRING_AUDIT_3 on the final head, every ADR-036 row | Open | — | — |
 | C3 Full browser suite twice on the final head + CI twice green | Open | — | — |
-| C4 docs/handoff/AK_DEMO_TOUR.md (starts "Open NOVA") | Open | — | — |
+| C4 docs/handoff/AK_DEMO_TOUR.md (starts "Open NOVA") | Done: 11 steps, 15 minutes, each with where, what and what is not live; its five code/doc gaps fixed (Help push line, a label, the NOVA inbox link, What's new, the barcode path) | `90ce48e9` | tests/send-feedback.spec.ts, whats-new.spec.ts |
