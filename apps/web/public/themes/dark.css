@@ -18990,7 +18990,7 @@
 }
 /*  components/zigi/meet-zigi.css  */
 @scope (:root[data-theme=dark]) {
-    .meet-zigi-card:not(#\-) {
+    .meet-zigi-card:not(#\-), .meet-zigi-move:not(#\-) {
         border-color: var(--line,#2a325a);
         background-image: none;
         background-color: color-mix(in srgb,var(--panel,#020412) 70%,transparent)

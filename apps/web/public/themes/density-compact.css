@@ -5735,9 +5735,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .meet-zigi-motion:not(#\-), :where(:root[data-density=compact]) .meet-zigi-skin:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .meet-zigi-motion h2:not(#\-), :where(:root[data-density=compact]) .meet-zigi-skin h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .meet-zigi-grid:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .meet-zigi-move:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
 :where(:root[data-density=compact]) .meet-zigi-card:not(#\-) { row-gap: 6px; padding-top: 10.5px; padding-bottom: 10.5px; }
-:where(:root[data-density=compact]) .meet-zigi-card header:not(#\-) { row-gap: 2px; }
-:where(:root[data-density=compact]) .meet-zigi-card h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .meet-zigi-card header:not(#\-), :where(:root[data-density=compact]) .meet-zigi-move header:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .meet-zigi-card h4:not(#\-), :where(:root[data-density=compact]) .meet-zigi-move h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .meet-zigi-meta:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .meet-zigi-meaning:not(#\-) { margin-top: 2px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .meet-zigi-when:not(#\-) { margin-top: 2px; margin-bottom: 0; }

@@ -2931,7 +2931,7 @@
 :where(:root[data-text=large]) .zigi-knock-note:not(#\-) { font-size: calc(14px * 1.125); }
 /*  components/zigi/meet-zigi.css  */
 :where(:root[data-text=large]) .meet-zigi-motion h2:not(#\-), :where(:root[data-text=large]) .meet-zigi-skin h2:not(#\-) { font-size: calc(20px * 1.125); }
-:where(:root[data-text=large]) .meet-zigi-card h4:not(#\-) { font-size: calc(17px * 1.125); }
+:where(:root[data-text=large]) .meet-zigi-card h4:not(#\-), :where(:root[data-text=large]) .meet-zigi-move h4:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .meet-zigi-meta:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .meet-zigi-meaning:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .meet-zigi-when:not(#\-) { font-size: calc(15px * 1.125); }
