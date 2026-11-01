@@ -183,6 +183,11 @@ test('target size (2.5.8): every control is at least 24 × 24 px, or has room ar
   const findings: Findings = {};
   for (const [path, heading] of ALL) {
     await open(page, path, heading);
+    // Session AK (CI run 41309452842): Settings' lower groups and Earn's sections skip their layout until they come near the
+    // screen (content-visibility: auto, G2 R11), so a control measured there stood on an estimated 1,400 px box and seemed to
+    // overlap the next group's controls ("Open the Checklist →" over Chess's username field). Every box is measured on the
+    // layout a person meets as they scroll: each skipped part is laid out first. The same checks, on real positions.
+    await page.evaluate(() => new Promise<void>(done => { for (const el of document.querySelectorAll<HTMLElement>('body *')) if (getComputedStyle(el).contentVisibility === 'auto') el.style.contentVisibility = 'visible'; requestAnimationFrame(() => requestAnimationFrame(() => done())); }));
     const shown = await page.evaluate(crowdedTargets, ZIGI);
     add(findings, path, shown);
     // Then with every closed disclosure in the page open, so what each one holds is measured too.

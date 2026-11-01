@@ -1,8 +1,12 @@
-import {test,expect} from '@playwright/test';
+import {test,expect,type Page} from '@playwright/test';
 import {openTodayWidgets} from './phone-nav';
+const welcomeNotNow=(page:Page)=>page.getByRole('region',{name:'Set up your first goal and habit in about a minute.'}).getByRole('button',{name:'Not now',exact:true}).click();
 test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));});
 test('Health-only setup persists and customization saves, hides, reorders and removes configuration',async({page},info)=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/app');
+ // Session AK (ADR-036 G2, RELEASE_REVIEW_2 R2-11, 15c1e159, deliberate): on a brand-new device "Make Today yours" and the
+ // widget area wait until the welcome is answered, so it is answered first ("Not now").
+ await welcomeNotNow(page);
  await page.getByRole('button',{name:/^Health-only/}).click();
  const preset=page.getByRole('dialog',{name:'Choose your Today layout'});await expect(preset).toBeVisible();await preset.getByRole('button',{name:'Apply layout'}).click();await expect(preset).not.toBeVisible();
  await expect(page.locator('.personalized-today')).toHaveAttribute('data-interests','health');
@@ -19,7 +23,7 @@ test('Health-only setup persists and customization saves, hides, reorders and re
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('health-personalized-390.png'),fullPage:true});
 });
 test('all four presets preview before applying; restored life card precedes attention; Escape preserves settings',async({page},info)=>{
- await page.goto('/app');await page.getByRole('button',{name:'Customize Today',exact:true}).click();
+ await page.goto('/app');await welcomeNotNow(page);await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  // The preset captures are review attachments only; CSS-pixel scale keeps full-page PNGs of a tall Today from eating the time budget on a 3x phone.
  for(const preset of ['Wealth','Habits + Health','Health-only','Balanced']){
   await page.getByRole('button',{name:'Choose preset',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Choose your Today layout'});await dialog.getByRole('radio',{name:new RegExp(`^${preset.replace(/[+]/g,'\\+')}`)}).check();await expect(dialog.getByRole('heading',{name:'Layout preview'})).toBeVisible();await dialog.getByRole('button',{name:'Apply layout'}).click();await expect(dialog).not.toBeVisible();await page.screenshot({path:info.outputPath(`preset-${preset.replace(/\W/g,'')}.png`),fullPage:true,scale:'css'});

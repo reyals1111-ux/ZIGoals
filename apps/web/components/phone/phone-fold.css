@@ -10,4 +10,7 @@
 @media (prefers-reduced-motion: reduce) { .phone-fold-toggle, .phone-fold-hint svg { transition: none; } }
 :root[data-app-motion=off] :is(.phone-fold-toggle, .phone-fold-hint svg) { transition: none; }
 /* Session AK RB (R2-9): a folded Today widget's figure under its name (inherits the row's colour in every theme). */
-.phone-fold-detail { display: block; margin-top: 2px; font-size: 14px; font-weight: 500; opacity: .85; overflow-wrap: break-word; }
+.phone-fold-detail { display: block; margin-top: 2px; font-size: 14px; font-weight: 500; opacity: .85; overflow-wrap: anywhere; }
+/* Session AK (CI, run10-widgets-status at 320 px): the name may shrink to the row, so a long figure (an 18-decimal amount)
+   wraps inside its own row instead of widening it over the next card's row. */
+.phone-fold-toggle > span:first-child { min-width: 0; }

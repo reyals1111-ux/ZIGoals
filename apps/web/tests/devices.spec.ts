@@ -35,7 +35,9 @@ test('the honest list: Bluetooth here, linked accounts that need ZIGoals\' setup
   await bluetooth(page);
   await seed(page);
   await page.goto('/app/health');
-  await page.getByRole('link', {name: 'Open Devices'}).click();
+  // Session AK (ADR-036 G2 R2-8, 15c1e159, deliberate): "Faster ways to log" and its "Open Devices" link went; Devices is
+  // reached from the link at the end of Health's page.
+  await page.getByRole('main').getByRole('link', {name: 'Devices', exact: true}).click();
   await expect(page.getByRole('heading', {level: 1, name: 'Your devices, honestly.'})).toBeVisible();
   const links = page.getByRole('region', {name: 'Linked accounts'});
   await expect(links.getByText('Needs setup by ZIGoals')).toHaveCount(4);

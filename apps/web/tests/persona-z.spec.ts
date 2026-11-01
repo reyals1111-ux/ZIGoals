@@ -249,6 +249,9 @@ test('7b. persona round: the water target is typed in US fl oz; the week reads f
   health = addWater(health, {id: 'health_4b1d3f0e-8a2c-4b55-9f5d-2d7f3a9c0b22', date: day, amountMilli: 1_250_000, unit: 'ml'}, new Date().toISOString());
   await seed(page, {[HEALTH_STORAGE_KEY]: health});
   await page.goto('/app/health');
+  // Session AK (ADR-036 G2 R2-8, 15c1e159, deliberate): "Seven days of care" is folded until two days have entries (a
+  // phone row on a phone); it is opened as a reader would, then read as before.
+  if (await isPhone(page)) await openFold(page, 'Seven days of care'); else await page.locator('summary').filter({hasText: /^Seven days of care/}).click();
   await expect(page.getByRole('group', {name: 'Water · US fl oz, last 7 days'})).toContainText('42');
   await expect(page.getByRole('group', {name: 'Water · mL, last 7 days'})).toHaveCount(0);
   await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Journal settings', exact: true}).click();

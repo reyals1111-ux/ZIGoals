@@ -29,12 +29,15 @@ test('Settings → Your data: where each part lives, what this device holds, wha
   // milestone dates in finance v5; the extras sections), each named; what stays on this device is listed apart.
   // Gate C test audit: the count is pinned as a number (the four modules + 17 device records), not read from the list the
   // page renders, so a row dropped from the catalog fails here.
-  await expect(synced.getByRole('listitem')).toHaveCount(21);
-  expect(SYNCED).toHaveLength(21);
+  // Session AK (ADR-036 8.10 AFL8, e7d9951e, deliberate): the Checklist travels as an encrypted extras section, so its two
+  // records (favourites and day history) are synced rows now: 4 modules + 19 device records, each named below.
+  await expect(synced.getByRole('listitem')).toHaveCount(23);
+  expect(SYNCED).toHaveLength(23);
   await expect(synced.getByRole('listitem').filter({hasText: 'Habits and check-ins'})).toContainText(/\d+(\.\d)? (B|kB|MB)/);
-  for (const label of ['Goal plans, life areas, visions and sub-goals', 'Accounts and debts', 'Micronutrient targets']) await expect(synced).toContainText(label);
+  for (const label of ['Goal plans, life areas, visions and sub-goals', 'Accounts and debts', 'Micronutrient targets', 'Checklist favourites and custom items', 'Checklist day history']) await expect(synced).toContainText(label);
   await expect(page.getByRole('region', {name: 'Kept on this device'})).toContainText('Recent searches');
   await expect(page.getByRole('region', {name: 'Kept on this device'})).not.toContainText('Goal plans, life areas, visions and sub-goals');
+  await expect(page.getByRole('region', {name: 'Kept on this device'})).not.toContainText('Checklist day history');
   await expect(page.getByRole('region', {name: 'Worked out each time'})).toContainText('Calculator results');
   await expect(page.getByRole('region', {name: 'Your copies'})).toContainText('Not recorded');
   await expect(page.getByRole('region', {name: 'What ZIGi can see'})).toContainText(/ZIGi is (off|on)/);
