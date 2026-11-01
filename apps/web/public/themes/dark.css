@@ -402,6 +402,13 @@
     .unavailable-pill:not(#\-) {
         border-color: currentColor
     }
+    :scope dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit;
+        -webkit-text-fill-color: inherit
+    }
     .workspace[aria-busy="true"]:not(#\-)::before {
         background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
         background-color: transparent

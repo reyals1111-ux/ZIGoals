@@ -132,6 +132,7 @@
 :where(:root[data-density=compact]) .site-not-found:not(#\-) { padding-top: 24px; padding-bottom: 24px; }
 :where(:root[data-density=compact]) .site-not-found-mark:not(#\-) { margin-top: 0; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .unavailable-pill:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:root:where([data-density=compact]) dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 /*  app/visual-theme.css  */
 :where(:root[data-density=compact]) .network-banner:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) header:not(#\-) { padding-top: 23px; padding-bottom: 23px; }
