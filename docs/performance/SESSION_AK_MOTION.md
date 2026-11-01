@@ -39,7 +39,7 @@ Owner follow-up 2, M1–M3, closing the WIRING_AUDIT_2 rows M1, M2 and M3 ("Part
 - The theme sheets (`apps/web/public/themes/*.css`, `lib/ui-prefs/theme-sheets.ts`) need `node scripts/themes/build-themes.mjs`
   after this change (they were already stale from other lanes' CSS when checked).
 
-### M3 — live activity chips and optimistic UI: recorded, nothing new built
+### M3 — live activity chips and optimistic UI: NOVA's Running now chips built later by P1 (`82fde1c7`, `tests/p1-nova-live.spec.ts`); the rest recorded below
 What exists (checked in code, 1 Nov 2026):
 - **Live activity chips:** a running habit timer's chip on Today's widget (`components/habits/habit-timer.tsx` `TimerChip`:
   running time, Pause/Resume, Finish, kept across pages and reloads); the Checklist's corner timers
