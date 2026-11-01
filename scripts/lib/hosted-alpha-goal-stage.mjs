@@ -37,7 +37,8 @@ export async function chooseChainInSettings(page, expect) {
   await expect(earn).toBeVisible();
   // The switch is usable once this device's choices are read; a build that locks it to Wealth shows it on already.
   await expect.poll(async () => await earn.isChecked() || await earn.isEnabled()).toBe(true);
-  if (!await earn.isChecked()) { await earn.check(); await expect(earn).toBeChecked(); }
+  // A controlled switch shows the saved choice once saved: a click, then the saved state.
+  if (!await earn.isChecked()) { await earn.click(); await expect(earn).toBeChecked(); }
   await page.goto(new URL('/app', page.url()).href);
   await expect(todayQuickAdd(page)).toBeVisible();
 }
