@@ -1,6 +1,5 @@
 'use client';
 import {GlassRing} from '../../progress/glass-progress';
-import {CHECKLIST_ROUTE} from '../../../lib/af-checklist-keys';
 import {useOrbitDay} from './use-orbit-day';
 import {NovaEmpty, NovaReading} from './empty';
 
@@ -8,7 +7,7 @@ import {NovaEmpty, NovaReading} from './empty';
 export default function OrbitWidget() {
   const {summary} = useOrbitDay();
   if (!summary) return <NovaReading/>;
-  if (summary.source === 'none') return <NovaEmpty pillar="orbit" href={CHECKLIST_ROUTE} action="Open the Checklist">Your day’s orbit fills in as you add a habit or star something for the Checklist.</NovaEmpty>;
+  if (summary.source === 'none') return <NovaEmpty pillar="orbit">Your day’s orbit fills in as you add a habit or star something for the Checklist.</NovaEmpty>;
   const share = summary.total ? summary.done / summary.total : 0, unit = summary.source === 'checklist' ? 'planets lit' : 'habits done';
   return <div className="nova-orbit-widget">
     <GlassRing identity="nova-orbit" className="nova-orbit-ring" arcs={[{key: 'done', end: share * 100}]} role="img" aria-label={`${summary.done} of ${summary.total} ${unit} today`}>

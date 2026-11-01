@@ -341,3 +341,35 @@ open of /app/nova; see EX-4. Every other test therefore ran in the full Chromium
   - The calculator works out `12,50+3,20`, `1/3`, `0.1+0.2` and `3 + 4` correctly.
   - "Next 60 days" adds up its bills (€120 + €9.99 + €950 = €1,079.99).
 - **Layout:** No page-level horizontal overflow on the 14 swept routes at 320 and 390, apart from EX-7.
+
+## Fixes (lane EXF)
+
+Each bug was re-checked against the working tree on top of `15c1e159` (and on the served build of `15c1e159` with a probe
+script), fixed at its cause, and given a test. Every new browser test was run against the served pre-fix build and failed
+there at its own assertion (18 of 18 in `exploratory-exf`, `nova-dashboard` EX-1 and `g1b-amount-calculator` EX-9, plus
+`nova-setup` planets 1 and 2); they pass only after the lead rebuilds the server. Unit tests fail on the old code too.
+
+| ID | Result | Cause fixed | Test |
+|---|---|---|---|
+| EX-1 | Fixed | `components/nova/nova.css`: `.nova-centre` is a flex column instead of six fixed grid rows; the stage takes the rest and scrolls; with the chat open the foot gives way, never the window. Still reproduced on `15c1e159` (rows `162px 48px 690px 0px 0px 0px`, field bottom 990 of 900). | `tests/nova-dashboard.spec.ts` "EX-1": the command field, the open conversation panel, its composer and Close inside the window (bounding box) at 768×1024, 1024×768, 1440×900, 1920×1080 |
+| EX-2 | Fixed | `nova-chat.tsx` `focusOnOpen` (set by the dashboard): the composer takes the focus a frame after the chat opens (after a phone sheet's own focus). `nova-dashboard.tsx`: single-key shortcuts never fire while the chat is open or from a text field or the chat. | `tests/exploratory-exf.spec.ts` "EX-2" (computer) and "EX-2 and EX-19" (phone) |
+| EX-3 | Fixed | The composer has the focus after ⌘/Ctrl + J, and Esc also counts focus left on `<main>` (an ancestor of NOVA) as the page. | `exploratory-exf` "EX-3": Esc closes the chat, the next Esc goes back to /app/goals |
+| EX-4 | Fixed | `nova-right.tsx`: no `SpeechRecognition.available()` as the panel opens; a "Check “Hey NOVA” on this device" button asks. With the wake phrase already on, `use-wake.ts` asks (the person turned it on). The right panel is hidden by default since R2-3, but opened once it was remembered and asked on every load. | `exploratory-exf` "EX-4" (a counting stub: 0 calls on load, 1 on the button) |
+| EX-5 | Fixed | NOVA's side only: `nova-chrome.css` hides `.logo-intro`/`.logo-intro-frame` while `<html data-nova-view="on">`. The intro itself is unchanged (it still starts on NOVA's first load and hands back to the static Z unseen). | `exploratory-exf` "EX-5": no intro clip visible over NOVA at 390 |
+| EX-6 | Fixed | `use-opening.ts`: the skip listener is a layout effect (in place when `data-opening="play"` is); the dashboard's key handler also skips the opening and swallows a letter while it plays. | `exploratory-exf` "EX-6": a "t" dispatched the instant the opening starts leaves NOVA in place |
+| EX-7 | Fixed | `tasks.css`: `.tasks-status` wraps (`overflow-wrap: anywhere; min-width: 0`). | `exploratory-exf` "EX-7 and EX-8" at 390 (URL) and 320 (long word): no page-level side scroll |
+| EX-8 | Fixed | `task-parts.tsx`: after a successful add the title field takes the focus back. | same test, by mouse and by Tab + Enter |
+| EX-9 | Fixed | `lib/money-calc/expression.ts`: a number over 10 digits gets "Keep each number to 10 digits or fewer before the decimal mark."; new `amountProblem()` tells a plain amount above a billion "That amount is too large: keep it at a billion or less."; used by the money log and the monthly budget forms. | `lib/money-calc/expression.test.ts` "EX-9"; `tests/g1b-amount-calculator.spec.ts` "EX-9" |
+| EX-10 | Fixed | `make-it-yours.tsx`: the visible "Shown"/"Show" is followed by hidden words, so the name is "Shown in quick access: Health" (the visible word first, WCAG 2.5.3), still with `aria-pressed`. | `exploratory-exf` "EX-10" |
+| EX-11 | Fixed | `lib/nova/setup.ts` `setPrivacyMode`: choosing a different mode drops the privacy planet's stale check and lit day (the same mode keeps them; the finished day stays). No stored-format change (fields are removed, none added). | `lib/nova/setup.test.ts` "EX-11"; `tests/nova-setup.spec.ts` planets 1 and 2 ("Not checked yet." after Use Guarded) |
+| EX-12 | Fixed | `health.css`: `.health-private-note a` is underlined. | `exploratory-exf` "EX-12" (computed `text-decoration-line`) |
+| EX-13 | Fixed | `setup/check-row.tsx` (both guides): "Not done yet" is now "Mark as not done". | `tests/nova-setup.spec.ts` planets 1 and 2 |
+| EX-14 | Fixed | The empty states of Today's orbit, Focus, Day at a glance and Notes inbox no longer repeat the widget's own link; Now playing drops its own "Open Music" (the player button stays where the player is shown). | `lib/nova/widgets/widgets.test.ts` "EX-14" (no widget body repeats its catalog link); `exploratory-exf` "EX-14" |
+| EX-15 | Fixed | `notes.css`: `.note-suggest[hidden] { display: none; }`; `link-field.tsx` says "Nothing to link matches “…”." (or "Nothing to link yet…") when `[[` finds nothing. | `exploratory-exf` "EX-15" |
+| EX-16 | Fixed | NOVA's Goal pace shows whole percents, rounded down (`lib/nova/widgets/words.ts` `wholePercent`); Today's exact `progressText` is unchanged. | `lib/nova/widgets/widgets.test.ts` "EX-16" |
+| EX-17 | No longer reproduces | Since `981f6537` (R2-3) the Privacy chip shows only once a brain is connected, so a fresh start has no "Privacy not chosen yet" chip (probe on the `15c1e159` build: chips "Brain On-device answers", "Sees 4 of 5 pillars"). With a brain, the chip and the guide read the same stored mode. | none needed |
+| EX-18 | Fixed | The empty chat offers "Continue your last conversation" (the newest chat started in NOVA, `lib/nova/bridge.ts` `latestNovaChat`, only when the chat store still has it with turns). | `lib/nova/bridge.test.ts` "EX-18"; `exploratory-exf` "EX-18" |
+| EX-19 | Fixed | `nova-chat.css`: the reply icons, the "More" menu and the question chips get their 44 px sizes inside NOVA's chat (they lived only in ZIGi's panel CSS, which NOVA does not load). Still 36×33 and 40 px on `15c1e159`. | `exploratory-exf` "EX-2 and EX-19" at 390 |
+
+Not changed: ZIGi's own panel still asks `SpeechRecognition.available()` when it opens (`components/ai/use-talk.ts`); that is
+outside NOVA and outside EX-4. No new device key, database or dependency; no stored-format change.

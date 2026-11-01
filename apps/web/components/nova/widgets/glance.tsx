@@ -36,6 +36,6 @@ export default function GlanceWidget() {
     return glanceLines(facts);
   }, [ready, orbit.summary, health.data, health.error, bills.data, bills.unreadable, focus.data, focus.unreadable, today]);
   if (!lines) return <NovaReading/>;
-  if (!lines.length) return <NovaEmpty pillar="orbit" href="/app/today" action="Open Today">Your day at a glance fills in from your own records: a habit, a glass of water, a night of sleep, a bill.</NovaEmpty>;
+  if (!lines.length) return <NovaEmpty pillar="orbit">Your day at a glance fills in from your own records: a habit, a glass of water, a night of sleep, a bill.</NovaEmpty>;
   return <ul className="nova-glance">{lines.map(line => <li key={line}>{line}</li>)}</ul>;
 }

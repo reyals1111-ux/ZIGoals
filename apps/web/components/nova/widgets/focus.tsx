@@ -16,7 +16,7 @@ export default function FocusWidget() {
   if (!record.loaded) return <NovaReading/>;
   if (record.unreadable) return <NovaUnread what="Your focus sessions"/>;
   const g = gardenOf(record.data, today);
-  if (!g.weekSessions) return <NovaEmpty pillar="habits" href="/app/journey#focus" action="Start a focus session">No focus sessions this week yet. 15, 25 or 50 minutes, and something grows while you stay.</NovaEmpty>;
+  if (!g.weekSessions) return <NovaEmpty pillar="habits">No focus sessions this week yet. 15, 25 or 50 minutes, and something grows while you stay.</NovaEmpty>;
   return <div className="nova-focus">
     <p className="nova-big"><span className="nova-figure">{durationWords(g.weekMinutes)}</span><small> this week</small></p>
     <p className="nova-line">{g.weekSessions} {g.weekSessions === 1 ? 'session' : 'sessions'} · {g.grown} grown, {g.withered} withered in your garden.</p>

@@ -4,7 +4,11 @@ import type {ReactNode} from 'react';
 import {LazyPillarArt} from '../../illustrations/lazy-pillar-art';
 import type {WidgetPillar} from '../../../lib/nova/widgets/catalog';
 
-/** An empty widget teaches: the pillar's illustration, one plain line, and where to start. */
+/**
+ * An empty widget teaches: the pillar's illustration, one plain line, and where to start. Session AK lane EXF (EX-14): give
+ * `href`/`action` only when they differ from the widget's own link under it (lib/nova/widgets/catalog.ts), never the same
+ * words to the same page twice.
+ */
 export function NovaEmpty({pillar, children, href, action}: {pillar: WidgetPillar; children: ReactNode; href?: string; action?: string}) {
   return <div className="nova-empty">
     <LazyPillarArt pillar={pillar} size={72} className="nova-empty-art"/>

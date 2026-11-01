@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {describe, expect, test} from 'vitest';
-import {evaluateAmount, isExpression, resolveAmountText} from './expression';
+import {amountProblem, evaluateAmount, isExpression, resolveAmountText} from './expression';
 
 const ok = (raw: string) => { const r = evaluateAmount(raw); if (!r.ok) throw Error(`${raw}: ${r.reason}`); return r.text; };
 const reason = (raw: string) => { const r = evaluateAmount(raw); return r.ok ? null : r.reason; };
@@ -49,6 +49,25 @@ describe('BUILD list 2 #19: a calculator in the money amount field', () => {
     expect(resolveAmountText('12,50')).toBe('12,50');
     expect(resolveAmountText('12,50+3,20')).toBe('15.70');
     expect(resolveAmountText('5/0')).toBeNull();
+  });
+  test('EX-9 (Session AK lane EXF): a number too long or an amount too large gets its own reason', () => {
+    // Before: "Use only numbers and + − × ÷." for a sum, and the field's "with at most two decimals" for a plain amount.
+    expect(reason('999999999999*999999')).toBe('Keep each number to 10 digits or fewer before the decimal mark.');
+    expect(reason('1+12345678901')).toBe('Keep each number to 10 digits or fewer before the decimal mark.');
+    expect(amountProblem('999999999999*999999')).toBe('Keep each number to 10 digits or fewer before the decimal mark.');
+    expect(amountProblem('99999999999999999')).toBe('That amount is too large: keep it at a billion or less.');
+    expect(amountProblem('1000000000,01')).toBe('That amount is too large: keep it at a billion or less.');
+    expect(amountProblem('9999999999')).toBe('That amount is too large: keep it at a billion or less.');
+    // At most a billion, a plain amount, or something the field's own message covers: no reason from here.
+    expect(amountProblem('1000000000')).toBeNull();
+    expect(amountProblem('12,50')).toBeNull();
+    expect(amountProblem('1.234')).toBeNull();
+    expect(amountProblem('abc')).toBeNull();
+    expect(amountProblem('')).toBeNull();
+    expect(amountProblem('12,50+3,20')).toBeNull();
+    expect(amountProblem('5/0')).toBe('A number cannot be divided by zero.');
+    // The ten-digit rule itself is unchanged: ten digits still read as a number.
+    expect(reason('1234567890/10')).toBeNull();
   });
   test('the parser never evaluates code', () => {
     const source = readFileSync(join(__dirname, 'expression.ts'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');

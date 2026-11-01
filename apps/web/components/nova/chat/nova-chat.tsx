@@ -18,7 +18,7 @@ import {helpText, parseSlash} from '../../../lib/ai/slash';
 import {ZIGI_STORE_EVENT} from '../../../lib/ai/store/keys';
 import {briefPrefs, ZIGI, zigiPrefs} from '../../../lib/ai/store/records';
 import {readDeviceRecord} from '../../../lib/device-record';
-import {askZigi, DUO_IDLE, type NovaAgentId, duoState, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
+import {askZigi, DUO_IDLE, type NovaAgentId, duoState, latestNovaChat, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
 import {pagePack, taskToolEnv} from '../../../lib/nova/bridge-pack';
 import {readNovaScopes, scopesOf} from '../../../lib/nova/scopes';
 import {NOVA_SETUP} from '../../../lib/nova/setup';
@@ -76,14 +76,16 @@ export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
  * streaming and the conversation is there when it opens again; `onCollapse` adds the fold button. `hermes`: the person's
  * own Hermes Agent comes from lane NC's connection record, for "Ask my Hermes".
  */
-export type NovaChatProps = {layout: 'panel' | 'side' | 'sheet'; onOrbState?: (state: OrbState) => void; onClose?: () => void; collapsed?: boolean; onCollapse?: () => void};
+export type NovaChatProps = {layout: 'panel' | 'side' | 'sheet'; onOrbState?: (state: OrbState) => void; onClose?: () => void; collapsed?: boolean; onCollapse?: () => void;
+  /** Session AK lane EXF (EX-2): the composer takes the focus when the chat opens (the field that opened it is gone). */
+  focusOnOpen?: boolean};
 export const NOVA_SETUP_HREF = '/app/nova/setup';
 const SETTINGS_HREF = '/app/settings#your-ai';
 /** NOVA's own messages read the day: Today's records and specialist. */
 const NOVA_AREA: PageArea = 'today';
 const NOVA_INSTRUCTIONS_MAX = 2000;
 type Delegation = {before: ReadonlySet<string>; area: PageArea; chatId: string; done: boolean; agent: NovaAgentId};
-export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse}: NovaChatProps) {
+export function NovaChat({layout, onOrbState, onClose, collapsed = false, onCollapse, focusOnOpen = false}: NovaChatProps) {
   const settings = useAiSettings(), scope = currentAiScope(), sensitive = useSensitiveScreen(), router = useRouter();
   const novaRecord = useDeviceRecord(NOVA_STORE), persona = personaOf(novaRecord.data), instructions = instructionsOf(novaRecord.data);
   // NOVA's own standing instructions join the person's ZIGi instructions for NOVA's messages (inside the same data marks).
@@ -124,6 +126,13 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const voiceRec = useDeviceRecord(ZIGI_VOICE), vprefs = voicePrefs(voiceRec.data), zigiRec = useDeviceRecord(ZIGI);
   const busy = session.status !== 'idle', delegating = deleg !== null;
   useEffect(() => setEditing(null), [session.chat.id]);
+  // Lane EXF (EX-2): on opening, the next words go to the composer, never to the page (where letters are NOVA's shortcuts).
+  // A frame later, so a phone's sheet (a modal dialog that focuses its first control as it opens) is already open.
+  useEffect(() => {
+    if (!focusOnOpen) return;
+    const frame = requestAnimationFrame(() => composer.current?.focus({preventScroll: true}));
+    return () => cancelAnimationFrame(frame);
+  }, [focusOnOpen]);
 
   // ---- Sending ----
   const ask = useCallback((text: string, options: SendOptions = {}) => { void session.ask(text, {area: NOVA_AREA, ...options}); }, [session]);
@@ -214,6 +223,16 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     if (!found) { setNote('That conversation is not on this device.'); return; }
     await session.open(chatId); setView('chat'); setNote(`Continuing “${found.title}”.`);
   }, [session]);
+  // Session AK lane EXF (EX-18): after a reload the chat opens empty; the newest conversation started in NOVA is offered
+  // ("Continue your last conversation") instead of being only under Conversations. Read from the chat store, so a deleted
+  // or empty one is never offered.
+  const latestId = useMemo(() => latestNovaChat(bridge.data), [bridge.data]), [lastChat, setLastChat] = useState<{id: string; title: string} | null>(null);
+  useEffect(() => {
+    let live = true;
+    if (!latestId || latestId === session.chat.id) { setLastChat(null); return; }
+    currentChatStore().read(latestId).then(found => { if (live) setLastChat(found && found.turns.length ? {id: latestId, title: found.title} : null); }, () => { if (live) setLastChat(null); });
+    return () => { live = false; };
+  }, [latestId, session.chat.id]);
   const handoff = useRef<() => void>(() => undefined);
   handoff.current = () => {
     const taken = takeNovaHandoff(); if (!taken) return;
@@ -283,6 +302,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
           <p className="nova-eyebrow">Your private intelligence</p>
           <p className="nova-welcome-title">Think out loud.</p>
           <p className="nova-welcome-sub">One conversation, your whole constellation: goals, habits, health and wealth, on this device. {novaAndZigi(persona.name)} They share this history.</p>
+          {lastChat && !busy && <p className="nova-continue"><button type="button" className="secondary nova-tool" onClick={() => void openChat(lastChat.id).then(() => composer.current?.focus())}>Continue your last conversation</button> <span className="fine">“{lastChat.title}”</span></p>}
           {examples.length > 0 && !busy && <div className="ai-chips" role="group" aria-label="Questions to start with">{examples.map(e => <button key={e} type="button" className="ai-chip" title={e} onClick={() => ask(e)}>{e}</button>)}</div>}
         </div>}
         {!connected && session.chat.turns.length === 0 && <div className="nova-invite" role="note" aria-label={`Build ${persona.name}’s brain`}>

@@ -19,7 +19,7 @@ const MoneyTools = lazy(() => import('../money-tools/money-tools'));
 // (its own chunk, on "Map"), and a calculator in the amount fields. Pure parts in lib/; nothing new is stored.
 import {categoriesRecentFirst} from '../../../lib/recent-categories/recent';
 import {selectionLine, summarizeSelection} from '../../../lib/money-log/selection';
-import {evaluateAmount, isExpression, resolveAmountText} from '../../../lib/money-calc/expression';
+import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expression';
 import {CalcHint} from '../../money-calc/calc-hint';
 import {MONEY_DRAFT_EVENT, type MoneyDraft} from '../../money-photos/draft-event';
 import '../../money-select/money-select.css';
@@ -33,8 +33,8 @@ const SpendingMap = lazy(() => import('../../spending-map/spending-map'));
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF'] as const;
 const money = (cents: number, currency: string) => new Intl.NumberFormat('en-GB', {style: 'currency', currency}).format(cents / 100);
 const readAmount = (raw: string): string | null => { const resolved = resolveAmountText(raw); if (resolved === null) return null; const v = resolved.trim().replace(/\s/g, '').replace(',', '.'); return amountText.safeParse(v).success ? Number(v).toFixed(2) : null; };
-/** Session AK (#19): why a typed sum cannot be saved, in its own words; null when it is not a sum. */
-const sumProblem = (raw: string): string | null => { if (!isExpression(raw)) return null; const out = evaluateAmount(raw); return out.ok ? null : out.reason; };
+/** Session AK (#19): why a typed sum cannot be saved, in its own words; lane EXF (EX-9): also a plain amount that is too large. */
+const sumProblem = amountProblem;
 export default function SpendingSection({showcase = false}: {showcase?: boolean}) {
   const log = useDeviceRecord(MONEY_LOG), today = localDate(), id = useId(), rules = useDeviceRecord(MONEY_RULES), review = useDeviceRecord(MONEY_REVIEW);
   const toReview = useMemo(() => new Set(review.data.ids), [review.data.ids]);

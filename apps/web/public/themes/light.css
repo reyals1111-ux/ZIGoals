@@ -11887,6 +11887,54 @@
     .nova-agent:not(#\-) {
         color: var(--muted,#1e2635)
     }
+    .nova-chat .ai-reply-icon:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--muted,#202938)
+    }
+    .nova-chat .ai-reply-icon:hover:not(#\-) {
+        color: var(--text,#0d0f18);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 16%,transparent)
+    }
+    .nova-chat .ai-reply-icon:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff);
+        color: var(--text,#0d0f18)
+    }
+    .nova-chat .ai-reply-icon:is([aria-pressed=true],[aria-expanded=true]):not(#\-) {
+        color: var(--brand-cyan-ink);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 14%,transparent)
+    }
+    .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after {
+        background-image: none;
+        background-color: #eff2fb;
+        border-color: var(--line,#c3cae3);
+        color: var(--text,#0d0f18)
+    }
+    .nova-chat .ai-reply-more-list:not(#\-) {
+        border-color: color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));
+        background-image: none;
+        background-color: #eff2fb;
+        box-shadow: 0 22px 50px -18px #3d3d3d5c
+    }
+    .nova-chat .ai-reply-more-info:not(#\-) {
+        color: var(--muted,#202938)
+    }
+    .nova-chat .ai-more-item:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text,#0d0f18)
+    }
+    .nova-chat .ai-more-item:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent)
+    }
+    .nova-chat .ai-more-item:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
 }
 /*  components/nova/command-bar.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {

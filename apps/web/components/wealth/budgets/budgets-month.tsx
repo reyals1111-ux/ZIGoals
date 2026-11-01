@@ -10,7 +10,7 @@ import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth} f
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
 import './budgets.css';
 // Session AK (BUILD list 2 #19): a sum in the amount field ("300+45,50") is worked out and that amount is saved.
-import {evaluateAmount, isExpression, resolveAmountText} from '../../../lib/money-calc/expression';
+import {amountProblem, resolveAmountText} from '../../../lib/money-calc/expression';
 import {CalcHint} from '../../money-calc/calc-hint';
 import '../../money-select/money-select.css';
 
@@ -34,8 +34,9 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
     event.preventDefault();
-    const sum = isExpression(amount) ? evaluateAmount(amount) : null;
-    if (sum && !sum.ok) { setProblem(sum.reason); return; }
+    // Session AK lane EXF (EX-9): a sum's own reason, or "too large" for a plain amount above a billion.
+    const sumIssue = amountProblem(amount);
+    if (sumIssue) { setProblem(sumIssue); return; }
     const input = {category, currency, monthly: readAmount(resolveAmountText(amount) ?? amount), rollover}, issue = budgetIssue(input);
     if (issue) { setProblem(issue); return; }
     change(r => setBudget(r, input, crypto.randomUUID(), thisMonth), `Budget for ${category} saved: ${money(Math.round(Number(input.monthly) * 100), currency)} a month${rollover ? ', with rollover' : ''}.`);

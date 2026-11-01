@@ -46,6 +46,8 @@ const NovaMiniWindow = lazy(() => import('./mini-window'));
 type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
 const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+/** Session AK lane EXF (EX-2): a key from inside the conversation (its composer, its buttons, its sheet) is never a shortcut. */
+const inChat = (t: EventTarget | null) => t instanceof Element && !!t.closest('.nova-talk, .nova-chat, .nova-sheet');
 function useWidth(): number {
   const [width, setWidth] = useState(() => typeof window === 'undefined' ? 1440 : window.innerWidth);
   useEffect(() => { const read = () => setWidth(window.innerWidth); window.addEventListener('resize', read); return () => window.removeEventListener('resize', read); }, []);
@@ -76,7 +78,7 @@ export default function NovaDashboard() {
   const save = useCallback((change: (r: NovaRecord) => NovaRecord, done?: string): boolean => {
     try { novaUpdate(change); if (done) setStatus(done); return true; } catch (e) { setStatus(plainErrorMessage(e, 'This change could not be saved on this device.')); return false; }
   }, [novaUpdate, setStatus]);
-  const opening = useOpening({ready: nova.loaded, seen: !!r.openingSeen, motion, markSeen: () => { save(markOpeningSeen); }});
+  const opening = useOpening({ready: nova.loaded, seen: !!r.openingSeen, motion, markSeen: () => { save(markOpeningSeen); }}), finishOpening = opening.finish;
 
   const ctx: WidgetContext = useMemo(() => ({markets: isShown(pagesView, 'markets'), notes: true, briefs: true}), [pagesView]);
   const widgets = useMemo(() => widgetsFor(r, id => widgetAvailable(id, ctx)), [r, ctx]);
@@ -148,16 +150,21 @@ export default function NovaDashboard() {
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
+      // Session AK lane EXF (EX-6): a key pressed while the opening plays skips it, and a letter does nothing else (the
+      // opening's own listener does that first; this covers a key that arrives before that listener is in place).
+      if (root.current?.dataset.opening === 'play') { finishOpening(); if (e.key.length === 1) { e.preventDefault(); return; } }
       if (e.key === 'Escape') {
         if (document.fullscreenElement) { e.preventDefault(); void document.exitFullscreen().catch(() => undefined); return; }
         if (Date.now() - fsLeftAt.current < 600 || document.querySelector('dialog[open]')) return;
         const t = e.target;
-        if (t instanceof Node && t !== document.body && !root.current?.contains(t)) return;
+        // Lane EXF (EX-3): focus left on the page's <main> (around NOVA, after a route change) counts as the page, like <body>.
+        if (t instanceof Node && t !== document.body && !root.current?.contains(t) && !(root.current && t.contains(root.current))) return;
         if (editing) { setEditing(false); setStatus('Done arranging.'); return; }
         if (chatOpen) { closeChat(); return; }
         exit(); return;
       }
-      if (!shortcuts || typing(e.target) || document.querySelector('dialog[open]') || e.altKey || e.ctrlKey || e.metaKey) return;
+      // Lane EXF (EX-2): never while the conversation is open or the key comes from a text field or the chat.
+      if (!shortcuts || chatOpen || typing(e.target) || inChat(e.target) || document.querySelector('dialog[open]') || e.altKey || e.ctrlKey || e.metaKey) return;
       if (!phone && e.key === '[') { e.preventDefault(); cycleLeft(); return; }
       if (!phone && e.key === ']') { e.preventDefault(); toggleRight(); return; }
       const entry = dockForKey(entries, e);
@@ -171,7 +178,7 @@ export default function NovaDashboard() {
     };
     window.addEventListener('keydown', key); window.addEventListener('keydown', commandKey, true);
     return () => { window.removeEventListener('keydown', key); window.removeEventListener('keydown', commandKey, true); };
-  }, [editing, chatOpen, shortcuts, phone, entries, act, exit, closeChat, cycleLeft, toggleRight]);
+  }, [editing, chatOpen, shortcuts, phone, entries, act, exit, closeChat, cycleLeft, toggleRight, finishOpening]);
 
   const wake = useWakePhrase({on: wakeOn(r) && !phone, persona: persona.name, paused: chatOpen, onWake: () => { setChatOpen(true); setStatus(`${persona.name} heard you.`); }});
 
@@ -189,7 +196,7 @@ export default function NovaDashboard() {
 
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
   const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typed={typed} brain={brain} showcase={showcase} onTalk={openChat} talkOpen={chatOpen}/>;
-  const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat}/></Suspense></LoadBoundary>;
+  const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined}
     data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
     <div className="nova-sky" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>

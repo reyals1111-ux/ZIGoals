@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {readDeviceRecord, updateDeviceRecord} from '../device-record';
 import {defaultAiSettings, type AiSettings} from '../ai/settings';
-import {SETUP_STEPS, NOVA_SETUP, NOVA_SETUP_KEY, CHECK_NOTE_MAX, showcaseNovaSetup as showcaseNovaSetupForTest, markCelebrated, novaOnline, readPrivacyMode, recordCheck, setCardHidden, setPrivacyMode, setupProgress, showSetupCard, stepDone, unmarkStep, type NovaSetup} from './setup';
+import {SETUP_STEPS, NOVA_SETUP, NOVA_SETUP_KEY, CHECK_NOTE_MAX, showcaseNovaSetup as showcaseNovaSetupForTest, markCelebrated, novaOnline, readPrivacyMode, recordCheck, setCardHidden, setPrivacyMode, setupProgress, showSetupCard, stepCheck, stepDone, unmarkStep, type NovaSetup} from './setup';
 import {setupPathModel} from './setup-model';
 import {ORBITS, PLANETS, MODEL_PICKS, ollamaSteps, lmStudioSteps, llamaCppSteps, detectOs, isLocalOrigin, SUBSCRIPTION_NOTE, SUBSCRIPTION_DETAILS, KEY_NOTES} from './setup-guide';
 import {pathProblems, pathProgress, milestoneState} from '../path/model';
@@ -59,6 +59,29 @@ describe('the setup record (zigoals:nova-setup:v1)', () => {
     expect(stepDone(read.data, 'meet')).toBe(true);
     expect(() => NOVA_SETUP.schema.parse({version: 1, steps: {meet: {check: {ok: true, at: NOW.toISOString(), note: 'x'.repeat(201)}}}})).toThrow();
     expect(readPrivacyMode({getItem: () => { throw Error('blocked'); }})).toBe('strict');
+  });
+});
+
+describe('EX-11 (Session AK lane EXF): a new privacy mode makes the privacy check stale', () => {
+  test('a different mode drops the privacy planet\'s check and lit day; the same mode keeps them; other planets stay', () => {
+    let r = setPrivacyMode({version: 1}, 'strict', TODAY);
+    r = recordCheck(r, 'meet', {ok: true}, NOW, TODAY);
+    r = recordCheck(r, 'privacy', {ok: true, note: 'Strict is on.'}, NOW, TODAY);
+    expect(stepDone(r, 'privacy')).toBe(true);
+    // Before the fix, "Use Guarded" left "Checked: it works. Strict is on." and the lit planet.
+    const guarded = setPrivacyMode(r, 'guarded', TODAY);
+    expect(guarded.privacyMode).toBe('guarded');
+    expect(stepDone(guarded, 'privacy')).toBe(false);
+    expect(stepCheck(guarded, 'privacy')).toBeNull();
+    expect(stepDone(guarded, 'meet')).toBe(true);
+    const same = setPrivacyMode(r, 'strict', TODAY);
+    expect(stepDone(same, 'privacy')).toBe(true);
+    expect(stepCheck(same, 'privacy')?.note).toBe('Strict is on.');
+    // A finished guide keeps its day (the badge stays earned).
+    let all: NovaSetup = setPrivacyMode({version: 1}, 'strict', TODAY);
+    for (const id of SETUP_STEPS) all = recordCheck(all, id, {ok: true}, NOW, TODAY);
+    expect(setPrivacyMode(all, 'relaxed', TODAY).finishedOn).toBe(TODAY);
+    expect(NOVA_SETUP.schema.safeParse(guarded).success).toBe(true);
   });
 });
 

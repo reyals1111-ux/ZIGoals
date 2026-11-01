@@ -1805,6 +1805,9 @@
 :where(:root[data-text=large]) .nova-list-open small:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .nova-duo-side span:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .nova-duo-steps:not(#\-) { font-size: calc(12px * 1.125); }
+:where(:root[data-text=large]) .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nova-chat .ai-reply-more-info:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .nova-chat .ai-more-item:not(#\-) { font-size: calc(15px * 1.125); }
 /*  components/nova/command-bar.css  */
 :where(:root[data-text=large]) .nova-bar-title:not(#\-) { font-size: calc(13px * 1.125); }
 :where(:root[data-text=large]) .nova-bar-row input:not(#\-) { font-size: calc(18px * 1.125); }

@@ -3523,6 +3523,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-duo-steps li:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
 @media (max-width:480px) { :where(:root[data-density=compact]) .nova-tool:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-turn-permissions:not(#\-) { margin-top: 8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat .ai-reply-icons:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nova-chat .ai-reply-icon:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after { padding-top: 5px; padding-bottom: 5px; }
+:where(:root[data-density=compact]) .nova-chat .ai-reply-more-list:not(#\-) { row-gap: 1.5px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .nova-chat .ai-reply-more-info:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-chat .ai-more-item:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat .nova-continue:not(#\-) { row-gap: 8px; margin-top: 12px; margin-bottom: 0; }
 /*  components/nova/command-bar.css  */
 :where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 12vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-bar-body:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }

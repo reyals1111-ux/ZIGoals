@@ -114,7 +114,8 @@
 .health-targets>p { max-width: 650px; }
 .health-targets .health-form { gap: 24px; }
 .health-private-note { font-size: .875rem; color: #95a7c2; margin: 28px 0 12px; line-height: 1.8; }
-.health-private-note a { color: #b6e8d7; text-underline-offset: 3px; }
+/* Session AK lane EXF (EX-12): a link inside a sentence is underlined, so it is told apart by more than a near colour (axe link-in-text-block). */
+.health-private-note a { color: #b6e8d7; text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .health-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .health-today { --health-muted: #a6b3c6; background: radial-gradient(ellipse at top right, #87edc617, transparent 70%), #10192cb0; border-color: #a7f4d624; }
 .health-today .health-section-heading { align-items: start; }

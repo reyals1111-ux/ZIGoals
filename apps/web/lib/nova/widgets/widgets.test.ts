@@ -1,6 +1,8 @@
+import {existsSync, readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {WIDGETS, gallery, isWidgetId, widgetAvailable} from './catalog';
-import {durationWords, glanceLines, paceWords, shareOf, waterAmount, whenWords, type GlanceFacts} from './words';
+import {durationWords, glanceLines, paceWords, shareOf, waterAmount, whenWords, wholePercent, type GlanceFacts} from './words';
 import {DEFAULT_WIDGETS} from '../store';
 
 describe('the widget gallery', () => {
@@ -43,5 +45,31 @@ describe('widget words: unknown is never zero', () => {
     expect(full[0]).toBe('2 of 5 habits done so far.'); expect(full[1]).toBe('You slept 7 h 20 min last night.'); expect(full[2]).toBe('750 mL of water of 2 L so far.');
     expect(glanceLines({...unknown, orbit: {done: 3, total: 3, unit: 'planet'}})).toEqual(['Your orbit is complete: all 3 planets done.']);
     expect(glanceLines({...unknown, nextBill: {title: 'Rent', days: 20}})).toEqual([]);
+  });
+});
+
+describe('EX-14 (Session AK lane EXF): a widget never repeats its own link', () => {
+  it('no widget body offers the words of the widget\'s own link again (a screen reader\'s link list had them twice)', () => {
+    const dir = join(__dirname, '../../../components/nova/widgets');
+    for (const w of WIDGETS) {
+      const file = join(dir, `${w.id}.tsx`);
+      expect(existsSync(file), w.id).toBe(true);
+      const source = readFileSync(file, 'utf8'), words = w.open.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      expect(source, w.id).not.toMatch(new RegExp(`action="${words}"|>${words}<`));
+    }
+  });
+});
+
+describe('EX-16 (Session AK lane EXF): Goal pace in whole percents', () => {
+  it('one format in one list: rounded down, a bound kept, unknown never a number', () => {
+    // Before: "45%", "65%" and "41.66%" side by side (Today's exact progressText).
+    expect(['45', '65', '41.66'].map(p => wholePercent(p))).toEqual(['45%', '65%', '41%']);
+    expect(wholePercent('99.99')).toBe('99%');
+    expect(wholePercent('100')).toBe('100%');
+    expect(wholePercent('0')).toBe('0%');
+    expect(wholePercent('12.5', 'at-least')).toBe('At least 12%');
+    expect(wholePercent('40', 'unavailable')).toBe('Unavailable');
+    expect(wholePercent('')).toBe('Unavailable');
+    expect(wholePercent('n/a')).toBe('Unavailable');
   });
 });

@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {OPENING} from '../../lib/nova/orb';
 
 export type OpeningPhase = 'waiting' | 'play' | 'done';
@@ -29,8 +29,9 @@ export function useOpening({ready, seen, motion, markSeen}: {ready: boolean; see
     if (!seen) mark.current();
     if (!seen && motion) play(); else setPhase('done');
   }, [ready, seen, motion, play]);
-  // Any key or tap finishes it (the key still does its own job afterwards, except a shortcut letter).
-  useEffect(() => {
+  // Any key or tap finishes it (the key still does its own job afterwards, except a shortcut letter). A layout effect
+  // (Session AK lane EXF, EX-6): the listener is in place when `data-opening="play"` is, so a key pressed at once is caught.
+  useLayoutEffect(() => {
     if (phase !== 'play') return;
     const skip = (event: Event) => { if (event instanceof KeyboardEvent && event.key.length === 1) event.preventDefault(); finish(); };
     window.addEventListener('keydown', skip, true); window.addEventListener('pointerdown', skip, true);

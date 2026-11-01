@@ -34,7 +34,15 @@
     radial-gradient(1px 1px at 52% 36%, #ffffff77 50%, transparent 51%), radial-gradient(140% 100% at 50% 50%, transparent 55%, #00000099);
 }
 .nova-sky-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.nova-centre { grid-column: 2; position: relative; z-index: 1; min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; }
+.nova-centre { grid-column: 2; position: relative; z-index: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+/* Session AK lane EXF (EX-1): a column, not six fixed grid rows. The centre renders 3 to 6 children (the chips, the wake line
+   and the edit bar come and go), and with fixed rows the stage fell into an `auto` row and the foot into the 0 px `1fr`
+   row, below the window. Now every part keeps its own height, the stage takes what is left (and scrolls inside), and with
+   the conversation open the foot gives way instead of the window, so the command field and the chat always fit. */
+.nova-centre > * { flex: none; }
+.nova-centre > .nova-stage-area { flex: 1 1 0; }
+.nova-frame[data-chat] .nova-centre > .nova-foot { flex: 0 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.nova-frame[data-chat] .nova-talk { max-height: 100%; min-height: 0; }
 .nova-left { grid-column: 1; }
 .nova-right { grid-column: 3; }
 .nova-frame :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--nova-focus); outline-offset: 3px; }
@@ -348,7 +356,7 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 
 /* ---- Phones: the minimal NOVA (the orb, the command field and the chat; quick access in a sheet) ---- */
 .nova-frame[data-phone] { grid-template-columns: minmax(0, 1fr); }
-.nova-frame[data-phone] .nova-centre { grid-column: 1; grid-template-rows: auto minmax(0, 1fr) auto; }
+.nova-frame[data-phone] .nova-centre { grid-column: 1; }
 .nova-frame[data-phone] .nova-top { grid-template-columns: auto minmax(0, 1fr) auto; padding: max(10px, env(safe-area-inset-top, 0px)) 12px 0; }
 .nova-frame[data-phone] .nova-exit { padding: 0 10px; }
 .nova-frame[data-phone] .nova-exit .nova-kbd { display: none; }

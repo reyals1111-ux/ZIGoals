@@ -22,7 +22,8 @@
 .tasks-add .field select, .tasks-add .field input, .tasks-add button { min-height: 44px; }
 .tasks-add .tasks-add-title { flex: 2 1 200px; }
 .tasks-add.is-compact .field { min-width: 110px; }
-.tasks-status { min-height: 1.4em; margin: 6px 0 0; }
+/* Session AK lane EXF (EX-7): "Added “…”." names the task as typed; a long word or a pasted address wraps instead of widening the page. */
+.tasks-status { min-height: 1.4em; margin: 6px 0 0; min-width: 0; overflow-wrap: anywhere; }
 .tasks-error { margin: 4px 0 0; color: var(--danger, currentColor); }
 .tasks-page { display: grid; gap: 18px; width: min(920px, 100%); margin: 0 auto; }
 .tasks-links { margin: 0; }

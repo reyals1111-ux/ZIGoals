@@ -12438,6 +12438,54 @@
     .nova-agent:not(#\-) {
         color: var(--muted,#a4b2cd)
     }
+    .nova-chat .ai-reply-icon:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--muted,#a1afc8)
+    }
+    .nova-chat .ai-reply-icon:hover:not(#\-) {
+        color: var(--text,#eef1ff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 16%,transparent)
+    }
+    .nova-chat .ai-reply-icon:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff);
+        color: var(--text,#eef1ff)
+    }
+    .nova-chat .ai-reply-icon:is([aria-pressed=true],[aria-expanded=true]):not(#\-) {
+        color: var(--brand-cyan,#63e7ff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 14%,transparent)
+    }
+    .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after {
+        background-image: none;
+        background-color: #020313;
+        border-color: var(--line,#2a325a);
+        color: var(--text,#eef1ff)
+    }
+    .nova-chat .ai-reply-more-list:not(#\-) {
+        border-color: color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));
+        background-image: none;
+        background-color: #020313;
+        box-shadow: 0 22px 50px -18px rgba(0,0,0,.9)
+    }
+    .nova-chat .ai-reply-more-info:not(#\-) {
+        color: var(--muted,#a1afc8)
+    }
+    .nova-chat .ai-more-item:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text,#eef1ff)
+    }
+    .nova-chat .ai-more-item:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent)
+    }
+    .nova-chat .ai-more-item:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
 }
 /*  components/nova/command-bar.css  */
 @scope (:root[data-theme=dark]) {

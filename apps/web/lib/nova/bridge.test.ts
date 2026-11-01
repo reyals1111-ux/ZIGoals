@@ -7,7 +7,7 @@ import type {Chat} from '../ai/chats';
 import {chatFileName, chatMarkdown} from './bridge-export';
 import {isNovaShortcut} from './command-key';
 import {askZigi, chatOrigin, chatOrigins, clearNovaHandoff, continueInNova, delegate, delegatedTurns, DUO_IDLE, duoState, forgetNovaChats, HANDOFF_MS, markDelegated, MAX_DELEGATED_TURNS, MAX_NOVA_ORIGINS,
-  NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_HANDOFF_EVENT, novaChatHref, novaHandoffPending, rememberNovaChat, sendToNova, setDuo, setSpeechInput, speechInputOn, subscribeDuo, takeNovaHandoff} from './bridge';
+  NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_HANDOFF_EVENT, latestNovaChat, novaChatHref, novaHandoffPending, rememberNovaChat, sendToNova, setDuo, setSpeechInput, speechInputOn, subscribeDuo, takeNovaHandoff} from './bridge';
 import {readDeviceRecord} from '../device-record';
 
 /**
@@ -28,6 +28,17 @@ test('origins: a chat started in NOVA reads as NOVA; one started with ZIGi keeps
   // The ZIGi record is untouched by NOVA's write, and NOVA's record holds no text.
   expect(JSON.parse(localStorage.getItem('zigoals:zigi:v1')!).chatAreas).toEqual({'chat-zigi': 'health'});
   expect(JSON.parse(localStorage.getItem(NOVA_BRIDGE_KEY)!)).toEqual({version: 1, origins: {'chat-nova': '2026-11-01T08:00:00.000Z'}});
+});
+test('EX-18 (Session AK lane EXF): the newest chat started in NOVA, for "Continue your last conversation"', () => {
+  expect(latestNovaChat({version: 1})).toBeNull();
+  rememberNovaChat(localStorage, 'older', new Date('2026-11-01T08:00:00Z'));
+  rememberNovaChat(localStorage, 'newest', new Date('2026-11-01T09:30:00Z'));
+  rememberNovaChat(localStorage, 'middle', new Date('2026-11-01T09:00:00Z'));
+  expect(latestNovaChat(readDeviceRecord(localStorage, NOVA_BRIDGE).data)).toBe('newest');
+  // A tie goes to the later entry; a deleted chat is no longer offered.
+  expect(latestNovaChat({version: 1, origins: {a: '2026-11-01T10:00:00.000Z', b: '2026-11-01T10:00:00.000Z'}})).toBe('b');
+  forgetNovaChats(localStorage, ['newest']);
+  expect(latestNovaChat(readDeviceRecord(localStorage, NOVA_BRIDGE).data)).toBe('middle');
 });
 test('origins and delegated turns are bounded (the newest kept), and deleting chats forgets them', () => {
   for (let i = 0; i < MAX_NOVA_ORIGINS + 5; i++) rememberNovaChat(localStorage, `c${i}`);

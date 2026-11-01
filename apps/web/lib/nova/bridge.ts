@@ -70,6 +70,15 @@ export function rememberNovaChat(storage: ReadWrite, chatId: string, now = new D
   if (readDeviceRecord(storage, NOVA_BRIDGE).data.origins?.[chatId]) return;
   updateDeviceRecord(storage, NOVA_BRIDGE, current => ({...current, origins: newest({...(current.origins ?? {}), [chatId]: now.toISOString()}, MAX_NOVA_ORIGINS)}));
 }
+/**
+ * Session AK lane EXF (EX-18): the newest conversation started in NOVA (by its start time; on a tie, the later entry), or
+ * null. NOVA's empty chat offers to continue it after a reload, instead of leaving it only under Conversations.
+ */
+export function latestNovaChat(record: NovaBridge): string | null {
+  let best: string | null = null, at = -Infinity;
+  for (const [chatId, when] of Object.entries(record.origins ?? {})) { const t = Date.parse(when); if (Number.isFinite(t) && t >= at) { best = chatId; at = t; } }
+  return best;
+}
 /** The turns of one task NOVA handed to ZIGi: the task as asked, and ZIGi's reply (or replies). */
 export function markDelegated(storage: ReadWrite, chatId: string, area: PageArea, turns: {task: string | null; replies: readonly string[]}, agent: NovaAgentId = 'zigi'): void {
   const add: Record<string, DelegatedTurn> = {}, who = agent === 'zigi' ? {} : {agent};

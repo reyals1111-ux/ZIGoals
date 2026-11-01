@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId, useState, type FormEvent} from 'react';
+import {useId, useRef, useState, type FormEvent} from 'react';
 import {TASK_PRIORITIES, type Task, type TaskPriority} from '../../lib/tasks/schema';
 import {taskState, type TaskInput} from '../../lib/tasks/engine';
 import {formatClock, formatDate} from '../../lib/visual-format';
@@ -27,14 +27,16 @@ export function dueText(t: Task, today: string): string {
 export function TaskAddForm({onAdd, goals, today, fixedDue, fixedGoal, label = 'Add a task', submit = 'Add task', compact = false, folded = false}: {onAdd: (input: TaskInput) => boolean; goals: readonly GoalOption[]; today: string; fixedDue?: string; fixedGoal?: string; label?: string; submit?: string; compact?: boolean; folded?: boolean}) {
   const id = useId();
   const [title, setTitle] = useState(''), [priority, setPriority] = useState<TaskPriority>('normal'), [due, setDue] = useState(''), [time, setTime] = useState(''), [goal, setGoal] = useState('');
-  const [more, setMore] = useState(false);
+  const [more, setMore] = useState(false), titleInput = useRef<HTMLInputElement>(null);
   const day = fixedDue ?? due;
   const send = (event: FormEvent) => {
     event.preventDefault();
     const input: TaskInput = {title, priority, ...(day ? {due: day} : {}), ...(day && time ? {time} : {}), ...((fixedGoal ?? goal) ? {goal: fixedGoal ?? goal} : {})};
-    if (onAdd(input)) { setTitle(''); setDue(''); setTime(''); setPriority('normal'); setGoal(''); }
+    // Session AK lane EXF (EX-8): the title field takes the focus back, ready for the next task (Add turns disabled as the
+    // field clears, and a focused button that turns disabled drops the focus to the page).
+    if (onAdd(input)) { setTitle(''); setDue(''); setTime(''); setPriority('normal'); setGoal(''); titleInput.current?.focus(); }
   };
-  const titleField = <label className="field tasks-add-title"><span>New task</span><input value={title} maxLength={140} onChange={e => setTitle(e.target.value)} placeholder="Call the dentist" /></label>;
+  const titleField = <label className="field tasks-add-title"><span>New task</span><input ref={titleInput} value={title} maxLength={140} onChange={e => setTitle(e.target.value)} placeholder="Call the dentist" /></label>;
   const fields = <>
     {!compact && <label className="field"><span>Priority</span><select value={priority} onChange={e => setPriority(e.target.value as TaskPriority)}>{TASK_PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_WORDS[p]}</option>)}</select></label>}
     {fixedDue === undefined && <label className="field"><span>Due (optional)</span><input id={`${id}-due`} type="date" min={today} value={due} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} /></label>}

@@ -303,3 +303,33 @@ test.describe('NOVA on a phone and a tablet', () => {
     await noSideScroll(page);
   });
 });
+
+/**
+ * Session AK lane EXF (docs/review/session-ak/EXPLORATORY_BUGS.md EX-1, Blocker): on computers and tablets the command field
+ * and the open conversation sat below the window (`.nova-frame` clips, the page does not scroll), and `toBeVisible()` still
+ * passed. The boxes are measured against the window instead, fresh (no chips beyond two) and with the right panel open.
+ */
+test.describe('EX-1: the command field and the open chat are inside the window', () => {
+  test.skip(({isMobile}) => isMobile, 'computer and tablet sizes');
+  const inside = async (page: Page, what: string, box: {y: number; height: number} | null) => {
+    const height = page.viewportSize()!.height;
+    expect(box, what).not.toBeNull();
+    expect(box!.y, what).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height, what).toBeLessThanOrEqual(height);
+  };
+  for (const [width, height] of [[768, 1024], [1024, 768], [1440, 900], [1920, 1080]] as const) test(`${width} × ${height}`, async ({page}) => {
+    await page.setViewportSize({width, height});
+    await fresh(page, seen());
+    await page.goto('/app/nova');
+    const field = page.locator('.nova-command');
+    await expect(field).toBeVisible();
+    await inside(page, 'the command field', await field.boundingBox());
+    await field.getByRole('textbox', {name: 'Message NOVA'}).fill('What is next today?');
+    await field.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+    const talk = page.getByRole('region', {name: 'Conversation with NOVA'});
+    await expect(talk.locator('section.nova-chat')).toBeVisible();
+    await inside(page, 'the conversation panel', await talk.boundingBox());
+    await inside(page, 'the composer', await talk.getByRole('textbox', {name: 'Message NOVA'}).boundingBox());
+    await inside(page, 'the close button', await talk.getByRole('button', {name: 'Close NOVA’s chat'}).boundingBox());
+  });
+});

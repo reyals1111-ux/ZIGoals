@@ -26,6 +26,17 @@ test('the money log: "12,50+3,20" shows "= 15.70" and saves 15.70; division by z
   await spending(page).getByRole('button', {name: 'Save budget'}).click();
   await expect(spending(page)).toContainText('Weekly budget set: €150.00.');
 });
+test('EX-9 (Session AK lane EXF): a number too long or an amount too large is told so, not "only numbers" or "two decimals"', async ({page}) => {
+  await freshDevice(page);
+  await openWealth(page);
+  const amount = spending(page).getByLabel('Amount');
+  await amount.fill('999999999999*999999');
+  await expect(spending(page).locator('.money-calc-hint').first()).toHaveText('Keep each number to 10 digits or fewer before the decimal mark.');
+  await amount.fill('99999999999999999');
+  await spending(page).getByRole('button', {name: 'Save', exact: true}).click();
+  await expect(spending(page).getByRole('alert')).toHaveText('That amount is too large: keep it at a billion or less.');
+  expect(await readRecord(page, MONEY_LOG_KEY)).toBeNull();
+});
 test('a monthly budget: "300+45,50" is saved as 345.50', async ({page}) => {
   await freshDevice(page);
   const form = await openMonthlyBudget(page); // Session AK RB (R2-8, deliberate): a folded row on a phone, the form behind its button

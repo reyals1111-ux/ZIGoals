@@ -86,9 +86,15 @@ test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded
   const privacy = await open(page, 'Privacy mode', 'privacy');
   await check(privacy, /Check the mode holds/);
   await expect(privacy.getByText(/Strict is on\. A test message to a cloud model was refused/)).toBeVisible();
+  // Session AK lane EXF (EX-13): the un-mark button reads as an action beside "Checked: it works.", not as a status.
+  await expect(privacy.getByRole('button', {name: 'Mark as not done'})).toBeVisible();
   // Strict's own words now say an unconfirmed Hermes is treated "as in Guarded" (Z1A-8), so the name is anchored.
   await privacy.getByRole('radio', {name: /^Guarded/}).check();
   await privacy.getByRole('button', {name: 'Use Guarded'}).click();
+  // Lane EXF (EX-11): the Strict result is stale once Guarded is on; it goes, and the planet asks for a new check.
+  await expect(privacy.getByText(/Strict is on\. A test message/)).toHaveCount(0);
+  await expect(privacy.getByRole('status').filter({hasText: 'Not checked yet.'})).toBeVisible();
+  await expect(privacy.getByRole('button', {name: 'Check the mode holds'})).toBeVisible();
   await expect(privacy.locator('.nova-send-line')).toContainText('NOVA is about to send this to OpenAI.');
   await expect(privacy.locator('.nova-send-text')).toHaveText('Plan a birthday dinner for my sister [name] at [address]; my budget is about €180.');
   await check(privacy, /Check (the mode holds|again)/);

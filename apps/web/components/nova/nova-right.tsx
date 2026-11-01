@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {Suspense, lazy, useCallback, useEffect, useId, useState, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useRef, useState, type ReactNode} from 'react';
 import type {HermesStatus} from '../../lib/nova/hermes-record';
 import {LoadBoundary} from '../load-boundary';
 import {useAiSettings} from '../ai/use-ai-settings';
@@ -38,6 +38,15 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
   const settings = useAiSettings(), voice = useDeviceRecord(ZIGI_VOICE), usage = useDeviceRecord(AI_USAGE), memory = useDeviceRecord(AI_MEMORY), actions = useDeviceRecord(AI_ACTIONS);
   const [probe, setProbe] = useState<Probe>({state: 'idle', results: [], loaded: {}, at: null});
   const [battery, setBattery] = useState<{level: number; charging: boolean} | null>(null), [support, setSupport] = useState<WakeSupport | null>(null), [refreshed, setRefreshed] = useState(0);
+  // Session AK lane EXF (EX-4): the browser is asked about on-device speech recognition only when the person asks (the
+  // button below), never as the panel opens: `SpeechRecognition.available()` is new, and one browser build crashed the tab
+  // on it. With the wake phrase already on, use-wake.ts asks (the person turned it on).
+  const [checkingWake, setCheckingWake] = useState(false), mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const checkWake = useCallback(() => {
+    setCheckingWake(true);
+    void wakeSupport(window).then(r => { if (mounted.current) { setSupport(r); setCheckingWake(false); } });
+  }, []);
   const s = settings.data, connectedLocal: LocalServer | null = settings.loaded && s.enabled && s.mode === 'local' && s.baseUrl && brain.kind !== 'hermes' ? {id: s.localServer === 'ollama' ? 'ollama' : 'lmstudio', name: s.localServer === 'ollama' ? 'Ollama' : 'Your local server', baseUrl: s.baseUrl, wire: s.localServer === 'ollama' ? 'ollama' : 'openai-compatible'} : null;
   const ask = useCallback(async (servers: readonly LocalServer[]) => {
     setProbe(p => ({...p, state: 'asking'}));
@@ -52,7 +61,6 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
     let live = true;
     const nav = navigator as Navigator & {getBattery?: () => Promise<{level: number; charging: boolean}>};
     nav.getBattery?.().then(b => { if (live) setBattery({level: b.level, charging: b.charging}); }).catch(() => undefined);
-    void wakeSupport(window).then(r => { if (live) setSupport(r); });
     return () => { live = false; };
   }, [refreshed]);
   const facts = factLines(deviceFacts(typeof navigator === 'undefined' ? undefined : navigator, battery));
@@ -96,11 +104,12 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
         <p className="nova-fine">{speech ? `${persona} may read answers aloud on this device (your voice choices in ZIGi apply).` : `Muted: nothing is read aloud.`}</p>
         <p className="nova-row"><span className="nova-status">Microphone off</span> until you press Talk. {persona} never opens it by itself.</p>
         <button type="button" className="nova-btn nova-btn-primary" onClick={onTalk}><NovaIcon name="music" size={18}/>Talk to {persona}</button>
-        {support === null ? <p className="nova-fine" role="status">Checking for on-device speech recognition…</p> : support.ok
-          ? <><div className="nova-switch-row"><span id="nova-wake-label">Listen for “Hey {persona}”</span>
+        {support === null && !wake ? <><button type="button" className="nova-btn" onClick={checkWake} disabled={checkingWake}>{checkingWake ? 'Checking…' : `Check “Hey ${persona}” on this device`}</button>
+            <p className="nova-fine" role="status">{checkingWake ? 'Checking for on-device speech recognition…' : 'Nothing is checked until you ask.'}</p></>
+          : wake || support?.ok ? <><div className="nova-switch-row"><span id="nova-wake-label">Listen for “Hey {persona}”</span>
               <button type="button" role="switch" aria-checked={wake} aria-labelledby="nova-wake-label" className="nova-switch" onClick={() => onWake(!wake)}><span aria-hidden="true"/></button></div>
             <p className="nova-fine">Recognised on this device; nothing is sent. {persona} listens only while this page is open and in front, and stops when you leave.</p></>
-          : <p className="nova-fine">“Hey {persona}” is not offered: {support.reason}</p>}
+          : <p className="nova-fine">“Hey {persona}” is not offered: {support?.reason}</p>}
       </>)}
       {section('tools', 3, <ul className="nova-tools">
         <ToolRow href="/app/habits" icon="habits" label="Habits left today" value={counts.habitsLeft}/>

@@ -90,7 +90,7 @@ export default function MakeItYours({record, save, entries, onReplay, status}: {
         <NovaIcon name={e.id} size={18}/><span className="nova-dock-name">{e.label}{shortcutsOn(record) && <kbd className="nova-kbd">{keyLabel(e.key)}</kbd>}</span>
         <button type="button" className="nova-mini-btn" disabled={i === 0} onClick={() => save(r => moveDock(r, e.id, -1, visible), `${e.label} moved up.`)} aria-label={`Move ${e.label} up`}><NovaIcon name="up" size={18}/></button>
         <button type="button" className="nova-mini-btn" disabled={i === entries.length - 1} onClick={() => save(r => moveDock(r, e.id, 1, visible), `${e.label} moved down.`)} aria-label={`Move ${e.label} down`}><NovaIcon name="down" size={18}/></button>
-        <button type="button" className="nova-btn nova-btn-small" aria-pressed={!e.hidden} onClick={() => save(r => setDockHidden(r, e.id, !e.hidden), `${e.label} ${e.hidden ? 'shown' : 'hidden'}.`)}>{e.hidden ? 'Show' : 'Shown'}</button>
+        <button type="button" className="nova-btn nova-btn-small" aria-pressed={!e.hidden} onClick={() => save(r => setDockHidden(r, e.id, !e.hidden), `${e.label} ${e.hidden ? 'shown' : 'hidden'}.`)}>{e.hidden ? 'Show' : 'Shown'}{/* Session AK lane EXF (EX-10): which entry, after the visible word */}<span className="sr-only"> in quick access: {e.label}</span></button>
       </li>)}</ol>
       <div className="nova-row-actions">
         <button type="button" className="nova-btn" onClick={() => save(resetDock, 'Quick access is back to its first order.')}>Reset the order</button>

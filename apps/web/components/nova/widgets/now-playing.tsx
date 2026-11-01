@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import {useSyncExternalStore} from 'react';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import {usePagesView} from '../../pages/use-pages-view';
@@ -26,7 +25,9 @@ export default function NowPlayingWidget() {
   const source = prefs.data.source, {sound, timerMin, stopOnHide} = prefs.data.ambient, playOnSilent = !!mixRecord.data.playOnSilent;
   const mix = savedLayers(mixRecord.data), mixMode = mixIsActive(mixRecord.data), mixTimer = mixRecord.data.timerMin;
   const label = source === 'ambient' ? (ambient.playing ? playingLabel(ambient) : mixMode ? `Your mix · ${mix.map(l => LAYER_LABELS[l.sound]).join(' + ')}` : `Focus sounds · ${AMBIENT_LABELS[sound]}`) : source === 'spotify' ? 'Spotify' : 'Apple Music';
-  const open = playerShown ? <button type="button" className="nova-chip-link" onClick={openMusicPlayer}>Open the player</button> : <Link className="nova-chip-link" href="/app/music" prefetch={false}>Open Music</Link>;
+  // Session AK lane EXF (EX-14): the widget's own link already reads "Open Music" (lib/nova/widgets/catalog.ts); the player
+  // button is the one extra door, and only where the player is shown.
+  const open = playerShown ? <button type="button" className="nova-chip-link" onClick={openMusicPlayer}>Open the player</button> : null;
   return <div className="nova-playing" data-playing={source === 'ambient' && ambient.playing || undefined}>
     <span className="nova-disc" aria-hidden="true"/>
     <div className="nova-playing-text">

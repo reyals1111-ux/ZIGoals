@@ -17,6 +17,8 @@ export function LinkField({label, value, onChange, index, exclude, rows = 8, max
   const [query, setQuery] = useState<{query: string; start: number} | null>(null), [active, setActive] = useState(0), [closed, setClosed] = useState(false);
   const options = query && !closed ? suggestLinks(index, query.query, 8, exclude) : [];
   const open = options.length > 0, current = Math.min(active, Math.max(0, options.length - 1));
+  // Session AK lane EXF (EX-15): `[[` that finds nothing says so, instead of an empty list.
+  const none = !!query && !closed && !open ? (query.query.trim() ? `Nothing to link matches “${query.query.trim().slice(0, 40)}”.` : 'Nothing to link yet: notes, goals and habits appear here once you have some.') : '';
   const look = (text: string, caret: number) => { const q = linkQueryAt(text, caret); setQuery(q); if (!q) setClosed(false); setActive(0); };
   const choose = (t: LinkTarget) => {
     const el = field.current; if (!el || !query) return;
@@ -47,7 +49,8 @@ export function LinkField({label, value, onChange, index, exclude, rows = 8, max
         <span className="note-suggest-name">{t.name}</span><span className="note-suggest-kind">{KIND[t.kind]}</span>
       </li>)}
     </ul>
-    <p className="sr-only" role="status">{open ? `${options.length} ${options.length === 1 ? 'match' : 'matches'} to link. Up and down to choose, Enter to link.` : ''}</p>
+    {none && <p className="fine note-suggest-none">{none}</p>}
+    <p className="sr-only" role="status">{open ? `${options.length} ${options.length === 1 ? 'match' : 'matches'} to link. Up and down to choose, Enter to link.` : none}</p>
     <SecretGuard text={value} onRemove={() => onChange('')}/>
   </div>;
 }

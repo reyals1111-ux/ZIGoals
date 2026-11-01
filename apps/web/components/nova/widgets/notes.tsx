@@ -11,7 +11,7 @@ export default function NotesWidget() {
   if (!record.loaded) return <NovaReading/>;
   if (record.unreadable) return <NovaUnread what="Your notes"/>;
   const inbox = inboxOf(record.data);
-  if (!inbox.length) return <NovaEmpty pillar="orbit" href="/app/notes" action="Open your notes">Your inbox is clear. A quick note from anywhere lands here to file later.</NovaEmpty>;
+  if (!inbox.length) return <NovaEmpty pillar="orbit">Your inbox is clear. A quick note from anywhere lands here to file later.</NovaEmpty>;
   return <div className="nova-notes">
     <p className="nova-big"><span className="nova-figure">{inbox.length}</span><small> {inbox.length === 1 ? 'note' : 'notes'} to file</small></p>
     <ul className="nova-glance">{inbox.slice(0, 2).map(n => <li key={n.id}><Link href="/app/notes" prefetch={false}>{noteName(n)}</Link></li>)}</ul>

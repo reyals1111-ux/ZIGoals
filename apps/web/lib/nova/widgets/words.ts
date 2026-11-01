@@ -6,6 +6,18 @@ import {formatNumber} from '../../visual-format';
  * could not read it). Money stays in its own currency, already formatted by its own module; nothing here is advice.
  */
 
+/**
+ * Session AK lane EXF (EX-16): a goal's progress as NOVA's Goal pace shows it, in whole percents ("41.66" → "41%"), so one
+ * list never mixes "45%" and "41.66%". Rounded down, so a goal never reads 100% before it is there. Today keeps its own
+ * exact figure (lib/goal-summary.ts `progressText`). Unknown stays "Unavailable"; a lower bound says "At least".
+ */
+export function wholePercent(pct: string, bound?: 'at-least' | 'unavailable'): string {
+  if (bound === 'unavailable') return 'Unavailable';
+  const m = /^(\d+)(?:\.\d+)?$/.exec(pct.trim());
+  if (!m) return 'Unavailable';
+  const n = `${formatNumber(Number(m[1]))}%`;
+  return bound === 'at-least' ? `At least ${n}` : n;
+}
 /** A goal's funding pace in calm words ("ON_TRACK", "ON TRACK" → "On track"); anything else is shown as it is. */
 export function paceWords(health: string): {words: string; tone: 'good' | 'calm' | 'attention' | 'unknown'} {
   const key = health.trim().toUpperCase().replace(/_/g, ' ');

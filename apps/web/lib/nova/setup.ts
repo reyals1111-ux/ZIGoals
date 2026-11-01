@@ -59,7 +59,7 @@ export function recordCheck(record: NovaSetup, id: SetupStepId, check: {ok: bool
   const next: SetupStep = {...step, check: {ok: check.ok, at: now.toISOString(), ...(note ? {note} : {})}, ...(check.ok && !step.doneOn ? {doneOn: today} : {})};
   return finish(withStep(record, id, next), today);
 }
-/** "Not done yet": the step's done day goes; its last check stays as a record of what was seen. */
+/** "Mark as not done" (once "Not done yet"): the step's done day goes; its last check stays as a record of what was seen. */
 export function unmarkStep(record: NovaSetup, id: SetupStepId): NovaSetup {
   const {doneOn: _gone, ...rest} = stepOf(record, id); void _gone;
   const next = withStep(record, id, rest);
@@ -70,7 +70,17 @@ export function unmarkStep(record: NovaSetup, id: SetupStepId): NovaSetup {
 function finish(record: NovaSetup, today: string): NovaSetup {
   return SETUP_STEPS.every(id => stepDone(record, id)) && !record.finishedOn ? {...record, finishedOn: today} : record;
 }
-export function setPrivacyMode(record: NovaSetup, mode: PrivacyMode, today: string): NovaSetup { return {...record, version: 1, privacyMode: mode, privacyChosenOn: today}; }
+/**
+ * Chooses the privacy mode. Session AK lane EXF (EX-11): a different mode makes the privacy planet's check stale (it tested
+ * the mode before, "Strict is on"), so the check and the lit planet go and the guide asks for a new check. Choosing the
+ * same mode again keeps them. The finished day stays (the badge stays earned).
+ */
+export function setPrivacyMode(record: NovaSetup, mode: PrivacyMode, today: string): NovaSetup {
+  const next: NovaSetup = {...record, version: 1, privacyMode: mode, privacyChosenOn: today};
+  if (record.privacyMode === mode || !record.steps?.privacy) return next;
+  const {doneOn: _done, check: _check, ...rest} = stepOf(record, 'privacy'); void _done; void _check;
+  return withStep(next, 'privacy', rest);
+}
 export const markCelebrated = (record: NovaSetup): NovaSetup => ({...record, celebrated: true});
 export const setCardHidden = (record: NovaSetup, hidden: boolean): NovaSetup => ({...record, cardHidden: hidden});
 

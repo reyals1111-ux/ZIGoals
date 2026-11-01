@@ -26,10 +26,18 @@ export function isExpression(raw: string): boolean {
   return /\d\s*[-+−–*×xX·/÷:]\s*\d/.test(raw.trim());
 }
 
-/** Reads "12,5" or "3.99" (at most two decimals) as a fraction; null when it is not a plain number. */
-function number(text: string): Fraction | null | 'decimals' {
-  const m = /^(\d{1,10})(?:[.,](\d{1,}))?$/.exec(text);
+/** The most digits before the decimal mark in one number (a billion has 10). */
+export const MAX_WHOLE_DIGITS = 10;
+const TOO_LONG = `Keep each number to ${MAX_WHOLE_DIGITS} digits or fewer before the decimal mark.`;
+const TOO_LARGE = 'That amount is too large: keep it at a billion or less.';
+/**
+ * Reads "12,5" or "3.99" (at most two decimals) as a fraction; null when it is not a plain number. Session AK lane EXF
+ * (EX-9): a number with more than 10 digits is a number too long, not "not a number", so it gets its own reason.
+ */
+function number(text: string): Fraction | null | 'decimals' | 'digits' {
+  const m = /^(\d+)(?:[.,](\d{1,}))?$/.exec(text);
   if (!m) return null;
+  if (m[1]!.length > MAX_WHOLE_DIGITS) return 'digits';
   if ((m[2] ?? '').length > 2) return 'decimals';
   const frac = (m[2] ?? '').padEnd(2, '0');
   return norm({n: BigInt(m[1]!) * 100n + BigInt(frac), d: 100n});
@@ -47,6 +55,7 @@ export function evaluateAmount(raw: string): CalcResult {
     if (i % 2 === 0) {
       const v = number(part);
       if (v === 'decimals') return {ok: false, reason: 'Use at most two decimals in each number.'};
+      if (v === 'digits') return {ok: false, reason: TOO_LONG};
       if (!v) return {ok: false, reason: 'Use only numbers and + − × ÷.'};
       values.push(v);
     } else {
@@ -85,4 +94,17 @@ export function resolveAmountText(raw: string): string | null {
   if (!isExpression(raw)) return raw;
   const out = evaluateAmount(raw);
   return out.ok ? out.text : null;
+}
+
+/**
+ * Session AK lane EXF (EX-9): why an amount field's text cannot be saved, when the reason is the sum or the size; null when
+ * the field's own message fits (empty, zero, below zero, letters). A sum gets its own reason; a plain amount that is only
+ * too long or above a billion is told so, instead of "with at most two decimals".
+ */
+export function amountProblem(raw: string): string | null {
+  if (isExpression(raw)) { const out = evaluateAmount(raw); return out.ok ? null : out.reason; }
+  const v = number(raw.trim().replace(/\s+/g, ''));
+  if (v === 'digits') return TOO_LARGE;
+  if (v && v !== 'decimals' && v.n > RESULT_MAX_CENTS * v.d / 100n) return TOO_LARGE;
+  return null;
 }
