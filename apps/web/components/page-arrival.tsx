@@ -2,6 +2,7 @@
 import {usePathname} from 'next/navigation';
 import {useLayoutEffect,useRef} from 'react';
 import {entranceAllowed} from './use-entrance';
+import {watchArrivalWindow} from '../lib/motion/arrival-window';
 
 /**
  * One calm arrival per page visit: a single light sweep across the page title, a short
@@ -10,7 +11,8 @@ import {entranceAllowed} from './use-entrance';
  * are unchanged. Nothing is marked under reduced motion or Motion Off, and each mark is
  * removed after its one pass, so re-renders never replay it.
  */
-const WINDOW_MS = 900, MAX_CARDS = 8, MAX_METRICS = 3, SWEEP_PX_PER_S = 1500;
+const MAX_CARDS = 8, MAX_METRICS = 3, SWEEP_PX_PER_S = 1500;
+
 const CARD = 'section,article,aside,.panel';
 // Elements that already have their own entrance keep it alone.
 const OWN_ENTRANCE = '[data-entrance],.today-hero,.slogan-entrance,.hero-star,.nebula-flow';
@@ -144,10 +146,11 @@ export function PageArrival() {
     const observer = new MutationObserver(records => {
       (added ??= []).push(...records.flatMap(r => [...r.addedNodes].filter((n): n is Element => n instanceof Element)));
       if (!frame) frame = requestAnimationFrame(flush);
+      watch.changed();
     });
     observer.observe(main, {childList: true, subtree: true});
-    const stop = window.setTimeout(() => { observer.disconnect(); cancelAnimationFrame(frame); }, WINDOW_MS);
-    return () => { observer.disconnect(); window.clearTimeout(stop); cancelAnimationFrame(frame); };
+    const watch = watchArrivalWindow(main, () => { observer.disconnect(); cancelAnimationFrame(frame); });
+    return () => { observer.disconnect(); watch.stop(); cancelAnimationFrame(frame); };
   }, [path]);
   return null;
 }

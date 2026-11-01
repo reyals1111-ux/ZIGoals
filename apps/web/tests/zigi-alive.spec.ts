@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
 import manifest from '../components/zigi/manifest.json';
+import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
 
 /**
  * Session V Part 12, "ZIGi alive", end to end: the launcher as one control (circle, a "Hide ZIGi" chevron centred below
@@ -288,7 +289,10 @@ test('ZIGi sits on its optical centre at every size, at 1× and 2× pixel densit
   }
 });
 
+// Session AK CI-W (diagnostic only): a failed run attaches the page transitions' timing (tests/vt-timing.ts).
+test.afterEach(async ({page}, testInfo) => { await attachTransitionTiming(page, testInfo); });
 test('Meet ZIGi: every state with its code, reached from Customize and not from the navigation; nothing written on view', async ({page, isMobile}) => {
+  await recordTransitionTiming(page);
   await seed(page);
   // A new page load (seed leaves the browser on Settings, where a jump to the hash before the app has started can
   // lose the hash to the router's first write of the address).
