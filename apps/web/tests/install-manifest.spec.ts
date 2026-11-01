@@ -11,6 +11,8 @@ const ICONS = [
 // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): four Home Screen shortcuts, each with a 96 px icon.
 const shortcut = (name: string, short_name: string, description: string, url: string, icon: string) => ({name, short_name, description, url, icons: [{src: `/icons/shortcut-${icon}-96.png`, sizes: '96x96', type: 'image/png'}]});
 const SHORTCUTS = [
+  // Owner follow-up 2 (N8, [TIER 3] (PWA), deliberate): NOVA first, reusing the Ask icon.
+  shortcut('NOVA', 'NOVA', 'Your private command center: your day, your AI and every page', '/app/nova', 'ask'),
   shortcut('Quick add', 'Quick add', 'Add a goal, an asset, a habit or a Health entry', '/app?shortcut=quick-add', 'quick-add'),
   shortcut('Log water', 'Water', 'Today\'s one-tap water, ready to log', '/app?shortcut=water', 'water'),
   shortcut('Check in a habit', 'Habits', 'Today\'s habits, ready to check in', '/app/habits', 'habit'),
@@ -20,6 +22,8 @@ const SHORTCUTS = [
   // Session AK Part 3 ([TIER 3] (PWA), deliberate): Today and Log weight, each with its own 96 px icon (art-src/pwa-icons.mjs).
   shortcut('Today', 'Today', 'Your day: the hero, the orbit and what is next', '/app/today', 'today'),
   shortcut('Log weight', 'Weight', 'Today\'s weight, ready to type', '/app/health?shortcut=weight#weight', 'weight'),
+  // Owner follow-up 2 (B1, deliberate): Capture a note last, reusing the Quick add icon.
+  shortcut('Capture a note', 'Note', 'A thought for your notes inbox, filed later', '/app/notes?capture=1', 'quick-add'),
 ];
 // Session AK Part 3 (A18, deliberate): screenshots for the richer install sheet, taken from the labelled Showcase.
 const shot = (name: string, sizes: string, form_factor: string, label: string) => ({src: `/screenshots/${name}.jpg`, sizes, type: 'image/jpeg', form_factor, label});

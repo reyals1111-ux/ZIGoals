@@ -49,7 +49,7 @@ const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret',
 // Session AJ (ADR-035, deliberate): nineteen topics, AJ's after AF's.
 // Session AK (ADR-036, deliberate): twenty topics, AK's after AJ's.
 // Session AK G2 (RELEASE_REVIEW R24, deliberate): eleven task-shaped topics; the release notes under "Earlier updates".
-test('Help has one title and eleven topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and twelve topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -77,7 +77,10 @@ test('Help has one title and eleven topics, listed before them, each linking to 
   // The topic list stays above the first section at every size.
   const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
+  // Owner follow-up 2 (deliberate): "NOVA, notes and tasks" is the seventh topic, so Questions is the eighth.
   await topics.nth(6).click();
+  await expect(page).toHaveURL(/#nova$/);
+  await topics.nth(7).click();
   await expect(page).toHaveURL(/#questions$/);
 });
 
@@ -218,7 +221,9 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // Session AI (MO4, 12f444dd): the data answer's "Privacy" and "Terms" links are two new in-sentence links (37 → 39).
   // Session AJ (ADR-035, Part 10): Known limitations links four of its new lines to their answers (39 → 43).
   // Session AK (ADR-036): Known limitations links its seven new lines to their answers (43 → 50).
-  expect(inline).toBe(50);
+  // Owner follow-up 2: the NOVA, notes and tasks answers link NOVA, its two guides, Hermes Agent's docs, Notes and Tasks
+  // inside their sentences (50 → 57).
+  expect(inline).toBe(57);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
@@ -470,7 +475,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
 test('Session AK: the answers open from a hash, the tour opens in place, and nothing is written on view', async ({page}) => {
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'Notifications, offline, food, money and your own days', exact: true});
-  const ids = ['ak-notify', 'ak-offline', 'ak-wallets', 'ak-food', 'ak-nutrition', 'ak-music', 'ak-habits', 'ak-goals', 'ak-wealth', 'ak-money-tools', 'ak-plan', 'ak-review', 'ak-days', 'ak-chess', 'ak-switch', 'ak-data'];
+  // Owner follow-ups 1 and 2 (deliberate): the section gained answers for the new features since; the list is the page's.
+  const ids = ['ak-notify', 'ak-offline', 'ak-wallets', 'ak-food', 'ak-nutrition', 'ak-music', 'ak-habits', 'ak-goals', 'ak-wealth', 'ak-money-tools', 'ak-plan', 'ak-review', 'ak-days', 'ak-chess', 'ak-switch', 'ak-data', 'ak-agenda', 'ak-money-more', 'ak-health-more', 'ak-journal-more', 'ak-safety-more', 'ak-zigi-more', 'ak-sleep-wake', 'ak-warmup', 'ak-storage-full', 'ak-progress-toast', 'ak-staking-clarity', 'ak-your-numbers', 'ak-scales', 'ak-journal-prompts', 'ak-wrap-up-tasks', 'ak-focus-bell', 'ak-cycle', 'ak-motion-calm', 'ak-money-quicker', 'ak-receipt-photos', 'ak-cash-forecast', 'ak-spending-map', 'ak-note-useful', 'ak-journal-music'];
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
   await expect(page.locator('details[open]')).toHaveCount(0);

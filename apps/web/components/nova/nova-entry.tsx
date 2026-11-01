@@ -6,6 +6,8 @@ import {isNovaShortcut} from '../../lib/nova/command-key';
 import {LoadBoundary} from '../load-boundary';
 
 const NovaCommandBar = lazy(() => import('./command-bar'));
+/** Set by the first page of this page load ("Open ZIGoals on NOVA" looks only at that one). */
+let firstPageSeen = false;
 
 /**
  * NOVA's ways in from every page (owner follow-up 2, N2 and N8), mounted once by the shell; tiny on purpose:
@@ -14,18 +16,20 @@ const NovaCommandBar = lazy(() => import('./command-bar'));
  *   whose strict schema older builds read, are unchanged);
  * - ⌘/Ctrl + J opens NOVA's command bar (its code loads on the first press), except on NOVA itself, which has its own
  *   command field.
- * - "Open ZIGoals on NOVA" (Make it yours; NOVA's own record): the session's first page, when it is Today, becomes NOVA.
+ * - "Open ZIGoals on NOVA" (Make it yours; NOVA's own record): a fresh visit that opens on Today opens on NOVA.
  */
 export function NovaEntry() {
   const pathname = usePathname(), onNova = pathname?.startsWith('/app/nova') ?? false;
   const [open, setOpen] = useState(false), [wanted, setWanted] = useState(false);
   const router = useRouter();
   useEffect(() => registerNavExtra(['/app/nova', 'NOVA', 'star']), []);
-  // "Open ZIGoals on NOVA": once per browser session, when the app opens on Today (the start URL), go to NOVA instead.
+  // "Open ZIGoals on NOVA": when the app is opened afresh on Today (the start URL), go to NOVA instead. Writes nothing:
+  // the first page of this page load only (a module flag), and only a fresh visit — a reload or Back stays on Today.
   useEffect(() => {
-    let first = false;
-    try { first = !sessionStorage.getItem('zigoals:nova-started'); sessionStorage.setItem('zigoals:nova-started', '1'); } catch { return; /* storage unavailable: Today it is */ }
-    if (!first || pathname !== '/app' || window.location.search) return;
+    if (firstPageSeen) return;
+    firstPageSeen = true;
+    if (pathname !== '/app' || window.location.search) return;
+    try { const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined; if (nav && nav.type !== 'navigate') return; } catch { return; }
     // The record is read only here, loaded on use, so the shell carries nothing of NOVA's store.
     void Promise.all([import('../../lib/device-record'), import('../../lib/nova/store'), import('../../lib/showcase-storage')]).then(([dr, nova, st]) => {
       if (nova.startsOnNova(dr.readDeviceRecord(st.getAppStorage(), nova.NOVA_STORE).data)) router.replace('/app/nova');
