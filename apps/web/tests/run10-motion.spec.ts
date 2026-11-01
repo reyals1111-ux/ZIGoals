@@ -75,7 +75,11 @@ test('Wealth and Health bars grow only when visible with real saved values',asyn
    const kind=event.animationName==='glass-fill-x'&&target.closest('.portfolio-composition')?'wealth':event.animationName==='nutrition-bars-rise'?'health':'';
    if(!kind||samples.some(sample=>sample.kind===kind))return;
    const sample:Sample={kind,start:getComputedStyle(target).transform};samples.push(sample);
-   setTimeout(()=>{sample.mid=getComputedStyle(target).transform;},200);
+   // Session AK CI fix (run 41336014813): the start and the middle are read by seeking this very animation to its first
+   // frame and to half its duration and back, as the test above does (Session U Part 4, AH Part 2); the 200 ms timer it
+   // used fired after the bar's end on a loaded runner, when the "mid" equalled the end.
+   const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===(event as AnimationEvent).animationName);
+   if(animation){const timing=animation.effect!.getComputedTiming(),held=animation.currentTime;animation.currentTime=Number(timing.delay??0);sample.start=getComputedStyle(target).transform;animation.currentTime=Number(timing.delay??0)+Number(timing.duration)/2;sample.mid=getComputedStyle(target).transform;animation.currentTime=held;}
    target.addEventListener('animationend',()=>{sample.end=getComputedStyle(target).transform;},{once:true});
   },true);
  });
@@ -95,5 +99,6 @@ test('Wealth and Health bars grow only when visible with real saved values',asyn
  await page.locator('#nutrition-history').scrollIntoViewIfNeeded();
  await expect.poll(()=>page.evaluate(()=>(window as unknown as {run10BarSamples:Sample[]}).run10BarSamples?.find(s=>s.kind==='health')?.end)).toBeTruthy();
  const health=await page.evaluate(()=>(window as unknown as {run10BarSamples:Sample[]}).run10BarSamples.find(s=>s.kind==='health')!);
- for(const sample of [wealth,health]){expect(sample.start).not.toBe(sample.end);expect(sample.mid).not.toBe(sample.end);}
+ // (The half-way value must exist: it is read from the animation itself, as the timer always produced one.)
+ for(const sample of [wealth,health]){expect(sample.mid,`${sample.kind} has a half-way value`).toBeDefined();expect(sample.start).not.toBe(sample.end);expect(sample.mid).not.toBe(sample.end);}
 });

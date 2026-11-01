@@ -228,6 +228,9 @@ test.describe('NOVA on a computer', () => {
     await expect(page.locator('.nova-orb-button')).toBeVisible();
     await expect(page.getByRole('textbox', {name: 'Message NOVA'})).toBeVisible();
     await noSideScroll(page);
+    // Session AK CI fix (run 41336014813, 1920 px): the 44 px targets are measured once the dashboard has arrived, its
+    // finite entrances (the cards' arrival, the panels' slide) finished; endless ambient motion (the orb) is not waited for.
+    await page.locator('.nova-frame[data-opening]').evaluate(el => Promise.all(el.getAnimations({subtree: true}).filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))));
     const tiles = await page.locator('.nova-frame :is(button, a):visible').evaluateAll(els => els.filter(el => { const r = el.getBoundingClientRect(); return r.width < 44 || r.height < 44; }).map(el => el.outerHTML.slice(0, 120)));
     expect(tiles).toEqual([]);
     // Release review 2 (R2-3): the first screen leads with the person's day, above the fold; the console waits.

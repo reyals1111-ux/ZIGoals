@@ -90,6 +90,10 @@ export async function settle(page: Page) {
   await expect(page.locator('.workspace[aria-busy="true"]')).toHaveCount(0, {timeout: 20_000});
   await expect(page.locator('div[hidden][id^="S:"]')).toHaveCount(0, {timeout: 20_000});
   await expect(page.locator('[aria-busy="true"]').filter({visible: true})).toHaveCount(0, {timeout: 10_000}).catch(() => undefined);
+  // Session AK CI fix (p6-keyboard part 2, nebula): NOVA's page has arrived when its dashboard has mounted (its own chunk,
+  // after "NOVA is starting…") and its one-time opening has ended (`data-opening="done"`); a Tab sent before the
+  // dashboard mounted found no control on the page. Any other page has no such frame and passes at once.
+  await expect(page.locator('section.nova-root[data-entrance="nova"] .nova-frame:not([data-opening="done"])')).toHaveCount(0, {timeout: 20_000});
   await page.evaluate(() => Promise.race([
     Promise.all(document.getAnimations().filter(a => { const t = a.effect?.getComputedTiming(); return a.playState === 'running' && t && t.iterations !== Infinity; }).map(a => a.finished.catch(() => undefined))),
     new Promise(resolve => setTimeout(resolve, 4_000)),
