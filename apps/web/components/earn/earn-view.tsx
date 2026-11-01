@@ -14,6 +14,7 @@ import {DefaSection, NawaSection, PermapodSection, ZignalySection} from './apps-
 import {EarnAppsStrip} from './earn-apps-strip';
 import {EarnChips} from './earn-chips';
 import {EarnGlyph} from './earn-glyph';
+import {EarnJump} from './earn-jump';
 import {GuideProvider} from './guide-panel';
 import {LiveSummary} from './live-summary';
 import {NativeSection, commissionChoices} from './native-section';
@@ -69,6 +70,7 @@ export function EarnView() {
       <EarnAppsStrip/>
       <EarnChips chips={chips}/>
       <div className="earn-sections">
+        <EarnJump/>
         <SectionBoundary id="summary" title="Your Earn summary"><LiveSummary wallets={wallets} reads={reads}/></SectionBoundary>
         {wallets.length > 0 && <SectionBoundary id="staking-clarity" title="Rewards, unstaking and history"><Suspense fallback={null}><StakingClarity now={now} reads={reads.flatMap(r => r.state.phase === 'ok' ? [{address: r.address, label: r.label, positions: r.state.positions}] : [])}/></Suspense></SectionBoundary>}
         <SectionBoundary id="start-here" title="Start here"><StartHereSection facts={facts} live={live}/></SectionBoundary>
