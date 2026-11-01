@@ -23,11 +23,17 @@ export function restLift(launcher: Box, controls: readonly Box[], {minTop = 72, 
   return 0;
 }
 
-/** The controls of `main` that are on the first screen (any part above the fold), as boxes; zero-size ones are skipped. */
+/** The controls of `main` that are on the first screen (any part above the fold), as boxes; zero-size ones are skipped.
+ * Session AK P8b: a control inside a section the browser is skipping (`content-visibility: auto` off screen, as Earn's
+ * lower sections since F8) is not measured: it is off screen by definition, and reading its box made the browser lay out
+ * that whole section on every placement (on Earn at CPU 4×, all 16 sections after every change to `main` during load).
+ * `checkVisibility({contentVisibilityAuto: true})` answers that without a layout; where it is missing, every control is
+ * measured as before. */
 export const CONTROL_SELECTOR = 'main a, main button, main input, main select, main textarea, main [role="button"], main summary';
 export function firstScreenControls(root: Document, viewportHeight: number): Box[] {
   const out: Box[] = [];
   for (const el of root.querySelectorAll(CONTROL_SELECTOR)) {
+    if ((el as Element & {checkVisibility?: (o: {contentVisibilityAuto: boolean}) => boolean}).checkVisibility?.({contentVisibilityAuto: true}) === false) continue;
     const r = el.getBoundingClientRect();
     if (r.width === 0 || r.height === 0 || r.top >= viewportHeight) continue;
     out.push({left: r.left, top: r.top, right: r.right, bottom: r.bottom});

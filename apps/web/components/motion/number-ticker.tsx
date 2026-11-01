@@ -7,7 +7,8 @@
  * - The width never moves: an invisible copy of the final text holds the space while the count draws over it.
  * - On the first page load it ticks only if the figure is still off screen (it was already painted with its value);
  *   after a navigation (or a later mount) it ticks when it comes into view.
- * - One requestAnimationFrame loop per running ticker, ~900 ms, writing text only (no React render per frame).
+ * - One requestAnimationFrame loop per running ticker, ~900 ms, writing text only (no React render per frame): the text
+ *   node's data, so no frame changes the page's tree (Session AK P8b).
  */
 import {useLayoutEffect, useRef, useState} from 'react';
 import {currentMotionLevel} from '../../lib/motion/level';
@@ -33,7 +34,12 @@ export function NumberTicker({text, className = '', duration = TICK_MS}: {text: 
       const began = performance.now();
       const step = (now: number) => {
         const elapsed = now - began;
-        if (run.current) run.current.textContent = formatLike(t, tickValue(0, t.value, elapsed, duration, t.decimals));
+        // Session AK P8b: the digits change the text node's data (a character change), never the span's children (React
+        // renders the running text as its one text node). A new child node is a tree change, and every tree change runs
+        // the page's :has() checks (on Today ~335–2,500 elements re-styled per frame at CPU 4× while scrolling); a
+        // character change only re-lays out this line.
+        const node = run.current?.firstChild as Text | null | undefined;
+        if (node) node.data = formatLike(t, tickValue(0, t.value, elapsed, duration, t.decimals));
         if (elapsed < duration && document.visibilityState === 'visible') frame = requestAnimationFrame(step);
         else setRunning(null);
       };
