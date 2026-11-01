@@ -9,6 +9,9 @@ import {LoadBoundary} from '../load-boundary';
 const NovaCommandBar = lazy(() => import('./command-bar'));
 /** Set by the first page of this page load ("Open ZIGoals on NOVA" looks only at that one). */
 let firstPageSeen = false;
+/** Whether "Open ZIGoals on NOVA" moved this visit from Today to NOVA, until the person leaves NOVA (Exit then goes to Today). */
+let startRedirect = false;
+export const openedOnNova = () => startRedirect;
 
 /**
  * NOVA's ways in from every page (owner follow-up 2, N2 and N8), mounted once by the shell; tiny on purpose:
@@ -24,6 +27,8 @@ export function NovaEntry() {
   const [open, setOpen] = useState(false), [wanted, setWanted] = useState(false);
   const router = useRouter();
   useEffect(() => registerNavExtra(['/app/nova', 'NOVA', 'star']), []);
+  // Leaving NOVA ends the start redirect's say over Exit (a later visit to NOVA exits Back, as any other).
+  useEffect(() => { if (!onNova) startRedirect = false; }, [onNova]);
   // "Open ZIGoals on NOVA": when the app is opened afresh on Today (the start URL), go to NOVA instead. Writes nothing:
   // the first page of this page load only (a module flag), and only a fresh visit — a reload or Back stays on Today.
   useEffect(() => {
@@ -34,7 +39,7 @@ export function NovaEntry() {
     // The record is read only here, loaded on use, so the shell carries nothing of NOVA's store.
     void Promise.all([import('../../lib/device-record'), import('../../lib/nova/store'), import('../../lib/showcase-storage')]).then(([dr, nova, st]) => {
       // Security review Z1C-L1: only while the person is still on Today (a slow load must not pull them off a page they moved to).
-      if (window.location.pathname === '/app' && !window.location.search && nova.startsOnNova(dr.readDeviceRecord(st.getAppStorage(), nova.NOVA_STORE).data)) router.replace('/app/nova');
+      if (window.location.pathname === '/app' && !window.location.search && nova.startsOnNova(dr.readDeviceRecord(st.getAppStorage(), nova.NOVA_STORE).data)) { startRedirect = true; router.replace('/app/nova'); }
     }).catch(() => { /* Today it is */ });
   // Only the first page of the session matters.
   // eslint-disable-next-line react-hooks/exhaustive-deps

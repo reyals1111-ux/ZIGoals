@@ -14,6 +14,7 @@ import {plainErrorMessage} from '../../lib/plain-error';
 import {DUO_IDLE, duoState, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPending, subscribeDuo} from '../../lib/nova/bridge';
 import {dockEntries, dockForKey, type DockEntry} from '../../lib/nova/dock';
 import {greetingFor, openingSkippedNote, typedLength, type NovaOrbState} from '../../lib/nova/orb';
+import {openedOnNova} from './nova-entry';
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
@@ -98,6 +99,9 @@ export default function NovaDashboard() {
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
     let landed = true;
     try { const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined; landed = !nav || new URL(nav.name).pathname.replace(/\/+$/, '') === '/app/nova'; } catch { landed = true; }
+    // Session AK lane WB (N8): "Open ZIGoals on NOVA" replaced Today with NOVA, so NOVA is where this visit landed: Exit goes
+    // to Today, never Back to whatever the tab showed before the app (tests/wiring-2-nova-start.spec.ts).
+    if (openedOnNova()) landed = true;
     if (!landed && window.history.length > 1) router.back(); else router.push('/app/today');
   }, [router]);
   const openChat = useCallback(() => { setChatOpen(true); }, [setChatOpen]);
