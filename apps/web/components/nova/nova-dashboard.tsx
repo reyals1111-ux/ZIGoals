@@ -13,8 +13,7 @@ import {isShown} from '../../lib/pages/visibility';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {DUO_IDLE, duoState, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPending, subscribeDuo} from '../../lib/nova/bridge';
 import {dockEntries, dockForKey, type DockEntry} from '../../lib/nova/dock';
-import {greetingFor, openingSkippedNote, typedLength, type NovaOrbState} from '../../lib/nova/orb';
-import {openedOnNova} from './nova-entry';
+import {greetingFor, openingSkippedNote, type NovaOrbState} from '../../lib/nova/orb';
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
@@ -22,7 +21,7 @@ import type {NovaPanelId} from './panels/nova-panels';
 import {CommandField, RoutingMenu, ViewControls} from './nova-command';
 import {NovaLeft} from './nova-left';
 import {NovaSheet} from './nova-sheet';
-import {NovaStage} from './nova-stage';
+import {NovaSetupBanner, NovaStage} from './nova-stage';
 import {NovaTop, QuickTile} from './nova-top';
 import {StatusChips, useBrain} from './status-chips';
 import {useNovaCounts} from './use-counts';
@@ -34,6 +33,7 @@ import {NovaIcon} from './icons';
 import {openPipWindow, pipHost} from '../../lib/ai/pip';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {NOVA_HERMES, hermesStatus} from '../../lib/nova/hermes-record';
+import {openedOnNova} from './nova-entry';
 import './nova.css';
 
 const NovaChat = lazy(() => import('./chat/nova-chat'));
@@ -95,7 +95,6 @@ export default function NovaDashboard() {
 
   const hour = now ? now.getHours() : 12, base = greetingFor(hour, persona.name);
   const greeting = you ? base.replace(/^([^.?]+)([.?])/, `$1, ${you}$2`) : base;
-  const typed = opening.phase === 'play' ? typedLength(greeting, opening.elapsed) : greeting.length;
 
   const exit = useCallback(() => {
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
@@ -205,7 +204,7 @@ export default function NovaDashboard() {
   const toggleWidget = (id: string, on: boolean) => { if (on) save(rr => addWidget(rr, id, widgetSpec(id)?.size ?? 'M'), `${title(id)} is on the stage.`); else actions.remove(id); };
 
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
-  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typed={typed} brain={brain} showcase={showcase} onTalk={openChat} talkOpen={chatOpen}/>;
+  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase} onTalk={openChat} talkOpen={chatOpen}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined}
@@ -216,11 +215,13 @@ export default function NovaDashboard() {
     <div className="nova-centre">
       <NovaTop now={now} persona={persona.name} entries={entries} shortcuts={shortcuts} fullscreen={fullscreen} fullscreenOk={fullscreenOk && !phone}
         handlers={{act, customize: () => setSheet({kind: 'yours'}), fullscreen: toggleFullscreen}} onExit={exit} onDay={() => setSheet({kind: 'day'})} onSearch={() => openSearch()}
-        onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} onSettings={() => setSheet({kind: 'yours'})} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
+        onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
         rightOpen={right === 'open'} onToggleRight={toggleRight} compact={phone} onQuick={() => setSheet({kind: 'quick'})}/>
       {!phone && <StatusChips brain={brain}/>}
+      {/* Session AK P3 (ND-23): the setup invitation, one slim line under the chips (it left the star's stack). */}
+      {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
-      {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-live-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
+      {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-on-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
       <div className="nova-stage-area">{phone ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing} opening={opening.phase === 'play'} actions={actions}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}

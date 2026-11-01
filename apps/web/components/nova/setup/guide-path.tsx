@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, type ReactNode} from 'react';
 import type {PathModel} from '../../../lib/path/model';
 import {Path} from '../../path/path';
 import {entranceAllowed} from '../../use-entrance';
@@ -13,22 +13,21 @@ import '../../habits/habits-aa.css';
  * on the shared path engine in the orbit look Earn's Start-here path wears (`variant="orbit"`, `follow={false}`: the
  * guide never moves the page by itself), with its one-time motion: a planet just checked lights, a light travels to the
  * next, an orbit just completed wakes its planet, and the end of the path, the finale, is "NOVA online". Reduced motion and
- * Motion Off show every final state at once (the path's own sheets). On a phone the open guide stands after the path and
- * is brought into view, as on Earn. Its own chunk: the page loads it after its first paint.
+ * Motion Off show every final state at once (the path's own sheets). The open guide stands after the path and is brought
+ * into view (on a phone as on Earn; on a computer too since P3, as one wide panel). Its own chunk: the page loads it after its first paint.
  */
-const PHONE_QUERY = '(max-width: 640px)';
-const subscribePhone = (change: () => void) => { const m = window.matchMedia?.(PHONE_QUERY); m?.addEventListener('change', change); return () => m?.removeEventListener('change', change); };
-const usePhone = () => useSyncExternalStore(subscribePhone, () => !!window.matchMedia?.(PHONE_QUERY).matches, () => false);
 /** Only the end of the path stands on it, as on the Checklist and Earn. */
 const endOnly = (model: PathModel): PathModel => ({...model, milestones: model.milestones.filter(m => m.at === 'end')});
 export type GuidePathProps = {model: PathModel; ariaLabel: string; open: string | null; onOpen: (id: string | null) => void; panel: (id: string) => ReactNode; say: string; className?: string};
 export default function GuidePath({model, ariaLabel, open, onOpen, panel, say, className}: GuidePathProps) {
-  const drawn = useMemo(() => endOnly(model), [model]), phone = usePhone(), guide = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (phone && open) guide.current?.scrollIntoView({block: 'start', behavior: entranceAllowed() ? 'smooth' : 'auto'}); }, [phone, open]);
+  const drawn = useMemo(() => endOnly(model), [model]), guide = useRef<HTMLDivElement>(null);
+  // Session AK P3 (NOVA_DESIGN_REVIEW.md ND-8): on every width the open planet's guide stands after the path as one wide
+  // panel (up to 760 px), brought into view: beside a planet on a computer it was a 420 px column whose commands were cut
+  // mid-token. The planet stays marked open on the path (`panelFor`).
+  useEffect(() => { if (open) guide.current?.scrollIntoView({block: 'start', behavior: entranceAllowed() ? 'smooth' : 'auto'}); }, [open]);
   return <>
     <Path model={drawn} ariaLabel={ariaLabel} layout="snake" className={`nova-guide-path ${className ?? ''}`.trim()} variant="orbit" follow={false}
-      bannerTitle={section => section.label} zigi={{say}} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next planet"
-      renderPanel={phone ? undefined : step => panel(step.id)}/>
-    {phone && open && <div ref={guide} className="nova-guide-phone">{panel(open)}</div>}
+      bannerTitle={section => section.label} zigi={{say}} panelFor={open} onStep={step => onOpen(open === step.id ? null : step.id)} jumpLabel="Jump to your next planet"/>
+    {open && <div ref={guide} className="nova-guide-phone nova-guide-open">{panel(open)}</div>}
   </>;
 }

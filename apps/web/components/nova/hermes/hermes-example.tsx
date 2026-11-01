@@ -7,7 +7,7 @@ import './hermes-example.css';
  * record, no request, no "connected" state anywhere else in NOVA (lib/nova/hermes-showcase.ts).
  */
 export default function HermesShowcaseExample() {
-  return <section className="nova-setup-card nova-hermes-example" aria-labelledby="nova-hermes-example-title">
+  return <section className="nova-guide-card nova-hermes-example" aria-labelledby="nova-hermes-example-title">
     <p className="eyebrow">{X.label}</p>
     <h3 id="nova-hermes-example-title">What a linked Hermes Agent looks like</h3>
     <p className="fine">{X.honest}</p>

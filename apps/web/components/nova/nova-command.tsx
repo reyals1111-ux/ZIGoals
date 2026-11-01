@@ -9,6 +9,8 @@ import {LAYOUT_LABEL} from '../../lib/nova/share-setup';
 import type {WidgetSpec} from '../../lib/nova/widgets/catalog';
 import {useAiSettings} from '../ai/use-ai-settings';
 import {NovaIcon} from './icons';
+import {useApplePlatform} from './nova-top';
+import {commandKeyLabel, commandKeyShortcut} from '../../lib/nova/command-key';
 import type {Brain} from './status-chips';
 
 /**
@@ -29,7 +31,7 @@ function Menu({label, current, icon, align, children}: {label: string; current: 
   }, [open]);
   return <div className="nova-menu" data-align={align}>
     <button ref={button} type="button" className="nova-menu-button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(o => !o)}>
-      <NovaIcon name={icon} size={18}/><span className="nova-menu-label"><span className="sr-only">{label}: </span>{current}</span><NovaIcon name={open ? 'up' : 'down'} size={16}/>
+      <NovaIcon name={icon} size={18}/><span className="nova-menu-label"><span className="sr-only">{label}: </span>{current}</span><span className="nova-menu-caret" aria-hidden="true"><NovaIcon name={open ? 'up' : 'down'} size={16}/></span>
     </button>
     <div ref={box} id={id} className="nova-menu-panel" hidden={!open} role="group" aria-label={label}
       onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } }}>{open && children(close)}</div>
@@ -46,14 +48,15 @@ export function ViewControls({layout, widgets, available, editing, onLayout, onT
       <div className="nova-segment">{NOVA_LAYOUTS.map(l => <label key={l} className="nova-seg"><input type="radio" name={`${id}-layout`} checked={layout === l} onChange={() => onLayout(l)}/><span>{LAYOUT_LABEL[l]}</span></label>)}</div>
     </fieldset>
     <fieldset className="nova-fieldset"><legend>On the stage</legend>
+      {/* Session AK P3 (ND-15): each row is the widget's name and its size as one S/M/L segment (the arrange bar's own). */}
       <ul className="nova-widget-toggles">{available.map(spec => { const on = widgets.find(w => w.id === spec.id); return <li key={spec.id}>
         <label className="nova-check"><input type="checkbox" checked={!!on} onChange={e => onToggle(spec.id, e.target.checked)}/><span>{spec.title}</span></label>
-        {on && <select className="nova-size-select" aria-label={`Size of ${spec.title}`} value={on.size} onChange={e => onSize(spec.id, e.target.value as WidgetSize)}>{WIDGET_SIZES.map(s => <option key={s} value={s}>{s === 'S' ? 'Small' : s === 'M' ? 'Medium' : 'Large'}</option>)}</select>}
+        {on && <span className="nova-sizes" role="group" aria-label={`Size of ${spec.title}`}>{WIDGET_SIZES.map(size => <button key={size} type="button" className="nova-size" aria-pressed={on.size === size} aria-label={size === 'S' ? 'Small' : size === 'M' ? 'Medium' : 'Large'} onClick={() => onSize(spec.id, size)}>{size}</button>)}</span>}
       </li>; })}</ul>
       {layout === 'minimal' && <p className="nova-fine">Minimal shows the star alone; your widgets wait here.</p>}
       {layout === 'focus' && <p className="nova-fine">Focus shows your first three.</p>}
     </fieldset>
-    <button type="button" className="nova-btn" aria-pressed={editing} onClick={() => { onArrange(); close(); }}><NovaIcon name="arrange" size={18}/>{editing ? 'Done arranging' : 'Arrange on the orbits'}</button>
+    <div className="nova-menu-foot"><button type="button" className="nova-btn" aria-pressed={editing} onClick={() => { onArrange(); close(); }}><NovaIcon name="arrange" size={18}/>{editing ? 'Done arranging' : 'Arrange on the orbits'}</button></div>
   </>}</Menu>;
 }
 
@@ -87,14 +90,16 @@ export function RoutingMenu({brain, routing, onRouting, openModels}: {brain: Bra
 
 export function CommandField({you, persona, inputRef, onOpen}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>; onOpen: () => void}) {
   const [text, setText] = useState(''), hint = useId(), pasted = useRef(false); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
+  const apple = useApplePlatform(); // Session AK P3 (ND-21): ⌘K on Apple devices, Ctrl K elsewhere
   const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); if (t && sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; } onOpen(); };
+  // Session AK P3 (ND-5): one calm glass field (the input draws no box of its own) and a one-line hint.
   return <form className="nova-command zg-glass" onSubmit={submit} aria-label={`Ask ${persona}`}>
     <NovaIcon name="star" size={22}/>
     <div className="nova-command-text">
-      <input ref={inputRef} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
-      <small id={hint}>Ask {persona}, or open the conversation. Nothing is sent until you press Enter.</small>
+      <input ref={inputRef} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} aria-keyshortcuts={commandKeyShortcut(apple, 'k')} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
+      <small id={hint}>Enter to ask {persona} · nothing is sent before you press it.</small>
     </div>
-    <kbd className="nova-kbd" aria-hidden="true">⌘K</kbd>
+    <kbd className="nova-kbd" aria-hidden="true">{commandKeyLabel(apple, 'k')}</kbd>
     <button type="submit" className="nova-send" aria-label={text.trim() ? `Send to ${persona}` : `Open the conversation with ${persona}`}><NovaIcon name="right" size={22}/></button>
   </form>;
 }

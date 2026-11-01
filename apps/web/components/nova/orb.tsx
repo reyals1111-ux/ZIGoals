@@ -33,7 +33,7 @@ export function NovaOrb({state = 'idle', size = 200, label, className = ''}: {st
     </g>
     <circle className="nova-orb-outer" r="88" fill="none"/>
     <circle className="nova-orb-dial" r="78" fill="none" pathLength="360"/>
-    <g className="nova-orb-arc-turn"><circle className="nova-orb-arc" r="64" fill="none" stroke={url('ring')} pathLength="360"/></g>
+    <g className="nova-orb-arc-turn"><circle className="nova-orb-arc" r="64" fill="none" stroke={url('ring')} pathLength="360"/><circle className="nova-orb-arc nova-orb-tail" r="64" fill="none" pathLength="360"/></g>
     <g className="nova-orb-body">
       <circle className="nova-orb-core" r="46" fill={url('core')}/>
       <g clipPath={url('clip')}>

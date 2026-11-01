@@ -11,7 +11,7 @@ export const SETUP_PATH_ID = 'nova-setup';
 export function setupPathModel(record: NovaSetup): PathModel {
   const step = (id: SetupStepId): PathStep => {
     const done = stepDone(record, id), check = stepCheck(record, id), words = PLANETS[id];
-    return {id, label: words.label, note: done ? check?.ok ? 'Checked' : 'Done' : check && !check.ok ? 'Check again' : words.short, colour: words.colour, state: done ? 'done' : 'undone', glyph: words.glyph, intent: 'value'};
+    return {id, label: words.label, ...(words.tab ? {short: words.tab} : {}), note: done ? check?.ok ? 'Checked' : 'Done' : check && !check.ok ? 'Check again' : words.short, colour: words.colour, state: done ? 'done' : 'undone', glyph: words.glyph, intent: 'value'};
   };
   return {
     id: SETUP_PATH_ID, label: 'Build your own NOVA',

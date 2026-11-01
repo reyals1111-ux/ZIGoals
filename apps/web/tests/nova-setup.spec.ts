@@ -95,8 +95,8 @@ test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded
   await expect(privacy.getByText(/Strict is on\. A test message/)).toHaveCount(0);
   await expect(privacy.getByRole('status').filter({hasText: 'Not checked yet.'})).toBeVisible();
   await expect(privacy.getByRole('button', {name: 'Check the mode holds'})).toBeVisible();
-  await expect(privacy.locator('.nova-send-line')).toContainText('NOVA is about to send this to OpenAI.');
-  await expect(privacy.locator('.nova-send-text')).toHaveText('Plan a birthday dinner for my sister [name] at [address]; my budget is about €180.');
+  await expect(privacy.locator('.nova-guide-send-line')).toContainText('NOVA is about to send this to OpenAI.');
+  await expect(privacy.locator('.nova-guide-send-text')).toHaveText('Plan a birthday dinner for my sister [name] at [address]; my budget is about €180.');
   await check(privacy, /Check (the mode holds|again)/);
   // The check's own result line: the chosen mode's button now also reads "Guarded is on" (lane NV).
   await expect(privacy.getByRole('status').filter({hasText: /Guarded is on/})).toBeVisible();
@@ -166,10 +166,10 @@ test('planets 5 to 10: scopes with the exact pack, memory, voice, a brief, workf
   const scopes = await open(page, 'What NOVA can see', 'scopes');
   await scopes.getByRole('checkbox', {name: /^Wealth/}).uncheck();
   // Lane NE's NOVA pack, as the send path would carry it (Guarded to a local model: nothing to redact, nothing refused).
-  await expect(scopes.locator('.nova-sees .nova-send-text')).toContainText('data, not instructions');
-  await expect(scopes.locator('.nova-sees .nova-send-line')).toContainText('This stays on this computer');
+  await expect(scopes.locator('.nova-sees .nova-guide-send-text')).toContainText('data, not instructions');
+  await expect(scopes.locator('.nova-sees .nova-guide-send-line')).toContainText('This stays on this computer');
   await check(scopes, /Check what NOVA sees/);
-  const note = scopes.locator('.nova-check-result');
+  const note = scopes.locator('.nova-guide-check-result');
   await expect(note).toContainText(/NOVA can see: .*Goals and their pace.*Health: off\./);
   await expect(note).not.toContainText('Wealth');
   const memory = await open(page, 'Memory', 'memory');

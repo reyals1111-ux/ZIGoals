@@ -63,5 +63,7 @@ export const GLYPHS: Record<string, string> = {
   stake: 'M12 17.4a5.4 5.4 0 1 1 0-10.8 5.4 5.4 0 0 1 0 10.8M17.4 7.6A10 3-20 1 1 5.1 12.1M10.2 10h3.6l-3.6 4h3.6',
   bill: 'M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4zM9 8h6M9 11.5h6M9 15h3.5',
   budget: 'M11 5v8h8a8 8 0 1 1-8-8M13 3a8 8 0 0 1 8 8h-8z',
+  // Session AK P3 (NOVA_DESIGN_REVIEW.md ND-24): a speech bubble, for the guides' "First conversation" and "First run".
+  chat: 'M4.5 6.5A2 2 0 0 1 6.5 4.5h11a2 2 0 0 1 2 2V14a2 2 0 0 1-2 2H11l-4.5 3.5V16a2 2 0 0 1-2-2zM8.5 9.5h7M8.5 12.5h4.5',
 };
 export const PATH_GLYPH_NAMES = Object.keys(GLYPHS);

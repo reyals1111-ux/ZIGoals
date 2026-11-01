@@ -108,8 +108,8 @@ test('privacy: unconfirmed Hermes gets the redacted copy in Strict (preview and 
   await seed(page, {[NOVA_SETUP_KEY]: JSON.stringify({version: 1, privacyMode: 'strict'})});
   await connect(page);
   const privacy = await open(page, 'Confirm the privacy mode', 'privacy');
-  await expect(privacy.locator('.nova-send-line')).toContainText('NOVA is about to send this to your Hermes Agent.');
-  await expect(privacy.locator('.nova-send-text')).toContainText('[name]');
+  await expect(privacy.locator('.nova-guide-send-line')).toContainText('NOVA is about to send this to your Hermes Agent.');
+  await expect(privacy.locator('.nova-guide-send-text')).toContainText('[name]');
   const run = await open(page, 'First run', 'first-run');
   await run.getByRole('button', {name: 'Ask my Hermes'}).click();
   await expect(run.locator('.nova-reply')).toContainText('Monday: review goals. Wednesday: savings check.');
@@ -121,7 +121,7 @@ test('privacy: unconfirmed Hermes gets the redacted copy in Strict (preview and 
   const again = await open(page, 'Confirm the privacy mode', 'privacy');
   for (const box of await again.getByRole('group', {name: /four hold/}).getByRole('checkbox').all()) await box.check();
   await again.getByRole('button', {name: 'My Hermes runs a local model'}).click();
-  await expect(again.locator('.nova-send-line')).toContainText('This stays on this computer');
+  await expect(again.locator('.nova-guide-send-line')).toContainText('This stays on this computer');
   await again.getByRole('button', {name: 'Check the rule holds'}).click();
   await expect(again.getByText(/Strict: your Hermes gets your words as they are\./)).toBeVisible();
 });

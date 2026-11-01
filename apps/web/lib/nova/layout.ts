@@ -16,6 +16,23 @@ export const BENTO_SPAN: Record<WidgetSize, {cols: number; rows: number}> = {S: 
 export const FOCUS_WIDGETS = 3;
 /** Rows a side column holds beside the star before the rest go to the outer band (8 rows ≈ 8 × 92 px + gaps). */
 export const SIDE_ROWS = 8;
+/**
+ * Session AK P3 (NOVA_DESIGN_REVIEW.md ND-1, ND-2): the stage fits the window. A row is a height budget: a widget of size S
+ * is at most one row tall, M two, L three (gaps included), and its card ends where its content ends. Each side column
+ * beside the star holds as many rows as the stage's height allows; what does not fit rests on the outer band, under the
+ * fold — the star never moves down.
+ */
+export const ROW_PX = 112;
+export const ROW_GAP = 12;
+export const MIN_SIDE_ROWS = 2;
+export const MAX_SIDE_ROWS = 10;
+/** The tallest a widget of each size may be, in px (its rows and the gaps between them). */
+export const SIZE_MAX_PX: Record<WidgetSize, number> = {S: ROW_PX, M: ROW_PX * 2 + ROW_GAP, L: ROW_PX * 3 + ROW_GAP * 2};
+/** The rows a side column holds in a stage of this height (px); SIDE_ROWS when the height is not known yet. */
+export function rowsFit(stageHeight: number | null | undefined): number {
+  if (typeof stageHeight !== 'number' || !Number.isFinite(stageHeight) || stageHeight <= 0) return SIDE_ROWS;
+  return Math.max(MIN_SIDE_ROWS, Math.min(MAX_SIDE_ROWS, Math.floor((stageHeight + ROW_GAP) / (ROW_PX + ROW_GAP))));
+}
 /** The largest lean toward the star, in px, at full width (the dashboard scales it down on narrower screens). */
 export const MAX_LEAN = 44;
 

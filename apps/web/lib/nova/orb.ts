@@ -36,10 +36,16 @@ export const openingSkippedNote = (level: MotionLevel): string => level === 'cal
 
 /** The opening sequence's beats (ms from the start); the whole sequence is about two seconds. */
 export const OPENING = {ignite: 0, rings: 280, widgets: 820, widgetStep: 110, greeting: 1150, typeStep: 26, end: 2100} as const;
-/** When widget `index` (of `count`) starts to settle: one by one, the whole set inside the sequence's end. */
+/** How long one widget takes to settle (components/nova/nova.css, `nova-settle`). */
+export const SETTLE_MS = 520;
+/**
+ * When widget `index` (of `count`) starts to settle: one by one, the whole set inside the sequence's end. Session AK P3
+ * (ND-11): the room is measured with the settle's own length, so the last widget has come to rest when the sequence ends
+ * (it used to start at 1680 ms and was cut off at 2100 ms, snapping the last 100 ms).
+ */
 export function settleDelay(index: number, count: number): number {
   if (count <= 0 || index < 0) return OPENING.widgets;
-  const room = OPENING.end - 420 - OPENING.widgets, step = Math.min(OPENING.widgetStep, count > 1 ? room / (count - 1) : room);
+  const room = OPENING.end - SETTLE_MS - OPENING.widgets, step = Math.min(OPENING.widgetStep, count > 1 ? room / (count - 1) : room);
   return Math.round(OPENING.widgets + Math.min(index, count - 1) * step);
 }
 /** How many characters of the greeting show at `elapsed` ms into the sequence (all of it once the sequence ends). */

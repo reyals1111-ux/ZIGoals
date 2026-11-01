@@ -258,7 +258,10 @@ test.describe('Release review 2 on NOVA (R2-4, R2-5, R2-22)', () => {
     await expect(greeting).toContainText('NOVA is online.');
     expect(((await greeting.textContent()) ?? '').match(/NOVA is online\./g)).toHaveLength(1);
     expect(await page.locator('.nova-stage').evaluate(el => (el.textContent ?? '').split('NOVA is online.').length - 1)).toBe(1);
-    await expect(page.getByRole('region', {name: 'Build NOVA’s brain'})).toContainText('NOVA is your command center for everything; ZIGi is the same assistant inside each page.');
+    // Session AK P3 (NOVA_DESIGN_REVIEW.md ND-23), a deliberate move: the stage's card became a one-line banner, and the line
+    // that tells NOVA and ZIGi apart is said on the guide's first planet, "Meet NOVA" (tests/p3-nova-polish.spec.ts checks it
+    // there), and in the conversation's welcome.
+    await expect(page.getByRole('region', {name: 'Give NOVA a brain of its own'})).toContainText('It already answers simple questions on this device.');
   });
   test('in Light, the phone\'s bottom bar wears NOVA\'s night while NOVA is open, and turns light again after', async ({page}) => {
     await page.setViewportSize({width: 390, height: 844});

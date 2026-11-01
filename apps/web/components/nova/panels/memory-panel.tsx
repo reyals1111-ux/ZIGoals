@@ -46,7 +46,7 @@ export default function MemoryPanel() {
       <label className="field">About a day (optional)<input type="date" value={about} onChange={e => setAbout(e.target.value)}/></label>
       <div className="ai-card-actions"><button type="submit" className="primary" disabled={!draft.trim() || count >= MAX_NOTES}>Remember</button><span className="ai-note">{count} of {MAX_NOTES} · never a key or a password</span></div>
     </form>
-    {count === 0 ? <div className="nova-empty"><p><strong>Nothing remembered yet.</strong></p><p className="ai-note">Add a preference, a decision, a person or some context above. In a chat, NOVA and ZIGi can offer a &ldquo;Remember this?&rdquo; card; it is kept only when you press Remember.</p></div>
+    {count === 0 ? <div className="nova-panel-empty"><p><strong>Nothing remembered yet.</strong></p><p className="ai-note">Add a preference, a decision, a person or some context above. In a chat, NOVA and ZIGi can offer a &ldquo;Remember this?&rdquo; card; it is kept only when you press Remember.</p></div>
       : groups.map(group => <section key={group.id} aria-labelledby={`nova-mem-${group.id}`}>
         <h4 id={`nova-mem-${group.id}`}>{group.label} <span className="ai-note">({group.notes.length})</span></h4>
         <ul className="ai-memory-list">{group.notes.map(note => <li key={note.id} className="ai-memory-note">

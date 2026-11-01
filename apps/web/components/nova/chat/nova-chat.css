@@ -9,16 +9,16 @@
 .nova-chat-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:18px 20px 14px;border-bottom:1px solid var(--line,#25324a)}
 .nova-chat-sheet .nova-chat-head{padding:12px 14px 10px}
 .nova-chat-identity{flex:1 1 180px;min-width:0}
-.nova-eyebrow{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-chat-eyebrow{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
 .nova-chat-title{margin:2px 0 0;font-size:24px;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
 .nova-chat-sheet .nova-chat-title{font-size:20px}
 .nova-chat-status{margin:4px 0 0;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted,#a4b2cd);overflow-wrap:anywhere}
 .nova-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--muted,#a4b2cd)}
 .nova-dot[data-on]{background:var(--cyan,#63e7ff);box-shadow:0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)}
 .nova-chat-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.nova-tool{min-height:44px;padding:0 14px;border-radius:12px;font-size:14px}
+.nova-chat-tool{min-height:44px;padding:0 14px;border-radius:12px;font-size:14px}
 .nova-close{display:inline-grid;place-items:center;min-width:44px;min-height:44px;border-radius:12px;border:1px solid var(--line,#25324a);background:transparent;color:inherit;cursor:pointer}
-.nova-close:focus-visible,.nova-tool:focus-visible{outline:2px solid var(--cyan,#63e7ff);outline-offset:2px}
+.nova-close:focus-visible,.nova-chat-tool:focus-visible{outline:2px solid var(--cyan,#63e7ff);outline-offset:2px}
 .nova-chat-log{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
 .nova-chat-sheet .nova-chat-log{padding:12px 14px}
 .nova-welcome{padding:6px 0 4px}
@@ -42,10 +42,10 @@
 .nova-voice p{margin:0}
 .nova-voice strong{color:var(--text,#f3f6ff)}
 .nova-looked{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;font-size:13px;color:var(--muted,#a4b2cd)}
-.nova-steps{margin:0;padding:10px 14px 10px 34px;border-radius:14px;border:1px dashed var(--nova-edge);font-size:14px;color:var(--muted,#a4b2cd)}
-.nova-steps li{margin:2px 0}
-.nova-steps li[data-done]{color:var(--text,#f3f6ff)}
-.nova-steps li[data-done]::marker{color:var(--cyan,#63e7ff)}
+.nova-chat-steps{margin:0;padding:10px 14px 10px 34px;border-radius:14px;border:1px dashed var(--nova-edge);font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-chat-steps li{margin:2px 0}
+.nova-chat-steps li[data-done]{color:var(--text,#f3f6ff)}
+.nova-chat-steps li[data-done]::marker{color:var(--cyan,#63e7ff)}
 .nova-pending{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted,#a4b2cd)}
 .nova-paused{margin:0 20px}
 .nova-composer-wrap{padding:10px 20px 4px;display:flex;flex-direction:column;gap:6px}
@@ -55,8 +55,8 @@
 .nova-composer textarea{flex:1 1 auto;min-width:0;min-height:52px;padding:12px 0;border:0;background:transparent;color:inherit;font:inherit;font-size:16px;line-height:24px;resize:none}
 .nova-composer textarea:focus{outline:none}
 .nova-composer-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px}
-.nova-send,.nova-stop,.nova-mic{min-width:44px;min-height:44px;border-radius:14px}
-.nova-send{padding:0 18px}
+.nova-chat-send,.nova-stop,.nova-mic{min-width:44px;min-height:44px;border-radius:14px}
+.nova-chat-send{padding:0 18px}
 .nova-mic{display:inline-grid;place-items:center;padding:0;position:relative}
 .nova-mic-on{color:var(--cyan,#63e7ff);border-color:currentColor}
 .nova-mic-off{opacity:.8}
@@ -113,7 +113,7 @@
   :root:not([data-app-motion=off]) .nova-mark[data-state=speaking] .nova-mark-halo{animation:nova-mark-breathe 0.9s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
 }
 @keyframes nova-mark-breathe{0%,100%{opacity:.8;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
-@media (max-width:480px){.nova-tool{padding:0 10px}.nova-turn-user .nova-turn-body{max-width:88%}.nova-composer{padding-left:12px}}
+@media (max-width:480px){.nova-chat-tool{padding:0 10px}.nova-turn-user .nova-turn-body{max-width:88%}.nova-composer{padding-left:12px}}
 /* Owner follow-up 3 N12: beside the orb on wide screens; folded into the command field (kept mounted, hidden). */
 .nova-chat-side{width:min(560px,100%);height:100%;min-height:min(640px,100%);border-radius:24px}
 .nova-chat[hidden]{display:none}
@@ -148,3 +148,24 @@
 /* Lane EXF (EX-18): "Continue your last conversation" in the empty chat. */
 .nova-chat .nova-continue{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
 .nova-chat .nova-continue .fine{min-width:0;overflow-wrap:anywhere}
+
+/* Session AK P3 (NOVA_DESIGN_REVIEW.md ND-7): one frame around the composer — the field draws no box of its own (NOVA's
+   generic field rule is weaker than this one), the frame keeps the single focus ring, and the microphone and Send sit in
+   one row at its end; Send is the command field's round arrow. "More" holds keeping and saving. "What NOVA can see" is a
+   44 px disclosure in line with the composer. */
+.nova-chat .nova-composer textarea:not(#\-):not(#\-){flex:1 1 auto;min-width:0;min-height:44px;margin:0;padding:10px 0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:none;color:inherit;font:inherit;font-size:16px;line-height:24px}
+.nova-chat .nova-composer{align-items:center}
+.nova-chat .nova-composer-actions{flex:none;flex-wrap:nowrap}
+.nova-chat .nova-chat-send{display:inline-grid;place-items:center;width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:50%;background:linear-gradient(120deg,var(--nova-b,#63e7ff),var(--nova-a,#9273ff));color:#0a0f24}
+.nova-chat .nova-chat-send:disabled{opacity:.55}
+.nova-chat .nova-mic{border-radius:50%}
+.nova-chat .nova-composer-hint{font-size:13px}
+.nova-chat-tool{display:inline-flex;align-items:center;gap:8px}
+.nova-chat-more{position:relative;display:inline-flex}
+.nova-chat-more-list{position:absolute;top:calc(100% + 6px);right:0;z-index:9;display:grid;gap:6px;min-width:220px;padding:8px;border-radius:16px;border:1px solid var(--nova-edge);background:#0d1330;box-shadow:0 22px 50px -18px rgba(0,0,0,.9)}
+.nova-chat-more-list[hidden]{display:none}
+.nova-chat-more-list .nova-chat-tool{justify-content:flex-start;width:100%}
+.nova-chat .nova-see{margin:0 20px}
+.nova-chat .nova-see>summary{display:flex;align-items:center;min-height:44px}
+.nova-chat-sheet .nova-see{margin:0 12px}
+.nova-chat .nova-composer:focus-within{border-color:var(--nova-focus,#63e7ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 45%,transparent)}

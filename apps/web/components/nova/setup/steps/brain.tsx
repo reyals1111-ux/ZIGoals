@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {lazy, Suspense, useEffect, useId, useState, useSyncExternalStore} from 'react';
+import {lazy, Suspense, useEffect, useId, useState, useSyncExternalStore, type ReactNode} from 'react';
 import {readKey} from '../../../../lib/ai/keys';
 import {onDeviceAvailability} from '../../../../lib/ai/on-device';
 import {PROVIDERS} from '../../../../lib/ai/providers';
@@ -20,17 +20,19 @@ import type {SetupState} from '../use-setup';
 
 const OnDevicePanel = lazy(() => import('../../../ai/on-device-panel'));
 type Way = 'local' | 'key' | 'openrouter' | 'browser';
-const WAYS: {id: Way; label: string}[] = [{id: 'local', label: 'A model on this computer (recommended)'}, {id: 'key', label: 'My own API key'}, {id: 'openrouter', label: 'OpenRouter sign-in'}, {id: 'browser', label: 'In the browser'}];
+const WAYS: {id: Way; label: string; tag?: string}[] = [{id: 'local', label: 'A model on this computer', tag: 'Recommended'}, {id: 'key', label: 'My own API key'}, {id: 'openrouter', label: 'OpenRouter sign-in'}, {id: 'browser', label: 'In the browser'}];
 const KEY_PROVIDERS: KeyProvider[] = ['anthropic', 'openai', 'gemini', 'xai'];
 const subscribeNothing = () => () => undefined;
 const PHONE = '(max-width: 640px), (pointer: coarse) and (hover: none)';
 /** Steps as an ordered list; each command alone in its block. */
-export function GuideSteps({steps}: {steps: readonly GuideStep[]}) {
-  return <ol className="nova-steps">{steps.map((s, i) => <li key={i}><span className="nova-step-n" aria-hidden="true">{i + 1}</span><div><p>{s.text}</p>{s.command && <CommandBlock command={s.command} shell={s.shell}/>}</div></li>)}</ol>;
+export function GuideSteps({steps, after}: {steps: readonly GuideStep[]; after?: Partial<Record<number, ReactNode>>}) {
+  // Session AK P3 (ND-8): `after` puts a step's own secondary action right under its command (e.g. "Make a key here").
+  return <ol className="nova-steps">{steps.map((s, i) => <li key={i}><span className="nova-step-n" aria-hidden="true">{i + 1}</span><div><p>{s.text}</p>{s.command && <CommandBlock command={s.command} shell={s.shell}/>}{after?.[i]}</div></li>)}</ol>;
 }
 /** Buttons that behave as one choice (aria-pressed), for the OS and the server. */
-export function Choice<T extends string>({label, value, options, onChange}: {label: string; value: T; options: readonly {id: T; label: string}[]; onChange: (v: T) => void}) {
-  return <div className="nova-choice ai-card-actions" role="group" aria-label={label}>{options.map(o => <button key={o.id} type="button" className={o.id === value ? 'primary' : 'secondary'} aria-pressed={o.id === value} onClick={() => onChange(o.id)}>{o.label}</button>)}</div>;
+/** Session AK P3 (ND-8): equal-width options; a recommended one wears a small tag (its name says it too), not a gradient. */
+export function Choice<T extends string>({label, value, options, onChange}: {label: string; value: T; options: readonly {id: T; label: string; tag?: string}[]; onChange: (v: T) => void}) {
+  return <div className="nova-choice ai-card-actions" role="group" aria-label={label}>{options.map(o => <button key={o.id} type="button" className={o.id === value ? 'primary' : 'secondary'} aria-pressed={o.id === value} aria-label={o.tag ? `${o.label} (${o.tag.toLowerCase()})` : undefined} onClick={() => onChange(o.id)}><span>{o.label}</span>{o.tag && <span className="nova-tag nova-tag-recommended" aria-hidden="true">{o.tag}</span>}</button>)}</div>;
 }
 /**
  * Planet 3: the brain, local first. (a) A local model: Ollama, LM Studio or llama.cpp on macOS, Windows or Linux, with

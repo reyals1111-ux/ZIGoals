@@ -56,11 +56,16 @@ describe('the starfield', () => {
     for (let t = 0; t < 60; t += 7) { const a = twinkleAt(star, t); expect(a).toBeGreaterThanOrEqual(0); expect(a).toBeLessThanOrEqual(1); }
     expect(nebulaClouds()).toHaveLength(14);
   });
-  it('does not run on a low-end device, with Save-Data or a low battery; a still frame under reduced motion or Motion Off', () => {
+  it('does not run on a low-end device, with Save-Data or a low battery; a still frame under reduced motion or Motion Off (and, since P3 ND-17, on a low-end device)', () => {
     expect(lowEnd({hardwareConcurrency: 4})).toBe(true); expect(lowEnd({deviceMemory: 4})).toBe(true); expect(lowEnd({saveData: true})).toBe(true); expect(lowEnd({lowBattery: true})).toBe(true);
     expect(lowEnd({hardwareConcurrency: 8, deviceMemory: 8})).toBe(false); expect(lowEnd({})).toBe(false);
     expect(skyMode({motion: true, hints: {hardwareConcurrency: 8}})).toBe('running');
     expect(skyMode({motion: false, hints: {hardwareConcurrency: 8}})).toBe('still');
-    expect(skyMode({motion: true, hints: {hardwareConcurrency: 2}})).toBe('none');
+    // Session AK P3 (ND-17), a deliberate change: a low-end device or a low battery paints ONE still frame (never a running
+    // sky) instead of the nearly empty CSS sky; only Save-Data draws nothing.
+    expect(skyMode({motion: true, hints: {hardwareConcurrency: 2}})).toBe('still');
+    expect(skyMode({motion: true, hints: {hardwareConcurrency: 8, lowBattery: true}})).toBe('still');
+    expect(skyMode({motion: true, hints: {hardwareConcurrency: 8, saveData: true}})).toBe('none');
+    for (const hints of [{hardwareConcurrency: 2}, {deviceMemory: 2}, {lowBattery: true}, {saveData: true}]) expect(skyMode({motion: true, hints})).not.toBe('running');
   });
 });

@@ -6,3 +6,8 @@
 export function isNovaShortcut(event: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'altKey' | 'shiftKey' | 'defaultPrevented'>): boolean {
   return (event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && !event.defaultPrevented && event.key.toLowerCase() === 'j';
 }
+/** Session AK P3 (ND-21): whether a platform string names an Apple device (⌘ keys); everything else uses Ctrl. */
+export const isApplePlatform = (platform: string | undefined | null): boolean => /mac|iphone|ipad|ipod/i.test(platform ?? '');
+/** A ⌘/Ctrl shortcut in the platform's own words: "⌘K" on Apple devices, "Ctrl K" elsewhere; and its aria-keyshortcuts. */
+export const commandKeyLabel = (apple: boolean, key: string): string => apple ? `⌘${key.toUpperCase()}` : `Ctrl ${key.toUpperCase()}`;
+export const commandKeyShortcut = (apple: boolean, key: string): string => `${apple ? 'Meta' : 'Control'}+${key.toUpperCase()}`;

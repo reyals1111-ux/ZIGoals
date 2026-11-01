@@ -20,13 +20,13 @@ export function CheckRowBase({id, last, done, save, reopen, run, label = 'Check 
     finally { setBusy(false); }
   };
   const back = () => { try { reopen(); setError(''); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
-  return <div className="nova-check" data-check={id} data-ok={last ? String(last.ok) : undefined}>
+  return <div className="nova-guide-check" data-check={id} data-ok={last ? String(last.ok) : undefined}>
     <div className="ai-card-actions">
       <button type="button" className={done ? 'secondary' : 'primary'} onClick={() => void go()} disabled={busy || disabled}>{busy ? 'Checking…' : done ? 'Check again' : label}</button>
       {/* Session AK lane EXF (EX-13): an action, so it reads as one ("Not done yet" read as a status beside "Checked: it works"). */}
       {done && <button type="button" className="text-link" onClick={back}>Mark as not done</button>}
     </div>
-    <p className="nova-check-result" role="status" aria-live="polite">
+    <p className="nova-guide-check-result" role="status" aria-live="polite">
       {last ? <><b>{last.ok ? 'Checked: it works.' : 'Not yet.'}</b> {last.note} <span className="fine">({formatDateTime(last.at)})</span></> : <span className="fine">Not checked yet.</span>}
     </p>
     {error && <p role="alert" className="fine">{error}</p>}

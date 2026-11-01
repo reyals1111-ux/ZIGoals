@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {hasOpenFence, parseReply} from '../../../lib/ai/actions/parse';
 import {AREA_LABELS} from '../../../lib/ai/context/pages';
 import {stripHint} from '../../../lib/ai/emotion-hint';
@@ -290,15 +290,19 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     <header className="nova-chat-head">
       <PersonaFigure persona={persona} size={layout === 'sheet' ? 34 : 44} state={orb}/>
       <div className="nova-chat-identity">
-        <p className="nova-eyebrow" aria-hidden="true">Your private intelligence</p>
+        <p className="nova-chat-eyebrow" aria-hidden="true">Your private intelligence</p>
         <h2 id={titleId} className="nova-chat-title">{persona.name}</h2>
         <p className="nova-chat-status"><span className="nova-dot" data-on={connected ? '' : undefined} aria-hidden="true"/>{status}{sensitive ? ' · paused on a private screen' : ''}</p>
       </div>
       <div className="nova-chat-tools" role="toolbar" aria-label="Chat tools">
-        <button type="button" className="secondary nova-tool" onClick={startNew}>New chat</button>
-        <button type="button" className="secondary nova-tool" aria-pressed={view === 'list'} onClick={() => setView(v => v === 'list' ? 'chat' : 'list')}>Conversations</button>
-        <button type="button" className="secondary nova-tool" aria-pressed={!session.kept} onClick={() => { session.setKept(!session.kept); setNote(session.kept ? 'This chat is not kept. Nothing of it is saved on this device.' : 'This chat is kept again, in Conversations.'); }}>{DONT_KEEP_LABEL}</button>
-        <button type="button" className="secondary nova-tool" disabled={!session.chat.turns.length || !session.kept} onClick={() => void downloadChat(session.chat.id, persona.name).then(ok => setNote(ok ? 'Saved this conversation as a Markdown file on this device.' : 'This conversation is not saved yet.'))}>Save as Markdown</button>
+        {/* Session AK P3 (ND-7): New chat, Conversations (icon and name) and close stay in the header; keeping and saving
+            wait in "More" (the same buttons, one tap further). */}
+        <button type="button" className="secondary nova-chat-tool" onClick={startNew}>New chat</button>
+        <button type="button" className="secondary nova-chat-tool" aria-pressed={view === 'list'} onClick={() => setView(v => v === 'list' ? 'chat' : 'list')}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M5 6.5h14M5 12h14M5 17.5h9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>Conversations</button>
+        <ChatMore>
+          <button type="button" className="secondary nova-chat-tool" aria-pressed={!session.kept} onClick={() => { session.setKept(!session.kept); setNote(session.kept ? 'This chat is not kept. Nothing of it is saved on this device.' : 'This chat is kept again, in Conversations.'); }}>{DONT_KEEP_LABEL}</button>
+          <button type="button" className="secondary nova-chat-tool" disabled={!session.chat.turns.length || !session.kept} onClick={() => void downloadChat(session.chat.id, persona.name).then(ok => setNote(ok ? 'Saved this conversation as a Markdown file on this device.' : 'This conversation is not saved yet.'))}>Save as Markdown</button>
+        </ChatMore>
         {onCollapse && <button type="button" className="nova-close" aria-label={`Fold ${persona.name}’s chat into the command field`} title="Fold into the command field" onClick={onCollapse}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>}
         {onClose && <button type="button" className="nova-close" aria-label={`Close ${persona.name}’s chat`} title="Close" onClick={onClose}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg></button>}
       </div>
@@ -307,10 +311,10 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       <div ref={log} className="nova-chat-log" role="log" aria-label="Conversation">
         {!session.kept && <UnkeptBanner list="Conversations" closing={`close ${persona.name}’s chat`} onKeep={() => { session.setKept(true); setNote('This chat is kept again, in Conversations.'); }}/>}
         {session.chat.turns.length === 0 && <div className="nova-welcome">
-          <p className="nova-eyebrow">Your private intelligence</p>
+          <p className="nova-chat-eyebrow">Your private intelligence</p>
           <p className="nova-welcome-title">Think out loud.</p>
           <p className="nova-welcome-sub">One conversation, your whole constellation: goals, habits, health and wealth, on this device. {novaAndZigi(persona.name)} They share this history.</p>
-          {lastChat && !busy && <p className="nova-continue"><button type="button" className="secondary nova-tool" onClick={() => void openChat(lastChat.id).then(() => composer.current?.focus())}>Continue your last conversation</button> <span className="fine">“{lastChat.title}”</span></p>}
+          {lastChat && !busy && <p className="nova-continue"><button type="button" className="secondary nova-chat-tool" onClick={() => void openChat(lastChat.id).then(() => composer.current?.focus())}>Continue your last conversation</button> <span className="fine">“{lastChat.title}”</span></p>}
           {session.kept && !busy && <UnkeptOffer onDontKeep={() => { session.setKept(false); setNote('This chat is not kept. Nothing of it is saved on this device.'); composer.current?.focus(); }}/>}
           {examples.length > 0 && !busy && <div className="ai-chips" role="group" aria-label="Questions to start with">{examples.map(e => <button key={e} type="button" className="ai-chip" title={e} onClick={() => ask(e)}>{e}</button>)}</div>}
         </div>}
@@ -324,11 +328,11 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
           if (turn.role === 'user') return <NovaUserTurn key={turn.id} turn={turn} mark={marks[turn.id]} persona={persona} onEdit={!busy && turn === lastAsked ? () => { setEditing({id: turn.id, text: turn.text, seq: Date.now()}); requestAnimationFrame(() => composer.current?.focus()); } : undefined}/>;
           return <NovaReplyTurn key={turn.id} turn={turn} asked={prev?.role === 'user' ? prev.text : ''} mark={marks[turn.id]} isLast={turn === lastAssistant} earlier={turn.id !== latestCards} busy={busy} common={common} onRetry={retry}/>;
         })}
-        {deleg && busy && (deleg.agent === 'hermes' ? <ol className="nova-steps" aria-label="Your Hermes Agent’s steps">
+        {deleg && busy && (deleg.agent === 'hermes' ? <ol className="nova-chat-steps" aria-label="Your Hermes Agent’s steps">
           <li data-done="">{persona.name} asked your Hermes Agent, with {AREA_LABELS[deleg.area]}’s records</li>
           <li data-done={session.status === 'streaming' ? '' : undefined}>Hermes answers, on your own computer</li>
           <li>Back to {persona.name}: any change comes as a card</li>
-        </ol> : <ol className="nova-steps" aria-label="ZIGi’s steps">
+        </ol> : <ol className="nova-chat-steps" aria-label="ZIGi’s steps">
           <li data-done="">{persona.name} handed it to ZIGi on {AREA_LABELS[deleg.area]}</li>
           <li data-done={session.looking.length || session.status === 'streaming' ? '' : undefined}>ZIGi reads {AREA_LABELS[deleg.area]}’s records{session.looking.length ? `: ${session.looking.join(', ')}` : ''}</li>
           <li data-done={session.status === 'streaming' ? '' : undefined}>ZIGi answers</li>
@@ -373,6 +377,20 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   </section>;
 }
 export default NovaChat;
+/** Session AK P3 (ND-7): the header's "More" menu (a disclosure: Escape or a tap outside closes it, focus goes back). */
+function ChatMore({children}: {children: ReactNode}) {
+  const [open, setOpen] = useState(false), id = useId(), button = useRef<HTMLButtonElement>(null), box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [open]);
+  return <div className="nova-chat-more">
+    <button ref={button} type="button" className="nova-close" aria-expanded={open} aria-controls={id} aria-label="More chat actions" title="More: keep or save this chat" onClick={() => setOpen(o => !o)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></g></svg></button>
+    <div ref={box} id={id} className="nova-chat-more-list" role="group" aria-label="More chat actions" hidden={!open} onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setOpen(false); button.current?.focus(); } }}>{children}</div>
+  </div>;
+}
 /** The log glides to the latest message only where motion is allowed (the device's setting and the app's Motion Off). */
 function toLatest(el: HTMLElement) {
   const glide = document.documentElement.dataset.appMotion !== 'off' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

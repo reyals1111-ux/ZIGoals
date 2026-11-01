@@ -21,9 +21,9 @@ export function AboutToSend({message, context = '', mode, provider, model = null
   const unconfirmed = hermesUnconfirmed ?? (provider === 'local' && !hosted && !!baseUrl && isHermesBase(baseUrl, hermes.data) && (hermes.unreadable || hermes.data.localModelConfirmed !== true));
   const preview = useMemo(() => previewFor({message, context, mode, provider, model, hosted, hermesUnconfirmed: unconfirmed, knownNames: names, assistant}), [message, context, mode, provider, model, hosted, unconfirmed, names, assistant]);
   if (hideWhenSent && preview.decision === 'send') return null;
-  return <div className="nova-send" data-decision={preview.decision} aria-live="polite">
-    <p className="nova-send-line"><b>{preview.line}</b>{preview.summary && <> Taken out or rounded: {preview.summary}.</>}</p>
-    {preview.message && <pre className="nova-send-text" tabIndex={0} aria-label="Exactly what would be sent">{preview.message}</pre>}
+  return <div className="nova-guide-send" data-decision={preview.decision} aria-live="polite">
+    <p className="nova-guide-send-line"><b>{preview.line}</b>{preview.summary && <> Taken out or rounded: {preview.summary}.</>}</p>
+    {preview.message && <pre className="nova-guide-send-text" tabIndex={0} aria-label="Exactly what would be sent">{preview.message}</pre>}
     {preview.context && <details className="ai-context-preview"><summary>{contextLabel} ({preview.context.length.toLocaleString('en-US')} characters)</summary><pre tabIndex={0}>{preview.context}</pre></details>}
   </div>;
 }

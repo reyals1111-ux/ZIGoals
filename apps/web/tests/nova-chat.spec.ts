@@ -170,6 +170,7 @@ test('no model connected: NOVA answers on the device, says so, and invites build
   await chat(page).getByRole('button', {name: 'Conversations'}).click();
   await chat(page).getByRole('button', {name: /How many habits/}).first().click();
   const download = page.waitForEvent('download');
+  await chat(page).getByRole('button', {name: 'More chat actions'}).click(); // Session AK P3 (ND-7): Save as Markdown waits in "More"
   await chat(page).getByRole('button', {name: 'Save as Markdown'}).click();
   expect((await download).suggestedFilename()).toMatch(/^zigoals-chat-\d{4}-\d{2}-\d{2}-how-many-habits-do-i-have\.md$/);
   expect(seen).toHaveLength(0);

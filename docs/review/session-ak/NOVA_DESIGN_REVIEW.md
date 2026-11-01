@@ -428,3 +428,91 @@ The conversation hint row is 12 px (`.nova-composer-hint`). Use 13 px, the floor
 - The phone's minimal NOVA and the Minimal layout: the composition the desktop default should grow out of.
 - The planet guides' path itself (shared orbit look, progress, checks) and the Showcase labelling ("Showcase · fictional
   example data").
+
+---
+
+## Fixes
+
+Lane P3b (NOVA polish), Session AK. Inside the design language: no pointer tracking, motion once, Calm is opacity only,
+Off and reduced motion still. Specs: `apps/web/tests/p3-nova-polish.spec.ts` (new) plus the NOVA specs named below; unit
+tests under `apps/web/lib/nova`. Browser specs run by the lead on a build of the working tree.
+
+- **ND-1** The stage area is a size container; Orbit, Focus and Minimal are exactly its height (`100cqb`), so the star sits
+  in the window's middle and only the outer band scrolls. `NovaStage` is a fixed stack whose orb is its centre (rows
+  `1fr auto 1fr`: name above; state, greeting, day line, Showcase label below). Side columns hold `rowsFit(stageHeight)`
+  rows (lib/nova/layout.ts, measured by a ResizeObserver in widget-grid.tsx); the rest goes to "More on your orbit" below
+  the fold. The orb is sized by width and height (`min(22cqi, 30cqb)`). The setup card left the stack (ND-23). Spec: ND-1
+  at 1440 × 900 and 1920 × 1080, fresh and Showcase (orb, state, greeting, day line inside the window and above the foot;
+  orb centre within 8 % of the stage's middle). Unit: `p3-polish.test.ts` (rowsFit, band).
+- **ND-2** Cards are content-sized (`max-height` per size: S 112, M 236, L 360 px = SIZE_MAX_PX), the body clips with a soft
+  fade when cut (`data-cut`), "Open … →" sits in the header row (44 px hit area through negative margins), empty widgets
+  are one compact line beside 44 px planet art. Spec: no card's empty interior > 96 px (in the ND-1 tests).
+- **ND-3** `dayLine()` (lib/nova/day-line.ts): next item · habits left · water to go · a bill due within 3 days, three
+  facts at most, unread values left out, "Your day is open. Start with one habit." or "Everything planned for today is
+  done." only when the day was read. Rendered as `.nova-dayline` (its own lazy chunk, components/nova/day-line.tsx), not
+  typed, fades in at the end of the opening, no live region. Unit: `day-line.test.ts`; spec: fresh = open-day line,
+  Showcase = facts.
+- **ND-4** One-row top bar (Exit · Your day · Search · Workflows; no wrap); Customize and Mini window are quick-access tiles;
+  the right-panel toggle is the grid's last cell; the grid is two rows (one row on a centre ≥ 1700 px) and folds into the
+  Quick access sheet on a centre ≤ 800 px; labels for Search/Workflows now follow the centre's width (≥ 1600 px); below
+  1180 px Exit and Your day are icon buttons (names kept). Chips: "Key · value", Privacy and Memory fold into one chip on a
+  centre ≤ 1100 px, "Test my setup" is the Brain chip's link once a brain is connected. Spec: ND-4 at 1024, 1440, 1920,
+  right panel closed and open (top ≤ 120 px, one row).
+- **ND-5** The generic field rule is wrapped in `:where()`, so the command input is transparent and borderless; the two
+  menus are pinned bottom-left/right of the foot (44 px icon buttons beside the field on a centre ≤ 1100 px); the field is
+  `min(760px, 100% − 440px)`; one-line hint "Enter to ask NOVA · nothing is sent before you press it." Spec: input ≥ 480 px
+  at 1440 with both panels and a brain, transparent background, no border.
+- **ND-6** Renamed: setup.css `.nova-check*` → `.nova-guide-check*`, `.nova-send*` → `.nova-guide-send*`,
+  `.nova-setup-card*` → `.nova-guide-card*`; chat `.nova-send/.nova-tool/.nova-steps/.nova-eyebrow` →
+  `.nova-chat-*`; panels `.nova-badge/.nova-empty` → `.nova-panel-*`; NOVA's own `.nova-live-dot` → `.nova-on-dot` (lane
+  P1's live chips keep theirs). Unit: `lib/nova/css-collisions.test.ts` fails when two NOVA sheets style one class with
+  different values. Spec: right panel + Technical details, then View controls: every `.nova-check` is `flex`, no border.
+- **ND-7** With the chat open on a computer the stage gives way (no sliced widgets) and the chat takes the height; the
+  composer has one frame (transparent textarea, single focus ring), mic and a round 44 px arrow Send in one row; header:
+  New chat, Conversations (icon + label), a "More chat actions" menu with Don't keep / Save as Markdown, close; "What NOVA
+  can see" is a 44 px summary aligned with the composer; hint 13 px. "No AI used" is visible once (the meta line); the
+  other two are screen-reader text. Spec: no visible widget, one bordered element in the composer, actions in one row.
+  `nova-chat.spec.ts` now opens "More chat actions" before Save as Markdown.
+- **ND-8** The open planet's guide renders after the path as one wide panel (≤ 760 px) on every width; commands wrap
+  (`pre-wrap`, copying unchanged); choices are equal-width cards (2 × 2 for four), the chosen one in NOVA's violet, the
+  recommended one with a "Recommended" tag (name unchanged); "Make a key here" sits under step 1's command; the `.env`
+  lines are their own command block (`apiServerEnv`). Spec: Hermes planet 4 at 1440 — panel > 600 px, no `pre` cut, the
+  `.env` block. Unit: `p3-polish.test.ts`.
+- **ND-9** Focus is a window-high two-row grid: the star stack, then its three widgets (≤ 160 px) above the field.
+  Spec: exactly three widgets inside the window in Focus, none in Minimal.
+- **ND-10** Under Calm the side panels fade (`nova-fade`, 150 ms) and the finished dashboard fades in once (300 ms). Spec:
+  under Calm, `.nova-left`/`.nova-right` animate opacity only.
+- **ND-11** `settleDelay` uses SETTLE_MS (520) so the last widget rests by `OPENING.end`; ignition is centred by ND-1; the
+  typed greeting re-renders only itself (lane M7's change, kept). Unit: `p3-polish.test.ts`.
+- **ND-12** Dot colours keyed on the chip (`.nova-chip[data-kind] .nova-chip-dot`), value set apart from the key. Spec: a
+  local brain's dot equals the teal token.
+- **ND-13** Four device tiles (Cores, Memory, Battery, Network; "unknown" when unknown) always under the brain line;
+  silent servers grouped ("Not running: llama.cpp (9931, 8080)", details in its title); own chevron on the disclosure;
+  "Microphone off" a status row; Talk to NOVA secondary. Unit: `p3-polish.test.ts` (`factTiles`, `notRunningLine`); spec.
+- **ND-14** Left panel: fixed head, scrolling nav, fixed foot; brand subtitle one line; zero counts hidden (kept in the
+  name). Spec at 1440 × 900.
+- **ND-15** View controls: name + S/M/L segment per row, layouts one row of four, "Arrange" sticky at the foot. Spec (ND-6
+  test): segments in line.
+- **ND-16** Lean on the inner edge only (outer edges aligned); the middle ring passes through the gaps; both moons on it;
+  moons hidden under 560 px.
+- **ND-17** Low end and low battery paint one still frame (`skyMode` → 'still'); only Save-Data draws nothing. Units:
+  orb.test.ts, opening.test.ts (deliberately changed from 'none'; never 'running' still asserted). Spec: 4 cores → still.
+- **ND-18** Each orb state has its own colour in still frames (listening second accent, thinking third accent + comet tail,
+  speaking full halo + three fixed rings); the state word takes the colour.
+- **ND-19** `NovaGuideBand` (components/nova/guide-band.tsx): night strip with Back to NOVA (≥ 44 px, first control of the
+  page content), the still orb and "n of 10 planets lit", on /app/nova/setup and /app/nova/hermes (a `.nova-root` dark
+  island in Light). Spec: Nebula and Light.
+- **ND-20** Bento rows `minmax(120px, max-content)`, cards align to start, hero clips and centres its stack.
+- **ND-21** "⌘K"/"Ctrl K" and `aria-keyshortcuts` from the platform (`isApplePlatform`, lib/nova/command-key.ts). Unit and spec.
+- **ND-22** Phone: field without inner box, stray moon gone, 16 px above the name, banner wraps to two lines.
+- **ND-23** One-line banner under the chips: "Give NOVA a brain of its own · It already answers simple questions on this
+  device." with Start the guide / Not now; NOVA-vs-ZIGi lives on "Meet NOVA" and in the chat welcome. Spec; the R2-4
+  assertion in nova-dashboard.spec.ts moved accordingly.
+- **ND-24** "First conversation" and "First run" use a new `chat` (speech-bubble) glyph added to the path's glyph table.
+  Not done: the finales as a small NovaOrb — the finale node is drawn by the shared path engine (Checklist/Earn), left
+  for an owner decision.
+- **ND-25** In Light, the guide path's banners end in a rounded edge (`--banner-fade: 0` scoped to `.nova-guide-path`).
+- **ND-26** One eyebrow token (13 px, .12em), composer hint 13 px, quick-grid gap 8 px.
+- **Layout audit** (spec "NOVA layout audit by bounding box"): Nebula, Light and Dark at 1024, 1440 and 1920 px — every
+  first-screen control inside the window, ≥ 44 px, not covered (elementFromPoint at its centre), no horizontal scroll,
+  NOVA a night island.

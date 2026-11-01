@@ -48,9 +48,9 @@ export function useNovaSees(settings: AiSettings, mode: PrivacyMode | null): Nov
 export function WhatNovaSees({sees}: {sees: NovaSees}) {
   const {pack} = sees;
   if (!pack) return <p className="ai-note" role="status">Reading your records…</p>;
-  return <div className="nova-sees nova-send" data-decision={sees.refused ? 'refuse' : undefined}>
+  return <div className="nova-sees nova-guide-send" data-decision={sees.refused ? 'refuse' : undefined}>
     <p className="ai-note">About {pack.estimatedTokens.toLocaleString('en-US')} tokens (an estimate) · {pack.included.length ? `${pack.included.length} part${pack.included.length === 1 ? '' : 's'} of your life` : 'nothing attached'}{pack.overBudget.length ? ' · some read only when asked, to keep it short' : ''}.</p>
-    <p className="nova-send-line"><b>{sees.line}</b></p>
-    {!sees.refused && <pre className="nova-send-text" tabIndex={0} aria-label="Exactly what NOVA's prompt carries">{pack.text}</pre>}
+    <p className="nova-guide-send-line"><b>{sees.line}</b></p>
+    {!sees.refused && <pre className="nova-guide-send-text" tabIndex={0} aria-label="Exactly what NOVA's prompt carries">{pack.text}</pre>}
   </div>;
 }

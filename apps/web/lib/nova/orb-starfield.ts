@@ -1,8 +1,8 @@
 /**
  * Session AK (owner follow-up 2, N2 and M2; lane NA): NOVA's starfield and nebula backdrop, as pure data the canvas
  * draws (components/nova/starfield.tsx). It drifts very slowly sideways, never follows the pointer, pauses while the tab
- * is hidden, and does not run at all under reduced motion, Motion Off, a low-end device or Save-Data (a still frame, or
- * the page's own CSS sky, shows instead).
+ * is hidden, and does not run at all under reduced motion, Motion Calm or Off, on a low-end device or a low battery (one
+ * still frame shows instead) or with Save-Data (the page's own CSS sky).
  */
 export type Star = {x: number; y: number; r: number; a: number; layer: 0 | 1 | 2; twinkle: number; tint: 0 | 1 | 2};
 /** A small, fast, seeded generator (mulberry32), so the sky is the same on every visit and in tests. */
@@ -42,10 +42,15 @@ export function deviceHints(nav: Navigator | undefined = typeof navigator === 'u
   const n = nav as Navigator & {deviceMemory?: number; connection?: {saveData?: boolean}};
   return {hardwareConcurrency: n.hardwareConcurrency, deviceMemory: n.deviceMemory, saveData: n.connection?.saveData};
 }
-/** How the backdrop shows: a running sky, one still frame (reduced motion, Motion Off), or none (low-end: CSS only). */
+/**
+ * How the backdrop shows: a running sky, one still frame, or none (the page's CSS sky alone). Session AK P3
+ * (NOVA_DESIGN_REVIEW.md ND-17): a low-end device or a low battery gets one still frame — painted once, no ongoing cost —
+ * instead of the nearly empty CSS sky (many ordinary laptops report 4 cores); only Save-Data keeps nothing drawn.
+ */
 export type SkyMode = 'running' | 'still' | 'none';
 export function skyMode({motion, hints}: {motion: boolean; hints: DeviceHints}): SkyMode {
-  if (lowEnd(hints)) return 'none';
+  if (hints.saveData === true) return 'none';
+  if (lowEnd(hints)) return 'still';
   return motion ? 'running' : 'still';
 }
 /** Frames per second the running sky asks for (30 is plenty for a drift this slow and halves the work). */

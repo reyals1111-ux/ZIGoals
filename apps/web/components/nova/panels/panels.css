@@ -7,9 +7,9 @@
 .nova-panel-tabs button{min-height:44px}
 .nova-panel-body,.nova-memory,.nova-permissions,.nova-activity,.nova-cost,.nova-models{display:grid;gap:12px;min-width:0}
 .nova-panel-body h4{margin:6px 0 0}
-.nova-badge{font-size:14px;font-weight:600;color:var(--brand-cyan,#5ee7ff)}
-.nova-empty{border:1px dashed var(--line,#2a325a);border-radius:14px;padding:12px 14px;display:grid;gap:4px}
-.nova-empty p{margin:0}
+.nova-panel-badge{font-size:14px;font-weight:600;color:var(--brand-cyan,#5ee7ff)}
+.nova-panel-empty{border:1px dashed var(--line,#2a325a);border-radius:14px;padding:12px 14px;display:grid;gap:4px}
+.nova-panel-empty p{margin:0}
 .nova-brief-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .nova-brief{border:1px solid var(--line,#2a325a);border-radius:14px;padding:0 12px;min-width:0}
 .nova-brief summary{min-height:44px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;font-weight:600}

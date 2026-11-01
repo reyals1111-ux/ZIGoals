@@ -76,7 +76,7 @@ test('the orb: four states, each with its name in words when it is named; decora
   expect(new Set(ids).size).toBe(ids.length);
 });
 
-test('the sky: a still frame without motion, nothing on a low-end device; hidden from assistive technology', async () => {
+test('the sky: a still frame without motion, and (P3 ND-17) a still frame, never a running one, on a low-end device; hidden from assistive technology', async () => {
   vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
   Object.defineProperty(navigator, 'hardwareConcurrency', {value: 8, configurable: true});
   await act(async () => root.render(createElement(Starfield, {motion: false, accent: 'violet'})));
@@ -87,5 +87,5 @@ test('the sky: a still frame without motion, nothing on a low-end device; hidden
   Object.defineProperty(navigator, 'hardwareConcurrency', {value: 2, configurable: true});
   act(() => root.unmount()); root = createRoot(host);
   await act(async () => root.render(createElement(Starfield, {motion: true, accent: 'violet'})));
-  expect(host.querySelector('canvas')!.dataset.sky).toBe('none');
+  expect(host.querySelector('canvas')!.dataset.sky).toBe('still');
 });

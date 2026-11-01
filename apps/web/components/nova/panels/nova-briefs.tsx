@@ -62,17 +62,17 @@ export function NovaBriefs() {
   const closed = (Object.keys(SCOPE_LABELS) as (keyof BriefScopes)[]).filter(k => !sources.scopes[k]).map(k => SCOPE_LABELS[k]!);
   return <section className="panel nova-briefs" id="briefs" aria-labelledby="nova-briefs-title">
     <div className="nova-panel-head">
-      <div><p className="eyebrow">MADE ON THIS DEVICE</p><h3 id="nova-briefs-title">Your briefs{unread ? <span className="nova-badge"> · {unread} unread</span> : null}</h3></div>
+      <div><p className="eyebrow">MADE ON THIS DEVICE</p><h3 id="nova-briefs-title">Your briefs{unread ? <span className="nova-panel-badge"> · {unread} unread</span> : null}</h3></div>
       {unread > 0 && <button type="button" className="text-link" onClick={() => save(current => markAllRead(current, new Date()), 'All briefs are marked read.')}>Mark all read</button>}
     </div>
     {isShowcase() && <p className="ai-note">Showcase: made from fictional example records.</p>}
     <p className="ai-note">A morning brief, and from {prefs.eveningTime} an evening recap, from your own records by ZIGi&rsquo;s rules; no AI is needed.{closed.length ? ` Not read: ${closed.join(', ')} (Permissions).` : ''}</p>
     {!sources.ready && <p className="ai-note" role="status">Reading your records…</p>}
-    {sources.ready && !list.length && <div className="nova-empty"><p><strong>Nothing to brief yet.</strong></p><p className="ai-note">Add a habit, a goal or a meal plan, or log your spending, and NOVA writes your morning brief and evening recap here each day, on this device. Load the Showcase in Settings to see one with example records.</p></div>}
+    {sources.ready && !list.length && <div className="nova-panel-empty"><p><strong>Nothing to brief yet.</strong></p><p className="ai-note">Add a habit, a goal or a meal plan, or log your spending, and NOVA writes your morning brief and evening recap here each day, on this device. Load the Showcase in Settings to see one with example records.</p></div>}
     {list.length > 0 && <ul className="nova-brief-list">{list.map(b => {
       const fresh = !b.readAt;
       return <li key={b.id}><details className="nova-brief" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open && fresh && stored.some(s => s.id === b.id)) save(current => markRead(current, b.id, new Date())); }}>
-        <summary><span>{b.kind === 'morning' ? 'Morning brief' : 'Evening recap'} · {formatDate(b.day)}</span>{fresh && <span className="nova-badge">Unread</span>}</summary>
+        <summary><span>{b.kind === 'morning' ? 'Morning brief' : 'Evening recap'} · {formatDate(b.day)}</span>{fresh && <span className="nova-panel-badge">Unread</span>}</summary>
         <div className="nova-brief-body">
           {b.lines.length > 0 && <ul className="nova-brief-lines">{b.lines.map((l, i) => <li key={i}>{l}</li>)}</ul>}
           {(b.sections?.length ?? 0) > 0 && <dl className="ai-brief-sections">{b.sections!.map(s => <div key={s.id} className="ai-brief-section"><dt>{s.label}</dt><dd>{s.text}</dd></div>)}</dl>}

@@ -12,6 +12,7 @@ import {ZIGI_VOICE, voicePrefs} from '../../lib/zigi-voice';
 import {LOCAL_SERVERS, probeServer, scanLocalServers, scanLine, type LocalServer, type ScanResult} from '../../lib/nova/local-servers';
 import {deviceFacts, factLines, loadedLine, ollamaLoaded, wakeSupport, type LoadedModel, type WakeSupport} from '../../lib/nova/widgets/telemetry';
 import {waterAmount} from '../../lib/nova/widgets/words';
+import {factTiles, notRunningLine} from '../../lib/nova/right-facts';
 import type {RightSection} from '../../lib/nova/store';
 import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import type {NovaPanelId} from './panels/nova-panels';
@@ -63,7 +64,8 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
     nav.getBattery?.().then(b => { if (live) setBattery({level: b.level, charging: b.charging}); }).catch(() => undefined);
     return () => { live = false; };
   }, [refreshed]);
-  const facts = factLines(deviceFacts(typeof navigator === 'undefined' ? undefined : navigator, battery));
+  const known = deviceFacts(typeof navigator === 'undefined' ? undefined : navigator, battery), facts = factLines(known), tiles = factTiles(known);
+  const silent = notRunningLine(probe.results);
   const vprefs = voicePrefs(voice.data), speech = !vprefs.muted;
   const today = dayKey(new Date()), day = usage.loaded && !usage.unreadable ? usage.data.days?.[today] ?? {} : null;
   const actionsList = actions.loaded && !actions.unreadable ? [...(actions.data.actions ?? [])].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3) : null;
@@ -71,20 +73,23 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
   const section = (id: RightSection, n: number, body: ReactNode) => <Section key={id} id={id} n={n} title={TITLES[id]} folded={folded.includes(id)} onFold={onFold}>{body}</Section>;
   return <aside className="nova-right" aria-label="Behind the intelligence">
     <header className="nova-right-head">
-      <div><p className="nova-eyebrow"><span className="nova-live-dot" aria-hidden="true"/>Live, on this device</p><h2>Behind the intelligence</h2></div>
+      <div><p className="nova-eyebrow"><span className="nova-on-dot" aria-hidden="true"/>Live, on this device</p><h2>Behind the intelligence</h2></div>
       <button type="button" className="nova-icon-btn" onClick={onHide} aria-label="Hide the right panel"><NovaIcon name="close"/></button>
     </header>
     <div className="nova-right-scroll">
       {section('brains', 1, <>
         <p className="nova-row"><span className="nova-chip-dot" data-kind={brain.kind} aria-hidden="true"/><span><strong>{persona}’s brain:</strong> {brain.words}</span></p>
+        {/* Session AK P3 (ND-13): this device at a glance, always shown; each unknown says so. */}
+        <dl className="nova-fact-tiles" aria-label="This device">{tiles.map(t => <div key={t.label} title={t.title}><dt>{t.label}</dt><dd data-unknown={t.value === 'unknown' || undefined}>{t.value}</dd></div>)}</dl>
         {settings.loaded && s.enabled && s.mode === 'api' && s.provider && isProviderId(s.provider) && <p className="nova-row"><span className="nova-chip-dot" data-kind="cloud" aria-hidden="true"/><span>{PROVIDERS[s.provider].name}: configured, the key kept on this device{s.model ? ` · ${s.model}` : ''}</span></p>}
         <ul className="nova-right-list" aria-live="polite">
           {probe.state === 'asking' && <li role="status">Asking this computer…</li>}
-          {probe.results.map(r => <li key={r.server.id + r.server.baseUrl}>
+          {probe.results.filter(r => r.found || r.reason !== 'unreachable').map(r => <li key={r.server.id + r.server.baseUrl}>
             <span className="nova-status" data-on={r.found || undefined}>{r.found ? 'Online' : 'Offline'}</span> {scanLine(r)}
             {r.found && r.server.wire === 'ollama' && <ul className="nova-right-sub">{probe.loaded[r.server.baseUrl] === null ? <li>Loaded models: unknown (Ollama did not say)</li>
               : (probe.loaded[r.server.baseUrl] ?? []).length ? (probe.loaded[r.server.baseUrl] ?? []).map(m => <li key={m.name}>{loadedLine(m)}</li>) : <li>No model loaded right now (Ollama loads one on the first question).</li>}</ul>}
           </li>)}
+          {silent && <li title={silent.detail}><span className="nova-status">Offline</span> {silent.line}</li>}
         </ul>
         {hermes?.connected && <p className="nova-row"><span className="nova-status" data-on={hermes.reachable || undefined}>{hermes.reachable ? 'Reachable' : 'Not reachable'}</span><span>Hermes gateway at the last check{hermes.model ? ` · ${hermes.model}` : ''}{hermes.lastMs !== undefined ? ` · answered in ${formatNumber(hermes.lastMs)} ms` : ''}{hermes.checkedAt ? ` · ${formatDateTime(hermes.checkedAt)}` : ''}</span></p>}
         <div className="nova-right-actions"><Link className="nova-btn" href="/app/nova/setup" prefetch={false}>Brain setup</Link></div>
@@ -102,8 +107,9 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
           <button type="button" role="switch" aria-checked={speech} aria-labelledby="nova-speech-label" className="nova-switch" disabled={!voice.loaded}
             onClick={() => { try { voice.update(r => ({...r, muted: speech})); } catch { /* storage refused: the switch stays */ } }}><span aria-hidden="true"/></button></div>
         <p className="nova-fine">{speech ? `${persona} may read answers aloud on this device (your voice choices in ZIGi apply).` : `Muted: nothing is read aloud.`}</p>
-        <p className="nova-row"><span className="nova-status">Microphone off</span> until you press Talk. {persona} never opens it by itself.</p>
-        <button type="button" className="nova-btn nova-btn-primary" onClick={onTalk}><NovaIcon name="music" size={18}/>Talk to {persona}</button>
+        {/* ND-13: a status row, not a pill inside the sentence; Talk is secondary here (the orb is the page's talk control). */}
+        <p className="nova-row nova-status-row"><span className="nova-chip-dot" data-kind="off" aria-hidden="true"/><span><strong>Microphone off</strong> until you press Talk. {persona} never opens it by itself.</span></p>
+        <button type="button" className="nova-btn" onClick={onTalk}><NovaIcon name="star" size={18}/>Talk to {persona}</button>
         {support === null && !wake ? <><button type="button" className="nova-btn" onClick={checkWake} disabled={checkingWake}>{checkingWake ? 'Checking…' : `Check “Hey ${persona}” on this device`}</button>
             <p className="nova-fine" role="status">{checkingWake ? 'Checking for on-device speech recognition…' : 'Nothing is checked until you ask.'}</p></>
           : wake || support?.ok ? <><div className="nova-switch-row"><span id="nova-wake-label">Listen for “Hey {persona}”</span>
@@ -145,7 +151,8 @@ function Section({id, n, title, folded, onFold, children}: {id: RightSection; n:
 }
 /** A section's technical rows, folded until the person opens them (a native disclosure: keyboard and screen readers know it). */
 function Tech({label, children}: {label: string; children: ReactNode}) {
-  return <details className="nova-tech"><summary>{label}</summary><div className="nova-tech-body">{children}</div></details>;
+  // ND-13: the disclosure shows its own chevron (a summary laid out with flex loses the browser's triangle).
+  return <details className="nova-tech"><summary><span>{label}</span><span className="nova-tech-chevron" aria-hidden="true"><NovaIcon name="down" size={18}/></span></summary><div className="nova-tech-body">{children}</div></details>;
 }
 function ToolRow({href, icon, label, value, text, amount}: {href: string; icon: string; label: string; value?: number | null; text?: string; amount?: string}) {
   const shown = text ?? (value === null || value === undefined ? 'unknown' : formatNumber(value));

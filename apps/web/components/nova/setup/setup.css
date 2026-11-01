@@ -10,6 +10,16 @@
 .nova-setup-list > li > button { min-height: 44px; }
 .nova-setup-list > li[data-done] b::after { content: " ✓"; color: var(--cyan, #6fd3ff); }
 .nova-guide-phone { scroll-margin-top: 96px; }
+/* Session AK (M7, layout audit): on a phone the guide path takes 12 px of the card's side padding on each side, as Earn's
+   Start-here path does (components/earn/earn.css), so the planets' name tabs keep their room: at 320 px "Confirm the
+   privacy mode" and "First conversation" ran 8–23 px past the card (and were cut by its clip). */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  .nova-guide-path[data-variant=orbit] { margin-inline: -12px; }
+}
+/* Session AK (M7, theme parity): by day the guide's jump button keeps the orbit's shape and accents, as Earn's Start-here
+   path does (components/earn/earn.css): only its night surface and shade turn light; the Checklist's own day button
+   (components/path/path-orbit.css) is unchanged. */
+:root[data-theme=light] .path-stage.nova-guide-path[data-variant=orbit] .path-jump { border-color: #8cc8ff80; background: linear-gradient(100deg, #fffffff5, #eef0fbf5); color: #23264d; box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59; }
 .nova-panel { display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; min-width: 0; text-align: start; line-height: 1.55;
   background: color-mix(in srgb, var(--bg, #070a1a) 92%, transparent); border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a)); color: var(--text, #eef1ff); }
 .nova-panel p, .nova-panel ul, .nova-panel ol { margin: 0; }
@@ -46,14 +56,14 @@
 .nova-tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line, #2a325a); color: var(--muted, #aab2d9); white-space: nowrap; }
 .nova-scopes { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; }
 .nova-scopes legend { font-weight: 650; margin-bottom: 6px; }
-.nova-send { display: grid; gap: 8px; }
-.nova-send-line { margin: 0; }
-.nova-send-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px 12px; border-radius: 10px; font-size: 14px; background: color-mix(in srgb, var(--bg, #070a1a) 80%, transparent); border: 1px solid var(--line, #2a325a); }
-.nova-send[data-decision="refuse"] .nova-send-line { color: var(--pink, #ff74be); }
+.nova-guide-send { display: grid; gap: 8px; }
+.nova-guide-send-line { margin: 0; }
+.nova-guide-send-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px 12px; border-radius: 10px; font-size: 14px; background: color-mix(in srgb, var(--bg, #070a1a) 80%, transparent); border: 1px solid var(--line, #2a325a); }
+.nova-guide-send[data-decision="refuse"] .nova-guide-send-line { color: var(--pink, #ff74be); }
 .nova-brief { padding-left: 18px; display: grid; gap: 4px; }
-.nova-check { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line, #2a325a); }
-.nova-check-result { margin: 0; overflow-wrap: anywhere; }
-.nova-check[data-ok="true"] .nova-check-result b { color: var(--cyan, #6fd3ff); }
+.nova-guide-check { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line, #2a325a); }
+.nova-guide-check-result { margin: 0; overflow-wrap: anywhere; }
+.nova-guide-check[data-ok="true"] .nova-guide-check-result b { color: var(--cyan, #6fd3ff); }
 .nova-connect { padding-top: 6px; }
 
 /* "NOVA online": a badge that reads without motion, and a one-time glow the first time. */
@@ -70,13 +80,30 @@
 @keyframes nova-online-badge { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* The setup card on NOVA (lane NA's slot). */
-.nova-setup-card { display: grid; gap: 10px; padding: 16px 18px; border-radius: 18px; min-width: 0;
+.nova-guide-card { display: grid; gap: 10px; padding: 16px 18px; border-radius: 18px; min-width: 0;
   border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a)); background: color-mix(in srgb, var(--panel, #0d1430) 85%, transparent); color: var(--text, #eef1ff); }
-.nova-setup-card h2 { margin: 0; font-size: 18px; }
-.nova-setup-card p { margin: 0; }
-.nova-setup-card-done { padding: 10px 12px; }
-.nova-setup-card-bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--line, #2a325a) 80%, transparent); overflow: hidden; }
-.nova-setup-card-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff)); }
-.nova-setup-card .ai-card-actions a, .nova-setup-card .ai-card-actions button { min-height: 44px; display: inline-flex; align-items: center; }
+.nova-guide-card h2 { margin: 0; font-size: 18px; }
+.nova-guide-card p { margin: 0; }
+.nova-guide-card-done { padding: 10px 12px; }
+.nova-guide-card-bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--line, #2a325a) 80%, transparent); overflow: hidden; }
+.nova-guide-card-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff)); }
+.nova-guide-card .ai-card-actions a, .nova-guide-card .ai-card-actions button { min-height: 44px; display: inline-flex; align-items: center; }
 @media (max-width: 400px) { .nova-cmd { grid-template-columns: minmax(0, 1fr); } .nova-cmd-copy { justify-self: start; } }
-.nova-setup-card .ai-card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.nova-guide-card .ai-card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* Session AK P3 (NOVA_DESIGN_REVIEW.md ND-8): the open planet's guide is one wide panel after the path on every width (up
+   to 760 px, centred); a command wraps instead of hiding its end in a box with no scroll cue (copying stays exact: the
+   copy button takes the text, not the wrapped lines); the choices are equal-width cards, two by two when there are four,
+   and the chosen one is marked in NOVA's violet, not a separate gradient; a recommended one wears a small tag. */
+.nova-guide-open { box-sizing: border-box; width: min(100%, 760px); margin-inline: auto; }
+.nova-cmd pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+.nova-choice.ai-card-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.nova-choice.ai-card-actions:has(> :nth-child(4):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.nova-choice button:not(#\-) { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; min-height: 52px; height: auto; padding: 8px 12px; text-align: center; white-space: normal; }
+.nova-choice button[aria-pressed=true]:not(#\-) { background: color-mix(in srgb, var(--violet, #8b7cff) 22%, transparent); border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 75%, transparent); color: var(--text, #eef1ff); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--violet, #8b7cff) 45%, transparent); }
+.nova-tag-recommended { border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 55%, transparent); color: var(--text, #eef1ff); font-weight: 600; }
+.nova-step-action { margin-top: 6px; }
+@media (max-width: 400px) { .nova-choice.ai-card-actions:has(> :nth-child(4):last-child) { grid-template-columns: minmax(0, 1fr); } }
+/* ND-25: by day the guide's orbit banners end in a rounded edge, not a fade smeared over the light card (only here: Earn's
+   Start-here path keeps its own look). */
+:root[data-theme=light] .path-stage.nova-guide-path[data-variant=orbit] .orbit-banner { --banner-fade: 0px; }

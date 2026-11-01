@@ -104,12 +104,14 @@ export const SPENDING_ADVICE = 'Before you paste a key, set a monthly spending l
 export const OPENROUTER_NOTE = 'OpenRouter: one sign-in for many models, with its own page to see and revoke the key. Models whose name ends in “:free” cost nothing, with limits (20 a minute; 50 a day until you buy 10 credits). Check OpenRouter’s training setting for free models.';
 
 /** The ten planets: words and look (four orbits, in the path engine's palette). */
-export type PlanetWords = {label: string; short: string; glyph: string; colour: PathColour};
+/** `tab` (Session AK M7, layout audit): the shorter name the planet's tab shows on the path where the full one ran past a 320 px
+ *  card; `label` stays its full name (the planet's accessible name, its title, the guide's heading). */
+export type PlanetWords = {label: string; short: string; tab?: string; glyph: string; colour: PathColour};
 export const PLANETS: Readonly<Record<SetupStepId, PlanetWords>> = {
   meet: {label: 'Meet NOVA', short: 'What stays private', glyph: 'sparkle', colour: 'purple'},
   privacy: {label: 'Privacy mode', short: 'Strict, Guarded or Relaxed', glyph: 'lock', colour: 'purple'},
   brain: {label: 'Your brain, local first', short: 'A model of your own', glyph: 'orbit', colour: 'cyan'},
-  'first-chat': {label: 'First conversation', short: 'NOVA knows your day', glyph: 'note', colour: 'cyan'},
+  'first-chat': {label: 'First conversation', short: 'NOVA knows your day', tab: 'First chat', glyph: 'chat', colour: 'cyan'},
   scopes: {label: 'What NOVA can see', short: 'Pillar by pillar', glyph: 'target', colour: 'cyan'},
   memory: {label: 'Memory', short: 'Review and forget', glyph: 'book', colour: 'magenta'},
   voice: {label: 'Voice', short: 'Optional, on the device', glyph: 'language', colour: 'magenta'},

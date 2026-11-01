@@ -47,14 +47,18 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
     const count = typeof e.count === 'number' ? e.count : null, inner = <>
       <span className="nova-left-dot" data-tone={e.tone} data-status={e.status} aria-hidden="true"><NovaIcon name={e.icon} size={rail ? 22 : 18}/></span>
       <span className="nova-left-label">{e.label}</span>
-      {count !== null && !rail && <span className="nova-left-count" aria-hidden="true">{count}</span>}
+      {/* ND-14: a zero says nothing at a glance; it stays in the row's name for assistive technology. */}
+      {count !== null && count > 0 && !rail && <span className="nova-left-count" aria-hidden="true">{count}</span>}
     </>;
     const name = `${e.label}${count !== null ? `, ${count} ${e.countLabel}` : ''}${e.status ? `, ${e.status === 'on' ? 'ready' : e.status === 'calm' ? 'on-device answers' : 'not reachable'}` : ''}`;
     return <li key={e.id}>{e.href
       ? <Link className="nova-left-row" href={e.href} prefetch={false} aria-label={name} title={rail ? name : undefined}>{inner}</Link>
       : <button type="button" className="nova-left-row" onClick={e.onPick} aria-label={name} title={rail ? name : undefined}>{inner}</button>}</li>;
   };
+  // Session AK P3 (ND-14): a fixed head, the pages and agents scrolling in between, and a fixed foot, so NOVA's line and
+  // the brain's status always show (at 900 px tall they had fallen below the panel's fold).
   return <aside className="nova-left zg-glass" data-state={state} aria-label={`${persona} navigation`}>
+    <div className="nova-left-head">
     <div className="nova-left-top">
       <p className="nova-left-brand"><NovaIcon name="star" size={20}/>{!rail && <span><strong>{persona}</strong><small>Private intelligence</small></span>}</p>
       <button type="button" className="nova-icon-btn" onClick={onCycle} aria-label={rail ? 'Hide the left panel' : 'Fold the left panel to icons'} title={rail ? 'Hide the panel' : 'Fold to icons'}><NovaIcon name="left"/></button>
@@ -65,6 +69,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
     <Link className="nova-left-life" href="/app/today" prefetch={false} aria-label="Your life: all four pillars on Today" title={rail ? 'Your life' : undefined}><NovaIcon name="widgets" size={rail ? 22 : 18}/>{!rail && <span>Your life<small>All four pillars, on Today</small></span>}</Link>
     {!rail && <div className="nova-left-find"><label htmlFor={`${id}-q`} className="sr-only">Find a page or agent</label>
       <input id={`${id}-q`} type="search" value={query} onChange={e => setQuery(e.target.value.slice(0, 60))} placeholder="Find a page or agent…" autoComplete="off"/></div>}
+    </div>
     <nav className="nova-left-nav" aria-label="Pages and agents">
       {(['pillars', 'pages', 'agents'] as const).map(section => { const list = found.filter(e => e.section === section); return list.length ? <div key={section} className="nova-left-section">
         {!rail && <h2 className="nova-left-heading">{SECTION_LABEL[section]} <span aria-hidden="true">{list.length}</span></h2>}

@@ -39,6 +39,20 @@
 .nova-orb[data-state=speaking] { --orb-halo: .78; }
 .nova-orb[data-state=speaking] .nova-orb-body { animation: nova-orb-pulse .72s ease-in-out infinite alternate; }
 .nova-orb[data-state=speaking] .nova-orb-halo { animation: nova-orb-pulse-halo .72s ease-in-out infinite alternate; }
+/* Session AK P3 (NOVA_DESIGN_REVIEW.md ND-18): each state has a colour of its own, so even a still frame (Calm, Off,
+   reduced motion) tells them apart. Listening: dial and ripples in the second accent, a stronger halo. Thinking: the arc in
+   the third accent with a fainter comet tail behind it. Speaking: the halo at full strength and three soft rings at fixed
+   sizes around the core. Nothing flashes. */
+.nova-orb .nova-orb-tail { opacity: 0; stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 40 320; stroke-dashoffset: -96; }
+.nova-orb[data-state=listening] { --orb-halo: .75; }
+.nova-orb[data-state=listening] .nova-orb-ripples { stroke: var(--orb-b); }
+.nova-orb[data-state=thinking] .nova-orb-arc { stroke: var(--nova-c, var(--brand-magenta, #f06dff)); }
+.nova-orb[data-state=thinking] .nova-orb-tail { opacity: .4; }
+.nova-orb[data-state=speaking] { --orb-halo: 1; }
+.nova-orb[data-state=speaking] .nova-orb-ripples { stroke: var(--accent-teal, #86f0d6); }
+.nova-orb[data-state=speaking] .nova-orb-ripple:nth-child(1) { opacity: .4; transform: scale(1.15); }
+.nova-orb[data-state=speaking] .nova-orb-ripple:nth-child(2) { opacity: .26; transform: scale(1.3); }
+.nova-orb[data-state=speaking] .nova-orb-ripple:nth-child(3) { opacity: .14; transform: scale(1.45); }
 @keyframes nova-orb-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
 @keyframes nova-orb-glow { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
 @keyframes nova-orb-ripple { from { opacity: .7; transform: scale(.92); } to { opacity: 0; transform: scale(1.8); } }
@@ -66,7 +80,7 @@
 /* Customize → Glow: Soft halves the halo. Forced colours: the orb is decoration and steps aside for a plain ring. */
 :root[data-glow="soft"] .nova-orb { --orb-halo: .3; }
 @media (forced-colors: active) {
-  .nova-orb :is(.nova-orb-halo, .nova-orb-ripples, .nova-orb-swirl) { display: none; }
+  .nova-orb :is(.nova-orb-halo, .nova-orb-ripples, .nova-orb-swirl, .nova-orb-tail) { display: none; }
   .nova-orb .nova-orb-core { fill: Canvas; stroke: CanvasText; stroke-width: 2; filter: none; }
   .nova-orb :is(.nova-orb-dial, .nova-orb-outer, .nova-orb-arc) { stroke: CanvasText; }
   .nova-orb .nova-orb-star { fill: CanvasText; filter: none; }

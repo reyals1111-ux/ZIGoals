@@ -14,6 +14,7 @@ import type {ChatSession} from '../../ai/use-chat-session';
 import {useTalk} from '../../ai/use-talk';
 import {VoiceWaves} from '../../ai/voice-waves';
 import {SecretGuard} from '../../secret-guard/secret-guard';
+import {NovaIcon} from '../icons';
 
 /**
  * NOVA's message box (Session AK, owner follow-up 2 N2): Enter sends, Shift+Enter keeps a new line, ↑ in an empty box
@@ -81,7 +82,7 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
         {speechOn && !sensitive ? <NovaMic settings={settings} onListening={onListening} onWords={words => { if (!text.trim() && !editing && !busy) submit(words); else setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`); }}/>
           : <button type="button" className="secondary nova-mic nova-mic-off" aria-label="Speech input is off" title="Speech input is off: see where the audio would go" aria-expanded={speechNote} onClick={() => setSpeechNote(v => !v)}><MicGlyph off/></button>}
         {busy ? <button type="button" className="secondary nova-stop" onClick={session.stop}>Stop</button>
-          : <button type="submit" className="primary nova-send" disabled={!text.trim()} aria-label="Send">Send</button>}
+          : <button type="submit" className="primary nova-chat-send" disabled={!text.trim()} aria-label="Send"><NovaIcon name="right" size={22}/></button>}
       </div>
     </div>
     <p className="nova-composer-hint" id={hintId}><span>Enter to send</span><span>Shift + Enter for a new line</span><span>↑ edits your last message</span></p>

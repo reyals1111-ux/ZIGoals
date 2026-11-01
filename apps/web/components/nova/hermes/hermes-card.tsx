@@ -16,7 +16,7 @@ export function NovaHermesCard() {
   const progress = hermesProgress(record.data), status = hermesStatus(record.data);
   if (record.data.cardHidden && !status.connected) return null;
   const line = status.connected ? status.reachable ? `Gateway reachable${status.model ? ` · ${status.model}` : ''}${status.lastMs !== undefined ? ` · ${status.lastMs} ms` : ''}` : 'Gateway not reachable at the last check' : null;
-  return <section className="nova-setup-card nova-hermes-card" aria-labelledby="nova-hermes-card-title">
+  return <section className="nova-guide-card nova-hermes-card" aria-labelledby="nova-hermes-card-title">
     <p className="eyebrow">Your own agent</p>
     <h2 id="nova-hermes-card-title">{status.connected ? 'Hermes Agent' : 'Connect your Hermes Agent'}</h2>
     <p>{line ?? (progress.done ? `${progress.done} of 10 planets lit. Next: ${HERMES_PLANETS[progress.next!].label}.` : 'Already run Nous Research’s Hermes Agent? Connect it as NOVA’s brain, or as a second agent NOVA can ask.')}</p>

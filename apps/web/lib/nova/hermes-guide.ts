@@ -57,13 +57,24 @@ export function apiServerSteps(os: Os, origin: string, key: string | null): Guid
   const shell = shellOf(os), k = key ?? (os === 'windows' ? '$KEY' : '"$KEY"');
   return [
     ...(key ? [] : os === 'windows'
-      ? [{text: 'Make a strong key on your computer (a standard .NET call, not from Hermes’s docs), or use “Make a key here” above:', command: "$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); $KEY = -join ($b | ForEach-Object { $_.ToString('x2') })", shell}]
-      : [{text: 'Make a strong key on your computer, or use “Make a key here” above:', command: 'KEY="$(openssl rand -hex 32)"', shell}]),
+      ? [{text: 'Make a strong key on your computer (a standard .NET call, not from Hermes’s docs), or use “Make a key here” beside it:', command: "$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); $KEY = -join ($b | ForEach-Object { $_.ToString('x2') })", shell}]
+      : [{text: 'Make a strong key on your computer, or use “Make a key here” beside it:', command: 'KEY="$(openssl rand -hex 32)"', shell}]),
     {text: 'Turn the API server on:', command: 'hermes config set API_SERVER_ENABLED true', shell},
     {text: 'Set its key (it stays in your Hermes settings and in this browser, nowhere else):', command: `hermes config set API_SERVER_KEY ${k}`, shell},
     {text: 'Allow this site, exactly this address (never “*”):', command: `hermes config set API_SERVER_CORS_ORIGINS ${origin}`, shell},
     {text: 'Check it: this must print exactly the address above.', command: 'hermes config get API_SERVER_CORS_ORIGINS', shell},
   ];
+}
+/**
+ * Session AK P3 (NOVA_DESIGN_REVIEW.md ND-8): the `.env` alternative as its own copyable block (it was prose with the
+ * variable names inline): where the file lives, its three lines (the key made here, or a placeholder), and the notes.
+ */
+export function apiServerEnv(os: Os, origin: string, key: string | null): {path: string; lines: string; note: string} {
+  return {
+    path: `${hermesHome(os)}${os === 'windows' ? '\\' : '/'}.env`,
+    lines: `API_SERVER_ENABLED=true\nAPI_SERVER_KEY=${key ?? '<your key>'}\nAPI_SERVER_CORS_ORIGINS=${origin}`,
+    note: 'The address 127.0.0.1 and port 8642 are already the defaults; never set the host to 0.0.0.0. A key passed on the command line stays in your shell history: fine on your own computer. “hermes config get API_SERVER_KEY --raw” shows it again.',
+  };
 }
 export function apiServerFileLines(os: Os, origin: string): string {
   return `In ${hermesHome(os)}${os === 'windows' ? '\\' : '/'}.env instead: API_SERVER_ENABLED=true, API_SERVER_KEY=<your key>, API_SERVER_CORS_ORIGINS=${origin}. The address 127.0.0.1 and port 8642 are already the defaults; never set the host to 0.0.0.0. A key passed on the command line stays in your shell history: fine on your own computer. “hermes config get API_SERVER_KEY --raw” shows it again.`;
