@@ -62,7 +62,8 @@ export function blockedReadMessage(error: unknown): string | null {
 export type BackupRefusal = 'TOO_LARGE' | 'NOT_A_BACKUP' | 'WRONG_MODULE' | 'NEWER_BACKUP' | 'DAMAGED';
 export const BACKUP_KINDS = {platform: 'zigoals-platform', habits: 'zigoals-habits', health: 'zigoals-health'} as const;
 type Module = keyof typeof BACKUP_KINDS;
-const NAMES: Record<Module, string> = {platform: 'Positions and Goals', habits: 'Habits', health: 'Health'};
+// Session AK G2 (RELEASE_REVIEW_2 R2-16): the module's name as Settings shows it ("Goals and Wealth", once "Positions and Goals").
+const NAMES: Record<Module, string> = {platform: 'Goals and Wealth', habits: 'Habits', health: 'Health'};
 /**
  * Classifies a backup file the module's schema refused. `newest` is the newest schemaVersion this app reads for the
  * module; `limit` the module's size limit in bytes.

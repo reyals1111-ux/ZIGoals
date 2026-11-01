@@ -47,33 +47,32 @@ export function TasksPage() {
     onToggle={d => list.toggle(t, d)} onRemove={() => list.remove(t)} onEdit={patch => list.edit(t, patch)} onFocus={() => setFocus(t)} />;
 
   return <div className="tasks-page" data-tasks={tasks.loaded ? 'ready' : 'loading'}>
+    {/* Session AK G2 (RELEASE_REVIEW_2 R2-17): a one-line lede, then the list with its add field first, as Todoist opens. */}
     <PageHeader className="page-heading tasks-hero" titleId="tasks-title" eyebrow="Tasks" title="One list for the things to do"
-      lede="Simple tasks and the next actions of your goals, each with a priority and, if it has one, a day and a time. Tasks with a day show on your Agenda among your habits. Everything stays on this device."
+      lede="Things to do, with a day or a goal when they have one. On this device only."
       actions={<p className="tasks-links"><Link className="text-link" href="/app/agenda">Your agenda →</Link></p>}
       art={<OrbitArt glyph={TasksGlyph} tone="goals" spin={-26} />} />
     {!tasks.loaded ? <ZgSkeleton label="Opening your tasks…" className="tasks-skeleton" block lines={3} /> : <>
       {showcase && <p className="fine tasks-showcase" role="note">Showcase · fictional. These example tasks are not yours.</p>}
       {tasks.unreadable && <p className="notice" role="status">Your tasks on this device could not be read, so they are not shown and nothing will be written over them.</p>}
       {focus && <div ref={focusBox} className="tasks-focus"><LoadBoundary quiet><Suspense fallback={<p className="fine">Opening Focus Sessions…</p>}><PomodoroPanel task={{id: focus.id, title: focus.title}} goalId={focus.goal?.startsWith('private:') ? focus.goal.slice(8) : undefined} onClose={() => setFocus(null)} /></Suspense></LoadBoundary></div>}
-      <section className="panel tasks-add-panel" aria-labelledby="tasks-add-title">
-        <h2 id="tasks-add-title">Add a task</h2>
-        <TaskAddForm onAdd={list.add} goals={goals.open} today={today} />
-        <TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo} />
-      </section>
-      {!tasks.unreadable && (open.length === 0 ? <EmptyState title={done.length ? 'Nothing left to do' : 'Your list starts here'} level={2} art="orbit">
-        {done.length ? 'Every task is done. Add the next one above when it comes.' : 'Add a few words above: “Call the dentist”, with a day if it has one. Link it to a goal to make it that goal’s next action; give it a time to see it among your habits on the Agenda; tap Focus to work on it in a Pomodoro.'}
-      </EmptyState> : <section className="panel tasks-groups" aria-labelledby="tasks-open-title">
+      <section className="panel tasks-groups" aria-labelledby="tasks-open-title">
         <h2 id="tasks-open-title">Open <small>{plural(counts.open, 'task')}{counts.overdue ? ` · ${formatNumber(counts.overdue)} overdue` : ''}</small></h2>
-        {GROUPS.map(g => { const items = open.filter(t => taskState(t, today) === g.state); return items.length ? <div key={g.state} className="tasks-group" data-state={g.state}>
+        <TaskAddForm onAdd={list.add} goals={goals.open} today={today} folded />
+        <TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo} />
+        {!tasks.unreadable && GROUPS.map(g => { const items = open.filter(t => taskState(t, today) === g.state); return items.length ? <div key={g.state} className="tasks-group" data-state={g.state}>
           <h3>{g.title} <small>{formatNumber(items.length)}</small></h3>
           <ul className="tasks-list" aria-label={`${g.title} tasks`}>{items.map(row)}</ul>
         </div> : null; })}
-      </section>)}
+      </section>
+      {!tasks.unreadable && open.length === 0 && <EmptyState title={done.length ? 'Nothing left to do' : 'Your list starts here'} level={2} art="orbit">
+        {done.length ? 'Every task is done. Add the next one above when it comes.' : 'Add a few words above, like “Call the dentist”. More options gives it a priority, a day or a goal; with a day it shows on your Agenda.'}
+      </EmptyState>}
       {done.length > 0 && <details className="panel tasks-done"><summary>Done in the last 30 days <small>{formatNumber(done.length)}</small></summary>
         <ul className="tasks-list" aria-label="Done tasks">{done.map(row)}</ul>
         <p className="fine">Finished tasks are kept 30 days, then they leave this list.</p>
       </details>}
-      <p className="fine tasks-fine">The Checklist on Today stays as it is: tasks are one-off things to do; the Checklist is your daily path. Focus starts a Pomodoro in Focus Sessions; a finished run can tick the task for you, with Undo.</p>
+      <p className="fine tasks-fine">Focus starts a Pomodoro on a task; a finished run can tick it for you, with Undo.</p>
     </>}
   </div>;
 }

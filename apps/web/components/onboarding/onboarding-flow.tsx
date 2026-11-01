@@ -39,7 +39,7 @@ import { setSleepGoal } from "../../lib/sleep/engine";
 import { formatMinutes } from "../../lib/zone-time";
 import { updateHealthGroup } from "../../lib/w-homes-store";
 import { HABIT_GROUP_LABEL, habitTemplateInputOf, hasHabitLike } from "../../lib/templates/habits";
-import { PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits, type Pillar } from "../../lib/templates/pillars";
+import { EXTRA_PILLARS, MAIN_PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits, type Pillar } from "../../lib/templates/pillars";
 import { PAGE_LABEL, startHref, viewOf } from "../../lib/pages/visibility";
 import { settingsGroupIn, withSettingsGroup } from "../../lib/vault/w-homes";
 import { announceModuleChange, updateSettings } from "../../lib/sync-homes-store";
@@ -126,8 +126,10 @@ export function OnboardingFlow() {
   const extraHabits = focusHabits.filter(title => !skippedFocusHabits.includes(title.toLowerCase()));
   // Only the starters on screen, in their order: a pick hidden by a later change of pillars is not saved.
   const pickedHabits = starters.filter(t => habitIds.includes(t.id) && !hasHabitLike(existingTitles, t));
-  const shown = pagesShownFor(pillars, currentPages);
-  const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages) !== null;
+  // Session AK G2 (RELEASE_REVIEW_2 R2-12): a habit this setup creates keeps the Habits page shown, whatever was picked.
+  const also = pickedHabits.length || extraHabits.length ? ["habits" as const] : [];
+  const shown = pagesShownFor(pillars, currentPages, also);
+  const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages, also) !== null;
   const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind");
   // Session AH (TO4, N-094): the targets follow the habits picked above (Walk is 8,000 steps a day, Drink water 2 L)
   // until the person chooses a target themselves.
@@ -188,7 +190,7 @@ export function OnboardingFlow() {
       if (preset || pagesChange) {
         await updateSettings(getAppStorage(), latest => {
           let next = preset ? applyDashboardPreset(latest, preset) : latest;
-          const change = pagesForPillars(pillars, at, settingsGroupIn(next, "pages"));
+          const change = pagesForPillars(pillars, at, settingsGroupIn(next, "pages"), also);
           if (change) next = withSettingsGroup(next, "pages", change, false);
           pagesAfter = settingsGroupIn(next, "pages");
           return next;
@@ -277,7 +279,12 @@ export function OnboardingFlow() {
       {step === "pillars" && <>
         <p className="onboarding-lede">Pick as many as you like. ZIGoals shows the pages for them; Settings → Your pages & buttons changes this any time.</p>
         <fieldset className="onboarding-choices"><legend className="sr-only">What you want to improve</legend>
-          {PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
+          {MAIN_PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
+        </fieldset>
+        {/* Session AK G2 (RELEASE_REVIEW_2 R2-6, R2-12): Chess, Music and the chain are extras on their own line. "Crypto &
+            ZIGChain" is the welcome's one chain choice (lib/templates/pillars.ts); "Goals & money" never chooses it. */}
+        <fieldset className="onboarding-choices onboarding-extras"><legend>Extras</legend>
+          {EXTRA_PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
         </fieldset>
         <p className="fine onboarding-shown" aria-live="polite">{pagesChange ? `You’ll see: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.` : "Every page stays as it is."}</p>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("focuses")}>{pillars.length ? "Continue" : "Continue without choosing"}</button>{back("welcome")}</div>

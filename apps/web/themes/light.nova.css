@@ -3,9 +3,7 @@
    public/themes/dark.css; the bar's shape, items and order are untouched) and turns light again the moment NOVA closes
    (components/nova/nova-page-client.tsx sets and removes data-nova-view). Each rule carries the theme root, NOVA's view and
    the sheet's one id of weight, so it wins over the generated rule it replaces. */
-@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  :root[data-theme=light][data-nova-view="on"] .phone-tabbar:not(#\-) { background-image: linear-gradient(180deg, #01030ff0, #000208f7); background-color: transparent; border-top-color: #7fc8ff2e; box-shadow: 0 -12px 40px #0008; }
-  :root[data-theme=light][data-nova-view="on"] .phone-tab:not(#\-) { color: #b9c9e2; }
-  :root[data-theme=light][data-nova-view="on"] :is(.phone-tab[aria-current="page"], .phone-more-button[data-current]):not(#\-) { color: #f4f8ff; }
-  :root[data-theme=light][data-nova-view="on"] .phone-tab-pill:not(#\-)::before { background-image: linear-gradient(110deg, #001223, #010413 65%, #000c17), linear-gradient(120deg, var(--brand-cyan), #3b84e1 43%, var(--brand-violet) 70%, var(--brand-cyan)); }
-}
+:root[data-theme=light][data-nova-view="on"] .phone-tabbar:not(#\-) { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { background-image: linear-gradient(180deg, #01030ff0, #000208f7); background-color: transparent; border-top-color: #7fc8ff2e; box-shadow: 0 -12px 40px #0008; } }
+:root[data-theme=light][data-nova-view="on"] .phone-tab:not(#\-) { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { color: #b9c9e2; } }
+:root[data-theme=light][data-nova-view="on"] :is(.phone-tab[aria-current="page"], .phone-more-button[data-current]):not(#\-) { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { color: #f4f8ff; } }
+:root[data-theme=light][data-nova-view="on"] .phone-tab-pill:not(#\-)::before { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { background-image: linear-gradient(110deg, #001223, #010413 65%, #000c17), linear-gradient(120deg, var(--brand-cyan), #3b84e1 43%, var(--brand-violet) 70%, var(--brand-cyan)); } }

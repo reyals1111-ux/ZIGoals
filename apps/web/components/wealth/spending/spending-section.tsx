@@ -7,6 +7,7 @@ import {amountIssue, dateIssue} from '../../../lib/limits/plausibility';
 import {addEntry, byCategory, fromCents, monthOf, removeEntry, roomToSpend, totals, weekOf} from '../../../lib/money-log/engine';
 import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, MONEY_LOG, amountText, type MoneyEntry} from '../../../lib/money-log/schema';
 import './spending.css';
+import {usePhoneShowAll} from '../../phone/phone-show-all';
 // Session AK (lane M): rules on new entries, the review mark, and Money tools (its own chunk, loaded after this body).
 import {MONEY_RULES} from '../../../lib/money-rules/schema';
 import {applyRules} from '../../../lib/money-rules/engine';
@@ -40,6 +41,12 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const [kind, setKind] = useState<'expense' | 'income'>('expense'), [amount, setAmount] = useState(''), [category, setCategory] = useState<string>('Food & drink');
   const [note, setNote] = useState(''), [date, setDate] = useState(today), [problem, setProblem] = useState(''), [status, setStatus] = useState('');
   const [undo, setUndo] = useState<MoneyEntry | null>(null), [budgetDraft, setBudgetDraft] = useState<string | null>(null);
+  // Session AK RB (RELEASE_REVIEW_2 R2-8): the entry form and the weekly budget open from their buttons (an empty Wealth
+  // showed both forms in full). Once open the entry form stays open for the next entry; a receipt draft opens it.
+  const [logging, setLogging] = useState(false), [budgeting, setBudgeting] = useState(false), logButton = useRef<HTMLButtonElement>(null);
+  // Session AK RB (R2-8): on a phone this week's list shows four entries, then "Show all" (every entry stays in the page;
+  // Select mode lists them all).
+  const weekMore = usePhoneShowAll(4);
   const currency = log.data.currency ?? log.data.budget?.currency ?? 'EUR';
   const [cur, setCur] = useState<string | null>(null), chosen = cur ?? currency;
   const room = useMemo(() => roomToSpend(log.data, today), [log.data, today]);
@@ -64,9 +71,9 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
   const saveBudget = (event: FormEvent) => {
     event.preventDefault();
     const raw = budgetDraft ?? '';
-    if (!raw.trim()) { log.update(current => { const {budget: _drop, ...rest} = current; void _drop; return rest; }); setBudgetDraft(null); setStatus('Weekly budget removed.'); return; }
+    if (!raw.trim()) { log.update(current => { const {budget: _drop, ...rest} = current; void _drop; return rest; }); setBudgetDraft(null); setBudgeting(false); setStatus('Weekly budget removed.'); return; }
     const value = readAmount(raw); if (!value) return setProblem(sumProblem(raw) ?? 'Enter the weekly budget as an amount above zero.');
-    log.update(current => ({...current, budget: {weekly: value, currency: chosen}})); setBudgetDraft(null); setStatus(`Weekly budget set: ${money(Math.round(Number(value) * 100), chosen)}.`);
+    log.update(current => ({...current, budget: {weekly: value, currency: chosen}})); setBudgetDraft(null); setBudgeting(false); setStatus(`Weekly budget set: ${money(Math.round(Number(value) * 100), chosen)}.`);
   };
   const share = room ? Math.max(0, Math.min(1, room.spent / Math.max(1, room.budget))) : 0, r = 46, circumference = 2 * Math.PI * r;
   const categories = kind === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -89,11 +96,14 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
       if (d.payee) setNote(d.payee.slice(0, 200));
       if (d.currency) setCur(d.currency);
       setStatus('A draft from your receipt photo is in the form. Check it, then Save.');
-      amountField.current?.focus();
+      setLogging(true);
+      requestAnimationFrame(() => amountField.current?.focus());
     };
     window.addEventListener(MONEY_DRAFT_EVENT, take);
     return () => window.removeEventListener(MONEY_DRAFT_EVENT, take);
   }, []);
+  // Opening the form puts the cursor in Amount.
+  useEffect(() => { if (logging) amountField.current?.focus({preventScroll: false}); }, [logging]);
   if (!log.loaded) return <p className="fine">Loading your spending…</p>;
   return <div className="spending-body">
     {showcase && <p className="fine spending-showcase">Fictional Showcase entries.</p>}
@@ -108,10 +118,11 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
           {room ? <><strong>{room.left >= 0 ? money(room.left, room.currency) : money(-room.left, room.currency)}</strong>
             <span>{room.left >= 0 ? `left of ${money(room.budget, room.currency)} this week` : `over this week's ${money(room.budget, room.currency)}`}</span>
             <span className="fine">{room.daysLeft === 1 ? 'Last day of the week' : `${room.daysLeft} days to go`} · spent {money(room.spent, room.currency)}</span></>
-            : <><strong>No weekly budget</strong><span className="fine">Set one below to see your room to spend.</span></>}
+            : <><strong>No weekly budget</strong><span className="fine">Set a weekly budget to see your room to spend.</span></>}
         </div>
       </div>
-      <form className="spending-form" onSubmit={save} aria-label="Log spending or income">
+      {!logging ? <div className="spending-actions"><button ref={logButton} type="button" className="primary" aria-expanded={false} aria-controls={`${id}-log`} onClick={() => setLogging(true)}>Log spending</button></div>
+      : <form className="spending-form" id={`${id}-log`} onSubmit={save} aria-label="Log spending or income">
         <div className="spending-kind" role="radiogroup" aria-label="Kind">
           {(['expense', 'income'] as const).map(k => <label key={k} className="spending-chip"><input type="radio" name={`${id}-kind`} checked={kind === k} onChange={() => { setKind(k); setCategory(k === 'expense' ? 'Food & drink' : 'Salary'); }}/><span>{k === 'expense' ? 'Spent' : 'Received'}</span></label>)}
         </div>
@@ -125,8 +136,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         <label className="field"><span>Note — optional</span><input maxLength={200} value={note} onChange={e => setNote(e.target.value)} placeholder="Lunch with Sam"/></label>
         <SecretGuard text={note} onRemove={() => setNote('')}/>
         {problem && <p role="alert">{problem}</p>}
-        <button type="submit" className="primary">Save</button>
-      </form>
+        <div className="spending-form-actions"><button type="submit" className="primary">Save</button><button type="button" className="quiet" onClick={() => { setLogging(false); setProblem(''); requestAnimationFrame(() => logButton.current?.focus()); }}>Done</button></div>
+      </form>}
     </div>
     <p className="spending-status" role="status" aria-live="polite">{status}{undo && <> <button type="button" className="text-link" onClick={undoRemove}>Undo</button></>}</p>
     <div className="spending-lists">
@@ -138,12 +149,13 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
             <button type="button" className="quiet" aria-pressed={selecting} onClick={() => { setSelecting(v => !v); setPicked(new Set()); }}>Select</button>
           </span>}
         </div>
-        {weekEntries.length ? <ul className={`spending-entries${selecting ? ' money-selecting' : ''}`}>{weekEntries.map(e => <li key={e.id}>
+        {weekEntries.length ? <ul className={`spending-entries${selecting ? ' money-selecting' : ''}`} {...(selecting ? {} : weekMore.listProps(weekEntries.length))}>{weekEntries.map(e => <li key={e.id}>
           {selecting && <label className="money-select-check"><input type="checkbox" checked={picked.has(e.id)} onChange={() => togglePick(e.id)} aria-label={`Select ${e.category} ${e.amount} ${e.currency} on ${formatDate(e.date)}`}/></label>}
           <span className="spending-entry-what">{toReview.has(e.id) && <span className="spending-review-dot" title="To review"><span className="visually-hidden">To review: </span></span>}<strong>{e.category}</strong>{e.note && <span className="fine"> · {e.note}</span>}<span className="fine"> · {e.date}</span></span>
           <span className={`spending-amount${e.kind === 'income' ? ' spending-in' : ''}`}>{e.kind === 'income' ? '+' : '−'}{money(Math.round(Number(e.amount) * 100), e.currency)}</span>
           <button type="button" className="text-link spending-remove" aria-label={`Remove ${e.category} ${e.amount} ${e.currency} on ${e.date}`} onClick={() => remove(e)}>Remove</button>
         </li>)}</ul> : <p className="fine">Nothing logged this week yet.</p>}
+        {!selecting && weekMore.button(weekEntries.length, 'entries')}
         {selecting && weekEntries.length > 0 && <p className="money-select-total" aria-live="polite">{selectionLine(pickedSummary, money)}{pickedSummary.totals.length > 1 ? <span className="fine"> · each currency on its own, never converted</span> : null}</p>}
       </section>
       <section aria-labelledby={`${id}-month`}>
@@ -159,12 +171,14 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         {monthTotals.map(t => <p key={t.currency} className="fine">This month in {t.currency}: spent {money(t.expenses, t.currency)}, received {money(t.income, t.currency)}.</p>)}
       </section>
     </div>
-    <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
+    {!budgeting ? <p className="spending-budget-line"><button type="button" className="secondary" aria-expanded={false} onClick={() => setBudgeting(true)}>{log.data.budget ? 'Change weekly budget' : 'Set a weekly budget'}</button></p>
+    : <form className="spending-budget" onSubmit={saveBudget} aria-label="Weekly budget">
       <label className="field"><span>Weekly budget ({chosen}) — leave empty for none</span><input inputMode="decimal" value={budgetDraft ?? (log.data.budget ? fromCents(Math.round(Number(log.data.budget.weekly) * 100)) : '')} onChange={e => setBudgetDraft(e.target.value)} aria-describedby={`${id}-budget-calc`}/></label>
       <CalcHint value={budgetDraft ?? ''} id={`${id}-budget-calc`}/>
       <label className="field"><span>Week starts on</span><select value={log.data.weekStartsOn} onChange={e => log.update(current => ({...current, weekStartsOn: e.target.value as 'monday' | 'sunday'}))}><option value="monday">Monday</option><option value="sunday">Sunday</option></select></label>
-      <button type="submit" className="secondary">Save budget</button>
-    </form>
+      {problem && !logging && <p role="alert">{problem}</p>}
+      <div className="spending-form-actions"><button type="submit" className="secondary">Save budget</button><button type="button" className="quiet" onClick={() => { setBudgeting(false); setBudgetDraft(null); }}>Cancel</button></div>
+    </form>}
     <p className="fine">Your own entries, kept on this device and in Export everything; amounts are never converted between currencies. Not financial advice.</p>
     {/* Session AK (lane M): buffer days, To review, Rules, Split an entry and the emergency sheet. */}
     {/* Session AK X1 (verification): while its chunk loads, Money tools says so (aria-busy, as Wealth's later parts do), so

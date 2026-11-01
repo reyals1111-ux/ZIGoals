@@ -19,24 +19,40 @@ export function dueText(t: Task, today: string): string {
   return s === 'overdue' ? `Overdue · ${formatDate(t.due!, {year: false})}` : s === 'today' ? `Due today${at}` : s === 'someday' ? 'No day' : `Due ${formatDate(t.due!, {weekday: true, year: false})}${at}`;
 }
 
-/** The add form. `fixedDue` (the Agenda's day) or `fixedGoal` (a goal page) take that field out of the form. */
-export function TaskAddForm({onAdd, goals, today, fixedDue, fixedGoal, label = 'Add a task', submit = 'Add task', compact = false}: {onAdd: (input: TaskInput) => boolean; goals: readonly GoalOption[]; today: string; fixedDue?: string; fixedGoal?: string; label?: string; submit?: string; compact?: boolean}) {
+/**
+ * The add form. `fixedDue` (the Agenda's day) or `fixedGoal` (a goal page) take that field out of the form. `folded`
+ * (Session AK G2, RELEASE_REVIEW_2 R2-17; the Tasks page): one line — the task and Add — with priority, day, time and goal
+ * behind "More options", as Todoist's add field does; what is chosen there stays chosen while it is folded again.
+ */
+export function TaskAddForm({onAdd, goals, today, fixedDue, fixedGoal, label = 'Add a task', submit = 'Add task', compact = false, folded = false}: {onAdd: (input: TaskInput) => boolean; goals: readonly GoalOption[]; today: string; fixedDue?: string; fixedGoal?: string; label?: string; submit?: string; compact?: boolean; folded?: boolean}) {
   const id = useId();
   const [title, setTitle] = useState(''), [priority, setPriority] = useState<TaskPriority>('normal'), [due, setDue] = useState(''), [time, setTime] = useState(''), [goal, setGoal] = useState('');
+  const [more, setMore] = useState(false);
   const day = fixedDue ?? due;
   const send = (event: FormEvent) => {
     event.preventDefault();
     const input: TaskInput = {title, priority, ...(day ? {due: day} : {}), ...(day && time ? {time} : {}), ...((fixedGoal ?? goal) ? {goal: fixedGoal ?? goal} : {})};
     if (onAdd(input)) { setTitle(''); setDue(''); setTime(''); setPriority('normal'); setGoal(''); }
   };
-  return <form className={`tasks-add${compact ? ' is-compact' : ''}`} onSubmit={send} aria-label={label}>
-    <label className="field tasks-add-title"><span>New task</span><input value={title} maxLength={140} onChange={e => setTitle(e.target.value)} placeholder="Call the dentist" /></label>
+  const titleField = <label className="field tasks-add-title"><span>New task</span><input value={title} maxLength={140} onChange={e => setTitle(e.target.value)} placeholder="Call the dentist" /></label>;
+  const fields = <>
     {!compact && <label className="field"><span>Priority</span><select value={priority} onChange={e => setPriority(e.target.value as TaskPriority)}>{TASK_PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_WORDS[p]}</option>)}</select></label>}
     {fixedDue === undefined && <label className="field"><span>Due (optional)</span><input id={`${id}-due`} type="date" min={today} value={due} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} /></label>}
     {(fixedDue !== undefined || !compact) && <label className="field"><span>Time (optional)</span><input type="time" value={time} disabled={!day} onChange={e => setTime(e.target.value)} aria-describedby={day ? undefined : `${id}-time-note`} /></label>}
     {!day && !compact && <span id={`${id}-time-note`} className="sr-only">Choose a day first to give the task a time.</span>}
     {fixedGoal === undefined && goals.length > 0 && <label className="field"><span>Goal (optional)</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
-    <button type="submit" className="secondary" disabled={!title.trim()}>{submit}</button>
+  </>;
+  const add = <button type="submit" className="secondary" disabled={!title.trim()}>{submit}</button>;
+  if (folded) return <form className="tasks-add is-folded" onSubmit={send} aria-label={label}>
+    {titleField}
+    {add}
+    <button type="button" className="quiet tasks-add-toggle" aria-expanded={more} aria-controls={`${id}-more`} onClick={() => setMore(m => !m)}>More options</button>
+    {more && <div id={`${id}-more`} className="tasks-add-more" role="group" aria-label="More options">{fields}</div>}
+  </form>;
+  return <form className={`tasks-add${compact ? ' is-compact' : ''}`} onSubmit={send} aria-label={label}>
+    {titleField}
+    {fields}
+    {add}
   </form>;
 }
 
@@ -56,11 +72,11 @@ export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus,
       {onEdit && <button type="button" className="text-link" aria-expanded={editing} aria-label={`Edit “${task.title}”`} onClick={() => setEditing(!editing)}>Edit</button>}
       {onRemove && <button type="button" className="text-link" aria-label={`Remove the task “${task.title}”`} onClick={onRemove}>Remove</button>}
     </span>}
-    {editing && onEdit && <TaskEditor task={task} today={today} goals={goals} onSave={patch => { if (onEdit(patch)) setEditing(false); }} onCancel={() => setEditing(false)} />}
+    {editing && onEdit && <TaskEditor task={task} today={today} goals={goals} linked={goal} onSave={patch => { if (onEdit(patch)) setEditing(false); }} onCancel={() => setEditing(false)} />}
   </li>;
 }
 
-function TaskEditor({task, today, goals, onSave, onCancel}: {task: Task; today: string; goals: readonly GoalOption[]; onSave: (patch: TaskPatch) => void; onCancel: () => void}) {
+function TaskEditor({task, today, goals, linked, onSave, onCancel}: {task: Task; today: string; goals: readonly GoalOption[]; /** The goal the task is linked to, also when it is no longer active (finished). */ linked?: GoalOption; onSave: (patch: TaskPatch) => void; onCancel: () => void}) {
   const [title, setTitle] = useState(task.title), [priority, setPriority] = useState<TaskPriority>(task.priority), [due, setDue] = useState(task.due ?? ''), [time, setTime] = useState(task.time ?? ''), [goal, setGoal] = useState(task.goal ?? '');
   const known = goals.some(g => g.key === goal || g.id === goal);
   return <form className="task-editor tasks-add" aria-label={`Edit “${task.title}”`} onSubmit={e => { e.preventDefault(); onSave({title, priority, due: due || null, time: due && time ? time : null, goal: goal || null}); }}>
@@ -68,7 +84,7 @@ function TaskEditor({task, today, goals, onSave, onCancel}: {task: Task; today: 
     <label className="field"><span>Priority</span><select value={priority} onChange={e => setPriority(e.target.value as TaskPriority)}>{TASK_PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_WORDS[p]}</option>)}</select></label>
     <label className="field"><span>Due</span><input type="date" min={task.due && task.due < today ? task.due : today} value={due} onChange={e => { setDue(e.target.value); if (!e.target.value) setTime(''); }} /></label>
     <label className="field"><span>Time</span><input type="time" value={time} disabled={!due} onChange={e => setTime(e.target.value)} /></label>
-    {(goals.length > 0 || goal) && <label className="field"><span>Goal</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{!known && goal && <option value={goal}>A goal no longer here</option>}{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
+    {(goals.length > 0 || goal) && <label className="field"><span>Goal</span><select value={goal} onChange={e => setGoal(e.target.value)}><option value="">No goal</option>{!known && goal && <option value={goal}>{linked && (linked.key === goal || linked.id === goal) ? linked.name : 'A goal no longer here'}</option>}{goals.map(g => <option key={g.key} value={g.key}>{g.name}</option>)}</select></label>}
     <span className="task-editor-actions"><button type="submit" className="secondary" disabled={!title.trim()}>Save</button><button type="button" className="quiet" onClick={onCancel}>Cancel</button></span>
   </form>;
 }

@@ -48,7 +48,8 @@ test("a Goal's next and latest contributions use one date format (QA-27)", async
 test("plaintext backups share one file-name pattern without spaces (QA-26)", async ({ page }) => {
   await page.goto("/app/settings");
   const names: string[] = [];
-  for (const name of ["Positions and Goals", "Habits", "Health"]) {
+  // Session AK G2 (RELEASE_REVIEW_2 R2-16, deliberate): "Goals and Wealth" (it was "Positions and Goals"); its file name is kept.
+  for (const name of ["Goals and Wealth", "Habits", "Health"]) {
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: `Export ${name}`, exact: true }).click();
     const file = await download;

@@ -3509,6 +3509,15 @@
         color: var(--muted,#a1afc8)
     }
 }
+/*  components/ai/photo-send-confirm.css  */
+@scope (:root[data-theme=dark]) {
+    .photo-send-confirm:not(#\-) {
+        border-inline-start-color: var(--line)
+    }
+    .photo-send-confirm img:not(#\-) {
+        border-color: var(--line)
+    }
+}
 /*  components/ai/pip.css  */
 @scope (:root[data-theme=dark]) {
     :scope.zigi-pip-root:not(#\-), :scope.zigi-pip-root body:not(#\-) {
@@ -13202,6 +13211,21 @@
         border-color: var(--nova-edge-soft);
         background: var(--nova-glass)
     }
+    .nova-icon-btn[data-tip]:is(:hover, :focus-visible):not(#\-)::after {
+        background-image: none;
+        background-color: #01030e;
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-tech:not(#\-) {
+        border-top-color: var(--nova-edge-soft)
+    }
+    .nova-tech > summary:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-tech > summary:not(#\-)::marker {
+        color: var(--nova-hi)
+    }
 }
 /*  components/nova/orb.css  */
 @scope (:root[data-theme=dark]) {
@@ -13515,6 +13539,9 @@
     }
     .nova-wf-steps-edit:not(#\-) {
         border-color: var(--line,#2a325a)
+    }
+    .nova-wf-instruction:not(#\-) {
+        border-inline-start-color: var(--line)
     }
 }
 /*  components/offline-notice.css  */
@@ -16993,6 +17020,19 @@
     }
     .customize-note:not(#\-) {
         color: var(--text-muted)
+    }
+}
+/*  components/settings/nova-settings-links.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-settings-link:not(#\-) {
+        border-color: var(--line);
+        color: var(--text-strong)
+    }
+    .nova-settings-link small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .nova-settings-link:hover:not(#\-), .nova-settings-link:focus-visible:not(#\-) {
+        border-color: var(--brand-cyan)
     }
 }
 /*  components/settings/pages-settings.css  */

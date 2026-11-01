@@ -16,7 +16,9 @@ test.describe('one currency at a time, never converted', () => {
     const total = page.locator('.wealth-hero-total');
     await expect(total.locator('.wealth-total-headline')).toHaveText(/^(US)?\$501,800\.00$/);
     await expect(total.locator('.wealth-other-chip-button')).toHaveText('+ €8,000.00 held in EUR');
-    await expect(total).toContainText('Currency totals stay separate. No FX assumed. One total in a single currency is coming later.');
+    // Session AK RB (RELEASE_REVIEW_2 R2-20, deliberate): the same fact without the roadmap promise ("coming later").
+    await expect(total).toContainText('Currency totals stay separate; no exchange rate is assumed.');
+    await expect(total).not.toContainText('coming later');
     await expect(page.getByRole('group', {name: 'Show totals in'})).toHaveCount(0);
     await expect(page.locator('.wealth-hero').getByRole('button', {name: 'EUR', exact: true})).toHaveCount(0);
     await expect(page.locator('.wealth-hero')).not.toContainText('Nothing tracked in');

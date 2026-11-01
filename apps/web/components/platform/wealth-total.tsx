@@ -17,8 +17,9 @@ const money=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amou
  * quotes in that currency, never a conversion. */
 export function useBaseCurrency(){const prefs=useUiPrefs(),fallback=useDefaultCurrency();return baseCurrencyOf(prefs.data,fallback);}
 /** Session AH (TR7, owner amendment 6): the app has no exchange-rate source, so totals are never shown "in" another
- * currency. The USD/EUR switch is gone; this line says the combined total is coming later. */
-export const ONE_CURRENCY_LATER='One total in a single currency is coming later.';
+ * currency. The USD/EUR switch is gone. Session AK RB (RELEASE_REVIEW_2 R2-20): the line states the fact and promises
+ * nothing ("One total in a single currency is coming later" was roadmap copy in a 1.0). */
+export const CURRENCIES_APART='Currency totals stay separate; no exchange rate is assumed.';
 /**
  * Session AB-Design (owner request 24): other currencies as one small chip — "+ €8,000 held in EUR" — that opens the
  * details (each currency's total, never converted, no FX assumed); nothing shows when every other total is zero.
@@ -32,7 +33,7 @@ export function OtherCurrencyChip({others,id}:{others:readonly CurrencyTotal[];i
   <button type="button" className="wealth-other-chip-button" aria-expanded={open} aria-controls={`${id}-others`} onClick={()=>setOpen(v=>!v)}>+ {money(first.value,first.currency)} held in {first.currency}{shown.length>1?` · +${shown.length-1}`:''}</button>
   {open&&<span id={`${id}-others`} className="wealth-other-chip-panel" role="group" aria-label="Other currencies">
    {shown.map(o=><span key={o.currency} className="wealth-total-other">+ {money(o.value,o.currency)} held in {o.currency} · not converted</span>)}
-   <small>Currency totals stay separate. No FX assumed. {ONE_CURRENCY_LATER}</small>
+   <small>{CURRENCIES_APART}</small>
   </span>}
  </span>;
 }

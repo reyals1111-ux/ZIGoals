@@ -130,6 +130,8 @@ test('@journey 3 money month: CSV and bank files → review inbox → a rule →
   await expect.poll(async () => (await moneyLog(page))!.entries.find(e => e.note === 'Fictional Hardware')?.parts?.map(p => [p.amount, p.category])).toEqual([['60.00', 'Home'], ['60.00', 'Gifts']]);
 
   // A monthly Groceries budget with rollover.
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the budget form opens from "+ Set a monthly budget".
+  await page.locator('#budgets').getByRole('button', {name: '+ Set a monthly budget', exact: true}).click();
   const budgets = page.getByRole('form', {name: 'Set a monthly budget'});
   await budgets.getByLabel('Category').selectOption('Groceries');
   await budgets.getByLabel('Each month').fill('300');

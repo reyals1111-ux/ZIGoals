@@ -20,8 +20,14 @@ const SHOWCASE = EVERY.filter(label => label !== 'Governance');
 /** A list with Governance in its place, after Staking. */
 const withGovernance = (labels: string[]) => { const at = labels.indexOf('Staking') + 1; return [...labels.slice(0, at), 'Governance', ...labels.slice(at)]; };
 const PREFS = 'zigoals:earn-prefs:v1';
-/** Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. */
-const withChecklist = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, 'Checklist'] : [...labels.slice(0, at), 'Checklist', ...labels.slice(at)]; };
+/**
+ * Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. Session
+ * AK (owner follow-up 2, N2): NOVA is one too, before it. Session AK G2 (RELEASE_REVIEW_2 R2-10, deliberate): Tasks, Notes
+ * and the Journal follow as 'compact' entries — the phone's More sheet (and the tablet rail), not the desktop sidebar;
+ * components/nav-extras.ts keeps this order whatever registers first.
+ */
+const SIDEBAR_EXTRAS = ['NOVA', 'Checklist'], MORE_EXTRAS = [...SIDEBAR_EXTRAS, 'Tasks', 'Notes', 'Journal'];
+const withExtras = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, ...SIDEBAR_EXTRAS] : [...labels.slice(0, at), ...SIDEBAR_EXTRAS, ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
 const settingsWith = (p?: object) => ({...presetSettings('balanced'), onboarded: true, ...(p ? {schemaVersion: 3, pages: p} : {})});
 async function seed(page: Page, records: Record<string, unknown>) {
@@ -37,16 +43,16 @@ async function seed(page: Page, records: Record<string, unknown>) {
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
 const navLabels = (page: Page) => mainNav(page).getByRole('link').allTextContents();
 /** The sidebar on a larger screen; on a phone the tabs, then (opened) the More sheet's links after them. */
-async function expectNav(page: Page, visible: string[], journey = false) {
+async function expectNav(page: Page, visible: string[], {journey = false}: {journey?: boolean} = {}) {
   // Help is always shown, last (Session Z-Cloud Part 4.11).
-  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...withChecklist(visible), 'Help']); return; }
+  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...withExtras(visible), 'Help']); return; }
   const pagesOnly = visible.filter(label => label !== 'Settings');
   // Five tabs since Session AB-Design (owner request 10); More, from the top bar, holds the rest, then Settings and Help.
   await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 5));
   await openMore(page);
   // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): while Gamify is on (the Showcase), the
   // Journey is a row of More after the pages, since it is no longer a tab.
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), 'Checklist', ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...MORE_EXTRAS, ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -220,16 +226,16 @@ test('Showcase shows every page but Governance and keeps a choice in the tab, ne
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await expectNav(page, SHOWCASE, true);
+  await expectNav(page, SHOWCASE, {journey: true});
   await page.goto('/app/settings');
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await section(page).getByRole('switch', {name: 'Activity', exact: true}).click();
   await expect(section(page)).toContainText('In Showcase these choices last for this tab only.');
-  await expectNav(page, SHOWCASE.filter(label => label !== 'Activity'), true);
+  await expectNav(page, SHOWCASE.filter(label => label !== 'Activity'), {journey: true});
   // Governance's switch keeps its choice in the tab too.
   await section(page).getByRole('switch', {name: 'Governance', exact: true}).click();
   await expect(section(page).getByRole('status')).toHaveText('Governance shows on this device.');
-  await expectNav(page, withGovernance(SHOWCASE.filter(label => label !== 'Activity')), true);
+  await expectNav(page, withGovernance(SHOWCASE.filter(label => label !== 'Activity')), {journey: true});
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
 });
 
@@ -334,8 +340,8 @@ test('while the settings are still opening, the device mirror already shapes the
   await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
   const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withChecklist(expected));
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withExtras(expected));
   await page.evaluate(() => (window as unknown as {__vault: {release(): void}}).__vault.release());
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withChecklist(expected));
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withExtras(expected));
 });

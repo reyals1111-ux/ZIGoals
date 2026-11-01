@@ -6,7 +6,8 @@ async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
-const OPTIONS=['Goal','Asset','Contribution','Habit','Health entry'];
+// Session AK G2 (RELEASE_REVIEW_2 R2-13, deliberate): the most frequent first, and Note is one of the sheet's own rows.
+const OPTIONS=['Health entry','Habit','Note','Contribution','Goal','Asset'];
 
 test('the Today hero Quick add is the primary action and opens the same Quick add options',async({page,isMobile})=>{
  await showcase(page);

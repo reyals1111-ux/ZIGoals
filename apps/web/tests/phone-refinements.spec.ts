@@ -64,10 +64,9 @@ test("Today on a phone: shorter lists with Show all, and the week folded into it
   await page.setViewportSize({ width: 390, height: 844 });
   await showcase(page);
   await open(page, "/app");
-  const agenda = page.getByRole("region", { name: "Your funding agenda" });
-  expect(await visibleCount(agenda.locator("li"))).toBe(2);
-  await agenda.getByRole("button", { name: /^Show all \d+ Goals$/ }).click();
-  expect(await visibleCount(agenda.locator("li"))).toBe(await agenda.locator("li").count());
+  // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): "Your funding agenda" is part of "Next money steps" (the
+  // needs-attention card) on Today, so its separate list is gone; the merged list keeps the same two-then-View-all rule.
+  await expect(page.getByRole("region", { name: "Your funding agenda" })).toHaveCount(0);
   const attention = page.locator(".needs-attention");
   await expect(attention).toContainText("Review asset");
   expect(await visibleCount(attention.locator("li"))).toBe(2);

@@ -39,7 +39,7 @@ function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vi
   async function share() {
     setBusy(true);
     try {
-      const blob = await drawShareCard({eyebrow: a.areaLabel ? `Achievement · ${a.areaLabel}` : 'Achievement', title: a.name, lines: [a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished', durationWords(a.days), ...(a.story ? [`“${a.story}”`] : [])]});
+      const blob = await drawShareCard({eyebrow: a.areaLabel ? `Achievement · ${a.areaLabel}` : 'Achievement', title: a.name, lines: [a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished', ...(a.days === null ? [] : [durationWords(a.days)]), ...(a.story ? [`“${a.story}”`] : [])]});
       const how = await shareOrSave(blob, `${a.name.replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40) || 'achievement'}.png`, a.name);
       showToast({message: how === 'saved' ? 'Image saved to your device.' : 'Image ready to share.'});
     } catch (e) { showToast({message: plainErrorMessage(e, 'The image could not be made.')}); }
@@ -51,7 +51,8 @@ function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vi
       {a.areaLabel && <span className="hall-area">{a.areaLabel}</span>}
       {/* The goal's name is its card's title, not a heading: the same goal's own card on Goals already has the heading. */}
       <p className="hall-title">{a.name}</p>
-      <p className="hall-when">{a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished'} · <span className="nowrap">{durationWords(a.days)}</span></p>
+      {/* Session AK RB (RELEASE_REVIEW_2 R2-23): "Finished" alone when the finish day is unknown (not "Finished · Finish day not recorded"). */}
+      <p className="hall-when">{a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished'}{a.days !== null && <> · <span className="nowrap">{durationWords(a.days)}</span></>}</p>
       {a.story && <blockquote>{a.story}</blockquote>}
       <div className="hall-actions"><Link className="text-link" href={a.key.startsWith('private:') ? `/app/goals/tracked/${a.key.slice(8)}` : `/app/goals/average/${a.key.slice(8)}`}>Open →</Link><button type="button" className="secondary" disabled={busy} onClick={() => void share()}>{busy ? 'Making the image…' : 'Share image'}</button></div>
     </div>

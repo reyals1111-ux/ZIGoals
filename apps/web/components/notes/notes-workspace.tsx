@@ -90,7 +90,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       </div>
       <LoadBoundary quiet><Suspense fallback={<p className="fine">Reading this day…</p>}><ThisDayStrip day={day}/></Suspense></LoadBoundary>
       <NoteEditor key={`day-${day}-${note?.id ?? 'new'}`} note={note} day={day} index={index} change={change} onCreateLink={createNote}/>
-      {!note && <p className="fine">A daily note for this day is made when you save. Link anything with <code>[[</code>: a goal, a habit, another note.</p>}
+      {!note && <p className="fine">A daily note for this day is made when you save.</p>}
     </section>; })()}
 
     {!noteId && view === 'inbox' && <section className="panel" aria-labelledby="note-inbox-title">
@@ -108,7 +108,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       </form>
       <NotesSearch notes={record.notes}/>
       {topicsOf(record).length ? <ul className="note-list">{topicsOf(record).map(n => <li key={n.id}><Link href={noteHref(n.id)}><strong>{noteName(n)}</strong></Link>{n.pinned && <span className="fine"> · pinned</span>}{n.example && <span className="fine"> · example</span>}<p className="fine">{n.body.replace(/\s+/g, ' ').slice(0, 120)}</p></li>)}</ul>
-        : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. Notes can link to each other and to your goals and habits with <code>[[</code>; each goal and habit then lists the notes that link to it.</p>}
+        : <p className="fine">No notes yet. Give one a title above, or file something from the inbox. A note that links a goal or a habit shows on its page.</p>}
     </section>}
 
     {!noteId && view === 'days' && <section className="panel" aria-labelledby="note-days-title">

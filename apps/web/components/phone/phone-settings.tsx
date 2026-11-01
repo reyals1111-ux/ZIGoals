@@ -43,8 +43,10 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     // Session AK X1 (RELEASE_REVIEW R4): the wallet, network and contract panels, one row, once the chain is chosen.
     ["Wallet & network (advanced)", "Wallet account, networks and contract status", "wallet-network"],
   ] },
-  { title: "ZIGi", rows: [
+  // Session AK G2 (RELEASE_REVIEW_2 R2-4): one assistant group, ZIGi's settings and NOVA's.
+  { title: "Your assistant", rows: [
     ["ZIGi · Your Personal AI Companion", "Your own AI, page by page", "your-ai"],
+    ["NOVA, the command center", "Brain setup, what NOVA sees, memory and cost", "nova-settings"],
   ] },
   { title: "Help & diagnostics", rows: [
     ["Diagnostics & support", "Checks to share if something goes wrong", "diagnostics"],

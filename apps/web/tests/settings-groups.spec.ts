@@ -7,8 +7,10 @@ const GROUPS: [id: string, title: string, sections: string[]][] = [
   ['settings-app', 'Your app', ['showcase', 'your-pages', 'time-zone', 'wrap-up', 'appearance', 'music', 'links']],
   ['settings-areas', 'Your areas', ['habits-settings', 'health-settings', 'chess', 'guide', 'reminders', 'market-data']],
   ['settings-account', 'Account & devices', ['encrypted-sync', 'account', 'network', 'contract']],
-  ['settings-zigi', 'ZIGi', ['your-ai']],
-  ['settings-help', 'Help & diagnostics', ['diagnostics', 'send-feedback']], // Session X Part 11: Send feedback
+  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): "Your assistant", ZIGi's settings and NOVA's; the id stays.
+  ['settings-zigi', 'Your assistant', ['your-ai', 'nova-settings']],
+  // Session X Part 11: Send feedback. Session AK G2 (RELEASE_REVIEW_2 R2-16): storage health and the storage upgrade.
+  ['settings-help', 'Help & diagnostics', ['storage-internals', 'diagnostics', 'send-feedback']],
 ];
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
@@ -27,7 +29,7 @@ test('Settings: six labelled groups in order, each holding its sections; the chi
   if (isMobile) return;
   const chips = page.locator('.settings-sections a');
   await expect(chips).toHaveText(GROUPS.map(g => g[1]));
-  await chips.filter({hasText: 'ZIGi'}).click();
+  await chips.filter({hasText: 'Your assistant'}).click();
   await expect(page).toHaveURL(/#settings-zigi$/);
   await expect(page.locator('#settings-zigi-title')).toBeInViewport();
 });

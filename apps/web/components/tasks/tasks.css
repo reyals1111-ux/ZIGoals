@@ -48,3 +48,8 @@
   .task { grid-template-areas: "done title" "done meta" "done actions"; grid-template-columns: auto minmax(0, 1fr); }
   .task .task-actions { justify-content: flex-start; }
 }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-17): the Tasks page's add field is one line (the task and Add); priority, day, time and
+   goal open below it from "More options". */
+.tasks-add.is-folded .tasks-add-title { flex: 1 1 180px; }
+.tasks-add.is-folded .tasks-add-toggle { min-height: 44px; }
+.tasks-add-more { flex: 1 0 100%; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }

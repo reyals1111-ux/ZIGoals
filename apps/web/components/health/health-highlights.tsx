@@ -1,7 +1,8 @@
 'use client';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {weightTrend} from '../../lib/health-aa/trend';
-import {energyEstimate, ENERGY_MIN_LOGGED_DAYS} from '../../lib/health-aa/energy';
+import {energyEstimate} from '../../lib/health-aa/energy';
+import {energyProgress} from '../../lib/health-aa/energy-progress';
 import {coachCheckIn} from '../../lib/health-aa/coach';
 import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
 import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
@@ -28,6 +29,8 @@ function TrendInk({values}: {values: number[]}) {
  * Session AB-Design Phase 2, Part 5 (owner request 33): Health's highlights — three glass tiles at the top of the page,
  * each the one figure of a card further down (the weight trend, the energy estimate, the weekly coach) and a link to that
  * card. Nothing new is computed: the same helpers the cards use, the same "an estimate" wording. Phones: a swipeable row.
+ * Session AK RB (RELEASE_REVIEW_2 R2-8): the three full cards live in the Weight view now (one place each); a tile's link
+ * (#health-weight-trend, #health-energy, #health-coach) opens that view at its card (components/health/health-app.tsx).
  */
 export default function HealthHighlights({data, today, unit}: {data: HealthData; today: string; unit: WeightUnit}) {
   const trend = weightTrend(data, today, 42), energy = energyEstimate(data, today);
@@ -44,7 +47,8 @@ export default function HealthHighlights({data, today, unit}: {data: HealthData;
       <li><a className="health-hl-tile" data-tone="energy" href="#health-energy">
         <span className="health-hl-label">Energy estimate</span>
         {energy.ready && energy.expenditure !== null ? <><strong className="health-hl-figure">{formatNumber(energy.expenditure)} <small>kcal a day</small></strong><span className="health-hl-note">about {formatNumber(energy.low ?? 0)}–{formatNumber(energy.high ?? 0)} · an estimate</span></>
-          : <><strong className="health-hl-figure is-quiet">{energy.loggedDays} of {ENERGY_MIN_LOGGED_DAYS} days</strong><span className="health-hl-note">logged so far; about two weeks of logs make the estimate</span><span className="health-hl-bar" aria-hidden="true"><i style={{width: `${Math.min(100, energy.loggedDays / ENERGY_MIN_LOGGED_DAYS * 100)}%`}}/></span></>}
+          : /* Session AK RB (R2-14): the input still missing, by name ("3 more weigh-ins to go"), never "28 of 14 days". */
+            ((p) => <><strong className="health-hl-figure is-quiet">{p.figure}</strong><span className="health-hl-note">{p.note}</span><span className="health-hl-bar" aria-hidden="true"><i style={{width: `${Math.round(p.share * 100)}%`}}/></span></>)(energyProgress(energy))}
       </a></li>
       <li><a className="health-hl-tile" data-tone="coach" href="#health-coach">
         <span className="health-hl-label">Your coach{coach.answered ? ' · answered' : coach.rateGrams !== null ? ' · this week' : ''}</span>

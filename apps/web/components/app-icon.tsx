@@ -29,6 +29,11 @@ const paths: Record<string, string> = {
   plus: "M12 5v14M5 12h14",
   more: "M5 12h.01M12 12h.01M19 12h.01M4 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0",
   back: "m15 5-7 7 7 7",
+  // Session AK G2 (RELEASE_REVIEW_2 R2-10): Tasks, Notes and Journal in the navigation, drawn from NOVA's existing line icons
+  // (components/nova/icons.tsx: tasks, notes, and agenda's dated page for the Journal) as single paths.
+  tasks: "M5 5h2.5a1 1 0 0 1 1 1v2.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM11.5 7.2H20M11.5 16.8H20M4.4 16.6l1.6 1.6 3-3.2",
+  notes: "M6 3.5h8.5L19 8v12.5H6zM14 3.5V8h5M9 12.5h7M9 16h5",
+  journal: "M6.5 5h11A2.5 2.5 0 0 1 20 7.5v10a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5zM4 10h16M8.5 3v4M15.5 3v4M8 14h3M8 17h6",
   help: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4M12 17.2h.01",
 };
 export function AppIcon({ name, size = 20, luminous = false }: { name: string; size?: number; luminous?: boolean }) {

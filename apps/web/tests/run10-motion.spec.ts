@@ -1,4 +1,5 @@
 import {expect,test} from '@playwright/test';
+import {openFold} from './phone-nav';
 
 type Sample={kind:string;start:string;mid?:string;end?:string};
 
@@ -82,10 +83,12 @@ test('Wealth and Health bars grow only when visible with real saved values',asyn
  await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();
  await page.waitForURL('**/app');
  await page.goto('/app/wealth');
+ await openFold(page,'The shape of your wealth'); // Session AK RB (R2-8, deliberate): a folded row on a phone; nothing elsewhere
  await page.locator('.portfolio-composition').scrollIntoViewIfNeeded();
  await expect.poll(()=>page.evaluate(()=>(window as unknown as {run10BarSamples:Sample[]}).run10BarSamples?.find(s=>s.kind==='wealth')?.end)).toBeTruthy();
  const wealth=await page.evaluate(()=>(window as unknown as {run10BarSamples:Sample[]}).run10BarSamples.find(s=>s.kind==='wealth')!);
- await page.goto('/app/health');
+ // Session AK RB (R2-8, deliberate): the nutrition rhythm lives in Health's Insights view; its anchor opens that view.
+ await page.goto('/app/health#nutrition-history');
  await page.locator('#nutrition-history').scrollIntoViewIfNeeded();
  await expect.poll(()=>page.evaluate(()=>(window as unknown as {run10BarSamples:Sample[]}).run10BarSamples?.find(s=>s.kind==='health')?.end)).toBeTruthy();
  const health=await page.evaluate(()=>(window as unknown as {run10BarSamples:Sample[]}).run10BarSamples.find(s=>s.kind==='health')!);

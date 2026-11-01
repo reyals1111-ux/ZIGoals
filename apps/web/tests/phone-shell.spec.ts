@@ -12,7 +12,9 @@ const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/hea
 // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown under Your pages & buttons.
 // Session AK X1 (RELEASE_REVIEW R3; deliberate): a new device has no money tools until the chain is chosen, so More holds
 // Activity, the Checklist, Settings and Help (it held Earn, Markets, Staking, Portfolio and Ecosystem first).
-const MORE=['Activity','Checklist','Settings','Help'];
+// Session AK (owner follow-up 2, N2): NOVA is a row of More before the Checklist. Session AK G2 (RELEASE_REVIEW_2 R2-10,
+// deliberate): Tasks, Notes and the Journal follow it (navigation extras, never tabs); Music waits for its own switch.
+const MORE=['Activity','NOVA','Checklist','Tasks','Notes','Journal','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 

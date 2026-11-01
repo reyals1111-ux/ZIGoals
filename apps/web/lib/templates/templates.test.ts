@@ -5,7 +5,8 @@ import {viewOf} from '../pages/visibility';
 import {HABIT_TEMPLATES, HABIT_TEMPLATE_GROUPS, habitTemplateInputOf, hasHabitLike} from './habits';
 import {GOAL_TEMPLATES} from './goals';
 import {STEP_TARGETS, WATER_TARGETS_ML} from './health';
-import {PILLARS, pagesForPillars, pagesShownFor, presetForPillars, starterHabits} from './pillars';
+import {EXTRA_PILLARS, MAIN_PILLARS, PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits} from './pillars';
+import {CRYPTO_PAGES, pagesChoseChain} from '../chain-choice';
 import {HABIT_TEMPLATE_TITLES} from '../../components/habits/habit-editor';
 
 const AT = '2026-10-07T09:00:00.000Z';
@@ -60,9 +61,52 @@ describe('pillars → pages, Today and starters (Session W Part 3)', () => {
   test('every pillar: everything shows, Chess and the music player included; Today is Balanced', () => {
     const pages = pagesForPillars([...PILLARS], AT)!;
     expect(viewOf(pages).hidden).toEqual([]);
-    // Session AK X1: "Goals & money" switches the crypto pages on, which is choosing the chain (lib/chain-choice.ts).
+    // Session AK X1: switching the crypto pages on is choosing the chain (lib/chain-choice.ts). Session AK G2 (RELEASE_REVIEW_2
+    // R2-6, deliberate): only the explicit "Crypto & ZIGChain" extra (part of every pillar here) does it, no longer "Goals & money".
     expect(pages.items).toEqual({chess: {v: 'shown', at: AT}, music: {v: 'shown', at: AT}, markets: {v: 'shown', at: AT}, staking: {v: 'shown', at: AT}, portfolio: {v: 'shown', at: AT}, ecosystem: {v: 'shown', at: AT}});
+    expect(pagesChoseChain(pages)).toBe(true);
     expect(presetForPillars([...PILLARS])).toBe('balanced');
+  });
+  // Session AK G2 (RELEASE_REVIEW_2 R2-6; owner: "consumer first, chain invisible"): choosing goals and money is not
+  // choosing the chain. It shows Goals and Wealth (money log, budgets, bills); the crypto pages stay as they were.
+  test('"Goals & money" shows Goals and Wealth only, and never chooses the chain', () => {
+    const pages = pagesForPillars(['goals-money'], AT)!;
+    expect(pagesSchema.parse(pages)).toEqual(pages);
+    expect(pagesChoseChain(pages)).toBe(false);
+    for (const id of CRYPTO_PAGES) expect(pages.items[id], id).toBeUndefined();
+    expect(viewOf(pages).hidden).toEqual(expect.arrayContaining(['markets', 'staking', 'portfolio', 'ecosystem']));
+    expect(pagesShownFor(['goals-money'])).toEqual(['today', 'goals', 'wealth', 'activity']);
+    expect(PILLAR_TEXT['goals-money'].note).not.toMatch(/crypto|chain|wallet|stak|market|ZIG/i);
+    // With Habits, Health and the extras too, as long as "Crypto & ZIGChain" is not picked.
+    const most = pagesForPillars(PILLARS.filter(p => p !== 'zigchain'), AT)!;
+    expect(pagesChoseChain(most)).toBe(false);
+    for (const id of CRYPTO_PAGES) expect(most.items[id], id).toBeUndefined();
+  });
+  test('"Crypto & ZIGChain" is the welcome\'s one chain choice: the crypto pages and Wealth show, stamped', () => {
+    const pages = pagesForPillars(['zigchain'], AT)!;
+    expect(pagesChoseChain(pages)).toBe(true);
+    for (const id of CRYPTO_PAGES) expect(pages.items[id], id).toEqual({v: 'shown', at: AT});
+    expect(pagesShownFor(['zigchain'])).toEqual(['today', 'wealth', 'markets', 'staking', 'portfolio', 'ecosystem', 'activity']);
+    // Today's layout is left as it is; it is an extra, beside the life areas.
+    expect(presetForPillars(['zigchain'])).toBeNull();
+    expect(EXTRA_PILLARS).toContain('zigchain');
+    expect([...MAIN_PILLARS, ...EXTRA_PILLARS].sort()).toEqual([...PILLARS].sort());
+  });
+  test('a re-run without the chain never hides crypto pages the person switched on', () => {
+    const before = pagesForPillars(['goals-money', 'zigchain'], AT)!;
+    const after = pagesForPillars(['goals-money'], '2026-10-08T09:00:00.000Z', before);
+    expect(after).toBeNull();
+    const habitsOnly = pagesForPillars(['habits'], '2026-10-08T09:00:00.000Z', before)!;
+    for (const id of CRYPTO_PAGES) expect(habitsOnly.items[id], id).toEqual({v: 'shown', at: AT});
+    expect(habitsOnly.items.goals).toEqual({v: 'hidden', at: '2026-10-08T09:00:00.000Z'});
+  });
+  // Session AK G2 (RELEASE_REVIEW_2 R2-12): a habit the welcome creates keeps the Habits page shown.
+  test('`also`: Habits shows when the setup creates a habit, whatever the pillars', () => {
+    expect(viewOf(pagesForPillars(['goals-money'], AT)!).hidden).toContain('habits');
+    const pages = pagesForPillars(['goals-money'], AT, undefined, ['habits'])!;
+    expect(viewOf(pages).hidden).not.toContain('habits');
+    expect(pages.items.habits).toBeUndefined(); // shown by default, so nothing is stamped for it
+    expect(pagesShownFor(['goals-money'], undefined, ['habits'])).toEqual(['today', 'goals', 'habits', 'wealth', 'activity']);
   });
   test('a re-run changes only what differs from the current choice, and returns null when nothing would change', () => {
     const before = pagesForPillars(['habits'], AT)!;

@@ -6,7 +6,8 @@ test('storage health presents a backup as optional and asks for none', async ({p
   // A browser without the Storage API shows the "cannot report" status.
   await page.addInitScript(() => { Object.defineProperty(Navigator.prototype, 'storage', {configurable: true, get: () => undefined}); });
   await page.goto('/app/settings');
-  const panel = page.locator('#private-vault');
+  // Session AK G2 (RELEASE_REVIEW_2 R2-16, deliberate): storage health moved from Backup & restore to Help & diagnostics.
+  const panel = page.locator('#storage-internals');
   await panel.getByText('Browser storage health', {exact: true}).click();
   await expect(panel.getByText('Persistence is not cloud sync: with an account, encrypted sync is the main protection, and a backup is an optional extra.')).toBeVisible();
   await panel.getByRole('button', {name: 'Check storage', exact: true}).click();

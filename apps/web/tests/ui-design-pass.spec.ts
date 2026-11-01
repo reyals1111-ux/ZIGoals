@@ -467,7 +467,7 @@ test.describe('Part 5: Wealth headline',()=>{
   await expect(total.locator('.wealth-other-chip-button')).toHaveText('+ €8,000.00 held in EUR');
   await total.locator('.wealth-other-chip-button').click();
   await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
-  await expect(total).toContainText('Currency totals stay separate. No FX assumed.');
+  await expect(total).toContainText('Currency totals stay separate; no exchange rate is assumed.'); // Session AK RB (R2-20, deliberate): the same fact, plainer words
   await expect(total).toContainText('KNOWN TRACKED WEALTH');await expect(total).toContainText('13 assets');
   // No combined cross-currency figure anywhere on the card.
   await expect(total).not.toContainText('509,800');

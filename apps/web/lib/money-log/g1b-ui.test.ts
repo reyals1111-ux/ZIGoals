@@ -44,6 +44,9 @@ describe('Spending (BUILD list 2 #6, #7, #18, #19)', () => {
     seed([entry('a', 0, '10.00', 'Transport'), entry('b', -1, '5.25', 'Transport'), entry('c', -2, '2.00', 'Gifts'), entry('d', 0, '100.00', 'Salary', 'income')]);
     await act(async () => root.render(h(SpendingSection)));
     await until('No weekly budget');
+    // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the entry form opens from its "Log spending" button.
+    expect(element.querySelector('form[aria-label="Log spending or income"]')).toBeNull();
+    await click('Log spending');
     const chips = [...element.querySelectorAll<HTMLInputElement>('.spending-cats input[type=radio]')].map(r => r.parentElement!.textContent);
     expect(chips.slice(0, 2)).toEqual(['Transport', 'Gifts']);
     expect(element.textContent).toContain('Your most used lately come first.');
@@ -90,7 +93,9 @@ describe('Spending (BUILD list 2 #6, #7, #18, #19)', () => {
   test('a receipt draft fills the form and saves nothing by itself', async () => {
     seed([]);
     await act(async () => root.render(h(SpendingSection)));
-    await until('Category');
+    // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the form waits behind "Log spending"; a receipt draft opens it.
+    await until('Log spending');
+    expect(element.querySelector('form[aria-label="Log spending or income"]')).toBeNull();
     await act(async () => { window.dispatchEvent(new CustomEvent(MONEY_DRAFT_EVENT, {detail: {amount: '23.40', payee: 'Corner Bakery', date: today}})); });
     await settle();
     expect([...element.querySelectorAll<HTMLInputElement>('input')].find(i => i.placeholder === '12.50')!.value).toBe('23.40');

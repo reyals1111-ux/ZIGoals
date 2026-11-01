@@ -61,6 +61,11 @@ export function healthWeek(health: HealthData, today: string) {
 }
 
 /** Goals: active Goals with a saved target date, soonest first; how many have none. */
+/** Session AK RB (RELEASE_REVIEW_2 R2-8): how many days of a healthWeek have any entry (food, water or a counter). A day
+ *  with only unknown calories still counts: it has an entry. Health's "Seven days of care" folds until this is 2. */
+export function loggedDaysOfWeek(week: readonly {kcal: number | null; kcalPartial: boolean; waterMl: number | null; exercise: readonly {count: number | null}[]}[]): number {
+  return week.filter(d => d.kcal !== null || d.kcalPartial || d.waterMl !== null || d.exercise.some(e => e.count !== null)).length;
+}
 export function goalTimeline(goals: readonly GoalSummary[], today: string) {
   const active = goals.filter(g => g.status === 'active');
   const dated = active.filter(g => g.targetDate).sort((a, b) => a.targetDate!.localeCompare(b.targetDate!) || a.name.localeCompare(b.name));

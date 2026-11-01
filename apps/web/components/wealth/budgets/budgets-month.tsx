@@ -28,6 +28,8 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   const id = useId(), thisMonth = monthKey(today);
   const [month, setMonth] = useState(thisMonth), [status, setStatus] = useState(''), [problem, setProblem] = useState('');
   const [category, setCategory] = useState<string>('Groceries'), [currency, setCurrency] = useState('EUR'), [amount, setAmount] = useState(''), [rollover, setRollover] = useState(false);
+  // Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from its button (an empty Wealth showed every form in full).
+  const [adding, setAdding] = useState(false);
   const view = useMemo(() => monthView(entries, record, month, today), [entries, record, month, today]);
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
@@ -37,7 +39,7 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     const input = {category, currency, monthly: readAmount(resolveAmountText(amount) ?? amount), rollover}, issue = budgetIssue(input);
     if (issue) { setProblem(issue); return; }
     change(r => setBudget(r, input, crypto.randomUUID(), thisMonth), `Budget for ${category} saved: ${money(Math.round(Number(input.monthly) * 100), currency)} a month${rollover ? ', with rollover' : ''}.`);
-    setAmount('');
+    setAmount(''); setAdding(false);
   };
   return <div className="budgets-body">
     {showcase && <p className="fine"><ShowcaseTag/> Fictional Showcase entries.</p>}
@@ -57,16 +59,17 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
         <td>{r.left >= 0 ? money(r.left, r.currency) : <>{money(-r.left, r.currency)} over</>}</td>
         <td><button type="button" className="quiet" onClick={() => change(x => removeBudget(x, r.id), `Budget for ${r.category} removed.`)} aria-label={`Remove the ${r.category} budget in ${r.currency}`}>Remove</button></td>
       </tr>)}</tbody>
-    </table> : <p className="fine">No budgets for this month yet. Set one below, for example Groceries at 300 a month.</p>}
+    </table> : <p className="fine">No budgets for this month yet. Set one, for example Groceries at 300 a month.</p>}
     {view.unbudgeted.length > 0 && <p className="fine">Also spent this month, without a budget: {view.unbudgeted.slice(0, 6).map(u => `${u.category} ${money(u.spent, u.currency)}`).join(' · ')}.</p>}
-    <form className="budgets-form" onSubmit={save} aria-label="Set a monthly budget">
+    {!adding ? <p className="budgets-add"><button type="button" className="secondary" aria-expanded={false} onClick={() => { setAdding(true); setStatus(''); }}>+ Set a monthly budget</button></p>
+    : <form className="budgets-form" onSubmit={save} aria-label="Set a monthly budget">
       <label className="field"><span>Category</span><select value={category} onChange={e => setCategory(e.target.value)}>{EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       <label className="field"><span>Each month</span><input inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)} placeholder="300" aria-describedby={`${id}-calc`}/></label>
       <label className="field"><span>Currency</span><select value={currency} onChange={e => setCurrency(e.target.value)}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       <CalcHint value={amount} id={`${id}-calc`}/>
       <label className="budgets-check"><input type="checkbox" checked={rollover} onChange={e => setRollover(e.target.checked)}/><span>Roll over what is left unspent</span></label>
-      <button type="submit" className="secondary">Save budget</button>
-    </form>
+      <div className="budgets-form-actions"><button type="submit" className="secondary">Save budget</button><button type="button" className="quiet" onClick={() => { setAdding(false); setProblem(''); }}>Cancel</button></div>
+    </form>}
     <p className="budgets-status" role="status" aria-live="polite">{status}</p>
     {problem && <p role="alert">{problem}</p>}
     <p className="fine">From your own money log, in each currency apart. An overspend is never carried into the next month. Not financial advice.</p>

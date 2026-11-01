@@ -10,3 +10,6 @@
 }
 /* Session AF Gate C (design critique, money pages 2): what the headline total counts and its date, under the asset count. */
 :root .wealth-hero-total > .wealth-total-scope { display: block; max-width: 46ch; }
+/* Session AK RB (RELEASE_REVIEW_2 R2-8): a phone's "More about your wealth" row (fewer than two assets) opens onto the
+   analytic rows, one under the other, as they sit on the page from the second asset. */
+:root .wealth-more-group { display: grid; gap: 12px; min-width: 0; }

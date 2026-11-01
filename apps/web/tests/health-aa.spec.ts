@@ -34,7 +34,9 @@ const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localS
 const view = (page: Page, name: string) => page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true}).click();
 
 test('N1–N3: the trend, the energy estimate and the coach show from six weeks of logs; Keep records, Adjust writes the target', async ({page}) => {
-  await seed(page); await page.goto('/app/health');
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the three cards live in Health's Weight view (the tiles at the top
+  // link there); #weight opens it, and the reload below keeps the address, so every assertion is unchanged.
+  await seed(page); await page.goto('/app/health#weight');
   const trend = page.getByRole('region', {name: 'Weight trend'});
   await expect(trend.getByText(/trend today · .*\/week/)).toBeVisible();
   await expect(trend.getByRole('img', {name: /^Trend 7\d\.\d kg, [−-]0\.\d kg a week, goal 70 kg; 21 readings in 42 days\.$/})).toBeVisible();

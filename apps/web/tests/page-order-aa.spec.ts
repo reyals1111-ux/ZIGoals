@@ -46,7 +46,8 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   // Every module 32cb9c5's Today showed with the Showcase is still there, once each (the rail's four included).
   const modules = (await today.locator('[data-module]').evaluateAll(els => els.map(e => e.getAttribute('data-module')!))).sort();
   // Session AC: the two twins are kept, hidden by default; arranging lists each with "Show card" (asserted below).
-  expect(modules).toEqual(['activity', 'attention', 'destination', 'funding', 'goals', 'health', 'needs-attention', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
+  // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the funding agenda is part of "Next money steps" (needs-attention), so 'funding' renders no module of its own while that card shows.
+  expect(modules).toEqual(['activity', 'attention', 'destination', 'goals', 'health', 'needs-attention', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
   await expect(today.locator('.habits-today[aria-labelledby]')).toHaveCount(1);
   // What's new and the weekly review sit with the summaries now, still as For you cards behind the same fold rules.
   const end = page.getByRole('region', {name: 'Updates and summaries', exact: true});
@@ -158,7 +159,8 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   // Session AH Part 6 (DE8): the Workouts card joins after Meditation (deliberate; the order is otherwise unchanged).
   expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:nutrition', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:roadmap', 'health:fasting', 'health:trends']);
   await page.goto('/app/settings');
-  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'ZIGi', 'Help & diagnostics']);
+  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant" (ZIGi's and NOVA's settings).
+  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'Your assistant', 'Help & diagnostics']);
 });
 
 test('Settings: the in-page index stays in view while the page scrolls (computers and tablets)', async ({page}) => {

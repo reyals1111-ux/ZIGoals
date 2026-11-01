@@ -89,6 +89,8 @@ describe('Money tools (Session AK lane M)', () => {
     await setValue(element.querySelector<HTMLTextAreaElement>('textarea')!, 'ab'.repeat(32));
     expect(element.textContent).toContain('The note looks like a private key (64 hexadecimal characters).');
     await click('Print or save as PDF');
+    // Print waits for the word lists before it checks (FU, fcb7b47e), so the refusal can arrive a moment later.
+    await until('Not printed.');
     expect(element.textContent).toContain('Not printed.');
     expect(print).not.toHaveBeenCalled();
     await click('Save notes');

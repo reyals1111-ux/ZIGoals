@@ -1,5 +1,5 @@
 'use client';
-import { useNavExtras } from "./nav-extras";
+import { navCompact, useNavExtras } from "./nav-extras";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
@@ -113,7 +113,8 @@ export function AppNav() {
   // The highlight travels from the previous item to the new one; aria-current and focus move immediately.
   useLayoutEffect(() => {
     const el = nav.current, layer = glide.current, active = el?.querySelector('a[aria-current="page"]');
-    if (!el || !layer || !active) { previous.current = null; return; }
+    // Session AK G2 (R2-10): a 'compact' entry is not drawn in the desktop sidebar; with no box there is nothing to glide to.
+    if (!el || !layer || !active || !active.getClientRects().length) { previous.current = null; return; }
     const from = previous.current, to = boxOf(active, el);
     previous.current = to;
     if (!from || (from.x === to.x && from.y === to.y && from.w === to.w && from.h === to.h) || !entranceAllowed()) return;
@@ -147,7 +148,7 @@ export function AppNav() {
   useLayoutEffect(() => {
     const el = nav.current;
     if (!el) return;
-    const measure = () => { const active = el.querySelector('a[aria-current="page"]'); previous.current = active ? boxOf(active, el) : null; };
+    const measure = () => { const active = el.querySelector('a[aria-current="page"]'); previous.current = active && active.getClientRects().length ? boxOf(active, el) : null; };
     if (typeof ResizeObserver === "undefined") return;
     // Session AB-Design Phase 2 closing pass (WebKit: "ResizeObserver loop completed with undelivered notifications" on
     // Wealth): the active link is measured on the next frame, never inside the observer's own delivery.
@@ -161,13 +162,13 @@ export function AppNav() {
   const columns = Math.max(1, ...[1, 2, 3].map(group => items.filter(([href]) => navGroupOf(href) === group).length));
   return (
     <nav ref={nav} className="app-nav" aria-label="Main navigation" style={{ "--nav-cols": columns } as CSSProperties}>
-      {items.map(([href, label, icon]) => (
+      {items.map((item) => { const [href, label, icon] = item; return (
         <Link key={href} href={href} prefetch={navPrefetch(href)}
-          data-group-start={starts.get(href)}
+          data-group-start={starts.get(href)} data-nav-compact={navCompact(item) || undefined}
           aria-current={isActive(href) ? "page" : undefined}>
           <AppIcon name={icon} luminous={isActive(href)} /><span>{label}</span>
         </Link>
-      ))}
+      ); })}
       <span ref={glide} className="nav-glide" aria-hidden="true" />
     </nav>
   );

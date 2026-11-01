@@ -3346,6 +3346,15 @@
         color: var(--muted,#202938)
     }
 }
+/*  components/ai/photo-send-confirm.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .photo-send-confirm:not(#\-) {
+        border-inline-start-color: var(--line)
+    }
+    .photo-send-confirm img:not(#\-) {
+        border-color: var(--line)
+    }
+}
 /*  components/ai/pip.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     :scope.zigi-pip-root:not(#\-), :scope.zigi-pip-root body:not(#\-) {
@@ -12606,6 +12615,21 @@
         border-color: var(--nova-edge-soft);
         background: var(--nova-glass)
     }
+    .nova-icon-btn[data-tip]:is(:hover, :focus-visible):not(#\-)::after {
+        background-image: none;
+        background-color: #f0f3fa;
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-tech:not(#\-) {
+        border-top-color: var(--nova-edge-soft)
+    }
+    .nova-tech > summary:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-tech > summary:not(#\-)::marker {
+        color: color-mix(in srgb, var(--nova-hi) 42%, #000)
+    }
 }
 /*  components/nova/orb.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -12919,6 +12943,9 @@
     }
     .nova-wf-steps-edit:not(#\-) {
         border-color: var(--line,#c3cae3)
+    }
+    .nova-wf-instruction:not(#\-) {
+        border-inline-start-color: var(--line)
     }
 }
 /*  components/offline-notice.css  */
@@ -16119,6 +16146,19 @@
         color: var(--text-muted)
     }
 }
+/*  components/settings/nova-settings-links.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nova-settings-link:not(#\-) {
+        border-color: var(--line);
+        color: var(--text-strong)
+    }
+    .nova-settings-link small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .nova-settings-link:hover:not(#\-), .nova-settings-link:focus-visible:not(#\-) {
+        border-color: var(--brand-cyan)
+    }
+}
 /*  components/settings/pages-settings.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .pages-switches:not(#\-) {
@@ -17955,6 +17995,16 @@
 :root[data-theme=light] .today-hero:not(.today-hero-folded):not(#\-)::before {
   @media (max-width: 540px) { inset: -28px -16px -14px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 14px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 14px), transparent); }
 }
+/* apps/web/themes/light.nova.css */
+/* Release review 2 (R2-5), lane RA: NOVA's stage is a dark island in Light, like the protected Today hero (the Light scope
+   stops at .nova-root), so while NOVA is open the phone's bottom bar wears its Dark-theme colours under it (the values of
+   public/themes/dark.css; the bar's shape, items and order are untouched) and turns light again the moment NOVA closes
+   (components/nova/nova-page-client.tsx sets and removes data-nova-view). Each rule carries the theme root, NOVA's view and
+   the sheet's one id of weight, so it wins over the generated rule it replaces. */
+:root[data-theme=light][data-nova-view="on"] .phone-tabbar:not(#\-) { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { background-image: linear-gradient(180deg, #01030ff0, #000208f7); background-color: transparent; border-top-color: #7fc8ff2e; box-shadow: 0 -12px 40px #0008; } }
+:root[data-theme=light][data-nova-view="on"] .phone-tab:not(#\-) { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { color: #b9c9e2; } }
+:root[data-theme=light][data-nova-view="on"] :is(.phone-tab[aria-current="page"], .phone-more-button[data-current]):not(#\-) { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { color: #f4f8ff; } }
+:root[data-theme=light][data-nova-view="on"] .phone-tab-pill:not(#\-)::before { @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { background-image: linear-gradient(110deg, #001223, #010413 65%, #000c17), linear-gradient(120deg, var(--brand-cyan), #3b84e1 43%, var(--brand-violet) 70%, var(--brand-cyan)); } }
 /* apps/web/themes/light.sidebar.css */
 /* Session AE (Part 3, ADR-027 G7): Light's sidebar is no longer a night island beside the pale page. A soft lavender dawn:
    a white-family colour behind the logo and the first buttons, deepening gently, with the sidebar's own vector stars in

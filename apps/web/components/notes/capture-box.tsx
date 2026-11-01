@@ -55,7 +55,8 @@ export function CaptureBox({compact = false, autoFocus = false, onSaved, heading
     <div className="note-capture-actions">
       <button type="submit" className="primary" disabled={busy}>Save to inbox</button>
       <input ref={file} id={`${id}-photo`} type="file" accept="image/*" hidden tabIndex={-1} aria-hidden="true" onChange={e => { const f = e.target.files?.[0]; if (f) { setPhoto(f); setStatus('The photo stays on this device; it is shrunk before it is kept.'); } e.target.value = ''; }}/>
-      <button type="button" className="secondary" onClick={() => file.current?.click()}>{photo ? 'Change photo' : 'Add a photo'}</button>
+      {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): one primary Save; the photo and the voice are icon buttons (named, 44 px). */}
+      <button type="button" className="secondary note-icon-button" aria-label={photo ? 'Change photo' : 'Add a photo'} title={photo ? 'Change photo' : 'Add a photo'} onClick={() => file.current?.click()}><CameraGlyph/></button>
       {record.loaded && <SpeakButton on={record.data.voice} turnOn={on => { try { record.update(r => ({...r, voice: on})); } catch { setStatus('This choice could not be kept on this device.'); } }} onText={words => { setText(t => [t.trimEnd(), words].filter(Boolean).join(t.trim() ? ' ' : '').slice(0, MAX_BODY)); setSpoken(true); }}/>}
     </div>
     <p className="fine note-capture-status" role="status" aria-live="polite">{status}{status.startsWith('Saved') && showInboxLink ? <> <Link className="text-link" href="/app/notes?view=inbox">Open the inbox</Link></> : null}</p>
@@ -94,15 +95,25 @@ function SpeakButton({on, turnOn, onText}: {on: boolean; turnOn: (on: boolean) =
     try { r.start(); setListening(true); timer.current = window.setTimeout(() => { try { r.stop(); } catch { /* stopped */ } }, MAX_RECORDING_MS); } catch { rec.current = null; setError('Speech recognition could not start.'); }
   };
   if (!on) return <>
-    <button type="button" className="quiet" aria-expanded={asking} onClick={() => setAsking(a => !a)}>Speak a note…</button>
+    <button type="button" className="quiet note-icon-button" aria-expanded={asking} aria-label="Speak a note" title="Speak a note" onClick={() => setAsking(a => !a)}><MicGlyph/></button>
     {asking && <div className="note-voice-ask" role="group" aria-label="Speaking notes">
       <p className="fine">{env.disclosure} Off until you turn it on; your words land in the box for you to check before saving.</p>
       <div className="note-capture-actions"><button type="button" className="secondary" onClick={() => { turnOn(true); setAsking(false); }}>Turn on speaking notes</button><button type="button" className="quiet" onClick={() => setAsking(false)}>Not now</button></div>
     </div>}
   </>;
   return <>
-    <button type="button" className={listening ? 'primary' : 'secondary'} aria-pressed={listening} onClick={() => { if (listening) { try { rec.current?.stop(); } catch { /* stopped */ } } else start(); }}>{listening ? 'Stop listening' : 'Speak'}</button>
+    <button type="button" className={`${listening ? 'primary' : 'secondary'} note-icon-button`} aria-pressed={listening} aria-label={listening ? 'Stop listening' : 'Speak'} title={listening ? 'Stop listening' : 'Speak'} onClick={() => { if (listening) { try { rec.current?.stop(); } catch { /* stopped */ } } else start(); }}><MicGlyph on={listening}/></button>
     {(listening || interim || error) && <p className="fine note-voice-live" role="status">{error || (interim ? `Hearing: ${interim}` : 'Listening…')}</p>}
     <button type="button" className="text-link note-voice-off" onClick={() => turnOn(false)}>Turn speaking off</button>
   </>;
+}
+
+/** Line icons for the photo and voice buttons (decorative: each button carries its name). The microphone is ZIGi's. */
+function CameraGlyph() {
+  return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.4-2h5.8l1.4 2h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>;
+}
+function MicGlyph({on = false}: {on?: boolean}) {
+  return <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+    {on ? <rect x="7" y="7" width="10" height="10" rx="2.5" fill="currentColor"/> : <><rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>}
+  </svg>;
 }

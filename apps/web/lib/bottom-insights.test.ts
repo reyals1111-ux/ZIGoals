@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {goalTimeline,habitRhythm,healthWeek,lastDays,wealthAllocation,weekAcross} from './bottom-insights';
+import {goalTimeline,habitRhythm,healthWeek,lastDays,loggedDaysOfWeek,wealthAllocation,weekAcross} from './bottom-insights';
 import {createHabit,emptyHabitData,logHabitCount,type HabitInput} from './habits';
 import {createEmptyHealth} from './health';
 import {addWater} from './health-daily';
@@ -70,4 +70,12 @@ test('Session AI (week grid P&L): the day-to-day change in the currency with the
   const history = [{currency: 'USD', points: [{at: '2026-10-25T20:00:00Z', value: '100000'}, {at: '2026-10-26T20:00:00Z', value: '102550'}, {at: '2026-10-28T09:00:00Z', value: '101000'}]}, {currency: 'EUR', points: [{at: '2026-10-28T09:00:00Z', value: '500'}]}];
   expect(weekWealthChange(history, ['2026-10-25', '2026-10-26', '2026-10-27', '2026-10-28'])).toEqual({currency: 'USD', changes: [null, 25.5, 0, -15.5]});
   expect(weekWealthChange([{currency: 'USD', points: [{at: '2026-10-28T09:00:00Z', value: '1'}]}], ['2026-10-28'])).toBeNull();
+});
+
+test('Session AK RB (R2-8): loggedDaysOfWeek counts days with any entry; an empty week is 0, unknown calories still count',()=>{
+ const day=(over:Partial<{kcal:number|null;kcalPartial:boolean;waterMl:number|null;exercise:{count:number|null}[]}>={})=>({kcal:null,kcalPartial:false,waterMl:null,exercise:[{count:null}],...over});
+ expect(loggedDaysOfWeek([])).toBe(0);
+ expect(loggedDaysOfWeek(Array.from({length:7},()=>day()))).toBe(0);
+ expect(loggedDaysOfWeek([day({kcal:0}),day({kcalPartial:true}),day({waterMl:250}),day({exercise:[{count:0}]}),day()])).toBe(4);
+ expect(loggedDaysOfWeek(healthWeek(createEmptyHealth(),'2026-11-01'))).toBe(0);
 });

@@ -13,7 +13,9 @@ import "./phone-fold.css";
  * and off the phone query). As a layout item it passes the region's attributes on: to its row on a phone, and to its
  * child elsewhere, so arranging works as it did.
  */
-export function PhoneFold({ label, children, always = false, expanded = false, remembered, onToggle, ...layout }: LayoutAttrs & { label: string; children: ReactNode; always?: boolean; expanded?: boolean; remembered?: boolean; onToggle?: (open: boolean) => void }) {
+export function PhoneFold({ label, detail, children, always = false, expanded = false, remembered, onToggle, ...layout }: LayoutAttrs & { label: string; detail?: string; children: ReactNode; always?: boolean; expanded?: boolean; remembered?: boolean; onToggle?: (open: boolean) => void }) {
+  // `detail` (Session AK RB, RELEASE_REVIEW_2 R2-9): a short line under the name, part of the row's name — a Today widget's
+  // figure, so the folded row keeps its value in view without a second summary of it elsewhere on the page.
   // `always` (Session P, the "For you" area): the same folded row on every size, not only on phones.
   // `expanded` (Session P, a running fast): the module stays open on a phone, with the same element tree, so a module
   // that must be seen while something runs is neither folded away nor remounted when it changes state.
@@ -37,7 +39,7 @@ export function PhoneFold({ label, children, always = false, expanded = false, r
   if (!phone) return isValidElement(children) && Object.keys(layout).length ? cloneElement(children as ReactElement<Record<string, unknown>>, layout) : <>{children}</>;
   return <div {...layout} className="phone-fold" data-open={open || undefined}>
     {!expanded && <button type="button" className="phone-fold-toggle" aria-expanded={open} aria-controls={id} onClick={() => { setOpen(!chosen); onToggle?.(!chosen); }}>
-      <span>{label}</span><span className="phone-fold-hint" aria-hidden="true">{open ? "Hide" : "Show"}<AppIcon name="chevron" size={18} /></span>
+      <span>{label}{detail && <small className="phone-fold-detail"> {detail}</small>}</span><span className="phone-fold-hint" aria-hidden="true">{open ? "Hide" : "Show"}<AppIcon name="chevron" size={18} /></span>
     </button>}
     <div id={id} ref={body} className="phone-fold-body" hidden={!open}>{children}</div>
   </div>;

@@ -53,7 +53,8 @@ test('@journey 4 offline: install, every pillar offline, back online, the update
   await page.goto('/app/health'); await hydrated(page);
   await page.getByText('Scan or look up a food barcode', {exact: true}).click();
   await expect(page.getByRole('region', {name: 'Barcode food lookup'})).toBeVisible();
-  await page.goto('/app/wealth'); await expect(page.getByRole('form', {name: 'Log spending or income'})).toBeVisible();
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the entry form opens from its "Log spending" button (same chunk).
+  await page.goto('/app/wealth'); await page.locator('#spending').getByRole('button', {name: 'Log spending', exact: true}).click(); await expect(page.getByRole('form', {name: 'Log spending or income'})).toBeVisible();
 
   disconnected = true; await context.setOffline(true);
   try {
@@ -79,6 +80,7 @@ test('@journey 4 offline: install, every pillar offline, back online, the update
     await expect(page.getByRole('link', {name: GOAL}).first()).toBeVisible();
     // Wealth: spending is logged on the device.
     await page.goto('/app/wealth'); await hydrated(page);
+    await page.locator('#spending').getByRole('button', {name: 'Log spending', exact: true}).click(); // Session AK RB (R2-8)
     const spend = page.getByRole('form', {name: 'Log spending or income'});
     await spend.getByLabel('Amount').fill('4.20');
     await spend.getByLabel('Note — optional').fill('Fictional offline coffee');

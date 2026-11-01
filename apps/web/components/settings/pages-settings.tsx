@@ -9,6 +9,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {EARN_PREFS, earnPrefsOf, setEarnPref} from '../../lib/earn/records';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {NAV_ITEMS, useVisibleNav} from '../app-nav';
+import {navCompact} from '../nav-extras';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 import {settingsGroupIn} from '../../lib/vault/w-homes';
 import {updateSettingsGroup} from '../../lib/w-homes-store';
@@ -64,7 +65,8 @@ export function PagesSettings() {
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
   // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
   // Session AH (ST9, B-174, D-217): the sidebar as it really is, with the pages other parts add (the Checklist, Journey).
-  const sidebar = useVisibleNav().items;
+  // Session AK G2 (RELEASE_REVIEW_2 R2-10): the 'compact' entries (Tasks, Notes, the Journal) are not in the desktop sidebar.
+  const sidebar = useVisibleNav().items.filter(item => !navCompact(item));
   const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
     <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>

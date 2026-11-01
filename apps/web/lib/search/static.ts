@@ -310,7 +310,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ak-cash-forecast", "What is Next 60 days?"],
   ["ak-spending-map", "What are the spending map and the net-worth share card?"],
   ["ak-note-useful", "What does “Was this useful?” under ZIGi’s note do?"],
-  ["ak-journal-music", "Where are the Journal and Music pages?"],
+  ["ak-journal-music", "Where are Tasks, Notes, the Journal and Music?"],
 ];
 
 export const HELP_ITEMS: readonly SearchItem[] = [

@@ -43,6 +43,9 @@ describe('the lane W views', () => {
     expect(out).toContain('€140.00');
     expect(out).toContain('rolled over');
     expect(out).toContain('Remove the Groceries budget in EUR');
+    // Session AK RB (RELEASE_REVIEW_2 R2-8): the form waits behind its button.
+    expect(out).toContain('+ Set a monthly budget');
+    expect(out).not.toContain('aria-label="Set a monthly budget"');
   });
   test('Target mix: the table, the drift and the unknown price change', () => {
     const record = setTargets(emptyTargetAllocation(), 'class', [{key: 'Stocks', label: 'Stocks', percent: '50'}]);

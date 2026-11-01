@@ -41,7 +41,8 @@ export function NoteEditor({note, day, index, change, onCreateLink, onDeleted}: 
     {mode === 'edit' ? <>
       {!isDaily && <label className="field"><span>Title</span><input value={title} maxLength={MAX_TITLE} onChange={e => setTitle(e.target.value)} placeholder={note?.kind === 'inbox' ? 'Optional' : 'A title'}/></label>}
       {!isDaily && <SecretGuard text={title} onRemove={() => setTitle('')}/>}
-      <LinkField label={isDaily ? 'This day’s note' : 'Note'} value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
+      {/* Session AK G2 (RELEASE_REVIEW_2 R2-18): `[[` is explained here, in the field, where it is used. */}
+      <LinkField label={isDaily ? 'This day’s note' : 'Note'} placeholder="Write here. Type [[ to link a goal, a habit or another note." value={body} onChange={setBody} index={index} exclude={note ? {kind: 'note', id: note.id} : undefined} maxLength={MAX_BODY} onSubmit={saveAndRead} rows={isDaily ? 6 : 10}/>
       <div className="note-actions">
         <button type="button" className="primary" disabled={!dirty} onClick={saveAndRead}>Save</button>
         {(note?.body.trim() || body.trim()) && <button type="button" className="quiet" onClick={() => { if (dirty) { setTitle(note?.title ?? ''); setBody(note?.body ?? ''); } setMode(note?.body.trim() ? 'read' : 'edit'); }}>{dirty ? 'Cancel changes' : 'Done'}</button>}

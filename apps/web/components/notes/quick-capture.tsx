@@ -1,26 +1,19 @@
 'use client';
-import {Suspense, lazy, useState} from 'react';
-import {AppIcon} from '../app-icon';
+import {Suspense, lazy} from 'react';
 import './notes.css';
 import {LoadBoundary} from '../load-boundary';
 
 const CaptureBox = lazy(() => import('./capture-box'));
 
 /**
- * Session AK (B1): "Note" in Quick add — one row like the sheet's others; a tap opens the capture box in place (its code
- * loads then), so a thought goes to the notes inbox without leaving the page. Mounted as one lazy element in
- * components/quick-add.tsx.
+ * Session AK (B1): "Note" in Quick add — a thought goes to the notes inbox without leaving the page. Session AK G2
+ * (RELEASE_REVIEW_2 R2-13): the "Note" row is one of the sheet's own rows (components/quick-add.tsx, same look and
+ * alignment, in frequency order); a tap loads this and the capture box takes the row's place, with a way back to the row.
  */
-export default function QuickCapture() {
-  const [open, setOpen] = useState(false);
-  // A plain wrapper, not a navigation landmark named "Capture a note": it holds one button (or the capture form), and the
-  // landmark's name sat in every page's closed Quick add sheet beside the Notes page's own capture box (lane NV).
-  return <div className="quick-capture">
-    {open ? <div className="quick-capture-box">
-      <LoadBoundary label="Capture a note"><Suspense fallback={<p className="fine">Opening…</p>}><CaptureBox compact autoFocus heading="Capture a note"/></Suspense></LoadBoundary>
-      <button type="button" className="quiet" onClick={() => setOpen(false)}>Close the note box</button>
-    </div> : <button type="button" className="quick-action" aria-expanded={false} onClick={() => setOpen(true)}>
-      <span className="icon-medallion"><AppIcon name="checklist" luminous/></span><span><strong>Note</strong><small>Capture a thought, a photo or your voice; file it later.</small></span><span aria-hidden="true">＋</span>
-    </button>}
+export default function QuickCapture({onClose}: {onClose: () => void}) {
+  // A plain wrapper, not a navigation landmark named "Capture a note" (lane NV).
+  return <div className="quick-capture quick-capture-box">
+    <LoadBoundary label="Capture a note"><Suspense fallback={<p className="fine">Opening…</p>}><CaptureBox compact autoFocus heading="Capture a note"/></Suspense></LoadBoundary>
+    <button type="button" className="quiet" onClick={onClose}>Close the note box</button>
   </div>;
 }

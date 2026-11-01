@@ -119,6 +119,8 @@ test('@journey 11 keyboard only, with names: setup, a habit, the Checklist, Heal
   // Journey 3 by keyboard: a spending entry logged with Tab, typing, Space and Enter.
   await page.goto('/app/wealth'); await hydrated(page);
   await named(page, '/app/wealth');
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the entry form opens from its "Log spending" button, by keyboard too.
+  await press(page, page.locator('#spending').getByRole('button', {name: 'Log spending', exact: true}));
   const spend = page.getByRole('form', {name: 'Log spending or income'});
   await tabTo(page, spend.getByLabel('Amount'));
   await page.keyboard.type('6.40');

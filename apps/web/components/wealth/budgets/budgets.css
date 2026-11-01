@@ -29,3 +29,7 @@
 .budgets-table{table-layout:fixed}
 .budgets-table td,.budgets-table th,.budgets-total,.budgets-body .fine{overflow-wrap:anywhere}
 .budgets-table td:last-child,.budgets-table th:last-child{width:76px}
+/* Session AK RB (RELEASE_REVIEW_2 R2-8): the form opens from "+ Set a monthly budget". */
+.budgets-add{margin:0}
+.budgets-add>button{min-height:44px}
+.budgets-form .budgets-form-actions{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}

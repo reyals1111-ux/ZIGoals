@@ -53,6 +53,7 @@ import { LengthCounterHost } from "./ui/length-counter";
 import { SearchButton, SearchHost } from "./search/search-trigger";
 import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
+import { NavPages } from "./nav-pages"; // Session AK G2 (RELEASE_REVIEW_2 R2-10): Tasks, Notes, Journal and Music as navigation entries
 import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged second (ADR-022 B52): the game cards and Journey's nav entry, once for every page
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
@@ -291,7 +292,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
           </section>
         )}
         <OfflineNotice />
-        <SearchHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar />
+        <SearchHost/><ShortcutHost/><UndoToastHost /><ShowcaseUndoOffer /><LengthCounterHost /><GameRegistrar /><NavPages />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><EarnDock /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>

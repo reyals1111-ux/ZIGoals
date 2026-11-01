@@ -17,6 +17,8 @@
 .note-capture textarea, .note-field textarea { width: 100%; max-width: 100%; box-sizing: border-box; resize: vertical; }
 .note-capture-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .note-capture-actions > button { min-height: 44px; }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-18): the photo and voice buttons are icons, 44 × 44, beside the one primary Save. */
+.note-icon-button { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 10px; }
 .note-capture-photo { display: flex; gap: 12px; align-items: center; }
 .note-capture-photo img, .note-inbox-photo { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; flex: none; }
 .note-capture-status { margin: 0; min-height: 20px; }
@@ -149,18 +151,7 @@
 .note-import-plan { display: grid; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); max-width: 100%; overflow-wrap: anywhere; }
 .note-import-plan summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
 
-/* Quick add's "Note" row and its box (the sheet is a dark island in every theme). */
-.quick-capture { margin-bottom: 10px; }
-/* The row wears the sheet's own action-row look. Those rules are keyed on `.quick-add-dialog nav`
-   (components/platform/run92-product.css, components/navigation.css), and this row is no longer a nav (Session AK, lane
-   NV: a one-button landmark named "Capture a note"), so the same values are repeated here for it. The grid on the words
-   also keeps the name spaced ("Note Capture a thought…"), as the sheet's other rows are. */
-.quick-add-dialog .quick-capture > .quick-action { display: flex; align-items: center; gap: 16px; padding: 15px; border: 1px solid #7da3ca36; border-radius: 16px; background: linear-gradient(110deg, #172e454d, #31264435); }
-.quick-add-dialog .quick-capture > .quick-action:hover { border-color: #47dce8; background: #17405655; }
-.quick-add-dialog .quick-capture > .quick-action > span:nth-child(2) { display: grid; gap: 5px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.quick-add-dialog .quick-capture > .quick-action strong { font-size: 18px; }
-.quick-add-dialog .quick-capture > .quick-action small { font-size: 14px; color: #b7cbe2; }
-@media (max-width: 700px) { .quick-add-dialog .quick-capture > .quick-action { padding: 13px; gap: 12px; } }
-@media (max-width: 380px) { .quick-add-dialog .quick-capture > .quick-action { gap: 8px; padding: 12px; } .quick-add-dialog .quick-capture .icon-medallion { width: 34px; height: 34px; } }
+/* Quick add's note box (the sheet is a dark island in every theme). Session AK G2 (RELEASE_REVIEW_2 R2-13): the "Note" row
+   itself is one of the sheet's own rows now (components/quick-add.tsx), styled with them, so its copied rules went. */
 .quick-capture-box { display: grid; gap: 8px; padding: 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 35%, transparent); }
 .quick-capture-box > button { justify-self: start; min-height: 44px; }

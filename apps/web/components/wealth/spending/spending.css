@@ -36,3 +36,9 @@
 /* Session AK (lane M, item 10): an imported entry still to review (Money tools → To review). */
 .spending-review-dot{display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--amber,#f5b65b);vertical-align:middle}
 .spending-review-dot .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Session AK RB (RELEASE_REVIEW_2 R2-8): the entry form and the weekly budget open from their buttons. */
+.spending-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.spending-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.spending-actions>button,.spending-form-actions>button,.spending-budget-line>button{min-height:44px}
+.spending-budget-line{margin:0}
+.spending-budget>[role=alert]{grid-column:1 / -1;margin:0}

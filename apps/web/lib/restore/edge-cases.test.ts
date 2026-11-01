@@ -26,7 +26,7 @@ describe('foreign files: the other ZIGoals files a person may pick here by mista
     await expect(openBackup(new Blob([JSON.stringify({format: 'zigoals-encrypted-backup', version: 1, manifest: {}, index: {}, chunks: []})]))).rejects.toThrow(RESTORE_ERRORS.encrypted);
     await expect(openBackup(new Blob([JSON.stringify(emptyHabitData())]))).rejects.toThrow(moduleBackupMessage('Habits'));
     await expect(openBackup(new Blob([JSON.stringify(createEmptyHealth())]))).rejects.toThrow(moduleBackupMessage('Health'));
-    await expect(openBackup(new Blob([JSON.stringify(emptyPlatform())]))).rejects.toThrow(moduleBackupMessage('Positions and Goals'));
+    await expect(openBackup(new Blob([JSON.stringify(emptyPlatform())]))).rejects.toThrow(moduleBackupMessage('Goals and Wealth'));
     await expect(openBackup(new Blob([JSON.stringify(base)]))).rejects.toThrow(RESTORE_ERRORS.unzipped);
     expect(moduleBackupMessage('Habits')).toBe('This is a single Habits backup, not an “Export everything” ZIP. Restore it in Settings under “Habits backup”. Nothing was changed.');
   });

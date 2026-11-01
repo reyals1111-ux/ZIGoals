@@ -11,6 +11,7 @@ import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
+import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
@@ -26,6 +27,7 @@ import {InstallCard} from "../../../components/install/install-card";
 import { Slot } from "../../../components/progress/slot";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
+import { NovaSettingsLinks } from "../../../components/settings/nova-settings-links";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
 import { useEffect, useState, type ReactNode } from "react";
@@ -53,8 +55,10 @@ import { useChainChoice } from "../../../components/chain/use-chain-choice";
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
+ * Session AK G2 (RELEASE_REVIEW_2 R2-4): the ZIGi group is "Your assistant", ZIGi's settings and NOVA's together, one name
+ * for one engine; its id (#settings-zigi) and every anchor in it (#your-ai and ZIGi's own) stay as they were.
  */
-const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "ZIGi"], ["settings-help", "Help & diagnostics"]];
+const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
 /** Session AB-Design (owner request 36): one small line icon per Settings group, before its title. */
 const GROUP_ICON: Record<string, ReactNode> = {
   'settings-data': <path d="M4 7h16M4 12h16M4 17h10"/>,
@@ -127,7 +131,7 @@ export default function Settings() {
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
-        <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
+        <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p>{/* Session AK G2 (RELEASE_REVIEW_2 R2-16, re-opening part of R4): the format sentence was for developers; it went. */}<p className="fine">Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
         {/* Session AA-Cloud Part 6: the Data health page (where each part lives, what this device holds, what ZIGi sees). */}
         <Link className="panel data-health-door" href="/app/settings/data"><span><strong>Your data</strong><small>Where each part lives, what this device holds and what ZIGi can see.</small></span><span aria-hidden="true">→</span></Link>
         {/* Session AI (SE3): one "Backup & restore" card; its four parts keep their own anchors and headings (the specs pin them). */}
@@ -248,10 +252,15 @@ export default function Settings() {
         </div>
         </section>}
       </SettingsGroup>
-      <SettingsGroup id="settings-zigi" title="ZIGi">
+      <SettingsGroup id="settings-zigi" title="Your assistant">
+        <p className="fine settings-assistant-lede">ZIGi is your companion; NOVA is ZIGi&rsquo;s full-screen command center. One assistant with one history: the connection, keys, voice and privacy mode below serve both.</p>
         <LoadBoundary label="ZIGi’s settings"><AiSettingsSection/></LoadBoundary>
+        <NovaSettingsLinks/>
       </SettingsGroup>
       <SettingsGroup id="settings-help" title="Help & diagnostics">
+        {/* Session AK G2 (RELEASE_REVIEW_2 R2-16): how this browser keeps the records (storage health and the per-module
+            storage upgrade) is a diagnostic, so it lives here, out of Backup & restore. */}
+        <StorageInternals/>
         <details className="advanced-diagnostics" id="diagnostics"><summary>Advanced Diagnostics</summary>
         <ConnectionDiagnostics
           key={`${s.chain}:${s.owner}`}

@@ -61,5 +61,6 @@ test('widget insertion, rail placement and encrypted layout recovery keep one bi
  await openTodayWidgets(page);
  await expect(page.locator('.today-rail > .placed-module').filter({has:card})).toHaveCount(1);
  await expect(page.locator('.placed-module').filter({has:card})).toHaveCount(1);
- await expect(page.getByRole('region',{name:'Your selected widgets'}).getByRole('link',{name:/My water/})).toHaveCount(1);
+ // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the overview no longer repeats the cards; the card itself is there once.
+ await expect(page.locator('article.dashboard-widget[aria-label="My water"]')).toHaveCount(1);
 });

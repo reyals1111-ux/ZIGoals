@@ -28,6 +28,20 @@ export const moneyTools = (page: Page) => page.getByRole('group', {name: 'Money 
 export async function openWealth(page: Page) {
   await page.goto('/app/wealth');
   await expect(spending(page).getByRole('heading', {name: 'Room to spend'})).toBeVisible();
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the entry form opens from its "Log spending" button.
+  await spending(page).getByRole('button', {name: 'Log spending', exact: true}).click();
   await expect(spending(page).getByRole('button', {name: 'Save', exact: true})).toBeVisible();
+}
+/** Session AK RB (R2-8): the weekly budget opens from its button ("Set a weekly budget", or "Change …" once set). */
+export async function openWeeklyBudget(page: Page) {
+  await spending(page).getByRole('button', {name: /^(Set a|Change) weekly budget$/}).click();
+  return spending(page).getByRole('form', {name: 'Weekly budget'});
+}
+/** Session AK RB (R2-8): Budgets by category folds to a row on a phone (its #budgets address opens it) and its form opens
+ *  from "+ Set a monthly budget". */
+export async function openMonthlyBudget(page: Page) {
+  await page.goto('/app/wealth#budgets');
+  await page.locator('#budgets').getByRole('button', {name: '+ Set a monthly budget', exact: true}).click();
+  return page.getByRole('form', {name: 'Set a monthly budget'});
 }
 export {MONEY_LOG_KEY};

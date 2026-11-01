@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import {useState} from 'react';
 import {TourOffer} from '../tour/tour-offer';
+import {useChainChoice} from '../chain/use-chain-choice';
+import {consumerLines} from '../../lib/whats-new-chain/filter';
 
 export type WhatsNewLink = {href: string; label: string};
 /** Session AK (release `2026-11-session-ak-number-one`, ADR-036): number one. Each link opens its Help answer. */
@@ -209,8 +211,10 @@ export const EARLIER_LINKS: WhatsNewLink[] = [
  * The one-time "What's new" card (Session P): links to the Help entries of the new features, the previous release's under
  * "Earlier updates"; "Got it" writes the device flag. Session AK (A19): "Take the 1-minute tour" sits under the links.
  */
-export function WhatsNewCard({links = WHATS_NEW_LINKS, earlier = EARLIER_LINKS, onDismiss}: {links?: WhatsNewLink[]; earlier?: WhatsNewLink[]; onDismiss: () => boolean}) {
+export function WhatsNewCard({links: allLinks = WHATS_NEW_LINKS, earlier: allEarlier = EARLIER_LINKS, onDismiss}: {links?: WhatsNewLink[]; earlier?: WhatsNewLink[]; onDismiss: () => boolean}) {
   const [error, setError] = useState('');
+  // Session AK RB (RELEASE_REVIEW_2 R2-6): lines that name the chain wait until the chain is chosen (Earlier updates too).
+  const chosen = useChainChoice().chosen, links = consumerLines(allLinks, chosen), earlier = consumerLines(allEarlier, chosen);
   return <section className="panel for-you-card whats-new-card" aria-labelledby="whats-new-title">
     <p className="eyebrow">What’s new</p><h2 id="whats-new-title">A few new things.</h2>
     <p className="fine">Each one is optional, and nothing changes until you use it.</p>

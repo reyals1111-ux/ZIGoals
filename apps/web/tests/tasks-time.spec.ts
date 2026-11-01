@@ -14,6 +14,8 @@ import {PLATFORM_KEY, emptyPlatform, privateGoalSchema} from '../lib/positions';
 const TODAY = '2026-11-04'; // a Wednesday
 test.use({timezoneId: 'UTC'});
 const goal = privateGoalSchema.parse({id: '1', name: 'Fictional garden', type: 'PROJECT', status: 'active', asset: 'ZIG', denom: 'azig', decimals: 0, target: '1', notes: '', createdAt: '2026-10-01T09:00:00.000Z', milestones: [{id: 'm1', title: 'Dig the bed', done: false}]});
+// Session AK G2 (RELEASE_REVIEW_2 R2-17): a finished goal (its one milestone done) is not offered for a new task.
+const finished = privateGoalSchema.parse({id: '2', name: 'Fictional shed', type: 'PROJECT', status: 'active', asset: 'ZIG', denom: 'azig', decimals: 0, target: '1', notes: '', createdAt: '2026-09-01T09:00:00.000Z', milestones: [{id: 'm2', title: 'Build it', done: true}]});
 async function fresh(page: Page, extra: Record<string, string> = {}) {
   await page.clock.install({time: new Date(`${TODAY}T10:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
@@ -24,15 +26,23 @@ const read = async <T,>(page: Page, key: string) => JSON.parse((await page.evalu
 type Stored = {tasks: {id: string; title: string; due?: string; time?: string; goal?: string; doneAt?: string}[]};
 
 test('a task with a day, a time and a goal: on the Agenda\'s day view and its goal\'s page; ticked there with Undo', async ({page}) => {
-  await fresh(page, {[PLATFORM_KEY]: JSON.stringify({...emptyPlatform(), goals: [goal]})});
+  await fresh(page, {[PLATFORM_KEY]: JSON.stringify({...emptyPlatform(), goals: [goal, finished]})});
   await page.goto('/app/tasks');
   await expect(page.getByRole('heading', {level: 1, name: 'One list for the things to do'})).toBeVisible();
   await expect(page.getByText('Your list starts here')).toBeVisible();
   const form = page.getByRole('form', {name: 'Add a task'});
   await form.getByLabel('New task').fill('Fictional: buy seeds');
+  // Session AK G2 (RELEASE_REVIEW_2 R2-17, deliberate): the page's add field is one line; priority, day, time and goal are
+  // behind "More options" (the same fields, the same labels).
+  const more = form.getByRole('button', {name: 'More options', exact: true});
+  await expect(more).toHaveAttribute('aria-expanded', 'false');
+  await expect(form.getByLabel('Priority')).toHaveCount(0);
+  await more.click();
+  await expect(more).toHaveAttribute('aria-expanded', 'true');
   await form.getByLabel('Priority').selectOption('high');
   await form.getByLabel('Due (optional)').fill(TODAY);
   await form.getByLabel('Time (optional)').fill('09:15');
+  await expect(form.getByLabel('Goal (optional)').locator('option')).toHaveText(['No goal', 'Fictional garden']);
   await form.getByLabel('Goal (optional)').selectOption({label: 'Fictional garden'});
   await form.getByRole('button', {name: 'Add task'}).click();
   await expect(page.getByRole('status').filter({hasText: 'Added “Fictional: buy seeds”.'})).toBeVisible();

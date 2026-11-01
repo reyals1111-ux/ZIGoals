@@ -24,7 +24,12 @@ test('a brand-new device sees the welcome on Today; Not now writes only the seen
 
 test('never for someone with records or a chosen Today, and never in Showcase',async({page})=>{
  // A saved Today choice counts as an existing user.
- await today(page);await page.getByRole('button',{name:'Keep Balanced and continue',exact:true}).click();
+ // Session AK RB (RELEASE_REVIEW_2 R2-11, deliberate): "Make Today yours" waits until the welcome is answered (the two asked
+ // the same question one after the other), so Not now comes first; the seen flag it writes is then removed, so the welcome
+ // staying away below still rests on the saved Today choice alone, as before.
+ await today(page);await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await card(page).getByRole('button',{name:'Not now',exact:true}).click();
+ await page.getByRole('button',{name:'Keep Balanced and continue',exact:true}).click();
+ await page.evaluate(k=>localStorage.removeItem(k),KEY);
  await expect(page.locator('.dashboard-welcome')).toHaveCount(0);await today(page);await expect(card(page)).toHaveCount(0);
  // Any private record counts too, even with Today untouched.
  await page.evaluate(()=>localStorage.clear());
@@ -92,7 +97,10 @@ test('the flow: ZIGi\'s hello, pillars, focuses, starters, the tour, install, ZI
  expect(await page.evaluate(k=>localStorage.getItem(k),KEY)).toBe('{"version":1,"seen":true}');
  const settings=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:settings:v1')!));
  expect(settings.schemaVersion).toBe(3);
- expect(Object.keys(settings.pages.items).sort()).toEqual(['ecosystem','goals','markets','portfolio','staking','wealth','wealth-shortcut']);
+ // Session AK X1 and G2 (RELEASE_REVIEW R3, RELEASE_REVIEW_2 R2-6; deliberate): the crypto pages are hidden by default until
+ // the chain is chosen, and the welcome writes no chain choice unless "Crypto & ZIGChain" is picked, so only Goals, Wealth
+ // and the Wealth shortcut are stamped (lib/templates/templates.test.ts proves the same).
+ expect(Object.keys(settings.pages.items).sort()).toEqual(['goals','wealth','wealth-shortcut']);
  expect(Object.values(settings.pages.items).every((choice:unknown)=>(choice as {v:string}).v==='hidden')).toBe(true);
  const habits=await page.evaluate(()=>JSON.parse(localStorage.getItem('zigoals:habits:v1')!));
  expect(habits.habits.map((h:{title:string})=>h.title).sort()).toEqual(['Drink water','Walk']);

@@ -36,6 +36,11 @@ test('a new device: no money tools in the navigation, no wallet buttons, the neu
   const names = await navNames(page);
   for (const tool of MONEY_TOOLS) expect(names, tool).not.toContain(tool);
   for (const area of ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Activity', 'Settings', 'Help']) expect(names, area).toContain(area);
+  // Session AK G2 (RELEASE_REVIEW_2 R2-10): Tasks, Notes and the Journal are 'compact' navigation entries — the phone's More
+  // sheet and the tablet rail, not the desktop sidebar (its PROTECTED fit); Music is no entry (its player and search open it).
+  const phone = await isPhone(page);
+  for (const extra of ['Tasks', 'Notes', 'Journal']) if (phone) expect(names, extra).toContain(extra); else expect(names, extra).not.toContain(extra);
+  expect(names).not.toContain('Music');
   await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
   await expect(page.getByRole('button', {name: /Connect Keplr|Demo records|On this device|More wallets/})).toHaveCount(0);
   // Below the protected hero (its words are the owner's), Today speaks consumer words only (R2, R14).
@@ -44,7 +49,11 @@ test('a new device: no money tools in the navigation, no wallet buttons, the neu
   await expect(page.locator('.account-panel, .local-label, .progress-summary')).toHaveCount(0);
   // R14: the welcome leads, then one empty card for Goals, Habits and Health; the rest waits for a first record.
   const modules = await page.locator('.dashboard-layout-grid .placed-module').evaluateAll(els => els.map(el => (el as HTMLElement).dataset.module ?? ''));
-  for (const id of modules) expect(['goals', 'habits', 'health']).toContain(id);
+  // Session AK RB (RELEASE_REVIEW_2 R2-11, deliberate): Habits and Wealth get their empty card too, as R14 intended — the
+  // habits widget that stands in for the hidden Daily Habits, and the first wealth widget (Balanced's preset ids).
+  for (const id of modules) expect(['goals', 'habits', 'health', 'preset-balanced-1', 'preset-balanced-3']).toContain(id);
+  expect(modules.some(id => id === 'habits' || id === 'preset-balanced-1'), 'a Habits card').toBe(true);
+  expect(modules).toContain('preset-balanced-3');
   await expect(page.locator('.today-rail')).toHaveCount(0);
   const welcomeTop = (await page.locator('.onboarding-welcome').boundingBox())!.y, gridTop = (await page.locator('.dashboard-widget-area').boundingBox())!.y;
   expect(welcomeTop).toBeLessThan(gridTop);
@@ -127,4 +136,86 @@ test('choosing a money tool in Settings brings the chain back: the money tools, 
   for (const tool of MONEY_TOOLS) expect(names, tool).toContain(tool);
   await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL_CHOSEN);
   if (!isMobile) await expect(page.locator('.status-row .status-wallet').getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
+});
+
+// Session AK G2 (RELEASE_REVIEW_2 R2-6, re-opening part of R3): choosing goals and money in the welcome is not choosing the
+// chain. "Goals & money" shows Goals and Wealth (money log, budgets, bills); the chain is its own clearly named extra,
+// "Crypto & ZIGChain", left unticked here. R2-12: the habit the focus creates keeps the Habits page shown.
+test('the welcome\'s "Goals & money" with "Save for something": Goals and Wealth, no money tools, no wallet and no chain words', async ({page}) => {
+  await ready(page, '/app/welcome');
+  const flow = page.locator('main');
+  const step = (title: string) => expect(flow.getByRole('heading', {level: 1, name: title})).toBeVisible();
+  await flow.getByRole('button', {name: 'Let’s begin', exact: true}).click();
+  await step('What do you want to improve?');
+  const extras = flow.getByRole('group', {name: 'Extras', exact: true});
+  for (const extra of [/^Chess/, /^Music/, /^Crypto & ZIGChain/]) await expect(extras.getByRole('checkbox', {name: extra})).not.toBeChecked();
+  await flow.getByRole('checkbox', {name: /^Goals & money/}).check();
+  await expect(flow.locator('.onboarding-shown')).toHaveText('You’ll see: Today, Goals, Wealth, Activity, Settings.');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('Two or three things to focus on.');
+  await flow.getByRole('checkbox', {name: /^Save for something/}).check();
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('A few things to start with.');
+  // The focus suggests the "Contribute" habit (ticked) and an Emergency fund goal, which needs a target.
+  await expect(flow.getByRole('checkbox', {name: /^Contribute/})).toBeChecked();
+  await expect(flow.getByLabel('Goal name')).toHaveValue('Emergency fund');
+  await flow.getByLabel('Target amount').fill('1500');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('A quick look around.');
+  await flow.getByRole('button', {name: 'Skip the tour', exact: true}).click();
+  await step('Keep ZIGoals on your Home Screen.');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('Meet ZIGi.');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('Your data, your control.');
+  await expect(flow.getByRole('region', {name: 'When you finish'})).toContainText('Your pages: Today, Goals, Habits, Wealth, Activity, Settings.');
+  expect(await flow.textContent()).not.toMatch(CHAIN_WORDS);
+  await flow.getByRole('button', {name: 'Finish setup', exact: true}).click();
+  await page.waitForURL(/\/app$/);
+  await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
+  await expect(page.locator('main h1').first()).toBeVisible();
+  // No crypto page was switched on: the stored choice holds no chain page at all.
+  const items = await page.evaluate(() => (JSON.parse(localStorage.getItem('zigoals:settings:v1') ?? '{}') as {pages?: {items?: Record<string, {v: string}>}}).pages?.items ?? {});
+  for (const id of ['markets', 'staking', 'portfolio', 'ecosystem']) expect(items[id], id).toBeUndefined();
+  const names = await navNames(page);
+  for (const tool of MONEY_TOOLS) expect(names, tool).not.toContain(tool);
+  for (const area of ['Today', 'Goals', 'Habits', 'Wealth']) expect(names, area).toContain(area);
+  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
+  await expect(page.getByRole('button', {name: /Connect Keplr|Demo records|On this device|More wallets/})).toHaveCount(0);
+  await expect(page.getByText('Your wallet', {exact: true})).toHaveCount(0);
+  // What a person reads below the protected hero (rendered text: the What's new card's folded "Earlier updates" history
+  // still names past chain features; the lead's report carries that as its own proposal).
+  const below = await page.locator('.today-page').evaluate(el => { const hero = el.querySelector<HTMLElement>('.today-hero'); if (hero) hero.style.display = 'none'; const text = (el as HTMLElement).innerText; if (hero) hero.style.display = ''; return text; });
+  expect(below).not.toMatch(CHAIN_WORDS);
+  // Wealth is the person's money, in plain words.
+  await ready(page, '/app/wealth');
+  await expect(page.getByRole('link', {name: 'Ways to earn on ZIGChain →'})).toHaveCount(0);
+});
+
+test('the welcome\'s "Crypto & ZIGChain" extra is the explicit chain choice: the money tools come back', async ({page}) => {
+  await ready(page, '/app/welcome');
+  const flow = page.locator('main');
+  await flow.getByRole('button', {name: 'Let’s begin', exact: true}).click();
+  await expect(flow.getByRole('heading', {level: 1, name: 'What do you want to improve?'})).toBeVisible();
+  await flow.getByRole('group', {name: 'Extras', exact: true}).getByRole('checkbox', {name: /^Crypto & ZIGChain/}).check();
+  await expect(flow.locator('.onboarding-shown')).toHaveText('You’ll see: Today, Wealth, Markets, Staking, Portfolio, Ecosystem, Activity, Settings.');
+  const step = (title: string) => expect(flow.getByRole('heading', {level: 1, name: title})).toBeVisible();
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('Two or three things to focus on.');
+  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
+  await step('A few things to start with.');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('A quick look around.');
+  await flow.getByRole('button', {name: 'Skip the tour', exact: true}).click();
+  await step('Keep ZIGoals on your Home Screen.');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('Meet ZIGi.');
+  await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  await step('Your data, your control.');
+  await flow.getByRole('button', {name: 'Finish setup', exact: true}).click();
+  await page.waitForURL(/\/app$/);
+  await expect(page.locator('main h1').first()).toBeVisible();
+  const names = await navNames(page);
+  for (const tool of MONEY_TOOLS) expect(names, tool).toContain(tool);
+  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL_CHOSEN);
 });

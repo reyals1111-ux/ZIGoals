@@ -162,7 +162,8 @@ test('@journey 2 health day: barcode → offline generic food → photo estimate
   expect((await health(page))!.sleep!.nights).toHaveLength(1);
 
   // The weekly coach: Keep, then Undo clears the answer, then Keep again.
-  await page.goto('/app/health'); await hydrated(page);
+  // Session AK RB (R2-8, deliberate): the coach card lives in Health's Weight view now; #weight opens it.
+  await page.goto('/app/health#weight'); await hydrated(page);
   const coach = page.getByRole('region', {name: 'Your coach'});
   await expect(coach.getByText(/^This week: [−+]?\d+(\.\d)? kg\/week\.$/)).toBeVisible();
   await coach.getByRole('button', {name: 'Keep my target', exact: true}).click();

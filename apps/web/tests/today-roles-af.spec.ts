@@ -31,8 +31,10 @@ test('the Showcase: the top goal’s next step, the most urgent other goal, each
   expect(r.panelGoal).not.toBe(r.focusGoal); // "What matters today": another goal
   expect(['Reward income reserve', 'Japan adventure', 'First home deposit']).toContain(r.panelGoal);
   expect(new Set([r.focusStep, r.panel, r.cards[0]]).size).toBe(3);
-  // Every card is still there: the five active goals and "Create a new goal".
-  expect(r.cards).toHaveLength(5);
+  // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): a goal shows once on Today, so the goal "What matters today" shows
+  // has no second card; the other four active goals keep theirs, and "Create a new goal" stays.
+  expect(r.cards).toHaveLength(4);
+  expect(r.cards.some(c => c.includes(r.panelGoal))).toBe(false);
   expect(r.newCard).toBe(true);
 });
 

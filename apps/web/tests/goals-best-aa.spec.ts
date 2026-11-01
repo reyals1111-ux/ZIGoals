@@ -48,7 +48,9 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   // G7: the Hall of achievements.
   const hall = page.getByRole('region', {name: 'Hall of achievements'});
   await expect(hall.locator('.hall-title')).toHaveText(['Drink 2 litres a day', '8,000 steps a day, all summer', 'My first 0.1 BTC']);
-  await expect(hall).toContainText('Finish day not recorded');
+  // Session AK RB (RELEASE_REVIEW_2 R2-23, deliberate): a finish day the records do not hold reads "Finished" alone.
+  await expect(hall).not.toContainText('Finish day not recorded');
+  await expect(hall.locator('.hall-when').filter({hasText: /^Finished$/})).not.toHaveCount(0);
   // A goal's page lists its sub-goals of every kind, an average goal included, as the tree does.
   await page.goto('/app/goals/tracked/9205');
   await expect(page.getByRole('list', {name: 'Sub-goals'})).toContainText('Create 2 hours a day');

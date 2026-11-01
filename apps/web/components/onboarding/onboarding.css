@@ -24,6 +24,8 @@
 .onboarding-points strong { display: block; color: var(--text); font-size: 17px; }
 .onboarding-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; border: 0; min-width: 0; }
 .onboarding-goal-types { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-12): Chess, Music and the chain on their own "Extras" line (its legend is the steps' own), below the life areas. */
+.onboarding-extras { margin-top: 6px; }
 .onboarding-choice { position: relative; display: block; min-width: 0; cursor: pointer; }
 .onboarding-choice input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .onboarding-choice > span { display: grid; align-content: start; gap: 4px; height: 100%; min-height: 64px; padding: 14px; border: 1px solid #3a4c6e; border-radius: 16px; background: #0f192dcc; transition: border-color 160ms ease, box-shadow 160ms ease; }
