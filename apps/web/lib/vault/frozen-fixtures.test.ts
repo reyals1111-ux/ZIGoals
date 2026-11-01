@@ -37,6 +37,16 @@ import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {FOCUS_ROUNDS_KEY} from '../focus-rounds/store';
+import {CYCLE_KEY} from '../cycle/store';
+import {SCALES_KEY} from '../scales/store';
+import {HEALTH_NUMBERS_KEY} from '../health-numbers/store';
+import {NOVA_HERMES_KEY} from '../nova/hermes-record';
+import {NOVA_SETUP_KEY} from '../nova/setup';
+import {NOVA_WORKFLOWS_KEY} from '../nova/workflows/schema';
+import {NOVA_BRIEFS_KEY} from '../nova/briefs';
+import {NOVA_BRIDGE_KEY} from '../nova/bridge';
+import {NOVA_KEY} from '../nova/store';
 import {CALENDAR_IMPORT_KEY} from '../ics/calendar';
 import {NOTES_KEY} from '../notes/schema';
 import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
@@ -310,6 +320,40 @@ export function frozenFixture() {
   { const t = JSON.parse(records[TASKS_KEY] ?? '{"version":1,"tasks":[]}') as {tasks: unknown[]}; records[TASKS_KEY] = JSON.stringify({...t, tasks: [...(t.tasks ?? []), {id: 'task_fixture_t1', title: 'Fictional: book', priority: 'normal', due: '2026-11-04', time: '10:30', goal: 'private:goal-1', createdAt: '2026-11-01T09:00:00.000Z'}]}); }
   { const a = JSON.parse(records[AGENDA_KEY]!) as Record<string, unknown>; records[AGENDA_KEY] = JSON.stringify({...a, hiddenExtra: ['event']}); }
   { const f = JSON.parse(records[FOCUS_SESSIONS_KEY] ?? '{"version":1}') as Record<string, unknown>; records[FOCUS_SESSIONS_KEY] = JSON.stringify({...f, pomodoro: {work: 25, shortBreak: 5, longBreak: 15, cycles: 4, sound: true, tickTask: true}}); }
+  // Owner follow-up 2 (N2, N12): NOVA layout, widgets, quick access, persona and panels.
+  records[NOVA_KEY] = JSON.stringify({version: 1, openingSeen: true, layout: "bento", widgets: [{id: "orbit", size: "M", slot: 0}], persona: {name: "Fictional NOVA", avatar: "orb"}, accent: "cyan", panels: {left: "rail", right: "hidden"}});
+  checks.push({key: NOVA_KEY, module: './nova/store', spec: 'NOVA_STORE', expect: {"persona.name": "Fictional NOVA"}});
+  // Owner follow-up 2 (N1): which chats started in NOVA and which turns were delegated (no message text).
+  records[NOVA_BRIDGE_KEY] = JSON.stringify({version: 1, origins: {"chat-fixture-1": "2026-11-01T09:00:00.000Z"}, delegated: {"turn-fixture-1": {chat: "chat-fixture-1", area: "goals", role: "task", agent: "zigi"}}, speechInput: false});
+  checks.push({key: NOVA_BRIDGE_KEY, module: './nova/bridge', spec: 'NOVA_BRIDGE', expect: {"origins.chat-fixture-1": "2026-11-01T09:00:00.000Z"}});
+  // Owner follow-up 2 (N6): NOVA briefs composed on the device.
+  records[NOVA_BRIEFS_KEY] = JSON.stringify({version: 1, briefs: [{id: "morning:2026-11-01", kind: "morning", day: "2026-11-01", at: "2026-11-01T07:00:00.000Z", lines: ["Fictional line"]}]});
+  checks.push({key: NOVA_BRIEFS_KEY, module: './nova/briefs', spec: 'NOVA_BRIEFS', expect: {"briefs.0.kind": "morning"}});
+  // Owner follow-up 2 (N6): NOVA custom workflows (names, instructions, steps; no records).
+  records[NOVA_WORKFLOWS_KEY] = JSON.stringify({version: 1, custom: [{id: "wf_fixture1", from: "review-week", title: "Fictional review", instruction: "Keep it short", skip: [], createdAt: "2026-11-01T09:00:00.000Z", updatedAt: "2026-11-01T09:00:00.000Z"}]});
+  checks.push({key: NOVA_WORKFLOWS_KEY, module: './nova/workflows/schema', spec: 'NOVA_WORKFLOWS', expect: {"custom.0.title": "Fictional review"}});
+  // Owner follow-up 2 (N3): the setup guide progress and the privacy mode.
+  records[NOVA_SETUP_KEY] = JSON.stringify({version: 1, steps: {meet: {doneOn: "2026-11-01"}}, privacyMode: "strict", privacyChosenOn: "2026-11-01"});
+  checks.push({key: NOVA_SETUP_KEY, module: './nova/setup', spec: 'NOVA_SETUP', expect: {"privacyMode": "strict"}});
+  // Owner follow-up 3 (N11): the Hermes Agent connection and guide progress (the key stays in the key store).
+  records[NOVA_HERMES_KEY] = JSON.stringify({version: 1, baseUrl: "http://127.0.0.1:8642", localModelConfirmed: true, steps: {install: {doneOn: "2026-11-01"}}});
+  checks.push({key: NOVA_HERMES_KEY, module: './nova/hermes-record', spec: 'NOVA_HERMES', expect: {"baseUrl": "http://127.0.0.1:8642"}});
+  // Owner follow-up 2 (N7, N2 cost meter; TIER 3 (stored format)): optional fields on ZIGi's memory notes (kind, pinned,
+  // where it came from, its date) and on the usage record (a daily cap and per-day counts). Older builds keep or ignore them.
+  { const m = JSON.parse(records[AI_MEMORY_KEY]!) as {notes: Record<string, unknown>[]}; m.notes = m.notes.map((n, i) => i === 0 ? {...n, kind: 'person', pinned: true, from: {by: 'nova', label: 'NOVA chat'}, about: '2026-10-01'} : n); records[AI_MEMORY_KEY] = JSON.stringify(m); }
+  { const u = JSON.parse(records['zigoals:ai-usage:v1'] ?? '{"version":1}') as Record<string, unknown>; records['zigoals:ai-usage:v1'] = JSON.stringify({...u, dailyCap: {amount: '1', currency: 'USD', mode: 'ask'}, days: {'2026-11-01': {openai: {input: 1, output: 1, requests: 1}}}}); }
+  // Owner follow-up 2 (G1 #4): Your numbers (TIER 3 stored format, additive).
+  records[HEALTH_NUMBERS_KEY] = JSON.stringify({version: 1, entries: [{id: "bp1", date: "2026-10-30", kind: "bp", systolic: 124, diastolic: 80, pulse: 66}, {id: "lab1", date: "2026-10-28", kind: "lab", name: "Glucose (fasting)", value: 5.4, unit: "mmol/L", refLow: 3.9, refHigh: 5.6}]});
+  checks.push({key: HEALTH_NUMBERS_KEY, module: './health-numbers/store', spec: 'HEALTH_NUMBERS', expect: {"entries.1.value": 5.4}});
+  // Owner follow-up 2 (G1 #12): your own 1-5 scales.
+  records[SCALES_KEY] = JSON.stringify({version: 1, scales: [{id: "stress", name: "Stress", low: "calm", high: "very tense"}], days: {"2026-10-31": {stress: 2, pain: 3}}, retired: [{id: "pain", name: "Pain", low: "none", high: "a lot"}]});
+  checks.push({key: SCALES_KEY, module: './scales/store', spec: 'SCALES', expect: {"days.2026-10-31.pain": 3}});
+  // Owner follow-up 2 (G1 #16): the cycle log, off by default; Health-describing.
+  records[CYCLE_KEY] = JSON.stringify({version: 1, on: true, days: {"2026-10-03": {flow: "medium", symptoms: ["cramps"]}, "2026-10-20": {note: "Slept badly"}}});
+  checks.push({key: CYCLE_KEY, module: './cycle/store', spec: 'CYCLE', expect: {"days.2026-10-03.flow": "medium"}});
+  // Owner follow-up 2 (G1 #15): the Pomodoro bell and breaks.
+  records[FOCUS_ROUNDS_KEY] = JSON.stringify({version: 1, bell: "chime", volume: 40, quietBreaks: false});
+  checks.push({key: FOCUS_ROUNDS_KEY, module: './focus-rounds/store', spec: 'FOCUS_ROUNDS', expect: {"volume": 40}});
   // @wired-end
   records[MONEY_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', field: 'payee', op: 'contains', text: 'fictional grocer', direction: 'out', category: 'Groceries', enabled: true}]});
   checks.push({key: MONEY_RULES_KEY, module: './money-rules/schema', spec: 'MONEY_RULES', expect: {'rules.0.category': 'Groceries'}});
@@ -334,7 +378,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, FOCUS_ROUNDS_KEY, CYCLE_KEY, SCALES_KEY, HEALTH_NUMBERS_KEY, NOVA_HERMES_KEY, NOVA_SETUP_KEY, NOVA_WORKFLOWS_KEY, NOVA_BRIEFS_KEY, NOVA_BRIDGE_KEY, NOVA_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

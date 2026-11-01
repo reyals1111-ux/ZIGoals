@@ -39,6 +39,8 @@ import {retryPrivateReads,usePrivateReadDelay} from './private-read-delay';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
 import {QuickAdd} from "./quick-add";
 import { AppNav } from "./app-nav";
+// Owner follow-up 2 (N2, N8): NOVA in the navigation and ⌘/Ctrl + J from any page (the command bar loads on use).
+import { NovaEntry } from "./nova/nova-entry";
 import { LogoIntro } from "./logo-intro";
 import { PageMark } from "./page-mark";
 import { PageArrival } from "./page-arrival";
@@ -184,7 +186,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         {/* Session AA-Cloud Part 4: search, on computers right under the navigation (tablets carry it beside Quick add). */}
         <div className="sidebar-search"><SearchButton className="search-trigger is-wide" label/><OfflinePill/></div>
         {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
-        <div className="sidebar-actions">{showQuickAdd&&<QuickAdd/>}<SearchButton/></div>
+        <div className="sidebar-actions">{showQuickAdd&&<QuickAdd/>}<SearchButton/></div><NovaEntry/>
         {/* Above the planet: this page's mark, or the wordmark (Session I). The "Shape & Fold" tagline now lives in the Today swan's artwork. */}
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />

@@ -44,7 +44,10 @@ export function ExportEverything() {
         const ids = dr.readDeviceRecord(storage, sch.NOTES).data.notes.flatMap(note => note.photoId ? [note.photoId] : []);
         return [...(await n.notePhotosForExport(a.photoScope(), ids))].map(([id, p]) => ({name: `notes/photos/${id.replace(/[^A-Za-z0-9_-]/g, '')}.${p.type === 'image/webp' ? 'webp' : 'jpg'}`, data: p.data, modified: now}));
       }).catch(() => []);
-      const photos = [...progressPhotos, ...mealPhotos, ...notePhotos];
+      // Owner follow-up 2 (G1 #10): receipt photos as files, named by their entry's date and id (device-only).
+      const moneyPhotos = kept ? [] : await Promise.all([import('../lib/health-aa/photos'), import('../lib/money-photos/store'), import('../lib/money-log/schema'), import('../lib/device-record')]).then(([a, m, sch, dr]) =>
+        m.exportMoneyPhotoEntries(a.photoScope(), new Map(dr.readDeviceRecord(storage, sch.MONEY_LOG).data.entries.map(e => [e.id, e.date] as const)), now)).catch(() => []);
+      const photos = [...progressPhotos, ...mealPhotos, ...notePhotos, ...moneyPhotos];
       const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
       const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
       const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);

@@ -186,6 +186,23 @@ export function setAmbientVolume(volume: number): void {
   const gain = entry.graph.master.gain, t = entry.ctx.currentTime, value = ambientGain(volume) * entry.scale;
   if (gain.setTargetAtTime) gain.setTargetAtTime(value, t, 0.15); else gain.setValueAtTime(value, t);
 }
+/**
+ * Session AK (BUILD list 2 #15, lane G1a): fades what plays to a share of its level (Focus intervals' breaks), and back
+ * with 1, smoothly, without changing the person's volume. False when nothing plays. A volume change during the fade is
+ * kept as the level to come back to only after the fade ends.
+ */
+const duckBase = new WeakMap<object, number>();
+export function duckAmbient(share: number): boolean {
+  const entry = playing;
+  if (!entry) return false;
+  const gain = entry.graph.master.gain, t = entry.ctx.currentTime, s = Math.min(1, Math.max(0, share));
+  let base = duckBase.get(entry);
+  if (base === undefined) { if (s >= 1) return true; base = typeof gain.value === 'number' && gain.value > 0 ? gain.value : undefined; if (base === undefined) return false; duckBase.set(entry, base); }
+  const target = base * s;
+  if (gain.setTargetAtTime) gain.setTargetAtTime(target, t, 1.2); else gain.setValueAtTime(target, t);
+  if (s >= 1) duckBase.delete(entry);
+  return true;
+}
 /** The sound before or after this one, in the player's order (the music panel's previous and next). */
 export const stepSound = (sound: AmbientSound, step: 1 | -1): AmbientSound => AMBIENT_SOUNDS[(AMBIENT_SOUNDS.indexOf(sound) + step + AMBIENT_SOUNDS.length) % AMBIENT_SOUNDS.length]!;
 /** Tests only. */

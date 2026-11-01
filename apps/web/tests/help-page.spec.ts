@@ -5,7 +5,9 @@ import {expect, test} from '@playwright/test';
 // writes on view.
 const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
-  ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'], ['questions', 'Good to know about the Alpha'],
+  ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'],
+  // Session AK follow-up 2 (deliberate): NOVA, notes and tasks have their own topic after ZIGi.
+  ['nova', 'Your command center, your notes and your day'], ['questions', 'Good to know about the Alpha'],
   // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
   ['whole-life', 'Sleep, mind, music, chess, links and more'],
   // Session AA-Local (deliberate): the release's own topic, before the earlier ones.
@@ -35,11 +37,11 @@ const SECTIONS: [id: string, title: string][] = [
 ];
 // Session AK G2 (RELEASE_REVIEW R24, deliberate): Help's topic index is task-shaped: the ten "New: …" release topics are one
 // "Earlier updates" topic after What's new (their sections keep their ids, so every link and Search result still lands).
-const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
+const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'nova', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
 // Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
 // names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
 // unlocked"); every label is still checked exactly, in order, with its link.
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'NOVA, notes and tasks', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.

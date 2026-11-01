@@ -25,6 +25,10 @@ type Path = 'api' | 'local' | 'subscription';
 type Failure = {title: string; steps: string[]};
 const API_PROVIDERS: ProviderId[] = ['openai', 'anthropic', 'gemini', 'xai', 'openrouter'];
 const hostedPage = () => typeof window !== 'undefined' && !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+/** This page's origin, for the server settings above (the hosted Alpha's when there is no window). */
+const origin = () => typeof window === 'undefined' ? 'https://alpha.zigoals.app' : window.location.origin;
+/** llama.cpp's llama-server default address since its port moved to 9931 (lib/nova/local-servers.ts LLAMA_CPP_DEFAULT). */
+const LLAMA_CPP_DEFAULT = 'http://127.0.0.1:9931';
 function failureOf(error: unknown, providerName: string, local?: {server: 'ollama' | 'openai-compatible' | null; baseUrl: string}, keysUrl: string | null = null): Failure {
   if (error instanceof AiError) return {title: error.message, steps: errorSteps(error, {providerName, local, hostedPage: hostedPage(), keysUrl})};
   return {title: error instanceof Error ? error.message : 'Something went wrong.', steps: []};
@@ -100,14 +104,16 @@ export function AiSetup({settings, scope, seed = null, onDone}: {settings: AiSet
       <div className="ai-card-actions"><button type="button" className="secondary" disabled={!key.trim() || busy !== null} onClick={() => void test()}>{busy === 'test' ? 'Testing…' : 'Test connection'}</button></div>
     </div>}
     {path === 'local' && <div className="ai-setup-form">
-      <div className="ai-card-actions" role="group" aria-label="Server presets"><button type="button" className="secondary" onClick={() => { setBaseUrl(LOCAL_SERVER_DEFAULTS.ollama); reset(); }}>Ollama (11434)</button><button type="button" className="secondary" onClick={() => { setBaseUrl(LOCAL_SERVER_DEFAULTS['openai-compatible']); reset(); }}>LM Studio (1234)</button></div>
+      <div className="ai-card-actions" role="group" aria-label="Server presets"><button type="button" className="secondary" onClick={() => { setBaseUrl(LOCAL_SERVER_DEFAULTS.ollama); reset(); }}>Ollama (11434)</button><button type="button" className="secondary" onClick={() => { setBaseUrl(LOCAL_SERVER_DEFAULTS['openai-compatible']); reset(); }}>LM Studio (1234)</button><button type="button" className="secondary" onClick={() => { setBaseUrl(LLAMA_CPP_DEFAULT); reset(); }}>llama.cpp (9931)</button></div>
       <label className="field">Server address<input type="url" value={baseUrl} onChange={e => { setBaseUrl(e.target.value); reset(); }} autoComplete="off" spellCheck={false} inputMode="url" placeholder="http://127.0.0.1:11434"/></label>
       <label className="field">Server token (only if your server asks for one)<input type="password" value={token} onChange={e => setToken(e.target.value)} autoComplete="off" spellCheck={false}/></label>
       {token.trim() && <label className="ai-check"><input type="checkbox" checked={remember && !showcase} disabled={showcase} onChange={e => setRemember(e.target.checked)}/> Remember the token on this device</label>}
       <details className="ai-setup-notes"><summary>Before you test: what the server needs</summary><ul>
-        {hostedPage() ? <li><strong>Ollama</strong> must allow this site: set <code>OLLAMA_ORIGINS=https://alpha.zigoals.app</code> (macOS: <code>launchctl setenv OLLAMA_ORIGINS https://alpha.zigoals.app</code> then restart Ollama; Linux: <code>systemctl edit ollama.service</code> with <code>Environment=&quot;OLLAMA_ORIGINS=https://alpha.zigoals.app&quot;</code>; Windows: a user environment variable), then restart it.</li> : <li><strong>Ollama</strong> allows pages on localhost and 127.0.0.1 by default.</li>}
-        <li><strong>LM Studio:</strong> Developer → Server Settings → turn <strong>Enable CORS</strong> on, then start the server.</li>
-        {hostedPage() && <li><strong>Chrome 142 and later</strong> asks once whether this site may &ldquo;look for and connect to devices on your local network&rdquo;: allow it.</li>}
+        {/* Session AK (owner follow-up 2, lane NC): docs/research/session-ak/NOVA.md §2, read 1 Nov 2026. */}
+        {hostedPage() ? <li><strong>Ollama</strong> must allow this site, then restart. macOS: <code>launchctl setenv OLLAMA_ORIGINS &quot;{origin()}&quot;</code>, then quit Ollama from the menu bar and open it again (this lasts until the Mac restarts). Windows: <code>setx OLLAMA_ORIGINS &quot;{origin()}&quot;</code>, then quit Ollama from the taskbar and start it again. Linux: <code>sudo systemctl edit ollama.service</code>, add <code>Environment=&quot;OLLAMA_ORIGINS={origin()}&quot;</code> under <code>[Service]</code>, then <code>sudo systemctl daemon-reload</code> and <code>sudo systemctl restart ollama</code>.</li> : <li><strong>Ollama</strong> allows pages on localhost and 127.0.0.1 by default.</li>}
+        <li><strong>LM Studio:</strong> Developer → Server Settings → turn <strong>Enable CORS</strong> on, then start the server. LM Studio recommends <strong>Require Authentication</strong> too: paste its token above.</li>
+        <li><strong>llama.cpp:</strong> <code>llama-server</code> listens on port 9931 by default now (older guides say 8080){hostedPage() ? <>; start it with <code>--cors-origins {origin()}</code></> : null}.</li>
+        {hostedPage() && <li><strong>Chrome and Edge</strong> ask once whether this site may &ldquo;Access other apps and services on this device&rdquo;; <strong>Firefox</strong> asks too: allow it. <strong>Safari</strong> cannot reach a model on this computer from this site: use Chrome, Edge or Firefox here.</li>}
         {phone && <li><strong>A phone cannot reach a computer&rsquo;s localhost.</strong> Use a cloud provider here, or ZIGoals on the computer.</li>}
       </ul></details>
       <div className="ai-card-actions"><button type="button" className="secondary" disabled={!baseUrl.trim() || busy !== null} onClick={() => void test()}>{busy === 'test' ? 'Testing…' : 'Test connection'}</button>{localServer && <span className="ai-note">Found {localServer === 'ollama' ? 'Ollama' : 'an OpenAI-compatible server'} at {baseUrl}.</span>}</div>

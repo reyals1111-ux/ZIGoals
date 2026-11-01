@@ -12,6 +12,9 @@ import {currentAiScope} from '../../lib/ai/scope';
 import {readCapability} from '../../lib/ai/capabilities';
 import {photoAllowance, preparePhoto} from '../../lib/ai/photo';
 import {streamChat} from '../../lib/ai/chat';
+import {guardRequest} from '../../lib/ai/privacy-mode';
+/** The engine's privacy mode applies to a label photo too (owner follow-up 2, N9): Strict keeps it on the device; Guarded never sends a photo to a cloud model. */
+const guardedStream: typeof streamChat = request => (async function* () { yield* streamChat(await guardRequest(request)); })();
 import {AiError, isAbortLike} from '../../lib/ai/errors';
 import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
@@ -59,7 +62,7 @@ export default function LabelScan(props: Props) {
       if (!allowed.allowed) { setState({kind: 'problem', lines: [allowed.reason]}); return; }
       const photo = await preparePhoto(file);
       setState({kind: 'busy', line: 'Your AI is reading the label…'});
-      const out = await runLabelScan(labelScanRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), streamChat);
+      const out = await runLabelScan(labelScanRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), guardedStream);
       if (out.requests) { try { recordUsage(getAppStorage(), provider, out.usage ?? {input: null, output: null}, out.requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience */ } }
       if (controller.signal.aborted) return;
       if (!out.ok) { setState({kind: 'problem', lines: out.problems}); return; }

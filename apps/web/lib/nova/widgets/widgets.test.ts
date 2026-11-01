@@ -1,0 +1,47 @@
+import {describe, expect, it} from 'vitest';
+import {WIDGETS, gallery, isWidgetId, widgetAvailable} from './catalog';
+import {durationWords, glanceLines, paceWords, shareOf, waterAmount, whenWords, type GlanceFacts} from './words';
+import {DEFAULT_WIDGETS} from '../store';
+
+describe('the widget gallery', () => {
+  it('names every widget the brief asks for, each with its page and a way to open it', () => {
+    expect(WIDGETS.map(w => w.id)).toEqual(['orbit', 'next', 'glance', 'water', 'focus', 'now-playing', 'money', 'goal-pace', 'sleep', 'briefs', 'notes', 'markets']);
+    for (const w of WIDGETS) { expect(w.href.startsWith('/app/')).toBe(true); expect(w.open.length).toBeGreaterThan(3); expect(w.about.endsWith('.')).toBe(true); }
+    for (const w of DEFAULT_WIDGETS) expect(isWidgetId(w.id)).toBe(true);
+  });
+  it('shows the market watch only once markets are chosen; notes and briefs only once they exist here', () => {
+    const none = {markets: false, notes: false, briefs: false};
+    expect(widgetAvailable('markets', none)).toBe(false); expect(widgetAvailable('markets', {...none, markets: true})).toBe(true);
+    expect(widgetAvailable('notes', none)).toBe(false); expect(widgetAvailable('briefs', none)).toBe(false);
+    expect(widgetAvailable('water', none)).toBe(true); expect(widgetAvailable('nope', {markets: true, notes: true, briefs: true})).toBe(false);
+    const list = gallery(none, ['water']);
+    expect(list.find(w => w.id === 'water')!.added).toBe(true); expect(list.some(w => w.id === 'markets')).toBe(false);
+  });
+});
+
+describe('widget words: unknown is never zero', () => {
+  it('pace in calm words', () => {
+    expect(paceWords('ON_TRACK').words).toBe('On track'); expect(paceWords('ON TRACK').tone).toBe('good');
+    expect(paceWords('BEHIND').words).toBe('Behind plan'); expect(paceWords('NO_PLAN').words).toBe('No plan yet');
+    expect(paceWords('Value unknown').tone).toBe('unknown'); expect(paceWords('REVIEW').words).toBe('Needs a look');
+  });
+  it('water in the person’s unit; no bar without a target', () => {
+    expect(waterAmount(450, 'ml')).toBe('450 mL'); expect(waterAmount(1250, 'ml')).toBe('1.3 L'); expect(waterAmount(473.176, 'fl-oz-us')).toBe('16 fl oz');
+    expect(waterAmount(Number.NaN, 'ml')).toBe('');
+    expect(shareOf(500, 2000)).toBe(0.25); expect(shareOf(5000, 2000)).toBe(1); expect(shareOf(500, null)).toBeNull(); expect(shareOf(500, 0)).toBeNull();
+  });
+  it('durations and days', () => {
+    expect(durationWords(45)).toBe('45 min'); expect(durationWords(60)).toBe('1 h'); expect(durationWords(80)).toBe('1 h 20 min'); expect(durationWords(-5)).toBe('0 min');
+    expect(whenWords(0)).toBe('today'); expect(whenWords(1)).toBe('tomorrow'); expect(whenWords(3)).toBe('in 3 days'); expect(whenWords(-2)).toBe('2 days ago');
+  });
+  it('the day at a glance leaves out what it does not know and says a known zero plainly', () => {
+    const unknown: GlanceFacts = {orbit: null, water: null, meals: null, nextBill: null, focusMinutes: null, sleepMinutes: null, contributionsDue: null};
+    expect(glanceLines(unknown)).toEqual([]);
+    expect(glanceLines({...unknown, water: {ml: 0, targetMl: null, unit: 'ml'}, meals: 0})).toEqual(['No water logged yet today.', 'No meals logged yet today.']);
+    const full = glanceLines({orbit: {done: 2, total: 5, unit: 'habit'}, water: {ml: 750, targetMl: 2000, unit: 'ml'}, meals: 2, nextBill: {title: 'Rent', days: 2}, focusMinutes: 50, sleepMinutes: 440, contributionsDue: 1});
+    expect(full).toHaveLength(5);
+    expect(full[0]).toBe('2 of 5 habits done so far.'); expect(full[1]).toBe('You slept 7 h 20 min last night.'); expect(full[2]).toBe('750 mL of water of 2 L so far.');
+    expect(glanceLines({...unknown, orbit: {done: 3, total: 3, unit: 'planet'}})).toEqual(['Your orbit is complete: all 3 planets done.']);
+    expect(glanceLines({...unknown, nextBill: {title: 'Rent', days: 20}})).toEqual([]);
+  });
+});

@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import {GOAL_LIBRARY, searchTemplates} from '../../templates/goal-library';
 import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
-import {MAX_NOTE_CHARS, MEMORY_CATEGORIES} from '../store/records';
+import {MAX_NOTE_CHARS, MEMORY_CATEGORIES, MEMORY_KINDS} from '../store/records';
 import {LINK_ICONS} from '../../links/schema';
 import {WIDGET_KINDS_V1, WIDGET_KINDS_V3_ONLY} from '../../dashboard-settings';
 import {EXERCISE_ICONS} from '../../health-counters';
@@ -12,6 +12,8 @@ import {ACCOUNT_KINDS} from '../../accounts/schema';
 import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
 // Session AK (Part 12): this session's card kinds, their composite and their plain names (schema-ak.ts).
 import {AK_ACTION_KINDS, AK_ACTION_SCHEMAS, AK_ALIASES, goalBundleParts, goalBundleSchema} from './schema-ak';
+// Owner follow-up 2 (N5): NOVA's new card kinds (a task, a workout, a note captured, focus), shared with ZIGi (one engine).
+import {NOVA_ACTION_KINDS, NOVA_ACTION_SCHEMAS, NOVA_ALIASES, NOVA_OPEN_PAGES} from './schema-nova';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -83,7 +85,7 @@ export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as con
  * ask the app to delete (the card opens the app's own confirmation; nothing is deleted by the card), and the targets a
  * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
  */
-export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share', 'checklist', 'earn'] as const; // review, share: AA-Cloud's pages (ADR-022 B53); checklist, earn: Session AF's (L3, L1), opened by ZIGi (L4)
+export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share', 'checklist', 'earn', ...NOVA_OPEN_PAGES] as const; // review, share: AA-Cloud's pages (ADR-022 B53); checklist, earn: Session AF's (L3, L1), opened by ZIGi (L4)
 export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month', 'start-here', 'academy'] as const; // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
@@ -160,7 +162,9 @@ export const actionSchema = z.discriminatedUnion('kind', [
     }),
   z.strictObject({kind: z.literal('review-intention'), intention: text(2000)}),
   // ---- Session V Part 8: "Remember this?", a note for What ZIGi knows about me (the planner refuses Health notes) ----
-  z.strictObject({kind: z.literal('remember'), text: text(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES).default('other')}),
+  // Owner follow-up 2 (N7, lane ND): a memory's kind and where it was proposed (a workflow's name), both optional; without
+  // them (and off NOVA) the card is exactly as before.
+  z.strictObject({kind: z.literal('remember'), text: text(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES).default('other'), memory_kind: z.enum(MEMORY_KINDS).optional(), label: text(120).optional()}),
   // ---- Session W Part 21 (W7): a night, mindful minutes, a milestone, an account's balance (pre-fill only), a challenge ----
   z.strictObject({kind: z.literal('log-sleep'), wake: clock.optional(), bedtime: clock.optional(), hours: z.number().finite().positive().max(24).optional(), minutes: z.number().int().min(1).max(1440).optional(),
     quality: z.number().int().min(1).max(5).optional(), nap: z.boolean().optional(), day: daySchema})
@@ -266,6 +270,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-income'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
   // Session AK (Part 12): auto-complete rules, bill reminders, the grocery list, the goal wizard filled in, a what-if, a scan, a soundscape.
   ...AK_ACTION_SCHEMAS,
+  // Owner follow-up 2 (N5): NOVA's cards (schema-nova.ts).
+  ...NOVA_ACTION_SCHEMAS,
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -285,7 +291,9 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   // Session AJ
   'create-price-alert',
   // Session AK (Part 12)
-  ...AK_ACTION_KINDS] as const satisfies readonly ActionKind[];
+  ...AK_ACTION_KINDS,
+  // Owner follow-up 2 (N5)
+  ...NOVA_ACTION_KINDS] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -364,7 +372,8 @@ export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-
   'prefill-staking'];
 export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PREFILL_KINDS.includes(k));
 /** Aliases the AI may use; mapped before validation (a partial check-in is a check-in with a value). */
-export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
+// Owner follow-up 2 (N5): NOVA's plain names go first, so a name an older alias already uses keeps its old meaning.
+export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {...NOVA_ALIASES, partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
   'create_food': 'create-food', 'create_recipe': 'create-recipe', recipe: 'create-recipe', 'plan_meal': 'plan-meal', 'meal-plan': 'plan-meal', 'grocery': 'grocery-item', 'grocery_item': 'grocery-item', groceries: 'grocery-item', 'counter-increment': 'counter', 'create_reminder': 'create-reminder', reminder: 'create-reminder', 'review_intention': 'review-intention', intention: 'review-intention', 'plan_goal': 'plan-goal', 'build_habit': 'build-habit',
   'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember',
   // Session AA-Local Part 5: the plain names of this session's kinds.

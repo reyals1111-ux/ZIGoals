@@ -183,7 +183,8 @@ test('Help: the topic index is two columns on a phone and ZIGi’s section eyebr
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
   await page.getByRole('button', {name: 'All topics', exact: true}).click();
   // Session AK G2 (RELEASE_REVIEW R24, deliberate): eleven task-shaped topics; the release notes are one "Earlier updates" topic.
-  await expect(links).toHaveCount(11);
+  // Session AK follow-up 2 (deliberate): twelve, with "NOVA, notes and tasks" after ZIGi.
+  await expect(links).toHaveCount(12);
   for (const link of await links.all()) await expect(link).toBeVisible();
   const lefts = new Set((await links.evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().left)))));
   expect(lefts.size).toBe(2);

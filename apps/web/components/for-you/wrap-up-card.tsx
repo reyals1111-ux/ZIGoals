@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
 import {habitCalendarDay, habitDay, type HabitData} from '../../lib/habits';
 import {HEALTH_MEALS, type HealthData} from '../../lib/health';
 import {dailyData, healthDay, waterSummary} from '../../lib/health-daily';
@@ -7,6 +7,8 @@ import {waterText} from '../../lib/health-units';
 import {MOOD_WORDS, moodOn, setMood} from '../../lib/wrap-up/engine';
 import {useHealth} from '../health/use-health';
 import {zigiSignals} from '../zigi/bus';
+// Session AK (BUILD list 2 #14, lane G1a): today's open tasks, to move to tomorrow or let go (loaded with the card).
+const WrapUpTasks = lazy(() => import('../wrap-up-tasks/wrap-up-tasks'));
 
 /**
  * The evening wrap-up card (Session W Part 13), in Today's "For you" once its time has come: the day from the person's
@@ -33,6 +35,7 @@ export function WrapUpCard({habits, health, now, showHabits, showHealth, onWrap}
     <p className="eyebrow">Evening wrap-up</p>
     <h2>How did today go?</h2>
     {facts.length ? <ul className="wrap-up-facts">{facts.map(f => <li key={f}>{f}</li>)}</ul> : <p>Nothing recorded today. That is fine.</p>}
+    <Suspense fallback={null}><WrapUpTasks/></Suspense>
     {showHealth && store.loaded && !store.error && <fieldset className="wrap-up-mood"><legend>How did today feel? (optional)</legend>
       <div className="wrap-up-mood-choices">{MOOD_WORDS.map((word, i) => <button key={word} type="button" className="secondary" aria-pressed={mood?.mood === i + 1} onClick={() => void feel(i + 1)}>{word}</button>)}</div>
     </fieldset>}

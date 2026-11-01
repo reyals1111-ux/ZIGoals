@@ -66,6 +66,13 @@ import {showcaseNetworthMilestones} from './networth-milestones/showcase';
 import {FOCUS_SESSIONS_KEY} from './focus-sessions/schema';
 import {showcaseFocusSessions} from './wrapped/showcase';
 import {NOTES_KEY} from './notes/schema';
+import {NOVA_KEY, showcaseNova} from './nova/store';
+import {NOVA_SETUP_KEY, showcaseNovaSetup} from './nova/setup';
+import {SHOWCASE_NOVA_BRIDGE_KEY, showcaseNovaChat} from './nova/bridge-showcase';
+import {AI_CHATS_SESSION_KEY} from './ai/settings';
+import {SHOWCASE_SCOPE} from './ai/keys';
+import {NOVA_WORKFLOWS_KEY} from './nova/workflows/schema';
+import {showcaseNovaWorkflows} from './nova/workflows/showcase';
 import {TASKS_KEY} from './tasks/schema';
 import {showcaseTasks} from './tasks/showcase';
 import {showcaseNotes} from './notes/showcase';
@@ -80,6 +87,15 @@ import {showcaseBills,showcaseBudgets} from './bills/showcase';
 import {MONEY_RULES_KEY} from './money-rules/schema';
 import {showcaseMoneyRules} from './money-rules/showcase';
 import {REWARDS_SHELF_KEY} from './rewards-shelf/store';
+import {HEALTH_NUMBERS_KEY} from './health-numbers/store';
+import {showcaseHealthNumbers} from './health-numbers/showcase';
+import {SCALES_KEY} from './scales/store';
+import {showcaseScales} from './scales/showcase';
+import {CYCLE_KEY} from './cycle/store';
+import {showcaseMoneyReview} from './review-cards/showcase';
+import {MONEY_REVIEW_KEY} from './money-review/review';
+import {withShowcaseEuroCash} from './cash-forecast/showcase';
+import {showcaseCycle} from './cycle/showcase';
 import {showcaseRewardsShelf} from './rewards-shelf/showcase';
 import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
 import {showcaseMuscleRecovery} from './muscle-freshness/showcase';
@@ -190,6 +206,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
  records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
+ // Owner follow-up 2 (G1 #9): a few of that log's own example entries waiting in To review, for card mode.
+ records[MONEY_REVIEW_KEY]=JSON.stringify(showcaseMoneyReview(showcaseMoneyLog(day)));
  // Session AK (7.3, 7.7): four fictional bills and three category budgets beside that log (lib/bills/showcase.ts).
  records[BILLS_KEY]=JSON.stringify(showcaseBills(day));
  // Owner follow-up 1 (F5): a fictional supplements log (labelled in its own view as example data).
@@ -200,7 +218,11 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[DEBT_PLANNER_KEY]=JSON.stringify(showcaseDebtPlanner(day));records[SAVINGS_CHALLENGES_KEY]=JSON.stringify(showcaseSavingsChallenges(day));
  records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(withShowcasePomodoro(showcaseFocusSessions(day),day));
  // Owner follow-up 2 (B, T2): labelled example notes (with [[links]] to Showcase goals and habits) and an imported calendar.
- records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
+ records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));
+ // Owner follow-up 2 (N2, N3, N6): NOVA's example layout, its setup progress and two saved workflows (labelled).
+ // N1: one labelled NOVA conversation with a Health task handed to ZIGi (two voices), in the tab's Showcase chats.
+ {const duo=showcaseNovaChat(SHOWCASE_SCOPE,new Date(`${day}T08:00:00.000Z`));records[AI_CHATS_SESSION_KEY]=JSON.stringify({version:1,chats:[duo.chat]});records[SHOWCASE_NOVA_BRIDGE_KEY]=JSON.stringify(duo.bridge);}
+ records[NOVA_KEY]=JSON.stringify(showcaseNova(day));records[NOVA_SETUP_KEY]=JSON.stringify(showcaseNovaSetup(day,`${day}T08:00:00.000Z`));records[NOVA_WORKFLOWS_KEY]=JSON.stringify(showcaseNovaWorkflows(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
  records[EXPERIMENTS_KEY]=JSON.stringify(showcaseExperiments(day,habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!))));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
  // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
@@ -208,6 +230,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Session AK (8.6, item 8): the rewards shelf on with two fictional treats (the game layer is on in the Showcase), and
  // the Showcase person's own muscle recovery days beside the training log. Additive; no existing figure changes.
  records[REWARDS_SHELF_KEY]=JSON.stringify(showcaseRewardsShelf(day));
+ // Owner follow-up 2 (G1 #4, #12, #16): labelled example readings, two example scales and an example cycle log (switched on).
+ records[HEALTH_NUMBERS_KEY]=JSON.stringify(showcaseHealthNumbers(day));records[SCALES_KEY]=JSON.stringify(showcaseScales(day));records[CYCLE_KEY]=JSON.stringify(showcaseCycle(day));
  records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
@@ -216,7 +240,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  {const j=showcaseJournal(day);records[JOURNAL_KEY]=JSON.stringify(journalSchema.parse({...j,entries:[...showcaseOnThisDayEntries(day).sort((a,b)=>a.date.localeCompare(b.date)),...j.entries]}));}
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
- records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
+ // Owner follow-up 2 (G1 #11): one labelled fictional euro cash account, so the euro bills and log have a balance to start from.
+ records[ACCOUNTS_KEY]=JSON.stringify(withShowcaseEuroCash(showcaseAccounts(day),day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.

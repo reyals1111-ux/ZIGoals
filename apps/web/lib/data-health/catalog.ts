@@ -50,6 +50,16 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   comparePair: ['The comparison you chose last (Insights)', 'Health'],
   supplements: ['Supplements and medication log', 'Health'],
   govReminders: ['Governance vote reminders', 'Wealth'],
+  focusRounds: ['Focus bell and breaks', 'Journey'],
+  cycle: ['Cycle log', 'Health'],
+  scales: ['Your own scales', 'Today'],
+  healthNumbers: ['Your numbers (blood pressure and lab values)', 'Health'],
+  novaHermes: ['Hermes Agent connection (address, checks; never the key)', 'NOVA'],
+  novaSetup: ['Build your own NOVA: progress and privacy mode', 'NOVA'],
+  novaWorkflows: ['NOVA custom workflows', 'NOVA'],
+  novaBriefs: ['NOVA morning briefs and evening recaps', 'NOVA'],
+  novaBridge: ['Which chats started in NOVA, and delegated turns', 'NOVA'],
+  nova: ['NOVA: layout, widgets, quick access and persona', 'NOVA'],
   calendarImport: ['Imported calendars (read-only events)', 'Today'],
   notes: ['Notes and the capture inbox', 'Today'],
   networthMilestones: ['Net-worth milestones', 'Wealth'],
@@ -121,7 +131,7 @@ export const DEVICE_ONLY: readonly CatalogEntry[] = [
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
-export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)'] as const;
+export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)', 'Notification snapshot, push identity and taps waiting to apply (IndexedDB, this device only)', 'Offline food library (public data, IndexedDB)', 'Your own Spotify client id (IndexedDB, this device only)', 'Barcode lookups and exchange refreshes asked for while offline (IndexedDB, this device only)', 'Meal photos you chose to keep (IndexedDB, this device only)', 'Your Lichess connection (IndexedDB, this device only, never exported)', 'Photos in notes (IndexedDB, this device only)', 'Receipt photos on money entries (IndexedDB, this device only)'] as const;
 /** Worked out each time from the records above, never stored. */
 export const NEVER_STORED = ['Calculator results', 'Life review figures', 'Insights and pairings', 'Search results', 'Pace forecasts', 'The life balance wheel'] as const;
 export const HOME_LABEL: Record<Home, string> = {sync: 'Encrypted sync with an account', 'sync-consent': 'Encrypted sync after this device\'s consent', device: 'This device only'};

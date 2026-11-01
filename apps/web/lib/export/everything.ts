@@ -20,6 +20,16 @@ import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {FOCUS_ROUNDS_KEY} from '../focus-rounds/store';
+import {CYCLE_KEY} from '../cycle/store';
+import {SCALES_KEY} from '../scales/store';
+import {HEALTH_NUMBERS_KEY} from '../health-numbers/store';
+import {NOVA_HERMES_KEY} from '../nova/hermes-record';
+import {NOVA_SETUP_KEY} from '../nova/setup';
+import {NOVA_WORKFLOWS_KEY} from '../nova/workflows/schema';
+import {NOVA_BRIEFS_KEY} from '../nova/briefs';
+import {NOVA_BRIDGE_KEY} from '../nova/bridge';
+import {NOVA_KEY} from '../nova/store';
 import {CALENDAR_IMPORT_KEY} from '../ics/calendar';
 import {NOTES_KEY} from '../notes/schema';
 import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
@@ -154,6 +164,16 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   supplements: SUPPLEMENTS_KEY,
   // Owner follow-up 1 (F4): governance vote reminders.
   govReminders: GOV_REMINDERS_KEY,
+  focusRounds: FOCUS_ROUNDS_KEY,
+  cycle: CYCLE_KEY,
+  scales: SCALES_KEY,
+  healthNumbers: HEALTH_NUMBERS_KEY,
+  novaHermes: NOVA_HERMES_KEY,
+  novaSetup: NOVA_SETUP_KEY,
+  novaWorkflows: NOVA_WORKFLOWS_KEY,
+  novaBriefs: NOVA_BRIEFS_KEY,
+  novaBridge: NOVA_BRIDGE_KEY,
+  nova: NOVA_KEY,
   calendarImport: CALENDAR_IMPORT_KEY,
   notes: NOTES_KEY,
   networthMilestones: NETWORTH_MILESTONES_KEY,

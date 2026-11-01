@@ -24,6 +24,7 @@ import type {Journal} from '../../journal/schema';
 import type {Energy} from '../../energy/schema';
 import type {HealthCoach} from '../../health-aa/coach-schema';
 import type {AkToolSources} from './ak-tools';
+import type {NovaToolSources} from './nova-tools';
 
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
@@ -74,6 +75,8 @@ export type ToolSources = {
   plans?: ZigiPlans | null;
   /** Session AK (Part 12): the auto-complete rules (Habits), the bills and the price alerts (Wealth) on this device, for ak-tools.ts. */
   ak?: AkToolSources | null;
+  /** Owner follow-up 2 (N4): tasks, focus sessions, budgets and (only under NOVA's Notes scope) the notes, for nova-tools.ts. */
+  nova?: NovaToolSources | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;

@@ -49,6 +49,16 @@ import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {GOV_REMINDERS} from '../zigchain-eco/governance';
+import {FOCUS_ROUNDS} from '../focus-rounds/store';
+import {CYCLE} from '../cycle/store';
+import {SCALES} from '../scales/store';
+import {HEALTH_NUMBERS} from '../health-numbers/store';
+import {NOVA_HERMES} from '../nova/hermes-record';
+import {NOVA_SETUP} from '../nova/setup';
+import {NOVA_WORKFLOWS} from '../nova/workflows/schema';
+import {NOVA_BRIEFS} from '../nova/briefs';
+import {NOVA_BRIDGE} from '../nova/bridge';
+import {NOVA_STORE} from '../nova/store';
 import {CALENDAR_IMPORT} from '../ics/calendar';
 import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
@@ -138,6 +148,16 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
   dev('supplements', 'Supplements and medication', 'Health', SUPPLEMENTS, true),
   dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
+  dev('focusRounds', 'Focus bell and breaks', 'Today and Life', FOCUS_ROUNDS),
+  dev('cycle', 'Cycle log', 'Health', CYCLE, true),
+  dev('scales', 'Your own scales', 'Today and Life', SCALES),
+  dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),
+  dev('novaHermes', 'Hermes Agent connection', 'Today and Life', NOVA_HERMES),
+  dev('novaSetup', 'NOVA setup and privacy mode', 'Today and Life', NOVA_SETUP),
+  dev('novaWorkflows', 'NOVA workflows', 'Today and Life', NOVA_WORKFLOWS),
+  dev('novaBriefs', 'NOVA briefs', 'Today and Life', NOVA_BRIEFS),
+  dev('novaBridge', 'NOVA chat origins', 'Today and Life', NOVA_BRIDGE),
+  dev('nova', 'NOVA layout and persona', 'Today and Life', NOVA_STORE),
   dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),
   dev('notes', 'Notes', 'Today and Life', NOTES),
   dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),

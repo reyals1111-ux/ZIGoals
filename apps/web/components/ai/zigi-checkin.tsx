@@ -1,5 +1,5 @@
 'use client';
-import {useId, useState} from 'react';
+import {Suspense, lazy, useId, useState} from 'react';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
 import {CELEBRATIONS} from '../../lib/celebrations';
 import {checkinMoment, followUpLine, NOTE_MAX, NOTE_SAVED} from '../../lib/checkin/checkin';
@@ -17,6 +17,8 @@ import {useDeviceRecord} from './use-device-record';
 import '../for-you/for-you.css';
 // Session AK (lane S, item 6): the optional feeling word after the 1–5 (its grid loads when opened).
 import {MoodWordsFold} from '../mood-words/mood-words-fold';
+// Session AK (BUILD list 2 #12, lane G1a): the person's own 1–5 scales, optional, loaded on its own.
+const YourScales = lazy(() => import('../scales/your-scales'));
 
 /**
  * Session AJ (item 10, D14; docs/research/session-aj/COMPANIONS.md P1, P4): "ZIGi · Your day" check-in v2, on the morning
@@ -84,6 +86,7 @@ export function ZigiCheckIn({day}: {day: string}) {
       <div className="wrap-up-mood-choices">{MOOD_WORDS.map((word, i) => <button key={word} type="button" className="secondary" aria-pressed={todayMood === i + 1} onClick={() => void feel(i + 1)}>{word}</button>)}</div>
     </fieldset>}
     {(todayEnergy !== null || todayMood !== null) && <MoodWordsFold day={day}/>}
+    <Suspense fallback={null}><YourScales day={day} compact/></Suspense>
     {moodDay && todayMood !== null && <div className="zigi-checkin-note">
       <label className="field">One line about today (optional)<input value={note} maxLength={NOTE_MAX} onChange={event => setDraft(event.target.value)} onBlur={() => void saveNote()} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void saveNote(); } }} placeholder="Only you see this"/></label>
       <span className="fine">{note.length} of {NOTE_MAX} characters · kept with the day&rsquo;s mood, on this device</span>

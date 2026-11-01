@@ -1,0 +1,24 @@
+/* Session AK (BUILD list 2 #4): "Your numbers" inside Health → Measurements. Theme tokens only; phones first. */
+.your-numbers { display: grid; gap: 16px; padding-top: 4px; min-width: 0; }
+.your-numbers-lede { margin: 0; color: var(--text-meta); overflow-wrap: anywhere; }
+.your-numbers-part { display: grid; gap: 10px; min-width: 0; }
+.your-numbers-part h3 { margin: 0; }
+.your-numbers-list, .your-numbers-markers { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.your-numbers-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--line); }
+.your-numbers-list li > span { min-width: 0; overflow-wrap: anywhere; }
+.your-numbers-list small { display: block; color: var(--text-meta); }
+.your-numbers-list button, .your-numbers-form button, .your-numbers-photo summary { min-height: 44px; }
+.your-numbers-marker { display: grid; gap: 8px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); min-width: 0; }
+.your-numbers-marker-head { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.your-numbers-verdict { justify-self: start; font-size: 14px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.your-numbers-verdict.is-inside { border-color: var(--health-on-track); }
+.your-numbers-verdict.is-outside { border-color: var(--health-behind); }
+.your-numbers-form { display: grid; gap: 8px; min-width: 0; }
+.your-numbers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.your-numbers-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 8px; margin: 0; min-width: 0; }
+.your-numbers-row .your-numbers-name { grid-column: 1 / -1; }
+.your-numbers-form input { min-height: 44px; min-width: 0; }
+.your-numbers-photo summary { display: flex; align-items: center; cursor: pointer; }
+.your-numbers-status { margin: 0; min-height: 1.2em; }
+.numbers-chart svg { width: 100%; height: auto; }
+.numbers-band { opacity: .55; }

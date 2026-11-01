@@ -1,0 +1,15 @@
+/* Session AK (BUILD list 2 #16): the opt-in cycle log in Health. Theme tokens only; no motion. */
+.cycle-log { display: grid; gap: 10px; padding-top: 4px; min-width: 0; }
+.cycle-line { margin: 0; overflow-wrap: anywhere; }
+.cycle-estimate p { margin: 0; }
+.cycle-flow, .cycle-symptoms { border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; margin: 0; min-width: 0; }
+.cycle-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cycle-chips button { min-height: 44px; }
+.cycle-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.cycle-chip input { width: 18px; height: 18px; }
+.cycle-log .field input { min-height: 44px; }
+.cycle-status { margin: 0; min-height: 1.2em; }
+.cycle-recent ul { margin: 6px 0 0; padding-inline-start: 18px; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.cycle-recent summary, .cycle-actions button { min-height: 44px; }
+.cycle-recent summary { display: flex; align-items: center; cursor: pointer; }
+.cycle-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }

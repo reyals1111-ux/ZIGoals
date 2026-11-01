@@ -33,6 +33,8 @@ import {CORPUS, IMPORTANT, type ModelCase} from './corpus';
 import {AA} from './corpus-aa';
 import {AF} from './corpus-af';
 import {AK} from './corpus-ak';
+import {NOVA} from './corpus-nova';
+import {novaPromptFor} from './nova-harness';
 import {CORPUS_AI} from './corpus-ai';
 import {G6} from './g6-regression';
 import {todayView, withChecklist, withEarn, withPage} from './fixtures-af';
@@ -103,6 +105,8 @@ const SETS: Record<string, {all: readonly ModelCase[]; important: readonly Model
   ai: {all: CORPUS_AI, important: CORPUS_AI.filter(c => c.important)}, g6: {all: G6, important: G6},
   // Session AK (Part 12): ZIGI_SET=ak, this session's cards and tools (owner's run, D5).
   ak: {all: AK, important: AK.filter(c => c.important)},
+  // Owner follow-up 2 (N10): ZIGI_SET=nova, NOVA's surface (its prompt, pack and scoped tools; nova-harness.ts).
+  nova: {all: NOVA, important: NOVA.filter(c => c.important)},
 };
 const SET_NAMES = (env.ZIGI_SET || 'typed').split(',').map(s => s.trim()).flatMap(s => s === 'corpus' ? ['typed', 'af', 'aa', 'spoken', 'ai'] : [s]).filter(s => { if (!SETS[s]) throw new Error(`Unknown ZIGI_SET ${s}`); return true; });
 const SET: readonly ModelCase[] = SET_NAMES.flatMap(s => SETS[s]!.all);
@@ -129,7 +133,10 @@ function sourcesFor(c: ModelCase): ToolSources {
 type Transport = (request: ChatRequest) => AsyncGenerator<ChatEvent>;
 async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources, page: PageContext | null, transport: Transport = streamChat): Promise<{observed: Observed; reply: string; repaired: boolean; firstTokenMs: number | null; totalMs: number; tokens: Tokens; requests: number; error: string | null}> {
   const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
-  const toolHandles = new Handles(page?.handles ?? []), provider = toolEnv(sources, gates, 'provider', toolHandles), local = toolEnv(sources, gates, 'local');
+  const toolHandles = new Handles(page?.handles ?? []), local = toolEnv(sources, gates, 'local');
+  // Owner follow-up 2 (N10): a NOVA case reads with NOVA's scoped tools and NOVA's own prompt (nova-harness.ts).
+  const nova = c.surface === 'nova' ? novaPromptFor(c, sources, gates, {providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY}, toolHandles) : null;
+  const provider = nova ? nova.env : toolEnv(sources, gates, 'provider', toolHandles);
   const context = questionContext(ask, sources, gates, page?.handles ?? []);
   // Session X-Local Phase 2 (P2.2a): tools mode carries the question-chosen records too, exactly as the app does
   // (`use-chat-session` passes the page context with `tools: true`); the router's own pre-run calls count as calls, since
@@ -138,7 +145,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   const contextText = context?.text ?? null;
   const prerun: Call[] = MODE === 'tools' ? (context?.sources ?? []).filter(src => src.call.tool !== 'about_me').map(src => ({name: src.call.tool, args: (src.call.args ?? null) as Record<string, unknown> | null, accepted: true})) : [];
   // Session Z-Local Part 3: the prompt in blocks (the stable prefix cached on the Anthropic wire), the same string as before.
-  const parts = buildSystemParts({area: c.page, context: contextText, customInstructions: '', providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY, healthShared: health, pageContext: page?.text || null});
+  const parts = nova ? nova.parts : buildSystemParts({area: c.page, context: contextText, customInstructions: '', providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY, healthShared: health, pageContext: page?.text || null});
   const system = parts.prompt;
   const messages: ChatMessage[] = [...history, {role: 'user', content: ask}];
   const calls: Call[] = [...prerun], started = Date.now(); let first: number | null = null, reply = '', tokens = emptyTokens(), requests = 0, error: string | null = null;
@@ -204,7 +211,7 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
     }
     const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
     const page = PAGE ? pageFor(c, sources, health) : null, context = questionContext(ask, sources, gates, page?.handles ?? []);
-    const parts = buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY, healthShared: health, pageContext: page?.text || null});
+    const parts = c.surface === 'nova' ? novaPromptFor(c, sources, gates, {providerName: 'Anthropic', tools: false, today: DAY}).parts : buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY, healthShared: health, pageContext: page?.text || null});
     // The adapter's body minus `stream` (the Batches API refuses it); everything else (cache markers, effort) is the app's own request.
     const {stream: _stream, ...params} = anthropicBody({model: MODEL, system: parts.prompt, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages: [{role: 'user', content: ask}], maxOutputTokens: OUTPUT_CAP.default, think: THINK}, {effort: true}); void _stream;
     prepared.push({c, ask, sources, context, page, system: parts.prompt, params});

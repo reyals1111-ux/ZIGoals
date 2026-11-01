@@ -17,6 +17,12 @@ export const journalEntrySchema = z.looseObject({
   tags: z.array(z.string().trim().min(1).max(24)).max(8).optional(),
   /** ZIGi's one follow-up question after the entry, and where it came from. */
   followUp: z.looseObject({question: z.string().trim().min(1).max(300), from: z.enum(['device', 'ai']), answer: z.string().trim().max(2000).optional(), answeredAt: z.iso.datetime({offset: true}).optional()}).optional(),
+  /**
+   * Session AK (BUILD list 2 #13; TIER 3 (stored format), additive and optional): the "Start from a prompt" template the
+   * entry began from (lib/journal-prompts/templates.ts). A value this build cannot read is dropped on read, never failing
+   * the journal; older builds keep it as it is (the entry is loose).
+   */
+  template: z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined),
 });
 export const journalSchema = z.looseObject({
   version: z.literal(1),

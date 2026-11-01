@@ -28,7 +28,7 @@ import type {Reminders} from '../../reminders/schema';
 import {reviewWindow} from '../../weekly-review/engine';
 import type {WeeklyReview} from '../../weekly-review/schema';
 import {reviewFor, saveReviewNotes, setReviewWeekday, skipReview} from '../../weekly-review/store';
-import {addNote, CATEGORY_LABELS, consentOnRemember, deleteNote, isHealthNote, MEMORY_DECLINED, newNoteId, noteProblem} from '../memory';
+import {addMemory, addNote, CATEGORY_LABELS, consentOnRemember, deleteNote, isHealthNote, MEMORY_DECLINED, MEMORY_KIND_LABELS, memoryKind, memoryProblem, newNoteId, noteProblem} from '../memory';
 import {memoryConsent} from '../store/records';
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
@@ -39,6 +39,7 @@ import type {planAaAction as PlanAa} from './plan-aa';
 import type {planAfAction as PlanAf} from './plan-af';
 import type {AkEffect, AkRecords, planAkAction as PlanAk} from './plan-ak';
 import {installGoalBundleReader} from './schema-ak';
+import {NOVA_PAGE_ROUTES} from './schema-nova';
 import type {StakingPrefillValues} from './staking-prefill';
 import type {Checklist, ChecklistDays} from '../../checklist/schema';
 /**
@@ -106,7 +107,11 @@ export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitD
   /** Session AF (L4): the validators the Earn page read in this visit (lib/earn/snapshot.ts), to name one by its moniker. */
   earn?: {validators: readonly {operator: string; moniker: string}[]} | null;
   /** Session AK (Part 12): the auto-complete rules and bills, when the caller read them (else plan-ak.ts reads this device's). */
-  akRecords?: AkRecords};
+  akRecords?: AkRecords;
+  /** Owner follow-up 2 (N7): the card is planned on NOVA's surface (a memory is then kept as proposed by NOVA). */
+  surface?: 'nova';
+  /** Owner follow-up 2 (N7): Health is shared with ZIGi and NOVA at this moment (absent: not, so health-like memories are held). */
+  healthShared?: boolean};
 export type ChecklistEnv = {record: Checklist; days: ChecklistDays; date: string; unreadable: boolean};
 /** ZIGi's current look and the looks this build has, when the runner knows them (a change to the same value is then refused). */
 export type ZigiLookEnv = {prefs: ZigiPrefs; skins: readonly string[]};
@@ -128,7 +133,9 @@ const WEEKDAY_LABELS = WEEKDAY_NAMES.map(n => n[0]!.toUpperCase() + n.slice(1));
  */
 export type Navigate = {href: string; label: string};
 export type Confirm = {href: string; what: string; id: string; label: string};
-export type DeviceWrite = {key: string; patch: Record<string, unknown>; label?: string};
+export type DeviceWrite = {key: string; patch: Record<string, unknown>; label?: string;
+  /** Owner follow-up 2 (N5): the inverse change through the same writer (a `remove` patch), for the card's Undo (device-undo.ts). */
+  undo?: {patch: Record<string, unknown>; label: string}};
 export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; contribution?: ContributionPrefill; account?: AccountPrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite;
   /** SECURITY_REVIEW_Y F9: the card shows or keeps Health content though its kind is not a Health kind (a Health widget on Today, a diet note): auto-accept treats it as Health-gated. */
   healthContent?: boolean;
@@ -584,6 +591,16 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (memoryConsent(stores.memory) === 'declined') return refuse(MEMORY_DECLINED);
       const problem = noteProblem(action.text, stores.memory); if (problem) return refuse(problem);
       const id = (env.newNoteId ?? newNoteId)(), sent = isHealthNote(action.category) ? 'while "Use my notes" is on and Health is shared with ZIGi' : 'while "Use my notes" is on';
+      // Owner follow-up 2 (N7, lane ND): with a memory kind, a source label, or on NOVA, the note is kept through addMemory
+      // (who proposed it, where, its kind); health-like words proposed by ZIGi or NOVA are held back unless Health is shared.
+      if (action.memory_kind || action.label || env.surface === 'nova') {
+        const by = env.surface === 'nova' ? 'nova' as const : 'zigi' as const, healthShared = env.healthShared === true, category = action.category === 'other' ? undefined : action.category;
+        const kind = action.memory_kind ?? memoryKind({category: action.category}), held = memoryProblem({text: action.text, by, category}, stores.memory, healthShared); if (held) return refuse(held);
+        return {ok: true, plan: {target: 'memory', card: {kind: action.kind, title: 'Remember this?', lines: [action.text, `Kept as: ${MEMORY_KIND_LABELS[kind]}`, ...(action.label ? [`From: ${action.label}`] : []), `On this device only; it goes to your AI with your messages ${sent}`], where: `${by === 'nova' ? 'NOVA → Memory' : 'ZIGi · What ZIGi knows about me'}`, day: null, estimate: false},
+          write: s => ({memory: consentOnRemember(addMemory(s.memory, {text: action.text, kind, source: 'zigi', by, ...(action.label ? {label: action.label} : {}), ...(category ? {category} : {})}, env.now, healthShared, id), env.now)}),
+          undo: {label: 'Forget this note', write: s => ({memory: deleteNote(s.memory, id)}), unchanged: (after, current) => same(after.memory.notes?.find(n => n.id === id), current.memory.notes?.find(n => n.id === id))},
+          activity: {id: `note:${id}`, title: `Remembered: ${action.text.slice(0, 120)}`}, ...(action.category === 'diet' ? {healthContent: true} : {})}};
+      }
       return {ok: true, plan: {target: 'memory', card: {kind: action.kind, title: 'Remember this?', lines: [action.text, `Kept as: ${CATEGORY_LABELS[action.category]}`, `On this device only; it goes to your AI with your messages ${sent}`], where: 'ZIGi · What ZIGi knows about me', day: null, estimate: false},
         write: s => ({memory: consentOnRemember(addNote(s.memory, {text: action.text, category: action.category, source: 'zigi'}, env.now, id), env.now)}),
         undo: {label: 'Forget this note', write: s => ({memory: deleteNote(s.memory, id)}), unchanged: (after, current) => same(after.memory.notes?.find(n => n.id === id), current.memory.notes?.find(n => n.id === id))},
@@ -807,6 +824,13 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'open-page': {
       // A page the person hid in "Your pages & buttons" is not opened behind their back.
       const view = viewOf(settingsGroupIn(stores.settings, 'pages'));
+      // Owner follow-up 2 (N5): the pages NOVA opens that had no card yet (journal, agenda, NOVA, notes, focus, workouts).
+      if (action.page === 'journal' || action.page === 'agenda' || action.page === 'nova' || action.page === 'notes' || action.page === 'focus' || action.page === 'workouts') {
+        const route = NOVA_PAGE_ROUTES[action.page];
+        if (action.view || action.habit || action.goal || action.asset) return refuse(`${route.label} opens as it is; ask for that page alone.`);
+        if (route.follows && !isShown(view, route.follows)) return refuse(`${route.label} follows ${PAGE_LABEL[route.follows]}, which is hidden in Settings → Your pages & buttons; show it there first.`);
+        return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${route.label}`, lines: [`Opens ${route.href}`, 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href: route.href, label: route.label}}};
+      }
       // Session AF (L4): the Checklist and Earn have no switch of their own (H72); Earn shows and hides with Wealth (H98).
       const pageId = action.page === 'settings' || action.page === 'help' || action.page === 'music' || action.page === 'journey' || action.page === 'review' || action.page === 'share' || action.page === 'checklist' ? null : action.page === 'earn' ? 'wealth' : action.page;
       if (pageId && !isShown(view, pageId)) return refuse(`${action.page === 'earn' ? 'Earn follows Wealth, which' : PAGE_LABEL[pageId]} is hidden in Settings → Your pages & buttons; show it there first.`);
@@ -850,6 +874,8 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'set-auto-rule': case 'set-bill-reminder': case 'grocery-list': case 'goal-draft': case 'what-if': case 'scan-food': case 'start-soundscape':
     // Owner follow-up 1 (F9): the F4–F5 cards, in the same lazy chunk (plan-ak-f9.ts).
     case 'log-supplement': case 'set-debt-plan': case 'start-savings-challenge': case 'open-agenda': case 'open-wrapped':
+    // Owner follow-up 2 (N5): NOVA's cards (a task, a workout, a note captured, focus), in the same lazy chunk (plan-nova.ts).
+    case 'add-task': case 'log-workout': case 'capture-note': case 'file-note': case 'start-focus':
       if (!akPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
       return akPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {

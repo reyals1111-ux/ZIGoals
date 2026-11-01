@@ -1,0 +1,26 @@
+/* NOVA's panels and briefs (Session AK, owner follow-up 2 N2/N6): theme tokens only; nothing moves. */
+.nova-panels,.nova-briefs{display:grid;gap:12px;min-width:0}
+.nova-panel-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px}
+.nova-panel-head h2,.nova-panel-head h3{margin:0}
+.nova-panel-head .text-link{min-height:44px}
+.nova-panel-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.nova-panel-tabs button{min-height:44px}
+.nova-panel-body,.nova-memory,.nova-permissions,.nova-activity,.nova-cost,.nova-models{display:grid;gap:12px;min-width:0}
+.nova-panel-body h4{margin:6px 0 0}
+.nova-badge{font-size:14px;font-weight:600;color:var(--brand-cyan,#5ee7ff)}
+.nova-empty{border:1px dashed var(--line,#2a325a);border-radius:14px;padding:12px 14px;display:grid;gap:4px}
+.nova-empty p{margin:0}
+.nova-brief-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.nova-brief{border:1px solid var(--line,#2a325a);border-radius:14px;padding:0 12px;min-width:0}
+.nova-brief summary{min-height:44px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;font-weight:600}
+.nova-brief summary:focus-visible{outline:2px solid var(--focus,var(--brand-magenta,#c86bff));outline-offset:2px;border-radius:10px}
+.nova-brief-body{display:grid;gap:8px;padding:0 0 12px}
+.nova-brief-lines{margin:0;padding-left:20px;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.nova-brief-polished{border-left:3px solid color-mix(in srgb,var(--brand-magenta,#c86bff) 55%,var(--line,#2a325a));padding-left:10px;display:grid;gap:4px}
+.nova-brief-polished .eyebrow{margin:0}
+.nova-status-line{font-weight:600}
+.nova-link{display:inline-flex;align-items:center;min-height:44px}
+.nova-model-id{font-weight:400;overflow-wrap:anywhere}
+.nova-radio-row{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 16px}
+.nova-radio-row .ai-check{min-height:44px;display:flex;align-items:center;gap:8px}
+.nova-cost-table td:last-child{white-space:normal;min-width:12em}

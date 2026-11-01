@@ -96,6 +96,7 @@ import {ZIGI, zigiPersonality, zigiPrefs} from '../../lib/ai/store/records';
 import {greetingWords} from '../../lib/zigi-personality';
 import {inQuietHours} from '../../lib/ai/knock/rules';
 import {SecretGuard} from '../secret-guard/secret-guard';
+import {continueInNova, novaChatHref} from '../../lib/nova/bridge';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -291,6 +292,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
+        // Session AK (NOVA, N1): the same conversation opens in NOVA's full view (one shared history); shown once it has a message.
+        ...(session.chat.turns.length > 0 ? [{key: 'nova', label: 'Continue in NOVA', name: 'Continue this chat in NOVA', href: novaChatHref(session.chat.id), onSelect: () => { continueInNova(session.chat.id); onClose(); }}] : []),
         {key: 'customize', label: 'Customize', name: 'Customize ZIGi', pressed: view === 'customize', onSelect: () => setView(v => v === 'customize' ? 'chat' : 'customize')},
         {key: 'settings', label: 'Settings', name: 'ZIGi settings', href: SETTINGS_HREF, onSelect: onClose},
         {key: 'meet', label: 'Meet ZIGi', href: '/app/zigi', onSelect: onClose},
@@ -322,8 +325,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
           {/* Round 10 (ADR-017 S78): "without page data" drops the records chosen for the question too (they travel as `extra`), not only the page's own; a photo stays, it is the person's own attachment. */}
           <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {...session.confirmation!.options, confirmed: true, spendConfirmed: true})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {...session.confirmation!.options, confirmed: true, withContext: false, extra: undefined, spendConfirmed: true})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
         </div>}
-        {session.spendCheck && <div className="ai-confirm" role="group" aria-label="Your monthly cap is reached">
-          <p>{session.spendCheck.note} You asked ZIGi to check with you first (Settings → ZIGi · Your Personal AI Companion → Usage).</p>
+        {session.spendCheck && <div className="ai-confirm" role="group" aria-label={session.spendCheck.daily ? 'Your daily cap is reached' : 'Your monthly cap is reached'}>
+          <p>{session.spendCheck.note} {session.spendCheck.daily ? 'You asked to be asked first once your daily cap is reached (NOVA → Cost).' : 'You asked ZIGi to check with you first (Settings → ZIGi · Your Personal AI Companion → Usage).'}</p>
           <div className="ai-card-actions"><button type="button" className="primary" onClick={session.confirmSpend}>Send anyway</button><button type="button" className="text-link" onClick={session.cancelSpend}>Not now</button></div>
         </div>}
         {session.usageNote && <p className="ai-note ai-usage-note" role="status">{session.usageNote}</p>}

@@ -39,3 +39,61 @@ export function uncachedCost(model: string, usage: UsageCounts, {batch = false}:
 }
 /** The person's-price form of the table, for "fill in the published prices" in Settings (USD per million, as strings). */
 export const publishedPrices = (model: string): {input: string; output: string; currency: 'USD'} | null => { const p = priceFor(model); return p ? {input: String(p.usd.input), output: String(p.usd.output), currency: 'USD'} : null; };
+
+/**
+ * Session AK (NOVA cost meter, owner follow-up 2 N2): the published prices per provider and model the cost meter may use
+ * where the person typed none of their own, labelled "published prices as of …" and always "an estimate". Kept apart from
+ * `PRICES` (the harness's and the ledger's three Claude rows stay exactly as they were). Source: the providers' own
+ * pricing pages as read for docs/research/session-ak/NOVA.md §3.4 on 2026-11-01 (Anthropic platform.claude.com pricing;
+ * OpenAI platform pricing; Google ai.google.dev pricing; xAI docs models page), standard tier, USD per million tokens.
+ * `cacheRead` is the cached-input (hit) price; where a page lists none it is the input price (a ceiling). Anthropic cache
+ * writes are the 5-minute entries (1.25× input). A prompt above `longPrompt.above` tokens is billed on the second card.
+ * NOT modelled (the meter's "estimate" label covers them): 1-hour cache writes, the US-only 1.1× `inference_geo`
+ * multiplier, fast modes, and Gemini's 1 December 2026 changes (the pages name no per-model figures for that day); the
+ * 1 January 2027 rise of gemini-3.8-flash's input price is modelled with `from`. OpenRouter is not in this table: its
+ * prices are per model in its own list, so a model there is "price unknown" here, never zero.
+ */
+export const PUBLISHED_AS_OF = '2026-11-01';
+export type PublishedPrice = {provider: 'anthropic' | 'openai' | 'gemini' | 'xai'; id: string; usd: Price; longPrompt?: {above: number; usd: Price}; from?: string; until?: string};
+const p = (input: number, output: number, cacheRead = input, cacheWrite = input): Price => ({input, output, cacheWrite, cacheRead});
+export const PUBLISHED_PRICES: readonly PublishedPrice[] = [
+  ...PRICES.map(row => ({provider: 'anthropic' as const, id: row.id, usd: row.usd, ...(row.longPrompt ? {longPrompt: row.longPrompt} : {})})),
+  {provider: 'anthropic', id: 'claude-fable-5-1', usd: p(10, 50, 0.25, 12.5)},
+  {provider: 'anthropic', id: 'claude-opus-5', usd: p(5, 25, 0.5, 6.25)},
+  {provider: 'anthropic', id: 'claude-sonnet-5', usd: p(2, 10, 0.2, 2.5)},
+  {provider: 'anthropic', id: 'claude-haiku-4-5', usd: p(1, 5, 0.1, 1.25)},
+  {provider: 'openai', id: 'gpt-6-astra', usd: p(10, 50, 1)},
+  {provider: 'openai', id: 'gpt-6.1-sol', usd: p(2, 10, 0.1)},
+  {provider: 'openai', id: 'gpt-6.1-terra', usd: p(1, 5, 0.05, 1.25), longPrompt: {above: 272_000, usd: p(2, 7.5, 0.05, 1.25)}},
+  {provider: 'openai', id: 'gpt-6-luna', usd: p(0.1, 0.5, 0.01)},
+  {provider: 'gemini', id: 'gemini-4-argon', usd: p(2, 10)},
+  {provider: 'gemini', id: 'gemini-3.8-flash', usd: p(0.75, 3.75), until: '2026-12-31'},
+  {provider: 'gemini', id: 'gemini-3.8-flash', usd: p(1.5, 3.75), from: '2027-01-01'},
+  {provider: 'gemini', id: 'gemini-3.6-flash', usd: p(0.75, 3.75)},
+  {provider: 'gemini', id: 'gemini-3.5-flash-lite', usd: p(0.3, 2.5)},
+  {provider: 'gemini', id: 'gemini-3.1-pro-preview', usd: p(2, 12), longPrompt: {above: 200_000, usd: p(4, 18)}},
+  {provider: 'gemini', id: 'gemini-2.5-flash', usd: p(0.3, 2.5)},
+  {provider: 'gemini', id: 'gemini-2.5-flash-lite', usd: p(0.1, 0.4)},
+  {provider: 'xai', id: 'grok-4.7', usd: p(2, 6, 0.5), longPrompt: {above: 199_999, usd: p(4, 12, 1)}},
+  {provider: 'xai', id: 'grok-4.6', usd: p(2, 6, 0.5), longPrompt: {above: 199_999, usd: p(4, 12, 1)}},
+  {provider: 'xai', id: 'grok-4.3', usd: p(1.25, 2.5, 0.2)},
+  {provider: 'xai', id: 'grok-4.20-0309-reasoning', usd: p(2.5, 5, 0.4)},
+  {provider: 'xai', id: 'grok-4.20-0309-non-reasoning', usd: p(2.5, 5, 0.4)},
+];
+/** The published row for a provider's model on a day (a Gemini id may carry "models/"), or null: "price unknown". */
+export function publishedPriceFor(provider: string, model: string, day: string = PUBLISHED_AS_OF): PublishedPrice | null {
+  const id = model.trim().replace(/^models\//, '');
+  return PUBLISHED_PRICES.find(r => r.provider === provider && r.id === id && (!r.from || day >= r.from) && (!r.until || day <= r.until)) ?? null;
+}
+/**
+ * An estimate in USD from the published table, or null when the model is not in it. On Anthropic's wire the prompt is
+ * input + cache writes + cache reads; on the others the cached part is already inside `input`, so it is moved to the
+ * cached rate rather than counted twice.
+ */
+export function estimatePublished(provider: string, model: string, usage: UsageCounts, day?: string): number | null {
+  const row = publishedPriceFor(provider, model, day); if (!row) return null;
+  const separate = provider === 'anthropic', read = usage.cacheRead ?? 0, write = separate ? usage.cacheWrite ?? 0 : 0;
+  const input = separate ? usage.input ?? 0 : Math.max(0, (usage.input ?? 0) - read), output = usage.output ?? 0, prompt = input + write + read;
+  const usd = row.longPrompt && prompt > row.longPrompt.above ? row.longPrompt.usd : row.usd;
+  return (input * usd.input + output * usd.output + write * usd.cacheWrite + read * usd.cacheRead) / 1e6;
+}

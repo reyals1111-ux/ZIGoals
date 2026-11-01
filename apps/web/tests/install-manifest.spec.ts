@@ -82,7 +82,8 @@ test('the static manifest keeps 72ad872\'s bytes first, at the same address, and
   // Session AF (L3): the whole file re-pinned after the Checklist shortcut was appended (72ad872's prefix is unchanged).
   // Session AK Part 3: re-pinned after two shortcuts and the screenshots were appended (the prefix is unchanged).
   // Session AK X1: re-pinned after the description changed (R8).
-  expect(createHash('sha256').update(body).digest('hex')).toBe('600f548f617f91da6b5aa8baa2e781901ddd41b0c2c79cef4d43e29e4b584e35');
+  // Owner follow-up 2: re-pinned after the NOVA (first) and Capture a note (last) shortcuts were added (the prefix is unchanged).
+  expect(createHash('sha256').update(body).digest('hex')).toBe('9ab51f5e3c6ec9198ba8555cad07cb499124410c908d0caed0513d1c8ef5f38e');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');

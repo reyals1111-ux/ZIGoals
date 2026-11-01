@@ -2,7 +2,10 @@
 import {useEffect, useId, useMemo, useState} from 'react';
 import type {HealthData} from '../../../lib/health';
 import {COMPARE_PAIR} from '../../../lib/compare/schema';
-import {OUTCOMES, compare, factorOptions, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
+import {compare, factorOptions, isScaleOutcome, outcomeOptions, outcomeText, spendBasis, type CompareResult, type CompareSources, type Lag, type OutcomeId} from '../../../lib/compare/engine';
+// Session AK (BUILD list 2 #12 and #16, lane G1a): the person's own scales, and the opt-in cycle log's period days.
+import {SCALES} from '../../../lib/scales/store';
+import {CYCLE, cycleOn, periodDays} from '../../../lib/cycle/store';
 import {LABEL_WORDS} from '../../../lib/insights/cross-pillar';
 import {ENERGY} from '../../../lib/energy/schema';
 import {JOURNAL} from '../../../lib/journal/schema';
@@ -24,12 +27,12 @@ import {wordsOf} from '../../../lib/mood-words/schema';
  * last chosen pair is stored (zigoals:compare-pair:v1), and only when the person changes it.
  */
 export default function CompareExplorer({health, today}: {health: HealthData; today: string}) {
-  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), pair = useDeviceRecord(COMPARE_PAIR);
+  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), money = useDeviceRecord(MONEY_LOG), pair = useDeviceRecord(COMPARE_PAIR), scales = useDeviceRecord(SCALES), cycle = useDeviceRecord(CYCLE);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState(''), id = useId();
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), money: ok(money), fasting, scales: ok(scales), cycle: ok(cycle) && cycleOn(ok(cycle)!) ? {periodDays: periodDays(ok(cycle)!)} : null}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, money, fasting, scales, cycle]);
   const factors = useMemo(() => factorOptions(src, today), [src, today]), outcomes = useMemo(() => outcomeOptions(src), [src]);
   const basis = useMemo(() => spendBasis(src, today), [src, today]);
   const saved = pair.data;
@@ -61,7 +64,7 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
         <small className="fine">Your usual day: {basis.usual} {basis.currency}. Days with nothing in your money log are left out.</small>
       </label>}
       <label className="field"><span>…what was</span>
-        <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if ((OUTCOMES as readonly string[]).includes(v)) choose({outcome: v}); }}>
+        <select value={outcomeId ?? ''} onChange={e => { const v = e.target.value; if (outcomes.some(o => o.id === v)) choose({outcome: v}); }}>
           {outcomes.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
       </label>
@@ -76,7 +79,7 @@ export default function CompareExplorer({health, today}: {health: HealthData; to
 }
 
 function scaleOf(r: CompareResult): number {
-  if (r.outcome === 'mood' || r.outcome === 'energy') return 5;
+  if (r.outcome === 'mood' || r.outcome === 'energy' || isScaleOutcome(r.outcome)) return 5;
   if (r.outcome === 'habits' || r.outcome === 'feeling') return 1;
   return Math.max(r.withValue ?? 0, r.withoutValue ?? 0) * 1.1 || 1;
 }

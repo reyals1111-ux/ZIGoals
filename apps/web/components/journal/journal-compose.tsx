@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId, useMemo, useState, type FormEvent} from 'react';
+import {Suspense, lazy, useId, useMemo, useState, type FormEvent} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {localDate} from '../../lib/local-date';
 import {ENERGY, ENERGY_WORDS, rateEnergy} from '../../lib/energy/schema';
@@ -13,6 +13,9 @@ import './journal.css';
 import {MoodWordsFold} from '../mood-words/mood-words-fold';
 // Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
 import {SecretGuard} from '../secret-guard/secret-guard';
+// Session AK (BUILD list 2 #13, lane G1a): "Start from a prompt" (its list loads when the fold opens).
+import {onlyHeadings, startFrom, templateById, type PromptLang} from '../../lib/journal-prompts/templates';
+const PromptPicker = lazy(() => import('../journal-prompts/prompt-picker'));
 
 /**
  * Session AI (feature 6, the journal and the daily energy rating): today's energy (1–5) in one tap, a few lines of
@@ -21,6 +24,7 @@ import {SecretGuard} from '../secret-guard/secret-guard';
  */
 export function JournalCompose({compact = false}: {compact?: boolean}) {
   const journal = useDeviceRecord(JOURNAL), energy = useDeviceRecord(ENERGY), today = localDate(), id = useId();
+  const [prompt, setPrompt] = useState<{id: string; lang: PromptLang} | null>(null), [prompts, setPrompts] = useState(false);
   const [text, setText] = useState(''), [problem, setProblem] = useState(''), [status, setStatus] = useState(''), [asked, setAsked] = useState<string | null>(null), [answer, setAnswer] = useState('');
   const todayEnergy = energy.data.days[today]?.energy ?? null;
   const pattern = useMemo(() => { const p = patterns(journal.data, energy.data)[0]; return p ? patternLine(p, 'en') : null; }, [journal.data, energy.data]);
@@ -29,10 +33,11 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     event.preventDefault(); setProblem('');
     const words = text.trim();
     if (!words) return setProblem('Write a few words first.');
-    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString()};
+    if (prompt && onlyHeadings(words)) return setProblem('Write a few words under the headings first.');
+    const entry: JournalEntry = {id: crypto.randomUUID(), date: today, text: words.slice(0, MAX_TEXT), createdAt: new Date().toISOString(), ...(prompt ? {template: prompt.id} : {})};
     const question = journal.data.followUps ? followUpFor(entry, journal.data.entries, lineLanguage(words)) : null;
     try { journal.update(current => ({...current, entries: [...current.entries, {...entry, ...(question ? {followUp: {question, from: 'device' as const}} : {})}].slice(-5000)})); } catch { return setProblem('This could not be saved on this device. Nothing was changed.'); }
-    setText(''); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
+    setText(''); setPrompt(null); setStatus('Saved in your journal, on this device.'); setAsked(question ? entry.id : null); setAnswer('');
     if (question) zigiSignals.emit('journal_reflecting'); // Session AK Part 12: ZIGi asks its one question (a Studio-4 reaction once its art lands)
   };
   const pending = asked ? journal.data.entries.find(e => e.id === asked) : null;
@@ -51,7 +56,11 @@ export function JournalCompose({compact = false}: {compact?: boolean}) {
     {todayEnergy !== null && <MoodWordsFold day={today}/>}
     {!pending && <form onSubmit={save} aria-label="Write in your journal">
       <label className="field"><span>{compact ? 'A few lines about today' : 'Today’s entry'}</span><textarea rows={compact ? 3 : 5} maxLength={MAX_TEXT} value={text} onChange={e => setText(e.target.value)} placeholder="What stood out today?"/></label>
+      {prompt && templateById(prompt.id)?.note && <p className="fine">{templateById(prompt.id)!.note![prompt.lang]}</p>}
       <SecretGuard text={text} onRemove={() => setText('')}/>
+      {!compact && <details className="prompt-fold" open={prompts || undefined} onToggle={e => setPrompts((e.currentTarget as HTMLDetailsElement).open)}><summary>Start from a prompt</summary>
+        {prompts && <Suspense fallback={<p className="fine">Opening…</p>}><PromptPicker onPick={(t, lang) => { setText(current => startFrom(current, t, lang)); setPrompt({id: t.id, lang}); setPrompts(false); setStatus(`Started from “${t.title[lang]}”. Write under each heading, or change anything.`); }}/></Suspense>}
+      </details>}
       {problem && <p role="alert">{problem}</p>}
       <div className="journal-actions"><button type="submit" className="primary">Save entry</button>{compact && <Link className="text-link" href="/app/journal">Open your journal</Link>}</div>
     </form>}

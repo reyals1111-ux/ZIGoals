@@ -149,6 +149,6 @@ test.runIf(enabled)('the packaged Alpha serves the web app manifest from the ass
   // screenshots (install-manifest.spec.ts moved to the same hash in 02ec25f2); the packaged asset is still pinned as a whole.
   // Session AK X1 (RELEASE_REVIEW R8; deliberate, as strict): the description became consumer words (install-manifest.spec.ts
   // moved to the same hash and still checks 72ad872's other bytes); the packaged asset is still pinned as a whole.
-  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('600f548f617f91da6b5aa8baa2e781901ddd41b0c2c79cef4d43e29e4b584e35');
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('9ab51f5e3c6ec9198ba8555cad07cb499124410c908d0caed0513d1c8ef5f38e');
  }finally{await mf.dispose();}
 },60000);

@@ -1,11 +1,13 @@
 'use client';
-import {useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useId, useMemo, useState} from 'react';
 import type {DeviceRecordState} from '../../ai/use-device-record';
 import {formatDate} from '../../../lib/visual-format';
 import {EXPENSE_CATEGORIES, INCOME_CATEGORIES, type MoneyEntry, type MoneyLog} from '../../../lib/money-log/schema';
 import {acceptReview, pruneReview, toReview, type MoneyReview} from '../../../lib/money-review/review';
 import {plainErrorMessage} from '../../../lib/plain-error';
 import {money} from './format';
+// Session AK (BUILD list 2 #9): "One at a time", its own chunk, loaded when the person turns it on.
+const ReviewCardMode = lazy(() => import('../../review-cards/review-card-mode'));
 
 /**
  * Session AK (lane M, item 10): "To review", the entries an import added that the person has not looked at yet. ✓
@@ -13,12 +15,12 @@ import {money} from './format';
  * in. The entries already count in every total; reviewing never changes an amount. Lazy-loaded by Money tools.
  */
 export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecordState<MoneyLog>; review: DeviceRecordState<MoneyReview>; onMakeRule: (entry: MoneyEntry) => void}) {
-  const id = useId(), [status, setStatus] = useState(''), [error, setError] = useState('');
+  const id = useId(), [status, setStatus] = useState(''), [error, setError] = useState(''), [cards, setCards] = useState(false);
   const pending = useMemo(() => toReview(review.data, log.data.entries), [review.data, log.data.entries]);
   const accept = (ids: string[], words: string) => {
     setError('');
-    try { review.update(r => acceptReview(pruneReview(r, log.data.entries), ids)); setStatus(words); }
-    catch (cause) { setError(plainErrorMessage(cause, 'This could not be saved on this device.')); }
+    try { review.update(r => acceptReview(pruneReview(r, log.data.entries), ids)); setStatus(words); return true; }
+    catch (cause) { setError(plainErrorMessage(cause, 'This could not be saved on this device.')); return false; }
   };
   const recategorise = (entry: MoneyEntry, category: string) => {
     setError('');
@@ -29,7 +31,9 @@ export default function ReviewInbox({log, review, onMakeRule}: {log: DeviceRecor
   if (review.unreadable) return <p role="alert">This device&rsquo;s review list could not be read. Your entries are unchanged.</p>;
   return <section className="money-panel" aria-labelledby={`${id}-title`}>
     <h4 id={`${id}-title`}>To review ({pending.length})</h4>
-    {pending.length ? <>
+    {(pending.length > 0 || cards) && <p className="money-review-mode"><button type="button" className="secondary" aria-pressed={cards} onClick={() => setCards(v => !v)}>One at a time</button></p>}
+    {cards ? <Suspense fallback={<p className="fine" aria-busy="true">Loading…</p>}><ReviewCardMode log={log} review={review} pending={pending} accept={accept} recategorise={recategorise} onMakeRule={onMakeRule} onExit={() => setCards(false)}/></Suspense>
+    : pending.length ? <>
       <p className="fine">Entries from your last imports, as their category was set. They already count in your totals.</p>
       <ul className="money-list">{pending.slice(0, 100).map(e => <li key={e.id} className="money-review-row">
         <span className="money-review-what"><strong>{e.note || e.category}</strong><span className="fine"> · {formatDate(e.date)}</span></span>

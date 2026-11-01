@@ -51,6 +51,26 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:notes:v1',
   // Owner follow-up 2 (T2): calendars imported from .ics files (read-only events).
   'zigoals:calendar-import:v1',
+  // Owner follow-up 2 (N2, N12): NOVA layout, widgets, quick access, persona and panels.
+  'zigoals:nova:v1',
+  // Owner follow-up 2 (N1): which chats started in NOVA and which turns were delegated (no message text).
+  'zigoals:nova-bridge:v1',
+  // Owner follow-up 2 (N6): NOVA briefs composed on the device.
+  'zigoals:nova-briefs:v1',
+  // Owner follow-up 2 (N6): NOVA custom workflows (names, instructions, steps; no records).
+  'zigoals:nova-workflows:v1',
+  // Owner follow-up 2 (N3): the setup guide progress and the privacy mode.
+  'zigoals:nova-setup:v1',
+  // Owner follow-up 3 (N11): the Hermes Agent connection and guide progress (the key stays in the key store).
+  'zigoals:nova-hermes:v1',
+  // Owner follow-up 2 (G1 #4): Your numbers (TIER 3 stored format, additive).
+  'zigoals:health-numbers:v1',
+  // Owner follow-up 2 (G1 #12): your own 1-5 scales.
+  'zigoals:scales:v1',
+  // Owner follow-up 2 (G1 #16): the cycle log, off by default; Health-describing.
+  'zigoals:cycle:v1',
+  // Owner follow-up 2 (G1 #15): the Pomodoro bell and breaks.
+  'zigoals:focus-rounds:v1',
   'zigoals:gov-reminders:v1',
 ];
 /** The account erase removes them all. */
@@ -58,4 +78,4 @@ export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;
 /** This session's device-only databases: the notification snapshot and identity, the queue of notification taps, and the
  * offline generic food library (public data, a cache), the person's own Spotify client id (device-only, never exported),
  * the offline queue, the meal photos the person chose to keep (exported as files), and the Lichess token (never exported). */
-export const AK_DATABASES: readonly string[] = ['zigoals-notify-v1', 'zigoals-notify-actions-v1', 'zigoals-food-generic-v1', 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', 'zigoals-meal-photos-v1', 'zigoals-lichess-v1', 'zigoals-notes-photos-v1'];
+export const AK_DATABASES: readonly string[] = ['zigoals-notify-v1', 'zigoals-notify-actions-v1', 'zigoals-food-generic-v1', 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', 'zigoals-meal-photos-v1', 'zigoals-lichess-v1', 'zigoals-notes-photos-v1', 'zigoals-money-photos-v1'];

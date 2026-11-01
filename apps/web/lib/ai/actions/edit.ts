@@ -126,6 +126,12 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'set-debt-plan': [num('minimum', 'Minimum payment a month', true), num('rate_percent', 'Yearly rate (%)', true), num('extra_per_month', 'Extra a month', true)],
   'start-savings-challenge': [num('step', 'Step (52-week)', true), select('order', 'Order', ['up', 'down'], true), int('target_days', 'No-spend days to aim for', true), {key: 'start', label: 'From', type: 'date', optional: true}],
   'open-agenda': [select('view', 'View', ['day', 'week', 'month'], true)], 'open-wrapped': [],
+  // Owner follow-up 2 (N5): NOVA's cards. A goal is named by the card (ask again to change it).
+  'add-task': [text('title', 'Task'), {key: 'due', label: 'Due', type: 'date', optional: true}, text('time', 'Time (HH:MM)', true), select('priority', 'Priority', ['high', 'normal', 'low'], true)],
+  'log-workout': [text('name', 'Name', true), select('type', 'Type', ['strength', 'cardio', 'mobility', 'sport', 'other']), int('minutes', 'Minutes'), DAY, text('time', 'Started at (HH:MM)', true), text('note', 'Note', true, true)],
+  'capture-note': [text('title', 'Title', true), text('text', 'Words', false, true)],
+  'file-note': [select('to', 'File into', ['daily', 'topic', 'goal', 'habit', 'note']), DAY, text('title', 'New note\'s title', true), text('name', 'Goal, habit or note', true)],
+  'start-focus': [int('minutes', 'Minutes (15, 25 or 50)')],
   'prefill-staking': [select('action', 'What to fill in', STAKING_ACTIONS), select('network', 'Network', STAKING_NETWORKS, false), text('validator', 'Validator (its zigvaloper address or its name)', true), text('amount', 'Amount in ZIG', true)],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];

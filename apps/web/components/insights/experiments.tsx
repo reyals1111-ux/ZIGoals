@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import {useEffect, useId, useMemo, useRef, useState, type FormEvent} from 'react';
 import type {HealthData} from '../../lib/health';
-import {OUTCOME_LABELS, factorOptions, outcomeOptions, outcomeText, type CompareSources, type Lag, type OutcomeId} from '../../lib/compare/engine';
+import {factorOptions, isScaleOutcome, outcomeLabel, outcomeOptions, outcomeText, type CompareSources, type Lag, type OutcomeId} from '../../lib/compare/engine';
+// Session AK (BUILD list 2 #12, lane G1a): the person's own scales as outcomes.
+import {SCALES} from '../../lib/scales/store';
 import {LABEL_WORDS} from '../../lib/insights/cross-pillar';
 import {ENERGY} from '../../lib/energy/schema';
 import {JOURNAL} from '../../lib/journal/schema';
@@ -16,7 +18,6 @@ import {DEFAULT_LENGTH, EXPERIMENT_FACTOR_KINDS, EXPERIMENT_LENGTHS, endExperime
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabits} from '../habits/use-habits';
 import {EmptyState} from '../ui/empty-state';
-import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 import {ShowcaseTag} from '../ui/showcase-tag';
 import {SecretGuard} from '../secret-guard/secret-guard';
 import './compare/compare.css';
@@ -30,12 +31,12 @@ import './experiments.css';
  * kept in zigoals:experiments:v1, written only on the person's taps; results are worked out here each time.
  */
 export default function Experiments({health, today}: {health: HealthData; today: string}) {
-  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), store = useDeviceRecord(EXPERIMENTS);
+  const habits = useHabits(), energy = useDeviceRecord(ENERGY), journal = useDeviceRecord(JOURNAL), workouts = useDeviceRecord(WORKOUTS), store = useDeviceRecord(EXPERIMENTS), scales = useDeviceRecord(SCALES);
   const [fasting, setFasting] = useState<CompareSources['fasting']>(null), [note, setNote] = useState('');
   useEffect(() => { queueMicrotask(() => { try { const r = readFasting(getAppStorage()); setFasting(r.unreadable ? null : r.data); } catch { setFasting(null); } }); }, []);
   const ok = <T,>(r: {loaded: boolean; unreadable: boolean; data: T}) => r.loaded && !r.unreadable ? r.data : null;
-  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), fasting}),
-    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, fasting]);
+  const src: CompareSources = useMemo(() => ({habits: habits.loaded && !habits.error ? habits.data : null, health, energy: ok(energy) ? {days: ok(energy)!.days, words: wordsOf(ok(energy))} : null, journal: ok(journal), workouts: ok(workouts), fasting, scales: ok(scales)}),
+    [habits.loaded, habits.error, habits.data, health, energy, journal, workouts, fasting, scales]);
   const factors = useMemo(() => factorOptions(src, today).filter(f => EXPERIMENT_FACTOR_KINDS.includes(f.kind)), [src, today]);
   const outcomes = useMemo(() => outcomeOptions(src), [src]);
   const results = useMemo(() => [...store.data.items].reverse().map(x => experimentResult(src, x, today)), [store.data.items, src, today]);
@@ -46,13 +47,13 @@ export default function Experiments({health, today}: {health: HealthData; today:
     {showcase && <p className="fine"><ShowcaseTag/> A fictional example experiment on fictional records.</p>}
     <p>Pick one change, try it for a few weeks, and see what happened alongside it. The same number of days just before is the comparison.</p>
     {results.length > 0 && <ol className="experiments-list" aria-label="Your experiments">{results.map(r => <li key={r.experiment.id}>
-      <ExperimentCard result={r} today={today} onEnd={() => write(c => endExperiment(c, r.experiment.id, today), 'Ended today. Its result uses the days so far.')}
+      <ExperimentCard result={r} today={today} outcomeName={r.outcome ? outcomeLabel(r.outcome, src) : undefined} onEnd={() => write(c => endExperiment(c, r.experiment.id, today), 'Ended today. Its result uses the days so far.')}
         onRemove={() => write(c => removeExperiment(c, r.experiment.id), 'Experiment removed. Your records are unchanged.')}
         onNote={text => write(c => noteExperiment(c, r.experiment.id, text), 'Note kept with the experiment.')}/>
     </li>)}</ol>}
-    {!factors.length || !outcomes.length ? <div className="pillar-art-host"><EmptyState title="Nothing to try yet" level={3} action={<Link className="secondary" href="/app/habits">Open Habits</Link>}>
+    {!factors.length || !outcomes.length ? <EmptyState title="Nothing to try yet" level={3} art="health" action={<Link className="secondary" href="/app/habits">Open Habits</Link>}>
       {!factors.length ? 'Add a habit, or tag your journal entries or nights. ' : ''}{!outcomes.length ? 'Rate your mood or energy, or log sleep or steps. ' : ''}Then try one change here for 14 days and see how your mood, energy or sleep went alongside it, for example “On the days you tried it, your energy averaged 3.8 of 5; on the days before, without it, 3.1 of 5.”
-    </EmptyState><LazyPillarArt pillar="health"/></div> : <NewExperiment factors={factors} outcomes={outcomes} today={today} onStart={(input, title) => write(c => startExperiment(c, {...input, id: crypto.randomUUID().replace(/-/g, '').slice(0, 24), start: today}, today), `“${title}” starts today.`)}/>}
+    </EmptyState> : <NewExperiment factors={factors} outcomes={outcomes} today={today} onStart={(input, title) => write(c => startExperiment(c, {...input, id: crypto.randomUUID().replace(/-/g, '').slice(0, 24), start: today}, today), `“${title}” starts today.`)}/>}
     {note && <p className="fine" role="status">{note}</p>}
     <p className="fine">From your own records on this device. What happened together over these weeks, never a cause and not advice.</p>
   </div>;
@@ -83,23 +84,23 @@ function NewExperiment({factors, outcomes, today, onStart}: {factors: ReturnType
         {(['same', 'next'] as const).map(l => <button key={l} type="button" className="secondary" aria-pressed={lag === l} onClick={() => setLag(l)}>{l === 'same' ? 'The same day' : 'The next day'}</button>)}
       </div>
     </div>
-    <p className="fine">Starts today, {formatDate(today)}, and compares with the {days} days before. A result needs 14 days with the change and 14 without, each with {OUTCOME_LABELS[outcome].toLowerCase()} recorded; skipped days simply leave the count.</p>
+    <p className="fine">Starts today, {formatDate(today)}, and compares with the {days} days before. A result needs 14 days with the change and 14 without, each with {(outcomes.find(o => o.id === outcome)?.label ?? outcomeLabel(outcome)).toLowerCase()} recorded; skipped days simply leave the count.</p>
     <div className="actions"><button type="submit" className="primary">Start the experiment</button></div>
   </form>;
 }
 
 function scaleOf(r: ExperimentResult): number {
-  if (r.outcome === 'mood' || r.outcome === 'energy') return 5;
+  if (r.outcome === 'mood' || r.outcome === 'energy' || (r.outcome && isScaleOutcome(r.outcome))) return 5;
   if (r.outcome === 'habits' || r.outcome === 'feeling') return 1;
   return Math.max(r.withValue ?? 0, r.withoutValue ?? 0) * 1.1 || 1;
 }
-function ExperimentCard({result: r, today, onEnd, onRemove, onNote}: {result: ExperimentResult; today: string; onEnd: () => void; onRemove: () => void; onNote: (text: string) => void}) {
+function ExperimentCard({result: r, today, onEnd, onRemove, onNote, outcomeName}: {result: ExperimentResult; today: string; onEnd: () => void; onRemove: () => void; onNote: (text: string) => void; outcomeName?: string}) {
   const x: Experiment = r.experiment, d = r.dates, [text, setText] = useState(x.note ?? ''), [sure, setSure] = useState(false), back = useRef(false);
   const status = d.phase === 'upcoming' ? `Starts ${formatDate(x.start)}` : d.phase === 'running' ? `Day ${d.day} of ${x.days}` : d.endedEarly ? `Ended early, ${formatDate(d.end)}` : `Finished ${formatDate(d.plannedEnd)}`;
   return <article className="compare-card experiment-card" aria-labelledby={`experiment-${x.id}`}>
     <p className="eyebrow">{status}</p>
     <h3 id={`experiment-${x.id}`}>{x.title}</h3>
-    <p className="fine">{r.factor?.label ?? 'A change no longer in your records'} · {r.outcome ? OUTCOME_LABELS[r.outcome] : 'an outcome this version does not know'}{x.lag === 'next' ? ' · the next day' : ''} · the {x.days} days before, {formatDate(d.baselineStart)} to {formatDate(d.baselineEnd)}</p>
+    <p className="fine">{r.factor?.label ?? 'A change no longer in your records'} · {r.outcome ? outcomeName ?? outcomeLabel(r.outcome) : 'an outcome this version does not know'}{x.lag === 'next' ? ' · the next day' : ''} · the {x.days} days before, {formatDate(d.baselineStart)} to {formatDate(d.baselineEnd)}</p>
     {r.state === 'gone' ? <p>{r.why}</p> : <>
       <p className="compare-counts"><strong>{r.withDays}</strong> {r.withDays === 1 ? 'day' : 'days'} with · <strong>{r.withoutDays}</strong> without</p>
       {r.state === 'pending' && <p>{d.phase === 'finished' ? 'Not enough to say.' : 'Not enough days yet.'} A result shows once each side has {r.need} days ({Math.min(r.withDays, r.need)} of {r.need} with, {Math.min(r.withoutDays, r.need)} of {r.need} without).</p>}

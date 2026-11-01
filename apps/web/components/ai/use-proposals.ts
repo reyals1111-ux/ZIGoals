@@ -75,7 +75,13 @@ export type ProposalRunner = {
    */
   effect?: (plan: Plan) => {text: string; navigated: boolean} | null;
 };
-export function useProposals(): ProposalRunner {
+/**
+ * Session AK (owner follow-up 2 N7, lane NE's planner Env): NOVA's chat plans its cards on NOVA's surface, with whether
+ * Health is shared at this moment (a memory is then kept as proposed by NOVA, a health-like one only with Health shared).
+ * ZIGi's panel passes nothing, so its planner Env is exactly as before.
+ */
+export type PlanSurface = {surface: 'nova'; healthShared: boolean};
+export function useProposals(planSurface?: PlanSurface): ProposalRunner {
   const health = useHealth(), habits = useHabits(), fasting = useFasting(), platform = usePlatform(), router = useRouter();
   const reminders = useReminders(), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), weekly = useWeeklyReview(), memory = useDeviceRecord(AI_MEMORY);
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
@@ -91,9 +97,9 @@ export function useProposals(): ProposalRunner {
     const now = new Date(), timeZone = habits.data.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone, {day, habitDay} = days(now);
     // Session AF (L4): the Checklist's records as this device holds them, read when a card is planned (its cards only), and
     // the validators the Earn page read in this visit (a staking card may name one by its name).
-    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {}), checklist: checklistEnv(now), earn: {validators: earnSnapshot().validators}};
+    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {}), checklist: checklistEnv(now), earn: {validators: earnSnapshot().validators}, ...(planSurface ? {surface: planSurface.surface, healthShared: planSurface.healthShared} : {})};
     return planAction(action, env);
-  }, [days, stores, habits.data]);
+  }, [days, stores, habits.data, planSurface?.surface, planSurface?.healthShared]); // eslint-disable-line react-hooks/exhaustive-deps -- the surface's two values, not the object
   /** "Actions by ZIGi" (Activity): a confirmed card is noted, an undone one forgotten; the note is a convenience and never blocks. */
   const note = useCallback((p: Plan, done: boolean, auto = false) => {
     if (!p.activity) return;

@@ -166,3 +166,49 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
 - **Health additions** (Session AK, all on this device, in "Export everything", never synced): barcodes you scanned (`zigoals:food-scans:v1`, up to 100), extra nutrients a food or entry carries (`zigoals:nutrient-extras:v1`), the grocery list's ticks, "Already at home" and items you added (`zigoals:grocery:v1`), and your weekly calorie budget's shifts and rollover (`zigoals:calorie-week:v1`). **Meal photos** are kept only if you turn on "Keep the photo on this device" (off by default): each is shrunk on your device to at most 200 kB and kept in a browser database (`zigoals-meal-photos-v1`), never uploaded or synced; "Export everything" includes them as files (a restore from a backup does not bring them back), and you can delete one, all of them, or erase everything.
 - **Checklist sync** (Session AK, once the owner updates the sync service): with account sync and its extras on, your Checklist's items, orbits and day counts travel end-to-end encrypted like the other extras. Its Health quick inputs and today's tick receipts stay on each device.
 - **Lichess** (Session AK): when you connect Lichess to play on the in-app board, the access token Lichess gives ZIGoals (permission "board:play") is kept only on this device, sealed like the other linked services' sign-ins (in `zigoals-link-tokens-v1`) for the account open on this device, and is sent only to lichess.org. It is not read or used while ZIGoals is locked, or in the Showcase. It is never synced, exported, backed up or sent to ZIGoals. Disconnect deletes it and asks Lichess to revoke it; deleting an account from this device deletes its connection; "Erase everything" asks Lichess to revoke it and deletes it. The daily puzzle is read from lichess.org without an account, and your moves are checked on your device.
+
+**Session AK (1 Nov): NOVA, notes, tasks and calendars.** Nothing here needs a ZIGoals server; there is no NOVA account.
+- **NOVA** (`/app/nova`): your command center runs on this device, on the same engine, keys, memory and history as ZIGi
+  (one conversation history for both, kept on this device). Its layout, widgets, quick access and persona
+  (`zigoals:nova:v1`), which chats started in NOVA and which turns were handed to ZIGi or your Hermes Agent
+  (`zigoals:nova-bridge:v1`: ids and times, never message text), its morning and evening briefs (`zigoals:nova-briefs:v1`,
+  composed on the device from your records), your own workflows (`zigoals:nova-workflows:v1`: names, instructions and
+  steps, never your records) and the setup guide's progress and privacy mode (`zigoals:nova-setup:v1`) stay on this
+  device, are in "Export everything" and are removed by both erases. Without a model NOVA answers on the device only.
+- **Your brain and the privacy modes:** a local model (Ollama, LM Studio, llama.cpp on your own computer, reached at
+  `localhost` / `127.0.0.1` only) keeps everything on your computer. Your own cloud API key, if you add one, is sealed on
+  this device and sent only to that provider, straight from your browser. **Strict** sends nothing to a cloud model
+  (including Ollama models that run in Ollama's cloud); **Guarded** removes or rounds secrets, account and card numbers,
+  IBANs, wallet addresses, e-mails, phone numbers, street addresses, names and exact amounts first, and shows you exactly
+  what will be sent; **Relaxed** sends the areas you allowed as they are. Health is never sent until you allow it.
+  ChatGPT, Claude, Gemini or Grok subscriptions do not sign in here (they don't include API access for other apps).
+- **Hermes Agent** (by Nous Research; no partnership): if you connect your own Hermes, NOVA sends your messages and the
+  areas you allowed to the Hermes gateway on your computer (`127.0.0.1:8642`), with the key you made, kept sealed on this
+  device; your Hermes then handles them by its own settings (it may use a cloud model and keeps its own history on your
+  computer). ZIGoals never sees, stores or relays any of it. A Hermes counts as private (Strict) only after you confirm it
+  uses a local model; until then NOVA treats it as Guarded. The "ZIGoals summary for Hermes" is a file made on this
+  device that you place in Hermes yourself (`zigoals:nova-hermes:v1` keeps only its address, your confirmations and its
+  last check — never the key).
+- **Memory:** NOVA and ZIGi share one memory (`zigoals:ai-memory:v1`): only what you accept, with where it came from and
+  its date; nothing about your health while Health is not shared. Usage counts and an optional daily cap
+  (`zigoals:ai-usage:v1`) are estimates kept on this device.
+- **Notes** (`zigoals:notes:v1`) and the photos you capture into them (IndexedDB `zigoals-notes-photos-v1`, shrunk to at
+  most 200 kB, at most 300) stay on this device, are never synced, are in "Export everything" (photos as files) and are
+  removed by both erases. Speaking a note is off by default; when on, your browser's speech recognition may send the
+  audio to its maker (Chrome uses on-device recognition where it offers it). Markdown export and import run on the device;
+  nothing in an imported file is ever run.
+- **Tasks and calendars:** tasks (`zigoals:tasks:v1`) gain an optional time and a goal link. An imported calendar
+  (`zigoals:calendar-import:v1`) is read on this device from the .ics file you choose; only titles, days, times and
+  repeats are kept (descriptions, locations, people, links and alarms are dropped). Nothing is uploaded or subscribed to.
+- **Your numbers, scales and the cycle log** (owner follow-up 2, BUILD list 2): blood pressure and lab values
+  (`zigoals:health-numbers:v1`), your own 1–5 scales (`zigoals:scales:v1`) and the cycle log (`zigoals:cycle:v1`, off
+  unless you turn it on) stay on this device, are in "Export everything" and removed by both erases; the numbers and the
+  cycle log are Health-describing, so they are restored only with the Health choice and never appear in a notification.
+  A lab-sheet photo goes only to your own AI under the same gates as a label photo, and is not kept.
+- **Receipt photos** (IndexedDB `zigoals-money-photos-v1`, shrunk to at most 200 kB, at most 500): kept with a money entry
+  in this browser only, never uploaded or synced, in "Export everything" as files and removed by Erase everything. A
+  receipt draft uses your own AI only when you ask, under the same gates as a label photo; nothing is saved until you do.
+- **Recovery words in what leaves:** before anything goes to any AI (ZIGi, NOVA or your Hermes Agent), a run that looks
+  like recovery words inside your records, tool results or earlier answers is replaced with "[hidden: looked like recovery
+  words]"; your saved note is not changed. The word lists are the official BIP-39 lists, kept in the app as data.
+- **Motion:** Full, Calm or Off (`zigoals:motion:v1`), on this device only.

@@ -20,6 +20,7 @@ import {CARD_OUTCOMES, cardSig, keepCards, keptCards, ZIGI_CARDS, type CardOutco
 import type {BundleMeta} from '../../lib/ai/actions/parse';
 import {markPlanItem, PLAN_OUTCOMES, ZIGI_PLANS, type PlanOutcome} from '../../lib/ai/store/plans';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
+import {deviceUndoOf, undoDeviceWrite} from '../../lib/ai/actions/device-undo';
 import {BundleHeader} from './bundle-header';
 import {memoryConsent} from '../../lib/ai/store/records';
 import './ai.css';
@@ -124,7 +125,10 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       let opened: {text: string; navigated: boolean} | null = null;
       try { opened = runner.effect?.(plan) ?? null; }
       catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be changed.'}); return; }
-      if (opened !== null) { patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); if (opened.navigated) onNavigate?.(); return; }
+      if (opened !== null) {
+        // Owner follow-up 2 (N5, lane NE): a card that wrote a device record and carries its inverse shows Undo like a journal card.
+        if (!opened.navigated && deviceUndoOf(plan)) { patch(item.id, {status: 'added', error: null, after: runner.stores}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); countZigi('card-added'); return; }
+        patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); if (opened.navigated) onNavigate?.(); return; }
       const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
@@ -183,7 +187,15 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     if (!undoGroup) return;
     const group = items.filter(item => undoGroup.ids.includes(item.id) && (item.status === 'added' || item.status === 'auto') && item.after && planOf(item));
     setUndoGroup(null); setAutoTitles(null);
-    const refused = await runner.undo(group.map(item => planOf(item)!), group.map(item => item.after!));
+    // Owner follow-up 2 (N5, lane NE): the device-record cards (task, workout, note) are undone on the device, newest first.
+    const device = group.filter(item => deviceUndoOf(planOf(item)));
+    for (const item of [...device].reverse()) {
+      const refusedHere = undoDeviceWrite(getAppStorage(), planOf(item));
+      if (refusedHere) { announce(refusedHere); return; }
+      try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: planOf(item)!.device!.key})); } catch { /* no window */ }
+    }
+    const rest = group.filter(item => !device.includes(item));
+    const refused = rest.length ? await runner.undo(rest.map(item => planOf(item)!), rest.map(item => item.after!)) : null;
     if (refused) { announce(refused); return; }
     setItems(current => current.map(item => group.some(g => g.id === item.id) ? {...item, status: 'undone'} : item));
     announce(group.length === 1 ? 'Undone.' : `Undone: ${group.length} additions.`);

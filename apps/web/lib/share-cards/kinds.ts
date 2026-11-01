@@ -17,7 +17,7 @@ import {progressShareCard, type ProgressCardInput} from '../../components/goals/
  * Kinds: a goal's progress (wraps components/goals/progress-card-content.ts, the words the goal page's card already uses),
  * a habit's streak and strength (wraps lib/habits-share.ts), and the week or month review (from lib/life-review).
  */
-export type ShareKind = 'goal-progress' | 'habit-streak' | 'week-review';
+export type ShareKind = 'goal-progress' | 'habit-streak' | 'week-review' | 'net-worth';
 export type ShareOptions = {sensitive?: boolean; example?: boolean};
 export type ShareCardSpec = ShareCard & {kind: ShareKind; hasSensitive: boolean; fileName: string; example: boolean};
 
@@ -63,4 +63,45 @@ export function weekReviewCard(review: Pick<LifeReview, 'counts' | 'streaks' | '
   for (const g of review.goalsMoved) if (/put in|\d/.test(g.line)) numbers.push(`${g.name}: ${g.line}`);
   const lines = [...safe, ...(sensitive ? numbers : [])].slice(0, 6);
   return finish('week-review', {eyebrow: `Life review · ${range}`, title: period === 'week' ? 'My week' : 'My month', lines: lines.length ? lines : ['A quiet stretch, and that is fine.']}, numbers.length > 0, `${period}-${review.window.start}`, example);
+}
+
+/**
+ * Session AK (BUILD list 2 #17, COMPETITORS_2: YNAB net-worth sharing): a net-worth moment, amounts hidden by default.
+ * The change in per cent of the net worth from accounts and debts since an earlier month end (one currency, never
+ * converted), and a milestone the person picked and passed (lib/networth-milestones). Without "Include numbers" the
+ * card carries no amount at all: the per cent and the words only. Unknown values are not drawn: no earlier figure, or an
+ * earlier figure at or below zero (a per cent of it means nothing), gives no per-cent line.
+ */
+export type NetWorthAmount = {value: bigint; decimals: number};
+export type NetWorthMoment = {
+  currency: string;
+  /** Net worth from accounts and debts now, and at the earlier month end (`sinceLabel`, a formatted date). */
+  now: NetWorthAmount | null; then: NetWorthAmount | null; sinceLabel: string;
+  /** A milestone passed: its whole amount and the formatted day. */
+  milestone?: {amount: string; onLabel: string} | null;
+  /** Writes an amount in the currency ("€12,345.00"); only used with "Include numbers". */
+  money: (amount: NetWorthAmount) => string;
+};
+/** The change in tenths of a per cent, rounded half away from zero, or null when it cannot honestly be said. */
+export function netWorthChangeTenths(now: NetWorthAmount | null, then: NetWorthAmount | null): bigint | null {
+  if (!now || !then) return null;
+  const d = Math.max(now.decimals, then.decimals), a = now.value * 10n ** BigInt(d - now.decimals), b = then.value * 10n ** BigInt(d - then.decimals);
+  if (b <= 0n) return null;
+  const n = (a - b) * 1000n, q = n / b, r = n % b;
+  return 2n * (r < 0n ? -r : r) >= b ? q + (n < 0n ? -1n : 1n) : q;
+}
+export function netWorthCard(m: NetWorthMoment, {sensitive = false, example = false}: ShareOptions = {}): ShareCardSpec {
+  const tenths = netWorthChangeTenths(m.now, m.then), safe: string[] = [], numbers: string[] = [];
+  if (tenths !== null) {
+    const abs = tenths < 0n ? -tenths : tenths, pct = `${formatNumber(Number(abs) / 10, {minimumFractionDigits: 1, maximumFractionDigits: 1})}%`;
+    safe.push(tenths === 0n ? `About the same as on ${m.sinceLabel}` : `${tenths > 0n ? 'Up' : 'Down'} ${pct} since ${m.sinceLabel}`);
+  }
+  if (m.milestone) {
+    safe.push(`Passed a milestone I picked, on ${m.milestone.onLabel}`);
+    numbers.push(`Milestone: ${m.milestone.amount === '0' ? 'above zero' : m.money({value: BigInt(m.milestone.amount), decimals: 0})}`);
+  }
+  if (m.now) numbers.push(`Net worth: ${m.money(m.now)}`);
+  if (m.now && m.then) numbers.push(`On ${m.sinceLabel}: ${m.money(m.then)}`);
+  const lines = [...safe, ...(sensitive ? numbers : [])];
+  return finish('net-worth', {eyebrow: `Net worth · ${m.currency} · accounts and debts`, title: m.milestone ? 'A net-worth milestone' : 'My net worth', lines: lines.length ? lines : ['Steady steps add up.']}, numbers.length > 0, `${m.currency}-${m.milestone ? 'milestone' : 'change'}`, example);
 }

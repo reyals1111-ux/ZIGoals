@@ -1,10 +1,12 @@
 'use client';
-import {useEffect, useId, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {NETWORTH_MILESTONES, addAmount, checkCrossings, milestoneAmounts, markShown, nextMilestone, pendingCelebration, removeAmount, setDefaults, turnOff, turnOn, type NetRow, type NetworthMilestones as Record_} from '../../lib/networth-milestones/milestones';
 import {formatDate, formatMoney} from '../../lib/visual-format';
 import {plainErrorMessage} from '../../lib/plain-error';
 import './networth-milestones.css';
+// Session AK (BUILD list 2 #17): share a net-worth moment, amounts hidden by default (its own chunk, on the tap).
+const NetWorthShare = lazy(() => import('../networth-share/networth-share'));
 
 /**
  * Session AK (F5a, item 3): net-worth milestones on Wealth, under the net worth. Off by default; the person picks the
@@ -38,6 +40,7 @@ export default function NetWorthMilestones({rows, today}: {rows: readonly NetRow
         <button type="button" className="secondary" onClick={() => change(x => markShown(x, pending, new Date().toISOString()), 'Remembered. This milestone will not be celebrated again.')}>Thanks</button>
       </div>
     </section>}
+    {pending && <Suspense fallback={null}><NetWorthShare currencies={currencies} preferred={pending.currency} milestone={pending} label="Share this moment"/></Suspense>}
     <details className="nwm-settings">
       <summary>Net-worth milestones <small>{r.enabled && r.currency ? `On · ${r.currency}${next ? ` · next ${amountText(next, r.currency)}` : ''}` : 'Off'}</small></summary>
       {!store.loaded ? <p className="fine" aria-busy="true">Reading…</p> : store.unreadable ? <p role="alert">Your milestones on this device could not be read. Their bytes are kept; nothing was changed.</p>
@@ -61,6 +64,7 @@ export default function NetWorthMilestones({rows, today}: {rows: readonly NetRow
           <p className="fine">Kept on this device only. Information, not advice.</p>
         </div>}
     </details>
+    {!pending && rows.length > 0 && <Suspense fallback={null}><NetWorthShare currencies={currencies} preferred={r.currency}/></Suspense>}
     <p className="nwm-status" role="status" aria-live="polite">{status}</p>
     {error && <p role="alert">{error}</p>}
   </div>;

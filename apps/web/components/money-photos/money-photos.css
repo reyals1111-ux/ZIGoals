@@ -1,0 +1,10 @@
+/* Session AK (BUILD list 2 #10): receipt photos in Money tools. Theme tokens, 44 px targets, no motion. */
+.money-photos-row{grid-template-columns:1fr auto;align-items:center}
+.money-photos-what{min-width:0;overflow-wrap:anywhere}
+.money-photos-thumb{display:inline-grid;place-items:center;min-width:44px;min-height:44px;border-radius:10px}
+.money-photos-thumb img{width:56px;height:56px;object-fit:cover;border-radius:10px;display:block}
+.money-photos-thumb:focus-visible{outline:2px solid var(--text,#f0f5ff);outline-offset:2px}
+.money-photos-row .money-row-actions{grid-column:1 / -1}
+.money-photos-draft{display:grid;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line,#25334f)}
+.money-photos-title{margin:0;font-weight:600}
+.money-photos .actions button{min-height:44px}

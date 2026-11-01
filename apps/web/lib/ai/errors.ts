@@ -80,7 +80,7 @@ export function errorSteps(error: AiError, context: {providerName: string; local
       const steps = [`Start the server at ${context.local?.baseUrl ?? 'its address'} on this computer.`];
       if (context.local?.server !== 'openai-compatible') steps.push(context.hostedPage ? 'Ollama: allow this site with OLLAMA_ORIGINS=https://alpha.zigoals.app, then restart Ollama.' : 'Ollama allows pages on localhost and 127.0.0.1 by default.');
       if (context.local?.server !== 'ollama') steps.push('LM Studio: Developer → Server Settings → turn "Enable CORS" on.');
-      if (context.hostedPage) steps.push('Chrome 142+ asks once to "connect to devices on your local network": allow it.');
+      if (context.hostedPage) steps.push('Chrome 145+ (and Edge, and Firefox 151+) asks once to let this site reach apps and services on this device: allow it. Safari cannot reach a model on this computer from a web page.'); // docs/research/session-ak/NOVA.md §2
       steps.push('A phone cannot reach a computer\'s localhost: use a cloud provider there.');
       return steps;
     }

@@ -18,10 +18,12 @@ const base64 = z.string().regex(/^[A-Za-z0-9_-]+$/);
 export const sealedKeySchema = z.strictObject({version: z.literal(1), scope: z.string().min(1).max(80), provider: z.string().min(1).max(40), iv: base64.length(16), ciphertext: base64.min(22).max(4000), createdAt: z.iso.datetime()});
 export type SealedKey = z.infer<typeof sealedKeySchema>;
 const memory = new Map<string, string>();
-const slot = (scope: string, provider: ProviderId) => `${scope}:${provider}`;
+/** A key's slot: a provider, or the person's own Hermes Agent gateway (owner follow-up 3, N11). */
+export type KeySlot = ProviderId | 'hermes';
+const slot = (scope: string, provider: KeySlot) => `${scope}:${provider}`;
 const encode = (bytes: Uint8Array) => { let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const decode = (text: string) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-const aad = (scope: string, provider: ProviderId) => new TextEncoder().encode(JSON.stringify(['zigoals-ai-key', 1, scope, provider]));
+const aad = (scope: string, provider: KeySlot) => new TextEncoder().encode(JSON.stringify(['zigoals-ai-key', 1, scope, provider]));
 const available = () => typeof indexedDB !== 'undefined' && !!indexedDB;
 function limited<T>(work: Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -68,11 +70,11 @@ async function loadWrapKey(db: IDBDatabase, create: boolean): Promise<CryptoKey 
   return key;
 }
 /** Keeps a key for this page only. Nothing is written anywhere. */
-export function holdKey(scope: string, provider: ProviderId, key: string): void { memory.set(slot(scope, provider), key); }
+export function holdKey(scope: string, provider: KeySlot, key: string): void { memory.set(slot(scope, provider), key); }
 /** Drops every in-memory key: lock, sign-out, account switch, "Turn off ZIGi". */
 export function dropMemoryKeys(): void { memory.clear(); }
 /** Seals a key for this device. Refused for Showcase. The plaintext stays only in the caller's hands. */
-export async function rememberKey(scope: string, provider: ProviderId, key: string): Promise<void> {
+export async function rememberKey(scope: string, provider: KeySlot, key: string): Promise<void> {
   if (scope === SHOWCASE_SCOPE) throw Error('Showcase keys are kept for this tab only.');
   if (!key) throw Error('Enter a key first.');
   const db = await writable();
@@ -86,7 +88,7 @@ export async function rememberKey(scope: string, provider: ProviderId, key: stri
   } finally { db.close(); }
 }
 /** The key for a request: the in-memory copy, else the remembered one decrypted for this call only; null when there is none. */
-export async function readKey(scope: string, provider: ProviderId): Promise<string | null> {
+export async function readKey(scope: string, provider: KeySlot): Promise<string | null> {
   const held = memory.get(slot(scope, provider)); if (held !== undefined) return held;
   const db = await existing(); if (!db) return null;
   try {
@@ -98,12 +100,12 @@ export async function readKey(scope: string, provider: ProviderId): Promise<stri
   } finally { db.close(); }
 }
 /** Whether a remembered (sealed) key exists for this scope and provider, without decrypting it. */
-export async function hasRememberedKey(scope: string, provider: ProviderId): Promise<boolean> {
+export async function hasRememberedKey(scope: string, provider: KeySlot): Promise<boolean> {
   const db = await existing(); if (!db) return false;
   try { return sealedKeySchema.safeParse(await answer(db.transaction(KEYS, 'readonly').objectStore(KEYS).get(slot(scope, provider)))).success; } finally { db.close(); }
 }
 /** Forgets one provider's key on this device, remembered or held. */
-export async function forgetKey(scope: string, provider: ProviderId): Promise<void> {
+export async function forgetKey(scope: string, provider: KeySlot): Promise<void> {
   memory.delete(slot(scope, provider));
   const db = await existing(); if (!db) return;
   try { const t = db.transaction(KEYS, 'readwrite'); t.objectStore(KEYS).delete(slot(scope, provider)); await finished(t); } finally { db.close(); }

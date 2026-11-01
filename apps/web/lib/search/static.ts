@@ -45,6 +45,14 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:health-planner', kind: 'page', title: 'Meal planner', subtitle: 'Health', href: '/app/health#planner', keywords: ['plan', 'week', 'grocery list', 'aisles']},
   {id: 'page:health-insights', kind: 'page', title: 'Food insights', subtitle: 'Health', href: '/app/health#insights', keywords: ['protein', 'evening', 'patterns']},
   {id: 'page:health-import', kind: 'page', title: 'Import a recipe', subtitle: 'Health', href: '/app/health#import', keywords: ['recipe', 'paste', 'url', 'ingredients']},
+  // Owner follow-up 2 (G1 #4, #12, #13, #16): found by name, each opening where it lives.
+  {id: 'page:health-numbers', kind: 'page', title: 'Your numbers', subtitle: 'Health', href: '/app/health#measurements', keywords: ['blood pressure', 'lab values', 'cholesterol', 'glucose', 'pulse']},
+  {id: 'page:journal-scales', kind: 'page', title: 'Your own scales', subtitle: 'Journal', href: '/app/journal#your-scales', keywords: ['stress', 'pain', 'rating', 'mood scale']},
+  {id: 'page:journal-prompts', kind: 'page', title: 'Start from a prompt', subtitle: 'Journal', href: '/app/journal', keywords: ['template', 'gratitude', 'three good things', 'reflection']},
+  {id: 'page:health-cycle', kind: 'page', title: 'Cycle log', subtitle: 'Health', href: '/app/settings#your-pages', keywords: ['period', 'cycle', 'menstrual', 'flow']},
+  // Session AK Q1 (WIRING_AUDIT 1d, #6, #13): the Journal and Music pages have no sidebar entry; search finds them by name.
+  {id: 'page:journal', kind: 'page', title: 'Journal', href: '/app/journal', keywords: ['diary', 'mood', 'feeling', 'energy', 'reflection', 'year in pixels', 'on this day', 'prompt', 'write']},
+  {id: 'page:music', kind: 'page', title: 'Music', href: '/app/music', keywords: ['music', 'sounds', 'calm sounds', 'mix', 'playlist', 'spotify', 'focus music', 'wind down', 'player']},
 ];
 
 export const SETTINGS: readonly SearchItem[] = [
@@ -79,6 +87,7 @@ export const HELP_TOPICS: readonly [string, string][] = [
   ["install", "Install on iPhone"],
   ["backups", "Optional backups"],
   ["your-ai", "ZIGi · Your Personal AI Companion"],
+  ["nova", "NOVA, notes and tasks"],
   ["questions", "Questions"],
   ["whats-new-alpha", "What's new"],
   // Session AK G2 (RELEASE_REVIEW R24): the release topics ("New: …") are one "Earlier updates" topic; their answers keep their ids.
@@ -114,6 +123,14 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["your-ai-hosted", "What is hosted ZIGoals?"],
   ["your-ai-look", "Can I change how ZIGi looks?"],
   ["your-ai-off", "How do I turn ZIGi off, or hide the button?"],
+  ["nova-what", "What is NOVA?"],
+  ["nova-brain", "How do I give NOVA a brain, and do my ChatGPT or Claude subscriptions work?"],
+  ["nova-privacy", "What do Strict, Guarded and Relaxed mean?"],
+  ["nova-hermes", "Can I connect my own Hermes Agent?"],
+  ["nova-yours", "How do I make NOVA mine, and what does Share my NOVA setup include?"],
+  ["nova-briefs", "What are NOVA's briefs, workflows and memory?"],
+  ["notes-what", "How do notes work?"],
+  ["tasks-what", "How do tasks, calendar import and Pomodoro work?"],
   ["y-vacation", "Can I end a vacation early?"],
   ["y-minus", "I tapped “+” once too often. Can I take it back?"],
   ["y-unit", "Can I change an asset’s unit?"],
@@ -275,6 +292,22 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ak-journal-more", "What are On this day, Experiments, Your first week and ZIGoals Wrapped?"],
   ["ak-safety-more", "Why does ZIGoals warn me about recovery words?"],
   ["ak-zigi-more", "What can ZIGi do with the new features?"],
+  ["ak-sleep-wake", "Does ZIGoals look at when I wake up as well as when I go to bed?"],
+  ["ak-warmup", "Can I log warm-up sets and supersets?"],
+  ["ak-storage-full", "What happens when storage on this device is nearly full?"],
+  ["ak-progress-toast", "Why does a contribution say how far it moved my goal?"],
+  ["ak-staking-clarity", "Where do I see my staking rewards, unstaking dates and practice steps?"],
+  ["ak-your-numbers", "Can I keep my blood pressure and lab values?"],
+  ["ak-scales", "Can I rate my own things, like stress or pain?"],
+  ["ak-journal-prompts", "Can the Journal give me something to start from?"],
+  ["ak-wrap-up-tasks", "What does the evening wrap-up do with today’s open tasks?"],
+  ["ak-focus-bell", "Can Pomodoro ring a bell between rounds?"],
+  ["ak-cycle", "Is there a cycle log?"],
+  ["ak-motion-calm", "What are Full, Calm and Off motion?"],
+  ["ak-money-quicker", "What makes logging money quicker now?"],
+  ["ak-receipt-photos", "Can I keep a receipt photo with an entry?"],
+  ["ak-cash-forecast", "What is Next 60 days?"],
+  ["ak-spending-map", "What are the spending map and the net-worth share card?"],
 ];
 
 export const HELP_ITEMS: readonly SearchItem[] = [

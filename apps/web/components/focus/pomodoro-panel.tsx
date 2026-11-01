@@ -1,5 +1,5 @@
 'use client';
-import {useId, useState} from 'react';
+import {Suspense, lazy, useId, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {startSoundscape} from '../music/soundscape-start';
 import {FOCUS_SESSIONS} from '../../lib/focus-sessions/schema';
@@ -9,6 +9,8 @@ import {formatMinutes} from '../../lib/zone-time';
 import {formatNumber} from '../../lib/visual-format';
 import {PHASE_WORDS, clockOf, usePomodoro} from './use-pomodoro';
 import './focus.css';
+// Session AK (BUILD list 2 #15, lane G1a): Focus intervals' bell at each change and the sound fading in breaks.
+const FocusRounds = lazy(() => import('../focus-rounds/focus-rounds'));
 
 /**
  * Session AK (T3): Pomodoro mode in Focus Sessions — work blocks and breaks of the lengths the person picks, a number
@@ -72,6 +74,7 @@ export function PomodoroPanel({task, goalId, onClose, heading = 'h3'}: {task?: {
         {onClose && <button type="button" className="quiet" onClick={onClose}>Close</button>}
       </div>
     </>}
+    <Suspense fallback={null}><FocusRounds running={!!run}/></Suspense>
     {snap.error && <p role="alert" className="fine">{snap.error}</p>}
     <p className="fine">Each focus block counts like a Focus Session: it grows when the page stays open and in front, and withers (and is kept) when ended early or mostly away. A reload ends the run; finished blocks are kept.</p>
   </section>;

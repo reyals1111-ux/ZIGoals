@@ -1,7 +1,7 @@
 'use client';
 import './pages-settings.css';
 import Link from 'next/link';
-import {Fragment, useRef, useState} from 'react';
+import {Fragment, Suspense, lazy, useRef, useState} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {useShowcase} from '../showcase-controls';
 import {useLauncherRecord} from '../ai/use-launcher-record';
@@ -17,6 +17,8 @@ import type {PageId, Pages, VisibilityId} from '../../lib/pages/schema';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {useChainChoice} from '../chain/use-chain-choice';
 import {chainChosenFrom} from '../../lib/chain-choice';
+// Session AK (BUILD list 2 #16, lane G1a): the opt-in cycle log's switch, under Health (device-only, off by default).
+const CycleSwitch = lazy(() => import('../cycle/cycle-switch'));
 
 const NOTES: Partial<Record<VisibilityId, string>> = {
   'quick-add': 'In the sidebar, the phone top bar and on Today.',
@@ -76,6 +78,7 @@ export function PagesSettings() {
               <input type="checkbox" role="switch" checked={isShown(view, id)} onChange={e => toggle(id, PAGE_LABEL[id], e.currentTarget.checked)}/>
               <span>{PAGE_LABEL[id]}</span>
             </label>
+            {id === 'health' && <Suspense fallback={null}><CycleSwitch healthShown={isShown(view, 'health')}/></Suspense>}
             {id === 'wealth' && <div className="pages-switch-row">
               <label className="pages-switch">
                 <input type="checkbox" role="switch" checked={prefsUsable && chain.earnShown} disabled={!prefsUsable || !isShown(view, 'wealth')} aria-describedby="pages-note-earn" onChange={e => showEarn(e.currentTarget.checked)}/>

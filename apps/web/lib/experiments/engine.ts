@@ -1,6 +1,6 @@
 import {addLocalDays} from '../local-date';
 import {formatDate} from '../visual-format';
-import {CONFOUNDERS, GAP, OUTCOMES, daySample, outcomeText, type CompareSources, type FactorKind, type FactorOption, type Lag, type OutcomeId} from '../compare/engine';
+import {CONFOUNDERS, OUTCOMES, daySample, gapOf, isScaleOutcome, outcomeText, type BaseOutcomeId, type CompareSources, type FactorKind, type FactorOption, type Lag, type OutcomeId} from '../compare/engine';
 import {CROSS_MIN_PER_SIDE, LABEL_WORDS, confidenceOf, type CrossLabel} from '../insights/cross-pillar';
 import {DEFAULT_LENGTH, EXPERIMENT_LENGTHS, MAX_EXPERIMENTS, experimentsSchema, type Experiment, type Experiments} from './store';
 
@@ -17,9 +17,11 @@ import {DEFAULT_LENGTH, EXPERIMENT_LENGTHS, MAX_EXPERIMENTS, experimentsSchema, 
  */
 export const EXPERIMENT_FACTOR_KINDS: readonly FactorKind[] = ['habit', 'sleep-tag', 'journal-tag', 'workout', 'fasting'];
 export {DEFAULT_LENGTH, EXPERIMENT_LENGTHS};
-const OUTCOME_WORDS: Readonly<Record<OutcomeId, string>> = {mood: 'your mood averaged', energy: 'your energy averaged', sleep: 'you slept on average', habits: 'you completed of your scheduled habits', steps: 'you walked on average', feeling: 'a pleasant feeling word was picked on'};
-const say = (outcome: OutcomeId, v: number) => {
+const OUTCOME_WORDS: Readonly<Record<BaseOutcomeId, string>> = {mood: 'your mood averaged', energy: 'your energy averaged', sleep: 'you slept on average', habits: 'you completed of your scheduled habits', steps: 'you walked on average', feeling: 'a pleasant feeling word was picked on'};
+const say = (outcome: OutcomeId, v: number, src?: CompareSources) => {
   const t = outcomeText(outcome, v);
+  // Session AK (BUILD list 2 #12): one of the person's own scales, by its name.
+  if (isScaleOutcome(outcome)) { const id = outcome.slice(6), sc = src?.scales?.scales.find(s => s.id === id) ?? src?.scales?.retired?.find(s => s.id === id); return `your “${sc?.name ?? 'scale'}” rating averaged ${t}`; }
   switch (outcome) {
     case 'habits': return `you completed ${t} of your scheduled habits`;
     case 'steps': return `you walked ${t} steps on average`;
@@ -52,7 +54,7 @@ export type ExperimentResult = {
 const count = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
 export function experimentResult(src: CompareSources, x: Experiment, today: string): ExperimentResult {
   const dates = experimentDates(x, today), lag: Lag = x.lag ?? 'same';
-  const outcome = (OUTCOMES as readonly string[]).includes(x.outcome) ? x.outcome as OutcomeId : null;
+  const outcome = (OUTCOMES as readonly string[]).includes(x.outcome) || isScaleOutcome(x.outcome) ? x.outcome as OutcomeId : null;
   const base = {experiment: x, dates, need: CROSS_MIN_PER_SIDE, withValue: null, withoutValue: null, label: null, ps: null, sentence: null};
   const sample = outcome ? daySample(src, x.factor, outcome, lag, today, dates.baselineStart, dates.end) : null;
   if (!outcome || !sample || !(EXPERIMENT_FACTOR_KINDS as readonly string[]).includes(sample.factor.kind))
@@ -71,9 +73,9 @@ export function experimentResult(src: CompareSources, x: Experiment, today: stri
   if (withV.length < CROSS_MIN_PER_SIDE || withoutV.length < CROSS_MIN_PER_SIDE)
     return {...out, state: 'pending', why: `${span} A result shows once each side has ${CROSS_MIN_PER_SIDE} days, as in Compare${dates.phase === 'finished' ? '; this one ended with fewer, so there is not enough to say' : ''}. ${caution}`};
   const mean = (v: readonly number[]) => v.reduce((a, b) => a + b, 0) / v.length;
-  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(rows, GAP[outcome], x.start);
+  const withValue = mean(withV), withoutValue = mean(withoutV), {label, ps} = confidenceOf(rows, gapOf(outcome), x.start);
   if (!label) return {...out, state: 'unclear', withValue, withoutValue, ps, why: `${span} The two sides are close, so this is not a finding. ${caution}`};
-  const sentence = `On the days you tried it, ${say(outcome, withValue)}${lag === 'next' ? ' (measured the next day)' : ''}; on the days before, without it, ${outcomeText(outcome, withoutValue)}.`;
+  const sentence = `On the days you tried it, ${say(outcome, withValue, src)}${lag === 'next' ? ' (measured the next day)' : ''}; on the days before, without it, ${outcomeText(outcome, withoutValue)}.`;
   return {...out, state: 'ready', withValue, withoutValue, label, ps, sentence, why: `${span} Label: ${LABEL_WORDS[label].label}. ${LABEL_WORDS[label].line} ${caution}`};
 }
 

@@ -1,0 +1,72 @@
+/* Session AK (owner follow-up 2, N2 and M3; lane NA): the NOVA orb. Colours are the page's accent pair (--nova-a, --nova-b;
+   nova.css) over the app's nebula tokens, so every accent and theme draws it. Only transform and opacity move. Each state
+   is a still frame of its own under reduced motion and Motion Off; the slow breathing is the one loop NOVA keeps (M4). */
+.nova-orb {
+  --orb-a: var(--nova-a, var(--brand-violet, #9273ff)); --orb-b: var(--nova-b, var(--brand-cyan, #63e7ff)); --orb-hi: var(--nova-hi, var(--accent-violet, #cbbfff));
+  --orb-deep: #140f3c; --orb-halo: .55;
+  display: block; flex: none; max-width: 100%; height: auto; overflow: visible; pointer-events: none;
+}
+.nova-orb .nova-orb-s-white { stop-color: #ffffff; }
+.nova-orb .nova-orb-s-hi { stop-color: var(--orb-hi); }
+.nova-orb .nova-orb-s-a { stop-color: var(--orb-a); }
+.nova-orb .nova-orb-s-b { stop-color: var(--orb-b); }
+.nova-orb .nova-orb-s-deep { stop-color: var(--orb-deep); }
+.nova-orb .nova-orb-s-strong { stop-opacity: var(--orb-halo); }
+.nova-orb .nova-orb-s-soft { stop-opacity: calc(var(--orb-halo) * .32); }
+.nova-orb .nova-orb-s-clear { stop-opacity: 0; }
+.nova-orb .nova-orb-outer { stroke: color-mix(in oklab, var(--orb-b) 40%, transparent); stroke-width: .8; }
+.nova-orb .nova-orb-dial { stroke: color-mix(in oklab, var(--orb-hi) 55%, transparent); stroke-width: 5; stroke-dasharray: .7 5.3; }
+.nova-orb .nova-orb-arc { stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 96 264; }
+.nova-orb .nova-orb-ripple { stroke-width: 1.4; opacity: 0; }
+.nova-orb .nova-orb-core { filter: drop-shadow(0 0 10px color-mix(in oklab, var(--orb-a) 70%, transparent)); }
+.nova-orb .nova-orb-swirl path { stroke: #ffffff; stroke-opacity: .42; stroke-width: 3.4; stroke-linecap: round; }
+.nova-orb .nova-orb-swirl .nova-orb-swirl-faint { stroke-opacity: .22; stroke-width: 2; }
+.nova-orb .nova-orb-rim { stroke: #ffffff; stroke-opacity: .55; stroke-width: 1.6; stroke-linecap: round; }
+.nova-orb .nova-orb-star { fill: #ffffff; filter: drop-shadow(0 0 5px #ffffffcc); }
+.nova-orb :is(.nova-orb-body, .nova-orb-halo, .nova-orb-ripple, .nova-orb-arc-turn, .nova-orb-swirl, .nova-orb-star) { transform-box: view-box; transform-origin: 0 0; }
+
+/* States: idle breathes; listening ripples; thinking swirls; speaking pulses. */
+.nova-orb[data-state=idle] .nova-orb-body { animation: nova-orb-breathe 6.4s ease-in-out infinite; }
+.nova-orb[data-state=idle] .nova-orb-halo { animation: nova-orb-glow 6.4s ease-in-out infinite; }
+.nova-orb[data-state=listening] { --orb-halo: .7; }
+.nova-orb[data-state=listening] .nova-orb-ripple { animation: nova-orb-ripple 2.4s cubic-bezier(.2, .6, .35, 1) infinite; }
+.nova-orb[data-state=listening] .nova-orb-ripple:nth-child(2) { animation-delay: .8s; }
+.nova-orb[data-state=listening] .nova-orb-ripple:nth-child(3) { animation-delay: 1.6s; }
+.nova-orb[data-state=listening] .nova-orb-dial { stroke: color-mix(in oklab, var(--orb-b) 80%, transparent); }
+.nova-orb[data-state=thinking] .nova-orb-swirl { animation: nova-orb-spin 3s linear infinite; }
+.nova-orb[data-state=thinking] .nova-orb-arc-turn { animation: nova-orb-spin 1.6s linear infinite; }
+.nova-orb[data-state=thinking] .nova-orb-star { animation: nova-orb-twinkle 1.6s ease-in-out infinite; }
+.nova-orb[data-state=speaking] { --orb-halo: .78; }
+.nova-orb[data-state=speaking] .nova-orb-body { animation: nova-orb-pulse .72s ease-in-out infinite alternate; }
+.nova-orb[data-state=speaking] .nova-orb-halo { animation: nova-orb-pulse-halo .72s ease-in-out infinite alternate; }
+@keyframes nova-orb-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@keyframes nova-orb-glow { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
+@keyframes nova-orb-ripple { from { opacity: .7; transform: scale(.92); } to { opacity: 0; transform: scale(1.8); } }
+@keyframes nova-orb-spin { to { transform: rotate(360deg); } }
+@keyframes nova-orb-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .65; transform: scale(.82); } }
+@keyframes nova-orb-pulse { from { transform: scale(1); } to { transform: scale(1.07); } }
+@keyframes nova-orb-pulse-halo { from { opacity: .8; transform: scale(1); } to { opacity: 1; transform: scale(1.08); } }
+
+/* Still frames: no motion at all, and each state still looks like itself. */
+@media (prefers-reduced-motion: reduce) {
+  .nova-orb *, .nova-orb { animation: none !important; }
+}
+:root[data-app-motion=off] .nova-orb, :root[data-app-motion=off] .nova-orb * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(1) { opacity: .55; transform: scale(1.2); }
+  .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(2) { opacity: .3; transform: scale(1.5); }
+  .nova-orb[data-state=thinking] .nova-orb-arc-turn { transform: rotate(120deg); }
+  .nova-orb[data-state=speaking] .nova-orb-body { transform: scale(1.05); }
+}
+:root[data-app-motion=off] .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(1) { opacity: .55; transform: scale(1.2); }
+:root[data-app-motion=off] .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(2) { opacity: .3; transform: scale(1.5); }
+:root[data-app-motion=off] .nova-orb[data-state=thinking] .nova-orb-arc-turn { transform: rotate(120deg); }
+:root[data-app-motion=off] .nova-orb[data-state=speaking] .nova-orb-body { transform: scale(1.05); }
+/* Customize → Glow: Soft halves the halo. Forced colours: the orb is decoration and steps aside for a plain ring. */
+:root[data-glow="soft"] .nova-orb { --orb-halo: .3; }
+@media (forced-colors: active) {
+  .nova-orb :is(.nova-orb-halo, .nova-orb-ripples, .nova-orb-swirl) { display: none; }
+  .nova-orb .nova-orb-core { fill: Canvas; stroke: CanvasText; stroke-width: 2; filter: none; }
+  .nova-orb :is(.nova-orb-dial, .nova-orb-outer, .nova-orb-arc) { stroke: CanvasText; }
+  .nova-orb .nova-orb-star { fill: CanvasText; filter: none; }
+}

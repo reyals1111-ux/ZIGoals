@@ -100,6 +100,16 @@ export function ReportDocument({report: r, weightUnit, showcase}: {report: Repor
         <tbody>{r.habits.rows.map((h, i) => <tr key={`${h.title}-${i}`}><th scope="row">{h.title}</th><td>{h.done}</td><td>{h.scheduled}</td><td>{h.share !== null ? pct(h.share) : '—'}</td><td>{h.skipped}</td></tr>)}</tbody></table>
         <More n={r.habits.more} what="habits"/></> : none}
     </section>}
+    {/* Session AK (BUILD list 2 #4): "Your numbers", as typed; a lab value's verdict only against the range the person copied. */}
+    {r.numbers && <section className="report-section" aria-labelledby="report-numbers"><h2 id="report-numbers">Your numbers</h2>
+      {r.numbers.bp.length || r.numbers.labs.length ? <>
+        <p>Typed by the person from their own readings and lab sheets. Ranges are the ones they copied from the sheet; ZIGoals sets none and gives no interpretation. Not a diagnosis.</p>
+        {r.numbers.bp.length > 0 && <><h3>Blood pressure (mmHg)</h3><table><thead><tr><th scope="col">Day</th><th scope="col">Reading</th><th scope="col">Pulse</th><th scope="col">Note</th></tr></thead>
+          <tbody>{r.numbers.bp.map((b, i) => <tr key={`${b.date}-${i}`}><th scope="row">{day(b.date)}</th><td>{b.systolic}/{b.diastolic}</td><td>{b.pulse ?? '—'}</td><td className="report-note">{b.note ?? '—'}</td></tr>)}</tbody></table><More n={r.numbers.bpMore} what="readings"/></>}
+        {r.numbers.labs.length > 0 && <><h3>Lab values</h3><table><thead><tr><th scope="col">Day</th><th scope="col">Name</th><th scope="col">Value</th><th scope="col">Range copied</th><th scope="col">Against that range</th></tr></thead>
+          <tbody>{r.numbers.labs.map((l, i) => <tr key={`${l.date}-${l.name}-${i}`}><th scope="row">{day(l.date)}</th><td>{l.name}</td><td>{formatNumber(l.value)} {l.unit}</td><td>{l.range ?? 'none copied'}</td><td>{l.verdict ?? '—'}</td></tr>)}</tbody></table><More n={r.numbers.labsMore} what="values"/></>}
+      </> : none}
+    </section>}
     <footer className="report-foot"><p>Made on the person&rsquo;s own device with ZIGoals. Nothing in this report was uploaded.</p></footer>
   </article>;
 }

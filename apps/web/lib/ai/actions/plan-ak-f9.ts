@@ -10,6 +10,7 @@ import {getAppStorage} from '../../showcase-storage';
 import {formatClock, formatDate, formatNumber} from '../../visual-format';
 import {DEBT_MODEL, DEBT_PLANNER_WHERE, debtFreeMonth, debtMoney, debtView} from '../tools/f9-debt';
 import './ak-f9-writes';
+import {planNovaAction} from './plan-nova';
 import type {AaHelpers} from './plan-aa';
 import type {Env, PlanResult} from './plan';
 import type {Action} from './schema';
@@ -144,7 +145,8 @@ export function planAkF9Action(action: Action, env: Env, h: AaHelpers): PlanResu
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'Open ZIGoals Wrapped', lines: ['Your year so far from your own records; each card shows its numbers when you open it',
         'Ready from 1 December, or once the year holds 30 logged days', 'Nothing is shared or written'], where: 'Journey', day: null, estimate: false},
         write: () => ({}), undo: null, navigate: {href: '/app/journey?wrapped=open', label: 'Journey → ZIGoals Wrapped'}, ak: {button: 'Open Wrapped'}}};
-    default: return null;
+    // Owner follow-up 2 (N5): NOVA's cards, in the same chunk.
+    default: return planNovaAction(action, env, h);
   }
 }
 /** A private goal by its handle, else by its name among the person's own open goals (exactly one). */

@@ -1,6 +1,7 @@
 import type {CorpusArea, CorpusKind, Expect, ModelCase} from './corpus';
 import type {PageArea} from '../settings';
 import {G6_AK} from './g6-ak';
+import {G6_NOVA} from './g6-nova';
 
 /**
  * Session AI (ADR-034 N2; picklist 1 #21, the owner's G6): the ZIGi regression set — every suggested chip ZIGi shows
@@ -129,3 +130,5 @@ export const G6: G6Case[] = [];
 }
 // ---- Session AK (Part 12): this session's ZIGi cards and tools (g6-ak.ts) ----
 G6.push(...G6_AK);
+// Owner follow-up 2 (N10): NOVA's cards and its injection checks.
+G6.push(...G6_NOVA);

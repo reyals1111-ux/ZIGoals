@@ -10,6 +10,7 @@ import {MONEY_REVIEW, toReview} from '../../../lib/money-review/review';
 import {bufferDays, bufferSentence, bufferTrend} from '../../../lib/buffer-days/buffer';
 import {moneyCents} from './format';
 import './money-tools.css';
+import {Skeleton} from '../../ui/skeleton';
 
 /**
  * Session AK (lane M): Money tools, inside Wealth → Spending (lazy-loaded after the Spending body). The buffer-days tile
@@ -20,7 +21,10 @@ const ReviewInbox = lazy(() => import('./review-inbox'));
 const RulesPanel = lazy(() => import('./rules-panel'));
 const SplitPanel = lazy(() => import('./split-panel'));
 const EmergencySheetPanel = lazy(() => import('./emergency-sheet'));
-type Tool = 'review' | 'rules' | 'split' | 'sheet';
+// Session AK (BUILD list 2 #11 and #10): the cash forecast and receipt photos, each its own chunk, on its button.
+const CashForecast = lazy(() => import('../../cash-forecast/cash-forecast'));
+const MoneyPhotosPanel = lazy(() => import('../../money-photos/money-photos-panel'));
+type Tool = 'review' | 'rules' | 'split' | 'sheet' | 'forecast' | 'photos';
 
 export default function MoneyTools({showcase = false}: {showcase?: boolean}) {
   const id = useId(), today = localDate();
@@ -30,7 +34,7 @@ export default function MoneyTools({showcase = false}: {showcase?: boolean}) {
   const pending = useMemo(() => toReview(review.data, log.data.entries).length, [review.data, log.data.entries]);
   const makeRule = useCallback((entry: MoneyEntry) => { setPrefill(ruleFromEntry(entry)); setOpen('rules'); }, []);
   const used = useCallback(() => setPrefill(null), []);
-  const tools: [Tool, string][] = [['review', `To review (${pending})`], ['rules', `Rules (${rules.data.rules.length})`], ['split', 'Split an entry'], ['sheet', 'If something happens to me']];
+  const tools: [Tool, string][] = [['review', `To review (${pending})`], ['rules', `Rules (${rules.data.rules.length})`], ['split', 'Split an entry'], ['sheet', 'If something happens to me'], ['forecast', 'Next 60 days'], ['photos', 'Receipt photos']];
   return <section className="money-tools" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Money tools</h3>
     <div className="money-buffer" role="group" aria-label="Buffer days">
@@ -47,11 +51,13 @@ export default function MoneyTools({showcase = false}: {showcase?: boolean}) {
       {tools.map(([tool, label]) => <button key={tool} type="button" className="secondary" aria-expanded={open === tool} aria-controls={`${id}-panel`} onClick={() => setOpen(o => o === tool ? null : tool)}>{tool === 'review' && pending > 0 && <span className="money-review-dot" aria-hidden="true"/>}{label}</button>)}
     </div>
     <div id={`${id}-panel`}>
-      <Suspense fallback={<p className="fine">Loading…</p>}>
+      <Suspense fallback={<Skeleton label="Loading…" lines={3}/>}>
         {open === 'review' && <ReviewInbox log={log} review={review} onMakeRule={makeRule}/>}
         {open === 'rules' && <RulesPanel rules={rules} log={log} prefill={prefill} onPrefillUsed={used}/>}
         {open === 'split' && <SplitPanel log={log} onMakeRule={makeRule}/>}
         {open === 'sheet' && <EmergencySheetPanel showcase={showcase}/>}
+        {open === 'forecast' && <CashForecast log={log} showcase={showcase}/>}
+        {open === 'photos' && <MoneyPhotosPanel log={log}/>}
       </Suspense>
     </div>
   </section>;

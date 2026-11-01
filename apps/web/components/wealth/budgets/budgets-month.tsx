@@ -9,6 +9,10 @@ import {EXPENSE_CATEGORIES, MONEY_LOG, type MoneyEntry} from '../../../lib/money
 import {budgetIssue, monthKey, monthView, removeBudget, setBudget, shiftMonth} from '../../../lib/budgets/engine';
 import {BUDGETS, type BudgetsRecord} from '../../../lib/budgets/schema';
 import './budgets.css';
+// Session AK (BUILD list 2 #19): a sum in the amount field ("300+45,50") is worked out and that amount is saved.
+import {evaluateAmount, isExpression, resolveAmountText} from '../../../lib/money-calc/expression';
+import {CalcHint} from '../../money-calc/calc-hint';
+import '../../money-select/money-select.css';
 
 /**
  * Session AK (7.7): category budgets, one month at a time, against the money log. Each row is the month's amount, plus
@@ -28,7 +32,9 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
   const change = (fn: (r: BudgetsRecord) => BudgetsRecord, done: string) => { setProblem(''); try { onChange(fn); setStatus(done); } catch (cause) { setStatus(''); setProblem(cause instanceof Error ? cause.message : 'This could not be saved on this device.'); } };
   const save = (event: FormEvent) => {
     event.preventDefault();
-    const input = {category, currency, monthly: readAmount(amount), rollover}, issue = budgetIssue(input);
+    const sum = isExpression(amount) ? evaluateAmount(amount) : null;
+    if (sum && !sum.ok) { setProblem(sum.reason); return; }
+    const input = {category, currency, monthly: readAmount(resolveAmountText(amount) ?? amount), rollover}, issue = budgetIssue(input);
     if (issue) { setProblem(issue); return; }
     change(r => setBudget(r, input, crypto.randomUUID(), thisMonth), `Budget for ${category} saved: ${money(Math.round(Number(input.monthly) * 100), currency)} a month${rollover ? ', with rollover' : ''}.`);
     setAmount('');
@@ -55,8 +61,9 @@ export function BudgetsView({record, entries, today, showcase = false, unreadabl
     {view.unbudgeted.length > 0 && <p className="fine">Also spent this month, without a budget: {view.unbudgeted.slice(0, 6).map(u => `${u.category} ${money(u.spent, u.currency)}`).join(' · ')}.</p>}
     <form className="budgets-form" onSubmit={save} aria-label="Set a monthly budget">
       <label className="field"><span>Category</span><select value={category} onChange={e => setCategory(e.target.value)}>{EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
-      <label className="field"><span>Each month</span><input inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)} placeholder="300"/></label>
+      <label className="field"><span>Each month</span><input inputMode="decimal" autoComplete="off" value={amount} onChange={e => setAmount(e.target.value)} placeholder="300" aria-describedby={`${id}-calc`}/></label>
       <label className="field"><span>Currency</span><select value={currency} onChange={e => setCurrency(e.target.value)}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+      <CalcHint value={amount} id={`${id}-calc`}/>
       <label className="budgets-check"><input type="checkbox" checked={rollover} onChange={e => setRollover(e.target.checked)}/><span>Roll over what is left unspent</span></label>
       <button type="submit" className="secondary">Save budget</button>
     </form>

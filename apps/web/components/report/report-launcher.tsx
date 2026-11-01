@@ -12,7 +12,7 @@ const ReportBuilder = lazy(() => import('./report-builder'));
 export function ReportLauncher() {
   const [open, setOpen] = useState(false);
   return <section className="panel report-launcher" aria-labelledby="report-visit-title">
-    <SectionHeading id="report-visit-title" eyebrow="Settings · your data" title="Report for a visit" lede="A printable summary of your own log (sleep, mood and energy, notes, weight, habits) for a doctor or another health professional. You choose the dates and the parts; you print it or save it as a PDF. Nothing is uploaded."/>
+    <SectionHeading id="report-visit-title" eyebrow="Settings · your data" title="Report for a visit" lede="A printable summary of your own log (sleep, mood and energy, notes, weight, habits, your numbers) for a doctor or another health professional. You choose the dates and the parts; you print it or save it as a PDF. Nothing is uploaded."/>
     {open ? <LoadBoundary label="The report"><Suspense fallback={<Skeleton label="Opening the report…"/>}><ReportBuilder/></Suspense></LoadBoundary>
       : <button type="button" className="secondary" onClick={() => setOpen(true)}>Make a report</button>}
   </section>;

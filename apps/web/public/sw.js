@@ -107,7 +107,7 @@ const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 // Release review R12: the pages the manifest's shortcuts and the bottom bar open are kept at install, with the hashed
 // files each one loads, so an installed app's shortcuts work offline before each page was visited. They hold no
 // personal data (the records live in this browser's storage); a page or file that fails is simply left for later.
-const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings'];
+const INSTALL_PAGES = ['/app', '/app/today', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/checklist', '/app/settings', '/app/nova', '/app/notes'];
 const MAX_INSTALL_FILES = 160;
 async function precache() {
   const pages = await caches.open(PAGES), files = new Set();

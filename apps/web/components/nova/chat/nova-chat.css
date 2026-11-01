@@ -1,0 +1,117 @@
+/* NOVA's chat (Session AK, owner follow-up 2 N1/N2): a large glass panel over NOVA's dashboard on computers and tablets,
+   a bottom sheet on phones. The app's own tokens only (Nebula, Light, Dark and Customize map them), every target 44 px,
+   motion only where the device and the app's Motion setting allow it. The slot NOVA's page gives places the box. */
+.nova-chat{--nova-glass:color-mix(in srgb,var(--panel,#0f1530) 82%,transparent);--nova-edge:color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;max-width:100%;color:var(--text,#f3f6ff);background:linear-gradient(165deg,var(--nova-glass),color-mix(in srgb,var(--bg,#050a18) 88%,transparent));border:1px solid var(--nova-edge);border-radius:26px;box-shadow:0 40px 120px -40px #000000cc,inset 0 1px 0 #ffffff0f;-webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%);overflow:clip}
+.nova-chat::before{content:"";position:absolute;inset:-30% -20% auto auto;width:60%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--violet,#826cff) 22%,transparent),transparent 72%)}
+.nova-chat>*{position:relative}
+.nova-chat-panel{width:min(1040px,100%);height:min(880px,calc(100dvh - 96px));margin-inline:auto}
+.nova-chat-sheet{width:100%;height:min(88dvh,100%);border-radius:24px 24px 0 0;border-bottom:0;padding-bottom:var(--safe-bottom,env(safe-area-inset-bottom,0px))}
+.nova-chat-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:18px 20px 14px;border-bottom:1px solid var(--line,#25324a)}
+.nova-chat-sheet .nova-chat-head{padding:12px 14px 10px}
+.nova-chat-identity{flex:1 1 180px;min-width:0}
+.nova-eyebrow{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-chat-title{margin:2px 0 0;font-size:24px;line-height:1.15;font-weight:700;overflow-wrap:anywhere}
+.nova-chat-sheet .nova-chat-title{font-size:20px}
+.nova-chat-status{margin:4px 0 0;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted,#a4b2cd);overflow-wrap:anywhere}
+.nova-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--muted,#a4b2cd)}
+.nova-dot[data-on]{background:var(--cyan,#63e7ff);box-shadow:0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)}
+.nova-chat-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nova-tool{min-height:44px;padding:0 14px;border-radius:12px;font-size:14px}
+.nova-close{display:inline-grid;place-items:center;min-width:44px;min-height:44px;border-radius:12px;border:1px solid var(--line,#25324a);background:transparent;color:inherit;cursor:pointer}
+.nova-close:focus-visible,.nova-tool:focus-visible{outline:2px solid var(--cyan,#63e7ff);outline-offset:2px}
+.nova-chat-log{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.nova-chat-sheet .nova-chat-log{padding:12px 14px}
+.nova-welcome{padding:6px 0 4px}
+.nova-welcome-title{margin:6px 0 4px;font-size:clamp(26px,4vw,38px);line-height:1.1;font-weight:700;background:var(--nebula,linear-gradient(110deg,#63e7ff,#826cff,#c664ff));-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (forced-colors:active){.nova-welcome-title{color:CanvasText;background:none}}
+.nova-welcome-sub{margin:0 0 10px;color:var(--muted,#a4b2cd);max-width:62ch}
+.nova-invite{padding:14px 16px;border-radius:16px;border:1px solid var(--nova-edge);background:color-mix(in srgb,var(--violet,#826cff) 8%,transparent)}
+.nova-invite p{margin:0 0 8px}
+.nova-invite a{display:inline-flex;align-items:center;min-height:44px}
+.nova-turn{display:flex;gap:12px;align-items:flex-start;max-width:100%}
+.nova-turn-figure{flex:none;padding-top:2px}
+.nova-turn-body{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.nova-turn-who{margin:0 0 4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-turn-user{justify-content:flex-end}
+.nova-turn-user .nova-turn-body{flex:0 1 auto;max-width:min(78%,640px);padding:12px 16px;border-radius:18px;border:1px solid var(--line,#25324a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent)}
+.nova-turn-user .nova-turn-body p{margin:0}
+.nova-turn-zigi .nova-turn-body{padding-left:12px;border-left:2px solid color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)}
+.nova-turn-edit{display:flex;justify-content:flex-end;margin:-8px 0 0}
+.nova-turn-body pre{max-width:100%;overflow:auto;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--bg,#050a18) 80%,transparent);border:1px solid var(--line,#25324a)}
+.nova-voice{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-radius:14px;font-size:14px;color:var(--muted,#a4b2cd);background:color-mix(in srgb,var(--violet,#826cff) 7%,transparent)}
+.nova-voice p{margin:0}
+.nova-voice strong{color:var(--text,#f3f6ff)}
+.nova-looked{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;font-size:13px;color:var(--muted,#a4b2cd)}
+.nova-steps{margin:0;padding:10px 14px 10px 34px;border-radius:14px;border:1px dashed var(--nova-edge);font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-steps li{margin:2px 0}
+.nova-steps li[data-done]{color:var(--text,#f3f6ff)}
+.nova-steps li[data-done]::marker{color:var(--cyan,#63e7ff)}
+.nova-pending{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted,#a4b2cd)}
+.nova-paused{margin:0 20px}
+.nova-composer-wrap{padding:10px 20px 4px;display:flex;flex-direction:column;gap:6px}
+.nova-chat-sheet .nova-composer-wrap{padding:8px 12px 4px}
+.nova-composer{display:flex;align-items:flex-end;gap:8px;padding:8px 8px 8px 16px;border-radius:20px;border:1px solid var(--nova-edge);background:color-mix(in srgb,var(--panel,#0f1530) 60%,transparent)}
+.nova-composer:focus-within{border-color:color-mix(in srgb,var(--cyan,#63e7ff) 60%,var(--line,#25324a));box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 18%,transparent)}
+.nova-composer textarea{flex:1 1 auto;min-width:0;min-height:52px;padding:12px 0;border:0;background:transparent;color:inherit;font:inherit;font-size:16px;line-height:24px;resize:none}
+.nova-composer textarea:focus{outline:none}
+.nova-composer-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px}
+.nova-send,.nova-stop,.nova-mic{min-width:44px;min-height:44px;border-radius:14px}
+.nova-send{padding:0 18px}
+.nova-mic{display:inline-grid;place-items:center;padding:0;position:relative}
+.nova-mic-on{color:var(--cyan,#63e7ff);border-color:currentColor}
+.nova-mic-off{opacity:.8}
+.nova-live-words{max-width:40ch;font-size:14px;color:var(--muted,#a4b2cd);overflow-wrap:anywhere}
+.nova-speech-note{padding:10px 14px;border-radius:14px;border:1px solid var(--nova-edge);font-size:14px}
+.nova-speech-note p{margin:0 0 6px}
+.nova-composer-hint{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:12px;color:var(--muted,#a4b2cd)}
+.nova-zigi-row{display:flex;flex-direction:column;gap:6px}
+.nova-zigi-toggle{align-self:flex-start;min-height:44px}
+.nova-zigi-tools:not([hidden]){display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nova-zigi-tools button{min-height:44px}
+.nova-zigi-tools .ai-note{flex-basis:100%;margin:0}
+.nova-zigi-page{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.nova-zigi-page select{min-height:44px;padding:0 10px;border-radius:10px;border:1px solid var(--line,#25324a);background:var(--panel,#0f1530);color:var(--text,#f3f6ff);font:inherit}
+.nova-chat-foot{margin:0;padding:2px 20px 14px;text-align:center;font-size:12px;color:var(--muted,#a4b2cd)}
+.nova-list{flex:1 1 auto;min-height:0;overflow:auto;padding:16px 20px}
+.nova-list-tools input{box-sizing:border-box;width:100%;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line,#25324a);background:color-mix(in srgb,var(--panel,#0f1530) 70%,transparent);color:inherit;font:inherit}
+.nova-list-heading{margin:14px 0 6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#a4b2cd)}
+.nova-list-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.nova-list-items li{display:flex;align-items:center;gap:6px;min-width:0;border-radius:14px;border:1px solid transparent}
+.nova-list-items li.nova-list-current{border-color:var(--nova-edge,#3b3f7a)}
+.nova-list-open{flex:1 1 auto;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 12px;border:0;border-radius:12px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nova-list-open:hover,.nova-list-open:focus-visible{background:color-mix(in srgb,var(--violet,#826cff) 10%,transparent)}
+.nova-list-open strong,.nova-list-open small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nova-list-open small{color:var(--muted,#a4b2cd);font-size:13px}
+.nova-list-actions{flex:none;display:flex}
+/* The Duo: NOVA and ZIGi side by side on the dashboard while a task uses both. */
+.nova-duo{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;max-width:100%;padding:12px 16px;border-radius:20px;border:1px solid color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));background:color-mix(in srgb,var(--panel,#0f1530) 80%,transparent);color:var(--text,#f3f6ff);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.nova-duo-side{display:flex;align-items:center;gap:10px;min-width:0}
+.nova-duo-side:last-of-type{justify-content:flex-end;flex-direction:row-reverse;text-align:right}
+.nova-duo-side p{margin:0;display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.nova-duo-side span{font-size:13px;color:var(--muted,#a4b2cd)}
+.nova-duo-steps{display:flex;gap:6px;margin:0;padding:0;list-style:none;font-size:12px;color:var(--muted,#a4b2cd)}
+.nova-duo-steps li{padding:4px 8px;border-radius:999px;border:1px solid var(--line,#25324a);white-space:nowrap}
+.nova-duo-steps li[data-done]{color:var(--text,#f3f6ff);border-color:color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)}
+@media (max-width:640px){.nova-duo{grid-template-columns:1fr 1fr}.nova-duo-steps{grid-column:1/-1;grid-row:2;flex-wrap:wrap}}
+/* NOVA's small star mark: the nebula palette; breathes only where motion is allowed. */
+.nova-mark{display:inline-grid;place-items:center;flex:none}
+.nova-mark svg{display:block;overflow:visible}
+.nova-mark-core-0{stop-color:#ffffff;stop-opacity:.95}
+.nova-mark-core-1{stop-color:var(--violet,#826cff);stop-opacity:.55}
+.nova-mark-core-2{stop-color:var(--violet,#826cff);stop-opacity:0}
+.nova-mark-ring-0{stop-color:var(--cyan,#63e7ff)}
+.nova-mark-ring-1{stop-color:var(--pink,#c664ff)}
+.nova-mark-star{fill:#ffffff}
+@media (prefers-reduced-motion:no-preference){
+  :root:not([data-app-motion=off]) .nova-mark[data-state=idle] .nova-mark-halo{animation:nova-mark-breathe 5.5s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+  :root:not([data-app-motion=off]) .nova-mark[data-state=thinking] .nova-mark-halo{animation:nova-mark-breathe 1.6s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+  :root:not([data-app-motion=off]) .nova-mark[data-state=speaking] .nova-mark-halo{animation:nova-mark-breathe 0.9s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+}
+@keyframes nova-mark-breathe{0%,100%{opacity:.8;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+@media (max-width:480px){.nova-tool{padding:0 10px}.nova-turn-user .nova-turn-body{max-width:88%}.nova-composer{padding-left:12px}}
+/* Owner follow-up 3 N12: beside the orb on wide screens; folded into the command field (kept mounted, hidden). */
+.nova-chat-side{width:min(560px,100%);height:100%;min-height:min(640px,100%);border-radius:24px}
+.nova-chat[hidden]{display:none}
+.nova-turn-hermes .nova-turn-body{padding-left:12px;border-left:2px solid color-mix(in srgb,var(--pink,#c664ff) 50%,transparent)}
+.nova-agent{display:inline-grid;place-items:center;flex:none;color:var(--muted,#a4b2cd)}
+.nova-agent svg{display:block}

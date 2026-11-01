@@ -22,7 +22,15 @@ function fixture() {
   let habits = createHabit(emptyHabitData(), INPUT, new Date(`${addLocalDays(TODAY, -20)}T08:00:00Z`), HABIT);
   for (let i = 1; i <= 6; i += 1) if (i % 2 === 0) habits = logHabitCount(habits, HABIT, addLocalDays(TODAY, -i), 1, '', new Date(`${addLocalDays(TODAY, -i)}T20:00:00Z`));
   const energy = {days: {[TODAY]: {energy: 3}, [addLocalDays(TODAY, -1)]: {energy: 5}}, words: {[TODAY]: {energy: 'low', pleasantness: 'unpleasant', word: 'tired', at: '2026-10-31T08:00:00.000Z'}, [addLocalDays(TODAY, -1)]: {energy: 'low', pleasantness: 'pleasant', word: 'calm', at: '2026-10-31T08:00:00.000Z'}, [addLocalDays(TODAY, -2)]: {energy: 'low', pleasantness: 'unpleasant', word: 'drained', at: '2026-10-31T08:00:00.000Z'}}};
-  return {health, habits, energy};
+  // Session AK (#4): "Your numbers" in the range (and one reading before it).
+  const numbers = {version: 1 as const, entries: [
+    {id: 'bp1', date: addLocalDays(TODAY, -2), kind: 'bp' as const, systolic: 124, diastolic: 80, pulse: 66},
+    {id: 'lab1', date: addLocalDays(TODAY, -1), kind: 'lab' as const, name: 'Glucose', value: 5.4, unit: 'mmol/L', refLow: 3.9, refHigh: 5.6},
+    {id: 'lab2', date: addLocalDays(TODAY, -1), kind: 'lab' as const, name: 'Cholesterol', value: 5.6, unit: 'mmol/L', refHigh: 5.2},
+    {id: 'lab3', date: addLocalDays(TODAY, -1), kind: 'lab' as const, name: 'Ferritin', value: 48, unit: 'µg/L'},
+    {id: 'bp0', date: '2025-01-01', kind: 'bp' as const, systolic: 130, diastolic: 85},
+  ]};
+  return {health, habits, energy, numbers};
 }
 
 describe('report for a visit (Session AK lane S, item 14)', () => {
@@ -63,7 +71,17 @@ describe('report for a visit (Session AK lane S, item 14)', () => {
     expect(r.mood).toMatchObject({moodDays: 0, avgMood: null, avgEnergy: null, words: []});
     expect(r.weight).toMatchObject({rows: [], first: null, change: null});
     expect(r.habits!.rows).toEqual([]);
+    expect(r.numbers).toEqual({bp: [], bpMore: 0, labs: [], labsMore: 0});
     for (const id of REPORT_SECTIONS) expect(sectionHasData({health: null, habits: null, energy: null, from: TODAY, to: TODAY, today: TODAY}, id)).toBe(false);
+  });
+  test('your numbers (#4): readings as typed in the range; a verdict only against the range the person copied', () => {
+    const r = buildReport({...fixture(), from: addLocalDays(TODAY, -9), to: TODAY, today: TODAY, sections: ['numbers']});
+    expect(r.numbers!.bp).toEqual([{date: addLocalDays(TODAY, -2), systolic: 124, diastolic: 80, pulse: 66, note: null}]);
+    expect(r.numbers!.labs.map(l => [l.name, l.unit, l.range, l.verdict])).toEqual([
+      ['Glucose', 'mmol/L', '3.9–5.6', 'Inside the range you copied'],
+      ['Cholesterol', 'mmol/L', 'up to 5.2', 'Outside the range you copied (above it)'],
+      ['Ferritin', 'µg/L', null, null],
+    ]);
   });
   test('which sections have data in the range', () => {
     const base = {...fixture(), from: addLocalDays(TODAY, -9), to: TODAY, today: TODAY};

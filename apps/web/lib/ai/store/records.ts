@@ -58,7 +58,7 @@ export type AiOptions = z.infer<typeof aiOptionsSchema>;
 export const AI_OPTIONS: DeviceRecordSpec<AiOptions> = {key: AI_OPTIONS_KEY, schema: aiOptionsSchema, empty};
 
 const tokens = z.number().int().min(0).max(1_000_000_000_000);
-export const MAX_USAGE_MONTHS = 13;
+export const MAX_USAGE_MONTHS = 13, MAX_USAGE_DAYS = 14;
 export const aiUsageSchema = z.looseObject({
   version: z.literal(1),
   /** "2026-10" → route (a provider id, "hosted" or "on-device") → tokens the provider reported, the requests made, and how many came back without counts (Part 6). */
@@ -67,6 +67,14 @@ export const aiUsageSchema = z.looseObject({
   prices: z.partialRecord(provider, z.looseObject({input: decimal.optional(), output: decimal.optional(), currency})).optional(),
   softCap: z.looseObject({amount: decimal, currency}).nullable().optional(),
   askFirst: z.boolean().optional(),
+  /**
+   * Session AK (NOVA cost meter, owner follow-up 2 N2; `TIER 3 (stored format)`, additive and optional in this loose record):
+   * a daily cap from the person's own prices, cloud routes only, that notes 80 % and 100 % ('warn') or also asks before
+   * sending past it ('ask'). Counting per day starts when the cap is set (`days`, the last 14 local days; routes as in
+   * `months`). A value this build cannot read is dropped, never the record.
+   */
+  dailyCap: z.looseObject({amount: decimal, currency, mode: z.enum(['warn', 'ask'])}).nullable().optional().catch(undefined),
+  days: z.record(day, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000)})).refine(atMost(20))).refine(atMost(MAX_USAGE_DAYS)).optional().catch(undefined),
 });
 export type AiUsage = z.infer<typeof aiUsageSchema>;
 export const AI_USAGE: DeviceRecordSpec<AiUsage> = {key: AI_USAGE_KEY, schema: aiUsageSchema, empty};
@@ -75,9 +83,24 @@ export const MEMORY_CATEGORIES = ['goals', 'preferences', 'constraints', 'diet',
 /** Notes in these categories describe the person's health and need the Health gate on every path, like Health itself. */
 export const HEALTH_NOTE_CATEGORIES: readonly string[] = ['health', 'diet'];
 export const MAX_NOTES = 100, MAX_NOTE_CHARS = 500;
+/** Session AK (N7): the kinds of a long-term memory note (optional; a note without one reads by its category). */
+export const MEMORY_KINDS = ['preference', 'decision', 'person', 'context'] as const;
 export const memoryNoteSchema = z.looseObject({id: z.string().min(1).max(80), text: z.string().trim().min(1).max(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES), source: z.enum(['person', 'zigi']), createdAt: stamp, updatedAt: stamp,
   /** Session AI (feature 3): kept on this device, never sent to the person's AI while paused. */
-  paused: z.boolean().optional()});
+  paused: z.boolean().optional(),
+  /**
+   * Session AK (NOVA long-term memory, owner follow-up 2 N7; `TIER 3 (stored format)`, every field optional in this loose
+   * note, so older builds keep them on their writes and read the note as before): what the note is (a preference, a
+   * decision, a person, context), whether it is pinned (kept first, sent first), who proposed it and where (the person,
+   * ZIGi or NOVA, with a short label such as "NOVA chat" or "Workflow: Review my week"), and the day it is about. A value
+   * this build cannot read is dropped (`catch`), never the note. `category` and `source` keep their old values, so a
+   * build without these fields shows every note.
+   */
+  kind: z.enum(MEMORY_KINDS).optional().catch(undefined),
+  pinned: z.boolean().optional().catch(undefined),
+  from: z.looseObject({by: z.enum(['person', 'zigi', 'nova']), label: z.string().trim().min(1).max(120).optional()}).optional().catch(undefined),
+  about: day.optional().catch(undefined),
+});
 export type MemoryNoteRecord = z.infer<typeof memoryNoteSchema>;
 /**
  * Session AF (L4, ADR-028 H30; `TIER 3 (storage)`): `consent` says when the person first agreed that ZIGi keeps notes
