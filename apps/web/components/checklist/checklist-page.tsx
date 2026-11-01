@@ -14,7 +14,6 @@ import {PathView} from './path-view';
 import {ListView} from './list-view';
 import {CornerTimers} from './corner-timers';
 import {ChecklistSky} from './checklist-sky';
-import {AmbientSky} from './ambient-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
 import {LoadBoundary} from '../load-boundary';
@@ -22,6 +21,9 @@ import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
 
 // Opened on request only: the editor, the options, the history and the day's celebration stay out of the first paint.
+// The ambient sky is decoration (aria-hidden): it loads after the page, so the Checklist's first scripts stay within
+// their weight line (scripts/weight-budgets.json).
+const AmbientSky = lazy(() => import('./ambient-sky').then(m => ({default: m.AmbientSky})));
 const EditPath = lazy(() => import('./edit-path').then(m => ({default: m.EditPath})));
 const OptionsSheet = lazy(() => import('./options-sheet').then(m => ({default: m.OptionsSheet})));
 const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({default: m.HistoryHeatmap})));
@@ -149,7 +151,7 @@ export function ChecklistPage() {
     }}>
     <ChecklistSky/>
     {/* Session AG Polish 2 (owner Part 4): now and then a twinkle, rarely a shooting star — resting while anything is open over the path. */}
-    <AmbientSky paused={celebrate || sheet !== null || menu}/>
+    <LoadBoundary quiet><Suspense fallback={null}><AmbientSky paused={celebrate || sheet !== null || menu}/></Suspense></LoadBoundary>
     {/* The top bar (Session AG, pointer 12): close, the title, today's count and date, the view, the streak, the menu — no XP. */}
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">
