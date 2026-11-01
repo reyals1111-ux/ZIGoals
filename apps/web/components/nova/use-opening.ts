@@ -10,18 +10,18 @@ export type OpeningPhase = 'waiting' | 'play' | 'done';
  * motion or Motion Off it never plays and the finished dashboard shows. Customize can replay it.
  */
 export function useOpening({ready, seen, motion, markSeen}: {ready: boolean; seen: boolean; motion: boolean; markSeen: () => void}) {
-  const [phase, setPhase] = useState<OpeningPhase>('waiting'), [elapsed, setElapsed] = useState(0);
+  // Session AK P8 (lane M7): the hook no longer ticks a clock of its own. It ticked `elapsed` every 32 ms for the typed
+  // greeting, and the dashboard that holds it re-rendered whole with each tick — at CPU 4× on a computer the opening ran at
+  // about 8 frames a second (13 long tasks, TBT 0.8 s; docs/performance/SESSION_AK_MOTION.md). It now says when the play
+  // started (`startedAt`) and ends it with one timer; the greeting types itself in its own small component (nova-stage.tsx).
+  const [phase, setPhase] = useState<OpeningPhase>('waiting'), [startedAt, setStartedAt] = useState(0);
   const started = useRef(false), timer = useRef(0), mark = useRef(markSeen);
   mark.current = markSeen;
-  const finish = useCallback(() => { window.clearInterval(timer.current); setElapsed(OPENING.end); setPhase('done'); }, []);
+  const finish = useCallback(() => { window.clearTimeout(timer.current); setPhase('done'); }, []);
   const play = useCallback(() => {
-    window.clearInterval(timer.current);
-    const start = performance.now();
-    setElapsed(0); setPhase('play');
-    timer.current = window.setInterval(() => {
-      const t = performance.now() - start;
-      if (t >= OPENING.end) finish(); else setElapsed(t);
-    }, 32);
+    window.clearTimeout(timer.current);
+    setStartedAt(performance.now()); setPhase('play');
+    timer.current = window.setTimeout(finish, OPENING.end);
   }, [finish]);
   useEffect(() => {
     if (!ready || started.current) return;
@@ -37,8 +37,8 @@ export function useOpening({ready, seen, motion, markSeen}: {ready: boolean; see
     window.addEventListener('keydown', skip, true); window.addEventListener('pointerdown', skip, true);
     return () => { window.removeEventListener('keydown', skip, true); window.removeEventListener('pointerdown', skip, true); };
   }, [phase, finish]);
-  useEffect(() => () => window.clearInterval(timer.current), []);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
   /** Replays it from Customize; under reduced motion or Motion Off it says so instead (returns false). */
   const replay = useCallback(() => { if (!motion) return false; play(); return true; }, [motion, play]);
-  return {phase, elapsed, finish, replay};
+  return {phase, startedAt, finish, replay};
 }
