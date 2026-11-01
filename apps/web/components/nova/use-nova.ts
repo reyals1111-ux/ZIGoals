@@ -2,7 +2,9 @@
 import {useEffect, useState, useSyncExternalStore} from 'react';
 import {useDeviceRecord, type DeviceRecordState} from '../ai/use-device-record';
 import {NOVA_STORE, instructionsOf, personaOf, type NovaRecord, type Persona} from '../../lib/nova/store';
-import {novaMotionAllowed} from '../../lib/nova/orb';
+import {novaMotionLevelNow} from '../../lib/nova/orb';
+import {loopRuns} from '../../lib/motion-loops/loops';
+import type {MotionLevel} from '../../lib/motion/level';
 
 /**
  * Session AK (owner follow-up 2, N2; lane NA): NOVA's hooks. `useNova` is the device record (`zigoals:nova:v1`, read after
@@ -22,7 +24,10 @@ function watchMotion(change: () => void): () => void {
   query?.addEventListener?.('change', change);
   return () => { observer.disconnect(); query?.removeEventListener?.('change', change); };
 }
-export const useNovaMotion = (): boolean => useSyncExternalStore(watchMotion, () => novaMotionAllowed(), () => false);
+/** Session AK (FU): the level itself (Full / Calm / Off; Off on the server), for words that name it. */
+export const useNovaMotionLevel = (): MotionLevel => useSyncExternalStore(watchMotion, () => novaMotionLevelNow(), () => 'off');
+/** Movement (the starfield's drift, the opening) only at Full; Calm and Off draw still. */
+export const useNovaMotion = (): boolean => loopRuns(useNovaMotionLevel());
 
 /** The wall clock, ticking each second while the page is visible (null before mount, so the server never guesses a time). */
 export function useClock(): Date | null {

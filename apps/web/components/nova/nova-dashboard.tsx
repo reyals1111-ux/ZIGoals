@@ -13,7 +13,8 @@ import {isShown} from '../../lib/pages/visibility';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPending} from '../../lib/nova/bridge';
 import {dockEntries, dockForKey, type DockEntry} from '../../lib/nova/dock';
-import {greetingFor, typedLength, type NovaOrbState} from '../../lib/nova/orb';
+import {greetingFor, openingSkippedNote, typedLength, type NovaOrbState} from '../../lib/nova/orb';
+import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
 import type {NovaPanelId} from './panels/nova-panels';
@@ -24,7 +25,7 @@ import {NovaStage} from './nova-stage';
 import {NovaTop, QuickTile} from './nova-top';
 import {StatusChips, useBrain} from './status-chips';
 import {useNovaCounts} from './use-counts';
-import {useClock, useNova, useNovaMotion} from './use-nova';
+import {useClock, useNova, useNovaMotionLevel} from './use-nova';
 import {useOpening} from './use-opening';
 import {useWakePhrase} from './use-wake';
 import {WidgetGrid, type GridActions} from './widget-grid';
@@ -62,7 +63,7 @@ const Reading = ({label}: {label: string}) => <p className="nova-reading" role="
  */
 export default function NovaDashboard() {
   const nova = useNova(), r = nova.data, router = useRouter();
-  const motion = useNovaMotion(), now = useClock(), width = useWidth(), phone = width <= 640;
+  const motionLevel = useNovaMotionLevel(), motion = loopRuns(motionLevel), now = useClock(), width = useWidth(), phone = width <= 640;
   const persona = personaOf(r), you = yourNameOf(r), layout = layoutOf(r), accent = accentOf(r), shortcuts = shortcutsOn(r);
   const hermesRecord = useDeviceRecord(NOVA_HERMES), hermes = hermesRecord.loaded && !hermesRecord.unreadable ? hermesStatus(hermesRecord.data) : null;
   const showcase = useShowcase(), chain = useChainChoice(), pagesView = usePagesView(), {brain} = useBrain(), counts = useNovaCounts();
@@ -221,7 +222,7 @@ export default function NovaDashboard() {
     {sheet?.kind === 'day' && <NovaSheet title="Your day" eyebrow="Morning brief and evening recap" place="right" onClose={closeSheet}><LoadBoundary label="Your day"><Suspense fallback={<Reading label="Reading your day…"/>}><NovaBriefs/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'panels' && <NovaSheet title={`${persona.name}’s panels`} eyebrow="Memory, permissions, activity, workflows, cost, models" place="right" wide onClose={closeSheet}><LoadBoundary label="The panels"><Suspense fallback={<Reading label="Opening…"/>}><NovaPanels initial={sheet.id}/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'yours' && <NovaSheet title={`Make ${persona.name} yours`} eyebrow="On this device" place="right" wide onClose={closeSheet}><LoadBoundary label="Make it yours"><Suspense fallback={<Reading label="Opening…"/>}>
-      <MakeItYours record={r} save={save} entries={entries} status={status} onReplay={() => { closeSheet(); requestAnimationFrame(() => { if (!opening.replay()) setStatus('Motion is off on this device, so the opening does not play. Everything is already in place.'); }); }}/>
+      <MakeItYours record={r} save={save} entries={entries} status={status} onReplay={() => { closeSheet(); requestAnimationFrame(() => { if (!opening.replay()) setStatus(openingSkippedNote(motionLevel)); }); }}/>
     </Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'quick' && <NovaSheet title="Quick access" place="bottom" onClose={closeSheet}><nav aria-label="Quick access"><ul className="nova-quick-sheet">
       {entries.filter(e => !e.hidden).map(e => <li key={e.id}><QuickTile entry={e} shortcuts={false} labelled act={entry => { closeSheet(); act(entry); }}/></li>)}

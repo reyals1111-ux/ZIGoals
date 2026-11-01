@@ -8,6 +8,7 @@ import {formatDate} from '../../../lib/visual-format';
 import {EMERGENCY_SHEET, MAX_NOTE, MAX_SHEET_ROWS, type EmergencySheet} from '../../../lib/emergency-sheet/schema';
 import {addressIssue, printable, putRow, removeRow, setDocuments, setNote, sheetView, type SheetView} from '../../../lib/emergency-sheet/sheet';
 import {findSecrets, findingText} from '../../../lib/emergency-sheet/secrets';
+import {loadWordLists, type WordScript} from '../../../lib/secret-guard/word-lists';
 import {plainErrorMessage} from '../../../lib/plain-error';
 
 /**
@@ -26,6 +27,15 @@ const FIELDS: Record<List, {key: string; label: string; required?: boolean; max:
   insurance: [{key: 'provider', label: 'Insurer', required: true, max: 80}, {key: 'kind', label: 'Kind', max: 60}, {key: 'reference', label: 'Policy number', max: 60}, {key: 'documents', label: 'Where the documents are', max: 200}],
 };
 const TITLES: Record<List, string> = {accounts: 'Other accounts', wallets: 'Wallets (public address only)', insurance: 'Insurance'};
+/**
+ * Session AK (FU; G7 follow-up, security review F10): the sheet reads Korean recovery words only by the standard Korean
+ * list, and Japanese and Chinese ones more exactly by theirs (lib/emergency-sheet/secrets.ts, 'sheet' mode), so the sheet
+ * loads those lists itself as it opens instead of depending on another page having loaded them. Every check that keeps
+ * something (saving the notes, adding a row, printing) waits for them; a list that fails to load leaves the sheet's
+ * cautious rules as they were. Latin words are read by their shape here, so the Latin lists are not needed.
+ */
+const SHEET_SCRIPTS: readonly WordScript[] = ['hangul', 'kana', 'han'];
+const sheetListsReady = () => loadWordLists(SHEET_SCRIPTS);
 
 export default function EmergencySheetPanel({showcase = false}: {showcase?: boolean}) {
   const id = useId(), today = localDate(), sheet = useDeviceRecord(EMERGENCY_SHEET), accounts = useDeviceRecord(ACCOUNTS);
@@ -34,7 +44,11 @@ export default function EmergencySheetPanel({showcase = false}: {showcase?: bool
   const live = useMemo(() => accounts.loaded && !accounts.unreadable ? accounts.data.items.filter(a => !a.archivedAt) : [], [accounts.loaded, accounts.unreadable, accounts.data.items]);
   const draft: EmergencySheet = useMemo(() => ({...sheet.data, documents: docs ?? sheet.data.documents, note: note ?? sheet.data.note}), [sheet.data, docs, note]);
   const view: SheetView = useMemo(() => sheetView(draft, live, today, k => KIND[k], d => formatDate(d)), [draft, live, today]);
-  const warnings = useMemo(() => findSecrets([['The note', note ?? ''], ...Object.entries(docs ?? {}).map(([aid, text]): [string, string] => [`Where the documents are for ${live.find(a => a.id === aid)?.name ?? 'an account'}`, text])]).map(findingText), [note, docs, live]);
+  // (FU: computed on each render, so the warnings follow the word lists once they arrive: `lists` re-renders.)
+  const [, setLists] = useState(0);
+  useEffect(() => { let on = true; void sheetListsReady().then(() => { if (on) setLists(n => n + 1); }); return () => { on = false; }; }, []);
+  const check = () => findSecrets([['The note', note ?? ''], ...Object.entries(docs ?? {}).map(([aid, text]): [string, string] => [`Where the documents are for ${live.find(a => a.id === aid)?.name ?? 'an account'}`, text])]).map(findingText);
+  const warnings = check();
   useEffect(() => {
     if (!printing) return;
     const done = () => { document.documentElement.classList.remove('emergency-printing'); setPrinting(false); };
@@ -47,16 +61,18 @@ export default function EmergencySheetPanel({showcase = false}: {showcase?: bool
     setError('');
     try { sheet.update(fn); setStatus(words); return true; } catch (cause) { setStatus(''); setError(plainErrorMessage(cause, 'Not saved on this device.')); return false; }
   };
-  const saveTexts = () => {
-    if (warnings.length) { setError('Not saved: take out what looks like a key or recovery words first.'); return; }
+  const saveTexts = () => void sheetListsReady().then(() => {
+    if (check().length) { setError('Not saved: take out what looks like a key or recovery words first.'); return; }
     const now = new Date();
     if (write(s => { let next = s; for (const [aid, text] of Object.entries(docs ?? {})) next = setDocuments(next, aid, text, now); return note === null ? next : setNote(next, note, now); }, 'Saved on this device.')) { setDocs(null); setNoteDraft(null); }
-  };
+  });
   const print = () => {
     setRefusal([]); setStatus('');
-    const out = printable(view);
-    if (!out.ok) { setRefusal(out.findings.map(findingText)); return; }
-    setPrinting(true);
+    void sheetListsReady().then(() => {
+      const out = printable(view);
+      if (!out.ok) { setRefusal(out.findings.map(findingText)); return; }
+      setPrinting(true);
+    });
   };
   if (!sheet.loaded || !accounts.loaded) return <p className="fine">Loading…</p>;
   if (sheet.unreadable) return <p role="alert">This device&rsquo;s emergency sheet could not be read. Its bytes are kept and nothing is changed.</p>;
@@ -88,8 +104,9 @@ export default function EmergencySheetPanel({showcase = false}: {showcase?: bool
 function RowList({list, sheet, onAdd, onRemove}: {list: List; sheet: EmergencySheet; onAdd: (row: Record<string, string>, words: string) => boolean; onRemove: (id: string, words: string) => void}) {
   const id = useId(), [form, setForm] = useState<Record<string, string>>({}), [problem, setProblem] = useState('');
   const rows = sheet[list] as unknown as ({id: string} & Record<string, string | undefined>)[], fields = FIELDS[list];
-  const add = (event: FormEvent) => {
+  const add = async (event: FormEvent) => {
     event.preventDefault(); setProblem('');
+    await sheetListsReady(); // FU: Korean, Japanese and Chinese recovery words read by their lists
     const missing = fields.find(f => f.required && !form[f.key]?.trim());
     if (missing) return setProblem(`Enter the ${missing.label.toLowerCase()}.`);
     if (list === 'wallets') { const issue = addressIssue(form.address ?? ''); if (issue) return setProblem(issue); }

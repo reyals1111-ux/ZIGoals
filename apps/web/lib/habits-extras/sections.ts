@@ -15,14 +15,23 @@ export function currentSection(hour: number): TimeSection {
   return 'evening';
 }
 export type HabitSection = {id: TimeSection; label: string; habits: Habit[]; due: number; done: number};
-/** The four sections in their fixed order, each with its habits and today's progress; empty sections stay in the list. */
+/**
+ * The four sections in their fixed order, each with its habits and today's progress; empty sections stay in the list.
+ * Session AK (FU, rule TR6): due and done count as the page's own "X of Y" does (lib/numbers/counts.ts `habitsOnDay`): a
+ * habit skipped today (a rest day) stays listed in its section but is not due, so a section never reads "0 / 1" for it.
+ */
 export function groupByTimeOfDay(habits: readonly Habit[], today: string): HabitSection[] {
   return TIME_SECTIONS.map(id => {
     const mine = habits.filter(h => (h.timeOfDay ?? 'anytime') === id);
     let due = 0, done = 0;
-    for (const h of mine) { const day = habitDay(h, today, today); if (day.scheduled) { due++; if (day.status === 'complete') done++; } }
+    for (const h of mine) { const day = habitDay(h, today, today); if (day.scheduled && day.status !== 'skipped') { due++; if (day.status === 'complete') done++; } }
     return {id, label: SECTION_LABELS[id], habits: mine, due, done};
   });
+}
+/** A section's count as its heading shows it (`count`, aria-hidden) and as a screen reader hears it (`spoken`). */
+export function sectionCountText(section: Pick<HabitSection, 'habits' | 'due' | 'done'>): {count: string; spoken: string} {
+  if (section.due) return {count: `${section.done} / ${section.due}`, spoken: `${section.done} of ${section.due} due habits complete`};
+  return section.habits.length ? {count: 'none due', spoken: 'none due today'} : {count: 'empty', spoken: 'no habits here'};
 }
 /** Which section opens by default: the clock's section when it has habits, else the first section that has due habits, else anytime. */
 export function openSection(sections: readonly HabitSection[], hour: number): TimeSection {

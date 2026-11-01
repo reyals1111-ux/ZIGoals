@@ -1,5 +1,6 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {ambientSkyState, readLoopLevel, watchLoopLevel} from '../../lib/motion-loops/loops';
 
 /**
  * Session AG Polish 2 (ADR-031 K8; owner Part 4, pointer D-path 12): the Checklist's sky comes alive, rarely and gently —
@@ -8,25 +9,15 @@ import {useEffect, useRef, useState} from 'react';
  * every word), decorative and aria-hidden.
  *
  * The owner's one exception to the one-time motion rule, for this sky only: it never runs under reduced motion or Motion
- * Off (`data-ambient="off"`, nothing drawn), and it rests (`"paused"`) while the tab is hidden or the celebration, a sheet
+ * Off (`data-ambient="off"`, nothing drawn) nor under Motion Calm (Session AK FU: `"still"`, nothing drawn, no timers), and it rests (`"paused"`) while the tab is hidden or the celebration, a sheet
  * or the menu is open. Cheap on a phone: a handful of timers and Web Animations on transform and opacity only — no frame
  * loop, no layout work (the sky's size is read once and on a resize).
  */
 const NIGHT = ['#ffffff', '#dff9ff', '#8fe9ff', '#c9b8ff', '#a98bff'], DAY = ['#7d6bff', '#2bb8d9', '#9b7bff', '#5a8cff'];
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
-function useMotionAllowed() {
-  const [ok, setOk] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const read = () => setOk(!mq?.matches && document.documentElement.dataset.appMotion !== 'off');
-    read();
-    mq?.addEventListener('change', read);
-    const watch = new MutationObserver(read); watch.observe(document.documentElement, {attributes: true, attributeFilter: ['data-app-motion']});
-    return () => { mq?.removeEventListener('change', read); watch.disconnect(); };
-  }, []);
-  return ok;
-}
+/** Session AK (FU): the app's Motion level (Full / Calm / Off) with the device's reduced motion; Off on the server. */
+const useLoopLevel = () => useSyncExternalStore(watchLoopLevel, readLoopLevel, () => 'off' as const);
 function usePageHidden() {
   const [hidden, setHidden] = useState(false);
   useEffect(() => { const read = () => setHidden(document.visibilityState === 'hidden'); read(); document.addEventListener('visibilitychange', read); return () => document.removeEventListener('visibilitychange', read); }, []);
@@ -34,7 +25,7 @@ function usePageHidden() {
 }
 
 export function AmbientSky({paused = false}: {paused?: boolean}) {
-  const allowed = useMotionAllowed(), hidden = usePageHidden(), running = allowed && !paused && !hidden, host = useRef<HTMLSpanElement>(null);
+  const state = ambientSkyState({level: useLoopLevel(), paused, hidden: usePageHidden()}), drawn = state === 'running' || state === 'paused', running = state === 'running', host = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const el = host.current; if (!running || !el || typeof el.animate !== 'function') return;
     const stars = [...el.querySelectorAll<HTMLElement>('[data-twinkle]')], comet = el.querySelector<HTMLElement>('[data-comet]');
@@ -70,7 +61,7 @@ export function AmbientSky({paused = false}: {paused?: boolean}) {
     later(rand(9000, 22000), shoot);
     return () => { timers.forEach(t => window.clearTimeout(t)); anims.forEach(a => a.cancel()); window.removeEventListener('resize', onResize); };
   }, [running]);
-  return <span ref={host} className="checklist-ambient" aria-hidden="true" data-ambient={!allowed ? 'off' : running ? 'running' : 'paused'}>
-    {allowed && <><i data-twinkle=""/><i data-twinkle=""/><i data-twinkle=""/><b data-comet=""/></>}
+  return <span ref={host} className="checklist-ambient" aria-hidden="true" data-ambient={state}>
+    {drawn && <><i data-twinkle=""/><i data-twinkle=""/><i data-twinkle=""/><b data-comet=""/></>}
   </span>;
 }

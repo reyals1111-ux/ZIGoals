@@ -5,24 +5,23 @@ import {useId, useMemo, useState, useSyncExternalStore} from 'react';
 import type {Note} from '../../lib/notes/schema';
 import {buildGraph, layoutStarSystem, neighbours, type GraphNode} from '../../lib/notes/graph';
 import type {LinkIndex} from '../../lib/notes/links';
+import {graphMotion, readLoopLevel, watchLoopLevel} from '../../lib/motion-loops/loops';
 
 /**
  * Session AK (B3): the notes graph in the star-system style — hand-made SVG, no library. The most linked name is the
  * star, linked names orbit as planets on faint rings, and links are drawn as light paths between them. Every body is a
  * real link, reached with Tab (in ring order) and opened with Enter; focusing or hovering one lights its links and names
- * them. The rings turn very slowly as decoration only, never under reduced motion or Motion Off — and then the list opens
- * first. The list view shows the same graph as text: each name, what it is, and what it links with.
+ * them. The rings turn very slowly as decoration only, never under reduced motion, Motion Calm or Motion Off — and under
+ * reduced motion and Motion Off the list opens first. The list view shows the same graph as text: each name, what it is, and what it links with.
  */
 const KIND = {note: 'Note', goal: 'Goal', habit: 'Habit'} as const;
-function motionOff(): boolean {
-  if (typeof window === 'undefined') return false;
-  return document.documentElement.dataset.appMotion === 'off' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
-}
-const subscribe = (cb: () => void) => { const m = window.matchMedia?.('(prefers-reduced-motion: reduce)'); m?.addEventListener?.('change', cb); return () => m?.removeEventListener?.('change', cb); };
+// Session AK (FU): the app's Motion level (Full / Calm / Off) with the device's reduced motion, watched for changes. The
+// rings turn only in Full; under Calm the star system shows still; under Off and reduced motion the list opens first.
+// (The server renders Full, as before: the client's first read settles it.)
 export default function GraphView({notes, index}: {notes: readonly Note[]; index: LinkIndex}) {
   const router = useRouter(), base = useId();
-  const still = useSyncExternalStore(subscribe, motionOff, () => false);
-  const [chosen, setChosen] = useState<'sky' | 'list' | null>(null), view = chosen ?? (still ? 'list' : 'sky');
+  const motion = graphMotion(useSyncExternalStore(watchLoopLevel, readLoopLevel, () => 'full' as const)), still = !motion.turn;
+  const [chosen, setChosen] = useState<'sky' | 'list' | null>(null), view = chosen ?? (motion.listFirst ? 'list' : 'sky');
   const [lit, setLit] = useState<string | null>(null);
   const graph = useMemo(() => buildGraph(notes, index), [notes, index]);
   const layout = useMemo(() => layoutStarSystem(graph, 640), [graph]);

@@ -1,5 +1,6 @@
 /* Session AK (B): Notes — theme tokens only (Nebula, Light with its dark islands, Dark), 44 px targets, phones first, no
-   horizontal scroll at 320 px. The only motion is the graph's orbit dashes drifting, off under reduced motion and Motion Off. */
+   horizontal scroll at 320 px. The only motion is the graph's orbit dashes drifting, off under reduced motion, Motion Calm
+   (graph-view.tsx sets data-still) and Motion Off. */
 .notes-workspace { display: grid; gap: 16px; min-width: 0; }
 .notes-workspace > * { min-width: 0; }
 .notes-privacy { margin: 0; }

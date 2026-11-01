@@ -1,6 +1,6 @@
 /* Session AK (owner follow-up 2, N2 and M3; lane NA): the NOVA orb. Colours are the page's accent pair (--nova-a, --nova-b;
    nova.css) over the app's nebula tokens, so every accent and theme draws it. Only transform and opacity move. Each state
-   is a still frame of its own under reduced motion and Motion Off; the slow breathing is the one loop NOVA keeps (M4). */
+   is a still frame of its own under reduced motion, Motion Calm and Motion Off; the slow breathing is the one loop NOVA keeps (M4). */
 .nova-orb {
   --orb-a: var(--nova-a, var(--brand-violet, #9273ff)); --orb-b: var(--nova-b, var(--brand-cyan, #63e7ff)); --orb-hi: var(--nova-hi, var(--accent-violet, #cbbfff));
   --orb-deep: #140f3c; --orb-halo: .55;
@@ -51,17 +51,18 @@
 @media (prefers-reduced-motion: reduce) {
   .nova-orb *, .nova-orb { animation: none !important; }
 }
-:root[data-app-motion=off] .nova-orb, :root[data-app-motion=off] .nova-orb * { animation: none !important; }
+/* Session AK (FU): Motion Calm (no loops) shows the same still frames as Off, rather than one breath that stops mid-state. */
+:root:is([data-app-motion=off], [data-app-motion=calm]) .nova-orb, :root:is([data-app-motion=off], [data-app-motion=calm]) .nova-orb * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(1) { opacity: .55; transform: scale(1.2); }
   .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(2) { opacity: .3; transform: scale(1.5); }
   .nova-orb[data-state=thinking] .nova-orb-arc-turn { transform: rotate(120deg); }
   .nova-orb[data-state=speaking] .nova-orb-body { transform: scale(1.05); }
 }
-:root[data-app-motion=off] .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(1) { opacity: .55; transform: scale(1.2); }
-:root[data-app-motion=off] .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(2) { opacity: .3; transform: scale(1.5); }
-:root[data-app-motion=off] .nova-orb[data-state=thinking] .nova-orb-arc-turn { transform: rotate(120deg); }
-:root[data-app-motion=off] .nova-orb[data-state=speaking] .nova-orb-body { transform: scale(1.05); }
+:root:is([data-app-motion=off], [data-app-motion=calm]) .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(1) { opacity: .55; transform: scale(1.2); }
+:root:is([data-app-motion=off], [data-app-motion=calm]) .nova-orb[data-state=listening] .nova-orb-ripple:nth-child(2) { opacity: .3; transform: scale(1.5); }
+:root:is([data-app-motion=off], [data-app-motion=calm]) .nova-orb[data-state=thinking] .nova-orb-arc-turn { transform: rotate(120deg); }
+:root:is([data-app-motion=off], [data-app-motion=calm]) .nova-orb[data-state=speaking] .nova-orb-body { transform: scale(1.05); }
 /* Customize → Glow: Soft halves the halo. Forced colours: the orb is decoration and steps aside for a plain ring. */
 :root[data-glow="soft"] .nova-orb { --orb-halo: .3; }
 @media (forced-colors: active) {

@@ -4942,6 +4942,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .review-note h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :root:where([data-density=compact]) .review-note ul:not(#\-) { row-gap: 4.5px; margin-top: 0; margin-bottom: 0; }
 :root:where([data-density=compact]) .review-note .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:root:where([data-density=compact]) .review-note-feedback:not(#\-) { row-gap: 8px; margin-top: -2px; }
+:root:where([data-density=compact]) .review-note-feedback p:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 /*  components/rewards-shelf/rewards-shelf.css  */
 :root:where([data-density=compact]) .rewards-shelf:not(#\-) { row-gap: 14px; }
 :root:where([data-density=compact]) .rewards-shelf h2:not(#\-) { margin-top: 0; margin-bottom: 0; }

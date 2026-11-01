@@ -5,7 +5,7 @@ import {SKY_FPS, deviceHints, driftX, makeStars, nebulaClouds, skyMode, starCoun
 /**
  * Session AK (owner follow-up 2, N2 and M2; lane NA): NOVA's starfield and nebula band on a canvas behind everything. It
  * drifts very slowly sideways at 30 frames a second, pauses while the tab is hidden, never follows the pointer, and does
- * not run under reduced motion or Motion Off (one still frame) or on a low-end device, Save-Data or a low battery (the
+ * not run under reduced motion, Motion Calm or Motion Off (one still frame; Session AK FU added Calm) or on a low-end device, Save-Data or a low battery (the
  * page's CSS sky alone). Decorative: hidden from assistive technology, never focusable, no pointer events.
  */
 const TINTS = ['#ffffff', '#bdf3ff', '#dcd2ff'] as const;
