@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {Switch} from '../ai/ai-switch';
 import {NOTIFY_LABELS, NOTIFY_PREFS, NOTIFY_TYPES, eveningTime, morningTime, setTime, setType, typeOn, type NotifyType} from '../../lib/notify/prefs';
@@ -21,7 +21,20 @@ type Phase = {kind: 'checking'} | {kind: 'off'; publicKey: string} | {kind: 'on'
 export function NotificationsCard() {
   const prefs = useDeviceRecord(NOTIFY_PREFS), plan = useDeviceRecord(REMINDERS_PLAN);
   const [phase, setPhase] = useState<Phase>({kind: 'checking'}), [busy, setBusy] = useState(false), [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null);
+  const card = useRef<HTMLElement>(null);
+  // Session AK (CI fix, WebKit zigi-part-boundary:41): the build's status is asked of /api/push-device only once this card
+  // comes near the screen (a #notifications jump, or scrolling to it), never on every Settings load: a page that never
+  // shows the card sends no request about notifications, and none is left in flight when the person moves on.
+  const [near, setNear] = useState(false);
   useEffect(() => {
+    const node = card.current;
+    if (!node || typeof IntersectionObserver !== 'function') { setNear(true); return; }
+    const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { setNear(true); observer.disconnect(); } }, {rootMargin: '200px 0px'});
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!near) return;
     let active = true;
     void (async () => {
       if (isShowcase()) { if (active) setPhase({kind: 'unavailable', text: 'Not available in the Showcase: its example data never reaches a notification.'}); return; }
@@ -34,7 +47,7 @@ export function NotificationsCard() {
       if (active) setPhase(status.enabled ? {kind: 'off', publicKey: status.publicKey} : {kind: 'unavailable', text: status.message});
     })();
     return () => { active = false; };
-  }, []);
+  }, [near]);
   const changed = () => window.dispatchEvent(new Event(NOTIFY_CHANGE));
   const save = (change: Parameters<typeof prefs.update>[0], said?: string) => { try { prefs.update(change); changed(); if (said) setMessage({text: said}); } catch { setMessage({text: 'This choice could not be saved on this device.', failed: true}); } };
   const turnOn = async () => {
@@ -58,7 +71,7 @@ export function NotificationsCard() {
   };
   const test = async () => { setBusy(true); try { setMessage({text: await (await import('../../lib/notify/device')).sendTestNotification()}); } finally { setBusy(false); } };
   const quiet = quietHours(plan.data), state = phase.kind === 'checking' ? 'Checking…' : phase.kind === 'on' ? 'On for this device.' : phase.kind === 'off' ? 'Off.' : phase.text;
-  return <section className="panel notify-card" id="notifications" aria-labelledby="notify-title" data-state={phase.kind}>
+  return <section ref={card} className="panel notify-card" id="notifications" aria-labelledby="notify-title" data-state={phase.kind}>
     <p className="eyebrow">NOTIFICATIONS{phase.kind === 'unavailable' && !phase.install && <span className="unavailable-pill">Being switched on</span>}</p>
     <h2 id="notify-title">Notifications, even when ZIGoals is closed.</h2>
     <p>Your habits, water, wind-down, contributions, bills, price alerts and the weekly review, on time. The text is written on this device from your own records; the server only knows <em>when</em> to wake this device, never <em>why</em>.</p>

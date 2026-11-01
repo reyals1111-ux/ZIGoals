@@ -86,7 +86,7 @@ export function ZigiCheckIn({day}: {day: string}) {
       <div className="wrap-up-mood-choices">{MOOD_WORDS.map((word, i) => <button key={word} type="button" className="secondary" aria-pressed={todayMood === i + 1} onClick={() => void feel(i + 1)}>{word}</button>)}</div>
     </fieldset>}
     {(todayEnergy !== null || todayMood !== null) && <MoodWordsFold day={day}/>}
-    <Suspense fallback={null}><YourScales day={day} compact/></Suspense>
+    <Suspense fallback={null}><YourScales day={day} compact onStatus={setStatus}/></Suspense>
     {moodDay && todayMood !== null && <div className="zigi-checkin-note">
       <label className="field">One line about today (optional)<input value={note} maxLength={NOTE_MAX} onChange={event => setDraft(event.target.value)} onBlur={() => void saveNote()} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void saveNote(); } }} placeholder="Only you see this"/></label>
       <span className="fine">{note.length} of {NOTE_MAX} characters · kept with the day&rsquo;s mood, on this device</span>

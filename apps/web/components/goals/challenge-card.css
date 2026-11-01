@@ -1,5 +1,7 @@
 /* Session AK (F5a, item 2): a savings challenge on its goal's page (theme tokens, 44 px targets, no motion). */
-.challenge-card{display:grid;gap:10px;min-width:0}
+/* One column as wide as the card (Session AK CI fix, zigi-a11y-pass:76 phone): the day row's auto-fill counts its columns
+   from its 480 px max-width while the card sizes itself, so an auto column grew to 464 px and widened a 390 px phone page. */
+.challenge-card{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0}
 .challenge-card h2{margin:0}
 .challenge-card p{margin:0;overflow-wrap:anywhere}
 .challenge-card .eyebrow{margin:0}

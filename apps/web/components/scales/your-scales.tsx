@@ -12,11 +12,14 @@ import './your-scales.css';
  * Session AK (BUILD list 2 #12, lane G1a): "Your own scales" — up to five 1–5 ratings of the person's own (stress, pain,
  * focus…), each with their words for both ends. Optional and skippable: nothing rated stays unknown. Each saves on its
  * own tap to `zigoals:scales:v1`; each becomes a Compare factor and outcome (Health → Insights). In the check-in and on
- * the Journal page; loaded on use. `compact` (the check-in) keeps setup behind a fold.
+ * the Journal page; loaded on use. `compact` (the check-in) keeps setup behind a fold. `onStatus` (the check-in): what a
+ * save says goes to the host's own status line, so one card has one live region (Session AK CI fix: the check-in's card
+ * held two `role=status` regions, its own and this one); without it the scales keep their own.
  */
-export default function YourScales({day, compact = false}: {day: string; compact?: boolean}) {
+export default function YourScales({day, compact = false, onStatus}: {day: string; compact?: boolean; onStatus?: (said: string) => void}) {
   const rec = useDeviceRecord(SCALES), id = useId();
-  const [status, setStatus] = useState(''), [managing, setManaging] = useState(false);
+  const [ownStatus, setOwnStatus] = useState(''), [managing, setManaging] = useState(false);
+  const setStatus = onStatus ?? setOwnStatus;
   if (!rec.loaded) return null;
   const write = (fn: Parameters<typeof rec.update>[0], said: string) => { try { rec.update(fn); setStatus(said); return true; } catch (e) { setStatus(e instanceof Error && e.message && !/^\[/.test(e.message) ? e.message : 'This could not be saved on this device.'); return false; } };
   const today = rec.data.days[day] ?? {}, scales = rec.data.scales;
@@ -27,7 +30,7 @@ export default function YourScales({day, compact = false}: {day: string; compact
     {scales.length ? scales.map(s => <ScaleRow key={s.id} scale={s} value={today[s.id] ?? null} name={`${id}-${s.id}`}
       onRate={v => write(r => rateScale(r, day, s.id, v), v === null ? `${s.name}: cleared for today.` : `${s.name}: ${v} of 5 (${valueWords(s, v)}). Kept on this device.`)}/>)
       : <p className="your-scales-empty">Add a 1–5 scale for something you want to follow, with your own words for each end. Rate it here when you like; skip any day. After a few weeks, Health → Insights → Compare can show what goes with it.</p>}
-    <p className="your-scales-status" role="status" aria-live="polite">{status}</p>
+    {!onStatus && <p className="your-scales-status" role="status" aria-live="polite">{ownStatus}</p>}
     {(!compact || managing) ? <ManageScales scales={scales} onAdd={input => write(r => addScale(r, input), `Added “${input.name.trim()}”.`)} onEdit={(sid, input) => write(r => editScale(r, sid, input), 'Saved.')}
       onRemove={s => write(r => removeScale(r, s.id), `“${s.name}” is off the check-in. Its ratings stay, and adding it again by name brings them back.`)}/>
       : <button type="button" className="text-link" onClick={() => setManaging(true)}>Change your scales</button>}
