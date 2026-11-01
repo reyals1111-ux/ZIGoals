@@ -157,7 +157,10 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   await page.goto('/app/health');
   await expect(page.locator('[data-layout-item="health:summary"]')).toBeAttached();
   // Session AH Part 6 (DE8): the Workouts card joins after Meditation (deliberate; the order is otherwise unchanged).
-  expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:nutrition', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:roadmap', 'health:fasting', 'health:trends']);
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): "Nutrition patterns" moved into Health's Insights view (it repeated the
+  // Diary's meals) and "Faster ways to log" is gone (it advertised the page's own features); the rest keep their order.
+  expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:fasting', 'health:trends']);
+  await expect(page.locator('[data-layout-item="health:nutrition"], [data-layout-item="health:roadmap"]')).toHaveCount(0);
   await page.goto('/app/settings');
   // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant" (ZIGi's and NOVA's settings).
   // Session AK X1 (RELEASE_REVIEW R4, deliberate): the Showcase has chosen the chain, so Account & devices holds the advanced

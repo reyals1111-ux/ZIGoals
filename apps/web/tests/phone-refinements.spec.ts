@@ -48,6 +48,8 @@ test("Wealth on a phone: four holdings, then Show all 13 assets; every card stay
   await page.getByRole("button", { name: `Show all ${total} asset classes`, exact: true }).click();
   expect(await visibleCount(classes)).toBe(total);
   // Top holdings per currency: three, then the rest.
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the composition that holds them folds to a row on a phone; open it.
+  await openFold(page, "The shape of your wealth");
   const top = page.getByRole("region", { name: "USD top holdings" }).locator("li");
   await expect(top).toHaveCount(5);
   expect(await visibleCount(top)).toBe(3);

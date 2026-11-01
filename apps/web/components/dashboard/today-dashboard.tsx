@@ -248,7 +248,8 @@ export function TodayDashboard(){
   }
  }
  // Session AK RB (RELEASE_REVIEW_2 R2-11): the brand-new Today's empty cards cover Habits and Wealth too, as R14 intended —
- // the habits widget that stands in for the hidden Daily Habits, and the first wealth widget (open, not folded).
+ // the habits widget that stands in for the hidden Daily Habits, and the first wealth widget (on a phone a row with its
+ // figure under its name, as every widget is there).
  const brandNewWidgets=new Set(brandNew?[...settings.data.widgets.filter(w=>!w.hidden&&twinOf(w)==='habits'&&placement.hiddenBuiltins.includes('habits')).slice(0,1),...(financial?settings.data.widgets.filter(w=>!w.hidden&&w.kind==='wealth').slice(0,1):[])].map(w=>w.id):[]);
  function renderPlaced(ref:DashboardItemRef,region:DashboardRegion,index:number){
   const widget=ref.kind==='widget'?settings.data.widgets.find(w=>w.id===ref.id):undefined;
@@ -270,7 +271,7 @@ export function TodayDashboard(){
   // is being customized no widget folds, so every card and its options stay in reach.
   // Session AC: a widget standing in for its hidden built-in twin (Daily Habits, Daily Health) folds as that built-in does.
   const twin=widget?twinOf(widget):null,standsIn=!!twin&&placement.hiddenBuiltins.includes(twin);
-  const foldLabel=brandNew?undefined:ref.kind==='widget'&&!standsIn?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has((standsIn?twin:ref.id) as DashboardBuiltinId)?PHONE_FOLD_LABEL[standsIn?twin!:ref.id]??label:undefined;
+  const foldLabel=ref.kind==='widget'&&!standsIn?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has((standsIn?twin:ref.id) as DashboardBuiltinId)?PHONE_FOLD_LABEL[standsIn?twin!:ref.id]??label:undefined;
   // Session AK RB (RELEASE_REVIEW_2 R2-9): a folded widget row carries its figure under its name (the overview's second
   // copy of every widget is gone), while its records are readable.
   const foldDetail=ref.kind==='widget'&&!standsIn&&foldLabel&&loaded(WIDGET_CATALOG[widget!.kind].domain)&&!domainError(WIDGET_CATALOG[widget!.kind].domain)?widgetMetric(widget!,sources).value:undefined;

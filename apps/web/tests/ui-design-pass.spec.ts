@@ -250,7 +250,8 @@ test.describe('Part 2: personal layouts',()=>{
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   await page.getByRole('button',{name:'Move Today’s nourishment down',exact:true}).click();
   // Session W added the Sleep (Part 4) and Meditation (Part 5) cards after the journal; Session AH (DE8) Workouts after them.
-  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:sleep','health:meditation','health:workouts','health:roadmap','health:fasting','health:trends']);
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): "Nutrition patterns" moved into the Insights view and "Faster ways to log" is gone, so the summary moves below the journal.
+  await expect.poll(()=>order(page,'health:body')).toEqual(['health:journal','health:summary','health:sleep','health:meditation','health:workouts','health:fasting','health:trends']);
   expect(await page.evaluate(()=>[...document.querySelectorAll('[data-layout-item]')].flatMap(e=>e.getAnimations()).length)).toBe(0);
  });
  test('touch: a long-press on the handle picks a card up and moves it',async({page,isMobile})=>{

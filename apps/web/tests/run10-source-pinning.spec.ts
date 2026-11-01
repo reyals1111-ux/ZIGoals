@@ -7,6 +7,10 @@ test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route
 
 test('visual library hides ineligible staking and card menu returns focus on Escape',async({page},info)=>{
  await page.setViewportSize({width:320,height:800});
+ // Session AK RB (RELEASE_REVIEW_2 R2-11, deliberate): a brand-new device's Today is the welcome and one card per area
+ // (R14), with no "Customize Today"; this person said "Not now" to the welcome (its device-only seen flag), as the other
+ // R14 specs do, so the widgets and their options are the ones checked here.
+ await page.addInitScript(()=>localStorage.setItem('zigoals:onboarding:v1',JSON.stringify({version:1,seen:true})));
  await page.goto('/app');
  await openTodayWidgets(page);
  await page.locator('.dashboard-widget').first().screenshot({path:info.outputPath('today-widget-normal-320.png'),animations:'disabled'});

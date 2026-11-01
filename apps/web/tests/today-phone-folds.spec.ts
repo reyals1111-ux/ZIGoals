@@ -14,10 +14,14 @@ async function showcase(page: Page) {
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  // Session AK RB (deliberate): since R11 (Session AK G2) a phone mounts Today's widget area when it comes near the screen or
+  // the browser is first idle, so the widgets are counted once they are in the page (the count read 0 before).
+  await expect(widgetModules(page).first()).toBeAttached();
+  await expect.poll(async () => { const a = await widgetModules(page).count(); await page.waitForTimeout(300); return a === await widgetModules(page).count() ? 'settled' : 'changing'; }).toBe('settled');
 }
 // Session AC (deliberate, the owner's "each thing once"): the habits widget stands in for the hidden Daily Habits by default
 // and shows open as Daily Habits did on a phone (asserted below); every other widget folds to a row as before.
-const widgetModules = (page: Page) => page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"]:not([data-stands-in])');
+function widgetModules(page: Page) { return page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"]:not([data-stands-in])'); }
 
 // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the overview no longer repeats every widget (each showed twice on
 // Today); each row carries its card's figure under its name instead, so every value stays in view on the folded page.

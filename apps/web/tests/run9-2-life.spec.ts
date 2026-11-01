@@ -62,6 +62,8 @@ for (const width of [1440, 1024, 390, 320]) test(`Life pages recompose at ${widt
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (route === 'health') {
+      // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the nutrition module opens Health's Insights view now.
+      await page.getByRole('navigation', { name: 'Health views' }).getByRole('button', { name: 'Insights', exact: true }).click();
       await expect(page.locator('.nutrition-dashboard')).toBeVisible();
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.locator('.nutrition-dashboard').screenshot({ path: `/tmp/zigoals-run92-nutrition-module-${width}.png` });

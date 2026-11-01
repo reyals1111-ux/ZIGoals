@@ -4606,6 +4606,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 /*  components/platform/wealth-design-fixes.css  */
 @media (min-width: 768px) { :root:where([data-density=compact]) .pillar-hero.wealth-heading > .pillar-hero-actions:not(#\-) { row-gap: 8px; margin-top: 18px; } }
 :root:where([data-density=compact]) .wealth-more-group:not(#\-) { row-gap: 9px; }
+@media (max-width: 767.98px) { :root:where([data-density=compact]) .wealth-product.wealth-workspace > .wealth-hero.wealth-summary:not(#\-) { margin-top: -12px; } }
 /*  components/platform/wealth-product.css  */
 :where(:root[data-density=compact]) .wealth-product:not(#\-) { row-gap: 32px; }
 :where(:root[data-density=compact]) .wealth-product .wealth-hero:not(#\-) { padding-top: clamp(28px,4vw,56px); padding-bottom: clamp(28px,4vw,56px); row-gap: 28px; }
