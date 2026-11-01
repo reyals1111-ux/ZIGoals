@@ -429,6 +429,8 @@
 :root:where([data-text=large]) .today-device-chooser p:not(#\-) { font-size: calc(15px * 1.125); }
 :root:where([data-text=large]) .today-device-option small:not(#\-) { font-size: calc(14px * 1.125); }
 :root:where([data-text=large]) .showcase-tag:not(#\-) { font-size: calc(14px * 1.125); }
+:where(:root[data-text=large]) .field-error:not(#\-) { font-size: calc(15px * 1.125); }
+:where(:root[data-text=large]) .field-error:not(#\-)::before { font-size: calc(12px * 1.125); }
 /*  components/ui/premium.css  */
 :root:where([data-text=large]) :is(.section-heading, .wealth-section-heading, .positions-section-heading) .eyebrow:not(#\-) { font-size: calc(14px * 1.125); }
 /*  app/app/goals/collection.css  */
@@ -1840,7 +1842,6 @@
 :where(:root[data-text=large]) .nova-name:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .nova-orb-state-word:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-orb-state-hint:not(#\-) { font-size: calc(13px * 1.125); }
-:where(:root[data-text=large]) .nova-greeting:not(#\-) { font-size: calc(clamp(20px, 2.2vw, 28px) * 1.125); }
 :where(:root[data-text=large]) .nova-dayline:not(#\-) { font-size: calc(17px * 1.125); }
 :where(:root[data-text=large]) .nova-showcase:not(#\-) { font-size: calc(14px * 1.125); }
 :where(:root[data-text=large]) .nova-setup-banner h2:not(#\-) { font-size: calc(16px * 1.125); }
@@ -1935,9 +1936,12 @@
 :where(:root[data-text=large]) .onboarding-summary h2:not(#\-) { font-size: calc(18px * 1.125); }
 :where(:root[data-text=large]) .onboarding-summary :is(ul, p):not(#\-) { font-size: calc(16px * 1.125); }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-text=large]) .onboarding h1:not(#\-) { font-size: calc(clamp(28px, 8.4vw, 34px) * 1.125); } }
+:where(:root[data-text=large]) .setup-landing-close:not(#\-) { font-size: calc(22px * 1.125); }
 :where(:root[data-text=large]) .onboarding-undo p:not(#\-) { font-size: calc(15px * 1.125); }
 :where(:root[data-text=large]) .onboarding-pillars strong:not(#\-) { font-size: calc(16px * 1.125); }
 :where(:root[data-text=large]) .onboarding-pillars small:not(#\-) { font-size: calc(14px * 1.125); }
+@media (max-width: 767.98px) { :root:where([data-text=large]) .welcome-phone-start:not(#\-) { font-size: calc(16px * 1.125); } }
+@media (max-width: 767.98px) { :root:where([data-text=large]) .welcome-phone-close:not(#\-) { font-size: calc(22px * 1.125); } }
 /*  components/orbit-card/orbit-card.css  */
 :root:where([data-text=large]) .orbit-card h2:not(#\-) { font-size: calc(20px * 1.125); }
 :root:where([data-text=large]) .orbit-card-count:not(#\-) { font-size: calc(15px * 1.125); }

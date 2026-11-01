@@ -402,13 +402,6 @@
     .unavailable-pill:not(#\-) {
         border-color: currentColor
     }
-    :scope dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) {
-        border-color: currentcolor;
-        background-image: none;
-        background-color: transparent;
-        color: inherit;
-        -webkit-text-fill-color: inherit
-    }
     .workspace[aria-busy="true"]:not(#\-)::before {
         background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
         background-color: transparent
@@ -1935,6 +1928,22 @@
     :scope .goal-detail-workspace .platform-nav a:is(:hover, :focus-visible):not(#\-) {
         border-color: #9fe6ff88;
         color: #0f0f0f
+    }
+    .field-error:not(#\-) {
+        color: var(--danger-ink, #8c4751)
+    }
+    .field-error:not(#\-)::before {
+        border-color: currentColor
+    }
+    @media (forced-colors: active) {
+        .field-error:not(#\-) {
+            color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .field-error:not(#\-)::before {
+            border-color: CanvasText
+        }
     }
 }
 /*  components/ui/touch-targets.css  */
@@ -12352,12 +12361,18 @@
         background-color: var(--nova-hi)
     }
     .nova-showcase:not(#\-) {
+        background-image: none;
+        background-color: transparent;
         border-color: color-mix(in oklab, var(--pillar-wealth, #ffd27a) 60%, transparent);
         color: #725920
     }
     .nova-showcase .nova-chip-dot:not(#\-) {
         background-image: none;
         background-color: var(--pillar-wealth, #ffd27a)
+    }
+    .nova-chips .nova-showcase:not(#\-) {
+        background: var(--nova-glass);
+        border-color: color-mix(in oklab, var(--pillar-wealth, #ffd27a) 60%, transparent)
     }
     .nova-setup-banner:not(#\-) {
         border-color: var(--nova-edge);
@@ -13289,6 +13304,28 @@
     .onboarding-summary :is(ul, p):not(#\-) {
         color: #08101b
     }
+    @media (max-width: 767.98px) {
+        :scope .onboarding[data-step] .onboarding-actions:not(#\-) {
+            border-color: #7fc8ff2e;
+            background-image: linear-gradient(180deg, #f0f3fae6, #f2f4faf7);
+            background-color: transparent
+        }
+    }
+    .setup-landing h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .setup-landing h2:focus-visible:not(#\-) {
+        outline-color: #013b3f
+    }
+    .setup-landing-close:not(#\-) {
+        border-color: #7fc8ff40;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .setup-landing-close:focus-visible:not(#\-) {
+        outline-color: #013b3f
+    }
     @media (forced-colors: active) {
         .onboarding-choice > span:not(#\-), .onboarding-currency span:not(#\-), .onboarding-points li:not(#\-) {
             border-color: currentcolor
@@ -13330,6 +13367,31 @@
     }
     .onboarding-pillars small:not(#\-) {
         color: var(--text-secondary, #070f1c)
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-bar:not(#\-) {
+            border-color: #7fc8ff40;
+            background-image: linear-gradient(180deg, #f0f3fae6, #f2f4faf7);
+            background-color: transparent
+        }
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-start:not(#\-) {
+            color: inherit
+        }
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-start:focus-visible:not(#\-), :scope .welcome-phone-close:focus-visible:not(#\-) {
+            outline-color: #013b3f
+        }
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-close:not(#\-) {
+            border-color: currentcolor;
+            background-image: none;
+            background-color: transparent;
+            color: inherit
+        }
     }
 }
 /*  components/orbit-card/orbit-card.css  */

@@ -132,7 +132,6 @@
 :where(:root[data-density=compact]) .site-not-found:not(#\-) { padding-top: 24px; padding-bottom: 24px; }
 :where(:root[data-density=compact]) .site-not-found-mark:not(#\-) { margin-top: 0; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .unavailable-pill:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
-:root:where([data-density=compact]) dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 /*  app/visual-theme.css  */
 :where(:root[data-density=compact]) .network-banner:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) header:not(#\-) { padding-top: 23px; padding-bottom: 23px; }
@@ -523,6 +522,8 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :root:where([data-density=compact]) .today-rail .destination-steps > div:not(#\-) { row-gap: 0; }
 :root:where([data-density=compact]) .portfolio-ranges:not(#\-) { row-gap: 8px; }
 :root:where([data-density=compact]) .goal-detail-workspace .platform-nav a:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .field-error:not(#\-) { row-gap: 8px; margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .field-error:not(#\-)::before { margin-top: 1px; }
 /*  components/ui/touch-targets.css  */
 @media (pointer: coarse) and (min-width: 768px) { :root:where([data-density=compact]) main :is(p, span, small, dd, td, label, strong, h1, h2, h3, h4, h5, h6) > a:is(.text-link:not(#\-), :where(:root[data-density=compact]) :not([class])):not(#\-) { padding-top: 14px; padding-bottom: 14px; } }
 /*  components/ui/premium.css  */
@@ -3000,7 +3001,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .send-feedback:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .send-feedback p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .send-feedback-add:not(#\-) { row-gap: 10px; }
-:root:where([data-density=compact]) .send-feedback-add input[type="checkbox"]:not(#\-) { margin-top: 1px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .send-feedback-add input:not(#\-) { margin-top: 2px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .send-feedback-details:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .send-feedback-details textarea:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/illustrations/placement.css  */
@@ -3608,6 +3609,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-greeting:not(#\-) { margin-top: 6px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-dayline:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-showcase:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 0; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-chips .nova-showcase:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-setup-banner:not(#\-) { row-gap: 8px; margin-top: 8px; margin-bottom: 0; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .nova-setup-banner-text:not(#\-) { row-gap: 2px; }
 :where(:root[data-density=compact]) .nova-setup-banner h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3617,8 +3619,8 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-orbit-side:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-orbit-band:not(#\-) { row-gap: 10px; padding-top: 8px; }
 :where(:root[data-density=compact]) .nova-orbit-band-grid:not(#\-) { row-gap: 14px; }
-@container nova-stage (max-width: 720px) { :where(:root[data-density=compact]) .nova-orbit-main:not(#\-) { row-gap: 14px; } }
-@container nova-stage (max-width: 720px) { :where(:root[data-density=compact]) .nova-orbit-side > .nova-widget:not(#\-) { margin-top: 0 !important; margin-bottom: 0 !important; } }
+@container nova-stage (max-width: 800px) { :where(:root[data-density=compact]) .nova-orbit-main:not(#\-) { row-gap: 14px; } }
+@container nova-stage (max-width: 800px) { :where(:root[data-density=compact]) .nova-orbit-side > .nova-widget:not(#\-) { margin-top: 0 !important; margin-bottom: 0 !important; } }
 :where(:root[data-density=compact]) .nova-bento:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-focus-layout:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-focus-row:not(#\-) { row-gap: 10.5px; }
@@ -3865,10 +3867,15 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .onboarding-summary :is(ul, p):not(#\-) { margin-top: 0; margin-bottom: 0; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .onboarding:not(#\-) { margin-top: 8px; margin-bottom: 20px; padding-top: 20px; padding-bottom: 20px; } }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root:where([data-density=compact]) .onboarding-welcome:not(#\-) { margin-top: 0; margin-bottom: 14px; padding-top: 18px; padding-bottom: 18px; } }
+@media (max-width: 767.98px) { :root:where([data-density=compact]) .onboarding[data-step] .onboarding-actions:not(#\-) { margin-top: 12px; padding-top: 10px; padding-bottom: 10px; } }
+:where(:root[data-density=compact]) .setup-landing-close:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .habit-first-step:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .onboarding-undo:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; margin-top: 0; margin-bottom: 16px; }
 :where(:root[data-density=compact]) .onboarding-undo p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .onboarding-pillars:not(#\-) { row-gap: 10px; margin-top: 4px; margin-bottom: 18px; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .onboarding-pillars > li:not(#\-) { row-gap: 3px; padding-top: 10.5px; padding-bottom: 9px; }
+@media (max-width: 767.98px) { :root:where([data-density=compact]) .welcome-phone-bar:not(#\-) { row-gap: 4px; padding-top: 4px; padding-bottom: 4px; } }
+@media (max-width: 767.98px) { :root:where([data-density=compact]) .welcome-phone-close:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 /*  components/orbit-card/orbit-card.css  */
 :root:where([data-density=compact]) .orbit-card:not(#\-) { row-gap: 12px; }
 :root:where([data-density=compact]) .orbit-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
