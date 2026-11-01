@@ -11,7 +11,6 @@ import {pathBefore} from '../../lib/checklist/return-path';
 import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
-import {ListView} from './list-view';
 import {CornerTimers} from './corner-timers';
 import {ChecklistSky} from './checklist-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
@@ -23,6 +22,8 @@ import './checklist.css';
 // Opened on request only: the editor, the options, the history and the day's celebration stay out of the first paint.
 // The ambient sky is decoration (aria-hidden): it loads after the page, so the Checklist's first scripts stay within
 // their weight line (scripts/weight-budgets.json).
+// The List view loads only when a person picks it (the Path is the default view).
+const ListView = lazy(() => import('./list-view').then(m => ({default: m.ListView})));
 const AmbientSky = lazy(() => import('./ambient-sky').then(m => ({default: m.AmbientSky})));
 const EditPath = lazy(() => import('./edit-path').then(m => ({default: m.EditPath})));
 const OptionsSheet = lazy(() => import('./options-sheet').then(m => ({default: m.OptionsSheet})));
@@ -193,7 +194,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
+          : prefs.view === 'list' ? <LoadBoundary><Suspense fallback={<p className="fine" role="status">Loading the list…</p>}><ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/></Suspense></LoadBoundary> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
