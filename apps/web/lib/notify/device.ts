@@ -39,6 +39,18 @@ async function retireAccountPath(): Promise<void> {
   clearPushRecord(storage);
   try { await (await import('../push/labels-sync')).forgetPushLabels(); } catch { /* nothing to delete */ }
 }
+/** Resolves once this registration's own /sw.js worker is active (or redundant), at most `ms` later; never throws. */
+export function appWorkerActive(reg: ServiceWorkerRegistration, ms = 10_000): Promise<void> {
+  const ours = (w: ServiceWorker | null | undefined): w is ServiceWorker => !!w && new URL(w.scriptURL, self.location.href).pathname === '/sw.js';
+  return new Promise(resolve => {
+    const worker = [reg.installing, reg.waiting, reg.active].find(ours);
+    if (!worker || worker.state === 'activated' || worker.state === 'redundant') { resolve(); return; }
+    const timer = setTimeout(done, ms);
+    function done() { clearTimeout(timer); worker!.removeEventListener('statechange', check); resolve(); }
+    function check() { if (worker!.state === 'activated' || worker!.state === 'redundant') done(); }
+    worker.addEventListener('statechange', check);
+  });
+}
 /** From a tap: permission, the worker, a fresh subscription to this build's key, the identity, the first registration. */
 export async function turnOnNotifications(publicKey: string): Promise<TurnOn> {
   if (isShowcase()) return {ok: false, message: 'Notifications are not set up from the Showcase: its example data never reaches a notification.'};
@@ -49,7 +61,9 @@ export async function turnOnNotifications(publicKey: string): Promise<TurnOn> {
   await retireAccountPath();
   let sub: PushSubscription;
   try {
-    await navigator.serviceWorker.ready;
+    // Session AK (CI-P, the same race as the account path): subscribe once /sw.js itself is this scope's active worker,
+    // never while an account /push-sw.js still holds it (Q15's switch), or the pushes reach the wrong worker.
+    await appWorkerActive(reg);
     const existing = await reg.pushManager.getSubscription();
     if (existing) await existing.unsubscribe();
     sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: applicationServerKey(publicKey)});
