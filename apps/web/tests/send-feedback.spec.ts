@@ -96,7 +96,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AF, at the ZIGi and extras merges (deliberate): three more (was 18), each checked by its words and link below.
   // Session AJ (ADR-035, deliberate): five more (was 21), each checked by its words below.
   // Session AK (ADR-036, deliberate): seven more (was 26), each checked by its words and its link below.
-  await expect(items).toHaveCount(33);
+  // Owner decision 6 (ADR-036, deliberate): Earn's first load, accepted with its measurement (was 33), checked by its words.
+  await expect(items).toHaveCount(34);
+  await expect(section).toContainText('Earn takes a few seconds to settle on a slower phone: on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds');
   for (const [words, name, href] of [
     ['Notifications on this device are being switched on', 'How do notifications on this device work?', '#help-ak-notify'],
     ['Barcode lookups and US foods need the food service too', 'What changed in food logging?', '#help-ak-food'],

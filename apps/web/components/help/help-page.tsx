@@ -413,6 +413,8 @@ export function HelpPage() {
         <li><strong>Phone wallets by WalletConnect are being switched on,</strong> and staking with Keplr Mobile over WalletConnect hasn&rsquo;t been tried on a real phone yet; Keplr in the browser is the tested way to sign (<a className="text-link" href="#help-ak-wallets">Can I link a wallet on my phone?</a>).</li>
         <li><strong>Garmin workouts come in only as FIT files</strong> you export from Garmin; there is no Garmin connection (<a className="text-link" href="#help-ak-switch">Bring your data</a>).</li>
         <li><strong>Lichess games found from ZIGoals are rapid or classical only;</strong> Lichess doesn&rsquo;t let other apps look for bullet or blitz games (<a className="text-link" href="#help-ak-chess">Can I play Lichess inside ZIGoals?</a>).</li>
+        {/* Owner decision 6 (ADR-036): Earn's first load is accepted for this release, with its measurement. */}
+        <li><strong>Earn takes a few seconds to settle on a slower phone:</strong> on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds before every part answered at once.</li>
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
       </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>

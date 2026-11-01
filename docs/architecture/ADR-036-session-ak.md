@@ -978,3 +978,13 @@ Then Z4 exactly as written.
 | C2 WIRING_AUDIT_3 on the final head, every ADR-036 row | Open | — | — |
 | C3 Full browser suite twice on the final head + CI twice green | Open | — | — |
 | C4 docs/handoff/AK_DEMO_TOUR.md (starts "Open NOVA") | Done: 11 steps, 15 minutes, each with where, what and what is not live; its five code/doc gaps fixed (Help push line, a label, the NOVA inbox link, What's new, the barcode path) | `90ce48e9` | tests/send-feedback.spec.ts, whats-new.spec.ts |
+
+## Owner decision 6 (1 Nov, after P8b)
+Verbatim (pre-approved):
+
+> OWNER DECISION, pre-approved, no reply needed; continue in auto mode. The Checklist full-screen view's two costly rules: you may fix them ONLY if the look stays identical — the Checklist's pin tests and the AG Polish visual specs pass unchanged at equal strength; if identity can't be proven, leave them and record it. Earn's first load (3.9 s on the phone profile): accepted for this PR; record it under Known limitations with the measurement.
+
+| Row | Status | Commits | Evidence |
+|---|---|---|---|
+| D6-CL The Checklist full-screen view's two :has() rules: fixed only if the look is provably identical | Open | — | — |
+| D6-EARN Earn's first load (3.9 s TBT, phone profile, CPU 4×) accepted; recorded under Known limitations with the measurement | Open | — | — |
