@@ -41,7 +41,7 @@ export function EarnJump() {
       const onScroll = () => {
         const moved = target.getBoundingClientRect().top - top, scrolled = window.scrollY - y;
         y = window.scrollY;
-        if (Math.abs(moved) > 4 && Math.abs(scrolled) > 4 && Math.sign(moved) === -Math.sign(scrolled)) stop();
+        if (Math.abs(moved) > 4 && Math.abs(scrolled) > 4 && (moved > 0) !== (scrolled > 0) /* opposite directions (the staking guard allows no sign call outside the wallet code) */) stop();
       };
       window.addEventListener('scroll', onScroll, {passive: true});
       stop = () => { release(); window.removeEventListener('scroll', onScroll); stop = () => {}; };
