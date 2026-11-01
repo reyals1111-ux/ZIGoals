@@ -33,6 +33,11 @@ const open = (key: Buffer, b64: string) => { const b = Buffer.from(b64, 'base64'
 /** The raw JSON id of a message (WalletConnect's ids exceed a double's precision, so they are echoed as written). */
 const rawId = (text: string) => /"id"\s*:\s*("?[0-9]+"?)/.exec(text)?.[1] ?? '0';
 
+/** The Verify frame's double: it posts the attestation the client waits for, `{type: 'verify_attestation', attestation}`. */
+const VERIFY_PAGE = `<!doctype html><title>verify</title><script>
+const id = new URLSearchParams(location.search).get('id') || '', b = text => btoa(text).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');
+parent.postMessage(JSON.stringify({type: 'verify_attestation', attestation: [b('{"alg":"none","typ":"JWT"}'), b(JSON.stringify({id, isVerified: true})), b('fictional')].join('.')}), '*');
+</script>`;
 /** The relay, answered here, with a fictional wallet that approves the proposal with `accounts` (CAIP-10); with
  *  `answers`, the wallet also answers each session request (method, params) on the session topic, sealed. */
 async function walletConnectRelay(page: Page, accounts: string[], walletName: string, answers?: (method: string, params: Json) => unknown) {
@@ -91,8 +96,10 @@ async function walletConnectRelay(page: Page, accounts: string[], walletName: st
     const response = `{"id":${rawId(proposalText)},"jsonrpc":"2.0","result":${JSON.stringify({relay: {protocol: 'irn'}, responderPublicKey: walletPub})}}`;
     setTimeout(() => deliver(String(p.pairingTopic), seal(state.pairingKey!, response), 1101), 50);
   }
-  // WalletConnect's Verify page and API: answered empty (nothing reaches it).
-  await page.route(/^https:\/\/verify\.walletconnect\.(org|com)\//, route => route.fulfill({status: 200, contentType: route.request().resourceType() === 'document' ? 'text/html' : 'application/json', body: route.request().resourceType() === 'document' ? '<!doctype html><title>verify</title>' : '{}'}));
+  // WalletConnect's Verify page and API, answered here (nothing reaches it). The page answers the app's attestation
+  // request as Verify does (a postMessage naming the request id; the fake token is unsigned, the dapp only passes it on),
+  // so no wallet request waits out the client's 5 s Verify timeout (which made every request take 5 s).
+  await page.route(/^https:\/\/verify\.walletconnect\.(org|com)\//, route => route.fulfill({status: 200, contentType: route.request().resourceType() === 'document' ? 'text/html' : 'application/json', body: route.request().resourceType() === 'document' ? VERIFY_PAGE : '{}'}));
   return {state, takeKey: (uri: string) => { state.pairingKey = Buffer.from(new URL(uri.replace(/^wc:/, 'wc://x/')).searchParams.get('symKey')!, 'hex'); for (const p of pending.splice(0)) answer(p); }};
 }
 async function pair(page: Page, button: RegExp, relay: Awaited<ReturnType<typeof walletConnectRelay>>) {
