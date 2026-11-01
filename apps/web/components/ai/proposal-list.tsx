@@ -147,13 +147,14 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       // Session Z-Cloud Gate B: Z-Local's runner effects (a page, a delete confirmation, ZIGi's look) before the money pre-fills.
       // Session AF (L4): a device record that refuses the change (a Checklist that cannot be read, a limit) says why on the card.
       let opened: {text: string; navigated: boolean} | null = null;
-      try { opened = runner.effect?.(plan) ?? null; }
+      // Session AK CI-3: a card that opens a page closes its host (onNavigate) just before the navigation starts, not after it.
+      try { opened = runner.effect?.(plan, onNavigate) ?? null; }
       catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be changed.'}); return; }
       if (opened !== null) {
         // Owner follow-up 2 (N5, lane NE): a card that wrote a device record and carries its inverse shows Undo like a journal card.
         if (!opened.navigated && deviceUndoOf(plan)) { patch(item.id, {status: 'added', error: null, after: runner.stores}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); countZigi('card-added'); return; }
-        patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); if (opened.navigated) onNavigate?.(); return; }
-      const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
+        patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); return; }
+      onNavigate?.(); const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
     try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after});

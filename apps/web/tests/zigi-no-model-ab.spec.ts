@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
+import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): ZIGi with no AI at all. A Dutch question gets the introduction in Dutch and
@@ -15,10 +16,13 @@ async function ask(page: Page, text: string) {
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   return panel(page).locator('.ai-turn-local').last();
 }
+// Session AK CI-3 (diagnostic only): a failed run attaches the page transitions' timing (tests/vt-timing.ts).
+test.afterEach(async ({page}, testInfo) => { await attachTransitionTiming(page, testInfo); });
 test('no AI: a Dutch question is introduced in Dutch with working examples; "create a food" gets the steps and a card to Health', async ({page}) => {
   const external: string[] = [];
   await page.route(/^https?:\/\/(?!127\.0\.0\.1:3\d{3})/, route => { external.push(route.request().url()); return route.abort(); });
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
+  await recordTransitionTiming(page);
   await page.clock.install({time: EVENING});
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})});

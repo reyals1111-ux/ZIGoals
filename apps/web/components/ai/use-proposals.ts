@@ -71,9 +71,11 @@ export type ProposalRunner = {
   /**
    * Session Z-Cloud Gate B: a page to open, a record's own delete confirmation to open, or ZIGi's look to change
    * (runner-effects.ts). Resolves with the card's status text and whether a page opens, or null when the plan carries none.
-   * Optional, so a runner made by hand (Z-Local's tests in lib/ai) still type-checks.
+   * Optional, so a runner made by hand (Z-Local's tests in lib/ai) still type-checks. `leave` (Session AK CI-3): called
+   * just before a page opens (never when the card only changes a record), so whatever hosts the card (ZIGi's chat, modal
+   * on a phone) is closed before the navigation starts, not inside it.
    */
-  effect?: (plan: Plan) => {text: string; navigated: boolean} | null;
+  effect?: (plan: Plan, leave?: () => void) => {text: string; navigated: boolean} | null;
 };
 /**
  * Session AK (owner follow-up 2 N7, lane NE's planner Env): NOVA's chat plans its cards on NOVA's surface, with whether
@@ -164,7 +166,9 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
     return stashed;
   }, [router]);
   const look = useDeviceRecord(ZIGI);
-  const effect = useCallback((p: Plan) => {
+  // Session AK CI-3 (WebKit, zigi-no-model-ab:18): the card's host is closed BEFORE the router push or hash change, so no
+  // page transition starts while ZIGi's chat is still open (the list closed it after the push, inside the navigation).
+  const effect = useCallback((p: Plan, leave?: () => void) => {
     // Session AK (Part 12): a soundscape starts here, inside the card's own tap (the browser allows sound only then); a
     // draft for the Goal wizard is kept before its page opens (the wizard reads it once; nothing is saved until it is created).
     const ak = akEffect(p);
@@ -174,6 +178,7 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
     // reads them once, and nothing is signed until the person reviews them there and signs in their own wallet.
     if (p.staking) {
       const stashed = stashStakingPrefill(p.staking), [path, hash] = STAKING_PREFILL_ROUTE.split('#') as [string, string];
+      leave?.();
       if (window.location.pathname === path) window.location.hash = hash; else router.push(STAKING_PREFILL_ROUTE);
       return {text: stashed ? 'The staking review is opening on Staking, filled in. Nothing is signed until you review it and sign in your own wallet.' : 'The values could not be handed over; type them into the staking form.', navigated: true};
     }
@@ -185,6 +190,7 @@ export function useProposals(planSurface?: PlanSurface): ProposalRunner {
     if (e.kind === 'record') { const spec = deviceWriteSpec(e.key); if (!spec) return null; updateDeviceRecord(getAppStorage(), spec, r => applyDeviceWrite(e.key, r, e.patch)); try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: e.key})); } catch { /* no window */ } return {text: effectStatus(e), navigated: false}; }
     const href = e.kind === 'confirm' ? confirmHref(e) : e.href, [path, hash] = href.split('#') as [string, string | undefined];
     // A hash on the page already shown is set directly (a router push changes no hash event), as openForm does.
+    leave?.();
     if (hash !== undefined && window.location.pathname + window.location.search === path) window.location.hash = hash; else router.push(href);
     return {text: effectStatus(e), navigated: true};
   }, [look, router]);
