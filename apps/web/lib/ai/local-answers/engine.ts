@@ -16,6 +16,7 @@ import {afLocalAnswer} from './af';
 import {aiLocalAnswer, isEnergyRatingAsk} from './ai-session';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
+import {g1LocalAnswer} from './g1';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -169,6 +170,8 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   if (!subject) { const f9 = f9LocalAnswer(normalizeSpoken(question), env); if (f9) return f9; }
   // Owner follow-up 2 (N4): tasks, focus, workouts and budgets (NOVA's tools), answered here before any model is connected.
   if (!subject) { const nova = novaLocalAnswer(normalizeSpoken(question), env); if (nova) return nova; }
+  // Owner follow-up 2 (G8): the last blood pressure reading, today's own scales and cash ahead (BUILD list 2's tools).
+  if (!subject) { const g1 = g1LocalAnswer(normalizeSpoken(question), env); if (g1) return g1; }
   // Session AI: a question about the daily energy rating is answered as one, before "energy" can be read as food kcal.
   if (!subject && isEnergyRatingAsk(normalizeSpoken(question))) { const own = aiLocalAnswer(normalizeSpoken(question), env); if (own) return own; }
   let reply = answer(normalizeSpoken(question), env, subject); // Session Z-Local Part 4: the spoken form

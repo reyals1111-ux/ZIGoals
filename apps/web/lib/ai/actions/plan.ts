@@ -1,3 +1,4 @@
+import {evaluateAmount, isExpression} from '../../money-calc/expression';
 import {parseAmountInput} from '../../amount-input';
 import {saveMeasurement} from '../../body-measurements';
 import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, stopFast} from '../../fasting/engine';
@@ -777,10 +778,14 @@ export function planAction(action: Action, env: Env): PlanResult {
     // Session AI (B3, J10, feature 5): money spent or received, written to the expense log on this device (its own writer).
     case 'log-expense': case 'log-income': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
-      const spent = action.kind === 'log-expense', amount = action.amount.toFixed(2), currency = action.currency ?? 'EUR', words = action.note ?? '';
+      // Owner follow-up 2 (G8): a sum is worked out by the money field's own calculator (lib/money-calc); its result is what is saved.
+      const sum = typeof action.amount === 'string' ? evaluateAmount(action.amount) : null;
+      if (sum && !sum.ok) return refuse(sum.reason);
+      const spent = action.kind === 'log-expense', amount = sum?.ok ? sum.text : (action.amount as number).toFixed(2), currency = action.currency ?? 'EUR', words = action.note ?? '';
+      const working = sum?.ok && isExpression(action.amount as string) ? [`${(action.amount as string).replace(/\s+/g, '')} = ${amount} (worked out on this device)`] : [];
       const category = spent ? expenseCategory(action.category, words) : incomeCategory(action.category, words);
       const entry = {id: crypto.randomUUID(), kind: spent ? 'expense' : 'income', amount, currency, category, ...(action.note ? {note: action.note} : {}), date: day.day, createdAt: at, source: 'zigi'};
-      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${spent ? 'Spent' : 'Received'} ${amount} ${currency}`, lines: [`${category}${action.note ? ` · ${action.note}` : ''}`, 'Kept in Wealth → Spending on this device; never converted; remove it there'], where: 'Wealth → Spending', day: dayLabel(day.day, env.healthDay), estimate: false},
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${spent ? 'Spent' : 'Received'} ${amount} ${currency}`, lines: [...working, `${category}${action.note ? ` · ${action.note}` : ''}`, 'Kept in Wealth → Spending on this device; never converted; remove it there'], where: 'Wealth → Spending', day: dayLabel(day.day, env.healthDay), estimate: false},
         write: () => ({}), undo: null, device: {key: MONEY_LOG_KEY, patch: {add: entry}, label: `${spent ? 'Spent' : 'Received'} ${amount} ${currency} · ${category}, logged in Spending`}}};
     }
     // Session AJ (item 15, D9): a price alert for a coin the person holds with a market price, kept on this device by its own
@@ -876,6 +881,8 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'log-supplement': case 'set-debt-plan': case 'start-savings-challenge': case 'open-agenda': case 'open-wrapped':
     // Owner follow-up 2 (N5): NOVA's cards (a task, a workout, a note captured, focus), in the same lazy chunk (plan-nova.ts).
     case 'add-task': case 'log-workout': case 'capture-note': case 'file-note': case 'start-focus':
+    // Owner follow-up 2 (G8): BUILD list 2's cards (a blood pressure reading, a scale rated, a task moved), in the same lazy chunk (plan-g1.ts).
+    case 'log-blood-pressure': case 'rate-scale': case 'move-task':
       if (!akPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
       return akPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {

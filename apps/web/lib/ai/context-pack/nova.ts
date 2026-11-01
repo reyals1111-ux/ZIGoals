@@ -63,7 +63,7 @@ export function scopeOpen(scopes: NovaScopes, scope: NovaScope, chainChosen: boo
 export function novaToolEnv(sources: ToolSources, gates: Gates, scopes: NovaScopes, chainChosen: boolean, handles = new Handles()): ToolEnv {
   const open = (s: NovaScope) => scopeOpen(scopes, s, chainChosen);
   // Notes and the Journal are read through Today-area tools; with Today itself closed, Today's own records stay out.
-  const today = open('today'), nova = sources.nova ? {...sources.nova, notes: open('notes') ? sources.nova.notes : undefined, ...(today ? {} : {tasks: undefined, focus: undefined, music: undefined, calendar: undefined})} : sources.nova;
+  const today = open('today'), nova = sources.nova ? {...sources.nova, notes: open('notes') ? sources.nova.notes : undefined, ...(today ? {} : {tasks: undefined, focus: undefined, music: undefined, calendar: undefined, /* G8: your own scales are Today's */ scales: undefined})} : sources.nova;
   const narrowed: ToolSources = {...sources, journal: open('journal') ? sources.journal : null, earn: open('earn') ? sources.earn : null, nova,
     ...(today ? {} : {weekly: null, chess: null, linksCount: null, pageView: null, plans: null, checklist: null})};
   const env = toolEnv(narrowed, gates, 'provider', handles);

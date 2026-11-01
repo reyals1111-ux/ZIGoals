@@ -14,6 +14,9 @@ import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/
 import {AK_ACTION_KINDS, AK_ACTION_SCHEMAS, AK_ALIASES, goalBundleParts, goalBundleSchema} from './schema-ak';
 // Owner follow-up 2 (N5): NOVA's new card kinds (a task, a workout, a note captured, focus), shared with ZIGi (one engine).
 import {NOVA_ACTION_KINDS, NOVA_ACTION_SCHEMAS, NOVA_ALIASES, NOVA_OPEN_PAGES} from './schema-nova';
+// Owner follow-up 2 (G8): BUILD list 2's cards (a blood pressure reading, a scale rated, a task moved or let go).
+import {G1_ACTION_KINDS, G1_ACTION_SCHEMAS, G1_ALIASES} from './schema-g1';
+import {evaluateAmount} from '../../money-calc/expression';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -47,6 +50,13 @@ const named = (example: string) => z.string().trim().min(1).max(100)
 const habitName = named('h1, h2'), goalName = named('g1');
 const text = (max: number) => z.string().trim().min(1).max(max);
 const positive = z.number().finite().positive();
+/**
+ * Owner follow-up 2 (G8, BUILD list 2 #19): a money log amount is a number with at most two decimals, or a sum the money
+ * field's own calculator works out ("12,50+3,20", "3*4.99"; lib/money-calc, a hand-written parser, never eval). The card
+ * shows the sum and its result, and the result is what is saved. Refused with the calculator's own reason.
+ */
+const centsNumber = positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.');
+const moneyAmount = z.union([centsNumber, z.string().trim().min(1).max(80).superRefine((v, ctx) => { const r = evaluateAmount(v); if (!r.ok) ctx.addIssue({code: 'custom', message: r.reason}); })]);
 const grams = z.number().finite().min(0).max(100_000);
 /** A [low, high] range (Session AI, HE17): both at least 0, the low end first. */
 const pair = (max: number) => z.tuple([z.number().finite().min(0).max(max), z.number().finite().min(0).max(max)]).refine(([lo, hi]) => lo <= hi, 'Give the low end of a range first.');
@@ -262,16 +272,18 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('prefill-staking'), action: z.enum(STAKING_ACTIONS).default('delegate'), network: z.enum(STAKING_NETWORKS).default('practice'), validator: text(120).optional(), amount: zigAmount.optional()}),
   // Session AI (B3, J10, feature 5; TIER 3 data formats): money spent or received, written to the device's expense log
   // (`zigoals:money-log:v1`) through its registered writer; the person's own words, never converted, never advice.
-  z.strictObject({kind: z.literal('log-expense'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('log-expense'), amount: moneyAmount, currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
   // Session AJ (item 15, D9; TIER 3 stored format via its registered writer): a price alert for a coin the person holds,
   // "above/below a price" or "when it puts a goal at X %"; in the app only; never buys, sells or moves anything.
   z.strictObject({kind: z.literal('create-price-alert'), coin: text(100), direction: z.enum(['above', 'below']).optional(), price: positive.max(1_000_000_000_000).optional(), currency: z.enum(['USD', 'EUR']).default('USD'), goal: text(250).optional(), percent: z.number().int().min(1).max(1000).optional()})
     .refine(a => a.goal ? a.percent !== undefined && a.price === undefined : !!a.direction && a.price !== undefined, 'A price alert needs "direction" and "price"; a goal alert "goal" and "percent".'),
-  z.strictObject({kind: z.literal('log-income'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('log-income'), amount: moneyAmount, currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
   // Session AK (Part 12): auto-complete rules, bill reminders, the grocery list, the goal wizard filled in, a what-if, a scan, a soundscape.
   ...AK_ACTION_SCHEMAS,
   // Owner follow-up 2 (N5): NOVA's cards (schema-nova.ts).
   ...NOVA_ACTION_SCHEMAS,
+  // Owner follow-up 2 (G8): BUILD list 2's cards (schema-g1.ts).
+  ...G1_ACTION_SCHEMAS,
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -293,7 +305,9 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   // Session AK (Part 12)
   ...AK_ACTION_KINDS,
   // Owner follow-up 2 (N5)
-  ...NOVA_ACTION_KINDS] as const satisfies readonly ActionKind[];
+  ...NOVA_ACTION_KINDS,
+  // Owner follow-up 2 (G8)
+  ...G1_ACTION_KINDS] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -421,4 +435,6 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {...
   'prefill_staking': 'prefill-staking', 'staking-review': 'prefill-staking', 'start-staking': 'prefill-staking', 'staking-prefill': 'prefill-staking', 'prefill-stake': 'prefill-staking',
   'plan_bundle': 'plan-bundle', bundle: 'plan-bundle', 'set-up': 'plan-bundle', program: 'plan-bundle', programme: 'plan-bundle', 'plan-week': 'plan-bundle',
   // Session AK (Part 12)
-  ...AK_ALIASES};
+  ...AK_ALIASES,
+  // Owner follow-up 2 (G8): BUILD list 2's cards.
+  ...G1_ALIASES};

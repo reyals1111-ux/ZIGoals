@@ -20,7 +20,8 @@ export function deviceUndoOf(plan: unknown): DeviceUndo | null {
   if (!object(plan) || !object(plan.device)) return null;
   const {key, undo} = plan.device;
   if (typeof key !== 'string' || !DEVICE_WRITE_KEYS.includes(key) || !object(undo) || !object(undo.patch)) return null;
-  if (Object.keys(undo.patch).length !== 1 || !(object(undo.patch.remove) || object(undo.patch.unfile))) return null;
+  // Owner follow-up 2 (G8): `restore` puts a moved task or a day's scale rating back (nova-writes.ts, g1-writes.ts).
+  if (Object.keys(undo.patch).length !== 1 || !(object(undo.patch.remove) || object(undo.patch.unfile) || object(undo.patch.restore))) return null;
   return {key, patch: undo.patch, label: typeof undo.label === 'string' && undo.label.trim() && undo.label.length <= 120 ? undo.label : 'Undo'};
 }
 /** Applies a card's Undo on this device's record; null when it was undone, else the sentence to show (nothing changed). */

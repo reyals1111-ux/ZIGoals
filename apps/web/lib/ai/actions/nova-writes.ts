@@ -1,6 +1,7 @@
 import {NOTES, NOTES_KEY, noteSchema, type Note, type Notes} from '../../notes/schema';
 import {applyUndo, captureInto, checked, fileNote, type FileTarget} from '../../notes/store';
-import {TASK_PRIORITIES, TASKS, TASKS_KEY, type Tasks} from '../../tasks/schema';
+import {TASK_PRIORITIES, TASKS, TASKS_KEY, taskSchema, type Task, type Tasks} from '../../tasks/schema';
+import {letTaskGo, moveTaskDue, putTaskBack} from '../../wrap-up-tasks/move';
 import {addTask, removeTask} from '../../tasks/engine';
 import {WORKOUT_TYPES, WORKOUTS, WORKOUTS_KEY, workoutsSchema, type Workouts} from '../../workouts/schema';
 import {registerDeviceWrite, type Entry} from './device-writes';
@@ -29,7 +30,10 @@ const only = (patch: Record<string, unknown>, keys: readonly string[]) => Object
 const str = (v: unknown, max: number): v is string => typeof v === 'string' && v.trim().length > 0 && v.length <= max;
 
 export const tasksEntry: Entry<Tasks> = {spec: TASKS, apply: (record, patch) => {
-  if (!object(patch) || (!only(patch, ['add']) && !only(patch, ['remove']))) throw new Error(NOT_A_CARD);
+  if (!object(patch) || (!only(patch, ['add']) && !only(patch, ['remove']) && !only(patch, ['move']) && !only(patch, ['restore']))) throw new Error(NOT_A_CARD);
+  // Owner follow-up 2 (G8): the evening wrap-up's two choices for an open task (lib/wrap-up-tasks), and their Undo.
+  if (patch.move !== undefined) return moveFrom(record, patch.move);
+  if (patch.restore !== undefined) return restoreFrom(record, patch.restore);
   if (object(patch.remove)) {
     const {id, title, createdAt} = patch.remove;
     if (!str(id, 80) || !ID.test(id) || !str(title, 140) || !stamp(createdAt) || !only(patch.remove, ['id', 'title', 'createdAt'])) throw new Error(NOT_A_CARD);
@@ -44,6 +48,28 @@ export const tasksEntry: Entry<Tasks> = {spec: TASKS, apply: (record, patch) => 
   if (record.tasks.some(t => t.id === a.id)) throw new Error('This task is already on your list.');
   return addTask(record, {title: a.title, priority: a.priority as (typeof TASK_PRIORITIES)[number], ...(a.due ? {due: a.due as string} : {}), ...(a.time ? {time: a.time as string} : {}), ...(a.goal ? {goal: a.goal as string} : {})}, {id: a.id, at: new Date(a.at), today: a.today});
 }};
+
+/**
+ * Owner follow-up 2 (G8): `{move: {id, due, expect}}` moves an open task to `due` (`moveTaskDue`) or, with `due: null`,
+ * lets it go (`letTaskGo`: it stays in Tasks with no day), only while the task is exactly as the card showed it; Undo
+ * `{restore: {before, due}}` puts it back (`putTaskBack`) while it is still exactly as the move left it.
+ */
+const taskOf = (v: unknown): Task | null => { const r = taskSchema.safeParse(v); return r.success ? r.data : null; };
+const moved = (record: Tasks, task: Task, due: string | null): Task | undefined => (due ? moveTaskDue({...record, tasks: [task]}, task.id, due) : letTaskGo({...record, tasks: [task]}, task.id)).tasks[0];
+function moveFrom(record: Tasks, m: unknown): Tasks {
+  const expect = object(m) ? taskOf(m.expect) : null;
+  if (!object(m) || !only(m, ['id', 'due', 'expect']) || !str(m.id, 80) || !ID.test(m.id) || !(m.due === null || (typeof m.due === 'string' && DAY.test(m.due))) || !expect || expect.id !== m.id || expect.doneAt) throw new Error(NOT_A_CARD);
+  const current = record.tasks.find(t => t.id === m.id);
+  if (!current || JSON.stringify(current) !== JSON.stringify(expect)) throw new Error('This task changed since the card was made; ask again.');
+  return m.due === null ? letTaskGo(record, m.id) : moveTaskDue(record, m.id, m.due);
+}
+function restoreFrom(record: Tasks, r: unknown): Tasks {
+  const before = object(r) ? taskOf(r.before) : null;
+  if (!object(r) || !only(r, ['before', 'due']) || !before || !(r.due === null || (typeof r.due === 'string' && DAY.test(r.due)))) throw new Error(NOT_A_CARD);
+  const current = record.tasks.find(t => t.id === before.id);
+  if (!current || current.doneAt || JSON.stringify(current) !== JSON.stringify(moved(record, before, r.due as string | null))) throw new Error(NOVA_UNDO_REFUSED);
+  return putTaskBack(record, before);
+}
 
 export const workoutsEntry: Entry<Workouts> = {spec: WORKOUTS, apply: (record, patch) => {
   if (!object(patch) || (!only(patch, ['add']) && !only(patch, ['remove']))) throw new Error(NOT_A_CARD);

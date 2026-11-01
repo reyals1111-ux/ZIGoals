@@ -6,6 +6,7 @@ import {LINK_ICONS} from '../../links/schema';
 import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
 import {ACCOUNT_KINDS} from '../../accounts/schema';
 import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
+import {isExpression} from '../../money-calc/expression';
 import {PRESET_IDS, STAKING_ACTIONS, STAKING_NETWORKS, WEEKDAY_NAMES} from './schema';
 
 /**
@@ -22,6 +23,8 @@ const int = (key: string, label: string, optional = false): Field => ({key, labe
 const text = (key: string, label: string, optional = false, multiline = false): Field => ({key, label, type: 'text', optional, multiline});
 const select = (key: string, label: string, options: readonly string[], optional = false): Field => ({key, label, type: 'select', options, optional});
 const DAY: Field = {key: 'day', label: 'Day', type: 'day', optional: true};
+/** Owner follow-up 2 (G8, BUILD list 2 #19): a money log amount also takes a sum, worked out by lib/money-calc (no eval). */
+const AMOUNT: Field = {key: 'amount', label: 'Amount', type: 'number', note: 'a sum such as 12,50+3,20 works'};
 const lines = (key: string, label: string, optional = false): Field => ({key, label, type: 'lines', optional, multiline: true});
 const ESTIMATE = [num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true)];
 const FIELDS: Record<ActionKind, readonly Field[]> = {
@@ -103,8 +106,8 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'edit-goal': [text('name', 'New name', true), num('target', 'Target', true), {key: 'targetDate', label: 'Target date', type: 'date', optional: true}, select('category', 'Category', GOAL_CATEGORIES, true), text('notes', 'Notes', true, true)],
   'log-mood': [int('mood', 'Mood (1 = hard, 5 = great)'), text('note', 'Note', true, true), DAY],
   // Session AI: money spent or received.
-  'log-expense': [num('amount', 'Amount'), text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
-  'log-income': [num('amount', 'Amount'), text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
+  'log-expense': [AMOUNT, text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
+  'log-income': [AMOUNT, text('currency', 'Currency (EUR, USD, …)', true), text('category', 'Category', true), text('note', 'Note', true), DAY],
   // Session AJ (D9): the coin and the goal are named by the card (ask again to change them).
   'create-price-alert': [select('direction', 'Goes', ['above', 'below'], true), num('price', 'Price', true), select('currency', 'Currency', ['USD', 'EUR']), int('percent', 'At (%)', true)],
   'add-link': [text('label', 'Name'), text('url', 'Address (https://…)'), select('icon', 'Icon', LINK_ICONS, true)],
@@ -132,6 +135,9 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'capture-note': [text('title', 'Title', true), text('text', 'Words', false, true)],
   'file-note': [select('to', 'File into', ['daily', 'topic', 'goal', 'habit', 'note']), DAY, text('title', 'New note\'s title', true), text('name', 'Goal, habit or note', true)],
   'start-focus': [int('minutes', 'Minutes (15, 25 or 50)')],
+  // Owner follow-up 2 (G8): BUILD list 2's cards. A scale or a task is named by the card (ask again to change it).
+  'log-blood-pressure': [int('systolic', 'Upper number (mmHg)'), int('diastolic', 'Lower number (mmHg)'), int('pulse', 'Pulse', true), DAY, text('note', 'Note', true)],
+  'rate-scale': [int('value', 'Rating (1 to 5)'), DAY], 'move-task': [select('to', 'Move to', ['tomorrow', 'let-go'], false)],
   'prefill-staking': [select('action', 'What to fill in', STAKING_ACTIONS), select('network', 'Network', STAKING_NETWORKS, false), text('validator', 'Validator (its zigvaloper address or its name)', true), text('amount', 'Amount in ZIG', true)],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];
@@ -158,6 +164,8 @@ export function applyEdits(action: Action, values: Readonly<Record<string, strin
     const raw = values[field.key]!.trim();
     if (raw === '') { write(draft, field.key, undefined); continue; }
     if (field.type === 'lines') { const items = raw.split('\n').map(line => line.trim()).filter(Boolean); write(draft, field.key, items.length ? items : undefined); continue; }
+    // Owner follow-up 2 (G8): a sum in a money log amount stays the sum; the schema works it out (lib/money-calc) and the card shows it.
+    if (field.key === 'amount' && (action.kind === 'log-expense' || action.kind === 'log-income') && isExpression(raw)) { write(draft, field.key, raw); continue; }
     if (field.type === 'number' || field.type === 'integer') {
       // SECURITY_REVIEW_Y F7: "10,000" is ten thousand and "10.000,5" ten thousand and a half; only a lone comma is a decimal comma.
       const digits = /^-?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(raw) ? raw.replace(/,/g, '') : /^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(raw) ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(',', '.');

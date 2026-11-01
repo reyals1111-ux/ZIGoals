@@ -4,6 +4,8 @@ import {PAGE_AREAS} from '../settings';
 import {hasOpenFence, parseReply, repairJson, REPAIR_MAX_CHARS} from './parse';
 import {ACTION_KINDS, MAX_PROPOSALS, actionSchema} from './schema';
 import {NOVA_ACTION_KINDS} from './schema-nova';
+import {G1_ACTION_KINDS} from './schema-g1';
+import {TOOLS} from '../tools/registry';
 import {novaKindsNote} from '../context-pack/nova-prompt';
 
 // ADR-012, Part 5: only whitelisted, validated proposals become cards; the person's text can never be an instruction.
@@ -47,9 +49,12 @@ test('the protocol the AI reads names every kind the schema accepts, and the sch
   const ak = new Set(Object.values(AK_KINDS_BY_AREA).flat());
   // Owner follow-up 2 (N5): NOVA's own kinds are offered in NOVA's card note (lib/ai/context-pack/nova-prompt.ts), never in the shared part.
   const nova = new Set<string>(NOVA_ACTION_KINDS);
-  const offered = (kind: string) => nova.has(kind) ? novaKindsNote().includes(`"kind":"${kind}"`) : ak.has(kind) ? PAGE_AREAS.some(area => (akKindsNote(area) ?? '').includes(`"kind":"${kind}"`)) : ACTION_PROTOCOL.includes(`"kind":"${kind}"`);
+  // Owner follow-up 2 (G8): BUILD list 2's kinds are offered by the read tool each one acts on (its description, sent with
+  // the tools to ZIGi and NOVA alike), so no system prompt grows (Today's stays as it was; NOVA's has no room left).
+  const g1 = new Set<string>(G1_ACTION_KINDS);
+  const offered = (kind: string) => g1.has(kind) ? TOOLS.some(t => t.description.includes(`"kind":"${kind}"`)) : nova.has(kind) ? novaKindsNote().includes(`"kind":"${kind}"`) : ak.has(kind) ? PAGE_AREAS.some(area => (akKindsNote(area) ?? '').includes(`"kind":"${kind}"`)) : ACTION_PROTOCOL.includes(`"kind":"${kind}"`);
   for (const kind of ACTION_KINDS) expect(offered(kind), kind).toBe(true);
-  for (const kind of [...ak, ...nova]) expect(ACTION_PROTOCOL, kind).not.toContain(`"kind":"${kind}"`);
+  for (const kind of [...ak, ...nova, ...g1]) expect(ACTION_PROTOCOL, kind).not.toContain(`"kind":"${kind}"`);
   for (const forbidden of ['contribute', 'allocate', 'stake', 'transfer', 'delete-goal', 'export', 'sync', 'settings', 'wallet']) expect(actionSchema.safeParse({kind: forbidden}).success, forbidden).toBe(false);
   expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 24}).success).toBe(false); expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 16}).success).toBe(true);
   expect(actionSchema.safeParse({kind: 'log-water', day: 'today'}).success).toBe(false);

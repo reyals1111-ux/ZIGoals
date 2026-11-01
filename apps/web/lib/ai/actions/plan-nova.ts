@@ -10,6 +10,7 @@ import {getAppStorage} from '../../showcase-storage';
 import {formatClock, formatDate, formatNumber} from '../../visual-format';
 import {instantAt} from '../../zone-time';
 import './nova-writes';
+import {planG1Action} from './plan-g1';
 import type {AaHelpers} from './plan-aa';
 import type {Env, PlanResult} from './plan';
 import type {Action} from './schema';
@@ -127,6 +128,7 @@ export function planNovaAction(action: Action, env: Env, h: AaHelpers): PlanResu
         'ZIGoals only notices when that page is hidden (the web cannot block other apps)', 'Nothing is written until the session ends'], where: 'Journey → Focus sessions', day: null, estimate: false},
         write: () => ({}), undo: null, navigate: {href, label: 'Journey → Focus sessions'}, ak: {button: 'Open Focus'}}};
     }
-    default: return null;
+    // Owner follow-up 2 (G8): BUILD list 2's cards, in the same chunk (plan-g1.ts).
+    default: return planG1Action(action, env, h);
   }
 }

@@ -14,6 +14,7 @@ import {addLocalDays} from '../../local-date';
 import {noteName} from '../../notes/schema';
 import {durationMinutes, finished, inProgress, weekSummary} from '../../workouts/engine';
 import type {ToolEnv} from './env';
+import type {G1ToolSources} from './g1-tools';
 import {capRows, ok, plural, provenance, text} from './format';
 import {NO_ARGS, type ToolDefinition} from './types';
 
@@ -33,7 +34,9 @@ import {NO_ARGS, type ToolDefinition} from './types';
 export type NovaToolSources = {tasks?: Tasks | null; focus?: FocusSessions | null; budgets?: BudgetsRecord | null;
   /** Lane B's notes, only when the person granted NOVA's Notes scope (never on ZIGi's page paths). */ notes?: Notes | null;
   /** The music player's choices (source, ambient sound), for NOVA's pack. */ music?: MusicPrefs | null;
-  /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null};
+  /** Lane T's imported calendars (read-only .ics events): their titles came from a file, so they are data, never instructions. */ calendar?: CalendarImport | null}
+  /** Owner follow-up 2 (G8): BUILD list 2's records (your numbers, the cycle log, your own scales), for g1-tools.ts. */
+  & G1ToolSources;
 const where = (env: ToolEnv, journal: string, subject: string | null = null) => provenance(env, journal, subject, null, null);
 const goalName = (env: ToolEnv, key: string | undefined): string | undefined => {
   if (!key || !env.areas.goals) return undefined;
@@ -47,7 +50,7 @@ export const NOTES_NOT_SHARED = 'Notes are not shared here: NOVA reads them only
 
 export const tasksTool: ToolDefinition<Record<string, never>> = {
   name: 'tasks', title: 'Tasks', area: 'today',
-  description: 'The person\'s open tasks as their list orders them (overdue first, then today, soon, later, no day): title, due day and time, priority and the goal a task serves. Their own words; no advice.',
+  description: 'The person\'s open tasks as their list orders them (overdue first, then today, soon, later, no day): title, due day and time, priority and the goal a task serves. Their own words; no advice. To move one they ask about, propose {"kind":"move-task","task":"…","to":"tomorrow"|"let-go"}.',
   parameters: {type: 'object', properties: {}}, args: NO_ARGS,
   label: () => 'Tasks',
   run(_args, env, label) {

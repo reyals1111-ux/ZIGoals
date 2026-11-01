@@ -91,5 +91,7 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   const notesOpen = purpose === 'provider' ? gates.notes : !gates.paused;
   const notes = notesOpen && sources.notes ? sources.notes.filter(note => health || !HEALTH_NOTE_CATEGORIES.includes(note.category)) : null;
   // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
-  return {...sources, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
+  // Owner follow-up 2 (G8): your numbers and the cycle log describe health too, so they are not even in the environment with the gate closed.
+  const nova = !health && sources.nova ? {...sources.nova, healthNumbers: undefined, cycle: undefined} : sources.nova;
+  return {...sources, nova, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
 }

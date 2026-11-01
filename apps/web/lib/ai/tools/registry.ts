@@ -19,6 +19,7 @@ import {coachCheckinTool} from './coach-ai';
 import {AK_TOOLS} from './ak-tools';
 import {F9_TOOLS} from './f9-tools';
 import {NOVA_TOOLS} from './nova-tools';
+import {G1_TOOLS} from './g1-tools';
 
 /**
  * The one list of ZIGi's read-only tools and the one way to run them (Session V Part 2). Every path calls `runTool`:
@@ -33,8 +34,9 @@ import {NOVA_TOOLS} from './nova-tools';
 // Session AK (Part 12): auto-complete rules, bills, price alerts, a goal's what-if and the purpose allocation, last;
 // then Owner follow-up 1 (F9): the debt plan, the supplements log, the agenda, validators and savings challenges.
 // Owner follow-up 2 (N4): then tasks, focus sessions, workouts, budgets and the notes (NOVA's Notes scope only).
+// Owner follow-up 2 (G8): then BUILD list 2's: your numbers and the cycle log (Health gate), your own scales, cash ahead and the log's total.
 // Session AF (L4): the Earn coach's figures (earn_rates), this page's titles (page_view), the Checklist and ZIGi's plans.
-export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS, ...AK_TOOLS, ...F9_TOOLS, ...NOVA_TOOLS] as unknown as readonly AnyTool[];
+export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS, ...AK_TOOLS, ...F9_TOOLS, ...NOVA_TOOLS, ...G1_TOOLS] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
 /** Why the tool may not run in this environment (without running anything), or null when it may. */

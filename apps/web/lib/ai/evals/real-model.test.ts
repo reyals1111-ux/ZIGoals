@@ -25,7 +25,7 @@ import {PRICES_AS_OF, estimateCost} from '../pricing';
 import {anthropicBody, anthropicHeaders} from '../adapters/anthropic';
 import {runWithTools} from '../tool-loop';
 import {toolEnv, type ToolSources} from '../tools/env';
-import {DAY, gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {DAY, gatesFor, sentinelsIn, settingsWith, showcaseSources, withG1, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {runTool} from '../tools/registry';
 import type {ChatEvent, ChatMessage, ChatRequest} from '../types';
 import {SPOKEN} from './corpus-spoken';
@@ -34,6 +34,7 @@ import {AA} from './corpus-aa';
 import {AF} from './corpus-af';
 import {AK} from './corpus-ak';
 import {NOVA} from './corpus-nova';
+import {G1} from './corpus-g1';
 import {novaPromptFor} from './nova-harness';
 import {CORPUS_AI} from './corpus-ai';
 import {G6} from './g6-regression';
@@ -107,6 +108,8 @@ const SETS: Record<string, {all: readonly ModelCase[]; important: readonly Model
   ak: {all: AK, important: AK.filter(c => c.important)},
   // Owner follow-up 2 (N10): ZIGI_SET=nova, NOVA's surface (its prompt, pack and scoped tools; nova-harness.ts).
   nova: {all: NOVA, important: NOVA.filter(c => c.important)},
+  // Owner follow-up 2 (G8): ZIGI_SET=g1, BUILD list 2's tools and cards on ZIGi's pages and NOVA (corpus-g1.ts).
+  g1: {all: G1, important: G1.filter(c => c.important)},
 };
 const SET_NAMES = (env.ZIGI_SET || 'typed').split(',').map(s => s.trim()).flatMap(s => s === 'corpus' ? ['typed', 'af', 'aa', 'spoken', 'ai'] : [s]).filter(s => { if (!SETS[s]) throw new Error(`Unknown ZIGI_SET ${s}`); return true; });
 const SET: readonly ModelCase[] = SET_NAMES.flatMap(s => SETS[s]!.all);
@@ -128,6 +131,8 @@ function sourcesFor(c: ModelCase): ToolSources {
   if (c.sentinels) s = withSentinels(s);
   const golden = goldenSources(s);
   // Session AF (L4): this session's records for the cases that name them (fixtures-af.ts).
+  // Owner follow-up 2 (G8): BUILD list 2's records from the Showcase (fixtures withG1).
+  if (c.records === 'g1') return withG1(golden);
   return c.records === 'af' ? withPage(withEarn(withChecklist(golden)), todayView(c.health !== 'closed')) : c.records === 'af-bare' ? withChecklist(golden) : golden;
 }
 type Transport = (request: ChatRequest) => AsyncGenerator<ChatEvent>;
