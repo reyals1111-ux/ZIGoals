@@ -76,7 +76,8 @@ test('"Review my week" with a MOCK local model: steps show live, the words are t
   expect(await page.evaluate(k => localStorage.getItem(k), 'zigoals:ai-actions:v1')).toContain('review-intention');
   await cards.getByRole('button', {name: /^Undo/}).click();
   await expect(cards.getByRole('button', {name: /^Undo/})).toBeHidden();
-  expect(await page.evaluate(k => localStorage.getItem(k) ?? '', 'zigoals:ai-actions:v1')).not.toContain('review-intention');
+  // Session AK CI-3: Undo hides the moment it is pressed (no second tap), and the undo's write lands after; the stored log is the end state.
+  await expect.poll(() => page.evaluate(k => localStorage.getItem(k) ?? '', 'zigoals:ai-actions:v1')).not.toContain('review-intention');
   // The run is noted for the setup guide's check.
   expect(JSON.parse((await page.evaluate(k => localStorage.getItem(k), NOVA_WORKFLOWS_KEY))!).runs['review-week']).toBeTruthy();
 });
