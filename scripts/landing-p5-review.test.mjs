@@ -24,6 +24,18 @@ test("LR-1: NOVA's chapter is in the desktop navigation and the phone menu, in p
   }
 });
 
+test("OD-4: \"Private by design\" follows the NOVA chapter directly, and both menus list it right after NOVA", () => {
+  const order = [...html.matchAll(/<section id="([\w-]+)"/g)].map(m => m[1]);
+  expect(order[order.indexOf("nova") + 1]).toBe("privacy");
+  expect(order.indexOf("privacy")).toBeLessThan(order.indexOf("ecosystem"));
+  expect(text(section("privacy"))).toMatch(/^06 PRIVATE BY DESIGN Your plans should remain yours\./);
+  const desktop = [...html.match(/<nav class="desktop-nav"[\s\S]*?<\/nav>/)[0].matchAll(/href="#([\w-]+)"/g)].map(m => m[1]);
+  const phone = html.match(/<nav id="mobile-menu"[\s\S]*?<\/nav>/)[0];
+  const phoneLinks = [...phone.matchAll(/href="#([\w-]+)"/g)].map(m => m[1]);
+  for (const links of [desktop, phoneLinks]) expect(links.indexOf("privacy")).toBe(links.indexOf("nova") + 1);
+  expect(phone).toContain('<a href="#nova">NOVA <span>06</span></a><a href="#privacy">Privacy <span>07</span></a>');
+});
+
 test("LR-4, LR-5: a section's status line never says more than its cards", () => {
   const coming = section("coming");
   const legal = text(coming.match(/<p class="coming-legal">([\s\S]*?)<\/p>/)[1]);

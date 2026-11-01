@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { expect, test } from "vitest";
 
 // Session AK M6 (owner follow-up 2, under AJ's MO6 rule): the landing's NOVA chapter says only what the app does. NOVA
@@ -17,11 +17,22 @@ const words = text(chapter);
 test("the NOVA chapter carries the owner's two lines and sits among the chapters, before the ecosystem", () => {
   expect(chapter).not.toBe("");
   expect(words).toContain("Your life data and your own AI, in one private place.");
-  expect(words).toContain("Build your own Jarvis, with a real life to run.");
+  expect(words).toContain("Build your own AI command center, with a real life to run.");
   expect(html.indexOf('<section id="wealth"')).toBeLessThan(html.indexOf('<section id="nova"'));
   expect(html.indexOf('<section id="nova"')).toBeLessThan(html.indexOf('<section id="ecosystem"'));
   expect(chapter).toMatch(/aria-labelledby="nova-title"/);
   expect(html.match(/id="nova-title"/g)).toHaveLength(1);
+});
+
+test("OD-1: no public copy names a third-party AI character; NOVA is your own AI command center or personal AI assistant", () => {
+  // The landing, its legal pages and scripts, and the app's Help, What's new, search mirror and every NOVA surface.
+  const web = path => new URL(`../apps/web/${path}`, import.meta.url);
+  const tree = dir => readdirSync(web(dir), { recursive: true }).filter(file => /\.(tsx?|css|md)$/.test(file) && !/\.test\.tsx?$/.test(file)).map(file => `${dir}/${file}`);
+  const app = ["components/help/help-page.tsx", "lib/search/static.ts", "lib/whats-new.ts", ...tree("components/nova"), ...tree("lib/nova"), ...tree("app/app/nova")];
+  const landing = ["index.html", "privacy.html", "terms.html", ...readdirSync(new URL("../landing/scripts", import.meta.url)).map(file => `scripts/${file}`)];
+  expect(app.length).toBeGreaterThan(20);
+  for (const file of landing) expect(read(file), file).not.toMatch(/jarvis/i);
+  for (const file of app) expect(readFileSync(web(file), "utf8"), file).not.toMatch(/jarvis/i);
 });
 
 test("honest claims: local model or own key; a subscription is not an API key; nothing on a ZIGoals server; money never moves", () => {
