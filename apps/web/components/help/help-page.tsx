@@ -413,6 +413,10 @@ export function HelpPage() {
         <li><strong>Phone wallets by WalletConnect are being switched on,</strong> and staking with Keplr Mobile over WalletConnect hasn&rsquo;t been tried on a real phone yet; Keplr in the browser is the tested way to sign (<a className="text-link" href="#help-ak-wallets">Can I link a wallet on my phone?</a>).</li>
         <li><strong>Garmin workouts come in only as FIT files</strong> you export from Garmin; there is no Garmin connection (<a className="text-link" href="#help-ak-switch">Bring your data</a>).</li>
         <li><strong>Lichess games found from ZIGoals are rapid or classical only;</strong> Lichess doesn&rsquo;t let other apps look for bullet or blitz games (<a className="text-link" href="#help-ak-chess">Can I play Lichess inside ZIGoals?</a>).</li>
+        {/* Session AK Part 13 (ADR-036): Studio-4's "to polish later" items that show in the app. */}
+        <li><strong>ZIGi&rsquo;s hide move,</strong> when you dismiss its knock, always leaves to the right, and for a few frames its arm touches its body; too small to see at the app&rsquo;s sizes, and a smoother version is planned.</li>
+        <li><strong>In a browser that can&rsquo;t play animated WebP,</strong> ZIGi&rsquo;s moves use a fallback at 12 frames a second, most with a harder outline.</li>
+        <li><strong>A few of ZIGi&rsquo;s new moves aren&rsquo;t used yet:</strong> its glances (at the chat box, at you, at something on the page) and its hello without walking in; Meet ZIGi shows them all.</li>
         {/* Owner decision 6 (ADR-036): Earn's first load is accepted for this release, with its measurement. */}
         <li><strong>Earn takes a few seconds to settle on a slower phone:</strong> on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds before every part answered at once.</li>
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>

@@ -1,9 +1,11 @@
 /**
  * Studio-4 preparation (Session AK Part 12; ADR-036 D6): the pieces that work before the art arrives and fall back to
  * today's art until it does. Pure, imported by tests and by the surfaces that need them (never by the launcher shell).
- * - `checklistCelebrationArt`: the X030 cheer slot for the Checklist's day celebration. PROTECTED (the Checklist and AG
- *   Polish 1–3): until X030 lands the answer is today's clip, the very same constant, so nothing about the Checklist's
- *   look or celebration changes; the switch to the cheer is Part 13's, with the owner's review.
+ * - `checklistCelebrationArt`: the X030 cheer slot for the Checklist. PROTECTED (the Checklist and AG Polish 1–3): until
+ *   X030 lands the answer is today's clip, the very same constant. Session AK Part 13 (owner decision, AF11): X030 has
+ *   landed and replaces the borrowed presenting pose and greeting clip in the cheer that completes an orbit on the
+ *   Checklist's path (components/path/path.tsx ORBIT_CHEER_CLIP, path-zigi.tsx ORBIT_CHEER_STILL, kept equal to this clip
+ *   by lib/zigi-studio4/slots.test.ts); the day's video celebration (day-celebration.tsx) is the owner's own and unchanged.
  * - `studio4SlotProblems`: a schema-tolerant check of the Studio-4 slots of a manifest: every slot optional, each either
  *   null or a clip of the documented shape; today's manifest (all slots empty) passes, and so does an older one.
  */

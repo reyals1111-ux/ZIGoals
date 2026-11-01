@@ -78,8 +78,11 @@ export type PathProps = {
 /** The orbit look's finale node: where the line ends (Session AG). */
 const FINALE_POINT = 'finale:end';
 const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
-/** Session AG Polish (owner Part 8): ZIGi's greeting clip, played during the cheer that completes an orbit. */
-const ORBIT_CHEER_CLIP = '/brand/figures/zigi/origami-nebula/F002-greeting.anim.webp';
+/** Session AG Polish (owner Part 8): the clip played during the cheer that completes an orbit. Session AK Part 13 (owner
+ *  decision, AF11): Studio-4's X030 cheer replaces the borrowed greeting clip and presenting pose — the manifest's
+ *  `extras.celebrations.cheer` (components/zigi/studio4.ts checklistCelebrationArt; lib/zigi-studio4/slots.test.ts keeps
+ *  this path equal to it), named here so the Checklist's route never carries the manifest. */
+const ORBIT_CHEER_CLIP = '/brand/figures/zigi/origami-nebula/X030-cheer.anim.webp';
 /** After a tick that completes an orbit, the path glides on to the next planet once the orbit's celebration has played. */
 const ORBIT_LAND_AFTER_MS = 1400;
 /** The element that scrolls the path (the full-screen Checklist's own layer), or null for the page. */

@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {PageHeader} from '../page-header';
 import {OrbitArt} from '../header-art/orbit-art';
 import {ZigiGlyph} from '../header-art/glyphs/zigi';
 import {AnimationChoice} from '../ai/zigi-customize';
-import {ZIGI_MANIFEST, type ZigiState} from './manifest';
-import {GALLERY_GROUPS, STATE_TEXT} from './state-gallery';
+import {extraClipsOf, ZIGI_MANIFEST, type ExtraClip, type Skin, type ZigiState} from './manifest';
+import {GALLERY_GROUPS, MOVE_GROUPS, MOVE_TEXT, STATE_TEXT} from './state-gallery';
+import {motionAllowed, supportsAnimatedWebp, watchMotion} from './motion';
+import {ZigiImage} from './zigi-image';
 import {ZigiAvatar} from './zigi-avatar';
 import './meet-zigi.css';
 
@@ -33,6 +35,29 @@ function StateCard({state, skin}: {state: ZigiState; skin: string}) {
     <header><h4 id={`zigi-state-${state}`}>{spec.label}</h4>{/* Session AH (TO9, D-249, M-030; owner note: the internal copy only): no frame ids or studio notes on the page. */}<p className="meet-zigi-meta"><span>{spec.kind === 'loop' ? 'Moves while it lasts' : `A short move, about ${Math.max(1, Math.round(spec.durationMs / 1000)).toLocaleString('en-US')} s`}</span></p><p className="meet-zigi-meaning">{STATE_TEXT[state].meaning}</p><p className="meet-zigi-when"><strong>When it appears:</strong> {STATE_TEXT[state].when}</p></header>
     <div className="meet-zigi-sizes" key={play}>{SIZES.map(size => <figure key={size.name}><ZigiAvatar state={state} size={size.px} skin={skin} className="zigi-play" decorative/><figcaption>{size.name}</figcaption></figure>)}</div>
     {spec.kind === 'one-shot' && <button type="button" className="secondary" onClick={() => setPlay(n => n + 1)} aria-label={`Play ${spec.label} again`}>Play again</button>}
+  </article>;
+}
+/** Session AK Part 13: the Studio-4 moves of a skin that the gallery has words for, by code. */
+const movesOf = (skin: Skin) => extraClipsOf(skin).filter(m => MOVE_TEXT[m.code]);
+const still = () => false;
+let apng = false;
+if (typeof window !== 'undefined') void supportsAnimatedWebp().then(ok => { apng = !ok; });
+/** Session AK Part 13: one Studio-4 move at the three sizes; its clip only while motion is allowed and it is in view, else its stills. */
+function MoveCard({code, clip}: {code: string; clip: ExtraClip}) {
+  const text = MOVE_TEXT[code]!, [play, setPlay] = useState(0), card = useRef<HTMLElement>(null), [onScreen, setOnScreen] = useState(true);
+  const motion = useSyncExternalStore(watchMotion, motionAllowed, still);
+  useEffect(() => {
+    const el = card.current; if (!el || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(!!entry?.isIntersecting));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const animated = motion && onScreen ? (apng ? clip.files.animatedFallback : clip.files.animated) ?? null : null;
+  const one = clip.files['1x']!, two = clip.files['2x'] ?? one;
+  return <article ref={card} className="meet-zigi-move" data-move={code} aria-labelledby={`zigi-move-${code}`}>
+    <header><h4 id={`zigi-move-${code}`}>{text.label}</h4><p className="meet-zigi-meta"><span>{clip.kind === 'loop' ? 'Moves while it lasts' : `A short move, about ${Math.max(1, Math.round(clip.durationMs / 1000)).toLocaleString('en-US')} s`}</span></p><p className="meet-zigi-meaning">{text.meaning}</p><p className="meet-zigi-when"><strong>When it appears:</strong> {text.when}</p></header>
+    <div className="meet-zigi-sizes" key={play}>{SIZES.map(size => <figure key={size.name}><span className="zigi zigi-move" style={{width: size.px, height: Math.round(size.px * 126 / 96)}}><ZigiImage poster={{src: one, srcSet: `${one} 1x, ${two} 2x`}} animated={animated} width={size.px} height={Math.round(size.px * 126 / 96)} alt="" decorative/></span><figcaption>{size.name}</figcaption></figure>)}</div>
+    {clip.kind === 'one-shot' && <button type="button" className="secondary" onClick={() => setPlay(n => n + 1)} aria-label={`Play again: ${text.label}`}>Play again</button>}
   </article>;
 }
 /** Session AK G2 (RELEASE_REVIEW R26): the address that opens the gallery on arrival. */
@@ -65,6 +90,11 @@ export function MeetZigi() {
           <h3 id={`meet-zigi-${id}-${group.id}`}>{group.title}</h3><p className="meet-zigi-group-line">{group.line}</p>
           <div className="meet-zigi-grid">{GALLERY_ORDER.filter(state => STATE_TEXT[state].group === group.id).map(state => <StateCard key={state} state={state} skin={id}/>)}</div>
         </section>)}
+        {/* Session AK Part 13: Studio-4's extra moves, each group in the table's order. */}
+        {MOVE_GROUPS.map(group => { const moves = movesOf(skin).filter(m => MOVE_TEXT[m.code]!.group === group.id).sort((a, b) => a.code.localeCompare(b.code)); return moves.length ? <section key={group.id} className="meet-zigi-group" aria-labelledby={`meet-zigi-${id}-move-${group.id}`}>
+          <h3 id={`meet-zigi-${id}-move-${group.id}`}>{group.title}</h3><p className="meet-zigi-group-line">{group.line}</p>
+          <div className="meet-zigi-grid">{moves.map(m => <MoveCard key={m.code} code={m.code} clip={m.clip}/>)}</div>
+        </section> : null; })}
       </section>)}
     </details>
   </div>;

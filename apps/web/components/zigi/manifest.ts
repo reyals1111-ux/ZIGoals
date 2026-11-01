@@ -96,6 +96,12 @@ export function reactionArtOf(skin: Skin, manifest: Manifest = ZIGI_MANIFEST): {
   for (const [code, event] of Object.entries(manifest.reactionTriggers ?? {})) { const clip = extrasOf(skin).reactions[code]; if (typeof event === 'string' && clipLanded(clip) && !out.some(r => r.event === event)) out.push({event, code, clip}); }
   return out;
 }
+/** Session AK Part 13: every landed Studio-4 clip of a skin (reactions, idle variants, variants, the cheer, the in-place
+ *  greeting, the gaze set), with its code (the first four characters of its name), for Meet ZIGi. */
+export function extraClipsOf(skin: Skin): {code: string; clip: ExtraClip}[] {
+  const e = extrasOf(skin), all = [...Object.values(e.reactions), ...Object.values(e.idleVariants), ...Object.values(e.variants ?? {}), e.celebrations?.cheer, e.transitions.greetingInPlace, ...Object.values(e.gaze)];
+  return all.filter(clipLanded).map(clip => ({code: clip.name.slice(0, 4), clip}));
+}
 /** How long a state's own clip plays: the clip's stated length when Studio-4 gives one, else the state's. */
 export function clipDurationMs(skin: Skin, state: string, manifest: Manifest = ZIGI_MANIFEST): number {
   const own = skin.states[state]?.durationMs;

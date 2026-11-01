@@ -7,7 +7,7 @@ import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {isSensitiveScreen} from '../ai/use-sensitive-screen';
 import {zigiEvents, zigiFrames, zigiIdleVariant, zigiSignals, zigiState, type ZigiFrame, type ZigiFrames, type ZigiSignal} from './bus';
 import {startZigiMachine} from './events';
-import {FOLLOW_UPS, isSemanticEvent, REACTION_EVENTS, ZigiController, type Decision, type SemanticEventType} from './semantic';
+import {FOLLOW_UPS, HOST_FACT_REACTIONS, isSemanticEvent, REACTION_EVENTS, ZigiController, type Decision, type SemanticEventType} from './semantic';
 import {idlePool, nextGapMs, pickIdle, variantFrame, type IdleHistory, type IdleVariant} from './idle';
 import {filesFor, reactionArtOf, skinOf, ZIGI_STATES, type Skin, type StateFiles} from './manifest';
 import {BASE, pickVariant, poolForState, variantPools, type VariantPool} from './variants';
@@ -50,8 +50,8 @@ function setOverride(next: {state: string; frame: ZigiFrame; ms: number} | null)
   republish();
 }
 const overrideFrame = (files: StateFiles, apng: boolean, skin: Skin): ZigiFrame => ({...variantFrame({id: '', files, accent: false, durationMs: 0, weight: 0}, apng, {x1: skin.sizes['1x'].file, x2: skin.sizes['2x'].file}), override: true});
-/** The reaction events whose Studio-4 clip has landed for this skin (none today). */
-const reactionArt = (skin: Skin): SemanticEventType[] => reactionArtOf(skin).map(r => r.event).filter((e): e is SemanticEventType => isSemanticEvent(e) && REACTION_EVENTS.has(e));
+/** The reaction events whose Studio-4 clip has landed for this skin (Session AK Part 13: R001–R013, the three host facts among them). */
+const reactionArt = (skin: Skin): SemanticEventType[] => reactionArtOf(skin).map(r => r.event).filter((e): e is SemanticEventType => isSemanticEvent(e) && (REACTION_EVENTS.has(e) || HOST_FACT_REACTIONS.has(e)));
 function connectController(skin: () => Skin = () => skinOf(null), apng: () => boolean = () => false): () => void {
   const decide = (type: SemanticEventType, validated: boolean) => {
     zigiController.setPreferences({motion: motionAllowed() ? 'full' : 'reduced', sensitive: isSensitiveScreen()});

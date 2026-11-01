@@ -44,6 +44,14 @@ export type SemanticEventType = (typeof SEMANTIC_EVENTS)[number];
 export type SemanticEvent = {readonly type: SemanticEventType};
 /** Session AK Part 12: the Studio-4 reaction events. The machine never changes state for one (`reaction`); the clip plays over the current state. */
 export const REACTION_EVENTS: ReadonlySet<SemanticEventType> = new Set(['assistant_acknowledged', 'assistant_unsure', 'assistant_working', 'insight_consistent', 'checkin_low', 'checkin_milestone', 'journey_step', 'action_undone', 'wrapup_finished', 'feedback_received', 'journal_reflecting', 'companion_hidden']);
+/**
+ * Session AK Part 13: Studio-4's R011–R013 (reactions.json) name three host facts, not reactions: the connection lost and
+ * restored, and the knock dismissed. Each keeps its own meaning (the offline state, back to rest, no more knocks) and, once
+ * its clip has landed, plays it as well: R012 back-online over the rest the machine returns to; R013 hide when the person
+ * dismisses the knock; R011 offline-wait only when the connection is reported lost while ZIGi is already offline (the
+ * studio's arbitration: the offline state wins the drop itself). The same rules as a reaction (cooldown, gap, settling hold).
+ */
+export const HOST_FACT_REACTIONS: ReadonlySet<SemanticEventType> = new Set(['connection_lost', 'connection_restored', 'user_dismissed']);
 /** The reactions that celebrate: host-validated only, never on a sensitive screen, inside the day's celebration cap. */
 export const CELEBRATING_REACTIONS: ReadonlySet<SemanticEventType> = new Set(['insight_consistent', 'checkin_milestone', 'journey_step', 'wrapup_finished']);
 /** The reactions that belong to the conversation's own flow: never rate-limited (like listening and speaking). */
@@ -145,7 +153,7 @@ export class ZigiController {
    */
   setReactionArt(events: Iterable<unknown>): void {
     const next = new Set<SemanticEventType>();
-    for (const e of events) { if (!isSemanticEvent(e) || !REACTION_EVENTS.has(e)) throw new TypeError('INVALID_REACTION'); next.add(e); }
+    for (const e of events) { if (!isSemanticEvent(e) || (!REACTION_EVENTS.has(e) && !HOST_FACT_REACTIONS.has(e))) throw new TypeError('INVALID_REACTION'); next.add(e); }
     this.#reactionArt = next;
   }
   /** The host's state machine told the controller where ZIGi is now (it rests after one-shots on its own timers). */
@@ -167,7 +175,12 @@ export class ZigiController {
   dispatch(raw: unknown, now = Date.now()): Decision {
     const event = validateSemanticEvent(raw);
     if (!Number.isFinite(now) || now < 0) throw new TypeError('INVALID_TIME');
-    if (event.type === 'user_dismissed') { this.#dismissed = true; return this.#result(this.#current, 'dismissed', now, null, false); }
+    if (event.type === 'user_dismissed') {
+      this.#dismissed = true;
+      // Session AK Part 13: R013 (hide) plays as the knock goes, once its clip has landed; the dismissal stands either way.
+      const hide = this.#reactionArt.has('user_dismissed') ? this.#reaction('user_dismissed', now) : null;
+      return hide?.reaction ? Object.freeze({...hide, reason: 'dismissed' as const}) : this.#result(this.#current, 'dismissed', now, null, false);
+    }
     if (event.type === 'user_typing_started') { this.#typing = true; return this.#result(this.#current, 'typing', now, EVENT_TO_MACHINE.user_typing_started, false); }
     if (event.type === 'user_typing_stopped') { this.#typing = false; return this.#result(this.#current, 'typing_stopped', now, EVENT_TO_MACHINE.user_typing_stopped, false); }
     if (VALIDATED_ONLY.has(event.type)) return this.#result(this.#current, 'needs_host_validation', now, null, false);
@@ -188,6 +201,8 @@ export class ZigiController {
     let machine = EVENT_TO_MACHINE[event.type];
     if (machine === null) return this.#result(this.#current, 'noted', now, null, false);
     if (machine === 'reaction') return this.#reaction(event.type, now);
+    // Session AK Part 13: lost while already offline, R011 plays over the offline state (the drop itself shows the state).
+    if (event.type === 'connection_lost' && this.#current === 'offline' && this.#reactionArt.has('connection_lost')) return this.#reaction('connection_lost', now);
     if (NUDGES.has(event.type)) { const nudge = this.nudgeAllowed(now); if (nudge !== 'allowed') return this.#result(this.#current, nudge, now, null, false); }
     // Phase 2 (P2.5, found by the simulated-day spec): a knock consumes its nudge the moment it is allowed, whether or not
     // the clip is then held (the knock itself already shows); a held reminder used to leave the budget untouched.
@@ -224,7 +239,10 @@ export class ZigiController {
     if (!CONVERSATION.has(target)) this.#lastReactionAt = now;
     if (CELEBRATIONS.has(event.type) && (target === 'celebrate' || target === 'proud')) this.#celebrations.count += 1;
     const reason: Decision['reason'] = CELEBRATIONS.has(event.type) && target === 'success' ? 'celebration_cap' : validated ? 'validated_event' : 'semantic_event';
-    return this.#result(target, reason, now, machine, true);
+    const decision = this.#result(target, reason, now, machine, true);
+    // Session AK Part 13: back online, R012 plays over the rest the machine returns to (its clip landed, the reaction rules allow).
+    if (event.type === 'connection_restored' && this.#reactionArt.has('connection_restored')) { const back = this.#reaction('connection_restored', now); if (back.reaction) return Object.freeze({...decision, reaction: back.reaction}); }
+    return decision;
   }
   /**
    * Session AK Part 12: a reaction plays its Studio-4 clip over the current state, or nothing. Without its art it is

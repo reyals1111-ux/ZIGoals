@@ -58,6 +58,12 @@ type Box = {left: number; top: number; right: number; bottom: number};
 const FULL = '/brand/figures/zigi/origami-nebula/F006-presenting-large.webp', FULL_STILL = {src: FULL, srcSet: `${FULL} 1x`};
 const PRESENT = '/brand/checklist/zigi-present.webp', PRESENT_STILL = {src: PRESENT, srcSet: `${PRESENT} 1x`};
 const IDLE = '/brand/checklist/zigi-idle.webp', IDLE_STILL = {src: IDLE, srcSet: `${IDLE} 1x`};
+/** Session AK Part 13 (owner decision, AF11): the cheer that completes an orbit (a `clip` is given) shows Studio-4's X030 cheer —
+ *  its large still as the poster (and the whole moment under reduced motion, Motion Off and ZIGi's Off), its clip while
+ *  motion is allowed — in place of the borrowed presenting pose; every other moment keeps its art. Kept equal to the
+ *  manifest's cheer by lib/zigi-studio4/slots.test.ts. */
+const ORBIT_CHEER_STILL = '/brand/figures/zigi/origami-nebula/X030-cheer-large.webp';
+const CHEER_STILL = {src: ORBIT_CHEER_STILL, srcSet: `${ORBIT_CHEER_STILL} 1x`};
 const TRIM = {width: 435, height: 519};
 /** Where ZIGi last stood on each path (in the stage's own coordinates), so its next place can prefer it and glide from it. */
 const lastSeen = new WeakMap<Element, {x: number; y: number; w: number; h: number; side: Side; at: number}>();
@@ -253,7 +259,7 @@ export function PathZigi({state, side, say, alive = false, centred = false, chee
   const placed = alive && place ? {left: place.left, top: place.top, right: 'auto', bottom: 'auto', translate: 'none', '--hop': `${place.hop}px`, ...(place.scale !== 1 ? {height: `calc(var(--zigi-h) * ${place.scale})`, width: `calc(var(--zw) * ${place.scale})`} : {})} as CSSProperties : undefined;
   return <span ref={ref} className="path-zigi" data-side={shownSide} data-placed={place && alive ? '' : undefined} data-zigi-state={cheering ? 'cheer' : state} data-alive={alive || undefined} data-centred={centred || undefined} data-cheer={alive && cheer ? '' : undefined} aria-hidden="true" style={placed}>
     {alive && cheer && <span className="path-zigi-burst"/>}
-    {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} animated={cheer && clip && entranceAllowed() ? clip : null} width={TRIM.width} height={TRIM.height} alt="" decorative/></span></span>
+    {alive ? <span key={cheer ? 'cheer' : 'rest'} className="path-zigi-figure"><span className={`zigi zigi-figure zigi-${place?.idle && !cheer ? 'idle' : 'present'}`}><ZigiImage poster={cheer && clip ? CHEER_STILL : place?.idle && !cheer ? IDLE_STILL : PRESENT_STILL} animated={cheer && clip && entranceAllowed() ? clip : null} width={TRIM.width} height={TRIM.height} alt="" decorative/></span></span>
       : <span key={state} className={`zigi zigi-${state} path-zigi-figure`} data-state={state}><ZigiImage poster={poster} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>}
     {alive ? <span className="path-zigi-ground"/> : <span className="path-zigi-arrow"/>}
     {alive && cheer && <span className="path-zigi-cheer">{SPARKS.map(({a, d}, n) => { const far = place?.sparks[n] ?? d; return far ? <i key={n} data-tone={n % 3} style={{'--a': `${Math.round(a)}deg`, '--d': `${far}px`} as CSSProperties}/> : null; })}</span>}
