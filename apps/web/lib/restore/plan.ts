@@ -157,7 +157,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('novaHermes', 'Hermes Agent connection', 'Today and Life', NOVA_HERMES),
   dev('novaSetup', 'NOVA setup and privacy mode', 'Today and Life', NOVA_SETUP),
   dev('novaWorkflows', 'NOVA workflows', 'Today and Life', NOVA_WORKFLOWS),
-  dev('novaBriefs', 'NOVA briefs', 'Today and Life', NOVA_BRIEFS),
+  // Security review Z1B-2: briefs can hold Health lines (sleep, water, steps, foods), so they restore only with the Health choice.
+  dev('novaBriefs', 'NOVA briefs', 'Health', NOVA_BRIEFS, true),
   dev('novaBridge', 'NOVA chat origins', 'Today and Life', NOVA_BRIDGE),
   dev('nova', 'NOVA layout and persona', 'Today and Life', NOVA_STORE),
   dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),

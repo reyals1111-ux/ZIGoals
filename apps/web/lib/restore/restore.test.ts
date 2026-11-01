@@ -81,6 +81,8 @@ describe('the preview plan', () => {
     const habits = parts.find(p => p.id === 'module:habits')!;
     expect(habits.problem).toBeUndefined(); expect(habits.summary!.counts).toMatch(/^Habits: \d+ · Check-ins: \d+$/); expect(habits.summary!.from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(parts.filter(p => p.health).map(p => p.group)).toEqual(parts.filter(p => p.health).map(() => 'Health'));
+    // Security review Z1B-2: NOVA's briefs can hold Health lines, so they restore only with the Health choice.
+    expect(DEVICE_PARTS.find(p => p.id === 'device:novaBriefs')).toMatchObject({health: true, group: 'Health'});
   });
   test('a newer module, a newer device record and an invalid one are named and never written', () => {
     const parts = planParts({modules: {finance: {schemaVersion: 99, kind: 'zigoals-platform'}, habits: {schemaVersion: 2, habits: 'nope'}}, device: {accounts: {version: 2, items: []}, fasting: {version: 1, sessions: 'x'}}});
