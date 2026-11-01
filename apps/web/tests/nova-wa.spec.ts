@@ -46,8 +46,10 @@ test('N1: while NOVA hands a task to ZIGi, the Duo shows both side by side on th
   await page.goto('/app/nova');
   await expect(duo(page)).toHaveCount(0);
   await page.getByRole('button', {name: 'Talk to NOVA'}).click();
+  // A task, not a lookup: ZIGi first meets its on-device answers (components/nova/chat/nova-chat.tsx runDelegation), so a
+  // question the device answers ("How did my water go…") never reaches the model; a request to write goes to the MOCK model.
   const box = chat(page).getByRole('textbox', {name: /^Message /});
-  await expect(async () => { await box.fill('How did my water go this week?'); await expect(chat(page).getByRole('button', {name: 'Ask ZIGi about a page'})).toBeEnabled({timeout: 1_000}); }).toPass({timeout: 15_000});
+  await expect(async () => { await box.fill('Write me a kind note about my water this week.'); await expect(chat(page).getByRole('button', {name: 'Ask ZIGi about a page'})).toBeEnabled({timeout: 1_000}); }).toPass({timeout: 15_000});
   await chat(page).getByRole('button', {name: 'Ask ZIGi about a page'}).click();
   await chat(page).getByLabel('Page', {exact: true}).selectOption('health');
   await chat(page).getByRole('button', {name: 'Let ZIGi answer here'}).click();
