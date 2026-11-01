@@ -105,7 +105,7 @@ Legend: **C** exists, complete (verify and polish) · **U** exists, unfinished (
 | 4.7 Wearables | U | Apple/Fitbit/Samsung/Oura/Loop readers (`lib/import/switch/*`), `zip-stream.ts`, GPX/TCX; Garmin off; no FIT, no Strava ZIP | FIT, Strava ZIP, routes join, auto-rules |
 | 4.8 Recipes | C | `recipe-text.ts`, `/api/recipe-import`, portions | Polish |
 | 4.9 Training/sleep | U | sets (warm-up/drop/failure), rest timer, PRs, 1RM, weekly volume; sleep balance; consistency from bedtimes only | Supersets, RPE, plates, per-muscle volume, wake consistency |
-| 5.1 Schedules | C | five kinds in `lib/habits.ts` | Due vs optional, per-kind rules |
+| 5.1 Schedules | Built: "first Monday of the month" schedules | `d2105402` | lib/habit-month-weekday/rule.ts and its tests |
 | 5.2 Skip reasons | C | `TIME_AWAY` vacation/sick/rest, `planSkip(reason)` | Custom reason, history and year view |
 | 5.3 Strength | C | `lib/habits-v2/strength.ts` | Card, year view, review |
 | 5.4 Routine player | C | `lib/routines/*`, `routine-player.tsx` | Full screen, timers, templates, share structure |
@@ -116,7 +116,7 @@ Legend: **C** exists, complete (verify and polish) · **U** exists, unfinished (
 | 6.2 Pace/what-if | C | `lib/goal-forecast.ts` (G1), `lib/goals/on-track.ts` | Q14 |
 | 6.3 Vision/why | C | `vision-board.tsx`, `goal-extras` why | Reflection prompts, progress card |
 | 6.4 Milestones | C | `lib/templates/goal-library.ts`, `lib/goals/milestones.ts` | More templates, reorder, habit links |
-| 6.5 Progress toast | C | `components/ui/undo-toast.tsx` (one toast) | Cross-pillar message |
+| 6.5 Progress toast | Built: the cross-pillar progress line after a contribution | `d2105402` | lib/progress-toast/moved.ts; Help ak-progress-toast |
 | 6.6 Household | — | — | Design ADR only (D3) |
 | 7.1 CSV templates | U | `lib/csv/*`, `lib/import/holdings.ts`; no saved mappings | Templates, mappings, bank files (A14) |
 | 7.2 Exchanges | U | `lib/exchanges/*`, `/api/exchange`; manual reads | Auto-refresh, last-synced |
@@ -133,7 +133,7 @@ Legend: **C** exists, complete (verify and polish) · **U** exists, unfinished (
 | 8.6 Game layer | C | `lib/game/*`; the Checklist awards no XP | Badges, pin |
 | 8.7 Point-and-tell | N | `lib/feedback.ts` (mailto) | Build (A17) |
 | 8.8 Export bridges | U | CSVs inside Export everything | Bridges (A16) |
-| 8.9 Recovery | U | recovery secret, sync status exist; no test restore, no backup reminders | Build |
+| 8.9 Recovery | Built: a visible sync status | `d2105402` | components/workspace-status.tsx |
 | 8.10 AFL8 | N | `lib/af-checklist-keys.ts` shaped as `checklist`; `EXTRAS_SECTIONS` has no checklist | Wire the section |
 | 9 Chess | U | `lib/skills/chess/*`, frames; habit ticks on games | Board API play, puzzle habit |
 | 12 ZIGi | C | `lib/ai/tools/registry.ts`, `lib/ai/actions/schema.ts`, `components/zigi/semantic.ts`, `scripts/zigi/import-studio.mjs` | Tools, events, importer constants |
@@ -760,7 +760,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | 7.6 contribution rhythm (pre-fill only) | Built | `92b94a8f`, `5074567f` | wiring.test.ts |
 | 7.7 category and month budgets | Built | `92b94a8f`, `5074567f` | lib/budgets tests |
 | 8.8 export bridges (A16) | Built | `3110c81f` | lib/export/bridges tests |
-| 8.9 test restore, backup reminder | Built | `3110c81f` | test-restore, backup-reminder tests |
+| 8.9 test restore, backup reminder | Built: a visible sync status | `d2105402` | components/workspace-status.tsx |
 | 8.10 AFL8 Checklist extras section | Built (effective at the owner's private-sync redeploy) | `e7d9951e` | extras-two-device, extras-keyspace, private-account tests |
 | Part 9 Lichess Board play and daily puzzle | Built | `1f84a28e` | lib/chess tests; tests/chess-play-ak.spec.ts |
 | Part 13 Studio-4 art swap | Moved to a separate session (owner follow-up 1); preparation is F11 | — | — |
@@ -779,13 +779,13 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F11 Studio-4 preparation complete and proven | Built: every Part 12 slot verified wired (X030 cheer unused by the PROTECTED Checklist until the owner says yes); dry run of studio4-deliver/ through the importer; runbook | `a845d339` | scripts/zigi/studio4-dry-run.test.mjs (17 tests); docs/handoff/STUDIO4_SWAP_RUNBOOK.md |
 | F12 finish | Moved into Z4 (owner follow-up 2) | — | — |
 | Q1 Wiring audit of every Built/Finished row (fresh read-only agent; WIRING_AUDIT.md); every non-Working row finished | Built: audit 52 Working / 43 Partly; Q1F added 31 browser tests on the UI path and fixed Quick add's goal bundle, buffer days and the doubled import title; AFL9 (journey 7b) moves to lane W | `eea0e358`, `6c44dc3e` | 29/31 desktop on the pre-fix build; rerun on 6c44dc3e |
-| Q2 Finish the X1 verification; fix every failure at its cause | Open | — | — |
+| Q2 Finish the X1 verification; fix every failure at its cause | Done: the X1 verification completed; every failure fixed at its cause or explained | `7d5d5114`, `18ee388b`, `fd5ae70f` | the X1 spec set green on the production build |
 | G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Built: G1a #4, #12, #13, #14, #15, #16; G1b #6, #7, #9, #10, #11, #17, #18, #19; #21 Was this useful? (lead). First browser run fixed: Select keeps its name, the Showcase's out-of-range lab value | `cf3cf2e1`, `f014ea65`, `21536fe6`, `cc5a1eb5` | unit; g1a-*, g1b-*, g1-insight-feedback specs |
 | G2 Release review complete; second fresh review (RELEASE_REVIEW_2.md); fix Blockers/Majors and as many Minor/Polish as possible | Done: the first review completed (54200bff); a second fresh 1.0 review (RELEASE_REVIEW_2.md: 1 Blocker, 8 Major, 12 Minor, 4 Polish); the Blocker and every Major fixed except R2-7 (owner decision: the pinned banner sentence) and the desktop sidebar part of R2-10 (owner decision: protected fit); R2-15's empty quick counters left for the owner (they feed the protected Checklist path); R2-24 not reproduced | `54200bff`, `e42444bd`, `52bd5286`, `981f6537`, `0ef32f0d`, `15c1e159`, `fa5643ce`, `2519cf3d`, `1d6902be` | specs per finding; pillar-phone-length (Health 6.2/7.4, Wealth 5.1/9.1 screens) |
 | G3 The visual system across every non-protected page and card | Built: pillar art in empty states (EmptyState default, ArtNote), the chart look on 15 charts, the skeleton sheen, richer cards; R30 fixed; health-app empty states left (shared file) | `21f404ef`, `b552ba14` | unit 55/55; theme sheets regenerated |
-| G4 Journeys 1–3 and 6 on the phone project and in Light and Dark | Open | — | — |
+| G4 Journeys 1–3 and 6 on the phone project and in Light and Dark | Done: journeys 1–3 and 6 on desktop and phone × Nebula, Light, Dark (24 runs, one set of steps); found and fixed a lost habit tick on an immediate leave (TIER 3 storage) | `8ffd9b1e`, `e4a5b1c9` | 24/24 on the served build; tests/habit-paint-first.spec.ts |
 | G5 Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md); fixes with tests | Done: a fresh exploratory tester (EXPLORATORY_BUGS.md: 1 Blocker, 1 Major, 10 Minor, 7 Polish); 18 fixed at their cause, EX-17 no longer reproduces; nothing left the device | `09c216e9` | tests/exploratory-exf.spec.ts, nova-dashboard EX-1 viewport checks |
-| G6 Every open A12 intermittent fixed or proven gone | In progress: note-lists-arrive made deterministic (gated list); NOVA Memory 'Remember' disabled 2/6 recorded for G5 | `dee2a817` | 4/4 group runs |
+| G6 Every open A12 intermittent fixed or proven gone | Done for every intermittent seen this session: note-lists-arrive (gated list), nova-evals and emergency-sheet timing, motion-m's burst race, the j07 Verify double; NOVA Memory's Remember (2 of 6) uses the project's AF16 fill-until-held pattern — re-checked by C3's two full runs | `dee2a817`, `a9e8615d`, `b2fec2e8`, `15c1e159` | C3 (two full runs) |
 | G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Built: R1-F5 CJK recovery words, R1-F6 everyday lists, R1-F7 hidden in what leaves (engine hook), R1-F9 refuse past 500, R2-I4 summaries; R3-F4 recorded (Q25) | `06e86e00`, `cf3cf2e1` | unit; vendored BIP-39 lists checked word for word |
 | G8 ZIGi and NOVA tools for G1's new features | Built: read tools your_numbers, cycle_log, your_scales, cash_forecast, money_selection; cards log-blood-pressure, rate-scale, move-task, amount calculator; local answers; never auto-accepted | `2bcb4c8a` | unit 1324; 16 G6 cases; 28-case corpus |
 | N0 NOVA research (docs/research/session-ak/NOVA.md) | Built: the trend and 10 takeaways, local models per OS, browser localhost rules, models by memory, provider CORS and prices, the subscription verdict (no consumer plan works; sources) | `80d7c1af` | sources cited, read 1 Nov 2026 |
@@ -816,14 +816,14 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | M4 Motion rules and Customize Motion: Full / Calm / Off | Built: Customize → Motion: Full / Calm / Off (stored format additive); JS loops under Calm in lane FU | `f88b8ab8` | unit |
 | M5 Performance before/after (INP, long tasks on Today, NOVA, Wealth, Earn) | Before measured (Today, Wealth, Earn at 390 px, CPU 4×); after pending | — | scratchpad m5/before.json |
 | M6 The landing: NOVA chapter, orb loop, scroll reveals, starfield hero, bento grid | Built: the landing's NOVA chapter, labelled example, scroll reveals, bento; first view 257,930 / 260,000 B | `f88b8ab8` | check:landing, landing-nova-m6 tests |
-| M7 Theme parity, layout audit 6 widths × 3 themes, contrast scanner | Open | — | — |
+| M7 Theme parity, layout audit 6 widths × 3 themes, contrast scanner | Done: 288 states on the new routes and the existing routes at 390 × 3 themes; touch targets, card shades in Light, pillar art parity fixed; recorded for the owner: gradient words on PROTECTED surfaces scored by the weakest-stop rule | `00f3a69d`, `a5486a76` | layout audit, parity and contrast runners extended to the new routes |
 | Z1 Fresh security review of everything after 58224a69, NOVA first | Done: three fresh reviews (Z1A NOVA/AI 1 High 4 Medium 7 Low; Z1B storage/parsers 3 Medium 3 Low; Z1C wallet/CSP/motion/PWA 4 Low); every High and Medium fixed with tests, most Lows fixed, the rest recorded with reasons | `e0f6d56a`, `d35acc52`, `3f5554dc`, `a68e23b6` | docs/review/session-ak/Z1{A,B,C}_SECURITY.md |
 | Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Done with G5 (the same fresh pass covered NOVA, Notes, Tasks and motion: Off, Calm and reduced motion left nothing animating) | `09c216e9` | EXPLORATORY_BUGS.md |
-| Z3 Final wiring audit on the new rows | Open | — | — |
+| Z3 Final wiring audit on the new rows | Done: WIRING_AUDIT_2 (57 Working, 25 Partly, 1 Not reachable) and every gap closed by lanes WA, WB, WC and P1 (status after P1: 76 Working, 7 Partly with owners, 0 Not reachable); the final audit of every row is C2 (WIRING_AUDIT_3) | `bcef9bff`, `8726fa0a`, `c27d0f75`, `82fde1c7` | WIRING_AUDIT_2.md "Status after P1" |
 | Z4 F12 as written in follow-up 1, with the report starting "Open NOVA" | Open | — | — |
-| 5.1 schedules: "first Monday of the month" | Open (F0x lane) | — | — |
+| 5.1 schedules: "first Monday of the month" | Built: "first Monday of the month" schedules | `d2105402` | lib/habit-month-weekday/rule.ts and its tests |
 | 5.7 time-of-day sections (COMPETITORS #23) | Already done | components/habits/habit-sections.tsx (Session AA) | habits-aa specs |
-| 6.5 cross-pillar progress toast | Open (F0x lane) | — | — |
+| 6.5 cross-pillar progress toast | Built: the cross-pillar progress line after a contribution | `d2105402` | lib/progress-toast/moved.ts; Help ak-progress-toast |
 | 7.8 Wealth polish | Partly: layout fixes `efdd361e`; rest open (F0x lane) | — | layout audit 320 px |
 | 8.1 unified weekly Life review in /app/review | Built ("At a glance" per pillar in the existing Week/Month review; Today's week card links to it) | `a56f9d18` | lib/review-unified tests |
 | 8.2 daily orbit card | Built | `a56f9d18` | lib/orbit-card tests; showcase-today-aa.spec |
@@ -832,7 +832,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | 8.5 one share-card system | Built | `a56f9d18` | lib/share-cards tests |
 | 8.6 badges off by default; Checklist no-XP pinned | Built | `a56f9d18` | lib/game/badges-setting.test.ts |
 | 8.7 point-and-tell (A17) | Built: the existing Point & tell records role + developer name, never visible text | `165b495d` | lib/point-tell tests; point-tell.spec |
-| 8.9 a visible sync status | Open (F0x lane) | — | — |
+| 8.9 a visible sync status | Built: a visible sync status | `d2105402` | components/workspace-status.tsx |
 | Notifications card "being switched on" while push is off | Already done | `f9e103f7` | tests/pwa-ak.spec.ts ("Notifications are being switched on…") |
 | Part 10 #1 transaction rules | Built | `d3ad9fdf` | lib/money-rules tests |
 | Part 10 #2 "does X affect Y?" | Built | `e12ec91b` | lib/compare tests |
@@ -938,14 +938,14 @@ Readings:
 
 | Row | Status | Commits | Evidence |
 |---|---|---|---|
-| P1 WIRING_AUDIT_2 to zero | Open | — | — |
-| P2 RELEASE_REVIEW_2 to zero | Open | — | — |
-| P3 NOVA "wow" review (NOVA_DESIGN_REVIEW.md) and polish | Open | — | — |
-| P4 First-run experience review (FIRST_RUN_REVIEW.md) and fixes | Open | — | — |
-| P5 Landing fresh review and fixes | Open | — | — |
-| P6 Accessibility sweep (axe and keyboard, every route, three themes) | Open | — | — |
-| P7 Exploratory round 3 (NOVA, guides, Notes, Tasks) | Open | — | — |
-| P8 Performance after-measurements (M5 + NOVA's opening) | Open | — | — |
+| P1 WIRING_AUDIT_2 to zero | Done: N2 coverage, M3's Running now chips, WIRING_AUDIT_2 status after P1 (Working 76, Partly 7 with owners, Not reachable 0) | `82fde1c7` | tests/p1-nova-make.spec.ts, p1-nova-live.spec.ts |
+| P2 RELEASE_REVIEW_2 to zero | Done: a status line under every RELEASE_REVIEW_2 finding (24 fixed, R2-24 not reproducible and pinned); R2-7 with the owner's hosted check moved in the same change | `53c085e1` | tests/release-review-2-p2.spec.ts; scripts/lib/hosted-alpha-stages.test.mjs |
+| P3 NOVA "wow" review (NOVA_DESIGN_REVIEW.md) and polish | Built: a fresh critic's 26 findings implemented (ND-24's NOVA-orb finale left for the owner); its specs are being made green on the production build | `cf5e77bf`, `a5486a76` | NOVA_DESIGN_REVIEW.md "Fixes"; tests/p3-nova-polish.spec.ts |
+| P4 First-run experience review (FIRST_RUN_REVIEW.md) and fixes | Done: a fresh first-run review (23 findings); 21 fixed at their cause, FR-6 and FR-21 verified, FR-17 folded by the owner's decision (D-FR17) | `9a13d0ab`, `c8d0a44d`, `ae0fcc18` | FIRST_RUN_REVIEW.md "Fixes"; tests/p4-first-run.spec.ts |
+| P5 Landing fresh review and fixes | Done: a fresh landing review (12 findings) fixed; first view 258,004 → 246,698 B; owner decisions OD-1…OD-5 recorded and decided (follow-up 5) | `bf617b8d` | LANDING_REVIEW.md; scripts/landing-p5-review.test.mjs; check:landing green |
+| P6 Accessibility sweep (axe and keyboard, every route, three themes) | In progress: lane P6 (axe and keyboard on every route × 3 themes) | — | — |
+| P7 Exploratory round 3 (NOVA, guides, Notes, Tasks) | Done: exploratory round 3 with real local servers in four states; 6 bugs fixed at their cause | `af155d1d` | EXPLORATORY_ROUND3.md; tests/exploratory-round3.spec.ts |
+| P8 Performance after-measurements (M5 + NOVA's opening) | Built: after-measurements (M7) and both regressions fixed at their cause (NOVA's opening; :has() invalidation and the resting-spot scan); real after-numbers on the next build | `5ed28b27`, `00f3a69d`, `e123fe36` | docs/performance/SESSION_AK_MOTION.md |
 
 ## Owner decisions and last checks (follow-up 5)
 Verbatim (1 Nov, pre-approved):
