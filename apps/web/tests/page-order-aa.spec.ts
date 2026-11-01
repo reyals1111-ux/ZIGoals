@@ -160,7 +160,10 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:nutrition', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:roadmap', 'health:fasting', 'health:trends']);
   await page.goto('/app/settings');
   // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant" (ZIGi's and NOVA's settings).
-  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'Your assistant', 'Help & diagnostics']);
+  // Session AK X1 (RELEASE_REVIEW R4, deliberate): the Showcase has chosen the chain, so Account & devices holds the advanced
+  // "Wallet & network" group, whose title wears the same group-title style (its own six groups are unchanged).
+  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'Wallet & network (advanced)', 'Your assistant', 'Help & diagnostics']);
+  await expect(page.locator('.settings-group')).toHaveCount(6);
 });
 
 test('Settings: the in-page index stays in view while the page scrolls (computers and tablets)', async ({page}) => {

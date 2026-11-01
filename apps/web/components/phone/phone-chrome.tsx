@@ -56,6 +56,11 @@ const MORE_NOTES: Record<string, string> = {
   "/app/journey": "Your XP, quests and badges",
   "/app/checklist": "Today's path of starred dots",
   "/app/governance": "Proposals in plain words, and your vote",
+  // Session AK G2 (RELEASE_REVIEW_2 R2-10): the navigation extras of More, each with its one line too.
+  "/app/nova": "ZIGi's full-screen command center",
+  "/app/tasks": "Things to do, with a day or a goal",
+  "/app/notes": "Capture now, file later",
+  "/app/journal": "How your days felt, in your words",
 };
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };

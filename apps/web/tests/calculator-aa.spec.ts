@@ -110,7 +110,9 @@ test('Scenarios are kept on this device with Undo, and a result becomes a prefil
   await expect(page).toHaveURL(/\/app\/goals\/new\?from=calculator/);
   const from = page.getByRole('region', {name: 'From the calculator'});
   await expect(from).toContainText('not a promise');
-  await expect(page.getByRole('radio', {name: /^Value/})).toBeChecked();
+  // Session AK X1 (RELEASE_REVIEW R5; deliberate): on a device that never chose the chain, Create a goal names the Value kind
+  // in plain words, "Save an amount" (components/unified-goal-wizard.tsx TYPE_CHOICES_PLAIN; tests/consumer-first-x1.spec.ts).
+  await expect(page.getByRole('radio', {name: 'Save an amount', exact: true})).toBeChecked();
   // Assertion changed (Session AH TR14, B-130; stronger): the estimate exactly, cents included (it was cut to 84919).
   await expect(page.getByLabel('Target amount')).toHaveValue('84919.37');
   await expect(page.getByRole('radio', {name: 'USD · US dollar'})).toBeChecked();

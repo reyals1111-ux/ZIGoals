@@ -158,8 +158,10 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
   const gap=(i:number)=>gaps[i]!;
   // Session AB-Design: Wealth is a tab, so More opens with the money group (Earn since Session AF, Markets, Staking, Portfolio); the one group gap is before Ecosystem (4).
   expect(gap(4)).toBeGreaterThan(gap(1)+8);expect(Math.abs(gap(1)-gap(2))).toBeLessThan(1);expect(Math.abs(gap(3)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(5)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(6)-gap(1))).toBeLessThan(1);
-  // Session AK G2 (R2-10): the added rows sit in the last group, spaced like the rest of it.
-  for(let i=7;i<13;i++)expect(Math.abs(gap(i)-gap(1)),`More row ${i}`).toBeLessThan(1);
+  // Session AK G2 (R2-10): the added rows (NOVA 7, the Checklist 8, Tasks 9, Notes 10, the Journal 11) sit in the last group,
+  // spaced like the rest of it. The Journey (12) opens its own spaced group in More (phone-chrome.tsx, data-group-start), as before.
+  for(let i=7;i<12;i++)expect(Math.abs(gap(i)-gap(1)),`More row ${i}`).toBeLessThan(1);
+  expect(gap(12)).toBeGreaterThan(gap(1)+8);
   await expect(sheet.locator('hr, [role=separator]')).toHaveCount(0);
   return;
  }
