@@ -60,9 +60,10 @@ test('the header, holdings and allocation from your transactions and the market:
   await expect(totals).toContainText('Value$39,500.00');
   await expect(totals).toContainText('Cost basis$33,010.00');
   // 35,000 × 2/102 − 4,500 × 1/99 = 640.81…, of the value 24 hours ago 38,859.18.
-  await expect(totals.locator('div').filter({hasText: '24h change'}).locator('dd')).toHaveText('+$640.81 (+1.65%)');
+  // Session AK P6 (deliberate, WCAG 1.3.1): the note under a value is its own <dd class="dd-note">; the value is the other dd.
+  await expect(totals.locator('div').filter({hasText: '24h change'}).locator('dd:not(.dd-note)')).toHaveText('+$640.81 (+1.65%)');
   // Unrealized 4,990 + 1,500; realized 2,500 × 0.5 − 5 − 1,000 = 245; of 34,010 invested.
-  await expect(totals.locator('div').filter({hasText: 'All-time result'}).locator('dd')).toHaveText('+$6,735.00 (+19.8%)');
+  await expect(totals.locator('div').filter({hasText: 'All-time result'}).locator('dd:not(.dd-note)')).toHaveText('+$6,735.00 (+19.8%)');
   await expect(totals).toContainText('Realized +$245.00 · unrealized +$6,490.00');
   const table = page.getByRole('table', {name: 'Fictional real coins holdings'});
   // Every column, including those a phone hides (the coin's page has them all).
@@ -169,8 +170,8 @@ test('Showcase: the whole page and a coin\'s page from labelled fixtures, and no
   // Session AH Part 4 (TR3/B1, M16, deliberate): priced with the market prices the Showcase loaded (this spec's own
   // fixture quotes), as Wealth is — not the Portfolio-only fixture; the 24h and 7-day lines stay labelled examples.
   await expect(totals).toContainText('Value$9,400.00');
-  await expect(totals.locator('div').filter({hasText: '24h change'}).locator('dd')).toHaveText(/^[+−]\$[\d,]+\.\d{2} \([+−][\d.]+%\)$/);
-  await expect(totals.locator('div').filter({hasText: 'All-time result'}).locator('dd')).toHaveText('Unknown');
+  await expect(totals.locator('div').filter({hasText: '24h change'}).locator('dd:not(.dd-note)')).toHaveText(/^[+−]\$[\d,]+\.\d{2} \([+−][\d.]+%\)$/);
+  await expect(totals.locator('div').filter({hasText: 'All-time result'}).locator('dd:not(.dd-note)')).toHaveText('Unknown');
   await expect(page.getByRole('table', {name: 'Fictional long-term coins holdings'}).getByRole('row')).toHaveCount(4);
   await page.getByRole('tab', {name: 'Analysis', exact: true}).click();
   await expect(page.getByRole('region', {name: 'Value over time'})).toContainText('The Showcase’s fixture prices, not market data.');
