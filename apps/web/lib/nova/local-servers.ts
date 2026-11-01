@@ -24,7 +24,7 @@ export const LLAMA_CPP_DEFAULT = 'http://127.0.0.1:9931';
 export type ScanModel = {id: string; cloud: boolean};
 export type ScanResult =
   | {server: LocalServer; found: true; models: ScanModel[]}
-  | {server: LocalServer; found: false; reason: 'unreachable' | 'refused' | 'unreadable'; message: string};
+  | {server: LocalServer; found: false; reason: 'unreachable' | 'origin' | 'key' | 'refused' | 'unreadable'; message: string};
 export const PROBE_MS = 3000;
 function timed(signal: AbortSignal | undefined, ms: number): {signal: AbortSignal; done: () => void} {
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), ms);
@@ -49,11 +49,30 @@ export async function probeServer(server: LocalServer, {fetcher, signal, ms = PR
     return {server, found: true, models: list.filter(m => m.kind === 'chat').map(m => ({id: m.id, cloud: m.cloud === true || cloud.has(m.id) || isOllamaCloudModel(m.id)}))};
   } catch (error) {
     const kind = error instanceof AiError ? error.kind : 'local-unreachable';
-    if (kind === 'bad-key' || kind === 'cors' || kind === 'blocked') return {server, found: false, reason: 'refused', message: error instanceof Error ? error.message : 'The server refused.'};
+    // Session AK lane P7 (EX3-3): the scan sends no key, so a 401/403 "bad key" means the server asks for one (LM Studio's
+    // API token, llama-server's --api-key), not that a key in Settings was wrong; and "provider" is not this computer's app.
+    if (kind === 'bad-key') return {server, found: false, reason: 'key', message: `${server.name} is running at ${server.baseUrl}, but asks for an API key (token). Connect it below with its address and that key.`};
+    if (kind === 'cors' || kind === 'blocked') return {server, found: false, reason: 'refused', message: `${server.name} answered at ${server.baseUrl}, but refused this site.`};
     if (kind === 'unreadable') return {server, found: false, reason: 'unreadable', message: 'A server answered, but its model list could not be read.'};
-    // A server that refuses this site's origin looks the same to a page as no server at all (the browser hides the answer).
-    return {server, found: false, reason: 'unreachable', message: 'Nothing answered, or the server does not allow this site yet.'};
+    if (kind === 'aborted' && signal?.aborted) return {server, found: false, reason: 'unreachable', message: 'Stopped.'};
+    // EX3-3: a server that refuses this site's origin and no server at all look the same to a normal request (the browser
+    // hides the answer); one no-cors request (an opaque answer, nothing read from it) tells them apart, as the Hermes test does.
+    if (await answersOpaquely(server, fetcher, t.signal)) return {server, found: false, reason: 'origin', message: ORIGIN_FIX[server.id]};
+    return {server, found: false, reason: 'unreachable', message: 'Nothing answered at that address.'};
   } finally { t.done(); }
+}
+/** What to change when a server is running but does not allow this site yet (each program's own setting). */
+const ORIGIN_FIX: Readonly<Record<LocalServerId, string>> = {
+  ollama: 'Ollama is running, but does not allow this site yet: set OLLAMA_ORIGINS to this site’s address (step above), then restart Ollama.',
+  lmstudio: 'LM Studio’s server is running, but does not allow this site yet: Developer → Server Settings → turn “Enable CORS” on.',
+  llamacpp: 'llama.cpp is running, but does not allow this site yet: start llama-server with this site’s address allowed (step above).',
+  'llamacpp-8080': 'Something is running on port 8080, but does not allow this site (llama.cpp: start llama-server with this site’s address allowed).',
+};
+/** Whether anything answers at the server's address when the browser may not show the answer (mode no-cors). */
+async function answersOpaquely(server: LocalServer, fetcher: typeof fetch | undefined, signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) return false;
+  const f = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init));
+  return f(`${server.baseUrl}${server.wire === 'ollama' ? '/api/version' : '/v1/models'}`, {signal, cache: 'no-store', credentials: 'omit', mode: 'no-cors'}).then(() => true, () => false);
 }
 /** Every known server, side by side; never more than one request in flight per server. */
 export async function scanLocalServers(options: {fetcher?: typeof fetch; signal?: AbortSignal; ms?: number; servers?: readonly LocalServer[]} = {}): Promise<ScanResult[]> {
@@ -61,7 +80,7 @@ export async function scanLocalServers(options: {fetcher?: typeof fetch; signal?
 }
 /** One plain line per scan: "Ollama: 3 models (1 runs on ollama.com)" or "LM Studio: not running". */
 export function scanLine(result: ScanResult): string {
-  if (!result.found) return `${result.server.name}: ${result.reason === 'unreachable' ? `nothing answered at ${result.server.baseUrl} (not running, or not allowing this site yet)` : result.message}`;
+  if (!result.found) return result.reason === 'unreachable' ? `${result.server.name}: nothing answered at ${result.server.baseUrl} (not running)` : result.reason === 'refused' || result.reason === 'unreadable' ? `${result.server.name}: ${result.message}` : result.message;
   const cloud = result.models.filter(m => m.cloud).length, n = result.models.length;
   if (!n) return `${result.server.name}: running, but no chat model is downloaded yet`;
   return `${result.server.name}: ${n} model${n === 1 ? '' : 's'} (${result.models.slice(0, 3).map(m => m.id).join(', ')}${n > 3 ? ', …' : ''})${cloud ? `; ${cloud} run${cloud === 1 ? 's' : ''} on ollama.com, not on this computer` : ''}`;

@@ -348,6 +348,12 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-frame[data-chat]:not([data-phone]) .nova-centre > .nova-foot { flex: 1 1 auto; }
 .nova-frame[data-chat]:not([data-phone]) .nova-talk { height: 100%; }
 .nova-frame[data-chat]:not([data-phone]) .nova-talk { animation: nova-fade .15s ease-out both; }
+/* Session AK lane P7 (EX3-1, the lead's nova-chat.spec delegation run): in a short window the chat's header and composer
+   (with "Ask ZIGi about a page" open, 283 px) were taller than the panel; the chat clips (`overflow: clip`), so the bottom
+   of the composer could neither be seen nor scrolled to, and a press there met the foot. The conversation gives way first
+   (down to its padding), then the composer scrolls inside itself: every control stays reachable at any height. */
+.nova-talk .nova-chat-log { flex-shrink: 1000; }
+.nova-talk .nova-composer-wrap { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
 /* ---- Left panel ---- */
 .nova-left { position: relative; z-index: 2; width: 276px; display: flex; flex-direction: column; gap: 12px; padding: 14px 12px; overflow: hidden; border-right: 1px solid var(--nova-edge-soft); background: color-mix(in oklab, #060b1d 78%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); scrollbar-width: thin; animation: nova-panel-left .24s cubic-bezier(.22, 1, .36, 1) both; }

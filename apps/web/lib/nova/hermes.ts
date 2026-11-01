@@ -27,12 +27,14 @@ export * from './hermes-record';
  * lib/ai/keys.ts (slot `hermes`), never synced or exported.
  */
 // ── The live test: /health, then /v1/models, naming what answered ────────────────────────────────────────────────
-export type HermesProblem = 'gateway-down' | 'cors' | 'permission' | 'wrong-key' | 'not-hermes' | 'unreadable' | 'busy';
+export type HermesProblem = 'gateway-down' | 'cors' | 'permission' | 'needs-key' | 'wrong-key' | 'not-hermes' | 'unreadable' | 'busy';
 export type HermesTest = {ok: true; health: string; version: string | null; models: string[]; model: string; ms: number} | {ok: false; problem: HermesProblem; title: string; steps: string[]; ms: number};
 export const HERMES_FIXES: Readonly<Record<HermesProblem, {title: string; steps: readonly string[]}>> = {
   'gateway-down': {title: 'Hermes’s gateway is not answering.', steps: ['Start it in a terminal with “hermes gateway” and keep that terminal open.', 'Check the address: by default http://127.0.0.1:8642/v1.', 'On Safari, a secure site cannot reach this computer at all: use Chrome, Edge or Firefox.']},
   cors: {title: 'Hermes is running, but does not allow this site yet (the browser blocked its answer).', steps: ['Set API_SERVER_CORS_ORIGINS to this site’s exact address (planet 4 of the guide), then restart the gateway.', 'Check again here.']},
   permission: {title: 'This browser blocks the site from reaching apps on this computer.', steps: ['Click the icon left of the address, turn on “Apps on device” (Chrome, Edge) or allow the site (Firefox), then reload.']},
+  // Session AK lane P7 (EX3-5): no key was sent at all (none pasted, none kept on this device): not "refused the key".
+  'needs-key': {title: 'Hermes is running and asks for its key: none is on this device yet.', steps: ['Paste the key you put in API_SERVER_KEY (show it with “hermes config get API_SERVER_KEY --raw”), then test again.']},
   'wrong-key': {title: 'Hermes refused the key.', steps: ['Show it with “hermes config get API_SERVER_KEY --raw” and paste it here again.', 'Restart the gateway after changing the key.']},
   'not-hermes': {title: 'Something answered at that address, but not Hermes’s API server.', steps: ['Check the port: Hermes uses 8642 unless API_SERVER_PORT says otherwise.']},
   unreadable: {title: 'Hermes answered, but its model list could not be read.', steps: ['Update Hermes Agent, restart the gateway, and check again.']},
@@ -64,7 +66,7 @@ export async function testHermes(baseInput: string, key: string | null, deps: De
   let models: Response;
   try { models = await fetcher(`${base}/v1/models`, {...opts, headers: key ? {authorization: `Bearer ${key}`} : {}}); }
   catch { return fail('cors', elapsed()); }
-  if (models.status === 401 || models.status === 403) return fail('wrong-key', elapsed());
+  if (models.status === 401 || models.status === 403) return fail(key ? 'wrong-key' : 'needs-key', elapsed());
   if (models.status === 429 || models.status === 503) return fail('busy', elapsed());
   const list = await models.json().catch(() => null) as {data?: {id?: unknown}[]} | null;
   const ids = Array.isArray(list?.data) ? list!.data.flatMap(m => typeof m?.id === 'string' ? [m.id] : []) : null;
@@ -75,7 +77,9 @@ export async function testHermes(baseInput: string, key: string | null, deps: De
 /** One plain line for a test: "Hermes is reachable: hermes-agent answered in 42 ms." */
 export const hermesTestLine = (t: HermesTest) => t.ok ? `Hermes${t.version ? ` ${t.version}` : ''} is reachable on this computer: ${t.model} answered in ${t.ms} ms.` : t.title;
 export function withCheck(record: NovaHermes, test: HermesTest, base: string, at: Date): NovaHermes {
-  return novaHermesSchema.parse({...record, version: 1, baseUrl: base, ...(test.ok ? {model: test.model} : {}), lastCheck: {at: at.toISOString(), reachable: test.ok, ...(test.ok ? {model: test.model} : {problem: test.problem}), ms: Math.min(600_000, test.ms)}});
+  // Session AK lane P7 (EX3-6): only an address that answered becomes "your Hermes" (NOVA lists it as an agent and offers
+  // "Ask my Hermes" once one is saved); a failed test of a new address keeps the one that worked, or none.
+  return novaHermesSchema.parse({...record, version: 1, ...(test.ok ? {baseUrl: base, model: test.model} : {}), lastCheck: {at: at.toISOString(), reachable: test.ok, ...(test.ok ? {model: test.model} : {problem: test.problem}), ms: Math.min(600_000, test.ms)}});
 }
 
 // ── "Ask my Hermes" (delegation) and the brain's request ───────────────────────────────────────────────────────────

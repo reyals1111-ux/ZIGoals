@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {hermesProgress, hermesStatus, NOVA_HERMES} from '../../../lib/nova/hermes-record';
+import {hermesCheckLine, hermesProgress, hermesStatus, NOVA_HERMES} from '../../../lib/nova/hermes-record';
 import {HERMES_PLANETS} from '../../../lib/nova/hermes-model';
 import {useDeviceRecord} from '../../ai/use-device-record';
 import '../setup/setup.css';
@@ -15,7 +15,7 @@ export function NovaHermesCard() {
   if (!record.loaded) return null;
   const progress = hermesProgress(record.data), status = hermesStatus(record.data);
   if (record.data.cardHidden && !status.connected) return null;
-  const line = status.connected ? status.reachable ? `Gateway reachable${status.model ? ` · ${status.model}` : ''}${status.lastMs !== undefined ? ` · ${status.lastMs} ms` : ''}` : 'Gateway not reachable at the last check' : null;
+  const line = status.connected ? hermesCheckLine(status) : null; // EX3-5: a refused key is not "not reachable"
   return <section className="nova-guide-card nova-hermes-card" aria-labelledby="nova-hermes-card-title">
     <p className="eyebrow">Your own agent</p>
     <h2 id="nova-hermes-card-title">{status.connected ? 'Hermes Agent' : 'Connect your Hermes Agent'}</h2>

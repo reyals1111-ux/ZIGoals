@@ -1,10 +1,11 @@
 'use client';
 import {useState, useSyncExternalStore} from 'react';
-import {holdKey, readKey, rememberKey, SHOWCASE_SCOPE} from '../../../../lib/ai/keys';
+import {readKey, SHOWCASE_SCOPE} from '../../../../lib/ai/keys';
 import {currentAiScope} from '../../../../lib/ai/scope';
 import {HERMES_DEFAULT_BASE, HERMES_KEY_SLOT, hermesTestLine, normalizeHermesBase, testHermes, withCheck, type HermesTest} from '../../../../lib/nova/hermes';
 import {loopbackPermission} from '../../../../lib/nova/local-servers';
 import {hermesKeyProblem} from '../../../../lib/nova/hermes-guide';
+import {hermesKeyToBrain, keepHermesKey} from '../../../../lib/nova/hermes-keys';
 import {localDate} from '../../../../lib/local-date';
 import {useAiSettings} from '../../../ai/use-ai-settings';
 import {HermesCheck} from '../hermes-check';
@@ -21,17 +22,21 @@ export default function ConnectStep({hermes}: {hermes: HermesState}) {
   const settings = useAiSettings(), scope = useSyncExternalStore(subscribeNothing, currentAiScope, () => 'local'), showcase = scope === SHOWCASE_SCOPE;
   const [base, setBase] = useState(hermes.record.data.baseUrl ? `${hermes.record.data.baseUrl}/v1` : `${HERMES_DEFAULT_BASE}/v1`), [key, setKey] = useState(''), [remember, setRemember] = useState(false);
   const [test, setTest] = useState<HermesTest | null>(null), [brain, setBrain] = useState('');
+  const isBrain = settings.data.enabled && settings.data.provider === 'local' && settings.data.baseUrl === hermes.record.data.baseUrl;
   const run = async () => {
     let clean: string;
     try { clean = normalizeHermesBase(base); } catch (cause) { return {ok: false, note: cause instanceof Error ? cause.message : 'Check the address.'}; }
     let secret = key.trim() || null;
     const problem = secret ? hermesKeyProblem(secret) : null;
     if (problem) return {ok: false, note: problem};
-    if (secret) { holdKey(scope, HERMES_KEY_SLOT, secret); if (remember && !showcase) await rememberKey(scope, HERMES_KEY_SLOT, secret); setKey(''); }
+    if (secret) { await keepHermesKey(scope, secret, remember && !showcase); setKey(''); }
     else { try { secret = await readKey(scope, HERMES_KEY_SLOT); } catch { secret = null; } }
     const result = await testHermes(clean, secret, {permission: loopbackPermission});
     setTest(result);
     hermes.record.update(r => withCheck(r, result, clean, new Date()));
+    // Session AK lane P7 (EX3-4): Hermes already NOVA's brain and a key that works now: the brain sends this key too (it
+    // kept the one from "Use Hermes as NOVA's brain", and its button stays disabled, so a new key never reached NOVA's chat).
+    if (result.ok && isBrain && clean === settings.data.baseUrl) { try { await hermesKeyToBrain(scope); } catch { /* the test result stands */ } }
     return {ok: result.ok, note: result.ok ? hermesTestLine(result) : `${result.title} ${result.steps[0] ?? ''}`};
   };
   const makeBrain = async () => {
@@ -39,13 +44,12 @@ export default function ConnectStep({hermes}: {hermes: HermesState}) {
     const record = hermes.record.data, model = record.model;
     if (!record.baseUrl || !model) { setBrain('Test the connection first.'); return; }
     try {
-      const secret = await readKey(scope, HERMES_KEY_SLOT);
-      if (secret) { holdKey(scope, 'local', secret); if (remember && !showcase) await rememberKey(scope, 'local', secret); }
-      settings.update(s => ({...s, enabled: true, mode: 'local', provider: 'local', model, localServer: 'openai-compatible', baseUrl: record.baseUrl!, subscriptionApp: null, rememberKey: remember && !showcase, connectedOn: localDate()}));
+      // EX3-4: kept the way the guide's key is kept (sealed only if it is), not by this page's unticked box after a reload.
+      const sealed = await hermesKeyToBrain(scope);
+      settings.update(s => ({...s, enabled: true, mode: 'local', provider: 'local', model, localServer: 'openai-compatible', baseUrl: record.baseUrl!, subscriptionApp: null, rememberKey: sealed, connectedOn: localDate()}));
       setBrain(`NOVA and ZIGi now answer with your Hermes (${model}).`);
     } catch (cause) { setBrain(cause instanceof Error ? cause.message : 'The connection could not be saved.'); }
   };
-  const isBrain = settings.data.enabled && settings.data.provider === 'local' && settings.data.baseUrl === hermes.record.data.baseUrl;
   return <>
     <p>Tell ZIGoals where your Hermes listens and give it the key you put in API_SERVER_KEY. The key is sealed in this browser, sent only to your own Hermes, never synced and never sent to ZIGoals.</p>
     <label className="field">Hermes address<input type="url" value={base} onChange={e => setBase(e.target.value)} autoComplete="off" spellCheck={false} inputMode="url" placeholder="http://127.0.0.1:8642/v1"/></label>

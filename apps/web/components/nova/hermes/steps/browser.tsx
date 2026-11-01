@@ -19,7 +19,7 @@ export default function BrowserStep({hermes}: {hermes: HermesState}) {
   const run = async () => {
     const t = await testHermes(hermes.record.data.baseUrl ?? HERMES_DEFAULT_BASE, null, {permission: loopbackPermission});
     setPermission(await loopbackPermission());
-    if (t.ok || t.problem === 'wrong-key') return {ok: true, note: 'This browser reads Hermes’s answers: /health said “ok”.'};
+    if (t.ok || t.problem === 'needs-key' || t.problem === 'wrong-key') return {ok: true, note: 'This browser reads Hermes’s answers: /health said “ok”.'};
     return {ok: false, note: `${t.title} ${t.steps[0] ?? ''}`};
   };
   return <>

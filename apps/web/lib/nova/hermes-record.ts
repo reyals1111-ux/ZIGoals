@@ -75,11 +75,22 @@ export function readHermes(storage: Pick<Storage, 'getItem'>): {data: NovaHermes
   try { return readDeviceRecord(storage, NOVA_HERMES); } catch { return {data: {version: 1}, unreadable: true}; }
 }
 /** What NOVA's panels show (lane NA): connected (a gateway is saved), reachable at the last check, the model, the time. */
-export type HermesStatus = {connected: boolean; reachable: boolean; model?: string; lastMs?: number; checkedAt?: string; localModelConfirmed: boolean};
+export type HermesStatus = {connected: boolean; reachable: boolean; model?: string; lastMs?: number; checkedAt?: string; localModelConfirmed: boolean; problem?: string};
 export function hermesStatus(record: NovaHermes = {version: 1}): HermesStatus {
   const last = record.lastCheck;
   const model = last?.model ?? record.model;
-  return {connected: !!record.baseUrl, reachable: !!last?.reachable, ...(model ? {model} : {}), ...(last?.ms !== undefined ? {lastMs: last.ms} : {}), ...(last?.at ? {checkedAt: last.at} : {}), localModelConfirmed: record.localModelConfirmed === true};
+  return {connected: !!record.baseUrl, reachable: !!last?.reachable, ...(model ? {model} : {}), ...(last?.ms !== undefined ? {lastMs: last.ms} : {}), ...(last?.at ? {checkedAt: last.at} : {}), localModelConfirmed: record.localModelConfirmed === true, ...(!last?.reachable && last?.problem ? {problem: last.problem} : {})};
+}
+/**
+ * Session AK lane P7 (EX3-5): the gateway's last check in one line, for the guide and NOVA's card. A gateway that answered
+ * but refused (or wanted) the key was reached: it is not "not reachable".
+ */
+export function hermesCheckLine(status: HermesStatus, {msWord = ''}: {msWord?: string} = {}): string {
+  if (status.reachable) return `Gateway reachable${status.model ? ` · ${status.model}` : ''}${status.lastMs !== undefined ? ` · ${msWord}${status.lastMs} ms` : ''}`;
+  if (status.problem === 'wrong-key') return 'Gateway answered at the last check, but refused the key';
+  if (status.problem === 'needs-key') return 'Gateway answered at the last check and asks for its key';
+  if (status.problem === 'cors') return 'Gateway running at the last check, but this site is not allowed yet';
+  return 'Gateway not reachable at the last check';
 }
 
 // ── The guide's progress (the same rules as the NOVA guide: a passing check marks a step done on that day) ─────────

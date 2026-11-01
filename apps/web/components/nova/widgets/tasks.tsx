@@ -22,19 +22,22 @@ export default function TasksWidget({size}: {size: WidgetSize}) {
   if (tasks.unreadable) return <NovaUnread what="Your tasks"/>;
   const add = size !== 'S' && <TaskAddForm compact onAdd={list.add} goals={[]} today={today} fixedDue={today} label="Add a task for today" submit="Add"/>;
   const status = <TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo}/>;
-  if (view.state === 'empty') return <div className="tasks-widget" data-size={size}>
-    <NovaEmpty pillar="goals">Your list starts here. {size === 'S' ? 'Add a task for today, or give a goal its next action.' : 'Add one for today below, or give a goal its next action on its page.'}</NovaEmpty>
-    {add}{status}
-  </div>;
   const row = (t: (typeof view.today)[number]) => <TaskRow key={t.id} task={t} today={today} goal={t.goal ? goals.byKey.get(t.goal) : undefined} onToggle={done => list.toggle(t, done)}/>;
+  // Session AK lane P7 (EX3-2): one tree for the empty start and the list, so the add form and its status line stay the
+  // same elements when the first task arrives (a remounted form dropped the focus to the page, and NOVA's single-key
+  // shortcuts then took the next letter typed).
   return <div className="tasks-widget" data-size={size}>
-    <p className="nova-line">{tasksHeadline(view)}</p>
-    {view.today.length > 0 && <ul className="tasks-list" aria-label="Today’s tasks">{view.today.map(row)}</ul>}
-    {view.moreToday > 0 && <p className="nova-line">And {view.moreToday} more on the Tasks page.</p>}
-    {view.next.length > 0 && <>
-      <p className="nova-eyebrow">Next for your goals</p>
-      <ul className="tasks-list" aria-label="Next actions for your goals">{view.next.map(row)}</ul>
-    </>}
+    {view.state === 'empty'
+      ? <NovaEmpty pillar="goals">Your list starts here. {size === 'S' ? 'Add a task for today, or give a goal its next action.' : 'Add one for today below, or give a goal its next action on its page.'}</NovaEmpty>
+      : <>
+        <p className="nova-line">{tasksHeadline(view)}</p>
+        {view.today.length > 0 && <ul className="tasks-list" aria-label="Today’s tasks">{view.today.map(row)}</ul>}
+        {view.moreToday > 0 && <p className="nova-line">And {view.moreToday} more on the Tasks page.</p>}
+        {view.next.length > 0 && <>
+          <p className="nova-eyebrow">Next for your goals</p>
+          <ul className="tasks-list" aria-label="Next actions for your goals">{view.next.map(row)}</ul>
+        </>}
+      </>}
     {add}{status}
   </div>;
 }

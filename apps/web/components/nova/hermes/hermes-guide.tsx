@@ -1,6 +1,6 @@
 'use client';
 import {lazy, Suspense, useEffect, useMemo, useState, type ComponentType} from 'react';
-import {HERMES_STEPS, hermesProgress, hermesStatus, type HermesStepId} from '../../../lib/nova/hermes-record';
+import {HERMES_STEPS, hermesCheckLine, hermesProgress, hermesStatus, type HermesStepId} from '../../../lib/nova/hermes-record';
 import {HERMES_PLANETS, hermesPathModel} from '../../../lib/nova/hermes-model';
 import {LoadBoundary} from '../../load-boundary';
 import {useShowcase} from '../../showcase-controls';
@@ -44,7 +44,7 @@ export default function HermesGuide() {
     <SectionHeading id="nova-hermes-title" eyebrow="For agent builders" title="Your Hermes, step by step" lede="Press a planet for its guide; each ends with a check. Commands come one per block, for macOS, Windows and Linux."/>
     <p className="nova-progress" aria-live="polite"><b>{progress.done} of {progress.total} planets lit</b>{progress.next ? <> · next: {HERMES_PLANETS[progress.next].label}</> : ' · Hermes is linked'}</p>
     {showcase && <LoadBoundary quiet><Suspense fallback={null}><HermesShowcaseExample/></Suspense></LoadBoundary>}
-    {status.connected && <p className="ai-note" role="status">{status.reachable ? `Gateway reachable${status.model ? ` · ${status.model}` : ''}${status.lastMs !== undefined ? ` · last answer ${status.lastMs} ms` : ''}` : 'Gateway not reachable at the last check.'}</p>}
+    {status.connected && <p className="ai-note" role="status">{hermesCheckLine(status, {msWord: 'last answer '})}{status.reachable ? '' : '.'}</p>}
     {ready && hermes.record.loaded
       ? <LoadBoundary label="The Hermes path"><Suspense fallback={list}><GuidePath model={model} ariaLabel="Connect your Hermes Agent: ten planets, step by step" open={open} onOpen={setOpen} panel={panel} say={progress.next ? `Next: ${HERMES_PLANETS[progress.next].label}` : 'Hermes is linked.'}/></Suspense></LoadBoundary>
       : list}
