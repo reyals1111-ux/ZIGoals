@@ -199,7 +199,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
       </aside>
       <div className="app-content">
       {/* Session AB-Design (owner request 8, ADR-024 D7): pages start with their header. One compact first-visit notice replaces the Alpha box, the Showcase bar, the storage line and the mode strip; the same facts stay in the footer's disclaimer line, the Showcase chip stays in the status row, and the phone's Status & wallet sheet (More) keeps every notice in full. */}
-      {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"} stalled={slowRead&&settingsPending}/>}
+      {/* Session AK P2 (RELEASE_REVIEW_2 R2-7, ADR-036 Q31; `TIER 3 (public-safety labels)`): until the chain is chosen the sentence is behind the notice's More (Help, Settings), as on the phone. */}
+      {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"} stalled={slowRead&&settingsPending} behindMore={!chain.chosen}/>}
       {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} showcase={showcase} wallet={chain.chosen}>{chain.chosen&&walletButtons}</PhoneStatusSheet></Suspense>}
       {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
         <h2>Your private data is taking longer than usual to open.</h2>

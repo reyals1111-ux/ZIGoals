@@ -137,7 +137,7 @@ export default function Settings() {
         {/* Session AI (SE3): one "Backup & restore" card; its four parts keep their own anchors and headings (the specs pin them). */}
         <section className="panel backup-restore" id="backup-restore" aria-labelledby="backup-restore-title">
           <p className="eyebrow">BACKUP &amp; RESTORE</p><h2 id="backup-restore-title">Backup &amp; restore</h2>
-          <p className="fine">Four ways to keep or bring back your records: a protected copy, backups per module, one file with everything, and your history from another app.</p>
+          {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> a protected copy, the first card below, encrypted with a recovery secret only you keep. More ways to back up follow it: backups per module, one readable file with everything, and your history from another app.</p>
           <PrivateVaultTools/>
           <PrivateBackups/>
           <ExportEverything/>
@@ -160,8 +160,8 @@ export default function Settings() {
               Local demo and testnet backups are separate.
             </p>
             <p className="fine">
-              This older format holds local simulation Goal plans only. Tracked Goals and Wealth are in the Positions and
-              Goals backup above, and Today preferences only in the encrypted backup.
+              This older format holds local simulation Goal plans only. Tracked Goals and Wealth are in the Goals and
+              Wealth backup above, and Today preferences only in the encrypted backup.
             </p>
             <button
               className="primary"

@@ -65,9 +65,10 @@ export function PagesSettings() {
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
   // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
   // Session AH (ST9, B-174, D-217): the sidebar as it really is, with the pages other parts add (the Checklist, Journey).
-  // Session AK G2 (RELEASE_REVIEW_2 R2-10): the 'compact' entries (Tasks, Notes, the Journal) are not in the desktop sidebar.
-  const sidebar = useVisibleNav().items.filter(item => !navCompact(item));
-  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
+  // Session AK G2 (RELEASE_REVIEW_2 R2-10): the 'compact' entries (Tasks, Notes, the Journal) join the desktop sidebar only in a
+  // tall window (Session AK P2, ADR-036 Q31; components/navigation.css), so the summary names them as such.
+  const items = useVisibleNav().items, sidebar = items.filter(item => !navCompact(item)), tall = items.filter(navCompact);
+  const summary = `Sidebar: ${sidebar.map(([, label]) => label).join(', ')}${tall.length ? `; in a tall window also ${tall.map(([, label]) => label).join(', ')}` : ''}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
     <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>
     <p>Hide what you don&rsquo;t use; your records stay as they are. Settings and Help always show. A hidden page still opens from a link, with a way to show it again.</p>
