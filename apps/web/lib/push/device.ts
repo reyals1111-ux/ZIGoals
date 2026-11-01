@@ -50,14 +50,20 @@ async function registration(): Promise<ServiceWorkerRegistration | undefined> { 
  * most `ms`. navigator.serviceWorker.ready resolved to the offline worker (/sw.js) the shell had already registered on
  * the same scope, so the subscription was made before the account worker took over. A worker that never activates in
  * time is left to take over later: the subscription belongs to the registration, not to a worker.
+ * While it waits, the worker is asked every 1.5 s to take over (ADR-036 Q19, amended): to hand over, Chrome stops the
+ * outgoing /sw.js, and a request of this page arriving meanwhile (the tap scrolls cards into view) starts it again; the
+ * hand-over then waits until it goes idle, 30 s to 5 minutes. Each ask makes /push-sw.js call skipWaiting again, and
+ * Chrome tries the hand-over again at once.
  */
-export function accountWorkerActive(reg: ServiceWorkerRegistration, ms = 10_000): Promise<void> {
+export const ACTIVATE_MESSAGE = {type: 'zigoals:push-sw-activate'} as const;
+export function accountWorkerActive(reg: ServiceWorkerRegistration, ms = 10_000, every = 1_500): Promise<void> {
   const ours = (w: ServiceWorker | null | undefined): w is ServiceWorker => !!w && new URL(w.scriptURL, self.location.href).pathname === SW_URL;
   return new Promise(resolve => {
     const worker = [reg.installing, reg.waiting, reg.active].find(ours);
     if (!worker || worker.state === 'activated' || worker.state === 'redundant') { resolve(); return; }
-    const timer = setTimeout(done, ms);
-    function done() { clearTimeout(timer); worker!.removeEventListener('statechange', check); resolve(); }
+    const timer = setTimeout(done, ms), asking = setInterval(ask, every);
+    function ask() { try { worker!.postMessage(ACTIVATE_MESSAGE); } catch { /* it went redundant: check() ends the wait */ } }
+    function done() { clearTimeout(timer); clearInterval(asking); worker!.removeEventListener('statechange', check); resolve(); }
     function check() { if (worker!.state === 'activated' || worker!.state === 'redundant') done(); }
     worker.addEventListener('statechange', check);
   });

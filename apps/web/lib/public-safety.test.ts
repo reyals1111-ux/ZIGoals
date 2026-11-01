@@ -1,5 +1,6 @@
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { existsSync, readFileSync } from "node:fs";
+import vm from "node:vm";
 import { NextRequest } from "next/server";
 import { config, middleware } from "../middleware";
 import { expect, test } from "vitest";
@@ -64,6 +65,35 @@ test("the push service worker is push-only: no fetch handler, no cache, no write
   expect(worker).toContain("'readonly'");
   expect(worker).not.toMatch(/readwrite|createObjectStore|deleteObjectStore|deleteDatabase|\.put\(|\.add\(|\.delete\(|\.clear\(/);
   expect(worker).toContain("'A reminder from ZIGoals'");
+});
+// Session AK (CI lane P; ADR-036 Q19, amended): the push worker gains one message, from the page that turned reminders on,
+// asking it to take over now. Nothing else: only that type, only from a window of this origin, only skipWaiting.
+test("the push service worker's one message: skipWaiting for 'zigoals:push-sw-activate' from a window of this origin, nothing else", async () => {
+  const worker = readFileSync(new URL("../public/push-sw.js", import.meta.url), "utf8");
+  const handlers: Record<string, (event: unknown) => void> = {}, calls: string[] = [];
+  const self = {
+    location: { origin: "https://app.test" },
+    addEventListener: (type: string, handler: (event: unknown) => void) => { handlers[type] = handler; },
+    skipWaiting: async () => { calls.push("skipWaiting"); },
+    clients: { claim: async () => { calls.push("claim"); }, matchAll: async () => { calls.push("matchAll"); return []; }, openWindow: async () => { calls.push("openWindow"); return null; } },
+    registration: { showNotification: async () => { calls.push("showNotification"); } },
+  };
+  vm.runInContext(worker, vm.createContext({ self, indexedDB: undefined, Intl, Date, Promise, setTimeout, clearTimeout, Number, Array, JSON }));
+  const send = async (data: unknown, origin = "https://app.test", source: unknown = { type: "window" }) => {
+    const waits: Promise<unknown>[] = [];
+    handlers.message!({ data, origin, source, waitUntil: (p: Promise<unknown>) => waits.push(p) });
+    await Promise.all(waits);
+  };
+  await send(null);
+  await send({ type: "zigoals:sw-reload" });
+  await send({ type: "zigoals:push-sw-activate" }, "https://attacker.invalid");
+  await send({ type: "zigoals:push-sw-activate" }, "https://app.test", { type: "worker" });
+  await send({ type: "zigoals:push-sw-activate" }, "https://app.test", null);
+  expect(calls).toEqual([]);
+  await send({ type: "zigoals:push-sw-activate" });
+  expect(calls).toEqual(["skipWaiting"]);
+  const handler = worker.slice(worker.indexOf("addEventListener('message'"), worker.indexOf("// The same rule as labelText"));
+  expect(handler.match(/self\.\w+(?:\.\w+)?\(/g)).toEqual(["self.skipWaiting("]);
 });
 test("safe diagnostics whitelist enums and identities, ignoring adversarial and private values", () => {
   const text = diagnosticSummary({ environment: "PUBLIC_ALPHA_UNDEPLOYED", version:"0.1.0", commit:"a".repeat(40), scope:"local", rpc:"healthy", rest:"unavailable", checkedAt:"2026-09-13T12:00:00.000Z", owner:"PRIVATE_ACCOUNT", error:"RAW_ERROR", metadata:"PRIVATE_PLAN" } as Parameters<typeof diagnosticSummary>[0]);

@@ -8,6 +8,15 @@ const GENERIC = 'A reminder from ZIGoals';
 const LABELS_DB = 'zigoals-push-labels-v1', LABELS_STORE = 'labels', WINDOW_MINUTES = 30, READ_MS = 1500;
 self.addEventListener('install', () => { self.skipWaiting(); });
 self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
+// Session AK (CI lane P; ADR-036 Q19, amended): the page that turned reminders on may ask this worker to take over now
+// (lib/push/device.ts accountWorkerActive). Chrome's hand-over from the offline worker can stall when a page request
+// starts that worker again mid-stop; each ask calls skipWaiting again, and Chrome retries at once. Only this one message,
+// only from a window of this origin; it reads and writes nothing.
+self.addEventListener('message', event => {
+  const source = event.source;
+  if (!event.data || event.data.type !== 'zigoals:push-sw-activate' || event.origin !== self.location.origin || !source || source.type !== 'window') return;
+  event.waitUntil(self.skipWaiting());
+});
 // The same rule as labelText in lib/push/labels.ts (a test runs both on the same cases): the names of the reminders due
 // in the last 30 minutes on their own weekday, at most three; otherwise the generic line.
 function zoneClock(now, zone) {

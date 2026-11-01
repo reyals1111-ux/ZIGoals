@@ -75,6 +75,7 @@ Status: **In progress** on `feature/session-ak-number-one`, from `main` `7000807
   KeplrSigner adapter in `execute.ts` (`walletConnectKeplr`, `WC_STAKING_METHODS`), used by the review sheet when the
   browser has no Keplr; the pairing namespaces take the methods from there.
 - **Q19 — No `/push-sw.js` shim.** `/push-sw.js` stays byte-identical for ADR-010's account devices (its specs and the
+  *Amended (1 Nov, CI lane P, lead decision):* `/push-sw.js` gains one `message` handler — `skipWaiting()` only for `{type: 'zigoals:push-sw-activate'}` from a window of this origin; still no fetch handler, cache or storage. Reason: Chrome's hand-over from the active `/sw.js` to a waiting `/push-sw.js` stalls when a page request restarts `/sw.js` mid-stop (up to 5 min under DevTools, ≥ 30 s idle otherwise), so turning on account reminders could stay "Off"; `turnOnPush` now asks every 1.5 s (≤ 10 s) and Chrome retries at once. Accounts are not open on the Alpha, so no live account device is affected. Commit: TIER 3 (PWA).
   ADR-014 names rule stay pinned); the shell does not register `/sw.js` on a device holding an account push record, and
   turning on the device path removes that record first (Q15). This replaces the plan's shim reading in Q4.
 - **Q20 — Price alerts by push.** A push must always show a notification (A2), so there are no silent price-check wakes:
