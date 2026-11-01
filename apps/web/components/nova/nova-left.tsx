@@ -54,7 +54,7 @@ export function NovaLeft({state, onCycle, you, brain, counts, pages, earn, chess
       ? <Link className="nova-left-row" href={e.href} prefetch={false} aria-label={name} title={rail ? name : undefined}>{inner}</Link>
       : <button type="button" className="nova-left-row" onClick={e.onPick} aria-label={name} title={rail ? name : undefined}>{inner}</button>}</li>;
   };
-  return <aside className="nova-left" data-state={state} aria-label={`${persona} navigation`}>
+  return <aside className="nova-left zg-glass" data-state={state} aria-label={`${persona} navigation`}>
     <div className="nova-left-top">
       <p className="nova-left-brand"><NovaIcon name="star" size={20}/>{!rail && <span><strong>{persona}</strong><small>Private intelligence</small></span>}</p>
       <button type="button" className="nova-icon-btn" onClick={onCycle} aria-label={rail ? 'Hide the left panel' : 'Fold the left panel to icons'} title={rail ? 'Hide the panel' : 'Fold to icons'}><NovaIcon name="left"/></button>

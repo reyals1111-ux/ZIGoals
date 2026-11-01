@@ -3571,6 +3571,15 @@
         background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 6%,transparent)
     }
 }
+/*  components/ai/unkept-chat.css  */
+@scope (:root[data-theme=dark]) {
+    .ai-unkept:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #9273ff) 45%, var(--line, #2a325a));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #9273ff) 9%, transparent);
+        color: var(--text, #eef1ff)
+    }
+}
 /*  components/ai/zigi-customize.css  */
 @scope (:root[data-theme=dark]) {
     .zigi-choice:not(#\-) {
@@ -11578,10 +11587,6 @@
             --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor var(--zg-flow-stop), #6fe6f6 calc(var(--zg-flow-stop) + 30%), #8fa6ff calc(var(--zg-flow-stop) + 42%), #c790f6 calc(var(--zg-flow-stop) + 51%), #f08bd6 100%)
         }
     }
-    .zg-nebula-border:not(#\-)::before {
-        background-image: conic-gradient(from var(--zg-angle), #23eaff99, #9273ff99, #ff74be99, #23eaff99);
-        background-color: transparent
-    }
     .zg-burst-ring:not(#\-) {
         border-color: var(--brand-cyan, #23eaff);
         box-shadow: 0 0 14px color-mix(in srgb, var(--brand-violet, #9273ff) 55%, transparent)
@@ -11593,12 +11598,6 @@
     .zg-burst-spark:nth-child(odd):not(#\-) {
         background-image: radial-gradient(circle, #fff 0 30%, var(--brand-cyan, #23eaff) 70%);
         background-color: transparent
-    }
-    .zg-glass:not(#\-) {
-        background-image: none;
-        background-color: color-mix(in oklab, var(--surface-1, #010412) 78%, transparent);
-        border-color: color-mix(in oklab, white 12%, transparent);
-        box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -1px 0 rgb(0 0 0 / .22), 0 10px 30px rgb(2 6 23 / .35)
     }
     :is(.zg-glass, .search-palette, .quick-add-dialog):not(#\-)::before {
         background-image: linear-gradient(var(--zg-sheen), rgb(255 255 255 / .34), transparent 38% 62%, rgb(255 255 255 / .09));
@@ -11612,18 +11611,6 @@
     }
     :scope[data-theme=light] .glass-light[data-kind=card] > i:not(#\-) {
         background-image: none
-    }
-    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-        .zg-glass:not(#\-) {
-            background-image: none;
-            background-color: var(--surface-1, #010412)
-        }
-    }
-    @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
-        .zg-glass:not(#\-) {
-            background-image: none;
-            background-color: var(--surface-1, #010412)
-        }
     }
     .zg-aurora:not(#\-)::before {
         background-image: radial-gradient(40% 35% at 25% 30%, #23eaff2e, transparent 70%), radial-gradient(45% 40% at 75% 25%, #9273ff33, transparent 70%), radial-gradient(40% 35% at 55% 80%, #ff74be26, transparent 70%);
@@ -12202,6 +12189,9 @@
     .quick-capture-box:not(#\-) {
         border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 35%, transparent)
     }
+    .note-ask-example:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .35))
+    }
 }
 /*  components/notify/notifications.css  */
 @scope (:root[data-theme=dark]) {
@@ -12414,6 +12404,10 @@
         color: var(--text,#f3f6ff);
         border-color: color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)
     }
+    .nova-duo-steps li[aria-current=step]:not(#\-) {
+        color: var(--text,#f3f6ff);
+        border-color: var(--cyan,#63e7ff)
+    }
     .nova-mark-core-0:not(#\-) {
         stop-color: #ffffff
     }
@@ -12520,6 +12514,18 @@
     }
     .nova-bar-hint:not(#\-) {
         color: var(--muted,#a4b2cd)
+    }
+}
+/*  components/nova/hermes/hermes-example.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-hermes-example-status dd:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .nova-hermes-example-talk li:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .25))
+    }
+    .nova-hermes-example-talk strong:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/nova/nova.css  */
@@ -13557,6 +13563,15 @@
     }
     .nova-glance li a:not(#\-) {
         color: var(--nova-ink)
+    }
+    .nova-widget .tasks-widget .task:not(#\-) {
+        border-bottom-color: var(--nova-edge-soft)
+    }
+    .nova-widget .tasks-widget .task-meta:not(#\-), .nova-widget .tasks-widget .tasks-status:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-widget .tasks-widget .task-goal:not(#\-) {
+        color: var(--nova-hi)
     }
 }
 /*  components/nova/workflows/workflows.css  */
@@ -17784,9 +17799,6 @@
     }
     .tasks-focus .pomodoro:not(#\-) {
         border-color: var(--line, rgba(128, 128, 160, .25))
-    }
-    .tasks-widget-title small:not(#\-) {
-        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/timeline/timeline.css  */

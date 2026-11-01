@@ -50,3 +50,11 @@
 .nova-widget .nova-facts dd a { color: var(--nova-ink); text-decoration: none; display: inline-flex; min-height: 44px; align-items: center; }
 .nova-glance li { color: var(--nova-ink-2); font-size: 15px; }
 .nova-glance li a { color: var(--nova-ink); display: inline-flex; min-height: 44px; align-items: center; }
+/* Session AK WA (T1/T3): the Tasks widget's rows and quick add inside NOVA's night island, and the Focus widget's buttons. */
+.nova-focus-actions { display: flex; flex-wrap: wrap; gap: 0 8px; }
+.nova-widget .tasks-widget { display: grid; gap: 6px; min-width: 0; }
+.nova-widget .tasks-widget .tasks-list { margin: 0; padding: 0; list-style: none; }
+.nova-widget .tasks-widget .task { border-bottom-color: var(--nova-edge-soft); }
+.nova-widget .tasks-widget .task-meta, .nova-widget .tasks-widget .tasks-status { color: var(--nova-ink-2); }
+.nova-widget .tasks-widget .task-goal { color: var(--nova-hi); }
+.nova-widget .tasks-widget .nova-eyebrow { margin-top: 6px; font-size: 12px; }

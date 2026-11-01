@@ -1,0 +1,9 @@
+/* Session AK WA (N11): the Showcase's labelled Hermes example on the guide (inside the setup card's look; theme tokens only). */
+.nova-hermes-example h3 { margin: 0; font-size: 17px; }
+.nova-hermes-example-status { display: grid; gap: 6px; margin: 0; }
+.nova-hermes-example-status div { display: flex; flex-wrap: wrap; gap: 0 8px; min-width: 0; }
+.nova-hermes-example-status dt { font-weight: 650; }
+.nova-hermes-example-status dd { margin: 0; min-width: 0; overflow-wrap: anywhere; color: var(--text-secondary, var(--muted)); }
+.nova-hermes-example-talk { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.nova-hermes-example-talk li { padding: 8px 12px; border-radius: 14px; border: 1px solid var(--line, rgba(128, 128, 160, .25)); overflow-wrap: anywhere; }
+.nova-hermes-example-talk strong { display: block; font-size: 13px; color: var(--text-secondary, var(--muted)); }

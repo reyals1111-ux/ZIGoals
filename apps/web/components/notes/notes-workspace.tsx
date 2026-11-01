@@ -21,6 +21,8 @@ import './notes.css';
 const ThisDayStrip = lazy(() => import('./this-day-strip'));
 const GraphView = lazy(() => import('./graph-view'));
 const NotesFiles = lazy(() => import('./notes-files'));
+/** Session AK WA (B5): "Ask about my notes" through NOVA's chat (its permission, privacy mode and the person's own model). */
+const NotesAsk = lazy(() => import('./notes-ask'));
 
 /**
  * Session AK (B): the Notes page — built on the Journal's ideas, all on this device. Capture at the top; then Today (the
@@ -127,6 +129,7 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
       <LoadBoundary label="Markdown files"><Suspense fallback={<p className="fine">Loading…</p>}><NotesFiles record={record} targets={targets} change={change}/></Suspense></LoadBoundary>
     </section>}
 
+    {!noteId && !notes.unreadable && <LoadBoundary quiet><Suspense fallback={null}><NotesAsk notes={record.notes.length} showcase={showcase}/></Suspense></LoadBoundary>}
     <p className="fine notes-privacy">Notes, their photos and your choices stay on this device and are never synced. They reach an AI only if you let NOVA or ZIGi use them, with your own model, within the scopes you choose.</p>
   </div>;
 }

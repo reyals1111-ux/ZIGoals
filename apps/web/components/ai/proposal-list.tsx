@@ -69,12 +69,20 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * ("Your 10k plan · 6 steps", Skip the rest), and what becomes of each step is kept in ZIGi's plans on this device
  * (written only when the person acts on a step).
  */
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId, bundle}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta}) {
+/**
+ * `unkept` (Session AK, G1 #20): the cards come from a chat the person chose not to keep. Nothing of that chat is kept:
+ * no card outcome under its reply (`replyId` is ignored, so no ZIGi plan note either), and a "Remember this?" card is not
+ * offered (it would keep words from the chat in What ZIGi knows about me); it says why instead. Every other card works as usual.
+ */
+export const UNKEPT_MEMORY = 'Not offered: this chat is not kept, so nothing from it goes into what ZIGi remembers. To keep a note, add it yourself in What ZIGi knows about me.';
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId: keptReplyId, bundle, unkept = false}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta; unkept?: boolean}) {
+  const replyId = unkept ? undefined : keptReplyId;
+  const planFor = useCallback((action: Action, refs_: ReturnType<typeof replyRefs>): PlanResult => { const result = runner.plan(action, handles, refs_); return unkept && result.ok && result.plan.target === 'memory' ? {ok: false, message: UNKEPT_MEMORY} : result; }, [handles, runner, unkept]);
   const [refs] = useState(() => replyRefs(proposals));
   const [kept] = useState<ReadonlyMap<string, KeptCard>>(() => { if (!replyId) return new Map(); try { return keptCards(readDeviceRecord(getAppStorage(), ZIGI_CARDS).data, replyId); } catch { return new Map(); } });
   // A kept outcome applies only to the card it was kept for (its fingerprint, the action as the reply first gave it).
   const [sigs] = useState(() => new Map(proposals.map((action, i) => [`p${i + 1}`, cardSig(action)])));
-  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => { const id = `p${i + 1}`, kept_ = kept.get(id), was = kept_ && kept_.sig === sigs.get(id) ? kept_ : undefined; return {id, action, result: runner.plan(action, handles, refs), status: was?.outcome ?? 'proposed', error: null, after: null, ...(was?.edited ? {edited: true} : {})}; }));
+  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => { const id = `p${i + 1}`, kept_ = kept.get(id), was = kept_ && kept_.sig === sigs.get(id) ? kept_ : undefined; return {id, action, result: planFor(action, refs), status: was?.outcome ?? 'proposed', error: null, after: null, ...(was?.edited ? {edited: true} : {})}; }));
   // Each outcome is kept once it is reached (an Undo or a later outcome replaces it); a storage that refuses keeps it in
   // this panel only, as before.
   const written = useRef(new Map<string, string>([...kept].filter(([id, k]) => k.sig === sigs.get(id)).map(([id, k]) => [id, `${k.outcome}:${k.edited}`])));
@@ -200,7 +208,12 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     setItems(current => current.map(item => group.some(g => g.id === item.id) ? {...item, status: 'undone'} : item));
     announce(group.length === 1 ? 'Undone.' : `Undone: ${group.length} additions.`);
   }, [announce, items, runner, undoGroup]);
-  const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: runner.plan(action, handles, refs), error: null, edited: true}), [handles, patch, refs, runner]);
+  const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: planFor(action, refs), error: null, edited: true}), [patch, planFor, refs]);
+  // G1 #20: the switch pressed after these cards arrived: a waiting "Remember this?" card stops being offered (and comes back if the chat is kept again).
+  useEffect(() => {
+    const swap = (item: ProposalItem): ProposalItem | null => item.status !== 'proposed' ? null : unkept ? (item.result.ok && item.result.plan.target === 'memory' ? {...item, result: {ok: false, message: UNKEPT_MEMORY}} : null) : (!item.result.ok && item.result.message === UNKEPT_MEMORY ? {...item, result: runner.plan(item.action, handles, refs)} : null);
+    setItems(current => current.some(item => swap(item)) ? current.map(item => swap(item) ?? item) : current);
+  }, [unkept]); // eslint-disable-line react-hooks/exhaustive-deps -- only the switch re-plans
   const pendingBatch = useMemo(() => items.filter(item => item.status === 'proposed' && planOf(item) && planOf(item)!.target !== 'form'), [items]);
   const secondsLeft = undoGroup ? Math.max(0, Math.ceil((undoGroup.until - now) / 1000)) : 0;
   if (!items.length && !rejected.length) return null;

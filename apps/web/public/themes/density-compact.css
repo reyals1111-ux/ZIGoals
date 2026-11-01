@@ -969,6 +969,9 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .ai-chooser-result ul:not(#\-), :where(:root[data-density=compact]) .ai-chooser-result ol:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .ai-chooser-result ul:not(#\-), :where(:root[data-density=compact]) .ai-chooser-result ol:not(#\-) { row-gap: 3px; }
 :where(:root[data-density=compact]) .ai-chooser-columns:not(#\-) { row-gap: 12px; }
+/*  components/ai/unkept-chat.css  */
+:where(:root[data-density=compact]) .ai-unkept:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .ai-unkept > p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/ai/zigi-customize.css  */
 :where(:root[data-density=compact]) .zigi-customize:not(#\-) { row-gap: 14px; }
 :where(:root[data-density=compact]) .zigi-choice:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
@@ -1709,9 +1712,6 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .pomodoro-readout p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .pomodoro-result p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
 :where(:root[data-density=compact]) .focus-modes:not(#\-) { row-gap: 6px; }
-:where(:root[data-density=compact]) .focus-widget:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .focus-widget-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
-:where(:root[data-density=compact]) .focus-widget-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/footer/site-footer.css  */
 :where(:root[data-density=compact]) .site-footer:not(#\-) { margin-top: 64px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .site-footer-inner:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: clamp(60px, 6.4cqw, 132px); padding-bottom: 56px; }
@@ -3294,7 +3294,6 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .mood-words-step:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .mood-words-actions:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 16px; }
 /*  components/motion/motion-2026.css  */
-:where(:root[data-density=compact]) .zg-nebula-border:not(#\-)::before { padding-top: 1px; padding-bottom: 1px; }
 :where(:root[data-density=compact]) .zg-burst-ring:not(#\-) { margin-top: calc(var(--zg-r) * -1); margin-bottom: 0; }
 :where(:root[data-density=compact]) .zg-burst-spark:not(#\-) { margin-top: -3px; margin-bottom: 0; }
 :where(:root[data-density=compact]) :is(.zg-glass, .search-palette, .quick-add-dialog):not(#\-)::before { padding-top: 1px; padding-bottom: 1px; }
@@ -3451,6 +3450,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .note-files p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .note-import-plan:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
 :where(:root[data-density=compact]) .quick-capture-box:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .note-ask:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .note-ask h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-ask .fine:not(#\-), :where(:root[data-density=compact]) .note-ask p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-ask-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-ask-example:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
 /*  components/notify/notifications.css  */
 :where(:root[data-density=compact]) .notify-card .notify-state:not(#\-) { margin-top: 6px; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .notify-card .notify-server:not(#\-) { margin-top: 0; margin-bottom: 12px; }
@@ -3521,6 +3525,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-duo-side p:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-duo-steps:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nova-duo-steps li:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nova-duo-slot:not(#\-) { padding-top: 4px; padding-bottom: 0; }
 @media (max-width:480px) { :where(:root[data-density=compact]) .nova-tool:not(#\-) { padding-top: 0; padding-bottom: 0; } }
 :where(:root[data-density=compact]) .nova-turn-permissions:not(#\-) { margin-top: 8px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-chat .ai-reply-icons:not(#\-) { row-gap: 2px; }
@@ -3539,6 +3544,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-bar-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .nova-bar-actions:not(#\-) { row-gap: 8px; }
 @media (max-width:480px) { :where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 8vh; } }
+/*  components/nova/hermes/hermes-example.css  */
+:where(:root[data-density=compact]) .nova-hermes-example h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-hermes-example-status:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-hermes-example-status div:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-hermes-example-status dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-hermes-example-talk:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-hermes-example-talk li:not(#\-) { padding-top: 6px; padding-bottom: 6px; }
 /*  components/nova/nova-chrome.css  */
 :root:where([data-density=compact])[data-nova-view="on"] .app-content:not(#\-):not(#\-) { padding-top: 0; }
 /*  components/nova/nova.css  */
@@ -3756,6 +3768,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nova-playing-actions:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .nova-round:not(#\-) { margin-top: 6px; }
 :where(:root[data-density=compact]) .nova-markets li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-focus-actions:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .nova-widget .tasks-widget:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-widget .tasks-widget .tasks-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget .tasks-widget .nova-eyebrow:not(#\-) { margin-top: 4.5px; }
 /*  components/nova/workflows/workflows.css  */
 :where(:root[data-density=compact]) .nova-workflows:not(#\-), :where(:root[data-density=compact]) .nova-wf-run:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .nova-workflows h4:not(#\-), :where(:root[data-density=compact]) .nova-wf-run h3:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit h3:not(#\-) { margin-top: 4px; margin-bottom: 0; }
@@ -5274,7 +5290,6 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .tasks-focus .pomodoro:not(#\-) { padding-top: 16px; padding-bottom: 16px; }
 :where(:root[data-density=compact]) .goal-next-actions:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .tasks-widget:not(#\-) { row-gap: 8px; }
-:where(:root[data-density=compact]) .tasks-widget-title:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-add-more:not(#\-) { row-gap: 8px; }
 /*  components/timeline/timeline.css  */
 :where(:root[data-density=compact]) .timeline-page:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }

@@ -92,6 +92,11 @@
 .nova-duo-steps{display:flex;gap:6px;margin:0;padding:0;list-style:none;font-size:12px;color:var(--muted,#a4b2cd)}
 .nova-duo-steps li{padding:4px 8px;border-radius:999px;border:1px solid var(--line,#25324a);white-space:nowrap}
 .nova-duo-steps li[data-done]{color:var(--text,#f3f6ff);border-color:color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)}
+/* Session AK WA (N1): where NOVA's dashboard places the Duo: above the conversation on a computer, in the phone's sheet. */
+.nova-duo-slot{display:flex;justify-content:center;padding:4px 20px 0}
+.nova-duo-slot>.nova-duo{width:min(1020px,100%)}
+.nova-duo .nova-duo-steps{flex-wrap:wrap;justify-content:center}
+.nova-duo-steps li[aria-current=step]{color:var(--text,#f3f6ff);border-color:var(--cyan,#63e7ff);font-weight:600}
 @media (max-width:640px){.nova-duo{grid-template-columns:1fr 1fr}.nova-duo-steps{grid-column:1/-1;grid-row:2;flex-wrap:wrap}}
 /* NOVA's small star mark: the nebula palette; breathes only where motion is allowed. */
 .nova-mark{display:inline-grid;place-items:center;flex:none}

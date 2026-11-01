@@ -157,3 +157,13 @@
    itself is one of the sheet's own rows now (components/quick-add.tsx), styled with them, so its copied rules went. */
 .quick-capture-box { display: grid; gap: 8px; padding: 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 35%, transparent); }
 .quick-capture-box > button { justify-self: start; min-height: 44px; }
+/* Session AK WA (B5): "Ask about my notes" below the views. */
+.note-ask { display: grid; gap: 10px; min-width: 0; }
+.note-ask h2 { margin: 0; }
+.note-ask .fine, .note-ask p { margin: 0; overflow-wrap: anywhere; }
+.note-ask-actions a { display: inline-flex; align-items: center; min-height: 44px; }
+.note-ask-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }
+.note-ask-form .field { flex: 1 1 220px; min-width: 0; }
+.note-ask-form input, .note-ask-form button { min-height: 44px; }
+.note-ask-form .note-ask-privacy { flex: 1 0 100%; }
+.note-ask-example { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line, rgba(128, 128, 160, .35)); min-width: 0; }

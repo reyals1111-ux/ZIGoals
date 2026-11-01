@@ -227,6 +227,8 @@ export function showcaseNova(day: string): NovaRecord {
       {id: 'orbit', size: 'M', slot: 0}, {id: 'next', size: 'M', slot: 1}, {id: 'glance', size: 'L', slot: 2}, {id: 'water', size: 'S', slot: 3},
       {id: 'goal-pace', size: 'M', slot: 4}, {id: 'money', size: 'M', slot: 5}, {id: 'sleep', size: 'S', slot: 6}, {id: 'briefs', size: 'S', slot: 7},
       {id: 'notes', size: 'S', slot: 8}, {id: 'now-playing', size: 'S', slot: 9},
+      // Session AK WA (T1/T3): the Showcase's labelled example tasks ("Example · …") and its fictional Pomodoro history.
+      {id: 'tasks', size: 'M', slot: 10}, {id: 'focus', size: 'S', slot: 11},
     ],
     panels: {left: 'open', right: 'open'},
   });

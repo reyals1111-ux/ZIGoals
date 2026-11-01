@@ -1,6 +1,6 @@
 'use client';
 import {useRouter} from 'next/navigation';
-import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import {LoadBoundary} from '../load-boundary';
 import {useShowcase} from '../showcase-controls';
 import {useChainChoice} from '../chain/use-chain-choice';
@@ -11,7 +11,7 @@ import {openSearch} from '../search/search-trigger';
 import {showToast} from '../ui/undo-toast';
 import {isShown} from '../../lib/pages/visibility';
 import {plainErrorMessage} from '../../lib/plain-error';
-import {NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPending} from '../../lib/nova/bridge';
+import {DUO_IDLE, duoState, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, novaHandoffPending, subscribeDuo} from '../../lib/nova/bridge';
 import {dockEntries, dockForKey, type DockEntry} from '../../lib/nova/dock';
 import {greetingFor, openingSkippedNote, typedLength, type NovaOrbState} from '../../lib/nova/orb';
 import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full / Calm / Off
@@ -42,6 +42,8 @@ const NovaPanels = lazy(() => import('./panels/nova-panels').then(m => ({default
 const NovaBriefs = lazy(() => import('./panels/nova-briefs'));
 const Starfield = lazy(() => import('./starfield'));
 const NovaMiniWindow = lazy(() => import('./mini-window'));
+/** N1's Duo (lane NB's view): NOVA and ZIGi (or the person's Hermes) side by side while a task uses both; loaded only then. */
+const NovaDuo = lazy(() => import('./chat/nova-duo'));
 
 type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
@@ -73,6 +75,8 @@ export default function NovaDashboard() {
   const [editing, setEditing] = useState(false), [status, setStatus] = useState(''), [fullscreen, setFullscreen] = useState(false), [fullscreenOk, setFullscreenOk] = useState(false);
   const [pip, setPip] = useState<Window | null>(null), [pipOk, setPipOk] = useState(false);
   const root = useRef<HTMLDivElement>(null), command = useRef<HTMLInputElement>(null), fsLeftAt = useRef(0);
+  // Session AK WA (N1): the duo state NOVA's chat writes while it hands a task to ZIGi or Hermes (lib/nova/bridge.ts).
+  const duo = useSyncExternalStore(subscribeDuo, duoState, () => DUO_IDLE);
 
   const novaUpdate = nova.update;
   const save = useCallback((change: (r: NovaRecord) => NovaRecord, done?: string): boolean => {
@@ -196,10 +200,11 @@ export default function NovaDashboard() {
 
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
   const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typed={typed} brain={brain} showcase={showcase} onTalk={openChat} talkOpen={chatOpen}/>;
+  const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined}
     data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
-    <div className="nova-sky" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
+    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent}/></Suspense></LoadBoundary></div>
     {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')}
       persona={persona.name} onNova={openChat} onZigi={() => { if (launcherShown()) askZigi(''); else router.push('/app/zigi'); }} zigiStatus={brain.kind === 'none' ? 'calm' : 'on'} hermes={hermes}/>}
     <div className="nova-centre">
@@ -210,6 +215,7 @@ export default function NovaDashboard() {
       {!phone && <StatusChips brain={brain}/>}
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-live-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
       <div className="nova-stage-area">{phone ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing} opening={opening.phase === 'play'} actions={actions}/>}</div>
+      {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
       {editing && <div className="nova-editbar" role="region" aria-label="Arranging widgets"><p>Drag a widget by its grip, or use its buttons or the arrow keys on the grip. Esc when done.</p><button type="button" className="nova-btn nova-btn-primary" onClick={() => setEditing(false)}>Done</button></div>}
       <div className="nova-foot">
         {chatOpen && !phone && <div id="nova-talk" className="nova-talk" role="region" aria-label={`Conversation with ${persona.name}`}>{chat}</div>}
@@ -226,7 +232,7 @@ export default function NovaDashboard() {
       <NovaRight folded={panels.folded} onFold={(id, f) => save(rr => foldSection(rr, id, f))} onHide={() => save(rr => setRightPanel(rr, 'hidden'))} persona={persona.name} brain={brain} counts={counts} hermes={hermes}
         onTalk={openChat} wake={wakeOn(r)} onWake={on => save(rr => setWake(rr, on), on ? `${persona.name} listens for its name on this device.` : 'Wake phrase off.')} openPanel={id => setSheet({kind: 'panels', id})}/>
     </Suspense></LoadBoundary>}
-    {chatOpen && phone && <NovaSheet title={persona.name} eyebrow="Your conversation" place="bottom" onClose={closeChat}>{chat}</NovaSheet>}
+    {chatOpen && phone && <NovaSheet title={persona.name} eyebrow="Your conversation" place="bottom" onClose={closeChat}>{duoView}{chat}</NovaSheet>}
     {sheet?.kind === 'day' && <NovaSheet title="Your day" eyebrow="Morning brief and evening recap" place="right" onClose={closeSheet}><LoadBoundary label="Your day"><Suspense fallback={<Reading label="Reading your day…"/>}><NovaBriefs/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'panels' && <NovaSheet title={`${persona.name}’s panels`} eyebrow="Memory, permissions, activity, workflows, cost, models" place="right" wide onClose={closeSheet}><LoadBoundary label="The panels"><Suspense fallback={<Reading label="Opening…"/>}><NovaPanels initial={sheet.id}/></Suspense></LoadBoundary></NovaSheet>}
     {sheet?.kind === 'yours' && <NovaSheet title={`Make ${persona.name} yours`} eyebrow="On this device" place="right" wide onClose={closeSheet}><LoadBoundary label="Make it yours"><Suspense fallback={<Reading label="Opening…"/>}>

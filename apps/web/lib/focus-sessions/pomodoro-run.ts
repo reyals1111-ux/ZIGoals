@@ -9,7 +9,7 @@ import {advance, endRun, runVisibility, skipBreak, startRun, type PomodoroRun, t
 
 /**
  * Session AK (T3): the one Pomodoro run of the page, as a tiny store every view reads (the Focus Sessions panel on
- * Journey, the Tasks page, NOVA's FocusWidget) without holding the timer itself. It lives as long as the page does:
+ * Journey, the Tasks page, NOVA's Focus widget) without holding the timer itself. It lives as long as the page does:
  * moving around ZIGoals keeps it running; a reload ends it (the blocks already finished are kept). While a run is on,
  * one timer ticks each second and the page's visibility is watched (time hidden counts as away during a work block).
  *

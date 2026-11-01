@@ -39,6 +39,12 @@
 ::view-transition-group(zg-chrome-side), ::view-transition-group(zg-chrome-top), ::view-transition-group(zg-chrome-tabs) { animation: none; z-index: 3; }
 ::view-transition-old(zg-chrome-side), ::view-transition-old(zg-chrome-top), ::view-transition-old(zg-chrome-tabs) { display: none; }
 ::view-transition-new(zg-chrome-side), ::view-transition-new(zg-chrome-top), ::view-transition-new(zg-chrome-tabs) { animation: none; }
+/* Shared element (M1): a goal card's title morphs into the goal page's heading (components/motion/goal-title-morph.tsx).
+   280 ms on the spring; the words crossfade as they grow. Full only: Calm names no pair, and these rules hold if one starts. */
+::view-transition-group(.zg-morph) { animation-duration: 280ms; animation-timing-function: var(--zg-spring); z-index: 2; }
+::view-transition-old(.zg-morph), ::view-transition-new(.zg-morph) { animation-duration: 280ms; }
+:root[data-app-motion=calm]::view-transition-group(.zg-morph), :root[data-app-motion=calm]::view-transition-new(.zg-morph) { animation: none; }
+:root[data-app-motion=calm]::view-transition-old(.zg-morph) { display: none; }
 /* Off and reduced motion start no transition at all (MotionRuntime's gate); these hold if one ever starts. */
 :root[data-app-motion=off]::view-transition-group(*), :root[data-app-motion=off]::view-transition-old(*), :root[data-app-motion=off]::view-transition-new(*) { animation: none !important; }
 @media (prefers-reduced-motion: reduce) {
@@ -77,17 +83,7 @@
     animation: nebula-flow-sweep 1300ms cubic-bezier(.45, 0, .25, 1) 250ms both, zg-flow-in 1100ms var(--zg-ease-out) 120ms both;
   }
 }
-/* A nebula border that turns once around a card or control (an opt-in utility: class zg-nebula-border). */
-@property --zg-angle { syntax: '<angle>'; inherits: false; initial-value: 200deg; }
-@keyframes zg-angle-turn { from { --zg-angle: 20deg; } }
-.zg-nebula-border { position: relative; isolation: isolate; }
-.zg-nebula-border::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: conic-gradient(from var(--zg-angle), #23eaff99, #9273ff99, #ff74be99, #23eaff99);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
-@media (prefers-reduced-motion: no-preference) {
-  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .zg-nebula-border[data-entrance=once]::before { animation: zg-angle-turn 1400ms var(--zg-ease-out) both; }
-}
-@media (forced-colors: active) { .zg-nebula-border::before { display: none; } }
+/* (The turning nebula border utility, zg-nebula-border, was removed in Session AK WC: no surface used it — M2 audit.) */
 
 /* ---------- Number ticker (components/motion/number-ticker.tsx) ---------- */
 .zg-ticker { font-variant-numeric: tabular-nums; }
@@ -112,12 +108,10 @@
 @media (forced-colors: active) { .zg-burst { display: none; } }
 
 /* ---------- Refined liquid glass (M2): a 1 px specular edge and a faint grain — no pointer tracking, no blur animation ---------- */
-/* The material as a utility for new surfaces (NOVA's dock and panels can opt in with class zg-glass). */
-.zg-glass { position: relative; isolation: isolate;
-  background: color-mix(in oklab, var(--surface-1, #0b1630) 78%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid color-mix(in oklab, white 12%, transparent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -1px 0 rgb(0 0 0 / .22), 0 10px 30px rgb(2 6 23 / .35); }
+/* The control layer's glass: class zg-glass adds the edge, the grain and the sheen to a surface that already has its own
+   tinted, blurred material (NOVA's dock .nova-left and command bar .nova-command; the search palette and Quick add take the
+   edge and grain by name below). It sets no colour of its own, so each surface keeps its tint and contrast in every theme. */
+.zg-glass { position: relative; isolation: isolate; }
 @property --zg-sheen { syntax: '<angle>'; inherits: false; initial-value: 135deg; }
 :is(.zg-glass, .search-palette, .quick-add-dialog)::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
   background: linear-gradient(var(--zg-sheen), rgb(255 255 255 / .34), transparent 38% 62%, rgb(255 255 255 / .09));
@@ -132,15 +126,15 @@
 /* The lift overlay on cards (liquid-glass.tsx) gains the same specular edge. */
 .glass-light[data-kind=card] > i { background-image: linear-gradient(135deg, rgb(255 255 255 / .07), transparent 32%); }
 :root[data-theme=light] .glass-light[data-kind=card] > i { background-image: none; }
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .zg-glass { background: var(--surface-1, #0b1630); } }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
-  .zg-glass { background: var(--surface-1, #0b1630); -webkit-backdrop-filter: none; backdrop-filter: none; }
   :is(.zg-glass, .search-palette, .quick-add-dialog)::after, :is(.zg-glass, .search-palette, .quick-add-dialog)::before { display: none; }
 }
 
 /* ---------- Aurora / mesh backdrop (M2): very slow drift (90 s), only where html[data-zg-ambient=drift] (Full motion, not
-   low-end, not a low battery, tab visible). Opt-in utility: class zg-aurora on a positioned container. ---------- */
-.zg-aurora { position: relative; isolation: isolate; overflow: hidden; }
+   low-end, not a low battery, tab visible); a still gradient everywhere else. Used on NOVA's sky (.nova-sky, behind the
+   stars). A container that is already positioned keeps its own position (the default below has no weight). ---------- */
+:where(.zg-aurora) { position: relative; }
+.zg-aurora { isolation: isolate; overflow: hidden; }
 .zg-aurora::before { content: ""; position: absolute; inset: -20%; z-index: -1; pointer-events: none; opacity: .55;
   background: radial-gradient(40% 35% at 25% 30%, #23eaff2e, transparent 70%), radial-gradient(45% 40% at 75% 25%, #9273ff33, transparent 70%), radial-gradient(40% 35% at 55% 80%, #ff74be26, transparent 70%); }
 @media (prefers-reduced-motion: no-preference) {

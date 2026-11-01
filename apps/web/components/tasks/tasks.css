@@ -16,6 +16,9 @@
 .task .task-actions .text-link, .task > .text-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; justify-content: center; }
 .task[data-done] .task-title { text-decoration: line-through; text-decoration-thickness: 1px; opacity: .8; }
 .task-goal { overflow-wrap: anywhere; }
+/* Session AK (M7, layout audit): "Goal · …" is a standalone link, 20 px tall in the row's meta line; on the touch layout it
+   is a full 44 px target. */
+@media (max-width: 767.98px), (pointer: coarse) { .task-goal { display: inline-flex; align-items: center; min-height: 44px; } }
 .task-editor { grid-column: 1 / -1; padding: 8px 0 4px; }
 .task-editor-actions { display: flex; gap: 8px; align-items: end; }
 .task-editor-actions button { min-height: 44px; }
@@ -41,9 +44,6 @@
 .tasks-focus .pomodoro { padding: 16px; border-radius: 18px; border: 1px solid var(--line, rgba(128, 128, 160, .25)); }
 .goal-next-actions { display: grid; gap: 10px; }
 .tasks-widget { display: grid; gap: 8px; min-width: 0; }
-.tasks-widget-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; font-size: 17px; }
-.tasks-widget-title small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
-.tasks-widget-link { display: inline-flex; align-items: center; min-height: 44px; }
 .tasks-widget .task { grid-template-areas: "done title" "done meta"; grid-template-columns: auto 1fr; }
 @media (max-width: 479.98px) {
   .task { grid-template-areas: "done title" "done meta" "done actions"; grid-template-columns: auto minmax(0, 1fr); }

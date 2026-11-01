@@ -43,7 +43,7 @@ import {getAppStorage} from '../../lib/showcase-storage';
 import {LOG_MODE_NOTE} from '../../lib/ai/context/specialists';
 import {PHOTO_NOTE} from '../../lib/ai/photo';
 import type {ChatImage, ChatRequest} from '../../lib/ai/types';
-import {rememberChatArea} from '../../lib/ai/history';
+import {forgetChatAreas, rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {localDate} from '../../lib/local-date';
@@ -128,6 +128,8 @@ export type NovaSurface = {persona: string;
    */
   moreEnv?: (handles: Handles) => ToolEnv | null;
   remember?: (chatId: string) => void;
+  /** Session AK (G1 #20): "Don't keep this chat" pressed mid-conversation: this chat leaves NOVA's own record (lib/nova/bridge.ts). */
+  forget?: (chatId: string) => void;
   /** Session AK (owner follow-up 3 N11): the person's own agent, when connected (null: not connected). */
   agent?: (name: NovaAgentName) => NovaAgent | null};
 export type NovaAgentName = 'hermes';
@@ -168,6 +170,15 @@ export type ChatSession = {
   toolState: (model: string | null) => {capability: Capability | null; fellBack: boolean};
   /** Session V Part 10: a chat pinned in History (a version 2 record), and the person's own note on an answer (device only, never sent). */
   pin: (id: string, pinned: boolean) => Promise<void>; setFeedback: (turnId: string, value: 'up' | 'down' | undefined) => void; say: (shown: string, text: string) => void;
+  /**
+   * Session AK (G1 #20, "A chat that isn't kept"): false once the person pressed "Don't keep this chat" for this
+   * conversation. From then on nothing of it is written on this device: not to the chat store (History, NOVA's
+   * Conversations), not to History's page index, not to NOVA's bridge record; a chat already saved is removed from all
+   * three at that moment. It lives in this panel's memory only and is gone when the panel closes, a new chat starts or
+   * another one opens (each of those starts kept again). Sending is unchanged: the privacy mode, the gates, the secret
+   * guard, the spend cap and the usage meter all still apply. `setKept(true)` keeps it after all (saved as it is now).
+   */
+  kept: boolean; setKept: (keep: boolean) => void;
 };
 const SAVE_NOTE = 'This chat could not be saved on this device; it stays here until you close it.';
 /** A local answer's records once more, under the same gate, for its chart (Session V Part 10; nothing is stored). */
@@ -198,11 +209,15 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const capabilities = useRef(new Map<string, Promise<Capability>>()), known = useRef(new Map<string, Capability>()), fellBack = useRef(new Set<string>()), lookups = useRef(new Map<string, Lookup[]>());
   const contextRef = useRef(context), noted = useRef<string | null>(null);
   useEffect(() => { contextRef.current = context; }, [context]);
+  // Session AK (G1 #20): whether this conversation is kept (a ref too, so a reply that ends after the switch reads it).
+  const [kept, setKeptState] = useState(true), keptRef = useRef(true), saving = useRef<Promise<unknown>>(Promise.resolve());
+  const keepAgain = useCallback(() => { keptRef.current = true; setKeptState(true); }, []);
   const [looking, setLooking] = useState<readonly string[]>([]), [lastMode, setLastMode] = useState<ChatSession['lastMode']>(null), [spendCheck, setSpendCheck] = useState<SpendCheck | null>(null), [usageNote, setUsageNote] = useState<string | null>(null);
   // A new scope (account change) starts a fresh, empty conversation; nothing from the previous one is kept in memory.
-  useEffect(() => { abort.current?.abort(); handles.current.clear(); fresh.current.clear(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setDraft(''); setStatus('idle'); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- only the scope resets the chat
+  useEffect(() => { abort.current?.abort(); handles.current.clear(); fresh.current.clear(); keepAgain(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setDraft(''); setStatus('idle'); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- only the scope resets the chat
   useEffect(() => () => { abort.current?.abort(); frame.current?.(); }, []);
-  const persist = useCallback((next: Chat) => { if (!next.turns.length) return; store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [store]);
+  // Session AK (G1 #20): a chat that is not kept is never written (`keptRef`, read at the moment of each save).
+  const persist = useCallback((next: Chat) => { if (!keptRef.current || !next.turns.length) return; saving.current = store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [store]);
   const parsed = useMemo(() => { const map = new Map<string, ParsedReply>(); for (const turn of chat.turns) if (turn.role === 'assistant') map.set(turn.id, parseReply(turn.text)); return map; }, [chat.turns]);
   // A reply's handles (h1, h2…) name the records of the page it was asked on, kept in memory for this session. A turn from
   // before a reload or from History has none: its cards may still name a record by its title on this page, never by a
@@ -239,7 +254,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   }, [settings.baseUrl, settings.localServer, settings.provider]);
   /** The page a chat started on, for History's filter (Session V Part 10); never on Settings, which attaches nothing. */
   // Session AK (NOVA): a NOVA chat keeps its start in NOVA's own map instead (ZIGi's index then shows it under "All pages").
-  const rememberArea = useCallback((chatId: string) => { if (nova) { try { nova.remember?.(chatId); } catch { /* the origin is a convenience */ } return; } if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches, nova]);
+  const rememberArea = useCallback((chatId: string) => { if (!keptRef.current) return; /* G1 #20: a chat that is not kept leaves no index entry */ if (nova) { try { nova.remember?.(chatId); } catch { /* the origin is a convenience */ } return; } if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches, nova]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
     if (looksSecret(text)) { setFailure({kind: 'blocked', title: ZIGI_SECRET_TITLE, steps: [...ZIGI_SECRET_STEPS]}); return; } // Session AK (B2a #1): refused before anything is stored or sent
@@ -535,14 +550,15 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const localFor = useCallback((turnId: string) => locals.current.get(turnId), []);
   /** Session V Part 10: words ZIGi writes on the device (the /help list, a command that needs an AI), kept as a local turn. */
   const say = useCallback((shown: string, text: string) => answerLocally(shown, shown, {kind: 'answer', text, calls: []}), [answerLocally]);
-  const startNew = useCallback(() => { abort.current?.abort(); fresh.current.clear(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [scope, setChat, settings.model, settings.provider]);
-  const open = useCallback(async (id: string) => { const found = await store.read(id); if (found) { abort.current?.abort(); fresh.current.clear(); setChat(found); setFailure(null); setConfirmation(null); } }, [setChat, store]);
+  const startNew = useCallback(() => { abort.current?.abort(); fresh.current.clear(); keepAgain(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [keepAgain, scope, setChat, settings.model, settings.provider]);
+  const open = useCallback(async (id: string) => { const found = await store.read(id); if (found) { abort.current?.abort(); fresh.current.clear(); keepAgain(); setChat(found); setFailure(null); setConfirmation(null); } }, [keepAgain, setChat, store]);
   const rename = useCallback(async (id: string, title: string) => { await store.rename(id, title); if (chatRef.current.id === id) setChat({...chatRef.current, title: title.trim() || chatRef.current.title}); }, [setChat, store]);
   const remove = useCallback(async (id: string) => { await store.remove(id); if (chatRef.current.id === id) startNew(); }, [startNew, store]);
   const removeAll = useCallback(async () => { await store.removeAll(); startNew(); }, [startNew, store]);
   const list = useCallback(() => store.list(), [store]), search = useCallback((query: string) => store.search(query), [store]);
   const dismissFailure = useCallback(() => setFailure(null), []), cancelConfirmation = useCallback(() => setConfirmation(null), []);
   const pin = useCallback(async (id: string, pinned: boolean) => {
+    if (!keptRef.current && chatRef.current.id === id) return; // G1 #20: a chat that is not kept is not in History to pin
     const pinnedAs = (chat: Chat): Chat => { const next = {...chat}; if (pinned) next.pinned = true; else delete next.pinned; return next; };
     const current = chatRef.current.id === id && chatRef.current.turns.length ? chatRef.current : await store.read(id);
     if (!current) return;
@@ -554,6 +570,23 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     const next = {...chatRef.current, turns}; setChat(next); persist(next);
     if (value) zigiSignals.emit('feedback_received'); // Session AK Part 12: ZIGi got the person's note on its answer (a Studio-4 reaction once its art lands).
   }, [persist, setChat]);
+  /**
+   * Session AK (G1 #20): "Don't keep this chat" / "Keep this chat". Not kept: a copy already saved leaves the chat store
+   * (after any save still in flight), History's page index and NOVA's bridge record, exactly as a deleted chat does.
+   * Kept again: saved as it is now, its start noted where a kept chat's would be.
+   */
+  const setKept = useCallback((keep: boolean) => {
+    if (keep === keptRef.current) return;
+    keptRef.current = keep; setKeptState(keep);
+    const current = chatRef.current;
+    if (keep) { persist(current); if (current.turns.length) rememberArea(current.id); return; }
+    setSaveNote(null);
+    if (!current.turns.length) return;
+    const id = current.id;
+    void saving.current.then(() => store.remove(id)).catch(() => undefined);
+    try { forgetChatAreas(getAppStorage(), [id]); } catch { /* the index is a convenience */ }
+    if (nova?.forget) { try { nova.forget(id); } catch { /* NOVA's record is a convenience */ } }
+  }, [nova, persist, rememberArea, store]);
   return {chat, status, draft, failure, confirmation, saveNote, parsed, handlesFor, claimFresh, send, stop, regenerate, dismissFailure, cancelConfirmation, ask, choose, askMore, moreText, localFor, startNew, open, list, search, rename, remove, removeAll,
-    looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState, pin, setFeedback, say};
+    looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState, pin, setFeedback, say, kept, setKept};
 }

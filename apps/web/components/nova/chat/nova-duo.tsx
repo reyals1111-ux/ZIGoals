@@ -9,8 +9,10 @@ import './nova-chat.css';
 /**
  * The Duo (Session AK, owner follow-up 2 N1): while ZIGi works on a page task NOVA handed over, NOVA's figure and ZIGi's
  * (its own look, unchanged) stand side by side on NOVA's dashboard, each with the step it is on. It shows only while a task
- * uses both (and its result for a moment after); otherwise it renders nothing, so the dashboard can always mount it. The
- * step is announced once per change; nothing moves under reduced motion or Motion Off.
+ * uses both (and its result for a moment after); otherwise it renders nothing. NOVA's dashboard mounts it (lazily, once
+ * the state is active) above the conversation on a computer and at the top of the phone's chat sheet. The chat itself
+ * announces the hand-over and the report (its own live line), so this view is not a second live region; the step it is on
+ * is marked with aria-current. Nothing moves under reduced motion or Motion Off.
  */
 const STEPS: readonly DuoStep[] = ['handed', 'reading', 'answering', 'reported'];
 export function duoLines(state: DuoState, persona: string): {nova: string; zigi: string} {
@@ -40,7 +42,6 @@ export function NovaDuo({persona = {name: 'NOVA', avatar: 'orb'}}: {persona?: No
     <div className="nova-duo-side"><PersonaFigure persona={persona} size={44} state={working ? 'thinking' : 'idle'}/><p><strong>{persona.name}</strong><span>{lines.nova}</span></p></div>
     <ol className="nova-duo-steps" aria-label="Steps">{STEPS.map((step, i) => <li key={step} data-done={at >= i ? '' : undefined} aria-current={at === i ? 'step' : undefined}>{['Handed over', 'Reading', 'Answering', 'Reported back'][i]}</li>)}</ol>
     <div className="nova-duo-side">{hermes ? <AgentGlyph size={44}/> : <ZigiAvatar state={state.step === 'reading' ? 'reading-your-data' : state.step === 'answering' ? 'speaking' : state.step === 'reported' ? 'success' : 'idle'} size={44} decorative/>}<p><strong>{other}</strong><span>{lines.zigi}</span></p></div>
-    <p className="ai-sr-only" role="status" aria-live="polite">{`${lines.nova}. ${other}: ${lines.zigi}.`}</p>
   </section>;
 }
 export default NovaDuo;

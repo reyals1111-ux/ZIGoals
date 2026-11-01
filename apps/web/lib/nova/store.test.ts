@@ -135,5 +135,7 @@ describe('the Showcase’s NOVA (proposed for the lead)', () => {
     expect(novaRecordSchema.safeParse(r).success).toBe(true);
     expect(r.openingSeen).toBeUndefined(); expect(r.yourName).toBeUndefined(); expect(r.customInstructions).toBeUndefined();
     expect(widgetsFor(r).map(w => w.id)).toContain('briefs');
+    // Session AK WA (T1/T3): the tasks and the running-focus widgets read the Showcase's own labelled records.
+    expect(widgetsFor(r).map(w => w.id)).toEqual(expect.arrayContaining(['tasks', 'focus']));
   });
 });

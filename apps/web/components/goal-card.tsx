@@ -20,6 +20,9 @@ import {useCardArt} from './goals/use-card-art';
 import type {CardArt} from '../lib/card-art/catalog';
 import './goal-card-ab.css';
 import {StarToggle} from './checklist/star-toggle';
+// Session AK M1: the title morphs into the goal page's heading (Full motion only).
+import {GoalTitleMorph} from './motion/goal-title-morph';
+import {noteGoalOpen} from '../lib/motion/goal-morph';
 const GoalArtPicker = lazy(() => import('./goals/goal-art-picker'));
 export const displayAmount= formatGoalAmount;
 export function GoalProgressRing({name,progressPct,goalId,assetMix=[],complete,bound}:{assetMix?:AssetMix[];name:string;progressPct:string;goalId?:string;complete?:boolean;bound?:ProgressBound}){
@@ -34,11 +37,13 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
  // Session AB-Design (owner request 17): the chosen artwork (AB-Cloud's cardArt through the mirror, or the Showcase's), previewed while the picker is open; the card's size never changes.
  const chosen=useCardArt(g.key),[picker,setPicker]=useState(false),[preview,setPreview]=useState<CardArt|null>(null),gid=useId();
  const scene:CardArt=preview??chosen??g.scene;
+ const morph=!compact&&g.href.startsWith('/app/goals/tracked/'),open=()=>noteGoalOpen(g.id,g.name);
  return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
   <div className="goal-card-art"><Suspense fallback={null}><SceneArt scene={scene}/></Suspense><span>{g.type}</span></div>
   <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{/* Session AF (the lead): the Checklist star and the card's options stay together at the row's end, so the options menu never opens past the card when the row wraps (it opened under the sidebar at 1280 × 720). */}{!compact&&g.status!=='closed'&&<span className="card-top-tools">{g.key.startsWith('private:')&&<StarToggle item={{kind:'goal',goalId:g.id}} label={g.name}/>}<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`,menu:'progress'},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`,menu:'next contribution'}]} extra={<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button>}/></span>}</div>
   {picker&&<Suspense fallback={null}><GoalArtPicker goalKey={g.key} name={g.name} current={scene} onClose={()=>setPicker(false)} onPreview={setPreview}/></Suspense>}
-  <h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>
+  {/* Session AK M1: a private goal's full card (one per goal on its page) shares its title with the goal page's heading. */}
+  {morph?<GoalTitleMorph id={g.id}><h2 className="nebula-number"><Link href={g.href} onClick={open}>{g.name}</Link></h2></GoalTitleMorph>:<h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>}
   <p className="goal-value nebula-number">{g.progressBound==='unavailable'&&!g.heldAsset?'Value unavailable':`${g.progressBound==='at-least'?'At least ':''}${formatGoalAmount(g.current,g.heldAsset??g.currency)}`}<span> / {g.target?formatGoalAmount(g.target,g.currency):'No target saved'}</span></p>
   <div className="goal-progress"><GoalProgressRing goalId={g.id} name={g.name} progressPct={g.progressPct} assetMix={g.assetMix} complete={g.status==='closed'?undefined:g.status==='completed'} bound={g.progressBound}/><div className="goal-progress-caption"><strong>{g.currency==='milestones'?'Of your journey complete':g.progressBound==='unavailable'?'Progress unavailable':g.progressBound==='at-least'?`${progressText(g.progressPct,'at-least')} of your goal funded`:'Of your goal funded'}</strong><span className={g.remaining!==undefined?'goal-remaining':undefined}>{g.heldAsset||g.progressBound==='unavailable'?'Remaining unknown':g.remaining!==undefined?`${g.progressBound==='at-least'?'At most ':''}${formatGoalAmount(g.remaining,g.currency)} remaining`:'Recover your plan'}</span>{g.targetDate&&<span className="goal-target">Target <time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time></span>}</div></div>
   {unvaluedNote(g)&&<p className="fine valuation-state">{unvaluedNote(g)}</p>}
@@ -56,7 +61,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
     {g.nextContributionDate&&<p className="goal-next-contribution"><span>Next contribution</span><time dateTime={g.nextContributionDate}>{formatDate(g.nextContributionDate)}</time></p>}
     <p className="fine goal-card-state">{g.source} · {g.status}{g.requiresReview?' · Review needed':''}</p>
    </details>
-   <div className="card-footer"><Link href={g.href} className="text-link">Open Goal →</Link></div>
+   <div className="card-footer"><Link href={g.href} className="text-link" onClick={morph?open:undefined}>Open Goal →</Link></div>
   </>}
  </article>;
 }

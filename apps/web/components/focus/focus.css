@@ -26,8 +26,3 @@
 .focus-modes { display: flex; flex-wrap: wrap; gap: 6px; }
 .focus-modes button { min-height: 44px; }
 
-.focus-widget { display: grid; gap: 8px; min-width: 0; }
-.focus-widget-title { margin: 0; font-size: 17px; }
-.focus-widget-line { margin: 0; overflow-wrap: anywhere; }
-.focus-widget-clock { font-size: 26px; font-weight: 750; font-variant-numeric: tabular-nums; }
-.focus-widget .pomodoro-actions a { display: inline-flex; align-items: center; min-height: 44px; }

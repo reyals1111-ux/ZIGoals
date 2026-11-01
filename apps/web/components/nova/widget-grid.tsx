@@ -12,7 +12,7 @@ import './widgets/widgets.css';
 /** Each widget's body is its own chunk, loaded only while that widget is on the stage. */
 type Body = ComponentType<{size: WidgetSize}>;
 const BODIES: Record<string, Body> = {
-  orbit: lazy(() => import('./widgets/orbit')), next: lazy(() => import('./widgets/next')), glance: lazy(() => import('./widgets/glance')),
+  orbit: lazy(() => import('./widgets/orbit')), next: lazy(() => import('./widgets/next')), tasks: lazy(() => import('./widgets/tasks')), glance: lazy(() => import('./widgets/glance')),
   water: lazy(() => import('./widgets/water')), focus: lazy(() => import('./widgets/focus')), 'now-playing': lazy(() => import('./widgets/now-playing')),
   money: lazy(() => import('./widgets/money')), 'goal-pace': lazy(() => import('./widgets/goal-pace')), sleep: lazy(() => import('./widgets/sleep')),
   briefs: lazy(() => import('./widgets/briefs')), notes: lazy(() => import('./widgets/notes')), markets: lazy(() => import('./widgets/markets')),

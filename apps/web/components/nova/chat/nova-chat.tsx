@@ -18,7 +18,7 @@ import {helpText, parseSlash} from '../../../lib/ai/slash';
 import {ZIGI_STORE_EVENT} from '../../../lib/ai/store/keys';
 import {briefPrefs, ZIGI, zigiPrefs} from '../../../lib/ai/store/records';
 import {readDeviceRecord} from '../../../lib/device-record';
-import {askZigi, DUO_IDLE, type NovaAgentId, duoState, latestNovaChat, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
+import {askZigi, DUO_IDLE, type DelegatedTurn, type NovaAgentId, duoState, forgetNovaChats, latestNovaChat, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
 import {pagePack, taskToolEnv} from '../../../lib/nova/bridge-pack';
 import {readNovaScopes, scopesOf} from '../../../lib/nova/scopes';
 import {NOVA_SETUP} from '../../../lib/nova/setup';
@@ -47,6 +47,8 @@ import {useSensitiveScreen} from '../../ai/use-sensitive-screen';
 import {useReadAloud} from '../../ai/use-voice';
 import {ZigiAvatar} from '../../zigi/zigi-avatar';
 import {NovaComposer, type Editing} from './nova-composer';
+// Session AK (G1 #20): "Don't keep this chat" (one engine with ZIGi: use-chat-session `kept`).
+import {DONT_KEEP_LABEL, UnkeptBanner, UnkeptOffer} from '../../ai/unkept-chat';
 import {downloadChat, NovaConversations} from './nova-conversations';
 import {AgentGlyph, PersonaFigure} from './nova-figure';
 import {NovaReplyTurn, NovaUserTurn, type TurnCommon} from './nova-turns';
@@ -113,13 +115,16 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     moreEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
     localEnv: () => novaLocalEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}),
     remember: chatId => { rememberNovaChat(getAppStorage(), chatId); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); },
+    forget: chatId => { forgetNovaChats(getAppStorage(), [chatId]); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); }, // G1 #20
     agent: name => name === 'hermes' ? hermesRef.current : null,
   }), [persona.name, packInput]);
   /** R2-2: NOVA's on-device environment from this render's records (the welcome's questions, /brief and /log). */
   const setupRec = useDeviceRecord(NOVA_SETUP), scopesNow = useMemo(() => setupRec.unreadable ? {...DEFAULT_NOVA_SCOPES} : scopesOf(setupRec.data), [setupRec.unreadable, setupRec.data]);
   const localEnvNow = useCallback(() => novaLocalEnv({sources: context.toolSources(), gates: context.gates, scopes: scopesNow, chainChosen}), [context, scopesNow, chainChosen]);
   const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.health}), autoAccept = useAutoAccept(context.gates.health);
-  const bridge = useDeviceRecord(NOVA_BRIDGE), marks = useMemo(() => bridge.data.delegated ?? {}, [bridge.data.delegated]), speechOn = speechInputOn(bridge.data);
+  // G1 #20: a task handed over in a chat that is not kept is marked in memory only (`unkeptMarks`), never in the bridge record.
+  const [unkeptMarks, setUnkeptMarks] = useState<Record<string, DelegatedTurn>>({});
+  const bridge = useDeviceRecord(NOVA_BRIDGE), marks = useMemo(() => ({...(bridge.data.delegated ?? {}), ...unkeptMarks}), [bridge.data.delegated, unkeptMarks]), speechOn = speechInputOn(bridge.data);
   const [deleg, setDeleg] = useState<{area: PageArea; agent: NovaAgentId} | null>(null), [view, setView] = useState<'chat' | 'list'>('chat'), [editing, setEditing] = useState<Editing | null>(null), [note, setNote] = useState(''), [listening, setListening] = useState(false), [tick, setTick] = useState(0);
   const composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null), titleId = useId(), delegation = useRef<Delegation | null>(null), duoTimer = useRef<number | null>(null), spokenAsked = useRef(false);
   const reader = useReadAloud(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
@@ -208,13 +213,14 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     delegation.current = null; setDeleg(null);
     const fresh = session.chat.id === d.chatId ? session.chat.turns.filter(t => !d.before.has(t.id)) : [];
     const task = fresh.find(t => t.role === 'user')?.id ?? null, replies = fresh.filter(t => t.role === 'assistant').map(t => t.id);
-    try { markDelegated(getAppStorage(), d.chatId, d.area, {task, replies}, d.agent); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); } catch { /* the two voices are a convenience; the answer stands */ }
+    if (!session.kept) { const who = d.agent === 'zigi' ? {} : {agent: d.agent}; setUnkeptMarks(m => ({...m, ...(task ? {[task]: {chat: d.chatId, area: d.area, role: 'task' as const, ...who}} : {}), ...Object.fromEntries(replies.map(r => [r, {chat: d.chatId, area: d.area, role: 'reply' as const, ...who}]))})); }
+    else try { markDelegated(getAppStorage(), d.chatId, d.area, {task, replies}, d.agent); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); } catch { /* the two voices are a convenience; the answer stands */ }
     setDuo({...duoState(), step: replies.length ? 'reported' : 'stopped'});
     const who = d.agent === 'hermes' ? 'your Hermes Agent' : 'ZIGi';
     setNote(replies.length ? (d.agent === 'hermes' ? 'Your Hermes Agent reported back.' : `ZIGi reported back from ${AREA_LABELS[d.area]}.`) : `The task for ${who} stopped.`);
     if (duoTimer.current !== null) window.clearTimeout(duoTimer.current);
     duoTimer.current = window.setTimeout(() => { duoTimer.current = null; if (!delegation.current) setDuo(DUO_IDLE); }, 12_000);
-  }, [tick, session.status, session.chat]);
+  }, [tick, session.status, session.chat, session.kept]);
   useEffect(() => () => { if (duoTimer.current !== null) window.clearTimeout(duoTimer.current); setDuo(DUO_IDLE); }, []);
 
   // ---- Hand-offs: "Continue in NOVA", the command bar, a task from elsewhere in NOVA ----
@@ -291,18 +297,21 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       <div className="nova-chat-tools" role="toolbar" aria-label="Chat tools">
         <button type="button" className="secondary nova-tool" onClick={startNew}>New chat</button>
         <button type="button" className="secondary nova-tool" aria-pressed={view === 'list'} onClick={() => setView(v => v === 'list' ? 'chat' : 'list')}>Conversations</button>
-        <button type="button" className="secondary nova-tool" disabled={!session.chat.turns.length} onClick={() => void downloadChat(session.chat.id, persona.name).then(ok => setNote(ok ? 'Saved this conversation as a Markdown file on this device.' : 'This conversation is not saved yet.'))}>Save as Markdown</button>
+        <button type="button" className="secondary nova-tool" aria-pressed={!session.kept} onClick={() => { session.setKept(!session.kept); setNote(session.kept ? 'This chat is not kept. Nothing of it is saved on this device.' : 'This chat is kept again, in Conversations.'); }}>{DONT_KEEP_LABEL}</button>
+        <button type="button" className="secondary nova-tool" disabled={!session.chat.turns.length || !session.kept} onClick={() => void downloadChat(session.chat.id, persona.name).then(ok => setNote(ok ? 'Saved this conversation as a Markdown file on this device.' : 'This conversation is not saved yet.'))}>Save as Markdown</button>
         {onCollapse && <button type="button" className="nova-close" aria-label={`Fold ${persona.name}’s chat into the command field`} title="Fold into the command field" onClick={onCollapse}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>}
         {onClose && <button type="button" className="nova-close" aria-label={`Close ${persona.name}’s chat`} title="Close" onClick={onClose}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg></button>}
       </div>
     </header>
     {view === 'list' ? <NovaConversations session={session} persona={persona.name} onOpen={() => { setView('chat'); composer.current?.focus(); }}/> : <>
       <div ref={log} className="nova-chat-log" role="log" aria-label="Conversation">
+        {!session.kept && <UnkeptBanner list="Conversations" closing={`close ${persona.name}’s chat`} onKeep={() => { session.setKept(true); setNote('This chat is kept again, in Conversations.'); }}/>}
         {session.chat.turns.length === 0 && <div className="nova-welcome">
           <p className="nova-eyebrow">Your private intelligence</p>
           <p className="nova-welcome-title">Think out loud.</p>
           <p className="nova-welcome-sub">One conversation, your whole constellation: goals, habits, health and wealth, on this device. {novaAndZigi(persona.name)} They share this history.</p>
           {lastChat && !busy && <p className="nova-continue"><button type="button" className="secondary nova-tool" onClick={() => void openChat(lastChat.id).then(() => composer.current?.focus())}>Continue your last conversation</button> <span className="fine">“{lastChat.title}”</span></p>}
+          {session.kept && !busy && <UnkeptOffer onDontKeep={() => { session.setKept(false); setNote('This chat is not kept. Nothing of it is saved on this device.'); composer.current?.focus(); }}/>}
           {examples.length > 0 && !busy && <div className="ai-chips" role="group" aria-label="Questions to start with">{examples.map(e => <button key={e} type="button" className="ai-chip" title={e} onClick={() => ask(e)}>{e}</button>)}</div>}
         </div>}
         {!connected && session.chat.turns.length === 0 && <div className="nova-invite" role="note" aria-label={`Build ${persona.name}’s brain`}>
@@ -358,7 +367,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
         <p className="ai-note">Exactly the records that go with your next message, after your privacy mode. Change what {persona.name} may read in NOVA → Permissions.</p>
         {seeing === '' ? <p className="ai-note">Nothing is read right now (a private screen, or the records are still loading).</p> : seeing && <pre tabIndex={0}>{seeing}</pre>}
       </details>}
-      <p className="nova-chat-foot">Your conversation stays on this device, in one history with ZIGi, whichever model answers.</p>
+      <p className="nova-chat-foot">{session.kept ? 'Your conversation stays on this device, in one history with ZIGi, whichever model answers.' : 'This conversation is not kept: it is gone when you close it or start a new chat.'}</p>
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
   </section>;
