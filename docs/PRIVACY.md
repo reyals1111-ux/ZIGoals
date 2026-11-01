@@ -225,3 +225,11 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
   goes before it is sent; nothing leaves until you press Send. Tasks handed to ZIGi or your Hermes follow NOVA →
   Permissions too (Health only when it is on there and shared with ZIGi); records go to Hermes marked as data, never
   instructions, and recovery words are hidden in what is sent and in the summary file.
+- **A chat that isn't kept:** a conversation marked "Don't keep this chat" is held only in the open page's memory and never
+  written to this device's storage; any copy saved before you pressed it is removed at that moment. It still goes to the
+  AI you chose, in your privacy mode.
+- **Memory and notes:** ZIGi's and NOVA's memory is in "Export everything" and can be restored from it; its health and diet
+  notes restore only when you choose Health. Notes reach an AI only through NOVA, with Notes allowed in NOVA →
+  Permissions and your own model.
+- **Running now:** NOVA's live chips read the timers already on this device (Pomodoro, meditation, habit timers, fasting,
+  sleep); nothing is stored or sent.

@@ -130,6 +130,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["nova-yours", "How do I make NOVA mine, and what does Share my NOVA setup include?"],
   ["nova-briefs", "What are NOVA's briefs, workflows and memory?"],
   ["nova-safety", "When does NOVA never add a card on its own, and what about imported workflows?"],
+  ["ak-unkept-chat", "Can I have a chat that is not kept?"],
   ["notes-what", "How do notes work?"],
   ["tasks-what", "How do tasks, calendar import and Pomodoro work?"],
   ["y-vacation", "Can I end a vacation early?"],
