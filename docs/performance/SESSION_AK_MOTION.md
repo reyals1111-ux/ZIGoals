@@ -145,3 +145,89 @@ only that line re-renders while it types. The opening's look, timing, skip and C
 - **"Complete Drink water"** could not be measured after: the button did not come into view within the script's 5 s on
   the phone layout in any run (Today's widget area mounts on view on phones since R11, and its habits list changed); the
   method was kept as it was, so this cell stays n/a rather than measuring another control.
+
+## P8b — the two regressions fixed at their cause (Session AK, lane P8b)
+
+### Cause (named by element and rule, not by phase)
+- **One `:has()` set for the whole page.** Blink keeps a single invalidation set for every `:has()` that is not in a
+  selector's last part (`A:has(x) B`). Each change of the page's tree under an element such a rule watches (`:root:has(…)`,
+  `body:has(…)`, …) applies that set, and the set is the union of every such rule's last part. Three old rules widened it:
+  `components/ui/card-header.css` `… :has(…):not(:has(…)) > :first-child` (no class, so **whole subtree**: the whole
+  document), `components/phone/phone-shell.css` `… .workspace-status > span` (every `<span>`) and
+  `components/checklist/today-checklist.css` `… .today-checklist-next strong` (every `<strong>`). They date from 14–26 Oct and
+  cost nothing while nothing changed the tree during a scroll.
+- **Today's scroll:** the Wealth total's count-up (M1) replaced the running digits' text node every frame (`textContent`),
+  a tree change; a trace with invalidation tracking (`p8b/diag-scroll.js`) shows each of those frames restyling 2,478
+  elements (`Invalidation set invalidates subtree | HTML | …health-section-heading… > :first-child`), 150–191 ms at CPU 4×.
+  The two rAF long tasks M7 saw are the same recalculation, forced by layout reads in the frame's callbacks.
+- **Earn's load:** the path engine, the page arrival and ZIGi's resting-spot check each change the tree and then read
+  layout, so every read paid the same whole-document restyle. On top of that, ZIGi's check (`firstScreenControls`,
+  `components/ai/launcher-rest.ts`, since 8 Oct) read the box of every control in `main`, which makes the browser lay out
+  the sections F8 put under `content-visibility: auto`, after every change to `main` while the page loads (x48 forced
+  recalculations, x34 layouts, 1.1 s of its own script in one traced load).
+- **"What's a validator?":** the opened explanation is a tree change; its render restyled ~1,500 elements for the same
+  card-header rule (the tap trace's other long task is Playwright's own `getByRole` query, `isElementHiddenForAria`).
+- Checked and not the cause: G3's new `.panel:has(:focus-visible)` rules and the shell's `main:has(…)` rules (neutralising
+  them on the wire changed Earn's load TBT by −330 ms, inside the noise, so G3's look stays); the ticker's per-frame text
+  writes themselves (a character change is cheap once the set is narrow).
+
+### Fixes (same look, same elements matched, same specificity)
+- `card-header.css`: the first child is chosen from its own side — `> :first-child:has(~ :is(.card-options,
+  .pin-to-today)):not(:has(~ :is(p, h2, h3, h4):not(:first-child)))` plus the case where that first child is itself the
+  options — a subject `:has()`, so only that element is rechecked; specificity stays (0,5,1).
+- `phone-shell.css`: `… > :where(.workspace-status) > span[role="status"]`; `today-checklist.css`:
+  `… :where(.today-checklist-next) strong[data-next-step]` (both elements always carry the attribute; the class moves into
+  `:where()` so the weight is unchanged). A first try with the attribute inside `:where()` changed nothing in the trace:
+  Blink takes no invalidation feature from `:where()`.
+- `components/motion/number-ticker.tsx`: each frame writes the running text node's `data` (no node replaced, so no tree
+  change); start and end swaps, `data-running`, the readable copy and the held width are as before.
+- `components/ai/launcher-rest.ts`: a control inside a skipped `content-visibility` section is left out without reading
+  its box (`checkVisibility({contentVisibilityAuto: true}) === false`); such a section is off screen by definition, and
+  the check runs only at the top of the page. Where the API is missing, every control is measured as before.
+- Guard: `lib/perf/has-invalidation.test.ts` fails if any stylesheet in `app/`, `components/` or `themes/` gains a `:has()`
+  rule whose last part names no class, id or attribute. Two known exceptions, reported and not changed: the PROTECTED
+  Checklist overlay's `:root:has(.checklist-overlay[open]) … > :not(…)` rules (`checklist.css`, /app/checklist only); a
+  look-keeping fix needs an attribute set on `<html>` while the overlay is open, i.e. script on a route with ~0 kB headroom
+  — the owner's call. `lib/perf/ticker-tree.client.test.ts` pins that the ticker's frames add or remove no node.
+
+### Before / after (phone 390, DPR 3, CPU 4×, Showcase, Full motion; median of 3; ms)
+Measured on the served build of `00f3a69d` with the fixes applied on the wire (`p8b/exp-load.js`: the CSS rewritten in
+the responses; the two script changes emulated by an init script), variants alternating within each run, in inp-lt.js's
+order (6 s settle → 12 wheel steps → tap).
+
+| Route | Figure | F8 / lane M "before" | M7 "after" | P8b base (same session) | P8b fixed | Runs (fixed) |
+|---|---|---|---|---|---|---|
+| Today | scroll: long tasks / longest / TBT | 0 / 0 / 0 | 8 / 249 / 991 | 7 / 244 / 1029 | **1 / 83 / 33** | TBT 147, 33, 21 |
+| Today | load TBT | 5012 | 4566 | 5597 | 5318 | 5468, 4338, 5318 |
+| Today | tap "Quick add (+)" | 384 | 480 | 480 | 544 | 544, 512, 560 (base 360–544; the emulation wraps every `querySelectorAll` and `textContent` write, so this cell waits for the rebuild) |
+| Earn | load: long tasks / longest / TBT | 21 / 1176 / 3288 | 23 / 1517 / 5001 | 30 / 1785 / 6466 | **20 / 1212 / 3474** | TBT 3958, 3474, 3344 |
+| Earn | scroll TBT | 148 | 260 | 276 | **30** | 30, 37, 0 |
+| Earn | tap "What's a validator?" | 296 | 400 | 384 | **232** | 232, 248, 208 |
+
+Step by step on Earn (load TBT, median of 3): base 5555 → the three CSS rules 4019 → plus the launcher change 3367; the tap
+440 → 264 with the CSS alone. Scripts and raw runs: scratchpad `p8b/` (`diag-scroll.js`, `diag-load.js`, `exp-load.js`,
+`fix.json`, `exp-*.json`).
+
+### After, on the rebuild (the real build, not emulated)
+`m5/inp-lt.js` unchanged (`ROUTES_ONLY=before`, the three routes lane M measured), against the lead's production build
+carrying `e123fe36`, measured 14:18 UTC, 1 Nov 2026; median of 3 (per-run values in scratchpad `m5/p8b-after.json`).
+
+| Route | Figure | Before (lane M) | M7 after | **P8b after** | Runs |
+|---|---|---|---|---|---|
+| Today | scroll: long tasks / longest / TBT | 0 / 0 / 0 | 8 / 249 / 991 | **2 / 65 / 23** | TBT 23, 36, 6 (longest 56–66) |
+| Today | load: long tasks / longest / TBT | 24 / 741 / 5012 | 30 / 870 / 4566 | 28 / 929 / 4287 | 4452, 4287, 3862 |
+| Today | tap "Quick add (+)" | 384 | 480 | 384 | 368, 480, 384 |
+| Today | tap "Complete Drink water" | 328 | n/a | 264 | reachable again in 5 s on this build |
+| Today | navigate by link (→ Wealth) / its TBT | 88 / 1586 | 80 / 1962 | 112 / 1832 | |
+| Wealth | load TBT / scroll / first fold | 2991 / 0 / 264 | 3005 / 0 / 200 | 3364 / 0 / 216 | 3494, 3364, 3027 |
+| Earn | load: long tasks / longest / TBT | 21 / 1176 / 3288 | 23 / 1517 / 5001 | **19 / 1415 / 3899** | 4117, 3899, 3584 (before 3269–4957) |
+| Earn | scroll: long tasks / longest / TBT | 4 / 139 / 148 | 4 / 157 / 260 | **3 / 67 / 30** | 15, 30, 233 |
+| Earn | tap "What's a validator?" | 296 | 400 | **288** | 288, 328, 264 |
+
+Today's scroll is back to near zero: the remaining one or two tasks of 56–67 ms are the count's start and end (one React
+render each, now ~70 elements restyled instead of 2,478). The "What's a validator?" tap and Quick add are back at their
+before values. Earn's load is −1.1 s from M7's after and inside the before range, but its median is still ~600 ms above
+lane M's before median; the served build also carries everything committed since (P1–P7, follow-up 5), so that rest is
+not attributed. The remaining cost is the page's own forced layouts (the path engine and the page arrival's metric scan),
+each paying for the many subject `:has()` rechecks of a large page; a further cut would rework those scans (recorded for
+the lead, not done here).
