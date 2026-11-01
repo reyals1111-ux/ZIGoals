@@ -131,7 +131,7 @@ test('@journey 12 NOVA: first planets, on-device answers, a MOCK local brain, a 
   await connect.getByRole('button', {name: /I run a model on this computer/}).click();
   await connect.getByRole('group', {name: 'Server presets'}).getByRole('button', {name: 'LM Studio (1234)'}).click();
   await connect.getByRole('button', {name: 'Test connection'}).click();
-  await connect.getByRole('option', {name: /^mock-chat$/}).click();
+  await connect.getByRole('option', {name: /^mock-chat( Suggested)?$/}) /* Session AK P4 (FR, deliberate): the suggested model carries a "Suggested" tag */.click();
   await connect.getByRole('button', {name: 'Connect', exact: true}).click();
   await expect.poll(async () => (await stored<{enabled: boolean; provider: string; model: string}>(page, AI_SETTINGS_KEY))?.model).toBe('mock-chat');
   await brainPlanet.getByRole('button', {name: /Test the connection/}).click();
