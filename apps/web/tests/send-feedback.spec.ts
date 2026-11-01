@@ -120,7 +120,8 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await expect(section).toContainText('Safari on iPhone and iPad offers no Home Screen shortcuts and no Share sheet entry for ZIGoals');
   // Session AF Gate C (design critique; deliberate, as strict): Help's two push lines say what the app does (opt-in, a
   // signed-in account), and still that nothing reaches a phone while ZIGoals is closed on this Alpha.
-  await expect(section).toContainText('Push notifications are opt-in and need a signed-in account, so on this Alpha, where accounts aren’t open yet, nothing reaches your phone while ZIGoals is closed');
+  // Session AK (demo-tour check): the account path and the device path (no account; being switched on) are told apart.
+  await expect(section).toContainText('Push notifications through an account are opt-in and need a signed-in account, so on this Alpha, where accounts aren’t open yet, they reach no phone; notifications on this device need no account and are being switched on (below). Until then nothing reaches your phone while ZIGoals is closed');
   await expect(section).toContainText('Reminders when ZIGoals is closed are opt-in, one device at a time (Settings → Reminders when closed), and need a signed-in account');
   await expect(section).toContainText('Your last backup isn’t recorded: Settings → Your data says “Not recorded”');
   await expect(section).toContainText('Goals count in US dollars or euros.');

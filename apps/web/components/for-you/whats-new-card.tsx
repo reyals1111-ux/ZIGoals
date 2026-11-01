@@ -8,6 +8,9 @@ import {consumerLines} from '../../lib/whats-new-chain/filter';
 export type WhatsNewLink = {href: string; label: string};
 /** Session AK (release `2026-11-session-ak-number-one`, ADR-036): number one. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-nova-what', label: 'NOVA: your private command center, with your own local model or Hermes Agent'},
+  {href: '/app/help#help-notes-what', label: 'Notes that link to your goals, habits and days'},
+  {href: '/app/help#help-tasks-what', label: 'Tasks with a calendar import and a Pomodoro timer'},
   {href: '/app/help#help-ak-notify', label: 'Notifications on this device, and ZIGoals offline once installed'},
   {href: '/app/help#help-ak-food', label: 'Food: recent scans, a food library that works offline, a nutrient report'},
   {href: '/app/help#help-ak-habits', label: 'Habits in your own order, a compact list and rules that tick a habit off'},

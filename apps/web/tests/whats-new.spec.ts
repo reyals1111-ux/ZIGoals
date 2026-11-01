@@ -83,7 +83,7 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // updates", so its Checklist link is no longer on the card itself and opens its answer from there (its own assertions, kept).
   // Session AJ (ADR-035, deliberate): this release's six links are the card's own; AG Polish 2's four lead "Earlier
   // updates", so its quick-add link opens its answer from there (its own assertions, kept, moved under "Earlier updates").
-  // Session AK (ADR-036, deliberate): this release's eight links are the card's own, with "Take the 1-minute tour" under
+  // Session AK (ADR-036, deliberate): this release's links (eight, then NOVA, Notes and Tasks first: eleven) are the card's own, with "Take the 1-minute tour" under
   // them (a button, so the card's link count is unchanged); AJ's six lead "Earlier updates", so AJ's alerts link opens its
   // answer from there (its own assertions, kept, moved under "Earlier updates").
   await card.getByRole('link', {name: 'Notifications on this device, and ZIGoals offline once installed'}).click();

@@ -40,7 +40,7 @@ Every answer names its source; FDC answers carry FDC's citation (public domain, 
    Record the version id and the rollback id in STATUS.
 3. **Deploy Alpha #53** through the Manual Alpha workflow as usual (the binding is in the reviewed config).
 4. **Verify:**
-   - Health → Foods → "Look up barcode" with `3017620422003` (a common Open Food Facts product): a match card that
+   - Health → Diary → "Scan or look up a food barcode" → "Look up barcode" with `3017620422003` (a common Open Food Facts product): a match card that
      names Open Food Facts.
    - A US product Open Food Facts lacks: a match card that names USDA FoodData Central with its citation (needs the key).
    - An unknown barcode such as `00000000`: "Product not found in the food databases. Add it yourself…".

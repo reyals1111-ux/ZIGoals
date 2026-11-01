@@ -122,7 +122,7 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
         <ToolRow href="/app/health#water" icon="health" label="Water to go" text={counts.waterToGoMl === null ? 'no target set' : counts.waterToGoMl === 0 ? 'target reached' : waterAmount(counts.waterToGoMl, counts.waterUnit)}/>
         <ToolRow href="/app/wealth?view=bills" icon="wealth" label="Next bill" text={counts.nextBill ? `${counts.nextBill.title} · ${formatDate(counts.nextBill.due, {year: false})}` : counts.billsRead ? 'none in two months' : 'could not be read'} amount={counts.nextBill?.amount}/>
         <ToolRow href="/app/nova#briefs" icon="star" label="Unread briefs" value={counts.briefsUnread}/>
-        <ToolRow href="/app/journal" icon="notes" label="Notes in the inbox" value={counts.notesInbox}/>
+        <ToolRow href="/app/notes" icon="notes" label="Notes in the inbox" value={counts.notesInbox}/>
         <ToolRow href="/app/agenda" icon="tasks" label="Tasks due" value={counts.tasksDue}/>
       </ul>)}
       {section('usage', 4, <>
