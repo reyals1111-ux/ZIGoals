@@ -1,4 +1,4 @@
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type Page, type Worker} from '@playwright/test';
 
 // Session AK Parts 2–3 (ADR-036 Q3, Q4, A1–A4, QA-23): the app's one service worker in a real browser — registration,
 // offline pages, no personal data or API answers in the cache, the update prompt — and Settings → Notifications, switched
@@ -118,7 +118,27 @@ test.describe('Settings → Notifications', () => {
     // A push with no payload: the worker reads this device's snapshot and shows one notification, written here.
     const cdp = await context.newCDPSession(page);
     const registrationId = await new Promise<string>(resolve => { cdp.on('ServiceWorker.workerRegistrationUpdated', ({registrations}: {registrations: {registrationId: string; scopeURL: string; isDeleted: boolean}[]}) => { const found = registrations.find(r => !r.isDeleted && r.scopeURL.endsWith('/')); if (found) resolve(found.registrationId); }); void cdp.send('ServiceWorker.enable'); });
+    // CI lane P (CI run 41336014813): the push reached /sw.js and it called showNotification (its icon and badge were
+    // fetched), yet getNotifications() read []: Chrome drops a stored notification it finds not yet displayed, so a read
+    // between the write and the display erases it (the same race push-reminders.spec.ts handles since Session X Part 6).
+    // Preconditions, then: this build's /sw.js is the scope's active worker, and the read waits until the worker's
+    // showNotification resolved (Chrome resolves it once displayed). The assertion on what is shown is unchanged.
+    await expect.poll(() => page.evaluate(async () => { const active = (await navigator.serviceWorker.getRegistration('/'))?.active; return active ? `${new URL(active.scriptURL).pathname}:${active.state}` : ''; })).toBe('/sw.js:activated');
+    type Counted = {registration: ServiceWorkerRegistration; __zigoalsShown?: number; __zigoalsError?: string};
+    const isApp = (worker: Worker) => new URL(worker.url()).pathname === '/sw.js';
+    // A stopped worker starts for a message (its handler ignores one with no type).
+    const worker = context.serviceWorkers().find(isApp) ?? await (async () => {
+      const started = context.waitForEvent('serviceworker', isApp);
+      await page.evaluate(async () => (await navigator.serviceWorker.getRegistration('/'))!.active!.postMessage(null));
+      return started;
+    })();
+    await worker.evaluate(() => {
+      const scope = self as unknown as Counted, registration = scope.registration, show = registration.showNotification.bind(registration);
+      scope.__zigoalsShown = 0;
+      registration.showNotification = (title, options) => show(title, options).then(() => { scope.__zigoalsShown! += 1; }, (error: unknown) => { scope.__zigoalsError = String(error); throw error; });
+    });
     await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: ''});
+    await expect.poll(() => worker.evaluate(() => { const scope = self as unknown as Counted; return {shown: scope.__zigoalsShown ?? -1, error: scope.__zigoalsError ?? null}; }), {timeout: 15_000, message: 'one notification displayed by /sw.js'}).toEqual({shown: 1, error: null});
     await expect.poll(() => page.evaluate(async () => (await (await navigator.serviceWorker.getRegistration('/'))!.getNotifications()).map(n => n.title)), {timeout: 15_000}).toEqual(['ZIGoals']);
     // Off again: the device's record is deleted with its own secret.
     await card.getByRole('button', {name: 'Turn off and delete from the server'}).click();
