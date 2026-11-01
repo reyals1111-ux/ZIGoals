@@ -116,8 +116,10 @@ test('choosing a money tool in Settings brings the chain back: the money tools, 
   const pages = page.getByRole('region', {name: 'Your pages & buttons'});
   const markets = pages.getByRole('switch', {name: 'Markets', exact: true});
   await expect(markets).not.toBeChecked();
-  await markets.check();
+  // A controlled switch: it shows the saved choice once the save is done, so a click, then the saved state.
+  await markets.click();
   await expect(pages.getByRole('status')).toHaveText('Markets shows again.');
+  await expect(markets).toBeChecked();
   // One money tool switched on is choosing the chain: the others show by default too, each with its own switch.
   for (const tool of ['Staking', 'Portfolio', 'Ecosystem', 'Earn']) await expect(pages.getByRole('switch', {name: tool, exact: true}), tool).toBeChecked();
   await ready(page, '/app');

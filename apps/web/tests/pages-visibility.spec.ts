@@ -179,7 +179,8 @@ test('"Show everything again" asks first: Cancel changes nothing; confirming sho
   await confirm.getByRole('button', {name: 'Cancel', exact: true}).click();
   await expect(reset).toBeFocused();
   expect(await page.evaluate(k => localStorage.getItem(k), SETTINGS)).toBe(before);
-  expect(await stored(page, PREFS)).toBeNull();
+  // Session AK X1: this device holds only the chain choice it was given (tests/chain-choice.ts); Cancel wrote nothing more.
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true});
   await reset.click();
   await card.getByRole('button', {name: 'Show everything', exact: true}).click();
   await expect(card.getByRole('status')).toHaveText('Every page and button shows again.');
@@ -187,7 +188,8 @@ test('"Show everything again" asks first: Cancel changes nothing; confirming sho
   for (const id of [...AVAILABLE_PAGES, ...AVAILABLE_BUTTONS]) expect(record.pages.items[id].v).toBe('shown');
   expect(record.pages.start.id).toBe('habits');
   // (Session AG Polish 3: Governance too, by its switch on this device.)
-  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: true});
+  // Session AK X1: Earn's own switch (`pageShown`, on since the chain was chosen) is shown by "Show everything" too.
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true, governanceShown: true});
   await expectNav(page, EVERY);
 });
 
@@ -252,7 +254,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await governance.click();
   await expect(card.getByRole('status')).toHaveText('Governance shows on this device.');
   await expect(governance).toBeChecked();
-  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: true});
+  // Session AK X1: beside the chain choice this device was given (`pageShown`, tests/chain-choice.ts).
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true, governanceShown: true});
   // Nothing synced changes, and the device mirror of the synced choice stays as it was.
   expect(await page.evaluate(k => localStorage.getItem(k), SETTINGS)).toBe(synced);
   expect(await page.evaluate(k => localStorage.getItem(k), MIRROR)).toBeNull();
@@ -270,7 +273,7 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await expectNav(page, withGovernance(ALL));
   await section(page).getByRole('switch', {name: 'Governance', exact: true}).click();
   await expect(section(page).getByRole('status')).toHaveText('Governance is hidden. You can show it again here at any time.');
-  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: false});
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true, governanceShown: false});
   await expectNav(page, ALL);
   // Hidden, its page still opens from Earn.
   await page.goto('/app/earn');

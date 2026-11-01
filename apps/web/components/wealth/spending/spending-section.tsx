@@ -116,6 +116,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
     </form>
     <p className="fine">Your own entries, kept on this device and in Export everything; amounts are never converted between currencies. Not financial advice.</p>
     {/* Session AK (lane M): buffer days, To review, Rules, Split an entry and the emergency sheet. */}
-    <Suspense fallback={null}><MoneyTools showcase={showcase}/></Suspense>
+    {/* Session AK X1 (verification): while its chunk loads, Money tools says so (aria-busy, as Wealth's later parts do), so
+        a reader of the page never takes the page without it for the whole page. */}
+    <Suspense fallback={<div className="money-tools-loading" aria-busy="true" hidden/>}><MoneyTools showcase={showcase}/></Suspense>
   </div>;
 }

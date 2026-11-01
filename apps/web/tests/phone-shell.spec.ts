@@ -10,7 +10,9 @@ const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/hea
 // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More opens from the top bar.
 // Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More before Settings (H68).
 // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown under Your pages & buttons.
-const MORE=['Earn','Markets','Staking','Portfolio','Ecosystem','Activity','Checklist','Settings','Help'];
+// Session AK X1 (RELEASE_REVIEW R3; deliberate): a new device has no money tools until the chain is chosen, so More holds
+// Activity, the Checklist, Settings and Help (it held Earn, Markets, Staking, Portfolio and Ecosystem first).
+const MORE=['Activity','Checklist','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 
@@ -87,7 +89,7 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
   const box=(await tab.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
   await tab.click();await page.waitForURL(url==='/app'?/\/app$/:`**${url}`);await expect(tab).toHaveAttribute('aria-current','page');
  }
- // More (the top bar's button, Session AB-Design) lists the other nine, in the sidebar's order; each is a real link that closes the sheet and marks More current.
+ // More (the top bar's button, Session AB-Design) lists the others, in the sidebar's order; each is a real link that closes the sheet and marks More current.
  const more=page.getByRole('button',{name:'More',exact:true});
  await expect(more).toHaveAttribute('aria-expanded','false');
  const sheet=await openMore(page);
@@ -95,9 +97,10 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
  expect(await sheet.getByRole('link').allTextContents()).toEqual(MORE);
  for(const link of await sheet.getByRole('link').all()){const b=(await link.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
  await page.keyboard.press('Escape');await expect(sheet).toBeHidden();await expect(more).toBeFocused();
- await (await navLink(page,'Markets')).click();await page.waitForURL('**/app/markets');
+ // Session AK X1: Activity is More's first page on a new device (Markets was, before the money tools waited for the chain).
+ await (await navLink(page,'Activity')).click();await page.waitForURL('**/app/activity');
  await expect(sheet).toBeHidden();await expect(more).toHaveAttribute('data-current','true');
- await openMore(page);await expect(sheet.getByRole('link',{name:'Markets',exact:true})).toHaveAttribute('aria-current','page');await closeMore(page);
+ await openMore(page);await expect(sheet.getByRole('link',{name:'Activity',exact:true})).toHaveAttribute('aria-current','page');await closeMore(page);
  // Settings is one tap away as More's last-but-one row (owner decision D2), as a real link.
  const settings=await navLink(page,'Settings');
  await settings.click();await page.waitForURL('**/app/settings');await expect(more).toHaveAttribute('data-current','true');

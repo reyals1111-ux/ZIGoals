@@ -104,7 +104,7 @@ test('@journey 7 wallet: read-only WalletConnect linking, then Keplr Mobile pair
   await page.goto('/app/settings'); await hydrated(page);
   const stakingSwitch = page.getByRole('region', {name: 'Your pages & buttons'}).getByRole('switch', {name: 'Staking', exact: true});
   await expect(stakingSwitch).not.toBeChecked();
-  await stakingSwitch.check();
+  await stakingSwitch.click(); // the switch shows the saved choice once it is saved (a controlled switch), so no check()
   await expect(stakingSwitch).toBeChecked();
 
   // 1. Read-only linking: a fictional wallet approves with a ZIGChain and an Ethereum address.

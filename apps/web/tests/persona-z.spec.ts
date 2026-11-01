@@ -80,6 +80,8 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   await expect(chosenSheet).toBeHidden();
   // Moved from the sheet (was: `toContainText(/ZIG demo balance/)`), Today's wallet card. Session AK X1 (R2; deliberate):
   // the untouched practice ledger's 1,000 ZIG is not the person's money, so outside the Showcase the card shows no figure.
+  // A brand-new device's Today is the welcome and one card per area (R14); this person said "Not now" to the welcome.
+  await page.addInitScript(() => localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})));
   await page.goto('/app'); await expect(page.locator('main h1').first()).toBeVisible();
   await openFold(page, 'Your wallet');
   await expect(page.locator('.account-panel .account-value')).toHaveText('No balance yet');
