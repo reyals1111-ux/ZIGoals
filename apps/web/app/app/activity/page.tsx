@@ -7,6 +7,7 @@ import { useZigiActions } from "../../../components/activity/use-zigi-actions";
 import Link from "next/link";
 import { ExplorerLinks } from "../../../components/explorer-links";
 import { useGoals } from "../../../components/goal-provider";
+import { useChainChoice } from "../../../components/chain/use-chain-choice";
 import {
   pendingDescription,
   isTerminal,
@@ -20,6 +21,8 @@ import { ProgressSlot } from "../../../components/progress/slot";
 import {formatDateTime,formatPlainDecimal} from "../../../lib/visual-format";
 export default function ActivityPage() {
   const s = useGoals();
+  // Release review R17: the simulation and testnet words only for a person who chose the chain (lib/chain-choice.ts).
+  const chain = useChainChoice();
   const platform = usePlatform();
   const [category, setCategory] = useState("ALL");
   // Session V Part 7: the "Actions by ZIGi" filter appears once a ZIGi card was confirmed on this device.
@@ -43,14 +46,14 @@ export default function ActivityPage() {
       <LayoutRegion region="body" items={[
         {id: "activity:sources", label: "Your activity sources", node: <section className="activity-context" aria-label="Your current activity sources"><div><AppIcon name="goals" size={26}/><strong>Goals & contributions</strong><span>Plans, funding and corrections</span></div><div><AppIcon name="wallet" size={26}/><strong>Every kind of wealth</strong><span>Crypto, stocks, metals and cash</span></div><div><AppIcon name="health" size={26}/><strong>Your everyday progress</strong><span>Habit check-ins and Health logs</span></div></section>},
         // Session AA-Cloud Part 1: the feed (the page's items) comes before the favourites card.
-        {id: "activity:timeline", label: "Your progress, in moments", node: <section className="panel activity-timeline" aria-label="Unified private activity"><div className="activity-filter-row"><div><p className="eyebrow">YOUR PROGRESS, IN MOMENTS</p><h2>One journey. Every step.</h2></div><nav className="tab-row view-tabs" aria-label="Activity categories">{["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH", ...(zigi.actions.length ? ["ZIGI"] : [])].map(value => <button key={value} aria-pressed={category === value} onClick={() => { setCategory(value); setLimit(30); }}>{value === "ALL" ? "All" : value === "ZIGI" ? "Actions by ZIGi" : value[0] + value.slice(1).toLowerCase()}{counts[value] !== undefined && <span className="activity-filter-count" aria-hidden="true"> · {counts[value]}</span>}</button>)}</nav></div><ActivityFeed limit={limit} category={category} onMore={() => setLimit(value => value + 30)} onCounts={setCounts}/><p className="fine">Habit and Health entries reflect current saved logs. Corrections update this view; removing a log removes it here. This is private browser history, separate from testnet receipts.</p></section>},
+        {id: "activity:timeline", label: "Your progress, in moments", node: <section className="panel activity-timeline" aria-label="Unified private activity"><div className="activity-filter-row"><div><p className="eyebrow">YOUR PROGRESS, IN MOMENTS</p><h2>One journey. Every step.</h2></div><nav className="tab-row view-tabs" aria-label="Activity categories">{["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH", ...(zigi.actions.length ? ["ZIGI"] : [])].map(value => <button key={value} aria-pressed={category === value} onClick={() => { setCategory(value); setLimit(30); }}>{value === "ALL" ? "All" : value === "ZIGI" ? "Actions by ZIGi" : value[0] + value.slice(1).toLowerCase()}{counts[value] !== undefined && <span className="activity-filter-count" aria-hidden="true"> · {counts[value]}</span>}</button>)}</nav></div><ActivityFeed limit={limit} category={category} onMore={() => setLimit(value => value + 30)} onCounts={setCounts}/><p className="fine">Habit and Health entries reflect current saved logs. Corrections update this view; removing a log removes it here. {chain.chosen ? 'This is private browser history, separate from testnet receipts.' : 'Your history, kept on this device.'}</p></section>},
         platform.data.watchlist.length > 0 && {id: "activity:favourites", label: "Markets in your favourites", node: <aside className="activity-favourites"><AppIcon name="star" size={25}/><div><strong>{platform.data.watchlist.length} markets in your favourites</strong><p>{platform.data.watchlist.map(item => item.name).join(" · ")}</p><small>Current saved favourites. Follow dates are not recorded.</small></div><Link className="text-link" href="/app/markets">Explore favourites →</Link></aside>},
       ]}/>
       <div className="page-game-slot"><ProgressSlot page="activity"/></div>
       <p className="eyebrow">
         {/* Session X (first-week polish): the source in words, not its code (LOCAL_SIMULATION / TESTNET_CHAIN). */}
         {s.mode === "local"
-          ? "On this device · Local simulation history"
+          ? (chain.chosen ? "On this device · Local simulation history" : "On this device · Your history")
           : "ZIGChain testnet · Known local receipts only · Incomplete"}
       </p>
       {s.mode === "testnet" && s.owner && (
@@ -123,7 +126,7 @@ export default function ActivityPage() {
           )}
         </section>
       )}
-      {s.mode === "local" && (
+      {s.mode === "local" && chain.chosen && (
         <details className="panel legacy-goal-history"><summary>Detailed Goal simulation history</summary>
           {s.activity.length ? (
             s.activity.map((a, i) => (

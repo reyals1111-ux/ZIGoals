@@ -67,3 +67,5 @@
 .music-page>.music-footer,.music-page>.music-problem,.music-page>.fine{grid-column:1/-1}
 @media (max-width:640px){.music-page{gap:12px}.music-page-card{padding:16px;border-radius:20px}.music-page-now{grid-row:auto}.music-page .music-disc{width:160px;height:160px}}
 @media (forced-colors:active){.music-page-card{border-color:CanvasText}}
+/* Release review R19: the Music page does not load ambient.css, so its chips carry their own 44 px target. */
+.music-mix-chip{min-height:44px}

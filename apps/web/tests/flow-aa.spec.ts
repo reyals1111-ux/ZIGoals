@@ -88,7 +88,7 @@ test('S7: the Reminders page lists every type with its time and quiet hours; a b
   await seed(page, {}, '20:30'); // 22:30 in Brussels: inside the default quiet hours
   await page.goto('/app/settings/reminders');
   await expect(page.getByRole('heading', {name: 'Every reminder, in one place.'})).toBeVisible();
-  await expect(page.getByText(/Push delivery is off/)).toBeVisible();
+  await expect(page.getByText(/Reminders on a closed app aren’t available yet/)).toBeVisible(); // release review R23: no owner-facing words
   await expect(page.getByRole('heading', {name: 'Nothing between 10:00 PM and 8:00 AM'})).toBeVisible();
   await page.getByRole('switch', {name: /Bedtime/}).check();
   await page.getByLabel('Bedtime time').fill('21:00');

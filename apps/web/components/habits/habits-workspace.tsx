@@ -315,7 +315,7 @@ export function HabitsWorkspace() {
       ], PHONE_ORDER)}/>
       {/* ADR-022 B49: the game card follows the page's own sections (not a layout item, so the pinned orders and the first headings keep their places). */}
       <div className="habit-progress-slot page-game-slot"><ProgressSlot page="habits" /></div>
-      <p className="fine habit-semantics">Streaks count scheduled successful days or completed target periods. Non-scheduled and paused dates do not count against consistency. Skips and failures remain distinct. Saved timers retain timestamps across reloads and require review before logging; browser-closed reminders are not promised.</p>
+      <p className="fine habit-semantics">Days you skip, rest or pause never break a streak, and a skip is kept apart from a miss. A running timer keeps its time across a reload and asks you to check it before it logs.</p>
     </>}
     <section className="habit-journal-settings" aria-label="Habit journal settings">
       <p className="fine habit-privacy">Private Habit records · No wallet required · Days use {store.data.timeZone??(journalZone?`${journalZone}, your time zone`:"this device’s timezone until you save your time zone in Settings")}.</p>

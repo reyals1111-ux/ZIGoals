@@ -1,3 +1,4 @@
+import {chooseChain} from './chain-choice';
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {typeGoalName} from './goal-name';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema, type Platform} from '../lib/positions';
@@ -165,6 +166,9 @@ const brokenWords = (row: Locator) => row.evaluate(el => {
 });
 test('first week, phone: a small widget\'s row on a new device\'s Today stays two across, its name never broken inside a word', async ({page, isMobile}) => {
   test.skip(!isMobile, 'The folded rows are the phone layout.');
+  // Session AK X1 (RELEASE_REVIEW R14): a brand-new device's Today is the welcome and one card per area; the widgets come
+  // once the person says "Not now" to the welcome (its device-only seen flag), as here.
+  await page.addInitScript(() => localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})));
   await page.goto('/app');
   const grid = page.getByRole('region', {name: 'Your Today widgets'}).locator('.dashboard-layout-grid');
   const compact = grid.locator('> .placed-module[data-kind="widget"][data-size="compact"]');
@@ -187,6 +191,14 @@ test('first week, phone: a small widget\'s row on a new device\'s Today stays tw
 });
 
 test('first week: Activity names its history in words, never a code like LOCAL_SIMULATION', async ({page}) => {
+  await page.goto('/app/activity');
+  // Release review R17 (deliberate): a person who never chose the chain reads "Your history", not "simulation".
+  await expect(page.locator('main')).toContainText('On this device · Your history');
+  await expect(page.locator('main')).not.toContainText(/LOCAL_SIMULATION|TESTNET_CHAIN|simulation|testnet/i);
+});
+
+test('first week, chain chosen: Activity names its practice history in words', async ({page}) => {
+  await chooseChain(page);
   await page.goto('/app/activity');
   await expect(page.locator('main')).toContainText('On this device · Local simulation history');
   await expect(page.locator('main')).not.toContainText(/LOCAL_SIMULATION|TESTNET_CHAIN/);
