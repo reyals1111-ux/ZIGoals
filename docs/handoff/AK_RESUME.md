@@ -64,6 +64,17 @@ typecheck what is committed (a lane's edit once slipped into another lane's comm
   P4 (fresh first-run reviewer, then fixes), P5 (fresh landing reviewer, then fixes), P6 (accessibility sweep),
   P7 (fresh exploratory tester, round 3).
 
+### Owner follow-up 5 (1 Nov) and Part 13 restored
+- Follow-up 5 (decisions FR-17, OD-1…OD-5; last checks C1–C4): ADR-036 "Owner decisions and last checks". Owner decision 6
+  (Checklist overlay rules only if identical; Earn's first load accepted): ADR-036 "Owner decision 6".
+- Part 13 restored (verbatim: ADR-036 "Owner follow-up 5: Part 13 restored"; scratchpad/owner-message-7.md): watch
+  `git ls-remote origin review/studio4-assets` every 15 min; when it lands, Part 13 per docs/handoff/STUDIO4_SWAP_RUNBOOK.md
+  and the delivery's INTEGRATION-HANDOFF.md. Until Part 13 is done: the PR stays Draft; no C3 full-suite runs, no C2
+  WIRING_AUDIT_3, no Z4.
+- Meanwhile: CI-fix lanes (CI-A done: d4781513, 82698b7c; CI-B ZIGi, CI-C1 Today/Wealth/Earn, CI-C2 Settings/run10/run11,
+  CI-D routes/PWA/push/parity), P8c (Checklist overlay rules, identical-look proof), CI shards (a6727680, TIER 3 CI).
+- Pushed head: 82698b7c.
+
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Sandbox-only unit failures (as earlier sessions): vault/finance-homes ×3, scripts/pre-run11-setup ×2.

@@ -988,3 +988,24 @@ Verbatim (pre-approved):
 |---|---|---|---|
 | D6-CL The Checklist full-screen view's two :has() rules: fixed only if the look is provably identical | Open | — | — |
 | D6-EARN Earn's first load (3.9 s TBT, phone profile, CPU 4×) accepted; recorded under Known limitations with the measurement | Open | — | — |
+
+## Owner follow-up 5: Part 13 restored
+Verbatim (1 Nov, pre-approved):
+
+> OWNER MESSAGE: STUDIO-4 IS DELIVERED — Part 13 is back in this PR. Pre-approved, no reply needed; continue in auto mode (check the mode selector shows Auto). Record it in ADR-036 ("Owner follow-up 5: Part 13 restored"), add it to the task list and AK_RESUME.md.
+> - The owner will push a slim Studio-4 delivery to the orphan branch review/studio4-assets (folder studio4-deliver/, with per-folder SHA256SUMS) within the next hours. Check `git ls-remote origin review/studio4-assets` every 15 minutes. Do NOT take the PR out of Draft, and do NOT start the two full-suite runs, WIRING_AUDIT_3 or Z4, until Part 13 is done; finish the other open lanes meanwhile.
+> - When it lands: do Part 13 exactly as written in the brief and your STUDIO4_SWAP_RUNBOOK.md: fetch it; verify each folder's SHA256SUMS; follow its docs/INTEGRATION-HANDOFF.md (importer patch, manifest additions, reactions.json, the duration table, the measured optical offset x +0.022 / y −0.090, budgets, known issues); import the app set through scripts/zigi/import-studio.mjs with Part 12's constants (if the handoff's patch differs from Part 12's constants, follow the handoff and record the difference); wire the 25 states' own clips, the 13 reactions to their semantic events, the extras, the variant rotation and the push icon and badge; add the 2× animated set under D6 (≤ 2.6 MB per file, loaded lazily one clip at a time, never in route JS).
+> - OWNER DECISION: X030 cheer REPLACES the borrowed presenting pose in the Checklist's completion celebration (AF11, the owner's original request). Only that art changes; nothing else in the Checklist's layout, path, river, labels or top bar changes, and its pin tests stay green.
+> - Re-measure the optical centre in Chromium; update brand-assets.test, zigi-assets.test and zigi-alive.spec at equal strength; Meet ZIGi shows every state, reaction, extra and variant; reduced motion and Motion Off show the stills; theme parity and route weights stay green.
+> - Never commit the delivery branch itself into main, only the imported files. The "to polish later" items in the handoff go to Known limitations.
+> - Then the two full-suite runs, WIRING_AUDIT_3 and Z4 as written, with the demo tour gaining a "Meet the new ZIGi" step.
+
+| Row | Status | Commits | Evidence |
+|---|---|---|---|
+| P13-R1 Watch review/studio4-assets every 15 min; fetch; each folder's SHA256SUMS verified | Open (waiting for the owner's push) | — | — |
+| P13-R2 INTEGRATION-HANDOFF.md followed (importer patch, manifest, reactions.json, durations, optical offset x +0.022 / y −0.090, budgets, known issues); differences from Part 12's constants recorded | Open | — | — |
+| P13-R3 The app set imported by scripts/zigi/import-studio.mjs; the 25 states' clips, 13 reactions on their semantic events, extras, variant rotation, push icon and badge wired | Open | — | — |
+| P13-R4 The 2× animated set under D6 (≤ 2.6 MB a file, loaded lazily one clip at a time, never in route JS) | Open | — | — |
+| P13-R5 X030 cheer replaces the presenting pose in the Checklist's completion celebration (only that art; pin tests green) | Open | — | — |
+| P13-R6 Optical centre re-measured in Chromium; brand-assets.test, zigi-assets.test, zigi-alive.spec at equal strength; Meet ZIGi shows every state, reaction, extra and variant; stills under reduced motion and Motion Off; theme parity and weights green | Open | — | — |
+| P13-R7 Only imported files committed (never the delivery branch); "to polish later" items in Known limitations; the demo tour gains "Meet the new ZIGi" | Open | — | — |
