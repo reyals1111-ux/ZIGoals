@@ -31,9 +31,10 @@ says where to click, what you should see, and what is honestly not live yet.
 | 4 | Hermes Agent | 1.5 |
 | 5 | A workflow | 1 |
 | 6 | The ZIGi duo | 1 |
-| 7 | Notes and Tasks | 1.5 |
+| 6b | Meet the new ZIGi | 1 |
+| 7 | Notes and Tasks | 1 |
 | 8 | Motion: Full, Calm, Off | 1 |
-| 9 | New health, habit and money features | 1.5 |
+| 9 | New health, habit and money features | 1 |
 | 10 | Push and offline | 1 |
 | 11 | The landing | 1 |
 | | **Total** | **15** |
@@ -193,7 +194,30 @@ much water today?". Open "Ask ZIGi about a page", choose a page (for example Hea
 **Not live yet / honest limits:** without a model, ZIGi uses its on-device answers. Questions those can't answer need a
 connected brain, and the chat then points to the setup guide. Every change still comes as a card to confirm.
 
-## 7. Notes and Tasks (1.5 min)
+## 6b. Meet the new ZIGi (1 min)
+**Where to click:** Settings → "ZIGi · Your Personal AI Companion" → "Meet ZIGi: every state and move →" (or go to
+`/app/zigi`). Then open the Checklist ("Open the Checklist: today’s path") and tick the last item of an orbit.
+
+**What you should see:**
+- ZIGi in Studio-4's new look everywhere it appears: the launcher, the chat, NOVA and Meet ZIGi.
+- On Meet ZIGi, every one of ZIGi's 25 states has its own animation, at the launcher's, the panel's and a large size.
+  The new moves section shows all 26 moves in four groups: Reactions, While resting, Variations and Special moves.
+  Each says what it means and when it plays.
+- "How much ZIGi moves" (Full, Calm, Off) is on the same page. Under reduced motion, Motion Off or ZIGi's Off, every
+  move shows as a still.
+- On the Checklist, completing an orbit plays ZIGi's new arms-up cheer (X030). The day's end celebration still plays
+  your own video, and a single tick keeps its usual cheer.
+- On a phone with notifications switched on (after activation), a notification shows ZIGi's own icon and badge.
+
+**Not live yet / honest limits:**
+- ZIGi's greeting-in-place (X001) and the three gaze moves (X020–X022) are delivered but not played anywhere yet;
+  Meet ZIGi says "Not used yet".
+- The "waiting while offline" reaction (R011) rarely plays: by the studio's rule the offline state takes over first.
+- The larger 2× animations are static files of up to 2.5 MB each, loaded one at a time when shown, so the first play
+  of a move on a slow connection can take a moment.
+- The polish items the studio listed for later are in Help → Known limitations.
+
+## 7. Notes and Tasks (1 min)
 **Where to click:** in NOVA's left panel, "Notes" (`/app/notes`), then "Tasks" (`/app/tasks`). On a computer they are not
 in the main sidebar. They are in NOVA's left panel, the tablet rail, the phone's More sheet and search (press `/`).
 
@@ -231,7 +255,7 @@ in the main sidebar. They are in NOVA's left panel, the tablet rail, the phone's
 **Not live yet / honest limits:** a widget does not morph into its page (that shared-element transition was not built).
 NOVA's orb idles with a slow breath under Full only.
 
-## 9. New health, habit and money features (1.5 min)
+## 9. New health, habit and money features (1 min)
 Pick two or three; all work in the Showcase.
 
 **Where to click and what you should see:**
