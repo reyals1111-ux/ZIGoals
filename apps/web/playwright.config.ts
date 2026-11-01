@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+// Session AK ([TIER 3] (CI), ADR-036 C3): CI runs the accessibility sweep (tests/p6-*.spec.ts) as its own suite of shards
+// (A11Y_SWEEP=only) and the rest without it (A11Y_SWEEP=skip); unset, as locally, every spec runs.
+const A11Y_SWEEP = /p6-(axe-all|axe-surfaces|keyboard)\.spec\.ts$/;
 export default defineConfig({
   testDir: "./tests",
+  ...(process.env.A11Y_SWEEP === "only" ? { testMatch: A11Y_SWEEP } : process.env.A11Y_SWEEP === "skip" ? { testIgnore: A11Y_SWEEP } : {}),
   timeout: 45000,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100",

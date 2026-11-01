@@ -1,5 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {axe, loadShowcase, note, offline, settle, THEMES, applyTheme, type Findings} from './p6-helpers';
+// CI runs this sweep as its own suite of shards (ADR-036 C3); each test stands alone, so they may split across shards.
+test.describe.configure({mode: 'parallel'});
 
 /**
  * Session AK, owner follow-up 4 (P6): axe (WCAG 2.0/2.1/2.2 A and AA, tests/p6-helpers.ts) on every app route

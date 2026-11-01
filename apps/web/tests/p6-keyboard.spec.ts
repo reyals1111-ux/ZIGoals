@@ -1,5 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {applyTheme, fence, loadShowcase, mockModel, note, offline, seedDevice, settle, THEMES, type Findings} from './p6-helpers';
+// CI runs this sweep as its own suite of shards (ADR-036 C3); each test stands alone, so they may split across shards.
+test.describe.configure({mode: 'parallel'});
 
 /**
  * Session AK, owner follow-up 4 (P6): keyboard only, in Nebula, Light and Dark, desktop at 1440 px and phone at 390 px, in
