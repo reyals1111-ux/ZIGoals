@@ -104,6 +104,9 @@ test('Full: Wealth\'s total reads its final value at every moment, and settles o
   await hydrated(page);
   const total = page.locator('.wealth-total-headline').first();
   await expect(total).toBeVisible();
+  // The total can mount after hydration (its records load later, as on phones), so it may count on this first visit too:
+  // the reference is read once any count has ended (innerText would otherwise include the aria-hidden counting digits).
+  await expect(page.locator('.wealth-total-headline .zg-ticker[data-running]')).toHaveCount(0, {timeout: 4000});
   const final = (await total.innerText()).trim();
   // Arrive by a client navigation, where the count runs: the accessible text never changes.
   await page.goto('/app/habits'); await hydrated(page);
