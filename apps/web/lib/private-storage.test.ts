@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import * as z from "zod";
-import { readPrivateStore, updatePrivateStore, importPrivateStore } from "./private-storage";
+import { readPrivateStore, updatePrivateStore, updatePrivateStoreNow, importPrivateStore } from "./private-storage";
 const schema = z.object({ schemaVersion: z.literal(1), kind: z.literal("test"), count: z.number().int().nonnegative() }).strict();
 const empty = () => ({ schemaVersion: 1 as const, kind: "test" as const, count: 0 });
 const key = "zigoals:habits:v1";
@@ -80,4 +80,20 @@ test('v2 first explicit favourite write preserves recovery bytes and v3 backup r
 });
 test('atomic funding rolls back every financial field on storage failure',async()=>{
  const {platformSchema,emptyPlatform,PLATFORM_KEY,privateGoalSchema}=await import('./positions');const {fundGoal}=await import('./contribution-funding');const {manualSourcePosition}=await import('./manual-source');const at=new Date().toISOString();const g=privateGoalSchema.parse({id:'91',name:'Phone',type:'VALUE',status:'active',notes:'',asset:'USD',denom:'USD',decimals:2,target:'200000',createdAt:at,milestones:[]});const cash=manualSourcePosition({category:'Cash',name:'Cash',quantity:'20000',currency:'USD'});const raw=JSON.stringify({...emptyPlatform(),goals:[g]}),s=memory();s.setItem(PLATFORM_KEY,raw);s.setItem=()=>{throw Error('quota');};await expect(updatePrivateStore(s,PLATFORM_KEY,platformSchema,emptyPlatform,v=>fundGoal(v,{id:'fund',goalId:g.id,newPosition:cash,quantity:cash.quantity,occurredAt:at}))).rejects.toThrow();expect(s.getItem(PLATFORM_KEY)).toBe(raw);
+});
+// Session AK G4: a page being left saves at once; the same checks and the same refusals as a locked update.
+test("updatePrivateStoreNow reads, changes and writes in the same task, without waiting for the lock", () => {
+  const s = memory();
+  const request = vi.fn(() => new Promise(() => undefined)); // a lock that is never granted, as on a page being left
+  vi.stubGlobal("navigator", { locks: { request } });
+  const saved = updatePrivateStoreNow(s, key, schema, empty, d => ({ ...d, count: d.count + 1 }));
+  expect(saved.count).toBe(1);
+  expect(JSON.parse(s.getItem(key)!).count).toBe(1);
+  expect(request).not.toHaveBeenCalled();
+  expect(() => updatePrivateStoreNow(s, key, schema, empty, d => ({ ...d, count: -1 }))).toThrow();
+  expect(JSON.parse(s.getItem(key)!).count).toBe(1);
+  s.setItem(key, "{broken");
+  expect(() => updatePrivateStoreNow(s, key, schema, empty, d => ({ ...d, count: 5 }))).toThrow("damaged");
+  expect(s.getItem(key)).toBe("{broken");
+  expect(() => updatePrivateStoreNow(s, "zigoals:other:v1", schema, empty, d => d)).toThrow("Unknown private data store.");
 });

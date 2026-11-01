@@ -22,24 +22,35 @@ export function readPrivateStore<T>(storage: Storage, key: string, schema: z.Zod
 }
 export async function updatePrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): Promise<T> {
   validateKey(key);
-  return withStorageLock(storageLockKey(storage,key), () => {
-    const latest = readPrivateStore(storage, key, schema, createEmpty);
-    const next = update(latest);
-    if (next === latest) return latest;
-    const serialized = JSON.stringify(next);
-    const validated = parsePrivateData(serialized, schema);
-    const previous = storage.getItem(key);
-    try {
-      if (previous !== null) {
-        const oldVersion = (JSON.parse(previous) as {schemaVersion?: unknown}).schemaVersion;
-        const newVersion = (validated as {schemaVersion?: unknown}).schemaVersion;
-        if (typeof oldVersion === "number" && typeof newVersion === "number" && oldVersion < newVersion)
-          storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
-      }
-      storage.setItem(key, serialized);
-    } catch (error) { throw asStorageError(error); }
-    return validated;
-  });
+  return withStorageLock(storageLockKey(storage,key), () => applyPrivateUpdate(storage, key, schema, createEmpty, update));
+}
+/**
+ * Session AK G4 (journey 1 on the phone): the same read, change and write as updatePrivateStore, done at once, for a page
+ * that is being left (pagehide). There the cross-tab lock's grant comes in a later task that a leaving page never runs, so
+ * a change saved on the way out (a check-in that already shows) was lost. The whole read-change-write runs in this one
+ * task, so no write of this tab can come between; the lock is skipped only for that moment.
+ */
+export function updatePrivateStoreNow<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): T {
+  validateKey(key);
+  return applyPrivateUpdate(storage, key, schema, createEmpty, update);
+}
+function applyPrivateUpdate<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): T {
+  const latest = readPrivateStore(storage, key, schema, createEmpty);
+  const next = update(latest);
+  if (next === latest) return latest;
+  const serialized = JSON.stringify(next);
+  const validated = parsePrivateData(serialized, schema);
+  const previous = storage.getItem(key);
+  try {
+    if (previous !== null) {
+      const oldVersion = (JSON.parse(previous) as {schemaVersion?: unknown}).schemaVersion;
+      const newVersion = (validated as {schemaVersion?: unknown}).schemaVersion;
+      if (typeof oldVersion === "number" && typeof newVersion === "number" && oldVersion < newVersion)
+        storage.setItem(`${key}:recovery:${crypto.randomUUID()}`, previous);
+    }
+    storage.setItem(key, serialized);
+  } catch (error) { throw asStorageError(error); }
+  return validated;
 }
 export async function importPrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, raw: string): Promise<T> {
   validateKey(key);
