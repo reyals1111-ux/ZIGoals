@@ -94,7 +94,6 @@ import {showcaseScales} from './scales/showcase';
 import {CYCLE_KEY} from './cycle/store';
 import {showcaseMoneyReview} from './review-cards/showcase';
 import {MONEY_REVIEW_KEY} from './money-review/review';
-import {withShowcaseEuroCash} from './cash-forecast/showcase';
 import {showcaseCycle} from './cycle/showcase';
 import {showcaseRewardsShelf} from './rewards-shelf/showcase';
 import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
@@ -240,8 +239,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  {const j=showcaseJournal(day);records[JOURNAL_KEY]=JSON.stringify(journalSchema.parse({...j,entries:[...showcaseOnThisDayEntries(day).sort((a,b)=>a.date.localeCompare(b.date)),...j.entries]}));}
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
- // Owner follow-up 2 (G1 #11): one labelled fictional euro cash account, so the euro bills and log have a balance to start from.
- records[ACCOUNTS_KEY]=JSON.stringify(withShowcaseEuroCash(showcaseAccounts(day),day));
+ records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.

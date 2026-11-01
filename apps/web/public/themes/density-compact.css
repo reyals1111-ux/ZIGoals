@@ -629,6 +629,13 @@ html:where([data-density=compact])[data-zigi-launcher="shown"] .zigi-explain-cor
 :where(:root[data-density=compact]) .agenda-export:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .agenda-export-actions:not(#\-) { row-gap: 8px; }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .agenda-item:not(#\-) { padding-top: 3px; padding-bottom: 3px; } }
+:where(:root[data-density=compact]) .agenda-task-main:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .agenda-task-tick input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-calendars:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .agenda-calendars li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .agenda-import:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .agenda-import-preview:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .agenda-panel .tasks-add:not(#\-) { margin-top: 4px; }
 /*  components/ai/agent-tools.css  */
 :where(:root[data-density=compact]) .zigi-agent-calls:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
 :where(:root[data-density=compact]) .zigi-agent-details summary:not(#\-) { padding-top: 9px; padding-bottom: 9px; }
@@ -1096,6 +1103,15 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .pin-to-today:not(#\-) { row-gap: .2rem; }
 :where(:root[data-density=compact]) .pin-to-today-status:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 6px; padding-bottom: 6px; }
 :where(:root[data-density=compact]) .card-top-tools:not(#\-) { row-gap: 3px; }
+/*  components/cash-forecast/cash-forecast.css  */
+:where(:root[data-density=compact]) .cash-forecast-promise:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .cash-forecast-row:not(#\-) { row-gap: 6px; padding-top: 4.5px; }
+:where(:root[data-density=compact]) .cash-forecast-row h5:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cash-forecast-lowest:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cash-forecast-notes:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 4px; }
+:where(:root[data-density=compact]) .cash-forecast-events caption:not(#\-) { padding-bottom: 4px; }
+:where(:root[data-density=compact]) .cash-forecast-events th:not(#\-), :where(:root[data-density=compact]) .cash-forecast-events td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .cash-forecast-empty p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
 /*  components/charts/charts.css  */
 :root:where([data-density=compact]) .chart-tip:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
 :root:where([data-density=compact]) .chart-legend:not(#\-) { row-gap: 6px; margin-top: 10px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
@@ -1330,6 +1346,16 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .weekly-review-guide:not(#\-) { margin-top: 0; margin-bottom: 10px; padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .weekly-review-guide .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 3px; }
 :where(:root[data-density=compact]) .weekly-review-guide p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/cycle/cycle.css  */
+:where(:root[data-density=compact]) .cycle-log:not(#\-) { row-gap: 10px; padding-top: 4px; }
+:where(:root[data-density=compact]) .cycle-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cycle-estimate p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cycle-flow:not(#\-), :where(:root[data-density=compact]) .cycle-symptoms:not(#\-) { padding-top: 8px; padding-bottom: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cycle-chips:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .cycle-chip:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .cycle-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .cycle-recent ul:not(#\-) { margin-top: 4.5px; margin-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .cycle-actions:not(#\-) { row-gap: 6px; }
 /*  components/dashboard/dashboard.css  */
 :where(:root[data-density=compact]) .personalized-today:not(#\-) { row-gap: 1.5rem; }
 :where(:root[data-density=compact]) .personalized-today .today-primary:not(#\-) { row-gap: 1.5rem; }
@@ -1665,6 +1691,24 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .first-week-steps:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 8px; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .first-week-steps li:not(#\-) { row-gap: 7.5px; padding-top: 3px; padding-bottom: 3px; }
 :root:where([data-density=compact]) .first-week-start > div:not(#\-) { row-gap: 10px; }
+/*  components/focus-rounds/focus-rounds.css  */
+:where(:root[data-density=compact]) .focus-rounds-body:not(#\-) { row-gap: 8px; padding-top: 6px; }
+:where(:root[data-density=compact]) .focus-rounds-body .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/focus/focus.css  */
+:where(:root[data-density=compact]) .pomodoro:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .pomodoro-title:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .pomodoro-settings:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .pomodoro-check:not(#\-) { row-gap: 10px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .pomodoro-check input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .pomodoro-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .pomodoro-stage:not(#\-) { row-gap: 18px; }
+:where(:root[data-density=compact]) .pomodoro-readout:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .pomodoro-readout p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .pomodoro-result p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .focus-modes:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .focus-widget:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .focus-widget-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .focus-widget-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/footer/site-footer.css  */
 :where(:root[data-density=compact]) .site-footer:not(#\-) { margin-top: 64px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .site-footer-inner:not(#\-) { row-gap: 0; margin-top: 0; margin-bottom: 0; padding-top: clamp(60px, 6.4cqw, 132px); padding-bottom: 56px; }
@@ -2448,6 +2492,21 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .health-goal-window:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-goal-window label:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .health-goal-window input[type="radio"]:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/health-numbers/your-numbers.css  */
+:where(:root[data-density=compact]) .your-numbers:not(#\-) { row-gap: 16px; padding-top: 4px; }
+:where(:root[data-density=compact]) .your-numbers-lede:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .your-numbers-part:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .your-numbers-part h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .your-numbers-markers:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .your-numbers-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .your-numbers-list li:not(#\-) { row-gap: 4.5px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .your-numbers-marker:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .your-numbers-marker-head:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .your-numbers-verdict:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .your-numbers-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .your-numbers-grid:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .your-numbers-row:not(#\-) { row-gap: 6px; padding-top: 6px; padding-bottom: 6px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .your-numbers-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/health/devices/devices.css  */
 :where(:root[data-density=compact]) .devices-view:not(#\-) { row-gap: 18px; }
 :where(:root[data-density=compact]) .devices-section:not(#\-) { row-gap: 9px; }
@@ -2926,6 +2985,10 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .help-topics a:not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
 @media (max-width: 767.98px) { :where(:root[data-density=compact]) .help-page .help-topics-all:not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
 :where(:root[data-density=compact]) .help-search:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 16px; }
+:where(:root[data-density=compact]) .help-earlier:not(#\-) { margin-top: 14px; }
+:where(:root[data-density=compact]) .help-earlier > .help-section:not(#\-) { margin-top: 16.5px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .help-earlier > .eyebrow:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .help-earlier > .help-earlier-lede:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/help/send-feedback.css  */
 :where(:root[data-density=compact]) .send-feedback:not(#\-) { row-gap: 12px; }
 :where(:root[data-density=compact]) .send-feedback p:not(#\-) { margin-top: 0; margin-bottom: 0; }
@@ -3030,6 +3093,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .insight-detail p:not(#\-) { margin-top: 4px; margin-bottom: 4px; }
 :where(:root[data-density=compact]) .insights-card .insight .quiet:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .insights-card > .fine:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+/*  components/journal-prompts/prompt-picker.css  */
+:where(:root[data-density=compact]) .prompt-picker:not(#\-) { row-gap: 8px; padding-top: 6px; }
+:where(:root[data-density=compact]) .prompt-picker-lang:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .prompt-picker-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .prompt-picker-card:not(#\-) { row-gap: 1.5px; padding-top: 7.5px; padding-bottom: 7.5px; }
 /*  components/journal/journal.css  */
 :where(:root[data-density=compact]) .journal-compose:not(#\-) { row-gap: 10px; }
 :where(:root[data-density=compact]) .journal-energy:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
@@ -3049,6 +3117,7 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .journal-week-days li:not(#\-) { row-gap: 3px; padding-top: 4.5px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .journal-week-lines:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
 :where(:root[data-density=compact]) .journal-week-legend:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .journal-notes-link:not(#\-) { margin-top: 4px; margin-bottom: 0; }
 /*  components/journal/on-this-day.css  */
 :where(:root[data-density=compact]) .on-this-day > summary:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .on-this-day-list:not(#\-) { margin-top: 6px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 9px; }
@@ -3197,6 +3266,16 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .data-table th:not(#\-), :where(:root[data-density=compact]) .data-table td:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
 :where(:root[data-density=compact]) .data-coin-link:not(#\-) { row-gap: 10px; }
 @media (max-width: 639.98px) { :where(:root[data-density=compact]) .data-table :is(th, td):not(#\-) { padding-top: 8px; padding-bottom: 8px; } }
+/*  components/money-photos/money-photos.css  */
+:where(:root[data-density=compact]) .money-photos-draft:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .money-photos-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/money-select/money-select.css  */
+:where(:root[data-density=compact]) .money-select-head:not(#\-) { row-gap: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .money-select-head h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .money-select-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .money-select-total:not(#\-) { margin-top: 8px; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .spending-recent-note:not(#\-) { margin-top: -2px; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .money-calc-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/mood-words/mood-words.css  */
 :where(:root[data-density=compact]) .mood-words-fold:not(#\-) { margin-top: 4px; }
 :where(:root[data-density=compact]) .mood-words-trigger:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
@@ -3209,6 +3288,11 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .mood-words-word:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .mood-words-step:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
 :where(:root[data-density=compact]) .mood-words-actions:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 16px; }
+/*  components/motion/motion-2026.css  */
+:where(:root[data-density=compact]) .zg-nebula-border:not(#\-)::before { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .zg-burst-ring:not(#\-) { margin-top: calc(var(--zg-r) * -1); margin-bottom: 0; }
+:where(:root[data-density=compact]) .zg-burst-spark:not(#\-) { margin-top: -3px; margin-bottom: 0; }
+:where(:root[data-density=compact]) :is(.zg-glass, .search-palette, .quick-add-dialog):not(#\-)::before { padding-top: 1px; padding-bottom: 1px; }
 /*  components/music/music-launcher.css  */
 :where(:root[data-density=compact]) .music-launcher-stack:not(#\-) { row-gap: 0; }
 :where(:root[data-density=compact]) .music-launcher:not(#\-) { padding-top: 0; padding-bottom: 0; }
@@ -3289,6 +3373,79 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav [data-group-start]:not(#\-) { margin-top: 18px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar:not(#\-) { padding-top: 16px; } }
 @media (min-width: 901px) and (max-height: 1000px) { :root:where([data-density=compact]) .app-sidebar .app-nav:not(#\-) { margin-top: 12px; row-gap: 0; } }
+/*  components/notes/notes.css  */
+:where(:root[data-density=compact]) .notes-workspace:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .notes-privacy:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-status:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-back:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .note-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-capture:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .note-capture-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-capture-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-capture-photo:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .note-capture-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-voice-ask:not(#\-) { row-gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .note-voice-ask p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-voice-live:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-tabs:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .note-tab:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-tab-count:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-results:not(#\-), :where(:root[data-density=compact]) .note-inbox:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .note-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
+:where(:root[data-density=compact]) .note-list li:not(#\-), :where(:root[data-density=compact]) .note-results li:not(#\-) { padding-bottom: 6px; }
+:where(:root[data-density=compact]) .note-list p:not(#\-), :where(:root[data-density=compact]) .note-results p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-new:not(#\-) { row-gap: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .note-search:not(#\-) { row-gap: 6px; margin-top: 4px; margin-bottom: 12px; }
+:where(:root[data-density=compact]) .note-inbox-item:not(#\-) { row-gap: 6px; padding-top: 9px; padding-bottom: 9px; }
+:where(:root[data-density=compact]) .note-inbox-main:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .note-inbox-text:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-inbox-main .fine:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-file:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .note-file legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-file-choices:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .note-file-choice:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-day:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .note-day-head:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .note-this-day:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .note-this-day-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-this-day p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-this-day-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .note-day-chip:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .note-day-dot:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-editor:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .note-field:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .note-field .fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-field kbd:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-suggest:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 6px; padding-bottom: 6px; row-gap: 2px; }
+:where(:root[data-density=compact]) .note-suggest li:not(#\-) { row-gap: 9px; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .note-render > :first-child:not(#\-) { margin-top: 0; }
+:where(:root[data-density=compact]) .note-render blockquote:not(#\-) { margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .note-link:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .note-extras:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-backlinks:not(#\-) { row-gap: 6px; padding-top: 10px; }
+:where(:root[data-density=compact]) .note-backlinks-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-backlinks ul:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .note-backlink-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-backlinks-empty:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-graph:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .note-graph-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-graph-head p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-graph-switch:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .note-graph-sky:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .note-graph-svg:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-key:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .note-graph-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .note-graph-list li:not(#\-) { padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .note-graph-near:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-graph-empty p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .note-files:not(#\-) { row-gap: 18px; }
+:where(:root[data-density=compact]) .note-files section:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .note-files h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-files p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .note-import-plan:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .quick-capture:not(#\-) { margin-bottom: 10px; }
+:where(:root[data-density=compact]) .quick-capture-box:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
 /*  components/notify/notifications.css  */
 :where(:root[data-density=compact]) .notify-card .notify-state:not(#\-) { margin-top: 6px; margin-bottom: 10px; }
 :where(:root[data-density=compact]) .notify-card .notify-server:not(#\-) { margin-top: 0; margin-bottom: 12px; }
@@ -3302,6 +3459,301 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .notify-times .field:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/notify/notify-sync.css  */
 :where(:root[data-density=compact]) .sw-update:not(#\-) { row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
+/*  components/nova/chat/nova-chat.css  */
+:where(:root[data-density=compact]) .nova-chat-sheet:not(#\-) { padding-bottom: var(--safe-bottom,env(safe-area-inset-bottom,0px)); }
+:where(:root[data-density=compact]) .nova-chat-head:not(#\-) { row-gap: 10px; padding-top: 18px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-head:not(#\-) { padding-top: 12px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-title:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-status:not(#\-) { margin-top: 4px; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-chat-tools:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-tool:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-log:not(#\-) { padding-top: 18px; padding-bottom: 18px; row-gap: 14px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-chat-log:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-welcome:not(#\-) { padding-top: 6px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-welcome-title:not(#\-) { margin-top: 6px; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-welcome-sub:not(#\-) { margin-top: 0; margin-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-invite:not(#\-) { padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-invite p:not(#\-) { margin-top: 0; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-turn:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-turn-figure:not(#\-) { padding-top: 2px; }
+:where(:root[data-density=compact]) .nova-turn-who:not(#\-) { margin-top: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-turn-user .nova-turn-body:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-turn-user .nova-turn-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-turn-edit:not(#\-) { margin-top: -8px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-turn-body pre:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-voice:not(#\-) { row-gap: 10px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-voice p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-looked:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-steps:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-steps li:not(#\-) { margin-top: 1.5px; margin-bottom: 1.5px; }
+:where(:root[data-density=compact]) .nova-pending:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-paused:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-composer-wrap:not(#\-) { padding-top: 10px; padding-bottom: 4px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-chat-sheet .nova-composer-wrap:not(#\-) { padding-top: 8px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-composer:not(#\-) { row-gap: 8px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-composer textarea:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-composer-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-send:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-mic:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-speech-note:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-speech-note p:not(#\-) { margin-top: 0; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-composer-hint:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-zigi-row:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-zigi-tools:not([hidden]):not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-zigi-tools .ai-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-zigi-page:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-zigi-page select:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chat-foot:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 2px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-list:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-list-tools input:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-list-heading:not(#\-) { margin-top: 10.5px; margin-bottom: 4.5px; }
+:where(:root[data-density=compact]) .nova-list-items:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-list-items li:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-list-open:not(#\-) { row-gap: 1.5px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-duo:not(#\-) { row-gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-duo-side:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-duo-side p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-duo-steps:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-duo-steps li:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+@media (max-width:480px) { :where(:root[data-density=compact]) .nova-tool:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+/*  components/nova/command-bar.css  */
+:where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 12vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-bar-body:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-bar-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-bar-row:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .nova-bar-row input:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-bar-hint:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-bar-actions:not(#\-) { row-gap: 8px; }
+@media (max-width:480px) { :where(:root[data-density=compact]) .nova-bar:not(#\-) { margin-top: 8vh; } }
+/*  components/nova/nova-chrome.css  */
+:root:where([data-density=compact])[data-nova-view="on"] .app-content:not(#\-):not(#\-) { padding-top: 0; }
+/*  components/nova/nova.css  */
+:where(:root[data-density=compact]) .nova-frame .sr-only:not(#\-), :where(:root[data-density=compact]) .nova-sheet .sr-only:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: -1px; margin-bottom: -1px; }
+:where(:root[data-density=compact]) .nova-reading:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-waiting:not(#\-) { row-gap: 18px; }
+:where(:root[data-density=compact]) .nova-btn:not(#\-), :where(:root[data-density=compact]) .nova-pill:not(#\-), :where(:root[data-density=compact]) .nova-exit:not(#\-), :where(:root[data-density=compact]) .nova-menu-button:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-btn-small:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-kbd:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-switch-row:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nova-switch:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-switch > span:not(#\-) { margin-top: -15px; }
+:where(:root[data-density=compact]) .nova-status:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nova-row:not(#\-) { row-gap: 7.5px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-row .nova-chip-dot:not(#\-) { margin-top: 7px; }
+:where(:root[data-density=compact]) .nova-row-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-root :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-), :where(:root[data-density=compact]) .nova-sheet :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-top:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-top-left:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-top-right:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-exit:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-clock:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-quick ul:not(#\-) { row-gap: 4.5px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-tile:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within):not(#\-)::after { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-tile-quickadd .nova-quickadd:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-tile-labelled:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-quick-sheet:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chips:not(#\-) { row-gap: 6px; margin-top: 4px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-chip:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-wake:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-stage-area:not(#\-) { padding-top: 10px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .nova-stage:not(#\-) { row-gap: 6px; padding-top: 18px; padding-bottom: 18px; }
+:where(:root[data-density=compact]) .nova-name:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-orb-button:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-orb-state:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-greeting:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-showcase:not(#\-) { row-gap: 8px; margin-top: 4px; margin-bottom: 0; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-setup-card:not(#\-) { row-gap: 6px; margin-top: 7.5px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-setup-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-setup-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-setup-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-orbit:not(#\-) { row-gap: 12px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-bento:not(#\-) { row-gap: 14px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-focus-layout:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-focus-row:not(#\-) { row-gap: 10.5px; }
+:where(:root[data-density=compact]) .nova-widget:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-widget-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-widget-head h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-grip:not(#\-) { margin-top: -10px; margin-bottom: -10px; }
+:where(:root[data-density=compact]) .nova-widget-edit:not(#\-) { row-gap: 6px; padding-top: 6px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-sizes:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-editbar:not(#\-) { row-gap: 12px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-editbar p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-foot:not(#\-) { padding-top: 8px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .nova-foot-row:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nova-command:not(#\-) { row-gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-root .nova-command input:not(#\-):not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-menu-button:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-menu-panel:not(#\-) { row-gap: 9px; padding-top: 10.5px; padding-bottom: 10.5px; }
+:where(:root[data-density=compact]) .nova-fieldset:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-fieldset legend:not(#\-) { padding-top: 0; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-segment:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-seg input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget-toggles:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-widget-toggles li:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-check:not(#\-), :where(:root[data-density=compact]) .nova-radio:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-radio:not(#\-) { padding-top: 10px; }
+:where(:root[data-density=compact]) .nova-root .nova-size-select:not(#\-):not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-left:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-left-top:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-left-brand:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-space:not(#\-) { padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-left-space p:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-space small:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-left-life:not(#\-) { row-gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-life:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-nav:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-left-heading:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-section ul:not(#\-) { row-gap: 1.5px; margin-top: 3px; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-row:not(#\-) { row-gap: 7.5px; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nova-left[data-state=rail] .nova-left-row:not(#\-) { padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .nova-left-count:not(#\-) { padding-top: 1px; padding-bottom: 1px; }
+:where(:root[data-density=compact]) .nova-left-none:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-foot:not(#\-) { margin-top: auto; row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-signature:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-left-brain:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-head:not(#\-) { row-gap: 8px; padding-top: 16px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-right-head h2:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-scroll:not(#\-) { padding-top: 0; padding-bottom: 12px; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-right-section h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-section h3 button:not(#\-) { row-gap: 10px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-body:not(#\-) { row-gap: 10px; padding-top: 0; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-right-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-sub:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-sub-title:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-right-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-right-foot:not(#\-) { row-gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-facts:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-facts > div:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .nova-facts dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-tools:not(#\-) { row-gap: 2px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-tool:not(#\-) { row-gap: 10px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-sheet:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-sheet[data-place=center]:not(#\-) { margin-top: auto; margin-bottom: auto; }
+:where(:root[data-density=compact]) .nova-sheet-body:not(#\-) { row-gap: 14px; padding-top: 16px; padding-bottom: 22px; }
+:where(:root[data-density=compact]) .nova-sheet-head:not(#\-) { row-gap: 12px; margin-top: -16px; margin-bottom: 0; padding-top: 16px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-sheet-head h2:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-sheet :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-yours:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .nova-yours-part:not(#\-) { row-gap: 12px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-yours-part h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-inline-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-field:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-avatar-choices:not(#\-), :where(:root[data-density=compact]) .nova-accents:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-avatar-choice:not(#\-), :where(:root[data-density=compact]) .nova-accent:not(#\-) { row-gap: 10px; padding-top: 6px; padding-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-avatar-choice input:not(#\-), :where(:root[data-density=compact]) .nova-accent input:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-dock-list:not(#\-) { row-gap: 3px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-dock-list li:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-dock-name:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-preview:not(#\-) { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-preview p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-status-line:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-glance:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-top:not(#\-) { padding-top: max(10px, env(safe-area-inset-top, 0px)); padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-exit:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-stage-area:not(#\-) { padding-top: 8px; padding-bottom: 8px; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-foot:not(#\-) { padding-top: 8px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-frame[data-phone] .nova-command-text:not(#\-) { row-gap: 0; }
+@media (max-width: 380px) { :where(:root[data-density=compact]) .nova-frame[data-phone] .nova-exit:not(#\-) { padding-top: 0; padding-bottom: 0; } }
+:where(:root[data-density=compact]) .nova-mini-frame:not(#\-) { row-gap: 12px; padding-top: 16px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .nova-mini-head:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-mini-head p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-mini-day:not(#\-) { row-gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+/*  components/nova/panels/panels.css  */
+:where(:root[data-density=compact]) .nova-panels:not(#\-), :where(:root[data-density=compact]) .nova-briefs:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-panel-head:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-panel-head h2:not(#\-), :where(:root[data-density=compact]) .nova-panel-head h3:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-panel-tabs:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-memory:not(#\-), :where(:root[data-density=compact]) .nova-permissions:not(#\-), :where(:root[data-density=compact]) .nova-activity:not(#\-), :where(:root[data-density=compact]) .nova-cost:not(#\-), :where(:root[data-density=compact]) .nova-models:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-panel-body:not(#\-) { row-gap: 9px; }
+:where(:root[data-density=compact]) .nova-panel-body h4:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-empty:not(#\-) { padding-top: 12px; padding-bottom: 12px; row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-empty p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-brief-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-brief:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-brief summary:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-brief-body:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-brief-lines:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-brief-polished:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-brief-polished .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-radio-row:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; row-gap: 3px; }
+:where(:root[data-density=compact]) .nova-radio-row .ai-check:not(#\-) { row-gap: 8px; }
+/*  components/nova/setup/setup.css  */
+:where(:root[data-density=compact]) .nova-setup:not(#\-) { row-gap: 16px; }
+:where(:root[data-density=compact]) .nova-progress:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-setup-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 7.5px; }
+:where(:root[data-density=compact]) .nova-panel:not(#\-) { row-gap: 9px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-panel p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-panel ul:not(#\-), :where(:root[data-density=compact]) .nova-panel ol:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-panel-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-sub:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-panel h3:not(.nova-panel-title):not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-promises:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-steps:not(#\-) { padding-top: 0; padding-bottom: 0; row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-steps > li:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .nova-cmd:not(#\-) { row-gap: 6px; margin-top: 6px; }
+:where(:root[data-density=compact]) .nova-cmd pre:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-way:not(#\-) { row-gap: 10px; padding-top: 4px; }
+:where(:root[data-density=compact]) .nova-honest:not(#\-), :where(:root[data-density=compact]) .nova-note:not(#\-), :where(:root[data-density=compact]) .nova-warn:not(#\-) { padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-more ul:not(#\-) { row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-keys:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-scan:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-modes:not(#\-) { row-gap: 8px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-modes legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-mode:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-mode input:not(#\-) { margin-top: 2px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-tag:not(#\-) { padding-top: 2px; padding-bottom: 2px; }
+:where(:root[data-density=compact]) .nova-scopes:not(#\-) { row-gap: 6px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-scopes legend:not(#\-) { margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-send:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-send-line:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-send-text:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 10px; padding-bottom: 10px; }
+:where(:root[data-density=compact]) .nova-brief:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-check:not(#\-) { row-gap: 6px; padding-top: 8px; }
+:where(:root[data-density=compact]) .nova-check-result:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-connect:not(#\-) { padding-top: 6px; }
+:where(:root[data-density=compact]) .nova-badge:not(#\-) { row-gap: 8px; padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .nova-online:not(#\-) { row-gap: 8px; padding-top: 14px; padding-bottom: 14px; }
+:where(:root[data-density=compact]) .nova-online p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-setup-card:not(#\-) { row-gap: 7.5px; padding-top: 12px; padding-bottom: 12px; }
+:where(:root[data-density=compact]) .nova-setup-card h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-setup-card p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-setup-card-done:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; }
+:where(:root[data-density=compact]) .nova-setup-card .ai-card-actions:not(#\-) { row-gap: 6px; }
+/*  components/nova/widgets/widgets.css  */
+:where(:root[data-density=compact]) .nova-widget-body p:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-big:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .nova-empty:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-empty-art:not(#\-) { margin-top: -6px; margin-bottom: -4px; }
+:where(:root[data-density=compact]) .nova-orbit-widget:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .nova-next:not(#\-), :where(:root[data-density=compact]) .nova-goals:not(#\-), :where(:root[data-density=compact]) .nova-markets:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nova-next li small:not(#\-) { margin-top: -8px; }
+:where(:root[data-density=compact]) .nova-goals li:not(#\-) { row-gap: 3px; }
+:where(:root[data-density=compact]) .nova-goal-head:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-water .glass-track:not(#\-) { margin-top: 8px; margin-bottom: 6px; }
+:where(:root[data-density=compact]) .nova-chip-link:not(#\-) { padding-top: 0; padding-bottom: 0; margin-top: 6px; }
+:where(:root[data-density=compact]) .nova-playing:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nova-playing-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-round:not(#\-) { margin-top: 6px; }
+:where(:root[data-density=compact]) .nova-markets li:not(#\-) { row-gap: 6px; }
+/*  components/nova/workflows/workflows.css  */
+:where(:root[data-density=compact]) .nova-workflows:not(#\-), :where(:root[data-density=compact]) .nova-wf-run:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nova-workflows h4:not(#\-), :where(:root[data-density=compact]) .nova-wf-run h3:not(#\-), :where(:root[data-density=compact]) .nova-wf-edit h3:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-wf-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 0; }
+:where(:root[data-density=compact]) .nova-wf-item:not(#\-) { padding-top: 7.5px; padding-bottom: 7.5px; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .nova-wf-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-wf-steps:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-wf-step:not(#\-) { padding-top: 10px; padding-bottom: 10px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-wf-step-head:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 8px; }
+:where(:root[data-density=compact]) .nova-wf-facts:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-wf-words:not(#\-) { padding-top: 12px; padding-bottom: 12px; row-gap: 6px; }
+:where(:root[data-density=compact]) .nova-wf-words .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-wf-sent pre:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-wf-steps-edit:not(#\-) { padding-top: 10px; padding-bottom: 10px; row-gap: 4px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nova-wf-steps-edit .ai-check:not(#\-) { row-gap: 8px; }
 /*  components/offline-notice.css  */
 :where(:root[data-density=compact]) .offline-notice:not(#\-) { margin-top: 0; margin-bottom: 16px; padding-top: 12px; padding-bottom: 12px; }
 :root:where([data-density=compact]) .offline-pill:not(#\-) { row-gap: 6px; padding-top: 4px; padding-bottom: 4px; }
@@ -4469,6 +4921,18 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .rb-failed:not(#\-) { margin-top: 0; margin-bottom: 0; }
 :root:where([data-density=compact]) .rb-group:not(#\-) { padding-top: 10.5px; padding-bottom: 12px; }
 :root:where([data-density=compact]) .rb-file:not(#\-) { padding-top: 14px; padding-bottom: 14px; }
+/*  components/review-cards/review-cards.css  */
+:where(:root[data-density=compact]) .review-cards:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .review-card:not(#\-) { row-gap: 7.5px; padding-top: 13.5px; padding-bottom: 13.5px; }
+:where(:root[data-density=compact]) .review-card .eyebrow:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .review-card .review-card-payee:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .review-card .review-card-amount:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .review-card-chips:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .review-card-chips legend:not(#\-) { margin-bottom: 6px; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .review-card-chip:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .review-card-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .review-cards-done:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .review-cards-note:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/review-unified/review-unified.css  */
 :root:where([data-density=compact]) .review-notes:not(#\-) { row-gap: 16px; }
 :root:where([data-density=compact]) .review-glance:not(#\-) { row-gap: 10px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
@@ -4488,6 +4952,20 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :root:where([data-density=compact]) .rewards-list .actions:not(#\-) { row-gap: 8px; }
 :root:where([data-density=compact]) .rewards-add:not(#\-) { row-gap: 10px; }
 :root:where([data-density=compact]) .rewards-add .field:not(#\-) { row-gap: 6px; }
+/*  components/scales/your-scales.css  */
+:where(:root[data-density=compact]) .your-scales:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .your-scales-row:not(#\-) { padding-top: 6px; padding-bottom: 6px; margin-top: 0; margin-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .your-scales-row legend:not(#\-) { padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .your-scales-ends:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .your-scales-dots:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .your-scales-empty:not(#\-), :where(:root[data-density=compact]) .your-scales-invite:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .your-scales-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .your-scales-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .your-scales-list li:not(#\-) { row-gap: 3px; padding-top: 3px; padding-bottom: 3px; }
+:where(:root[data-density=compact]) .your-scales-actions:not(#\-) { row-gap: 4px; }
+:where(:root[data-density=compact]) .your-scales-form:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .your-scales-suggest:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .your-scales-fields:not(#\-) { row-gap: 8px; }
 /*  components/search/search.css  */
 :root:where([data-density=compact]) .search-palette:not(#\-) { margin-top: 10vh; margin-bottom: auto; padding-top: 0; padding-bottom: 0; }
 :root:where([data-density=compact]) .search-field:not(#\-) { row-gap: 10px; padding-top: 12px; padding-bottom: 12px; }
@@ -4627,6 +5105,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .energy-curve-key li:not(#\-) { row-gap: 4.5px; }
 :where(:root[data-density=compact]) .energy-curve-list:not(#\-) { row-gap: 6px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .energy-curve-list dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/spending-map/spending-map.css  */
+:where(:root[data-density=compact]) .spending-map:not(#\-) { row-gap: 14px; }
+:where(:root[data-density=compact]) .spending-map-currency:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .spending-map-currency h4:not(#\-), :where(:root[data-density=compact]) .spending-map-entries h4:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .spending-map-table caption:not(#\-) { padding-bottom: 4px; }
+:where(:root[data-density=compact]) .spending-map-table th:not(#\-), :where(:root[data-density=compact]) .spending-map-table td:not(#\-) { padding-top: 4px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .spending-map-entries:not(#\-) { row-gap: 8px; }
 /*  components/staking/staking.css  */
 :where(:root[data-density=compact]) .staking-actions:not(#\-) { row-gap: 18px; }
 :where(:root[data-density=compact]) .staking-actions h2:not(#\-) { margin-top: 4px; margin-bottom: 0; }
@@ -4741,6 +5226,23 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .task-meta:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .task-chip:not(#\-) { padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .tasks-add:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .task .task-actions:not(#\-) { row-gap: 0; }
+:where(:root[data-density=compact]) .task-editor:not(#\-) { padding-top: 8px; padding-bottom: 4px; }
+:where(:root[data-density=compact]) .task-editor-actions:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-status:not(#\-) { margin-top: 6px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-error:not(#\-) { margin-top: 4px; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-page:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-links:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-showcase:not(#\-), :where(:root[data-density=compact]) .tasks-fine:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-groups:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .tasks-add-panel:not(#\-) { row-gap: 7.5px; }
+:where(:root[data-density=compact]) .tasks-add-panel h2:not(#\-), :where(:root[data-density=compact]) .tasks-groups h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .tasks-group h3:not(#\-) { margin-top: 6px; margin-bottom: 2px; }
+:where(:root[data-density=compact]) .tasks-done summary:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .tasks-focus .pomodoro:not(#\-) { padding-top: 16px; padding-bottom: 16px; }
+:where(:root[data-density=compact]) .goal-next-actions:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .tasks-widget:not(#\-) { row-gap: 8px; }
+:where(:root[data-density=compact]) .tasks-widget-title:not(#\-) { row-gap: 4px; margin-top: 0; margin-bottom: 0; }
 /*  components/timeline/timeline.css  */
 :where(:root[data-density=compact]) .timeline-page:not(#\-) { row-gap: 18px; margin-top: 0; margin-bottom: 0; }
 :where(:root[data-density=compact]) .timeline-links:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
@@ -5046,6 +5548,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .nwm-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 :where(:root[data-density=compact]) .nwm-list li:not(#\-) { row-gap: 3px; padding-top: 4.5px; padding-bottom: 4.5px; }
 :where(:root[data-density=compact]) .nwm-status:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .nws:not(#\-) { row-gap: 10px; margin-top: 8px; }
+:where(:root[data-density=compact]) .nws-body:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .nws-choices:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .nws-since:not(#\-) { row-gap: 12px; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+:where(:root[data-density=compact]) .nws-since legend:not(#\-) { padding-top: 0; padding-bottom: 0; margin-bottom: 4px; }
+:where(:root[data-density=compact]) .nws-since label:not(#\-), :where(:root[data-density=compact]) .nws-mention:not(#\-) { row-gap: 8px; }
 /*  components/wealth/spending/spending.css  */
 :where(:root[data-density=compact]) .spending-body:not(#\-) { row-gap: 16px; }
 :where(:root[data-density=compact]) .spending-top:not(#\-) { row-gap: 20px; }
@@ -5079,6 +5587,13 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .weekly-review-day:not(#\-) { row-gap: 8px; margin-top: 12px; }
 :where(:root[data-density=compact]) .weekly-review-last dl:not(#\-) { row-gap: 6px; margin-top: 6px; margin-bottom: 0; }
 :where(:root[data-density=compact]) .weekly-review-last dd:not(#\-) { margin-top: 0; margin-bottom: 0; }
+/*  components/wrap-up-tasks/wrap-up-tasks.css  */
+:where(:root[data-density=compact]) .wrap-up-tasks:not(#\-) { row-gap: 6px; margin-top: 8px; margin-bottom: 8px; }
+:where(:root[data-density=compact]) .wrap-up-tasks-title:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .wrap-up-tasks-list:not(#\-) { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; row-gap: 4.5px; }
+:where(:root[data-density=compact]) .wrap-up-tasks-list li:not(#\-) { row-gap: 4.5px; padding-top: 4.5px; padding-bottom: 4.5px; }
+:where(:root[data-density=compact]) .wrap-up-tasks-actions:not(#\-) { row-gap: 6px; }
+:where(:root[data-density=compact]) .wrap-up-tasks-teach:not(#\-) { margin-top: 0; margin-bottom: 0; }
 /*  components/wrapped/wrapped.css  */
 :where(:root[data-density=compact]) .wrapped-share:not(#\-) { row-gap: 8px; }
 :where(:root[data-density=compact]) .wrapped-include:not(#\-) { row-gap: 8px; }
@@ -5135,3 +5650,12 @@ html:where([data-density=compact]).zigi-pip-root:not(#\-), html:where([data-dens
 :where(:root[data-density=compact]) .meet-zigi-sizes:not(#\-) { row-gap: 10px; padding-top: 8px; padding-bottom: 8px; }
 :where(:root[data-density=compact]) .meet-zigi-sizes figure:not(#\-) { margin-top: 0; margin-bottom: 0; row-gap: 6px; }
 @media (max-width:399.98px) { :where(:root[data-density=compact]) .meet-zigi-sizes:not(#\-) { row-gap: 12px; } }
+:where(:root[data-density=compact]) .meet-zigi-about:not(#\-) { row-gap: 10px; }
+:where(:root[data-density=compact]) .meet-zigi-about h2:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .meet-zigi-can:not(#\-) { row-gap: 8px; margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .meet-zigi-privacy:not(#\-), :where(:root[data-density=compact]) .meet-zigi-setup:not(#\-) { margin-top: 0; margin-bottom: 0; }
+:where(:root[data-density=compact]) .meet-zigi-gallery:not(#\-) { row-gap: 12px; }
+:where(:root[data-density=compact]) .meet-zigi-gallery>summary:not(#\-) { row-gap: 10.5px; }
+:where(:root[data-density=compact]) .meet-zigi-gallery>summary>span:not(#\-) { row-gap: 2px; }
+:where(:root[data-density=compact]) .meet-zigi-gallery[open]>summary:not(#\-) { margin-bottom: 9px; }
+:where(:root[data-density=compact]) .meet-zigi-gallery .meet-zigi-skin+.meet-zigi-skin:not(#\-) { margin-top: 16px; }
