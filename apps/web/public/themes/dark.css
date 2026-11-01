@@ -4239,24 +4239,24 @@
 /*  components/charts/chart-look.css  */
 @scope (:root[data-theme=dark]) {
     :is(.zg-chart, .zg-legend):not(#\-) {
-        --zgc-a0: var(--brand-cyan-ink, var(--brand-cyan));
-        --zgc-a1: var(--brand-violet-ink, var(--brand-violet));
-        --zgc-a2: var(--brand-magenta-ink, var(--brand-magenta));
-        --zgc-b0: var(--pillar-wealth-ink, var(--pillar-wealth));
-        --zgc-b1: var(--nebula-pink-ink, var(--brand-magenta));
+        --zgc-a0: var(--brand-cyan);
+        --zgc-a1: var(--brand-violet);
+        --zgc-a2: var(--brand-magenta);
+        --zgc-b0: var(--pillar-wealth);
+        --zgc-b1: var(--nebula-pink, var(--brand-magenta));
         --zgc-band: var(--brand-violet)
     }
     :is(.zg-chart, .zg-legend)[data-pillar=goals]:not(#\-) {
-        --zgc-a2: var(--pillar-goals-ink, var(--pillar-goals))
+        --zgc-a2: var(--pillar-goals)
     }
     :is(.zg-chart, .zg-legend)[data-pillar=habits]:not(#\-) {
-        --zgc-a2: var(--pillar-habits-ink, var(--pillar-habits))
+        --zgc-a2: var(--pillar-habits)
     }
     :is(.zg-chart, .zg-legend)[data-pillar=health]:not(#\-) {
-        --zgc-a2: var(--pillar-health-ink, var(--pillar-health))
+        --zgc-a2: var(--pillar-health)
     }
     :is(.zg-chart, .zg-legend)[data-pillar=wealth]:not(#\-) {
-        --zgc-a2: var(--pillar-wealth-ink, var(--pillar-wealth))
+        --zgc-a2: var(--pillar-wealth)
     }
     .zg-chart .zgc-a0:not(#\-) {
         stop-color: var(--zgc-a0)
@@ -4295,9 +4295,6 @@
     .zg-legend .money-key-band:not(#\-) {
         background-image: linear-gradient(180deg, color-mix(in srgb, var(--zgc-band) 40%, transparent), color-mix(in srgb, var(--zgc-band) 12%, transparent));
         background-color: transparent
-    }
-    :scope[data-theme=light] .zg-chart [filter]:not(#\-) {
-        filter: none
     }
     @media (forced-colors: active) {
         svg.zg-chart .zgc-line:not(#\-) {
@@ -19068,6 +19065,11 @@
 /* Session AH (HA15; D-178, D-192): the 30-day heatmap in Dark: dark numbers on the pale "all done" cell, never white. */
 :root[data-theme=dark] .habit-month-grid>span:not(#\-) { border-color: #4a5a7a; }
 :root[data-theme=dark] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=dark] .habit-month-legend i[data-level=full]:not(#\-) { color: #10142a; font-weight: 750; }
+/* apps/web/themes/dark.ak-parity.css */
+/* Session AK (CI-D, theme parity, ADR-028 H75): NOVA's "Running now" chips keep their violet edge by night. In Nebula
+   components/nova/live/live-chips.css loads after nova.css, so its edge wins over the chip's soft one; the Dark sheet lists
+   the files in path order (live/ before nova.css), so the soft edge won there. One id more of weight restores Nebula's order. */
+:root[data-theme=dark] .nova-live-chip:not(#\-):not(#\-) { border-color: var(--nova-edge, rgba(203, 191, 255, .5)); } /* components/nova/live/live-chips.css */
 /* apps/web/themes/dark.headerart.css */
 /* Session AE (Part 4, ADR-027 G5): the page-header art in Dark — the same drawing on the near-black ground, its glows a
    little dimmer (the halo, the glyph's bloom, the planets' light and the nebula disc). */
@@ -19081,7 +19083,7 @@
    and the same vector stars dimmed by a veil of that ground, so they no longer outshine the page's dimmed starfield. */
 :root[data-theme=dark] .app-sidebar:not(#\-) {
   background: linear-gradient(#0508159e, #0508159e) local,
-    url('/art/v24/sidebar-stars.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
+    url('/art/v24/sidebar-stars.svg') center calc(max(100%, 40px) + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
     linear-gradient(0deg, #03050e 0, #03050e 300px, #060718 560px, #070a1d 700px, #080c22 930px) local,
     #080c22;
   /* At 768–900 px the sidebar is the page's header: one clean deep navy, like the page's top. Gate C design review
