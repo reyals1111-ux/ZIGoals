@@ -18,6 +18,9 @@ import {useHealthGoals} from '../health-goals/use-health-goals';
 import {NAV_ITEMS, useVisibleNav} from '../app-nav';
 // Session AK (F5d): actions in the palette (lib/search/actions.ts); each only opens the page or flow that confirms.
 import {PALETTE_ACTIONS, SUGGESTED_ACTIONS, actionsOnly, effectLine, goalContributionActions, searchActions, type PaletteAction} from '../../lib/search/actions';
+// Session AK (B1, B4; lane B mount): notes are found here beside the pillars, and "Capture a note" is an action.
+import {NOTES} from '../../lib/notes/schema';
+import {NOTE_ACTIONS, noteSearchItems} from '../../lib/search/notes';
 
 const NAV_HREFS = new Set<string>(NAV_ITEMS.map(([href]) => href));
 import './search.css';
@@ -40,7 +43,7 @@ const placeOf = (href: string) => { const seg = href.split(/[?#]/)[0]!.split('/'
 export default function SearchPalette({initial = '', zigi = false, onClose}: {initial?: string; zigi?: boolean; onClose: () => void}) {
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null), returnTo = useRef<Element | null>(null);
   const router = useRouter(), base = useId(), [query, setQuery] = useState(initial), [active, setActive] = useState(0);
-  const recent = useDeviceRecord(SEARCH_RECENT);
+  const recent = useDeviceRecord(SEARCH_RECENT), notes = useDeviceRecord(NOTES);
   const goals = useUnifiedGoals(), habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), healthGoals = useHealthGoals(), nav = useVisibleNav(), chainChosen = useChainChoice().chosen;
 
   useEffect(() => {
@@ -66,13 +69,14 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
       for (const r of health.data.recipes) out.push({id: `recipe:${r.id}`, kind: 'recipe', title: r.name, subtitle: 'Recipe · in Health', href: '/app/health'});
     }
     if (platform.loaded && !platform.error) for (const p of platform.data.positions) if (!p.archivedAt) out.push({id: `asset:${p.id}`, kind: 'asset', title: p.providerId === 'native-zig' ? `ZIG ${p.sourceType.replaceAll('_', ' ').toLowerCase()}` : p.providerId, subtitle: `${p.asset}${p.assetClass ? ` · ${p.assetClass}` : ''}`, href: `/app/wealth/asset/${encodeURIComponent(p.id)}`, keywords: [p.asset]});
+    if (notes.loaded && !notes.unreadable) out.push(...noteSearchItems(notes.data.notes)); // Session AK (B4)
     for (const t of GOAL_LIBRARY) out.push({id: `template:${t.id}`, kind: 'template', title: t.title, subtitle: `Template · ${t.summary}`, href: t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : `/app/goals/new?template=${t.id}`, keywords: t.keywords});
     return out;
-  }, [healthGoals.loaded, healthGoals.unreadable, healthGoals.data, goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items, chainChosen]);
+  }, [healthGoals.loaded, healthGoals.unreadable, healthGoals.data, goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items, chainChosen, notes.loaded, notes.unreadable, notes.data]);
 
   const trimmed = query.trim(), only = actionsOnly(trimmed), hits = useMemo(() => trimmed && !only ? search(items, trimmed) : [], [items, trimmed, only]);
   // Session AK (F5d): the actions the words name (">" for actions only), before the results when they match as well.
-  const actions = useMemo(() => [...PALETTE_ACTIONS, ...(platform.loaded && !platform.error ? goalContributionActions(platform.data.goals) : [])], [platform.loaded, platform.error, platform.data]);
+  const actions = useMemo(() => [...PALETTE_ACTIONS, ...NOTE_ACTIONS, ...(platform.loaded && !platform.error ? goalContributionActions(platform.data.goals) : [])], [platform.loaded, platform.error, platform.data]);
   const actionHits = useMemo(() => trimmed ? searchActions(actions, trimmed, only ? 12 : 3) : [], [actions, trimmed, only]);
   const actionsFirst = only || (actionHits.length > 0 && actionHits[0]!.score >= Math.max(-Infinity, ...hits.map(h => h.score)));
   const actionRows = actionHits.map((a): Row => ({id: a.id, label: a.title, detail: a.subtitle, kind: 'action', action: a}));

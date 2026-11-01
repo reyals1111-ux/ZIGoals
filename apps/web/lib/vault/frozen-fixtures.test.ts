@@ -37,6 +37,8 @@ import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {CALENDAR_IMPORT_KEY} from '../ics/calendar';
+import {NOTES_KEY} from '../notes/schema';
 import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
 import {SAVINGS_CHALLENGES_KEY} from '../savings-challenges/challenges';
 import {DEBT_PLANNER_KEY} from '../debt-planner/store';
@@ -273,6 +275,12 @@ export function frozenFixture() {
   // Owner follow-up 1 (F4, TIER 3 (stored format)): governance vote reminders (fictional proposal).
   records[GOV_REMINDERS_KEY] = JSON.stringify({version: 1, reminders: {'zig-test-2:7': {endsAt: '2026-11-05T10:00:00.000Z', title: 'Fictional proposal', setAt: '2026-10-31T09:00:00.000Z'}}});
   checks.push({key: GOV_REMINDERS_KEY, module: './zigchain-eco/governance', spec: 'GOV_REMINDERS', expect: {'reminders.zig-test-2:7.title': 'Fictional proposal'}});
+  // Owner follow-up 2 (B): notes, daily notes and the capture inbox.
+  records[NOTES_KEY] = JSON.stringify({version: 1, notes: [{id: "note_fixture1", kind: "topic", title: "Fictional topic", body: "See [[Read]]", createdAt: "2026-11-01T09:00:00.000Z"}], voice: false});
+  checks.push({key: NOTES_KEY, module: './notes/schema', spec: 'NOTES', expect: {"notes.0.title": "Fictional topic"}});
+  // Owner follow-up 2 (T2): calendars imported from .ics files (read-only events).
+  records[CALENDAR_IMPORT_KEY] = JSON.stringify({version: 1, calendars: [{id: "cal_fixture1", name: "Fictional work", importedAt: "2026-11-01T09:00:00.000Z", events: [{id: "0123456789abcdef", title: "Fictional stand-up", allDay: false, start: "2026-11-03T09:30", minutes: 15}]}]});
+  checks.push({key: CALENDAR_IMPORT_KEY, module: './ics/calendar', spec: 'CALENDAR_IMPORT', expect: {"calendars.0.name": "Fictional work"}});
   // Owner follow-up 1 (BUILD list 2 #8): experiments, one change compared with the days before.
   records[EXPERIMENTS_KEY] = JSON.stringify({version: 1, items: [{id: "exp_fixture1", title: "Fictional walk after lunch", factor: "habit:fixture-habit-1", outcome: "mood", start: "2026-10-01", days: 14}]});
   checks.push({key: EXPERIMENTS_KEY, module: './experiments/store', spec: 'EXPERIMENTS', expect: {"items.0.days": 14}});
@@ -297,6 +305,12 @@ export function frozenFixture() {
   // Owner follow-up 1 (F5): net-worth milestones.
   records[NETWORTH_MILESTONES_KEY] = JSON.stringify({version: 1, enabled: true, currency: "EUR", amounts: ["10000"], reached: [{currency: "EUR", amount: "10000", on: "2026-10-20", quiet: true}]});
   checks.push({key: NETWORTH_MILESTONES_KEY, module: './networth-milestones/milestones', spec: 'NETWORTH_MILESTONES', expect: {"amounts.0": "10000"}});
+  // Owner follow-up 2 (T1, T3; TIER 3 (stored format)): optional fields on existing records — a task's time and goal link,
+  // the agenda's hidden extra kinds, and the focus sessions' Pomodoro settings and block fields. Older builds keep or ignore them.
+  { const t = JSON.parse(records[TASKS_KEY] ?? '{"version":1,"tasks":[]}') as {tasks: unknown[]}; records[TASKS_KEY] = JSON.stringify({...t, tasks: [...(t.tasks ?? []), {id: 'task_fixture_t1', title: 'Fictional: book', priority: 'normal', due: '2026-11-04', time: '10:30', goal: 'private:goal-1', createdAt: '2026-11-01T09:00:00.000Z'}]}); }
+  { const a = JSON.parse(records[AGENDA_KEY]!) as Record<string, unknown>; records[AGENDA_KEY] = JSON.stringify({...a, hiddenExtra: ['event']}); }
+  { const f = JSON.parse(records[FOCUS_SESSIONS_KEY] ?? '{"version":1}') as Record<string, unknown>; records[FOCUS_SESSIONS_KEY] = JSON.stringify({...f, pomodoro: {work: 25, shortBreak: 5, longBreak: 15, cycles: 4, sound: true, tickTask: true}}); }
+  // @wired-end
   records[MONEY_RULES_KEY] = JSON.stringify({version: 1, rules: [{id: 'r1', field: 'payee', op: 'contains', text: 'fictional grocer', direction: 'out', category: 'Groceries', enabled: true}]});
   checks.push({key: MONEY_RULES_KEY, module: './money-rules/schema', spec: 'MONEY_RULES', expect: {'rules.0.category': 'Groceries'}});
   records[MONEY_REVIEW_KEY] = JSON.stringify({version: 1, ids: ['m-fixture-1']});
@@ -320,7 +334,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY, WALLET_BALANCES_KEY, GOAL_VAULTS_KEY, VALIDATOR_ALERTS_KEY, ZIGI_PLANS_KEY, UNIVERSE_KEY, DAY_TIMELINE_KEY, STORIES_KEY, MONEY_LOG_KEY, JOURNAL_KEY, ENERGY_KEY, AI_MEMORY_KEY, MEAL_ESTIMATES_KEY, ZIGI_KEY, TASKS_KEY, RECEIPTS_KEY, IMPORTS_KEY, EXCHANGES_KEY, ZIGI_METRICS_KEY, READING_SOURCES_KEY, PRICE_ALERTS_KEY, UI_PREFS_KEY, FOCUS_SESSIONS_KEY, WORKOUTS_KEY, GUIDED_JOURNEYS_KEY, NOTIFY_KEY, MUSIC_MIX_KEY, BILLS_KEY, BUDGETS_KEY, TARGET_ALLOCATION_KEY, CSV_MAPPINGS_KEY, AUTO_RULES_KEY, BACKUP_REMINDER_KEY, FOOD_SCANS_KEY, NUTRIENT_EXTRAS_KEY, GROCERY_KEY, CALORIE_WEEK_KEY, COMPARE_PAIR_KEY, MUSCLE_RECOVERY_KEY, FOOD_DISPLAY_KEY, REWARDS_SHELF_KEY, MONEY_RULES_KEY, MONEY_REVIEW_KEY, FI_MODEL_KEY, EMERGENCY_SHEET_KEY, SUPPLEMENTS_KEY, GOV_REMINDERS_KEY, CALENDAR_IMPORT_KEY, NOTES_KEY, NETWORTH_MILESTONES_KEY, SAVINGS_CHALLENGES_KEY, DEBT_PLANNER_KEY, WRAPPED_KEY, AGENDA_KEY, JOURNAL_DISPLAY_KEY, FIRST_WEEK_KEY, EXPERIMENTS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

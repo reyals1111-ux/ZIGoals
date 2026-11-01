@@ -50,6 +50,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   comparePair: ['The comparison you chose last (Insights)', 'Health'],
   supplements: ['Supplements and medication log', 'Health'],
   govReminders: ['Governance vote reminders', 'Wealth'],
+  calendarImport: ['Imported calendars (read-only events)', 'Today'],
+  notes: ['Notes and the capture inbox', 'Today'],
   networthMilestones: ['Net-worth milestones', 'Wealth'],
   savingsChallenges: ['Savings challenges', 'Goals'],
   debtPlanner: ['Debt payoff planner figures', 'Wealth'],

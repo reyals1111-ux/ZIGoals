@@ -19,6 +19,8 @@ export const KNOWN_DATABASES = [
   'zigoals-offline-queue-v1',
   // Session AK (Part 4.2): meal photos kept on this device, by the person's choice.
   'zigoals-meal-photos-v1',
+  // Owner follow-up 2 (B1): photos captured into notes, on this device only.
+  'zigoals-notes-photos-v1',
   // Session AK (Part 9): the first build's plaintext Lichess store; since Part 15 (M1) the token is sealed per account in
   // zigoals-link-tokens-v1, and a leftover of this one is revoked and deleted on sight.
   'zigoals-lichess-v1',

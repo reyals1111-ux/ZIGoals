@@ -65,6 +65,13 @@ import {NETWORTH_MILESTONES_KEY} from './networth-milestones/milestones';
 import {showcaseNetworthMilestones} from './networth-milestones/showcase';
 import {FOCUS_SESSIONS_KEY} from './focus-sessions/schema';
 import {showcaseFocusSessions} from './wrapped/showcase';
+import {NOTES_KEY} from './notes/schema';
+import {TASKS_KEY} from './tasks/schema';
+import {showcaseTasks} from './tasks/showcase';
+import {showcaseNotes} from './notes/showcase';
+import {CALENDAR_IMPORT_KEY} from './ics/calendar';
+import {showcaseCalendarImport} from './ics/showcase';
+import {withShowcasePomodoro} from './focus-sessions/showcase';
 import {ENERGY_KEY} from './energy/schema';
 import {showcaseEnergy} from './energy/showcase';
 import {BILLS_KEY} from './bills/schema';
@@ -191,7 +198,9 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Owner follow-up 1 (F5): the debt planner's figures, a 52-week and a no-spend challenge, net-worth milestones (one already
  // seen), and fictional focus sessions for Wrapped and the focus garden — all labelled example data.
  records[DEBT_PLANNER_KEY]=JSON.stringify(showcaseDebtPlanner(day));records[SAVINGS_CHALLENGES_KEY]=JSON.stringify(showcaseSavingsChallenges(day));
- records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(showcaseFocusSessions(day));
+ records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(withShowcasePomodoro(showcaseFocusSessions(day),day));
+ // Owner follow-up 2 (B, T2): labelled example notes (with [[links]] to Showcase goals and habits) and an imported calendar.
+ records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
  records[EXPERIMENTS_KEY]=JSON.stringify(showcaseExperiments(day,habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!))));
  records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
  // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).

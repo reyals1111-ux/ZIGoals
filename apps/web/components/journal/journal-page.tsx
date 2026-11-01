@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {Suspense, lazy, useMemo, useState} from 'react';
 import {formatWeekday} from '../../lib/visual-format';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -45,7 +46,9 @@ export function JournalPage({showcase = false}: {showcase?: boolean}) {
     {showcase && <p className="fine">Fictional Showcase entries.</p>}
     {journal.unreadable && <p role="alert">This device&rsquo;s journal could not be read; it is not written over.</p>}
     <LoadBoundary quiet><Suspense fallback={null}><OnThisDay entries={journal.data.entries} today={today} energy={energy.data.days} moods={moodDays}/></Suspense></LoadBoundary>
-    <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose/></section>
+    <section className="panel" aria-labelledby="journal-write"><h2 id="journal-write">Write</h2><JournalCompose/>
+      {/* Session AK (B2, lane B): the Journal's sibling for longer thoughts — today's note beside what this day holds. */}
+      <p className="fine journal-notes-link">Longer thoughts, ideas and [[links]] to your goals and habits go in <Link className="text-link" href="/app/notes?day=today">today&rsquo;s note</Link>, beside what this day holds.</p></section>
     <section className="panel journal-week" aria-labelledby="journal-week-title"><h2 id="journal-week-title">Your week</h2>
       <ol className="journal-week-days" aria-label="This week's check-ins">{week.week.map(d => <li key={d.date} data-empty={d.energy === null && d.mood === null ? '' : undefined}>
         <span className="journal-week-day">{formatWeekday(`${d.date}T12:00:00Z`, {timeZone: 'UTC'})}</span>

@@ -20,6 +20,8 @@ import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {CALENDAR_IMPORT_KEY} from '../ics/calendar';
+import {NOTES_KEY} from '../notes/schema';
 import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
 import {SAVINGS_CHALLENGES_KEY} from '../savings-challenges/challenges';
 import {DEBT_PLANNER_KEY} from '../debt-planner/store';
@@ -152,6 +154,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   supplements: SUPPLEMENTS_KEY,
   // Owner follow-up 1 (F4): governance vote reminders.
   govReminders: GOV_REMINDERS_KEY,
+  calendarImport: CALENDAR_IMPORT_KEY,
+  notes: NOTES_KEY,
   networthMilestones: NETWORTH_MILESTONES_KEY,
   savingsChallenges: SAVINGS_CHALLENGES_KEY,
   debtPlanner: DEBT_PLANNER_KEY,

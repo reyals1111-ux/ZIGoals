@@ -39,7 +39,12 @@ export function ExportEverything() {
       const progressPhotos = await import('../lib/health-aa/photos').then(m => m.exportPhotoEntries(now)).catch(() => []); // Session AA-Local: the progress photos as files (device-only; B7)
       // Session AK (4.2): the meal photos the person chose to keep, as files beside them.
       const mealPhotos = await Promise.all([import('../lib/health-aa/photos'), import('../lib/meal-estimates/photos')]).then(([a, m]) => m.exportMealPhotoEntries(a.photoScope(), now)).catch(() => []);
-      const photos = [...progressPhotos, ...mealPhotos];
+      // Owner follow-up 2 (B1): the notes' photos as files (device-only), named by the photo id each note points at.
+      const notePhotos = kept ? [] : await Promise.all([import('../lib/health-aa/photos'), import('../lib/notes/photos'), import('../lib/notes/schema'), import('../lib/device-record')]).then(async ([a, n, sch, dr]) => {
+        const ids = dr.readDeviceRecord(storage, sch.NOTES).data.notes.flatMap(note => note.photoId ? [note.photoId] : []);
+        return [...(await n.notePhotosForExport(a.photoScope(), ids))].map(([id, p]) => ({name: `notes/photos/${id.replace(/[^A-Za-z0-9_-]/g, '')}.${p.type === 'image/webp' ? 'webp' : 'jpg'}`, data: p.data, modified: now}));
+      }).catch(() => []);
+      const photos = [...progressPhotos, ...mealPhotos, ...notePhotos];
       const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now, images}, photos);
       const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
       const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);

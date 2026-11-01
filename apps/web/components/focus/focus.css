@@ -1,0 +1,33 @@
+/* Session AK (T3): Pomodoro mode and the focus widget. Theme colours from the app's variables; 44 px targets; the ring's
+   one smooth step is off under reduced motion and Motion Off. */
+.pomodoro { display: grid; gap: 10px; min-width: 0; }
+.pomodoro-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; }
+.pomodoro-title small { font-size: 15px; font-weight: 600; color: var(--text-secondary, var(--muted)); overflow-wrap: anywhere; }
+.pomodoro-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.pomodoro-settings select { min-height: 44px; width: 100%; }
+.pomodoro-check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 8px 0; font-size: 15px; }
+.pomodoro-check input { width: 22px; height: 22px; margin: 0; flex: none; }
+.pomodoro-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pomodoro-actions button { min-height: 44px; }
+.pomodoro-stage { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.pomodoro-ring { width: 120px; height: 120px; flex: none; }
+.pomodoro-ring circle { fill: none; stroke-width: 8; }
+.pomodoro-ring-track { stroke: var(--line, rgba(128, 128, 160, .25)); }
+.pomodoro-ring-fill { stroke: var(--brand-cyan, var(--cyan)); stroke-linecap: round; }
+.pomodoro[data-phase=break] .pomodoro-ring-fill, .pomodoro[data-phase=long-break] .pomodoro-ring-fill { stroke: var(--brand-violet, var(--cyan)); }
+.pomodoro-readout { display: grid; gap: 2px; }
+.pomodoro-readout p { margin: 0; }
+.pomodoro-phase { font-weight: 700; }
+.pomodoro-clock { font-size: 34px; font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.pomodoro-block { font-size: 14px; color: var(--text-secondary, var(--muted)); }
+.pomodoro-result p { margin: 0 0 6px; }
+@media (prefers-reduced-motion: no-preference) { :root:not([data-app-motion=off]) .pomodoro-ring-fill { transition: stroke-dashoffset 1s linear; } }
+
+.focus-modes { display: flex; flex-wrap: wrap; gap: 6px; }
+.focus-modes button { min-height: 44px; }
+
+.focus-widget { display: grid; gap: 8px; min-width: 0; }
+.focus-widget-title { margin: 0; font-size: 17px; }
+.focus-widget-line { margin: 0; overflow-wrap: anywhere; }
+.focus-widget-clock { font-size: 26px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.focus-widget .pomodoro-actions a { display: inline-flex; align-items: center; min-height: 44px; }

@@ -12,6 +12,8 @@ import {BILLS} from '../../lib/bills/schema';
 import {WORKOUTS} from '../../lib/workouts/schema';
 import {isShowcase} from '../../lib/showcase';
 import {AGENDA} from '../../lib/agenda/store';
+import {TASKS} from '../../lib/tasks/schema';
+import {CALENDAR_IMPORT} from '../../lib/ics/calendar';
 import type {AgendaInput} from '../../lib/agenda/build';
 import {agendaExtras} from './agenda-extras';
 
@@ -24,8 +26,10 @@ const deviceZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().
 export function useAgenda() {
   const habits = useHabits(), health = useHealth(), platform = usePlatform(), reminders = useReminders(), weekly = useWeeklyReview();
   const extras = useDeviceRecord(HABIT_EXTRAS), plan = useDeviceRecord(REMINDERS_PLAN), bills = useDeviceRecord(BILLS), workouts = useDeviceRecord(WORKOUTS), record = useDeviceRecord(AGENDA);
+  // Session AK (T1, T2): the person's tasks and the calendars they imported (read-only events), each its own record.
+  const tasks = useDeviceRecord(TASKS), calendars = useDeviceRecord(CALENDAR_IMPORT);
   const [now] = useState(() => Date.now());
-  const loaded = habits.loaded && health.loaded && platform.loaded && reminders.loaded && weekly.loaded && extras.loaded && plan.loaded && bills.loaded && workouts.loaded && record.loaded;
+  const loaded = habits.loaded && health.loaded && platform.loaded && reminders.loaded && weekly.loaded && extras.loaded && plan.loaded && bills.loaded && workouts.loaded && record.loaded && tasks.loaded && calendars.loaded;
   const showcase = loaded && isShowcase();
   const input = useMemo<AgendaInput | null>(() => {
     if (!loaded) return null;
@@ -37,6 +41,6 @@ export function useAgenda() {
       plan: plan.unreadable ? null : plan.data, weeklyReview: weekly.unreadable ? null : weekly.data, ...more,
     };
   }, [loaded, showcase, now, habits.today, habits.error, habits.data, extras.unreadable, extras.data, reminders.unreadable, reminders.data, platform.error, platform.data, bills.unreadable, bills.data, workouts.unreadable, workouts.data, health.error, health.data, plan.unreadable, plan.data, weekly.unreadable, weekly.data]);
-  const unreadable = [habits.error && 'Habits', health.error && 'Health', platform.error && 'Goals', bills.unreadable && 'Bills', workouts.unreadable && 'Workouts'].filter((x): x is string => !!x);
-  return {loaded, input, today: habits.today, showcase, record, unreadable};
+  const unreadable = [habits.error && 'Habits', health.error && 'Health', platform.error && 'Goals', bills.unreadable && 'Bills', workouts.unreadable && 'Workouts', tasks.unreadable && 'Tasks', calendars.unreadable && 'Imported calendars'].filter((x): x is string => !!x);
+  return {loaded, input, today: habits.today, showcase, record, unreadable, tasks, calendars, zone: input?.zone ?? 'UTC'};
 }

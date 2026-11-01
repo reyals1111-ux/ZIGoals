@@ -2,7 +2,7 @@
 import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useId, useMemo, useState} from 'react';
 import {AVERAGE_METRICS, WINDOWS, addAverageGoal, averageKey, editAverageGoal, logAverageValue, removeAverageGoal, removeAverageValue, setAverageStatus, type AverageGoal, type AverageMetric} from '../../lib/average-goals/store';
 import {averageProgress} from '../../lib/average-goals/progress';
 import {setGoalArea, setGoalTemplate} from '../../lib/goal-extras/store';
@@ -20,6 +20,8 @@ import {GoalPlan} from './goal-plan';
 import {useUnifiedGoals} from '../use-unified-goals';
 import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+// Session AK (B3, lane B): the notes that link to this goal ([[name]]), their own chunk.
+const NoteBacklinks = lazy(() => import('../notes/note-backlinks'));
 
 const value = (goal: Pick<AverageGoal, 'metric'>, v: number) => formatExactNumber(String(Math.round(v * 10 ** AVERAGE_METRICS[goal.metric].decimals) / 10 ** AVERAGE_METRICS[goal.metric].decimals));
 const verdict = (g: AverageGoal, p: ReturnType<typeof averageProgress>) => p.average === null ? 'No days recorded in this window yet' : `${value(g, p.average)} ${g.unit} on average · ${p.days} of ${p.windowDays} days recorded`;
@@ -121,5 +123,6 @@ export function AverageGoalDetail({id}: {id: string}) {
       </div>
     </section>
     <GoalPlan goalKey={averageKey(goal.id)} name={goal.name} goals={unified.goals} finished={goal.status === 'completed'} />
+    <Suspense fallback={null}><NoteBacklinks kind="goal" id={`average:${goal.id}`} name={goal.name} panel/></Suspense>
   </div>;
 }

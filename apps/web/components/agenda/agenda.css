@@ -93,3 +93,33 @@
 .agenda-filter summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
 @media (prefers-reduced-motion: reduce) { .agenda-item, .agenda-cell { transition: none; } }
 :root[data-app-motion=off] :is(.agenda-item, .agenda-cell) { transition: none; }
+
+/* Session AK (T1, T2): tasks (ticked here) and imported events (read-only) beside the person's own plans. A task without a
+   goal and an imported event take the nebula cyan as their edge; imported events are dashed, so "someone else's
+   calendar" reads without colour alone. */
+.agenda-item[data-pillar=life] { --agenda-accent: var(--brand-cyan, var(--cyan)); }
+.agenda-cell-dots i[data-pillar=life] { background: var(--brand-cyan, var(--cyan)); }
+.agenda-check[data-pillar=task], .agenda-check[data-pillar=event] { font-size: 16px; }
+.agenda-task-main { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 6px; }
+.agenda-task-tick { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.agenda-task-tick input { width: 22px; height: 22px; margin: 0; }
+.agenda-task-text { display: grid; min-width: 0; }
+.agenda-task-focus { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+.agenda-task[data-state=done] .agenda-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.agenda-overdue { color: var(--warning, #e8a33d); }
+.agenda-event { border-style: dashed; }
+.agenda-event .agenda-item-title { cursor: default; }
+.agenda-calendars { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.agenda-calendars li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-height: 44px; border-bottom: 1px solid var(--line, #ffffff1f); }
+.agenda-calendars li span { overflow-wrap: anywhere; min-width: 0; }
+.agenda-calendars small { color: var(--text-secondary); font-size: 14px; }
+.agenda-calendars .text-link, .agenda-import-panel > p .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.agenda-import-panel h2:focus { outline: none; }
+.agenda-import { display: grid; gap: 10px; }
+.agenda-import-preview { display: grid; gap: 8px; }
+.agenda-import-file input { min-height: 44px; max-width: 100%; }
+.agenda-panel .tasks-add { margin-top: 4px; }
+@media (max-width: 379.98px) {
+  .agenda-task-main { grid-template-columns: auto minmax(0, 1fr); }
+  .agenda-task-focus { grid-column: 2; justify-self: start; }
+}

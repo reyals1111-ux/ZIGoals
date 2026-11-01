@@ -49,6 +49,8 @@ import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {GOV_REMINDERS} from '../zigchain-eco/governance';
+import {CALENDAR_IMPORT} from '../ics/calendar';
+import {NOTES} from '../notes/schema';
 import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
 import {SAVINGS_CHALLENGES} from '../savings-challenges/challenges';
 import {DEBT_PLANNER} from '../debt-planner/store';
@@ -136,6 +138,8 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
   dev('supplements', 'Supplements and medication', 'Health', SUPPLEMENTS, true),
   dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
+  dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),
+  dev('notes', 'Notes', 'Today and Life', NOTES),
   dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),
   dev('savingsChallenges', 'Savings challenges', 'Goals and Wealth', SAVINGS_CHALLENGES),
   dev('debtPlanner', 'Debt payoff planner', 'Goals and Wealth', DEBT_PLANNER),

@@ -47,6 +47,10 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:savings-challenges:v1',
   // Owner follow-up 1 (F5): net-worth milestones.
   'zigoals:networth-milestones:v1',
+  // Owner follow-up 2 (B): notes, daily notes and the capture inbox.
+  'zigoals:notes:v1',
+  // Owner follow-up 2 (T2): calendars imported from .ics files (read-only events).
+  'zigoals:calendar-import:v1',
   'zigoals:gov-reminders:v1',
 ];
 /** The account erase removes them all. */
@@ -54,4 +58,4 @@ export const AK_ERASE_KEYS: readonly string[] = AK_PERSONAL_KEYS;
 /** This session's device-only databases: the notification snapshot and identity, the queue of notification taps, and the
  * offline generic food library (public data, a cache), the person's own Spotify client id (device-only, never exported),
  * the offline queue, the meal photos the person chose to keep (exported as files), and the Lichess token (never exported). */
-export const AK_DATABASES: readonly string[] = ['zigoals-notify-v1', 'zigoals-notify-actions-v1', 'zigoals-food-generic-v1', 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', 'zigoals-meal-photos-v1', 'zigoals-lichess-v1'];
+export const AK_DATABASES: readonly string[] = ['zigoals-notify-v1', 'zigoals-notify-actions-v1', 'zigoals-food-generic-v1', 'zigoals-music-byo-v1', 'zigoals-offline-queue-v1', 'zigoals-meal-photos-v1', 'zigoals-lichess-v1', 'zigoals-notes-photos-v1'];

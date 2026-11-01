@@ -86,6 +86,9 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/timeline") return { title: "Day timeline", back: { href: "/app", label: "Today" } };
   // Owner follow-up 1 (F5): the agenda is reached from Today's timeline card and Search, so it leads back to Today.
   if (path === "/app/agenda") return { title: "Agenda", back: { href: "/app", label: "Today" } };
+  // Owner follow-up 2 (B, T1): Notes and Tasks are reached from Today, the Journal, the Agenda and search, so they lead back to Today.
+  if (path === "/app/notes") return { title: "Notes", back: { href: "/app", label: "Today" } };
+  if (path === "/app/tasks") return { title: "Tasks", back: { href: "/app", label: "Today" } };
   if (path === "/app/stories") return { title: "Stories", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : OFF_NAV_TITLES[path] ?? "ZIGoals" };
