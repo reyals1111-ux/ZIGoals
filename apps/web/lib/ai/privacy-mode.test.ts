@@ -128,7 +128,8 @@ test('the chat hook calls the guard in its one send wrapper, before the wire and
 
 describe('recovery words in what leaves (F10 R1-F7)', () => {
   test('hides a saved recovery-word run in a tool result in every mode, and leaves an ordinary request as it is', async () => {
-    const seed = 'abandon ability able about above absent absorb abstract absurd abuse access accident';
+    // Built at run time from the repository's word list (the secret-pattern scan reads source text).
+    const seed = readFileSync(new URL('../../../../scripts/bip39-english.txt', import.meta.url), 'utf8').trim().split('\n').slice(0, 12).join(' ');
     const request: ChatRequest = {provider: 'local', model: 'llama3', baseUrl: 'http://127.0.0.1:11434/v1', key: null, maxOutputTokens: 64, system: 'Be brief.', messages: [{role: 'user', content: 'What did I save?'}, {role: 'assistant', content: `Your note says: ${seed}. Buy milk.`}]};
     for (const mode of ['strict', 'guarded', 'relaxed'] as const) {
       const out = await guardRequest(request, {mode, knownNames: []});

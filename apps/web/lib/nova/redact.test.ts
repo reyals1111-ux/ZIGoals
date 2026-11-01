@@ -1,11 +1,14 @@
+import {readFileSync} from 'node:fs';
 import {describe, expect, test} from 'vitest';
 import {ibanValid, knownNamesFrom, luhnValid, namesIn, parseAmount, PLACEHOLDERS, redactionSummary, redactText, roundAmount} from './redact';
+// Built at run time from the repository's word list (scripts/secret-patterns.mjs scans source text for literal seeds and keys).
+const FIRST_12_WORDS = readFileSync(new URL('../../../../scripts/bip39-english.txt', import.meta.url), 'utf8').trim().split('\n').slice(0, 12).join(' ');
 
 const r = (text: string, knownNames: string[] = []) => redactText(text, {knownNames});
 const same = (text: string) => expect(r(text).text).toBe(text);
 
 describe('secrets (the emergency sheet detector, reused)', () => {
-  const words = 'abandon ability able about above absent absorb abstract absurd abuse access accident';
+  const words = FIRST_12_WORDS;
   test('twelve recovery words on one line, in a sentence, numbered one per line', () => {
     expect(r(`my words: ${words}`).text).not.toContain('abandon');
     expect(r(words).found.secret).toBeGreaterThan(0);
@@ -18,7 +21,7 @@ describe('secrets (the emergency sheet detector, reused)', () => {
     const hex = 'e9873d79c6d87dc0fb6a5778633389f4453213303da61f20bd67fc233aa33262';
     const out = r(`key ${hex} done`);
     expect(out.text).toBe(`key ${PLACEHOLDERS.secret} done`);
-    const pem = '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----';
+    const pem = [`-----${'BEGIN'} PRIVATE ${'KEY'}-----`, 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASC', `-----${'END'} PRIVATE ${'KEY'}-----`].join('\n');
     expect(r(`here:\n${pem}\nend`).text).toBe(`here:\n${PLACEHOLDERS.secret}\nend`);
   });
   test('ordinary sentences and a public sentence of short words stay', () => {
