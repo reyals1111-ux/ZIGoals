@@ -7,6 +7,7 @@
 @property --lv7-a{syntax:'<angle>';inherits:false;initial-value:100deg}
 .nv-glow{background:linear-gradient(var(--lv7-a),#fff 15%,#9ee8f8 50%,#cbbfff 75%,#f3b0e6);-webkit-background-clip:text;background-clip:text;color:transparent}
 .nv-lede{font-size:clamp(22px,2.2vw,30px);line-height:1.35;color:#eef4fd;margin:18px 0 26px}
+#nova-title,.nv-lede{text-wrap:balance}
 .nv-facts{list-style:none;margin:0;padding:0;display:grid;gap:14px}
 .nv-facts li{font-size:16px;line-height:1.7;color:#dce7f7}
 .nv-facts strong{color:#f1f6ff;font-weight:650}
@@ -18,18 +19,20 @@
 .nv-orb i{position:absolute;inset:-30%;border-radius:50%;border:1px solid #9fb4e055}
 .nv-orb i+i{inset:-70%;border-color:#9fb4e02e}
 .nv-orb b{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 42% 36%,#fff,#86f0ff 24%,#9273ff 58%,#ff74be00 78%);box-shadow:0 0 48px #9273ff99}
-.nv-hello{position:absolute;inset:57% 0 auto;margin:0;text-align:center;font-size:clamp(14px,1.6vw,19px);color:#f1f6ff}
+.nv-hello{position:absolute;inset:57% 0 auto;margin:0;text-align:center;font-size:clamp(15px,1.6vw,19px);color:#f1f6ff}
 .nv-tiles{position:absolute;inset:67% 5% auto;display:flex;gap:3%}
 .nv-tiles span{flex:1;padding:8px 10px;border-radius:12px;background:#0b1730d9;border:1px solid #ffffff24;color:#f1f6ff;font-size:14px;line-height:1.35}
-.nv-tiles small{display:block;font-size:12px;color:#c1e7e7}
-.nv-bar{position:absolute;inset:auto 14% 5%;margin:0;padding:7px 14px;border-radius:999px;background:#0b1730e6;border:1px solid #ffffff2e;color:#c9d6ea;font-size:14px}
+.nv-tiles small{display:block;font-size:14px;color:#c1e7e7}
+.nv-bar{position:absolute;inset:auto 14% 5%;margin:0;padding:7px 14px;border-radius:999px;background:#0b1730e6;border:1px solid #ffffff2e;color:#c9d6ea;font-size:15px}
 .nv-stage figcaption{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:14px;font-size:15px;line-height:1.6;color:#c9d6ea}
 .nv-replay{min-height:44px;padding:8px 18px;border-radius:999px;border:1px solid #a6eaf766;background:#0b1730;color:#eef4fd;font:inherit;font-size:15px;cursor:pointer}
 .nv-replay:focus-visible{outline:2px solid #9ee8f8;outline-offset:3px}
 @media (max-width:950px){.nv-grid{grid-template-columns:1fr}}
-@media (max-width:520px){.nv-tiles span{padding:6px 7px;font-size:12px}.nv-tiles small{font-size:11px}.nv-bar{font-size:12px}}
-/* What's new as a bento: the first, sixth and ninth cards take two columns on wide screens. */
-@media (min-width:1100px){.new-list{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:dense}.new-list>li:is(:nth-child(1),:nth-child(6),:nth-child(9)){grid-column:span 2}}
+/* Phones (LANDING_REVIEW LR-3): a taller screen, so the example keeps the page's 14 px label and 15 px sentence floors and two tiles share a row. */
+@media (max-width:520px){.nv-screen{aspect-ratio:3/4}.nv-orb{top:22%;width:30%}.nv-hello{inset:38% 0 auto;padding-inline:12px}.nv-tiles{inset:49% 6% auto;flex-wrap:wrap;gap:8px}.nv-tiles span{flex:1 1 calc(50% - 4px);padding:7px 10px}.nv-bar{inset:auto 7% 4%}}
+/* What's new as a bento: the three longest cards (Food, Insights, Money) take two columns on wide screens, so no
+   short card is stretched into an empty box (LANDING_REVIEW LR-11). */
+@media (min-width:1100px){.new-list{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:dense}.new-list>li:is(:nth-child(3),:nth-child(4),:nth-child(5)){grid-column:span 2}}
 @keyframes lv7-ignite{from{opacity:0;transform:scale(.2)}}
 @keyframes lv7-breathe{to{transform:scale(1.06)}}
 @keyframes lv7-ring{from{opacity:0;transform:scale(.4)}}
@@ -49,6 +52,7 @@
   html:not(.motion-off) .is-online .nv-tiles span+span+span{animation-delay:.94s}
   html:not(.motion-off) .is-online .nv-hello{animation:lv7-type .9s steps(28,end) 1.1s both}
   html:not(.motion-off) .is-online .nv-bar{animation:lv7-fade .5s ease-out 1.5s both}
+  html:not(.motion-off) .nv-armed:not(.is-online) :is(.nv-orb,.nv-hello,.nv-tiles,.nv-bar){opacity:0}
   @supports (animation-timeline:view()){
     html:not(.motion-off) :is(.lv7-reveal,.chapter-opening .eyebrow,.new-list>li){animation:lv7-rise linear both;animation-timeline:view();animation-range:entry 0% entry 90%}
     html:not(.motion-off) .nv-glow{animation:lv7-sweep linear both;animation-timeline:view();animation-range:entry 10% cover 50%}
