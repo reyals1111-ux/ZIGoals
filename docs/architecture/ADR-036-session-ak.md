@@ -1002,7 +1002,7 @@ Verbatim (1 Nov, pre-approved):
 
 | Row | Status | Commits | Evidence |
 |---|---|---|---|
-| P13-R1 Watch review/studio4-assets every 15 min; fetch; each folder's SHA256SUMS verified | Open (waiting for the owner's push) | — | — |
+| P13-R1 Watch review/studio4-assets every 15 min; fetch; each folder's SHA256SUMS verified | Done: delivered at bdd8319b (373 files, 124 MB extracted outside the checkout); `sha256sum -c` OK on the root list (371 files) and on app/ (255) and app-2x-anim/ (102); largest 2× clip 2,452,878 B (≤ 2.6 MB) | — | scratchpad verify output; STUDIO4_RECEIPT.md (with the import) |
 | P13-R2 INTEGRATION-HANDOFF.md followed (importer patch, manifest, reactions.json, durations, optical offset x +0.022 / y −0.090, budgets, known issues); differences from Part 12's constants recorded | Open | — | — |
 | P13-R3 The app set imported by scripts/zigi/import-studio.mjs; the 25 states' clips, 13 reactions on their semantic events, extras, variant rotation, push icon and badge wired | Open | — | — |
 | P13-R4 The 2× animated set under D6 (≤ 2.6 MB a file, loaded lazily one clip at a time, never in route JS) | Open | — | — |
