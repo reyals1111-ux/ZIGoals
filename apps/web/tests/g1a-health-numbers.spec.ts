@@ -24,8 +24,10 @@ test('fresh start: teach, save a reading and lab values, verdict only against th
   await offlineApi(page);
   await freshDevice(page);
   await openFold(page);
-  await expect(page.getByText(/No readings yet\./)).toBeVisible();
-  await expect(page.getByText(/No lab values yet\./)).toBeVisible();
+  // Scoped to the fold: other Health cards say "No readings yet." too.
+  const fold = page.locator('.your-numbers');
+  await expect(fold.getByText(/No readings yet\. Type the two numbers/)).toBeVisible();
+  await expect(fold.getByText(/No lab values yet\./)).toBeVisible();
 
   const bp = page.getByRole('form', {name: 'Add a blood pressure reading'});
   await bp.getByLabel('Upper (systolic)').fill('80');
@@ -72,7 +74,10 @@ test('the Showcase shows its labelled fictional example', async ({page}) => {
   await loadShowcase(page);
   await openFold(page);
   await expect(page.getByText('Showcase: fictional example readings, not a real person’s.')).toBeVisible();
-  await expect(page.locator('.your-numbers-marker').filter({hasText: 'Total cholesterol'})).toContainText('Outside the range you copied (above it)');
+  // A card shows each verdict: Vitamin D's latest is below the range copied from the fictional sheet, Total cholesterol's
+  // (above it on the first sheet) is inside it now.
+  await expect(page.locator('.your-numbers-marker').filter({hasText: 'Vitamin D (25-OH)'})).toContainText('Outside the range you copied (below it)');
+  await expect(page.locator('.your-numbers-marker').filter({hasText: 'Total cholesterol'}).locator('.your-numbers-verdict')).toHaveText('Inside the range you copied');
 });
 
 test('the report for a visit can include Your numbers', async ({page}) => {
@@ -83,7 +88,7 @@ test('the report for a visit can include Your numbers', async ({page}) => {
   await page.goto('/app/settings/data');
   await hydrated(page);
   await page.getByRole('button', {name: 'Make a report'}).click();
-  await page.getByLabel(/^Your numbers \(blood pressure and lab values\)/).check();
+  await page.getByRole('group', {name: 'Include'}).getByRole('checkbox', {name: /^Your numbers \(blood pressure and lab values\)/}).check();
   await page.getByRole('button', {name: 'Show the report'}).click();
   const report = page.getByRole('article', {name: 'Report'});
   await expect(report.getByRole('heading', {name: 'Your numbers'})).toBeVisible();

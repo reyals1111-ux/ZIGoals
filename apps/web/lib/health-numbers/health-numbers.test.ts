@@ -77,6 +77,9 @@ describe('Your numbers (BUILD list 2 #4)', () => {
     expect(rec.entries.filter(e => e.note).every(e => /Showcase/.test(e.note!))).toBe(true);
     const verdicts = new Set(rec.entries.map(verdictOf));
     expect(verdicts.has('inside') && verdicts.has('above')).toBe(true);
+    // The latest value on a card shows both ways too: Vitamin D below its copied range, Total cholesterol inside it now.
+    const latest = Object.fromEntries(markers(rec).map(m => [m.name, verdictOf(m.latest)]));
+    expect(latest).toMatchObject({'Vitamin D (25-OH)': 'below', 'Total cholesterol': 'inside', 'Glucose (fasting)': 'inside'});
     expect(rec.entries.every(e => e.date <= TODAY)).toBe(true);
   });
 });

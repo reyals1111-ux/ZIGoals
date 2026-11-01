@@ -26,12 +26,12 @@ test('fresh start: add, rate, clear, compare, remove with the history kept', asy
   await section.getByRole('button', {name: 'Add scale'}).click();
   await expect(section.getByRole('status')).toContainText('Added “Stress”.');
   const row = section.getByRole('group', {name: 'Stress'});
-  await row.getByText('4', {exact: true}).click();
+  await row.getByRole('radio', {name: '4 of 5', exact: true}).check();
   await expect(section.getByRole('status')).toContainText('Stress: 4 of 5');
   await expect.poll(async () => (await read(page))?.days[TODAY]).toEqual({stress: 4});
   await row.getByRole('button', {name: 'Clear'}).click();
   await expect.poll(async () => (await read(page))?.days[TODAY]).toBeUndefined();
-  await row.getByText('2', {exact: true}).click();
+  await row.getByRole('radio', {name: '2 of 5', exact: true}).check();
   await expect.poll(async () => (await read(page))?.days[TODAY]).toEqual({stress: 2});
 
   await page.goto('/app/health?tab=insights');
