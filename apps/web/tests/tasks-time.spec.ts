@@ -13,7 +13,7 @@ import {PLATFORM_KEY, emptyPlatform, privateGoalSchema} from '../lib/positions';
  */
 const TODAY = '2026-11-04'; // a Wednesday
 test.use({timezoneId: 'UTC'});
-const goal = privateGoalSchema.parse({id: 'goal-1', name: 'Fictional garden', type: 'PROJECT', status: 'active', asset: 'ZIG', denom: 'azig', decimals: 0, target: '1', notes: '', createdAt: '2026-10-01T09:00:00.000Z', milestones: [{id: 'm1', title: 'Dig the bed', done: false}]});
+const goal = privateGoalSchema.parse({id: '1', name: 'Fictional garden', type: 'PROJECT', status: 'active', asset: 'ZIG', denom: 'azig', decimals: 0, target: '1', notes: '', createdAt: '2026-10-01T09:00:00.000Z', milestones: [{id: 'm1', title: 'Dig the bed', done: false}]});
 async function fresh(page: Page, extra: Record<string, string> = {}) {
   await page.clock.install({time: new Date(`${TODAY}T10:00:00.000Z`)});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
@@ -36,7 +36,7 @@ test('a task with a day, a time and a goal: on the Agenda\'s day view and its go
   await form.getByLabel('Goal (optional)').selectOption({label: 'Fictional garden'});
   await form.getByRole('button', {name: 'Add task'}).click();
   await expect(page.getByRole('status').filter({hasText: 'Added “Fictional: buy seeds”.'})).toBeVisible();
-  await expect.poll(async () => (await read<Stored>(page, TASKS_KEY)).tasks).toMatchObject([{title: 'Fictional: buy seeds', due: TODAY, time: '09:15', goal: 'private:goal-1'}]);
+  await expect.poll(async () => (await read<Stored>(page, TASKS_KEY)).tasks).toMatchObject([{title: 'Fictional: buy seeds', due: TODAY, time: '09:15', goal: 'private:1'}]);
   await expect(page.getByRole('list', {name: 'Today tasks'})).toContainText('Goal · Fictional garden');
 
   await page.goto('/app/agenda?view=day');
@@ -60,7 +60,7 @@ test('a task with a day, a time and a goal: on the Agenda\'s day view and its go
   await page.getByRole('group', {name: 'View'}).getByRole('button', {name: 'Week'}).click();
   await expect(page.locator('.agenda-task')).toHaveCount(2);
 
-  await page.goto('/app/goals/tracked/goal-1#next-actions');
+  await page.goto('/app/goals/tracked/1#next-actions');
   const actions = page.getByRole('list', {name: 'Next actions for Fictional garden'});
   await expect(actions).toContainText('Fictional: buy seeds');
 });
