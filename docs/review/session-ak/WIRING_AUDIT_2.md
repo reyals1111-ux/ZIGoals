@@ -198,3 +198,63 @@ r4, r6) and on the phone's More sheet (fresh: Activity, NOVA, Checklist, Tasks, 
 | **Total (83 rows)** | **57** | **25** | **1** |
 
 Of the 25 Partly rows: 5 are dead code or an unbuilt part (N1 Duo view, N2 focus-timer widget and shared-element transition, T1 and T3 NOVA widgets, M2 unused utilities), 5 are an unbuilt or unmeasured part with no dead code (N7 restore, N11 Showcase example, M1 shared elements, M3 activity chips and optimistic UI, M5 after measurement), 1 is an owner decision (R2-10 desktop), and the rest lack a test on the UI path (N5, N8, N10, B5, G8, Z1B-10, Z1C-L1/L2, Z1C-L4, R2-1, R2-15, R2-18, R2-19, R2-21, R2-25).
+
+## Status after P1
+
+Lane P1 (owner message 4, P1), 1 Nov 2026. Re-checked by reading the code at **50b71ba2** plus the working tree (commits since
+bcef9bff: 73a685c9, 8726fa0a lanes WA and WC, 50b71ba2), lane WB's new specs (uncommitted at the time of writing:
+`tests/wiring-2-*.spec.ts`, `tests/journeys/j12-nova.spec.ts`, `scripts/landing-z1c-l4.test.mjs`) and lane P1's own work
+(`tests/p1-nova-make.spec.ts`, `tests/p1-nova-live.spec.ts`, `lib/nova/live-activity.ts` + test,
+`components/nova/live/`). "Pending run" = the spec exists but needs the lead's rebuild and a green run on it; WB reports its
+own runs. Only rows that were not Working are listed; every other row stays Working as above.
+Browser evidence for P1 at the time of writing: the server on :3101 still served **1d6902be** (built before 8726fa0a), so
+`tests/p1-nova-make.spec.ts` ran 8 of 9 green there (desktop and phone projects; the layouts, accents, persona, Activity,
+models per task, the no-model Models panel and the phone Customize) and its "M2 on NOVA" test fails only because that build
+predates WC's `.zg-glass`; `tests/p1-nova-live.spec.ts` needs a build with P1's chips. Both need the lead's rebuild.
+
+| Row | Now | Evidence / what is still missing (owner) |
+|---|---|---|
+| N1 Duo view | Working | `NovaDuo` mounted on the dashboard while a task is handed over (`components/nova/nova-dashboard.tsx` `duoView`, 8726fa0a); B `tests/nova-wa.spec.ts` "N1…side by side…step by step"; U `lib/nova/duo.test.ts`; H `nova-what` ("can work a task together"). |
+| N2 the NOVA page | Partly (one recorded part) | Gap 1 closed: the Focus widget drives the one Pomodoro run (`components/nova/widgets/focus.tsx`, B nova-wa T3). Gap 3 closed: `tests/p1-nova-make.spec.ts` drives the four layouts (Customize and View controls, remembered), the five accents (each a distinct `--nova-a/--nova-b` pair, remembered), the persona (name, ZIGi/orb avatar, what NOVA calls you, blank → NOVA), the Activity panel (a NOVA card listed "by ZIGi", Remove and Undo) and models per task (chat = ZIGi's model; briefs/workflows on another model of the MOCK server, back to the chat's), plus a phone run (Customize from Quick access). H `nova-yours`. **Still missing:** gap 2, a widget → page shared-element transition — not built; recorded in docs/performance/SESSION_AK_MOTION.md M1 "Not built" (each target page loads its records after mounting and would need the goal morph's first-frame hand-off). Owner decision or a later lane (lead). |
+| N5 NOVA's five own cards | Working (pending run) | B `tests/wiring-2-nova-cards.spec.ts` (WB): the five cards proposed, nothing written before a tap, each undone exactly, Focus only opens. |
+| N7 memory restore | Working | Restore's `memoryPart(false)` / `memoryPart(true)` (health and diet notes only with the Health choice) in `lib/restore/plan.ts:128-191` (8726fa0a); U `lib/restore/memory-restore.test.ts` (frozen copy, Merge, Replace, Undo); B nova-workflows (Memory panel). H `nova-briefs`. |
+| N8 always open | Working (pending run) | B `tests/wiring-2-nova-start.spec.ts` (WB): "Open ZIGoals on NOVA" (fresh visit → NOVA, reload/Back stay on Today, Exit → Today) and the mini window; the Exit fix in `nova-dashboard.tsx` / `nova-entry.tsx` (`openedOnNova`, WB, uncommitted). |
+| N10 NOVA journey | Partly (pending run) | `tests/journeys/j12-nova.spec.ts` (WB): fresh NOVA → planets 1–3 → on-device answers → MOCK local brain (streamed) → a task card with Undo → MOCK Hermes as the brain → Permissions closing Health. **Still missing in the journey** (as read): the brief, a workflow run, the ZIGi delegation, Share my NOVA setup and the erase step of N10's list — each is covered by its own spec (nova-workflows, nova-wa N1, nova-dashboard), not in one journey. Owner: WB. |
+| N11 Hermes | Working (pending run) | Showcase example connection (`components/nova/hermes/hermes-example.tsx`, `lib/nova/hermes-showcase.ts` + test; B nova-wa "the Showcase…Hermes guide shows a labelled example connection and asks no gateway"); the Hermes step in j12. H `nova-hermes`. |
+| B5 Chat with my notes | Working (Help to add) | "Ask about my notes" on Notes (`components/notes/notes-ask.tsx`, `lib/notes/ask.ts` + test; B `tests/notes-ask.spec.ts`). **Help:** `notes-what` does not name it yet — proposal below (lead). |
+| T1 NOVA tasks widget | Working | `components/nova/widgets/tasks.tsx`, catalog entry `tasks` (`lib/nova/widgets/catalog.ts:27`); U `lib/nova/widgets/wa-widgets.test.ts`; B nova-wa T1 (teach, add for today, tick with Undo); H `tasks-what`. |
+| T3 NOVA Pomodoro widget | Working | As N2 gap 1; B nova-wa T3 (start and end a Pomodoro) and `tests/p1-nova-live.spec.ts` (its time left on NOVA's chips). |
+| G1 #20 a chat that isn't kept | Working (Help to add) | "Don’t keep this chat" in ZIGi's ⋯ menu and NOVA's chat bar (`components/ai/unkept-chat.tsx`, 8726fa0a); U `lib/ai/unkept-chat.test.ts`; B `tests/unkept-chat-ak.spec.ts`. **Help:** no answer names it — proposal below (lead). |
+| G8 tools for G1 | Partly (pending run + Help) | B `tests/wiring-2-g1-tools.spec.ts` (WB): your_numbers read and a log-blood-pressure card (ZIGi), cash_forecast and a move-task card with Undo (NOVA). **Still missing:** Help `ak-zigi-more` names none of G1's reads or cards — proposal below (lead). |
+| M1 shared elements | Partly (one recorded part) | Built: the goal title morph (card → goal page heading), Full only (`components/motion/goal-title-morph.tsx`, `lib/motion/goal-morph.ts` + test; B `tests/goal-morph-ak.spec.ts`; H `ak-motion-calm`). **Not built:** NOVA widget → page (as N2 gap 2; recorded in SESSION_AK_MOTION.md). Owner decision / lead. |
+| M2 surfaces | Partly | Applied: `.zg-glass` on NOVA's dock and command field, `.zg-aurora` behind NOVA's stars; `.zg-nebula-border` deleted (8726fa0a). B: `tests/p1-nova-make.spec.ts` "M2 on NOVA" (the glass edge is drawn on both, the aurora is drawn and still under reduced motion). **Still missing:** a bento for Today's non-protected area and the pillar overviews (Today's widget kinds and placement are strict stored schemas, `lib/dashboard-settings.ts`; Today's area borders the PROTECTED hero) — owner decision (lead). |
+| M3 ambient and attention | Working (pending rebuild) | **Live activity chips built by P1:** NOVA's "Running now" (`components/nova/live/live-chips.tsx`, lazy on `/app/nova`, its own chunk; `lib/nova/live-activity.ts`): a Pomodoro, a meditation or breathing session, a habit's saved timer (running or paused), a fast, a night in bed — each with its time in words ("18:42 left", "2 h 05 min of 16 h", "in bed 1 h 12 min", "paused at 5 min"; a clock that moved back says "time to review", never zero) and a link to where it is ended; nothing runs → nothing shows; at most 6 chips (3 habit timers); still (no animation), ticks each second only while a clock with seconds runs (else each 30 s) and only while visible; no live region; links ≥ 44 px; phone and computer. U `lib/nova/live-activity.test.ts` (10). B `tests/p1-nova-live.spec.ts` (a fast started on Health shows, moves on with the clock, links back, leaves when stopped; a Pomodoro from NOVA's Focus widget counts down and opens Focus Sessions; ≥ 44 px, no animation, no side scroll, command field still inside the window). **Today: not built, by design:** Today's widget kinds are a strict stored enum (`lib/dashboard-settings.ts` `widgetSchema`, frozen readers) and Today already shows a running fast (Today's focus "Fasting" tile, For you's fasting line) and a running habit timer (`TimerChip` on the habits widget); a new kind would change a stored format. Optimistic UI with calm confirmation: recorded as existing (SESSION_AK_MOTION.md M3). Help proposal below. |
+| M5 performance after | Partly | Not P1's: lane M7/P8 owns the after measurement. |
+| Z1B-10 photo send confirmation | Working (pending run) | B `tests/wiring-2-photo-send.spec.ts` (WB): the photo and where it goes, Cancel sends nothing, only "Send to …" makes the request; Strict with a cloud model shows the reason instead. |
+| Z1C-L1 / L2 | Working (pending run) | B `tests/wiring-2-nova-start.spec.ts` (WB) "Z1C-L1…late…leaves the person on the page they moved to", "Z1C-L2…not over an open dialog". |
+| Z1C-L4 landing claim | Working (pending run) | `scripts/landing-z1c-l4.test.mjs` (WB) pins the corrected wording. |
+| R2-1 | Working (pending run) | B `tests/wiring-2-r2.spec.ts` "R2-1: on a phone, a NOVA question in the chat sheet is answered from the records, not paused". |
+| R2-10 | Owner decision | Unchanged: not in the desktop sidebar (ADR "R2-10 (desktop)"); reachable from NOVA, Search, phone More and the tablet rail. |
+| R2-15 | Working (pending run; one owner decision) | B wiring-2-r2 "R2-15: fresh Health shows a dash…never 0 kcal", "R2-15 + R2-25…no weekday strip". The pre-made quick counters stay (owner decision, ADR). |
+| R2-18, R2-19, R2-21, R2-25 | Working (pending run) | B wiring-2-r2 (one test each; R2-25 with R2-15). |
+
+**Count after P1 (83 rows):** Working 76 (of which 13 "pending run" on WB's or P1's new specs), Partly 7 (N2 and M1: the
+recorded widget morph; M2: Today/pillar bento, owner decision; N10: the journey's missing steps, WB; G8: Help, lead; M5:
+M7/P8; and R2-10 stays an owner decision, counted here as Partly), Not reachable 0, Stub 0. Help to add (lead): B5, G1 #20,
+G8, M3, and the Activity panel and models per task (below).
+
+### Help text proposals (P1)
+- **nova-what** (append): "When something is running — a Pomodoro, a meditation, a habit's timer, a fast or a night in
+  bed — NOVA shows it under Running now with its time; tap it to open the page where you pause or end it. When nothing
+  runs, nothing shows."
+- **nova-yours** (append): "Behind the intelligence → Activity lists every card you confirmed in NOVA or ZIGi; remove a
+  log there, with Undo. Models per task: the chat uses ZIGi's model (change it here and ZIGi changes too); briefs and
+  workflows can use another model from the same place, or the chat's."
+- **notes-what** (append): "Ask about my notes sends your question to NOVA, which reads your notes only when Notes is
+  allowed in NOVA → Permissions, in your privacy mode."
+- **ZIGi section, new question "Can I have a chat that isn't kept?"**: "Yes. In ZIGi's ⋯ menu or NOVA's chat bar, choose
+  Don't keep this chat. Nothing of that conversation is saved: no history, no memory, no card notes. Your privacy mode and
+  spending cap still apply. The next new chat is kept again."
+- **ak-zigi-more** (append): "ZIGi and NOVA also read your blood pressure and lab values, your own scales and the next 60
+  days of cash, and can log a reading, rate a scale or move a task to another day — always as a card you confirm, with
+  Undo. The cash outlook is a model, not a promise."

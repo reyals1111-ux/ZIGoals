@@ -45,6 +45,8 @@ const Starfield = lazy(() => import('./starfield'));
 const NovaMiniWindow = lazy(() => import('./mini-window'));
 /** N1's Duo (lane NB's view): NOVA and ZIGi (or the person's Hermes) side by side while a task uses both; loaded only then. */
 const NovaDuo = lazy(() => import('./chat/nova-duo'));
+/** Session AK lane P1 (M3): "Running now", NOVA's live activity chips (components/nova/live/live-chips.tsx; its own chunk). */
+const NovaLive = lazy(() => import('./live/live-chips'));
 
 type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
@@ -217,6 +219,7 @@ export default function NovaDashboard() {
         onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} onSettings={() => setSheet({kind: 'yours'})} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
         rightOpen={right === 'open'} onToggleRight={toggleRight} compact={phone} onQuick={() => setSheet({kind: 'quick'})}/>
       {!phone && <StatusChips brain={brain}/>}
+      <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>
       {wake === 'listening' && <p className="nova-wake" role="status"><span className="nova-live-dot" aria-hidden="true"/>Listening for “Hey {persona.name}” on this device</p>}
       <div className="nova-stage-area">{phone ? stage : <WidgetGrid layout={layout} widgets={widgets} stage={stage} editing={editing} opening={opening.phase === 'play'} actions={actions}/>}</div>
       {duoView && !phone && <div className="nova-duo-slot">{duoView}</div>}
