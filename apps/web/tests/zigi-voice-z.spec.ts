@@ -4,6 +4,8 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {ZIGI_VOICE_KEY} from '../lib/z-device-keys';
+import {NOVA_SETUP_KEY, setPrivacyMode, type PrivacyMode} from '../lib/nova/setup';
+import {STRICT_NO_LOCAL_SPEECH, STRICT_NO_LOCAL_VOICE} from '../lib/ai/voice-privacy';
 
 /**
  * Session Z-Cloud Part 3 (ADR-019): talk to ZIGi, through the real panel on a production build, both projects. The
@@ -15,20 +17,24 @@ const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;
 const stream = (text: string) => [chunk({role: 'assistant', content: text}), chunk({}, 'stop'), 'data: [DONE]\n\n'].join('');
 type Log = {starts: {lang: string; event: string; processLocally?: boolean}[]; stops: number; aborts: number; streams: number; ended: number};
-async function fakes(page: Page, {recognition = true} = {}) {
-  await page.addInitScript(({recognition}) => {
+async function fakes(page: Page, {recognition = true, onDevice = false} = {}) {
+  await page.addInitScript(({recognition, onDevice}) => {
     const log = {starts: [] as {lang: string; event: string}[], stops: 0, aborts: 0, streams: 0, ended: 0, tracks: [] as MediaStreamTrack[]};
     const w = window as unknown as Record<string, unknown>;
     w.__voiceLog = log;
     class FakeRecognition {
       lang = ''; interimResults = false; continuous = true; maxAlternatives = 1; onresult: ((e: unknown) => void) | null = null; onend: (() => void) | null = null; onerror: ((e: unknown) => void) | null = null;
+      processLocally?: boolean;
       constructor() { (w.__voiceLast as unknown) = this; }
       // The gesture whose task is running when start() is called (set by the capture listeners below, cleared after the task).
-      start() { log.starts.push({lang: this.lang, event: (w.__gesture as string | null) ?? 'none'}); }
+      // `processLocally` is recorded only when the app asked for the browser's on-device recognition.
+      start() { log.starts.push({lang: this.lang, event: (w.__gesture as string | null) ?? 'none', ...(this.processLocally ? {processLocally: true} : {})}); }
       stop() { log.stops++; setTimeout(() => { const said = w.__voiceSay as string | undefined; if (said) this.onresult?.({resultIndex: 0, results: [Object.assign([{transcript: said}], {isFinal: true})]}); this.onend?.(); }, 30); }
       abort() { log.aborts++; }
     }
     for (const type of ['pointerdown', 'pointerup', 'click', 'keydown']) window.addEventListener(type, () => { w.__gesture = type; setTimeout(() => { if (w.__gesture === type) w.__gesture = null; }, 0); }, true);
+    // Chrome's on-device recognition check (`SpeechRecognition.available({processLocally: true})`), only where asked for.
+    if (onDevice) (FakeRecognition as unknown as {available: () => Promise<string>}).available = async () => 'available';
     if (recognition) { w.SpeechRecognition = FakeRecognition; w.webkitSpeechRecognition = FakeRecognition; }
     else { delete w.SpeechRecognition; delete w.webkitSpeechRecognition; }
     /** The person stops talking: the recognition delivers its words and ends by itself. */
@@ -37,7 +43,7 @@ async function fakes(page: Page, {recognition = true} = {}) {
     const spoken: {text: string; lang: string; voice: string | null}[] = [];
     w.__spoken = spoken;
     Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: {speaking: false, speak(u: SpeechSynthesisUtterance) { if (u.text) spoken.push({text: u.text, lang: u.lang, voice: u.voice?.name ?? null}); setTimeout(() => u.onend?.(new Event('end') as SpeechSynthesisEvent), 10); }, cancel() {}, getVoices() { return [{lang: 'en-GB', name: 'Daniel'}, {lang: 'en-US', name: 'Samantha'}, {lang: 'nl-BE', name: 'Ellen'}, {lang: 'nl-NL', name: 'Xander'}]; }}});
-  }, {recognition});
+  }, {recognition, onDevice});
 }
 const log = (page: Page) => page.evaluate(() => { const l = (window as unknown as {__voiceLog: Log}).__voiceLog; return {starts: l.starts, stops: l.stops, aborts: l.aborts, streams: l.streams, ended: l.ended}; });
 const spoken = (page: Page) => page.evaluate(() => (window as unknown as {__spoken: unknown[]}).__spoken);
@@ -48,7 +54,10 @@ async function server(page: Page, reply = 'MOCK: you drank 1.2 litres today.') {
     return route.fulfill({status: 200, contentType: 'text/event-stream', body: stream(reply)});
   });
 }
-async function seed(page: Page, {ai = null as Partial<AiSettings> | null, voice = null as Record<string, unknown> | null, time = EVENING} = {}) {
+// Session AK (ADR-036, deliberate; a68e23b6, security review Z1A-3/Z1A-12): the Showcase's privacy mode is Strict, which
+// listens only with on-device recognition and reads only in on-device voices. These tests are about browser voice, so they
+// seed the mode a person chooses for it (Guarded, through the guide's own setPrivacyMode); Strict has its own tests below.
+async function seed(page: Page, {ai = null as Partial<AiSettings> | null, voice = null as Record<string, unknown> | null, time = EVENING, privacy = 'guarded' as PrivacyMode} = {}) {
   await page.clock.install({time});
   // Help, so that every test's next address is a document load: a jump to `/app/settings#…` from Settings itself is a
   // fragment change outside Next's router, which can rewrite the address without the hash while it finishes hydrating.
@@ -57,6 +66,7 @@ async function seed(page: Page, {ai = null as Partial<AiSettings> | null, voice 
   const values: Record<string, string> = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})};
   if (ai) values[AI_SETTINGS_KEY] = JSON.stringify({...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...ai});
   if (voice) values[ZIGI_VOICE_KEY] = JSON.stringify({version: 1, ...voice});
+  values[NOVA_SETUP_KEY] = JSON.stringify(setPrivacyMode(JSON.parse(values[NOVA_SETUP_KEY] ?? '{"version":1}'), privacy, DAY));
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
   // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
   // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
@@ -285,4 +295,33 @@ test('where the browser has no speech recognition: one plain line and the keyboa
   await tap(mic(page));
   await expect(panel(page).locator('.ai-voice-hint')).toContainText('Use your keyboard’s dictation (the mic on the iPhone keyboard), or type.');
   await expect(mic(page)).toHaveAttribute('aria-pressed', 'false');
+});
+
+// Session AK (a68e23b6, security review Z1A-3/Z1A-12): Strict, the Showcase's mode, sends no audio and no text to a speech
+// service. Browser recognition that is not on this device is refused with its reason; on-device recognition listens, and
+// a reply is not read in an online voice (the MOCK voices report none on this device), with the reason.
+test('Strict privacy: browser recognition that is not on this device is refused with its reason, and nothing listens', async ({page}) => {
+  await fakes(page);
+  await seed(page, {voice: SEEN, privacy: 'strict'});
+  await openChat(page);
+  await tap(mic(page));
+  await expect(panel(page).locator('.ai-voice-hint')).toContainText(STRICT_NO_LOCAL_SPEECH);
+  await expect(mic(page)).toHaveAttribute('aria-pressed', 'false');
+  const l = await log(page);
+  expect(l.starts).toEqual([]);
+  expect(l.streams).toBe(0);
+});
+
+test('Strict privacy: on-device recognition listens; the reply is not read in an online voice, and the reason is shown', async ({page}) => {
+  await fakes(page, {onDevice: true});
+  await server(page);
+  await seed(page, {ai: {}, voice: SEEN, privacy: 'strict'});
+  await openChat(page);
+  await tap(mic(page));
+  expect((await log(page)).starts).toEqual([{lang: 'en-US', event: 'pointerdown', processLocally: true}]);
+  await expect(mic(page)).toHaveAttribute('aria-pressed', 'true');
+  await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('Tell me something nice about my week'));
+  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you drank');
+  await expect(panel(page).getByRole('status').filter({hasText: STRICT_NO_LOCAL_VOICE})).toBeVisible();
+  expect(await spoken(page)).toEqual([]);
 });

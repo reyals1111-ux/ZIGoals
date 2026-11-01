@@ -9,6 +9,7 @@ import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../lib/af-checklist-keys';
 import {emptyChecklist, emptyChecklistDays} from '../lib/checklist/schema';
 import {addCustom, addFavourite} from '../lib/checklist/store';
 import {ZIGI_VOICE_KEY} from '../lib/z-device-keys';
+import {NOVA_SETUP_KEY, setPrivacyMode, type PrivacyMode} from '../lib/nova/setup';
 
 /**
  * Session AF (L4): the shared harness of ZIGi's Session AF specs (zigi-*-af.spec.ts), on a production build. Every
@@ -47,12 +48,17 @@ export function checklistRecords(): Record<string, string> {
   return {[CHECKLIST_KEY]: JSON.stringify(r), [CHECKLIST_DAYS_KEY]: JSON.stringify(emptyChecklistDays())};
 }
 export const SEEN_VOICE = {disclosed: {chrome: '2026-09-01T00:00:00.000Z', safari: '2026-09-01T00:00:00.000Z', other: '2026-09-01T00:00:00.000Z'}};
-export async function seed(page: Page, {ai = {} as Partial<AiSettings> | null, extra = {} as Record<string, string>, time = EVENING, voice = null as Record<string, unknown> | null} = {}) {
+/**
+ * `privacy`: the privacy mode the person chose, set as the guide sets it (setPrivacyMode). Absent: the Showcase's own
+ * (Strict, Session AK a68e23b6). Browser voice tests choose Guarded: Strict listens and reads only on the device.
+ */
+export async function seed(page: Page, {ai = {} as Partial<AiSettings> | null, extra = {} as Record<string, string>, time = EVENING, voice = null as Record<string, unknown> | null, privacy = null as PrivacyMode | null} = {}) {
   await page.clock.install({time});
   await page.goto('/app/help');
   const values: Record<string, string> = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...extra};
   if (ai) { values[AI_SETTINGS_KEY] = JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...ai}); values[AI_OPTIONS_KEY] = JSON.stringify({version: 1, toolMode: 'attach'}); }
   if (voice) values[ZIGI_VOICE_KEY] = JSON.stringify({version: 1, ...voice});
+  if (privacy) values[NOVA_SETUP_KEY] = JSON.stringify(setPrivacyMode(JSON.parse(values[NOVA_SETUP_KEY] ?? '{"version":1}'), privacy, DAY));
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
   // Session AE Gate C (ed1d90f4): the seed's own page settles before the test's next navigation (WebKit's stall).
   await page.waitForLoadState('networkidle');

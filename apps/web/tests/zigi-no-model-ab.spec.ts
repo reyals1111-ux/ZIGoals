@@ -26,7 +26,9 @@ test('no AI: a Dutch question is introduced in Dutch with working examples; "cre
   await page.getByRole('button', {name: /Open ZIGi/}).click();
   await expect(panel(page)).toBeVisible();
   const dutch = await ask(page, 'Hoeveel minuten heb ik deze maand gemediteerd?');
-  await expect(dutch).toContainText('Zonder AI beantwoord ik vragen over je eigen gegevens hier, op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:');
+  // Session AK (ADR-036, deliberate; c8d0a44d, FIRST_RUN_REVIEW FR-2): "without any AI" contradicted NOVA's "Private
+  // intelligence"; the Dutch introduction now says what answers until a brain is set up. The whole sentence, as before.
+  await expect(dutch).toContainText('Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:');
   await dutch.getByRole('button').filter({hasText: /\?$/}).first().click();
   await expect(panel(page).locator('.ai-turn-local').last()).not.toContainText('Tik op een voorbeeld');
   await expect(panel(page).locator('.ai-turn-local').last().locator('.ai-turn-label')).toHaveText('Answered on your device · no AI used');
