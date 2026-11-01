@@ -7,6 +7,7 @@ import {usageLine} from '../../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../../lib/ai/context/pages';
 import {turnMarkdown} from '../../../lib/ai/continue';
 import {LOCAL_LABEL} from '../../../lib/ai/local-answers/words';
+import {NOVA_PERMISSIONS, NOVA_PERMISSIONS_NL} from '../../../lib/ai/local-answers/nova-env';
 import {ON_DEVICE_LABEL} from '../../../lib/ai/on-device';
 import {PROVIDERS} from '../../../lib/ai/providers';
 import {parseBlocks, plainText} from '../../../lib/ai/safe-render';
@@ -29,6 +30,8 @@ import {AgentGlyph, PersonaFigure, type NovaPersona} from './nova-figure';
  * in one short line, copy, read aloud, retry and the person's own note. A page task NOVA handed to ZIGi reads as a short
  * exchange in two voices: NOVA hands it over, ZIGi (its own figure, unchanged) answers from that page, NOVA closes the loop.
  */
+/** NOVA's panels open on Permissions from this hash (components/nova/nova-dashboard.tsx `PANEL_HASH`). */
+const PERMISSIONS_HASH = 'nova-permissions';
 export type TurnCommon = {session: ChatSession; runner: ReturnType<typeof useProposals>; autoAccept: AutoAccept; persona: NovaPersona; providerName: string;
   reader: ReturnType<typeof useReadAloud>; onNavigate: () => void; onAsk: (question: string) => void; connected: boolean};
 export function NovaUserTurn({turn, mark, persona, onEdit}: {turn: ChatTurn; mark?: DelegatedTurn; persona: NovaPersona; onEdit?: () => void}) {
@@ -82,6 +85,10 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
         {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={local ? localHandles : session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id} bundle={parsed.bundle}/>}
         {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions answered on this device">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
         {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions answered on this device' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
+        {local && (parsed.text.includes(NOVA_PERMISSIONS) || parsed.text.includes(NOVA_PERMISSIONS_NL)) && <p className="nova-turn-permissions">
+          {/* Release review 2 (R2-2): one tap to the switch the answer names (NOVA's panels open on Permissions). */}
+          <button type="button" className="secondary" onClick={() => { onNavigate(); window.location.hash = PERMISSIONS_HASH; }}>Open {persona.name} → Permissions</button>
+        </p>}
         <SourceLine short={short} full={full}/>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
         <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>
@@ -95,7 +102,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
             <ReplyMore info={usage ? <span className="ai-turn-usage">{usage}</span> : undefined} items={[
               {key: 'markdown', label: 'Copy as Markdown', done: 'Copied as Markdown', keepOpen: true, onSelect: () => { void copyText(turnMarkdown({...turn, text: parsed.text}, full)).catch(() => undefined); }},
               // An answer made on this device, with an AI connected: the same question to the person's AI with those records (shown first in ZIGi's panel; here sent on the person's choice).
-              ...(connected && local && calls.length > 0 && question && !busy ? [{key: 'more', label: 'Ask my AI for more', title: 'Your question and these records go to your AI', onSelect: () => void session.askMore(question, calls, {area: 'today'})}] : []),
+              ...(connected && local && reply?.kind !== 'refusal' && calls.length > 0 && question && !busy ? [{key: 'more', label: 'Ask my AI for more', title: 'Your question and these records go to your AI', onSelect: () => void session.askMore(question, calls, {area: 'today'})}] : []),
             ]}/>
           </span>
         </div>

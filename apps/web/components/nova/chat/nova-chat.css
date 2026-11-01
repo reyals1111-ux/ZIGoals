@@ -115,3 +115,7 @@
 .nova-turn-hermes .nova-turn-body{padding-left:12px;border-left:2px solid color-mix(in srgb,var(--pink,#c664ff) 50%,transparent)}
 .nova-agent{display:inline-grid;place-items:center;flex:none;color:var(--muted,#a4b2cd)}
 .nova-agent svg{display:block}
+
+/* Release review 2 (R2-2): one tap to the switch a NOVA answer names. */
+.nova-turn-permissions { margin: 8px 0 0; }
+.nova-turn-permissions button { min-height: 44px; }

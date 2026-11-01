@@ -3,6 +3,7 @@ import {isCloudTarget} from '../../../../lib/ai/privacy-mode';
 import {readAiSettings} from '../../../../lib/ai/settings';
 import {setPrivacyMode} from '../../../../lib/nova/setup';
 import {checkMeet} from '../../../../lib/nova/setup-checks';
+import {novaAndZigi} from '../../../../lib/nova/one-line';
 import {localDate} from '../../../../lib/local-date';
 import {getAppStorage} from '../../../../lib/showcase-storage';
 import {CheckRow} from '../check-row';
@@ -29,6 +30,8 @@ export default function MeetStep({setup}: {setup: SetupState}) {
   };
   return <>
     <p>NOVA is your own assistant inside ZIGoals: it reads your goals, habits, health and money records with your permission and helps you act on them. You build its brain yourself.</p>
+    {/* Release review 2 (R2-4): the one sentence that tells NOVA and ZIGi apart, the same words everywhere. */}
+    <p>{novaAndZigi()} They share one engine, one history and one memory.</p>
     <ul className="nova-promises">
       <li><b>Everything stays on this device.</b> Your records, chats, memory and settings live in this browser. ZIGoals has no server for NOVA.</li>
       <li><b>Keys never leave it.</b> An API key is sealed in this browser’s own key store, never synced and never sent to ZIGoals; only your provider receives it, with each request.</li>

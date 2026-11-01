@@ -6,6 +6,7 @@ import {AI_MEMORY, AI_OPTIONS} from '../../lib/ai/store/records';
 import {usingNotes} from '../../lib/ai/memory';
 import {PROVIDERS} from '../../lib/ai/providers';
 import {NOVA_SETUP} from '../../lib/nova/setup';
+import {scopesOf} from '../../lib/nova/scopes';
 import {PRIVACY_WORDS} from '../../lib/nova/privacy-mode';
 import {NOVA_HERMES, isHermesBase} from '../../lib/nova/hermes-record';
 import {useOnline} from './use-nova';
@@ -34,15 +35,20 @@ export function useBrain(): {brain: Brain; loaded: boolean} {
 export const SETUP_HREF = '/app/nova/setup';
 export function StatusChips({brain}: {brain: Brain}) {
   const settings = useAiSettings(), options = useDeviceRecord(AI_OPTIONS), memory = useDeviceRecord(AI_MEMORY), setup = useDeviceRecord(NOVA_SETUP), online = useOnline();
-  const share = settings.data.pageShare, pillars = [share.today, share.goals, share.habits, share.wealth, share.health && settings.data.includeHealth];
+  // Release review 2 (R2-2/R2-4): what NOVA sees is NOVA → Permissions (Health also needs this device's Health switches).
+  const share = settings.data.pageShare, scopes = scopesOf(setup.loaded && !setup.unreadable ? setup.data : {version: 1}), healthSeen = scopes.health && share.health && settings.data.includeHealth;
+  const pillars = [scopes.today, scopes.goals, scopes.habits, scopes.wealth, healthSeen];
   const granted = pillars.filter(Boolean).length, mode = setup.loaded && !setup.unreadable ? setup.data.privacyMode ?? null : null;
+  const setupChips = brain.kind !== 'none';
   const notes = memory.data.notes?.length ?? 0, remembering = options.loaded && memory.loaded && !memory.unreadable && usingNotes(options.data, memory.data);
   return <ul className="nova-chips" aria-label="NOVA’s status">
     <li><Link className="nova-chip" data-kind={brain.kind} href={SETUP_HREF} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Brain</span> {brain.words}</span></Link></li>
-    {setup.loaded && <li><Link className="nova-chip" data-kind={mode ?? 'unset'} href={`${SETUP_HREF}#privacy`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Privacy</span> {mode ? PRIVACY_WORDS[mode].label : 'not chosen yet'}</span></Link></li>}
-    {memory.loaded && <li><Link className="nova-chip" data-kind={remembering ? 'on' : 'off'} href={`${SETUP_HREF}#memory`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Memory</span> {remembering ? `on · ${notes} ${notes === 1 ? 'note' : 'notes'}` : 'off'}</span></Link></li>}
-    {settings.loaded && <li><Link className="nova-chip" data-kind="scopes" href={`${SETUP_HREF}#scopes`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Sees</span> {granted} of 5 pillars{share.health && settings.data.includeHealth ? '' : ' · Health off'}</span></Link></li>}
+    {/* Release review 2 (R2-3): before a brain is connected nothing leaves the device, so the privacy mode, memory and the
+        setup test wait until one is (the guide keeps them); the brain and what NOVA sees stay. */}
+    {setup.loaded && setupChips && <li><Link className="nova-chip" data-kind={mode ?? 'unset'} href={`${SETUP_HREF}#privacy`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Privacy</span> {mode ? PRIVACY_WORDS[mode].label : 'not chosen yet'}</span></Link></li>}
+    {memory.loaded && setupChips && <li><Link className="nova-chip" data-kind={remembering ? 'on' : 'off'} href={`${SETUP_HREF}#memory`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Memory</span> {remembering ? `on · ${notes} ${notes === 1 ? 'note' : 'notes'}` : 'off'}</span></Link></li>}
+    {settings.loaded && <li><a className="nova-chip" data-kind="scopes" title="What NOVA can see: Permissions" href="#nova-permissions"><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Sees</span> {granted} of 5 pillars{healthSeen ? '' : ' · Health off'}</span></a></li>}
     {!online && <li><span className="nova-chip" data-kind="offline" role="status"><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Offline</span> on-device answers still work</span></span></li>}
-    <li><Link className="nova-chip nova-chip-test" href={`${SETUP_HREF}?test=1`} prefetch={false}><NovaIcon name="test" size={18}/><span>Test my setup</span></Link></li>
+    {setupChips && <li><Link className="nova-chip nova-chip-test" href={`${SETUP_HREF}?test=1`} prefetch={false}><NovaIcon name="test" size={18}/><span>Test my setup</span></Link></li>}
   </ul>;
 }

@@ -402,3 +402,19 @@ a.nova-chip:hover { border-color: var(--nova-edge); color: var(--nova-ink); }
 .nova-mini-head .nova-name { text-align: left; }
 .nova-mini-head p { margin: 0; }
 .nova-mini-day { display: grid; gap: 6px; padding: 12px; border-radius: 16px; border: 1px solid var(--nova-edge-soft); background: var(--nova-glass); }
+
+/* ---- Release review 2 (R2-3, R2-22): tooltips and short labels, technical rows folded, the greeting read once ---- */
+.nova-icon-btn[data-tip] { position: relative; }
+.nova-icon-btn[data-tip]:is(:hover, :focus-visible)::after { content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 0; z-index: 6; padding: 4px 10px; border-radius: 9px; background: #0a1028; border: 1px solid var(--nova-edge); color: var(--nova-ink); font-size: 14px; font-weight: 600; white-space: nowrap; pointer-events: none; }
+.nova-icon-btn[data-tip-end]:is(:hover, :focus-visible)::after { left: auto; right: 0; }
+.nova-icon-label { display: none; }
+@media (min-width: 1800px) {
+  .nova-icon-btn-labelled { display: inline-flex; align-items: center; gap: 8px; width: auto; padding: 0 14px; }
+  .nova-icon-btn-labelled .nova-icon-label { display: inline; font-size: 15px; font-weight: 600; }
+  .nova-icon-btn-labelled[data-tip]::after { content: none !important; }
+}
+.nova-tech { border-top: 1px solid var(--nova-edge-soft); padding-top: 4px; }
+.nova-tech > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--nova-ink-2); font-weight: 600; list-style-position: inside; }
+.nova-tech > summary::marker { color: var(--nova-hi); }
+.nova-tech-body { display: grid; gap: 10px; padding-top: 6px; }
+.nova-greeting-rest { opacity: 0; }

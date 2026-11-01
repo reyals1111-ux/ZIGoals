@@ -78,15 +78,16 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
               : (probe.loaded[r.server.baseUrl] ?? []).length ? (probe.loaded[r.server.baseUrl] ?? []).map(m => <li key={m.name}>{loadedLine(m)}</li>) : <li>No model loaded right now (Ollama loads one on the first question).</li>}</ul>}
           </li>)}
         </ul>
-        <div className="nova-right-actions">
-          <button type="button" className="nova-btn" disabled={probe.state === 'asking'} onClick={() => void ask(LOCAL_SERVERS)}>Look for local servers</button>
-          <Link className="nova-btn" href="/app/nova/setup" prefetch={false}>Brain setup</Link>
-        </div>
         {hermes?.connected && <p className="nova-row"><span className="nova-status" data-on={hermes.reachable || undefined}>{hermes.reachable ? 'Reachable' : 'Not reachable'}</span><span>Hermes gateway at the last check{hermes.model ? ` · ${hermes.model}` : ''}{hermes.lastMs !== undefined ? ` · answered in ${formatNumber(hermes.lastMs)} ms` : ''}{hermes.checkedAt ? ` · ${formatDateTime(hermes.checkedAt)}` : ''}</span></p>}
-        <LoadBoundary quiet><Suspense fallback={null}><HermesCard/></Suspense></LoadBoundary>
-        <p className="nova-fine">Only this computer is asked (localhost). Your browser may ask once to let this site reach apps on this computer.</p>
-        <h4 className="nova-right-sub-title">This device</h4>
-        <dl className="nova-facts nova-facts-compact">{facts.map(f => <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>
+        <div className="nova-right-actions"><Link className="nova-btn" href="/app/nova/setup" prefetch={false}>Brain setup</Link></div>
+        {/* Release review 2 (R2-3): the technical rows wait behind this disclosure (local servers, Hermes, this device). */}
+        <Tech label="Technical details: local servers, Hermes Agent, this device">
+          <div className="nova-right-actions"><button type="button" className="nova-btn" disabled={probe.state === 'asking'} onClick={() => void ask(LOCAL_SERVERS)}>Look for local servers</button></div>
+          <LoadBoundary quiet><Suspense fallback={null}><HermesCard/></Suspense></LoadBoundary>
+          <p className="nova-fine">Only this computer is asked (localhost). Your browser may ask once to let this site reach apps on this computer.</p>
+          <h4 className="nova-right-sub-title">This device</h4>
+          <dl className="nova-facts nova-facts-compact">{facts.map(f => <div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>
+        </Tech>
       </>)}
       {section('voice', 2, <>
         <div className="nova-switch-row"><span id="nova-speech-label">Speech output</span>
@@ -112,7 +113,7 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
       {section('usage', 4, <>
         {day === null ? <p className="nova-fine">Usage could not be read on this device.</p> : !Object.keys(day).length ? <p className="nova-fine">No model was asked today.</p>
           : <ul className="nova-right-list">{Object.entries(day).map(([route, used]) => <li key={route}><strong>{route === 'local' ? 'Your local model' : route === 'on-device' ? 'On this device' : isProviderId(route) ? PROVIDERS[route].name : route}</strong>: {formatNumber(used.requests)} {used.requests === 1 ? 'request' : 'requests'}, about {formatNumber(used.input + used.output)} tokens{isFreeRoute(route) ? ' · free, on your device' : ''}</li>)}</ul>}
-        <div className="nova-right-actions"><button type="button" className="nova-btn" onClick={() => openPanel('cost')}>Cost meter and daily cap</button><button type="button" className="nova-btn" onClick={() => openPanel('models')}>Models per task</button></div>
+        <Tech label="Cost meter and models per task"><div className="nova-right-actions"><button type="button" className="nova-btn" onClick={() => openPanel('cost')}>Cost meter and daily cap</button><button type="button" className="nova-btn" onClick={() => openPanel('models')}>Models per task</button></div></Tech>
       </>)}
       {section('memory', 5, <>
         <p className="nova-row">{notes === null ? 'Memory could not be read on this device.' : notes ? `${persona} and ZIGi share ${notes} ${notes === 1 ? 'note' : 'notes'} you kept.` : 'Nothing remembered yet. You choose every note.'}</p>
@@ -132,6 +133,10 @@ function Section({id, n, title, folded, onFold, children}: {id: RightSection; n:
     <h3 id={`${body}-h`}><button type="button" aria-expanded={!folded} aria-controls={body} onClick={() => onFold(id, !folded)}><span className="nova-num" aria-hidden="true">{String(n).padStart(2, '0')}</span>{title}<NovaIcon name={folded ? 'down' : 'up'} size={18}/></button></h3>
     <div id={body} className="nova-right-body" hidden={folded}>{children}</div>
   </section>;
+}
+/** A section's technical rows, folded until the person opens them (a native disclosure: keyboard and screen readers know it). */
+function Tech({label, children}: {label: string; children: ReactNode}) {
+  return <details className="nova-tech"><summary>{label}</summary><div className="nova-tech-body">{children}</div></details>;
 }
 function ToolRow({href, icon, label, value, text, amount}: {href: string; icon: string; label: string; value?: number | null; text?: string; amount?: string}) {
   const shown = text ?? (value === null || value === undefined ? 'unknown' : formatNumber(value));

@@ -174,3 +174,35 @@ test('no model connected: NOVA answers on the device, says so, and invites build
   expect((await download).suggestedFilename()).toMatch(/^zigoals-chat-\d{4}-\d{2}-\d{2}-how-many-habits-do-i-have\.md$/);
   expect(seen).toHaveLength(0);
 });
+
+test('R2-2 (release review 2): with no model, NOVA answers the natural questions from the records, and Health waits for NOVA → Permissions', async ({page}) => {
+  const seen = await server(page, [() => 'never']);
+  await seed(page, {model: false});
+  // Health is shared on this device (ZIGi's gate open), but NOVA's own Health permission is off by default.
+  await page.evaluate(({key, value}) => localStorage.setItem(key, value), {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}})});
+  await page.goto('/app');
+  await askThroughBar(page, 'How far am I on my goals?');
+  const last = () => chat(page).locator('.nova-turn-assistant').last();
+  await expect(last()).toContainText('active goals, from your own records:');
+  await expect(last()).toContainText('Emergency fund: ');
+  await expect(last().locator('.ai-turn-source')).toContainText('On-device answers · no AI used');
+  await sendInNova(page, 'What is due today?');
+  await expect(last()).toContainText('Today (');
+  await expect(last()).toContainText('Habits still open');
+  await sendInNova(page, 'How did I sleep?');
+  await expect(last()).toContainText('Health is off for NOVA, so nothing from Health is read here. Turn on Health in NOVA → Permissions.');
+  await expect(last()).not.toContainText('Settings → ZIGi');
+  // One tap to the switch the answer names; turned on there, the same question is answered from the logged nights.
+  await last().getByRole('button', {name: 'Open NOVA → Permissions'}).click();
+  const panels = page.getByRole('dialog', {name: 'NOVA’s panels'});
+  await expect(panels).toBeVisible();
+  await panels.getByRole('switch', {name: /^Health: food/}).click();
+  await expect(panels.getByRole('switch', {name: /^Health: food/})).toHaveAttribute('aria-checked', 'true');
+  await panels.getByRole('button', {name: 'Close NOVA’s panels'}).click();
+  await page.getByRole('textbox', {name: 'Message NOVA'}).fill('How did I sleep?');
+  await page.getByRole('textbox', {name: 'Message NOVA'}).press('Enter');
+  await expect(last()).toContainText('nights logged', {timeout: 15_000});
+  await sendInNova(page, 'How many habits are left today?');
+  await expect(last()).toContainText('left today');
+  expect(seen).toHaveLength(0); // all on this device
+});

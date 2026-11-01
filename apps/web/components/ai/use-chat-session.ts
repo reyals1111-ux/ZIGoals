@@ -117,6 +117,11 @@ export type NovaSurface = {persona: string;
    * lib/nova/bridge-pack.ts `taskToolEnv`). Absent: ZIGi's own provider environment, as before.
    */
   taskEnv?: (handles: Handles) => ToolEnv | null;
+  /**
+   * Release review 2 (R2-2): what NOVA's on-device answers read (ZIGi's local gates narrowed by NOVA → Permissions,
+   * lib/nova/local-env.ts). Absent: ZIGi's own local environment, as before.
+   */
+  localEnv?: () => ToolEnv | null;
   remember?: (chatId: string) => void;
   /** Session AK (owner follow-up 3 N11): the person's own agent, when connected (null: not connected). */
   agent?: (name: NovaAgentName) => NovaAgent | null};
@@ -447,7 +452,10 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     if (!before.turns.length) rememberArea(next.id);
     zigiSignals.emit(localSignal(reply, question));
   }, [persist, rememberArea, setChat]);
-  const localEnv = useCallback(() => { const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; }, [context]);
+  const localEnv = useCallback(() => {
+    if (nova?.localEnv) { try { return nova.localEnv(); } catch { return null; } } // R2-2: NOVA's answers under NOVA → Permissions
+    const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null;
+  }, [context, nova]);
   /**
    * Session V Part 15: a question ZIGi's lookups did not recognise, with no AI connected and Chrome's on-device model
    * turned on. The model first puts the question in plain words for ZIGi's own lookup, whose numbers come from the

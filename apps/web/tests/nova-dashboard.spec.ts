@@ -92,6 +92,10 @@ test.describe('NOVA on a computer', () => {
     await page.goto('/app/nova');
     const left = page.locator('aside.nova-left'), right = page.getByRole('complementary', {name: 'Behind the intelligence'});
     await expect(left).toHaveAttribute('data-state', 'open');
+    // Release review 2 (R2-3), a deliberate change: "Behind the intelligence" starts hidden until the person opens it;
+    // from then on it hides, folds and is remembered exactly as before.
+    await expect(right).toHaveCount(0);
+    await page.getByRole('button', {name: 'Show Behind the intelligence'}).click();
     await expect(right).toBeVisible();
     await right.getByRole('button', {name: 'Hide the right panel'}).click();
     await expect(right).toHaveCount(0);
@@ -192,6 +196,9 @@ test.describe('NOVA on a computer', () => {
     await expect(right.getByText('Online').first()).toBeVisible();
     await expect(right).toContainText('llama3.2:3b: 3.4 GB in memory, 100 % on the GPU');
     await expect(right).toContainText('Memory');
+    // Release review 2 (R2-3), a deliberate change: the device facts wait behind the Brains section's technical disclosure.
+    await expect(right.getByText('Unknown in this browser').first()).toBeHidden();
+    await right.getByText('Technical details: local servers, Hermes Agent, this device').click();
     await expect(right.getByText('Unknown in this browser').first()).toBeVisible();
     up = false;
     await right.getByRole('button', {name: 'Refresh'}).click();
@@ -223,6 +230,47 @@ test.describe('NOVA on a computer', () => {
     await noSideScroll(page);
     const tiles = await page.locator('.nova-frame :is(button, a):visible').evaluateAll(els => els.filter(el => { const r = el.getBoundingClientRect(); return r.width < 44 || r.height < 44; }).map(el => el.outerHTML.slice(0, 120)));
     expect(tiles).toEqual([]);
+    // Release review 2 (R2-3): the first screen leads with the person's day, above the fold; the console waits.
+    await expect(page.getByRole('button', {name: 'Your day'})).toBeVisible();
+    for (const name of ['Today’s orbit', 'Next three']) {
+      const box = await page.getByRole('article', {name}).boundingBox();
+      expect(box, name).not.toBeNull(); expect(box!.y, name).toBeLessThan(900 - 80);
+    }
+    await expect(page.getByRole('complementary', {name: 'Behind the intelligence'})).toHaveCount(0);
+    for (const word of ['Look for local servers', 'Processor', 'localhost', 'Cost meter', 'Automatic · best fit', 'Test my setup']) await expect(page.getByText(word).first(), word).toBeHidden();
+    // Every icon-only control has a name, and a tooltip on hover (and on keyboard focus, the same rule).
+    const unnamed = await page.locator('.nova-frame :is(button.nova-icon-btn, button.nova-tile, a.nova-tile):visible').evaluateAll(els => els.filter(el => !(el.getAttribute('aria-label') || el.textContent?.trim()) ).length);
+    expect(unnamed).toBe(0);
+    const search = page.getByRole('button', {name: 'Search ZIGoals'});
+    await search.hover();
+    if (width < 1800) expect(await search.evaluate(el => getComputedStyle(el, '::after').content)).toBe('"Search"');
+    else await expect(search).toContainText('Search');
+  });
+});
+
+test.describe('Release review 2 on NOVA (R2-4, R2-5, R2-22)', () => {
+  test.skip(({isMobile}) => isMobile, 'computer layout first');
+  test('the greeting is in the page once; the first-run card says what NOVA and ZIGi are in one line', async ({page}) => {
+    await page.setViewportSize({width: 1440, height: 900});
+    await fresh(page, seen());
+    await page.goto('/app/nova');
+    const greeting = page.locator('.nova-greeting');
+    await expect(greeting).toContainText('NOVA is online.');
+    expect(((await greeting.textContent()) ?? '').match(/NOVA is online\./g)).toHaveLength(1);
+    expect(await page.locator('.nova-stage').evaluate(el => (el.textContent ?? '').split('NOVA is online.').length - 1)).toBe(1);
+    await expect(page.getByRole('region', {name: 'Build NOVA’s brain'})).toContainText('NOVA is your command center for everything; ZIGi is the same assistant inside each page.');
+  });
+  test('in Light, the phone\'s bottom bar wears NOVA\'s night while NOVA is open, and turns light again after', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await fresh(page, {...seen(), 'zigoals:ui-prefs:v1': JSON.stringify({version: 1, theme: 'light'})});
+    await page.goto('/app/nova');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    const bar = page.locator('.phone-tabbar');
+    const shade = () => bar.evaluate(el => getComputedStyle(el).backgroundImage);
+    await expect.poll(shade).toContain('rgba(1, 3, 15');
+    await page.getByRole('button', {name: /^Exit NOVA/}).click();
+    await expect(page).toHaveURL(/\/app\/today$/);
+    await expect.poll(shade).not.toContain('rgba(1, 3, 15');
   });
 });
 

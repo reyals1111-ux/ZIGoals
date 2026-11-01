@@ -17,6 +17,9 @@ import {aiLocalAnswer, isEnergyRatingAsk} from './ai-session';
 import {f9LocalAnswer} from './f9';
 import {novaLocalAnswer} from './nova';
 import {g1LocalAnswer} from './g1';
+import {novaEnvInfo, novaWording} from './nova-env';
+import {novaOverviewAnswer} from './nova-overview';
+import {questionLanguage} from './no-model';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -164,6 +167,15 @@ export function detectSubjects(question: string, env: ToolEnv): Subjects {
 }
 /** The answer to a question, or `none` when it is not a lookup ZIGi answers on the device. */
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  // Release review 2 (R2-2): on NOVA's environment only (lib/nova/local-env.ts), the natural overview questions after
+  // Session AF's commands, and every reply in NOVA's words (NOVA → Permissions). Any other environment: exactly as before.
+  const nova = novaEnvInfo(env);
+  if (!nova) return engineAnswer(question, env, subject);
+  const lang = questionLanguage(question) === 'nl' ? 'nl' : 'en', words = (reply: LocalReply) => novaWording(reply, nova, lang);
+  if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return words(af); const own = novaOverviewAnswer(normalizeSpoken(question), env, nova); if (own) return words('text' in own ? {...own, text: groupUnits(own.text)} : own); }
+  return words(engineAnswer(question, env, subject));
+}
+function engineAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AF (L4): the Checklist commands, the Earn coach, the page and the brief, each with its own stop rule, first.
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return af; }
   // Owner follow-up 1 (F9): the F4–F5 questions (debt-free month, agenda, supplements, validators) and two navigation asks.

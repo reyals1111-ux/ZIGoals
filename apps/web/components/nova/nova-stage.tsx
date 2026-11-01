@@ -4,6 +4,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {NOVA_SETUP, setupProgress, showSetupCard, setCardHidden} from '../../lib/nova/setup';
 import {ORB_STATE_LABEL, type NovaOrbState} from '../../lib/nova/orb';
 import {formatDate, formatTime} from '../../lib/visual-format';
+import {novaAndZigi} from '../../lib/nova/one-line';
 import {NovaOrb} from './orb';
 import {PersonaMark} from './persona-mark';
 import type {Brain} from './status-chips';
@@ -39,11 +40,14 @@ export function NovaStage({persona, orb, greeting, typed, brain, showcase, onTal
       <span className="sr-only">Talk to {persona.name}</span>
     </button>
     <p className="nova-orb-state" id="nova-orb-state"><span className="nova-orb-state-word">{ORB_STATE_LABEL[orb]}</span><span className="nova-orb-state-hint">{orb === 'idle' ? 'Tap to talk' : orb === 'listening' ? 'Speak now' : orb === 'thinking' ? 'Working on it' : 'Answering'}</span></p>
-    <p className="nova-greeting"><span className="sr-only">{greeting}</span><span aria-hidden="true">{greeting.slice(0, typed)}<span className="nova-caret" data-done={typed >= greeting.length || undefined}/></span></p>
+    {/* Release review 2 (R2-22): the greeting is in the page once; the part still to type waits invisible in place (read by
+        assistive technology as one sentence, and the line keeps its width while it types). */}
+    <p className="nova-greeting">{greeting.slice(0, typed)}<span className="nova-caret" aria-hidden="true" data-done={typed >= greeting.length || undefined}/>{typed < greeting.length && <span className="nova-greeting-rest">{greeting.slice(typed)}</span>}</p>
     {showcase && <p className="nova-showcase"><span className="nova-chip-dot" aria-hidden="true"/>Showcase · fictional example data</p>}
     {card && <section className="nova-setup-card" aria-labelledby="nova-setup-title">
       <h2 id="nova-setup-title">{brain.kind === 'none' ? `Build ${persona.name}’s brain` : `Finish building ${persona.name}`}</h2>
-      <p>{brain.kind === 'none' ? `${persona.name} already answers simple questions on this device. Connect a model on your own computer (recommended: private and free) or your own key, and ${persona.name} becomes a full assistant.` : `${progress.done} of ${progress.total} steps done. Each step is short and has its own check.`}</p>
+      {/* Release review 2 (R2-3, R2-4): one short line that says what NOVA is next to ZIGi, and what a brain adds. */}
+      <p>{brain.kind === 'none' ? `${novaAndZigi(persona.name)} It answers simple questions on this device already; a model of your own makes it a full assistant.` : `${progress.done} of ${progress.total} steps done. Each step is short and has its own check.`}</p>
       <div className="nova-setup-actions">
         <Link className="nova-btn nova-btn-primary" href="/app/nova/setup" prefetch={false}>{progress.done ? 'Continue the guide' : 'Start the guide'}</Link>
         <button type="button" className="nova-btn" onClick={() => { try { setup.update(r => setCardHidden(r, true)); } catch { /* storage refused: the card simply stays */ } }}>Not now</button>

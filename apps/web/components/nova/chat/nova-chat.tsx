@@ -17,11 +17,13 @@ import type {PageArea} from '../../../lib/ai/settings';
 import {helpText, parseSlash} from '../../../lib/ai/slash';
 import {ZIGI_STORE_EVENT} from '../../../lib/ai/store/keys';
 import {briefPrefs, ZIGI, zigiPrefs} from '../../../lib/ai/store/records';
-import {toolEnv} from '../../../lib/ai/tools/env';
 import {readDeviceRecord} from '../../../lib/device-record';
 import {askZigi, DUO_IDLE, type NovaAgentId, duoState, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
 import {pagePack, taskToolEnv} from '../../../lib/nova/bridge-pack';
-import {readNovaScopes} from '../../../lib/nova/scopes';
+import {readNovaScopes, scopesOf} from '../../../lib/nova/scopes';
+import {NOVA_SETUP} from '../../../lib/nova/setup';
+import {novaLocalEnv} from '../../../lib/nova/local-env';
+import {novaAndZigi} from '../../../lib/nova/one-line';
 import {instructionsOf, NOVA_STORE, personaOf} from '../../../lib/nova/store';
 import {quickLogContext} from '../../../lib/quick-log/context';
 import {quickLogReply} from '../../../lib/quick-log/multi';
@@ -35,7 +37,7 @@ import {useAiContext} from '../../ai/use-ai-context';
 import {useAiSettings} from '../../ai/use-ai-settings';
 import {useAutoAccept} from '../../ai/use-auto-accept';
 import {useChatSession, type NovaSurface, type SendOptions} from '../../ai/use-chat-session';
-import {buildNovaPack, whatNovaCanSee} from '../../../lib/ai/context-pack/nova';
+import {buildNovaPack, DEFAULT_NOVA_SCOPES, whatNovaCanSee} from '../../../lib/ai/context-pack/nova';
 import {hermesAgent, novaPackInput} from '../../../lib/nova/bridge-pack';
 import {NOVA_HERMES} from '../../../lib/nova/hermes-record';
 import {useChainChoice} from '../../chain/use-chain-choice';
@@ -104,9 +106,14 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     // Security review Z1A-4: a task for ZIGi or Hermes meets NOVA → Permissions too (Health off by default), read at the send.
     pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}}),
     taskEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
+    // Release review 2 (R2-2): NOVA's on-device answers read under NOVA → Permissions too, and say so in NOVA's words.
+    localEnv: () => novaLocalEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}),
     remember: chatId => { rememberNovaChat(getAppStorage(), chatId); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); },
     agent: name => name === 'hermes' ? hermesRef.current : null,
   }), [persona.name, packInput]);
+  /** R2-2: NOVA's on-device environment from this render's records (the welcome's questions, /brief and /log). */
+  const setupRec = useDeviceRecord(NOVA_SETUP), scopesNow = useMemo(() => setupRec.unreadable ? {...DEFAULT_NOVA_SCOPES} : scopesOf(setupRec.data), [setupRec.unreadable, setupRec.data]);
+  const localEnvNow = useCallback(() => novaLocalEnv({sources: context.toolSources(), gates: context.gates, scopes: scopesNow, chainChosen}), [context, scopesNow, chainChosen]);
   const session = useChatSession({settings: data, scope, context, nova}), runner = useProposals({surface: 'nova', healthShared: context.gates.health}), autoAccept = useAutoAccept(context.gates.health);
   const bridge = useDeviceRecord(NOVA_BRIDGE), marks = useMemo(() => bridge.data.delegated ?? {}, [bridge.data.delegated]), speechOn = speechInputOn(bridge.data);
   const [deleg, setDeleg] = useState<{area: PageArea; agent: NovaAgentId} | null>(null), [view, setView] = useState<'chat' | 'list'>('chat'), [editing, setEditing] = useState<Editing | null>(null), [note, setNote] = useState(''), [listening, setListening] = useState(false), [tick, setTick] = useState(0);
@@ -124,7 +131,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const command = useCallback((typed: string): boolean => {
     const parsed = parseSlash(typed); if (!parsed) return false;
     const {command: {name}, rest} = parsed;
-    const env = () => { const sources = sensitive ? null : context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; };
+    const env = () => sensitive ? null : localEnvNow(); // R2-2: NOVA → Permissions apply to /brief and /log too
     switch (name) {
       case '/help': say(typed, helpText()); return true;
       case '/ask': if (!rest) return true; ask(rest, {direct: true}); return true;
@@ -144,7 +151,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       }
       default: say(typed, `${name} opens a view in ZIGi’s panel: press ⌘/Ctrl + K there. Everything else works here.`); return true;
     }
-  }, [ask, connected, context, reader, say, sensitive, vprefs.muted]);
+  }, [ask, connected, context, localEnvNow, reader, say, sensitive, vprefs.muted]);
   const runDelegation = useCallback(async (text: string, area: PageArea, replace?: string, agent: NovaAgentId = 'zigi', pasted = false) => {
     if (session.status !== 'idle' || delegation.current) return;
     delegation.current = {before: new Set(session.chat.turns.map(t => t.id)), area, chatId: session.chat.id, done: false, agent}; setDeleg({area, agent});
@@ -244,7 +251,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const shownDraft = useMemo(() => { if (!session.draft) return ''; const draft = stripHint(session.draft); if (hasOpenFence(draft)) { const at = draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? draft.slice(0, at) : draft; } return parseReply(draft).text; }, [session.draft]);
   const lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
   const latestCards = useMemo(() => [...session.chat.turns].reverse().find(t => t.role === 'assistant' && (session.parsed.get(t.id) ?? parseReply(t.text)).proposals.length > 0)?.id ?? null, [session.chat.turns, session.parsed]);
-  const examples = useMemo(() => { const sources = sensitive ? null : context.toolSources(); return examplesFor(sources ? toolEnv(sources, context.gates, 'local') : null, 3); }, [context, sensitive]);
+  // R2-2: the questions NOVA answers on this device first (under NOVA → Permissions), each one answered when tapped.
+  const examples = useMemo(() => examplesFor(sensitive ? null : localEnvNow(), 3), [localEnvNow, sensitive]);
   const common: TurnCommon = {session, runner, autoAccept, persona, providerName, reader, connected, onNavigate: () => onClose?.(), onAsk: question => ask(question)};
   const startNew = () => { session.startNew(); setView('chat'); setEditing(null); setDuo(DUO_IDLE); composer.current?.focus(); };
   const status = connected ? `via ${providerName} · ${data.model ?? ''}` : 'On-device answers';
@@ -272,7 +280,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
         {session.chat.turns.length === 0 && <div className="nova-welcome">
           <p className="nova-eyebrow">Your private intelligence</p>
           <p className="nova-welcome-title">Think out loud.</p>
-          <p className="nova-welcome-sub">One conversation, your whole constellation: goals, habits, health and wealth, on this device. ZIGi shares this history.</p>
+          <p className="nova-welcome-sub">One conversation, your whole constellation: goals, habits, health and wealth, on this device. {novaAndZigi(persona.name)} They share this history.</p>
           {examples.length > 0 && !busy && <div className="ai-chips" role="group" aria-label="Questions to start with">{examples.map(e => <button key={e} type="button" className="ai-chip" title={e} onClick={() => ask(e)}>{e}</button>)}</div>}
         </div>}
         {!connected && session.chat.turns.length === 0 && <div className="nova-invite" role="note" aria-label={`Build ${persona.name}’s brain`}>

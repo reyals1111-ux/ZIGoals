@@ -105,7 +105,9 @@ describe('N12: your name, the panels, routing and the wake phrase', () => {
   });
   it('panels follow the width until the person chooses, then stay as chosen on this device', async () => {
     const {panelsOf, setLeftPanel, setRightPanel, foldSection, nextLeft} = await import('./store');
-    expect(panelsOf(emptyNova(), 1920)).toEqual({left: 'open', right: 'open', folded: []});
+    // Release review 2 (R2-3), a deliberate change: "Behind the intelligence" starts hidden at every width until opened.
+    expect(panelsOf(emptyNova(), 1920)).toEqual({left: 'open', right: 'hidden', folded: []});
+    expect(panelsOf(emptyNova(), 1440)).toEqual({left: 'open', right: 'hidden', folded: []});
     expect(panelsOf(emptyNova(), 1280)).toEqual({left: 'rail', right: 'hidden', folded: []});
     expect(panelsOf(emptyNova(), 1024)).toEqual({left: 'hidden', right: 'hidden', folded: []});
     const chosen = setRightPanel(setLeftPanel(emptyNova(), 'hidden'), 'open');

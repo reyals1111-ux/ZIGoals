@@ -100,9 +100,13 @@ export const instructionsOf = (r: NovaRecord): string => (r.customInstructions ?
 export const yourNameOf = (r: NovaRecord): string => (r.yourName ?? '').replace(/\s+/g, ' ').trim();
 export const routingOf = (r: NovaRecord): string => r.routing ?? 'auto';
 export const wakeOn = (r: NovaRecord): boolean => r.wake === true;
-/** The panels' state: the stored choice, else by width (wide: both open; laptop: left as a rail; tablet: both hidden). */
+/**
+ * The panels' state: the stored choice, else by width (wide: the left panel open; laptop: left as a rail; tablet: hidden).
+ * Release review 2 (R2-3): "Behind the intelligence" starts hidden at every width until the person opens it, so the first
+ * screen leads with their day; once opened (or hidden) the choice is remembered on this device as before.
+ */
 export function panelsOf(r: NovaRecord, width: number): {left: LeftState; right: RightState; folded: RightSection[]} {
-  const auto = width >= 1440 ? {left: 'open' as const, right: 'open' as const} : width >= 1100 ? {left: 'rail' as const, right: 'hidden' as const} : {left: 'hidden' as const, right: 'hidden' as const};
+  const auto = width >= 1440 ? {left: 'open' as const, right: 'hidden' as const} : width >= 1100 ? {left: 'rail' as const, right: 'hidden' as const} : {left: 'hidden' as const, right: 'hidden' as const};
   const folded = (r.panels?.folded ?? []).filter((id): id is RightSection => (RIGHT_SECTIONS as readonly string[]).includes(id));
   return {left: r.panels?.left ?? auto.left, right: r.panels?.right ?? auto.right, folded};
 }

@@ -210,7 +210,8 @@ export default function NovaDashboard() {
           {!phone && <ViewControls layout={layout} widgets={widgets} available={available} editing={editing} onLayout={l => save(rr => setLayout(rr, l), `${l[0]!.toUpperCase()}${l.slice(1)} layout.`)} onToggle={toggleWidget}
             onSize={actions.resize} onArrange={() => setEditing(v => !v)}/>}
           <CommandField you={you} persona={persona.name} inputRef={command} onOpen={openChat}/>
-          {!phone && <RoutingMenu brain={brain} routing={routingOf(r)} onRouting={rt => save(rr => setRouting(rr, rt), rt === 'auto' ? 'Automatic: your connected brain answers.' : undefined)} openModels={() => setSheet({kind: 'panels', id: 'models'})}/>}
+          {/* Release review 2 (R2-3): model routing appears once a brain is connected (with none, there is nothing to route). */}
+          {!phone && brain.kind !== 'none' && <RoutingMenu brain={brain} routing={routingOf(r)} onRouting={rt => save(rr => setRouting(rr, rt), rt === 'auto' ? 'Automatic: your connected brain answers.' : undefined)} openModels={() => setSheet({kind: 'panels', id: 'models'})}/>}
         </div>}
       </div>
     </div>
