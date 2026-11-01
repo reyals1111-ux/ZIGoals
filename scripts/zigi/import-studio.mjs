@@ -31,7 +31,7 @@
  * manifest's `animated` (D6) and the app-set copy is verified and reported as superseded, never copied. A RECEIPT.md with a
  * checkpoint table must agree with SHA256SUMS. The push art is copied to `apps/web/public/icons/` under PUSH_TARGET's
  * names; the script never edits code, so it prints the PUSH_ART line to set in `public/sw.js` (and here). A
- * `reactions.json` naming an event outside the twelve reaction events is taken but announced (the app would not play it).
+ * `reactions.json` naming an event outside the twelve reaction events and the three host facts (Part 13) is taken but announced (the app would not play it).
  * `--repo-root <dir>` writes into another checkout (a rehearsal copy); without it, this repository, as before.
  */
 import {createHash} from 'node:crypto';
@@ -43,24 +43,30 @@ export const BUDGETS = {'1x': 40_000, '2x': 100_000, large: 200_000, animated: 4
 /** Session AK Part 12 (ADR-036 D6): Studio-4's animated WebP is the 2× set (192×253, ≤ 2.6 MB, loaded lazily one clip at a
  * time); the 96×126 app size stays the fallback (an app-set WebP, and every APNG) at its 400 kB budget. */
 export const PIXELS = {'1x': [96, 126], '2x': [192, 253], large: [480, 632], animated: [192, 253], animatedFallback: [96, 126]};
-/** Session AK Part 12: the notification art slot public/sw.js reads (PUSH_ART there); Studio-4's push images replace these paths. */
-export const PUSH_ART = {icon: '/icons/zigoals-192.png', badge: '/icons/zigoals-badge-96.png'};
+/** Session AK Part 12: the notification art slot public/sw.js reads (PUSH_ART there); Session AK Part 13: Studio-4's push images (the app icon zigoals-192.png stays the app's). */
+export const PUSH_ART = {icon: '/icons/zigi-push-icon-192.png', badge: '/icons/zigi-push-badge-96.png'};
 /** Session AK F11: Studio-4's delivery layout, the push art's contract (PNG stills) and where it lands (never over the app icon). */
 export const LAYOUT = {app: 'app', app2xAnim: 'app-2x-anim', push: 'push'};
 export const PUSH_PIXELS = {icon: [192, 192], badge: [96, 96]};
-export const PUSH_BUDGET = 40_000;
+/** Session AK Part 13 (lead decision A): 80 kB, raised from Part 12's 40 kB for Studio-4's delivered icon (192×192, 75,138 B); the OS
+ * fetches it only when a notification shows (never route JS, never precached); the pixel checks stay exact. */
+export const PUSH_BUDGET = 80_000;
 export const PUSH_TARGET = {icon: '/icons/zigi-push-icon-192.png', badge: '/icons/zigi-push-badge-96.png'};
 export const PUSH_NAME = /^(?:[a-z0-9]+-)*(?<role>icon|badge)(?:-\d+)?\.png$/;
 /** The twelve reaction events of components/zigi/semantic.ts (REACTION_EVENTS; studio4-dry-run.test keeps them equal). */
 export const REACTION_EVENTS = ['assistant_acknowledged', 'assistant_unsure', 'assistant_working', 'insight_consistent', 'checkin_low', 'checkin_milestone', 'journey_step', 'action_undone', 'wrapup_finished', 'feedback_received', 'journal_reflecting', 'companion_hidden'];
+/** Session AK Part 13: Studio-4's R011–R013 name three host facts (components/zigi/semantic.ts HOST_FACT_REACTIONS, kept equal by
+ * studio4-dry-run.test): each keeps its own meaning (offline, back online, the knock dismissed) and plays its reaction clip as well. */
+export const HOST_FACT_REACTIONS = ['connection_lost', 'connection_restored', 'user_dismissed'];
 export const NAME = /^(?<code>F0[0-9]{2}|T001|E001|X0\d\d|R0\d\d)-(?<state>[a-z]+(?:-[a-z0-9]+)*?)(?<suffix>-2x|-large)?\.webp$|^(?<acode>F0[0-9]{2}|T001|E001|X0\d\d|R0\d\d)-(?<astate>[a-z]+(?:-[a-z0-9]+)*)\.anim\.(?<aext>webp|png)$/;
 /** The app's states by code (manifest.json keys), so a delivered state file lands in the right slot. */
 export const STATE_BY_CODE = {F001: 'idle', F002: 'greeting', F003: 'insight', F004: 'listening', F005: 'speaking', F006: 'presenting', F007: 'attention', F008: 'sleepy', F009: 'celebrate', T001: 'thinking', E001: 'error',
   // Session AK Part 12: the fourteen states that wear a delivered clip today get their own.
   F010: 'reading-your-data', F011: 'writing-proposal', F012: 'success', F013: 'proud', F014: 'curious', F015: 'surprised', F016: 'confused', F017: 'empathetic', F018: 'encouraging', F019: 'wave-goodbye', F020: 'reminder', F021: 'offline', F022: 'peek', F023: 'loading-model'};
 export const EXTRA_SLOT = {X001: ['transitions', 'greetingInPlace'], X010: ['idleVariants', 'X010'], X011: ['idleVariants', 'X011'], X020: ['gaze', 'chatInput'], X021: ['gaze', 'viewer'], X022: ['gaze', 'target'],
-  // Session AK Part 12: a third idle variant, the Checklist's cheer, the variant pools.
-  X012: ['idleVariants', 'X012'], X030: ['celebrations', 'cheer'], X050: ['variants', 'X050'], X051: ['variants', 'X051'], X052: ['variants', 'X052'], X053: ['variants', 'X053'], X054: ['variants', 'X054']};
+  // Session AK Part 12: a third idle variant, the Checklist's cheer, the variant pools. Session AK Part 13: the variant slots
+  // take the names Studio-4's IMPORTER-PATCH.md gives them (Part 12 keyed them X050–X054; the pools read the clip names either way).
+  X012: ['idleVariants', 'X012'], X030: ['celebrations', 'cheer'], X050: ['variants', 'speakingB'], X051: ['variants', 'speakingC'], X052: ['variants', 'listeningB'], X053: ['variants', 'thinkingB'], X054: ['variants', 'celebrateSmall']};
 /** Loop modes the studio's contract fixes per code (loops loop, one-shots play once); extras by their documented kind. */
 export const LOOPS = new Set(['F001', 'F004', 'F005', 'F007', 'F008', 'T001', 'X010', 'X011', 'X020', 'X021', 'X022',
   'F010', 'F011', 'F021', 'F022', 'F023', 'R003', 'R010', 'R011', 'X012', 'X050', 'X051', 'X052', 'X053']);
@@ -276,7 +282,7 @@ export function run({source, receiptPath, skin = 'origami-nebula', apply = false
   const reactionsPath = join(folder, 'reactions.json'), reactions = existsSync(reactionsPath) ? JSON.parse(readFileSync(reactionsPath, 'utf8')) : {};
   for (const [code, trigger] of Object.entries(reactions)) if (!/^R0\d\d$/.test(code) || typeof trigger !== 'string' || !/^[a-z_]+$/.test(trigger)) { problems.push(`reactions.json: ${code} → ${JSON.stringify(trigger)} is not a reaction code with a semantic event name`); }
   if (problems.length) return refuse();
-  for (const [code, trigger] of Object.entries(reactions)) if (!REACTION_EVENTS.includes(trigger)) log(`WARNING: reactions.json names ${code} → ${trigger}, not one of the twelve reaction events; the app will not play it`);
+  for (const [code, trigger] of Object.entries(reactions)) if (!REACTION_EVENTS.includes(trigger) && !HOST_FACT_REACTIONS.includes(trigger)) log(`WARNING: reactions.json names ${code} → ${trigger}, not one of the twelve reaction events or the three host facts; the app will not play it`);
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')), filled = fillManifest(manifest, skin, entries, publicPrefix, reactions);
   const pushArt = {...PUSH_ART, ...Object.fromEntries(push.map(p => [p.role, PUSH_TARGET[p.role]]))};
   if (apply) {
