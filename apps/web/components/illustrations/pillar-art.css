@@ -1,6 +1,6 @@
 /* Session AK (F6): the empty-state pillar illustrations (pillar-art.tsx, motifs.tsx). Every colour is one of the app's
    pillar, brand or accent tokens (Nebula, Light and Dark share their values), mixed only with transparent. Static.
-   Session AK (M7, theme parity): the ring's first stop and the moon's line are the pillar's own colour in every theme, as
+   AK (M7, theme parity): the ring's first stop and the moon's line are the pillar's own colour in every theme, as
    Nebula draws them (they had taken the token's deeper ink twin by day: a coloured paint that changed with the theme,
    which ADR-028 H75 does not allow; the art is decoration, aria-hidden, so it needs no contrast of its own). */
 .pillar-art {

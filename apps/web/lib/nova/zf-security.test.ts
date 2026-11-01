@@ -132,8 +132,11 @@ describe('Z1A-7: Ollama\'s own cloud flag', () => {
 });
 
 test('Z1A-8: Strict\'s own words say what happens with an unconfirmed Hermes', () => {
-  expect(PRIVACY_WORDS.strict.sends).toMatch(/Hermes Agent counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy/);
+  // Session AK P4 (FIRST_RUN_REVIEW FR-9): the sentence moved from `sends` to its own `hermes` line (shown under "See what
+  // a cloud model would get"), word for word; Strict's card no longer says "Nothing goes to a cloud" twice.
+  expect(PRIVACY_WORDS.strict.hermes).toMatch(/Hermes Agent counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy/);
   expect(PRIVACY_WORDS.strict.sends).not.toMatch(/^Nothing leaves this computer/);
+  expect(`${PRIVACY_WORDS.strict.what} ${PRIVACY_WORDS.strict.sends}`.match(/Nothing goes to a cloud/g) ?? []).toHaveLength(0);
 });
 
 describe('Z1A-5: workflow instructions and records for Hermes', () => {

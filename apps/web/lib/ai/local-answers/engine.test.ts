@@ -141,7 +141,7 @@ test('without an AI: examples made from the person\'s records, each one answerab
   expect(examples).toContain('How far am I on my Emergency fund goal?');
   for (const example of examples) expect(['answer', 'refusal', 'choices'], example).toContain(ask(example, env).kind);
   expect(examplesFor(shut()).some(e => /water|steps|protein|eat/.test(e))).toBe(false);
-  expect(examplesReply(env)).toMatchObject({kind: 'examples', text: 'I answer questions about your own records right here, on this device, without any AI. For example:'});
+  expect(examplesReply(env)).toMatchObject({kind: 'examples', text: 'Until you give me a brain, I answer from your own records on this device. For example:'});
   expect(examplesFor(null)).toEqual(['How many minutes did I meditate this month?', 'How far am I on my goals?', 'What is my net worth?']);
 });
 test('Session W Part 21: the new areas answer here, in calm words; a habit the question names keeps its answer', () => {

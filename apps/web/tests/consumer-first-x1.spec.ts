@@ -156,8 +156,9 @@ test('the welcome\'s "Goals & money" with "Save for something": Goals and Wealth
   await flow.getByRole('checkbox', {name: /^Save for something/}).check();
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
   await step('A few things to start with.');
-  // The focus suggests the "Contribute" habit (ticked) and an Emergency fund goal, which needs a target.
-  await expect(flow.getByRole('checkbox', {name: /^Contribute/})).toBeChecked();
+  // The focus suggests the "Put money aside" habit (ticked; it read "Contribute" until Session AK P4, FR-8) and an
+  // Emergency fund goal, which needs a target.
+  await expect(flow.getByRole('checkbox', {name: /^Put money aside/})).toBeChecked();
   await expect(flow.getByLabel('Goal name')).toHaveValue('Emergency fund');
   await flow.getByLabel('Target amount').fill('1500');
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();

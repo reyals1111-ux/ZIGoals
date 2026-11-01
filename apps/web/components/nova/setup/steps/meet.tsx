@@ -2,6 +2,7 @@
 import {isCloudTarget} from '../../../../lib/ai/privacy-mode';
 import {readAiSettings} from '../../../../lib/ai/settings';
 import {setPrivacyMode} from '../../../../lib/nova/setup';
+import {NOVA_PHONE_QUERY} from '../../../../lib/nova/phone-path';
 import {checkMeet} from '../../../../lib/nova/setup-checks';
 import {novaAndZigi} from '../../../../lib/nova/one-line';
 import {localDate} from '../../../../lib/local-date';
@@ -24,7 +25,9 @@ export default function MeetStep({setup}: {setup: SetupState}) {
     // A new NOVA setup starts Strict when no cloud model is connected: nothing changes for the person, and the safe default holds.
     if (result.ok && !setup.record.data.privacyMode) {
       let cloud = true; try { const s = readAiSettings(getAppStorage()).data; cloud = s.enabled && isCloudTarget(s.provider, false, s.model); } catch { /* unknown: leave the choice to step 2 */ }
-      if (!cloud) setup.record.update(r => setPrivacyMode(r, 'strict', localDate()));
+      // Session AK P4 (FR-5): not on a phone, which cannot run the local model Strict needs; step 2 suggests Guarded there.
+      const phone = !!globalThis.matchMedia?.(NOVA_PHONE_QUERY).matches;
+      if (!cloud && !phone) setup.record.update(r => setPrivacyMode(r, 'strict', localDate()));
     }
     return result;
   };

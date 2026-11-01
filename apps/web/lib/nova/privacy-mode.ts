@@ -10,8 +10,10 @@ import {PRIVACY_MODES, readPrivacyMode, type PrivacyMode} from './setup';
  * lib/ai/privacy-mode.ts; this module only reads and explains them, and shows the exact text a cloud model would get.
  */
 export {PRIVACY_MODES, type PrivacyMode, isCloudTarget, isOllamaCloudModel, sendDecision, type SendDecision};
-export const PRIVACY_WORDS: Readonly<Record<PrivacyMode, {label: string; tag: string; what: string; sends: string}>> = {
-  strict: {label: 'Strict', tag: 'Recommended', what: 'Only a model on this computer answers. Nothing goes to a cloud.', sends: 'Nothing goes to a cloud model: it is refused before anything is sent. A Hermes Agent counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy, as in Guarded.'},
+// Session AK P4 (FIRST_RUN_REVIEW FR-9): Strict said "Nothing goes to a cloud" twice; the Hermes Agent detail is its own
+// line (`hermes`), shown under "See what a cloud model would get".
+export const PRIVACY_WORDS: Readonly<Record<PrivacyMode, {label: string; tag: string; what: string; sends: string; hermes?: string}>> = {
+  strict: {label: 'Strict', tag: 'Recommended', what: 'Only a model on this computer answers.', sends: 'Anything meant for a cloud model is refused before it is sent.', hermes: 'In Strict, a Hermes Agent counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy, as in Guarded.'},
   guarded: {label: 'Guarded', tag: 'Cloud, redacted', what: 'A cloud model may answer, but secrets, account numbers, addresses, exact amounts and names are taken out or rounded first.', sends: 'You see exactly what goes before it goes. Photos are never sent to a cloud.'},
   relaxed: {label: 'Relaxed', tag: 'Your informed choice', what: 'The areas you share go to your model as they are, local or cloud.', sends: 'Your chosen cloud provider receives your shared records unchanged, under its own terms.'},
 };

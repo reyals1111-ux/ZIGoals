@@ -96,7 +96,7 @@ export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as con
  * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
  */
 export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share', 'checklist', 'earn', ...NOVA_OPEN_PAGES] as const; // review, share: AA-Cloud's pages (ADR-022 B53); checklist, earn: Session AF's (L3, L1), opened by ZIGi (L4)
-export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month', 'start-here', 'academy'] as const; // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
+export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month', 'start-here', 'academy', 'setup'] as const; // setup: NOVA's "Build NOVA's brain" guide (Session AK P4, FR-2) // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
 // Session AA-Local Part 5: the new actions' vocabularies (habits' time of day and moods, the game layer, the Health coach, macro modes, the seven micronutrients the format holds).
@@ -196,7 +196,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('add-link'), label: text(40), url: z.string().trim().min(1).max(500).regex(/^https:\/\//i, 'Only a full https:// address can be added.'), icon: z.enum(LINK_ICONS).optional()}),
   z.strictObject({kind: z.literal('add-widget'), widget: z.enum(WIDGET_KINDS), metric: z.string().trim().min(1).max(40).optional(), habit: habitName.optional(), goal: goalName.optional(), size: z.enum(['compact', 'wide']).default('compact'), title: z.string().trim().max(80).optional()}),
   // ---- Session Z-Local Part 5: navigation, deletions (the app's own confirmation), habit states, vacations, goals' lifecycle ----
-  z.strictObject({kind: z.literal('open-page'), page: z.enum(OPEN_PAGES), view: z.enum(PAGE_VIEWS).optional(), habit: habitName.optional(), goal: goalName.optional(), asset: text(100).optional()}),
+  z.strictObject({kind: z.literal('open-page'), page: z.enum(OPEN_PAGES), view: z.enum(PAGE_VIEWS).optional(), habit: habitName.optional(), goal: goalName.optional(), asset: text(100).optional(),
+    /** Session AK P4 (FR-2): the name a new goal starts with (only with view new-goal); the person fills the rest. */ name: text(100).optional()}),
   z.strictObject({kind: z.literal('delete-record'), what: z.enum(DELETE_TARGETS), habit: habitName.optional(), goal: goalName.optional(), name: text(100).optional(), day: daySchema})
     .superRefine((a, ctx) => {
       if (a.what === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'});

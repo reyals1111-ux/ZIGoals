@@ -24,7 +24,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
-import { FOCUSES, ONBOARDING_SETUP, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
 import { setHabitState } from "../../lib/habits";
 import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
 import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
@@ -166,7 +166,8 @@ export function OnboardingFlow() {
   function checkGoal(): boolean {
     setGoalError(null);
     if (!showGoal || !draft.category) { setGoal(null); return true; }
-    const fail = (field: 'name' | 'target' | 'date', text: string) => { setGoalError({field, text}); return false; };
+    // Session AK P4 (FR-7): the refused field takes the focus and comes into view (its message is next to it, styled).
+    const fail = (field: 'name' | 'target' | 'date', text: string) => { setGoalError({field, text}); requestAnimationFrame(() => { const el = document.querySelector<HTMLElement>(`[data-goal-field="${field}"]`); el?.focus({preventScroll: true}); el?.scrollIntoView({block: 'center'}); }); return false; };
     if (!draft.name.trim()) return fail('name', 'Give your goal a name, or choose No goal for now.');
     if (!hasVisibleText(draft.name)) return fail('name', 'Give your goal a name with at least one visible character.');
     if (draft.date && draft.date < localDate()) return fail('date', 'Choose today or a future target date.');
@@ -198,7 +199,7 @@ export function OnboardingFlow() {
         announceModuleChange([DASHBOARD_SETTINGS_KEY]);
       }
       const createdHabitIds: string[] = [], createdWidgetIds: string[] = [];
-      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(); acc = createHabit(acc, habitTemplateInputOf(t), new Date(), id); createdHabitIds.push(id); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(); acc = createHabit(acc, {title, category: "Wellbeing", description: "", notes: "", type: "build", measurement: {kind: "boolean"}, schedule: {kind: "daily"}, target: 1, targetPeriod: "day", timeOfDay: "anytime", endCondition: {kind: "none"}}, new Date(), id); createdHabitIds.push(id); } return acc; });
+      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(); acc = createHabit(acc, habitTemplateInputOf(t), new Date(), id); createdHabitIds.push(id); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(); acc = createHabit(acc, focusHabitInput(title, goal?.id) /* Session AK P4 (FR-8) */, new Date(), id); createdHabitIds.push(id); } return acc; });
       if (suggested.widgets.length) { await updateSettings(getAppStorage(), latest => { let acc = latest; for (const kind of suggested.widgets) { if (acc.widgets.some(w => w.kind === kind && !w.hidden)) continue; const id = crypto.randomUUID(); const metric = (WIDGET_CATALOG[kind as WidgetKind].metrics as readonly string[])[0]!; try { acc = saveWidget(acc, {id, kind: kind as WidgetKind, metric, title: "", size: "compact", hidden: false, revision: 1}); createdWidgetIds.push(id); } catch { /* a widget that needs a record waits for Today */ } } return acc; }); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
       if (goal) { const saved = goal; await platform.update(data => data.goals.some(g => g.id === saved.id) ? data : createAllocatedGoal(data, saved, [])); }
       if (showHealth && (steps !== null || water !== null)) await health.update(data => {
@@ -212,6 +213,8 @@ export function OnboardingFlow() {
       // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
       if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ } }
       markOnboardingSeen(window.localStorage);
+      // Session AK P4 (FR-4): Today greets the finished setup with "You're set" and moves the focus to it, once (tab only).
+      if (createdHabitIds.length || goal) { try { window.sessionStorage.setItem(LANDING_NOTE, at); } catch { /* the card still shows; only the focus waits */ } }
       const target = syncNext ? "/app/settings#encrypted-sync" : startHref(viewOf(pagesAfter));
       let accountOpen: boolean;
       try { accountOpen = !isAccountLocked(); } catch { accountOpen = false; }
@@ -271,7 +274,7 @@ export function OnboardingFlow() {
         <ul className="onboarding-points">
           <li><strong>Private by design.</strong> What you add stays on this device. Encrypted sync between your devices is optional and off until you set it up.</li>
           <li><strong>No ads, no trackers.</strong> ZIGoals shows no advertising and runs no app analytics.</li>
-          <li><strong>No crypto needed.</strong> The blockchain stays out of sight; a wallet is optional and can come later.</li>
+          <li><strong>No crypto needed.</strong> Nothing to connect, nothing to buy.</li>{/* Session AK P4 (FR-23) */}
         </ul>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("pillars")}>Let’s begin</button></div>
       </>}
@@ -302,7 +305,7 @@ export function OnboardingFlow() {
       {step === "starters" && <>
         <p className="onboarding-lede">Tick what you’d like to begin with. You can change targets and schedules later, or skip this.</p>
         <fieldset className="onboarding-choices"><legend>Habits</legend>
-          {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note="From your focus · daily" />)}
+          {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note={`From your focus · ${focusHabitRhythm(title)}`} />)}
           {starters.map(t => { const exists = hasHabitLike(existingTitles, t); return <Choice key={t.id} name="onboarding-habit" checked={exists || habitIds.includes(t.id)} disabled={exists} onChange={() => setHabitIds(list => toggle(list, t.id))} label={t.title} note={exists ? "Already in your Habits" : `${t.note} · ${HABIT_GROUP_LABEL[t.group]}`} />; })}
         </fieldset>
         {showGoal && <fieldset className="onboarding-goal"><legend>A first goal (optional)</legend>
@@ -310,12 +313,12 @@ export function OnboardingFlow() {
             {GOAL_TEMPLATES.map(t => <Choice key={t.category} type="radio" name="onboarding-goal" checked={draft.category === t.category} onChange={() => setDraft(d => ({...d, category: t.category}))} label={t.label} />)}
           </div>
           <fieldset className="onboarding-fields" disabled={!draft.category}><legend className="sr-only">Goal details</legend>
-            <label className="field">Goal name<input required maxLength={100} value={draft.name} aria-invalid={goalError?.field === 'name' || undefined} aria-describedby={goalError?.field === 'name' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
+            <label className="field">Goal name<input data-goal-field="name" required maxLength={100} value={draft.name} aria-invalid={goalError?.field === 'name' || undefined} aria-describedby={goalError?.field === 'name' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
             <div className="onboarding-row">
-              <label className="field">Target amount<input required inputMode="decimal" value={draft.target} aria-invalid={goalError?.field === 'target' || undefined} aria-describedby={goalError?.field === 'target' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
+              <label className="field">Target amount<input data-goal-field="target" required inputMode="decimal" value={draft.target} aria-invalid={goalError?.field === 'target' || undefined} aria-describedby={goalError?.field === 'target' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
               <fieldset className="onboarding-currency"><legend>Currency</legend>{(["USD", "EUR"] as const).map(c => <label key={c}><input type="radio" name="onboarding-currency" value={c} checked={draft.currency === c} onChange={() => setDraft(d => ({...d, currency: c}))} /><span>{c}</span></label>)}</fieldset>
             </div>
-            <label className="field">Target date (optional)<input type="date" min={localDate()} value={draft.date} aria-invalid={goalError?.field === 'date' || undefined} aria-describedby={goalError?.field === 'date' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
+            <label className="field">Target date (optional)<input data-goal-field="date" type="date" min={localDate()} value={draft.date} aria-invalid={goalError?.field === 'date' || undefined} aria-describedby={goalError?.field === 'date' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
           </fieldset>
           {goalError && <p id="onboarding-goal-error" className="field-error" role="alert">{goalError.text}</p>}
           <p className="fine">A plan, not a promise: nothing is invested or moved.</p>

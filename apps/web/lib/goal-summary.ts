@@ -68,3 +68,21 @@ export function privateGoalSummary(data:Platform,g:PrivateGoal,quotes:readonly M
 export function unifiedGoalSummaries(goals:readonly LocalGoal[],metadata:Record<string,GoalMetadata>,data:Platform,quotes:readonly MarketQuote[]=[],now=Date.now(),source='Local simulation'):GoalSummary[]{
  return [...goals.map(g=>legacyGoalSummary(g,metadata[g.id],source,now)),...data.goals.map(g=>privateGoalSummary(data,g,quotes,now))].sort((a,b)=>Number(!!data.goals.find(g=>b.key===`private:${g.id}`)?.pinned)-Number(!!data.goals.find(g=>a.key===`private:${g.id}`)?.pinned));
 }
+/**
+ * Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, FR-1): the goal page's eyebrow and its funding fact in a
+ * person's words while the chain is not chosen (lib/chain-choice.ts): "Savings goal · Your own plan", "Count goal",
+ * "Project", and "No saving plan yet" in place of "Funding Wealth · No plan". Once chosen, the summary's own words stand.
+ */
+export function goalEyebrow(goal:Pick<PrivateGoal,'type'>,summary:Pick<GoalSummary,'type'|'source'>,chain:boolean):string{
+ if(chain)return `${summary.type} · ${summary.source}`;
+ const kind=goal.type==='VALUE'?'Savings goal':goal.type==='PROJECT'?'Project':goal.type==='REWARD'?'Rewards goal':'Count goal';
+ if(goal.type==='PROJECT')return kind;
+ const source=summary.source==='Existing wealth'?'Money you have':summary.source==='Future contributions'?'Saving plan':'Your own plan';
+ return `${kind} · ${source}`;
+}
+/** The funding fact's label and value (FR-1): plain words until the chain is chosen. */
+export function fundingFact(summary:Pick<GoalSummary,'requiresReview'|'status'|'fundingHealth'>,chain:boolean):{label:string;value:string}{
+ const value=summary.requiresReview?'Needs review':summary.status==='completed'?'Completed':summary.fundingHealth;
+ if(chain)return {label:'Funding Wealth',value};
+ return {label:'Saving plan',value:/^no plan$/i.test(value)?'No saving plan yet':value[0]!.toUpperCase()+value.slice(1).toLowerCase()};
+}

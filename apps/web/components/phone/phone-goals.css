@@ -79,6 +79,9 @@
   :root .unified-wizard .wizard-actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + var(--keyboard-inset, 0px)); z-index: 5; display: flex; gap: 10px; margin: 16px -16px -16px; padding: 12px 16px; background: linear-gradient(180deg, #071228e6, #050c1ef7); border-top: 1px solid #7fc8ff2e; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   :root[data-keyboard] .unified-wizard .wizard-actions { bottom: var(--keyboard-inset, 0px); }
   :root .unified-wizard .wizard-actions > * { flex: 1; min-height: 48px; }
+  /* Session AK P4 (FR-19): ZIGi's button rests above the wizard's sticky row (it covered "Continue →" and "Create goal"). */
+  :root:has(.unified-wizard .wizard-actions) { --launcher-clearance: 76px; }
+  :root[data-keyboard]:has(.unified-wizard .wizard-actions) { --launcher-clearance: 0px; }
 }
 /* Session AB-Design Phase 2 closing pass (layout audit, 320–374 px): two metric tiles side by side leave 88 px for a date,
    which ran past its tile ("2026-10-1…"); there the tiles stack, so every date and amount stays whole on one line. */

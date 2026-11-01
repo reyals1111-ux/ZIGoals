@@ -7,6 +7,7 @@ import {usageLine} from '../../../lib/ai/context/budget';
 import {AREA_LABELS} from '../../../lib/ai/context/pages';
 import {turnMarkdown} from '../../../lib/ai/continue';
 import {LOCAL_LABEL} from '../../../lib/ai/local-answers/words';
+import {firstLocalReplyLine} from '../../../lib/nova/setup';
 import {NOVA_PERMISSIONS, NOVA_PERMISSIONS_NL} from '../../../lib/ai/local-answers/nova-env';
 import {ON_DEVICE_LABEL} from '../../../lib/ai/on-device';
 import {PROVIDERS} from '../../../lib/ai/providers';
@@ -33,7 +34,8 @@ import {AgentGlyph, PersonaFigure, type NovaPersona} from './nova-figure';
 /** NOVA's panels open on Permissions from this hash (components/nova/nova-dashboard.tsx `PANEL_HASH`). */
 const PERMISSIONS_HASH = 'nova-permissions';
 export type TurnCommon = {session: ChatSession; runner: ReturnType<typeof useProposals>; autoAccept: AutoAccept; persona: NovaPersona; providerName: string;
-  reader: ReturnType<typeof useReadAloud>; onNavigate: () => void; onAsk: (question: string) => void; connected: boolean};
+  reader: ReturnType<typeof useReadAloud>; onNavigate: () => void; onAsk: (question: string) => void; connected: boolean;
+  /** Session AK P4 (FR-22): the turn that was the first answer from the person's own local model (once per device). */ firstLocalReply?: string | null};
 export function NovaUserTurn({turn, mark, persona, onEdit}: {turn: ChatTurn; mark?: DelegatedTurn; persona: NovaPersona; onEdit?: () => void}) {
   return <>
     <article className="nova-turn nova-turn-user" aria-label="You">
@@ -89,6 +91,7 @@ export function NovaReplyTurn({turn, asked, mark, isLast, earlier, busy, common,
           {/* Release review 2 (R2-2): one tap to the switch the answer names (NOVA's panels open on Permissions). */}
           <button type="button" className="secondary" onClick={() => { onNavigate(); window.location.hash = PERMISSIONS_HASH; }}>Open {persona.name} → Permissions</button>
         </p>}
+        {common.firstLocalReply === turn.id && turn.model && <p className="fine nova-first-local">{firstLocalReplyLine(turn.model)}</p>}
         <SourceLine short={short} full={full}/>
         {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
         <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>

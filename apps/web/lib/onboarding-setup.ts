@@ -10,6 +10,8 @@ import type {DeviceRecordSpec} from './device-record';
 export const FOCUS_IDS = ['sleep', 'move', 'water', 'read', 'meditate', 'eat-well', 'save', 'debt', 'learn', 'focus-work', 'connect', 'tidy'] as const;
 export type FocusId = (typeof FOCUS_IDS)[number];
 export type Focus = {id: FocusId; pillar: 'habits' | 'health' | 'goals' | 'wealth'; title: string; blurb: string; habits: string[]; goal?: {name: string; category: 'Emergency Fund' | 'Travel' | 'Education' | 'Custom'}; widgets: ('habits' | 'health' | 'sleep' | 'meditation' | 'goals' | 'wealth')[]};
+/** Session AK P4 (FR-8): the saving focus's habit, said as what it is ("Contribute" read as "contribute what?"). */
+export const SAVING_HABIT = 'Put money aside';
 export const FOCUSES: readonly Focus[] = [
   {id: 'sleep', pillar: 'health', title: 'Sleep better', blurb: 'A bedtime and a wind-down.', habits: ['Lights out by 23:00'], widgets: ['sleep']},
   {id: 'move', pillar: 'health', title: 'Move more', blurb: 'A daily walk, counted.', habits: ['Walk'], widgets: ['health', 'habits']},
@@ -21,10 +23,10 @@ export const FOCUSES: readonly Focus[] = [
   {id: 'focus-work', pillar: 'habits', title: 'Deep work', blurb: 'One focused block a day.', habits: ['Deep work'], widgets: ['habits']},
   {id: 'connect', pillar: 'habits', title: 'Stay in touch', blurb: 'Reach out to someone.', habits: ['Call a friend'], widgets: ['habits']},
   {id: 'tidy', pillar: 'habits', title: 'Keep things tidy', blurb: 'Ten minutes a day.', habits: ['Tidy up'], widgets: ['habits']},
-  {id: 'save', pillar: 'goals', title: 'Save for something', blurb: 'An emergency fund or a trip.', habits: ['Contribute'], goal: {name: 'Emergency fund', category: 'Emergency Fund'}, widgets: ['goals', 'wealth']},
+  {id: 'save', pillar: 'goals', title: 'Save for something', blurb: 'An emergency fund or a trip.', habits: [SAVING_HABIT], goal: {name: 'Emergency fund', category: 'Emergency Fund'}, widgets: ['goals', 'wealth']},
   {id: 'debt', pillar: 'wealth', title: 'Pay off a debt', blurb: 'Track it going down.', habits: [], widgets: ['wealth']},
 ];
-export const onboardingSetupSchema = z.looseObject({version: z.literal(1), at: z.iso.datetime(), habitIds: z.array(z.string().min(1).max(100)).max(50), goalId: z.string().min(1).max(100).optional(), widgetIds: z.array(z.string().min(1).max(100)).max(50), focuses: z.array(z.enum(FOCUS_IDS)).max(12), undone: z.boolean().optional()});
+export const onboardingSetupSchema = z.looseObject({version: z.literal(1), at: z.iso.datetime(), habitIds: z.array(z.string().min(1).max(100)).max(50), goalId: z.string().min(1).max(100).optional(), widgetIds: z.array(z.string().min(1).max(100)).max(50), focuses: z.array(z.enum(FOCUS_IDS)).max(12), /** Session AK P4 (FR-4): Today's "You're set" card was closed (optional; absent: not yet). */ landingClosed: z.boolean().optional(), undone: z.boolean().optional()});
 export type OnboardingSetup = z.infer<typeof onboardingSetupSchema>;
 export const emptyOnboardingSetup = (): OnboardingSetup => ({version: 1, at: '1970-01-01T00:00:00.000Z', habitIds: [], widgetIds: [], focuses: []});
 export const ONBOARDING_SETUP: DeviceRecordSpec<OnboardingSetup> = {key: ONBOARDING_SETUP_KEY, schema: onboardingSetupSchema, empty: emptyOnboardingSetup};
@@ -35,3 +37,34 @@ export function suggestionsFor(focuses: readonly FocusId[]): {habits: string[]; 
   const picked = FOCUSES.filter(f => focuses.includes(f.id));
   return {habits: [...new Set(picked.flatMap(f => f.habits))], goal: picked.find(f => f.goal)?.goal ?? null, widgets: [...new Set(picked.flatMap(f => f.widgets))]};
 }
+
+/**
+ * Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, FR-4): Today's one-time "You're set" card after the welcome. It
+ * shows in the welcome card's own place while the setup made something, was not undone, is under a day old and the card
+ * was not closed; it leaves by itself once one of the setup's habits is ticked today.
+ */
+export function setupLanding(s: OnboardingSetup, now: Date, state: {goalName?: string; habitsToday: number; tickedToday: boolean}): {goal?: string; habits: number} | null {
+  if (s.landingClosed || state.tickedToday || !setupUndoable(s, now)) return null;
+  if (!state.goalName && state.habitsToday === 0) return null;
+  return {...(state.goalName ? {goal: state.goalName} : {}), habits: state.habitsToday};
+}
+/** The card's one line ("Your goal “Emergency fund” · 2 habits for today"). */
+export function setupLandingLine(l: {goal?: string; habits: number}): string {
+  return [l.goal && `Your goal “${l.goal}”`, l.habits > 0 && `${l.habits} ${l.habits === 1 ? 'habit' : 'habits'} for today`].filter(Boolean).join(' · ');
+}
+/** The tab-only note the welcome leaves for Today (sessionStorage, never a record): Today moves the focus to the card once. */
+export const LANDING_NOTE = 'zigoals:welcome-landing';
+
+/**
+ * Session AK P4 (FR-8): a habit a focus suggests, as the welcome creates it. Most are daily "Wellbeing" check-ins; putting
+ * money aside is weekly, under "Money", and linked to the goal the same setup creates (its id is known at Finish).
+ */
+export function focusHabitInput(title: string, goalId?: string) {
+  const saving = title === SAVING_HABIT;
+  return {title, category: saving ? 'Money' : 'Wellbeing', description: saving ? 'Once a week, move a little toward your goal.' : '', notes: '',
+    ...(saving && goalId ? {goalLink: {chainId: 'private', owner: 'local', goalId}} : {}),
+    type: 'build' as const, measurement: {kind: 'boolean' as const}, schedule: saving ? {kind: 'frequency' as const, times: 1, period: 'week' as const} : {kind: 'daily' as const},
+    target: 1, targetPeriod: 'day' as const, timeOfDay: 'anytime' as const, endCondition: {kind: 'none' as const}};
+}
+/** How often a focus's habit repeats, as its tick box says it ("From your focus · weekly"). */
+export const focusHabitRhythm = (title: string): string => title === SAVING_HABIT ? 'weekly' : 'daily';

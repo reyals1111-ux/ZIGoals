@@ -44,6 +44,11 @@ export const novaSetupSchema = z.looseObject({
    * only, at most 100; never a record of the person's life.
    */
   cloudModels: z.array(z.string().min(1).max(200)).max(100).optional().catch(undefined),
+  /**
+   * Session AK P4 (FIRST_RUN_REVIEW FR-22): the reply that was the first from the person's own local model on NOVA (its turn
+   * id), so the one quiet "This answer came from … on your computer" line shows under that reply only, once per device.
+   */
+  firstLocalReply: z.string().min(1).max(100).optional().catch(undefined),
 });
 export type NovaSetup = z.infer<typeof novaSetupSchema>;
 export const NOVA_SETUP: DeviceRecordSpec<NovaSetup> = {key: NOVA_SETUP_KEY, schema: novaSetupSchema, empty: () => ({version: 1})};
@@ -112,3 +117,17 @@ export function showcaseNovaSetup(day: string, at: string): NovaSetup {
   const step = (note: string) => ({doneOn: day, check: {ok: true, at, note: `Showcase example: ${note}`}});
   return {version: 1, privacyMode: 'strict', privacyChosenOn: day, steps: {meet: step('no API key sits in readable storage.'), privacy: step('Strict refused a test message to a cloud model.'), brain: step('a local model answered on this computer.')}};
 }
+
+/**
+ * Session AK P4 (FR-22): the first reply from the person's own local model on NOVA is marked once per device, and planet 4
+ * ("First conversation") lights by itself with it (it waited for a question asked in one particular place). Pure: the
+ * record as it should be after `turnId` arrived, or the record unchanged.
+ */
+export function noteFirstLocalReply(record: NovaSetup, turnId: string, model: string, now: Date, today: string): NovaSetup {
+  if (record.firstLocalReply) return record;
+  let next: NovaSetup = {...record, firstLocalReply: turnId.slice(0, 100)};
+  if (!stepCheck(next, 'first-chat')?.ok) next = recordCheck(next, 'first-chat', {ok: true, note: `First answer from ${model} on your computer.`.slice(0, CHECK_NOTE_MAX)}, now, today);
+  return next;
+}
+/** The quiet line under that first reply. */
+export const firstLocalReplyLine = (model: string): string => `This answer came from ${model} on your computer. Nothing left this device.`;

@@ -76,14 +76,22 @@ test('an empty start: ten planets on the orbit path, the title, and nothing chec
   await expect(page.getByText('0 of 10 planets lit')).toBeVisible();
 });
 
-test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded previews the redacted text', async ({page}) => {
+test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded previews the redacted text', async ({page, isMobile}) => {
   await mockServers(page);
   await seed(page);
   const meet = await open(page, 'Meet NOVA', 'meet');
   await check(meet, /I understand/);
   await expect(meet.getByRole('status').filter({hasText: 'Checked: it works.'})).toBeVisible();
-  expect((await record(page)).privacyMode).toBe('strict'); // a new NOVA without a cloud model starts Strict
+  // A new NOVA without a cloud model starts Strict on a computer. Session AK P4 (FIRST_RUN_REVIEW FR-5): a phone cannot run
+  // the local model Strict needs, so there nothing is chosen for the person: step 2 suggests Guarded and says why.
+  expect((await record(page)).privacyMode).toBe(isMobile ? undefined : 'strict');
   const privacy = await open(page, 'Privacy mode', 'privacy');
+  if (isMobile) {
+    await expect(privacy.getByRole('radio', {name: /^Guarded/})).toBeChecked();
+    await expect(privacy.getByText('Strict needs a model on a computer. On a phone, Guarded sends a redacted copy to the provider you choose.')).toBeVisible();
+    await privacy.getByRole('radio', {name: /^Strict/}).check();
+    await privacy.getByRole('button', {name: 'Turn on Strict'}).click();
+  }
   await check(privacy, /Check the mode holds/);
   await expect(privacy.getByText(/Strict is on\. A test message to a cloud model was refused/)).toBeVisible();
   // Session AK lane EXF (EX-13): the un-mark button reads as an action beside "Checked: it works.", not as a status.
@@ -102,13 +110,16 @@ test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded
   await expect(privacy.getByRole('status').filter({hasText: /Guarded is on/})).toBeVisible();
 });
 
-test('planet 3: the scan finds MOCK Ollama (one cloud model), LM Studio and llama.cpp; the live test names the model', async ({page}) => {
+test('planet 3: the scan finds MOCK Ollama (one cloud model), LM Studio and llama.cpp; the live test names the model', async ({page, isMobile}) => {
   await mockServers(page);
   await seed(page, {}, localChat({model: 'qwen3.5:9b', localServer: 'ollama', baseUrl: OLLAMA}));
   const brain = await open(page, 'Your brain, local first', 'brain');
+  // Session AK P4 (FR-14): the subscription note is folded under its own question, after the choice of brain.
+  await brain.getByText('Have a ChatGPT, Claude, Gemini or Grok subscription?').click();
   await expect(brain.getByText(/can’t sign in here/)).toBeVisible();
   // A phone opens on "My own API key" (a local model needs a computer); the local way is one press away on both.
-  await brain.getByRole('button', {name: 'A model on this computer (recommended)'}).click();
+  // Session AK P4 (FR-5): a phone says the local way needs a computer instead of recommending it.
+  await brain.getByRole('button', {name: isMobile ? 'A model on this computer (needs a computer)' : 'A model on this computer (recommended)'}).click();
   // Ollama needs OLLAMA_ORIGINS only for a site that is not on this computer. Against the deployed site the guide shows
   // launchctl / setx with that site; the suite's own server (127.0.0.1) is already allowed by Ollama, and the guide says
   // so instead (deliberate, lane NV: the commands for a remote origin are pinned in lib/nova/setup.test.ts).
@@ -142,20 +153,21 @@ test('planet 3 with a MOCK cloud key: Strict refuses it without a request; Relax
   expect(sent.filter(s => s.url.includes('api.openai.com'))).toHaveLength(0);
 });
 
-test('planet 4: a first question opens in ZIGi\'s chat (one shared history) under Strict with a local model, and the check finds it', async ({page}) => {
+test('planet 4: a first question is asked on NOVA itself (one shared history) under Strict with a local model, and the check finds it', async ({page}) => {
   await mockServers(page);
   await seed(page, {[NOVA_SETUP_KEY]: JSON.stringify({version: 1, privacyMode: 'strict'})}, localChat());
   const first = await open(page, 'First conversation', 'first-chat');
+  // Session AK P4 (FIRST_RUN_REVIEW FR-10): the person came to build NOVA, so the question opens NOVA's own conversation (it
+  // opened ZIGi's panel before); ZIGi shares the history.
   await first.getByRole('button', {name: 'What does my day look like?'}).click();
-  const chat = page.locator('dialog.ai-chat[open]');
-  await expect(chat).toBeVisible();
-  await expect(page.getByLabel('Message to your AI')).toHaveValue('What does my day look like?');
-  await page.getByRole('button', {name: 'Send', exact: true}).click();
-  // Answered on the device (ZIGi's local answers) or by the MOCK local model: either way one question and one answer.
-  await expect(chat.locator('.ai-turn-assistant:not(.ai-turn-live)').first()).toBeVisible();
-  await page.keyboard.press('Escape');
-  await check(first, /Check my conversation/);
-  await expect(first.getByText(/Your first conversation is saved on this device/)).toBeVisible();
+  await page.waitForURL(/\/app\/nova$/);
+  await expect(page.locator('.nova-turn').filter({hasText: 'What does my day look like?'}).first()).toBeVisible();
+  // Answered on the device (NOVA's local answers) or by the MOCK local model: either way one question and one answer.
+  await expect(page.locator('.nova-turn-assistant').first()).toBeVisible();
+  await page.goto('/app/nova/setup');
+  const again = await open(page, 'First conversation', 'first-chat');
+  await check(again, /Check my conversation/);
+  await expect(again.getByText(/Your first conversation is saved on this device/)).toBeVisible();
 });
 
 test('planets 5 to 10: scopes with the exact pack, memory, voice, a brief, workflows and make it yours; the celebration plays once', async ({page}) => {

@@ -11,6 +11,7 @@ import {localDate} from '../../lib/local-date';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ModelPicker} from './model-picker';
+import {suggestModel} from '../../lib/ai/suggest-model';
 import type {AiSettingsStore} from './use-ai-settings';
 
 /**
@@ -33,13 +34,17 @@ function failureOf(error: unknown, providerName: string, local?: {server: 'ollam
   if (error instanceof AiError) return {title: error.message, steps: errorSteps(error, {providerName, local, hostedPage: hostedPage(), keysUrl})};
   return {title: error instanceof Error ? error.message : 'Something went wrong.', steps: []};
 }
-export function AiSetup({settings, scope, seed = null, onDone}: {settings: AiSettingsStore; scope: string; seed?: SetupSeed; onDone?: () => void}) {
+/**
+ * Session AK P4 (FIRST_RUN_REVIEW FR-10, FR-11): `assistant` is whose setup this is (NOVA's guide says NOVA, not ZIGi);
+ * `suggest` is the guide's pick and the memory it chose, so a found local model is chosen already (lib/ai/suggest-model.ts).
+ */
+export function AiSetup({settings, scope, seed = null, onDone, assistant = 'ZIGi', suggest}: {settings: AiSettingsStore; scope: string; seed?: SetupSeed; onDone?: () => void; assistant?: string; suggest?: {prefer?: readonly string[]; maxParams?: number | null}}) {
   const showcase = scope === SHOWCASE_SCOPE, phone = usePhoneActive();
   const [path, setPath] = useState<Path | null>(seed ? 'api' : null), [provider, setProvider] = useState<ProviderId>(seed?.provider ?? 'openai'), [key, setKey] = useState(seed?.key ?? '');
   const [remember, setRemember] = useState(seed ? seed.remember : settings.installed && !showcase);
   const [baseUrl, setBaseUrl] = useState<string>(LOCAL_SERVER_DEFAULTS.ollama), [localServer, setLocalServer] = useState<'ollama' | 'openai-compatible' | null>(null), [token, setToken] = useState('');
   const [app, setApp] = useState<SubscriptionAppId>('chatgpt');
-  const [models, setModels] = useState<ModelInfo[] | null>(null), [model, setModel] = useState<string | null>(null), [busy, setBusy] = useState<'test' | 'connect' | 'signin' | null>(null), [failure, setFailure] = useState<Failure | null>(null), [done, setDone] = useState(false);
+  const [models, setModels] = useState<ModelInfo[] | null>(null), [model, setModel] = useState<string | null>(null), [suggested, setSuggested] = useState<string | null>(null), [busy, setBusy] = useState<'test' | 'connect' | 'signin' | null>(null), [failure, setFailure] = useState<Failure | null>(null), [done, setDone] = useState(false);
   useEffect(() => { setRemember(settings.installed && !showcase); }, [settings.installed, showcase]);
   const reset = () => { setModels(null); setModel(null); setFailure(null); };
   const test = useCallback(async () => {
@@ -53,12 +58,13 @@ export function AiSetup({settings, scope, seed = null, onDone}: {settings: AiSet
         const server = await detectLocalServer({baseUrl: normalised, key: auth});
         setLocalServer(server); setBaseUrl(normalised);
         const list = await testConnection({provider: 'local', key: auth, baseUrl: normalised, localServer: server});
-        setModels(list.filter(m => m.kind === 'chat'));
+        const chat = list.filter(m => m.kind === 'chat'), pick = suggestModel(chat, suggest ?? {});
+        setModels(chat); setModel(pick); setSuggested(pick);
       }
     } catch (error) {
       setFailure(path === 'local' ? failureOf(error, 'your local server', {server: localServer, baseUrl}) : failureOf(error, PROVIDERS[provider].name, undefined, PROVIDERS[provider].keysUrl));
     } finally { setBusy(null); }
-  }, [baseUrl, key, localServer, path, provider, token]);
+  }, [baseUrl, key, localServer, path, provider, token, suggest]);
   const connect = useCallback(async () => {
     setBusy('connect'); setFailure(null);
     try {
@@ -86,7 +92,8 @@ export function AiSetup({settings, scope, seed = null, onDone}: {settings: AiSet
     try { const url = await beginOpenRouterSignIn({origin: window.location.origin, remember: remember && !showcase, storage: window.sessionStorage}); window.location.assign(url); }
     catch (error) { setFailure({title: error instanceof Error ? error.message : 'The sign-in could not start.', steps: ['Paste an OpenRouter key instead.']}); setBusy(null); }
   }, [remember, showcase]);
-  if (done) return <div className="ai-setup-done"><ZigiAvatar state="celebrate" size={64} decorative/><div><p><strong>Connected.</strong> ZIGi now answers with your own AI on every page where sharing is on. Health stays off until you turn on &ldquo;Include Health&rdquo; below.</p><p className="ai-note">Open ZIGi from the button at the bottom right, or with ⌘K / Ctrl+K.</p></div></div>;
+  const nova = assistant !== 'ZIGi';
+  if (done) return <div className="ai-setup-done"><ZigiAvatar state="celebrate" size={64} decorative/><div><p><strong>Connected.</strong> {nova ? `${assistant} now answers with your own model.` : 'ZIGi now answers with your own AI on every page where sharing is on.'} Health stays off until you turn on &ldquo;Include Health&rdquo;{nova ? ' in planet 5' : ' below'}.</p><p className="ai-note">{nova ? `Ask it on ${assistant}.` : 'Open ZIGi from the button at the bottom right, or with ⌘K / Ctrl+K.'}</p></div></div>;
   return <div className="ai-setup" data-testid="ai-setup">
     {path === null && <div className="ai-setup-paths" role="group" aria-label="How do you want to connect your AI?">
       <button type="button" className="ai-path" onClick={() => setPath('api')}><strong>I have an API key</strong><span>OpenAI, Anthropic, Google Gemini, xAI or OpenRouter. Pay-as-you-go, billed by them.</span></button>
@@ -125,7 +132,7 @@ export function AiSetup({settings, scope, seed = null, onDone}: {settings: AiSet
     </div>}
     {failure && <div className="ai-failure" role="alert"><p className="ai-failure-title">{failure.title}</p>{failure.steps.length > 0 && <ul>{failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}</div>}
     {models && path !== 'subscription' && <div className="ai-setup-form">
-      <ModelPicker models={models} value={model} onChange={setModel}/>
+      <ModelPicker models={models} value={model} onChange={setModel} suggested={suggested}/>
       <div className="ai-card-actions"><button type="button" className="primary" disabled={!model || busy !== null} onClick={() => void connect()}>{busy === 'connect' ? 'Connecting…' : 'Connect'}</button></div>
     </div>}
     <p className="ai-note">Sharing starts on for Today, Goals, Habits, Wealth and Help, off for Health; you change every switch below. Nothing is written to your records unless you add a proposal card.</p>

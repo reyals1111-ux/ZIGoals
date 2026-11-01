@@ -4,6 +4,7 @@ import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {simpleCommand} from './ai-session';
 import {quickLogItems, quickLogReply} from '../../quick-log/multi';
 import {quickLogContext} from '../../quick-log/context';
+import {novaEnvInfo} from './nova-env';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): what ZIGi says when no model answers (no AI connected, no on-device model) and the
@@ -26,7 +27,9 @@ export function questionLanguage(text: string): ReplyLanguage {
   return nl.size >= 2 && nl.size > en.size ? 'nl' : 'en';
 }
 
-export const EXAMPLES_INTRO_NL = 'Zonder AI beantwoord ik vragen over je eigen gegevens hier, op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:';
+// Session AK P4 (FIRST_RUN_REVIEW FR-2): "without any AI" read as a contradiction under NOVA's "Private intelligence"; the
+// introduction says what answers now and what a brain adds.
+export const EXAMPLES_INTRO_NL = 'Tot je me een brein geeft, beantwoord ik vragen uit je eigen gegevens op dit apparaat, voorlopig in het Engels. Tik op een voorbeeld:';
 /** The examples reply in the question's language (the examples themselves are the device's English questions). */
 export const examplesIn = (env: ToolEnv | null, lang: ReplyLanguage): LocalReply => ({kind: 'examples', text: lang === 'nl' ? EXAMPLES_INTRO_NL : EXAMPLES_INTRO, examples: examplesFor(env), calls: []});
 
@@ -48,11 +51,57 @@ export function howToReply(text: string, lang: ReplyLanguage): LocalReply | null
   const hit = HOW_TO.find(h => h.en.test(text) || h.nl.test(text));
   return hit ? {kind: 'answer', text: hit.text[lang] + action(hit.page, hit.view), calls: []} : null;
 }
+/**
+ * Session AK P4 (FIRST_RUN_REVIEW FR-2): a first question about saving ("Help me save for a holiday", "I want to put money
+ * aside for a new bike", "Ik wil sparen voor een vakantie") is a goal the person wants to start. The reply offers the goal
+ * form with the name filled in from their words (nothing is saved before they create it there).
+ */
+const SAVE_EN = /\b(?:sav(?:e|ing)(?:\s+(?:up|money))?|put(?:ting)?\s+(?:some\s+)?(?:money\s+)?(?:aside|away)|set(?:ting)?\s+(?:some\s+)?(?:money\s+)?aside|budget(?:ing)?|(?:start|make|build|open)\s+(?:a\s+)?(?:savings?\s+)?fund)\s+(?:up\s+)?(?:for|towards?)\b\s*(.*)$/i;
+const SAVE_NL = /\b(?:sparen|spaar|opzij\s*zetten|geld\s+opzij(?:\s*zetten)?)\s+(?:voor|om)\b\s*(.*)$/i;
+/** Words a question can carry around its noun ("a", "my", "next year") that are no part of the goal's name. */
+const NAME_LEAD = /^(?:a|an|the|my|our|some|een|de|het|mijn|onze|new|nieuwe?)\s+/i;
+const NAME_TAIL = /\s+(?:next|this|in|by|before|within|over|volgend(?:e)?|deze|dit|in|voor|binnen)\b.*$|\s*[,;:(].*$|[.?!\s]+$/i;
+/** The goal's name from the words after "save for" ("a holiday next summer" → "Holiday"), or undefined. */
+export function savingGoalName(rest: string): string | undefined {
+  let words = rest.trim().replace(NAME_TAIL, '').trim();
+  for (let i = 0; i < 3 && NAME_LEAD.test(words); i++) words = words.replace(NAME_LEAD, '');
+  words = words.replace(/\s+/g, ' ').trim();
+  // A name is a few words of letters; a number, a sum or a whole sentence is left for the person to type.
+  if (!words || words.length > 40 || words.split(' ').length > 4 || !/^[\p{L}][\p{L}' -]*$/u.test(words)) return undefined;
+  return words[0]!.toUpperCase() + words.slice(1);
+}
+const openNewGoal = (name?: string) => `\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: 'goals', view: 'new-goal', ...(name ? {name} : {})})}\n\`\`\``;
+export function savingGoalReply(text: string, lang: ReplyLanguage): LocalReply | null {
+  if (/\bgoals?\b|\bdoel(?:en)?\b/i.test(text)) return null; // "plan a goal…" keeps its own how-to (pinned)
+  if (/\?\s*$/.test(text) && /^\s*(?:how much|how far|what|when|did|have|hoeveel|wat|wanneer|heb)\b/i.test(text)) return null; // a lookup
+  const hit = SAVE_EN.exec(text) ?? SAVE_NL.exec(text);
+  if (!hit) return null;
+  const name = savingGoalName(hit[1] ?? '');
+  const en = name ? `Let's make it a goal: “${name}”. Open the goal form below; the name is filled in, and you add how much and, if you like, by when. Nothing is saved until you create it.`
+    : 'Let\'s make it a goal. Open the goal form below: give it a name, how much and, if you like, by when. Nothing is saved until you create it.';
+  const nl = name ? `Laten we er een doel van maken: “${name}”. Open het doelformulier hieronder; de naam staat er al, jij vult het bedrag en eventueel een datum in. Er wordt niets opgeslagen voordat je het aanmaakt.`
+    : 'Laten we er een doel van maken. Open het doelformulier hieronder: geef het een naam, een bedrag en eventueel een datum. Er wordt niets opgeslagen voordat je het aanmaakt.';
+  return {kind: 'answer', text: (lang === 'nl' ? nl : en) + openNewGoal(name), calls: []};
+}
+/**
+ * Session AK P4 (FR-2): "What can you do?" gets a short, true answer: what works now, on this device, and what a brain adds,
+ * with one tap to where the brain is set up (NOVA's guide on NOVA, Settings → ZIGi elsewhere).
+ */
+const CAN_DO_EN = /^\s*(?:(?:hey|hi|hello|ok(?:ay)?|so)\s*,?\s+)*(?:(?:nova|zigi)\s*,?\s+)?(?:what (?:can|do|could) you do(?: for me)?|what are you(?: for)?|who are you|what can i ask(?: you)?|how (?:can|do|could) you help(?: me)?|how do(?:es)? (?:this|you) work|help(?: me)?|what do you know(?: about me)?)\s*[?.!]*\s*$/i;
+const CAN_DO_NL = /^\s*(?:(?:hoi|hey|hallo)\s*,?\s+)?(?:(?:nova|zigi)\s*,?\s+)?(?:wat kun(?: je|t)(?: jij)?(?: voor me)?(?: doen)?|wat kan je(?: voor me)?(?: doen)?|wie ben (?:je|jij)|hoe werk je|hoe kun je (?:me )?helpen|help)\s*[?.!]*\s*$/i;
+export function capabilitiesReply(text: string, lang: ReplyLanguage, env: ToolEnv | null): LocalReply | null {
+  const nlAsk = CAN_DO_NL.test(text);
+  if (!CAN_DO_EN.test(text) && !nlAsk) return null;
+  const nova = !!(env && novaEnvInfo(env)), where = JSON.stringify(nova ? {kind: 'open-page', page: 'nova', view: 'setup'} : {kind: 'open-page', page: 'settings', view: 'zigi'});
+  const en = 'Right now I answer from your own records, on this device: what is due today, how your habits and goals are going, and what your money adds up to. Say a new habit (“Create a habit called Walk”) or a saving goal (“Help me save for a holiday”) and I prepare it for you to confirm.\nWith a brain of your own (a model on your computer, or your own key) I can also plan with you and talk things through.';
+  const nl = 'Nu beantwoord ik vragen uit je eigen gegevens, op dit apparaat: wat er vandaag open staat, hoe je gewoontes en doelen gaan en wat je geld bij elkaar is. Noem een nieuwe gewoonte (“Maak een gewoonte Wandelen”) of een spaardoel (“Ik wil sparen voor een vakantie”) en ik zet het klaar; jij bevestigt.\nMet een eigen brein (een model op je computer, of je eigen sleutel) kan ik ook met je plannen en meedenken.';
+  return {kind: 'answer', text: (lang === 'nl' || nlAsk ? nl : en) + `\n\n\`\`\`zigoals-action\n${where}\n\`\`\``, calls: []};
+}
 /** Everything ZIGi says without a model after the device's own answers had none. */
 export function noModelReply(text: string, env: ToolEnv | null): LocalReply {
   const lang = questionLanguage(text);
   // Session AI (ZI11): a simple command gets its card here, with no model ("Create a habit called Yoga").
-  return simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? examplesIn(env, lang);
+  return simpleCommand(text) ?? quickLog(text, env, lang) ?? howToReply(text, lang) ?? savingGoalReply(text, lang) ?? capabilitiesReply(text, lang, env) ?? examplesIn(env, lang);
 }
 
 /**

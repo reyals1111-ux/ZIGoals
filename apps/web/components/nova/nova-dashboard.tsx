@@ -93,7 +93,7 @@ export default function NovaDashboard() {
   const entries = useMemo(() => dockEntries(r, {pageShown: page => isShown(pagesView, page), earn: chain.earnShown}), [r, pagesView, chain.earnShown]);
   const panels = panelsOf(r, width), left = phone ? 'hidden' : panels.left, right = phone ? 'hidden' : panels.right;
 
-  const hour = now ? now.getHours() : 12, base = greetingFor(hour, persona.name);
+  const hour = now ? now.getHours() : 12, base = greetingFor(hour, persona.name, brain.kind !== 'none'); // Session AK P4 (FR-12)
   const greeting = you ? base.replace(/^([^.?]+)([.?])/, `$1, ${you}$2`) : base;
 
   const exit = useCallback(() => {

@@ -74,6 +74,21 @@
   :root .onboarding-actions > :is(.primary, .secondary) { flex: 1 1 auto; }
 }
 @media (max-width: 360px) { .onboarding-choices { grid-template-columns: 1fr; } }
+/* Session AK P4 (FR-18): on a phone each welcome step's buttons stay in reach, in a glass row above the tab bar ("Skip
+   setup" and "Explore the demo" stay in the flow below). Not on Today's cards, which are short. */
+@media (max-width: 767.98px) {
+  :root .onboarding[data-step] .onboarding-actions { position: sticky; bottom: calc(var(--phone-tabs, 0px) + var(--safe-bottom, 0px) + var(--keyboard-inset, 0px)); z-index: 5; margin-top: 12px; padding: 10px 12px; border: 1px solid #7fc8ff2e; border-radius: 18px; background: linear-gradient(180deg, #071228e6, #050c1ef7); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  :root[data-keyboard] .onboarding[data-step] .onboarding-actions { bottom: var(--keyboard-inset, 0px); }
+}
+/* Session AK P4 (FR-19): ZIGi is on the welcome itself, as its guide; the floating button would cover its tiles and buttons. */
+:root:has(.onboarding[data-step]) :is(.ai-launcher, .ai-edge-tab) { display: none; }
+/* Session AK P4 (FR-4): Today's "You're set" card, in the welcome card's place and style; its close button is 44 px. */
+.setup-landing { padding-right: 64px; }
+.setup-landing h2:focus { outline: none; }
+.setup-landing h2:focus-visible { outline: 2px solid #a9e8ed; outline-offset: 4px; border-radius: 6px; }
+.setup-landing-close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #7fc8ff40; border-radius: 50%; background: transparent; color: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
+.setup-landing-close:focus-visible { outline: 2px solid #a9e8ed; outline-offset: 2px; }
+.habit-first-step { margin: 8px 0 0; }
 @media (prefers-reduced-motion: reduce) { .onboarding-step { animation: none; } .onboarding-choice > span { transition: none; } }
 :root[data-app-motion="off"] .onboarding-step { animation: none; }
 :root[data-app-motion="off"] .onboarding-choice > span { transition: none; }
@@ -93,3 +108,15 @@
 .onboarding-pillars strong { font-size: 16px; }
 .onboarding-pillars small { font-size: 14px; color: var(--text-secondary, #c9d6ea); line-height: 1.35; }
 @media (max-width: 520px) { .onboarding-pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Session AK P4 (FR-16): a brand-new phone's one-line way to the setup, above the tab bar; phones only. The glass of the
+   phone's own bars; ZIGi's button rests above it while it shows (FR-19's clearance). */
+.welcome-phone-bar { display: none; }
+@media (max-width: 767.98px) {
+  :root .welcome-phone-bar { position: fixed; z-index: 45; left: calc(var(--safe-left, 0px) + 12px); right: calc(var(--safe-right, 0px) + 12px); bottom: calc(var(--phone-tabs, 60px) + var(--safe-bottom, 0px) + 8px); display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 14px; border: 1px solid #7fc8ff40; border-radius: 16px; background: linear-gradient(180deg, #071228e6, #050c1ef7); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  :root .welcome-phone-start { flex: 1; display: flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 600; color: inherit; text-decoration: none; }
+  :root .welcome-phone-start:focus-visible, :root .welcome-phone-close:focus-visible { outline: 2px solid #a9e8ed; outline-offset: 2px; border-radius: 10px; }
+  :root .welcome-phone-close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font-size: 22px; line-height: 1; }
+  :root:has(.welcome-phone-bar) { --launcher-clearance: 60px; }
+  :root[data-keyboard] .welcome-phone-bar { display: none; }
+}

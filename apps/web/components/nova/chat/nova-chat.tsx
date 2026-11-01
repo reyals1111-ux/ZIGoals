@@ -21,7 +21,10 @@ import {readDeviceRecord} from '../../../lib/device-record';
 import {askZigi, DUO_IDLE, type DelegatedTurn, type NovaAgentId, duoState, forgetNovaChats, latestNovaChat, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
 import {pagePack, taskToolEnv} from '../../../lib/nova/bridge-pack';
 import {readNovaScopes, scopesOf} from '../../../lib/nova/scopes';
-import {NOVA_SETUP} from '../../../lib/nova/setup';
+import {noteFirstLocalReply, NOVA_SETUP} from '../../../lib/nova/setup';
+import {isCloudTarget as cloudModel} from '../../../lib/ai/privacy-mode';
+import {useBrain} from '../status-chips';
+import {localDate as todayLocal} from '../../../lib/local-date';
 import {novaLocalEnv} from '../../../lib/nova/local-env';
 import {novaAndZigi} from '../../../lib/nova/one-line';
 import {instructionsOf, NOVA_STORE, personaOf} from '../../../lib/nova/store';
@@ -280,7 +283,18 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
   const latestCards = useMemo(() => [...session.chat.turns].reverse().find(t => t.role === 'assistant' && (session.parsed.get(t.id) ?? parseReply(t.text)).proposals.length > 0)?.id ?? null, [session.chat.turns, session.parsed]);
   // R2-2: the questions NOVA answers on this device first (under NOVA → Permissions), each one answered when tapped.
   const examples = useMemo(() => examplesFor(sensitive ? null : localEnvNow(), 3), [localEnvNow, sensitive]);
-  const common: TurnCommon = {session, runner, autoAccept, persona, providerName, reader, connected, onNavigate: () => onClose?.(), onAsk: question => ask(question)};
+  // Session AK P4 (FIRST_RUN_REVIEW FR-22): the first reply from the person's own local model (never Hermes, never an Ollama
+  // cloud model) is marked once per device, and planet 4 lights with it (lib/nova/setup.ts noteFirstLocalReply).
+  const {brain: novaBrain} = useBrain(), firstLocalReply = setupRec.loaded && !setupRec.unreadable ? setupRec.data.firstLocalReply ?? null : null;
+  useEffect(() => {
+    const t = lastAssistant;
+    if (!t || busy || !setupRec.loaded || setupRec.unreadable || setupRec.data.firstLocalReply || marks[t.id]) return;
+    if (novaBrain.kind !== 'local' || t.source === 'local' || t.source === 'on-device' || t.provider !== 'local' || !t.model || !t.text.trim()) return;
+    if (cloudModel('local', false, t.model) || (setupRec.data.cloudModels ?? []).includes(t.model)) return;
+    const model = t.model;
+    try { setupRec.update(r => noteFirstLocalReply(r, t.id, model, new Date(), todayLocal())); } catch { /* the mark waits for the next reply */ }
+  }, [lastAssistant, busy, setupRec, marks, novaBrain.kind]);
+  const common: TurnCommon = {session, runner, autoAccept, persona, providerName, reader, connected, onNavigate: () => onClose?.(), onAsk: question => ask(question), firstLocalReply};
   const startNew = () => { session.startNew(); setView('chat'); setEditing(null); setDuo(DUO_IDLE); composer.current?.focus(); };
   const status = connected ? `via ${providerName} · ${data.model ?? ''}` : 'On-device answers';
   const failureRetry = session.failure && !['blocked', 'full', 'not-connected', 'missing-key'].includes(session.failure.kind) && session.chat.turns.at(-1)?.role === 'user';

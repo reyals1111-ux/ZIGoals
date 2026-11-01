@@ -32,7 +32,7 @@ describe('S4 onboarding focuses', () => {
   test('every focus belongs to a pillar; suggestions merge without twins; the setup is undoable for a day', () => {
     expect([...FOCUSES.map(f => f.id)].sort()).toEqual([...FOCUS_IDS].sort());
     const s = suggestionsFor(['move', 'water', 'save', 'meditate']);
-    expect(s.habits).toEqual(['Walk', 'Drink water', 'Meditate', 'Contribute']); expect(s.goal).toEqual({name: 'Emergency fund', category: 'Emergency Fund'}); expect(s.widgets).toEqual(['health', 'habits', 'meditation', 'goals', 'wealth']);
+    expect(s.habits).toEqual(['Walk', 'Drink water', 'Meditate', 'Put money aside']); /* "Contribute" until Session AK P4 (FR-8) */ expect(s.goal).toEqual({name: 'Emergency fund', category: 'Emergency Fund'}); expect(s.widgets).toEqual(['health', 'habits', 'meditation', 'goals', 'wealth']);
     expect(suggestionsFor([])).toEqual({habits: [], goal: null, widgets: []});
     const done = {...emptyOnboardingSetup(), at: '2026-10-07T08:00:00.000Z', habitIds: ['a']};
     expect(setupUndoable(done, new Date('2026-10-07T20:00:00.000Z'))).toBe(true); expect(setupUndoable(done, new Date('2026-10-09T08:00:00.000Z'))).toBe(false); expect(setupUndoable({...done, undone: true}, new Date('2026-10-07T09:00:00.000Z'))).toBe(false);

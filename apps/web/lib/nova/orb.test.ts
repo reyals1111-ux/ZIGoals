@@ -69,3 +69,10 @@ describe('the starfield', () => {
     for (const hints of [{hardwareConcurrency: 2}, {deviceMemory: 2}, {lowBattery: true}, {saveData: true}]) expect(skyMode({motion: true, hints})).not.toBe('running');
   });
 });
+
+it('Session AK P4 (FIRST_RUN_REVIEW FR-12): without a brain NOVA is never "online"; it says what it does now', () => {
+  expect(greetingFor(8, 'NOVA', false)).toBe('Good morning. NOVA is here for simple questions.');
+  expect(greetingFor(2, 'Vega', false)).toBe('Still up? Vega is here for simple questions.');
+  expect(greetingFor(8, 'NOVA', false)).not.toMatch(/online/);
+  expect(greetingFor(8, 'NOVA', true)).toBe('Good morning. NOVA is online.');
+});

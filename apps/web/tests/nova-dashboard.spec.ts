@@ -36,7 +36,7 @@ test.describe('NOVA on a computer', () => {
     expect((await stored(page)).openingSeen).toBe(true);
     await page.reload();
     await expect(frame(page)).toHaveAttribute('data-opening', 'done');
-    await expect(page.getByText(/NOVA is online\./).first()).toBeAttached();
+    await expect(page.getByText(/NOVA is here for simple questions\./).first()).toBeAttached(); // no brain yet: never "online" (Session AK P4, FR-12)
   });
 
   test('reduced motion and Motion Off show the finished dashboard at once', async ({page}) => {
@@ -255,9 +255,11 @@ test.describe('Release review 2 on NOVA (R2-4, R2-5, R2-22)', () => {
     await fresh(page, seen());
     await page.goto('/app/nova');
     const greeting = page.locator('.nova-greeting');
-    await expect(greeting).toContainText('NOVA is online.');
-    expect(((await greeting.textContent()) ?? '').match(/NOVA is online\./g)).toHaveLength(1);
-    expect(await page.locator('.nova-stage').evaluate(el => (el.textContent ?? '').split('NOVA is online.').length - 1)).toBe(1);
+    // Session AK P4 (FR-12): no brain is connected here, so the greeting says what NOVA does now, never "online".
+    await expect(greeting).toContainText('NOVA is here for simple questions.');
+    expect(((await greeting.textContent()) ?? '').match(/NOVA is here for simple questions\./g)).toHaveLength(1);
+    expect(await page.locator('.nova-stage').evaluate(el => (el.textContent ?? '').split('NOVA is here for simple questions.').length - 1)).toBe(1);
+    await expect(page.locator('.nova-stage')).not.toContainText('is online.');
     // Session AK P3 (NOVA_DESIGN_REVIEW.md ND-23), a deliberate move: the stage's card became a one-line banner, and the line
     // that tells NOVA and ZIGi apart is said on the guide's first planet, "Meet NOVA" (tests/p3-nova-polish.spec.ts checks it
     // there), and in the conversation's welcome.

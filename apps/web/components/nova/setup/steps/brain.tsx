@@ -8,11 +8,16 @@ import {currentAiScope} from '../../../../lib/ai/scope';
 import {AI_OPTIONS} from '../../../../lib/ai/store/records';
 import {browserKind, loopbackNote, loopbackPermission, scanLine, scanLocalServers, type LoopbackState, type ScanResult} from '../../../../lib/nova/local-servers';
 import {privacyMode} from '../../../../lib/nova/privacy-mode';
+import {brainWayTag, keyRefused, NOVA_PHONE_QUERY} from '../../../../lib/nova/phone-path';
+import {setPrivacyMode} from '../../../../lib/nova/setup';
+import {localDate} from '../../../../lib/local-date';
 import {checkBrain} from '../../../../lib/nova/setup-checks';
-import {detectOs, KEY_NOTES, llamaCppSteps, lmStudioSteps, MODEL_PICKS, MODEL_RULE, ollamaSteps, OPENROUTER_NOTE, OS_LABELS, pickFor, SERVER_LABELS, SPENDING_ADVICE, SUBSCRIPTION_DETAILS, SUBSCRIPTION_NOTE, type GuideStep, type KeyProvider, type MemoryBudget, type Os, type ServerId} from '../../../../lib/nova/setup-guide';
+import {detectOs, KEY_NOTES, llamaCppSteps, lmStudioSteps, MAX_PARAMS, MODEL_PICKS, MODEL_RULE, OLLAMA_STRICT_NOTE, ollamaSteps, OPENROUTER_NOTE, OS_LABELS, pickFor, SERVER_LABELS, SPENDING_ADVICE, SUBSCRIPTION_DETAILS, SUBSCRIPTION_NOTE, type GuideStep, type KeyProvider, type MemoryBudget, type Os, type ServerId} from '../../../../lib/nova/setup-guide';
 import {readDeviceRecord} from '../../../../lib/device-record';
 import {getAppStorage} from '../../../../lib/showcase-storage';
 import {AiSetup} from '../../../ai/ai-setup';
+import {useDeviceRecord} from '../../../ai/use-device-record';
+import {NOVA_STORE, personaOf} from '../../../../lib/nova/store';
 import {useAiSettings} from '../../../ai/use-ai-settings';
 import {CheckRow} from '../check-row';
 import {CommandBlock} from '../command-block';
@@ -20,10 +25,11 @@ import type {SetupState} from '../use-setup';
 
 const OnDevicePanel = lazy(() => import('../../../ai/on-device-panel'));
 type Way = 'local' | 'key' | 'openrouter' | 'browser';
-const WAYS: {id: Way; label: string; tag?: string}[] = [{id: 'local', label: 'A model on this computer', tag: 'Recommended'}, {id: 'key', label: 'My own API key'}, {id: 'openrouter', label: 'OpenRouter sign-in'}, {id: 'browser', label: 'In the browser'}];
+// Session AK P4 (FR-5): on a phone, "A model on this computer" needs a computer and is not the recommendation.
+const waysFor = (phone: boolean): {id: Way; label: string; tag?: string}[] => ([['local', 'A model on this computer'], ['key', 'My own API key'], ['openrouter', 'OpenRouter sign-in'], ['browser', 'In the browser']] as const).map(([id, label]) => ({id, label, ...(brainWayTag(id, phone) ? {tag: brainWayTag(id, phone)} : {})}));
 const KEY_PROVIDERS: KeyProvider[] = ['anthropic', 'openai', 'gemini', 'xai'];
 const subscribeNothing = () => () => undefined;
-const PHONE = '(max-width: 640px), (pointer: coarse) and (hover: none)';
+const PHONE = NOVA_PHONE_QUERY;
 /** Steps as an ordered list; each command alone in its block. */
 export function GuideSteps({steps, after}: {steps: readonly GuideStep[]; after?: Partial<Record<number, ReactNode>>}) {
   // Session AK P3 (ND-8): `after` puts a step's own secondary action right under its command (e.g. "Make a key here").
@@ -41,7 +47,7 @@ export function Choice<T extends string>({label, value, options, onChange}: {lab
  * (components/ai/ai-setup.tsx: one engine, one key store); the check is a live connection test naming the model found.
  */
 export default function BrainStep({setup}: {setup: SetupState}) {
-  const settings = useAiSettings(), id = useId();
+  const settings = useAiSettings(), id = useId(), persona = personaOf(useDeviceRecord(NOVA_STORE).data);
   const ua = useSyncExternalStore(subscribeNothing, () => navigator.userAgent, () => '');
   const phone = useSyncExternalStore(subscribeNothing, () => !!window.matchMedia?.(PHONE).matches, () => false);
   const origin = useSyncExternalStore(subscribeNothing, () => window.location.origin, () => 'https://alpha.zigoals.app');
@@ -58,19 +64,21 @@ export default function BrainStep({setup}: {setup: SetupState}) {
   };
   const steps = server === 'ollama' ? ollamaSteps(shownOs, origin, pick.ollama) : server === 'lmstudio' ? lmStudioSteps(shownOs) : llamaCppSteps(shownOs, origin, pick.gguf);
   return <>
-    <p className="nova-honest" role="note"><b>About subscriptions.</b> {SUBSCRIPTION_NOTE}</p>
-    <details className="nova-more"><summary>What each subscription includes</summary><ul>{SUBSCRIPTION_DETAILS.map(d => <li key={d}>{d}</li>)}</ul></details>
-    <Choice label="Choose NOVA’s brain" value={way} options={WAYS} onChange={setWay}/>
+    {/* Session AK P4 (FR-14): the choice comes first; the subscription note is folded into its own disclosure. */}
+    <Choice label="Choose NOVA’s brain" value={way} options={waysFor(phone)} onChange={setWay}/>
+    <details className="nova-more"><summary>Have a ChatGPT, Claude, Gemini or Grok subscription?</summary><p className="nova-honest">{SUBSCRIPTION_NOTE}</p><ul>{SUBSCRIPTION_DETAILS.map(d => <li key={d}>{d}</li>)}</ul></details>
     <p className="fine">Already run Hermes Agent, Nous Research’s open-source agent? <Link className="text-link" href="/app/nova/hermes">Connect your Hermes Agent</Link> has its own guide.</p>
     {way === 'local' && <section className="nova-way" aria-labelledby={`${id}-local`}>
       <h3 id={`${id}-local`}>A model on this computer</h3>
       <p>Free, private and offline once set up: nothing leaves your computer. It needs a computer (not a phone) and Chrome, Edge or Firefox.</p>
       <p className="nova-note" role="note">{loopbackNote(browserKind(ua), phone)}{permission === 'denied' && <b> This site is blocked from apps on this device now: allow it in the site settings, then reload.</b>}</p>
-      <label className="field">How much memory does this computer have?<select value={budget} onChange={e => setBudget(e.target.value as MemoryBudget)}>{MODEL_PICKS.map(p => <option key={p.budget} value={p.budget}>{p.label} — {p.hint}</option>)}</select></label>
+      <label className="field">How much memory does this computer have?<select value={budget} onChange={e => setBudget(e.target.value as MemoryBudget)} aria-describedby={`${id}-mem`}>{MODEL_PICKS.map(p => <option key={p.budget} value={p.budget}>{p.label}</option>)}</select></label>
+      <p className="fine" id={`${id}-mem`}>{pick.hint}.</p>
       <p className="nova-pick"><b>Model: {pick.ollama}</b> ({pick.size}; {pick.licence}). Also good: {pick.also}. <span className="fine">{MODEL_RULE}</span></p>
       <Choice label="Your computer" value={shownOs} options={(['mac', 'windows', 'linux'] as const).map(o => ({id: o, label: OS_LABELS[o]}))} onChange={setOs}/>
       <Choice label="The program that runs the model" value={server} options={(['ollama', 'lmstudio', 'llamacpp'] as const).map(s => ({id: s, label: SERVER_LABELS[s]}))} onChange={setServer}/>
       <GuideSteps steps={steps}/>
+      {server === 'ollama' && <details className="nova-more"><summary>For Strict privacy (optional)</summary><p>{OLLAMA_STRICT_NOTE}</p></details>}
       <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => void findServers()} disabled={scanning}>{scanning ? 'Looking on this computer…' : 'Find models on this computer'}</button></div>
       {scan && <ul className="nova-scan" aria-live="polite">{scan.map(r => <li key={r.server.id} data-found={r.found}>{scanLine(r)}</li>)}</ul>}
       <p className="fine">Then connect it below: choose “I run a model on this computer”, the preset for your program{server === 'llamacpp' ? ' (llama.cpp: http://127.0.0.1:9931)' : ''}, Test connection, and pick the model.</p>
@@ -78,8 +86,11 @@ export default function BrainStep({setup}: {setup: SetupState}) {
     {way === 'key' && <section className="nova-way" aria-labelledby={`${id}-key`}>
       <h3 id={`${id}-key`}>Your own API key</h3>
       <p>A key from a provider you choose; it stays sealed on this device and goes only to that provider, with each request. {SPENDING_ADVICE}</p>
-      <ul className="nova-keys">{KEY_PROVIDERS.map(p => <li key={p}><b>{PROVIDERS[p].name}</b>: get a key at <a className="text-link" href={PROVIDERS[p].keysUrl!} target="_blank" rel="noopener noreferrer">{PROVIDERS[p].keysUrl!.replace(/^https:\/\//, '')}</a>. {KEY_NOTES[p].free}</li>)}</ul>
-      <p className="fine">Then connect it below: “I have an API key”, paste it, Test connection, pick a model. In Strict, a cloud key is refused: choose Guarded or Relaxed in step 2 first.</p>
+      <ul className="nova-keys">{KEY_PROVIDERS.map(p => <li key={p}><b>{PROVIDERS[p].name}</b>: get a key at <a className="text-link" href={PROVIDERS[p].keysUrl!} target="_blank" rel="noopener noreferrer">{PROVIDERS[p].keysUrl!.replace(/^https:\/\//, '')}</a>.{/* Session AK P4 (FR-14): each provider's fine print folds under its name */}<details className="nova-more"><summary>{PROVIDERS[p].name}: free tier and terms</summary><p className="fine">{KEY_NOTES[p].free}</p></details></li>)}</ul>
+      <p className="fine">Then connect it below: “I have an API key”, paste it, Test connection, pick a model.</p>
+      {/* Session AK P4 (FR-5): where Strict would refuse the key, one tap turns on Guarded (a redacted copy goes to the provider). */}
+      {keyRefused(setup.record.data.privacyMode ?? null) ? <p className="nova-note" role="note">In Strict, a cloud key is refused. Guarded lets the provider you choose answer with a redacted copy. <button type="button" className="secondary" onClick={() => { try { setup.record.update(r => setPrivacyMode(r, 'guarded', localDate())); } catch { /* step 2 still offers it */ } }}>Switch to Guarded</button></p>
+        : <p className="fine">Your privacy mode is {setup.record.data.privacyMode === 'guarded' ? 'Guarded: the provider gets a redacted copy' : setup.record.data.privacyMode === 'relaxed' ? 'Relaxed: the provider gets what you share as it is' : 'not chosen yet (step 2)'}.</p>}
     </section>}
     {way === 'openrouter' && <section className="nova-way" aria-labelledby={`${id}-or`}>
       <h3 id={`${id}-or`}>OpenRouter sign-in</h3>
@@ -92,7 +103,7 @@ export default function BrainStep({setup}: {setup: SetupState}) {
       <Suspense fallback={<p className="ai-note">Asking Chrome…</p>}><OnDevicePanel/></Suspense>
     </section>}
     {way !== 'browser' && settings.loaded && <section className="nova-connect" aria-label="Connect">
-      <AiSetup settings={settings} scope={currentAiScope()}/>
+      <AiSetup settings={settings} scope={currentAiScope()} assistant={persona.name} suggest={{prefer: [pick.ollama, pick.gguf.split('/').pop()!.replace(/-GGUF$/i, '')], maxParams: MAX_PARAMS[budget]}}/>
     </section>}
     <CheckRow id="brain" setup={setup} run={run} label="Test the connection"/>
   </>;

@@ -54,8 +54,12 @@ export function typedLength(text: string, elapsed: number): number {
   return Math.max(0, Math.min(text.length, Math.floor((elapsed - OPENING.greeting) / OPENING.typeStep)));
 }
 
-/** The greeting for the hour (0–23), in NOVA's voice; calm, no exclamation marks. */
-export function greetingFor(hour: number, persona: string): string {
+/**
+ * The greeting for the hour (0–23), in NOVA's voice; calm, no exclamation marks. Session AK P4 (FIRST_RUN_REVIEW FR-12):
+ * "online" only once NOVA has a brain; before that it says what it does now, so it never reads "online" above "Build
+ * NOVA's brain". (The guide's "NOVA online" badge keeps its own meaning.)
+ */
+export function greetingFor(hour: number, persona: string, brain = true): string {
   const part = hour >= 5 && hour < 12 ? 'Good morning.' : hour >= 12 && hour < 18 ? 'Good afternoon.' : hour >= 18 && hour < 23 ? 'Good evening.' : 'Still up?';
-  return `${part} ${persona} is online.`;
+  return brain ? `${part} ${persona} is online.` : `${part} ${persona} is here for simple questions.`;
 }

@@ -126,7 +126,7 @@ test.describe('Make NOVA yours on a computer', () => {
     await sheet.getByRole('button', {name: 'Save name'}).click();
     sheet = page.getByRole('dialog', {name: 'Make Vega yours'});
     await expect(sheet.locator('p.nova-status-line')).toHaveText('Your assistant is called Vega now.');
-    await expect(page.locator('.nova-greeting')).toContainText('Vega is online.');
+    await expect(page.locator('.nova-greeting')).toContainText('Vega is here for simple questions.'); // no brain here (Session AK P4, FR-12)
     await expect(page.getByRole('textbox', {name: 'Message Vega'})).toBeAttached();
     await expect(page.locator('.nova-orb-button')).toContainText('Talk to Vega');
     // The face: ZIGi as the person dressed ZIGi, then the orb again.
@@ -140,16 +140,16 @@ test.describe('Make NOVA yours on a computer', () => {
     await sheet.getByRole('textbox', {name: /What Vega calls you/}).fill('Fictional Rey');
     await sheet.getByRole('button', {name: 'Save', exact: true}).click();
     await expect(sheet.locator('p.nova-status-line')).toHaveText('Vega calls you Fictional Rey.');
-    await expect(page.locator('.nova-greeting')).toContainText(', Fictional Rey. Vega is online.');
+    await expect(page.locator('.nova-greeting')).toContainText(', Fictional Rey. Vega is here for simple questions.');
     await expect(page.getByRole('textbox', {name: 'Message Vega'})).toHaveAttribute('placeholder', 'What’s on your mind, Fictional Rey?');
     await sheet.getByRole('button', {name: 'Close Make Vega yours'}).click();
     await page.reload();
-    await expect(page.locator('.nova-greeting')).toContainText(', Fictional Rey. Vega is online.');
+    await expect(page.locator('.nova-greeting')).toContainText(', Fictional Rey. Vega is here for simple questions.');
     sheet = await customize(page, 'Vega');
     await sheet.getByRole('textbox', {name: 'Your assistant’s name'}).fill('');
     await sheet.getByRole('button', {name: 'Save name'}).click();
     await expect(page.getByRole('dialog', {name: 'Make NOVA yours'}).locator('p.nova-status-line')).toHaveText('Your assistant is called NOVA again.');
-    await expect(page.locator('.nova-greeting')).toContainText('NOVA is online.');
+    await expect(page.locator('.nova-greeting')).toContainText('NOVA is here for simple questions.');
   });
 
   test('Activity: a card confirmed in NOVA is listed there by ZIGi; Remove takes it out and Undo puts it back', async ({page}) => {
@@ -264,7 +264,7 @@ test.describe('Make NOVA yours on a phone', () => {
     await sheet.getByRole('textbox', {name: 'Your assistant’s name'}).fill('Atlas');
     await sheet.getByRole('button', {name: 'Save name'}).click();
     await page.getByRole('dialog', {name: 'Make Atlas yours'}).getByRole('button', {name: 'Close Make Atlas yours'}).click();
-    await expect(page.locator('.nova-greeting')).toContainText('Atlas is online.');
+    await expect(page.locator('.nova-greeting')).toContainText('Atlas is here for simple questions.'); // no brain here (Session AK P4, FR-12)
     await expect(page.getByRole('textbox', {name: 'Message Atlas'})).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
   });

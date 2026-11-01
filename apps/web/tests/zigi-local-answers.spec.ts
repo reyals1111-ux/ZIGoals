@@ -63,7 +63,7 @@ test('before setup: a lookup is answered on the device with its records, nothing
   // Not a lookup, no AI: examples to tap, each answered here.
   await panel(page).getByLabel('Ask ZIGi about your records').fill('Help me plan a calmer week');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
-  await expect(panel(page).locator('.ai-turn-local').last()).toContainText('I answer questions about your own records right here, on this device, without any AI. For example:');
+  await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Until you give me a brain, I answer from your own records on this device. For example:');
   await panel(page).locator('.ai-turn-local').last().getByRole('button').filter({hasText: /goal\?$/}).first().click();
   await expect(panel(page).locator('.ai-turn-local').last()).toContainText(/% of the target/);
   expect(external.filter(url => PROVIDER_HOSTS.some(host => url.includes(host)))).toEqual([]);

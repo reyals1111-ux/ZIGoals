@@ -215,3 +215,10 @@ main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
   /* Earn's two paths kept their own 64 px lane; inside the gutter they need none. */
   :root:not([data-zigi-side=left]):not(#\#) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 0; }
 }
+
+/* Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, FR-7): an inline error under its field had no style anywhere
+   (grey body text, easy to miss). It reads as an error by its words, its weight and a mark, never by colour alone; the
+   colour is the danger ink (Nebula and Dark: the danger pink on the night; Light: its deeper shade on white, ≥ 4.5:1). */
+.field-error { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0 0; color: var(--danger-ink, #f5a7af); font-size: 15px; font-weight: 600; line-height: 1.45; }
+.field-error::before { content: "!" / ""; flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border: 2px solid currentColor; border-radius: 50%; font-size: 12px; font-weight: 800; line-height: 1; }
+@media (forced-colors: active) { .field-error { color: CanvasText; } .field-error::before { border-color: CanvasText; } }

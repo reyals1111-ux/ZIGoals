@@ -17,6 +17,9 @@ const TodayDeviceCards=lazy(()=>import('./today-device-cards'));
 const WidgetLibrary=lazy(()=>import('./widget-library').then(m=>({default:m.WidgetLibrary})));
 const MakeToday=lazy(()=>import('./make-today')),PresetChooser=lazy(()=>import('./preset-chooser'));
 const WelcomeCard=lazy(()=>import('../onboarding/welcome-card').then(m=>({default:m.WelcomeCard})));
+// Session AK P4 (FIRST_RUN_REVIEW FR-4): "You're set" after the welcome, in the welcome card's place; its chunk loads only
+// on a device whose welcome set something up (a raw read of the setup record's key; the card itself reads it properly).
+const SetupLanding=lazy(()=>import('../onboarding/setup-landing').then(m=>({default:m.SetupLanding})));
 /** Session AE Gate C: while a new device's welcome cards load (their own chunks), their place is kept, so the widgets below
  *  do not jump up into view and back down (a layout shift over 0.1 on a busy machine: run11-layout-stability). */
 const TodayReserve=({part}:{part:'welcome'|'make'})=><div className="today-reserve" data-reserve={part} aria-hidden="true"/>;
@@ -81,6 +84,7 @@ import { formatPlainDecimal } from "../../lib/visual-format";
 import {ReminderCards} from '../reminders/reminder-cards';
 import {PhoneFold} from '../phone/phone-fold';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {ONBOARDING_SETUP_KEY} from '../../lib/aa-device-keys';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown,todayItemShown} from '../../lib/pages/visibility';
 import {linksOf,sortedLinks} from '../../lib/links/engine';
@@ -129,6 +133,7 @@ export function TodayDashboard(){
  const myLinks=settings.loaded&&!settings.error?sortedLinks(linksOf(settings.data)):[];
  // The first-run welcome (Session E) appears only for a device that is certainly brand-new: every store read without
  // error, Today not yet chosen, no Showcase, no account, no private record stored and the welcome never seen here.
+ const [setupMade,setSetupMade]=useState(false);
  const storesReady=settings.loaded&&!settings.error&&platform.loaded&&!platform.error&&habits.loaded&&!habits.error&&health.loaded&&!health.error&&legacy.loaded;
  let brandNew=false;
  if(!welcomeDismissed&&!showcase&&storesReady&&!settings.data.onboarded&&!platform.data.goals.length&&!platform.data.positions.length&&!habits.data.habits.length&&!legacy.goals.length){try{brandNew=!getAccountScope()&&!onboardingSeen(window.localStorage)&&noExistingData(window.localStorage);}catch{brandNew=false;}}
@@ -152,6 +157,7 @@ export function TodayDashboard(){
  // after mount and whenever the account changes.
  const [folds,setFolds]=useState<TodayFolds|null>(()=>{if(typeof window==='undefined')return null;try{return readTodayFolds(getAppStorage());}catch{return null;}});
  useEffect(()=>{let active=true;const read=()=>{if(!active)return;try{setFolds(readTodayFolds(getAppStorage()));}catch{setFolds(null);}};queueMicrotask(read);window.addEventListener(ACCOUNT_CHANGE,read);return()=>{active=false;window.removeEventListener(ACCOUNT_CHANGE,read);};},[showcase]);
+ useEffect(()=>{if(brandNew||showcase||!storesReady)return;let active=true;queueMicrotask(()=>{if(!active)return;try{const raw=getAppStorage().getItem(ONBOARDING_SETUP_KEY);setSetupMade(!!raw&&!/"(?:undone|landingClosed)":true/.test(raw));}catch{/* no card */}});return()=>{active=false;};},[brandNew,showcase,storesReady]);
  const toggleFold=(id:string,open:boolean)=>{try{setFolds(rememberFold(getAppStorage(),id,open));}catch{/* storage refused: the row still opens, it is just not remembered */}};
  const loaded=(domain:string)=>domain==='health'?health.loaded:domain==='habits'?habits.loaded:platform.loaded&&legacy.loaded;
  const domainError=(domain:string)=>domain==='health'?health.error:domain==='habits'?habits.error:platform.error;
@@ -306,6 +312,7 @@ export function TodayDashboard(){
    :<section className="today-hero" aria-labelledby="dashboard-title"><div className="today-scene" aria-hidden="true"/><div className="cosmic-glow ambient-light" aria-hidden="true"/><HeroStar/><LayoutLockButton/><HeroFold collapsed={false} onToggle={()=>setHeroCollapsed(true)}/><div className="today-hero-copy"><p className="eyebrow page-eyebrow financial-orbit"><NebulaFlow identity="today-eyebrow">YOUR FINANCIAL ORBIT</NebulaFlow></p><h1 id="dashboard-title" className="orbit-slogan"><OrbitSlogan/></h1><p className="page-lede today-lede">Set goals. Build habits. Protect your health.<br/>Make room for a brighter tomorrow.</p><div className="hero-actions">{financial?showQuickAdd&&<QuickAdd triggerClassName="primary"/>:showHealth&&<Link className="primary" href="/app/health">Open Health</Link>}<Suspense fallback={null}><HowItWorks/></Suspense></div></div><div className="hero-pillars" role="group" aria-label="Your connected journey">{(financial?[['goals','Your goals',plainWords?'Give your savings a purpose.':'Give your ZIG a purpose.'],['future','Your future','Build habits. Live well.'],['chain','Onchain','ZIGChain vision · Alpha simulation.']]:[['goals','Your goals','A destination with meaning.'],['habits','Your rhythm','Small steps, your pace.'],['health','Your wellbeing','Care for the everyday.']]).map(([icon,title,detail])=><div key={icon}><span className="icon-medallion"><AppIcon name={icon!} size={30} luminous/></span><span><strong>{title}</strong><small>{detail}</small></span></div>)}</div></section>}
    <ProgressSlot page="today"/>
    {brandNew&&<Suspense fallback={<TodayReserve part="welcome"/>}><WelcomeCard demoAvailable={legacy.mode==='local'} onDismiss={()=>setWelcomeDismissed(true)}/></Suspense>}
+   {!brandNew&&setupMade&&<Suspense fallback={null}><SetupLanding/></Suspense>}
    {[settings.error,platform.error,habits.error,health.error].filter(Boolean).map((message,i)=><p role="alert" className="notice" key={i}>{message}</p>)}
    {financial&&platform.error&&legacy.loaded&&!legacy.error&&goals.some(g=>g.key.startsWith('legacy:'))&&<section className="panel" aria-label="Available local simulation Goals"><h2>Your local simulation Goals are still available.</h2><p>Private tracked records need recovery. These separate local simulation records remain readable.</p><ul>{goals.filter(g=>g.key.startsWith('legacy:')).map(g=><li key={g.key} data-goal-key={g.key}><Link href={g.href}>{g.name}</Link></li>)}</ul></section>}
    {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}

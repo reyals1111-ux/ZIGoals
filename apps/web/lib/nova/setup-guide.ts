@@ -27,14 +27,16 @@ export const isLocalOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\
 export type MemoryBudget = 'ram8' | 'ram16' | 'ram32' | 'vram24' | 'vram32' | 'mac64';
 export type ModelPick = {budget: MemoryBudget; label: string; hint: string; ollama: string; size: string; gguf: string; also: string; licence: string};
 export const MODEL_PICKS: readonly ModelPick[] = [
-  {budget: 'ram8', label: '8 GB of memory', hint: 'A light laptop, no graphics card', ollama: 'qwen3.5:4b', size: 'about 3.3–4 GB', gguf: 'unsloth/Qwen3.5-4B-GGUF', also: 'phi4-mini (2.5 GB), llama3.2:3b (2 GB)', licence: 'Apache 2.0'},
-  {budget: 'ram16', label: '16 GB of memory, or a 12 GB graphics card', hint: 'Most laptops; RTX 4070 or 5070', ollama: 'qwen3.5:9b', size: 'about 6.6–7.6 GB', gguf: 'unsloth/Qwen3.5-9B-GGUF', also: 'gemma4:12b (about 8 GB), llama3.1:8b (4.9 GB)', licence: 'Apache 2.0'},
-  {budget: 'ram32', label: '32 GB of memory, or a 16 GB graphics card', hint: 'RTX 4070 Ti Super, 4080, 5070 Ti, 5080', ollama: 'gpt-oss:20b', size: 'about 14 GB', gguf: 'ggml-org/gpt-oss-20b-GGUF', also: 'mistral-small3.2:24b (15 GB), gemma4:26b (16–19 GB)', licence: 'Apache 2.0'},
-  {budget: 'vram24', label: 'A 24 GB graphics card, or a Mac with 32–48 GB', hint: 'RTX 4090', ollama: 'qwen3.8:27b', size: 'about 18 GB', gguf: 'ggml-org/Qwen3.8-27B-GGUF', also: 'gemma4:31b (19–20 GB), qwen3.6:35b (23 GB)', licence: 'Apache 2.0'},
-  {budget: 'vram32', label: 'A 32 GB graphics card', hint: 'RTX 5090', ollama: 'qwen3.6:35b', size: 'about 23 GB', gguf: 'ggml-org/Qwen3.6-35B-A3B-GGUF', also: 'qwen3.8:27b (18 GB), gemma4:31b (19–20 GB)', licence: 'Apache 2.0'},
+  {budget: 'ram8', label: 'Light laptop · 8 GB', hint: '8 GB of memory, no graphics card', ollama: 'qwen3.5:4b', size: 'about 3.3–4 GB', gguf: 'unsloth/Qwen3.5-4B-GGUF', also: 'phi4-mini (2.5 GB), llama3.2:3b (2 GB)', licence: 'Apache 2.0'},
+  {budget: 'ram16', label: 'Most laptops · 16 GB', hint: '16 GB of memory, or a 12 GB graphics card such as an RTX 4070 or 5070', ollama: 'qwen3.5:9b', size: 'about 6.6–7.6 GB', gguf: 'unsloth/Qwen3.5-9B-GGUF', also: 'gemma4:12b (about 8 GB), llama3.1:8b (4.9 GB)', licence: 'Apache 2.0'},
+  {budget: 'ram32', label: 'A strong laptop or desktop · 32 GB', hint: '32 GB of memory, or a 16 GB graphics card such as an RTX 4070 Ti Super, 4080, 5070 Ti or 5080', ollama: 'gpt-oss:20b', size: 'about 14 GB', gguf: 'ggml-org/gpt-oss-20b-GGUF', also: 'mistral-small3.2:24b (15 GB), gemma4:26b (16–19 GB)', licence: 'Apache 2.0'},
+  {budget: 'vram24', label: 'A gaming PC, or a Mac with 32–48 GB', hint: 'A 24 GB graphics card such as an RTX 4090, or a Mac with 32–48 GB', ollama: 'qwen3.8:27b', size: 'about 18 GB', gguf: 'ggml-org/Qwen3.8-27B-GGUF', also: 'gemma4:31b (19–20 GB), qwen3.6:35b (23 GB)', licence: 'Apache 2.0'},
+  {budget: 'vram32', label: 'A top gaming PC · 32 GB graphics', hint: 'A 32 GB graphics card such as an RTX 5090', ollama: 'qwen3.6:35b', size: 'about 23 GB', gguf: 'ggml-org/Qwen3.6-35B-A3B-GGUF', also: 'qwen3.8:27b (18 GB), gemma4:31b (19–20 GB)', licence: 'Apache 2.0'},
   {budget: 'mac64', label: 'A Mac with 64 GB or more', hint: 'Apple silicon shares its memory with the graphics', ollama: 'qwen3.6:35b', size: 'about 23 GB', gguf: 'ggml-org/Qwen3.6-35B-A3B-GGUF', also: 'qwen3.8:27b (18 GB), llama3.3:70b (43 GB, Llama licence)', licence: 'Apache 2.0'},
 ];
 export const MODEL_RULE = 'A rule of thumb: the download must fit in your graphics card’s memory for full speed, plus 1–3 GB to spare. On a Mac with Apple silicon, count about two thirds of its memory.';
+/** Session AK P4 (FR-11): the largest model (billions of parameters) each memory size runs well, for the suggested model. */
+export const MAX_PARAMS: Readonly<Record<MemoryBudget, number>> = {ram8: 4, ram16: 12, ram32: 24, vram24: 32, vram32: 36, mac64: 72};
 export const pickFor = (budget: MemoryBudget): ModelPick => MODEL_PICKS.find(p => p.budget === budget) ?? MODEL_PICKS[1]!;
 
 /** Ollama, per OS (NOVA.md §2.2; Ollama FAQ and download pages). */
@@ -60,9 +62,13 @@ export function ollamaSteps(os: Os, origin: string, model: string): GuideStep[] 
     {text: 'Download a model that fits your computer (see “Which model?” below):', command: `ollama pull ${model}`, shell},
     ...allow,
     {text: 'Check that ZIGoals is allowed: an answer with “HTTP/1.1 200” and an Access-Control-Allow-Origin line means yes; “403” means the setting is not active yet.', command: `${os === 'windows' ? 'curl.exe' : 'curl'} -i -H "Origin: ${origin}" http://127.0.0.1:11434/api/version`, shell},
-    {text: 'Optional, for Strict privacy: Ollama can also run “cloud” models on ollama.com that look local here. NOVA treats any model whose name ends in “cloud” as a cloud model. To switch Ollama’s cloud features off entirely, set OLLAMA_NO_CLOUD=1 the same way as OLLAMA_ORIGINS above.'},
   ];
 }
+/**
+ * Session AK P4 (FIRST_RUN_REVIEW FR-14): Ollama's cloud switch is no numbered step a newcomer must read; the guide folds it
+ * under "For Strict privacy (optional)", word for word.
+ */
+export const OLLAMA_STRICT_NOTE = 'Ollama can also run “cloud” models on ollama.com that look local here. NOVA treats any model whose name ends in “cloud” as a cloud model. To switch Ollama’s cloud features off entirely, set OLLAMA_NO_CLOUD=1 the same way as OLLAMA_ORIGINS above.';
 /** LM Studio (NOVA.md §2.3; LM Studio's server and CLI pages). */
 export function lmStudioSteps(os: Os): GuideStep[] {
   const shell = os === 'windows' ? 'PowerShell' as const : 'Terminal' as const;

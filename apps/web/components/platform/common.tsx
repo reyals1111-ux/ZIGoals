@@ -9,7 +9,8 @@ export const amount=(value:string,decimals=18)=>formatUnits(value,decimals);
 /** An amount as display text in the person's locale: grouped ("300,000 ZIG", Session Z-Cloud Part 4.8), every digit kept,
  *  the locale's decimal sign (lib/visual-format.ts). Inputs keep `amount`, ungrouped: a grouped amount typed in is refused. */
 export const shownAmount=(value:string,decimals=18)=>formatExactNumber(formatUnits(value,decimals));
-export function PlatformNav(){return <nav className="tab-row view-tabs platform-nav" aria-label="Goal workspace"><Link href="/app/goals">Goals</Link><Link href="/app/staking#positions">Positions</Link></nav>;}
+/** Session AK P4 (FR-1): "Positions" opens Staking, a crypto page, so it shows only once the chain is chosen (the caller says). */
+export function PlatformNav({positions=true}:{positions?:boolean}={}){return <nav className="tab-row view-tabs platform-nav" aria-label="Goal workspace"><Link href="/app/goals">Goals</Link>{positions&&<Link href="/app/staking#positions">Positions</Link>}</nav>;}
 export function Freshness({at,sync}:{at:string;sync?:Position['sync']}){
  const [now,setNow]=useState(()=>Date.now());useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),60000);return ()=>clearInterval(timer);},[]);
  const label=sync==='ERROR'?'Refresh failed · previous snapshot':sync==='MANUAL'?'Manual observation':sync==='STALE'||snapshotIsStale(at,now)?'Stale snapshot':'Recent snapshot';

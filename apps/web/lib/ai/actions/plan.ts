@@ -830,6 +830,11 @@ export function planAction(action: Action, env: Env): PlanResult {
       // A page the person hid in "Your pages & buttons" is not opened behind their back.
       const view = viewOf(settingsGroupIn(stores.settings, 'pages'));
       // Owner follow-up 2 (N5): the pages NOVA opens that had no card yet (journal, agenda, NOVA, notes, focus, workouts).
+      // Session AK P4 (FR-2): a name fills in only a new goal.
+      if (action.name && action.view !== 'new-goal') return refuse('A name fills in only a new goal; open Goals → New goal.');
+      // Session AK P4 (FR-2): NOVA's guide, "Build NOVA's brain", from NOVA's "What can you do?".
+      if (action.page === 'nova' && action.view === 'setup' && !action.habit && !action.goal && !action.asset) return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'Open Build NOVA\'s brain', lines: ['Opens /app/nova/setup', 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href: '/app/nova/setup', label: 'Build NOVA\'s brain'}}};
+      if (action.view === 'setup') return refuse('The brain guide is on NOVA.');
       if (action.page === 'journal' || action.page === 'agenda' || action.page === 'nova' || action.page === 'notes' || action.page === 'focus' || action.page === 'workouts') {
         const route = NOVA_PAGE_ROUTES[action.page];
         if (action.view || action.habit || action.goal || action.asset) return refuse(`${route.label} opens as it is; ask for that page alone.`);
@@ -849,7 +854,7 @@ export function planAction(action: Action, env: Env): PlanResult {
         else if (v === 'year' || v === 'routines') { if (action.page !== 'habits') return refuse(`The ${v} view is on Habits.`); href = `/app/habits#${v}`; label = v === 'year' ? 'Habits → Year view' : 'Habits → Routines'; }
         else if (v === 'reminders') { if (action.page !== 'settings') return refuse('Reminders are on Settings.'); href = '/app/settings/reminders'; label = 'Settings → Reminders'; }
         else if (v === 'zigi' || v === 'pages') { if (action.page !== 'settings') return refuse(`That section is on Settings.`); href = v === 'zigi' ? '/app/settings#your-ai' : '/app/settings#pages'; label = v === 'zigi' ? 'Settings → ZIGi · Your Personal AI Companion' : 'Settings → Your pages & buttons'; }
-        else if (v === 'new-goal') { if (action.page !== 'goals') return refuse('A new goal is made on Goals.'); href = '/app/goals/new'; label = 'Goals → New goal'; }
+        else if (v === 'new-goal') { if (action.page !== 'goals') return refuse('A new goal is made on Goals.'); href = action.name ? `/app/goals/new?from=ask&name=${encodeURIComponent(action.name)}` : '/app/goals/new'; label = action.name ? `Goals → New goal “${action.name}”` : 'Goals → New goal'; }
         // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's calculator, template library, Data health page and the Life review's period.
         else if (v === 'calculator') { if (action.page !== 'wealth') return refuse('The compound interest calculator is on Wealth.'); href = '/app/wealth/calculator'; label = 'Wealth → Compound interest calculator'; }
         else if (v === 'templates') { if (action.page !== 'goals') return refuse('The template library is on Goals.'); href = '/app/goals/templates'; label = 'Goals → Templates'; }
@@ -860,7 +865,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.goal) { const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message); const id = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null; if (!id) return refuse('That goal has no page of its own.'); href = `/app/goals/${id}`; label = `Goals → ${named.found.label}`; }
       if (action.asset) { const key = action.asset.trim().toLowerCase(), hits = stores.platform.positions.filter(p => p.asset.toLowerCase() === key || p.denom.toLowerCase() === key); if (hits.length !== 1) return refuse(hits.length ? 'More than one holding matches; name it exactly.' : 'No holding by that name is on this device.'); href = `/app/wealth/asset/${encodeURIComponent(hits[0]!.denom)}`; label = `Wealth → ${hits[0]!.asset}`; }
       if (action.page === 'review' && (action.view === 'week' || action.view === 'month')) return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${label}`, lines: [`Opens ${href} on ${action.view === 'week' ? 'this week' : 'this month'}`, 'The period is a choice kept on this device'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, device: {key: LIFE_REVIEW_KEY, patch: {period: action.view}, label: 'Life review period'}, navigate: {href, label}}};
-      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${label}`, lines: [`Opens ${href}`, 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href, label}}};
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${label}`, lines: [`Opens ${href.replace(/\?.*$/, '')}`, ...(action.name ? [`The name “${action.name}” is filled in; you add the rest`] : []), 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href, label}}};
     }
     case 'delete-record': {
       const target = deleteTarget(env, action); if (!target.ok) return refuse(target.message);

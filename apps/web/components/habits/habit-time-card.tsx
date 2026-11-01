@@ -6,6 +6,7 @@ import {HabitCompletion} from './habit-completion';
 import {TimerChip} from './habit-timer';
 import {habitDay} from '../../lib/habits';
 import {currentSection, groupByTimeOfDay, SECTION_LABELS, SECTION_SYMBOLS} from '../../lib/habits-extras/sections';
+import {firstStepToday, pickTimeSection, sectionAllDone} from '../../lib/habits-extras/time-card';
 import {registerSlotCard} from '../game/slot-local';
 import {NebulaFlow} from '../nebula-flow';
 import './habits.css';
@@ -25,11 +26,15 @@ export function HabitTimeCard() {
   if (!store.loaded || store.error || widget) return null;
   const due = store.data.habits.filter(h => habitDay(h, store.today, store.today).scheduled);
   const sections = groupByTimeOfDay(due, store.today), now = currentSection(new Date().getHours());
-  const pick = sections.find(s => s.id === now && s.habits.length) ?? sections.find(s => s.due > s.done) ?? null;
+  // Session AK P4 (FR-3): ticking the last open habit keeps the card, with its done state, instead of removing it.
+  const pick = pickTimeSection(sections, now);
   if (!pick) return null;
+  const allDone = sectionAllDone(pick), first = pick.done > 0 && firstStepToday(store.data.habits, store.today);
   return <section className="panel habit-time-card" aria-labelledby="habit-time-card-title">
-    <div className="habit-section-heading"><div><p className="eyebrow">{SECTION_SYMBOLS[pick.id]} {pick.id === now ? 'This part of the day' : 'Up next'}</p><h2 id="habit-time-card-title"><NebulaFlow identity="habit-time-card">{SECTION_LABELS[pick.id]}</NebulaFlow></h2></div><span className="habit-section-count">{pick.done} / {pick.due}</span></div>
+    <div className="habit-section-heading"><div><p className="eyebrow">{SECTION_SYMBOLS[pick.id]} {allDone ? 'All done for now' : pick.id === now ? 'This part of the day' : 'Up next'}</p><h2 id="habit-time-card-title"><NebulaFlow identity="habit-time-card">{SECTION_LABELS[pick.id]}</NebulaFlow></h2></div><span className="habit-section-count">{pick.done} / {pick.due}</span></div>
     <ul className="habit-today-list">{pick.habits.slice(0, 4).map(h => <li key={h.id}><div><strong>{h.title}</strong>{h.timer && <TimerChip habit={h} store={store} />}</div><HabitCompletion habit={h} store={store} compact /></li>)}</ul>
+    {/* Session AK P4 (FR-3): the very first check-in on this device is named, once (read from the habits; nothing stored). */}
+    {first && <p className="fine habit-first-step" role="status">Your first step is logged. Day 1 of your streak.</p>}
     <Link className="text-link" href="/app/habits">All habits →</Link>
   </section>;
 }
