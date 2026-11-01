@@ -1,0 +1,15 @@
+{
+ "R001": "assistant_acknowledged",
+ "R002": "assistant_unsure",
+ "R003": "assistant_working",
+ "R004": "insight_consistent",
+ "R005": "checkin_low",
+ "R006": "checkin_milestone",
+ "R007": "action_undone",
+ "R008": "wrapup_finished",
+ "R009": "feedback_received",
+ "R010": "journal_reflecting",
+ "R011": "connection_lost",
+ "R012": "connection_restored",
+ "R013": "user_dismissed"
+}
