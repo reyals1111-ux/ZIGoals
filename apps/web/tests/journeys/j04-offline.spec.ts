@@ -122,7 +122,7 @@ test('@journey 4b bug J4-1: offline, the Checklist with its day complete still o
     await expect(page.locator('.checklist-progress-line')).toContainText('1 of 1 planet today');
     await page.goto('/app/checklist'); await hydrated(page);
     await expect(page.getByRole('heading', {name: 'This page could not be shown.'})).toHaveCount(0);
-    await expect(page.getByRole('button', {name: `${HABIT}: done`, exact: true})).toBeVisible();
+    await expect(page.getByRole('button', {name: `${HABIT}: 1 time: done`, exact: true})).toBeVisible(); // the planet's name includes its target
   } finally { await context.setOffline(false); }
 });
 
