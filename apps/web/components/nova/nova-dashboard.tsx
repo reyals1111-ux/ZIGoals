@@ -204,7 +204,7 @@ export default function NovaDashboard() {
   const toggleWidget = (id: string, on: boolean) => { if (on) save(rr => addWidget(rr, id, widgetSpec(id)?.size ?? 'M'), `${title(id)} is on the stage.`); else actions.remove(id); };
 
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
-  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase} onTalk={openChat} talkOpen={chatOpen}/>;
+  const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
   return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined}
@@ -217,7 +217,7 @@ export default function NovaDashboard() {
         handlers={{act, customize: () => setSheet({kind: 'yours'}), fullscreen: toggleFullscreen}} onExit={exit} onDay={() => setSheet({kind: 'day'})} onSearch={() => openSearch()}
         onWorkflows={() => setSheet({kind: 'panels', id: 'workflows'})} onMini={pipOk && !phone ? () => { if (pip) pip.close(); else void openMini(); } : undefined} miniOpen={!!pip} leftHidden={left === 'hidden'} onShowLeft={() => save(rr => setLeftPanel(rr, 'open'))}
         rightOpen={right === 'open'} onToggleRight={toggleRight} compact={phone} onQuick={() => setSheet({kind: 'quick'})}/>
-      {!phone && <StatusChips brain={brain}/>}
+      {!phone && <StatusChips brain={brain} showcase={showcase}/>}
       {/* Session AK P3 (ND-23): the setup invitation, one slim line under the chips (it left the star's stack). */}
       {!chatOpen && <NovaSetupBanner persona={persona.name} brain={brain}/>}
       <LoadBoundary quiet><Suspense fallback={null}><NovaLive/></Suspense></LoadBoundary>

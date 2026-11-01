@@ -516,3 +516,11 @@ tests under `apps/web/lib/nova`. Browser specs run by the lead on a build of the
 - **Layout audit** (spec "NOVA layout audit by bounding box"): Nebula, Light and Dark at 1024, 1440 and 1920 px — every
   first-screen control inside the window, ≥ 44 px, not covered (elementFromPoint at its centre), no horizontal scroll,
   NOVA a night island.
+- **Round 2 (after the first browser run on 00f3a69d):** the Showcase label moved from the star's stack into the status
+  chips on a computer (the phone keeps it on the stage), the orb's state is one line, the greeting's size follows the
+  stage's width, and a stage narrower than 800 px (both side panels open at 1440) stacks the star over its widgets
+  (ND-1); empty widgets pin their words to the second column (before the art's chunk loaded they fell into the 44 px art
+  column, which shrank "Add a bill" below 44 px and let the empty state cover "Open the Checklist") and the header row
+  paints above the body (ND-2, layout audit); the setup banner is up to 980 px wide, so it stays one row (ND-23); the ⌘/Ctrl
+  K hint hides on a centre ≤ 900 px, so the field keeps ≥ 480 px of words (ND-5); the guide band says "Lit: n / 10", no
+  longer repeating the page's own "n of 10 planets lit" line (nova-setup, j12).

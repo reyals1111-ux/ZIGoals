@@ -11,8 +11,10 @@
 /* Session AK P3 (ND-2): an empty widget is compact — its planet art beside one line, and where to start under it. */
 .nova-empty { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 0; }
 .nova-empty p { font-size: 15px; color: var(--nova-ink-2); }
-.nova-empty-art { grid-row: span 2; align-self: start; width: 44px; height: 44px; margin: 0; }
-.nova-empty > .nova-link { grid-column: 2; justify-self: start; }
+.nova-empty-art { grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 44px; height: 44px; margin: 0; }
+/* The words always take the second column, also before the art's own chunk has loaded (it renders nothing until then). */
+.nova-empty > p, .nova-empty > .nova-link { grid-column: 2; }
+.nova-empty > .nova-link { justify-self: start; }
 .nova-unread { font-size: 15px; color: #ffe2a8; }
 .nova-orbit-widget { display: flex; align-items: center; gap: 14px; }
 .nova-orbit-ring { position: relative; width: 84px; height: 84px; flex: none; display: grid; place-items: center; }

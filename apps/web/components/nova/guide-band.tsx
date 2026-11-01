@@ -19,6 +19,7 @@ export function NovaGuideBand({guide}: {guide: 'nova' | 'hermes'}) {
   return <nav className="nova-root nova-guide-band" aria-label="NOVA">
     <Link className="nova-guide-band-back" href="/app/nova" prefetch={false}><NovaIcon name="left" size={20}/>Back to NOVA</Link>
     <span className="nova-guide-band-orb" aria-hidden="true"><NovaOrb size={36}/></span>
-    <p className="nova-guide-band-progress">{progress ? <><strong>{progress.done} of {progress.total}</strong> {guide === 'nova' ? 'planets lit' : 'Hermes planets lit'}</> : ' '}</p>
+    {/* The page's own progress line says "n of 10 planets lit"; the band says it in its own words, not twice the same. */}
+    <p className="nova-guide-band-progress">{progress ? <>Lit: <strong>{progress.done} / {progress.total}</strong></> : ' '}</p>
   </nav>;
 }

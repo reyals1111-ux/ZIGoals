@@ -33,7 +33,7 @@ export function useBrain(): {brain: Brain; loaded: boolean} {
   return {brain, loaded: settings.loaded && options.loaded && hermes.loaded};
 }
 export const SETUP_HREF = '/app/nova/setup';
-export function StatusChips({brain}: {brain: Brain}) {
+export function StatusChips({brain, showcase = false}: {brain: Brain; showcase?: boolean}) {
   const settings = useAiSettings(), options = useDeviceRecord(AI_OPTIONS), memory = useDeviceRecord(AI_MEMORY), setup = useDeviceRecord(NOVA_SETUP), online = useOnline();
   // Release review 2 (R2-2/R2-4): what NOVA sees is NOVA → Permissions (Health also needs this device's Health switches).
   const share = settings.data.pageShare, scopes = scopesOf(setup.loaded && !setup.unreadable ? setup.data : {version: 1}), healthSeen = scopes.health && share.health && settings.data.includeHealth;
@@ -55,6 +55,8 @@ export function StatusChips({brain}: {brain: Brain}) {
     {memory.loaded && setupChips && <li className="nova-chip-wide"><Link className="nova-chip" data-kind={remembering ? 'on' : 'off'} href={`${SETUP_HREF}#memory`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/>{chip('Memory', remember)}</Link></li>}
     {setup.loaded && memory.loaded && setupChips && <li className="nova-chip-narrow"><Link className="nova-chip" data-kind={mode ?? 'unset'} href={`${SETUP_HREF}#privacy`} prefetch={false}><span className="nova-chip-dot" aria-hidden="true"/><span><span className="nova-chip-key">Privacy</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-value">{privacy}</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-key">Memory</span><span className="nova-chip-sep" aria-hidden="true"> · </span><span className="nova-chip-value">{remember}</span></span></Link></li>}
     {settings.loaded && <li><a className="nova-chip" data-kind="scopes" title={`What NOVA can see: ${sees}. Change it in Permissions`} href="#nova-permissions"><span className="nova-chip-dot" aria-hidden="true"/>{chip('Sees', sees)}</a></li>}
+    {/* Session AK P3 (ND-1): on a computer the Showcase label stands with the status (it made the star's stack taller). */}
+    {showcase && <li><span className="nova-chip nova-showcase"><span className="nova-chip-dot" aria-hidden="true"/>Showcase · fictional example data</span></li>}
     {!online && <li><span className="nova-chip" data-kind="offline" role="status"><span className="nova-chip-dot" aria-hidden="true"/>{chip('Offline', 'on-device answers still work')}</span></li>}
   </ul>;
 }
