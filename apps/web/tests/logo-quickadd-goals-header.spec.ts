@@ -33,7 +33,8 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  await expect(title).toBeVisible();await expect(page.getByRole('heading',{name:'Your goals.',exact:true})).toHaveCount(0);
  // Part 18.5: white on the left, the nebula from the middle to the right, through the one shared utility.
  await expect(title.locator('.nebula-flow')).toHaveText('Your Goals');
- expect(await title.locator('.nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage)).toMatch(/linear-gradient.*42%/);
+ // Session AK M1: the heading's colour flows in once (about 1.2 s), so the settled gradient is read, not a frame of it.
+ await expect.poll(()=>title.locator('.nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage),{timeout:5000}).toMatch(/linear-gradient.*42%/);
  await expect(page.getByText('A destination worth building',{exact:true})).toBeVisible();await expect(page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true})).toBeVisible();
  const create=page.getByRole('link',{name:'+ Create a goal',exact:true}),t=(await title.boundingBox())!,c=(await create.boundingBox())!;
  await expect(create).toHaveAttribute('href','/app/goals/new');
