@@ -20,6 +20,7 @@ import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
 import {COMPARE_PAIR_KEY} from '../compare/schema';
 import {SUPPLEMENTS_KEY} from '../supplements/schema';
 import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {INSIGHT_FEEDBACK_KEY} from '../insight-feedback/store';
 import {FOCUS_ROUNDS_KEY} from '../focus-rounds/store';
 import {CYCLE_KEY} from '../cycle/store';
 import {SCALES_KEY} from '../scales/store';
@@ -164,6 +165,7 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   supplements: SUPPLEMENTS_KEY,
   // Owner follow-up 1 (F4): governance vote reminders.
   govReminders: GOV_REMINDERS_KEY,
+  insightFeedback: INSIGHT_FEEDBACK_KEY,
   focusRounds: FOCUS_ROUNDS_KEY,
   cycle: CYCLE_KEY,
   scales: SCALES_KEY,

@@ -39,30 +39,20 @@ lock and deadlocked F1/F2 once). The production server runs on 127.0.0.1:3101 fr
 rebuilds it (scratchpad/scripts/rebuild.sh <sha>). Chromium, ≤ 2 workers, `timeout 900`. Before pushing a lane's work,
 typecheck what is committed (a lane's edit once slipped into another lane's commit: e9b3a8d6).
 
-### State (1 Nov, 00:45 UTC) — owner follow-up 2 (NOVA; sections Q, G, N, B, T, M, Z) is the current plan
-- The owner's message: ADR-036 "Owner follow-up 2" (verbatim; scratchpad/owner-followup-2.md). F12 waits (now Z4).
-- Architecture and lane ownership for NOVA: scratchpad/nova-architecture.md (one engine — Q28: NOVA is a surface and a
-  persona on ZIGi's engine; never a second key store, chat store, memory or tool system).
-- Pushed head before follow-up 2: 58224a69 (F0–F11 integrated; X1 chain-invisible 9ccb860a + verifier 271420e7; JB
-  journey bugs c53dbfaf + 07058ae3; F8 a15ea685; Governance landmarks 0e264929).
-- Running lanes (≤ 8 helpers + fresh reviewers):
-  - X1 (resumed, Q2): the X1 browser failures (logs scratchpad/x1-b{1..10}.log); the :3101 server stays at 271420e7 for it.
-  - Research (N0 + M0): docs/research/session-ak/NOVA.md and MOTION_2026.md only.
-  - Q1 wiring auditor (fresh, read-only): docs/review/session-ak/WIRING_AUDIT.md.
-  - NA NOVA surface: app/app/nova/page.tsx, components/nova/** (not chat/setup/workflows/panels), lib/nova/{store,layout*,widgets/**,dock*,share-setup*,orb*}.
-  - NB NOVA chat + ZIGi bridge: components/nova/chat/**, lib/nova/bridge*, components/nova/command-bar*, additive edits in components/ai/{use-chat-session,ai-chat,chat-header}.tsx and lib/ai/{chats,history,continue,session}.ts.
-  - NC setup guide + privacy: app/app/nova/setup/**, components/nova/setup/**, lib/nova/{setup*,privacy-mode*,redact*,local-servers*}, one send-path hook.
-  - ND briefs, workflows, memory, panels, cost: lib/nova/{workflows/**,briefs*}, components/nova/{workflows,panels}/**, additive lib/ai/memory.ts.
-  - NE engine reads/acts: lib/ai/{context-pack,tools,actions,evals,local-answers}/** additions; REAL_MODEL_TODO NOVA cases.
-  - B notes: lib/notes/**, components/notes/**, app/app/notes/**, additive components/journal/** + lib/journal/**, lib/search/notes*, minimal mounts in search-palette and quick-add.
-  - T tasks/time: lib/tasks/**, components/tasks/**, components/agenda/**, lib/agenda/**, lib/ics/**, lib/focus-sessions/** + focus components.
-- Owner follow-up 3 (1 Nov): N11 Hermes Agent (research: a fresh agent → docs/research/session-ak/HERMES_AGENT.md; the brain,
-  privacy rule, summary and the /app/nova/hermes guide: lane NC; "Ask my Hermes" delegation and chat placement: lane NB)
-  and N12 the full-screen NOVA with hideable left/right panels (lane NA). Brief: scratchpad/owner-followup-3.md and ADR-036.
-- Lead-only files: Help, What's new, manifest (NOVA and Capture shortcuts), egress/CSP/PRIVACY, registries, Showcase,
-  shell/nav/rail/More entries, Customize start page, the ⌘/Ctrl+J mount, weights, STATUS/ADR/AK_RESUME.
-- Next waves: G1 (BUILD list 2 rest), G2 (release review rest + second review), G3 + M (visual system and motion, after
-  MOTION_2026.md), G4 (journeys on phone/themes), G5 (exploratory agent), G6, G7, G8; then Z1–Z4.
+### State (1 Nov, 02:40 UTC) — owner follow-ups 2 and 3 (NOVA; sections Q, G, N, B, T, M, Z) are the current plan
+- The owner's messages: ADR-036 "Owner follow-up 2" and "Owner follow-up 3" (verbatim; scratchpad/owner-followup-{2,3}.md).
+  Architecture: scratchpad/nova-architecture.md (one engine — Q28). F12 waits (now Z4).
+- Pushed head: 6c44dc3e. Integrated since 58224a69: B and T 1f9a7f23; G2 54200bff; Q1 audit eea0e358; G7 06e86e00;
+  M f88b8ab8; G3 21f404ef; NOVA N0–N12 + G1a + G1b + lead wiring cf3cf2e1; themes and test fixes b552ba14; Q1F 6c44dc3e.
+- Running: the browser verification of 6c44dc3e (lead; scratchpad/specs-int.txt + journeys), lanes FU (Calm for JS
+  loops, G7 follow-ups, habit section count), G8 (ZIGi/NOVA tools for G1a/G1b), W (AFL9: staking over WalletConnect,
+  journey 7b; TIER 3 wallet).
+- Next: G1 #21 insight feedback (lead); Help lines for Journal/Music, ecosystem status, buffer days; Journal and Music in
+  the sidebar and rail (More on phones); weight lines for /app/nova, /app/notes, /app/tasks; M5 after-measures; M7 theme
+  parity and the layout audit; G4 journeys on phone and themes; G5 exploratory agent; G6 intermittents; G2's second
+  review (RELEASE_REVIEW_2.md); then Z1–Z4.
+- Sandbox-only unit failures (also on eea0e358): lib/vault/finance-homes.test.ts (cross-tab storage) and
+  scripts/pre-run11-setup.test.mjs; CI decides.
 - STATUS.md:472 says the X030 swap is in components/checklist/celebration-zigi.ts (removed in e30840fe; the slot is
   components/zigi/studio4.ts) — correct it in the final STATUS (Z4).
 

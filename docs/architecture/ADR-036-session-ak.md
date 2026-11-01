@@ -154,7 +154,7 @@ Every still-open row of ADR-028 to ADR-035 and the STATUS entries since AG Polis
 | AFL4 | Memo attestations on mainnet | ADR-028 H48, H105 | d (privacy); the prefix-free practice-badge memo (H133 S6) is a → 14 (TIER 3 wallet) |
 | AFL5–AFL7, ADR-028's OroSwap shares | xpub, Journeys/Focus, synced habit clock, pool/vault shares | ADR-028 | Done (AJ items 36, 34, 35; AH AF3) |
 | H113 | `goalId` prop on TodayIntelligence | ADR-028 | a → 14 |
-| M4 (QA2-04) | ZIGi knock reminders use the device clock, not the journal's zone | ADR-033 | a → 14 |
+| M4 (QA2-04) | Built: Customize → Motion: Full / Calm / Off (stored format additive); JS loops under Calm in lane FU | `f88b8ab8` | unit |
 | M42 | "Net worth this week" on Today's line | ADR-033 | a → 8 (check AI N37 first) |
 | LA6 D-196 | Dark: column widths differ between pages | A8 | a → 11 |
 | AF15 (parts 2, 3) | Health import stress readings; Academy name under the lesson bubble | A8 | a → 11 |
@@ -778,44 +778,44 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F10 security delta review | Built: three fresh reviewers on 9401dcbb..HEAD — no High; 1 Medium fixed (the agenda's unbonding titles); 11 Low (8 fixed, 3 recorded); 6 Info (3 fixed, 3 recorded) | `6e049943` | docs/security/review-2026-10/SESSION_AK_F10.md; unbonding-privacy, denoms, guard, notify tests |
 | F11 Studio-4 preparation complete and proven | Built: every Part 12 slot verified wired (X030 cheer unused by the PROTECTED Checklist until the owner says yes); dry run of studio4-deliver/ through the importer; runbook | `a845d339` | scripts/zigi/studio4-dry-run.test.mjs (17 tests); docs/handoff/STUDIO4_SWAP_RUNBOOK.md |
 | F12 finish | Moved into Z4 (owner follow-up 2) | — | — |
-| Q1 Wiring audit of every Built/Finished row (fresh read-only agent; WIRING_AUDIT.md); every non-Working row finished | Open | — | — |
+| Q1 Wiring audit of every Built/Finished row (fresh read-only agent; WIRING_AUDIT.md); every non-Working row finished | Built: audit 52 Working / 43 Partly; Q1F added 31 browser tests on the UI path and fixed Quick add's goal bundle, buffer days and the doubled import title; AFL9 (journey 7b) moves to lane W | `eea0e358`, `6c44dc3e` | 29/31 desktop on the pre-fix build; rerun on 6c44dc3e |
 | Q2 Finish the X1 verification; fix every failure at its cause | Open | — | — |
-| G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Open | — | — |
+| G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Built: G1a #4 Your numbers, #12 scales, #13 journal prompts, #14 wrap-up tasks, #15 bell and breaks, #16 cycle log; G1b #6, #7, #9, #10, #11, #17, #18, #19; #21 insight feedback open (lead) | `cf3cf2e1` | unit (70 + 217); specs g1a-*, g1b-* on 6c44dc3e |
 | G2 Release review complete; second fresh review (RELEASE_REVIEW_2.md); fix Blockers/Majors and as many Minor/Polish as possible | Open | — | — |
-| G3 The visual system across every non-protected page and card | Open | — | — |
+| G3 The visual system across every non-protected page and card | Built: pillar art in empty states (EmptyState default, ArtNote), the chart look on 15 charts, the skeleton sheen, richer cards; R30 fixed; health-app empty states left (shared file) | `21f404ef`, `b552ba14` | unit 55/55; theme sheets regenerated |
 | G4 Journeys 1–3 and 6 on the phone project and in Light and Dark | Open | — | — |
 | G5 Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md); fixes with tests | Open | — | — |
 | G6 Every open A12 intermittent fixed or proven gone | Open | — | — |
-| G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Open | — | — |
-| G8 ZIGi and NOVA tools for G1's new features | Open | — | — |
+| G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Built: R1-F5 CJK recovery words, R1-F6 everyday lists, R1-F7 hidden in what leaves (engine hook), R1-F9 refuse past 500, R2-I4 summaries; R3-F4 recorded (Q25) | `06e86e00`, `cf3cf2e1` | unit; vendored BIP-39 lists checked word for word |
+| G8 ZIGi and NOVA tools for G1's new features | In progress: lane G8 (tools and confirm cards for G1a/G1b) | — | — |
 | N0 NOVA research (docs/research/session-ak/NOVA.md) | Built: the trend and 10 takeaways, local models per OS, browser localhost rules, models by memory, provider CORS and prices, the subscription verdict (no consumer plan works; sources) | `80d7c1af` | sources cited, read 1 Nov 2026 |
-| N1 One engine, two companions: shared history and memory, hand-offs, delegation, Duo view (Q28) | Open | — | — |
-| N2 The NOVA page /app/nova: full-view dashboard, opening sequence, orb, chat, dock, widgets, chips, panels, make it yours, share setup, entry points | Open | — | — |
-| N3 Build your own NOVA: the setup guide as a planet checklist (10 steps with checks) | Open | — | — |
-| N4 NOVA reads everything (with permission): context packs, What NOVA can see | Open | — | — |
-| N5 NOVA acts: confirm cards with Undo for every pillar; money never auto-accepted | Open | — | — |
-| N6 Briefs and workflows (8 templates; custom workflows) | Open | — | — |
-| N7 Long-term memory on lib/ai/memory.ts | Open | — | — |
-| N8 Always open: start page, picture-in-picture, unread briefs, ⌘/Ctrl + J | Open | — | — |
-| N9 Safety and privacy: injection tests, loop caps, Guarded preview, keys device-only, exact CSP | Open | — | — |
-| N10 Tests: units, specs, NOVA journey, evals, REAL_MODEL_TODO | Open | — | — |
-| N11 Hermes Agent: research (HERMES_AGENT.md), the Hermes brain on the OpenAI-compatible adapter, privacy rule, delegation, the ZIGoals summary, the 10-step guide /app/nova/hermes | Open | — | — |
-| N12 The NOVA page takes the whole screen: hideable left panel (pages, agents, brain status), the stage (orb, clock, dock grid, command field, view controls, model routing), hideable right panel "Behind the intelligence" (01–06), Fullscreen, minimal phone view | Open | — | — |
-| B1 Capture inbox (text, voice, device-only photo) | Open | — | — |
-| B2 Daily notes with a This day strip | Open | — | — |
-| B3 Linked notes, backlinks, graph view (and list view) | Open | — | — |
-| B4 One search across notes and the four pillars | Open | — | — |
-| B5 Markdown export (ZIP) and import; Chat with my notes | Open | — | — |
-| T1 Tasks and goal next-actions on the Agenda and as a NOVA widget | Open | — | — |
-| T2 Calendar .ics import (read-only events on the Agenda) | Open | — | — |
-| T3 Pomodoro in Focus sessions, from a task, with the ambient player | Open | — | — |
+| N1 One engine, two companions: shared history and memory, hand-offs, delegation, Duo view (Q28) | Built: one engine; shared history, hand-offs, delegation in two voices, the bridge record | `cf3cf2e1` | unit 1290; nova-chat spec on 6c44dc3e |
+| N2 The NOVA page /app/nova: full-view dashboard, opening sequence, orb, chat, dock, widgets, chips, panels, make it yours, share setup, entry points | Built: /app/nova stage, opening, orb, dock, widgets, chips, panels, make it yours, share setup, ⌘/Ctrl+J, start on NOVA | `cf3cf2e1` | nova-dashboard spec on 6c44dc3e |
+| N3 Build your own NOVA: the setup guide as a planet checklist (10 steps with checks) | Built: Build your own NOVA, 10 planets with live checks | `cf3cf2e1` | nova-setup spec on 6c44dc3e |
+| N4 NOVA reads everything (with permission): context packs, What NOVA can see | Built: buildNovaPack within 8 Permissions scopes; What NOVA can see is the exact pack | `cf3cf2e1` | unit |
+| N5 NOVA acts: confirm cards with Undo for every pillar; money never auto-accepted | Built: confirm cards with Undo for every pillar (incl. device-record Undo, file-note, add-task); pasted text never auto-accepted; money never | `cf3cf2e1` | unit |
+| N6 Briefs and workflows (8 templates; custom workflows) | Built: briefs and 8 workflow templates plus custom ones | `cf3cf2e1` | nova-workflows spec on 6c44dc3e |
+| N7 Long-term memory on lib/ai/memory.ts | Built: memory kinds (people, decisions, sources, dates), pinned, from, about | `cf3cf2e1` | unit; frozen fixtures |
+| N8 Always open: start page, picture-in-picture, unread briefs, ⌘/Ctrl + J | Built: start on NOVA, ⌘/Ctrl+J command bar, PWA shortcut, unread briefs | `cf3cf2e1` | install-manifest spec |
+| N9 Safety and privacy: injection tests, loop caps, Guarded preview, keys device-only, exact CSP | Built: privacy modes in guardRequest, injection tests, loop caps, Guarded preview, keys device-only; CSP unchanged (localhost already allowed) | `cf3cf2e1` | unit (privacy-cross-path, nova-injection) |
+| N10 Tests: units, specs, NOVA journey, evals, REAL_MODEL_TODO | Built: units, specs, evals, REAL_MODEL_TODO NOVA cases | `cf3cf2e1` | browser run on 6c44dc3e |
+| N11 Hermes Agent: research (HERMES_AGENT.md), the Hermes brain on the OpenAI-compatible adapter, privacy rule, delegation, the ZIGoals summary, the 10-step guide /app/nova/hermes | Built: HERMES_AGENT.md from official sources, the Hermes brain, Strict only when confirmed local, Ask my Hermes, the summary file, the 10-step guide | `cf3cf2e1` | nova-hermes spec on 6c44dc3e |
+| N12 The NOVA page takes the whole screen: hideable left panel (pages, agents, brain status), the stage (orb, clock, dock grid, command field, view controls, model routing), hideable right panel "Behind the intelligence" (01–06), Fullscreen, minimal phone view | Built: full window, hideable left and right panels (01–06), Fullscreen with Esc order, minimal phone view | `cf3cf2e1` | nova-dashboard spec at 1024/1440/1920 and 390 |
+| B1 Capture inbox (text, voice, device-only photo) | Built | `1f9a7f23` | notes spec |
+| B2 Daily notes with a This day strip | Built | `1f9a7f23` | notes spec |
+| B3 Linked notes, backlinks, graph view (and list view) | Built | `1f9a7f23` | notes spec |
+| B4 One search across notes and the four pillars | Built | `1f9a7f23` | notes spec |
+| B5 Markdown export (ZIP) and import; Chat with my notes | Built | `1f9a7f23` | notes spec |
+| T1 Tasks and goal next-actions on the Agenda and as a NOVA widget | Built | `1f9a7f23` | tasks-time spec |
+| T2 Calendar .ics import (read-only events on the Agenda) | Built | `1f9a7f23` | tasks-time spec |
+| T3 Pomodoro in Focus sessions, from a task, with the ambient player | Built; bell and breaks added by G1 #15 | `1f9a7f23`, `cf3cf2e1` | tasks-time, g1a-focus-rounds specs |
 | M0 Motion research (MOTION_2026.md) | Built: support tables, recipes, accessibility and performance rules, a Full / Calm / Off plan | `80d7c1af` | sources cited |
-| M1 Web-native motion (View Transitions, scroll-driven, @property, linear(), once-only entrances, tickers, strokes, micro-interactions; reverses Q26 and Q27) | Open | — | — |
-| M2 Next-gen surfaces (liquid glass, bento, aurora, scroll depth, starfield canvas) | Open | — | — |
-| M3 Ambient and attention (orb, activity chips, skeletons, optimistic UI, haptics) | Open | — | — |
-| M4 Motion rules and Customize Motion: Full / Calm / Off | Open | — | — |
-| M5 Performance before/after (INP, long tasks on Today, NOVA, Wealth, Earn) | Open | — | — |
-| M6 The landing: NOVA chapter, orb loop, scroll reveals, starfield hero, bento grid | Open | — | — |
+| M1 Web-native motion (View Transitions, scroll-driven, @property, linear(), once-only entrances, tickers, strokes, micro-interactions; reverses Q26 and Q27) | Built: view transitions (Full fade+rise, Calm crossfade, none under Off), once-only reveals, chart strokes, ticker, completion moment; Q26/Q27 reversed; shared-element morph not built (needs named transitions in N and G3 files) | `f88b8ab8` | unit 25; motion-m spec |
+| M2 Next-gen surfaces (liquid glass, bento, aurora, scroll depth, starfield canvas) | Built: refined glass, aurora utility, bento on the landing, starfield moves with scroll | `f88b8ab8` | unit |
+| M3 Ambient and attention (orb, activity chips, skeletons, optimistic UI, haptics) | Built: completion ring and sparks, haptics on the Checklist's vibration switch, skeleton sheen (G3) | `f88b8ab8`, `21f404ef` | motion-m spec |
+| M4 Motion rules and Customize Motion: Full / Calm / Off | Built: Customize → Motion: Full / Calm / Off (stored format additive); JS loops under Calm in lane FU | `f88b8ab8` | unit |
+| M5 Performance before/after (INP, long tasks on Today, NOVA, Wealth, Earn) | Before measured (Today, Wealth, Earn at 390 px, CPU 4×); after pending | — | scratchpad m5/before.json |
+| M6 The landing: NOVA chapter, orb loop, scroll reveals, starfield hero, bento grid | Built: the landing's NOVA chapter, labelled example, scroll reveals, bento; first view 257,930 / 260,000 B | `f88b8ab8` | check:landing, landing-nova-m6 tests |
 | M7 Theme parity, layout audit 6 widths × 3 themes, contrast scanner | Open | — | — |
 | Z1 Fresh security review of everything after 58224a69, NOVA first | Open | — | — |
 | Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Open | — | — |

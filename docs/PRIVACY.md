@@ -212,3 +212,5 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
   like recovery words inside your records, tool results or earlier answers is replaced with "[hidden: looked like recovery
   words]"; your saved note is not changed. The word lists are the official BIP-39 lists, kept in the app as data.
 - **Motion:** Full, Calm or Off (`zigoals:motion:v1`), on this device only.
+- **"Was this useful?"** under ZIGi's note on the Review page (`zigoals:insight-feedback:v1`, at most 200 taps): on this
+  device only, used only to leave a kind of line out of later notes; in "Export everything", removed by both erases.

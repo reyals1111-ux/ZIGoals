@@ -1,4 +1,5 @@
 import {formatNumber} from '../visual-format';
+import type {NoteKind} from '../insight-feedback/store';
 import {FORBIDDEN_INSIGHT_WORDS} from '../insights/engine';
 
 /**
@@ -11,7 +12,7 @@ import {FORBIDDEN_INSIGHT_WORDS} from '../insights/engine';
  * FORBIDDEN_INSIGHT_WORDS in the note's own words, no "try", "need", "must"). Unknown is never zero: a measure with nothing
  * recorded is left out, and an area with no goal or habit is not called quiet.
  */
-export type Note = {title: string; lines: string[]; empty: boolean; fine: string};
+export type Note = {title: string; lines: string[]; empty: boolean; fine: string; /** BUILD list 2 #21: the kind of line that leads the note, for "Was this useful?". */ lead?: NoteKind};
 /** Words the notes' own templates never use (the insights' list plus advice words); tests read every template against it. */
 export const NOTE_FORBIDDEN = [...FORBIDDEN_INSIGHT_WORDS, 'try', 'need', 'must', 'ought', 'worse', 'fail'] as const;
 const MAX_LINES = 3;
@@ -29,6 +30,8 @@ export type WeekInput = {
   streak?: {title: string; streak: number; unit: string} | null;
   /** The strongest pairing lib/insights found (its own sentence, already free of causal words), or none. */
   pairing?: string | null;
+  /** BUILD list 2 #21: kinds the person marked "Not for me" (lib/insight-feedback), left out of the note. */
+  skip?: ReadonlySet<NoteKind>;
 };
 const TREND_WORDS: Readonly<Record<string, (now: string, before: string, period: string) => string>> = {
   'Sleep a night': (n, b, p) => `Sleep averaged ${n} a night, beside ${b} the ${p} before.`,
@@ -47,12 +50,14 @@ export function periodNote(input: WeekInput): Note {
   if (input.counts.contributions) parts.push(plural(input.counts.contributions, 'goal contribution'));
   const lines: string[] = [];
   if (parts.length) lines.push(`This ${p}: ${listWords(parts)}.`);
-  const trend = input.trends.find(t => t.now !== null && t.before !== null && TREND_WORDS[t.label]);
-  if (trend) lines.push(TREND_WORDS[trend.label]!(trend.now!, trend.before!, p));
-  if (input.pairing) lines.push(`Seen together, not a cause: ${input.pairing}`);
-  else if (input.streak && input.streak.streak > 0) lines.push(`Your longest running streak: ${input.streak.title}, ${formatNumber(input.streak.streak)} ${input.streak.unit}.`);
+  const skip = input.skip ?? new Set<NoteKind>();
+  let lead: NoteKind | undefined;
+  const trend = skip.has('trend') ? undefined : input.trends.find(t => t.now !== null && t.before !== null && TREND_WORDS[t.label]);
+  if (trend) { lines.push(TREND_WORDS[trend.label]!(trend.now!, trend.before!, p)); lead = 'trend'; }
+  if (input.pairing && !skip.has('pairing')) { lines.push(`Seen together, not a cause: ${input.pairing}`); lead = 'pairing'; }
+  else if (input.streak && input.streak.streak > 0 && !skip.has('streak')) { lines.push(`Your longest running streak: ${input.streak.title}, ${formatNumber(input.streak.streak)} ${input.streak.unit}.`); lead = 'streak'; }
   if (!lines.length) return {title, lines: [`A quiet ${p} in your records. This note fills in as you check in a habit, log Health or record a contribution.`], empty: true, fine};
-  return {title, lines: lines.slice(0, MAX_LINES), empty: false, fine};
+  return {title, lines: lines.slice(0, MAX_LINES), empty: false, fine, ...(lead ? {lead} : {})};
 }
 
 export type AreaInput = {label: string; items: number; progress: number | null; activity: number};

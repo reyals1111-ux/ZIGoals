@@ -49,6 +49,7 @@ import {CALORIE_WEEK} from '../health-aa/calorie-week';
 import {COMPARE_PAIR} from '../compare/schema';
 import {SUPPLEMENTS} from '../supplements/schema';
 import {GOV_REMINDERS} from '../zigchain-eco/governance';
+import {INSIGHT_FEEDBACK} from '../insight-feedback/store';
 import {FOCUS_ROUNDS} from '../focus-rounds/store';
 import {CYCLE} from '../cycle/store';
 import {SCALES} from '../scales/store';
@@ -148,6 +149,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
   dev('supplements', 'Supplements and medication', 'Health', SUPPLEMENTS, true),
   dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
+  dev('insightFeedback', 'Was this useful? on ZIGi notes', 'Today and Life', INSIGHT_FEEDBACK),
   dev('focusRounds', 'Focus bell and breaks', 'Today and Life', FOCUS_ROUNDS),
   dev('cycle', 'Cycle log', 'Health', CYCLE, true),
   dev('scales', 'Your own scales', 'Today and Life', SCALES),

@@ -71,6 +71,8 @@ export const AK_PERSONAL_KEYS: readonly string[] = [
   'zigoals:cycle:v1',
   // Owner follow-up 2 (G1 #15): the Pomodoro bell and breaks.
   'zigoals:focus-rounds:v1',
+  // Owner follow-up 2 (G1 #21): Was this useful? under ZIGi notes.
+  'zigoals:insight-feedback:v1',
   'zigoals:gov-reminders:v1',
 ];
 /** The account erase removes them all. */

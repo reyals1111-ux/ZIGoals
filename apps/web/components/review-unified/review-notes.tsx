@@ -1,5 +1,5 @@
 'use client';
-import {useMemo} from 'react';
+import {useMemo, useState} from 'react';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
 import type {LifeReview, Period} from '../../lib/life-review/engine';
@@ -10,6 +10,8 @@ import {hiddenInsights, readInsights} from '../../lib/insights/store';
 import {averageItem, balanceOf, goalItem, habitItem, healthItems} from '../../lib/life-balance';
 import {habitAreasFrom} from '../../lib/goal-extras/areas';
 import {getAppStorage} from '../../lib/showcase-storage';
+import {INSIGHT_FEEDBACK, markInsight, notForMe, unmarkInsight, type NoteKind, type Verdict} from '../../lib/insight-feedback/store';
+import {useDeviceRecord} from '../ai/use-device-record';
 import {formatMonth} from '../../lib/visual-format';
 import {useUnifiedGoals} from '../use-unified-goals';
 import {usePlatform} from '../platform/use-platform';
@@ -28,17 +30,22 @@ import './review-unified.css';
  */
 export default function ReviewNotes({review, period, financial, habits, health, today}: {review: LifeReview; period: Period; financial: boolean; habits: HabitData; health: HealthData; today: string}) {
   const glance = useMemo(() => pillarGlance(review, {financial}), [review, financial]);
+  const feedback = useDeviceRecord(INSIGHT_FEEDBACK);
+  // BUILD list 2 #21: the kinds marked "Not for me" as this visit began; a tap now changes later notes, not this one.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const skip = useMemo(() => notForMe(feedback.data), [feedback.loaded]);
   const note = useMemo(() => {
     let pairing: string | null = null;
     // A pairing the person hid on Today stays hidden here too.
     try { pairing = insightCards({habits, health, today, max: 1, hidden: hiddenInsights(readInsights(getAppStorage()).data, today)})[0]?.sentence ?? null; } catch { /* no pairing: the note goes on without it */ }
     const days = Math.round((Date.parse(`${review.window.end}T12:00:00Z`) - Date.parse(`${review.window.start}T12:00:00Z`)) / 86_400_000) + 1;
-    return periodNote({period, days, counts: review.counts, trends: review.health, streak: review.streaks[0] ?? null, pairing});
-  }, [review, period, habits, health, today]);
+    return periodNote({period, days, counts: review.counts, trends: review.health, streak: review.streaks[0] ?? null, pairing, skip});
+  }, [review, period, habits, health, today, skip]);
   return <section className="panel review-notes" aria-labelledby="review-notes-title">
     <SectionHeading id="review-notes-title" eyebrow={period === 'week' ? 'Your week, by pillar' : 'Your month, by pillar'} title="At a glance" level={3} />
     <nav aria-label="Review chapters"><ul className="review-glance">{glance.map(g => <li key={g.pillar}><a href={g.anchor} data-quiet={g.quiet || undefined}><strong><PillarMark pillar={g.pillar} size={14} />{g.title}</strong><span className="review-glance-line">{g.line}</span></a></li>)}</ul></nav>
     <NoteBlock id="review-note-period" note={note} />
+    {note.lead && !note.empty && <NoteFeedback kind={note.lead} update={feedback.update} />}
     {period === 'month' && <MonthBalance today={today} habits={habits} health={health} />}
   </section>;
 }
@@ -72,4 +79,17 @@ function MonthBalance({today, habits, health}: {today: string; habits: HabitData
     return balanceNote(balanceOf(x, items).areas, formatMonth(today));
   }, [ready, unified.goals, platform.data, habits, health, healthGoals.data, healthGoals.unreadable, averages.data, averages.unreadable, extras.data, today]);
   return note ? <NoteBlock id="review-note-balance" note={note} /> : null;
+}
+
+const KIND_WORDS: Readonly<Record<NoteKind, string>> = {pairing: 'things seen together', trend: 'Health beside the week before', streak: 'your longest streak'};
+/** BUILD list 2 #21: one optional tap under the note; stored on this device only and used only to leave out a kind of line. */
+function NoteFeedback({kind, update}: {kind: NoteKind; update: ReturnType<typeof useDeviceRecord<import('../../lib/insight-feedback/store').InsightFeedback>>['update']}) {
+  const [answered, setAnswered] = useState<Verdict | null>(null), [error, setError] = useState<string | null>(null);
+  const save = (change: Parameters<typeof update>[0], next: Verdict | null) => { try { update(change); setAnswered(next); setError(null); } catch { setError('This could not be saved on this device.'); } };
+  return <div className="review-note-feedback" role="group" aria-label="Was this note useful?">
+    {answered
+      ? <p role="status">{answered === 'useful' ? 'Thanks: noted on this device.' : `Noted on this device: later notes leave out ${KIND_WORDS[kind]}.`} <button type="button" className="quiet" onClick={() => save(r => unmarkInsight(r, kind), null)}>Undo</button></p>
+      : <><span className="fine">Was this useful?</span> <button type="button" className="secondary" onClick={() => save(r => markInsight(r, kind, 'useful', new Date().toISOString()), 'useful')}>Useful</button> <button type="button" className="secondary" onClick={() => save(r => markInsight(r, kind, 'not-for-me', new Date().toISOString()), 'not-for-me')}>Not for me</button></>}
+    {error && <p role="alert" className="fine">{error}</p>}
+  </div>;
 }

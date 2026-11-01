@@ -50,6 +50,7 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   comparePair: ['The comparison you chose last (Insights)', 'Health'],
   supplements: ['Supplements and medication log', 'Health'],
   govReminders: ['Governance vote reminders', 'Wealth'],
+  insightFeedback: ['Was this useful? (ZIGi notes)', 'ZIGi'],
   focusRounds: ['Focus bell and breaks', 'Journey'],
   cycle: ['Cycle log', 'Health'],
   scales: ['Your own scales', 'Today'],
