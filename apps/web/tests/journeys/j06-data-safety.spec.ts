@@ -1,5 +1,5 @@
 import {test, type Page} from '@playwright/test';
-import {desktopOnly, expect, hydrated, seedRecords} from './journey-helpers';
+import {desktopOnlyTest, inTheme, JOURNEY_THEMES, themedTitle, expect, hydrated, seedRecords} from './journey-helpers';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../../lib/habits';
 import {createEmptyHealth, healthSchema, HEALTH_STORAGE_KEY} from '../../lib/health';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../../lib/positions';
@@ -15,7 +15,7 @@ import {addCustom} from '../../lib/checklist/store';
  * ZIP → every record is back, value for value. Fictional data.
  */
 test.use({actionTimeout: 20_000, timezoneId: 'Europe/Brussels', serviceWorkers: 'allow'});
-desktopOnly();
+// Session AK G4: on the desktop and the phone, in Nebula, Light and Dark (inTheme() in journey-helpers.ts).
 const PUBLIC_KEY = 'BP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A8';
 const HABIT = '11111111-1111-4111-8111-1111111111a6';
 function records() {
@@ -39,9 +39,13 @@ const zigoals = (page: Page) => page.evaluate(async () => ({
 }));
 const value = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
 
-test('@journey 6 data safety: Export everything → Test a backup → Erase everything → restore → every value back', async ({page, context}) => {
+for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 6 data safety: Export everything → Test a backup → Erase everything → restore → every value back', theme), inTheme(theme, async ({page, context}, info) => {
   test.setTimeout(180_000);
   await context.grantPermissions(['notifications']);
+  // On an iPhone, Web Push exists only in ZIGoals saved to the Home Screen (lib/push/support.ts; a Safari tab says so and
+  // offers no button), so on the phone project (an iPhone) the person uses the installed app, as they would to get
+  // notifications: Apple's `navigator.standalone` is true there.
+  if (/iPhone|iPad|iPod/.test(info.project.use.userAgent ?? '')) await context.addInitScript(() => Object.defineProperty(Navigator.prototype, 'standalone', {configurable: true, get: () => true}));
   // The browser keeps its push subscription across page loads; the stub does too (in this origin's storage, shared by its tabs).
   await context.addInitScript(() => {
     const KEY = 'fixture-push-subscription', make = (endpoint: string) => ({endpoint, async unsubscribe() { localStorage.removeItem(KEY); return true; }, toJSON() { return {endpoint}; }});
@@ -129,11 +133,12 @@ test('@journey 6 data safety: Export everything → Test a backup → Erase ever
   for (const [key, expected] of Object.entries(kept)) if (key !== CHECKLIST_KEY) expect(await value(page, key), key).toMatchObject(expected as Record<string, unknown>); // a field the schema defaults may be written out
   await page.goto('/app/habits'); await hydrated(page);
   await expect(page.getByRole('article', {name: 'Fictional journal', exact: true})).toBeVisible();
-});
+}));
 
 // Bug J6-1 (docs/review/session-ak/JOURNEY_BUGS.md): right after "Erase everything" the offline worker is still running
 // and caches the next hashed files the page loads, so a "zigoals-static-v1" cache is back at once.
-test('@journey 6b bug J6-1: after Erase everything no ZIGoals cache is left', async ({page, context}) => {
+test('@journey 6b bug J6-1: after Erase everything no ZIGoals cache is left', async ({page, context}, info) => {
+  desktopOnlyTest(info);
   await context.route(url => url.pathname.startsWith('/api/'), route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
   await seedRecords(page, records());
   await page.goto('/app');

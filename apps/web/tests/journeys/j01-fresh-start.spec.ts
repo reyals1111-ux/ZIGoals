@@ -1,4 +1,4 @@
-import {at, desktopOnly, expect, hydrated, nextDay, offlineApis, stored, strayRequests, ZONE} from './journey-helpers';
+import {at, inTheme, JOURNEY_THEMES, themedTitle, expect, hydrated, nextDay, offlineApis, stored, strayRequests, ZONE} from './journey-helpers';
 import {test, type Page} from '@playwright/test';
 import {typeGoalName} from '../goal-name';
 
@@ -9,11 +9,11 @@ import {typeGoalName} from '../goal-name';
  * numbers and is saved. Fictional names; the clock is simulated; no request leaves the app.
  */
 test.use({actionTimeout: 20_000, timezoneId: ZONE, storageState: {cookies: [], origins: []}});
-desktopOnly();
+// Session AK G4: on the desktop and the phone, in Nebula, Light and Dark (inTheme() in journey-helpers.ts).
 const GOAL = 'Fictional Lisbon trip', HABIT = 'Fictional evening walk';
 const habitsOf = (page: Page) => stored<{habits: {title: string; entries: {date: string; count: number}[]}[]}>(page, 'zigoals:habits:v1');
 
-test('@journey 1 fresh start: welcome → setup with a first goal → first habit → Checklist → a contribution → the weekly review', async ({page}) => {
+for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 1 fresh start: welcome → setup with a first goal → first habit → Checklist → a contribution → the weekly review', theme), inTheme(theme, async ({page}) => {
   test.setTimeout(180_000);
   const stray = strayRequests(page);
   await page.clock.install({time: at('2026-11-02', '09:00')});
@@ -95,7 +95,11 @@ test('@journey 1 fresh start: welcome → setup with a first goal → first habi
     await today.getByRole('button', {name: `Complete ${HABIT}`, exact: true}).click();
     await expect(today.locator('.habit-result')).toHaveText('Complete');
   }
-  expect((await habitsOf(page))!.habits[0]!.entries.map(e => e.date).sort()).toEqual(['2026-11-02', '2026-11-03', '2026-11-05']);
+  // The card paints "Complete" first and then saves the same change (components/habits/use-habits.ts, habitCheckIn), so
+  // the record is read until the save lands, as the Checklist tick above is. Session AK G4 (on the phone): Tuesday's tick,
+  // left at once for Thursday, was lost; a save on the way out now writes at once (components/use-private-store.ts;
+  // tests/habit-paint-first.spec.ts holds the regression).
+  await expect.poll(async () => (await habitsOf(page))!.habits[0]!.entries.map(e => e.date).sort()).toEqual(['2026-11-02', '2026-11-03', '2026-11-05']);
 
   // Sunday: the weekly review, in the Life review, with the week's own numbers.
   await nextDay(page, at('2026-11-08', '18:00'), '/app/review');
@@ -119,4 +123,4 @@ test('@journey 1 fresh start: welcome → setup with a first goal → first habi
   await expect(dialog).toHaveCount(0);
   await expect(page.getByText(/Your reflection for .* is saved on this device\.|Review saved on this device\./).first()).toBeVisible();
   expect(stray).toEqual([]);
-});
+}));

@@ -1,6 +1,7 @@
 import {test, type Locator, type Page} from '@playwright/test';
-import {at, desktopOnly, expect, hydrated, nextDay, offlineApis, seedRecords, stored, strayRequests, ZONE} from './journey-helpers';
+import {at, desktopOnlyTest, inTheme, JOURNEY_THEMES, themedTitle, expect, hydrated, nextDay, offlineApis, seedRecords, stored, strayRequests, ZONE} from './journey-helpers';
 import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../../lib/positions';
+import {openFold} from '../phone-nav';
 
 /**
  * Session AK F2, journey 3: a money month. Monday 2 November: a CSV from the bank and three statement files (CAMT.053,
@@ -12,7 +13,7 @@ import {emptyPlatform, PLATFORM_KEY, privateGoalSchema} from '../../lib/position
  * Fictional payees and amounts; nothing is uploaded and no bank is connected.
  */
 test.use({actionTimeout: 20_000, timezoneId: ZONE});
-desktopOnly();
+// Session AK G4: on the desktop and the phone, in Nebula, Light and Dark (inTheme() in journey-helpers.ts).
 const GOAL_ID = '41', GOAL = 'Fictional buffer fund';
 const CSV = ['Date,Payee,Amount,Note',
   '2026-08-03,Fictional Streaming,-9.99,', '2026-09-03,Fictional Streaming,-9.99,', '2026-10-03,Fictional Streaming,-9.99,',
@@ -57,7 +58,7 @@ async function bankFile(sheet: Locator, f: ReturnType<typeof file>, rows: number
   await expect(sheet.locator('.bankfile-status')).toContainText(`${ticked} ${ticked === 1 ? 'entry' : 'entries'} added to your money log`);
 }
 
-test('@journey 3 money month: CSV and bank files → review inbox → a rule → a split → budget with rollover → a bill → purpose → contribution pre-fill', async ({page}) => {
+for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 3 money month: CSV and bank files → review inbox → a rule → a split → budget with rollover → a bill → purpose → contribution pre-fill', theme), inTheme(theme, async ({page}) => {
   test.setTimeout(240_000);
   const stray = strayRequests(page);
   await page.clock.install({time: at('2026-11-02', '10:00')});
@@ -131,6 +132,9 @@ test('@journey 3 money month: CSV and bank files → review inbox → a rule →
 
   // A monthly Groceries budget with rollover.
   // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the budget form opens from "+ Set a monthly budget".
+  // On a phone Wealth folds Budgets and Bills to one row each (components/phone/phone-fold.tsx): the person opens the row
+  // first. openFold does nothing on a desktop.
+  await openFold(page, 'Budgets by category');
   await page.locator('#budgets').getByRole('button', {name: '+ Set a monthly budget', exact: true}).click();
   const budgets = page.getByRole('form', {name: 'Set a monthly budget'});
   await budgets.getByLabel('Category').selectOption('Groceries');
@@ -142,6 +146,7 @@ test('@journey 3 money month: CSV and bank files → review inbox → a rule →
   await expect(page.locator('.budgets-total').first()).toContainText('€258.00 left of €300.00 budgeted');
 
   // A bill found in the spending (three monthly payments), confirmed by the person.
+  await openFold(page, 'Upcoming bills');
   await page.getByRole('button', {name: 'Confirm Fictional Streaming as a bill', exact: true}).click();
   await expect(page.locator('.bills-status')).not.toBeEmpty();
   await expect(page.locator('.bills-row', {hasText: 'Fictional Streaming'})).toBeVisible();
@@ -183,12 +188,13 @@ test('@journey 3 money month: CSV and bank files → review inbox → a rule →
   await nextDay(page, at('2026-12-01', '09:00'), '/app/wealth#budgets');
   await expect(page.locator('.budgets-total').first()).toContainText('€558.00 left of €558.00 budgeted');
   expect(stray).toEqual([]);
-});
+}));
 
 // Bug J3-1 (docs/review/session-ak/JOURNEY_BUGS.md): a contribution made with "Fund Goal" from a cash asset is recorded in
 // the asset's units (18 decimals), so the contribution rhythm, which counts only events in the goal's own decimals (2),
 // never sees it: someone who funds their goal every Monday is never offered "Fill in".
-test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rhythm the autopilot offers to fill in', async ({page}) => {
+test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rhythm the autopilot offers to fill in', async ({page}, info) => {
+  desktopOnlyTest(info);
   await page.clock.install({time: at('2026-10-12', '10:00')});
   await offlineApis(page);
   await seedRecords(page, {[PLATFORM_KEY]: {...emptyPlatform(), goals: [goal]}});
@@ -209,7 +215,8 @@ test('@journey 3b bug J3-1: weekly "Fund Goal" contributions from cash make a rh
 
 // Bug J3-2 (docs/review/session-ak/JOURNEY_BUGS.md): "Fill in €50.00" opens the goal's Fund form, but with the person's
 // EUR cash asset (18 decimals, as the app makes cash assets) chosen the amount is never filled in.
-test('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amount in with a cash asset', async ({page}) => {
+test('@journey 3c bug J3-2: "Fill in" from the contribution rhythm fills the amount in with a cash asset', async ({page}, info) => {
+  desktopOnlyTest(info);
   await page.clock.install({time: at('2026-11-09', '09:00')});
   await offlineApis(page);
   await seedRecords(page, {[PLATFORM_KEY]: {...emptyPlatform(), goals: [goal], contributions: earlier}});

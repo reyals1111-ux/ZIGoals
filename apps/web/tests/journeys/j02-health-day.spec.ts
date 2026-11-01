@@ -1,5 +1,5 @@
 import {test, type Page, type Route} from '@playwright/test';
-import {at, desktopOnly, expect, hydrated, nextDay, offlineApis, seedRecords, stored, strayRequests, ZONE} from './journey-helpers';
+import {at, inTheme, JOURNEY_THEMES, themedTitle, expect, hydrated, nextDay, offlineApis, seedRecords, stored, strayRequests, ZONE} from './journey-helpers';
 import {createEmptyHealth, healthSchema, HEALTH_STORAGE_KEY, type HealthData} from '../../lib/health';
 import {addLocalDays} from '../../lib/local-date';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../../lib/ai/settings';
@@ -18,7 +18,7 @@ import {sendToZigi, zigiPanel} from '../zigi-open';
  * The next morning the scanned food is logged again in one tap from Recent scans.
  */
 test.use({actionTimeout: 20_000, timezoneId: ZONE});
-desktopOnly();
+// Session AK G4: on the desktop and the phone, in Nebula, Light and Dark (inTheme() in journey-helpers.ts).
 const DAY = '2026-11-04', AI = 'http://127.0.0.1:1234';
 const stamp = (d: string, t = '08:00') => `${d}T${t}:00.000Z`;
 const PRODUCT = {barcode: '0034000470693', name: 'Fictional oat flakes', brand: 'Fixture', basis: 'unverified-100g-or-100ml', nutrients: {kcal: 370, proteinMg: 13000, carbsMg: 60000, fatMg: null}, source: 'Open Food Facts', apiVersion: '3.4', observedAt: '2026-11-04T07:00:00.000Z'};
@@ -50,7 +50,7 @@ async function mockModel(page: Page) {
 const health = (page: Page) => stored<HealthData & {daily: {water: {amountMilli: number; date: string}[]}; sleep?: {nights: unknown[]}}>(page, HEALTH_STORAGE_KEY);
 const todaysDiary = async (page: Page, day = DAY) => (await health(page))!.diary.filter(d => d.date === day).map(d => d.snapshot.name);
 
-test('@journey 2 health day: barcode → offline generic food → photo estimate → water → workout (superset, RPE, plates) → sleep → coach', async ({page}) => {
+for (const theme of JOURNEY_THEMES) test(themedTitle('@journey 2 health day: barcode → offline generic food → photo estimate → water → workout (superset, RPE, plates) → sleep → coach', theme), inTheme(theme, async ({page}) => {
   test.setTimeout(180_000);
   const stray = strayRequests(page, u => u.origin === AI);
   await page.clock.install({time: at(DAY, '07:30')});
@@ -184,4 +184,4 @@ test('@journey 2 health day: barcode → offline generic food → photo estimate
   expect(await todaysDiary(page, tomorrow)).toEqual([PRODUCT.name]);
   expect(lookups.filter(l => l.startsWith('?code'))).toHaveLength(1);
   expect(stray).toEqual([]);
-});
+}));

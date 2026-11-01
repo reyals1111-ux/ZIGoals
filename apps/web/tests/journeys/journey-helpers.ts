@@ -1,4 +1,5 @@
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type BrowserContext, type Page, type TestInfo} from '@playwright/test';
+import {UI_PREFS_KEY} from '../../lib/ab-design-keys';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../../lib/whats-new';
 
@@ -11,9 +12,48 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../../lib/whats-new';
 export const ZONE = 'Europe/Brussels';
 /** A moment in the journey's zone, as an instant: `at('2026-11-02', '09:00')` (Brussels is UTC+1 in November). */
 export const at = (day: string, time = '09:00') => new Date(`${day}T${time}:00+01:00`);
-/** The journeys run on the desktop project; one browser keeps CI time reasonable (journey 7 sets a phone width itself). */
+/** Journeys 4, 5 and 7–11 run on the desktop project only; one browser keeps CI time reasonable (journey 7 sets a phone width itself). Journeys 1–3 and 6 run everywhere, in every theme (inTheme, below). */
 export function desktopOnly() {
   test.beforeEach(({page: _page}, info) => { void _page; test.skip(info.project.name !== 'desktop', 'journeys run once, on the desktop project'); });
+}
+/** A regression check inside a journey file that runs everywhere: it runs once, on the desktop project. */
+export const desktopOnlyTest = (info: TestInfo) => test.skip(info.project.name !== 'desktop', 'a regression check runs once, on the desktop project');
+/**
+ * Session AK G4 (owner item: journeys 1–3 and 6 on the phone and in Light and Dark): the themes a journey runs in. Nebula
+ * is the default look (no theme record); Light and Dark are the device's choice, kept in the ui-prefs record.
+ */
+export const JOURNEY_THEMES = ['nebula', 'light', 'dark'] as const;
+export type JourneyTheme = (typeof JOURNEY_THEMES)[number];
+/**
+ * The person chose `theme` on this device before the journey. The choice is written into the ui-prefs record before any
+ * app code runs on each page of the context (the theme boot script reads it before the first paint), and written back
+ * when a step clears the device's records (seedRecords, Erase everything), so every page of the journey is in that theme.
+ * Nebula writes nothing.
+ */
+export async function chooseTheme(context: BrowserContext, theme: JourneyTheme) {
+  if (theme === 'nebula') return;
+  await context.addInitScript(({key, theme}) => {
+    try {
+      const raw = localStorage.getItem(key), prefs: unknown = raw ? JSON.parse(raw) : null;
+      const base = prefs && typeof prefs === 'object' && !Array.isArray(prefs) ? prefs as Record<string, unknown> : {};
+      if (base.theme !== theme) localStorage.setItem(key, JSON.stringify({...base, version: 1, theme}));
+    } catch { /* a page without storage (about:blank) keeps no theme */ }
+  }, {key: UI_PREFS_KEY, theme});
+}
+/** A journey's title in a theme: Nebula keeps the title it always had; Light and Dark add " · light" or " · dark". */
+export const themedTitle = (title: string, theme: JourneyTheme) => theme === 'nebula' ? title : `${title} · ${theme}`;
+/**
+ * A journey's steps in a theme, on every project (desktop and the phone):
+ * `for (const theme of JOURNEY_THEMES) test(themedTitle(title, theme), inTheme(theme, async ({page}) => { ... }));`
+ * The steps are written once; where a step differs on a phone it branches (isPhone, tests/phone-nav.ts) with a comment.
+ * A themed run ends by checking that the page is still in its theme.
+ */
+export function inTheme(theme: JourneyTheme, body: (fixtures: {page: Page; context: BrowserContext}, info: TestInfo) => Promise<void>) {
+  return async ({page, context}: {page: Page; context: BrowserContext}, info: TestInfo) => {
+    await chooseTheme(context, theme);
+    await body({page, context}, info);
+    if (theme !== 'nebula') await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  };
 }
 export const hydrated = (page: Page) => page.locator('html[data-app-hydrated]').waitFor({state: 'attached', timeout: 20_000});
 /** The app's own /api routes answer 503 unless a journey routes one (routes added later win). */
