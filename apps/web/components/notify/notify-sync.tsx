@@ -35,7 +35,9 @@ export function NotifySync() {
     const idle = (fn: () => void) => { const w = window as Window & {requestIdleCallback?: (cb: () => void, o?: {timeout: number}) => number}; if (w.requestIdleCallback) w.requestIdleCallback(fn, {timeout: 4000}); else window.setTimeout(fn, 1500); };
     const watch = (reg: ServiceWorkerRegistration | null) => {
       if (!reg || !active) return;
-      const offer = () => { if (active && reg.waiting && navigator.serviceWorker.controller) setWaiting(reg.waiting); };
+      // Only this app's next build is offered: ADR-010's account worker (/push-sw.js) installing on the same scope takes
+      // over by itself (Q19) and never answers "Reload" (CI lane P).
+      const offer = () => { if (active && reg.waiting && navigator.serviceWorker.controller && new URL(reg.waiting.scriptURL).pathname === '/sw.js') setWaiting(reg.waiting); };
       offer();
       reg.addEventListener('updatefound', () => { const next = reg.installing; next?.addEventListener('statechange', () => { if (next.state === 'installed') offer(); }); });
     };
