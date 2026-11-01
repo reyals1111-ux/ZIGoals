@@ -2,7 +2,8 @@
 /**
  * Session AK M1: things that play once, the first time each comes into view, in Full motion only:
  *  - chart lines (the one chart look's `.zgc-line`) draw themselves: a Web Animation on the stroke's dash with no fill, so
- *    when it ends the line is exactly as the chart drew it; a dashed, already animating or very long line fades instead;
+ *    when it ends the line is exactly as the chart drew it; a dashed or very long line fades instead; a line already
+ *    animating, or with its own pathLength (its chart draws it), is left alone;
  *  - blocks of long pages (Life review, Help, and any `.zg-reveal`) rise 14 px into place (translate only, no
  *    opacity: readable at every frame). A block already on screen when it is found has been seen and does not move.
  * Time-based and finite on purpose: a scroll-linked timeline would replay on every scroll and never "finish". Calm, Off
@@ -20,6 +21,10 @@ const isGeometry = (el: Element): el is Geometry => typeof (el as Geometry).getT
 
 export function drawStroke(el: Element) {
   if (typeof (el as HTMLElement).animate !== 'function' || el.getAnimations?.().length) return;
+  // A line with its own pathLength is drawn by its chart on that scale (Wealth over time, a price chart: a CSS draw on
+  // data-entrance=once). Drawing it here too stacked a px dash above that draw whenever this observer fired first
+  // (Session AK CI: motion-polish read the wealth line stuck at 648 px).
+  if (el.hasAttribute('pathLength')) return;
   const style = getComputedStyle(el);
   let length = 0;
   try { length = isGeometry(el) ? el.getTotalLength() : 0; } catch { length = 0; }
