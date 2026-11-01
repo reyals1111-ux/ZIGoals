@@ -336,11 +336,11 @@ function ExerciseProgress({w, unit, library, value, onChange}: {w: Workouts; uni
     <label className="field"><span>Exercise</span><select value={chosen} onChange={e => onChange(e.target.value)}>{done.map(id => <option key={id} value={id}>{name(id)}</option>)}</select></label>
     {h && <><dl className="workouts-stats">
       {h.bestWeightKg !== null && <div><dt>Heaviest</dt><dd>{weightShown(h.bestWeightKg, unit)}</dd></div>}
-      {h.bestOneRepMaxKg !== null && <div><dt>Estimated one-rep max</dt><dd>{weightShown(h.bestOneRepMaxKg, unit)}</dd><small>an estimate (Epley)</small></div>}
+      {h.bestOneRepMaxKg !== null && <div><dt>Estimated one-rep max</dt><dd>{weightShown(h.bestOneRepMaxKg, unit)}</dd><dd className="dd-note"><small>an estimate (Epley)</small></dd></div>}
       {h.mostReps !== null && <div><dt>Most reps</dt><dd>{h.mostReps}</dd></div>}
       {h.longestSeconds !== null && <div><dt>Longest</dt><dd>{clock(h.longestSeconds)}</dd></div>}
       {h.farthestKm !== null && <div><dt>Farthest</dt><dd>{formatNumber(h.farthestKm, {maximumFractionDigits: 2})} km</dd></div>}
-      <div><dt>Sessions</dt><dd>{h.sessions.length}</dd><small>last {formatDate(h.sessions[0]!.date)}</small></div>
+      <div><dt>Sessions</dt><dd>{h.sessions.length}</dd><dd className="dd-note"><small>last {formatDate(h.sessions[0]!.date)}</small></dd></div>
     </dl>
     <ProgressLine h={h} unit={unit}/>
     <table className="workouts-history-table"><caption className="sr-only">{h.name}, last sessions</caption><thead><tr><th scope="col">Date</th><th scope="col">Best set</th><th scope="col">Sets</th>{h.measure === 'weight-reps' && <th scope="col">Volume</th>}</tr></thead>

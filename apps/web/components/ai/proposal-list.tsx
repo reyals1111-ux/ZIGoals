@@ -1,6 +1,6 @@
 'use client';
 import {countZigi} from '../../lib/ai/store/metrics';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FocusEvent} from 'react';
 import {batchable, UNDO_WINDOW_MS} from '../../lib/ai/actions/batch';
 import type {Rejected} from '../../lib/ai/actions/parse';
 import type {Plan, PlanResult, Stores} from '../../lib/ai/actions/plan';
@@ -114,6 +114,22 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   }, [bundle, bundleIds, items, replyId, sigs]);
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
   const [autoTitles, setAutoTitles] = useState<string[] | null>(null), [capNote, setCapNote] = useState(''), autoRan = useRef(false);
+  // Session AK P6 (keyboard, WCAG 2.4.3): a card's Add, Dismiss or the Undo goes away once pressed, which dropped the person's
+  // focus to the page. While focus is in the cards and its control leaves, it moves to the next thing to do here: the Undo
+  // while it is offered, else the next card's first button, else the cards themselves. Focus the person moved elsewhere stays there.
+  const box = useRef<HTMLDivElement>(null), focusInside = useRef(false);
+  const onFocusIn = useCallback(() => { focusInside.current = true; }, []);
+  const onFocusOut = useCallback((event: FocusEvent<HTMLDivElement>) => {
+    const left = event.target, next = event.relatedTarget;
+    if (next) { if (!event.currentTarget.contains(next)) focusInside.current = false; return; }
+    // No new focus: a click on the page (the control is still there) leaves the cards; a control that was removed does not.
+    requestAnimationFrame(() => { if (left.isConnected) focusInside.current = false; });
+  }, []);
+  useLayoutEffect(() => {
+    const el = box.current, active = document.activeElement;
+    if (!el || !focusInside.current || (active && active !== document.body && active.isConnected)) return;
+    (el.querySelector<HTMLElement>('.ai-proposals-undo button') ?? el.querySelector<HTMLElement>('.ai-card-actions button') ?? el).focus({preventScroll: false});
+  });
   const live = undoGroup !== null && undoGroup.until > now;
   // Gate C (persona round): once the window ends, the line that offered Undo goes too.
   useEffect(() => { if (!live && note.includes('Undo is available')) setNote(''); }, [live, note]);
@@ -218,7 +234,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   const secondsLeft = undoGroup ? Math.max(0, Math.ceil((undoGroup.until - now) / 1000)) : 0;
   if (!items.length && !rejected.length) return null;
   const folded = earlier && items.some(item => item.status === 'proposed'), capLine = capNote ? <p className="ai-card-note" role="status">{capNote}</p> : null;
-  return <div className="ai-proposals" data-testid="ai-proposals">
+  return <div ref={box} className="ai-proposals" data-testid="ai-proposals" tabIndex={-1} onFocus={onFocusIn} onBlur={onFocusOut}>
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
     {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
     {bundle && bundle.count > 0 && <BundleHeader bundle={bundle} pending={items.filter(i => bundleIds.has(i.id) && i.status === 'proposed').length}

@@ -59,9 +59,9 @@ export default function MeditationView() {
     <section className="panel" aria-labelledby="meditation-week-title">
       <h2 id="meditation-week-title">Your practice</h2>
       <dl className="sleep-stats">
-        <div><dt>This week</dt><dd>{minutesText(summary.thisWeek)}</dd><small>{summary.goal ? `of your goal of ${minutesText(summary.goal)} a week` : 'Set your own weekly goal below.'}</small></div>
-        <div><dt>Days in a row</dt><dd>{summary.daysInARow}</dd><small>Rest days are fine.</small></div>
-        <div><dt>All sessions</dt><dd>{summary.sessions}</dd><small>{minutesText(summary.totalMinutes)} in all</small></div>
+        <div><dt>This week</dt><dd>{minutesText(summary.thisWeek)}</dd><dd className="dd-note"><small>{summary.goal ? `of your goal of ${minutesText(summary.goal)} a week` : 'Set your own weekly goal below.'}</small></dd></div>
+        <div><dt>Days in a row</dt><dd>{summary.daysInARow}</dd><dd className="dd-note"><small>Rest days are fine.</small></dd></div>
+        <div><dt>All sessions</dt><dd>{summary.sessions}</dd><dd className="dd-note"><small>{minutesText(summary.totalMinutes)} in all</small></dd></div>
         <div><dt>Longest</dt><dd>{summary.sessions ? minutesText(summary.longestMinutes) : 'Not yet'}</dd></div>
       </dl>
     </section>

@@ -18,11 +18,14 @@ import './shell-ab.css';
  */
 export function ShowcaseChip() {
   const active = useShowcase(), [open, setOpen] = useState(false), [busy, setBusy] = useState(false), [asking, setAsking] = useState(false), root = useRef<HTMLElement>(null);
+  // Session AK P6 (keyboard, 2.4.3): the panel is a dialog, so focus moves into it when it opens, and Esc gives it back to the chip.
+  const panel = useRef<HTMLDivElement>(null), button = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (open) panel.current?.focus(); }, [open]);
   useEffect(() => { if (!open) return; const close = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); }; document.addEventListener('pointerdown', close); return () => document.removeEventListener('pointerdown', close); }, [open]);
   if (!active) return null;
-  return <aside ref={root} className="showcase-chip" aria-label="Showcase data" onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); } }}>
-    <button type="button" className="showcase-chip-button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(v => !v)}><span className="showcase-chip-dot" aria-hidden="true"/>{SHOWCASE_CHIP.split(' · ')[0]}<span className="showcase-chip-more" aria-hidden="true"> · {SHOWCASE_CHIP.split(' · ').slice(1).join(' · ')}</span></button>
-    {open && <div className="showcase-chip-panel" role="dialog" aria-label="About the Showcase">
+  return <aside ref={root} className="showcase-chip" aria-label="Showcase data" onKeyDown={e => { if (e.key === 'Escape' && open) { e.preventDefault(); setOpen(false); button.current?.focus(); } }}>
+    <button ref={button} type="button" className="showcase-chip-button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(v => !v)}><span className="showcase-chip-dot" aria-hidden="true"/>{SHOWCASE_CHIP.split(' · ')[0]}<span className="showcase-chip-more" aria-hidden="true"> · {SHOWCASE_CHIP.split(' · ').slice(1).join(' · ')}</span></button>
+    {open && <div ref={panel} className="showcase-chip-panel" role="dialog" aria-label="About the Showcase" tabIndex={-1}>
       <p><strong>Showcase data</strong> {SHOWCASE_SHEET}</p>
       <div className="showcase-chip-actions">
         <button type="button" className="secondary" disabled={busy} aria-expanded={asking} onClick={() => setAsking(true)}>Load again</button>

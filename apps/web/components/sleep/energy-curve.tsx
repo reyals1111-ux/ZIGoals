@@ -47,7 +47,7 @@ export default function EnergyCurve({sleep, today, now, zone}: {sleep: Sleep; to
     <dl className="energy-curve-list">
       <div><dt>Good focus window</dt><dd>{clock(curve.focus.from)}–{clock(curve.focus.to)}</dd></div>
       <div><dt>Likely dip</dt><dd>{clock(curve.dip.from)}–{clock(curve.dip.to)}</dd></div>
-      <div><dt>Suggested bedtime</dt><dd>{clock(curve.bedtime.from)}–{clock(curve.bedtime.to)}</dd><small>For {formatMinutes(curve.need)} of sleep{curve.needFrom === 'default' ? ' (a common figure; set your own goal below)' : ', your goal'} before your usual wake time.</small></div>
+      <div><dt>Suggested bedtime</dt><dd>{clock(curve.bedtime.from)}–{clock(curve.bedtime.to)}</dd><dd className="dd-note"><small>For {formatMinutes(curve.need)} of sleep{curve.needFrom === 'default' ? ' (a common figure; set your own goal below)' : ', your goal'} before your usual wake time.</small></dd></div>
     </dl>
     <details className="energy-curve-why"><summary>Why?</summary><p className="fine">{curveWhy(curve, clock, formatMinutes)}</p></details>
   </div>;

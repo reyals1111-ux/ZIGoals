@@ -2,6 +2,7 @@
 import {removeWithUndo} from '../ui/remove-with-undo';
 import {Suspense, lazy, useId, useState} from 'react';
 import {LoadBoundary} from '../load-boundary';
+import {tabKeys} from '../ui/tab-keys';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
 import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
@@ -36,6 +37,7 @@ import type {ImportRecord} from '../../lib/import/undo-schema';
 import './portfolio.css';
 import {useDefaultCurrency} from '../../lib/default-currency';
 import {plainErrorMessage} from '../../lib/plain-error';
+const PORTFOLIO_TABS = ['coins', 'analysis', 'insights'] as const;
 
 const NO_COINS: PortfolioCoin[] = [];
 /** Messages a reader can act on; storage refusals keep their Part 5 code. */
@@ -168,7 +170,7 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase, remove
     <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
     {!showcase && <SinceLastVisit portfolio={portfolio} value={totals.knownValue} ready={totals.held > 0 && totals.unpriced === 0 && !stale} />}
     {rows.length > 0 && <>
-      <div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} onClick={() => setTab(id)}>{label}</button>)}</div>
+      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}<div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`} onKeyDown={event => tabKeys(PORTFOLIO_TABS, tab, setTab)(event)}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)}>{label}</button>)}</div>
       <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
         {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
         <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => removeTx(portfolio.id, id)} />

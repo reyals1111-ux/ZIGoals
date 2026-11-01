@@ -36,6 +36,7 @@ import type {Grant} from '../../lib/staking/grants';
 import {WhatsThis} from '../earn/whats-this';
 import './staking.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {tabKeys} from '../ui/tab-keys';
 
 /**
  * Session AF (ADR-028 H46, H47, H60–H63, H87; L2 design §4): stake, unstake, move and claim on the Staking page, a lazy
@@ -82,6 +83,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   // reviews' own errors (shown in their own panels); a re-read of the permissions after a revoke confirms.
   const [fromVault, setFromVault] = useState(false), [otherError, setOtherError] = useState<{action: 'revoke' | 'attest'; message: string} | null>(null), [grantsRead, setGrantsRead] = useState(0);
   const revision = useRef(0);
+  const chooseAction = (id: Action) => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); setValidator(''); setDestination(''); revision.current++; };
   // Gate C security review S2 (ADR-028 H133): a pre-fill never switches the network by itself; when ZIGi meant the other
   // network, the form stays where it is and offers the switch (the real network's first-time confirm still applies).
   const [prefillNetwork, setPrefillNetwork] = useState<StakingNetwork | null>(null), networkNow = useRef(network);
@@ -348,8 +350,9 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
         <span>{holdings?.liquid !== undefined ? `${zigText(holdings.liquid)} available` : 'Balance not read yet'}</span>
         <button type="button" className="text-link" onClick={() => { void readPositions(wallet).catch(() => setNote('Your stake could not be read just now.')); }}>Refresh</button>
         <button type="button" className="text-link" onClick={disconnect}>Disconnect</button></p>
-      <div className="staking-tabs" role="tablist" aria-label="Staking action">
-        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} className={action === id ? 'is-active' : ''} onClick={() => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); setValidator(''); setDestination(''); revision.current++; }}>{label}</button>)}
+      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}
+      <div className="staking-tabs" role="tablist" aria-label="Staking action" onKeyDown={event => tabKeys(TABS.map(([id]) => id), action, chooseAction)(event)}>
+        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} tabIndex={action === id ? 0 : -1} className={action === id ? 'is-active' : ''} onClick={() => chooseAction(id)}>{label}</button>)}
       </div>
       {action !== 'delegate' && <p className="whats-this-row"><WhatsThis key={action} term={action === 'undelegate' ? 'unbonding' : action === 'redelegate' ? 'redelegate' : 'rewards'}/></p>}
       <form className="staking-form" onSubmit={review} noValidate>
