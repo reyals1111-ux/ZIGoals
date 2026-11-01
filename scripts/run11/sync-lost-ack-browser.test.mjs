@@ -38,9 +38,12 @@ async function rehearse(variant){
   await ua.settings();await ua.signIn('a@example.invalid');const recovery=await ua.createVault();
   await createValueGoal(pa,ua,name('first'));await ua.go('Settings');await ua.syncNow();
   // The second Goal's upload loses the acknowledgement of its head write; the panel reports the dropped connection.
-  await createValueGoal(pa,ua,name('second'));await ua.go('Settings');armed=true;
-  await pa.getByRole('button',{name:'Sync now',exact:true}).click();await reached;
-  await ua.syncRegion().getByRole('alert').waitFor();expect(dropped).toBe(1);
+  // Session AK CI-3: the upload is the automatic sync the Goal's write schedules (1 s later), armed before the write. Armed
+  // after it and sent with "Sync now", a slow runner's automatic sync could start first and take the drop; the person's
+  // Sync now (disabled while it ran) then followed at once, cleared its alert and replayed, so no alert was left to see.
+  armed=true;await createValueGoal(pa,ua,name('second'));await ua.go('Settings');await reached;
+  await ua.syncRegion().getByRole('alert').waitFor().catch(async e=>{const said=await ua.syncRegion().innerText().catch(()=>'(no sync region)');throw Error(`${e.message}\ndropped ${dropped}; at ${pa.url()}; the sync region said: ${said.slice(0,900)}`);});
+  expect(dropped).toBe(1);
   // The edit after the lost acknowledgement (automatic sync is paused by the error, so it stays local for now).
   await createValueGoal(pa,ua,name('third'));await ua.go('Settings');
   // A reload or a reopened profile locks the vault; the unlock's own sync is then the replay, and the confirmation must
