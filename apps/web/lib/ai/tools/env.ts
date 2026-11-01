@@ -83,6 +83,12 @@ export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   areas: Record<PageArea, boolean>;
   handles: Handles;
   limits: {rows: number; chars: number};
+  /**
+   * Release review 2 (lane RA): NOVA with its Today permission off but Notes or the Journal on keeps the Today area open
+   * for those two only: then just these Today-area tools run (lib/ai/context-pack/nova.ts `novaToolEnv`). Absent (ZIGi,
+   * and NOVA with Today on): every tool of an open area runs, as before.
+   */
+  todayTools?: ReadonlySet<string>;
 };
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {

@@ -4,7 +4,7 @@ import {emptyNotes, type Notes} from '../../notes/schema';
 import {captureInto} from '../../notes/store';
 import {redactForSend} from '../../nova/privacy-mode';
 import {DATA_CLOSE, DATA_OPEN} from '../context/specialists';
-import {runTool} from '../tools/registry';
+import {TODAY_CLOSED_FOR_NOVA, runTool} from '../tools/registry';
 import {gatesFor, sentinelsIn, showcaseSources, withSentinels} from '../tools/fixtures';
 import {readAkToolSources} from '../tools/ak-sources';
 import {readNovaToolSources} from '../tools/nova-sources';
@@ -75,9 +75,11 @@ test('the tools NOVA\'s model reads follow the same scopes: a closed scope\'s to
   expect(runTool('list_habits', {}, env).ok).toBe(true);
   // Notes on and Today off: the notes are read, Today's own records are not.
   const notesOnly = novaToolEnv(sources(), gatesFor(true), {...NONE, notes: true}, true);
-  expect(runTool('tasks', {}, notesOnly)).toMatchObject({ok: true, data: {open: [], note: expect.stringContaining('unknown')}});
-  expect(runTool('chess_ratings', {}, notesOnly)).toMatchObject({ok: true}); expect(JSON.stringify(runTool('chess_ratings', {}, notesOnly))).not.toContain('1503');
-  expect(runTool('focus_sessions', {}, notesOnly)).toMatchObject({ok: true, data: {sessions: []}});
+  // Release review 2 (lane RA), a deliberate tightening: Today's own tools are now refused outright (they used to run and
+  // return nothing), so a model is never offered them; the records stay unread either way.
+  for (const tool of ['tasks', 'chess_ratings', 'focus_sessions']) expect(runTool(tool, {}, notesOnly), tool).toMatchObject({ok: false, reason: 'area', refusal: TODAY_CLOSED_FOR_NOVA});
+  expect(JSON.stringify(runTool('chess_ratings', {}, notesOnly))).not.toContain('1503');
+  expect(runTool('search_notes', {}, notesOnly).ok).toBe(true);
   // Notes only with the Notes scope, even when the caller read them.
   const notes = captureInto(emptyNotes(), {text: 'Ask Mia about the flat', day: DAY, now: `${DAY}T08:00:00.000Z`, id: 'n-1'}).record;
   expect(runTool('search_notes', {}, novaToolEnv(sources({}, notes), gatesFor(true), {...ALL, notes: false}, true))).toMatchObject({ok: true, data: {notes: [], note: expect.stringContaining('not shared')}});

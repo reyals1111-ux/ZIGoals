@@ -144,6 +144,8 @@ test('NOVA\'s scopes narrow the tools the same way: Health scope off → no numb
   expect(runTool('your_numbers', {}, novaToolEnv(s, gates, {...all, health: false}, true))).toMatchObject({ok: false, reason: 'gate'});
   expect(runTool('cycle_log', {}, novaToolEnv(s, gates, {...all, health: false}, true))).toMatchObject({ok: false, reason: 'gate'});
   const noToday = novaToolEnv(s, gates, {...all, today: false}, true);
-  expect(noToday.nova?.scales).toBeUndefined(); expect(data(runTool('your_scales', {}, noToday)).scales).toEqual([]);
+  // Release review 2 (lane RA), a deliberate tightening: with Today off, Today's own scales tool is refused outright (it
+  // used to run and return none); the scales stay out of the environment as before.
+  expect(noToday.nova?.scales).toBeUndefined(); expect(runTool('your_scales', {}, noToday)).toMatchObject({ok: false, reason: 'area'});
   expect(runTool('cash_forecast', {}, novaToolEnv(s, gates, {...all, wealth: false, earn: false}, true))).toMatchObject({ok: false, reason: 'area'});
 });

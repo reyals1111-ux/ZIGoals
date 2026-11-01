@@ -28,7 +28,7 @@ import {localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} fro
 import {examplesIn, noModelReply, questionLanguage} from '../../lib/ai/local-answers/no-model';
 import {toolEnv, type ToolEnv} from '../../lib/ai/tools/env';
 import {runTool} from '../../lib/ai/tools/registry';
-import {recordsForAi} from '../../lib/ai/local-answers/more';
+import {recordsForAi, recordsIn} from '../../lib/ai/local-answers/more';
 import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability, type DataMode} from '../../lib/ai/capabilities';
 import {Handles} from '../../lib/ai/handles';
 import {recordsSent} from '../../lib/ai/records-sent';
@@ -122,6 +122,11 @@ export type NovaSurface = {persona: string;
    * lib/nova/local-env.ts). Absent: ZIGi's own local environment, as before.
    */
   localEnv?: () => ToolEnv | null;
+  /**
+   * Release review 2 (lane RA): what "Ask my AI for more" recomputes for NOVA's answers (ZIGi's gates for what leaves the
+   * device, narrowed by NOVA → Permissions), built with the given handles. Absent: ZIGi's own, as before.
+   */
+  moreEnv?: (handles: Handles) => ToolEnv | null;
   remember?: (chatId: string) => void;
   /** Session AK (owner follow-up 3 N11): the person's own agent, when connected (null: not connected). */
   agent?: (name: NovaAgentName) => NovaAgent | null};
@@ -516,9 +521,13 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   }, [answerLocally, localEnv]);
   /** The records a local answer used, recomputed now for the person's AI (its gate: switches, Health, sensitive screens). */
   const moreText = useCallback((calls: readonly ToolCallRecord[]): ExtraData | null => {
+    if (nova?.moreEnv) { // Release review 2 (lane RA): NOVA's records follow NOVA → Permissions
+      const handles = new Handles(context.context?.handles ?? []);
+      try { const env = nova.moreEnv(handles); return env ? recordsIn(calls, env, handles) : null; } catch { return null; }
+    }
     const sources = context.toolSources();
     return sources ? recordsForAi(calls, sources, context.gates, context.context?.handles ?? []) : null;
-  }, [context]);
+  }, [context, nova]);
   const askMore = useCallback(async (question: string, calls: readonly ToolCallRecord[], options: SendOptions = {}) => {
     const made = moreText(calls), extra = made && calls.some(c => isUntrustedTool(c.tool)) ? {...made, untrusted: true} : made;
     await send(question, {...options, ...(extra ? {extra} : {})});

@@ -40,7 +40,7 @@ export const novaAreaClosed = (area: string, lang: Lang = 'en') => lang === 'nl'
   ? `${area} staat uit voor NOVA, dus dat wordt hier niet gelezen. Zet het aan in ${NOVA_PERMISSIONS_NL}.`
   : `${AREA_WORDS[area] ?? area} is off for NOVA, so it is not read here. Turn it on in ${NOVA_PERMISSIONS}.`;
 const HEALTH_REFUSAL = /^Health is(?:n[’']t| not) shared with ZIGi\b/;
-const AREA_REFUSAL = /^(Today|Goals|Habits|Wealth) isn[’']t shared with ZIGi here\b/;
+const AREA_REFUSAL = /^(Today|Goals|Habits|Wealth) isn[’']t shared with (?:ZIGi|NOVA) here\b/;
 /**
  * A reply on NOVA's environment in NOVA's words: a Health or area refusal names NOVA → Permissions (and carries no lookup,
  * so "Ask my AI for more" cannot send what NOVA does not read); "shared with ZIGi" in an answer's note reads "with NOVA".

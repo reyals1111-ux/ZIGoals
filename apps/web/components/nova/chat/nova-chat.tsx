@@ -107,6 +107,8 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}}),
     taskEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
     // Release review 2 (R2-2): NOVA's on-device answers read under NOVA → Permissions too, and say so in NOVA's words.
+    // Release review 2 (lane RA): "Ask my AI for more" recomputes NOVA's records under NOVA → Permissions too.
+    moreEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
     localEnv: () => novaLocalEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}),
     remember: chatId => { rememberNovaChat(getAppStorage(), chatId); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); },
     agent: name => name === 'hermes' ? hermesRef.current : null,

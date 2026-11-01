@@ -70,9 +70,12 @@ export function novaToolEnv(sources: ToolSources, gates: Gates, scopes: NovaScop
   const health = open('health') && !!env.health && env.areas.health;
   const areas = {...env.areas, today: env.areas.today && (open('today') || open('notes') || open('journal')), goals: env.areas.goals && open('goals'), habits: env.areas.habits && open('habits'),
     wealth: env.areas.wealth && (open('wealth') || open('earn')), health, help: false};
+  // Release review 2 (lane RA): with Today off, the Today area stays open for the notes and the journal only, never for
+  // the agenda, tasks, focus, the Checklist, chess or the rest of Today's tools.
+  const todayTools = today ? {} : {todayTools: new Set<string>([...(open('notes') ? ['search_notes'] : []), ...(open('journal') ? ['journal'] : [])])};
   return {...env, areas, health: health ? env.health : null, fasting: health ? env.fasting : null, energy: health ? env.energy : null, coach: health ? env.coach : null,
     // ZIGi's "About me" notes follow their own switch and gate already; NOVA reads them like ZIGi does.
-    notes: env.notes};
+    notes: env.notes, ...todayTools};
 }
 
 const clean = (line: string) => escapeData(line.replace(/\s+/g, ' ').trim()).slice(0, 320);

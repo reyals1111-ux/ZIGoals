@@ -39,11 +39,15 @@ import {G1_TOOLS} from './g1-tools';
 export const TOOLS: readonly AnyTool[] = [todaySummary, ...HABIT_TOOLS, challengesTool, ...HEALTH_TOOLS, ...W_HEALTH_TOOLS, coachCheckinTool, ...GOAL_TOOLS, milestonesTool, ...WEALTH_TOOLS, ...ACCOUNT_TOOLS, ...SKILL_TOOLS, recentActivity, aboutMe, earnRates, ...AF_TOOLS, ...WHY_TOOLS, ...MONEY_TOOLS, ...JOURNAL_TOOLS, ...AK_TOOLS, ...F9_TOOLS, ...NOVA_TOOLS, ...G1_TOOLS] as unknown as readonly AnyTool[];
 const BY_NAME = new Map(TOOLS.map(tool => [tool.name, tool]));
 export const toolByName = (name: string): AnyTool | undefined => BY_NAME.get(name);
+/** Release review 2 (lane RA): what a Today tool says on NOVA with Today off in NOVA → Permissions. */
+export const TODAY_CLOSED_FOR_NOVA = 'Today isn\'t shared with NOVA here — turn it on in NOVA → Permissions.';
 /** Why the tool may not run in this environment (without running anything), or null when it may. */
 export function toolBlocked(tool: AnyTool, env: ToolEnv): ToolRefusal | null {
   const label = tool.title;
   if (tool.area === 'health') return env.health && env.areas.health ? null : refuse(tool.name, label, 'gate', HEALTH_CLOSED);
   if (tool.area === 'memory') return env.notes?.length ? null : refuse(tool.name, label, 'area', 'No notes about the person are shared with ZIGi here ("Use my notes" in What ZIGi knows about me).');
+  // Release review 2 (lane RA): NOVA's Today permission off, Notes or the Journal on: only those tools of the Today area.
+  if (tool.area === 'today' && env.todayTools && !env.todayTools.has(tool.name)) return refuse(tool.name, label, 'area', TODAY_CLOSED_FOR_NOVA);
   return env.areas[tool.area] ? null : refuse(tool.name, label, 'area', `${tool.area[0]!.toUpperCase()}${tool.area.slice(1)} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · Your Personal AI Companion.`);
 }
 /** The tools this environment may run, for a provider's tool list or a browser agent (Health tools only with the gate). */
