@@ -144,4 +144,11 @@ test('@journey 7 wallet: read-only WalletConnect linking, then Keplr Mobile pair
 test.fixme('@journey 7b Keplr Mobile signs one reviewed testnet delegation through the review sheet (stubbed signer)', async () => {
   // Needs the relay double above to answer cosmos_signDirect with a stubbed signature and the testnet chain doubles of
   // tests/staking-chain.ts on the WalletConnect path (they cover the Keplr-extension path today); not built in F2.
+  // Session AK Q1 (WIRING_AUDIT AFL9): the relay double can answer cosmos_signDirect (decrypt the wc_sessionRequest with the
+  // session key, echo the signDoc, seal the answer), but the person cannot reach a Sign press over WalletConnect: the
+  // Staking panel connects only through window.keplr (components/staking/staking-actions.tsx connect() →
+  // connectStaking(network, window.keplr)); with no extension it shows "Keplr is not installed" (or, on a phone, "Open
+  // ZIGoals in Keplr"), so no review sheet opens, and with the extension stubbed the review sheet signs with window.keplr
+  // first (components/staking/review-sheet.tsx). Nothing saves a staking session from the Keplr Mobile pairing. This turns
+  // into a test once the panel can connect through walletConnectKeplr(walletConnectSession(), chainId) (TIER 3 (wallet)).
 });

@@ -48,8 +48,9 @@ export function HoldingsImportPanel({update, imports, onUndo, onClose}: {platfor
     <RecentImports imports={imports} kind="wealth" onUndo={onUndo} />
     <div className="actions"><button type="button" className="secondary" onClick={onClose}>Done</button></div>
   </section>;
+  // Session AK Q1: the Sheet that holds this panel (Wealth → Add → Import) already shows the title as its heading, so the
+  // panel names itself for assistive tech only (the title was shown twice).
   return <section className="import-panel" aria-label="Import holdings">
-    <h2>Import holdings</h2>
     {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="holdings" onFile={f => { try { setSetup(setupFromText(f.text, OPTIONS)); setFile(f); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="wealth" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
@@ -82,8 +83,8 @@ const money = (amount: string, currency: string) => { try { return new Intl.Numb
 /** The money-log import sheet: a bank statement file (CAMT.053, OFX, MT940) or a CSV, each read on this device only. */
 export function MoneyImportPanel({onClose}: {onClose: () => void}) {
   const [source, setSource] = useState<'bank' | 'csv'>('bank');
+  // Session AK Q1: titled by the Sheet that holds it (the title was shown twice); the region keeps its name.
   return <section className="import-panel" aria-label="Import spending and income">
-    <h2>Import spending and income</h2>
     <p className="fine">Into your money log on Wealth → Spending. Read on this device only: nothing is uploaded and no bank is connected. Nothing is added until you confirm.</p>
     <div className="picker-tabs" role="group" aria-label="What kind of file">
       {([['bank', 'Bank statement file'], ['csv', 'CSV file']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={source === value} onClick={() => setSource(value)}>{label}</button>)}

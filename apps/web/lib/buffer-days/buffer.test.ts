@@ -31,7 +31,7 @@ describe('buffer days (Session AK lane M, item 11)', () => {
     expect(bufferSentence(noBalance)).toMatch(/cannot be worked out yet: add a balance/);
     const short = bufferDays(accounts(account('cash', 'EUR', [['2026-10-01', '1000', 2]])), [spend(0, '5.00'), spend(-5, '5.00')], today)[0]!;
     expect(short).toMatchObject({known: false, reason: 'short-history'});
-    expect(bufferSentence(short)).toMatch(/at least 14 days/);
+    expect(bufferSentence(short)).toBe('This cannot be worked out yet: log your EUR spending on at least 14 different days in the last 30.');
     const none = bufferDays(accounts(account('cash', 'EUR', [['2026-10-01', '1000', 2]])), [spend(-40, '5.00'), spend(-2, '9.00', 'EUR', 'income')], today)[0]!;
     expect(none).toMatchObject({known: false, reason: 'no-spending'});
   });
@@ -53,5 +53,22 @@ describe('buffer days (Session AK lane M, item 11)', () => {
     const rows2 = bufferDays(accounts(account('cash', 'EUR', [['2026-09-01', '15000', 2], ['2026-10-20', '60000', 2]])), [...month, ...older], today);
     expect(bufferTrend(rows2[0]!)).toBe('30 days ago: 15 days.');
     expect(bufferTrend(bufferDays(accounts(account('cash', 'EUR', [['2026-10-20', '60000', 2]])), month, today)[0]!)).toBeNull();
+  });
+  test('Session AK Q1 (audit #11): it counts days with spending, not the span: one purchase in a month is an honest unknown', () => {
+    const cash = () => accounts(account('cash', 'USD', [['2026-10-01', '387000', 2]]));
+    // The audit's case: one $42.10 spend (and two income entries) in the window gave "9178 days".
+    const sparse = bufferDays(cash(), [spend(-25, '1500.00', 'USD', 'income'), spend(-20, '42.10', 'USD'), spend(-3, '1500.00', 'USD', 'income')], today)[0]!;
+    expect(sparse).toMatchObject({currency: 'USD', known: false, reason: 'short-history'});
+    expect(bufferSentence(sparse)).not.toMatch(/covers/);
+    // 13 different days with spending (several entries on some days) is still not enough; the 14th day makes it known.
+    const thirteen = Array.from({length: 13}, (_, i) => [spend(-2 * i, '10.00', 'USD'), spend(-2 * i, '5.00', 'USD')]).flat();
+    expect(bufferDays(cash(), thirteen, today)[0]).toMatchObject({known: false, reason: 'short-history'});
+    const fourteen = [...thirteen, spend(-27, '15.00', 'USD')];
+    const known = bufferDays(cash(), fourteen, today)[0]!;
+    // 14 × 15.00 = 210.00 over the 30-day window (the first entry is 27 days back, so the window is 28 days): 7.50 a day.
+    expect(known).toMatchObject({known: true, windowDays: 28, dailyCents: 750, days: 516});
+    // Income days never count as spending days.
+    const incomeDays = Array.from({length: 20}, (_, i) => spend(-i, '100.00', 'USD', 'income'));
+    expect(bufferDays(cash(), [...incomeDays, spend(0, '42.10', 'USD')], today)[0]).toMatchObject({known: false, reason: 'short-history'});
   });
 });

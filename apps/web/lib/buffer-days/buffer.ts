@@ -32,8 +32,12 @@ function measure(accounts: Accounts, entries: readonly MoneyEntry[], currency: s
   const windowDays = first ? dayDiff(start, day) + 1 : 0;
   if (windowDays < MIN_HISTORY_DAYS) return {currency, known: false, reason: 'short-history', missingBalances: missing};
   let spent = 0;
-  for (const e of mine) if (e.kind === 'expense' && e.date >= start) spent += minorUnits(e.amount);
+  const spendingDays = new Set<string>();
+  for (const e of mine) if (e.kind === 'expense' && e.date >= start) { spent += minorUnits(e.amount); spendingDays.add(e.date); }
   if (spent <= 0) return {currency, known: false, reason: 'no-spending', missingBalances: missing};
+  // Session AK Q1 (WIRING_AUDIT #11): "usual spending" needs spending logged on at least MIN_HISTORY_DAYS different days in
+  // the window, as the copy says; one imported purchase in an otherwise empty month is not a usual day (it read "9178 days").
+  if (spendingDays.size < MIN_HISTORY_DAYS) return {currency, known: false, reason: 'short-history', missingBalances: missing};
   const days = Number(cash * BigInt(windowDays) / BigInt(spent));
   return {currency, known: true, days, cashCents: cash, dailyCents: Math.round(spent / windowDays), windowDays, missingBalances: missing};
 }
@@ -51,7 +55,7 @@ export function bufferDays(accounts: Accounts, entries: readonly MoneyEntry[], t
 /** One plain sentence per row, no judgement words. */
 export function bufferSentence(row: BufferRow): string {
   if (!row.known) return row.reason === 'no-cash' ? `This cannot be worked out yet: add a balance to a cash or savings account in ${row.currency}.`
-    : row.reason === 'short-history' ? `This cannot be worked out yet: log your ${row.currency} spending for at least ${MIN_HISTORY_DAYS} days.`
+    : row.reason === 'short-history' ? `This cannot be worked out yet: log your ${row.currency} spending on at least ${MIN_HISTORY_DAYS} different days in the last ${WINDOW_DAYS}.`
     : `This cannot be worked out yet: no ${row.currency} spending is logged in the last ${WINDOW_DAYS} days.`;
   const lead = row.missingBalances ? 'at least ' : '';
   return `Your cash covers ${lead}${row.days} ${row.days === 1 ? 'day' : 'days'} of your usual spending.`;

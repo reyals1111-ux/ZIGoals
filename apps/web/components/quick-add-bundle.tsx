@@ -42,7 +42,13 @@ export default function QuickAddBundle({line, today, several = false, close, oth
       try { sessionStorage.setItem(GOAL_WIZARD_DRAFT_KEY, JSON.stringify(goalWizardDraft(parts.goal, today, parts.contributionPlan))); } catch { notes.push('Fill in the goal form yourself: this browser did not keep the draft.'); }
     }
     setDone([bundleCreatedWords({habits: made, rules: ruled, goal: !!parts.goal}), ...notes].filter(Boolean).join(' '));
-    if (parts.goal) { close?.(); router.push('/app/goals/new'); }
+    if (parts.goal) {
+      router.push('/app/goals/new');
+      // Session AK Q1 (WIRING_AUDIT 6.1): the sheet closes once the goal form's address is in place. Closed first, the
+      // sheet took its Back entry out (history.back(), components/use-back-closes.ts), which undid this navigation and
+      // left the person on Today with no goal form.
+      if (close) { const started = Date.now(); const wait = () => { if (window.location.pathname.startsWith('/app/goals/new') || Date.now() - started > 5000) close(); else window.setTimeout(wait, 50); }; wait(); }
+    }
   }
   return <GoalBundleReview bundle={bundle} today={today} onConfirm={confirm} onDismiss={() => setDismissed(true)}/>;
 }
