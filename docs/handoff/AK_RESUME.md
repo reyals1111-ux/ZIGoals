@@ -39,15 +39,29 @@ lock and deadlocked F1/F2 once). The production server runs on 127.0.0.1:3101 fr
 rebuilds it (scratchpad/scripts/rebuild.sh <sha>). Chromium, ≤ 2 workers, `timeout 900`. Before pushing a lane's work,
 typecheck what is committed (a lane's edit once slipped into another lane's commit: e9b3a8d6).
 
-### State (31 Oct, 22:15 UTC)
-- Integrated and pushed: F3 (8c5f2d1a), F5 health/habits (c8afc7f1), F4 (920de5bf), F0 + F5 goals/money + F5
-  cross-pillar + BUILD list 2 #1 #3 #5 #8 (d2105402), F7 landing (7cadc0e5), F11 Studio-4 proof (a845d339), themes
-  (c9f317ae), Help + ADR rows (97e86674). New keys are wired with scratchpad/scripts/wire_key.py (all registries).
-- Running: F1 release review (docs/review/session-ak/RELEASE_REVIEW.md), F2 journeys (tests/journeys/*), F9 ZIGi
-  (lib/ai/**, components/ai/**), F10 security delta (3 read-only reviewers from 9401dcbb).
-- To do: /app/agenda weight line (measure + 10 %); F6 visual (lead + helper), F8 perf/a11y; fix every F1 Blocker/Major,
-  F2 JOURNEY_BUGS, F10 High/Medium; STATUS.md:472 says the X030 swap is in components/checklist/celebration-zigi.ts
-  (removed in e30840fe; the slot is components/zigi/studio4.ts) — correct it in the final STATUS; F12.
+### State (1 Nov, 00:45 UTC) — owner follow-up 2 (NOVA; sections Q, G, N, B, T, M, Z) is the current plan
+- The owner's message: ADR-036 "Owner follow-up 2" (verbatim; scratchpad/owner-followup-2.md). F12 waits (now Z4).
+- Architecture and lane ownership for NOVA: scratchpad/nova-architecture.md (one engine — Q28: NOVA is a surface and a
+  persona on ZIGi's engine; never a second key store, chat store, memory or tool system).
+- Pushed head before follow-up 2: 58224a69 (F0–F11 integrated; X1 chain-invisible 9ccb860a + verifier 271420e7; JB
+  journey bugs c53dbfaf + 07058ae3; F8 a15ea685; Governance landmarks 0e264929).
+- Running lanes (≤ 8 helpers + fresh reviewers):
+  - X1 (resumed, Q2): the X1 browser failures (logs scratchpad/x1-b{1..10}.log); the :3101 server stays at 271420e7 for it.
+  - Research (N0 + M0): docs/research/session-ak/NOVA.md and MOTION_2026.md only.
+  - Q1 wiring auditor (fresh, read-only): docs/review/session-ak/WIRING_AUDIT.md.
+  - NA NOVA surface: app/app/nova/page.tsx, components/nova/** (not chat/setup/workflows/panels), lib/nova/{store,layout*,widgets/**,dock*,share-setup*,orb*}.
+  - NB NOVA chat + ZIGi bridge: components/nova/chat/**, lib/nova/bridge*, components/nova/command-bar*, additive edits in components/ai/{use-chat-session,ai-chat,chat-header}.tsx and lib/ai/{chats,history,continue,session}.ts.
+  - NC setup guide + privacy: app/app/nova/setup/**, components/nova/setup/**, lib/nova/{setup*,privacy-mode*,redact*,local-servers*}, one send-path hook.
+  - ND briefs, workflows, memory, panels, cost: lib/nova/{workflows/**,briefs*}, components/nova/{workflows,panels}/**, additive lib/ai/memory.ts.
+  - NE engine reads/acts: lib/ai/{context-pack,tools,actions,evals,local-answers}/** additions; REAL_MODEL_TODO NOVA cases.
+  - B notes: lib/notes/**, components/notes/**, app/app/notes/**, additive components/journal/** + lib/journal/**, lib/search/notes*, minimal mounts in search-palette and quick-add.
+  - T tasks/time: lib/tasks/**, components/tasks/**, components/agenda/**, lib/agenda/**, lib/ics/**, lib/focus-sessions/** + focus components.
+- Lead-only files: Help, What's new, manifest (NOVA and Capture shortcuts), egress/CSP/PRIVACY, registries, Showcase,
+  shell/nav/rail/More entries, Customize start page, the ⌘/Ctrl+J mount, weights, STATUS/ADR/AK_RESUME.
+- Next waves: G1 (BUILD list 2 rest), G2 (release review rest + second review), G3 + M (visual system and motion, after
+  MOTION_2026.md), G4 (journeys on phone/themes), G5 (exploratory agent), G6, G7, G8; then Z1–Z4.
+- STATUS.md:472 says the X030 swap is in components/checklist/celebration-zigi.ts (removed in e30840fe; the slot is
+  components/zigi/studio4.ts) — correct it in the final STATUS (Z4).
 
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.

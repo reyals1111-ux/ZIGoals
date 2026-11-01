@@ -320,6 +320,258 @@ push activation; landing deploy; A13 mainnet check; the Studio-4 swap session; t
 
 Readings: Q22 — Part 13's swap is out of this PR (F11 instead); A13 is an owner check after the deploy (the A13 reminder was cancelled). Q23 — the push Worker's service binding waits for push activation (adding it now would fail the Alpha deploy until that Worker exists, the 10056 rule); the runbook's rate-limited route covers it. Q26 — F6's View Transitions page transitions are designed but not switched on in this PR: every route change would run through a transition in about 400 specs on Chromium and WebKit (they run with motion on), with the CI-green finish ahead; the design is recorded for a follow-up with its own spec pass (an `app/app/template.tsx` wrapping children in React's `<ViewTransition enter/exit="zg-page" default="none">`, a 120/180 ms fade with a 6 px rise, none under reduced motion and Motion Off, the protected chrome pinned with a fixed `view-transition-name` and no animation, and theme-switch's root crossfade scoped to a `theme` transition type). Q27 — completion micro-interactions: the existing ones stay (goal finished glow, the Checklist day celebration, Journey's celebration, the new net-worth milestone fade, each silent under Motion Off); none is added to the habit card, whose tick is the PROTECTED Checklist's pattern. Q24 — ZIGoals Wrapped's door is on Journey and in Search; a Today For you card is built (`TodayWrappedCard`) but not mounted, because Today's weight and its Showcase layout specs are pinned and the card matters from 1 December; mounting it is one lazy element when the season starts. Q25 — the vote reminder (F4) is its own opt-in per proposal, so it has no separate Notifications switch (a switch named for governance would show chain words to everyone, against "chain invisible"); unbonding dates go to the Agenda only, not to notifications (they come from Wealth's records, which a notification snapshot does not read).
 
+## Owner follow-up 2 (NOVA and finishing deeply; Q, G, N, B, T, M, Z), 1 Nov 00:30 UTC (pre-approved; worked through without questions)
+
+The owner's message, as received (screenshots described, not committed):
+
+```text
+OWNER MESSAGE 2 TO SESSION AK (received 1 Nov 2026 ~00:30 UTC), pre-approved, no reply needed; continue in auto mode.
+Do NOT start F12. Headline feature: NOVA, a private personal AI command center people build themselves on top of
+ZIGoals. Record in ADR-036 as "Owner follow-up 2" (sections Q, G, N, B, T, M, Z; every numbered item gets a closing row),
+update AK_RESUME.md, rebuild the task list. The owner attached two screenshots of his own NOVA dashboard (1.webp: a full-view dashboard, dark starfield with a diagonal purple nebula band, a centred glowing orb
+"N.O.V.A · STANDBY · CLICK TO SPEAK" in concentric rings, a big local-time clock top centre, a top-left "Your day",
+search, workflow and globe buttons, a top-right row of round service buttons and "Systems", a slim left edge rail, a
+"What's on your mind, Rey?" command bar bottom centre with ⌘K, "View controls" and "Automatic · best fit" bottom left,
+2D/3D toggle bottom right; 2.webp, the chat opened as a large glass panel over the dashboard: "YOUR PERSONAL
+INTELLIGENCE · Think out loud. · One conversation. Your whole constellation.", "Ready when you are", "New chat", a
+message list, a big composer "Message Nova…" with mic and send, "Your context stays together when the model changes.").
+Use them as inspiration for the layout and the "opening up" full-view feel, redesigned in ZIGoals' own nebula star
+system: our theme, orbits and colours, not a copy.
+
+THE OWNER'S GOAL: When the owner opens NOVA for the first time it must amaze him: a full-view dashboard that opens like
+a star system coming to life, with a working assistant, beautiful widgets and every ZIGoals feature one tap away. NOVA
+lets people learn to build the viral "personal Jarvis dashboard" setups, but ZIGoals' niche is that NOVA is already wired
+into a full life app with real goals, habits, health and wealth data. Privacy is the highest priority: local LLM first,
+the person's own keys only as an option, nothing on a ZIGoals server, no group, friend or shared features.
+
+RUN RULES
+- Many hours, continuing into the owner's new weekly usage (resets ~Sunday 12:00 Brussels), until everything below is
+  done at full quality. Never rush to F12. If paused, resume from AK_RESUME.md.
+- Helpers: up to 8 at a time in disjoint lanes (files named in AK_RESUME), plus fresh read-only reviewers/testers named
+  below. Helpers never build or commit; the lead integrates, reviews every diff, owns every shared file. Browser-slot
+  protocol (flock -o, one build or browser run at a time, Chromium, ≤ 2 workers). Push at least every 45 minutes.
+- Every rule stays: non-negotiables (consumer first and chain invisible, private by design, non-custodial, no fake
+  integrations or simulated data shown as real, no projections as guarantees); PROTECTED list (Checklist, footer finale,
+  Today hero and slogan, swan intro, tablet rail, desktop sidebar and phone bottom bar, Light's dark islands, Governance
+  hidden by default, locked ZIGi look); stored formats additive and TIER 3 with frozen readers #37–#52; every new key
+  and database in export, restore, erase and the catalog, erase-coverage and the A6 headroom test; no new dependencies;
+  no secrets; never merge or deploy; reduced motion and Motion Off; theme parity; WCAG 2.2 AA; route budgets never
+  raised (new routes measured + 10 %, loaded on use).
+- NOTHING THAT NEEDS A SERVER: no channels, group/friend chats, shared rooms, accounts for NOVA, no new Workers. NOVA
+  runs on the device; the only outside calls are the person's own local model (localhost) or, optionally, their own
+  cloud API key straight from the device to that provider.
+- Quality bar: reachable from the UI, wired end to end, working in the Showcase AND a fresh empty start, unit tests, a
+  browser spec, Help text, a labelled Showcase example and empty-start teaching. No dead code, no stubs presented as
+  features, no fake data.
+
+Q. QUALITY FIRST
+Q1 WIRING AUDIT by a fresh read-only agent: for EVERY "Built"/"Finished" row in ADR-036 (Parts 1–12, A1–A22, F0–F11),
+   check reachable from the UI, works end to end in the production build, saves and restores its data, appears in Help,
+   has a test that would fail if it broke. docs/review/session-ak/WIRING_AUDIT.md: one line per row: Working / Partly
+   working / Not reachable / Stub + evidence. Every non-Working row finished properly by a lane, with a test, before F12.
+Q2 Finish the X1 verification and fix every failure at its cause.
+
+G. FINISH DEEPLY
+G1 BUILD LIST 2 IN FULL: every remaining COMPETITORS_2.md item (all 21 except #1 #2 #3 #5 #8) in rank order at the
+   quality bar. Skip anything needing a server, accounts or sharing (record it). Record only what is truly not
+   web-possible or outside the non-negotiables, with the reason.
+G2 RELEASE REVIEW COMPLETE: fix every open finding in RELEASE_REVIEW.md (rest of R11, every other open Major, then all
+   Minor and Polish), each with a status line and a test where it applies. Then a SECOND fresh read-only reviewer runs
+   the same "official 1.0 release" review on the new head (all routes incl. NOVA, Notes and Tasks; Showcase and empty
+   start; 390 and 1440 px; three themes) into RELEASE_REVIEW_2.md; fix every Blocker and Major and as many Minor and
+   Polish as possible.
+G3 THE VISUAL SYSTEM FOR THE WHOLE APP: every existing non-protected page and card (Today's non-protected cards, Goals,
+   Habits, Health, Wealth, Insights, Review, Earn, Settings, Help, the ZIGi panel, Journal, Music, Chess, Agenda) gets
+   the pillar illustrations in every empty state, the one chart look on every chart, the richer cards and the skeleton
+   sheen. Section M then adds the motion layer (Q26 and Q27 are reversed there).
+G4 JOURNEYS ON PHONES AND THEMES: journeys 1–3 and 6 also in the phone project (390 px) and in Light and Dark; fix what
+   breaks at its cause.
+G5 EXPLORATORY TESTING: a fresh agent uses every AK feature as a curious first-time person at 390 and 1440 px (taps
+   everything, odd values, back and forth, reloads, offline), logging EXPLORATORY_BUGS.md; each bug fixed at its cause
+   with a test. Runs again after N, B and T land (Z2).
+G6 Every intermittent still open from the A12 list (incl. market-status socket and WebKit-phone cancelled fetches):
+   fixed at its cause or proven gone with repeated runs, recorded.
+G7 F10's recorded Lows and Infos fixed unless unsafe or impossible, recorded.
+G8 ZIGi and NOVA tools for G1's new features (confirm cards, money never auto-accepted, mock evals and G6 cases).
+
+N. NOVA: YOUR PRIVATE AI COMMAND CENTER (the headline; the most care)
+N0 RESEARCH FIRST (docs/research/session-ak/NOVA.md; official docs and the projects' own pages):
+ - The personal-Jarvis-dashboard trend: most shared personal AI dashboard/assistant setups (local-first assistants,
+   Open WebUI, Jan, Msty, LM Studio, AnythingLLM, home dashboards), what makes them feel magical (orb or face, voice,
+   widgets, briefs, the command bar, "it knows my day"), what users complain about (setup pain, privacy, cost,
+   forgetting), which patterns fit a PWA.
+ - Local models from an HTTPS web app, verified per OS (macOS, Windows, Linux): Ollama (install, `ollama pull`,
+   OLLAMA_ORIGINS for this app's origin, service restart), LM Studio (local server and CORS switch), llama.cpp server
+   (flags); Chrome's local-network-access permission prompt, Safari and Firefox with http://localhost from HTTPS; which
+   small and large open models fit typical RAM/VRAM (8, 16, 32, 64 GB; GPU like RTX 4070–5090) and their licences.
+ - Providers ZIGi already supports (lib/ai/adapters.ts: local Ollama and OpenAI-compatible, on-device, Anthropic,
+   OpenAI, Gemini, xAI, OpenRouter with PKCE): browser CORS rules and headers, current model names, free tiers and prices
+   (for the cost meter).
+ - HONESTY: consumer subscriptions (ChatGPT Plus/Pro, Claude Pro/Max, Grok, Gemini Advanced) do NOT include API access
+   for third-party apps. Verify on official pages, say it plainly; ways in: a local model (recommended, private, free), a
+   free API tier where one exists, a paid API key, or OpenRouter. Never imply a subscription login works.
+N1 ONE ENGINE, TWO COMPANIONS (record as a reading):
+ - NOVA uses ZIGi's existing engine: adapters, device-only keys in lib/ai/keys.ts, memory (lib/ai/memory.ts), tools,
+   confirm cards, pricing, privacy paths, local answers, context packs and budgets. No second key store, memory or tool
+   system.
+ - ZIGi stays the mascot and in-page companion that knows the page; NOVA is the full-view command center and the
+   person's own agent persona (renameable, avatar: the NOVA orb or ZIGi).
+ - They TALK TO EACH OTHER AND SHARE DATA: one shared conversation history and memory (what you tell ZIGi, NOVA knows,
+   and back; within the same privacy mode and scopes); hand-off both ways ("Continue in NOVA" from ZIGi's chat carries
+   the conversation; NOVA's "Ask ZIGi about this page" opens ZIGi on that page with NOVA's question); delegation (NOVA
+   hands a page-specific sub-task to ZIGi, which runs it with its page context pack and reports back, shown in NOVA's
+   chat as a short two-voice exchange (orb and ZIGi avatar), each step visible, every write still a confirm card); a
+   "Duo" view where both appear side by side on NOVA's dashboard when a task uses both. Tests prove shared history,
+   hand-offs, delegation (mock model), and nothing crosses a privacy mode or scope boundary.
+N2 THE NOVA PAGE: FULL-VIEW DASHBOARD THAT OPENS LIKE A STAR SYSTEM (/app/nova; own weight line; loaded on use)
+ - Opening: own page, full-view immersive (the app sidebar collapses into a slim edge; a clear "Exit NOVA" and Esc bring
+   it back). First open plays a one-time "system online" sequence: the NOVA star ignites in the centre, orbit rings expand,
+   widgets settle onto their orbits one by one, the greeting types in, ~2 s, skippable with any key or tap, never again
+   unless replayed in Customize. Reduced motion and Motion Off show the finished dashboard immediately.
+ - Layout: a real, usable grid dressed as a star system: the NOVA star/orb at the centre or top (hand-made animated
+   SVG/canvas in the nebula palette: breathes idle, ripples listening, swirls thinking, pulses speaking; still under reduced
+   motion/Motion Off); widgets as glass panels on faint orbit rings; feature buttons as a dock of planets/moons; a
+   starfield/nebula backdrop drifting very slowly, paused when the tab is hidden. Desktop/tablet: wide multi-panel; phones:
+   native-app style stacked view with the orb on top, a swipeable widget carousel and the chat as a bottom sheet.
+ - The chat (the heart): streaming answers, safe Markdown, code blocks, tool cards, confirm cards with Undo, stop, retry,
+   edit last message, a conversation list with search, pinned chats, export a chat as Markdown, voice in/out (N3 step 7),
+   the NOVA–ZIGi exchange from N1. Works exactly as well as the ZIGi chatbot (same engine).
+ - Quick-access dock (labels and keyboard shortcuts): ZIGi chat, the Checklist, the music player (live now-playing and
+   controls in a mini widget), Focus/Pomodoro, Quick add, Agenda, Tasks, Notes capture, Weekly review, Goals, Habits,
+   Health, Wealth, Earn (only if chosen), Chess, Settings. Reorderable, hide/show, per device.
+ - Live widgets (gallery; add, remove, resize S/M/L, drag onto orbits; each opens its page with a shared-element
+   transition): today's orbit progress, the next three items, water, an active focus timer, now playing, the next bill
+   and contribution, goal pace, sleep balance, the weather-free "day at a glance" from the person's own data, unread NOVA
+   briefs, a notes inbox count, the market watch only if markets chosen. Unknown never shown as zero; empty widgets teach.
+ - Status chips: the brain (model, local or cloud), privacy mode, memory on/off, granted scopes, offline. "Test my setup"
+   runs every check.
+ - Panels: Memory (see, edit, pin, forget, export), Permissions (per-pillar read scopes; Health off by default), Activity
+   (every NOVA and ZIGi action with Undo), Workflows, Cost meter (estimated tokens and cost per provider from the pricing
+   table, labelled an estimate, daily cap; local models "free, on your device"), model picker per task (chat, briefs,
+   workflows).
+ - MAKE IT YOURS: layouts (Orbit, Bento, Focus, Minimal), accent choices within the nebula palette, persona name and
+   avatar, custom instructions; "Share my NOVA setup" exports layout, widgets, workflows and persona as a small JSON file
+   and a setup card image with NO personal data (tested); "Import a setup" loads one.
+ - Reachable from the desktop sidebar and tablet rail as a new entry under the existing rules, from the phone top bar /
+   More (phone bottom bar PROTECTED, unchanged), the command palette, ⌘/Ctrl + J from any page, a PWA shortcut "NOVA".
+   Customize gets "Start page: Today or NOVA" (Today stays default).
+ - Works from minute one without any model: on-device local answers and tools ("on-device answers"), and a calm card
+   invites building the NOVA brain with the guide. With a model connected it becomes a full assistant.
+N3 "BUILD YOUR OWN NOVA": SETUP GUIDE AS A PLANET CHECKLIST (on Earn's Start-here orbit path component and its one-time
+   motion, not a copy; /app/nova/setup and a card on NOVA until finished; progress per device; every step has a check):
+   1 Meet NOVA (what stays private: everything on the device, keys never leave it, nothing trained on, money never moves).
+   2 Privacy mode: Strict (local model only; recommended default), Guarded (cloud allowed; secrets, account numbers,
+     addresses, exact amounts and names redacted or rounded before sending, preview of exactly what is sent), Relaxed
+     (granted scopes sent as they are, informed choice).
+   3 Your brain, local first: (a) RECOMMENDED local model: Ollama, LM Studio, llama.cpp on macOS, Windows, Linux,
+     copyable commands one per block, the origin setting for this app, the browser permission prompt explained, model
+     picks by RAM/VRAM, a live connection test naming the model found; (b) own API key (Anthropic, OpenAI, Gemini, xAI)
+     with where to get it, free tier where it exists, spending-limit advice, a test; (c) OpenRouter sign-in (PKCE);
+     (d) on-device where the browser offers it. The honest subscription note.
+   4 First conversation: a guided chat showing NOVA knows the person's day (scopes from step 5 previewed).
+   5 Data scopes pillar by pillar, with a "What NOVA can see" preview of the exact context pack.
+   6 Memory: what NOVA may remember, how to review and forget.
+   7 Voice (optional): speech output on the device (Speech Synthesis); speech input with an honest note where the
+     browser sends audio to its vendor, on-device recognition where supported, off by default.
+   8 Daily briefs: morning brief and evening recap on NOVA (composed on the device; with a cloud model only in Guarded or
+     Relaxed; as a notification only if notifications already on).
+   9 Workflows: run "Review my week" and save one of your own.
+   10 Make it yours: layout, widgets, persona, custom instructions, cost cap, share setup.
+   Finishing: a calm celebration (once) and a "NOVA online" badge.
+N4 NOVA READS EVERYTHING (with permission): context packs for every pillar and every AK feature (goals and pace, habits
+   and strength, health and nutrition, workouts, sleep, measurements, supplements, money log, budgets, bills, purpose
+   flow, agenda, tasks, notes, journal, focus, music, chess; Earn and chain only if chosen), within granted scopes,
+   existing token budgets and the privacy mode's redaction. "What NOVA can see" shows the exact pack before sending.
+N5 NOVA ACTS (proposes; person confirms): tools for every pillar (create a goal or habit bundle, log a habit, meal,
+   water, workout, measurement or supplement, plan meals and grocery list, add a note or task, schedule on the agenda,
+   start focus or a soundscape, open any page, draft a contribution pre-fill), each a confirm card with Undo. Money never
+   auto-accepted; nothing signed, sent or moved by NOVA or ZIGi; chain actions only open the existing review sheet.
+N6 BRIEFS AND WORKFLOWS: morning brief and evening recap; editable templates: "Review my week and suggest three
+   adjustments", "Turn this journal entry into a goal and habits", "Plan my meals and grocery list for next week",
+   "Where did my money go this month?", "What's affecting my sleep?" (Compare explorer), "Prepare my monthly money
+   check-in", "Draft my focus plan for tomorrow", "Clear my notes inbox". Each run shows its steps live, asks before
+   every write, can be saved as a custom workflow (device-only, exportable, shareable inside "Share my NOVA setup"
+   without personal data).
+N7 LONG-TERM MEMORY on lib/ai/memory.ts: preferences, decisions, people and context the person approves (proposed,
+   accepted), with sources, dates, edit and forget; nothing from health data unless Health is granted; in export,
+   restore, erase and the catalog.
+N8 ALWAYS OPEN: NOVA as the installed PWA's start page if chosen, the picture-in-picture mini window where lib/ai/pip.ts
+   supports it, unread briefs, the global ⌘/Ctrl + J command bar.
+N9 SAFETY AND PRIVACY: notes, journal entries, imported files and pasted text are data, never instructions
+   (prompt-injection tests); tool loops capped; Guarded mode shows "NOVA is about to send this to <provider>" with the
+   redacted text; keys device-only (never synced in plain form, never exported unless asked and warned); CSP adds only
+   localhost for local servers plus provider hosts ZIGi already allows (any change TIER 3 (CSP) with egress-policy
+   entries and PRIVACY lines); no arbitrary user-entered hosts outside the curated list and localhost (recorded reason:
+   CSP stays exact). PRIVACY.md and Help explain NOVA plainly.
+N10 TESTS: unit tests for packs, redaction, scopes, shared history, hand-offs and delegation, memory, workflows, cost
+   meter, the setup share file (no personal data); browser specs for the opening sequence (and reduced-motion version),
+   the dashboard at 390/768/1440 in three themes, widget gallery and drag, the dock, the guide (every planet's check with
+   mocked local and cloud servers), streaming, confirm cards and Undo, the start-page setting and the shortcut; a NOVA
+   journey in tests/journeys (fresh start → NOVA on-device → guide → mock local model → brief → workflow → ZIGi
+   delegation → actions with Undo → share setup → erase). Mock evals and G6 cases for NOVA; REAL_MODEL_TODO.md gets NOVA
+   cases for the later local real-model run.
+
+B. NOTES THAT CONNECT TO YOUR LIFE (on the existing Journal; all device-only)
+B1 Capture inbox: text, voice (as N3 step 7) or a device-only photo, from the command palette, Quick add, NOVA and a PWA
+   shortcut; lands in the inbox to file later.
+B2 Daily notes that link themselves to that day's habits, health logs, workouts, money entries and goal progress (a
+   "This day" strip, not copied text).
+B3 Linked notes: [[links]] with autocomplete to notes, goals and habits; backlinks on every note, goal and habit; a graph
+   view in the star-system style (hand-made SVG/canvas; a list view for accessibility and reduced motion).
+B4 One search across notes AND the four pillars, from the command palette and NOVA.
+B5 Markdown export (ZIP of .md with front-matter, Obsidian-friendly) and Markdown import; "Chat with my notes" through
+   NOVA within its scopes and privacy mode.
+
+T. ONE EXECUTION LAYER FOR TODAY (device-only)
+T1 Tasks: simple tasks and goal next-actions (title, due date, goal link, priority) mixed with habits on the Agenda's day
+   view and as a NOVA widget; the Checklist stays PROTECTED and unchanged.
+T2 Calendar import: .ics file import (read-only events shown on the Agenda), next to the .ics export; no account, no server.
+T3 Focus: a Pomodoro mode in the existing Focus sessions, started from a task, with the ambient player and a NOVA widget.
+
+M. NEXT-GENERATION MOTION AND DESIGN ACROSS THE WHOLE APP AND THE LANDING (inside PROTECTED; deep navy, white → nebula
+   headings, planets and orbits, liquid-glass hover WITHOUT pointer tracking, readable text)
+M0 Research (docs/research/session-ak/MOTION_2026.md): what the most admired apps/sites of 2025–2026 use (Apple's Liquid
+   Glass, Linear, Arc, Raycast, Vercel, Stripe, Framer sites, Awwwards winners) and which techniques are web-native,
+   fast and accessible.
+M1 Web-native motion, no new dependency: View Transitions API for page and element transitions (shared elements between
+   a card or widget and its detail page); scroll-driven animations (animation-timeline: scroll/view) for gentle reveals
+   on long pages and the landing; @property animated gradients for nebula headings and borders; spring-like easing with
+   CSS linear(); staggered entrances that play ONCE; number tickers that count up once; animated SVG strokes for charts
+   and orbit paths; completion micro-interactions (soft burst, ring fill) that play once. Reverses Q26 and Q27.
+M2 Next-gen surfaces: refined liquid glass (backdrop blur, specular edge, subtle noise) on cards, sheets, the dock and the
+   command bar; bento grids for Today's non-protected area, NOVA and the pillar overviews; aurora/mesh gradient
+   backgrounds drifting very slowly; depth and parallax driven by scroll, never by the pointer; the starfield/nebula
+   canvas on NOVA and the landing hero, paused when hidden, off under reduced motion, Motion Off, battery saver where
+   detectable, and on low-end devices.
+M3 Ambient and attention: the NOVA orb; live activity chips; skeletons with the sheen; optimistic UI with calm
+   confirmation; haptics via the Vibration API where supported (Android), respecting mute and Motion Off.
+M4 Every motion silent under reduced motion and Motion Off, never blocks input, never loops on content except the NOVA
+   orb's slow breathing (stops under reduced motion), never tracks the pointer. Customize gets "Motion: Full / Calm /
+   Off" (Calm = entrances only).
+M5 Performance: GPU-friendly properties only, content-visibility where safe, no layout thrash; F8 numbers must not get
+   worse; measure INP and long tasks on Today, NOVA, Wealth and Earn before and after; record.
+M6 The landing (zigoals.app) on top of F7: a NOVA chapter ("Your life data and your own AI, in one private place" /
+   "Build your own Jarvis, with a real life to run"), the orb and a short reduced-motion-safe loop of the opening
+   sequence, scroll-driven chapter reveals, the starfield hero, a bento feature grid, honest MO6 claims and tests,
+   labelled example screens, weight budget held, check:landing green. The owner deploys it.
+M7 Theme parity in Nebula, Light (dark islands) and Dark and every Customize option; layout audit at 320, 390, 768, 1024,
+   1440 and 1920 px × 3 themes green; the contrast scanner on every new surface.
+
+Z. CLOSE (only after Q, G, N, B, T and M are done and verified)
+Z1 Fresh security review (≤ 3 reviewers) of everything after 58224a69, NOVA first: key handling, redaction, scopes, shared
+   history and delegation, prompt injection through notes/imports/pasted text, tool confirm paths, the localhost path
+   and origins, memory, the share-setup file, capture photos, .ics import, the CSP. Fix every High and Medium; record Lows.
+Z2 G5's exploratory agent again on NOVA, Notes, Tasks and the motion pass; fix what it finds.
+Z3 A final wiring audit (Q1 again) on the new rows.
+Z4 F12 exactly as written in follow-up 1 (full sweep, full gate incl. every journey, PR out of Draft, PR-review Action
+   once, CI green, final STATUS entry incl. Q, G, N, B, T, M; correct the X030 slot path noted in AK_RESUME; the owner
+   list: food Worker FIRST, then merge and deploy #53 and the verifier; Reown allowed domains; push activation; the
+   landing deploy; A13 mainnet check; the Studio-4 swap session; the real-model run incl. NOVA and a real local model),
+   and the short report whose preview steps start with "Open NOVA" and the setup guide.
+```
+
+Readings: Q28 — N1 (one engine, two companions): NOVA is a full-view surface and persona on ZIGi's existing engine (adapters, device-only keys, memory, tools, confirm cards, pricing, privacy paths, local answers, packs, budgets); there is no second key store, memory or tool system; ZIGi and NOVA share one conversation history and memory within the same privacy mode and scopes. Q29 — F12 waits until Q, G, N, B, T and M are done and verified (Z4).
+
 ## Per-surface quality lines (A22)
 Compared with COMPETITORS.md (c); "meets" = the pattern's essentials are there, "gap" = what F1/F6 should raise.
 - **Barcode and food (4.1, 4.4, Part 10 #3/#15):** meets — barcode miss falls through to "Add it yourself" with the label
@@ -409,7 +661,48 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F9 ZIGi for everything new | Built: five confirm cards (never auto-accepted), five read-only tools, on-device answers; Today's prompt unchanged; every page ≤ 9,000 tokens | `8f6e7629` | lib/ai tests (1,201); budget-ak.test.ts; evals ak-f9 and G6 |
 | F10 security delta review | Built: three fresh reviewers on 9401dcbb..HEAD — no High; 1 Medium fixed (the agenda's unbonding titles); 11 Low (8 fixed, 3 recorded); 6 Info (3 fixed, 3 recorded) | `6e049943` | docs/security/review-2026-10/SESSION_AK_F10.md; unbonding-privacy, denoms, guard, notify tests |
 | F11 Studio-4 preparation complete and proven | Built: every Part 12 slot verified wired (X030 cheer unused by the PROTECTED Checklist until the owner says yes); dry run of studio4-deliver/ through the importer; runbook | `a845d339` | scripts/zigi/studio4-dry-run.test.mjs (17 tests); docs/handoff/STUDIO4_SWAP_RUNBOOK.md |
-| F12 finish | Open | — | — |
+| F12 finish | Moved into Z4 (owner follow-up 2) | — | — |
+| Q1 Wiring audit of every Built/Finished row (fresh read-only agent; WIRING_AUDIT.md); every non-Working row finished | Open | — | — |
+| Q2 Finish the X1 verification; fix every failure at its cause | Open | — | — |
+| G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Open | — | — |
+| G2 Release review complete; second fresh review (RELEASE_REVIEW_2.md); fix Blockers/Majors and as many Minor/Polish as possible | Open | — | — |
+| G3 The visual system across every non-protected page and card | Open | — | — |
+| G4 Journeys 1–3 and 6 on the phone project and in Light and Dark | Open | — | — |
+| G5 Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md); fixes with tests | Open | — | — |
+| G6 Every open A12 intermittent fixed or proven gone | Open | — | — |
+| G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Open | — | — |
+| G8 ZIGi and NOVA tools for G1's new features | Open | — | — |
+| N0 NOVA research (docs/research/session-ak/NOVA.md) | Open | — | — |
+| N1 One engine, two companions: shared history and memory, hand-offs, delegation, Duo view (Q28) | Open | — | — |
+| N2 The NOVA page /app/nova: full-view dashboard, opening sequence, orb, chat, dock, widgets, chips, panels, make it yours, share setup, entry points | Open | — | — |
+| N3 Build your own NOVA: the setup guide as a planet checklist (10 steps with checks) | Open | — | — |
+| N4 NOVA reads everything (with permission): context packs, What NOVA can see | Open | — | — |
+| N5 NOVA acts: confirm cards with Undo for every pillar; money never auto-accepted | Open | — | — |
+| N6 Briefs and workflows (8 templates; custom workflows) | Open | — | — |
+| N7 Long-term memory on lib/ai/memory.ts | Open | — | — |
+| N8 Always open: start page, picture-in-picture, unread briefs, ⌘/Ctrl + J | Open | — | — |
+| N9 Safety and privacy: injection tests, loop caps, Guarded preview, keys device-only, exact CSP | Open | — | — |
+| N10 Tests: units, specs, NOVA journey, evals, REAL_MODEL_TODO | Open | — | — |
+| B1 Capture inbox (text, voice, device-only photo) | Open | — | — |
+| B2 Daily notes with a This day strip | Open | — | — |
+| B3 Linked notes, backlinks, graph view (and list view) | Open | — | — |
+| B4 One search across notes and the four pillars | Open | — | — |
+| B5 Markdown export (ZIP) and import; Chat with my notes | Open | — | — |
+| T1 Tasks and goal next-actions on the Agenda and as a NOVA widget | Open | — | — |
+| T2 Calendar .ics import (read-only events on the Agenda) | Open | — | — |
+| T3 Pomodoro in Focus sessions, from a task, with the ambient player | Open | — | — |
+| M0 Motion research (MOTION_2026.md) | Open | — | — |
+| M1 Web-native motion (View Transitions, scroll-driven, @property, linear(), once-only entrances, tickers, strokes, micro-interactions; reverses Q26 and Q27) | Open | — | — |
+| M2 Next-gen surfaces (liquid glass, bento, aurora, scroll depth, starfield canvas) | Open | — | — |
+| M3 Ambient and attention (orb, activity chips, skeletons, optimistic UI, haptics) | Open | — | — |
+| M4 Motion rules and Customize Motion: Full / Calm / Off | Open | — | — |
+| M5 Performance before/after (INP, long tasks on Today, NOVA, Wealth, Earn) | Open | — | — |
+| M6 The landing: NOVA chapter, orb loop, scroll reveals, starfield hero, bento grid | Open | — | — |
+| M7 Theme parity, layout audit 6 widths × 3 themes, contrast scanner | Open | — | — |
+| Z1 Fresh security review of everything after 58224a69, NOVA first | Open | — | — |
+| Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Open | — | — |
+| Z3 Final wiring audit on the new rows | Open | — | — |
+| Z4 F12 as written in follow-up 1, with the report starting "Open NOVA" | Open | — | — |
 | 5.1 schedules: "first Monday of the month" | Open (F0x lane) | — | — |
 | 5.7 time-of-day sections (COMPETITORS #23) | Already done | components/habits/habit-sections.tsx (Session AA) | habits-aa specs |
 | 6.5 cross-pillar progress toast | Open (F0x lane) | — | — |
