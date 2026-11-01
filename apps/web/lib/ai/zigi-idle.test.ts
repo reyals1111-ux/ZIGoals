@@ -7,14 +7,16 @@ const skin = skinOf('origami-nebula');
 const pool = idlePool(skin);
 describe('the idle pool', () => {
   it('holds the delivered clips that read as idle-appropriate, never sleepy, and only clips of their own', () => {
-    expect(pool.map(v => v.id)).toEqual(['listening', 'thinking', 'insight']);
+    // Session AK Part 13 (the art arrived; restated at equal strength): Studio-4's three idle variants join, after the delivered clips.
+    expect(pool.map(v => v.id)).toEqual(['listening', 'thinking', 'insight', 'X010-idle-glance', 'X011-idle-settle', 'X012-idle-logo']);
+    expect(pool.slice(3).map(v => [v.weight, v.durationMs, v.accent])).toEqual([[0.5, 5000, false], [0.5, 5000, false], [0.5, 5000, false]]);
     expect(pool.find(v => v.id === 'insight')!.accent).toBe(true); expect(pool.filter(v => v.accent).length).toBe(1);
     expect(pool.some(v => v.id === 'sleepy')).toBe(false);
     for (const v of pool) expect(v.files.animated, v.id).toMatch(/\.anim\.webp$/);
   });
   it('adds the Studio-4 idle variants once their files land', () => {
     const clip: ExtraClip = {name: 'X010-idle-glance', kind: 'loop', durationMs: 5000, files: {'1x': '/x.webp', '2x': '/x2.webp', animated: '/x.anim.webp', animatedFallback: '/x.anim.png'}};
-    const later: Skin = {...skin, extras: {...skin.extras!, idleVariants: {X010: clip, X011: null}}};
+    const later: Skin = {...skin, extras: {...skin.extras!, idleVariants: {X010: clip, X011: null, X012: null}}};
     expect(idlePool(later).map(v => v.id)).toEqual(['listening', 'thinking', 'insight', 'X010-idle-glance']);
     expect(variantFrame(idlePool(later)[3]!, false, {x1: '/b.webp', x2: '/b2.webp'})).toEqual({poster: {x1: '/x.webp', x2: '/x2.webp'}, animated: '/x.anim.webp', own: true});
     expect(variantFrame(idlePool(later)[3]!, true, {x1: '/b.webp', x2: '/b2.webp'}).animated).toBe('/x.anim.png');
@@ -26,13 +28,18 @@ describe('picking', () => {
     expect(pickIdle(pool, none, 0, 0)).toBeNull(); expect(pickIdle(pool, none, 0, BASE_WEIGHT - 0.001)).toBeNull();
     const counts: Record<string, number> = {};
     for (let i = 0; i < 1000; i++) { const v = pickIdle(pool, none, 0, (i + 0.5) / 1000); counts[v?.id ?? 'base'] = (counts[v?.id ?? 'base'] ?? 0) + 1; }
-    expect(counts.base).toBe(500); expect(counts.listening).toBe(250); expect(counts.thinking).toBe(150); expect(counts.insight).toBe(100);
+    // Session AK Part 13 (the pool grew by X010–X012, weight 0.5 each): the rest shared by weight over 2.5.
+    expect(counts.base).toBe(500); expect(counts.listening).toBe(100); expect(counts.thinking).toBe(60); expect(counts.insight).toBe(40);
+    expect(counts['X010-idle-glance']).toBe(100); expect(counts['X011-idle-settle']).toBe(100); expect(counts['X012-idle-logo']).toBe(100);
+    expect(Object.keys(counts)).toHaveLength(7);
   });
   it('never the same variation twice in a row, never two accents close together', () => {
     for (let i = 0; i < 1000; i++) expect(pickIdle(pool, {lastId: 'listening', lastAccentAt: -Infinity}, 0, (i + 0.5) / 1000)?.id).not.toBe('listening');
     const after = {lastId: 'insight', lastAccentAt: 100_000};
     for (let i = 0; i < 1000; i++) expect(pickIdle(pool, after, 100_000 + ACCENT_EVERY_MS - 1, (i + 0.5) / 1000)?.accent ?? false).toBe(false);
-    expect(pickIdle(pool, {lastId: null, lastAccentAt: 100_000}, 100_000 + ACCENT_EVERY_MS, 0.999)?.id).toBe('insight');
+    // (Session AK Part 13: insight's share of the grown pool is the randoms in [0.66, 0.70).)
+    expect(pickIdle(pool, {lastId: null, lastAccentAt: 100_000}, 100_000 + ACCENT_EVERY_MS, 0.68)?.id).toBe('insight');
+    expect(pickIdle(pool, {lastId: null, lastAccentAt: 100_000}, 100_000 + ACCENT_EVERY_MS - 1, 0.68)?.id).toBe('X010-idle-glance');
   });
   it('an empty pool or nothing allowed gives the base', () => {
     expect(pickIdle([], none, 0, 0.9)).toBeNull();

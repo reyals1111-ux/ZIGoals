@@ -18,16 +18,16 @@ import {variantPools} from '../../apps/web/components/zigi/variants.ts';
  * the looping reactions R003/R010/R011) and the importer's constants follow the manifest.
  */
 const here = fileURLToPath(new URL('.', import.meta.url)), repo = join(here, '..', '..');
-const fixture = join(here, 'fixtures', 'studio4'), receipt = join(fixture, 'SHA256SUMS');
+const fixture = join(here, 'fixtures', 'studio4'), receipt = join(fixture, 'SHA256SUMS'), BEFORE = join(here, 'fixtures', 'manifest-before-studio4.json');
 const scratch = [];
 afterEach(() => { for (const dir of scratch.splice(0)) rmSync(dir, {recursive: true, force: true}); });
-/** A scratch repository: the real manifest, an empty skin folder. */
+/** A scratch repository: the manifest as it stood before the Studio-4 import (Session AK Part 13: the live one is filled), an empty skin folder. */
 function scratchRepo() {
   const root = mkdtempSync(join(tmpdir(), 'zigi-import-'));
   scratch.push(root);
   mkdirSync(join(root, 'apps', 'web', 'components', 'zigi'), {recursive: true});
   mkdirSync(join(root, 'apps', 'web', 'public', 'brand', 'figures', 'zigi'), {recursive: true});
-  cpSync(join(repo, 'apps', 'web', 'components', 'zigi', 'manifest.json'), join(root, 'apps', 'web', 'components', 'zigi', 'manifest.json'));
+  cpSync(BEFORE, join(root, 'apps', 'web', 'components', 'zigi', 'manifest.json'));
   return root;
 }
 const quiet = () => undefined;
@@ -136,7 +136,7 @@ test('a delivery with a tampered file, an extra file or no receipt is refused as
   expect(said.some(l => /WARNING: F099-newstate\.webp is not in the receipt/.test(l))).toBe(true);
 });
 test('filling the manifest is a pure data change: the input is not touched and unknown states are left alone', () => {
-  const manifest = JSON.parse(readFileSync(join(repo, 'apps', 'web', 'components', 'zigi', 'manifest.json'), 'utf8')), frozen = JSON.stringify(manifest);
+  const manifest = JSON.parse(readFileSync(BEFORE, 'utf8')), frozen = JSON.stringify(manifest);
   const filled = fillManifest(manifest, 'origami-nebula', [{name: 'X010-idle-glance.anim.webp', parsed: parseName('X010-idle-glance.anim.webp')}], '/brand/figures/zigi/origami-nebula/');
   expect(JSON.stringify(manifest)).toBe(frozen);
   expect(filled.skins['origami-nebula'].extras.idleVariants.X010).toEqual({name: 'X010-idle-glance', files: {animated: '/brand/figures/zigi/origami-nebula/X010-idle-glance.anim.webp'}, kind: 'loop', durationMs: 0});
@@ -145,7 +145,7 @@ test('filling the manifest is a pure data change: the input is not touched and u
   const older = JSON.parse(frozen); delete older.skins['origami-nebula'].extras.celebrations; delete older.skins['origami-nebula'].extras.variants;
   const grown = fillManifest(older, 'origami-nebula', ['X030-cheer.anim.webp', 'X054-celebrate-small-hop.anim.png'].map(name => ({name, parsed: parseName(name)})), '/brand/figures/zigi/origami-nebula/');
   expect(grown.skins['origami-nebula'].extras.celebrations.cheer).toEqual({name: 'X030-cheer', files: {animated: '/brand/figures/zigi/origami-nebula/X030-cheer.anim.webp'}, kind: 'one-shot', durationMs: 0});
-  expect(grown.skins['origami-nebula'].extras.variants.X054).toEqual({name: 'X054-celebrate-small-hop', files: {animatedFallback: '/brand/figures/zigi/origami-nebula/X054-celebrate-small-hop.anim.png'}, kind: 'one-shot', durationMs: 0});
+  expect(grown.skins['origami-nebula'].extras.variants.celebrateSmall).toEqual({name: 'X054-celebrate-small-hop', files: {animatedFallback: '/brand/figures/zigi/origami-nebula/X054-celebrate-small-hop.anim.png'}, kind: 'one-shot', durationMs: 0});
   // With no extras at all, every group starts empty.
   const bare = JSON.parse(frozen); delete bare.skins['origami-nebula'].extras;
   expect(fillManifest(bare, 'origami-nebula', [], '/x/').skins['origami-nebula'].extras).toEqual({reactions: {}, idleVariants: {}, transitions: {greetingInPlace: null, chain: []}, gaze: {chatInput: null, viewer: null, target: null}, celebrations: {cheer: null}, variants: {}});
@@ -191,7 +191,8 @@ test('Session AK Part 12: the importer\'s constants follow the manifest: every s
   for (const [code, state] of Object.entries(STATE_BY_CODE)) expect(LOOPS.has(code), code).toBe(manifest.states[state].kind === 'loop');
   for (const code of ['F010', 'F011', 'F021', 'F022', 'F023', 'R003', 'R010', 'R011', 'X012', 'X050', 'X051', 'X052', 'X053']) expect(LOOPS.has(code), code).toBe(true);
   for (const code of ['F012', 'F020', 'R001', 'R004', 'X030', 'X054']) expect(LOOPS.has(code), code).toBe(false);
-  expect(EXTRA_SLOT).toMatchObject({X012: ['idleVariants', 'X012'], X030: ['celebrations', 'cheer'], X050: ['variants', 'X050'], X051: ['variants', 'X051'], X052: ['variants', 'X052'], X053: ['variants', 'X053'], X054: ['variants', 'X054']});
+  // Session AK Part 13: the variant slots take the names Studio-4's IMPORTER-PATCH.md gives them.
+  expect(EXTRA_SLOT).toMatchObject({X012: ['idleVariants', 'X012'], X030: ['celebrations', 'cheer'], X050: ['variants', 'speakingB'], X051: ['variants', 'speakingC'], X052: ['variants', 'listeningB'], X053: ['variants', 'thinkingB'], X054: ['variants', 'celebrateSmall']});
   // The manifest the app ships names every slot the importer can fill except X012, which the importer adds (zigi-assets.test pins X010/X011).
   const extras = manifest.skins['origami-nebula'].extras;
   for (const [code, [group, key]] of Object.entries(EXTRA_SLOT)) if (code !== 'X012') expect(Object.hasOwn(extras[group], key), code).toBe(true);

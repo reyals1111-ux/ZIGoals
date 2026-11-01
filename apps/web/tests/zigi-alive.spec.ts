@@ -199,8 +199,11 @@ test('idle that feels alive: under Full a variation plays now and then (never tw
   // Session X-Local Part 3. A fixed random number (a test-only session key) makes the picks exact: the first variation
   // is the accent (insight), the next a glance; the gap is the upper bound (60 s). The mocked clock is advanced in
   // steps and the figure watched at each, since the alive chunk's own start is not in step with this test.
+  // Session AK Part 13 (the Studio-4 art arrived; the seed moved, the rules did not): Studio-4's idle variants X010–X012
+  // joined the pool (zigi-idle.test), so 0.68 is the number that picks the accent first (0.999 now picks X012); the gap is
+  // 48.8 s, and the next pick, never the accent so soon, is X010's glance around.
   await seed(page, {[ZIGI_KEY]: {version: 1, animation: 'full'}});
-  await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.999'));
+  await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.68'));
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
   const zigi = page.locator('.ai-launcher-button .zigi');
@@ -222,7 +225,7 @@ test('idle that feels alive: under Full a variation plays now and then (never tw
   expect(await advanceUntil(false, 5000)).toMatch(/^F001-idle/);
   // The next is a glance, never the accent again so soon.
   const second = await advanceUntil(true, 65_000);
-  expect(second).toMatch(/^(T001-thinking|F004-listening)/);
+  expect(second).toMatch(/^X010-idle-glance/);
   await advanceUntil(false, 6000);
   // Typing in a text field stops it at once and keeps it away.
   await openChat(page);

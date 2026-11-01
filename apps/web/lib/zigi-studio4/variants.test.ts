@@ -56,10 +56,11 @@ describe('the pools', () => {
     expect(poolOf({name: 'X053-lean', pool: 'listening'})).toBe('listening');
     expect(poolOf({name: 'X053-lean'})).toBeNull(); expect(poolOf({name: 'X050-speakingly'})).toBeNull(); expect(poolOf({name: 'X050-celebrate-nod'})).toBeNull(); expect(poolOf({name: 'X050-speaking', pool: 'dancing'})).toBe('speaking');
   });
-  it('today\'s skin has the variant slots and no variant in any pool (no visual change)', () => {
+  it('the skin\'s variant slots and its exact pools (Session AK Part 13: the art arrived; the pools by the clips\' own names)', () => {
     const skin = skinOf('origami-nebula');
-    expect(Object.keys(skin.extras!.variants!)).toEqual(['X050', 'X051', 'X052', 'X053', 'X054']);
-    expect(variantPools(skin)).toEqual({speaking: [], listening: [], thinking: [], 'celebrate-small': []});
+    expect(Object.keys(skin.extras!.variants!)).toEqual(['speakingB', 'speakingC', 'listeningB', 'thinkingB', 'celebrateSmall']);
+    expect(Object.fromEntries(Object.entries(variantPools(skin)).map(([pool, list]) => [pool, list.map(v => [v.id, v.durationMs])]))).toEqual({speaking: [['X050-speaking-b', 1600], ['X051-speaking-c', 5000]], listening: [['X052-listening-b', 1600]], thinking: [['X053-thinking-b', 4000]], 'celebrate-small': [['X054-celebrate-small', 2000]]});
+    for (const list of Object.values(variantPools(skin))) for (const v of list) expect(v.files.animated, v.id).toBe(`/brand/figures/zigi/origami-nebula/${v.id}.anim.webp`);
     // A landed variant (animated file) joins its pool; one without an animated file, or no pool, does not.
     const filled: Skin = {...skin, extras: {...skin.extras!, variants: {
       X050: {name: 'X050-speaking-nod', files: {animated: '/brand/figures/zigi/origami-nebula/X050-speaking-nod.anim.webp'}, kind: 'loop', durationMs: 1600},

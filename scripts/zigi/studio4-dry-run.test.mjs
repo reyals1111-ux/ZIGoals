@@ -6,9 +6,9 @@ import {join, relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {crc32, deflateSync} from 'node:zlib';
 import {afterAll, expect, test} from 'vitest';
-import {BUDGETS, PIXELS, PUSH_ART, PUSH_BUDGET, PUSH_TARGET, REACTION_EVENTS, run, webpHeader} from './import-studio.mjs';
+import {BUDGETS, HOST_FACT_REACTIONS, PIXELS, PUSH_ART, PUSH_BUDGET, PUSH_TARGET, REACTION_EVENTS, run, webpHeader} from './import-studio.mjs';
 import {cheerOf, filesFor, reactionArtOf, readManifest, skinOf} from '../../apps/web/components/zigi/manifest.ts';
-import {isSemanticEvent, REACTION_EVENTS as APP_REACTION_EVENTS} from '../../apps/web/components/zigi/semantic.ts';
+import {HOST_FACT_REACTIONS as APP_HOST_FACT_REACTIONS, isSemanticEvent, REACTION_EVENTS as APP_REACTION_EVENTS} from '../../apps/web/components/zigi/semantic.ts';
 import {checklistCelebrationArt, studio4SlotProblems} from '../../apps/web/components/zigi/studio4.ts';
 import {variantPools} from '../../apps/web/components/zigi/variants.ts';
 
@@ -20,6 +20,9 @@ import {variantPools} from '../../apps/web/components/zigi/variants.ts';
  * repository's targets: the SHA check, the folder roles, every byte budget at and over its limit (1× 40 kB, 2× 100 kB,
  * large 200 kB, animated 400 kB, the 2× animated set 2.6 MB, push 40 kB), the manifest update read back through the app's
  * own readers. Then everything is thrown away, and the last test proves the repository was never written.
+ * Session AK Part 13 (the art arrived): the scratch repository starts from the manifest as it stood before the import
+ * (fixtures/manifest-before-studio4.json: every Studio-4 slot empty), since the live one is now filled; push is 80 kB
+ * (Studio-4's icon is 75,138 B) and the manifest carries the 2× budget the import wrote.
  */
 const here = fileURLToPath(new URL('.', import.meta.url)), repo = join(here, '..', '..');
 const importer = join(here, 'import-studio.mjs'), contract = join(here, 'fixtures', 'studio4');
@@ -76,12 +79,12 @@ function buildDelivery() {
   sign(root);
   return root;
 }
-/** A scratch copy of the importer's targets: the real manifest, the public folders, nothing else of the repository. */
+/** A scratch copy of the importer's targets: the manifest before the import, the public folders, nothing else of the repository. */
 function scratchRepo() {
   const root = temp('repo');
   mkdirSync(join(root, 'apps', 'web', 'components', 'zigi'), {recursive: true});
   mkdirSync(join(root, 'apps', 'web', 'public', 'brand', 'figures', 'zigi'), {recursive: true});
-  cpSync(join(WEB, 'components', 'zigi', 'manifest.json'), join(root, 'apps', 'web', 'components', 'zigi', 'manifest.json'));
+  cpSync(join(here, 'fixtures', 'manifest-before-studio4.json'), join(root, 'apps', 'web', 'components', 'zigi', 'manifest.json'));
   return root;
 }
 const copyOf = (delivery) => { const root = join(temp('variant'), 'studio4-deliver'); cpSync(delivery, root, {recursive: true}); return root; };
@@ -122,11 +125,11 @@ test('the importer takes the whole delivery into a scratch repository: the files
   expect(webpHeader(readFileSync(join(skinDir, 'F010-reading-your-data.anim.webp')))).toMatchObject({width: 192, height: 253});
   // The push art lands under its own names, never over the app icon; the worker's slot is a code change the script prints.
   expect(result.push).toEqual(['push/zigi-push-badge-96.png', 'push/zigi-push-icon-192.png']);
-  expect(result.pushArt).toEqual(PUSH_TARGET); expect(PUSH_TARGET.icon).not.toBe(PUSH_ART.icon);
+  expect(result.pushArt).toEqual(PUSH_TARGET); expect(PUSH_ART).toEqual(PUSH_TARGET); expect(PUSH_TARGET.icon).not.toBe('/icons/zigoals-192.png');
   for (const [role, file] of Object.entries(PUSH_TARGET)) expect(readFileSync(join(root, 'apps', 'web', 'public', file)).equals(readFileSync(join(delivery, 'push', role === 'icon' ? 'zigi-push-icon-192.png' : 'zigi-push-badge-96.png'))), role).toBe(true);
   expect(said.some(l => l.startsWith('push art: set PUSH_ART in apps/web/public/sw.js') && l.includes(PUSH_TARGET.icon))).toBe(true);
-  // A trigger outside the twelve reaction events is taken but said out loud.
-  expect(said).toContain('WARNING: reactions.json names R012 → card_accepted, not one of the twelve reaction events; the app will not play it');
+  // A trigger outside the twelve reaction events (and the three host facts) is taken but said out loud.
+  expect(said).toContain('WARNING: reactions.json names R012 → card_accepted, not one of the twelve reaction events or the three host facts; the app will not play it');
   // A second run finds everything identical.
   const again = run({source: delivery, receiptPath: join(delivery, 'SHA256SUMS'), repoRoot: root, log: quiet});
   expect(again.ok).toBe(true); expect(again.diff.new).toEqual([]); expect(again.diff.changed).toEqual([]); expect(again.diff.identical.length).toBe(257);
@@ -210,12 +213,13 @@ const ROLES = [
   ['app/F002-greeting.anim.webp', 400_000, 'over the animated budget of 400000'],
   ['app/F002-greeting.anim.png', 400_000, 'over the animated budget of 400000'],
   ['app-2x-anim/F012-success.anim.webp', 2_600_000, 'over the 2× animated budget of 2600000'],
-  ['push/zigi-push-icon-192.png', 40_000, 'over the push icon budget of 40000'],
+  ['push/zigi-push-icon-192.png', 80_000, 'over the push icon budget of 80000'],
 ];
 test('the budgets the owner fixed match the importer and the manifest (1× 40 kB, 2× 100 kB, large 200 kB, animated 400 kB, 2× animated 2.6 MB)', () => {
   expect(BUDGETS).toEqual({'1x': 40_000, '2x': 100_000, large: 200_000, animated: 400_000, animated2x: 2_600_000});
-  expect(JSON.parse(readFileSync(join(WEB, 'components', 'zigi', 'manifest.json'), 'utf8')).budgetBytes).toEqual({'1x': 40_000, '2x': 100_000, large: 200_000, animated: 400_000});
-  expect(PUSH_BUDGET).toBe(40_000);
+  // Session AK Part 13: the import wrote the 2× set's budget into the manifest; push is 80 kB (Studio-4's icon, 75,138 B).
+  expect(JSON.parse(readFileSync(join(WEB, 'components', 'zigi', 'manifest.json'), 'utf8')).budgetBytes).toEqual({'1x': 40_000, '2x': 100_000, large: 200_000, animated: 400_000, animated2x: 2_600_000});
+  expect(PUSH_BUDGET).toBe(80_000);
 });
 test('every role at exactly its budget is taken (the 2× clips lazily, one file each up to 2.6 MB)', () => {
   const full = copyOf(delivery);
@@ -256,9 +260,10 @@ test('each folder keeps its role: a 2× clip in app/, a still or an app-set clip
   expect(result.refused).toEqual(['notes.txt (at the delivery\'s root: art goes in app/, app-2x-anim/ or push/)', 'review/ (a folder: not part of the contract)']);
 });
 
-test('the importer\'s reaction events are the app\'s twelve', () => {
+test('the importer\'s reaction events are the app\'s twelve, and its host facts the app\'s three', () => {
   expect(new Set(REACTION_EVENTS)).toEqual(APP_REACTION_EVENTS);
   expect(REACTION_EVENTS.length).toBe(12);
+  expect(new Set(HOST_FACT_REACTIONS)).toEqual(APP_HOST_FACT_REACTIONS); expect(HOST_FACT_REACTIONS).toEqual(['connection_lost', 'connection_restored', 'user_dismissed']);
   // The push targets are plain /icons/ PNG paths, the shape lib/zigi-studio4/push-art.test.ts accepts.
   for (const file of Object.values(PUSH_TARGET)) expect(file).toMatch(/^\/icons\/[a-z0-9-]+\.png$/);
 });
