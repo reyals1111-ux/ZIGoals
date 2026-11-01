@@ -55,7 +55,7 @@ test.runIf(BROWSER)('the offer turns sync on through the existing controls; Goal
   await ub.go('Goals');await pb.getByRole('heading',{name:GOAL,exact:true}).waitFor();
   await ub.go('Habits');await pb.getByRole('article',{name:HABIT,exact:true}).waitFor();
   // Session U follow-up F3: on this phone the widget card is a row named by it; open it first.
-  await ub.go('Today');await pb.getByRole('button',{name:WIDGET,exact:true}).click();await pb.getByRole('article',{name:WIDGET,exact:true}).waitFor();
+  await ub.go('Today');/* Session AK (R2-9, deliberate): a folded row's name carries its figure */await pb.getByRole('button',{name:new RegExp('^'+WIDGET.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?: .+)?$')}).click();await pb.getByRole('article',{name:WIDGET,exact:true}).waitFor();
   await ub.go('Health');await water(pb).waitFor();expect(await water(pb).innerText()).not.toContain('250 mL recorded');
 
   // B's own Health entry is uploaded under B's consent; A, still without consent, does not receive it.
