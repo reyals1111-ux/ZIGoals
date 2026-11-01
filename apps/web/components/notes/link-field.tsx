@@ -32,8 +32,10 @@ export function LinkField({label, value, onChange, index, exclude, rows = 8, max
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setClosed(true); }
   };
   return <div className="note-field">
-    <label className="field"><span>{label}</span>
-      <textarea ref={field} rows={rows} maxLength={maxLength} value={value} autoFocus={autoFocus}
+    {/* Named by its own label word (aria-labelledby): wrapped bare, the label's text also took the words typed in the box
+        (lane NV; as the Notes page's capture box). */}
+    <label className="field"><span id={`${id}-label`}>{label}</span>
+      <textarea ref={field} rows={rows} maxLength={maxLength} value={value} autoFocus={autoFocus} aria-labelledby={`${id}-label`}
         aria-autocomplete="list" aria-controls={`${id}-list`} aria-activedescendant={open ? `${id}-opt-${current}` : undefined} aria-describedby={`${id}-hint`}
         onChange={e => { onChange(e.target.value); look(e.target.value, e.target.selectionStart ?? e.target.value.length); }}
         onKeyDown={keys} onKeyUp={e => { if (!['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(e.key) || !open) look(e.currentTarget.value, e.currentTarget.selectionStart ?? 0); }}

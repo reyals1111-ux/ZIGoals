@@ -151,5 +151,16 @@
 
 /* Quick add's "Note" row and its box (the sheet is a dark island in every theme). */
 .quick-capture { margin-bottom: 10px; }
+/* The row wears the sheet's own action-row look. Those rules are keyed on `.quick-add-dialog nav`
+   (components/platform/run92-product.css, components/navigation.css), and this row is no longer a nav (Session AK, lane
+   NV: a one-button landmark named "Capture a note"), so the same values are repeated here for it. The grid on the words
+   also keeps the name spaced ("Note Capture a thought…"), as the sheet's other rows are. */
+.quick-add-dialog .quick-capture > .quick-action { display: flex; align-items: center; gap: 16px; padding: 15px; border: 1px solid #7da3ca36; border-radius: 16px; background: linear-gradient(110deg, #172e454d, #31264435); }
+.quick-add-dialog .quick-capture > .quick-action:hover { border-color: #47dce8; background: #17405655; }
+.quick-add-dialog .quick-capture > .quick-action > span:nth-child(2) { display: grid; gap: 5px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.quick-add-dialog .quick-capture > .quick-action strong { font-size: 18px; }
+.quick-add-dialog .quick-capture > .quick-action small { font-size: 14px; color: #b7cbe2; }
+@media (max-width: 700px) { .quick-add-dialog .quick-capture > .quick-action { padding: 13px; gap: 12px; } }
+@media (max-width: 380px) { .quick-add-dialog .quick-capture > .quick-action { gap: 8px; padding: 12px; } .quick-add-dialog .quick-capture .icon-medallion { width: 34px; height: 34px; } }
 .quick-capture-box { display: grid; gap: 8px; padding: 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 35%, transparent); }
 .quick-capture-box > button { justify-self: start; min-height: 44px; }

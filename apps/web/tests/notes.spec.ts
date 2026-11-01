@@ -19,6 +19,7 @@ test.beforeEach(async ({page}) => {
   await page.goto('/manifest.webmanifest');
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {[HABITS_KEY]: JSON.stringify(habits), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
 });
+// The note's "Save" is exactly that: the Notes page's capture box above it has "Save to inbox" (lane NV).
 const stored = async (page: Page) => JSON.parse((await page.evaluate(k => localStorage.getItem(k), NOTES_KEY)) ?? 'null') as Notes | null;
 
 test('capture from Quick add lands in the inbox; filing it into today’s note has Undo', async ({page}) => {
@@ -76,7 +77,7 @@ test('a [[link]] to a habit with autocomplete, and the backlink in that habit’
   await expect(list.getByRole('option', {name: /Meditate/})).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(body).toHaveValue('Before work: [[Meditate]]');
-  await page.getByRole('button', {name: 'Save'}).click();
+  await page.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(page.getByRole('link', {name: 'Meditate'})).toHaveAttribute('href', `/app/habits#habit-${HABIT}`);
   await page.goto('/app/habits');
   await page.getByLabel('Details for Meditate').click();
@@ -94,7 +95,7 @@ test('a [[link]] to a goal shows under the goal’s Notes (Showcase goal)', asyn
   await page.getByRole('button', {name: 'Make note'}).click();
   const body = page.getByLabel('Note', {exact: true});
   await body.fill('Saving toward [[Japan adventure]].');
-  await page.getByRole('button', {name: 'Save'}).click();
+  await page.getByRole('button', {name: 'Save', exact: true}).click();
   await page.getByRole('link', {name: 'Japan adventure'}).click();
   await expect(page).toHaveURL(/\/app\/goals\/tracked\/9203/);
   await page.locator('#notes > summary').click();
@@ -108,7 +109,7 @@ test('the graph: bodies reached with Tab and opened with Enter; the list view; r
     await page.getByLabel('New note').fill(title);
     await page.getByRole('button', {name: 'Make note'}).click();
     await page.getByLabel('Note', {exact: true}).fill(text);
-    await page.getByRole('button', {name: 'Save'}).click();
+    await page.getByRole('button', {name: 'Save', exact: true}).click();
     await expect(page.getByRole('button', {name: 'Edit'})).toBeVisible();
   }
   await page.goto('/app/notes?view=graph');
@@ -119,12 +120,14 @@ test('the graph: bodies reached with Tab and opened with Enter; the list view; r
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/app\/notes\?note=/);
   await page.goto('/app/notes?view=graph');
-  await page.getByRole('button', {name: 'List'}).click();
+  // Exactly "List": "Show the Checklist button" also holds the word, and while the graph's chunk loads it was the only
+  // match, so the click went there (lane NV).
+  await page.getByRole('button', {name: 'List', exact: true}).click();
   const list = page.getByRole('list', {name: 'Notes, goals and habits and their links'});
   await expect(list.getByRole('link', {name: 'Meditate'}).first()).toBeVisible();
   await page.emulateMedia({reducedMotion: 'reduce'});
   await page.reload();
-  await expect(page.getByRole('button', {name: 'List'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', {name: 'List', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('Markdown export is a ZIP of .md files; import shows a plan, then Import, then Undo', async ({page}) => {
@@ -132,7 +135,7 @@ test('Markdown export is a ZIP of .md files; import shows a plan, then Import, t
   await page.getByLabel('New note').fill('Books to read');
   await page.getByRole('button', {name: 'Make note'}).click();
   await page.getByLabel('Note', {exact: true}).fill('1. A short history of Japan');
-  await page.getByRole('button', {name: 'Save'}).click();
+  await page.getByRole('button', {name: 'Save', exact: true}).click();
   await page.goto('/app/notes?view=files');
   const download = page.waitForEvent('download');
   await page.getByRole('button', {name: 'Export notes (.zip)'}).click();

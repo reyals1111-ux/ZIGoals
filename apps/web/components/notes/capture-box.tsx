@@ -41,8 +41,9 @@ export function CaptureBox({compact = false, autoFocus = false, onSaved, heading
   // carries no name of its own, so "Capture a note" names only the box you type in, not the form around it too (lane NV).
   return <form className={`note-capture${compact ? ' is-compact' : ''}`} onSubmit={e => void save(e)} aria-labelledby={heading ? `${id}-title` : undefined}>
     {heading && <h3 id={`${id}-title`} className="note-capture-title">{heading}</h3>}
-    <label className="field"><span>{compact ? 'A note to file later' : 'Capture a note'}</span>
-      <textarea ref={field} rows={compact ? 3 : 4} maxLength={MAX_BODY} value={text} onChange={e => setText(e.target.value)} placeholder="An idea, a task, something to remember…"
+    {/* Named by its own label word (aria-labelledby), never by the words typed in it (lane NV). */}
+    <label className="field"><span id={`${id}-label`}>{compact ? 'A note to file later' : 'Capture a note'}</span>
+      <textarea ref={field} aria-labelledby={`${id}-label`} rows={compact ? 3 : 4} maxLength={MAX_BODY} value={text} onChange={e => setText(e.target.value)} placeholder="An idea, a task, something to remember…"
         onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); void save(); } }}/>
     </label>
     <SecretGuard text={text} onRemove={() => setText('')}/>
