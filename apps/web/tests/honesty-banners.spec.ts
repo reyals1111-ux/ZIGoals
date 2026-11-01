@@ -62,7 +62,8 @@ test.describe('while private stores are still loading',()=>{
    // block from Settings' own server HTML, the same facts the footer's server line carried until Session AC.
    await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);await expect(alphaNotice(page),path).toBeVisible();
    // As expectAlphaFacts does with scripts: the notice also carries the sentence wherever the screen is wider than a phone.
-   if(page.viewportSize()!.width>=768)await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
+   // Session AK (ADR-036, deliberate): on a device that never chose the chain the notice's line is the consumer one (P2, RELEASE_REVIEW_2 R2-7, Q31) and the sentence shows without scripts beside the essentials, in its own line (inside <noscript>, which text matching skips, so the line itself is asserted, as the essentials are below).
+   if(page.viewportSize()!.width>=768){await expect(alphaNotice(page).locator('.alpha-notice-sentence'),path).toHaveText(ALPHA_SENTENCE);await expect(alphaNotice(page).locator('.alpha-notice-sentence'),path).toBeVisible();}
    // Session AC (owner item 8): without scripts the page stays hidden, so the notice itself shows the essentials (financial
    // execution disabled, unaudited alpha, never share secrets) on every page and width, in Settings' words.
    await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toHaveText(ALPHA_ESSENTIALS);await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toBeVisible();

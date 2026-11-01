@@ -2,6 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 import {seed} from './coherence-fixture';
 import {safeScreenshot} from './safe-screenshot';
 import {typeGoalName} from './goal-name';
+import {chooseChain} from './chain-choice';
 import {manualSourcePosition} from '../lib/manual-source';
 import {emptyPlatform,privateGoalSchema} from '../lib/positions';
 import {createAllocatedGoal} from '../lib/wealth';
@@ -24,7 +25,9 @@ async function mixed(page:Page){await seed(page);const positions=[
  const goal=privateGoalSchema.parse({id:'91',name:'A brighter chapter',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'10000000',notes:'Fictional multi-asset example',createdAt:new Date().toISOString(),milestones:[]});const data=createAllocatedGoal({...emptyPlatform(),positions},goal,positions.slice(0,4).map(p=>({positionId:p.id,quantity:p.quantity})));await page.evaluate(data=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(data)),data);await page.reload();}
 test('manual sources stay selected and all allocations are created',async({page})=>{
  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
- await seed(page);await page.goto('/app/goals/new');await typeGoalName(page,'All my sources');await page.getByRole('radio',{name:'Save an amount',exact:true}).check();await page.getByLabel('Target amount',{exact:true}).fill('100000');await page.getByRole('button',{name:'Continue'}).click();
+ // Session AK (ADR-036, deliberate): P4 FR-1 shows no Crypto or Stablecoins tab until the chain is chosen; this spec saves crypto sources, so it chooses the chain first, as a person does, and the money goal's choice reads "Value" again.
+ await chooseChain(page);
+ await seed(page);await page.goto('/app/goals/new');await typeGoalName(page,'All my sources');await page.getByRole('radio',{name:'Value',exact:true}).check();await page.getByLabel('Target amount',{exact:true}).fill('100000');await page.getByRole('button',{name:'Continue'}).click();
  for(const [category,name,quantity,value,symbol] of [['Crypto','Example crypto','1','25000','BTC'],['Stablecoins','Example stablecoin','40000','40000','USDC'],['Precious metals','Example gold','100','10000',''],['Cash','Example cash','5000','','']]){
  await page.getByRole('button',{name:category!,exact:true}).click();if(category!=='Cash')await page.getByRole('button',{name:'Use manual entry',exact:true}).click();await page.getByLabel('Asset name',{exact:true}).fill(name!);if(symbol)await page.getByLabel('Symbol / ticker').fill(symbol);await page.getByLabel(category==='Cash'?'Cash amount':category==='Precious metals'?'Weight':'Quantity',{exact:true}).fill(quantity!);if(value)await page.getByLabel('Total holding value',{exact:true}).fill(value);if(category==='Stablecoins')await shot(page,'06-stablecoin-source');await page.getByRole('button',{name:'Save asset for this Goal',exact:true}).click();await expect(page.getByLabel('Wealth included in this Goal')).toContainText(name!);
  }

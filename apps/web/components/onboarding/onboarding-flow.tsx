@@ -24,7 +24,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
-import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, SAVING_HABIT, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
 import { setHabitState } from "../../lib/habits";
 import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
 import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
@@ -115,10 +115,14 @@ export function OnboardingFlow() {
   const demoAvailable = legacy.loaded && legacy.mode === "local";
   const currentPages = ready && !settings.error ? settingsGroupIn(settings.data, "pages") : undefined;
   const existingTitles = habits.data.habits.map(h => h.title);
-  const starters = starterHabits(pillars), preset = presetForPillars(pillars);
+  const suggested = suggestionsFor(focuses);
+  // Session AK P4 (FR-8): "Put money aside" from the "Save for something" focus is weekly and linked to the setup's goal
+  // (focusHabitInput). The Money starter of the same name (no goal link) hid it whenever "Goals & money" was picked; the
+  // focus's habit now takes that starter's place.
+  const savingFromFocus = suggested.habits.includes(SAVING_HABIT);
+  const starters = starterHabits(pillars).filter(t => !(savingFromFocus && t.title.toLowerCase() === SAVING_HABIT.toLowerCase())), preset = presetForPillars(pillars);
   const focusPillars = new Set(pillars.flatMap(p => p === "goals-money" ? ["goals", "wealth"] : p === "habits" ? ["habits"] : p === "health-food" ? ["health"] : p === "sleep-mind" ? ["health", "habits"] : []));
   const focusChoices = FOCUSES.filter(f => focusPillars.size === 0 || focusPillars.has(f.pillar));
-  const suggested = suggestionsFor(focuses);
   /** Starters the focuses ask for that no template carries: created as plain daily habits. */
   const focusHabits = suggested.habits.filter(title => !starters.some(t => t.title.toLowerCase() === title.toLowerCase()) && !existingTitles.some(e => e.trim().toLowerCase() === title.toLowerCase()));
   // Session AK G2 (RELEASE_REVIEW R21): a habit that came from a focus is a normal choice, ticked to start with (it had been

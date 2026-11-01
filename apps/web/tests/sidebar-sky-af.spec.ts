@@ -8,6 +8,8 @@ import {expect, test, type Page} from '@playwright/test';
  * positions in each theme, in a window short enough for the sidebar to scroll.
  */
 const KEY = 'zigoals:ui-prefs:v1';
+/** AE's pinned sky, undrifted: `100%`, or with Session AK's floor (app/visual-v21.css) `calc(0px + max(100%, 40px))`. */
+const PINNED = /^(100%|calc\(0px \+ max\(100%, 40px\)\))$/;
 type Theme = 'nebula' | 'light' | 'dark';
 
 async function open(page: Page, theme: Theme, motion?: 'off') {
@@ -33,7 +35,10 @@ async function at(page: Page, top: number) {
     const cs = getComputedStyle(s), layers = split(cs.backgroundImage), positions = split(cs.backgroundPositionY);
     const stars = layers.findIndex(l => /sidebar-stars(-dawn)?\.svg/.test(l)), position = positions[stars]?.trim() ?? '';
     // The layer's drift below its pinned place (`100%` = AE's pinned sky; `calc(100% + Npx)` = drifted by N px).
-    const drift = position === '100%' ? 0 : Number(/^calc\(100% \+ (-?[\d.]+)px\)$/.exec(position)?.[1] ?? Number.NaN);
+    // Session AK (ADR-036, deliberate): the pinned place has a floor, `max(100%, 40px)`, so a short list (a device that has not
+    // chosen the chain, X1) keeps the clean top (theme-polish-ae); Chrome writes it `calc(Npx + max(100%, 40px))`, N the drift.
+    const pinned = /^calc\((-?[\d.]+)px \+ max\(100%, 40px\)\)$/.exec(position);
+    const drift = position === '100%' ? 0 : pinned ? Number(pinned[1]) : Number(/^calc\(100% \+ (-?[\d.]+)px\)$/.exec(position)?.[1] ?? Number.NaN);
     return {scrollTop: s.scrollTop, drift, position, image: layers[stars] ?? '', sky: s.dataset.sky ?? null, running: s.getAnimations().length,
       mark: s.querySelector('.sidebar-mark')!.getBoundingClientRect().top, planet: s.querySelector('.sidebar-destination')!.getBoundingClientRect().top, bar: s.querySelector('.theme-switch')!.getBoundingClientRect().top};
   }, top);
@@ -61,7 +66,7 @@ test.describe('the sidebar sky parallax', () => {
       expect(second.sky).toBe('rest');
       expect(second.running).toBe(0);
       // Back at the top the sky is AE's pinned sky exactly.
-      expect((await at(page, 0)).position).toBe('100%');
+      const top = await at(page, 0); expect(top.position).toMatch(PINNED); expect(top.drift).toBe(0);
     });
   }
 
@@ -89,7 +94,7 @@ test.describe('the sidebar sky parallax', () => {
       await open(page, 'nebula', mode === 'Motion Off' ? 'off' : undefined);
       if (mode === 'Motion Off') await expect(page.locator('html')).toHaveAttribute('data-app-motion', 'off');
       const first = await at(page, 120), second = await at(page, 420);
-      for (const read of [first, second]) { expect(read.position).toBe('100%'); expect(read.sky).toBeNull(); expect(read.running).toBe(0); }
+      for (const read of [first, second]) { expect(read.position).toMatch(PINNED); expect(read.drift).toBe(0); expect(read.sky).toBeNull(); expect(read.running).toBe(0); }
       // The whole sky moves with the content (AE's behaviour): the planet and the stars keep their distance.
       expect(Math.abs(second.planet - first.planet + 300)).toBeLessThanOrEqual(.5);
     });

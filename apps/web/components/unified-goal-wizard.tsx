@@ -133,8 +133,9 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName}:
  const isProject=type==='PROJECT',isLocal=funding==='local'&&!isProject;
  const showPlan=!isProject&&!isLocal&&(withPlan||funding==='future');
  // Session AK P4 (FR-1): while saving from now on is only the starting suggestion (not chosen, no plan ticked), an empty
- // planned amount is "no plan yet", so "Create goal" works from step 1 as it always did.
- const wantsPlan=showPlan&&!(fundingChoice===null&&funding==='future'&&!withPlan&&!planAmount.trim());
+ // planned amount is "no plan yet", so "Create goal" works from step 1 as it always did. Before the chain is chosen the
+ // step says "Leave the amount empty to decide later", so that holds when "Save toward it from now on" was chosen too.
+ const wantsPlan=showPlan&&!((fundingChoice===null||!chain)&&funding==='future'&&!withPlan&&!planAmount.trim());
  const previewId=Array.from({length:store.data.goals.length+1},(_,i)=>String(i)).find(id=>!store.data.goals.some(g=>g.id===id))!;
  function draft(id=previewId):PrivateGoal{
   if(goalAssetPosition&&(!source||source.archivedAt))throw Error('The chosen asset is no longer available. Return to Purpose and choose another asset.');

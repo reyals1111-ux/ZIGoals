@@ -57,6 +57,8 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform','wealth-history-draw':{property:'stroke-dashoffset',within:'.wealth-history'}});
  await showcase(page);
  await page.goto('/app/wealth');
+ // Session AK (ADR-036, deliberate): on a phone Wealth's sections fold (G2, RELEASE_REVIEW_2 R2-8); the donut is read as a reader reaches it, its row opened first.
+ await openFold(page,'The shape of your wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
  // Each arc draws from empty (dashoffset 100 of 100) and settles exactly on its own share.
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat(sweep.final!),3);
@@ -98,6 +100,8 @@ test('reduced motion and the Off preference leave charts complete and still',asy
  await page.emulateMedia({reducedMotion:'reduce'});
  await showcase(page);
  await page.goto('/app/wealth');
+ // Session AK (ADR-036, deliberate): on a phone Wealth's sections fold (G2, RELEASE_REVIEW_2 R2-8); the donut is read as a reader reaches it, its row opened first.
+ await openFold(page,'The shape of your wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
  await expect(donut).not.toHaveAttribute('data-entrance','once');
  await expect(donut.locator('.glass-ring-arc').first()).toHaveCSS('animation-name','none');

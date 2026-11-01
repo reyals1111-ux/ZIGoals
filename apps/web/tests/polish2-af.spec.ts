@@ -386,7 +386,10 @@ test.describe('Gate C design review', () => {
     await expect(forYou).toBeVisible({timeout: 15_000});
     const [area, primary, rail] = await Promise.all([box(forYou), box(page.locator('.today-primary')), box(page.locator('.today-rail'))]);
     expect(area.left).toBeCloseTo(primary.left, 0);
-    expect(area.right, 'under the rail too').toBeCloseTo(rail.right, 0);
+    // Session AK (ADR-036, deliberate): from 1280 px the full-width parts under Today's columns keep the launchers' lane free (G2, RELEASE_REVIEW R20, components/ui/ui.css --launcher-gutter); 0 below 1280 px.
+    const gutter = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--launcher-gutter')) || 0);
+    expect(gutter, 'the launcher lane').toBe(width >= 1280 ? 58 : 0);
+    expect(area.right, 'under the rail too').toBeCloseTo(rail.right - gutter, 0);
     expect(area.top, 'below both columns').toBeGreaterThanOrEqual(Math.max(primary.bottom, rail.bottom));
   });
 });

@@ -22,7 +22,18 @@ export function HabitTimeCard() {
   // would list the same check-ins twice; it stands down and shows only on a Today without the widget.
   const [widget, setWidget] = useState(false);
   // Session AC: Daily Habits or the habits widget standing in for it (the same list), whichever Today shows.
-  useEffect(() => { setWidget(!!document.querySelector('.placed-module:is([data-module="habits"], [data-stands-in="habits"]) .habits-today')); }, [store.data]);
+  // Session AK: on a phone Today's widget area mounts on view (G2, RELEASE_REVIEW R11), so the widget was not in the
+  // page yet when this looked and the card stayed beside it (the same habits twice, ≈ 0.5 screen). While the area is still
+  // held back, Today's focus says whether the widget will be there (`data-habits-widget`); once it mounts, the page is read again.
+  useEffect(() => {
+    const check = () => setWidget(!!document.querySelector('.placed-module:is([data-module="habits"], [data-stands-in="habits"]) .habits-today') || (!!document.querySelector('.dashboard-widget-reserve') && !!document.querySelector('.today-focus[data-habits-widget]')));
+    check();
+    const area = document.querySelector('.dashboard-widget-area');
+    if (!area || typeof MutationObserver === 'undefined') return;
+    const observer = new MutationObserver(check);
+    observer.observe(area, {childList: true});
+    return () => observer.disconnect();
+  }, [store.data]);
   if (!store.loaded || store.error || widget) return null;
   const due = store.data.habits.filter(h => habitDay(h, store.today, store.today).scheduled);
   const sections = groupByTimeOfDay(due, store.today), now = currentSection(new Date().getHours());

@@ -13,7 +13,9 @@ test("populated product fits every required viewport with reduced motion and sco
       await page.goto(route!);
       await expect(page.locator("main h1")).toBeVisible();
       if (name === "today") await openTodayWidgets(page);
-      if (name === "today") await expect(page.getByRole("article", { name: "Your destinations", exact: true }).getByRole("link", { name: "First home", exact: true })).toBeVisible();
+      // Session AK (ADR-036, deliberate): a goal shows once on Today (G2, RELEASE_REVIEW_2 R2-9), as its card under "Your goals"; the destinations widget no longer repeats its name.
+      if (name === "today") await expect(page.getByRole("article", { name: "Your destinations", exact: true })).toBeVisible();
+      if (name === "today") await expect(page.getByRole("region", { name: "Your goals", exact: true }).getByRole("link", { name: "First home", exact: true })).toBeVisible();
       if (name === "habits") await expect(page.getByRole("article", { name: "Review my spending", exact: true })).toBeVisible();
       if (name === "health") await expect(page.getByRole("region", { name: "Breakfast diary" })).toContainText("Morning oats");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name} at ${width}`).toBe(true);
