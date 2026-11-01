@@ -1,19 +1,19 @@
 /* Session AK (F6): the upgraded chart language (chart-defs.tsx), opt-in with `.zg-chart` on the new charts. Line colours
-   are brand and pillar tokens; by day each takes its ink twin (Light defines `--<token>-ink`), so a line keeps at least
-   3:1 on white. Labels are drawn at their real size (the charts measure their width), 14 px, in the secondary text colour
+   are brand and pillar tokens, the same in every theme: the ink twins are for words only (components/shell/theme-switch.css,
+   ADR-028 H13 and H75: a line, fill or glow keeps Nebula's colour in Light and Dark; Session AK CI-D, theme parity). Labels are drawn at their real size (the charts measure their width), 14 px, in the secondary text colour
    (at least 4.5:1 on every theme's panel) with a halo of the panel colour where a line runs behind them. */
 :is(.zg-chart, .zg-legend) {
-  --zgc-a0: var(--brand-cyan-ink, var(--brand-cyan));
-  --zgc-a1: var(--brand-violet-ink, var(--brand-violet));
-  --zgc-a2: var(--brand-magenta-ink, var(--brand-magenta));
-  --zgc-b0: var(--pillar-wealth-ink, var(--pillar-wealth));
-  --zgc-b1: var(--nebula-pink-ink, var(--brand-magenta));
+  --zgc-a0: var(--brand-cyan);
+  --zgc-a1: var(--brand-violet);
+  --zgc-a2: var(--brand-magenta);
+  --zgc-b0: var(--pillar-wealth);
+  --zgc-b1: var(--nebula-pink, var(--brand-magenta));
   --zgc-band: var(--brand-violet);
 }
-:is(.zg-chart, .zg-legend)[data-pillar=goals] { --zgc-a2: var(--pillar-goals-ink, var(--pillar-goals)); }
-:is(.zg-chart, .zg-legend)[data-pillar=habits] { --zgc-a2: var(--pillar-habits-ink, var(--pillar-habits)); }
-:is(.zg-chart, .zg-legend)[data-pillar=health] { --zgc-a2: var(--pillar-health-ink, var(--pillar-health)); }
-:is(.zg-chart, .zg-legend)[data-pillar=wealth] { --zgc-a2: var(--pillar-wealth-ink, var(--pillar-wealth)); }
+:is(.zg-chart, .zg-legend)[data-pillar=goals] { --zgc-a2: var(--pillar-goals); }
+:is(.zg-chart, .zg-legend)[data-pillar=habits] { --zgc-a2: var(--pillar-habits); }
+:is(.zg-chart, .zg-legend)[data-pillar=health] { --zgc-a2: var(--pillar-health); }
+:is(.zg-chart, .zg-legend)[data-pillar=wealth] { --zgc-a2: var(--pillar-wealth); }
 .zg-chart .zgc-a0 { stop-color: var(--zgc-a0); }
 .zg-chart .zgc-a1 { stop-color: var(--zgc-a1); }
 .zg-chart .zgc-a2 { stop-color: var(--zgc-a2); }
@@ -30,8 +30,6 @@ svg.zg-chart text { fill: var(--text-secondary); font-size: 14px; font-weight: 6
 .zg-legend .money-key:not(.money-key-b, .money-key-target, .money-key-band, .debt-key-min) { border-top-color: var(--zgc-a0); }
 .zg-legend :is(.money-key-b, .money-key-target) { border-top-color: var(--zgc-b0); }
 .zg-legend .money-key-band { background: linear-gradient(180deg, color-mix(in srgb, var(--zgc-band) 40%, transparent), color-mix(in srgb, var(--zgc-band) 12%, transparent)); }
-/* By day the glow would read as a smudge on white: the lines stay crisp. */
-:root[data-theme=light] .zg-chart [filter] { filter: none; }
 @media (forced-colors: active) {
   svg.zg-chart .zgc-line { stroke: CanvasText !important; filter: none; }
   svg.zg-chart .zgc-band { fill: none !important; }

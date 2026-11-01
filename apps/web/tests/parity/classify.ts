@@ -14,13 +14,16 @@
  *   gradient-word  — by day only, a coloured stop of a gradient word (a background clipped to its text) in a deeper shade of
  *                    the same hue (within 12°, lower lightness) that reaches 4.5:1 on white (the owner's decision of 19 Oct,
  *                    ADR-028 H130: "their tails use deeper shades of the same colours on white").
+ *   focus-ring     — by day only, the keyboard focus ring of the element that shows it (:focus-visible) in Light's own ring
+ *                    colour, #4b3fd1 (apps/web/themes/light.extra.css, Session AF: Nebula's cyan ring is too faint on white).
+ *                    Session AK (CI-D): WebKit shows it on the More sheet's Close button, which the sheet focuses on open.
  * Everything else — any coloured fill, chart paint, ring, glow, gradient, pillar colour, image — must be equal, and every
  * box must be equal within half a pixel.
  */
 export const NEUTRAL_CHROMA = 0.07, NIGHT_L = 0.4, NIGHT_CHROMA = 0.14;
 export const BOX_TOLERANCE = 0.5;
-export type Klass = 'text' | 'neutral' | 'art-calm' | 'theme-bar' | 'gradient-word' | 'DISALLOWED';
-export type Item = {path: string; desc: string; text: boolean; clip: boolean; art: boolean; ground: boolean; bar: boolean; svgText: boolean; props: Record<string, string>; box: [number, number, number, number]};
+export type Klass = 'text' | 'neutral' | 'art-calm' | 'theme-bar' | 'gradient-word' | 'focus-ring' | 'DISALLOWED';
+export type Item = {path: string; desc: string; text: boolean; clip: boolean; art: boolean; ground: boolean; bar: boolean; svgText: boolean; focus?: boolean; props: Record<string, string>; box: [number, number, number, number]};
 export type Diff = {path: string; desc: string; prop: string; nebula: string; other: string; klass: Klass};
 
 const lin = (c: number) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
@@ -87,6 +90,13 @@ function rgbOf(c: string) {
 }
 /** Within one step per channel: color-mix() and relative colours round differently from the colour they came from. */
 const sameRgb = (x: string, y: string) => { if (!x || !y) return false; const p = rgbOf(x).split(',').map(Number), q = rgbOf(y).split(',').map(Number); return p.every((v, i) => Math.abs(v - q[i]!) <= 1); };
+/** Session AK (CI-D): the same colour written another way — Nebula's minified CSS resolves a static `color-mix(in oklab …)`
+ *  to lab() at build time, while a theme sheet keeps the mix and the browser computes oklab() — is the same colour, not a
+ *  difference: red, green and blue within one step and the same alpha (within one 8-bit step). */
+const alphaOf = (c: string) => lca(c).a;
+export const sameColour = (x: string, y: string) => sameRgb(x, y) && Math.abs(alphaOf(x) - alphaOf(y)) <= 1 / 255;
+/** Two values that differ only in how their colours are written (each pair the same colour, everything else identical). */
+export const sameValue = (a: string, b: string) => { if (skeleton(a) !== skeleton(b)) return false; const ca = colours(a), cb = colours(b); return ca.length === cb.length && ca.length > 0 && ca.every((c, i) => sameColour(c, cb[i]!)); };
 /** H130: a gradient word's coloured stop by day: the same hue (within 12°), deeper, and at least 4.5:1 on white. */
 export const GRADIENT_WORD_HUE = 12, GRADIENT_WORD_CONTRAST = 4.5;
 const onWhite = (c: string) => { const [r, g, b] = rgbOf(c).split(',').map(Number); return 1.05 / (0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!) + 0.05); };
@@ -95,6 +105,8 @@ export function deeperSameHue(nebula: string, day: string) {
   return x.C >= NEUTRAL_CHROMA && y.C >= NEUTRAL_CHROMA && Math.min(turn, 360 - turn) <= GRADIENT_WORD_HUE && y.L < x.L && onWhite(day) >= GRADIENT_WORD_CONTRAST;
 }
 const TEXT_PROPS = new Set(['color', '-webkit-text-fill-color', 'caret-color']);
+/** Light's keyboard focus ring (apps/web/themes/light.extra.css), the one ring colour Light may use instead of Nebula's. */
+export const LIGHT_FOCUS_RING = 'rgb(75, 63, 209)';
 const CALM_PROPS = new Set(['opacity', 'filter']);
 /** A filter whose only change is the colour of its drop shadows is a shade, not a calm. */
 const shadeOnly = (a: string, b: string) => skeleton(a) === skeleton(b) && /drop-shadow/.test(a);
@@ -105,6 +117,7 @@ export function classify(prop: string, nebula: Item, other: Item, theme: 'light'
   const a = nebula.props[prop] ?? '', b = other.props[prop] ?? '';
   if (nebula.bar) return 'theme-bar';
   if (TEXT_PROPS.has(prop)) return 'text';
+  if (prop === 'outline-color' && theme === 'light' && nebula.focus && other.focus && sameColour(b, LIGHT_FOCUS_RING)) return 'focus-ring';
   // The page's own ground (the body, the content's sky, the ground under the footer banner): by day white with a light
   // mist that deepens into the banner's night, by night black with a dark mist (H13, D9: "only the background").
   if (nebula.ground && (prop === 'background-color' || prop === 'background-image')) return 'neutral';
@@ -119,7 +132,7 @@ export function classify(prop: string, nebula: Item, other: Item, theme: 'light'
   if (skeleton(a) !== skeleton(b)) return 'DISALLOWED';
   let klass: Klass = 'neutral';
   for (let i = 0; i < ca.length; i++) {
-    if (ca[i] === cb[i]) continue;
+    if (ca[i] === cb[i] || sameColour(ca[i]!, cb[i]!)) continue;
     // A paint or a gradient stop that is the element's own word colour (currentColor) follows the word.
     const fromText = (prop !== 'background-image' || nebula.clip) && (ca[i] === ownA && cb[i] === ownB || sameRgb(ca[i]!, ownA) && sameRgb(cb[i]!, ownB));
     if (fromText || (nebula.svgText && prop === 'fill')) { klass = klass === 'neutral' ? 'text' : klass; continue; }
@@ -138,7 +151,7 @@ export function compare(nebula: readonly Item[], other: readonly Item[], theme: 
   let missing = 0;
   for (const n of nebula) {
     const o = byPath.get(n.path); if (!o) { missing++; continue; }
-    for (const prop of Object.keys(n.props)) if (sameIds(n.props[prop]!) !== sameIds(o.props[prop] ?? '')) diffs.push({path: n.path, desc: n.desc, prop, nebula: n.props[prop]!, other: o.props[prop] ?? '', klass: classify(prop, n, o, theme)});
+    for (const prop of Object.keys(n.props)) if (sameIds(n.props[prop]!) !== sameIds(o.props[prop] ?? '') && !sameValue(sameIds(n.props[prop]!), sameIds(o.props[prop] ?? ''))) diffs.push({path: n.path, desc: n.desc, prop, nebula: n.props[prop]!, other: o.props[prop] ?? '', klass: classify(prop, n, o, theme)});
     if (n.box.some((v, i) => Math.abs(v - o.box[i]!) > BOX_TOLERANCE)) diffs.push({path: n.path, desc: n.desc, prop: 'box', nebula: n.box.join(' '), other: o.box.join(' '), klass: 'DISALLOWED'});
   }
   const mismatch = missing || nebula.length !== other.length ? `${nebula.length} elements in Nebula, ${other.length} in the other theme, ${missing} unmatched` : null;

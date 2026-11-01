@@ -33,10 +33,19 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   await page.locator('footer.site-footer .site-footer-stage').scrollIntoViewIfNeeded();
   await expect(page.locator('footer.site-footer')).toHaveAttribute('data-intro', /play|done/, {timeout: 15_000});
   await page.waitForLoadState('networkidle');
+  // Session AK (ADR-036, deliberate; BUILD list 2 #1): the details box carries the secret guard, whose code and style
+  // load on first use (lazy, so Help's route weight is unchanged). They are brought in first, as the wordmark and the
+  // finale are; ticking and unticking here stores nothing, and the window below still allows no request at all.
+  const box = section.getByRole('checkbox', {name: 'Add details about this device to the email', exact: true});
+  const untouched = await storage(page);
+  await box.check();
+  await page.waitForLoadState('networkidle');
+  await box.uncheck();
+  expect(await body(page, section)).toBe(plain);
+  expect(await storage(page)).toBe(untouched);
   const before = await storage(page), requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
 
-  const box = section.getByRole('checkbox', {name: 'Add details about this device to the email', exact: true});
   await expect(box).not.toBeChecked();
   await box.check();
   const details = section.getByRole('textbox', {name: 'Device details: edit or delete anything before you send', exact: true});

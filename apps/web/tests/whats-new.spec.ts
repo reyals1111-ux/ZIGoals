@@ -61,6 +61,10 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session AK (ADR-036): one more release, one more visit (thirteen); 150 s, checks unchanged.
   test.setTimeout(150_000);
   await seed(page);
+  // Session AK (ADR-036, deliberate; RELEASE_REVIEW_2 R2-6, lib/whats-new-chain/filter.ts): a line that names the chain
+  // (a wallet, staking, ZIG) waits until the person chooses the chain. This test opens every earlier release's link, the
+  // chain's among them, so the device has chosen it (Earn switched on, lib/chain-choice.ts); every check below is unchanged.
+  await page.evaluate(() => localStorage.setItem('zigoals:earn-prefs:v1', JSON.stringify({version: 1, pageShown: true})));
   await page.goto('/app');
   await revealUpdates(page);
   const card = page.getByRole('region', {name: 'A few new things.'});
@@ -92,7 +96,8 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await expect(page.locator('#help-ak-notify')).toContainText('every message it sends is empty');
   await page.goto('/app');
   await revealUpdates(page);
-  for (const [name, id] of [['Food: recent scans, a food library that works offline, a nutrient report', 'ak-food'], ['Habits in your own order, a compact list and rules that tick a habit off', 'ak-habits'], ['A what-if for each goal, a progress card and milestone plans', 'ak-goals'], ['Bills, budgets, your target mix and money rules on Wealth', 'ak-wealth'], ['Music: mix up to three sounds, or open a playlist', 'ak-music'], ['Feeling words, a year in pixels and a report for a visit', 'ak-days'], ['Test a backup, a monthly reminder, and honest ways to take your data elsewhere', 'ak-data']] as const) await expect(card.getByRole('link', {name}), id).toHaveAttribute('href', `/app/help#help-${id}`);
+  // Session AK (ADR-036, deliberate; C4 90ce48e9): NOVA, Notes and Tasks lead this release's links, each checked by label and href.
+  for (const [name, id] of [['NOVA: your private command center, with your own local model or Hermes Agent', 'nova-what'], ['Notes that link to your goals, habits and days', 'notes-what'], ['Tasks with a calendar import and a Pomodoro timer', 'tasks-what'], ['Food: recent scans, a food library that works offline, a nutrient report', 'ak-food'], ['Habits in your own order, a compact list and rules that tick a habit off', 'ak-habits'], ['A what-if for each goal, a progress card and milestone plans', 'ak-goals'], ['Bills, budgets, your target mix and money rules on Wealth', 'ak-wealth'], ['Music: mix up to three sounds, or open a playlist', 'ak-music'], ['Feeling words, a year in pixels and a report for a visit', 'ak-days'], ['Test a backup, a monthly reminder, and honest ways to take your data elsewhere', 'ak-data']] as const) await expect(card.getByRole('link', {name}), id).toHaveAttribute('href', `/app/help#help-${id}`);
   await expect(card.getByRole('button', {name: 'Take the 1-minute tour', exact: true})).toBeVisible();
   await expect(card.getByRole('link', {name: 'Price alerts on your device, and net worth by where it came from'})).toHaveCount(0);
   await card.getByText('Earlier updates', {exact: true}).click();

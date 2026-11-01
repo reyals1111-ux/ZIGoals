@@ -57,6 +57,5 @@
 /* Session AK P6 (axe color-contrast): Activity's filter counts were dimmed to 80 % on the pressed filter's day tint
    (3.9:1); by day they keep the button's full ink (about 5.8:1). */
 :root[data-theme=light] .activity-filter-count:not(#\-) { opacity: 1; }
-/* Session AK P6 (axe color-contrast): a badge not earned yet is dimmed as a whole (55 % in Nebula); on the day ground that
-   left its words at 4.1:1. By day it dims to 70 %: still plainly "not yet", its words about 6:1. */
-:root[data-theme=light] .journey-badge-grid li:not([data-earned]):not(#\-) { opacity: .7; }
+/* Session AK P6 (axe color-contrast): a badge not earned yet was dimmed to 55 %, which on the day ground left its words at
+   4.1:1; it dims to 70 % now (about 6:1 by day), in every theme (components/game/game.css), so no Light rule is needed. */

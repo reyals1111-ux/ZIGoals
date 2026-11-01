@@ -65,7 +65,9 @@
 .journey-challenge-mark { min-width: 56px; min-height: 36px; display: inline-grid; place-items: center; padding: 0 12px; border-radius: 99px; border: 1px solid #c3a8f94a; font-size: 15px; font-variant-numeric: tabular-nums; }
 .journey-challenge-mark.game-quest-done { background: linear-gradient(135deg, #6fe6f6, #9e78ff); color: #0b1020; border-color: transparent; }
 .journey-badge-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-.journey-badge-grid li { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 16px 12px; border-radius: 18px; border: 1px solid #c3a8f92a; background: #1a142a66; opacity: .55; }
+/* Session AK (CI-D; P6's contrast fix, made for every theme): a badge not earned yet dims to 70 % (was 55 %), still plainly
+   "not yet". P6 raised it by day only, and an opacity that differs between themes breaks theme parity (ADR-028 H75). */
+.journey-badge-grid li { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 16px 12px; border-radius: 18px; border: 1px solid #c3a8f92a; background: #1a142a66; opacity: .7; }
 .journey-badge-grid li[data-earned] { opacity: 1; border-color: #9e78ff66; background: radial-gradient(ellipse at top, #4a2f8266, #1a142a99 70%); box-shadow: 0 0 24px #9e78ff22; }
 .journey-badge-symbol { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; font-size: 24px; color: #e8dcff; background: radial-gradient(circle at 35% 30%, #7d5fd466, #2a1f4477); box-shadow: inset 0 0 0 1px #c3a8f93a; }
 .journey-badge-grid li[data-earned] .journey-badge-symbol { background: linear-gradient(135deg, #6fe6f6, #c790f6); color: #0b1020; box-shadow: 0 0 18px #9e78ff66; }

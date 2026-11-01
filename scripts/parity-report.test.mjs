@@ -25,6 +25,28 @@ describe('what may differ between themes', () => {
     expect(classify('background-color', item({'background-color': 'lch(54.29 106.8 40.85)'}), item({'background-color': 'rgb(200, 0, 0)'}))).toBe('DISALLOWED');
     expect(flips('lab(54.29 80.8 69.89)')).toBe(false);
   });
+  // Session AK (CI-D): Nebula's minified CSS resolves a static color-mix(in oklab …) to lab(); a theme sheet keeps the mix,
+  // computed to oklab(). The same colour in another notation is no difference; a different colour or alpha still is.
+  it('the same colour written as lab() and as oklab() is no difference; one step more of colour or alpha is', () => {
+    const band = 'lab(62.0202 30.9578 -59.3513 / 0.395882)', same = 'oklab(0.693465 0.0601931 -0.165812 / 0.395882)';
+    expect(compare([item({'border-top-color': band})], [item({'border-top-color': same})], 'dark').diffs).toEqual([]);
+    const sky = (stop, at) => `radial-gradient(120% 160% at 12% ${at}, ${stop}, rgba(0, 0, 0, 0) 60%), linear-gradient(100deg, rgb(7, 11, 29), rgb(11, 16, 48) 60%)`;
+    const night = (stop) => `radial-gradient(120% 160% at 12% 0%, ${stop}, rgba(0, 0, 0, 0) 60%), linear-gradient(100deg, rgb(1, 2, 8), rgb(2, 2, 19) 60%)`;
+    expect(classify('background-image', item({'background-image': sky('lab(56.8288 37.3827 -66.8483 / 0.26)', '0px')}), item({'background-image': night('oklab(0.653282 0.068078 -0.187551 / 0.26)')}), 'dark')).toBe('neutral');
+    expect(classify('border-top-color', item({'border-top-color': band}), item({'border-top-color': 'oklab(0.693465 0.0601931 -0.165812 / 0.36)'}), 'dark')).toBe('DISALLOWED');
+    expect(classify('border-top-color', item({'border-top-color': band}), item({'border-top-color': 'oklab(0.66 0.0601931 -0.165812 / 0.395882)'}), 'dark')).toBe('DISALLOWED');
+    expect(compare([item({'stop-color': 'rgb(35, 234, 255)'})], [item({'stop-color': 'rgb(2, 102, 113)'})], 'light').diffs[0]).toMatchObject({klass: 'DISALLOWED'});
+  });
+  // Session AK (CI-D): Light's own keyboard focus ring (#4b3fd1, light.extra.css) on the element that shows the ring, by day
+  // only; any other ring colour, an element without the ring, and Dark stay disallowed.
+  it('by day the focused element’s ring may take Light’s own focus colour; nothing else about a ring may change', () => {
+    const n = item({'outline-color': 'rgb(105, 217, 233)'}, {focus: true}), l = item({'outline-color': 'rgb(75, 63, 209)'}, {focus: true});
+    expect(classify('outline-color', n, l, 'light')).toBe('focus-ring');
+    expect(classify('outline-color', n, l, 'dark')).toBe('DISALLOWED');
+    expect(classify('outline-color', item({'outline-color': 'rgb(105, 217, 233)'}), item({'outline-color': 'rgb(75, 63, 209)'}), 'light')).toBe('DISALLOWED');
+    expect(classify('outline-color', n, item({'outline-color': 'rgb(200, 0, 0)'}, {focus: true}), 'light')).toBe('DISALLOWED');
+    expect(classify('border-top-color', item({'border-top-color': 'rgb(105, 217, 233)'}, {focus: true}), item({'border-top-color': 'rgb(75, 63, 209)'}, {focus: true}), 'light')).toBe('DISALLOWED');
+  });
   it('a line or paint drawn in the element’s own word colour follows the word', () => {
     const n = item({color: 'rgb(35, 234, 255)', 'border-top-color': 'rgb(35, 234, 255)'}), l = item({color: 'rgb(16, 108, 118)', 'border-top-color': 'rgb(16, 108, 118)'});
     expect(classify('border-top-color', n, l)).toBe('text');
@@ -78,7 +100,7 @@ describe('the parity report', () => {
     const folded = fold(files), md = render(folded, 'test');
     expect(folded.rows).toHaveLength(2);
     expect(folded.disallowed).toHaveLength(1);
-    expect(md).toContain('| /app | showcase | desktop | dark | 900 | 0 | 2 | 0 | 0 | 0 | 1 |');
+    expect(md).toContain('| /app | showcase | desktop | dark | 900 | 0 | 2 | 0 | 0 | 0 | 0 | 1 |');
     expect(md).toContain('/app · showcase · desktop · `a.chip` [0.4] · background-color');
     expect(render(fold([{...files[0], results: [files[0].results[0]]}]))).toContain('## Disallowed differences\n\nNone.');
   });

@@ -6,8 +6,8 @@ import './chart-look.css';
  * financial freedom model). It builds on chart-kit (the same guides, axes, labels, legends and tables): each line gets a
  * gradient stroke and one soft glow, a band a soft vertical wash. Use: `const look = useChartLook()`, give the <svg> the
  * class `zg-chart` (and `data-pillar`), put `<ChartLookDefs id={look.id} width height/>` first inside it, then
- * `style={{stroke: look.stroke('a')}} filter={look.glow}` on a line. The colours are tokens in chart-look.css (by day
- * each takes its ink twin, so lines keep their contrast on white); series stay told apart by their dash patterns as well.
+ * `style={{stroke: look.stroke('a')}} filter={look.glow}` on a line. The colours are tokens in chart-look.css, Nebula's
+ * in every theme (ADR-028 H75; the ink twins are for words); series stay told apart by their dash patterns as well.
  * Gradients and the glow are in user space, so a flat line (a zero-height box) still draws.
  */
 export type ChartSeries = 'a' | 'b' | 'band';
