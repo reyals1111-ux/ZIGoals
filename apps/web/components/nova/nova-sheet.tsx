@@ -18,7 +18,9 @@ export function NovaSheet({title, eyebrow, onClose, place = 'center', wide = fal
     const layer = pushToastLayer(dialog);
     return () => { layer(); if (dialog.open) dialog.close(); requestAnimationFrame(() => back?.isConnected && back.focus({preventScroll: true})); };
   }, []);
-  return <dialog ref={ref} className="nova-sheet" data-place={place} data-wide={wide || undefined} aria-labelledby={`${id}-t`}
+  // `data-ai-dialog`: NOVA's own sheet (its chat on a phone), so the sensitive-screen check does not take it for a page's
+  // private sheet and pause every answer (RELEASE_REVIEW_2 R2-1).
+  return <dialog ref={ref} data-ai-dialog="" className="nova-sheet" data-place={place} data-wide={wide || undefined} aria-labelledby={`${id}-t`}
     onCancel={e => { e.preventDefault(); close.current(); }} onClick={e => { if (e.target === e.currentTarget) close.current(); }}>
     <div className="nova-sheet-body">
       <header className="nova-sheet-head">
