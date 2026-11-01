@@ -572,6 +572,122 @@ Z4 F12 exactly as written in follow-up 1 (full sweep, full gate incl. every jour
 
 Readings: Q28 — N1 (one engine, two companions): NOVA is a full-view surface and persona on ZIGi's existing engine (adapters, device-only keys, memory, tools, confirm cards, pricing, privacy paths, local answers, packs, budgets); there is no second key store, memory or tool system; ZIGi and NOVA share one conversation history and memory within the same privacy mode and scopes. Q29 — F12 waits until Q, G, N, B, T and M are done and verified (Z4).
 
+## Owner follow-up 3 (N11 Hermes Agent, N12 the full-screen NOVA), 1 Nov (pre-approved; worked through without questions)
+
+```text
+OWNER MESSAGE 3 TO SESSION AK (1 Nov 2026), pre-approved, no reply needed; continue in auto mode. Two additions to
+owner follow-up 2's section N: N11 and N12, with closing rows, in AK_RESUME and the task list, built inside the NOVA lane
+at the same quality bar (reachable, wired end to end, unit tests, browser specs, Help, a labelled Showcase example,
+empty-start teaching). Everything else in follow-up 2 stays. The owner attached a screenshot of his own dashboard (his
+personal "hermes" setup with NOVA at its centre: not committed; described below): the layout reference
+for N12, redesigned in ZIGoals' nebula star system (our colours, orbits and type), NEVER copying its branding, names or
+wording.
+
+Screenshot description (reference only): a full-screen dark starfield with a diagonal purple nebula band. LEFT panel: a
+logo + "PERSONAL INTELLIGENCE", a workspace card with a lock icon, a primary "Company Brain" entry, a "DEPARTMENTS 11"
+header with a "Find an agent…" search, a list of sections each with a coloured dot, a count and a "+", and at the bottom
+a short signature card ("NEBULA · Your intelligence, in one place") and a gateway status line ("Hermes gateway · 11 of 11
+profiles reachable"); a collapse chevron at the top. CENTRE: the orb ("N.O.V.A · STANDBY · CLICK TO SPEAK") in concentric
+rings; a local clock and date top centre; top left "Your day", search, workflow and globe buttons; top right a 4×3 grid
+of round quick-access buttons; bottom a large command field "What's on your mind, Rey? · Speak to the core, or start a
+conversation · ⌘K · →", bottom left "View controls" and "Automatic · best fit" menus, bottom right a 2D/3D toggle. RIGHT
+panel: "LIVE TELEMETRY · Behind the intelligence." with a close ×, numbered collapsible sections: 01 Machines (devices
+with Online, CPU %, Memory %, installed models count), 02 Voice link (connection, microphone "Off · click to enable",
+"Talk to Nova", "Enable Hey Nova" with an explanation), 03 Apps & workspace (a list of links with icons), 04 Models &
+usage; a footer "Live from your Mac · Refresh".
+
+N11. HERMES AGENT: CONNECT YOUR OWN AGENT TO NOVA, WITH AN IN-DEPTH GUIDE (a second planet-checklist guide next to
+"Build your own NOVA"; aimed at vibe coders and agent builders)
+- Research first (docs/research/session-ak/HERMES_AGENT.md; official sources only: github.com/NousResearch/hermes-agent,
+  hermes-agent.nousresearch.com/docs, and Open WebUI's "Connect an agent: Hermes Agent" page):
+  - what Hermes Agent is (Nous Research's open-source personal agent: tools, skills, memory, model providers, gateways),
+    its licence, the platforms it runs on and its install steps per OS;
+  - its OpenAI-compatible API server: in ~/.hermes/.env set API_SERVER_ENABLED=true and API_SERVER_KEY=<a strong random
+    string the person makes>, optional API_SERVER_PORT (default 8642) and API_SERVER_HOST (default 127.0.0.1); start it
+    with `hermes gateway` (it must keep running); base URL http://127.0.0.1:8642/v1; GET /health returns
+    {"status":"ok"}; GET /v1/models lists hermes-agent; the key is sent as the bearer API key. Verify each fact against
+    the official docs and the source at the current release, and record the version read;
+  - BROWSER ACCESS: whether the API server sends CORS headers or has an allowed-origins setting for a web app at
+    https://alpha.zigoals.app; Chrome's local-network-access prompt for localhost from an HTTPS page; Safari and Firefox.
+    If Hermes offers no CORS option, document the smallest honest local option the person runs on their own machine
+    (e.g. a one-line local reverse proxy that adds the header for this one origin), verified, with exact commands per OS.
+    Never invent a setting that doesn't exist.
+- The connection in the app: a "Hermes Agent" brain type built on the existing OpenAI-compatible local adapter
+  (lib/ai/adapters.ts localServer 'openai-compatible'): base URL (default http://127.0.0.1:8642/v1), the key stored
+  device-only through lib/ai/keys.ts like every key (never synced in plain form, never exported unless asked and
+  warned), a live test that calls /health and /v1/models and names what it found, streaming chat, clear errors for
+  "gateway not running", "wrong key", "blocked by the browser (CORS or local-network permission)" with the fix for each.
+  localhost only (the CSP stays exact; any CSP change is TIER 3 (CSP) with egress-policy entries and PRIVACY lines).
+- Privacy, honestly: Hermes runs on the person's machine but may call a cloud model and use tools. So: a Hermes brain
+  counts as Strict only after the person confirms in the guide that their Hermes uses a local model; otherwise NOVA
+  treats it as Guarded (redaction and the "about to send" preview); the guide explains that whatever NOVA sends to Hermes
+  is then handled by Hermes's own settings, and that ZIGoals never sees, stores or proxies any of it; NOVA never asks
+  Hermes to sign, send or move money; any action Hermes suggests that touches ZIGoals comes back as a ZIGoals confirm
+  card with Undo.
+- NOVA and Hermes together: Hermes as NOVA's brain (the whole chat runs on the person's Hermes), or as a second agent NOVA
+  can delegate to ("Ask my Hermes"), shown like the NOVA–ZIGi exchange from N1 with Hermes's own avatar; Hermes appears
+  in N12's right panel (gateway reachable, the model it reports, last response time); an optional, person-triggered
+  "Give Hermes my ZIGoals summary": NOVA builds a Markdown summary of the scopes the person picks (redacted per the
+  privacy mode), shown first, then copied or saved as a file the person drops into Hermes's memory or skills folder
+  themselves. Nothing is sent automatically; ZIGoals runs no server Hermes could call.
+- The guide "Connect your Hermes Agent" (/app/nova/hermes and a card on NOVA; on Earn's Start-here orbit path component;
+  progress per device; every step with a check that verifies it really worked; commands one per copyable block; macOS,
+  Windows (incl. WSL if Hermes needs it) and Linux tabs): 1 What Hermes is, what it can do with NOVA, the privacy picture.
+  2 Install (official steps; verify `hermes --version`). 3 Choose Hermes's model (local recommended, linking the
+  local-model planets; or the person's provider, with the privacy consequence). 4 Turn on its API server (the
+  ~/.hermes/.env lines, a strong key generated locally e.g. with openssl, port and host). 5 Start the gateway (`hermes
+  gateway`), keep it running (at login per OS, from the official docs if described). 6 Let the browser reach it (the
+  CORS/local-proxy step and Chrome's local-network permission, with a live check). 7 Connect it in ZIGoals (base URL and
+  key; /health and /v1/models test). 8 Confirm the privacy mode (Strict only if Hermes runs a local model). 9 First run:
+  a guided conversation, then delegate one task ("Ask my Hermes to plan my week from my goals"). 10 Go further: the
+  ZIGoals summary for Hermes's memory, Hermes skills with NOVA's workflows, links to the official docs and community.
+- Tests: the adapter with a mocked Hermes server (health, models, streaming, wrong key, gateway down, CORS failure
+  messages), the privacy-mode rule, the delegation exchange, the summary export (only chosen scopes, redacted, nothing
+  sent), the guide's checks with mocks, and a Hermes step in the NOVA journey. Help, PRIVACY.md and the landing's NOVA
+  chapter mention Hermes Agent with its official name and a link, without implying any partnership.
+
+N12. THE NOVA PAGE USES THE WHOLE SCREEN, WITH HIDEABLE SIDE PANELS (desktop first; refines N2's layout)
+- Full screen: NOVA takes the whole browser window: the app's own sidebar, top bar and footer are hidden while NOVA is
+  open, and come back with "Exit NOVA" or Esc. A Fullscreen button (Fullscreen API, after a click) fills the display; Esc
+  leaves fullscreen first, then NOVA.
+- LEFT PANEL (hideable; replaces the app's sidebar while NOVA is open): the person's space at the top (name or "Your
+  space", a lock icon showing everything is on this device); a "Your life" entry (the four-pillar overview) and a search
+  field "Find a page or agent…"; sections with coloured dots and counts: the pillars and their pages (Goals, Habits,
+  Health, Wealth, Journal and Notes, Tasks and Agenda, Focus and Music, Checklist, Review, Earn only if chosen, Chess,
+  Settings), each opening its page; "Agents": NOVA, ZIGi and the person's Hermes Agent (if connected), each with a status
+  dot; at the bottom a short NOVA signature line and the brain's status ("Local model · 3 models found" or "Hermes
+  gateway reachable"). Collapses to a slim icon rail or fully hides (a button and a keyboard shortcut); state remembered
+  per device.
+- CENTRE (the stage): the NOVA orb in the middle of a slow nebula and starfield (the orb shows NOVA's name and state:
+  Standby · click to speak, Listening, Thinking, Speaking; a still under reduced motion and Motion Off); a local clock
+  and date top centre; top left "Your day" (the brief), search, workflows and settings buttons; top right a grid of
+  quick-access buttons (the dock from N2: Health, ZIGi chat, Checklist, Music, Focus, Notes capture, Quick add, Agenda,
+  Review, Customize the view, Fullscreen); at the bottom a large command field "What's on your mind, <name>?" with ⌘K, a
+  "View controls" menu (which widgets float on the stage, layout Orbit/Bento/Focus/Minimal) and a model routing menu
+  ("Automatic · best fit" or a chosen brain); widgets float on the orbit rings around the orb and can be toggled from
+  View controls. The chat opens as a large panel above the command field (or beside the orb on wide screens) and
+  collapses back to the field.
+- RIGHT PANEL (hideable): "Behind the intelligence", live and honest, collapsible numbered sections: 01 Brains (each
+  connected brain with status: local server online/offline; the models Ollama or LM Studio report, and for Ollama the
+  loaded models and their memory from its own API; Hermes gateway reachable; a cloud provider configured), and the
+  device facts the browser really offers (logical cores, approximate memory where exposed, battery and online state);
+  nothing invented, unknown shown as unknown; 02 Voice (speech output on/off, microphone state off until clicked, "Talk
+  to NOVA" push to talk; a wake phrase "Hey NOVA" only where on-device speech recognition is available, otherwise not
+  offered, with the reason); 03 Your pages and tools (quick links with live counts: habits left today, water to go, the
+  next bill, unread briefs, notes in the inbox, tasks due); 04 Models and usage (per brain the requests and estimated
+  tokens today, the cost meter (local and Hermes-with-local-model free on your device), the daily cap); 05 Memory and
+  scopes (what NOVA remembers and can see, links to the panels from N2); 06 Activity (latest NOVA, ZIGi and Hermes
+  actions with Undo). Collapses section by section or hides completely; state remembered per device.
+- PHONE: keep it simple; no full phone version. Phones get a minimal NOVA: the orb, the command field and the chat, with
+  the quick-access buttons in a sheet; no side panels. Tablets get the desktop layout with the panels hidden by default.
+- Motion: the one-time "system online" opening also slides the side panels in; panels open and close with a short motion
+  that is instant under reduced motion and Motion Off; nothing tracks the pointer.
+- Tests: panel hide/show and remembered state, the full-window takeover and the return of the app's chrome, Fullscreen
+  and Esc order, keyboard access to every panel and button, the right panel's honest values with mocked local servers
+  (online, offline, unknown), the phone's minimal view, theme parity and the layout audit at 1024, 1440 and 1920 (plus
+  390 for the minimal view).
+```
+
 ## Per-surface quality lines (A22)
 Compared with COMPETITORS.md (c); "meets" = the pattern's essentials are there, "gap" = what F1/F6 should raise.
 - **Barcode and food (4.1, 4.4, Part 10 #3/#15):** meets — barcode miss falls through to "Add it yourself" with the label
@@ -683,6 +799,8 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | N8 Always open: start page, picture-in-picture, unread briefs, ⌘/Ctrl + J | Open | — | — |
 | N9 Safety and privacy: injection tests, loop caps, Guarded preview, keys device-only, exact CSP | Open | — | — |
 | N10 Tests: units, specs, NOVA journey, evals, REAL_MODEL_TODO | Open | — | — |
+| N11 Hermes Agent: research (HERMES_AGENT.md), the Hermes brain on the OpenAI-compatible adapter, privacy rule, delegation, the ZIGoals summary, the 10-step guide /app/nova/hermes | Open | — | — |
+| N12 The NOVA page takes the whole screen: hideable left panel (pages, agents, brain status), the stage (orb, clock, dock grid, command field, view controls, model routing), hideable right panel "Behind the intelligence" (01–06), Fullscreen, minimal phone view | Open | — | — |
 | B1 Capture inbox (text, voice, device-only photo) | Open | — | — |
 | B2 Daily notes with a This day strip | Open | — | — |
 | B3 Linked notes, backlinks, graph view (and list view) | Open | — | — |

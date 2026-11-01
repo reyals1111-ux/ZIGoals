@@ -56,6 +56,9 @@ typecheck what is committed (a lane's edit once slipped into another lane's comm
   - NE engine reads/acts: lib/ai/{context-pack,tools,actions,evals,local-answers}/** additions; REAL_MODEL_TODO NOVA cases.
   - B notes: lib/notes/**, components/notes/**, app/app/notes/**, additive components/journal/** + lib/journal/**, lib/search/notes*, minimal mounts in search-palette and quick-add.
   - T tasks/time: lib/tasks/**, components/tasks/**, components/agenda/**, lib/agenda/**, lib/ics/**, lib/focus-sessions/** + focus components.
+- Owner follow-up 3 (1 Nov): N11 Hermes Agent (research: a fresh agent → docs/research/session-ak/HERMES_AGENT.md; the brain,
+  privacy rule, summary and the /app/nova/hermes guide: lane NC; "Ask my Hermes" delegation and chat placement: lane NB)
+  and N12 the full-screen NOVA with hideable left/right panels (lane NA). Brief: scratchpad/owner-followup-3.md and ADR-036.
 - Lead-only files: Help, What's new, manifest (NOVA and Capture shortcuts), egress/CSP/PRIVACY, registries, Showcase,
   shell/nav/rail/More entries, Customize start page, the ⌘/Ctrl+J mount, weights, STATUS/ADR/AK_RESUME.
 - Next waves: G1 (BUILD list 2 rest), G2 (release review rest + second review), G3 + M (visual system and motion, after
