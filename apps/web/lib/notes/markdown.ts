@@ -114,6 +114,11 @@ export function notesExportEntries(record: Notes, sources: Omit<LinkSources, 'no
 /* ---- Import ------------------------------------------------------------------------------------------------------ */
 export const IMPORT_MAX_FILES = 1000, IMPORT_MAX_FILE_BYTES = 512 * 1024;
 export const isNoteFile = (name: string) => /\.(?:md|markdown|txt)$/i.test(name);
+/** The export's file name; a Showcase export says so in its name (Z1B-6), as Export everything's files do. */
+export const notesExportName = (day: string, showcase: boolean) => `zigoals-${showcase ? 'example-' : ''}notes-${day}.zip`;
+/** A Showcase example note (its front-matter, or the body's closing "(SHOWCASE DATA)" line). */
+const SHOWCASE_EXAMPLE = 'it is a Showcase example note, so it stays out of your own notes';
+const isExample = (data: FrontMatter, body: string) => /^(?:true|yes)$/i.test(fmString(data, 'example') ?? '') || /\(SHOWCASE DATA\)\s*$/.test(body);
 export type ImportFile = {name: string; data: Uint8Array};
 export type ImportPlan = {add: Note[]; append: {id: string; name: string; text: string}[]; skipped: {name: string; reason: string}[]};
 const clean = (text: string) => text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/[\0-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '');
@@ -122,8 +127,11 @@ const validStamp = (s: string | undefined) => !!s && /^\d{4}-\d{2}-\d{2}T\d{2}:\
 /**
  * What importing these files would do, without doing it: new notes, words added to an existing daily note of the same
  * day, and what is skipped and why (a stub, a note already here, too long, not text, over the caps).
+ *
+ * Showcase example notes (Z1B-6) never join the person's own notes: they are skipped with a plain reason. Into the
+ * Showcase (`showcase: true`) they are imported, still marked `example`.
  */
-export function planImport(record: Notes, files: readonly ImportFile[], now: string, today: string): ImportPlan {
+export function planImport(record: Notes, files: readonly ImportFile[], now: string, today: string, {showcase = false}: {showcase?: boolean} = {}): ImportPlan {
   const plan: ImportPlan = {add: [], append: [], skipped: []};
   const ids = new Set(record.notes.map(n => n.id)), titles = new Set(record.notes.filter(n => n.kind !== 'daily').map(n => linkKey(noteName(n))));
   const daily = new Map(record.notes.filter(n => n.kind === 'daily' && n.day).map(n => [n.day!, n]));
@@ -136,6 +144,8 @@ export function planImport(record: Notes, files: readonly ImportFile[], now: str
     if (file.data.length > IMPORT_MAX_FILE_BYTES) { skip('it is over 512 kB'); continue; }
     const {data, body: rawBody} = parseFrontMatter(clean(decoder.decode(file.data)));
     if (fmString(data, 'zigoals-stub')) { skip('it is a goal or habit stub from a ZIGoals export'); continue; }
+    const example = isExample(data, rawBody);
+    if (example && !showcase) { skip(SHOWCASE_EXAMPLE); continue; }
     const body = rawBody.replace(/\n*!\[\[[^\]\n]+\.(?:png|jpe?g|webp|gif|avif|heic)\]\]\s*$/i, '').trimEnd();
     if (body.length > MAX_BODY) { skip(`it is longer than ${MAX_BODY.toLocaleString('en-US')} characters`); continue; }
     const fmId = fmString(data, 'zigoals-id'), base = baseOf(file.name);
@@ -147,6 +157,7 @@ export function planImport(record: Notes, files: readonly ImportFile[], now: str
     if (kind === 'daily' && daily.has(day!)) {
       const existing = daily.get(day!)!;
       if (!body.trim() || existing.body.includes(body.trim())) { skip('this day’s note already holds these words'); continue; }
+      if (example && !existing.example) { skip(SHOWCASE_EXAMPLE); continue; }
       if (existing.body.length + body.length + 2 > MAX_BODY) { skip(`that day’s note would be longer than ${MAX_BODY.toLocaleString('en-US')} characters`); continue; }
       if (chars + body.length > 1_500_000) { skip('notes would be too large to keep in this browser'); continue; }
       const prior = plan.append.find(a => a.id === existing.id);
@@ -160,7 +171,7 @@ export function planImport(record: Notes, files: readonly ImportFile[], now: str
     if (chars + title.length + body.length > 1_500_000) { skip('notes would be too large to keep in this browser'); continue; }
     const tags = fmList(data, 'tags').map(t => t.replace(/^#/, '').trim().slice(0, MAX_TAG)).filter(Boolean).slice(0, MAX_TAGS);
     const created = fmString(data, 'created');
-    const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now};
+    const note: Note = {id: newNoteId(), kind, title, body, ...(day && kind !== 'topic' ? {day} : {}), source: 'import', ...(tags.length ? {tags} : {}), createdAt: validStamp(created) ? new Date(created!).toISOString() : now, ...(example ? {example: true} : {})};
     if (kind === 'inbox' && !note.day) note.day = today;
     plan.add.push(note); room--; chars += title.length + body.length;
     titles.add(linkKey(title)); if (kind === 'daily') daily.set(day!, note);

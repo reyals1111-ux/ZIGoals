@@ -1,7 +1,10 @@
 import {stableHash} from './ics';
 import {DAY_RE, MAX_CALENDAR_NAME, MAX_EXDATES, MAX_STORED_EVENTS, MAX_TITLE, importedCalendarSchema, importedEventSchema, type IcsRule, type ImportedCalendar, type ImportedEvent} from './calendar';
 import {addLocalDays} from '../local-date';
-import {instantAt, wallClock} from '../zone-time';
+import {instantAt} from '../zone-time';
+import {settleCount} from './expand';
+import {moveWall} from './zone-move';
+export {moveWall} from './zone-move';
 
 /**
  * Reading an iCalendar file (RFC 5545) on the device (Session AK, T2): the Agenda's "Import a calendar". The file is
@@ -155,9 +158,10 @@ export function parseRule(value: string, untilTo: (t: IcsTime) => string): IcsRu
   return rule;
 }
 
+const wallOf = (t: IcsTime) => t.clock ? `${t.day}T${t.clock}` : t.day;
+
 /* ---- The file ----------------------------------------------------------------------------------------------- */
 type Raw = {uid: string; summary: string; start?: ContentLine; end?: ContentLine; duration?: string; rrule?: string; exdates: ContentLine[]; recurrenceId?: ContentLine; cancelled: boolean};
-const wallOf = (t: IcsTime) => t.clock ? `${t.day}T${t.clock}` : t.day;
 
 /**
  * Reads a whole file into one calendar to keep. `today` is the device's day (what "ended 90 days ago" counts from);
@@ -227,19 +231,25 @@ export function readIcs(text: string, {fileName = '', today, id, at}: {fileName?
     if (cl.params.TZID && !tz) floatingZones++;
     return {t, tz};
   };
-  /** A time moved into another zone's wall time (an EXDATE or UNTIL given in UTC, compared with a zoned start). */
-  const into = (x: {t: IcsTime; tz: string | null}, tz: string | null): string => {
-    if (!x.t.clock || x.tz === tz || !x.tz || !tz) return wallOf(x.t);
-    const ms = x.tz === 'UTC' ? Date.parse(`${x.t.day}T${x.t.clock}:00Z`) : instantAt(x.t.day, x.t.clock, x.tz), w = wallClock(ms, tz);
-    return `${w.date}T${w.clock}`;
-  };
-  const events: ImportedEvent[] = [], replaced = new Map<string, string[]>();
+  const into = moveWall;
+  // A changed occurrence (RECURRENCE-ID) replaces its master's start: indexed once per UID (Z1B-3), each kept once and at
+  // most MAX_EXDATES per UID (no master keeps more skipped dates), and moved into a master's zone once per UID and zone.
+  const overrides = new Map<string, Map<string, {t: IcsTime; tz: string | null}>>(), movedInto = new Map<string, string[]>();
   for (const raw of raws) {
-    if (raw.recurrenceId && raw.uid) {
-      const rid = timeOf(raw.recurrenceId);
-      if (rid) { const list = replaced.get(raw.uid) ?? []; list.push(JSON.stringify(rid)); replaced.set(raw.uid, list); }
-    }
+    if (!raw.recurrenceId || !raw.uid) continue;
+    const rid = timeOf(raw.recurrenceId);
+    if (!rid) continue;
+    let byKey = overrides.get(raw.uid);
+    if (!byKey) overrides.set(raw.uid, byKey = new Map());
+    if (byKey.size < MAX_EXDATES) byKey.set(`${wallOf(rid.t)}|${rid.tz ?? ''}`, rid);
   }
+  const overridesIn = (uid: string, tz: string | null): string[] => {
+    const key = `${uid}\n${tz ?? ''}`;
+    let list = movedInto.get(key);
+    if (!list) movedInto.set(key, list = [...(overrides.get(uid)?.values() ?? [])].map(x => into(x, tz)));
+    return list;
+  };
+  const events: ImportedEvent[] = [], keptIds = new Set<string>();
   const earliest = addLocalDays(today, -KEEP_PAST_DAYS);
   for (const raw of raws) {
     if (raw.cancelled) { skipped.cancelled++; continue; }
@@ -271,19 +281,29 @@ export function readIcs(text: string, {fileName = '', today, id, at}: {fileName?
       if ('unreadable' in rule) { event.firstOnly = true; firstOnly++; }
       else event.rule = rule;
     }
-    if (event.rule) {
-      const ex = new Set<string>();
-      for (const cl of raw.exdates) for (const v of cl.value.split(',')) { const x = timeOf(cl, v); if (x) ex.add(into(x, tz)); }
-      for (const r of replaced.get(raw.uid) ?? []) { const x = JSON.parse(r) as {t: IcsTime; tz: string | null}; ex.add(into(x, tz)); }
-      if (ex.size) event.exdates = [...ex].filter(v => DAY_RE.test(v) || /T\d{2}:\d{2}$/.test(v)).slice(0, MAX_EXDATES);
+    // A COUNT is kept as the UNTIL of its last start (Z1B-4), so a series that ended is left out here and a view never
+    // walks it from an old start. A COUNT rule that gives no start at all is one ZIGoals cannot show.
+    if (event.rule?.count !== undefined) {
+      const settled = settleCount(event);
+      if (!settled) { skipped.unreadable++; continue; }
+      event.rule = settled;
     }
     // Long past: a one-off event that ended before the 90 days, or a rule that ended before them.
     const ruleEnd = event.rule ? (event.rule.until?.slice(0, 10) ?? null) : lastDay;
     if (ruleEnd !== null && ruleEnd < earliest) { skipped.past++; continue; }
+    // A repeated event (the same UID and recurrence id) costs nothing more once one is kept (Z1B-3).
+    if (keptIds.has(event.id)) continue;
+    if (events.length >= Math.min(MAX_EVENTS_KEPT, MAX_STORED_EVENTS)) { skipped.overCap++; continue; }
+    if (event.rule) {
+      // Skipped dates: EXDATE values, then the changed occurrences; at most MAX_EXDATES, so no more are converted.
+      const ex = new Set<string>(), add = (v: string) => { if (DAY_RE.test(v) || /T\d{2}:\d{2}$/.test(v)) ex.add(v); return ex.size < MAX_EXDATES; };
+      dates: for (const cl of raw.exdates) for (const v of cl.value.split(',')) { const x = timeOf(cl, v); if (x && !add(into(x, tz))) break dates; }
+      if (ex.size < MAX_EXDATES) for (const v of overridesIn(raw.uid, tz)) if (!add(v)) break;
+      if (ex.size) event.exdates = [...ex];
+    }
     const parsed = importedEventSchema.safeParse(event);
     if (!parsed.success) { skipped.unreadable++; continue; }
-    if (events.some(e => e.id === parsed.data.id)) continue;
-    if (events.length >= Math.min(MAX_EVENTS_KEPT, MAX_STORED_EVENTS)) { skipped.overCap++; continue; }
+    keptIds.add(parsed.data.id);
     events.push(parsed.data);
   }
   const name = clip(calName || fileName.replace(/\.(ics|ical|ifb|icalendar)$/i, '').replace(/[\u0000-\u001f\u007f]/g, '').trim() || 'Imported calendar', MAX_CALENDAR_NAME);

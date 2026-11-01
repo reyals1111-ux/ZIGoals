@@ -87,14 +87,15 @@ describe('Markdown export is Obsidian-friendly (B5)', () => {
   test('round trip: export, wipe, import gives back every note with its words, links, kind, day and tags', () => {
     const s = showcaseNotes(DAY);
     const files = readStoredZip(buildStoredZip(notesExportEntries(s, {goals, habits}, {now: new Date(NOW)}))).map(f => ({name: f.name, data: f.data}));
-    const plan = planImport(emptyNotes(), files, NOW, DAY);
+    // The fixture is the Showcase's example notes, so the round trip is into the Showcase (Z1B-6: real notes refuse them).
+    const plan = planImport(emptyNotes(), files, NOW, DAY, {showcase: true});
     expect(plan.skipped.filter(x => x.reason.includes('stub'))).toHaveLength(5);
     expect(plan.add).toHaveLength(s.notes.length);
     const back = applyImport(emptyNotes(), plan, NOW).record;
     const strip = (n: (typeof s.notes)[number]) => ({kind: n.kind, title: n.kind === 'inbox' ? '' : n.title, body: n.body, day: n.day, tags: n.tags, createdAt: n.createdAt});
     expect(back.notes.map(n => ({...strip(n), title: n.kind === 'inbox' ? '' : n.title})).sort((a, b) => a.body.localeCompare(b.body))).toEqual(s.notes.map(strip).sort((a, b) => a.body.localeCompare(b.body)));
     // Importing the same files onto the notes they came from adds nothing.
-    expect(planImport(s, files, NOW, DAY).add).toHaveLength(0);
+    expect(planImport(s, files, NOW, DAY, {showcase: true}).add).toHaveLength(0);
   });
   test('a single note survives a round trip with a tricky title', () => {
     const note = {id: 'n1', kind: 'topic' as const, title: 'Plan: "A" & [B] #1', body: 'line\n---\nmore', createdAt: NOW};

@@ -216,3 +216,71 @@ the sheet go too.
   photos never share a key (apart from Z1B-6 and Z1B-9).
 - **IndexedDB quota.** Note photos ≤ 300 × 200 kB and receipt photos ≤ 500 × 200 kB per scope, shrunk on the device and
   schema-checked before `put`.
+
+## Fixes (lane ZG)
+
+Z1B-3, Z1B-4, Z1B-5, Z1B-6 and Z1B-8 are fixed in `lib/`; Z1B-7 and Z1B-9 are recorded as notes, with no change. Timed
+tests use generous bounds (about 3× what this machine takes). The review's own probes against the fixed code: .ics 46,326 ms
+→ 272 ms, stored COUNT agenda 5,546 ms → 0 ms, notes ZIP 13.8 s → 53 ms, hex scan (80 k characters) 5.2 s → 5 ms.
+
+- **Z1B-3 (.ics RECURRENCE-ID).** `lib/ics/import.ts`: changed occurrences are indexed once per UID (a `Map` of UID to
+  distinct recurrence ids, at most `MAX_EXDATES` = 100 per UID), moved into a master's zone once per UID and zone, and no
+  longer go through JSON. Duplicate checks use a `Set`. A master is checked for "ended", "already kept" and "over the
+  1,000" **before** its skipped dates are worked out, and stops converting once it has 100 (what the stored event keeps
+  anyway). Zone conversions go through `lib/ics/zone-move.ts` (`moveWall`): the same answers as `instantAt` + `wallClock`,
+  read with a short Intl offset call (`timeZoneName: 'longOffset'`), about four times faster; within a day of an offset
+  change, or where Intl cannot, it uses lib/zone-time.ts itself. The Agenda's `occurrences` uses it when the event's zone
+  differs from the device's. Tests (`lib/ics/import-cost.test.ts`): the review's file in < 2 s (≈100 ms); a file at the
+  2 MB cap built for the most conversions (1,000 masters × 100 EXDATEs in another zone, plus overrides) in < 3 s (≈1 s;
+  3.6 s without the quick path); what is kept is unchanged (EXDATEs first, then overrides, repeated masters and overrides
+  once); `moveWall` equals the old conversion for 3,000+ random times over 13 zones (half-hour, 45-minute and seconds
+  offsets, 1900–2200) and every half hour of ten clock-change days; Agenda occurrences equal the reference across clock
+  changes, and 1,000 zoned daily events over 62 days (62,000 starts) in < 1.5 s (1.9 s before).
+- **Z1B-4 (COUNT from an old start).** `lib/ics/expand.ts`: `countEnd` gives a COUNT rule's last start (arithmetic for
+  DAILY, filtered DAILY and WEEKLY; a numeric month or year walk, at most 3,000 steps as a view's walk had, for MONTHLY and
+  YEARLY), and `settleCount` replaces the COUNT by the UNTIL of that start (or the rule's own earlier UNTIL). The import
+  stores settled rules, so a series that ended is left out as past (counted "ended over 90 days ago"), and one that gives
+  no start at all is counted as unreadable. `ruleStarts` settles a COUNT rule stored before this fix once per rule in a
+  bounded memo (5,000), so every view jumps straight to its range; NOVA's calendar tool goes through the same code.
+  A long COUNT series still running now shows its later starts correctly (the old walk stopped at step 3,000). Tests: the
+  review's 1,000 events from 1900 import in < 1.5 s (≈20 ms) and, stored with their COUNT, a 62-day view in < 1.5 s (≈0 ms);
+  settling equals walking the rule start by start for 400+ random rules of every kind; UNTIL before the COUNT's end wins; a
+  filter that never matches gives nothing at no cost. One existing test changed: "a COUNT reaching back years" built its
+  event through the import, which now leaves it out as past; its assertion (`[]` in November 2026) is kept on the same
+  rule as stored before the fix, and two assertions are added (its last week in 1992; the import leaves it out as past).
+- **Z1B-5 (notes ZIP budget).** `lib/notes/zip-read.ts`: every inflated byte counts against one unpacking budget
+  (`maxTotal`, 30 MB), kept or not; a failed inflation is charged what it produced (`ZipError.inflated`), an inflater that
+  cannot say is charged its full allowance; each inflation is limited to what is left of the budget. Entries whose bytes
+  overlap another's are refused ("it is damaged (it overlaps another entry)"); a stored entry whose sizes disagree is
+  damaged without a copy; after 20 damaged entries the rest of the archive is left unread ("the archive is damaged in too
+  many places"). `readZip` takes a shared `budget` and an `AbortSignal` (checked between entries and inflated chunks;
+  "Stopped. Nothing was changed."). New `lib/notes/read-files.ts` `readNoteFiles(list, {signal, budget})` is the
+  component's file loop with ONE budget for all chosen ZIPs and .md files of an import. Tests
+  (`lib/notes/import-budget.test.ts`): the review's ZIP in < 3 s (≈60 ms) inflating ≈1 MB, not 2 GB; damaged entries are
+  charged and the rest wait for the budget; one budget across two 20 MB ZIPs and a file; Stop between files, in an archive
+  and while inflating.
+  **For lane NV (components/notes/notes-files.tsx, not changed here):** replace the loop at lines 39–49 with
+  `const {files, skipped} = await readNoteFiles([...list], {signal: stop.signal})` and offer a Stop button while `busy`
+  that calls `stop.abort()` (the existing `catch` already shows a `ZipError`'s message).
+- **Z1B-6 (Showcase notes).** `lib/notes/markdown.ts`: `planImport` skips a Showcase example note (front-matter
+  `example: true`, or a body ending "(SHOWCASE DATA)") with the reason "it is a Showcase example note, so it stays out of
+  your own notes"; with `{showcase: true}` (importing into the Showcase) it imports them and keeps `example: true`.
+  `notesExportName(day, showcase)` names a Showcase export `zigoals-example-notes-<day>.zip`. Tests: a Showcase export into
+  real notes adds nothing and says why; the body line alone marks a note; into the Showcase the notes keep their mark; the
+  file names. One existing test changed: the Markdown round trip uses the Showcase's notes as its fixture, so it now
+  imports into the Showcase (`{showcase: true}`); every assertion is kept. **For lane NV:** in notes-files.tsx use
+  `link.download = notesExportName(localDate(), isShowcase())` and pass `{showcase: isShowcase()}` to `planImport`.
+- **Z1B-8 (hex groups).** `lib/emergency-sheet/secrets.ts`: the block regex starts only where a hex run starts
+  (`(?<![0-9a-fA-F])`, exported as `HEX_GROUPS`), so a long run is tried once, not from each character. Same matches: a
+  match's first group must reach its run's end. Tests (`lib/emergency-sheet/secrets-redos.test.ts`): five hostile 80 k
+  inputs each < 1 s (≈5 ms); identical matches to the old regex on 3,000 random strings; grouped keys still found, dates
+  and phone numbers not. Every existing secret-guard and emergency-sheet test passes.
+- **Z1B-7 (Info, note only).** The fix (a tombstone list or a 30-day grace before the orphan sweep) is in
+  components/notes/notes-workspace.tsx, lane NV's; no one-line safe fix in `lib/`.
+- **Z1B-9 (Info, note only).** Clearing the `showcase` photo scope when a Showcase starts and ends touches the Showcase
+  lifecycle and two photo stores; not a one-line change, left for a later session.
+
+Observed while testing (not caused here, not changed): `lib/secret-guard/note-lists-arrive.test.ts` fails about one run in
+three when run together with lib/notes, lib/ics, lib/agenda and lib/emergency-sheet at two workers (line 24: the cautious
+line has already gone because the word list loaded within the first `act`); it fails the same way with the original
+`secrets.ts` and passes alone.

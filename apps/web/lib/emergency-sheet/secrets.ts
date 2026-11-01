@@ -155,8 +155,14 @@ export function wordListNeeds(text: string): WordScript[] {
  * groups of hexadecimal characters between spaces, colons and hyphens, any consecutive ones of which add up to exactly
  * 64 characters with both digits and letters among them (a date or a phone number has no letters a–f; a word has no digits).
  */
+/**
+ * The blocks of hex groups. A block starts only where a hex run starts (the lookbehind): without it a long unbroken run
+ * was tried from each of its characters, quadratic (80,000 characters took 5 s, Z1B-8). The matches are the same: a
+ * match can only begin at the start of its run, since its first group must reach the run's end.
+ */
+export const HEX_GROUPS = /(?<![0-9a-fA-F])[0-9a-fA-F]+(?:[\s:-]+[0-9a-fA-F]+)+/g;
 function groupedHexKey(text: string): boolean {
-  for (const block of text.match(/[0-9a-fA-F]+(?:[\s:-]+[0-9a-fA-F]+)+/g) ?? []) {
+  for (const block of text.match(HEX_GROUPS) ?? []) {
     const groups = block.split(/[\s:-]+/);
     let from = 0, length = 0;
     for (let to = 0; to < groups.length; to++) {

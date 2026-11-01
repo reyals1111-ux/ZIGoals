@@ -2,8 +2,10 @@
 import {useRef, useState} from 'react';
 import type {Notes} from '../../lib/notes/schema';
 import type {LinkSources} from '../../lib/notes/links';
-import {applyImport, isNoteFile, notesExportEntries, planImport, type ImportFile, type ImportPlan} from '../../lib/notes/markdown';
-import {readZip, ZipError} from '../../lib/notes/zip-read';
+import {applyImport, notesExportEntries, notesExportName, planImport, type ImportPlan} from '../../lib/notes/markdown';
+import {ZipError} from '../../lib/notes/zip-read';
+import {readNoteFiles} from '../../lib/notes/read-files';
+import {isShowcase} from '../../lib/showcase-storage';
 import {buildStoredZip} from '../../lib/export/zip';
 import {notePhotosForExport} from '../../lib/notes/photos';
 import {photoScope} from '../../lib/health-aa/photos';
@@ -20,6 +22,8 @@ import type {Change} from './note-editor';
 export default function NotesFiles({record, targets, change}: {record: Notes; targets: Omit<LinkSources, 'notes'>; change: Change}) {
   const input = useRef<HTMLInputElement>(null);
   const [said, setSaid] = useState(''), [busy, setBusy] = useState(false), [plan, setPlan] = useState<ImportPlan | null>(null);
+  // Security review Z1B-5: one reading budget for all chosen files, and Stop while they are read.
+  const reading = useRef<AbortController | null>(null);
   const exportZip = async () => {
     setBusy(true); setSaid('');
     try {
@@ -27,7 +31,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
       const photos = ids.length ? await notePhotosForExport(photoScope(), ids) : new Map();
       const zip = buildStoredZip(notesExportEntries(record, targets, {photos}));
       const url = URL.createObjectURL(new Blob([zip as BlobPart], {type: 'application/zip'})), link = document.createElement('a');
-      link.href = url; link.download = `zigoals-notes-${localDate()}.zip`; document.body.append(link); link.click(); link.remove();
+      link.href = url; link.download = notesExportName(localDate(), isShowcase()); document.body.append(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 2000);
       setSaid(`${record.notes.length} ${record.notes.length === 1 ? 'note' : 'notes'} saved as Markdown in a ZIP, made on this device.`);
     } catch (e) { setSaid(e instanceof Error ? e.message : 'The export could not be made.'); } finally { setBusy(false); }
@@ -36,20 +40,12 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
     if (!list?.length) return;
     setBusy(true); setSaid('Reading the files on this device…'); setPlan(null);
     try {
-      const files: ImportFile[] = [], skipped: {name: string; reason: string}[] = [];
-      for (const f of [...list].slice(0, 1000)) {
-        if (/\.zip$/i.test(f.name) || f.type === 'application/zip') {
-          if (f.size > 25 * 1024 * 1024) { skipped.push({name: f.name, reason: 'it is over 25 MB'}); continue; }
-          const out = await readZip(new Uint8Array(await f.arrayBuffer()), isNoteFile);
-          files.push(...out.files); skipped.push(...out.skipped);
-        } else if (isNoteFile(f.name)) {
-          if (f.size > 512 * 1024) { skipped.push({name: f.name, reason: 'it is over 512 kB'}); continue; }
-          files.push({name: f.name, data: new Uint8Array(await f.arrayBuffer())});
-        } else skipped.push({name: f.name, reason: 'it is not a Markdown, text or ZIP file'});
-      }
-      const p = planImport(record, files, new Date().toISOString(), localDate());
+      const control = new AbortController(); reading.current = control;
+      const {files, skipped} = await readNoteFiles([...list], {signal: control.signal});
+      // Security review Z1B-6: Showcase example notes stay out of a person's own notes.
+      const p = planImport(record, files, new Date().toISOString(), localDate(), {showcase: isShowcase()});
       setPlan({...p, skipped: [...skipped, ...p.skipped]}); setSaid('');
-    } catch (e) { setSaid(e instanceof ZipError ? e.message : 'These files could not be read. Nothing was changed.'); } finally { setBusy(false); }
+    } catch (e) { setSaid(e instanceof ZipError ? e.message : 'These files could not be read. Nothing was changed.'); } finally { reading.current = null; setBusy(false); }
   };
   const confirm = () => {
     if (!plan) return;
@@ -68,6 +64,7 @@ export default function NotesFiles({record, targets, change}: {record: Notes; ta
       <p className="fine">Choose .md files or a ZIP of them (an Obsidian vault or this export). Up to 1000 files, 512 kB each, 25 MB for a ZIP. Front-matter is read as plain text; nothing in a file is ever run. Photos are not imported. You see what would change before anything is saved.</p>
       <input ref={input} type="file" accept=".md,.markdown,.txt,.zip,text/markdown,text/plain,application/zip" multiple hidden tabIndex={-1} aria-hidden="true" onChange={e => { void choose(e.target.files); e.target.value = ''; }}/>
       <button type="button" className="secondary" disabled={busy} onClick={() => input.current?.click()}>Choose files to import</button>
+      {busy && reading.current && <button type="button" className="quiet" onClick={() => reading.current?.abort()}>Stop</button>}
       {plan && <div className="note-import-plan" role="group" aria-label="What the import would do">
         <p><strong>{plan.add.length}</strong> new {plan.add.length === 1 ? 'note' : 'notes'}{plan.append.length ? <>, words added to <strong>{plan.append.length}</strong> daily {plan.append.length === 1 ? 'note' : 'notes'}</> : null}{plan.skipped.length ? <>, <strong>{plan.skipped.length}</strong> skipped</> : null}.</p>
         {plan.skipped.length > 0 && <details><summary>Skipped and why</summary><ul>{plan.skipped.slice(0, 100).map((s, i) => <li key={`${s.name}-${i}`}><code>{s.name}</code>: {s.reason}</li>)}</ul>{plan.skipped.length > 100 && <p className="fine">And {plan.skipped.length - 100} more.</p>}</details>}

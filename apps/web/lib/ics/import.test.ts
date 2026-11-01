@@ -121,9 +121,14 @@ describe('repeat rules (DAILY, WEEKLY, MONTHLY, YEARLY) and their caps', () => {
     expect(days(weekly, '2026-11-01', '2026-11-30')).toEqual(['2026-11-02', '2026-11-09', '2026-11-16', '2026-11-23', '2026-11-30']);
     const many = one('UID:o3\nSUMMARY:Many\nDTSTART;VALUE=DATE:20260101\nRRULE:FREQ=DAILY');
     expect(ruleStarts(many, '2026-01-01', '2030-01-01')).toHaveLength(MAX_STARTS);
-    // A COUNT reaching back years is walked from its start, but never past the step cap.
-    const counted = one('UID:o4\nSUMMARY:Counted\nDTSTART;VALUE=DATE:19900101\nRRULE:FREQ=DAILY;COUNT=1000');
+    // A COUNT reaching back years ends where its last start is (1992-09-26): stored with that COUNT it shows nothing
+    // in 2026, and since Z1B-4 the import settles the COUNT into that end and leaves the series out as past.
+    const counted: ImportedEvent = {id: '0123456789abcdef', title: 'Counted', allDay: true, start: '1990-01-01', rule: {freq: 'DAILY', interval: 1, count: 1000}};
     expect(days(counted, '2026-11-01', '2026-11-30')).toEqual([]);
+    expect(days(counted, '1992-09-20', '1992-10-05')).toEqual(['1992-09-20', '1992-09-21', '1992-09-22', '1992-09-23', '1992-09-24', '1992-09-25', '1992-09-26']);
+    const imported = read(ev('UID:o4\nSUMMARY:Counted\nDTSTART;VALUE=DATE:19900101\nRRULE:FREQ=DAILY;COUNT=1000'));
+    expect(imported.calendar.events).toEqual([]);
+    expect(imported.skipped.past).toBe(1);
   });
   it('a changed occurrence (RECURRENCE-ID) replaces the rule\'s start that day', () => {
     const r = read(ev('UID:s\nSUMMARY:Lesson\nDTSTART:20261102T170000\nRRULE:FREQ=WEEKLY;COUNT=3') + ev('UID:s\nRECURRENCE-ID:20261109T170000\nSUMMARY:Lesson (moved)\nDTSTART:20261110T180000'));
