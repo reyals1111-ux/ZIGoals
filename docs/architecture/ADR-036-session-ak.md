@@ -672,7 +672,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | G6 Every open A12 intermittent fixed or proven gone | Open | — | — |
 | G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Open | — | — |
 | G8 ZIGi and NOVA tools for G1's new features | Open | — | — |
-| N0 NOVA research (docs/research/session-ak/NOVA.md) | Open | — | — |
+| N0 NOVA research (docs/research/session-ak/NOVA.md) | Built: the trend and 10 takeaways, local models per OS, browser localhost rules, models by memory, provider CORS and prices, the subscription verdict (no consumer plan works; sources) | `80d7c1af` | sources cited, read 1 Nov 2026 |
 | N1 One engine, two companions: shared history and memory, hand-offs, delegation, Duo view (Q28) | Open | — | — |
 | N2 The NOVA page /app/nova: full-view dashboard, opening sequence, orb, chat, dock, widgets, chips, panels, make it yours, share setup, entry points | Open | — | — |
 | N3 Build your own NOVA: the setup guide as a planet checklist (10 steps with checks) | Open | — | — |
@@ -691,7 +691,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | T1 Tasks and goal next-actions on the Agenda and as a NOVA widget | Open | — | — |
 | T2 Calendar .ics import (read-only events on the Agenda) | Open | — | — |
 | T3 Pomodoro in Focus sessions, from a task, with the ambient player | Open | — | — |
-| M0 Motion research (MOTION_2026.md) | Open | — | — |
+| M0 Motion research (MOTION_2026.md) | Built: support tables, recipes, accessibility and performance rules, a Full / Calm / Off plan | `80d7c1af` | sources cited |
 | M1 Web-native motion (View Transitions, scroll-driven, @property, linear(), once-only entrances, tickers, strokes, micro-interactions; reverses Q26 and Q27) | Open | — | — |
 | M2 Next-gen surfaces (liquid glass, bento, aurora, scroll depth, starfield canvas) | Open | — | — |
 | M3 Ambient and attention (orb, activity chips, skeletons, optimistic UI, haptics) | Open | — | — |
