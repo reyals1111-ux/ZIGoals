@@ -725,7 +725,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | Part 0 records, ADR-036, resume file, Draft PR, frozen readers #37–#52 | Built | `9c5d7ee6` | scripts/frozen-readers.mjs #52 |
 | Research: COMPETITORS, EXCHANGES_NEXT, LICENCES, WALLETS, FORMATS | Built | `e417ca9b` | docs/research/session-ak/ |
 | 1a WalletConnect (Reown id, CSP, QR, deep links, A7 honesty, A8 QR, A9 copy) | Built | `75ed3a6d`, `249bf461` | lib/qr tests; walletconnect.test, csp-compose.test, public-safety.test |
-| AFL9 Keplr Mobile staking over WalletConnect (review sheet only) | Built | `f9ccc351` | lib/staking/walletconnect-signer.test.ts; staking guard holds |
+| AFL9 Keplr Mobile staking over WalletConnect (review sheet only) | Built; reachable from the Staking panel since the Q1 audit found it was not (connect over a staking pairing without the extension) | `f9ccc351`, `4a4cbfc9`, `a9e8615d` | lib/staking/walletconnect-signer.test.ts, walletconnect-connect.test.ts; journey 7b (one cosmos_signDirect after the press, testnet double only); staking guard holds |
 | 1b food Worker: FDC after OFF, FOOD_LOOKUP binding, A10 deploy order | Built | `8b0ae98c`, `f3ac1031`, `74902dcd` | food-lookup Worker tests; check-deployment-configs prints the order; packaged pin `8c718525` |
 | 1c EU generic library (CIQUAL, CoFID; Fineli waits on review/ak-food-data, A11) | Built (Fineli: waiting) | `f3ac1031` | public/food-generic manifest; licences in LICENCES.json |
 | 1d music for everyone (mix, links, BYO Spotify, /app/music, focus and wind-down hooks) | Built | `95952388`, `9c902707` | lib/audio tests; music-mix key |
@@ -780,14 +780,14 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | F12 finish | Moved into Z4 (owner follow-up 2) | — | — |
 | Q1 Wiring audit of every Built/Finished row (fresh read-only agent; WIRING_AUDIT.md); every non-Working row finished | Built: audit 52 Working / 43 Partly; Q1F added 31 browser tests on the UI path and fixed Quick add's goal bundle, buffer days and the doubled import title; AFL9 (journey 7b) moves to lane W | `eea0e358`, `6c44dc3e` | 29/31 desktop on the pre-fix build; rerun on 6c44dc3e |
 | Q2 Finish the X1 verification; fix every failure at its cause | Open | — | — |
-| G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Built: G1a #4 Your numbers, #12 scales, #13 journal prompts, #14 wrap-up tasks, #15 bell and breaks, #16 cycle log; G1b #6, #7, #9, #10, #11, #17, #18, #19; #21 insight feedback open (lead) | `cf3cf2e1` | unit (70 + 217); specs g1a-*, g1b-* on 6c44dc3e |
+| G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Built: G1a #4, #12, #13, #14, #15, #16; G1b #6, #7, #9, #10, #11, #17, #18, #19; #21 Was this useful? (lead). First browser run fixed: Select keeps its name, the Showcase's out-of-range lab value | `cf3cf2e1`, `f014ea65`, `21536fe6`, `cc5a1eb5` | unit; g1a-*, g1b-*, g1-insight-feedback specs |
 | G2 Release review complete; second fresh review (RELEASE_REVIEW_2.md); fix Blockers/Majors and as many Minor/Polish as possible | Open | — | — |
 | G3 The visual system across every non-protected page and card | Built: pillar art in empty states (EmptyState default, ArtNote), the chart look on 15 charts, the skeleton sheen, richer cards; R30 fixed; health-app empty states left (shared file) | `21f404ef`, `b552ba14` | unit 55/55; theme sheets regenerated |
 | G4 Journeys 1–3 and 6 on the phone project and in Light and Dark | Open | — | — |
 | G5 Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md); fixes with tests | Open | — | — |
-| G6 Every open A12 intermittent fixed or proven gone | Open | — | — |
+| G6 Every open A12 intermittent fixed or proven gone | In progress: note-lists-arrive made deterministic (gated list); NOVA Memory 'Remember' disabled 2/6 recorded for G5 | `dee2a817` | 4/4 group runs |
 | G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Built: R1-F5 CJK recovery words, R1-F6 everyday lists, R1-F7 hidden in what leaves (engine hook), R1-F9 refuse past 500, R2-I4 summaries; R3-F4 recorded (Q25) | `06e86e00`, `cf3cf2e1` | unit; vendored BIP-39 lists checked word for word |
-| G8 ZIGi and NOVA tools for G1's new features | In progress: lane G8 (tools and confirm cards for G1a/G1b) | — | — |
+| G8 ZIGi and NOVA tools for G1's new features | Built: read tools your_numbers, cycle_log, your_scales, cash_forecast, money_selection; cards log-blood-pressure, rate-scale, move-task, amount calculator; local answers; never auto-accepted | `2bcb4c8a` | unit 1324; 16 G6 cases; 28-case corpus |
 | N0 NOVA research (docs/research/session-ak/NOVA.md) | Built: the trend and 10 takeaways, local models per OS, browser localhost rules, models by memory, provider CORS and prices, the subscription verdict (no consumer plan works; sources) | `80d7c1af` | sources cited, read 1 Nov 2026 |
 | N1 One engine, two companions: shared history and memory, hand-offs, delegation, Duo view (Q28) | Built: one engine; shared history, hand-offs, delegation in two voices, the bridge record | `cf3cf2e1` | unit 1290; nova-chat spec on 6c44dc3e |
 | N2 The NOVA page /app/nova: full-view dashboard, opening sequence, orb, chat, dock, widgets, chips, panels, make it yours, share setup, entry points | Built: /app/nova stage, opening, orb, dock, widgets, chips, panels, make it yours, share setup, ⌘/Ctrl+J, start on NOVA | `cf3cf2e1` | nova-dashboard spec on 6c44dc3e |
@@ -817,7 +817,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | M5 Performance before/after (INP, long tasks on Today, NOVA, Wealth, Earn) | Before measured (Today, Wealth, Earn at 390 px, CPU 4×); after pending | — | scratchpad m5/before.json |
 | M6 The landing: NOVA chapter, orb loop, scroll reveals, starfield hero, bento grid | Built: the landing's NOVA chapter, labelled example, scroll reveals, bento; first view 257,930 / 260,000 B | `f88b8ab8` | check:landing, landing-nova-m6 tests |
 | M7 Theme parity, layout audit 6 widths × 3 themes, contrast scanner | Open | — | — |
-| Z1 Fresh security review of everything after 58224a69, NOVA first | Open | — | — |
+| Z1 Fresh security review of everything after 58224a69, NOVA first | Done: three fresh reviews (Z1A NOVA/AI 1 High 4 Medium 7 Low; Z1B storage/parsers 3 Medium 3 Low; Z1C wallet/CSP/motion/PWA 4 Low); every High and Medium fixed with tests, most Lows fixed, the rest recorded with reasons | `e0f6d56a`, `d35acc52`, `3f5554dc`, `a68e23b6` | docs/review/session-ak/Z1{A,B,C}_SECURITY.md |
 | Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Open | — | — |
 | Z3 Final wiring audit on the new rows | Open | — | — |
 | Z4 F12 as written in follow-up 1, with the report starting "Open NOVA" | Open | — | — |
