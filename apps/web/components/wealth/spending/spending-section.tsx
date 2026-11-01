@@ -134,7 +134,8 @@ export default function SpendingSection({showcase = false}: {showcase?: boolean}
         <div className="money-select-head"><h3 id={`${id}-week`}>This week</h3>
           {weekEntries.length > 0 && <span className="money-select-actions">
             {selecting && <button type="button" className="quiet" onClick={() => setPicked(picked.size === weekEntries.length ? new Set() : new Set(weekEntries.map(e => e.id)))}>{picked.size === weekEntries.length ? 'Clear' : 'Select all'}</button>}
-            <button type="button" className="quiet" aria-pressed={selecting} onClick={() => { setSelecting(v => !v); setPicked(new Set()); }}>{selecting ? 'Done' : 'Select'}</button>
+            {/* A toggle keeps one name; its pressed state says whether Select mode is on (press it again to leave). */}
+            <button type="button" className="quiet" aria-pressed={selecting} onClick={() => { setSelecting(v => !v); setPicked(new Set()); }}>Select</button>
           </span>}
         </div>
         {weekEntries.length ? <ul className={`spending-entries${selecting ? ' money-selecting' : ''}`}>{weekEntries.map(e => <li key={e.id}>

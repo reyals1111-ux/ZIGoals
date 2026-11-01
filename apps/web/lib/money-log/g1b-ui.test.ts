@@ -54,7 +54,8 @@ describe('Spending (BUILD list 2 #6, #7, #18, #19)', () => {
     for (const b of boxes.filter(x => /Transport|Salary/.test(x.getAttribute('aria-label') ?? ''))) await act(async () => { b.click(); });
     await settle();
     expect(element.querySelector('.money-select-total')?.textContent).toBe('3 selected · +€84.75 (2 expenses, 1 income)');
-    await click('Done');
+    await click('Select');
+    expect(buttons().find(b => b.textContent === 'Select')?.getAttribute('aria-pressed')).toBe('false');
     expect(element.querySelector('.money-select-total')).toBeNull();
     // A sum.
     const amount = [...element.querySelectorAll<HTMLInputElement>('input')].find(i => i.placeholder === '12.50')!;

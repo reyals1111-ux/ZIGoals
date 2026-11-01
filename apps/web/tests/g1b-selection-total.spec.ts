@@ -28,7 +28,8 @@ test('picked entries add up exactly; a second currency is named apart', async ({
   await spending(page).getByRole('checkbox', {name: /^Select Groceries/}).focus();
   await page.keyboard.press('Space');
   await expect(total(page)).toContainText('3 selected · 2 currencies: −€34.20');
-  await spending(page).getByRole('button', {name: 'Done', exact: true}).click();
+  await select.click();
+  await expect(select).toHaveAttribute('aria-pressed', 'false');
   await expect(total(page)).toHaveCount(0);
 });
 test('the Showcase: Select all gives the week\'s total', async ({page}) => {

@@ -38,12 +38,16 @@ test('balances, bills and the log: the lowest point is named; unknown is not zer
   await panel.getByText('Dated items (2)').click();
   await expect(panel.getByRole('table', {name: /Bills, repeats and plans/})).toContainText('Rent');
 });
-test('the Showcase: a labelled example', async ({page}) => {
+// The Showcase's accounts are in US dollars and its bills, budgets and money log in euros (the lead kept its net worth as
+// other tests read it), so its line is the dollar cash and the euro bills are named as not drawn.
+test('the Showcase: a labelled example; the euro bills are named, not drawn', async ({page}) => {
   await loadShowcase(page);
   await openWealth(page);
   await moneyTools(page).getByRole('button', {name: 'Next 60 days'}).click();
   const panel = page.locator('.cash-forecast');
   await expect(panel).toContainText('A model from your own records, not a promise.');
   await expect(panel).toContainText('Drawn from the Showcase’s fictional accounts, bills and money log.');
+  await expect(panel.getByRole('heading', {name: 'USD', exact: true})).toBeVisible();
   await expect(panel).toContainText('Lowest around');
+  await expect(panel).toContainText('Not drawn: bills or plans in EUR, which has no cash or savings account here.');
 });
