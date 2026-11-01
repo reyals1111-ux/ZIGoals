@@ -56,6 +56,14 @@ typecheck what is committed (a lane's edit once slipped into another lane's comm
 - STATUS.md:472 says the X030 swap is in components/checklist/celebration-zigi.ts (removed in e30840fe; the slot is
   components/zigi/studio4.ts) — correct it in the final STATUS (Z4).
 
+### Owner follow-up 4 (1 Nov, later) — P1–P8, up to 10 lanes
+- The owner's message: ADR-036 "Owner follow-up 4 (P1–P8)" (verbatim; scratchpad/owner-followup-4.md). Z4 waits until
+  P1–P8 and the open G4, M5, M7 and Z3 rows are done.
+- Lanes: WB (missing specs and pins), G4 (journeys on phone and themes), M7 (theme parity, layout audit, M5 → P8),
+  P1 (WIRING_AUDIT_2 rows left), P2 (RELEASE_REVIEW_2 to zero), P3 (fresh NOVA design critic, then a polish lane),
+  P4 (fresh first-run reviewer, then fixes), P5 (fresh landing reviewer, then fixes), P6 (accessibility sweep),
+  P7 (fresh exploratory tester, round 3).
+
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Sandbox-only unit failures (as earlier sessions): vault/finance-homes ×3, scripts/pre-run11-setup ×2.

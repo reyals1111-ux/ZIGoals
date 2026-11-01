@@ -911,3 +911,38 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
   open.
 - **Z1C I6:** "Build your own Jarvis, with a real life to run" on the landing is the owner's own line; a brand check is
   the owner's call.
+
+## Owner follow-up 4 (P1–P8)
+Verbatim (1 Nov, pre-approved; Z4 waits until P1–P8 and the open G4, M5, M7 and Z3 rows are done; up to 10 lanes):
+
+> OWNER MESSAGE 4 TO SESSION AK, pre-approved, no reply needed; continue in auto mode (check the mode selector shows Auto). Outstanding work: NOVA, Notes, Tasks, motion and two security rounds are in. The owner wants the session at full width now: raise the helper limit to 10 lanes at once (same disjoint-lane rules, you integrate and own shared files, one build or browser run at a time). Keep the running lanes (WB, G4, M7) going and add the lanes below immediately. Record them in ADR-036 as "Owner follow-up 4 (P1–P8)" with closing rows, add them to the task list and AK_RESUME.md. Do not start Z4 until P1–P8 and the open G4, M5, M7 and Z3 rows are done; continuing into the new weekly usage is approved.
+>
+> P1. WIRING_AUDIT_2 TO ZERO: every Partly working row and the Not reachable row finished properly (reachable, wired end to end, Help, a browser test on the UI path), one lane per pillar group.
+P2. RELEASE_REVIEW_2 TO ZERO: every remaining Major, Minor and Polish finding fixed with a status line and a test where it applies.
+P3. NOVA "WOW" REVIEW AND POLISH: a fresh design-critic agent (it built none of NOVA) opens NOVA at 1440 and 1920 px in Nebula, Light and Dark, in Full and Calm motion and with reduced motion, and judges it against the owner's screenshot reference and the most admired personal-Jarvis dashboards from NOVA.md: the opening sequence, the orb's states, the side panels, the stage, the command field, the dock grid, widget layouts, typography, spacing, glass and depth, empty states, the Hermes and local-model guides, the honest right panel. Output docs/review/session-ak/NOVA_DESIGN_REVIEW.md with concrete fixes; a NOVA polish lane implements every one inside the design language (no pointer tracking, motion once, reduced motion respected) with specs.
+P4. FIRST-RUN EXPERIENCE REVIEW: a fresh agent starts as a brand-new person who has never heard of crypto (empty start, 390 and 1440 px): the first 10 minutes from the swan intro through onboarding, Today, the first goal and habit, NOVA's first open without a model, and the NOVA setup guide with a mocked local model. Output FIRST_RUN_REVIEW.md (confusion points, dead ends, copy, pacing, moments that should delight); fix every finding at its cause.
+P5. LANDING FRESH REVIEW: a fresh agent reviews zigoals.app (F7 + M6) at 390, 768, 1440 and 1920 px as a first-time visitor and as a design lead: clarity of the story, the NOVA chapter, motion quality, weight, honesty of every claim (MO6), accessibility; fixes with the landing tests and check:landing green.
+P6. ACCESSIBILITY SWEEP: axe and keyboard-only runs on every route in Nebula, Light and Dark (with M7), including NOVA's panels, the guides, Notes' graph/list and every confirm card; every violation fixed.
+P7. EXPLORATORY ROUND 3 on NOVA, the Hermes and local-model guides (mocked servers: online, offline, wrong key, CORS blocked), Notes and Tasks at 1440 and 1920 px; bugs fixed at their cause with tests.
+P8. PERFORMANCE AFTER-MEASUREMENTS (M5) on Today, NOVA, Wealth and Earn plus NOVA's opening sequence (INP, long tasks, frame drops at CPU 4×); fix any regression against F8, record before/after.
+Then Z3's remaining fixes and Z4 exactly as written, with the report's preview steps starting at "Open NOVA".
+
+Readings:
+- **Q30 — P1 lanes.** WA (NOVA wiring), WC (a chat that isn't kept, motion) and WB (missing specs and pins) already
+  close most WIRING_AUDIT_2 rows; P1 adds a lane for the rows left (N2's browser coverage, M3's live chips) and re-audits.
+- **Q31 — P2 and the protected baseline.** "Fixed" for R2-10 (desktop) and R2-7 keeps the PROTECTED designs and the
+  owner's hosted check intact: Tasks, Notes and the Journal join the desktop sidebar only where the window has room for
+  them (the 1440×900 fit check stands); R2-7's sentence changes only with the owner's hosted check pointed at it in the
+  same change. R2-15's default counters stay (they feed the protected Checklist path); the status line says why.
+- **Q32 — P8 is M5.** Lane M7's M5 after-measurement grows into P8 (NOVA's opening sequence and frame drops added).
+
+| Row | Status | Commits | Evidence |
+|---|---|---|---|
+| P1 WIRING_AUDIT_2 to zero | Open | — | — |
+| P2 RELEASE_REVIEW_2 to zero | Open | — | — |
+| P3 NOVA "wow" review (NOVA_DESIGN_REVIEW.md) and polish | Open | — | — |
+| P4 First-run experience review (FIRST_RUN_REVIEW.md) and fixes | Open | — | — |
+| P5 Landing fresh review and fixes | Open | — | — |
+| P6 Accessibility sweep (axe and keyboard, every route, three themes) | Open | — | — |
+| P7 Exploratory round 3 (NOVA, guides, Notes, Tasks) | Open | — | — |
+| P8 Performance after-measurements (M5 + NOVA's opening) | Open | — | — |
