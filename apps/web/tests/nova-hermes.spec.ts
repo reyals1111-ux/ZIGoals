@@ -23,7 +23,9 @@ async function mockHermes(page: Page, mode: Mode, seen: Seen[] = []) {
     seen.push({url, auth: headers.authorization, body: request.postData()});
     if (mode === 'down') return route.abort('connectionrefused');
     // Hermes's allowlist without this site: a bare 403 the page cannot read; a no-cors probe still gets its opaque answer.
-    if (mode === 'cors') return headers['sec-fetch-mode'] === 'no-cors' ? route.fulfill({status: 403, body: ''}) : route.abort('failed');
+    // Playwright's route never sees Sec-Fetch-Mode (checked on 3101, lane NV), so the probe is told apart the way the
+    // browser marks it: a cross-origin cors-mode request carries Origin, a no-cors GET does not.
+    if (mode === 'cors') return !headers.origin ? route.fulfill({status: 403, body: ''}) : route.abort('failed');
     if (url.endsWith('/health')) return route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({status: 'ok', platform: 'hermes-agent', version: '0.22.5'})});
     if (headers.authorization !== `Bearer ${KEY}`) return route.fulfill({status: 401, contentType: 'application/json', body: JSON.stringify({error: {message: 'Invalid gateway API key (API_SERVER_KEY)', type: 'gateway_auth_error', code: 'gateway_auth_failed'}})});
     if (url.endsWith('/v1/models')) return route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({object: 'list', data: [{id: 'hermes-agent', object: 'model', owned_by: 'hermes'}]})});
@@ -43,7 +45,8 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.goto('/app/nova/hermes');
   await expect(page.getByRole('heading', {name: 'Connect your Hermes Agent', level: 1})).toBeVisible();
 }
-const open = async (page: Page, label: string, id: string) => { await page.getByRole('button', {name: new RegExp(`^${label}:`)}).first().click(); const p = page.locator(`[data-hermes-panel="${id}"]`); await expect(p).toBeVisible(); return p; };
+// A planet's button toggles its guide, so an open guide is left open (connect() runs twice in one test; lane NV).
+const open = async (page: Page, label: string, id: string) => { const p = page.locator(`[data-hermes-panel="${id}"]`); if (!await p.isVisible()) await page.getByRole('button', {name: new RegExp(`^${label}:`)}).first().click(); await expect(p).toBeVisible(); return p; };
 const connect = async (page: Page, key = KEY) => {
   const panel = await open(page, 'Connect it in ZIGoals', 'connect');
   await panel.getByLabel('API_SERVER_KEY').fill(key);

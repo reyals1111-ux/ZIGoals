@@ -100,11 +100,16 @@ test('a template saved as my own, exported without personal words', async ({page
 test('Memory: remember a person, pin it, forget it and undo; one memory with ZIGi', async ({page}) => {
   await seed(page);
   await page.goto('/app/nova#nova-memory');
-  const panels = page.getByRole('region', {name: 'Memory'});
+  // Exactly "Memory": the right panel's "05 Memory and scopes" section is a region too, with its own empty line (lane NV).
+  const panels = page.getByRole('region', {name: 'Memory', exact: true});
   await expect(panels.getByText('Nothing remembered yet.')).toBeVisible();
   await panels.getByLabel('Kind').first().selectOption('person');
-  await panels.getByLabel('What to remember').fill('Sam is my running partner');
-  await panels.getByRole('button', {name: 'Remember'}).click();
+  // Session AH Part 2 (AF16, as tests/zigi-af.ts fillComposer): a fill that lands while the panel re-renders just after it
+  // opens can be reset to empty (seen here 2 runs in 6 on 3101; the same textarea, its React state never got the text), so
+  // the words are filled until the box holds them and Remember is enabled, then pressed once (lane NV).
+  const what = panels.getByLabel('What to remember'), remember = panels.getByRole('button', {name: 'Remember'});
+  await expect(async () => { await what.fill('Sam is my running partner'); await expect(what).toHaveValue('Sam is my running partner', {timeout: 1_000}); await expect(remember).toBeEnabled({timeout: 1_000}); }).toPass({timeout: 15_000});
+  await remember.click();
   await expect(panels.getByRole('heading', {name: /People/})).toBeVisible();
   await expect(panels.getByText(/Written by you · NOVA/)).toBeVisible();
   await panels.getByRole('button', {name: 'Pin "Sam is my running partner"'}).click();

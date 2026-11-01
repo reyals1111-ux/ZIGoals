@@ -1,5 +1,6 @@
 'use client';
 import {Suspense, lazy, useEffect, useState} from 'react';
+import {createPortal} from 'react-dom';
 import {usePathname, useRouter} from 'next/navigation';
 import {registerNavExtra} from '../nav-extras';
 import {isNovaShortcut} from '../../lib/nova/command-key';
@@ -44,6 +45,9 @@ export function NovaEntry() {
     return () => window.removeEventListener('keydown', onKey);
   }, [onNova]);
   if (!wanted || onNova) return null;
-  return <LoadBoundary quiet><Suspense fallback={null}><NovaCommandBar open={open} onClose={() => setOpen(false)}/></Suspense></LoadBoundary>;
+  // The bar renders in <body>, as Quick add's sheet does: the shell mounts this entry inside the sidebar, which phones and
+  // narrow windows hide (display: none), and a dialog under a hidden ancestor opens with no box at all (lane NV). `wanted`
+  // is set only by a key press, so this runs in the browser, after hydration.
+  return createPortal(<LoadBoundary quiet><Suspense fallback={null}><NovaCommandBar open={open} onClose={() => setOpen(false)}/></Suspense></LoadBoundary>, document.body);
 }
 export default NovaEntry;

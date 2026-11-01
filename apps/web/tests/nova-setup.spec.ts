@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {NOVA_SETUP_KEY} from '../lib/nova/setup';
 import {NOVA_WORKFLOWS_KEY, saveCustom} from '../lib/nova/workflows/schema';
 import {NOVA_KEY} from '../lib/nova/store';
+import {isLocalOrigin} from '../lib/nova/setup-guide';
 
 /**
  * "Build your own NOVA" (owner follow-up 2, N3; lane NC), end to end with MOCK servers: every planet's check, the privacy
@@ -51,7 +52,12 @@ async function seed(page: Page, extra: Record<string, string> = {}, settings: Ai
     Object.defineProperty(window, 'speechSynthesis', {value: {getVoices: () => voices, cancel() {}, speak(u: Utterance) { (window as unknown as {__spoken: string[]}).__spoken = [...((window as unknown as {__spoken?: string[]}).__spoken ?? []), u.text]; setTimeout(() => u.onend?.(), 10); }}, configurable: true});
   });
   await page.goto('/app/settings');
-  await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase('2026-09-20').records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {}), ...extra});
+  // The Showcase's records as the person's own, WITHOUT the Showcase's labelled guide progress (its first three planets
+  // lit): every test here starts the guide where it says, empty unless `extra` brings progress (lane NV; the Showcase
+  // example was wired into buildShowcase after this spec was written).
+  const {[NOVA_SETUP_KEY]: _showcaseGuide, ...records} = buildShowcase('2026-09-20').records;
+  void _showcaseGuide;
+  await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {}), ...extra});
   await page.goto('/app/nova/setup');
   await expect(page.getByRole('heading', {name: 'Build your own NOVA', level: 1})).toBeVisible();
 }
@@ -85,7 +91,8 @@ test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded
   await expect(privacy.locator('.nova-send-line')).toContainText('NOVA is about to send this to OpenAI.');
   await expect(privacy.locator('.nova-send-text')).toHaveText('Plan a birthday dinner for my sister [name] at [address]; my budget is about €180.');
   await check(privacy, /Check (the mode holds|again)/);
-  await expect(privacy.getByText(/Guarded is on/)).toBeVisible();
+  // The check's own result line: the chosen mode's button now also reads "Guarded is on" (lane NV).
+  await expect(privacy.getByRole('status').filter({hasText: /Guarded is on/})).toBeVisible();
 });
 
 test('planet 3: the scan finds MOCK Ollama (one cloud model), LM Studio and llama.cpp; the live test names the model', async ({page}) => {
@@ -93,10 +100,21 @@ test('planet 3: the scan finds MOCK Ollama (one cloud model), LM Studio and llam
   await seed(page, {}, localChat({model: 'qwen3.5:9b', localServer: 'ollama', baseUrl: OLLAMA}));
   const brain = await open(page, 'Your brain, local first', 'brain');
   await expect(brain.getByText(/can’t sign in here/)).toBeVisible();
+  // A phone opens on "My own API key" (a local model needs a computer); the local way is one press away on both.
+  await brain.getByRole('button', {name: 'A model on this computer (recommended)'}).click();
+  // Ollama needs OLLAMA_ORIGINS only for a site that is not on this computer. Against the deployed site the guide shows
+  // launchctl / setx with that site; the suite's own server (127.0.0.1) is already allowed by Ollama, and the guide says
+  // so instead (deliberate, lane NV: the commands for a remote origin are pinned in lib/nova/setup.test.ts).
+  const local = isLocalOrigin(new URL(page.url()).origin);
+  const commands = brain.locator('[data-command] code');
   await brain.getByRole('button', {name: 'macOS'}).click();
-  await expect(brain.locator('[data-command] code').filter({hasText: 'launchctl setenv OLLAMA_ORIGINS'})).toBeVisible();
+  await expect(brain.getByText(/drag Ollama to Applications/)).toBeVisible();
+  if (local) { await expect(brain.getByText('This page runs on this computer, so Ollama already allows it: no setting needed.')).toBeVisible(); await expect(commands.filter({hasText: 'OLLAMA_ORIGINS'})).toHaveCount(0); }
+  else await expect(commands.filter({hasText: 'launchctl setenv OLLAMA_ORIGINS'})).toBeVisible();
   await brain.getByRole('button', {name: 'Windows'}).click();
-  await expect(brain.locator('[data-command] code').filter({hasText: 'setx OLLAMA_ORIGINS'})).toBeVisible();
+  await expect(commands.filter({hasText: 'irm https://ollama.com/install.ps1 | iex'})).toBeVisible();
+  if (local) await expect(commands.filter({hasText: 'OLLAMA_ORIGINS'})).toHaveCount(0);
+  else await expect(commands.filter({hasText: 'setx OLLAMA_ORIGINS'})).toBeVisible();
   await brain.getByRole('button', {name: 'llama.cpp'}).click();
   await expect(brain.locator('[data-command] code').filter({hasText: '--port 9931 --cors-origins'})).toBeVisible();
   await brain.getByRole('button', {name: 'Find models on this computer'}).click();

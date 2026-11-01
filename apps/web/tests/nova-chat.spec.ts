@@ -59,11 +59,13 @@ async function sendInNova(page: Page, text: string) {
 }
 
 test('streaming: a message from the command bar reaches NOVA, the answer streams in with who answered; Retry and Edit work', async ({page}) => {
-  // Words that are no lookup, so ZIGi's on-device answers leave them to the person's AI (the same engine as ZIGi's panel).
+  // Words that are no lookup, so ZIGi's on-device answers leave them to the person's AI (the same engine as ZIGi's panel),
+  // and no plan or log either: "plan" is a planning intent, and a reply without a card then gets the engine's one automatic
+  // card retry (lib/ai/intent.ts, ZIGi's own rule), which spent the second MOCK reply before Retry (lane NV).
   const seen = await server(page, [() => 'Your evening looks calm. Two habits are still open: Read and Stretch.', () => 'Read and Stretch are still open tonight.', () => 'Stretch first, it is short.']);
   await seed(page);
   await page.goto('/app/habits');
-  await askThroughBar(page, 'Write me a calm plan for this evening.');
+  await askThroughBar(page, 'Write me one calm sentence for this evening.');
   const reply = chat(page).locator('.nova-turn-assistant').last();
   await expect(reply).toContainText('Two habits are still open', {timeout: 20_000});
   await expect(reply.locator('.ai-turn-source')).toContainText('From your AI');
@@ -78,7 +80,7 @@ test('streaming: a message from the command bar reaches NOVA, the answer streams
   const box = chat(page).getByRole('textbox', {name: /^Message /});
   await box.focus(); await page.keyboard.press('ArrowUp');
   await expect(chat(page).getByText('Editing your last message')).toBeVisible();
-  await expect(box).toHaveValue('Write me a calm plan for this evening.');
+  await expect(box).toHaveValue('Write me one calm sentence for this evening.');
   await box.fill('Write it again, shorter.'); await box.press('Enter');
   await expect(chat(page).locator('.nova-turn-assistant').last()).toContainText('Stretch first', {timeout: 20_000});
   await expect(chat(page).locator('.nova-turn-user')).toHaveCount(1);
@@ -137,7 +139,8 @@ test('delegation (MOCK model): NOVA hands a Health task to ZIGi, which answers w
   const box = chat(page).getByRole('textbox', {name: /^Message /});
   await box.fill('Write me a kind note about my water this week.');
   await chat(page).getByRole('button', {name: 'Ask ZIGi about a page'}).click();
-  await chat(page).getByLabel('Page').selectOption('health');
+  // Exactly "Page": the group around it is "Ask ZIGi about a page" (lane NV).
+  await chat(page).getByLabel('Page', {exact: true}).selectOption('health');
   await chat(page).getByRole('button', {name: 'Let ZIGi answer here'}).click();
   await expect(chat(page).getByRole('note', {name: /hands this to ZIGi/})).toContainText('handed this to ZIGi on the Health page');
   const zigi = chat(page).locator('.nova-turn-zigi').last();

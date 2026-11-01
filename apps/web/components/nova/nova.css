@@ -99,7 +99,8 @@
 .nova-tile-planet { display: grid; place-items: center; pointer-events: none; }
 .nova-tile-label { display: none; }
 .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within)::after { content: attr(data-tip); position: absolute; top: calc(100% + 6px); right: 0; z-index: 6; padding: 4px 10px; border-radius: 9px; background: #0a1028; border: 1px solid var(--nova-edge); color: var(--nova-ink); font-size: 14px; font-weight: 600; white-space: nowrap; pointer-events: none; }
-.nova-tile-quickadd .nova-quickadd { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: transparent; font-size: 0; cursor: pointer; }
+/* The Quick add trigger covers the whole 44 px tile, border included (inset -1px): inset 0 left it 42 px inside the border. */
+.nova-tile-quickadd .nova-quickadd { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); box-sizing: border-box; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: transparent; font-size: 0; cursor: pointer; }
 .nova-tile-quickadd .nova-tile-planet { position: relative; }
 .nova-tile-labelled { width: auto; height: auto; min-height: 88px; border-radius: 18px; padding: 10px 6px; gap: 6px; align-content: center; }
 .nova-tile-labelled .nova-tile-label { display: block; font-size: 14px; font-weight: 600; text-align: center; }

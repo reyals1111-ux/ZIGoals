@@ -1,7 +1,10 @@
 /* Session AK (owner follow-up 2, N3; lane NC): "Build your own NOVA" and its card. Theme tokens only (the nebula palette's
    own variables with their Nebula values as fallbacks), so Nebula, Light with its dark islands and Dark read alike. Every
    target is at least 44 px; nothing moves under reduced motion or Motion Off. */
-.nova-setup { display: grid; gap: 16px; min-width: 0; }
+/* One column that may shrink (minmax(0, 1fr)): an auto column took the path's min-content (302 px) and pushed the page
+   sideways at 320 px. The orbit planets' mist and glow are decoration that reaches past the path; clipped here, as Earn's
+   Start-here host does (.earn-start), so a phone never scrolls sideways (Session AK, lane NV). */
+.nova-setup { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; overflow-x: clip; }
 .nova-progress { margin: 0; color: var(--muted, #aab2d9); }
 .nova-setup-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .nova-setup-list > li > button { min-height: 44px; }

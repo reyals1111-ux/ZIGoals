@@ -120,7 +120,7 @@ export default function NovaRight({folded, onFold, onHide, persona, brain, count
       </>)}
       {section('activity', 6, <>
         {actionsList === null ? <p className="nova-fine">Activity could not be read on this device.</p> : actionsList.length ? <ul className="nova-right-list">{actionsList.map(a => <li key={a.activityId}>{a.title}<small> · {formatDateTime(a.at)}</small></li>)}</ul> : <p className="nova-fine">No action yet. Every change {persona} or ZIGi makes waits for your confirm, and can be undone.</p>}
-        <div className="nova-right-actions"><button type="button" className="nova-btn" onClick={() => openPanel('activity')}>Open Activity, with Undo</button></div>
+        <div className="nova-right-actions"><button type="button" className="nova-btn" onClick={() => openPanel('activity')}>Open Activity</button></div>
       </>)}
     </div>
     <footer className="nova-right-foot"><span>{probe.at ? `Read ${formatDateTime(probe.at)}` : 'Read on this device'}</span><button type="button" className="nova-btn" onClick={() => setRefreshed(n => n + 1)}>Refresh</button></footer>

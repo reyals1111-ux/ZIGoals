@@ -71,7 +71,8 @@ export default function NotesWorkspace({showcase = false}: {showcase?: boolean})
     </nav>
     {(status || undo) && <p className="note-status" role="status" aria-live="polite">{status} {undo && <button type="button" className="text-link" onClick={runUndo}>Undo</button>}</p>}
 
-    {noteId && <section className="panel" aria-label="Note">
+    {/* "Open note", not "Note": the note's text box is labelled "Note", and the region around it shared that name (lane NV). */}
+    {noteId && <section className="panel" aria-label="Open note">
       <p className="note-back"><button type="button" className="text-link" onClick={() => go(open?.kind === 'daily' ? {view: 'days'} : open?.kind === 'inbox' ? {view: 'inbox'} : {view: 'notes'})}>← {open?.kind === 'daily' ? 'Days' : open?.kind === 'inbox' ? 'Inbox' : 'All notes'}</button></p>
       {open ? <>
         <h2 className="note-title">{open.kind === 'daily' && open.day ? formatDate(open.day, {weekday: true}) : noteName(open)}{open.example && <span className="fine"> · Showcase example</span>}</h2>

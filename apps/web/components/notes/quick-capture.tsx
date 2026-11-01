@@ -13,12 +13,14 @@ const CaptureBox = lazy(() => import('./capture-box'));
  */
 export default function QuickCapture() {
   const [open, setOpen] = useState(false);
-  return <nav aria-label="Capture a note" className="quick-capture">
+  // A plain wrapper, not a navigation landmark named "Capture a note": it holds one button (or the capture form), and the
+  // landmark's name sat in every page's closed Quick add sheet beside the Notes page's own capture box (lane NV).
+  return <div className="quick-capture">
     {open ? <div className="quick-capture-box">
       <LoadBoundary label="Capture a note"><Suspense fallback={<p className="fine">Opening…</p>}><CaptureBox compact autoFocus heading="Capture a note"/></Suspense></LoadBoundary>
       <button type="button" className="quiet" onClick={() => setOpen(false)}>Close the note box</button>
     </div> : <button type="button" className="quick-action" aria-expanded={false} onClick={() => setOpen(true)}>
       <span className="icon-medallion"><AppIcon name="checklist" luminous/></span><span><strong>Note</strong><small>Capture a thought, a photo or your voice; file it later.</small></span><span aria-hidden="true">＋</span>
     </button>}
-  </nav>;
+  </div>;
 }

@@ -65,6 +65,8 @@ test.describe('NOVA on a computer', () => {
     await expect(page.locator('.app-sidebar')).toBeVisible();
     await page.goto('/app/nova');
     await expect(frame(page)).toBeVisible();
+    // The dashboard itself, not only a frame: "NOVA is starting…" wears .nova-frame too, before Esc is listened for (lane NV).
+    await expect(page.getByRole('button', {name: /^Exit NOVA/})).toBeVisible();
     await page.locator('body').press('Escape');
     await expect(page).toHaveURL(/\/app\/today$/);
   });

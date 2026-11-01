@@ -37,8 +37,10 @@ export function CaptureBox({compact = false, autoFocus = false, onSaved, heading
     setStatus('Saved to your notes inbox, on this device.');
     onSaved?.(result.note);
   };
-  return <form className={`note-capture${compact ? ' is-compact' : ''}`} onSubmit={e => void save(e)} aria-label={heading ?? 'Capture a note'}>
-    {heading && <h3 className="note-capture-title">{heading}</h3>}
+  // Named by its heading when it has one (Quick add). Without one (the Notes page, inside its "Capture" region) the form
+  // carries no name of its own, so "Capture a note" names only the box you type in, not the form around it too (lane NV).
+  return <form className={`note-capture${compact ? ' is-compact' : ''}`} onSubmit={e => void save(e)} aria-labelledby={heading ? `${id}-title` : undefined}>
+    {heading && <h3 id={`${id}-title`} className="note-capture-title">{heading}</h3>}
     <label className="field"><span>{compact ? 'A note to file later' : 'Capture a note'}</span>
       <textarea ref={field} rows={compact ? 3 : 4} maxLength={MAX_BODY} value={text} onChange={e => setText(e.target.value)} placeholder="An idea, a task, something to remember…"
         onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); void save(); } }}/>

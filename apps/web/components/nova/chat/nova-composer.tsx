@@ -88,7 +88,8 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
     <div className="nova-zigi-row">
       <button type="button" className="text-link nova-zigi-toggle" aria-expanded={zigiOpen} aria-controls={zigiId} onClick={() => setZigiOpen(o => !o)}>{onHermes ? 'Ask ZIGi or your Hermes' : 'Ask ZIGi about a page'}</button>
       <div id={zigiId} className="nova-zigi-tools" hidden={!zigiOpen} role="group" aria-label={onHermes ? 'Ask ZIGi or your Hermes' : 'Ask ZIGi about a page'}>
-        <label className="nova-zigi-page">Page<select value={page} onChange={e => setPage(e.target.value as ZigiPage)}>{ZIGI_PAGES.map(p => <option key={p} value={p}>{AREA_LABELS[p]}</option>)}</select></label>
+        {/* Named "Page" by its own word (aria-labelledby): wrapped bare, the label's name also took every option's text (lane NV). */}
+        <label className="nova-zigi-page"><span id={`${zigiId}-page`}>Page</span><select aria-labelledby={`${zigiId}-page`} value={page} onChange={e => setPage(e.target.value as ZigiPage)}>{ZIGI_PAGES.map(p => <option key={p} value={p}>{AREA_LABELS[p]}</option>)}</select></label>
         <button type="button" className="secondary" disabled={!text.trim() || busy} onClick={() => handTo(false)} title="ZIGi answers here, with that page's records">Let ZIGi answer here</button>
         {onHermes && <button type="button" className="secondary" disabled={!text.trim() || busy} onClick={() => { const value = text.trim(); if (!value) return; onHermes(value, page); clear(); }} title="Your own Hermes Agent answers here, with that page's records under your privacy mode; any change comes back as a card">Ask my Hermes</button>}
         <button type="button" className="secondary" disabled={!text.trim()} onClick={() => handTo(true)} title="Opens ZIGi on that page with your words in its box; nothing is sent until you press Send there">Open ZIGi on {AREA_LABELS[page]}</button>
