@@ -946,3 +946,35 @@ Readings:
 | P6 Accessibility sweep (axe and keyboard, every route, three themes) | Open | — | — |
 | P7 Exploratory round 3 (NOVA, guides, Notes, Tasks) | Open | — | — |
 | P8 Performance after-measurements (M5 + NOVA's opening) | Open | — | — |
+
+## Owner decisions and last checks (follow-up 5)
+Verbatim (1 Nov, pre-approved):
+
+> OWNER DECISIONS AND LAST CHECKS, pre-approved, no reply needed; continue in auto mode (check the mode selector shows Auto). Record everything in ADR-036 and do it before and inside Z4:
+>
+> DECISIONS
+> - FR-17: YES, fold the habit FORM's counting fields (create/edit) under "More options"; update the 13 specs at equal strength. The habit CARDS do not change: their streak blocks, counts and colours stay fully visible as they are.
+> - OD-1: replace "Jarvis" in all public copy (landing, Help, What's new, NOVA, guides): use "your own AI command center" / "your personal AI assistant" instead; keep the MO6 claim tests green.
+> - OD-2: no change; the STATUS owner list says "deploy the landing only after Alpha #53 is live".
+> - OD-3: no change (pre-existing).
+> - OD-4: move the "Private by design" section to directly after the NOVA chapter on the landing; the menu numbering and the landing tests follow.
+> - OD-5: yes, re-encode zigoals-mark-v3.webp visually lossless at the same displayed size (2× for retina), with a before/after size in STATUS.
+>
+> LAST CHECKS (the owner's worry is that something huge was built too fast; prove it isn't)
+> 1. ADR-036's closing table: update every row to its true state (P1–P8, Q2, G4, G6, M5, M7, Z3 still say Open although their commits exist). No row may stay Open at Z4: each is Built/Done with evidence, Recorded with the reason, or listed under Known limitations.
+> 2. WIRING_AUDIT_3 on the final head by a fresh read-only agent: EVERY row of ADR-036 (not only the new ones), the same Working / Partly / Not reachable / Stub test. Fix every gap; anything that truly can't be finished goes to Known limitations in Help and STATUS in plain words. Nothing half-done is presented as done.
+> 3. Stability: the full browser suite twice on the final head (sharded, 2 workers), plus CI twice green; any test that passes only once is fixed at its cause.
+> 4. docs/handoff/AK_DEMO_TOUR.md: a 15-minute owner demo script in the order that shows the leap best, starting with "Open NOVA" (the opening sequence, the side panels, the setup guide with a local model via Ollama or LM Studio on a Mac, Hermes Agent, a workflow, the ZIGi duo), then Notes and Tasks, motion (Full / Calm / Off), the new health, habit and money features, push and offline (what is off until activation), the landing. Each step: where to click, what to expect, what is honestly not live yet. Link it at the top of the final report.
+Then Z4 exactly as written.
+
+| Row | Status | Commits | Evidence |
+|---|---|---|---|
+| D-FR17 Fold the habit form's counting fields under More options (cards unchanged) | Open | — | — |
+| D-OD1 "Jarvis" replaced in all public copy | Open | — | — |
+| D-OD2 STATUS owner list: deploy the landing only after Alpha #53 is live | Open (Z4) | — | — |
+| D-OD4 "Private by design" directly after the NOVA chapter | Open | — | — |
+| D-OD5 zigoals-mark-v3.webp re-encoded visually lossless, sizes in STATUS | Open | — | — |
+| C1 Closing table true for every row | Open | — | — |
+| C2 WIRING_AUDIT_3 on the final head, every ADR-036 row | Open | — | — |
+| C3 Full browser suite twice on the final head + CI twice green | Open | — | — |
+| C4 docs/handoff/AK_DEMO_TOUR.md (starts "Open NOVA") | Open | — | — |
