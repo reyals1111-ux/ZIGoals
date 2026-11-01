@@ -1,3 +1,4 @@
+import {activeCount} from './copy/terms'; // Session AK G2 (RELEASE_REVIEW R31)
 import {latestWeightObservation} from './body-measurements';
 /** Presentation only: every value resolves from the domain's canonical selector. */
 import {formatUnits} from '@zigoals/chain-config';
@@ -102,7 +103,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const counters=exerciseData(s.health).counters,counts=counters.map(c=>({c,n:countOn(s.health,c.id,s.healthDate)})),logged=counts.filter(x=>x.n!==null).length;
   return {...defaults,title:widget.title||'Exercise counters today',value:counters.length?`${logged} of ${counters.length} counted`:'No counters',detail:`${formatDate(s.healthDate)} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':formatNumber(n)}))};
  }
- if(widget.kind==='goals'){const c=goalCounts(s.goals,s.averages);return {...defaults,title:widget.title||'Your destinations',value:`${c.active} active Goals`,detail:`${c.finished} completed · recorded progress`,href:'/app/goals'};}
+ if(widget.kind==='goals'){const c=goalCounts(s.goals,s.averages);return {...defaults,title:widget.title||'Your destinations',value:activeCount('goal',c.active),detail:`${c.finished} completed · recorded progress`,href:'/app/goals'};}
  if(widget.kind==='goal'){
   const goal=s.goals.find(g=>g.key===widget.entity);if(!goal)return unavailable('/app/goals','This Goal may be archived or outside the current account. Choose another or remove this widget.');
   return {...defaults,title:widget.title||goal.name,value:widget.metric==='next-contribution'?goal.nextContributionDate??'Not scheduled':goal.progressBound==='unavailable'&&!goal.heldAsset?'Value unavailable':`${goal.progressBound==='at-least'?'At least ':''}${formatGoalAmount(goal.current,goal.heldAsset??goal.currency)}`,detail:widget.metric==='next-contribution'?goal.metadata.find(m=>m.label==='Contribution plan')?.value??'Open the Goal to set a plan.':`of ${goal.target?formatGoalAmount(goal.target,goal.currency):'no target'} · ${goal.source}`,href:goal.href,percent:widget.metric==='progress'&&!goal.requiresReview&&!goal.progressBound?goal.progressPct:undefined,complete:goal.status==='completed',warning:goal.status==='closed'?'Closed Goal · retained for your history':goal.requiresReview||goal.heldAsset?goal.valuationLabel??'Progress needs review':undefined};

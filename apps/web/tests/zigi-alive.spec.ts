@@ -294,7 +294,12 @@ test('Meet ZIGi: every state with its code, reached from Customize and not from 
   await page.locator('#zigi-look').getByRole('link', {name: /Meet ZIGi/}).click();
   await expect(page).toHaveURL(/\/app\/zigi$/);
   await expect(page.getByRole('heading', {level: 1, name: 'Meet ZIGi.'})).toBeVisible();
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the page leads with what ZIGi does and the privacy line; the state
+  // gallery is under the "Every way ZIGi can look" fold and mounts when opened. Every check below is as strict as before.
+  await expect(page.getByRole('region', {name: 'What ZIGi can do', exact: true})).toContainText('Private by design.');
+  await expect(page.locator('.meet-zigi-card')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+  await page.getByText('Every way ZIGi can look', {exact: true}).click();
   const states = Object.values(manifest.states);
   await expect(page.locator('.meet-zigi-card')).toHaveCount(states.length);
   /* Assertion changed (Session AH TO9, D-249/M-030, equal strength): the page no longer shows frame codes (owner: the
@@ -319,7 +324,8 @@ test('Meet ZIGi in Showcase: the same page, nothing personal on it', async ({pag
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await page.goto('/app/zigi');
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the gallery opens from its own address (#every-look) as from its fold.
+  await page.goto('/app/zigi#every-look');
   await expect(page.getByRole('heading', {level: 1, name: 'Meet ZIGi.'})).toBeVisible();
   await expect(page.locator('.meet-zigi-card')).toHaveCount(Object.keys(manifest.states).length);
   await page.getByRole('radio', {name: /^Off/}).check();

@@ -544,7 +544,7 @@ test.describe('Part 8: bottom sections',()=>{
   await showcase(page);
   for(const [path,region,id,text] of [
    ['/app','today:bottom','today:links','Edit'], // Session AB-Design (owner request 11): My links is Today's last card; Your week sits right before it (checked below)
-   ['/app/goals','goals:body','goals:milestones','Target dates saved in your active Goals'],
+   ['/app/goals','goals:body','goals:milestones',/* Session AK G2 (RELEASE_REVIEW R31, deliberate): lowercase mid-sentence */'Target dates saved in your active goals'],
    ['/app/habits','habits:body','habits:rhythm','Best streaks'],
    ['/app/health','health:body','health:trends','A dash means no entry, not zero.'],
    ['/app/wealth','wealth:body','wealth:calculator','Compound interest calculator'], // Session AB-Design (owner request 26)

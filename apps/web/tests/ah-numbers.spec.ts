@@ -39,7 +39,8 @@ test('Today, Goals, Habits, Wealth and Markets agree on their counts', async ({p
   const goalsLine = (await life.locator('[data-pillar="goals"] .life-long').innerText()).trim();
   const habitsLine = (await life.locator('[data-pillar="habits"] .life-long').innerText()).trim();
   const todayActive = Number(goalsLine.match(/^(\d+) active/)![1]);
-  const [, todayDone, todayDue] = habitsLine.match(/^(\d+) of (\d+) Habits complete$/)!;
+  // Session AK G2 (RELEASE_REVIEW R31, deliberate): one rule, "goal" and "habit" lowercase mid-sentence (lib/copy/terms.ts).
+  const [, todayDone, todayDue] = habitsLine.match(/^(\d+) of (\d+) habits? complete$/)!;
   await page.goto('/app/goals'); await hydrated(page);
   await expect(page.getByRole('list', {name: 'Your goals at a glance'}).or(page.locator('.goals-figures')).first().locator('div').filter({hasText: 'Active'}).locator('strong')).toHaveText(String(todayActive));
   await page.goto('/app/habits'); await hydrated(page);

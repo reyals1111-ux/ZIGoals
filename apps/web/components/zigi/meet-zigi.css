@@ -31,3 +31,21 @@
    child, so the "Wears the … clip" line wraps inside it. */
 :root .meet-zigi-card { grid-template-columns: minmax(0, 1fr); min-width: 0; }
 :root .meet-zigi-card > * { min-width: 0; max-width: 100%; }
+/* Session AK G2 (RELEASE_REVIEW R26): what ZIGi does and the privacy line lead; the state gallery folds under "Every way
+   ZIGi can look" and mounts when opened. The figures themselves are unchanged (the locked ZIGi look). */
+.meet-zigi-about{display:grid;gap:10px}
+.meet-zigi-about h2{margin:0;font-size:20px}
+.meet-zigi-can{display:grid;gap:8px;margin:0;padding-inline-start:20px;font-size:16px;line-height:1.5}
+.meet-zigi-privacy,.meet-zigi-setup{margin:0;font-size:16px;line-height:1.5}
+.meet-zigi-setup .text-link{display:inline-flex;align-items:center;min-height:44px}
+.meet-zigi-gallery{display:grid;gap:12px}
+.meet-zigi-gallery>summary{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:48px;list-style:none;cursor:pointer}
+.meet-zigi-gallery>summary::-webkit-details-marker{display:none}
+.meet-zigi-gallery>summary>span{display:grid;gap:2px}
+.meet-zigi-gallery>summary strong{font-size:20px}
+.meet-zigi-gallery>summary small{color:var(--muted,#aab2d9);font-size:15px;line-height:1.4}
+.meet-zigi-gallery>summary::after{content:"";flex:none;width:9px;height:9px;margin-right:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg)}
+.meet-zigi-gallery[open]>summary::after{transform:translateY(2px) rotate(-135deg)}
+.meet-zigi-gallery>summary:focus-visible{outline:3px solid var(--cyan,#45d8ef);outline-offset:4px;border-radius:8px}
+.meet-zigi-gallery[open]>summary{margin-bottom:12px}
+.meet-zigi-gallery .meet-zigi-skin+.meet-zigi-skin{margin-top:16px}

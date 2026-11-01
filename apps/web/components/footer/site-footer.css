@@ -35,7 +35,12 @@
 .site-footer-logo picture, .site-footer-logo img { display: block; width: 100%; height: auto; }
 /* Its glow lives behind it, never on it; the shine is a band of light masked to the wordmark's own shape. */
 .site-footer-logo::before { content: ''; position: absolute; inset: -30% -12%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, #7b5cff4d, #23b8ff1f 55%, transparent 100%); opacity: .8; pointer-events: none; }
-.site-footer-shine { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; mix-blend-mode: screen;
+.site-footer-shine { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
+/* Session AK G2 (SESSION_AK_F8 proposal 4): the shine's mask (a second copy of the wordmark, as WebP beside the picture's
+   AVIF) is only set while the finale can play, so a page view without the finale (every one after the first in a visit,
+   reduced motion, Motion Off) never downloads it. The shine is invisible (opacity 0) in every other state, and a mask that
+   is still loading hides it entirely, so nothing visible changes. */
+.site-footer:is([data-intro=ready], [data-intro=play]) .site-footer-shine {
   -webkit-mask: url('/brand/wordmark/igoals-wordmark-720.webp') center / 100% 100% no-repeat; mask: url('/brand/wordmark/igoals-wordmark-720.webp') center / 100% 100% no-repeat; }
 .site-footer-shine > i { position: absolute; top: -10%; bottom: -10%; left: -60%; width: 60%; background: linear-gradient(100deg, transparent 0, #8ff0ff8c 30%, #ffd2f5e6 50%, #f06dff8c 70%, transparent 100%); transform: translateX(0); }
 

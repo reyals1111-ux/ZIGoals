@@ -69,3 +69,8 @@
 .help-search { display: grid; gap: 6px; margin: 0 0 16px; max-width: 640px; }
 .help-search input { min-height: 44px; }
 .help-search p:empty { display: none; }
+/* Session AK G2 (RELEASE_REVIEW R24): "Earlier updates" holds the release notes after What's new; its sections keep the panel look. */
+.help-earlier { margin-top: 14px; scroll-margin-top: 80px; }
+.help-earlier > .help-section { margin: 22px 0 0; }
+.help-earlier > .eyebrow { margin-bottom: 8px; }
+.help-earlier > .help-earlier-lede { max-width: 68ch; margin: 0; color: var(--text-secondary, #c2d0e5); }

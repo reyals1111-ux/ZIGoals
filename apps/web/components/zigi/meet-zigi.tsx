@@ -35,17 +35,37 @@ function StateCard({state, skin}: {state: ZigiState; skin: string}) {
     {spec.kind === 'one-shot' && <button type="button" className="secondary" onClick={() => setPlay(n => n + 1)} aria-label={`Play ${spec.label} again`}>Play again</button>}
   </article>;
 }
+/** Session AK G2 (RELEASE_REVIEW R26): the address that opens the gallery on arrival. */
+const GALLERY_HASH = '#every-look';
 export function MeetZigi() {
+  // The gallery (every state of every skin, three sizes each) mounts when it is opened, so the page leads with what ZIGi
+  // does and loads no figure until the person asks to see them.
+  const [gallery, setGallery] = useState(false);
+  useEffect(() => { const open = () => { if (window.location.hash === GALLERY_HASH) setGallery(true); }; open(); window.addEventListener('hashchange', open); return () => window.removeEventListener('hashchange', open); }, []);
   return <div className="meet-zigi">
-    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · Your Personal AI Companion" title="Meet ZIGi." art={<OrbitArt glyph={ZigiGlyph} spin={-14}/>} lede={`Every way ZIGi can look: what each one means and when it appears.`}/>
+    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · Your Personal AI Companion" title="Meet ZIGi." art={<OrbitArt glyph={ZigiGlyph} spin={-14}/>} lede="Your companion on every page: it answers from your own records and proposes changes you confirm."/>
     <p className="help-back"><Link className="text-link" href="/app/settings#zigi-look">← Back to Settings</Link></p>
+    {/* Session AK G2 (RELEASE_REVIEW R26): what ZIGi does and the privacy line first; the state gallery under a fold. */}
+    <section className="panel meet-zigi-about" aria-labelledby="meet-zigi-about">
+      <h2 id="meet-zigi-about">What ZIGi can do</h2>
+      <ul className="meet-zigi-can">
+        <li><strong>Answers about your day.</strong> Ask how your goals, habits, health or money are going; simple questions are answered on this device.</li>
+        <li><strong>Helps you log and plan.</strong> When you ask it to log or create something, it shows a card first. You add it, edit it or dismiss it; ZIGi never writes anything by itself.</li>
+        <li><strong>Uses the AI you choose.</strong> Connect your own key or a model running on your computer in Settings.</li>
+      </ul>
+      <p className="meet-zigi-privacy"><strong>Private by design.</strong> Your records stay on this device. A question goes only to the AI you connected, straight from this browser; ZIGoals never sees it and logs nothing.</p>
+      <p className="meet-zigi-setup"><Link className="text-link" href="/app/settings#your-ai">Set up ZIGi in Settings →</Link></p>
+    </section>
     <section className="panel meet-zigi-motion" aria-labelledby="meet-zigi-motion"><h2 id="meet-zigi-motion">How much ZIGi moves</h2><AnimationChoice/><p className="ai-note">Your device&rsquo;s reduced-motion setting and Motion Off in Settings always come first: then every figure here holds still.</p></section>
-    {Object.entries(ZIGI_MANIFEST.skins).map(([id, skin]) => <section key={id} className="panel meet-zigi-skin" aria-labelledby={`meet-zigi-skin-${id}`}>
-      <h2 id={`meet-zigi-skin-${id}`}>{skin.label}</h2>
-      {GALLERY_GROUPS.map(group => <section key={group.id} className="meet-zigi-group" aria-labelledby={`meet-zigi-${id}-${group.id}`}>
-        <h3 id={`meet-zigi-${id}-${group.id}`}>{group.title}</h3><p className="meet-zigi-group-line">{group.line}</p>
-        <div className="meet-zigi-grid">{GALLERY_ORDER.filter(state => STATE_TEXT[state].group === group.id).map(state => <StateCard key={state} state={state} skin={id}/>)}</div>
+    <details className="panel meet-zigi-gallery" id="every-look" open={gallery} onToggle={e => setGallery(e.currentTarget.open)}>
+      <summary><span><strong>Every way ZIGi can look</strong><small>What each look means and when it appears.</small></span></summary>
+      {gallery && Object.entries(ZIGI_MANIFEST.skins).map(([id, skin]) => <section key={id} className="meet-zigi-skin" aria-labelledby={`meet-zigi-skin-${id}`}>
+        <h2 id={`meet-zigi-skin-${id}`}>{skin.label}</h2>
+        {GALLERY_GROUPS.map(group => <section key={group.id} className="meet-zigi-group" aria-labelledby={`meet-zigi-${id}-${group.id}`}>
+          <h3 id={`meet-zigi-${id}-${group.id}`}>{group.title}</h3><p className="meet-zigi-group-line">{group.line}</p>
+          <div className="meet-zigi-grid">{GALLERY_ORDER.filter(state => STATE_TEXT[state].group === group.id).map(state => <StateCard key={state} state={state} skin={id}/>)}</div>
+        </section>)}
       </section>)}
-    </section>)}
+    </details>
   </div>;
 }

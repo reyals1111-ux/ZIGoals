@@ -27,20 +27,27 @@ const SECTIONS: [id: string, title: string][] = [
   ['aj', 'Price alerts, Guided journeys, sleep balance and your own look'],
   // Session AK (ADR-036, deliberate): this release's topic, after AJ's.
   ['ak', 'Notifications, offline, food, money and your own days'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): the release sections above and the smaller changes now sit, in this
+  // order, under "Earlier updates" after What's new; each region is still checked by its exact title.
+  ['earlier-changes', 'Smaller changes, and where things moved'], ['earlier-updates', 'Earlier updates'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
+// Session AK G2 (RELEASE_REVIEW R24, deliberate): Help's topic index is task-shaped: the ten "New: …" release topics are one
+// "Earlier updates" topic after What's new (their sections keep their ids, so every link and Search result still lands).
+const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
 // Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
 // names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
 // unlocked"); every label is still checked exactly, in order, with its link.
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one look for every page', 'New: calmer pages', 'New: Light, Nebula and Dark', 'New: Today’s scene, the sidebar and wallets', 'New: Earn, staking and the Checklist', 'New: alerts, journeys and your own look', 'New: offline, food, money and more', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
 // Session AF (ADR-028, deliberate): eighteen topics, AF's after AE's.
 // Session AJ (ADR-035, deliberate): nineteen topics, AJ's after AF's.
 // Session AK (ADR-036, deliberate): twenty topics, AK's after AJ's.
-test('Help has one title and twenty topics, listed before them, each linking to its section', async ({page}) => {
+// Session AK G2 (RELEASE_REVIEW R24, deliberate): eleven task-shaped topics; the release notes under "Earlier updates".
+test('Help has one title and eleven topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -60,10 +67,11 @@ test('Help has one title and twenty topics, listed before them, each linking to 
     await expect(topics.nth(6)).toBeFocused();
   } else await expect(all).toBeHidden();
   await expect(topics).toHaveText(TOPICS);
-  for (const [index, [id, title]] of SECTIONS.entries()) {
-    await expect(page.getByRole('region', {name: title, exact: true})).toBeVisible();
-    await expect(topics.nth(index)).toHaveAttribute('href', `#${id}`);
-  }
+  for (const [, title] of SECTIONS) await expect(page.getByRole('region', {name: title, exact: true})).toBeVisible();
+  for (const [index, id] of TOPIC_IDS.entries()) await expect(topics.nth(index)).toHaveAttribute('href', `#${id}`);
+  // The release sections and the smaller changes sit inside "Earlier updates", after What's new.
+  const earlier = page.getByRole('region', {name: 'Earlier updates', exact: true});
+  for (const [id] of SECTIONS.filter(([id]) => ['earlier-changes', 'whole-life', 'aa', 'ab', 'abd', 'ac', 'ad', 'ae', 'af', 'aj', 'ak'].includes(id))) await expect(earlier.locator(`#${id}`), id).toHaveCount(1);
   // The topic list stays above the first section at every size.
   const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
@@ -269,7 +277,10 @@ test('Session Y: four linkable answers; a hash opens each and nothing is written
 // read-aloud is off by default, and nothing is written on view.
 test('Session Z-Cloud: the new answers open from a hash, the voice answer follows Part 3, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
-  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true}), ai = page.getByRole('region', {name: 'Your own AI, page by page', exact: true});
+  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true});
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): the "what changed / where now" answers (z-status, z-more, z-panel) moved
+  // from Questions and ZIGi's section to "Smaller changes, and where things moved" under Earlier updates; same ids, same text.
+  const changes = page.getByRole('region', {name: 'Smaller changes, and where things moved', exact: true});
   const answers: [string, string][] = [
     ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
     ['z-status', 'Status & wallet'], // Session AB-Design: the answer follows the notice and the sheet
@@ -279,8 +290,8 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
     ['z-units', 'your records stay in kilograms and millilitres'],
     ['z-more', 'Today is one centred column when nothing sits beside it'],
   ];
-  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
-  await expect(ai.locator('#help-z-panel > summary')).toHaveText('What changed in ZIGi’s panel?');
+  for (const [id] of answers) await expect((['z-status', 'z-more'].includes(id) ? changes : questions).locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(changes.locator('#help-z-panel > summary')).toHaveText('What changed in ZIGi’s panel?');
   await expect(page.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
   for (const [id, text] of [...answers, ['z-panel', 'Nothing in the panel wraps onto a second line'], ['your-ai-voice', 'in English or Dutch, wherever your browser offers speech recognition, with or without an AI connected']] as [string, string][]) {
@@ -310,7 +321,9 @@ test('Session AA-Cloud: the new answers open from a hash, say what stays on this
     ['aa-home-screen', 'Safari on iPhone and iPad offers neither the shortcuts nor the share sheet entry for web apps'],
     ['aa-more', 'kept on this device'],
   ];
-  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): aa-more ("What else is new…") moved under Earlier updates; same id and text.
+  const changes = page.getByRole('region', {name: 'Smaller changes, and where things moved', exact: true});
+  for (const [id] of answers) await expect((id === 'aa-more' ? changes : questions).locator(`#help-${id} > summary`), id).toBeVisible();
   await expect(page.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
   for (const [id, text] of answers) {

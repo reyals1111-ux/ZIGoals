@@ -125,7 +125,7 @@ export function WealthView(){
  useEffect(()=>{if(!asked||market.loading)return;setAsked(false);setRefreshNote(market.error?'Prices could not be refreshed. The last good values stay, with their times.':`Prices updated at ${formatTime(new Date().toISOString())}.`);},[asked,market.loading,market.error]);
  const insights=useMarketInsights(/* Session AH (WE11, B-085): only the holdings priced from the market; a manually valued one sends nothing */store.data.positions.flatMap(p=>p.marketRef&&!p.archivedAt&&isLivePriced(p)?[p.marketRef]:[])),showcase=useShowcase(),phone=usePhoneActive(),holdings=usePhoneShowAll(4),classes=usePhoneShowAll(4);
  const now=useEvidenceNow(store.data,market.now),overview=wealthOverview(store.data,now,market.quotes);
- if(!store.loaded)return <div className="dashboard"><h1>Your Wealth</h1><p>Loading your private wealth…</p></div>;
+ if(!store.loaded)return <div className="dashboard route-loading-reserve"><h1>Your Wealth</h1><p>Loading your private wealth…</p></div>;
  if(store.error)return <div className="dashboard"><h1>Your Wealth</h1><p role="alert">{store.error}</p></div>;
  // Session AH (TR6): live-priced by Wealth's own rule (lib/numbers/counts.ts), so Markets counts the same manual assets.
  const automatic=overview.rows.filter(r=>isLivePriced(r.position)),fresh=automatic.filter(r=>r.valuationState==='fresh').length,attention=overview.rows.filter(r=>r.stale||r.value===undefined||r.balance.deficit!=='0');

@@ -155,7 +155,7 @@ export function HealthApp() {
   const [hashView, setHashView] = useState<string | null>(null);
   useEffect(() => { const read = () => { const h = window.location.hash.slice(1).toLowerCase(); setHashView(FULL_VIEWS.has(h) ? h : null); }; read(); window.addEventListener("hashchange", read); return () => window.removeEventListener("hashchange", read); }, []);
   const view = params.get("view") ?? (tab && FULL_VIEWS.has(tab) ? tab : null) ?? hashView ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
-  if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
+  if (!store.loaded) return <section className="panel route-loading-reserve"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
   if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><Skeleton label="Opening Sleep…" block/></section>}><SleepView /></Suspense></LoadBoundary>;
   if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><Skeleton label="Opening Meditation…" block/></section>}><MeditationView /></Suspense></LoadBoundary>;

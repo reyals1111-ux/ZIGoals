@@ -391,7 +391,8 @@ test('persona round: Meet ZIGi and Help\'s local-model answer never scroll sidew
   test.skip(!isMobile, 'phones only');
   for (const width of [320, 360]) {
     await page.setViewportSize({width, height: 640});
-    await page.goto('/app/zigi');
+    // Session AK G2 (RELEASE_REVIEW R26, deliberate): the cards are under the gallery fold; its address opens it.
+    await page.goto('/app/zigi#every-look');
     await expect(page.locator('.meet-zigi-card').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth), `Meet ZIGi at ${width}`).toBeLessThanOrEqual(width);
     await page.goto('/app/help#help-your-ai-local');

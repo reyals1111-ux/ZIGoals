@@ -93,6 +93,9 @@ import {WalletCard} from '../wallet/wallet-card';
 import {useAverageGoals} from '../goals/use-average-goals';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {useChainChoice} from '../chain/use-chain-choice';
+import {useMountOnView} from '../use-mount-on-view';
+/** Addresses that point into the widget area (a card or a widget): it mounts at once for them. */
+const WIDGET_AREA_HASHES=['#dashboard-'] as const;
 /** On a phone these secondary Today modules fold to one row each, opened in place (Session I, Part 9). */
 const PHONE_FOLDED=new Set<DashboardBuiltinId>(['watchlist','progress','wallet','staking','destination','activity']);
 /** Session AK X1 (RELEASE_REVIEW R14): on a brand-new device Today shows the welcome and one empty card per area, nothing more. */
@@ -159,7 +162,8 @@ export function TodayDashboard(){
  const activeCards=[...active].sort((a,b)=>cardOrder.indexOf(entityLayoutId(a.key))-cardOrder.indexOf(entityLayoutId(b.key)));
  // Session AF (L5a, Part 10.10): "Next step", "What matters today" and the goal cards each say something different
  // (lib/today/goal-roles.ts): the top goal's next step, the most urgent other goal, each goal's progress.
- const roles=todayGoalRoles(activeCards,platform.data.goals,today),nextGoal=roles.focus?.goal;
+ // Session AK G2 (RELEASE_REVIEW R29): the Showcase's "What matters today" leads with a currency goal; its ZIG goal follows further down.
+ const roles=todayGoalRoles(activeCards,platform.data.goals,today,showcase?{lead:'currency'}:{}),nextGoal=roles.focus?.goal;
  const integrityWarning=platform.loaded&&!platform.error?dashboardIntegrityWarning(platform.data):undefined;
  const hasFundingGoal=platform.data.goals.some(g=>g.status!=='closed'&&g.type!=='PROJECT');
  const meta=(id:DashboardBuiltinId)=>DASHBOARD_BUILTINS.find(b=>b.id===id)!;
@@ -271,6 +275,8 @@ export function TodayDashboard(){
  const setHeroCollapsed=(value:boolean)=>{try{uiPrefs.update(p=>({...p,heroCollapsed:value}));}catch{setError('This device refused to save that choice.');}};
  const [focusPlace,setFocusPlace]=useState<HTMLDivElement|null>(null),[mainPlace,setMainPlace]=useState<HTMLDivElement|null>(null),[endPlace,setEndPlace]=useState<HTMLDivElement|null>(null);
  const forYouOn=settings.loaded&&!settings.error&&(settings.data.onboarded||showcase)&&!brandNew&&storesReady;
+ // Session AK G2 (R11): arranging Today and a brand-new device's short Today mount the widget area at once.
+ const widgetArea=useMountOnView({hashPrefixes:WIDGET_AREA_HASHES,force:customize||brandNew});
  const makeToday=settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={<TodayReserve part="make"/>}><MakeToday chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
  // The For you cards render into three fixed places (portals), so the page's own tree never changes shape when they
  // arrive: the hero and its slogan mount once per visit.
@@ -288,10 +294,13 @@ export function TodayDashboard(){
    {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} goalsReady={legacy.loaded&&platform.loaded} step={roles.focus?.step} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
    {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
    {!brandNew&&<TodayChecklistCard/>}
-   <section aria-label="Your Today widgets" className="dashboard-widget-area">
+   {/* Session AK G2 (RELEASE_REVIEW R11, SESSION_AK_F8 proposal 2): on a phone the widget area (most of Today's elements)
+       mounts when it comes within 600 px of the screen, on an address into it, on focus or when the browser is first idle;
+       its place is kept meanwhile. The hero, slogan and first cards above render as before (components/use-mount-on-view.ts). */}
+   <section aria-label="Your Today widgets" className="dashboard-widget-area" ref={widgetArea.ref}>
     {customize&&<div className="section-heading dashboard-layout-heading"><h2>Arrange your daily space</h2><div className="dashboard-actions"><button className="primary" disabled={busy||settings.data.widgets.length>=24} onClick={()=>{setInsertAt(null);setEditor('new');}}>Add widget</button><button className="secondary" onClick={()=>setPreset(settings.data.preset)}>Choose preset</button></div></div>}
     <p role="status" className="dashboard-save-status">{status}</p>{error&&<p role="alert">{error}</p>}
-    <div className="dashboard-layout-grid"><LayoutRegion region="main" items={regionItems('main')} onMove={(id,to,order)=>placeAt('main',id,to,order)}/></div>
+    {widgetArea.mounted?<div className="dashboard-layout-grid"><LayoutRegion region="main" items={regionItems('main')} onMove={(id,to,order)=>placeAt('main',id,to,order)}/></div>:<div className="dashboard-widget-reserve" aria-hidden="true"/>}
    </section>
    {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
    {gameOn&&uiPrefs.loaded&&!uiPrefs.unreadable&&!!uiPrefs.data.today?.gameWidgets?.length&&<LoadBoundary quiet><Suspense fallback={null}><TodayGameCards/></Suspense></LoadBoundary>}

@@ -64,6 +64,11 @@ test('S4: the focuses step suggests habits and a goal, the setup is recorded and
   await expect(page.getByText(/Suggested: Walk, Call a friend, Contribute, the goal “Emergency fund”/)).toBeVisible(); // in the focuses' own order
   await page.getByRole('button', {name: 'Continue', exact: true}).click();
   await expect(page.getByRole('checkbox', {name: /Call a friend/})).toBeChecked();
+  // Session AK G2 (RELEASE_REVIEW R21): the habit from a focus is a normal choice, ticked and enabled (it had been a dimmed,
+  // disabled tick); unticking it leaves it out, ticking it again puts it back.
+  const fromFocus = page.getByRole('checkbox', {name: /^Contribute/});
+  await expect(fromFocus).toBeChecked(); await expect(fromFocus).toBeEnabled();
+  await fromFocus.uncheck(); await expect(fromFocus).not.toBeChecked(); await fromFocus.check(); await expect(fromFocus).toBeChecked();
   await expect(page.getByLabel('Goal name')).toHaveValue('Emergency fund');
   await page.getByLabel('Target amount').fill('1000');
   await page.getByRole('button', {name: 'Continue', exact: true}).click(); // starters → tour
@@ -76,7 +81,7 @@ test('S4: the focuses step suggests habits and a goal, the setup is recorded and
   const setup = await stored(page, ONBOARDING_SETUP_KEY) as {habitIds: string[]; goalId?: string; widgetIds: string[]; focuses: string[]};
   expect(setup.focuses).toEqual(['move', 'save', 'connect']); expect(setup.habitIds.length).toBeGreaterThanOrEqual(1); expect(setup.goalId).toBeTruthy();
   const created = (await stored(page, HABITS_KEY) as HabitData).habits.map(h => h.title);
-  expect(created).toEqual(expect.arrayContaining(['Call a friend']));
+  expect(created).toEqual(expect.arrayContaining(['Call a friend', 'Contribute']));
   await page.goto('/app/welcome');
   await page.getByRole('button', {name: 'Undo setup', exact: true}).click();
   await expect(page.getByRole('button', {name: 'Undo setup', exact: true})).toHaveCount(0);

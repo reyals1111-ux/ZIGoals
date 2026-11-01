@@ -39,6 +39,7 @@ import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
+import { SettingsRenderAll } from "../../../components/settings/settings-render-all";
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
 import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
@@ -121,6 +122,8 @@ export default function Settings() {
       </div>
       <PhoneSettingsList chain={chain}/>
       <KeepSettingsJump/>
+      {/* Session AK G2 (RELEASE_REVIEW R11): the lower groups lay out when near; a jump renders them all first. */}
+      <SettingsRenderAll/>
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">

@@ -98,6 +98,7 @@ export function OnboardingFlow() {
   const [draft, setDraft] = useState<GoalDraft>(NO_GOAL), [goal, setGoal] = useState<PrivateGoal | null>(null);
   const [goalError, setGoalError] = useState<{field: 'name' | 'target' | 'date'; text: string} | null>(null);
   const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
+  const [skippedFocusHabits, setSkippedFocusHabits] = useState<string[]>([]);
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null), first = useRef(true), id = useId();
   const index = STEPS.indexOf(step);
@@ -119,7 +120,10 @@ export function OnboardingFlow() {
   const focusChoices = FOCUSES.filter(f => focusPillars.size === 0 || focusPillars.has(f.pillar));
   const suggested = suggestionsFor(focuses);
   /** Starters the focuses ask for that no template carries: created as plain daily habits. */
-  const extraHabits = suggested.habits.filter(title => !starters.some(t => t.title.toLowerCase() === title.toLowerCase()) && !existingTitles.some(e => e.trim().toLowerCase() === title.toLowerCase()));
+  const focusHabits = suggested.habits.filter(title => !starters.some(t => t.title.toLowerCase() === title.toLowerCase()) && !existingTitles.some(e => e.trim().toLowerCase() === title.toLowerCase()));
+  // Session AK G2 (RELEASE_REVIEW R21): a habit that came from a focus is a normal choice, ticked to start with (it had been
+  // a dimmed, disabled tick that looked unavailable); unticking it leaves it out of the setup.
+  const extraHabits = focusHabits.filter(title => !skippedFocusHabits.includes(title.toLowerCase()));
   // Only the starters on screen, in their order: a pick hidden by a later change of pillars is not saved.
   const pickedHabits = starters.filter(t => habitIds.includes(t.id) && !hasHabitLike(existingTitles, t));
   const shown = pagesShownFor(pillars, currentPages);
@@ -291,7 +295,7 @@ export function OnboardingFlow() {
       {step === "starters" && <>
         <p className="onboarding-lede">Tick what you’d like to begin with. You can change targets and schedules later, or skip this.</p>
         <fieldset className="onboarding-choices"><legend>Habits</legend>
-          {extraHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked disabled onChange={() => undefined} label={title} note="From your focus · daily" />)}
+          {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note="From your focus · daily" />)}
           {starters.map(t => { const exists = hasHabitLike(existingTitles, t); return <Choice key={t.id} name="onboarding-habit" checked={exists || habitIds.includes(t.id)} disabled={exists} onChange={() => setHabitIds(list => toggle(list, t.id))} label={t.title} note={exists ? "Already in your Habits" : `${t.note} · ${HABIT_GROUP_LABEL[t.group]}`} />; })}
         </fieldset>
         {showGoal && <fieldset className="onboarding-goal"><legend>A first goal (optional)</legend>

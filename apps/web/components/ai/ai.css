@@ -333,3 +333,7 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .zigi-checkin-actions { margin: 0; }
 .zigi-checkin-actions .text-link { min-height: 44px; }
 .zigi-welcome-back { margin: 0 0 6px; font-size: 16px; font-weight: 650; }
+/* Session AK G2 (RELEASE_REVIEW R32): the notes list mounts after the page (its own chunk); its panel keeps a place from the
+   first paint, so the footer below starts under the fold at 390 px and never moves up or down when the list arrives
+   (CLS 0.094 before). */
+.zigi-memory-page { min-height: 70svh; }

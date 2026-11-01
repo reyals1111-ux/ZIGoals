@@ -12,5 +12,6 @@ test("with no habits, Today's daily rhythm says how to begin instead of counting
   const rhythm = page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Your daily rhythm", exact: true }) });
   await expect(rhythm).toContainText("Create your first habit to see today’s rhythm.");
   await expect(rhythm).not.toContainText("0 more chances");
-  await expect(rhythm.getByRole("progressbar", { name: "Habits completed today" })).toHaveAttribute("aria-valuetext", "No Habits scheduled today");
+  // Session AK G2 (RELEASE_REVIEW R31, deliberate): one rule, "goal" and "habit" lowercase mid-sentence (lib/copy/terms.ts).
+  await expect(rhythm.getByRole("progressbar", { name: "Habits completed today" })).toHaveAttribute("aria-valuetext", "No habits scheduled today");
 });

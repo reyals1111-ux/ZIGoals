@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useState} from 'react';
+import {firstIdle} from '../../lib/first-idle';
 
 /**
  * One ZIGi picture (Session X-Local Part 1): the poster (the state's still frame) shows at once; when an animated file
@@ -16,15 +17,21 @@ export function ZigiImage({poster, animated = null, width, height, alt, decorati
   const [broken, setBroken] = useState<string | null>(null);
   useEffect(() => {
     if (!animated) { setReady(null); return; }
-    let live = true;
-    const image = new Image();
-    image.decoding = 'async';
+    let live = true, image: HTMLImageElement | null = null;
     const show = () => { if (live) setReady(animated); };
-    image.onload = show; image.onerror = () => { /* the poster stays */ };
-    image.src = animated;
-    // decode() resolves once the first frame can be painted; a browser without it swaps on load.
-    if (typeof image.decode === 'function') image.decode().then(show, () => undefined);
-    return () => { live = false; image.onload = null; };
+    // Session AK G2 (SESSION_AK_F8 proposal 5): on a cold load the clip waits until the page has loaded and the browser is
+    // first idle (4 s at most), so its 358 KB never compete with the page's own first requests; the poster shows until
+    // then, as it always did while the clip loads. Later clips on the same page start at once.
+    void firstIdle().then(() => {
+      if (!live) return;
+      image = new Image();
+      image.decoding = 'async';
+      image.onload = show; image.onerror = () => { /* the poster stays */ };
+      image.src = animated;
+      // decode() resolves once the first frame can be painted; a browser without it swaps on load.
+      if (typeof image.decode === 'function') image.decode().then(show, () => undefined);
+    });
+    return () => { live = false; if (image) image.onload = null; };
   }, [animated]);
   const playing = ready !== null && ready === animated;
   // A static figure from /public, like the brand mark: no optimizer, no loader, nothing fetched beyond the file.

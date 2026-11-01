@@ -74,21 +74,31 @@ Beyond that, the app is in good shape:
   - Split Settings' sections so each card's body loads when it opens.
   - Add a budget test for TBT at 4×.
 
+**Status: fixed** (rest of R11, lane G2; R9, R10, R15 and the first part were `a15ea685`) — Today: on a phone (≤ 1000 px) the widget area (most of Today's elements) mounts when it comes within 600 px of the screen, at once on an address into it (`#dashboard-…`), on focus, while Today is arranged or on a brand-new device, or when the browser is first idle (2.5 s at most), and renders in a transition so React yields to taps while it builds; its place is kept by a 60 vh reserve; the PROTECTED hero, slogan, focus and Checklist cards above render as before (`components/use-mount-on-view.ts`, `lib/mount-on-view.ts`). Settings: every group after Data & privacy has `content-visibility: auto` (F8 proposal 1, TBT 2.4 → ≈1.45 s injected); a page opened on a fragment, a followed `#` link, a hash change or a same-page navigation renders every group first (`data-jump`, `components/settings/settings-render-all.tsx`), so jumps land exactly as before (measured on the production build with the CSS injected: `#send-feedback`, `#your-ai`, `#appearance`, the sections nav and the phone row land at the same top, 158 px at 1440 and 94 px at 390, as without it). F8 proposal 3: a Health or Wealth loading state keeps the page a screen tall (`main:has(.route-loading-reserve)`), so the footer no longer starts in view on a cold load (CLS 0.117 at 390, all from the footer moving out of view). F8 proposal 4: the footer shine's mask (the wordmark again, as WebP beside the picture's AVIF) is set only while the finale can play (`data-intro=ready|play`), so later page views never fetch it; recorded: the logo and ZIGi's idle frame were fetched twice only because `middleware.ts` answers public files with `no-store` under `next start` (the deployed build serves them from Cloudflare's assets, `run_worker_first: false`, where the page reuses one copy; changing the matcher is TIER 3 (security headers), the lead's call); the footer scene is a CSS background set by the theme files, so `loading=lazy` does not apply, and `content-visibility` on the PROTECTED footer would change its path measuring: left as it is. F8 proposal 5: ZIGi's animated clip (358 KB) waits for the page's load and first idle moment (4 s at most) on a cold load; the poster shows meanwhile, as it always did while the clip loads (`lib/first-idle.ts`). Prefetching on phones: recorded, the measured per-route policy stays (`components/nav-prefetch.ts`: seven routes already skip it; Today, Health, Staking and Activity measured slower without it). Tests: `lib/mount-on-view.test.ts`, `lib/first-idle.test.ts`, `tests/settings-render-all-ak.spec.ts`; the Settings and Today specs run by the lead on the next build. A TBT budget test at 4× is not added (a CPU-throttled timing check is not stable on CI runners); recorded.
+
 **R20 · Minor · Today (and all pages with launchers) · 1440 · Light, Nebula · Showcase**
 - **Problem:** The right-edge launcher stack (music, Checklist, ZIGi) sits on top of the right-rail cards. On "ZIG reward reserve" it covers the end of "Fictional reward…" and crowds "Not set". On phone, the ZIGi launcher covers the end of text lines, for example Goals' empty card "your next chapter." and the welcome card's corner.
 - **Fix:** Reserve a right gutter for the launcher column at ≥1280 px (padding on the main column), and on phone add bottom and right scroll padding equal to the launcher size. The launcher's look stays as it is (bug only).
+
+**Status: fixed** (lane G2) — from 1280 px the main column keeps a gutter as wide as the launchers' lane (58 px, 66 px with ZIGi large) while they are on the right; Today keeps its two columns' width (the PROTECTED hero) and pads only its full-width parts (For you, Your week, My links); Earn's paths drop their own 64 px lane inside it; the Checklist sheet is untouched; the launchers' look and place are unchanged (`components/ui/ui.css`). Phones already keep the lane through `scroll-padding-bottom` (tab bar + 88 px) and the footer's end padding, so a covered line scrolls clear and a focused control never sits under ZIGi; no right padding is added on phones (it would narrow every page by 60 px). Measured on the production build with the CSS injected (Showcase, 1440 and 1280 px): 0 lines under the lane on Today, Goals, Wealth, Health, Earn and Settings (before: 7–86 per page). Test: `tests/launcher-gutter-ak.spec.ts` (fails on the old build, as it should).
 
 **R27 · Polish · Today · all · all · Showcase**
 - **Problem:** The coach card ends "…has two weeks of logs. an estimate, not medical advice". The fragment starts lowercase.
 - **Fix:** Use "An estimate, not medical advice." as its own sentence.
 
+**Status: recorded** (lane G2) — no change: "an estimate, not medical advice" is a separate badge (`.health-estimate-tag`: its own pill, border and colour), not the end of the sentence, and the same badge sits on the weight trend, the sleep score and the energy card in lowercase; the sentence before it ends with its own full stop.
+
 **R28 · Polish · Today hero · all · all (owner decision; PROTECTED)**
 - **Problem:** The third hero pillar row reads "Onchain · ZIGChain vision · Alpha simulation." It is the first crypto word a non-crypto person reads, and it says "Alpha".
 - **Fix:** None proposed without the owner. Note it for the owner's 1.0 wording decision.
 
+**Status: recorded** (lane G2) — the hero is PROTECTED; the "Onchain · ZIGChain vision · Alpha simulation." line waits for the owner's 1.0 wording decision.
+
 **R29 · Polish · Today · 390 · all · Showcase**
 - **Problem:** The demo's "What matters today" leads with the ZIG "Reward income reserve · NEEDS REVIEW · 10,000 ZIG of 20,000 ZIG", so the first goal a demo visitor sees is a crypto goal that needs attention.
 - **Fix:** Lead the Showcase with "Emergency fund" (currency, "AHEAD") and keep the ZIG goal further down.
+
+**Status: fixed** (lane G2) — in the Showcase, "What matters today" leads with a currency goal (by urgency among them; Emergency fund is already the focus tile), and the ZIG reward reserve follows further down; real data keeps the most urgent goal first (`lib/today/goal-roles.ts` `lead: 'currency'`). Tests: `lib/today/goal-roles.test.ts`; `tests/run9-2-product.spec.ts` updated deliberately (the panel's heading is Japan adventure or First home deposit, and not the ZIG goal); `tests/today-roles-af.spec.ts` already accepts both.
 
 ## Welcome and onboarding (`/app/welcome`, Today's welcome card)
 
@@ -106,6 +116,8 @@ Beyond that, the app is in good shape:
 **R21 · Minor · /app/welcome step 4 · 390 · Nebula · fresh start**
 - **Problem:** The habit that came from a focus ("Contribute · From your focus · daily") is rendered `checked disabled`. Its text is dimmed, so it looks unavailable rather than chosen, while the unselected cards next to it are brighter.
 - **Fix:** Show it as selected (full-strength text and a tick) with a note "From your focus. Untick the focus to remove it", or make it a normal toggle.
+
+**Status: fixed** (lane G2) — a habit that comes from a focus is a normal choice, ticked and enabled at full strength with its note "From your focus · daily"; unticking it leaves it out of the setup (`components/onboarding/onboarding-flow.tsx`). Test: `tests/flow-aa.spec.ts` S4 (checked, enabled, untick and tick again, and the habit is created).
 
 ## Goals (`/app/goals/**`)
 
@@ -133,6 +145,8 @@ Beyond that, the app is in good shape:
 **R25 · Polish · /app/goals/positions · all · all**
 - **Problem:** The route redirects to `/app/staking` (h1 "Staking"). A Goals sub-route that lands on a crypto page is confusing in bookmarks, history and Search.
 - **Fix:** Point any remaining links at `/app/staking` directly, and keep the redirect only for old links.
+
+**Status: fixed** (lane G2) — verified: nothing in the app links to `/app/goals/positions` any more (Staking's own links, the nav and Search use `/app/staking`); the 307 redirect stays for old links and bookmarks. Test: `lib/pages/staking-links.test.ts` (no component, page, library file or the manifest links there; the redirect keeps the query).
 
 ## Health (`/app/health`)
 
@@ -230,17 +244,25 @@ Beyond that, the app is in good shape:
 - **Problem:** Help has 188 questions, and about 35 of them are release notes in question form: "What changed in Habits?", "Where are the Alpha notices and the wallet buttons now?", "Are Light and Dark finished now?", "Why is the top of each page plainer now?", "Where did the Alpha's facts below the footer go?"… A 1.0 Help reads as a changelog, and some entries tell people things were unfinished.
 - **Fix:** Move the "what changed / now" entries into "Earlier updates" (What's new), and keep Help task-shaped ("How do I…", "Is my data…").
 
+**Status: fixed** (lane G2) — Help's topic index is task-shaped (eleven topics): the ten "New: …" release sections move, with their ids, under one "Earlier updates" section after What's new, beside a "Smaller changes, and where things moved" section that takes the four "what changed / where now" answers from Questions and ZIGi's section (`z-panel`, `z-status`, `z-more`, `aa-more`); the release eyebrows lose "NEW:". Every Help id is kept, so What's new, links and Search still open each answer; `lib/search/static.ts` follows the new order and topics. Tests: `lib/help/help-shape.test.ts` (no change note before Earlier updates, no release topic), `lib/search/static.test.ts`; specs updated deliberately: `tests/help-page.spec.ts` (topics, regions), `tests/page-order-aa.spec.ts` (11 topics).
+
 **R26 · Minor · /app/zigi ("Meet ZIGi", from Settings) · all · all**
 - **Problem:** The page is a catalogue of every animation state ("Idle · Moves while it lasts…", "Loading a model… When it appears: Chrome's built-in model…"). It reads as a design spec, and the useful control (Animation Full, Calm or Off) is buried at the top.
 - **Fix:** Lead with what ZIGi can do and the privacy line. Fold the state gallery under "Every way ZIGi can look". The ZIGi look itself stays as it is (PROTECTED).
+
+**Status: fixed** (lane G2) — Meet ZIGi leads with "What ZIGi can do" (answers from your records, proposes cards you confirm, uses the AI you choose) and the privacy line, then "How much ZIGi moves"; the state gallery folds under "Every way ZIGi can look" and mounts when opened (or on `#every-look`), so the page loads no figure until asked. The ZIGi figures are unchanged (PROTECTED). Tests: `tests/zigi-alive.spec.ts` (the about region, no cards until the fold opens); specs updated deliberately to open the fold: `tests/zigi-alive.spec.ts`, `tests/zigi-emotions.spec.ts`, `tests/persona-z.spec.ts`, `human-x/10-zigi-alive.spec.ts`.
 
 **R31 · Polish · several · all · all**
 - **Problem:** Capitalisation of "Goal" and "Habit" is inconsistent: "No active goal yet" vs "No active Goal yet", "0 of 0 Habits complete", "Create your first goal" vs "Your Goals".
 - **Fix:** Pick one rule (lowercase in running text, capitalised only as page names) and apply it through the shared copy.
 
+**Status: fixed in the shared copy** (lane G2) — one rule in `lib/copy/terms.ts`: "goal" and "habit" lowercase in running text, capitalised at a sentence's start and as a page's or card's name (Goals, Habits, Daily Habits, Your Goals). Applied to Today's Life overview ("No active goal yet", "3 of 5 habits complete", "No habits scheduled today"), the goals widget ("4 active goals"), the milestones timeline and the widget descriptions. Test: `lib/copy/terms.test.ts`; specs updated deliberately: `tests/today-empty-copy.spec.ts`, `tests/owner-polish.spec.ts`, `tests/ah-numbers.spec.ts`, `tests/ui-design-pass.spec.ts`. Recorded: about 900 other capitalised uses across the app are left for the G3 visual-system pass, page by page with its specs, rather than a blind replace.
+
 **R32 · Polish · /app/music, /app/zigi/memory · 390 · Nebula**
 - **Problem:** CLS is 0.094 on both pages (just under the 0.1 "good" line, the highest in the app; every other route is ≤ 0.005).
 - **Fix:** Reserve the height of the late-mounting block (the player and memory list) with a placeholder.
+
+**Status: fixed** (lane G2) — measured on the production build: both pages' 0.094 was the footer moving out of view when the late block arrived (it started in view at 765 px). The music player's box keeps at least a screen (`min(1100px, 100svh)`) and the notes panel 70 svh from the first paint, so the footer starts below the fold. Tests: `lib/mount-on-view.test.ts` covers Today's reserve; the CLS of both pages is for the lead's next F8 measure (it needs the new build).
 
 ## Offline (PWA)
 
