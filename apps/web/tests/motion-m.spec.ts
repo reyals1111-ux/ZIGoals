@@ -89,12 +89,22 @@ test('Full: completing a habit on its Habits page card plays one completion mome
   await hydrated(page);
   const complete = page.locator('.habit-card').getByRole('button', {name: /^Complete /}).first();
   await complete.scrollIntoViewIfNeeded();
+  // The moment lives about 0.8 s by design: what it is made of is recorded the instant it is added, so a busy runner's
+  // gap between two assertions cannot outlast it.
+  await page.evaluate(() => {
+    const seen: {ariaHidden: string | null; pointerEvents: string; sparks: number}[] = [];
+    (window as unknown as {bursts: typeof seen}).bursts = seen;
+    new MutationObserver(records => { for (const r of records) for (const n of r.addedNodes) if (n instanceof HTMLElement && n.classList.contains('zg-burst')) seen.push({ariaHidden: n.getAttribute('aria-hidden'), pointerEvents: getComputedStyle(n).pointerEvents, sparks: n.querySelectorAll('.zg-burst-spark').length}); }).observe(document.body, {childList: true});
+  });
   await complete.click();
-  const burst = page.locator('.zg-burst');
-  await expect(burst).toHaveCount(1);
-  await expect(burst).toHaveAttribute('aria-hidden', 'true');
-  expect(await burst.evaluate(el => getComputedStyle(el).pointerEvents)).toBe('none');
-  await expect(burst).toHaveCount(0, {timeout: 3000});
+  const bursts = () => page.evaluate(() => (window as unknown as {bursts: {ariaHidden: string | null; pointerEvents: string; sparks: number}[]}).bursts);
+  await expect.poll(async () => (await bursts()).length).toBe(1);
+  const [burst] = await bursts();
+  expect(burst!.ariaHidden).toBe('true');
+  expect(burst!.pointerEvents).toBe('none');
+  expect(burst!.sparks).toBe(8);
+  await expect(page.locator('.zg-burst')).toHaveCount(0, {timeout: 3000});
+  expect(await bursts()).toHaveLength(1);
 });
 
 test('Full: Wealth\'s total reads its final value at every moment, and settles on exactly that text', async ({page}) => {
