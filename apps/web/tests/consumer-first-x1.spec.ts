@@ -112,6 +112,21 @@ test('a new device: Create a goal starts with money in its currency, in plain wo
   await expect(page.getByLabel('Contribution asset', {exact: true})).toHaveValue('USD');
 });
 
+// Session AK (CI fix, R5 follow-up): a project saved on a new device. Its record needs an asset; it was empty before the
+// chain is chosen, so step 2 said "This can't be empty." and no project could be created (integration CI, six scripts).
+test('a new device: a project goal is created through every step, and its page names no chain coin', async ({page}) => {
+  await ready(page, '/app/goals/new');
+  await typeGoalName(page, 'Fictional garden project');
+  await page.getByRole('radio', {name: 'Finish a project', exact: true}).check();
+  await page.getByLabel('Milestones, one per line').fill('Plan the beds\nPlant');
+  for (let i = 0; i < 3; i++) await page.getByRole('button', {name: 'Continue →', exact: true}).click();
+  await expect(page.getByRole('heading', {name: 'Fictional garden project', level: 2})).toBeVisible();
+  await page.getByRole('button', {name: 'Create goal', exact: true}).click();
+  await expect(page.getByTestId('tracked-progress')).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/goals\/tracked\/\d+$/);
+  expect(await page.locator('main').textContent()).not.toMatch(/\bZIG\b/);
+});
+
 test('once the chain is chosen, Create a goal is as it was: Quantity first, and Reward offered', async ({page}) => {
   await chooseChain(page);
   await ready(page, '/app/goals/new');

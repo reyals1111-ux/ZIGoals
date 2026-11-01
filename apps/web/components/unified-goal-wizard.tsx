@@ -118,7 +118,10 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName}:
  const releaseDraft=useUnsavedChanges(!savedId&&!!(name||target||notes||date||milestones||assetInput||withPlan||planAmount||Object.keys(included).length||typeChoice!==null||category!=='Custom'));
  // Session AB-Cloud Part 8 (ADR-023 C25): a value Goal starts in the device's currency (euro in the euro area) until one is chosen.
  const preferredCurrency=useDefaultCurrency();
- const asset=assetInput||(type==='VALUE'?preferredCurrency:source?.asset??(chain?'ZIG':''));
+ // Session AK (CI fix, R5 follow-up): a project counts milestones, yet its record still names an asset (privateGoalSchema:
+ // at least one character). Before the chain is chosen it takes the person's currency, as a money goal does, so it saves
+ // and never shows the chain's coin; once chosen it is ZIG, as every project was before R5.
+ const asset=assetInput||(type==='VALUE'||type==='PROJECT'&&!chain?preferredCurrency:source?.asset??(chain?'ZIG':''));
  // Session AK X1 (R5): a contribution plan is in the goal's own currency or asset until the person types another.
  const planAsset=planAssetInput||asset;
  const network=(networkInput||(source?.network==='zig-test-2'?'zig-test-2':'zigchain-1')) as PrivateGoal['network'];
