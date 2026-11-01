@@ -2,12 +2,14 @@
 import {useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {useChartWidth} from '../charts/use-chart-width';
-import {ChartDefs, ChartGrid, ChartLegend, ChartTip, ChartXAxis} from '../charts/chart-kit';
+import {ChartGrid, ChartLegend, ChartTip, ChartXAxis} from '../charts/chart-kit';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import {weightTrend} from '../../lib/health-aa/trend';
 import type {HealthData} from '../../lib/health';
 import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
 import {formatDate} from '../../lib/visual-format';
 import './health-aa.css';
+import {ArtNote} from '../illustrations/art-note';
 
 const H = 200, PAD = {top: 16, right: 12, bottom: 28, left: 52};
 /** A trend reads to 100 g (one decimal in kg): the line is an estimate, and a third decimal would claim more than it knows. */
@@ -18,7 +20,7 @@ const tenths = (g: number) => Math.round(g / 100) * 100;
  * day without one shows as nothing.
  */
 export function WeightTrendCard({data, today, unit}: {data: HealthData; today: string; unit: WeightUnit}) {
-  const t = weightTrend(data, today, 42), [plot, width] = useChartWidth(360), [tip, setTip] = useState<string | null>(null);
+  const t = weightTrend(data, today, 42), [plot, width] = useChartWidth(360), look = useChartLook(), [tip, setTip] = useState<string | null>(null);
   const values = t.points.flatMap(p => [p.grams, p.trend].filter((v): v is number => v !== null)), goal = t.goalGrams;
   const all = goal !== null ? [...values, goal] : values;
   const lo = all.length ? Math.min(...all) - 300 : 0, hi = all.length ? Math.max(...all) + 300 : 1;
@@ -28,16 +30,17 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
   const summary = t.latestTrend === null ? 'No readings in the last six weeks.' : `Trend ${weightText(tenths(t.latestTrend), unit)}${rate ? `, ${rate} a week` : ''}${goal !== null ? `, goal ${weightText(goal, unit)}` : ''}; ${t.readings} readings in 42 days.`;
   return <section id="health-weight-trend" className="panel health-aa-card health-trend-card" aria-labelledby="weight-trend-title">
     <p className="eyebrow">Six weeks</p><h2 id="weight-trend-title"><NebulaFlow identity="weight-trend-title">Weight trend</NebulaFlow></h2>
-    {t.latestTrend === null ? <p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p> : <>
+    {t.latestTrend === null ? <ArtNote pillar="health"><p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p></ArtNote> : <>
       <p className="health-big">{weightText(tenths(t.latestTrend), unit)}<small>trend today{rate ? ` · ${rate}/week` : ''}</small></p>
       {/* Session AH (TR10): the latest reading beside the smoothed trend, so the two numbers are never mistaken for each other. */}
       {t.latestReading && <p className="fine health-trend-latest">Latest reading {weightText(t.latestReading.grams, unit)} · {formatDate(t.latestReading.date, {year: false})}. The trend smooths day-to-day swings.</p>}
       <div className="health-trend-chart" ref={plot}>
-        <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary} onMouseLeave={() => setTip(null)}>
-          <ChartDefs id="weight-trend" pillar="health"/>
+        <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary} onMouseLeave={() => setTip(null)}>
+          {/* Session AK (G3): the one chart look — the trend line in its gradient with one soft glow (none by day). */}
+          <ChartLookDefs id={look.id} width={width} height={H}/>
           <ChartGrid ticks={[0, 0.5, 1].map(f => { const g = lo + f * (hi - lo); return {y: y(g), label: weightText(Math.round(g / 100) * 100, unit).replace(/\s.*$/, '')}; })} left={PAD.left} right={width - PAD.right}/>
           {goal !== null && <line className="chart-guide" x1={PAD.left} x2={width - PAD.right} y1={y(goal)} y2={y(goal)} />}
-          <path className="chart-ink" d={line} stroke="url(#weight-trend-ink)" />
+          <path className="chart-ink zgc-line" d={line} style={{stroke: look.stroke('a')}} filter={look.glow} />
           {t.points.map((p, i) => p.grams === null ? null : <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.grams)} r="4" fill="#8ab9ff" onMouseEnter={() => setTip(`${formatDate(p.date, {year: false})}: ${weightText(p.grams!, unit)} (trend ${weightText(tenths(p.trend!), unit)})`)} />)}
           <ChartXAxis ticks={t.points.flatMap((p, i) => i % 7 === 0 || i === t.points.length - 1 ? [{x: x(i), label: p.date.slice(5)}] : [])} y={H - 8} edge={false}/>
         </svg>

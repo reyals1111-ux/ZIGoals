@@ -11,6 +11,7 @@ import {visionScope} from '../goals/use-goal-extras';
 import {StorageHealth} from '../storage-health';
 import {SectionHeading} from '../ui/section-heading';
 import './data-health.css';
+import '../skeleton/zg-skeleton.css';
 // Session AB-Cloud Part 5 (ADR-023 C22): Restore from a backup, loaded with the page's section, its code with the file.
 const RestoreBackup = lazy(() => import('../restore/restore-backup').then(m => ({default: m.RestoreBackup})));
 // Session AK Part 8.9: test a backup in a sandbox, and the monthly reminder to keep a copy.
@@ -43,7 +44,7 @@ export function DataHealthView() {
     });
     return () => { active = false; };
   }, []);
-  if (!read) return <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div>;
+  if (!read) return <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>;
   const total = Object.values(read.sizes).reduce<number>((n, b) => n + (b ?? 0), 0);
   const row = (e: CatalogEntry) => <li key={e.key}><span><strong>{e.label}</strong><small>{e.area}</small></span><span className="dh-size">{read.sizes[e.key] === null ? 'Nothing yet' : kb(read.sizes[e.key]!)}</span></li>;
   const ai = read.ai, areas = ai ? PAGE_AREAS.filter(a => ai.pageShare[a] && (a !== 'health' || ai.includeHealth)) : [];

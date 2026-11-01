@@ -8,6 +8,7 @@ import type {HealthData} from '../../lib/health';
 import {formatNumber, formatWeekday} from '../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import './health-aa.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Session AK (COMPETITORS N3, P2 #7): the weekly calorie budget, optional and loaded when opened: the daily target × 7 as
@@ -20,7 +21,7 @@ export function CalorieWeekCard({data, date, today}: {data: HealthData; date: st
   const [amount, setAmount] = useState('200'), [from, setFrom] = useState(0), [to, setTo] = useState(5), [note, setNote] = useState(''), [maxText, setMaxText] = useState(String(r.rollover?.maxKcal ?? 200));
   const week = weekBudget(data, r, date, today);
   const change = (fn: (c: CalorieWeek) => CalorieWeek, done: string) => { try { record.update(fn); setNote(done); } catch (e) { setNote(e instanceof Error && !/storage|quota/i.test(e.message) ? e.message : `Not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
-  if (!week) return <p className="health-empty-inline">Set a daily calorie target in Targets first; the weekly budget spreads that target over the week.</p>;
+  if (!week) return <ArtNote pillar="health"><p className="health-empty-inline">Set a daily calorie target in Targets first; the weekly budget spreads that target over the week.</p></ArtNote>;
   // The weekday names come from the date format (Monday first), never typed by hand.
   const WEEKDAYS = week.days.map(d => formatWeekday(d.date));
   return <div className="health-rich" aria-labelledby="calorie-week-title" role="group">

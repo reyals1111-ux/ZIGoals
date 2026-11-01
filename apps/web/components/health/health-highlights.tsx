@@ -7,17 +7,20 @@ import {HEALTH_COACH} from '../../lib/health-aa/coach-schema';
 import {weightChangeText, weightText, type WeightUnit} from '../../lib/health-units';
 import {formatNumber} from '../../lib/visual-format';
 import type {HealthData} from '../../lib/health';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './health-highlights.css';
 
 const tenths = (g: number) => Math.round(g / 100) * 100;
-/** The trend line as a small ink sparkline (no axis: the tile's figure and the card below carry the numbers). */
+/** The trend line as a small ink sparkline (no axis: the tile's figure and the card below carry the numbers). Session AK
+ * (G3): in the one chart look's gradient (its own ids per tile, Light's ink twins); a sparkline, so no glow. */
 function TrendInk({values}: {values: number[]}) {
+  const look = useChartLook();
   if (values.length < 2) return null;
   const W = 132, H = 40, lo = Math.min(...values), hi = Math.max(...values), span = Math.max(hi - lo, 1);
   const d = values.map((v, i) => `${i ? 'L' : 'M'}${(2 + i / (values.length - 1) * (W - 4)).toFixed(1)} ${(H - 4 - (v - lo) / span * (H - 8)).toFixed(1)}`).join(' ');
-  return <svg className="health-hl-ink" viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden="true" focusable="false">
-    <defs><linearGradient id="health-hl-ink" x1="0" x2="1"><stop offset="0" stopColor="#23eaff"/><stop offset=".55" stopColor="#9273ff"/><stop offset="1" stopColor="#ff74be"/></linearGradient></defs>
-    <path d={d} fill="none" stroke="url(#health-hl-ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+  return <svg className="health-hl-ink zg-chart" data-pillar="health" viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden="true" focusable="false">
+    <ChartLookDefs id={look.id} width={W} height={H}/>
+    <path className="zgc-line" d={d} fill="none" style={{stroke: look.stroke('a')}} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>;
 }
 

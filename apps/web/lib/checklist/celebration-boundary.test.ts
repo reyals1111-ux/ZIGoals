@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import type {ComponentProps} from 'react';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {act, createElement, lazy, Suspense} from 'react';
@@ -17,7 +18,7 @@ test('a quiet LoadBoundary keeps a failed chunk to itself, renders nothing in it
   const Failing = lazy(() => Promise.reject(Object.assign(new Error('Failed to load chunk /_next/static/chunks/x.css'), {name: 'ChunkLoadError'})));
   const onFail = vi.fn();
   await act(async () => root.render(createElement('main', null, createElement('p', null, 'The path'),
-    createElement(LoadBoundary, {quiet: true, onFail, children: createElement(Suspense, {fallback: null}, createElement(Failing))}))));
+    createElement(LoadBoundary, {quiet: true, onFail} as Omit<ComponentProps<typeof LoadBoundary>, 'children'> as ComponentProps<typeof LoadBoundary>, createElement(Suspense, {fallback: null}, createElement(Failing))))));
   expect(element.textContent).toBe('The path');
   expect(element.querySelector('[role="status"]')).toBeNull();
   expect(onFail).toHaveBeenCalledTimes(1);

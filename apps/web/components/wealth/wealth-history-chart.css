@@ -11,7 +11,7 @@
 .wealth-history-plot { position: relative; min-width: 0; }
 .wealth-history-svg { display: block; max-width: 100%; height: auto; overflow: visible; }
 .wealth-history-area { opacity: .9; }
-.wealth-history-line { filter: drop-shadow(0 0 6px #9273ff88); }
+/* Session AK (G3): the line's glow is the chart look's own filter (charts/chart-defs.tsx; none in Light). */
 .wealth-history-point { cursor: pointer; outline: none; }
 .wealth-history-point circle { fill: #e9f3ff; stroke: #0b1020; stroke-width: 1.5; transition: r .15s ease; }
 .wealth-history-point[data-active] circle { fill: #fff; stroke: #23eaff; stroke-width: 2; filter: drop-shadow(0 0 8px #23eaffaa); }

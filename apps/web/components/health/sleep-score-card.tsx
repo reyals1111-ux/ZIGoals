@@ -6,6 +6,7 @@ import {shortNights} from '../../lib/sleep/engine';
 import type {Sleep} from '../../lib/sleep/schema';
 import {formatMinutes} from '../../lib/zone-time';
 import './health-aa.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /** N10: a transparent sleep score for the last seven nights, with the formula on the card. */
 export function SleepScoreCard({sleep, today}: {sleep: Sleep; today: string}) {
@@ -14,7 +15,7 @@ export function SleepScoreCard({sleep, today}: {sleep: Sleep; today: string}) {
   const s = sleepScore(sleep, today);
   return <section className="panel health-aa-card" aria-labelledby="sleep-score-title">
     <p className="eyebrow">Last seven nights</p><h2 id="sleep-score-title"><NebulaFlow identity="sleep-score-title">Sleep score</NebulaFlow></h2>
-    {s.score === null ? <p className="health-empty-inline">Three logged nights of the last seven make a score; {s.nights} so far.</p> : <div className="sleep-score">
+    {s.score === null ? <ArtNote pillar="health"><p className="health-empty-inline">Three logged nights of the last seven make a score; {s.nights} so far.</p></ArtNote> : <div className="sleep-score">
       <GlassRing identity="sleep-score-ring" className="sleep-score-ring" arcs={[{key: 'score', end: s.score}]} role="img" aria-label={`Sleep score ${s.score} of 100 over ${s.nights} nights`}><strong>{s.score}</strong><small>of 100</small></GlassRing>
       <ul className="sleep-score-parts"><li><span>Duration · {s.duration.averageMinutes === null ? '—' : formatMinutes(s.duration.averageMinutes)} of {formatMinutes(s.duration.goalMinutes)}</span><b>{s.duration.points} / 50</b></li><li><span>Consistency · bedtime spread {s.consistency.spreadMinutes === null ? 'unknown' : `${s.consistency.spreadMinutes} min`}</span><b>{s.consistency.points} / 30</b></li><li><span>Debt · {s.debt.minutes === null ? 'unknown' : formatMinutes(Math.max(0, s.debt.minutes))} short</span><b>{s.debt.points} / 20</b></li></ul>
     </div>}

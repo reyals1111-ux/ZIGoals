@@ -18,3 +18,16 @@
   .pillar-art-inline > :first-child { flex: none; width: 100%; }
   .pillar-art-inline > .pillar-art { width: 72px; margin: 0 0 6px; }
 }
+/* G3: an empty-state card with its art inside (`[data-art]`: ui/empty-state.tsx and the cards that mount it as
+   their last child), in the top-right corner the same way; the words keep clear of it. */
+[data-art] { position: relative; container-type: inline-size; }
+[data-art] > .pillar-art { position: absolute; top: 14px; right: 14px; width: 56px; }
+[data-art] > :is(h2, h3, h4), [data-art] .empty-state-copy > :first-child { padding-right: 52px; }
+@container (min-width: 520px) {
+  [data-art] > .pillar-art { top: 16px; right: 18px; width: 104px; }
+  [data-art] > :is(h2, h3, h4, p, .empty-state-copy) { max-width: calc(100% - 116px); }
+  [data-art] > :is(h2, h3, h4), [data-art] .empty-state-copy > :first-child { padding-right: 0; }
+}
+/* G3: `.pillar-art-note` (art-note.tsx), a one-line empty state in a card: the art a little smaller. */
+.pillar-art-note > .pillar-art { width: 64px; }
+@media (max-width: 479.98px) { .pillar-art-note > .pillar-art { width: 56px; } }

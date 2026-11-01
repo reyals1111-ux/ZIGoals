@@ -30,3 +30,12 @@
 .chess-frame-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .chess-frame-dialog iframe { display: block; width: 100%; aspect-ratio: 400 / 444; border: 0; border-radius: 12px; background: #050b1f; }
 .chess-settings summary { cursor: pointer; font-weight: 650; }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Chess: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.chess-page) .panel { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+:root :where(.chess-page) .chess-rating { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.chess-page) .panel:hover, :root :where(.chess-page) .chess-rating:hover { border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent)); } }
+:root :where(.chess-page) .panel:has(:focus-visible), :root :where(.chess-page) .chess-rating:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.chess-page) .panel, :root :where(.chess-page) .chess-rating { box-shadow: none; } }

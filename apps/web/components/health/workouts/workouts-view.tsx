@@ -21,6 +21,7 @@ import {clock, fromUnit, readClock, setText, toUnit, weightShown} from './units'
 import {useWorkouts} from './use-workouts';
 import {WorkoutsImport, importedLine, type ImportChoice} from './workouts-import';
 import './workouts.css';
+import {ArtNote} from '../../illustrations/art-note';
 
 // Session AK (4.9): the warm-up and plate calculators and the muscle-group view load only when used.
 const WorkoutTools = lazy(() => import('./workouts-tools'));
@@ -174,7 +175,7 @@ export default function WorkoutsView() {
           </div>
           {typeof asking === 'object' && asking?.remove === x.id && <ConfirmInline title={`Delete ${x.name}?`} confirmLabel="Delete workout" cancelLabel="Keep it" onConfirm={() => void remove(x.id)} onCancel={() => setAsking(null)}><p>Its sets and the minutes it added to Health are removed.</p></ConfirmInline>}
         </details>
-      </li>)}</ul> : <p className="health-empty-inline">No workout yet. Start one above: an empty one, or add exercises as you go.</p>}
+      </li>)}</ul> : <ArtNote pillar="health"><p className="health-empty-inline">No workout yet. Start one above: an empty one, or add exercises as you go.</p></ArtNote>}
     </section>
 
     <ExerciseProgress w={w} unit={unit} library={library} value={historyOf} onChange={setHistoryOf}/>

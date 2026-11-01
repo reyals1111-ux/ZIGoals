@@ -60,9 +60,9 @@ export function TasksPage() {
         <TaskAddForm onAdd={list.add} goals={goals.open} today={today} />
         <TaskStatusLine status={list.status} error={list.error} onUndo={list.runUndo} />
       </section>
-      {!tasks.unreadable && (open.length === 0 ? <div className="pillar-art-host"><EmptyState title={done.length ? 'Nothing left to do' : 'Your list starts here'} level={2}>
+      {!tasks.unreadable && (open.length === 0 ? <EmptyState title={done.length ? 'Nothing left to do' : 'Your list starts here'} level={2} art="orbit">
         {done.length ? 'Every task is done. Add the next one above when it comes.' : 'Add a few words above: “Call the dentist”, with a day if it has one. Link it to a goal to make it that goal’s next action; give it a time to see it among your habits on the Agenda; tap Focus to work on it in a Pomodoro.'}
-      </EmptyState></div> : <section className="panel tasks-groups" aria-labelledby="tasks-open-title">
+      </EmptyState> : <section className="panel tasks-groups" aria-labelledby="tasks-open-title">
         <h2 id="tasks-open-title">Open <small>{plural(counts.open, 'task')}{counts.overdue ? ` · ${formatNumber(counts.overdue)} overdue` : ''}</small></h2>
         {GROUPS.map(g => { const items = open.filter(t => taskState(t, today) === g.state); return items.length ? <div key={g.state} className="tasks-group" data-state={g.state}>
           <h3>{g.title} <small>{formatNumber(items.length)}</small></h3>

@@ -371,3 +371,11 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
    build). Content, names, find-in-page and the chips' jumps are unchanged (each chip lands its section at the same place);
    the Academy keeps full layout, as its path banners reach past its padding. `auto` remembers each section's real height. */
 .earn-sections > .panel:not(#summary):not(#start-here):not(#staking-clarity):not(#academy) { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Earn: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.earn-page) .panel { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.earn-page) .panel:hover { border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent)); } }
+:root :where(.earn-page) .panel:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.earn-page) .panel { box-shadow: none; } }

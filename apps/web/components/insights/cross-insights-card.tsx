@@ -13,6 +13,7 @@ import {ENERGY} from '../../lib/energy/schema';
 import {WORKOUTS} from '../../lib/workouts/schema';
 import {SectionHeading} from '../ui/section-heading';
 import '../life-review/life-review.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Cross-pillar insights (Session AA-Cloud Part 5, S3): what happened together on the same days, from the person's own
@@ -48,7 +49,7 @@ export function CrossInsightsCard({habits, health, today, compact = false}: {hab
       <small>{i.withA.days} and {i.withoutA.days} days compared.</small>
       {!compact && <details className="cross-why"><summary>Why?</summary><p className="fine">{whyText(i)}</p></details>}
       {!compact && <button type="button" className="text-link" onClick={() => dismiss(i.id, i.title)}>Hide “{i.title}” for 28 days</button>}
-    </li>)}</ul> : <p className="cross-empty">Not enough data yet. A pairing shows once each side has {CROSS_MIN_PER_SIDE} days of your own records.</p>}
+    </li>)}</ul> : <ArtNote pillar="orbit"><p className="cross-empty">Not enough data yet. A pairing shows once each side has {CROSS_MIN_PER_SIDE} days of your own records.</p></ArtNote>}
     {compact && ready.length > 1 && <p className="cross-more">{ready.length - 1} more {ready.length === 2 ? 'pairing' : 'pairings'} in your Life review.</p>}
     {!compact && unclear.length > 0 && <details className="cross-pending cross-unclear">
       <summary>No clear difference so far</summary>

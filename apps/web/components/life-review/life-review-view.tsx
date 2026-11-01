@@ -36,6 +36,8 @@ import {formatDay} from '../goals/format';
 import './life-review.css';
 import { unitFor } from '../../lib/plural';
 import {LoadBoundary} from '../load-boundary';
+import '../skeleton/zg-skeleton.css';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 // Session AK Part 8.1–8.5 (lane X): the unified review's glance row and ZIGi's notes, and the one share-card sheet, each
 // loaded after the review (or on the tap), never in the route's first JS.
 const ReviewNotes = lazy(() => import('../review-unified/review-notes'));
@@ -84,12 +86,12 @@ export function LifeReviewView() {
       {(['week', 'month'] as const).map(p => <button key={p} type="button" aria-pressed={period === p} onClick={() => pick(p)}>{p === 'week' ? 'This week' : 'This month'}</button>)}
       <p>{formatDay(window.start)} – {formatDay(window.end)} · beside {formatDay(window.prevStart)} – {formatDay(window.prevEnd)}</p>
     </div>
-    {!review ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
+    {!review ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
       <section className="panel life-review-hero life-review-cover" aria-labelledby="life-review-highlights">
         {/* Phase 2, Part 9 (owner request 35): the review as a small magazine — this cover, then one chapter per pillar. */}
         <p className="life-cover-kicker" aria-hidden="true">{period === 'week' ? 'Your week' : 'Your month'}, in {financial ? 'four' : 'three'} chapters.</p>
         <SectionHeading id="life-review-highlights" eyebrow={`${formatDay(window.start)} – ${formatDay(window.end)}`} title="Highlights" action={<button type="button" className="secondary" aria-expanded={sharing} onClick={() => setSharing(v => !v)}>Share as an image</button>} />
-        {review.highlights.length ? <ul className="life-highlights">{review.highlights.map(h => <li key={h}>{h}</li>)}</ul> : <div className="aa-empty"><h3>A quiet {period}.</h3><p>Check in a habit, log a meal or water, or record a contribution, and your review fills from your own records.</p><Link className="primary" href="/app/habits">Open Habits</Link></div>}
+        {review.highlights.length ? <ul className="life-highlights">{review.highlights.map(h => <li key={h}>{h}</li>)}</ul> : <div className="aa-empty" data-art=""><h3>A quiet {period}.</h3><p>Check in a habit, log a meal or water, or record a contribution, and your review fills from your own records.</p><Link className="primary" href="/app/habits">Open Habits</Link><LazyPillarArt pillar="orbit" /></div>}
         <dl className="life-counts">
           <div><dt>Habit check-ins</dt><dd>{review.counts.habitCheckIns}</dd></div>
           <div><dt>Days with Health records</dt><dd>{review.counts.healthDays}</dd></div>

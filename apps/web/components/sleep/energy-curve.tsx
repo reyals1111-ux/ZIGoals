@@ -6,7 +6,9 @@ import {clockFromMidnight} from '../../lib/sleep/engine';
 import type {Sleep} from '../../lib/sleep/schema';
 import {formatMinutes, wallClock} from '../../lib/zone-time';
 import {formatClock} from '../../lib/visual-format';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './energy-curve.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Session AK (lane S, item 9): Health → Sleep → "Your energy today", an estimated alertness curve from the person's sleep
@@ -16,8 +18,8 @@ import './energy-curve.css';
 const H = 190, PAD = {top: 22, right: 12, bottom: 28, left: 12};
 const clock = (m: number) => formatClock(clockFromMidnight(Math.round(m)));
 export default function EnergyCurve({sleep, today, now, zone}: {sleep: Sleep; today: string; now: number; zone: string}) {
-  const curve = useMemo(() => energyCurve(sleep, today), [sleep, today]), [plot, W] = useChartWidth();
-  if (!curve) return <p className="energy-curve-empty">Log a night, or tap &ldquo;I&rsquo;m going to bed&rdquo; tonight, and an estimated energy curve for your day shows here, with a good focus window and a likely dip.</p>;
+  const curve = useMemo(() => energyCurve(sleep, today), [sleep, today]), [plot, W] = useChartWidth(), look = useChartLook();
+  if (!curve) return <ArtNote pillar="health"><p className="energy-curve-empty">Log a night, or tap &ldquo;I&rsquo;m going to bed&rdquo; tonight, and an estimated energy curve for your day shows here, with a good focus window and a likely dip.</p></ArtNote>;
   const plotW = W - PAD.left - PAD.right, plotH = H - PAD.top - PAD.bottom, start = curve.wake;
   const x = (m: number) => PAD.left + (Math.min(Math.max(m, start), start + SPAN) - start) / SPAN * plotW, y = (level: number) => PAD.top + (1 - level) * plotH;
   const line = curve.points.map((p, i) => `${i ? 'L' : 'M'}${x(p.at).toFixed(1)},${y(p.level).toFixed(1)}`).join('');
@@ -31,10 +33,12 @@ export default function EnergyCurve({sleep, today, now, zone}: {sleep: Sleep; to
     <p className="energy-curve-meaning">An estimate from your sleep times, not a measurement.{curve.short ? ' After a shorter night the window is an hour shorter.' : ''}</p>
     <ul className="energy-curve-key" aria-hidden="true"><li><i className="is-focus"/>Good focus window</li><li><i className="is-dip"/>Likely dip</li><li><i className="is-bed"/>Suggested bedtime</li>{here !== null && <li><i className="is-now"/>Now</li>}</ul>
     <div className="energy-curve-plot" ref={plot}>
-      <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={summary}>
+      <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={summary}>
+        {/* Session AK (G3): the one chart look — the curve in its gradient with one soft glow (none by day). */}
+        <ChartLookDefs id={look.id} width={W} height={H}/>
         {bands.map(b => <g key={b.kind} className={`energy-curve-band is-${b.kind}`}><rect x={x(b.from)} y={PAD.top} width={Math.max(2, x(b.to) - x(b.from))} height={plotH} rx={6}/><text x={x(b.from) + 4} y={PAD.top - 6}>{b.label}</text></g>)}
         <path className="energy-curve-area" d={area}/>
-        <path className="energy-curve-line" d={line}/>
+        <path className="energy-curve-line zgc-line" d={line} style={{stroke: look.stroke('a')}} filter={look.glow}/>
         {here !== null && <line className="energy-curve-now" x1={x(here)} x2={x(here)} y1={PAD.top} y2={PAD.top + plotH}/>}
         <line className="energy-curve-base" x1={PAD.left} x2={PAD.left + plotW} y1={PAD.top + plotH} y2={PAD.top + plotH}/>
         {ticks.map((t, i) => <text key={t} className="energy-curve-tick" x={x(t)} y={H - 8} textAnchor={i === 0 ? 'start' : i === ticks.length - 1 ? 'end' : 'middle'}>{i % 2 === 0 || W > 420 ? clock(t) : ''}</text>)}

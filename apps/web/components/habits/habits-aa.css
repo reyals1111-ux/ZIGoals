@@ -222,3 +222,12 @@
 .habit-routine-share button, .habit-routine-share input[type=file] { min-height: 44px; }
 .routine-player-head .actions { display: flex; gap: 4px; }
 .routine-player-head .actions button { min-height: 44px; }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Habits: each habit card's edge in its own colour. Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.habits-workspace) .panel { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--item-start, var(--pillar-habits)) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+:root :where(.habits-workspace) .habit-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-start, var(--pillar-habits)) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.habits-workspace) .panel:hover, :root :where(.habits-workspace) .habit-card:hover { border-color: color-mix(in srgb, var(--item-start, var(--pillar-habits)) 45%, var(--line, transparent)); } }
+:root :where(.habits-workspace) .panel:has(:focus-visible), :root :where(.habits-workspace) .habit-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.habits-workspace) .panel, :root :where(.habits-workspace) .habit-card { box-shadow: none; } }

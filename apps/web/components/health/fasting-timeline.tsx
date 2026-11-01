@@ -5,12 +5,13 @@ import {fastingTimeline} from '../../lib/health-aa/fasting-timeline';
 import type {FastingSession} from '../../lib/fasting/schema';
 import {formatFast} from '../../lib/fasting/engine';
 import './health-aa.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /** N8: the current (or last) fast's hours against neutral milestones, described plainly, without health claims. */
 export function FastingTimeline({session}: {session: FastingSession | null}) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { if (!session || session.endedAt !== null) return; const id = window.setInterval(() => setNow(new Date()), 30_000); return () => window.clearInterval(id); }, [session]);
-  if (!session) return <section className="panel health-aa-card fasting-timeline" aria-labelledby="fasting-timeline-title"><p className="eyebrow">Timeline</p><h2 id="fasting-timeline-title"><NebulaFlow identity="fasting-timeline-title">Fasting timeline</NebulaFlow></h2><p className="health-empty-inline">Start a fast and its hours appear here against the 12, 16, 18 and 24-hour marks.</p></section>;
+  if (!session) return <section className="panel health-aa-card fasting-timeline" aria-labelledby="fasting-timeline-title"><p className="eyebrow">Timeline</p><h2 id="fasting-timeline-title"><NebulaFlow identity="fasting-timeline-title">Fasting timeline</NebulaFlow></h2><ArtNote pillar="health"><p className="health-empty-inline">Start a fast and its hours appear here against the 12, 16, 18 and 24-hour marks.</p></ArtNote></section>;
   const t = fastingTimeline(session, now), max = Math.max(24, t.targetHours);
   return <section className="panel health-aa-card fasting-timeline" aria-labelledby="fasting-timeline-title">
     <p className="eyebrow">{t.running ? 'Running' : 'Your last fast'}</p><h2 id="fasting-timeline-title"><NebulaFlow identity="fasting-timeline-title">Fasting timeline</NebulaFlow></h2>

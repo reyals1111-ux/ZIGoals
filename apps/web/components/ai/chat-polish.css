@@ -16,6 +16,9 @@
 .ai-viz-line{stroke:var(--cyan,#6fd3ff);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .ai-viz-dot{fill:var(--cyan,#6fd3ff)}
 .ai-viz-label{fill:var(--muted,#aab2d9);font-size:10px;font-variant-numeric:tabular-nums}
+/* Session AK (G3): the mini chart wears the one chart look (charts/chart-look.css: gradient line, one glow, 14 px labels)
+   but keeps its own small size. */
+.ai-viz svg.zg-chart{width:auto;max-width:100%}
 .ai-viz-table summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff);font-size:14px}
 .ai-viz-table table{border-collapse:collapse;font-size:14px;margin-top:4px}
 .ai-viz-table th,.ai-viz-table td{padding:4px 10px;border-bottom:1px solid var(--line,#2a325a);text-align:left}
@@ -53,3 +56,7 @@
 @media (prefers-reduced-motion:reduce){.ai-jump-latest{transition:none}}
 /* Gate C (persona round): the keyboard tip only where a keyboard is likely (a fine pointer or hover). */
 @media (hover:none) and (pointer:coarse){.ai-tips .ai-tip-keyboard{display:none}}
+/* Session AK (G3): the ZIGi panel's figure cards get the richer card (the panel's chrome only; ZIGi's own look is
+   untouched): depth from a soft violet shadow and the nebula's cyan along the left edge. Theme tokens only, no motion. */
+.ai-stat{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--brand-cyan) 65%,transparent),0 14px 30px -26px color-mix(in srgb,var(--brand-violet) 70%,transparent)}
+@media (forced-colors:active){.ai-stat{box-shadow:none}}

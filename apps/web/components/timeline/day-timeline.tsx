@@ -20,6 +20,7 @@ import {useDayTimeline} from './use-day-timeline';
 import {TimelineBlockRow, clockLabel, type BlockActions} from './timeline-block';
 import {ReplanCard} from './replan-card';
 import './timeline.css';
+import '../skeleton/zg-skeleton.css';
 
 /**
  * /app/timeline (Session AF, L5b; P9.2, ADR-028 D2 (a), H76): today as one vertical line, in four parts of the day, with a
@@ -104,7 +105,7 @@ export function DayTimelinePage() {
       lede="Habits at their times, meals, sleep, a running fast, timers, reminders and your Checklist’s planets. Tap to complete; drag the arrows, use the arrow keys or change the time to move a habit or a meal."
       actions={<p className="timeline-links"><Link className="text-link" href={CHECKLIST_ROUTE}>Your Checklist →</Link> <Link className="text-link" href="/app/habits">Habits →</Link></p>}
       art={<OrbitArt glyph={RemindersGlyph} spin={14} />} />
-    {!loaded || !day ? <div className="timeline-skeleton aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
+    {!loaded || !day ? <div className="timeline-skeleton aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
       {state.failed && <p role="status" className="timeline-note">Some of your records could not be read on this device; the timeline shows what it can.</p>}
       <ReplanCard leftovers={day.leftovers} actions={actions} busy={busy} />
       {day.anytime.length > 0 && <section className="timeline-band timeline-anytime" aria-labelledby="timeline-anytime-title">

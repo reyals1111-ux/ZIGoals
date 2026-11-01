@@ -12,6 +12,8 @@
 .health-hl-note { font-size: 15px; line-height: 1.45; color: var(--text-secondary, #c9d6ea); }
 .health-hl-sentence { font-size: 16px; line-height: 1.45; color: #eef4fd; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .health-hl-ink { position: absolute; right: 16px; bottom: 14px; opacity: .95; filter: drop-shadow(0 0 8px #9273ff66); }
+/* Session AK (G3): the sparkline wears the chart look's gradient (.zg-chart) but keeps its own small size. */
+svg.zg-chart.health-hl-ink { width: auto; max-width: none; }
 .health-hl-tile[data-tone="trend"] { padding-bottom: 60px; }
 .health-hl-bar { display: block; height: 6px; margin-top: 4px; border-radius: 3px; background: #ffffff14; overflow: hidden; }
 .health-hl-bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #23eaff, #9273ff, var(--tone)); }

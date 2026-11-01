@@ -42,6 +42,10 @@
 .purpose-node-available{fill:color-mix(in srgb,var(--text,#e8eefc) 45%,transparent)}
 .purpose-label{fill:var(--text,#e8eefc);font-size:12px;font-weight:600}
 .purpose-value{fill:var(--muted,var(--text,#e8eefc));font-size:11px;font-weight:400}
+/* Session AK (G3, R30): the flow is drawn at its measured width (purpose-flow.tsx), so these are a true 14 px; the names in
+   the strong text colour, the amounts in the secondary one, both with the chart look's halo (charts/chart-look.css). */
+svg.zg-chart .purpose-label{fill:var(--text-strong,var(--text));font-size:14px;font-weight:650}
+svg.zg-chart .purpose-value{fill:var(--text-secondary);font-size:14px;font-weight:500}
 @media (forced-colors:active){.purpose-band{stroke:CanvasText;stroke-opacity:.5}.purpose-node{fill:CanvasText}.purpose-label,.purpose-value{fill:CanvasText}}
 .autopilot-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .autopilot-row{display:grid;gap:8px;padding:12px 14px;border-radius:16px;border:1px solid var(--line,rgba(140,160,220,.22))}

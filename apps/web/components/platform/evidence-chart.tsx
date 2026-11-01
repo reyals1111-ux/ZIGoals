@@ -5,12 +5,13 @@ import {amount} from './common';
 import {formatDate,formatDateTime,formatExactNumber,formatPlainDecimal} from '../../lib/visual-format';
 import {useEntrance} from '../use-entrance';
 import './evidence-chart.css';
+import {ChartLookDefs,useChartLook} from '../charts/chart-defs';
 export type EvidencePoint={at:string;value:string;dateOnly?:boolean};
 export type EvidenceSeries={label:string;color:string;points:EvidencePoint[];kind?:'observation'|'cumulative'|'event';maxGapMs?:number};
 const DEFAULT_GAP=7*86400000;
 /** Values and times remain real observations. Lines are visual guides, never added data. */
 export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceSeries[];decimals:number;currency:string;label:string}){
- const id=useId(),ref=useEntrance<HTMLElement>(`history:${label}`,series.some(s=>s.points.length>1));
+ const id=useId(),look=useChartLook(),ref=useEntrance<HTMLElement>(`history:${label}`,series.some(s=>s.points.length>1));
  const signed=(value:string)=>`${value.startsWith('-')?'-':''}${amount(value.replace(/^-/,''),decimals)}`;
  const exact=(value:string)=>signed(value),display=(value:string)=>formatExactNumber(exact(value));
  const valid=(p:EvidencePoint)=>Number.isFinite(Date.parse(p.at))&&/^-?\d+$/.test(p.value);
@@ -31,10 +32,11 @@ export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceS
   <div className="evidence-chart-legend">{clean.filter(s=>s.points.length).map(s=><span key={s.label}><i style={{background:s.color}}/>{s.label}</span>)}</div>
   {points.length===1?<div className="evidence-first"><span className="eyebrow">First observation</span><strong>{display(points[0]!.value)} <small>{currency}</small></strong><time dateTime={points[0]!.at}>{formatDate(points[0]!.at)}</time><p>A starting point, not a trend. Your next observation will add context.</p></div>:<>
    <div className="evidence-chart-range"><span>Scale maximum: {display(max.toString())} {currency}</span><span>Scale minimum: {display(min.toString())} {currency}</span></div>
-   <svg viewBox="0 0 584 198" role="img" aria-labelledby={id}>
+   <svg className="zg-chart" viewBox="0 0 584 198" role="img" aria-labelledby={id}>
+    {/* Session AK (G3): the one chart look — the main (first) series keeps its legend colour and gets the one soft glow (none by day). */}<ChartLookDefs id={look.id} width={584} height={198}/>
     <title id={id}>{`${label}. ${points.length} dated observations in ${currency}. Lines are illustrative between observations; exact values in the history table below.`}</title>
     {[26,75,124,174].map(v=><line key={v} x1="24" x2="560" y1={v} y2={v} stroke="currentColor" opacity=".12"/>)}
-    {clean.map(s=><g key={s.label}>
+    {clean.map((s,si)=><g key={s.label} filter={si===0?look.glow:undefined}>
      {s.kind!=='event'&&segments(s).filter(group=>group.length>1).map((group,i)=><polyline className="evidence-line" key={i} pathLength={1} points={group.flatMap((p,j)=>s.kind==='cumulative'&&j?[`${x(p.at)},${y(group[j-1]!.value)}`,`${x(p.at)},${y(p.value)}`]:[`${x(p.at)},${y(p.value)}`]).join(' ')} fill="none" stroke={s.color} strokeWidth="2.5" vectorEffect="non-scaling-stroke"/>)}
      {s.points.map((p,i)=><circle className="evidence-point" key={`${p.at}:${i}`} cx={x(p.at)} cy={y(p.value)} r={s.points.length<=2?3.5:2} fill={s.color} style={{'--at':((x(p.at)-24)/536).toFixed(3)} as CSSProperties}><title>{`${s.label} · ${p.dateOnly?formatDate(p.at):formatDateTime(p.at)} · ${formatPlainDecimal(exact(p.value))} ${currency}`}</title></circle>)}
     </g>)}

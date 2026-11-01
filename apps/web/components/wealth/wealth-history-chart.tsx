@@ -7,6 +7,7 @@ import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format'
 import {useEntrance} from '../use-entrance';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import './wealth-history-chart.css';
 import {ShowcaseTag} from '../ui/showcase-tag';
 import {whyChanged} from '../../lib/wealth-why/why-changed';
@@ -48,7 +49,7 @@ export function WealthHistoryChart({history, showcase, platform}: {history: Weal
   const partLabel = (c: string) => bySourceView ? READING_SOURCE_LABEL[c as keyof typeof READING_SOURCE_LABEL] ?? c : c;
   const ref = useEntrance<HTMLElement>(`wealth-history:${history.currency}`, history.points.length > 1);
   // Phase 2, Part 4: drawn at its measured width, so the axis labels stay a real 14 px on every screen (chart-kit).
-  const [plot, W] = useChartWidth(640, 280);
+  const [plot, W] = useChartWidth(640, 280), look = useChartLook();
   const all = useMemo(() => history.points.filter(p => Number.isFinite(Date.parse(p.at)) && /^-?\d+$/.test(p.value)).sort((a, b) => Date.parse(a.at) - Date.parse(b.at)), [history.points]);
   const days = RANGES.find(r => r[0] === range)![1];
   const end = all.length ? Date.parse(all.at(-1)!.at) : 0;
@@ -76,11 +77,13 @@ export function WealthHistoryChart({history, showcase, platform}: {history: Weal
     {bySourceView && <p className="fine wealth-history-source-note">Where each recorded value came from. Values recorded before this device kept sources show as &ldquo;Source not recorded&rdquo;.</p>}
     <div className="wealth-history-tools" role="group" aria-label="Range">{RANGES.map(([label]) => <button key={label} type="button" className="quiet" aria-pressed={range === label} onClick={() => { setRange(label); setActive(null); }}>{label}</button>)}</div>
     <div className="wealth-history-readout" aria-live="polite"><strong>{money(p.value, history.currency)}</strong>{/* Session AF Gate C (design critique 2): this figure is the recorded total on a date, not today's tracked wealth. */}<span>Recorded total on {formatDateTime(p.at)}{active === null ? ' · the latest record' : ''}</span><span className="wealth-history-change" data-direction={change > 0n ? 'up' : change < 0n ? 'down' : undefined}>{change >= 0n ? '+' : ''}{money(change.toString(), history.currency)} over this range</span>{why && <span className="wealth-history-why">Since {formatDate(points[shown - 1]!.at)}: {why.moves.length ? why.moves.map(m => `${m.name} ${signed(m.delta)}`).join(' · ') + (why.others ? ` · ${why.others} more ${why.others === 1 ? 'class' : 'classes'}` : '') : why.total === 0n ? 'no change' : `total ${signed(why.total)}`}</span>}</div>
-    <div className="wealth-history-plot" ref={plot}><svg className="wealth-history-svg" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`${points.length} recorded values from ${formatDateTime(points[0]!.at)} to ${formatDateTime(points.at(-1)!.at)}`} onMouseLeave={() => setActive(null)}>
-      <defs>{bands.map(b => <linearGradient key={b.c} id={`${id}-${b.ci}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={b.color} stopOpacity=".55"/><stop offset="1" stopColor={b.color} stopOpacity=".06"/></linearGradient>)}<linearGradient id={`${id}-line`} x1="0" x2="1"><stop offset="0" stopColor="#23eaff"/><stop offset=".5" stopColor="#9273ff"/><stop offset="1" stopColor="#f06dff"/></linearGradient></defs>
+    <div className="wealth-history-plot" ref={plot}><svg className="wealth-history-svg zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`${points.length} recorded values from ${formatDateTime(points[0]!.at)} to ${formatDateTime(points.at(-1)!.at)}`} onMouseLeave={() => setActive(null)}>
+      <defs>{bands.map(b => <linearGradient key={b.c} id={`${id}-${b.ci}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={b.color} stopOpacity=".55"/><stop offset="1" stopColor={b.color} stopOpacity=".06"/></linearGradient>)}</defs>
+      {/* Session AK (G3): the one chart look — the total's line in the gradient with one soft glow (none by day). */}
+      <ChartLookDefs id={look.id} width={W} height={H}/>
       <ChartGrid ticks={ticks.map(t => ({y: t.yy, label: compactMoney(t.v)}))} left={L} right={W - R}/>
       {bands.map(b => <path key={b.c} className="wealth-history-area" fill={`url(#${id}-${b.ci})`} d={`${points.map((_, i) => `${i ? 'L' : 'M'}${x(times[i]!).toFixed(1)} ${y(b.top[i]!).toFixed(1)}`).join(' ')} ${[...points.keys()].reverse().map(i => `L${x(times[i]!).toFixed(1)} ${y(b.bottom[i]!).toFixed(1)}`).join(' ')} Z`}/>)}
-      <path className="wealth-history-line" d={line} fill="none" stroke={`url(#${id}-line)`} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" pathLength={1}/>
+      <path className="wealth-history-line zgc-line" d={line} fill="none" style={{stroke: look.stroke('a')}} filter={look.glow} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" pathLength={1}/>
       {points.map((pt, i) => <g key={pt.at} className="wealth-history-point" data-active={i === shown || undefined} tabIndex={0} role="button" aria-label={`${formatDateTime(pt.at)}: ${money(pt.value, history.currency)}`} onFocus={() => setActive(i)} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)}><circle cx={x(times[i]!)} cy={y(BigInt(pt.value))} r={i === shown ? 6 : 3.5}/><rect className="wealth-history-hit" x={x(times[i]!) - 14} y={T} width="28" height={H - T - B} fill="transparent"/></g>)}
       {active !== null && <line className="wealth-history-cursor" x1={x(times[shown]!)} x2={x(times[shown]!)} y1={T} y2={H - B}/>}
       <ChartXAxis ticks={(W < 420 ? [dates[0]!, dates[2]!] : dates).map(d => ({x: x(d), label: axisDate(d)}))} y={H - 10}/>

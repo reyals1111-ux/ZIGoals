@@ -2,6 +2,8 @@
 import {useId, useState} from 'react';
 import {FEE_LIMITS, feeDrag, feeDragIssue, type FeeDragInput} from '../../../lib/fee-drag/fee-drag';
 import {money} from './format';
+import {useChartWidth} from '../../charts/use-chart-width';
+import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import './money-tools.css';
 
 /**
@@ -10,15 +12,14 @@ import './money-tools.css';
  * illustration from the person's own numbers; nothing is stored and nothing is advice. Lazy-loaded on the calculator page.
  */
 const num = (raw: string) => raw.trim() === '' ? Number.NaN : Number(raw.trim().replace(/\s/g, '').replace(',', '.'));
-const W = 320, H = 160, PAD = 8;
+// Session AK (G3): drawn at its measured width (FeeChart) in the one chart look.
+const H = 160, PAD = 8;
 export default function FeeDragPanel() {
   const id = useId();
   const [f, setF] = useState({amount: '10000', years: '30', returnPct: '6', feeA: '0.2', feeB: '1', currency: 'EUR'});
   const input: FeeDragInput = {amount: num(f.amount), years: num(f.years), returnPct: num(f.returnPct), feeAPct: num(f.feeA), feeBPct: num(f.feeB)};
   const issue = feeDragIssue(input), result = issue ? null : feeDrag(input); // 60 small steps at most: no memo needed
   const set = (key: keyof typeof f) => (e: {target: {value: string}}) => setF(x => ({...x, [key]: e.target.value}));
-  const path = (values: number[], max: number) => values.map((v, i) => `${i ? 'L' : 'M'}${(PAD + (W - 2 * PAD) * i / Math.max(1, values.length - 1)).toFixed(1)} ${(H - PAD - (H - 2 * PAD) * v / max).toFixed(1)}`).join(' ');
-  const max = result ? Math.max(...result.a, ...result.b, 1) : 1;
   return <section className="money-panel fee-drag" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">A PLANNING TOOL</p>
     <h3 id={`${id}-title`}>What a yearly fee costs</h3>
@@ -33,12 +34,19 @@ export default function FeeDragPanel() {
     </div>
     {issue ? <p role="alert">{issue}</p> : result && <>
       <p className="fee-drag-result" aria-live="polite">After {input.years} {input.years === 1 ? 'year' : 'years'}: <strong>{money(result.endA, f.currency)}</strong> with fee A and <strong>{money(result.endB, f.currency)}</strong> with fee B — a difference of <strong>{money(Math.abs(result.difference), f.currency)}</strong>{result.difference !== 0 ? ` (${Math.round(result.share * 1000) / 10} % of the higher one)` : ''}.</p>
-      <svg className="money-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Two lines over ${input.years} years: fee A ends at ${money(result.endA, f.currency)}, fee B at ${money(result.endB, f.currency)}.`}>
-        <line x1={PAD} x2={W - PAD} y1={H - PAD} y2={H - PAD} className="money-chart-axis"/>
-        <path d={path(result.a, max)} className="money-chart-a"/>
-        <path d={path(result.b, max)} className="money-chart-b"/>
-      </svg>
-      <p className="fine money-legend"><span className="money-key money-key-a" aria-hidden="true"/>Fee A ({input.feeAPct} %) <span className="money-key money-key-b" aria-hidden="true"/>Fee B ({input.feeBPct} %), dashed</p>
+      <FeeChart a={result.a} b={result.b} label={`Two lines over ${input.years} years: fee A ends at ${money(result.endA, f.currency)}, fee B at ${money(result.endB, f.currency)}.`}/>
+      <p className="fine money-legend zg-legend" data-pillar="wealth"><span className="money-key money-key-a" aria-hidden="true"/>Fee A ({input.feeAPct} %) <span className="money-key money-key-b" aria-hidden="true"/>Fee B ({input.feeBPct} %), dashed</p>
     </>}
   </section>;
+}
+
+function FeeChart({a, b, label}: {a: number[]; b: number[]; label: string}) {
+  const [plot, W] = useChartWidth(320, 220), look = useChartLook(), max = Math.max(...a, ...b, 1);
+  const path = (values: number[]) => values.map((v, i) => `${i ? 'L' : 'M'}${(PAD + (W - 2 * PAD) * i / Math.max(1, values.length - 1)).toFixed(1)} ${(H - PAD - (H - 2 * PAD) * v / max).toFixed(1)}`).join(' ');
+  return <div ref={plot}><svg className="money-chart zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={label}>
+    <ChartLookDefs id={look.id} width={W} height={H}/>
+    <line x1={PAD} x2={W - PAD} y1={H - PAD} y2={H - PAD} className="money-chart-axis"/>
+    <path d={path(a)} className="money-chart-a zgc-line" style={{stroke: look.stroke('a')}} filter={look.glow}/>
+    <path d={path(b)} className="money-chart-b zgc-line" style={{stroke: look.stroke('b')}}/>
+  </svg></div>;
 }

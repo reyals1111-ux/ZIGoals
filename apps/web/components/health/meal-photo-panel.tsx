@@ -13,6 +13,7 @@ import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import type {HealthData} from '../../lib/health';
 import './health-aa.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Session AK (task 4.2): a photo of a meal, from Health. An estimate needs the person's own AI (ZIGi): when none is
@@ -53,7 +54,7 @@ export function MealPhotoPanel({data}: {data: HealthData}) {
     <div className="actions"><button type="button" className="quiet" aria-pressed={keep} onClick={toggleKeep}>Keep the photo on this device</button></div>
     <p className="fine">Off by default. A kept photo is shrunk to at most 200 kB, stays in this browser only (at most 200 photos), is never uploaded or synced, and you can delete it any time.</p>
     {estimated.length > 0 && <ul className="health-micro-list" aria-label="Meals estimated by your AI">{estimated.map(({id, estimate, food}) => <MealPhotoRow key={id} id={id} name={food!.name} line={estimateLine(estimate)} has={kept.includes(id)} canAdd={keep && !busy} onAdd={file => void add(id, file)} onRemove={() => void remove(id)} />)}</ul>}
-    {estimated.length === 0 && <p className="health-empty-inline">Meals your AI estimates appear here, with their ranges.</p>}
+    {estimated.length === 0 && <ArtNote pillar="health"><p className="health-empty-inline">Meals your AI estimates appear here, with their ranges.</p></ArtNote>}
     {kept.length > 0 && (confirming ? <ConfirmInline title={`Delete all ${kept.length} meal photos from this device?`} confirmLabel="Delete all meal photos" onConfirm={() => void removeAll()} onCancel={() => setConfirming(false)}><p>The estimates and foods stay. This cannot be undone.</p></ConfirmInline> : <div className="actions"><button type="button" className="quiet" onClick={() => setConfirming(true)}>Delete all meal photos…</button></div>)}
     {note && <p className="fine" aria-live="polite">{note}</p>}
   </section>;

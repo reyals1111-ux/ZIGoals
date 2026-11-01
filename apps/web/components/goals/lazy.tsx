@@ -1,6 +1,7 @@
 'use client';
 import {LoadBoundary} from '../load-boundary';
 import {Suspense, lazy, type ComponentProps, type ComponentType, type ReactNode} from 'react';
+import '../skeleton/zg-skeleton.css';
 
 /**
  * Session AA-Cloud weights (scripts/weight-budgets.json, never raised): Goals' new sections load after the page itself,
@@ -13,7 +14,7 @@ function deferred<P extends object>(load: () => Promise<ComponentType<P>>, skele
   return function Deferred(props: P) {
     // A layout region's attributes go on the skeleton too, so the card keeps its place while it loads.
     const layout = Object.fromEntries(Object.entries(props).filter(([k]) => k.startsWith('data-layout-')));
-    return <LoadBoundary label="This part of Goals"><Suspense fallback={skeleton === true ? <div className="aa-skeleton" aria-hidden="true" {...layout}><i /><i /><i /></div> : skeleton || null}><Lazy {...(props as ComponentProps<typeof Lazy>)} /></Suspense></LoadBoundary>;
+    return <LoadBoundary label="This part of Goals"><Suspense fallback={skeleton === true ? <div className="aa-skeleton zg-skeleton" aria-hidden="true" {...layout}><i /><i /><i /></div> : skeleton || null}><Lazy {...(props as ComponentProps<typeof Lazy>)} /></Suspense></LoadBoundary>;
   };
 }
 export const LazyGoalsAltView = deferred(() => import('./goals-sections').then(m => m.GoalsAltView));

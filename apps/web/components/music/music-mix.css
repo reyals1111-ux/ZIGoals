@@ -69,3 +69,9 @@
 @media (forced-colors:active){.music-page-card{border-color:CanvasText}}
 /* Release review R19: the Music page does not load ambient.css, so its chips carry their own 44 px target. */
 .music-mix-chip{min-height:44px}
+/* Session AK (G3): richer cards, as the new surfaces (F6). Music: the player card keeps its own depth. Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+@media (hover: hover) and (pointer: fine) { :root :where(.music-page) .music-page-card:hover { border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent)); } }
+:root :where(.music-page) .music-page-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }

@@ -19,6 +19,7 @@ import {ML_PER_US_FL_OZ,type WaterUnit} from '../lib/health-units';
 import {healthGroupIn} from '../lib/vault/w-homes';
 import {assetCounts} from '../lib/numbers/counts';
 import { unitFor } from '../lib/plural';
+import {ArtNote} from './illustrations/art-note';
 
 const dayLabel=(date:string)=>({weekday:formatWeekday(date),day:Number(date.slice(8))});
 function Shell({id,eyebrow,title,lede,children,layout,className=''}:{id:string;eyebrow:string;title:ReactNode;lede?:ReactNode;children:ReactNode;layout:LayoutAttrs;className?:string}){
@@ -63,7 +64,7 @@ export function GoalMilestones({goals,today,...layout}:LayoutAttrs&{goals:readon
  const t=goalTimeline(goals,today);
  return <Shell layout={layout} id="bottom-goal-milestones" eyebrow="YOUR TIMELINE" title={<>Milestones ahead.</>} lede="Target dates saved in your active goals, soonest first.">
   {t.dated.length?<ol className="bottom-timeline">{t.dated.map(g=><li key={g.key} data-past={g.past||undefined}><time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time><span className="bottom-timeline-dot" aria-hidden="true"/><Link href={g.href} className="bottom-timeline-name">{g.name}</Link><span className="bottom-pill">{fundedPill(g.progressPct,goals.find(x=>x.key===g.key)?.progressBound)}</span>{g.past&&<span className="bottom-pill bottom-pill-muted">Target date passed</span>}</li>)}</ol>
-  :<p className="bottom-empty">No active goal has a target date yet. Add one in a goal’s plan to see it here.</p>}
+  :<ArtNote pillar="goals"><p className="bottom-empty">No active goal has a target date yet. Add one in a goal’s plan to see it here.</p></ArtNote>}
   {t.undated>0&&<p className="bottom-note">{t.undated} active Goal{t.undated===1?' has':'s have'} no target date.</p>}
  </Shell>;
 }
@@ -74,7 +75,7 @@ export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:
  return <Shell layout={layout} id="bottom-habit-rhythm" eyebrow="YOUR RHYTHM" title={<>Consistency by weekday.</>} lede="Check-ins recorded over the last four weeks, and your best streaks.">
   <div className="bottom-two">
    <div className="bottom-weekday-bars" role="list" aria-label="Check-ins by weekday, last 4 weeks">{r.byWeekday.map(d=><div role="listitem" key={d.label} aria-label={`${d.label}: ${d.checkins} ${plural(d.checkins,'check-in')}`}><span className="bottom-bar-track" aria-hidden="true"><i style={{height:`${d.checkins/max*100}%`}}/></span><strong aria-hidden="true">{d.checkins}</strong><small aria-hidden="true">{d.label}</small></div>)}</div>
-   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {unitFor(s.best,s.unit)}</strong><small>Now {s.current} {unitFor(s.current,s.unit)}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<p className="bottom-empty">Your first completed check-in starts a streak.</p>}</div>
+   <div className="bottom-streaks"><h3>Best streaks</h3>{r.streaks.length?<><ol>{r.streaks.map(s=><li key={s.title}><span>{s.title}</span><strong>{s.best} {unitFor(s.best,s.unit)}</strong><small>Now {s.current} {unitFor(s.current,s.unit)}</small></li>)}</ol>{/* Session AF Gate C (design critique): a card's 28 days can show blank (skipped) days beside an unbroken streak. */}<p className="bottom-note">Skipped days are rest days: a streak runs on through them.</p></>:<ArtNote pillar="habits"><p className="bottom-empty">Your first completed check-in starts a streak.</p></ArtNote>}</div>
   </div>
   {!r.total&&<p className="bottom-note">No check-ins in the last four weeks yet.</p>}
  </Shell>;

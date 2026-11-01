@@ -16,6 +16,7 @@ import {VisionArt} from './vision-art';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import {progressPresentation} from '../../lib/visual-format';
 import './vision-board.css';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 
 /** A goal without a chosen vision still gets a calm picture: one of the gradients, picked from its key. */
 const fallback = (key: string) => GRADIENTS[[...key].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % GRADIENTS.length]!;
@@ -61,11 +62,12 @@ export function VisionBoard({goals, extras, onVision}: {goals: readonly GoalSumm
     onVision?.(g.key, null, 'Back to the illustration.');
   }
   useEffect(() => { queueMicrotask(() => setShowcase(isShowcase())); }, []);
-  if (!goals.length) return <section className="vision-empty aa-empty" aria-label="Vision board">
+  if (!goals.length) return <section className="vision-empty aa-empty" aria-label="Vision board" data-art="">
     <span className="vision-empty-figure" aria-hidden="true"><ZigiFigure state="peek"/></span>
     <h3>See the life you’re building.</h3>
     <p>Every goal becomes a picture here: your own photo, a gradient or an emoji, with its progress and your why. Create a goal, then choose its picture on its page.</p>
     <Link className="primary" href="/app/goals/new">+ Create a goal</Link>
+    <LazyPillarArt pillar="goals"/>
   </section>;
   const art = (g: GoalSummary) => previews[g.key] ? {src: previews[g.key]!, alt: `Your image for ${g.name} (this tab only)`} : showcase ? SHOWCASE_VISION_ART[g.key] : undefined;
   const current = open ? goals.find(g => g.key === open) : undefined;

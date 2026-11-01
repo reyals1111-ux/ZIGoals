@@ -2,6 +2,7 @@
 import {useId, useState, type KeyboardEvent, type PointerEvent} from 'react';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import {formatMoney, formatNumber} from '../../lib/visual-format';
 import type {CompoundResult, Milestone} from '../../lib/compound/engine';
 
@@ -20,7 +21,7 @@ const compact = (n: number, currency: string) => formatNumber(n, {style: 'curren
 const shortThreshold = (n: number) => n >= 1_000_000 ? `${n / 1_000_000}M` : `${n / 1000}k`;
 
 export function CalculatorChart({result, start, currency, lines}: {result: CompoundResult; start: string; currency: 'USD' | 'EUR'; lines: readonly ChartLine[]}) {
-  const [box, width] = useChartWidth(720, 280), id = useId();
+  const [box, width] = useChartWidth(720, 280), id = useId(), look = useChartLook();
   const phone = width < 520, W = width, H = phone ? 250 : 320, padL = phone ? 58 : 68, padR = 14, padT = 30, padB = 34;
   const main = series(result, Number(start)), others = lines.map(l => ({...l, points: series(l.result, Number(start), l.offset)}));
   const minX = Math.min(0, ...others.map(l => l.offset)), maxX = Math.max(result.rows.length, ...others.map(l => l.result.rows.length + l.offset));
@@ -58,7 +59,10 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
   const label = `An estimate: ${formatMoney(start, currency)} growing to ${formatMoney(result.final, currency)} after ${result.rows.length} ${result.rows.length === 1 ? 'year' : 'years'}, of which ${formatMoney(result.contributed, currency)} put in.${others.length ? ` Compared with ${others.map(l => `${l.label}, ${formatMoney(l.result.final, currency)}`).join('; ')}.` : ''} The year-by-year table below has every figure.`;
 
   return <figure className="calc-chart" ref={box} tabIndex={0} role="group" aria-label="Growth chart. Use the left and right arrow keys to read a year." onKeyDown={keys} onBlur={() => setPicked(null)}>
-    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={label} onPointerMove={pick} onPointerDown={pick} onPointerLeave={e => { if (e.pointerType === 'mouse') setPicked(null); }}>
+    <svg className="zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={label} onPointerMove={pick} onPointerDown={pick} onPointerLeave={e => { if (e.pointerType === 'mouse') setPicked(null); }}>
+      {/* Session AK (G3): the one chart look's soft glow on the balance line (none by day); it stays the light ink that reads
+          above the two coloured areas. */}
+      <ChartLookDefs id={look.id} width={W} height={H} />
       <defs>
         <linearGradient id={`${id}-in`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#58c7e0" stopOpacity=".75" /><stop offset="1" stopColor="#2b6f9a" stopOpacity=".45" /></linearGradient>
         <linearGradient id={`${id}-growth`} x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#8fa6ff" stopOpacity=".7" /><stop offset=".6" stopColor="#b388f5" stopOpacity=".75" /><stop offset="1" stopColor="#f08bd6" stopOpacity=".8" /></linearGradient>
@@ -67,7 +71,7 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
       <ChartXAxis ticks={xTicks.map(t => ({x: x(t), label: t === 0 ? 'Now' : t < 0 ? `${t}` : `${t}y`}))} y={H - 10} edge={false} />
       <polygon points={contributedArea} fill={`url(#${id}-in)`} />
       <polygon points={growthArea} fill={`url(#${id}-growth)`} />
-      <polyline className="calc-balance" points={upper.join(' ')} />
+      <polyline className="calc-balance" points={upper.join(' ')} filter={look.glow} />
       {result.milestones.map(m => <MilestoneMark key={m.threshold} m={m} x={x} top={padT} bottom={H - padB} />)}
       {others.map(l => <polyline key={l.id} className="calc-whatif" points={l.points.map(p => `${x(p.x).toFixed(1)},${y(p.balance).toFixed(1)}`).join(' ')} stroke={l.tone} strokeDasharray={l.dash} />)}
       {year !== null && <g className="calc-cursor"><line x1={x(year)} x2={x(year)} y1={padT - 6} y2={H - padB} />{here && <circle cx={x(year)} cy={y(here.balance)} r="5" />}{others.map(l => { const p = at(l.points, year); return p ? <circle key={l.id} cx={x(year)} cy={y(p.balance)} r="4" fill={l.tone} /> : null; })}</g>}

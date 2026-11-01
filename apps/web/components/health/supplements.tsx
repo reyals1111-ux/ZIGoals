@@ -9,6 +9,7 @@ import {formatClock, formatDate, formatWeekday} from '../../lib/visual-format';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {isShowcase} from '../../lib/showcase-storage';
 import './supplements.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Session AK (F5b): the supplements and medication log (Health → Diary, "Supplements and medication (optional)"), on
@@ -39,7 +40,7 @@ export function SupplementsCard({date, today}: {date: string; today: string}) {
     <p className="eyebrow">On this device only{isShowcase() ? ' · Showcase example' : ''}</p>
     <h3 id="supplements-title">Supplements and medication</h3>
     <p className="fine">A log for your own notes. It gives no medical advice, checks no doses and makes no claims about how things work together; a pharmacist or doctor can answer those.</p>
-    {!items.length && !formOpen && <p className="health-empty-inline">Keep a simple log of what you take: a name, the dose in your own words and when. Tick Taken or Skipped each day; a day you do not tick stays “not logged”. Reminders are optional and never show the name.</p>}
+    {!items.length && !formOpen && <ArtNote pillar="health"><p className="health-empty-inline">Keep a simple log of what you take: a name, the dose in your own words and when. Tick Taken or Skipped each day; a day you do not tick stays “not logged”. Reminders are optional and never show the name.</p></ArtNote>}
     {doses.length > 0 && <section aria-labelledby="supplements-day-title">
       <h4 id="supplements-day-title">{date === today ? 'Today' : formatDate(date)}</h4>
       <ul className="supplements-doses">{doses.map(d => <li key={`${d.itemId}|${d.slot}`}>

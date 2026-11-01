@@ -9,7 +9,8 @@ const MeasurementTrends = lazy(() => import('./measurement-trends').then(m => ({
 const PhotoCompare = lazy(() => import('./photo-compare'));
 import {NebulaFlow} from '../nebula-flow';
 import {useChartWidth} from '../charts/use-chart-width';
-import {ChartDefs, ChartGrid, ChartXAxis} from '../charts/chart-kit';
+import {ChartGrid, ChartXAxis} from '../charts/chart-kit';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import {measurementHistory} from '../../lib/body-measurements';
 import {measurementKinds} from '../../lib/body-measurement-schema';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -23,11 +24,12 @@ import {getAccountScope} from '../../lib/account-session';
 import {isShowcase} from '../../lib/showcase-storage';
 import './health-aa.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {ArtNote} from '../illustrations/art-note';
 
 const H = 120, PAD = {top: 10, right: 8, bottom: 22, left: 40};
 const one0 = (v: number) => formatNumber(v, {maximumFractionDigits: 1});
-function MiniChart({title, points, unit, id}: {title: string; points: {date: string; value: number}[]; unit: string; id: string}) {
-  const [plot, width] = useChartWidth(260, 200);
+function MiniChart({title, points, unit}: {title: string; points: {date: string; value: number}[]; unit: string; id: string}) {
+  const [plot, width] = useChartWidth(260, 200), look = useChartLook();
   if (points.length < 2) return <div className="health-measure-chart"><h3><span>{title}</span><small>{points.length ? `${one0(points[0]!.value)} ${unit}` : '—'}</small></h3><small>{points.length ? 'One reading; a second draws the line.' : 'No readings yet.'}</small></div>;
   // Session AH (HE6; L-054, B-120, N-121): one decimal in every label, the axis never below zero, dates in words.
   const vals = points.map(p => p.value), lo = Math.max(0, Math.min(...vals)), hi = Math.max(...vals), span = Math.max(hi - lo, 1), one = (v: number) => formatNumber(v, {maximumFractionDigits: 1});
@@ -35,7 +37,7 @@ function MiniChart({title, points, unit, id}: {title: string; points: {date: str
   const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const change = vals[vals.length - 1]! - vals[0]!;
   return <div className="health-measure-chart" ref={plot}><h3><span>{title}</span><small>{one(vals[vals.length - 1]!)} {unit} · {change > 0 ? '+' : ''}{one(change)} since {formatDate(points[0]!.date)}</small></h3>
-    <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${title}: ${points.length} readings from ${one(points[0]!.value)} to ${one(vals[vals.length - 1]!)} ${unit}`}><ChartDefs id={`m-${id}`} pillar="health" /><ChartGrid ticks={[{y: y(hi), label: one(hi)}, {y: y(lo), label: one(lo)}]} left={PAD.left} right={width - PAD.right} /><path className="chart-ink" d={d} stroke={`url(#m-${id}-ink)`} />{points.map((p, i) => <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.value)} r="3.5" />)}<ChartXAxis ticks={[{x: x(0), label: formatDate(points[0]!.date, {year: false})}, {x: x(points.length - 1), label: formatDate(points[points.length - 1]!.date, {year: false})}]} y={H - 6} /></svg>
+    <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${title}: ${points.length} readings from ${one(points[0]!.value)} to ${one(vals[vals.length - 1]!)} ${unit}`}><ChartLookDefs id={look.id} width={width} height={H} /><ChartGrid ticks={[{y: y(hi), label: one(hi)}, {y: y(lo), label: one(lo)}]} left={PAD.left} right={width - PAD.right} /><path className="chart-ink zgc-line" d={d} style={{stroke: look.stroke('a')}} filter={look.glow} />{points.map((p, i) => <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.value)} r="3.5" />)}<ChartXAxis ticks={[{x: x(0), label: formatDate(points[0]!.date, {year: false})}, {x: x(points.length - 1), label: formatDate(points[points.length - 1]!.date, {year: false})}]} y={H - 6} /></svg>
     <details className="health-trend-table"><summary>Show as a table</summary><table><tbody>{points.map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{p.value} {unit}</td></tr>)}</tbody></table></details></div>;
 }
 /** N9: charts per measurement kind (the synced kinds and the person's own), custom kinds, and progress photos. */
@@ -83,7 +85,7 @@ function ProgressPhotos({photos, today}: {photos: ReturnType<typeof useDeviceRec
       {/* Session AK (F5b): the before/after slider, opt-in per comparison, over the same device-only images; loaded when opened. */}
       {pair.length === 2 && <div className="actions"><button type="button" className="quiet" aria-expanded={slider} onClick={() => setSlider(open => !open)}>{slider ? 'Close the slider' : 'Compare with a slider'}</button></div>}
       {pair.length === 2 && slider && <LoadBoundary quiet><Suspense fallback={null}><PhotoCompare a={pair[0]!} b={pair[1]!} urls={urls} /></Suspense></LoadBoundary>}</>
-      : <p className="health-empty-inline">Add two photos and compare them side by side or with a before/after slider. Shrunk on your device, never synced or uploaded, included in Export everything.</p>}
+      : <ArtNote pillar="health"><p className="health-empty-inline">Add two photos and compare them side by side or with a before/after slider. Shrunk on your device, never synced or uploaded, included in Export everything.</p></ArtNote>}
     <p className="fine">Stored in this browser only (at most 60); the account’s erase removes them.</p>
   </section>;
 }

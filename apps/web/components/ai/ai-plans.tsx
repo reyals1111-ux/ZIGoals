@@ -10,6 +10,7 @@ import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {formatDate} from '../../lib/visual-format';
 import {useDeviceRecord} from './use-device-record';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Settings → ZIGi · What ZIGi knows → "ZIGi's plans" (Session AF, L4, P8.4): each plan ZIGi proposed as one bundle and
@@ -28,7 +29,7 @@ export default function AiPlans() {
   return <div className="ai-pack-body ai-plans">
     {isShowcase() && <p className="ai-note">Showcase (fictional): plans here stay in this tab.</p>}
     {record.unreadable && <p role="alert">The plans on this device could not be read. They have not been changed.</p>}
-    {plans.length === 0 ? <p className="ai-note">No plan yet. Ask ZIGi to set you up for something (&ldquo;set me up for a 10k&rdquo;, &ldquo;plan my week&rdquo;): it proposes one plan as cards you add one by one, and the plan is kept here once you act on a step.</p>
+    {plans.length === 0 ? <ArtNote pillar="orbit"><p className="ai-note">No plan yet. Ask ZIGi to set you up for something (&ldquo;set me up for a 10k&rdquo;, &ldquo;plan my week&rdquo;): it proposes one plan as cards you add one by one, and the plan is kept here once you act on a step.</p></ArtNote>
       : <ul className="ai-memory-list" aria-label="ZIGi's plans">{plans.map(p => { const lines = planLines(p); return <li key={p.id} className="ai-memory-note">
         <p className="ai-memory-text"><strong>{lines.title}</strong></p>
         <p className="ai-memory-meta">{lines.steps.length} {lines.steps.length === 1 ? 'step' : 'steps'} · {lines.done ? 'every step decided' : 'some steps not decided yet'} · {formatDate(p.updatedAt)}</p>

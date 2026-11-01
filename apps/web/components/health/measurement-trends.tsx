@@ -10,6 +10,7 @@ import type {HealthData} from '../../lib/health';
 import {dailyData} from '../../lib/health-daily';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import './measurement-trends.css';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Session AK (F5b): trends over the existing body measurements (Health → Measurements, the "Trends and weekly change"
@@ -47,7 +48,7 @@ export function MeasurementTrends({data}: {data: HealthData}) {
   const custom = useDeviceRecord(MEASUREMENTS_CUSTOM), weight = dailyData(data).preferences.weightUnit === 'lb' ? 'lb' : 'kg';
   const rows = trendRows(data, custom.loaded && !custom.unreadable ? custom.data : null, weight);
   const [picked, setPicked] = useState(''), row = rows.find(r => r.id === picked) ?? rows.find(r => r.id !== 'weight') ?? rows[0];
-  if (!rows.length) return <div className="measure-trends measure-trends-empty"><p className="health-empty-inline">No measurements yet. Add a waist, hips, chest, arms or thigh reading above (or your own kind, such as neck) once a week, at the same time of day. After a week you see the change; after a few weeks, the trend.</p></div>;
+  if (!rows.length) return <div className="measure-trends measure-trends-empty"><ArtNote pillar="health"><p className="health-empty-inline">No measurements yet. Add a waist, hips, chest, arms or thigh reading above (or your own kind, such as neck) once a week, at the same time of day. After a week you see the change; after a few weeks, the trend.</p></ArtNote></div>;
   return <div className="measure-trends">
     <p className="fine">In {weight === 'lb' ? 'pounds and inches' : 'kilograms and centimetres'}, as in Journal settings. <span className="health-estimate-tag">a description of your readings, not a forecast</span></p>
     <ul className="measure-trend-list">{rows.map(r => <li key={r.id}>
