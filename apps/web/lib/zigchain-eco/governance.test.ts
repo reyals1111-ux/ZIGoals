@@ -26,6 +26,14 @@ describe('shortSummary: the proposer’s words, plainer', () => {
     const word = 'x'.repeat(400);
     expect(shortSummary(word).length).toBeLessThanOrEqual(MAX_SUMMARY);
   });
+  // Security review F10 (R2-I4): bare domains, www., other schemes and other chains' addresses go too.
+  it('removes bare domains, www., ipfs:// and other chains\u2019 addresses; ordinary text stays', () => {
+    const evm = `0x${'ab'.repeat(20)}`, hash = `0x${'cd'.repeat(32)}`, cosmos = `cosmos1${'q'.repeat(38)}`, osmo = `osmovaloper1${'p'.repeat(38)}`;
+    const text = `Read forum.zigchain.com and www.example.org first. Docs at docs.example.dev/gov/45 and ipfs://bafy${'b'.repeat(40)} or ar://abc. Pay ${cosmos} or ${evm}, see ${hash}; validator ${osmo}.`;
+    const out = shortSummary(text);
+    expect(out).toBe('Read (link removed) and (link removed) first. Docs at (link removed) and (link removed) or (link removed) Pay (an address) or (an address), see (an address); validator (an address).');
+    for (const kept of ['Upgrade to v6.0.0 at height 13466800, fees down 3%. Node.js and CosmWasm stay; e.g. a 1.5x gas limit, i.e. faster.', 'Write to team@zigchain.com for help.', 'Done.So we vote.']) expect(shortSummary(kept)).toBe(kept);
+  });
   it('says nothing when the summary only repeats the title', () => {
     expect(shortSummary('Software upgrade to v6.', 'Software Upgrade to v6')).toBe('');
     expect(shortSummary('', 'x')).toBe('');

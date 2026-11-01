@@ -13,6 +13,12 @@ import {calendarDay} from '../visual-format';
  *    at once when less is left). Voting itself stays the existing gov v1beta1 MsgVote through the one review sheet.
  */
 export const MAX_SUMMARY = 280;
+/**
+ * Bare domains, in lower case (as links are written): www., or labels ending in a common top-level domain or followed by a
+ * path; never after "@", a dot or a letter. Endings that are also English words are left out ("done.so", "end.to").
+ */
+const TLD = 'com|org|net|io|xyz|app|dev|gg|info|finance|network|zone|ai|fi|exchange|site|online|tech|wiki|ly|cc|uk|eu|de|fr|nl|ch|biz|cloud|vip|pw|cn|ru';
+const DOMAIN = new RegExp(`(?<![\\w@.-])(?:www\\.[a-z0-9-]+(?:\\.[a-z0-9-]+)+|(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+(?:(?:${TLD})(?![\\w-])|[a-z]{2,24}(?=\\/)))(?::\\d{2,5})?(?:\\/[^\\s)\\]]*)?`, 'g');
 const SENTENCE = /[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g;
 /** The proposer's text, plainer and at most 280 characters (whole sentences when they fit). Empty when nothing is left. */
 export function shortSummary(summary: string, title = ''): string {
@@ -22,7 +28,14 @@ export function shortSummary(summary: string, title = ''): string {
     .replace(/!\[[^\]]{0,200}\]\([^)]{0,500}\)/g, ' ')
     .replace(/\[([^\]]{0,200})\]\([^)]{0,500}\)/g, '$1')
     .replace(/\bhttps?:\/\/\S+/gi, '(link removed)')
+    // Security review F10 (R2-I4): every other link form too — any scheme (ipfs://, ipns://, ar://…), www., and a bare
+    // domain with a common ending or a path ("forum.example.org", "evil.example/x") — and other chains' addresses (any
+    // bech32 prefix such as cosmos1… or osmo1…, and 0x… EVM addresses or hashes). "v6.0.0", "3%." and "Node.js" stay.
+    .replace(/\b[a-z][a-z0-9+.-]{1,15}:\/\/\S+/gi, '(link removed)')
+    .replace(DOMAIN, '(link removed)')
     .replace(/\b(zig1|zigvaloper1)[02-9ac-hj-np-z]{20,70}\b/g, '(an address)')
+    .replace(/\b[a-z]{2,20}1[02-9ac-hj-np-z]{38,90}\b/g, '(an address)')
+    .replace(/\b0x[0-9a-fA-F]{40}(?:[0-9a-fA-F]{24})?\b/g, '(an address)')
     .replace(/^\s{0,3}#{1,6}\s*/gm, '')
     .replace(/^\s*[-*+>]\s+/gm, '')
     .replace(/[*`]{1,3}|~~|(?<!\w)_{1,3}|_{1,3}(?!\w)/g, '')

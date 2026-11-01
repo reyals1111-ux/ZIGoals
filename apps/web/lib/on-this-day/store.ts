@@ -21,6 +21,19 @@ export const JOURNAL_DISPLAY: DeviceRecordSpec<JournalDisplay> = {key: JOURNAL_D
 
 export const onThisDayShown = (d: JournalDisplay) => d.onThisDay !== false;
 export const setOnThisDay = (d: JournalDisplay, on: boolean): JournalDisplay => journalDisplaySchema.parse({...d, onThisDay: on});
-/** Adds one entry to the "not again" list (each once; the oldest make way past the cap). */
-export const hideMemory = (d: JournalDisplay, id: string): JournalDisplay => journalDisplaySchema.parse({...d, hidden: [...(d.hidden ?? []).filter(x => x !== id), id].slice(-MAX_HIDDEN_MEMORIES)});
+/**
+ * Adds one entry to the "not again" list (each once). Security review F10 (R1-F9): past the cap nothing is made to give
+ * way any more (that silently brought the oldest hidden memory back). Ids of entries that no longer exist (`existing`,
+ * when the caller knows the journal) are let go first; when the list is still full, the record comes back unchanged and
+ * the caller says so (`hideMemoryFull`, HIDE_FULL_NOTE).
+ */
+export function hideMemory(d: JournalDisplay, id: string, existing?: readonly string[]): JournalDisplay {
+  let hidden = (d.hidden ?? []).filter(x => x !== id);
+  if (hidden.length >= MAX_HIDDEN_MEMORIES && existing) { const kept = new Set(existing); hidden = hidden.filter(x => kept.has(x)); }
+  if (hidden.length >= MAX_HIDDEN_MEMORIES) return d;
+  return journalDisplaySchema.parse({...d, hidden: [...hidden, id]});
+}
+/** True when this entry cannot be set aside: the list is full (after letting go of entries that no longer exist). */
+export const hideMemoryFull = (d: JournalDisplay, id: string, existing?: readonly string[]): boolean => !(hideMemory(d, id, existing).hidden ?? []).includes(id);
+export const HIDE_FULL_NOTE = `${MAX_HIDDEN_MEMORIES} memories are already set aside, the most this device keeps, so this one still shows here. To set it aside, show the others again under Privacy, or hide “On this day”.`;
 export const unhideAll = (d: JournalDisplay): JournalDisplay => { const next = {...d}; delete next.hidden; return journalDisplaySchema.parse(next); };

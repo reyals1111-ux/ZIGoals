@@ -1,3 +1,5 @@
+import {listKey, wordListsFor, type WordScript} from '../secret-guard/word-lists';
+
 /**
  * Session AK (lane M, item 17): a guard that keeps keys and recovery words off the emergency sheet. Without a word
  * list (no dependency), it uses shapes: twelve or more short lowercase words in a row (recovery words are 3 to 8
@@ -41,21 +43,112 @@ function styleOf(word: string, free: boolean): Style | null {
   if (word[0] === word[0]!.toUpperCase() && word.slice(1) === word.slice(1).toLowerCase()) return free ? 'free' : 'title';
   return null;
 }
-function longestWordRun(text: string): number {
-  const normal = text.normalize('NFC');
-  let run = 0, best = 0, style: Style = 'free', previousNumber = true, end = 0;
-  for (const match of normal.matchAll(/[\p{L}\d]+/gu)) {
-    const token = match[0], between = normal.slice(end, match.index);
-    end = match.index + token.length;
+/**
+ * Session AK owner follow-up 2 (G7; security review F10 R1-F5, R1-F6): the words come in runs of one script. Latin-style
+ * words follow the rules above. Japanese (hiragana), Korean (Hangul) and Chinese (one character per word) recovery words
+ * are written with spaces (ASCII or ideographic) or the same separators and numbers between them: a run is twelve or more
+ * such words in a row. Ordinary CJK prose is not written that way (Chinese and Japanese run their characters together,
+ * which makes one long token here; Korean words carry their endings, which the Korean list does not have), and once the
+ * standard lists are loaded (lib/secret-guard/word-lists.ts) a run counts only when 11 of 12 words in a row are words of
+ * one list. Until then: Chinese and Japanese runs count by their shape; a Korean run counts by shape only for the guard
+ * (cautious), never on the emergency sheet (Korean prose has spaces between words).
+ */
+type Word = {key: string; start: number; end: number};
+type Segment = {script: WordScript; words: Word[]};
+const TOKEN = /[\p{L}\p{M}\d]+/gu;
+const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+function scriptOf(token: string): WordScript | null {
+  if (!CJK.test(token)) return 'latin';
+  if (/^\p{Script=Han}$/u.test(token)) return 'han';
+  if (/^[\u3041-\u309f\u30fc]+$/u.test(token)) return 'kana';
+  if (/^[\uac00-\ud7a3]+$/u.test(token)) return 'hangul';
+  return null;
+}
+/** A list word is at most 9 letters (Italian); without the lists, recovery words are 3 to 8 lowercase letters. */
+const SHAPE_WORD = /^\p{Ll}{3,8}$/u, LIST_WORD = /^\p{Ll}{3,9}$/u;
+function wordSegments(text: string, latinLists: readonly ReadonlySet<string>[] | null): Segment[] {
+  const out: Segment[] = [];
+  let seg = null as Segment | null, style: Style = 'free', previousNumber = true, end = 0;
+  const close = () => { if (seg?.words.length) out.push(seg); seg = null; };
+  const isLatinWord = (word: string) => SHAPE_WORD.test(word) || (!!latinLists && LIST_WORD.test(word) && latinLists.some(list => list.has(listKey(word))));
+  for (const match of text.matchAll(TOKEN)) {
+    const start = match.index, token = match[0].normalize('NFC'), between = text.slice(end, start);
+    end = start + match[0].length;
     if (/^\d+$/.test(token)) { previousNumber = true; continue; }
+    const script = scriptOf(token);
+    if (script !== 'latin') {
+      previousNumber = false; style = 'free';
+      if (!script) { close(); continue; }
+      if (seg?.script !== script) { close(); seg = {script, words: []}; }
+      seg.words.push({key: listKey(token), start, end});
+      continue;
+    }
     const word = token.toLowerCase(), wordStyle = styleOf(token, previousNumber || between.includes('\n'));
     previousNumber = false;
-    if (!wordStyle || !/^\p{Ll}{3,8}$/u.test(word) || NOT_RECOVERY.has(word)) { run = 0; style = 'free'; continue; }
+    if (!wordStyle || !isLatinWord(word) || NOT_RECOVERY.has(word)) { close(); style = 'free'; continue; }
+    if (seg?.script !== 'latin') { close(); seg = {script: 'latin', words: []}; style = 'free'; }
     const fits = wordStyle === 'free' ? style !== 'upper' : style === 'free' ? true : wordStyle === style;
-    if (fits) { run++; if (wordStyle !== 'free' && style === 'free') style = wordStyle; } else { run = 1; style = wordStyle; }
-    if (run > best) best = run;
+    if (fits) { if (wordStyle !== 'free' && style === 'free') style = wordStyle; } else { close(); seg = {script: 'latin', words: []}; style = wordStyle; }
+    seg!.words.push({key: listKey(word), start, end});
   }
-  return best;
+  close();
+  return out;
+}
+/** Of 12 words in a row, at least this many from one standard list make a run recovery words (one may be mistyped). */
+export const LIST_SHARE = 11;
+/**
+ * The parts of a run where 11 of 12 words in a row come from one list, every such window (so a mistyped word inside a
+ * 24-word phrase never leaves part of it out), trimmed to list words at both ends. A neighbouring list word may join.
+ */
+function listSpans(words: readonly Word[], sets: readonly ReadonlySet<string>[]): [number, number][] {
+  const marked = new Set<number>(), member = new Set<number>();
+  for (const set of sets) {
+    const is = words.map(w => set.has(w.key));
+    let count = 0;
+    for (let i = 0; i < words.length; i++) {
+      if (is[i]) count++;
+      if (i >= RUN && is[i - RUN]) count--;
+      if (i >= RUN - 1 && count >= LIST_SHARE) for (let j = i - RUN + 1; j <= i; j++) { marked.add(j); if (is[j]) member.add(j); }
+    }
+  }
+  const spans: [number, number][] = [];
+  for (let i = 0; i < words.length; i++) {
+    if (!marked.has(i)) continue;
+    let j = i; while (marked.has(j + 1)) j++;
+    let a = i, b = j; while (a < b && !member.has(a)) a++; while (b > a && !member.has(b)) b--;
+    spans.push([words[a]!.start, words[b]!.end]);
+    i = j;
+  }
+  return spans;
+}
+/**
+ * 'sheet' (the emergency sheet, NOVA's redaction): Latin words by their shape, as since lane M; CJK by the lists when
+ * loaded, else Chinese and Japanese by shape. 'guard' (the recovery-words guard, ZIGi): every script by the lists when
+ * loaded (fewer ordinary lists warned about), else by shape, Korean included (cautious until its list is here).
+ */
+export type WordMode = 'sheet' | 'guard';
+/** Where the text holds runs that look like recovery words: [start, end) offsets into the text as given. */
+export function recoveryWordSpans(text: string, mode: WordMode = 'sheet'): [number, number][] {
+  if (!text) return [];
+  const latin = mode === 'guard' ? wordListsFor('latin') : null;
+  const spans: [number, number][] = [];
+  for (const {script, words} of wordSegments(text, latin)) {
+    if (words.length < RUN) continue;
+    const sets = script === 'latin' ? latin : wordListsFor(script);
+    if (sets) spans.push(...listSpans(words, sets));
+    else if (script !== 'hangul' || mode === 'guard') spans.push([words[0]!.start, words[words.length - 1]!.end]);
+  }
+  return spans.sort((a, b) => a[0] - b[0]);
+}
+/**
+ * The scripts whose lists would make a decision about this text more exact and are not loaded yet: a run of twelve or
+ * more words in that script is there. The guard loads them (lib/secret-guard/guard.ts); empty for ordinary text.
+ */
+export function wordListNeeds(text: string): WordScript[] {
+  if (!text) return [];
+  const needs = new Set<WordScript>();
+  for (const {script, words} of wordSegments(text, null)) if (words.length >= RUN && !wordListsFor(script)) needs.add(script);
+  return [...needs];
 }
 /**
  * A 64-character key written in groups ("e9873d79 c6d87dc0 …", "e9:87:3d…", "e987-3d79…", or across two lines): the
@@ -95,10 +188,10 @@ const BASE58_KEY = new RegExp(`(?:^|[^${B58}])[${B58}]{85,90}(?![${B58}])`);
 const NSEC = /(?:^|[^a-z0-9])nsec1[02-9ac-hj-np-z]{58}(?![a-z0-9])/i;
 const AGE = /AGE-SECRET-KEY-1/i;
 /** What a text looks like it holds, if anything. */
-export function secretKinds(text: string): SecretKind[] {
+export function secretKinds(text: string, mode: WordMode = 'sheet'): SecretKind[] {
   const out: SecretKind[] = [];
   if (!text) return out;
-  if (longestWordRun(text) >= RUN) out.push('recovery-words');
+  if (recoveryWordSpans(text, mode).length) out.push('recovery-words');
   if (HEX64.test(text) || groupedHexKey(text)) out.push('hex-key');
   if (XPRV.test(text)) out.push('extended-private-key');
   if (WIF.test(text)) out.push('wif');

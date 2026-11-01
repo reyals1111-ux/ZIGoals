@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {journalEntrySchema} from '../journal/schema';
 import {anniversaryIn, onThisDay, preview} from './on-this-day';
-import {MAX_HIDDEN_MEMORIES, emptyJournalDisplay, hideMemory, journalDisplaySchema, onThisDayShown, setOnThisDay, unhideAll} from './store';
+import {HIDE_FULL_NOTE, MAX_HIDDEN_MEMORIES, emptyJournalDisplay, hideMemory, hideMemoryFull, journalDisplaySchema, onThisDayShown, setOnThisDay, unhideAll} from './store';
 import {showcaseOnThisDayEntries} from './showcase';
 
 const e = (id: string, date: string, text = `Entry ${id}`) => ({id, date, text});
@@ -61,5 +61,27 @@ describe('the display key zigoals:journal-display:v1', () => {
     for (const r of rows) { expect(journalEntrySchema.safeParse(r).success).toBe(true); expect(r.text).toContain('(SHOWCASE DATA)'); }
     expect(onThisDay(rows, '2026-10-31').map(x => x.label)).toEqual(['1 year ago', '2 years ago']);
     expect(showcaseOnThisDayEntries('2028-02-29').map(r => r.date)).toEqual(['2027-02-28', '2026-02-28']);
+  });
+  // Security review F10 (R1-F9): a 501st memory used to push the oldest one back into view.
+  test('past 500 nothing is un-hidden: the 501st is refused and the person is told; entries that are gone make room', () => {
+    let full = emptyJournalDisplay();
+    for (let i = 0; i < MAX_HIDDEN_MEMORIES; i++) full = hideMemory(full, `x${i}`);
+    expect(full.hidden).toHaveLength(MAX_HIDDEN_MEMORIES);
+    const ids = full.hidden!.slice();
+    expect(hideMemory(full, 'new')).toBe(full);
+    expect(hideMemory(full, 'new').hidden).toContain('x0');
+    expect(hideMemoryFull(full, 'new')).toBe(true);
+    expect(hideMemoryFull(full, 'new', [...ids, 'new'])).toBe(true);
+    expect(hideMemoryFull(full, 'x7')).toBe(false); // already set aside: nothing to refuse
+    expect(hideMemory(full, 'x7').hidden).toHaveLength(MAX_HIDDEN_MEMORIES);
+    // Two hidden entries were deleted from the journal: their places are let go, and the new one fits.
+    const existing = [...ids.filter(id => id !== 'x3' && id !== 'x9'), 'new'];
+    expect(hideMemoryFull(full, 'new', existing)).toBe(false);
+    const next = hideMemory(full, 'new', existing);
+    expect(next.hidden).toHaveLength(MAX_HIDDEN_MEMORIES - 1);
+    expect(next.hidden).toContain('new'); expect(next.hidden).toContain('x0'); expect(next.hidden).not.toContain('x3');
+    expect(journalDisplaySchema.safeParse(next).success).toBe(true);
+    expect(HIDE_FULL_NOTE).toMatch(/^500 memories are already set aside/);
+    expect(HIDE_FULL_NOTE).not.toMatch(/!/);
   });
 });

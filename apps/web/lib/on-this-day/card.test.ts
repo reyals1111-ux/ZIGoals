@@ -3,7 +3,7 @@ import {afterEach, beforeEach, expect, test} from 'vitest';
 import {act, createElement as h} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import OnThisDay from '../../components/journal/on-this-day';
-import {JOURNAL_DISPLAY_KEY} from './store';
+import {HIDE_FULL_NOTE, JOURNAL_DISPLAY_KEY, MAX_HIDDEN_MEMORIES} from './store';
 
 /** Session AK (BUILD list 2 #3): the Journal card — away when nothing matches; "Not this one" and "Hide" kept on the device. */
 let root: Root;
@@ -32,4 +32,15 @@ test('nothing matches: nothing is shown and nothing is written', async () => {
   await act(async () => { root.render(h(OnThisDay, {entries, today: '2026-10-30', energy: {}, moods: {}})); }); await settle();
   expect(document.querySelector('details.on-this-day')).toBeNull();
   expect(localStorage.getItem(JOURNAL_DISPLAY_KEY)).toBeNull();
+});
+test('a 501st "Not this one" is refused with a calm line; nothing set aside comes back', async () => {
+  const hidden = Array.from({length: MAX_HIDDEN_MEMORIES}, (_, i) => `old${i}`);
+  localStorage.setItem(JOURNAL_DISPLAY_KEY, JSON.stringify({version: 1, hidden}));
+  const all = [...entries, ...hidden.map((id, i) => ({id, date: `2020-01-${String(i % 28 + 1).padStart(2, '0')}`, text: 'Old.'}))];
+  await act(async () => { root.render(h(OnThisDay, {entries: all, today: '2026-10-31', energy: {}, moods: {}})); }); await settle();
+  const notThis = [...document.querySelectorAll('button')].find(b => b.textContent === 'Not this one')!;
+  await act(async () => { notThis.click(); }); await settle();
+  expect(document.body.textContent).toContain(HIDE_FULL_NOTE);
+  expect(document.body.textContent).toContain('A year ago today.');
+  expect(JSON.parse(localStorage.getItem(JOURNAL_DISPLAY_KEY)!).hidden).toEqual(hidden);
 });

@@ -4,7 +4,7 @@ import {ENERGY_WORDS} from '../../lib/energy/schema';
 import {MOOD_WORDS} from '../../lib/wrap-up/engine';
 import {formatDate} from '../../lib/visual-format';
 import {onThisDay, preview} from '../../lib/on-this-day/on-this-day';
-import {JOURNAL_DISPLAY, hideMemory, onThisDayShown, setOnThisDay} from '../../lib/on-this-day/store';
+import {HIDE_FULL_NOTE, JOURNAL_DISPLAY, hideMemory, hideMemoryFull, onThisDayShown, setOnThisDay} from '../../lib/on-this-day/store';
 import {useDeviceRecord} from '../ai/use-device-record';
 import './on-this-day.css';
 
@@ -35,7 +35,8 @@ export default function OnThisDay({entries, today, energy, moods}: {entries: rea
         {words && <p className="fine">{words}</p>}
         <div className="on-this-day-actions">
           {short.more && <button type="button" className="text-link" aria-expanded={full} aria-controls={`on-this-day-${entry.id}`} onClick={() => setOpen(full ? null : entry.id)}>{full ? 'Show less' : 'Read it all'}</button>}
-          <button type="button" className="text-link" onClick={() => change(d => hideMemory(d, entry.id), 'Set aside: it will not show here again. The entry stays in your journal.')}>Not this one</button>
+          {/* Security review F10 (R1-F9): past 500 nothing is un-hidden; the person is told instead. */}
+          <button type="button" className="text-link" onClick={() => { const ids = entries.map(x => x.id); if (hideMemoryFull(display.data, entry.id, ids)) setNote(HIDE_FULL_NOTE); else change(d => hideMemory(d, entry.id, ids), 'Set aside: it will not show here again. The entry stays in your journal.'); }}>Not this one</button>
         </div>
       </li>;
     })}</ol>
