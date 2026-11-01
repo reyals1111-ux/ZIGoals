@@ -781,10 +781,10 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | Q1 Wiring audit of every Built/Finished row (fresh read-only agent; WIRING_AUDIT.md); every non-Working row finished | Built: audit 52 Working / 43 Partly; Q1F added 31 browser tests on the UI path and fixed Quick add's goal bundle, buffer days and the doubled import title; AFL9 (journey 7b) moves to lane W | `eea0e358`, `6c44dc3e` | 29/31 desktop on the pre-fix build; rerun on 6c44dc3e |
 | Q2 Finish the X1 verification; fix every failure at its cause | Open | — | — |
 | G1 BUILD list 2 in full (all 21 except #1 #2 #3 #5 #8), rank order | Built: G1a #4, #12, #13, #14, #15, #16; G1b #6, #7, #9, #10, #11, #17, #18, #19; #21 Was this useful? (lead). First browser run fixed: Select keeps its name, the Showcase's out-of-range lab value | `cf3cf2e1`, `f014ea65`, `21536fe6`, `cc5a1eb5` | unit; g1a-*, g1b-*, g1-insight-feedback specs |
-| G2 Release review complete; second fresh review (RELEASE_REVIEW_2.md); fix Blockers/Majors and as many Minor/Polish as possible | Open | — | — |
+| G2 Release review complete; second fresh review (RELEASE_REVIEW_2.md); fix Blockers/Majors and as many Minor/Polish as possible | Done: the first review completed (54200bff); a second fresh 1.0 review (RELEASE_REVIEW_2.md: 1 Blocker, 8 Major, 12 Minor, 4 Polish); the Blocker and every Major fixed except R2-7 (owner decision: the pinned banner sentence) and the desktop sidebar part of R2-10 (owner decision: protected fit); R2-15's empty quick counters left for the owner (they feed the protected Checklist path); R2-24 not reproduced | `54200bff`, `e42444bd`, `52bd5286`, `981f6537`, `0ef32f0d`, `15c1e159`, `fa5643ce`, `2519cf3d`, `1d6902be` | specs per finding; pillar-phone-length (Health 6.2/7.4, Wealth 5.1/9.1 screens) |
 | G3 The visual system across every non-protected page and card | Built: pillar art in empty states (EmptyState default, ArtNote), the chart look on 15 charts, the skeleton sheen, richer cards; R30 fixed; health-app empty states left (shared file) | `21f404ef`, `b552ba14` | unit 55/55; theme sheets regenerated |
 | G4 Journeys 1–3 and 6 on the phone project and in Light and Dark | Open | — | — |
-| G5 Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md); fixes with tests | Open | — | — |
+| G5 Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md); fixes with tests | Done: a fresh exploratory tester (EXPLORATORY_BUGS.md: 1 Blocker, 1 Major, 10 Minor, 7 Polish); 18 fixed at their cause, EX-17 no longer reproduces; nothing left the device | `09c216e9` | tests/exploratory-exf.spec.ts, nova-dashboard EX-1 viewport checks |
 | G6 Every open A12 intermittent fixed or proven gone | In progress: note-lists-arrive made deterministic (gated list); NOVA Memory 'Remember' disabled 2/6 recorded for G5 | `dee2a817` | 4/4 group runs |
 | G7 F10's recorded Lows and Infos fixed unless unsafe or impossible | Built: R1-F5 CJK recovery words, R1-F6 everyday lists, R1-F7 hidden in what leaves (engine hook), R1-F9 refuse past 500, R2-I4 summaries; R3-F4 recorded (Q25) | `06e86e00`, `cf3cf2e1` | unit; vendored BIP-39 lists checked word for word |
 | G8 ZIGi and NOVA tools for G1's new features | Built: read tools your_numbers, cycle_log, your_scales, cash_forecast, money_selection; cards log-blood-pressure, rate-scale, move-task, amount calculator; local answers; never auto-accepted | `2bcb4c8a` | unit 1324; 16 G6 cases; 28-case corpus |
@@ -818,7 +818,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | M6 The landing: NOVA chapter, orb loop, scroll reveals, starfield hero, bento grid | Built: the landing's NOVA chapter, labelled example, scroll reveals, bento; first view 257,930 / 260,000 B | `f88b8ab8` | check:landing, landing-nova-m6 tests |
 | M7 Theme parity, layout audit 6 widths × 3 themes, contrast scanner | Open | — | — |
 | Z1 Fresh security review of everything after 58224a69, NOVA first | Done: three fresh reviews (Z1A NOVA/AI 1 High 4 Medium 7 Low; Z1B storage/parsers 3 Medium 3 Low; Z1C wallet/CSP/motion/PWA 4 Low); every High and Medium fixed with tests, most Lows fixed, the rest recorded with reasons | `e0f6d56a`, `d35acc52`, `3f5554dc`, `a68e23b6` | docs/review/session-ak/Z1{A,B,C}_SECURITY.md |
-| Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Open | — | — |
+| Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Done with G5 (the same fresh pass covered NOVA, Notes, Tasks and motion: Off, Calm and reduced motion left nothing animating) | `09c216e9` | EXPLORATORY_BUGS.md |
 | Z3 Final wiring audit on the new rows | Open | — | — |
 | Z4 F12 as written in follow-up 1, with the report starting "Open NOVA" | Open | — | — |
 | 5.1 schedules: "first Monday of the month" | Open (F0x lane) | — | — |
@@ -898,3 +898,16 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | D12 visual polish | Partly; F6 | — | — |
 | MUSIC (Web Audio mix, Open-in links, BYO Spotify) | Built | `95952388`, `9c902707` | lib/audio tests |
 | RAMP/BANXA | Recorded: not needed | — | — |
+
+### Owner decisions recorded during follow-up 2 (Session AK)
+- **R2-7:** a desktop device that never chose the chain still reads the banner "Staking and votes sign in your own wallet…"
+  (pinned by the owner's hosted check, scripts/lib/hosted-alpha-stages.mjs). Proposal: until the chain is chosen show
+  "Your records stay in this browser and are not a backup." and move the staking sentence behind More, as on the phone.
+- **R2-10 (desktop):** Tasks, Notes and the Journal are compact navigation entries (phone More, tablet rail); the desktop
+  sidebar keeps its entries because its protected fit check (all destinations at 1440×900) has no room in the Showcase.
+  Adding them on desktop needs a design change for short windows.
+- **R2-15:** the three default quick counters start at their defaults (they feed the protected Checklist's default path).
+- **R2-5:** NOVA's stage stays dark in Light (a Light dark island like the Today hero); the phone bar matches while NOVA is
+  open.
+- **Z1C I6:** "Build your own Jarvis, with a real life to run" on the landing is the owner's own line; a brand check is
+  the owner's call.
