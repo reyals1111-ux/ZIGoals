@@ -11,7 +11,6 @@ import {pathBefore} from '../../lib/checklist/return-path';
 import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
-import {CornerTimers} from './corner-timers';
 import {ChecklistSky} from './checklist-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
@@ -22,6 +21,9 @@ import './checklist.css';
 // Opened on request only: the editor, the options, the history and the day's celebration stay out of the first paint.
 // The ambient sky is decoration (aria-hidden): it loads after the page, so the Checklist's first scripts stay within
 // their weight line (scripts/weight-budgets.json).
+// The corner timers (sleep, fasting, meditation, a habit's timer) load after the page; they hold the engines of four
+// stores, kept out of the Checklist's first scripts (its weight line, scripts/weight-budgets.json).
+const CornerTimers = lazy(() => import('./corner-timers').then(m => ({default: m.CornerTimers})));
 // The List view loads only when a person picks it (the Path is the default view).
 const ListView = lazy(() => import('./list-view').then(m => ({default: m.ListView})));
 const AmbientSky = lazy(() => import('./ambient-sky').then(m => ({default: m.AmbientSky})));
@@ -198,7 +200,7 @@ export function ChecklistPage() {
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
-        {loaded && !state.unreadable && <CornerTimers state={state}/>}
+        {loaded && !state.unreadable && <LoadBoundary quiet><Suspense fallback={null}><CornerTimers state={state}/></Suspense></LoadBoundary>}
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
           <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
