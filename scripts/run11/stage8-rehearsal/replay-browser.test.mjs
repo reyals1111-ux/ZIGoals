@@ -30,7 +30,7 @@ async function openGoal(page,ui,name){
 }
 async function createValueGoal(page,ui,name){
  await ui.go('Goals');await page.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();
- await typeGoalName(page,name);await page.getByRole('radio',{name:'Value',exact:true}).check();
+ await typeGoalName(page,name);await page.getByRole('radio',{name:'Save an amount',exact:true}).check()/* Session AK (ADR-036, deliberate): R5 9ccb860a names the kinds in plain words until the chain is chosen */;
  await page.getByLabel('Target amount',{exact:true}).fill('1000');
  for(let i=0;i<3;i++)await page.getByRole('button',{name:'Continue →',exact:true}).click();
  await page.getByRole('button',{name:'Create goal',exact:true}).click();await page.getByTestId('tracked-progress').waitFor();

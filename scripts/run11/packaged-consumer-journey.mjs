@@ -13,7 +13,10 @@ export async function openSettings(page){const more=page.locator('.phone-more-to
 // remembered state that lands between the read and the click closes it once, and the second pass opens it again).
 // Session AC (ADR-025 E19): on a phone a widget folds to a row named by it, except the habits widget standing in for the
 // hidden Daily Habits, which shows open as Daily Habits did (no row); either way the card ends up in view.
-async function todayCard(page,name){const card=page.getByRole('article',{name,exact:true});if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name,exact:true});await row.or(card).first().waitFor();if(await row.count()){for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}else await card.waitFor({state:'visible'});}return card;}
+// Session AK (ADR-036, deliberate): 15c1e159 (RELEASE_REVIEW_2 R2-9) puts the widget's figure under its name in the folded
+// row, as part of the row's name ("Breakfast today 150 kcal"); the row is the one whose name is the card's name, alone or
+// followed by that figure. The card itself is still found by its exact name.
+async function todayCard(page,name){const card=page.getByRole('article',{name,exact:true});if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name:new RegExp('^'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?: .+)?$')});await row.or(card).first().waitFor();if(await row.count()){for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}else await card.waitFor({state:'visible'});}return card;}
 export async function armPackagedSync(page){await armSyncCompletion(page);return page.evaluate(()=>window.__zigoalsSyncCompletions);}
 export async function waitPackagedSync(page,mark){await page.waitForFunction(m=>window.__zigoalsSyncCompletions>m&&[...document.querySelectorAll('button')].some(b=>b.textContent==='Sync now'&&!b.disabled),mark);await page.getByRole('region',{name:'Encrypted account sync',exact:true}).getByText(/Account records synced and acknowledged/).waitFor();}
 export async function createPackagedRecords(page){

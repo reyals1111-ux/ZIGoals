@@ -252,7 +252,10 @@ describe('what makes it ask for the secret again',()=>{
 // Session U Part 5 (B1, FINDINGS Q-SYNC-01): a new remember stores version 2 (the root key itself); a version 1 record
 // from an earlier build opens once more and is migrated; a browser that cannot store the key object keeps version 1.
 describe('version 2 records (B1)',()=>{
- const v1Record=async()=>{const deviceKey=await createDeviceKey(),{sealed}=await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey);return {version:1 as const,account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:await manifestDigest(vault.manifest),session:S1,health:false,createdAt:'2026-10-02T10:00:00.000Z',sealed,key:deviceKey};};
+ // Session AK (CI fix): the records are dated a day ago, not on a fixed day; a fixed 2026-10-02 aged past REMEMBER_DAYS
+ // (30) on 2026-11-01, so the version 1 record expired instead of migrating, and the commitment test was deleted by age.
+ const recent=()=>new Date(Date.now()-86400000).toISOString();
+ const v1Record=async()=>{const deviceKey=await createDeviceKey(),{sealed}=await unlockVaultForDevice(vault.manifest,vault.recovery,A,deviceKey);return {version:1 as const,account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:await manifestDigest(vault.manifest),session:S1,health:false,createdAt:recent(),sealed,key:deviceKey};};
  test('a new remember stores the root key itself, and it opens again after a reload',async()=>{
   await remembered();
   const [record]=await readDevices();expect(record!.version).toBe(2);if(!record||record.version!==2)throw Error('expected version 2');
@@ -278,7 +281,7 @@ describe('version 2 records (B1)',()=>{
  });
  test('a version 2 record whose root no longer derives its commitment is deleted, and the secret is asked for',async()=>{
   const other=await createVault(),digest=await manifestDigest(vault.manifest);
-  expect(await rememberDevice({version:2,id:crypto.randomUUID(),account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:digest,session:S1,health:false,createdAt:'2026-10-02T10:00:00.000Z',commitment:await deviceCommitment(vault.key,A,digest),root:other.key},0)).toBe(true);
+  expect(await rememberDevice({version:2,id:crypto.randomUUID(),account:A,vault:vault.manifest.vault,epoch:vault.manifest.epoch,manifest:digest,session:S1,health:false,createdAt:recent(),commitment:await deviceCommitment(vault.key,A,digest),root:other.key},0)).toBe(true);
   await mount();await verified();expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);
   expect(element.querySelector('input[type=password]')).not.toBeNull();
  });
