@@ -16,6 +16,15 @@ describe('what may differ between themes', () => {
     // a neutral shade may be softened, added or left out
     expect(classify('box-shadow', item({'box-shadow': 'none'}), item({'box-shadow': 'rgba(29, 33, 74, 0.08) 0px 1px 2px 0px'}))).toBe('neutral');
   });
+  // Session AK (M7): Chrome computes a color-mix(in lab …) to lab(); it is read as the colour it is and judged by the same
+  // rules (NOVA's night glass, lab() in Nebula and oklab() in Dark, is a night surface; a coloured lab() fill still may not change).
+  it('lab() and lch() colours are read: a night lab() surface may flip, a coloured lab() fill may not change', () => {
+    expect(classify('background-color', item({'background-color': 'lab(3.20588 1.6903 -11.4441 / 0.78)'}), item({'background-color': 'oklab(0.0887447 -0.000890646 -0.0241272 / 0.78)'}), 'dark')).toBe('neutral');
+    expect(classify('background-color', item({'background-color': 'lab(100 -0.0000298023 0.0000119209 / 0.08)'}), item({'background-color': 'oklab(0.999994 0.0000455678 0.0000200868 / 0.08)'}), 'dark')).toBe('neutral');
+    expect(classify('background-color', item({'background-color': 'lab(54.29 80.8 69.89)'}), item({'background-color': 'lab(40 60 50)'}))).toBe('DISALLOWED');
+    expect(classify('background-color', item({'background-color': 'lch(54.29 106.8 40.85)'}), item({'background-color': 'rgb(200, 0, 0)'}))).toBe('DISALLOWED');
+    expect(flips('lab(54.29 80.8 69.89)')).toBe(false);
+  });
   it('a line or paint drawn in the element’s own word colour follows the word', () => {
     const n = item({color: 'rgb(35, 234, 255)', 'border-top-color': 'rgb(35, 234, 255)'}), l = item({color: 'rgb(16, 108, 118)', 'border-top-color': 'rgb(16, 108, 118)'});
     expect(classify('border-top-color', n, l)).toBe('text');

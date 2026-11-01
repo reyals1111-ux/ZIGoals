@@ -105,7 +105,7 @@
 .note-backlink { display: inline-flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
 .note-backlink-line { margin: 0; overflow-wrap: anywhere; }
 .note-backlinks-empty { margin: 0; }
-.note-backlinks-empty .text-link { min-height: 44px; }
+.note-backlinks-empty .text-link { min-height: 44px; min-width: 44px; justify-content: center; } /* Session AK (M7, layout audit): "Notes" was 43 px wide */
 
 /* Graph */
 .note-graph { display: grid; gap: 10px; min-width: 0; }

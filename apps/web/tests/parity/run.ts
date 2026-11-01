@@ -16,8 +16,12 @@ import {isKnown} from './known';
 // Session AJ (item 32, D5): 'customized' is a page with every Customize choice made (Inter, Large text, Compact, Soft glow),
 // compared across the themes like any other state.
 export type State = 'showcase' | 'empty' | 'quick-add' | 'more' | 'folded' | 'customized';
-export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new', '/app/timeline', '/app/stories'] as const;
-export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded'], ['/app', 'customized'], ['/app/settings', 'customized']];
+export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new', '/app/timeline', '/app/stories',
+  // Session AK (M7): the session's new routes — NOVA (dashboard, setup, Hermes), Notes, Tasks, Journal, Music and Agenda.
+  '/app/nova', '/app/nova/setup', '/app/nova/hermes', '/app/notes', '/app/tasks', '/app/journal', '/app/music', '/app/agenda'] as const;
+export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'],
+  // Session AK (M7): NOVA and the new everyday pages on a new, empty device (their empty states), compared too.
+  ['/app/nova', 'empty'], ['/app/notes', 'empty'], ['/app/tasks', 'empty'], ['/app/journal', 'empty'], ['/app/agenda', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded'], ['/app', 'customized'], ['/app/settings', 'customized']];
 
 async function enter(page: Page, route: string, state: State, theme: Theme) {
   if (state === 'folded') await page.evaluate(() => { const write = (s: Storage, k: string) => { const v = JSON.parse(s.getItem(k) ?? '{"version":1}') as Record<string, unknown>; v.heroCollapsed = true; s.setItem(k, JSON.stringify(v)); }; write(localStorage, 'zigoals:ui-prefs:v1'); for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i)!; if (k.endsWith('zigoals:ui-prefs:v1')) write(sessionStorage, k); } });

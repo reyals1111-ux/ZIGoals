@@ -243,6 +243,8 @@ const CONTRAST_PAGES: [path: string, root?: string, heading?: string][] = [
   ['/app/guided'], ['/app/journey'], ['/app/earn'],
   // Session AJ (item 21, AF15 reopened): Habits, its time-of-day headings included.
   ['/app/habits'],
+  // Session AK (M7): this session's new routes — NOVA (dashboard, setup, Hermes), Notes, Tasks, Journal, Music, Agenda.
+  ['/app/nova'], ['/app/nova/setup'], ['/app/nova/hermes'], ['/app/notes'], ['/app/tasks'], ['/app/journal'], ['/app/music'], ['/app/agenda'],
 ];
 test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and Settings', async ({page}) => {
   test.setTimeout(240_000);

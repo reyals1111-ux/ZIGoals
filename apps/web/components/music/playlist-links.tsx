@@ -2,6 +2,9 @@
 import {useState} from 'react';
 import {MOOD_NAMES, PLAYLISTS, PLAYLIST_MOODS, PLAYLIST_SERVICES, SERVICE_NAMES, type PlaylistMood} from '../../lib/music/playlists';
 import './music-mix.css';
+// Session AK (M7, layout audit and theme parity): its chips are .ambient-chip, whose sheet the Music page did not load — 31 px
+// tall there, and the Light and Dark sheets (which carry ambient.css's rules on every page) drew a pressed ring Nebula did not.
+import '../audio/ambient.css';
 
 /**
  * "Open in Spotify / Apple Music / YouTube Music" (Session AK, owner decision MUSIC): focus, deep-work, sleep and workout

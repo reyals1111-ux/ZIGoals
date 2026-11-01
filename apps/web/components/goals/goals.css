@@ -43,6 +43,9 @@
 :root .goal-tree ul { list-style: none; margin: 8px 0 0 22px; padding: 0 0 0 16px; border-left: 1px solid #7aa7d044; display: grid; gap: 8px; }
 :root .goal-tree li { min-width: 0; }
 :root .goal-tree > li > a, :root .goal-tree ul > li > a { color: inherit; }
+/* Session AK (M7, layout audit): a sub-goal's name is a standalone link (20 px tall in a goal's plan at 390 px); on the touch
+   layout it is a full 44 px target. */
+@media (max-width: 767.98px), (pointer: coarse) { :root .goal-tree > li > a, :root .goal-tree ul > li > a { display: inline-flex; align-items: center; min-height: 44px; } }
 :root .goal-tree-meta { margin-left: 10px; font-size: 14px; color: var(--text-meta); }
 :root .goal-tree.is-page .goal-tree-row { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 1px solid #6c9cc533; background: #0f1d33cc; color: inherit; text-decoration: none; }
 :root .goal-tree-row > .goal-tree-text { display: grid; gap: 2px; min-width: 0; }

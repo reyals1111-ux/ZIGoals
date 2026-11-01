@@ -31,14 +31,28 @@ export function oklch([r, g, b]: number[]) {
   return {L, C: Math.hypot(A, Bb), h: (Math.atan2(Bb, A) * 180 / Math.PI + 360) % 360};
 }
 /** The computed colours in a value (rgb()/rgba(), color(srgb …) from a color-mix(), oklch()/oklab() from a relative
- *  colour), in order. */
-const COLOUR = /rgba?\([^)]*\)|color\(srgb [^)]*\)|okl(ch|ab)\([^)]*\)/g;
+ *  colour, and lab()/lch() — Session AK M7: Chrome computes a `color-mix(in lab …)` and some relative colours to lab(),
+ *  which this list did not read, so NOVA's night glass in Dark (lab() in Nebula, oklab() in the sheet) failed as an unread
+ *  value; it is now read as the colour it is and judged by the same rules), in order. */
+const COLOUR = /rgba?\([^)]*\)|color\(srgb [^)]*\)|(ok)?l(ch|ab)\([^)]*\)/g;
 const numbers = (c: string) => c.match(/-?[\d.]+(e-?\d+)?/g)!.map(Number);
+/** CIE lab()/lch() (D50, as CSS Color 4 defines them) to gamma-encoded sRGB channels 0–255 (Bradford D50 → D65). */
+function labRgb(c: string): [number, number, number] {
+  const n = numbers(c), [L, A, B] = c.startsWith('lch(') ? [n[0]!, n[1]! * Math.cos(n[2]! * Math.PI / 180), n[1]! * Math.sin(n[2]! * Math.PI / 180)] : [n[0]!, n[1]!, n[2]!];
+  const k = 24389 / 27, e = 216 / 24389, fy = (L + 16) / 116, fx = fy + A / 500, fz = fy - B / 200;
+  const inv = (t: number) => t ** 3 > e ? t ** 3 : (116 * t - 16) / k;
+  const X = inv(fx) * 0.96422, Y = (L > k * e ? fy ** 3 : L / k), Z = inv(fz) * 0.82521;
+  const x = 0.9554734527042182 * X - 0.023098536874261423 * Y + 0.0632593086610217 * Z, y = -0.028369706963208136 * X + 1.0099954580058226 * Y + 0.021041398966943008 * Z, z = 0.012314001688319899 * X - 0.020507696433477912 * Y + 1.3303659366080753 * Z;
+  const lin3 = [3.2409699419045226 * x - 1.537383177570094 * y - 0.4986107602930034 * z, -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z, 0.05563007969699366 * x - 0.20397695888897652 * y + 1.0569715142428786 * z];
+  return lin3.map(v => { const u = Math.min(1, Math.max(0, v)); return 255 * (u <= 0.0031308 ? 12.92 * u : 1.055 * u ** (1 / 2.4) - 0.055); }) as [number, number, number];
+}
+const isLab = (c: string) => c.startsWith('lab(') || c.startsWith('lch(');
 /** OKLCH lightness, chroma and alpha of a computed colour. */
 export function lca(c: string) {
   const n = numbers(c);
   if (c.startsWith('oklch(')) return {L: n[0]!, C: n[1]!, h: n[2]!, a: n[3] ?? 1};
   if (c.startsWith('oklab(')) return {L: n[0]!, C: Math.hypot(n[1]!, n[2]!), h: (Math.atan2(n[2]!, n[1]!) * 180 / Math.PI + 360) % 360, a: n[3] ?? 1};
+  if (isLab(c)) return {...oklch(labRgb(c)), a: n[3] ?? 1};
   const rgb = c.startsWith('color(') ? [n[0]! * 255, n[1]! * 255, n[2]! * 255] : [n[0]!, n[1]!, n[2]!];
   return {...oklch(rgb), a: n[3] ?? 1};
 }
@@ -65,6 +79,7 @@ const gam = (v: number) => 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 /
 function rgbOf(c: string) {
   const n = numbers(c);
   if (c.startsWith('color(')) return n.slice(0, 3).map(v => Math.round(Math.min(255, Math.max(0, v * 255)))).join();
+  if (isLab(c)) return labRgb(c).map(v => Math.round(v)).join();
   if (!c.startsWith('okl')) return n.slice(0, 3).map(v => Math.round(v)).join();
   const [L, A, B] = c.startsWith('oklch(') ? [n[0]!, n[1]! * Math.cos(n[2]! * Math.PI / 180), n[1]! * Math.sin(n[2]! * Math.PI / 180)] : [n[0]!, n[1]!, n[2]!];
   const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3, s = (L - 0.0894841775 * A - 1.291485548 * B) ** 3;

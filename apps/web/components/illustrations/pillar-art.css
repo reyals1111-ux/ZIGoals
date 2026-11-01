@@ -1,15 +1,17 @@
 /* Session AK (F6): the empty-state pillar illustrations (pillar-art.tsx, motifs.tsx). Every colour is one of the app's
-   pillar, brand or accent tokens (Nebula, Light and Dark share their values), mixed only with transparent; by day the
-   rim, ring and marks take each token's ink twin where Light defines one, so they keep their edge on white. Static. */
+   pillar, brand or accent tokens (Nebula, Light and Dark share their values), mixed only with transparent. Static.
+   Session AK (M7, theme parity): the ring's first stop and the moon's line are the pillar's own colour in every theme, as
+   Nebula draws them (they had taken the token's deeper ink twin by day: a coloured paint that changed with the theme,
+   which ADR-028 H75 does not allow; the art is decoration, aria-hidden, so it needs no contrast of its own). */
 .pillar-art {
-  --pa-a: var(--brand-cyan); --pa-ink: var(--brand-cyan-ink, var(--brand-cyan)); --pa-hi: var(--accent-cyan); --pa-body: var(--brand-violet); --pa-deep: var(--brand-magenta);
+  --pa-a: var(--brand-cyan); --pa-ink: var(--brand-cyan); --pa-hi: var(--accent-cyan); --pa-body: var(--brand-violet); --pa-deep: var(--brand-magenta);
   --pa-halo-o: .34;
   display: block; flex: none; max-width: 100%; height: auto; overflow: visible; pointer-events: none;
 }
-.pillar-art[data-pillar=goals] { --pa-a: var(--pillar-goals); --pa-ink: var(--pillar-goals-ink, var(--pillar-goals)); --pa-hi: var(--accent-violet); --pa-body: var(--brand-violet); --pa-deep: var(--brand-blue); }
-.pillar-art[data-pillar=habits] { --pa-a: var(--pillar-habits); --pa-ink: var(--pillar-habits-ink, var(--pillar-habits)); --pa-hi: var(--accent-cyan); --pa-body: var(--brand-blue); --pa-deep: var(--brand-violet); }
-.pillar-art[data-pillar=health] { --pa-a: var(--pillar-health); --pa-ink: var(--pillar-health-ink, var(--pillar-health)); --pa-hi: var(--accent-magenta); --pa-body: var(--brand-magenta); --pa-deep: var(--brand-violet); }
-.pillar-art[data-pillar=wealth] { --pa-a: var(--pillar-wealth); --pa-ink: var(--pillar-wealth-ink, var(--pillar-wealth)); --pa-hi: var(--pillar-wealth); --pa-body: var(--brand-violet); --pa-deep: var(--brand-blue); }
+.pillar-art[data-pillar=goals] { --pa-a: var(--pillar-goals); --pa-ink: var(--pillar-goals); --pa-hi: var(--accent-violet); --pa-body: var(--brand-violet); --pa-deep: var(--brand-blue); }
+.pillar-art[data-pillar=habits] { --pa-a: var(--pillar-habits); --pa-ink: var(--pillar-habits); --pa-hi: var(--accent-cyan); --pa-body: var(--brand-blue); --pa-deep: var(--brand-violet); }
+.pillar-art[data-pillar=health] { --pa-a: var(--pillar-health); --pa-ink: var(--pillar-health); --pa-hi: var(--accent-magenta); --pa-body: var(--brand-magenta); --pa-deep: var(--brand-violet); }
+.pillar-art[data-pillar=wealth] { --pa-a: var(--pillar-wealth); --pa-ink: var(--pillar-wealth); --pa-hi: var(--pillar-wealth); --pa-body: var(--brand-violet); --pa-deep: var(--brand-blue); }
 .pillar-art .pa-s-light { stop-color: color-mix(in oklab, var(--pa-a) 62%, var(--pa-body)); }
 .pillar-art .pa-s-body { stop-color: var(--pa-body); }
 .pillar-art .pa-s-deep { stop-color: var(--pa-deep); }

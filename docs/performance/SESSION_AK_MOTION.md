@@ -54,3 +54,94 @@ What exists (checked in code, 1 Nov 2026):
 Not built, and why: an app-wide "what is running now" chip (one place for a running fast, focus and habit timers) would
 live in the shell — the desktop sidebar, tablet rail and phone bars are PROTECTED, and the shell's script is on every route,
 including `/app/checklist` with about 0.1 kB of headroom. It needs an owner decision on where it sits.
+
+## M5 / P8 — interaction cost before and after the motion layer (Session AK, lane M7)
+
+### Method
+- Script: `inp-lt.js` (lane M's M5 script, unchanged for the three routes it measured; NOVA added for "after"; Playwright
+  from the repo's store, Chromium, no new dependency), run through the browser lock against the production server on
+  127.0.0.1:3101. Phone profile (F8's): 390×844, DPR 3, mobile UA, touch; CPU 4× (CDP); no network throttle (interaction
+  cost, not download); service workers blocked; Showcase loaded once from Settings; motion at its default (Full).
+- Per route and run: (1) **load** — long tasks after FCP over a 6 s settle: count, longest, TBT; (2) **scroll** — 12 wheel
+  steps of 211 px, long tasks during the scroll; (3) **taps** — Event Timing, the worst duration per interaction (an INP
+  proxy, ms); (4) **navigate by link** — one in-app navigation to the next route (the path a view transition takes): its INP
+  proxy and the long tasks during it. Median of 3 runs per figure; the per-run values are in the scratchpad JSON.
+- Before: the production build of the last pushed commit at 01:42 UTC, 1 Nov 2026 (before the motion layer, M0–M6).
+  After: the production build of `e0f93816`, measured 09:25 UTC, 1 Nov 2026. Between the two builds landed the motion layer
+  and G2/G3/G5/Z2 (the visual system's richer cards, R11's Today widget area that mounts on view on phones, and more), so a
+  difference is the sum of those, not the motion layer alone.
+- NOVA's opening (P8): `nova-opening.js` — a new device per run (Showcase loaded), CPU 4× set before NOVA opens, Full
+  motion; from document start the page records every `requestAnimationFrame` time, every long task and when
+  `.nova-frame[data-opening]` turns `play` and `done`. Over play → done: frames, frame time median / p95 / longest, frames
+  over 50 ms, dropped frames (Σ round(Δ / 16.7) − 1; 0 at a steady 60 Hz), long tasks and TBT. Phone 390 and computer 1440.
+  Median of 3. NOVA is new this session, so it has no "before"; the phone and the computer are compared with each other
+  and with a steady 60 Hz.
+
+### Before / after (median of 3; ms unless named)
+
+| Route | Figure | Before | After | Δ |
+|---|---|---|---|---|
+| Today | load: long tasks / longest / TBT | 24 / 741 / 5012 | 30 / 870 / 4566 | +6 / +129 / −446 |
+| Today | scroll: long tasks / longest / TBT | 0 / 0 / 0 | 8 / 249 / 991 | **+8 / +249 / +991** |
+| Today | tap "Quick add (+)" | 384 | 480 | +96 (runs 376–504 before, 352–488 after) |
+| Today | tap "Complete Drink water" | 328 | n/a | not reachable in the script's 5 s (see notes) |
+| Today | navigate by link (→ Wealth) / its long tasks / TBT | 88 / 13 / 1586 | 80 / 17 / 1962 | −8 / +4 / +376 |
+| Wealth | load: long tasks / longest / TBT | 22 / 461 / 2991 | 25 / 532 / 3005 | +3 / +71 / +14 |
+| Wealth | scroll | 0 / 0 / 0 | 0 / 0 / 0 | 0 |
+| Wealth | tap first fold / tab | 264 | 200 | −64 |
+| Wealth | navigate by link (→ Earn) / its long tasks / longest / TBT | 240 / 9 / 1098 / 2542 | 200 / 12 / 1622 / 3155 | −40 / +3 / +524 / +613 (noisy: 777–1429 before, 518–1782 after) |
+| Earn | load: long tasks / longest / TBT | 21 / 1176 / 3288 | 23 / 1517 / 5001 | +2 / +341 / **+1713** (runs 3269–4957 before, 4342–5605 after) |
+| Earn | scroll: long tasks / longest / TBT | 4 / 139 / 148 | 4 / 157 / 260 | 0 / +18 / +112 |
+| Earn | tap "What's a validator?" | 296 | 400 | **+104** (280–336 before, 368–448 after) |
+| Earn | navigate by link (→ Today) / its long tasks / TBT | 96 / 15 / 2326 | 128 / 14 / 2171 | +32 / −1 / −155 |
+| NOVA (new) | load: long tasks / longest / TBT | — | 6 / 399 / 1004 | — |
+| NOVA (new) | scroll | — | 0 / 0 / 0 | — |
+| NOVA (new) | tap "Quick access" | — | 264 | — |
+| NOVA (new) | navigate by link (→ Today) / its long tasks / TBT | — | 80 / 12 / 1411 | — |
+
+F8's earlier figures (31 Oct, `SESSION_AK_F8.md`; Slow 4G, a different run) for reference: Quick add 368, "What's a
+validator?" 520, Today TBT (warm) 1778. Those use a network profile, so only the INP proxies compare: Quick add is in the
+same band (352–504 across all runs), "What's a validator?" is below F8's 520 but above lane M's "before" 296.
+
+### NOVA's opening ("system online"), CPU 4×, Full motion
+
+| Layout | Opening (ms) | Frames | Frame median / p95 / longest | Frames > 50 ms | Dropped frames | Long tasks / TBT / longest task |
+|---|---|---|---|---|---|---|
+| Phone 390 | 2106 | 113 | 16.7 / 16.8 / 117 | 3 | 12 | 1 / 25 / 63 |
+| Computer 1440 | 2110 | 16 | 116.7 / 266.6 / 283 | 13 | 107 | 13 / 776 / 175 |
+
+On the computer the opening ran at about 8 frames a second at CPU 4× (it is fine on a phone, whose NOVA is the minimal
+view). **Cause:** `components/nova/use-opening.ts` ticked an `elapsed` state every 32 ms for the typed greeting, and the
+dashboard that holds the hook (`nova-dashboard.tsx`: side panels, every widget, the dock) re-rendered whole with each tick
+— on a computer each render is a long task at 4×. **Fix (needs a rebuild):** the hook now keeps only when the play started
+and ends it with one timer; the greeting types itself in its own small component (`NovaGreeting` in `nova-stage.tsx`), so
+only that line re-renders while it types. The opening's look, timing, skip and Customize replay are unchanged
+(`lib/nova/opening.test.ts` passes unchanged). To be measured again after the rebuild with `nova-opening.js`.
+
+### What got slower, and why (honest note)
+- **Today's scroll** now has long tasks (0 → 8, TBT 0 → 991 ms) in all three runs. A CPU profile of the scroll (same
+  profile, 4×) puts 5.3 s of the 7.1 s in the browser's own work ("(program)": style, layout and paint, not script); script
+  is small (ZIGi's resting-spot check, 179 ms, reading boxes near the top only; 338 ms of forced layout in
+  `getBoundingClientRect`). Nodes added during the scroll: only the number tickers (`zg-ticker`,
+  M1's count-up, which starts as a figure comes into view). A Chrome trace of the same scroll (`trace.js`) names the long
+  tasks: six of eight are a frame's **style recalculation** (`UpdateLayoutTree` 41–169 ms each at 4×), two are
+  `requestAnimationFrame` callbacks (149 and 191 ms, the frame's scripted animations: the tickers' per-frame text and the
+  scroll-cue and ZIGi resting-spot checks, each of which reads layout). Before the motion layer nothing changed the page
+  while it scrolled, so no frame recalculated style; now each ticker writes its text every frame for about 0.9 s, and each
+  write makes the next frame recalculate style over a page whose rules have grown (G3's `:has()` card rules, the motion
+  layer's). **Not changed here:** the trace shows which phase, not which rule; the next step is a selector-stats trace
+  (DevTools "Enable CSS selector stats") on this scroll to find the costly rules, then either cheaper rules or tickers
+  that write a text node's `data` (no node replacement). Recorded for the lead (lane M owns the tickers).
+- **Earn's load** TBT +1.7 s (median; the ranges overlap at one run). The profile: forced layout in `getBoundingClientRect`
+  2.4 s (the path engine's measuring, `getPointAtLength` 0.25 s, and the page-arrival scan), the scroll cues' row check
+  (`components/scroll-cues.tsx`, 0.58 s self time; reads `scrollWidth` after every mutation frame), the page arrival's style
+  scan (`components/page-arrival.tsx`, 0.29 s). Neither of the last two is new this session; the page simply has more
+  parts since G3 and the motion layer, so each pass costs more. Not changed here: no single new cause; a fix would rework
+  the path engine's measuring (owned by the path lanes) and is recorded for the lead.
+- **"What's a validator?"** +104 ms in every run: the tap's CPU profile has almost no page script (the rest is the
+  browser's own rendering of the opened explanation), so the cost is the same style and layout growth as above. Recorded,
+  not changed.
+- **Quick add** +96 ms median, inside the before/after run ranges (376–504 / 352–488): not a clear regression.
+- **"Complete Drink water"** could not be measured after: the button did not come into view within the script's 5 s on
+  the phone layout in any run (Today's widget area mounts on view on phones since R11, and its habits list changed); the
+  method was kept as it was, so this cell stays n/a rather than measuring another control.

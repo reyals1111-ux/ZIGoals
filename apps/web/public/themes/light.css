@@ -402,6 +402,13 @@
     .unavailable-pill:not(#\-) {
         border-color: currentColor
     }
+    :scope dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit;
+        -webkit-text-fill-color: inherit
+    }
     .workspace[aria-busy="true"]:not(#\-)::before {
         background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
         background-color: transparent
@@ -10185,35 +10192,35 @@
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .pillar-art:not(#\-) {
         --pa-a: var(--brand-cyan);
-        --pa-ink: var(--brand-cyan-ink, var(--brand-cyan));
+        --pa-ink: var(--brand-cyan);
         --pa-hi: var(--accent-cyan);
         --pa-body: var(--brand-violet);
         --pa-deep: var(--brand-magenta)
     }
     .pillar-art[data-pillar=goals]:not(#\-) {
         --pa-a: var(--pillar-goals);
-        --pa-ink: var(--pillar-goals-ink, var(--pillar-goals));
+        --pa-ink: var(--pillar-goals);
         --pa-hi: var(--accent-violet);
         --pa-body: var(--brand-violet);
         --pa-deep: var(--brand-blue)
     }
     .pillar-art[data-pillar=habits]:not(#\-) {
         --pa-a: var(--pillar-habits);
-        --pa-ink: var(--pillar-habits-ink, var(--pillar-habits));
+        --pa-ink: var(--pillar-habits);
         --pa-hi: var(--accent-cyan);
         --pa-body: var(--brand-blue);
         --pa-deep: var(--brand-violet)
     }
     .pillar-art[data-pillar=health]:not(#\-) {
         --pa-a: var(--pillar-health);
-        --pa-ink: var(--pillar-health-ink, var(--pillar-health));
+        --pa-ink: var(--pillar-health);
         --pa-hi: var(--accent-magenta);
         --pa-body: var(--brand-magenta);
         --pa-deep: var(--brand-violet)
     }
     .pillar-art[data-pillar=wealth]:not(#\-) {
         --pa-a: var(--pillar-wealth);
-        --pa-ink: var(--pillar-wealth-ink, var(--pillar-wealth));
+        --pa-ink: var(--pillar-wealth);
         --pa-hi: var(--pillar-wealth);
         --pa-body: var(--brand-violet);
         --pa-deep: var(--brand-blue)
@@ -11682,7 +11689,7 @@
     .nova-chat-head:not(#\-) {
         border-bottom-color: var(--line,#c2cbda)
     }
-    .nova-eyebrow:not(#\-) {
+    .nova-chat-eyebrow:not(#\-) {
         color: var(--muted,#1e2635)
     }
     .nova-chat-status:not(#\-) {
@@ -11703,7 +11710,7 @@
         background-color: transparent;
         color: inherit
     }
-    .nova-close:focus-visible:not(#\-), .nova-tool:focus-visible:not(#\-) {
+    .nova-close:focus-visible:not(#\-), .nova-chat-tool:focus-visible:not(#\-) {
         outline-color: var(--cyan,#63e7ff)
     }
     .nova-welcome-title:not(#\-) {
@@ -11753,14 +11760,14 @@
     .nova-looked:not(#\-) {
         color: var(--muted,#1e2635)
     }
-    .nova-steps:not(#\-) {
+    .nova-chat-steps:not(#\-) {
         border-color: var(--nova-edge);
         color: var(--muted,#1e2635)
     }
-    .nova-steps li[data-done]:not(#\-) {
+    .nova-chat-steps li[data-done]:not(#\-) {
         color: var(--text,#0d0f15)
     }
-    .nova-steps li[data-done]:not(#\-)::marker {
+    .nova-chat-steps li[data-done]:not(#\-)::marker {
         color: var(--cyan-ink)
     }
     .nova-pending:not(#\-) {
@@ -11929,6 +11936,30 @@
     .nova-chat .ai-more-item:focus-visible:not(#\-) {
         outline-color: var(--cyan,#6fd3ff)
     }
+    .nova-chat .nova-composer textarea:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        outline-color: currentcolor;
+        color: inherit
+    }
+    .nova-chat .nova-chat-send:not(#\-) {
+        border-color: currentcolor;
+        background-image: linear-gradient(120deg,var(--nova-b,#63e7ff),var(--nova-a,#9273ff));
+        background-color: transparent;
+        color: #0a0f24
+    }
+    .nova-chat-more-list:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: #eff2fb;
+        box-shadow: 0 22px 50px -18px #3d3d3d5c
+    }
+    .nova-chat .nova-composer:focus-within:not(#\-) {
+        border-color: var(--nova-focus,#63e7ff);
+        box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 45%,transparent)
+    }
 }
 /*  components/nova/command-bar.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
@@ -11965,6 +11996,31 @@
         color: var(--muted,#1e2635)
     }
 }
+/*  components/nova/guide-band.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nova-guide-band-back:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        color: #0a0f24
+    }
+    .nova-guide-band-back:hover:not(#\-) {
+        filter: brightness(1.08)
+    }
+    .nova-guide-band-back:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-guide-band-progress:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-guide-band-progress strong:not(#\-) {
+        color: var(--nova-ink)
+    }
+    @media (forced-colors: active) {
+        .nova-guide-band-back:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+}
 /*  components/nova/hermes/hermes-example.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
     .nova-hermes-example-status dd:not(#\-) {
@@ -11975,6 +12031,39 @@
     }
     .nova-hermes-example-talk strong:not(#\-) {
         color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/nova/live/live-chips.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
+    .nova-live-chip:not(#\-) {
+        border-color: var(--nova-edge, rgba(203, 191, 255, .5));
+        color: var(--nova-ink, #0f0f0f)
+    }
+    .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-a, var(--brand-violet, #9273ff));
+        box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 18%, transparent)
+    }
+    .nova-live-chip[data-live=pomodoro] .nova-live-dot:not(#\-), .nova-live-chip[data-live=habit] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-habits, var(--accent-magenta, #f3b0e6))
+    }
+    .nova-live-chip[data-live=meditation] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--accent-teal, #86f0d6)
+    }
+    .nova-live-chip[data-live=fast] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #9273ff)
+    }
+    .nova-live-chip[data-live=sleep] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--accent-cyan, #9ee8f8)
+    }
+    .nova-live-chip[data-paused] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: inset 0 0 0 2px var(--nova-ink-3, #9e9abb8c)
     }
 }
 /*  components/nova/nova.css  */
@@ -12093,19 +12182,23 @@
         background-color: var(--nova-ink-3);
         box-shadow: 0 0 8px currentColor
     }
-    .nova-chip-dot[data-kind=local]:not(#\-), .nova-chip-dot[data-kind=device]:not(#\-), .nova-chip-dot[data-kind=strict]:not(#\-), .nova-chip-dot[data-kind=on]:not(#\-) {
+    :is(.nova-chip-dot[data-kind=local]:not(#\-), .nova-chip-dot[data-kind=device]:not(#\-), .nova-chip-dot[data-kind=strict]:not(#\-), .nova-chip-dot[data-kind=on]:not(#\-), .nova-chip:is([data-kind=local], [data-kind=device], [data-kind=strict], [data-kind=on]) .nova-chip-dot):not(#\-) {
         background-image: none;
         background-color: var(--accent-teal, #86f0d6)
     }
-    .nova-chip-dot[data-kind=cloud]:not(#\-), .nova-chip-dot[data-kind=hermes]:not(#\-), .nova-chip-dot[data-kind=guarded]:not(#\-), .nova-chip-dot[data-kind=hosted]:not(#\-), .nova-chip-dot[data-kind=app]:not(#\-) {
+    :is(.nova-chip-dot[data-kind=cloud]:not(#\-), .nova-chip-dot[data-kind=hermes]:not(#\-), .nova-chip-dot[data-kind=guarded]:not(#\-), .nova-chip-dot[data-kind=hosted]:not(#\-), .nova-chip-dot[data-kind=app]:not(#\-), .nova-chip:is([data-kind=cloud], [data-kind=hermes], [data-kind=guarded], [data-kind=hosted], [data-kind=app]) .nova-chip-dot):not(#\-) {
         background-image: none;
         background-color: var(--accent-cyan, #9ee8f8)
     }
-    .nova-chip-dot[data-kind=relaxed]:not(#\-), .nova-chip-dot[data-kind=offline]:not(#\-) {
+    :is(.nova-chip-dot[data-kind=relaxed]:not(#\-), .nova-chip-dot[data-kind=offline]:not(#\-), .nova-chip:is([data-kind=relaxed], [data-kind=offline]) .nova-chip-dot):not(#\-) {
         background-image: none;
         background-color: var(--pillar-wealth, #ffd27a)
     }
-    .nova-live-dot:not(#\-) {
+    .nova-chip[data-kind=scopes] .nova-chip-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-hi)
+    }
+    .nova-on-dot:not(#\-) {
         background-image: none;
         background-color: var(--accent-teal, #86f0d6);
         box-shadow: 0 0 10px var(--accent-teal, #86f0d6)
@@ -12175,7 +12268,7 @@
         border-color: currentcolor;
         background-image: none;
         background-color: transparent;
-        color: transparent
+        color: var(--nova-ink)
     }
     .nova-chip:not(#\-) {
         border-color: var(--nova-edge-soft);
@@ -12189,8 +12282,11 @@
     .nova-chip-key:not(#\-) {
         color: var(--nova-ink-3)
     }
-    .nova-chip-test:not(#\-) {
-        color: color-mix(in srgb, var(--nova-hi) 42%, #000)
+    .nova-chip-value:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-chip-sep:not(#\-) {
+        color: var(--nova-ink-3)
     }
     .nova-wake:not(#\-) {
         color: var(--accent-teal-ink)
@@ -12231,6 +12327,15 @@
     .nova-orb-state-word:not(#\-) {
         color: var(--nova-ink)
     }
+    .nova-orb-state[data-state=listening] .nova-orb-state-word:not(#\-) {
+        color: var(--accent-cyan-ink)
+    }
+    .nova-orb-state[data-state=thinking] .nova-orb-state-word:not(#\-) {
+        color: var(--accent-magenta-ink)
+    }
+    .nova-orb-state[data-state=speaking] .nova-orb-state-word:not(#\-) {
+        color: var(--accent-teal-ink)
+    }
     .nova-orb-state-hint:not(#\-) {
         color: var(--nova-ink-3)
     }
@@ -12238,6 +12343,9 @@
         background-image: linear-gradient(100deg, #0f0f0f 0%, #0f0f0f 45%, var(--nova-hi) 80%, var(--nova-b) 100%);
         background-color: transparent;
         color: transparent
+    }
+    .nova-dayline:not(#\-) {
+        color: var(--nova-ink-2)
     }
     .nova-caret:not(#\-) {
         background-image: none;
@@ -12251,15 +12359,12 @@
         background-image: none;
         background-color: var(--pillar-wealth, #ffd27a)
     }
-    .nova-setup-card:not(#\-) {
+    .nova-setup-banner:not(#\-) {
         border-color: var(--nova-edge);
         background: var(--nova-glass)
     }
-    .nova-setup-card p:not(#\-) {
+    .nova-setup-banner p:not(#\-) {
         color: var(--nova-ink-2)
-    }
-    .nova-orbit > .nova-widget:not(#\-) {
-        --lean-x: calc(var(--lean, 0px) * var(--lean-dir, 0) * var(--lean-k))
     }
     .nova-bento-hero:not(#\-) {
         border-color: var(--nova-edge-soft);
@@ -12376,6 +12481,11 @@
     }
     .nova-seg:has(input:focus-visible):not(#\-) {
         outline-color: var(--nova-focus)
+    }
+    .nova-menu-foot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-glass-strong);
+        border-top-color: var(--nova-edge-soft)
     }
     .nova-radio small:not(#\-) {
         color: var(--nova-ink-3)
@@ -12681,8 +12791,26 @@
     .nova-tech > summary:not(#\-) {
         color: var(--nova-ink-2)
     }
-    .nova-tech > summary:not(#\-)::marker {
+    .nova-tech-chevron:not(#\-) {
+        border-color: var(--nova-edge-soft);
         color: color-mix(in srgb, var(--nova-hi) 42%, #000)
+    }
+    .nova-fact-tiles > div:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #24242408
+    }
+    .nova-fact-tiles dt:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-fact-tiles dd:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-fact-tiles dd[data-unknown]:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-status-row strong:not(#\-) {
+        color: var(--nova-ink)
     }
 }
 /*  components/nova/orb.css  */
@@ -12730,6 +12858,15 @@
     .nova-orb[data-state=listening] .nova-orb-dial:not(#\-) {
         stroke: color-mix(in oklab, var(--orb-b) 80%, transparent)
     }
+    .nova-orb[data-state=listening] .nova-orb-ripples:not(#\-) {
+        stroke: var(--orb-b)
+    }
+    .nova-orb[data-state=thinking] .nova-orb-arc:not(#\-) {
+        stroke: var(--nova-c, var(--brand-magenta, #f06dff))
+    }
+    .nova-orb[data-state=speaking] .nova-orb-ripples:not(#\-) {
+        stroke: var(--accent-teal, #86f0d6)
+    }
     @media (forced-colors: active) {
         .nova-orb .nova-orb-core:not(#\-) {
             fill: Canvas;
@@ -12751,10 +12888,10 @@
 }
 /*  components/nova/panels/panels.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .nova-root, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-history, .checklist-celebration, .path-label-bubble, .path-next-tag, .checklist-timer-ring, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .balance-wheel, .vision-art, .exercise-medallion, .today-stories-mark, .today-earn-mark, .today-checklist-mark, .earn-medallion, .earn-dock-app-face, .orbit-node, .orbit-tab, .orbit-flow, .phone-checklist-pill, .orbit-planet, .orbit-banner, .checklist-quick-preview, .checklist-row-tab) {
-    .nova-badge:not(#\-) {
+    .nova-panel-badge:not(#\-) {
         color: var(--brand-cyan-ink)
     }
-    .nova-empty:not(#\-) {
+    .nova-panel-empty:not(#\-) {
         border-color: var(--line,#c3cae3)
     }
     .nova-brief:not(#\-) {
@@ -12837,18 +12974,18 @@
     .nova-scopes:not(#\-) {
         border-color: currentcolor
     }
-    .nova-send-text:not(#\-) {
+    .nova-guide-send-text:not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--bg, #f3f4fa) 80%, transparent);
         border-color: var(--line, #c3cae3)
     }
-    .nova-send[data-decision="refuse"] .nova-send-line:not(#\-) {
+    .nova-guide-send[data-decision="refuse"] .nova-guide-send-line:not(#\-) {
         color: var(--pink-ink)
     }
-    .nova-check:not(#\-) {
+    .nova-guide-check:not(#\-) {
         border-top-color: var(--line, #c3cae3)
     }
-    .nova-check[data-ok="true"] .nova-check-result b:not(#\-) {
+    .nova-guide-check[data-ok="true"] .nova-guide-check-result b:not(#\-) {
         color: var(--cyan-ink)
     }
     .nova-badge:not(#\-) {
@@ -12865,19 +13002,30 @@
     .nova-online:not(#\-) {
         border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a))
     }
-    .nova-setup-card:not(#\-) {
+    .nova-guide-card:not(#\-) {
         border-color: color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a));
         background-image: none;
         background-color: color-mix(in srgb, var(--panel, #eff2fa) 85%, transparent);
         color: var(--text, #0d0f18)
     }
-    .nova-setup-card-bar:not(#\-) {
+    .nova-guide-card-bar:not(#\-) {
         background-image: none;
         background-color: color-mix(in srgb, var(--line, #e9ecf6) 80%, transparent)
     }
-    .nova-setup-card-bar > span:not(#\-) {
+    .nova-guide-card-bar > span:not(#\-) {
         background-image: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff));
         background-color: transparent
+    }
+    .nova-choice button[aria-pressed=true]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet, #8b7cff) 22%, transparent);
+        border-color: color-mix(in srgb, var(--violet, #8b7cff) 75%, transparent);
+        color: var(--text, #0d0f18);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--violet, #8b7cff) 45%, transparent)
+    }
+    .nova-tag-recommended:not(#\-) {
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 55%, transparent);
+        color: var(--text, #0d0f18)
     }
 }
 /*  components/nova/widgets/widgets.css  */
@@ -16332,7 +16480,7 @@
     .alpha-notice p:not(#\-) {
         color: var(--text-secondary, #09101a)
     }
-    .alpha-notice p.alpha-notice-essentials:not(#\-) {
+    .alpha-notice p:is(.alpha-notice-essentials, .alpha-notice-sentence):not(#\-) {
         color: var(--text-secondary, #09101a)
     }
     .alpha-notice strong:not(#\-) {
@@ -17989,6 +18137,32 @@
 /* Session AH (AF10, owner: "calm the ecosystem header by day"): by day the Ecosystem header's glows sit lower, so the
    eyebrow's teal-to-mauve end reads clearly at phone widths (it fell to 3.2–3.7:1 on the mauve patch). */
 :root[data-theme=light] .ecosystem-intro:not(#\-) { background-image: radial-gradient(ellipse at 90% 0, #64377b1a, transparent 55%), radial-gradient(ellipse at 0 100%, #12516b1a, transparent 60%); }
+/* apps/web/themes/light.ak-cards.css */
+/* Session AK (M7, theme parity): the new surfaces' card depth (G3, "richer cards") by day. Each page's cards carry a faint
+   top light in the pillar's colour and a soft violet shade; Light's card separation (light.extra.css: a neutral shade on
+   every .panel, with an id of weight) replaced that coloured shade by day, which ADR-028 H75 does not allow (a coloured
+   glow or shade is Nebula's in every theme). Each rule restates the page's own Nebula shade with one id more of weight, so
+   it wins over the separation rule; nothing else of the card changes. */
+:root[data-theme=light] :where(.journal-page) .panel:not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+:root[data-theme=light] .on-this-day.panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+/* The same for the other pages whose cards gained this depth in G3 (each measured by day on 1 Nov: the neutral separation
+   shade had replaced it on all nine; Dark kept it). The source rule is named after each. */
+:root[data-theme=light] :where(.wealth-workspace) .panel:not(.wealth-hero):not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-wealth) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/platform/wealth-product.css */
+:root[data-theme=light] :where(.earn-page) .panel:not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/earn/earn.css */
+:root[data-theme=light] :where(.life-review-page) .panel:not(.life-review-hero):not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/life-review/life-review.css */
+:root[data-theme=light] :where(.settings-page) section.panel:not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/life-pages.css */
+:root[data-theme=light] :where(.health-page) .panel:not(.health-aa-card):not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/health/health-aa.css */
+:root[data-theme=light] :where(.chess-page) .panel:not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/chess/chess.css */
+:root[data-theme=light] :where(.help-page) .panel:not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/help/help.css */
+:root[data-theme=light] :where(.habits-workspace) .panel:not(#\-):not(#\-) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--item-start, var(--pillar-habits)) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/habits/habits-aa.css */
+/* Item cards that are also .panel keep their own left edge in the pillar's colour (one class more than the page rule). */
+:root[data-theme=light] :where(.health-page) .health-aa-card.panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/health/health-aa.css */
+:root[data-theme=light] :where(.habits-workspace) .habit-card.panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-start, var(--pillar-habits)) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/habits/habits-aa.css */
+:root[data-theme=light] :where(.wealth-workspace) :is(.owned-asset-card, .watch-card).panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-wealth) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/platform/wealth-product.css */
+:root[data-theme=light] :where(.chess-page) .chess-rating.panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/chess/chess.css */
+:root[data-theme=light] .experiment-card.panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/insights/experiments.css */
+:root[data-theme=light] :where(.today-page) :is(.today-earn-card, .for-you-card, .wrap-up-card, .today-game-card, .today-journal-card, .today-tasks-card).panel:not(#\-):not(#\-) { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); } /* components/dashboard/dashboard.css */
+:root[data-theme=light] :is(:where(.journal-page) .panel, .on-this-day.panel, :where(.wealth-workspace) .panel:not(.wealth-hero), :where(.earn-page) .panel, :where(.life-review-page) .panel:not(.life-review-hero), :where(.settings-page) section.panel, :where(.health-page) .panel:not(.health-aa-card), :where(.chess-page) .panel, :where(.help-page) .panel, :where(.habits-workspace) .panel, :where(.health-page) .health-aa-card.panel, :where(.habits-workspace) .habit-card.panel, :where(.wealth-workspace) :is(.owned-asset-card, .watch-card).panel, :where(.chess-page) .chess-rating.panel, .experiment-card.panel, :where(.today-page) :is(.today-earn-card, .for-you-card, .wrap-up-card, .today-game-card, .today-journal-card, .today-tasks-card).panel):not(#\-):not(#\-) { @media (forced-colors: active) { box-shadow: none; } }
 /* apps/web/themes/light.gatec.css */
 /* Session AF Gate C (design review 2, ADR-028 H137): Light's last half-flipped pieces, by hand. Every rule carries the
    sheet's one id of weight (:not(#\-)) and the theme root, so it wins over the generated rule it replaces. */

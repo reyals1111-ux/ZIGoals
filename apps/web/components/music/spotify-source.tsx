@@ -5,6 +5,9 @@ import {useShowcase} from '../showcase-controls';
 import {useSpotifyClientId} from './music-config';
 import {Controls, Disc, Progress} from './music-ui';
 import {useSpotify} from './use-spotify';
+// Session AK (M7, layout audit and theme parity): its chips are .ambient-chip, whose sheet the Music page did not load — 31 px
+// tall there, and the Light and Dark sheets (which carry ambient.css's rules on every page) drew a pressed ring Nebula did not.
+import '../audio/ambient.css';
 
 const SpotifyByo = lazy(() => import('./spotify-byo'));
 /**
