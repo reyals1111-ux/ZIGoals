@@ -14,7 +14,9 @@ import {currentChatStore} from '../../lib/ai/scope';
 import {agentNote, appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings, PageArea} from '../../lib/ai/settings';
 import type {PageContext} from '../../lib/ai/context/types';
-import {novaAutoAcceptAllowed, type NovaPack} from '../../lib/ai/context-pack/nova';
+import type {NovaPack} from '../../lib/ai/context-pack/nova';
+// Security review Z1A-2: which replies may never be auto-accepted (untrusted words in the turn's inputs).
+import {isUntrustedTool, replyUntrusted} from '../../lib/ai/untrusted';
 import {buildNovaSystemParts} from '../../lib/ai/context-pack/nova-prompt';
 import {zigiSignals} from '../zigi/bus';
 import {fenceStructured, needsRepair, REPAIR_NOTE, repairPrompt, structuredFormat} from '../../lib/ai/actions/repair';
@@ -24,7 +26,7 @@ import {extractHint, stripHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
 import {localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {examplesIn, noModelReply, questionLanguage} from '../../lib/ai/local-answers/no-model';
-import {toolEnv} from '../../lib/ai/tools/env';
+import {toolEnv, type ToolEnv} from '../../lib/ai/tools/env';
 import {runTool} from '../../lib/ai/tools/registry';
 import {recordsForAi} from '../../lib/ai/local-answers/more';
 import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability, type DataMode} from '../../lib/ai/capabilities';
@@ -70,7 +72,9 @@ export type ChatFailure = {kind: AiError['kind'] | 'missing-key' | 'not-connecte
 /** Records sent with a question on top of the page's data ("Ask my AI for more"): the exact text and the reply's handles. */
 export type ExtraData = {text: string; handles: readonly Handle[];
   /** Whether the Health gate was open when these records were chosen (set by `send`); a resend drops them once it closed (Session Y Part 4, F4). */
-  health?: boolean};
+  health?: boolean;
+  /** Security review Z1A-2: the records came from a lookup whose words others may have written (notes, calendars, journal). */
+  untrusted?: boolean};
 export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boolean; extra?: ExtraData; deep?: boolean; images?: readonly ChatImage[]; log?: boolean;
   /** Session V Part 10: every option of the message, so "Send anyway" sends it exactly as asked. */
   options: SendOptions};
@@ -108,6 +112,11 @@ export type NovaSurface = {persona: string;
   novaPack: () => NovaPack | null;
   /** A page's records, for a task NOVA hands to ZIGi or to the person's own agent (lib/nova/bridge-pack.ts). */
   pack: (area: PageArea) => PageContext | null;
+  /**
+   * Security review Z1A-4: what ZIGi's lookups may read for a task NOVA handed it (ZIGi's gates narrowed by NOVA's scopes,
+   * lib/nova/bridge-pack.ts `taskToolEnv`). Absent: ZIGi's own provider environment, as before.
+   */
+  taskEnv?: (handles: Handles) => ToolEnv | null;
   remember?: (chatId: string) => void;
   /** Session AK (owner follow-up 3 N11): the person's own agent, when connected (null: not connected). */
   agent?: (name: NovaAgentName) => NovaAgent | null};
@@ -173,7 +182,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const abort = useRef<AbortController | null>(null), handles = useRef(new Map<string, readonly Handle[]>()), frame = useRef<(() => void) | null>(null), pendingText = useRef('');
   const fresh = useRef(new Set<string>()), locals = useRef(new Map<string, LocalInfo>()), extras = useRef(new Map<string, ExtraData>()), photos = useRef(new Map<string, readonly ChatImage[]>());
   // Session AK (NOVA): the page and voice a NOVA question was asked with, so Regenerate asks it the same way (memory only).
-  const surfaces = useRef(new Map<string, Pick<SendOptions, 'area' | 'zigi' | 'agent'>>());
+  const surfaces = useRef(new Map<string, Pick<SendOptions, 'area' | 'zigi' | 'agent' | 'pasted'>>());
   // Session V Part 6, all in memory for this session: provider metadata per model, models that refused tools, the exact
   // tool results of each reply, and the latest context (a private screen opening mid-answer stops the lookups).
   const capabilities = useRef(new Map<string, Promise<Capability>>()), known = useRef(new Map<string, Capability>()), fellBack = useRef(new Set<string>()), lookups = useRef(new Map<string, Lookup[]>());
@@ -200,7 +209,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
     const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {}), ...(extra.records?.length ? {records: extra.records} : {})};
     if (extra.lookups?.length) lookups.current.set(turn.id, extra.lookups);
-    // Session AK (N9): a NOVA reply whose records held someone's words (notes, journal) or a pasted text is never auto-accepted.
+    // Session AK (N9; review Z1A-2): a reply driven by words the person did not type here is never auto-accepted (lib/ai/untrusted.ts).
     handles.current.set(turn.id, contextHandles); if (!extra.untrusted) fresh.current.add(turn.id);
     let next: Chat;
     try { next = appendTurn(chatRef.current, turn); } catch { next = {...chatRef.current, turns: [...chatRef.current.turns.slice(1), turn]}; }
@@ -284,7 +293,8 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     const asked = [...next.turns].reverse().find(t => t.role === 'user');
     if (asked && options.extra) extras.current.set(asked.id, options.extra);
     if (asked && options.images?.length) photos.current.set(asked.id, options.images);
-    if (asked && nova && options.area) surfaces.current.set(asked.id, {area: options.area, ...(options.zigi ? {zigi: true} : {}), ...(agent ? {agent: options.agent} : {})});
+    if (asked && nova && options.area) surfaces.current.set(asked.id, {area: options.area, ...(options.zigi ? {zigi: true} : {}), ...(agent ? {agent: options.agent} : {}), ...(options.pasted ? {pasted: true} : {})});
+    else if (asked && options.pasted) surfaces.current.set(asked.id, {pasted: true}); // Z1A-2: a regenerate keeps the paste's mark
     setChat(next); persist(next);
     if (!options.reuse && !before.turns.length) rememberArea(next.id);
     let key: string | null = null;
@@ -312,7 +322,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     if (!agent && options.withContext !== false && toolMode !== 'attach' && !fellBack.current.has(fbKey)) mode = dataMode(toolMode, toolMode === 'auto' ? hosted ? {tools: true, vision: null} : await capabilityFor(key, model, controller.signal).catch(() => null) : null, false);
     // NOVA's own message: the tool loop reads with the pack's own environment (its scopes, its handles).
     const sources = mode === 'tools' && !novaOwn ? context.toolSources() : null, toolHandles = novaPack ? novaPack.handles : new Handles(contextHandles);
-    const env = novaOwn ? (mode === 'tools' ? novaPack?.env ?? null : null) : sources ? toolEnv(sources, context.gates, 'provider', toolHandles) : null;
+    const env = novaOwn ? (mode === 'tools' ? novaPack?.env ?? null : null) : nova?.taskEnv && mode === 'tools' ? (() => { try { return nova!.taskEnv!(toolHandles); } catch { return null; } })() : sources ? toolEnv(sources, context.gates, 'provider', toolHandles) : null;
     if (!env || !toolsFor(env).length) mode = 'attach';
     const onText = (delta: string) => {
       reply += delta; pendingText.current = reply;
@@ -378,7 +388,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
     // Round 9 (ADR-017 S75): a money ask the reply declines in words carries no card (the protocol's own rule, enforced).
     const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
-    const done = (stopped: string | undefined) => finish(answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, ...(agent ? {provider: 'local' as const} : {}), lookups: found, deep: !!options.deep, careful: !!risk, ...(nova && !novaAutoAcceptAllowed(novaPack ?? {untrusted: false}, !!options.pasted) ? {untrusted: true} : {}), records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? area : null)}); // Session Z-Local, persona finding #7
+    const done = (stopped: string | undefined) => finish(answerOnly(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, ...(agent ? {provider: 'local' as const} : {}), lookups: found, deep: !!options.deep, careful: !!risk, ...(replyUntrusted({nova: !!nova, packUntrusted: !!novaPack?.untrusted, pasted: !!options.pasted, agent: !!agent, lookups: found.map(l => l.result.tool), extraUntrusted: !!options.extra?.untrusted}) ? {untrusted: true} : {}), records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? area : null)}); // Session Z-Local, persona finding #7
     try {
       try { await run(mode); }
       catch (error) {
@@ -424,7 +434,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
   const toolState = useCallback((model: string | null) => { if (!settings.provider || !model) return {capability: null, fellBack: false}; const id = fallbackKey(settings.provider, model); return {capability: known.current.get(id) ?? null, fellBack: fellBack.current.has(id)}; }, [settings.provider]);
   const connected = !!hosted || (settings.enabled && settings.mode !== 'subscription' && !!settings.provider && !!settings.model);
   /** A local answer: the person's question and ZIGi's answer from the records, both marked local (never sent to an AI later). */
-  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results, source = 'local'}: {replace?: string; results?: readonly ToolResult[]; source?: 'local' | 'on-device'} = {}) => {
+  const answerLocally = useCallback((shown: string, question: string, reply: LocalReply, {replace, results, source = 'local', untrusted = false}: {replace?: string; results?: readonly ToolResult[]; source?: 'local' | 'on-device'; untrusted?: boolean} = {}) => {
     if (reply.kind === 'none') return;
     const before = replace ? editTarget(chatRef.current, replace) ?? chatRef.current : chatRef.current;
     const user = {...userTurn(shown), source};
@@ -432,7 +442,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     let next: Chat;
     try { next = appendTurn(appendTurn(before, user), answer); }
     catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
-    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); fresh.current.add(answer.id); countZigi('device-answer'); // Session AI (G14): counted only when the person turned the counts on
+    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); if (!untrusted) fresh.current.add(answer.id); /* Z1A-2: a pasted question's cards wait for a tap */ countZigi('device-answer'); // Session AI (G14): counted only when the person turned the counts on
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
     zigiSignals.emit(localSignal(reply, question));
@@ -488,7 +498,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     if (reply.kind === 'none' && connected) return send(text, options);
     if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
     // Session AB-Cloud Part 9 (ADR-023 C30): without a model, the steps for a "create/plan" ask, or the examples in the question's language.
-    answerLocally(text, text, reply.kind === 'none' ? noModelReply(text, env) : reply, {replace: options.replace, results: resultsFor(reply, env)});
+    answerLocally(text, text, reply.kind === 'none' ? noModelReply(text, env) : reply, {replace: options.replace, results: resultsFor(reply, env), untrusted: !!options.pasted});
   }, [answerLocally, askOnDevice, connected, localEnv, send]);
   const choose = useCallback((question: string, choice: LocalChoice) => {
     const env = localEnv(); if (!env || abort.current) return;
@@ -502,7 +512,7 @@ export function useChatSession({settings, scope, context, hosted = null, nova = 
     return sources ? recordsForAi(calls, sources, context.gates, context.context?.handles ?? []) : null;
   }, [context]);
   const askMore = useCallback(async (question: string, calls: readonly ToolCallRecord[], options: SendOptions = {}) => {
-    const extra = moreText(calls);
+    const made = moreText(calls), extra = made && calls.some(c => isUntrustedTool(c.tool)) ? {...made, untrusted: true} : made;
     await send(question, {...options, ...(extra ? {extra} : {})});
   }, [moreText, send]);
   const localFor = useCallback((turnId: string) => locals.current.get(turnId), []);

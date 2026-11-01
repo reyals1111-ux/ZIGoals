@@ -38,6 +38,12 @@ export const novaSetupSchema = z.looseObject({
   celebrated: z.boolean().optional(),
   /** The setup card on NOVA put away by the person before finishing (it comes back from the guide). */
   cardHidden: z.boolean().optional(),
+  /**
+   * Security review Z1A-7 (lane ZF): the model names Ollama's own list marked as running in Ollama's cloud (`remote_host` /
+   * `remote_model` in /api/tags), so a renamed copy is still a cloud for the privacy mode (lib/ai/privacy-mode.ts). Names
+   * only, at most 100; never a record of the person's life.
+   */
+  cloudModels: z.array(z.string().min(1).max(200)).max(100).optional().catch(undefined),
 });
 export type NovaSetup = z.infer<typeof novaSetupSchema>;
 export const NOVA_SETUP: DeviceRecordSpec<NovaSetup> = {key: NOVA_SETUP_KEY, schema: novaSetupSchema, empty: () => ({version: 1})};

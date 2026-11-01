@@ -11,10 +11,8 @@ import {readKey} from '../../lib/ai/keys';
 import {currentAiScope} from '../../lib/ai/scope';
 import {readCapability} from '../../lib/ai/capabilities';
 import {photoAllowance, preparePhoto} from '../../lib/ai/photo';
-import {streamChat} from '../../lib/ai/chat';
-import {guardRequest} from '../../lib/ai/privacy-mode';
-/** The engine's privacy mode applies to a label photo too (owner follow-up 2, N9): Strict keeps it on the device; Guarded never sends a photo to a cloud model. */
-const guardedStream: typeof streamChat = request => (async function* () { yield* streamChat(await guardRequest(request)); })();
+// The engine's privacy mode applies to a label photo too (owner follow-up 2, N9; Z1A-1): Strict keeps it on the device; Guarded never sends a photo to a cloud model.
+import {guardedStreamChat as guardedStream} from '../../lib/ai/guarded-stream';
 import {AiError, isAbortLike} from '../../lib/ai/errors';
 import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';

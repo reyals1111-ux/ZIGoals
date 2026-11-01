@@ -330,6 +330,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
           <div className="ai-card-actions"><button type="button" className="primary" onClick={session.confirmSpend}>Send anyway</button><button type="button" className="text-link" onClick={session.cancelSpend}>Not now</button></div>
         </div>}
         {session.usageNote && <p className="ai-note ai-usage-note" role="status">{session.usageNote}</p>}
+        {reader.notice && <p className="ai-note" role="status">{reader.notice}</p>}
         {session.failure && <div className="ai-failure" role="alert"><p className="ai-failure-title">{session.failure.title}</p>{session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}<div className="ai-card-actions">{['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <Link className="secondary" href={SETTINGS_HREF} onClick={onClose}>Open Settings</Link>}{session.failure.kind === 'stalled' && <button type="button" className="secondary" onClick={() => { session.dismissFailure(); void session.send('Continue from where you stopped.'); }}>Ask ZIGi to continue</button>}<button type="button" className="text-link" onClick={session.dismissFailure}>Dismiss</button></div></div>}
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>

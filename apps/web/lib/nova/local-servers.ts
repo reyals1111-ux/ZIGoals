@@ -46,7 +46,7 @@ export async function probeServer(server: LocalServer, {fetcher, signal, ms = PR
     if (server.wire === 'ollama') {
       try { const f = fetcher ?? ((i: RequestInfo | URL, init?: RequestInit) => fetch(i, init)); const r = await f(`${server.baseUrl}/api/tags`, {signal: t.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); if (r.ok) cloud = ollamaCloudNames(await r.json()); } catch { /* the names alone then */ }
     }
-    return {server, found: true, models: list.filter(m => m.kind === 'chat').map(m => ({id: m.id, cloud: cloud.has(m.id) || isOllamaCloudModel(m.id)}))};
+    return {server, found: true, models: list.filter(m => m.kind === 'chat').map(m => ({id: m.id, cloud: m.cloud === true || cloud.has(m.id) || isOllamaCloudModel(m.id)}))};
   } catch (error) {
     const kind = error instanceof AiError ? error.kind : 'local-unreachable';
     if (kind === 'bad-key' || kind === 'cors' || kind === 'blocked') return {server, found: false, reason: 'refused', message: error instanceof Error ? error.message : 'The server refused.'};

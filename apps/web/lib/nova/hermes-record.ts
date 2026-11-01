@@ -46,11 +46,26 @@ export function normalizeHermesBase(input: string): string {
   return normalizeLocalBaseUrl(withScheme).replace(/\/v1$/, '');
 }
 const portOf = (url: string | null | undefined) => { try { const u = new URL(url ?? ''); return Number(u.port || (u.protocol === 'https:' ? 443 : 80)); } catch { return null; } };
-/** A request goes to the person's Hermes: its saved gateway address, or the default port 8642 on this computer. */
+/**
+ * Security review Z1A-6 (lane ZF): one spelling for an address on this computer, so `localhost`, `127.0.0.1` and `[::1]`,
+ * an upper-case host, a default port written out, trailing slashes and the wire's /v1 all name the same gateway.
+ * "http://LOCALHOST:8650/v1/" → "http://127.0.0.1:8650". Not a URL: null.
+ */
+export function canonicalLocalBase(input: string | null | undefined): string | null {
+  if (!input) return null;
+  try {
+    const u = new URL(input.trim());
+    const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, ''), loopback = host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host);
+    const port = u.port || (u.protocol === 'https:' ? '443' : '80'), path = u.pathname.replace(/\/+$/, '').replace(/\/v1$/i, '').replace(/\/+$/, '');
+    return `${u.protocol}//${loopback ? '127.0.0.1' : host}:${port}${path}`;
+  } catch { return null; }
+}
+/** A request goes to the person's Hermes: its saved gateway address (in any spelling of this computer), or the default port 8642 on this computer. */
 export function isHermesBase(baseUrl: string | null | undefined, record: Pick<NovaHermes, 'baseUrl'> | null): boolean {
   if (!baseUrl) return false;
   const clean = baseUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
-  return (!!record?.baseUrl && clean === record.baseUrl) || portOf(clean) === HERMES_DEFAULT_PORT;
+  const asked = canonicalLocalBase(baseUrl), saved = canonicalLocalBase(record?.baseUrl);
+  return (!!record?.baseUrl && (clean === record.baseUrl || (!!asked && asked === saved))) || portOf(clean) === HERMES_DEFAULT_PORT;
 }
 /** The engine's rule (lib/ai/privacy-mode.ts): a Hermes brain whose local model is not confirmed is redacted in Strict and Guarded. */
 export function hermesNeedsRedaction(mode: PrivacyMode | null, confirmedLocal: boolean): boolean {

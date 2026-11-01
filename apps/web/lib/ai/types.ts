@@ -74,4 +74,6 @@ export type ChatRequest = {
   fetcher?: typeof fetch;
 };
 export type ModelKind = 'chat' | 'transcription' | 'other';
-export type ModelInfo = {id: string; label: string; kind: ModelKind};
+export type ModelInfo = {id: string; label: string; kind: ModelKind;
+  /** Security review Z1A-7: Ollama's list marked this model as running in Ollama's cloud (`remote_host`). */
+  cloud?: true};

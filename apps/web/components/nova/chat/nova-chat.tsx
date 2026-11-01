@@ -20,7 +20,8 @@ import {briefPrefs, ZIGI, zigiPrefs} from '../../../lib/ai/store/records';
 import {toolEnv} from '../../../lib/ai/tools/env';
 import {readDeviceRecord} from '../../../lib/device-record';
 import {askZigi, DUO_IDLE, type NovaAgentId, duoState, markDelegated, NOVA_BRIDGE, NOVA_BRIDGE_KEY, NOVA_CHAT_PARAM, NOVA_HANDOFF_EVENT, rememberNovaChat, setDuo, setSpeechInput, speechInputOn, takeNovaHandoff, type ZigiPage} from '../../../lib/nova/bridge';
-import {pagePack} from '../../../lib/nova/bridge-pack';
+import {pagePack, taskToolEnv} from '../../../lib/nova/bridge-pack';
+import {readNovaScopes} from '../../../lib/nova/scopes';
 import {instructionsOf, NOVA_STORE, personaOf} from '../../../lib/nova/store';
 import {quickLogContext} from '../../../lib/quick-log/context';
 import {quickLogReply} from '../../../lib/quick-log/multi';
@@ -100,7 +101,9 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     persona: persona.name,
     // Built at the moment of each send, from the records of that moment, under this page's gates and NOVA's scopes.
     novaPack: () => { const input = packInput(); return input ? buildNovaPack(input) : null; },
-    pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates}),
+    // Security review Z1A-4: a task for ZIGi or Hermes meets NOVA → Permissions too (Health off by default), read at the send.
+    pack: area => pagePack({area, sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}}),
+    taskEnv: handles => taskToolEnv({sources: contextRef.current.toolSources(), gates: contextRef.current.gates, nova: {scopes: readNovaScopes(getAppStorage()), chainChosen: chainRef.current}, handles}),
     remember: chatId => { rememberNovaChat(getAppStorage(), chatId); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); },
     agent: name => name === 'hermes' ? hermesRef.current : null,
   }), [persona.name, packInput]);
@@ -142,14 +145,14 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       default: say(typed, `${name} opens a view in ZIGi’s panel: press ⌘/Ctrl + K there. Everything else works here.`); return true;
     }
   }, [ask, connected, context, reader, say, sensitive, vprefs.muted]);
-  const runDelegation = useCallback(async (text: string, area: PageArea, replace?: string, agent: NovaAgentId = 'zigi') => {
+  const runDelegation = useCallback(async (text: string, area: PageArea, replace?: string, agent: NovaAgentId = 'zigi', pasted = false) => {
     if (session.status !== 'idle' || delegation.current) return;
     delegation.current = {before: new Set(session.chat.turns.map(t => t.id)), area, chatId: session.chat.id, done: false, agent}; setDeleg({area, agent});
     setDuo({active: true, area, step: 'handed', task: text, looked: [], ...(agent === 'hermes' ? {agent} : {})});
     setNote(agent === 'hermes' ? `${persona.name} asked your Hermes Agent.` : `${persona.name} handed this to ZIGi on ${AREA_LABELS[area]}.`);
     // ZIGi first meets its on-device answers, as on its own page; the person's Hermes always answers itself (a direct send).
     if (agent === 'hermes') await session.send(text, {area, zigi: true, agent: 'hermes', ...(replace ? {replace} : {})});
-    else await session.ask(text, {area, zigi: true, ...(replace ? {replace} : {})});
+    else await session.ask(text, {area, zigi: true, ...(replace ? {replace} : {}), ...(pasted ? {pasted: true} : {})}); // Z1A-2
     if (delegation.current) { delegation.current.done = true; setTick(t => t + 1); }
   }, [persona.name, session]);
   const sendText = useCallback((text: string, replace?: string, pasted = false) => {
@@ -207,7 +210,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
     const taken = takeNovaHandoff(); if (!taken) return;
     try { const url = new URL(window.location.href); if (url.searchParams.has(NOVA_CHAT_PARAM)) { url.searchParams.delete(NOVA_CHAT_PARAM); window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`); } } catch { /* the address keeps it; harmless */ }
     if (taken.kind === 'open') void openChat(taken.chatId);
-    else if (taken.kind === 'ask') { setView('chat'); sendText(taken.text); }
+    else if (taken.kind === 'ask') { setView('chat'); sendText(taken.text, undefined, !!taken.pasted); }
     else { setView('chat'); void runDelegation(taken.text, taken.area, undefined, taken.agent ?? 'zigi'); }
   };
   const ready = settings.loaded && context.ready && novaRecord.loaded && bridge.loaded;
@@ -303,6 +306,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
           <div className="ai-card-actions"><button type="button" className="primary" onClick={session.confirmSpend}>Send anyway</button><button type="button" className="text-link" onClick={session.cancelSpend}>Not now</button></div>
         </div>}
         {session.usageNote && <p className="ai-note" role="status">{session.usageNote}</p>}
+        {reader.notice && <p className="ai-note" role="status">{reader.notice}</p>}
         {session.failure && <div className="ai-failure" role="alert">
           <p className="ai-failure-title">{session.failure.title}</p>
           {session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}
@@ -316,7 +320,7 @@ export function NovaChat({layout, onOrbState, onClose, collapsed = false, onColl
       </div>
       {sensitive && <p className="ai-note nova-paused">Paused on this private screen: nothing is read from your records.</p>}
       <NovaComposer ref={composer} session={session} persona={persona.name} settings={data} sensitive={sensitive} editing={editing} onEditing={setEditing}
-        onSend={sendText} onDelegate={(text, area, replace) => void runDelegation(text, area, replace)} onOpenZigi={openZigi} onHermes={hermes ? (text, area) => void runDelegation(text, area, undefined, 'hermes') : undefined}
+        onSend={sendText} onDelegate={(text, area, replace, pasted) => void runDelegation(text, area, replace, 'zigi', !!pasted)} onOpenZigi={openZigi} onHermes={hermes ? (text, area) => void runDelegation(text, area, undefined, 'hermes') : undefined}
         speechOn={speechOn} onSpeech={on => { try { setSpeechInput(getAppStorage(), on); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: NOVA_BRIDGE_KEY})); } catch { setNote('This choice could not be saved on this device.'); } }}
         onListening={setListening} onSpoken={() => { spokenAsked.current = true; }}/>
       {connected && <details className="ai-context-preview nova-see" onToggle={event => { if (event.currentTarget.open) { const input = packInput(); setSeeing(input ? whatNovaCanSee(input) : ''); } }}>

@@ -11,7 +11,7 @@ import {PRIVACY_MODES, readPrivacyMode, type PrivacyMode} from './setup';
  */
 export {PRIVACY_MODES, type PrivacyMode, isCloudTarget, isOllamaCloudModel, sendDecision, type SendDecision};
 export const PRIVACY_WORDS: Readonly<Record<PrivacyMode, {label: string; tag: string; what: string; sends: string}>> = {
-  strict: {label: 'Strict', tag: 'Recommended', what: 'Only a model on this computer answers. Nothing goes to a cloud.', sends: 'Nothing leaves this computer. A cloud model is refused before anything is sent.'},
+  strict: {label: 'Strict', tag: 'Recommended', what: 'Only a model on this computer answers. Nothing goes to a cloud.', sends: 'Nothing goes to a cloud model: it is refused before anything is sent. A Hermes Agent counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy, as in Guarded.'},
   guarded: {label: 'Guarded', tag: 'Cloud, redacted', what: 'A cloud model may answer, but secrets, account numbers, addresses, exact amounts and names are taken out or rounded first.', sends: 'You see exactly what goes before it goes. Photos are never sent to a cloud.'},
   relaxed: {label: 'Relaxed', tag: 'Your informed choice', what: 'The areas you share go to your model as they are, local or cloud.', sends: 'Your chosen cloud provider receives your shared records unchanged, under its own terms.'},
 };

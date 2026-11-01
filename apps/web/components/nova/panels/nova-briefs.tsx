@@ -2,7 +2,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {recapDue, type Brief} from '../../../lib/ai/proactive/brief';
 import {briefPrefs, ZIGI} from '../../../lib/ai/store/records';
-import {acceptReword, composeBrief, latestBriefs, markAllRead, markRead, NOVA_BRIEFS, novaBriefPrefs, rewordMessage, REWORD_SYSTEM, saveBrief, setNovaBriefPrefs, unreadCount, withReword, type BriefScopes, type NovaBrief} from '../../../lib/nova/briefs';
+import {acceptReword, briefForModel, composeBrief, latestBriefs, markAllRead, markRead, NOVA_BRIEFS, novaBriefPrefs, rewordMessage, REWORD_SYSTEM, saveBrief, setNovaBriefPrefs, unreadCount, withReword, type BriefScopes, type NovaBrief} from '../../../lib/nova/briefs';
 import {NOTIFY_PREFS, typeOn} from '../../../lib/notify/prefs';
 import {isShowcase} from '../../../lib/showcase-storage';
 import {formatDate} from '../../../lib/visual-format';
@@ -46,9 +46,13 @@ export function NovaBriefs() {
   const save = (change: Parameters<typeof record.update>[0], text?: string) => { try { record.update(change); if (text) setNote({text}); } catch { setNote({text: 'Not saved on this device.', failed: true}); } };
   const reword = async (brief: NovaBrief) => {
     if (!model.ask || !model.route) return;
+    // Security review Z1A-9: only the copy built from what may go to the model (ZIGi's share switches, Health's gate, NOVA's
+    // scopes) is sent and checked, never the on-device brief on screen.
+    const sent = briefForModel(brief, sources.send?.env ?? null, {scopes: sources.scopes, extras: {snapshot: sources.send?.env.earn ?? null, earning: prefs.earning}});
+    if (!sent) { setNote({text: 'Nothing in this brief may go to your model under your sharing choices, so it stays as NOVA wrote it on this device.', failed: true}); return; }
     setBusy(brief.id); setNote(null);
     try {
-      const reply = await model.ask({system: REWORD_SYSTEM, user: rewordMessage(brief)}), text = acceptReword(brief, reply);
+      const reply = await model.ask({system: REWORD_SYSTEM, user: rewordMessage(sent)}), text = acceptReword(sent, reply);
       if (!text) { setNote({text: 'Your model changed a number or said too much, so its wording is not shown. The brief above is exactly your records.', failed: true}); return; }
       save(current => withReword(current, brief.id, {text, by: model.route!, model: model.model ?? 'model'}, new Date()));
     } catch (error) { setNote({text: error instanceof Error ? error.message : 'Your model did not answer.', failed: true}); }

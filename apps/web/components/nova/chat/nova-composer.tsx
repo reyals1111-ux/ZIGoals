@@ -25,7 +25,7 @@ import {SecretGuard} from '../../secret-guard/secret-guard';
 export type Editing = {id: string; text: string; seq: number};
 type Props = {session: ChatSession; persona: string; settings: AiSettings; sensitive: boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void;
   /** `pasted`: the words came (at least partly) from a paste; a card from the reply is then never auto-accepted (N9). */
-  onSend: (text: string, replace?: string, pasted?: boolean) => void; onDelegate: (text: string, area: ZigiPage, replace?: string) => void; onOpenZigi: (text: string, area: ZigiPage) => void;
+  onSend: (text: string, replace?: string, pasted?: boolean) => void; onDelegate: (text: string, area: ZigiPage, replace?: string, pasted?: boolean) => void; onOpenZigi: (text: string, area: ZigiPage) => void;
   /** Session AK (owner follow-up 3 N11): "Ask my Hermes", shown only once the person's Hermes Agent is connected. */
   onHermes?: (text: string, area: ZigiPage) => void;
   speechOn: boolean; onSpeech: (on: boolean) => void; onListening: (listening: boolean) => void; onSpoken: () => void};
@@ -55,7 +55,7 @@ export const NovaComposer = forwardRef<HTMLTextAreaElement, Props>(function Nova
   const handTo = (open: boolean) => {
     const value = text.trim(); if (!value || (busy && !open)) return;
     if (open) { onOpenZigi(value, page); clear(); return; }
-    onDelegate(value, page, editing?.id); clear();
+    onDelegate(value, page, editing?.id, pasted.current); clear();
   };
   const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent);
   return <form className="nova-composer-wrap" onSubmit={event => { event.preventDefault(); submit(); }}>

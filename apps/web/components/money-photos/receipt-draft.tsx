@@ -6,7 +6,9 @@ import {readKey} from '../../lib/ai/keys';
 import {currentAiScope} from '../../lib/ai/scope';
 import {readCapability} from '../../lib/ai/capabilities';
 import {preparePhoto} from '../../lib/ai/photo';
-import {streamChat} from '../../lib/ai/chat';
+// Security review Z1A-1: the engine's privacy hook on this photo too (Strict keeps it here; Guarded sends no photo to a cloud).
+import {guardedStreamChat} from '../../lib/ai/guarded-stream';
+import {PhotoSendConfirm} from '../ai/photo-send-confirm';
 import {AiError, isAbortLike} from '../../lib/ai/errors';
 import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
@@ -24,7 +26,7 @@ import {sendMoneyDraft} from './draft-event';
  * this device and sent with this one request only; ZIGoals does not keep it here. The answer fills the Spending form as
  * a draft; nothing is saved until the person taps Save. Loaded only when opened.
  */
-type State = {kind: 'idle'} | {kind: 'busy'; line: string} | {kind: 'done'; notes: string[]} | {kind: 'problem'; lines: string[]} | {kind: 'spend'; note: string; file: File};
+type State = {kind: 'idle'} | {kind: 'busy'; line: string} | {kind: 'done'; notes: string[]} | {kind: 'problem'; lines: string[]} | {kind: 'spend'; note: string; file: File} | {kind: 'confirm'; file: File};
 export default function ReceiptDraft() {
   const id = useId(), take = useRef<HTMLInputElement>(null), choose = useRef<HTMLInputElement>(null), abort = useRef<AbortController | null>(null);
   const [state, setState] = useState<State>({kind: 'idle'});
@@ -51,7 +53,7 @@ export default function ReceiptDraft() {
       if (reads !== true) { setState({kind: 'problem', lines: [reads === false ? 'Your model does not read photos.' : 'Turn on "This model reads photos" in Settings → ZIGi · Your Personal AI Companion if your model does.']}); return; }
       const photo = await preparePhoto(file);
       setState({kind: 'busy', line: 'Your AI is reading the receipt…'});
-      const out = await runReceiptRead(receiptRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), streamChat, localDate());
+      const out = await runReceiptRead(receiptRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), guardedStreamChat, localDate());
       if (out.requests) { try { recordUsage(getAppStorage(), provider, out.usage ?? {input: null, output: null}, out.requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience */ } }
       if (controller.signal.aborted) return;
       if (!out.ok) { setState({kind: 'problem', lines: out.problems}); return; }
@@ -62,7 +64,7 @@ export default function ReceiptDraft() {
       setState({kind: 'problem', lines: [e instanceof AiError || e instanceof Error ? e.message : 'The photo could not be read. Try again, or type the entry.']});
     } finally { if (abort.current === controller) abort.current = null; }
   }
-  const pick = (input: HTMLInputElement | null) => { const file = input?.files?.[0]; if (input) input.value = ''; if (file) void read(file); };
+  const pick = (input: HTMLInputElement | null) => { const file = input?.files?.[0]; if (input) input.value = ''; if (file) setState({kind: 'confirm', file}); }; // Z1B-10: seen and confirmed before it is sent
 
   if (!connected) return <div className="money-photos-draft" role="group" aria-labelledby={`${id}-title`}>
     <p className="money-photos-title" id={`${id}-title`}>Draft an entry from a receipt</p>
@@ -89,6 +91,7 @@ export default function ReceiptDraft() {
       {state.kind === 'done' && <div><p><strong>Read from the photo</strong>. The draft is in the Spending form above; every field stays yours to change, and nothing is saved until you tap Save.</p>{state.notes.length > 0 && <ul className="fine">{state.notes.map(n => <li key={n}>{n}</li>)}</ul>}</div>}
       {state.kind === 'problem' && <div role="alert"><p><strong>The receipt was not used.</strong></p><ul>{state.lines.map(l => <li key={l}>{l}</li>)}</ul></div>}
     </div>
+    {state.kind === 'confirm' && settings && <PhotoSendConfirm file={state.file} what="receipt" target={{provider: settings.provider, model: settings.model, localServer: settings.localServer}} onSend={() => void read(state.file)} onCancel={() => setState({kind: 'idle'})}/>}
     {state.kind === 'spend' && <div><p>{state.note}</p><div className="actions"><button type="button" className="secondary" onClick={() => void read(state.file, true)}>Send anyway</button><button type="button" className="quiet" onClick={() => setState({kind: 'idle'})}>Not now</button></div></div>}
   </div>;
 }

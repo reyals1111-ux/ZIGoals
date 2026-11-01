@@ -86,12 +86,12 @@ export function RoutingMenu({brain, routing, onRouting, openModels}: {brain: Bra
 }
 
 export function CommandField({you, persona, inputRef, onOpen}: {you: string; persona: string; inputRef: React.RefObject<HTMLInputElement | null>; onOpen: () => void}) {
-  const [text, setText] = useState(''), hint = useId();
-  const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); if (t && sendToNova(t)) setText(''); onOpen(); };
+  const [text, setText] = useState(''), hint = useId(), pasted = useRef(false); // Z1A-2: a paste is marked, so no card from the reply is auto-accepted
+  const submit = (e: FormEvent) => { e.preventDefault(); const t = text.trim(); if (t && sendToNova(t, {pasted: pasted.current})) { setText(''); pasted.current = false; } onOpen(); };
   return <form className="nova-command" onSubmit={submit} aria-label={`Ask ${persona}`}>
     <NovaIcon name="star" size={22}/>
     <div className="nova-command-text">
-      <input ref={inputRef} value={text} onChange={e => setText(e.target.value.slice(0, MAX_INPUT_CHARS))} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
+      <input ref={inputRef} value={text} onChange={e => { setText(e.target.value.slice(0, MAX_INPUT_CHARS)); if (!e.target.value) pasted.current = false; }} onPaste={() => { pasted.current = true; }} placeholder={`What’s on your mind${you ? `, ${you}` : ''}?`} aria-label={`Message ${persona}`} aria-describedby={hint} autoComplete="off" enterKeyHint="send" maxLength={MAX_INPUT_CHARS}/>
       <small id={hint}>Ask {persona}, or open the conversation. Nothing is sent until you press Enter.</small>
     </div>
     <kbd className="nova-kbd" aria-hidden="true">⌘K</kbd>

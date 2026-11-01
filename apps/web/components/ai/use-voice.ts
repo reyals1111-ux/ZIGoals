@@ -7,6 +7,13 @@ import {PROVIDERS} from '../../lib/ai/providers';
 import type {AiSettings} from '../../lib/ai/settings';
 import {browserSpeechDisclosure, detectBrowser, MAX_RECORDING_MS, recognitionConstructor, recognitionErrorText, recognitionText, recorderMimeType, speechLanguage, transcribe, type RecognitionLike, microphoneDeniedText} from '../../lib/ai/voice';
 import {zigiSignals} from '../zigi/bus';
+// Security reviews Z1A-3 and Z1A-12: speech in and out under the privacy mode.
+import {readPrivacyMode} from '../../lib/nova/setup';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {readAloudVoice, speechInputAllowed, transcriptionRefusal} from '../../lib/ai/voice-privacy';
+/** The privacy mode at the moment of use; a record that cannot be read counts as Strict (fail closed). */
+const modeNow = () => { try { return readPrivacyMode(getAppStorage()); } catch { return 'strict' as const; } };
+const strictNow = () => modeNow() === 'strict';
 
 /**
  * Voice input (ADR-012, Part 7). "browser": the Web Speech API with the disclosure for this browser, on-device where
@@ -41,6 +48,8 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
   const finishIdle = useCallback(() => { clearTimers(); setState('idle'); setInterim(''); zigiSignals.emit('idle'); }, []);
   const startBrowser = useCallback(async () => {
     if (!ctor) { setError(browserSpeechDisclosure(browser, false)); return; }
+    // Security review Z1A-12: in Strict only the browser's on-device recognition listens.
+    const allowed = speechInputAllowed(strictNow(), onDevice); if (!allowed.allowed) { setError(allowed.reason!); return; }
     const instance = new ctor();
     instance.lang = language; instance.interimResults = true; instance.continuous = false; instance.maxAlternatives = 1;
     if (onDevice) { try { instance.processLocally = true; } catch { /* older Chrome */ } }
@@ -55,6 +64,8 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
   }, [browser, ctor, finishIdle, language, onDevice]);
   const startProvider = useCallback(async () => {
     if (!providerOk || !settings.provider) { setError('Provider transcription needs OpenAI with a transcription model chosen in Settings; or switch to browser speech.'); return; }
+    // Security review Z1A-12: a recording is a cloud send; Strict refuses it, and Guarded too (audio cannot be redacted).
+    const refusal = transcriptionRefusal(modeNow()); if (refusal) { setError(refusal); return; }
     const mime = recorderMimeType(type => MediaRecorder.isTypeSupported(type));
     let media: MediaStream;
     try { media = await navigator.mediaDevices.getUserMedia({audio: true}); }
@@ -98,23 +109,33 @@ export function useVoice({settings, scope, onText}: {settings: AiSettings; scope
   const disclosure = mode === 'browser' ? browserSpeechDisclosure(browser, onDevice) : mode === 'provider' && settings.provider ? `Recordings (up to a minute) go from this browser to ${PROVIDERS[settings.provider].name} for transcription with your key; nothing through ZIGoals.` : null;
   return {mode, available, state, interim, error, disclosure, language, secondsLeft, start, stop, cancel};
 }
-/** Read-aloud through the browser's speech synthesis (off by default; the person chooses it per reply or in Settings). */
+/**
+ * Read-aloud through the browser's speech synthesis (off by default; the person chooses it per reply or in Settings).
+ * Security review Z1A-3: in Strict privacy only a voice on this device reads (`localService`); with none for the language
+ * nothing is spoken and `notice` says why (an online voice sends the text to the browser maker's speech service).
+ */
 export function useReadAloud(language: string) {
-  const [speaking, setSpeaking] = useState(false);
+  const [speaking, setSpeaking] = useState(false), [notice, setNotice] = useState<string | null>(null);
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
   const stop = useCallback(() => { if (supported) window.speechSynthesis.cancel(); setSpeaking(false); zigiSignals.emit('idle'); }, [supported]);
-  const speak = useCallback((text: string) => {
-    if (!supported || !text.trim()) return;
+  const speak = useCallback((text: string): boolean => {
+    if (!supported || !text.trim()) return false;
+    const strict = strictNow();
+    let voices: SpeechSynthesisVoice[] = []; try { voices = window.speechSynthesis.getVoices(); } catch { voices = []; }
+    // Session Z-Cloud Part 3: one of this device's own voices for the language (English or Dutch), when it has one.
+    const choice = readAloudVoice(voices, language, strict);
+    if (choice.refused) { window.speechSynthesis.cancel(); setSpeaking(false); setNotice(choice.refused); return false; }
+    setNotice(null);
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text.slice(0, 5000));
     utterance.lang = language;
-    // Session Z-Cloud Part 3: one of this device's own voices for the language (English or Dutch), when it has one.
-    try { const lc = language.toLowerCase(), voices = window.speechSynthesis.getVoices(); utterance.voice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === lc) ?? voices.find(v => v.lang.toLowerCase().startsWith(lc.slice(0, 2))) ?? null; } catch { /* the default voice */ }
+    try { utterance.voice = choice.voice; } catch { /* the default voice (never in Strict: a voice was chosen) */ }
     utterance.onend = () => { setSpeaking(false); zigiSignals.emit('idle'); };
     utterance.onerror = () => { setSpeaking(false); zigiSignals.emit('idle'); };
     setSpeaking(true); zigiSignals.emit('assistant_speaking');
     window.speechSynthesis.speak(utterance);
+    return true;
   }, [language, supported]);
   useEffect(() => () => { if (supported) window.speechSynthesis.cancel(); }, [supported]);
-  return {supported, speaking, speak, stop};
+  return {supported, speaking, speak, stop, notice};
 }

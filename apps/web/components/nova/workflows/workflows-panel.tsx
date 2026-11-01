@@ -1,7 +1,7 @@
 'use client';
 import {useId, useRef, useState, type FormEvent} from 'react';
 import {WORKFLOW_TEMPLATES, templateOf, type WorkflowId} from '../../../lib/nova/workflows/templates';
-import {MAX_INSTRUCTION, MAX_TITLE, NOVA_WORKFLOWS, deleteCustom, editProblem, importWorkflows, resolveWorkflow, restoreCustom, saveCustom, shareWorkflows, workflowsFile, type CustomWorkflow, type WorkflowDef} from '../../../lib/nova/workflows/schema';
+import {MAX_INSTRUCTION, MAX_TITLE, NOVA_WORKFLOWS, approveImported, deleteCustom, editProblem, importWorkflows, resolveWorkflow, restoreCustom, saveCustom, shareWorkflows, workflowsFile, type CustomWorkflow, type WorkflowDef} from '../../../lib/nova/workflows/schema';
 import {isShowcase} from '../../../lib/showcase-storage';
 import {formatDate} from '../../../lib/visual-format';
 import {useDeviceRecord} from '../../ai/use-device-record';
@@ -34,10 +34,12 @@ export default function WorkflowsPanel({start}: {start?: WorkflowId}) {
     const chosen = input.files?.[0]; input.value = ''; if (!chosen) return;
     if (chosen.size > 64 * 1024) { setMessage({text: 'That file is too large to be a workflows file.', failed: true}); return; }
     let parsed: unknown = null; try { parsed = JSON.parse(await chosen.text()); } catch { setMessage({text: 'That file is not a workflows file.', failed: true}); return; }
-    let result = {added: 0, refused: 0};
+    let result = {added: 0, refused: 0, screened: 0};
     change(current => { const out = importWorkflows(current, parsed, new Date()); result = out; return out.record; }, '');
-    setMessage({text: result.added ? `${result.added} ${result.added === 1 ? 'workflow' : 'workflows'} added${result.refused ? `; ${result.refused} left out (not readable)` : ''}.` : 'No workflow in that file could be read.', failed: !result.added});
+    setMessage({text: result.added ? `${result.added} ${result.added === 1 ? 'workflow' : 'workflows'} added${result.refused ? `; ${result.refused} left out (not readable)` : ''}.${result.screened ? ` ${result.screened} ${result.screened === 1 ? 'instruction held' : 'instructions held'} a link or command-like words, so the template’s own is used.` : ''} Each one shows its instruction for you to read before its first run.` : 'No workflow in that file could be read.', failed: !result.added});
   };
+  // Security review Z1A-5: an imported workflow's instruction is someone else's words: read and confirmed before its first run.
+  if (running?.imported && running.customId) return <ImportedConfirm def={running} onRun={() => { const id = running.customId!; if (change(current => approveImported(current, id), '')) setRunning({...running, imported: false}); }} onCancel={() => setRunning(null)}/>;
   if (running) return <WorkflowRun def={running} onClose={() => setRunning(null)}/>;
   if (editing) return <WorkflowEditor editing={editing} onCancel={() => setEditing(null)} onSave={next => { if (change(current => saveCustom(current, next.from, next, new Date(), next.id), next.id ? 'Your workflow is saved.' : 'Saved as your own workflow.')) setEditing(null); }}/>;
   const shared = shareWorkflows(record.data);
@@ -46,7 +48,7 @@ export default function WorkflowsPanel({start}: {start?: WorkflowId}) {
     {own.length > 0 && <section aria-labelledby="nova-wf-own"><h4 id="nova-wf-own">Your workflows</h4>
       <ul className="nova-wf-list">{own.map(c => <li key={c.id} className="nova-wf-item">
         <p className="nova-wf-title">{c.title}</p>
-        <p className="ai-note">From &ldquo;{templateOf(c.from).title}&rdquo; · saved {formatDate(c.updatedAt)}{record.data.runs?.[c.id] ? ` · last run ${formatDate(record.data.runs[c.id]!)}` : ''}</p>
+        <p className="ai-note">{c.imported ? 'Imported, not run yet · ' : ''}From &ldquo;{templateOf(c.from).title}&rdquo; · saved {formatDate(c.updatedAt)}{record.data.runs?.[c.id] ? ` · last run ${formatDate(record.data.runs[c.id]!)}` : ''}</p>
         <div className="ai-card-actions">
           <button type="button" className="primary" onClick={() => setRunning(resolveWorkflow(c))}>Run</button>
           <button type="button" className="secondary" onClick={() => setEditing({from: c.from, id: c.id, title: c.title, instruction: c.instruction, skip: [...c.skip]})} aria-label={`Edit ${c.title}`}>Edit</button>
@@ -70,6 +72,17 @@ export default function WorkflowsPanel({start}: {start?: WorkflowId}) {
       <input ref={file} type="file" accept="application/json,.json" hidden tabIndex={-1} aria-hidden="true" onChange={e => void onImport(e.currentTarget)}/>
     </div>
     {message?.text && <p role={message.failed ? 'alert' : 'status'} className="ai-note">{message.text}{message.restore && <> <button type="button" className="text-link" onClick={() => change(current => restoreCustom(current, message.restore!), 'The workflow is back.')}>Undo</button></>}</p>}
+  </div>;
+}
+/** Z1A-5: the imported instruction, word for word, with what it may do; nothing runs until the person chooses Run. */
+function ImportedConfirm({def, onRun, onCancel}: {def: WorkflowDef; onRun: () => void; onCancel: () => void}) {
+  const id = useId();
+  return <div className="nova-wf-edit" role="group" aria-labelledby={id}>
+    <h3 id={id}>Before the first run: {def.title}</h3>
+    <p>This workflow came from a file or a shared setup. Read its instruction: it is what your model is asked to do with the records the steps read.</p>
+    <blockquote className="nova-wf-instruction"><p>{def.instruction}</p></blockquote>
+    <p className="ai-note">It only reads your records on this device and words them; every change is a card you add or dismiss. If the instruction asks for anything else, cancel and edit or delete it.</p>
+    <div className="ai-card-actions"><button type="button" className="primary" onClick={onRun}>Run it</button><button type="button" className="secondary" onClick={onCancel}>Cancel</button></div>
   </div>;
 }
 function WorkflowEditor({editing, onSave, onCancel}: {editing: Editing; onSave: (next: Editing) => void; onCancel: () => void}) {

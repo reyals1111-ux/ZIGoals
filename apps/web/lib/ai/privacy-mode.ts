@@ -1,6 +1,7 @@
 import {readDeviceRecord} from '../device-record';
 import {hermesNeedsRedaction, isHermesBase, readHermes} from '../nova/hermes-record';
-import {readPrivacyMode, type PrivacyMode} from '../nova/setup';
+import {NOVA_SETUP, readPrivacyMode, type PrivacyMode} from '../nova/setup';
+import {isKnownCloudModel} from '../nova/cloud-models';
 import {getAppStorage} from '../showcase-storage';
 import {hideRecoveryWordsInRequest} from '../secret-guard/redact-span';
 import {AiError} from './errors';
@@ -38,9 +39,14 @@ export const isCloudTarget = (provider: ProviderId | null | undefined, hosted = 
  * model, and they have not confirmed it runs a local one: Strict and Guarded then redact it (never refuse: Hermes is on
  * this computer), as for a cloud in Guarded.
  */
-export function sendDecision(mode: PrivacyMode | null, target: {provider: ProviderId | null | undefined; hosted?: boolean; model?: string | null; hermesUnconfirmed?: boolean}): SendDecision {
-  if (target.provider === 'local' && !target.hosted && target.hermesUnconfirmed && !isOllamaCloudModel(target.model) && hermesNeedsRedaction(mode, false)) return 'redact';
-  if (!mode || mode === 'relaxed' || !isCloudTarget(target.provider, target.hosted, target.model)) return 'send';
+/**
+ * `knownCloud` (security review Z1A-7): Ollama's own list marked this local model as one of its cloud models (a renamed
+ * copy keeps that mark: lib/nova/cloud-models.ts), so it is a cloud whatever its name says.
+ */
+export function sendDecision(mode: PrivacyMode | null, target: {provider: ProviderId | null | undefined; hosted?: boolean; model?: string | null; hermesUnconfirmed?: boolean; knownCloud?: boolean}): SendDecision {
+  const knownCloud = target.provider === 'local' && !target.hosted && target.knownCloud === true;
+  if (target.provider === 'local' && !target.hosted && target.hermesUnconfirmed && !isOllamaCloudModel(target.model) && !knownCloud && hermesNeedsRedaction(mode, false)) return 'redact';
+  if (!mode || mode === 'relaxed' || !(knownCloud || isCloudTarget(target.provider, target.hosted, target.model))) return 'send';
   return mode === 'strict' ? 'refuse' : 'redact';
 }
 export const targetName = (provider: ProviderId | null | undefined, hosted = false, model?: string | null): string => hosted ? 'ZIGoals hosted' : provider === 'local' && isOllamaCloudModel(model) ? 'Ollama\'s cloud (ollama.com)' : provider ? PROVIDERS[provider].name : 'your AI';
@@ -86,7 +92,9 @@ export async function guardRequest<R extends ChatRequest>(request: R, options: {
   const mode = options.mode !== undefined ? options.mode : readPrivacyMode(store());
   const hermes = request.provider === 'local' && !hosted && !!request.baseUrl && !!mode && mode !== 'relaxed' ? readHermes(store()) : null;
   const hermesUnconfirmed = !!hermes && isHermesBase(request.baseUrl, hermes.data) && (hermes.unreadable || hermes.data.localModelConfirmed !== true);
-  const decision = sendDecision(mode, {provider: request.provider, hosted, model: request.model, hermesUnconfirmed});
+  // Z1A-7: a local model Ollama's list marked as running in its cloud (read only when a mode would refuse or redact it).
+  const knownCloud = request.provider === 'local' && !hosted && !!mode && mode !== 'relaxed' && (() => { try { return isKnownCloudModel(readDeviceRecord(store(), NOVA_SETUP).data, request.model); } catch { return false; } })();
+  const decision = sendDecision(mode, {provider: request.provider, hosted, model: request.model, hermesUnconfirmed, knownCloud});
   // Hermes Agent runs its own tools and ignores a client's (docs/research/session-ak/HERMES_AGENT.md §2.5): ZIGi's tool
   // definitions never go to it. Only for a Hermes the person connected through the guide (its saved address).
   if (request.tools?.length && request.provider === 'local' && !hosted && request.baseUrl) {

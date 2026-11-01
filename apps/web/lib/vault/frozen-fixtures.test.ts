@@ -331,11 +331,11 @@ export function frozenFixture() {
   records[NOVA_BRIEFS_KEY] = JSON.stringify({version: 1, briefs: [{id: "morning:2026-11-01", kind: "morning", day: "2026-11-01", at: "2026-11-01T07:00:00.000Z", lines: ["Fictional line"]}]});
   checks.push({key: NOVA_BRIEFS_KEY, module: './nova/briefs', spec: 'NOVA_BRIEFS', expect: {"briefs.0.kind": "morning"}});
   // Owner follow-up 2 (N6): NOVA custom workflows (names, instructions, steps; no records).
-  records[NOVA_WORKFLOWS_KEY] = JSON.stringify({version: 1, custom: [{id: "wf_fixture1", from: "review-week", title: "Fictional review", instruction: "Keep it short", skip: [], createdAt: "2026-11-01T09:00:00.000Z", updatedAt: "2026-11-01T09:00:00.000Z"}]});
-  checks.push({key: NOVA_WORKFLOWS_KEY, module: './nova/workflows/schema', spec: 'NOVA_WORKFLOWS', expect: {"custom.0.title": "Fictional review"}});
+  records[NOVA_WORKFLOWS_KEY] = JSON.stringify({version: 1, custom: [{id: "wf_fixture1", from: "review-week", title: "Fictional review", instruction: "Keep it short", skip: [], createdAt: "2026-11-01T09:00:00.000Z", updatedAt: "2026-11-01T09:00:00.000Z", imported: true}]}); // Z1A-5: imported workflows are marked
+  checks.push({key: NOVA_WORKFLOWS_KEY, module: './nova/workflows/schema', spec: 'NOVA_WORKFLOWS', expect: {"custom.0.title": "Fictional review", "custom.0.imported": true}});
   // Owner follow-up 2 (N3): the setup guide progress and the privacy mode.
-  records[NOVA_SETUP_KEY] = JSON.stringify({version: 1, steps: {meet: {doneOn: "2026-11-01"}}, privacyMode: "strict", privacyChosenOn: "2026-11-01"});
-  checks.push({key: NOVA_SETUP_KEY, module: './nova/setup', spec: 'NOVA_SETUP', expect: {"privacyMode": "strict"}});
+  records[NOVA_SETUP_KEY] = JSON.stringify({version: 1, steps: {meet: {doneOn: "2026-11-01"}}, privacyMode: "strict", privacyChosenOn: "2026-11-01", cloudModels: ["fictional:cloud"]}); // Z1A-7: Ollama models it marks as remote
+  checks.push({key: NOVA_SETUP_KEY, module: './nova/setup', spec: 'NOVA_SETUP', expect: {"privacyMode": "strict", "cloudModels.0": "fictional:cloud"}});
   // Owner follow-up 3 (N11): the Hermes Agent connection and guide progress (the key stays in the key store).
   records[NOVA_HERMES_KEY] = JSON.stringify({version: 1, baseUrl: "http://127.0.0.1:8642", localModelConfirmed: true, steps: {install: {doneOn: "2026-11-01"}}});
   checks.push({key: NOVA_HERMES_KEY, module: './nova/hermes-record', spec: 'NOVA_HERMES', expect: {"baseUrl": "http://127.0.0.1:8642"}});

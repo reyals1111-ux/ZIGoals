@@ -110,7 +110,7 @@ export const NOVA_CHAT_PARAM = 'chat';
 const CHAT_ID = /^[A-Za-z0-9_-]{1,80}$/;
 export function novaChatHref(chatId: string): string { return `${NOVA_PATH}?${NOVA_CHAT_PARAM}=${encodeURIComponent(chatId)}`; }
 
-export type NovaHandoff = {kind: 'open'; chatId: string} | {kind: 'ask'; text: string} | {kind: 'delegate'; text: string; area: PageArea; agent?: NovaAgentId};
+export type NovaHandoff = {kind: 'open'; chatId: string} | {kind: 'ask'; text: string; /** Security review Z1A-2: the words came (at least partly) from a paste. */ pasted?: true} | {kind: 'delegate'; text: string; area: PageArea; agent?: NovaAgentId};
 /** Fired on `window` when a hand-off waits for NOVA's chat (NOVA's page opens its chat panel on it). */
 export const NOVA_HANDOFF_EVENT = 'zigoals:nova-handoff';
 export const HANDOFF_MS = 30_000;
@@ -127,9 +127,9 @@ export function continueInNova(chatId: string): string {
   return novaChatHref(chatId);
 }
 /** The command bar's message: NOVA asks it as typed once its chat is open (the person pressed Enter; nothing else is sent). */
-export function sendToNova(text: string): boolean {
+export function sendToNova(text: string, options: {pasted?: boolean} = {}): boolean {
   const t = words(text); if (!t) return false;
-  hand({kind: 'ask', text: t}); return true;
+  hand({kind: 'ask', text: t, ...(options.pasted ? {pasted: true as const} : {})}); return true;
 }
 /**
  * A page task asked from NOVA: ZIGi (or, with `agent: 'hermes'`, the person's own Hermes Agent) answers it in NOVA's chat

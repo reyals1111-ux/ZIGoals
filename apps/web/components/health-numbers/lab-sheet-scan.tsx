@@ -10,7 +10,9 @@ import {readKey} from '../../lib/ai/keys';
 import {currentAiScope} from '../../lib/ai/scope';
 import {readCapability} from '../../lib/ai/capabilities';
 import {photoAllowance, preparePhoto} from '../../lib/ai/photo';
-import {streamChat} from '../../lib/ai/chat';
+// Security review Z1A-1: the engine's privacy hook on this photo too (Strict keeps it here; Guarded sends no photo to a cloud).
+import {guardedStreamChat} from '../../lib/ai/guarded-stream';
+import {PhotoSendConfirm} from '../ai/photo-send-confirm';
 import {AiError, isAbortLike} from '../../lib/ai/errors';
 import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
@@ -26,7 +28,7 @@ import '../health/label-scan.css';
  * monthly cap's "ask first". The photo is shrunk on this device, sent with this one request and never kept; the answer
  * becomes an editable draft (lib/health-numbers/scan.ts) the person checks before anything is saved. Loaded when opened.
  */
-type State = {kind: 'idle'} | {kind: 'busy'; line: string} | {kind: 'done'; count: number; skipped: number} | {kind: 'problem'; lines: string[]} | {kind: 'spend'; note: string; file: File};
+type State = {kind: 'idle'} | {kind: 'busy'; line: string} | {kind: 'done'; count: number; skipped: number} | {kind: 'problem'; lines: string[]} | {kind: 'spend'; note: string; file: File} | {kind: 'confirm'; file: File};
 export const NO_AI_SHEET = 'No AI is connected, so the photo cannot be read. Type the values in, or connect your own AI in Settings → ZIGi.';
 export default function LabSheetScan({today, onDraft}: {today: string; onDraft: (draft: {date: string | null; rows: DraftRow[]}) => void}) {
   const id = useId(), take = useRef<HTMLInputElement>(null), choose = useRef<HTMLInputElement>(null), abort = useRef<AbortController | null>(null);
@@ -56,7 +58,7 @@ export default function LabSheetScan({today, onDraft}: {today: string; onDraft: 
       if (!allowed.allowed) { setState({kind: 'problem', lines: [allowed.reason.replace(/^Meal photos/, 'A lab sheet photo')]}); return; }
       const photo = await preparePhoto(file);
       setState({kind: 'busy', line: 'Your AI is copying the values…'});
-      const out = await runLabSheetScan(labSheetRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), streamChat, today);
+      const out = await runLabSheetScan(labSheetRequest({settings, key, image: {mime: photo.mime, data: photo.data}, appOrigin: window.location.origin, signal: controller.signal}), guardedStreamChat, today);
       if (out.requests) { try { recordUsage(getAppStorage(), provider, out.usage ?? {input: null, output: null}, out.requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience */ } }
       if (controller.signal.aborted) return;
       if (!out.ok) { setState({kind: 'problem', lines: out.problems}); return; }
@@ -66,7 +68,7 @@ export default function LabSheetScan({today, onDraft}: {today: string; onDraft: 
       setState({kind: 'problem', lines: [e instanceof AiError || e instanceof Error ? e.message : 'The photo could not be read. Try again, or type the values.']});
     } finally { if (abort.current === controller) abort.current = null; }
   }
-  const pick = (input: HTMLInputElement | null) => { const file = input?.files?.[0]; if (input) input.value = ''; if (file) void read(file); };
+  const pick = (input: HTMLInputElement | null) => { const file = input?.files?.[0]; if (input) input.value = ''; if (file) setState({kind: 'confirm', file}); }; // Z1B-10: seen and confirmed before it is sent
 
   if (!connected) return <div className="label-scan numbers-scan" role="group" aria-labelledby={`${id}-t`}>
     <p className="label-scan-title" id={`${id}-t`}>Read my lab sheet from a photo</p>
@@ -88,6 +90,7 @@ export default function LabSheetScan({today, onDraft}: {today: string; onDraft: 
       {state.kind === 'done' && <p className="label-scan-done">{state.count} {state.count === 1 ? 'value' : 'values'} copied into the draft below{state.skipped ? `; ${state.skipped} ${state.skipped === 1 ? 'row was' : 'rows were'} left out (no number)` : ''}. Check each one; nothing is saved until you add them.</p>}
       {state.kind === 'problem' && <div className="label-scan-problem" role="alert"><p><strong>The photo was not used.</strong></p><ul>{state.lines.map(l => <li key={l}>{l}</li>)}</ul></div>}
     </div>
+    {state.kind === 'confirm' && settings && <PhotoSendConfirm file={state.file} what="lab sheet" target={{provider: settings.provider, model: settings.model, localServer: settings.localServer}} onSend={() => void read(state.file)} onCancel={() => setState({kind: 'idle'})}/>}
     {state.kind === 'spend' && <div className="label-scan-problem"><p>{state.note}</p><div className="actions"><button type="button" className="secondary" onClick={() => void read(state.file, true)}>Send anyway</button><button type="button" className="quiet" onClick={() => setState({kind: 'idle'})}>Not now</button></div></div>}
   </div>;
 }

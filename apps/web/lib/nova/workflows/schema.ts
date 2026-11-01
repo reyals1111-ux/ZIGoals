@@ -24,6 +24,11 @@ export const customWorkflowSchema = z.looseObject({
   skip: z.array(z.string().min(1).max(40)).max(10).default([]),
   createdAt: stamp,
   updatedAt: stamp,
+  /**
+   * Security review Z1A-5 (lane ZF): added from a file or a shared setup and not yet read and run by the person. Its
+   * instruction is someone else's words: shown and confirmed before its first run (`approveImported`); editing it counts.
+   */
+  imported: z.boolean().optional(),
 });
 export type CustomWorkflow = z.infer<typeof customWorkflowSchema>;
 export const novaWorkflowsSchema = z.looseObject({
@@ -38,11 +43,19 @@ export const emptyNovaWorkflows = (): NovaWorkflows => ({version: 1});
 export const NOVA_WORKFLOWS: DeviceRecordSpec<NovaWorkflows> = {key: NOVA_WORKFLOWS_KEY, schema: novaWorkflowsSchema, empty: emptyNovaWorkflows};
 
 /** A runnable workflow: a template, or the person's own made from one (their title and instruction, their steps). */
-export type WorkflowDef = WorkflowTemplate & {customId?: string};
+export type WorkflowDef = WorkflowTemplate & {customId?: string;
+  /** Z1A-5: an imported workflow the person has not confirmed yet; its instruction is shown before it runs. */ imported?: boolean};
 export function resolveWorkflow(custom: CustomWorkflow): WorkflowDef {
   const base = templateOf(custom.from), skip = new Set(custom.skip);
   const steps = base.steps.filter(s => !skip.has(s.id));
-  return {...base, title: custom.title, instruction: custom.instruction || base.instruction, steps: steps.some(s => s.kind === 'read') ? steps : base.steps, customId: custom.id};
+  return {...base, title: custom.title, instruction: custom.instruction || base.instruction, steps: steps.some(s => s.kind === 'read') ? steps : base.steps, customId: custom.id, ...(custom.imported ? {imported: true} : {})};
+}
+/** Z1A-5: the person read an imported workflow's instruction and chose to run it; from now on it is theirs. */
+export function approveImported(record: NovaWorkflows, id: string): NovaWorkflows {
+  return novaWorkflowsSchema.parse({...record, custom: (record.custom ?? []).map(c => {
+    if (c.id !== id || !c.imported) return c;
+    const {imported: _i, ...rest} = c; void _i; return rest;
+  })});
 }
 export type WorkflowEdit = {title: string; instruction: string; skip: readonly string[]};
 /** Why an edit cannot be saved (empty title, every reading step left out, a secret), or null. */
@@ -90,6 +103,13 @@ export function setTaskModel(record: NovaWorkflows, provider: ProviderId, task: 
 export type SharedWorkflow = {from: WorkflowId; title: string; instruction: string; skip: string[]};
 const PERSONAL = /@|https?:\/\/|www\.|\d{3,}/i;
 export const mayShare = (text: string) => !PERSONAL.test(text) && !looksSecret(text);
+/**
+ * Z1A-5: words in an imported instruction that read as a command for an agent with a terminal or a browser (a link, a
+ * shell pipe or substitution, a download or install command, "run"/"execute" with a terminal). Such an instruction is
+ * replaced by the template's own on import.
+ */
+const COMMAND_LIKE = /[`|;<>]|\$\(|\b(?:curl|wget|sudo|bash|zsh|powershell|pwsh|chmod|rm\s+-|ssh|scp|eval|exec|python\d?\s|node\s+-e|npm\s+i|pip\s+install)\b|\b(?:terminal|shell|command line|run (?:this|the following)|execute)\b|[a-z0-9-]+\.(?:sh|ps1|exe|bat)\b/i;
+export const mayImportInstruction = (text: string) => mayShare(text) && !COMMAND_LIKE.test(text);
 export function shareWorkflows(record: NovaWorkflows): {workflows: SharedWorkflow[]; heldBack: number} {
   let heldBack = 0;
   const workflows = (record.custom ?? []).map(c => {
@@ -103,17 +123,29 @@ export function workflowsFile(record: NovaWorkflows, now: Date): string {
   return JSON.stringify({format: WORKFLOWS_FILE_FORMAT, version: 1, exportedAt: now.toISOString(), workflows: shareWorkflows(record).workflows}, null, 2);
 }
 const sharedSchema = z.strictObject({from: z.enum(WORKFLOW_IDS), title: z.string().trim().min(1).max(MAX_TITLE), instruction: z.string().trim().max(MAX_INSTRUCTION), skip: z.array(z.string().min(1).max(40)).max(10).default([])});
-/** Adds shared workflows (from a file or a setup) as the person's own; invalid ones are left out and counted. */
-export function importWorkflows(record: NovaWorkflows, input: unknown, now: Date): {record: NovaWorkflows; added: number; refused: number} {
+/**
+ * Adds shared workflows (from a file or a setup) as the person's own; invalid ones are left out and counted. Z1A-5: each is
+ * marked `imported` until the person reads its instruction and runs it, and an instruction that holds a link, personal
+ * figures or command-like words is replaced by the template's own (`screened` counts those).
+ */
+export function importWorkflows(record: NovaWorkflows, input: unknown, now: Date): {record: NovaWorkflows; added: number; refused: number; screened: number} {
   const list = Array.isArray(input) ? input : typeof input === 'object' && input && Array.isArray((input as {workflows?: unknown}).workflows) ? (input as {workflows: unknown[]}).workflows : null;
-  if (!list) return {record, added: 0, refused: 1};
-  let next = record, added = 0, refused = 0;
+  if (!list) return {record, added: 0, refused: 1, screened: 0};
+  let next = record, added = 0, refused = 0, screened = 0;
   for (const [i, raw] of list.slice(0, MAX_CUSTOM).entries()) {
     const parsed = sharedSchema.safeParse(raw);
     if (!parsed.success || !mayShare(parsed.data.title)) { refused++; continue; }
-    try { next = saveCustom(next, parsed.data.from, parsed.data, new Date(now.getTime() + i)); added++; } catch { refused++; }
+    const safe = !parsed.data.instruction || mayImportInstruction(parsed.data.instruction);
+    if (!safe) screened++;
+    const edit = safe ? parsed.data : {...parsed.data, instruction: templateOf(parsed.data.from).instruction};
+    try {
+      const before = new Set((next.custom ?? []).map(c => c.id));
+      next = saveCustom(next, edit.from, edit, new Date(now.getTime() + i));
+      next = novaWorkflowsSchema.parse({...next, custom: (next.custom ?? []).map(c => before.has(c.id) ? c : {...c, imported: true})});
+      added++;
+    } catch { refused++; }
   }
-  return {record: next, added, refused};
+  return {record: next, added, refused, screened};
 }
 /**
  * The same whitelist in the shape of "Share my NOVA setup" (lib/nova/share-setup.ts, lane NA: `{title, steps}` with step

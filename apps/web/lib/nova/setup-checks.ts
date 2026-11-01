@@ -1,3 +1,4 @@
+import {pickVoice, type SpeechVoiceLike} from '../ai/voice-privacy';
 import {AiError, scrubSecrets} from '../ai/errors';
 import {listModels} from '../ai/models';
 import type {OnDeviceAvailability} from '../ai/on-device';
@@ -91,12 +92,8 @@ export function checkMemory(options: AiOptions, memory: AiMemory, unreadable: bo
 }
 
 /** 7 Voice: speech output on this device; in Strict only a voice the device says is local. */
-export type SpeechVoiceLike = {name: string; lang: string; localService: boolean; default?: boolean};
-export function pickVoice(voices: readonly SpeechVoiceLike[], language: string, localOnly: boolean): SpeechVoiceLike | null {
-  const lc = language.toLowerCase(), base = lc.slice(0, 2), pool = voices.filter(v => !localOnly || v.localService);
-  const score = (v: SpeechVoiceLike) => (v.lang.replace('_', '-').toLowerCase() === lc ? 4 : v.lang.toLowerCase().startsWith(base) ? 2 : 0) + (v.localService ? 1 : 0) + (v.default ? 0.5 : 0);
-  return [...pool].sort((a, b) => score(b) - score(a)).find(v => score(v) >= 2) ?? null;
-}
+// Security review Z1A-3: one voice picker for the guide's test line and every read-aloud (lib/ai/voice-privacy.ts).
+export {pickVoice, type SpeechVoiceLike};
 export function checkVoice(result: {spoke: boolean; voice: SpeechVoiceLike | null; error?: string}, strict: boolean): CheckResult {
   if (!result.voice) return fail(strict ? 'No voice on this device works without a speech service, and Strict sends nothing away. You can skip voice; it is optional.' : 'This browser offers no voice for your language. Voice is optional.');
   if (!result.spoke) return fail(result.error ? `The voice did not play: ${result.error}` : 'The voice did not play. Check the sound, then try again.');

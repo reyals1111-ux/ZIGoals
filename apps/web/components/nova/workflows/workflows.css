@@ -19,3 +19,4 @@
 .nova-wf-sent pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;margin:0;max-height:240px;overflow:auto}
 .nova-wf-steps-edit{border:1px solid var(--line,#2a325a);border-radius:12px;padding:10px 12px;display:grid;gap:4px;margin:0}
 .nova-wf-steps-edit .ai-check{min-height:44px;display:flex;align-items:center;gap:8px}
+.nova-wf-instruction { margin: 0; padding: 8px 12px; border-inline-start: 3px solid var(--line); overflow-wrap: anywhere; white-space: pre-wrap; } /* Z1A-5: an imported instruction, word for word */

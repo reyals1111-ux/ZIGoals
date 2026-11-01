@@ -217,3 +217,11 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
 - **Device facts read locally:** NOVA's right panel and the motion layer read what the browser offers about this device
   (logical cores, approximate memory, battery and online state, Save-Data) to show honest facts and to rest animations;
   nothing of it is stored or sent.
+- **Security review Z1 (NOVA and AI):** Strict sends nothing to a cloud model, including Ollama models that run in
+  Ollama's cloud (also a renamed copy Ollama marks as remote); it reads answers aloud only with voices on this device,
+  listens only with on-device speech recognition and sends no recording to a cloud transcription model. A Hermes Agent
+  counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy, as in
+  Guarded. Guarded never sends a photo or a recording to a cloud model. A lab-sheet or receipt photo is shown with where it
+  goes before it is sent; nothing leaves until you press Send. Tasks handed to ZIGi or your Hermes follow NOVA →
+  Permissions too (Health only when it is on there and shared with ZIGi); records go to Hermes marked as data, never
+  instructions, and recovery words are hidden in what is sent and in the summary file.
