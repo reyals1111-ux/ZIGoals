@@ -6,6 +6,7 @@ import {taskState, type TaskInput} from '../../lib/tasks/engine';
 import {formatClock, formatDate} from '../../lib/visual-format';
 import type {GoalOption} from './use-goal-options';
 import type {TaskPatch} from './use-task-list';
+import {celebrateCompletion} from '../motion/completion';
 
 /**
  * Session AK (T1): the task pieces every surface shares — the add form, a task's row (tick, Focus, Edit, Remove) and its
@@ -43,7 +44,7 @@ export function TaskAddForm({onAdd, goals, today, fixedDue, fixedGoal, label = '
 export function TaskRow({task, today, goal, onToggle, onRemove, onEdit, onFocus, goals = [], showGoal = true}: {task: Task; today: string; goal?: GoalOption; onToggle: (done: boolean) => void; onRemove?: () => void; onEdit?: (patch: TaskPatch) => boolean; onFocus?: () => void; goals?: readonly GoalOption[]; showGoal?: boolean}) {
   const [editing, setEditing] = useState(false), done = !!task.doneAt, state = taskState(task, today);
   return <li id={`task-${task.id}`} className={`task task-${done ? 'finished' : state} task-priority-${task.priority}`} data-done={done || undefined}>
-    <label className="task-done"><input type="checkbox" checked={done} onChange={e => onToggle(e.target.checked)} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>
+    <label className="task-done"><input type="checkbox" checked={done} onChange={e => { if (e.target.checked) celebrateCompletion(e.currentTarget.parentElement); /* Session AK M1: the completion moment */ onToggle(e.target.checked); }} /><span className="sr-only">{done ? `Mark “${task.title}” not done` : `Mark “${task.title}” done`}</span></label>
     <span className="task-title">{task.title}</span>
     <span className="task-meta">
       {task.priority !== 'normal' && <span className={`task-chip task-chip-${task.priority}`}>{PRIORITY_WORDS[task.priority]}</span>}

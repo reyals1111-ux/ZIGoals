@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
+import {NumberTicker} from '../motion/number-ticker';
 import {formatSignedGoalAmount} from '../../lib/goal-summary';
 import {amount} from './common';
 import {splitWealthTotals,type CurrencyTotal} from '../../lib/wealth-total';
@@ -41,7 +42,7 @@ export function WealthTotal({subtotals,identity,empty}:{subtotals:readonly Curre
  const {primary,others}=splitWealthTotals(subtotals);
  if(!primary)return <strong className="wealth-total-headline wealth-total-empty">{empty}</strong>;
  return <>
-  <strong className="wealth-total-headline" style={{'--chars':money(primary.value,primary.currency).length} as import('react').CSSProperties}><NebulaFlow identity={identity}>{money(primary.value,primary.currency)}</NebulaFlow></strong>
+  <strong className="wealth-total-headline" style={{'--chars':money(primary.value,primary.currency).length} as import('react').CSSProperties}>{/* Session AK M1: the total counts up once (Full motion only; components/motion/number-ticker.tsx). */}<NebulaFlow identity={identity} className={/[A-Za-z]{4,}/.test(money(primary.value,primary.currency))?'':'is-figure'}><NumberTicker text={money(primary.value,primary.currency)}/></NebulaFlow></strong>
   <OtherCurrencyChip others={others} id={identity}/>
  </>;
 }

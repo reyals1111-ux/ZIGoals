@@ -4,6 +4,7 @@ import {CELEBRATIONS} from '../../lib/celebrations';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {zigiSignals} from '../zigi/bus';
 import {NebulaFlow} from '../nebula-flow';
+import {CompletionMoment} from '../motion/completion-moment';
 import {localDate} from '../../lib/local-date';
 import './goal-finished.css';
 
@@ -22,5 +23,6 @@ export function GoalFinished({goalId, name}: {goalId: string; name: string}) {
     <h2><NebulaFlow identity={`goal-finished:${goalId}`}>You did it: {name}.</NebulaFlow></h2>
     <p>Every recorded step counted. Its history stays here; close it when you are ready, or set a new target.</p>
     <button type="button" className="secondary" onClick={() => { try { notes.update(n => ({...n, seen: {...n.seen, [key]: localDate()}})); } catch { /* shown again next time */ } }}>Thanks</button>
+    <CompletionMoment identity={key}/>{/* Session AK M1: the completion moment, once when the card first shows */}
   </section>;
 }

@@ -74,6 +74,9 @@ export function showTheme(theme: Theme, doc: Document = document): void {
   const apply = () => { applied = true; return applyTheme(theme, doc); };
   try {
     const t = doc.startViewTransition(apply);
+    // Session AK M1: the root crossfade belongs to theme switches only; page transitions pin the chrome and leave the
+    // root still (components/motion/motion-2026.css reads this type). Browsers without transition types skip it.
+    try { (t as {types?: {add?: (type: string) => void}} | undefined)?.types?.add?.('theme'); } catch { /* no types */ }
     // A transition that is skipped (another switch, a hidden tab) rejects these; the theme is applied all the same.
     for (const p of [t?.ready, t?.finished, t?.updateCallbackDone]) p?.catch(() => {});
   } catch { if (!applied) void applyTheme(theme, doc); }
