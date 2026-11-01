@@ -86,7 +86,8 @@ test('planets 1 and 2: the device check, then Strict refuses a cloud and Guarded
   const privacy = await open(page, 'Privacy mode', 'privacy');
   await check(privacy, /Check the mode holds/);
   await expect(privacy.getByText(/Strict is on\. A test message to a cloud model was refused/)).toBeVisible();
-  await privacy.getByRole('radio', {name: /Guarded/}).check();
+  // Strict's own words now say an unconfirmed Hermes is treated "as in Guarded" (Z1A-8), so the name is anchored.
+  await privacy.getByRole('radio', {name: /^Guarded/}).check();
   await privacy.getByRole('button', {name: 'Use Guarded'}).click();
   await expect(privacy.locator('.nova-send-line')).toContainText('NOVA is about to send this to OpenAI.');
   await expect(privacy.locator('.nova-send-text')).toHaveText('Plan a birthday dinner for my sister [name] at [address]; my budget is about €180.');
