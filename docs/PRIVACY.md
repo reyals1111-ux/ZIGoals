@@ -214,3 +214,6 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
 - **Motion:** Full, Calm or Off (`zigoals:motion:v1`), on this device only.
 - **"Was this useful?"** under ZIGi's note on the Review page (`zigoals:insight-feedback:v1`, at most 200 taps): on this
   device only, used only to leave a kind of line out of later notes; in "Export everything", removed by both erases.
+- **Device facts read locally:** NOVA's right panel and the motion layer read what the browser offers about this device
+  (logical cores, approximate memory, battery and online state, Save-Data) to show honest facts and to rest animations;
+  nothing of it is stored or sent.

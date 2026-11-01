@@ -33,14 +33,16 @@ export function NovaEntry() {
     try { const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined; if (nav && nav.type !== 'navigate') return; } catch { return; }
     // The record is read only here, loaded on use, so the shell carries nothing of NOVA's store.
     void Promise.all([import('../../lib/device-record'), import('../../lib/nova/store'), import('../../lib/showcase-storage')]).then(([dr, nova, st]) => {
-      if (nova.startsOnNova(dr.readDeviceRecord(st.getAppStorage(), nova.NOVA_STORE).data)) router.replace('/app/nova');
+      // Security review Z1C-L1: only while the person is still on Today (a slow load must not pull them off a page they moved to).
+      if (window.location.pathname === '/app' && !window.location.search && nova.startsOnNova(dr.readDeviceRecord(st.getAppStorage(), nova.NOVA_STORE).data)) router.replace('/app/nova');
     }).catch(() => { /* Today it is */ });
   // Only the first page of the session matters.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
     if (onNova) return;
-    const onKey = (event: KeyboardEvent) => { if (!isNovaShortcut(event)) return; event.preventDefault(); setWanted(true); setOpen(true); };
+    // Security review Z1C-L2: never over an open dialog (a review sheet waiting for the wallet keeps the screen).
+    const onKey = (event: KeyboardEvent) => { if (!isNovaShortcut(event) || document.querySelector('dialog[open], [aria-modal="true"]')) return; event.preventDefault(); setWanted(true); setOpen(true); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onNova]);
