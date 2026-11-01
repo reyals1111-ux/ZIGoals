@@ -22,8 +22,9 @@
 /* Round 3: below 1180 px the foot bar's height too (the path never counts what runs under it as on screen). */
 @media (max-width: 1179.98px) { .checklist-overlay { scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); } }
 :root:has(.checklist-overlay[open]) :is(.skip, .phone-topbar, .app-sidebar, .phone-tabbar) { display: none !important; }
-:root:has(.checklist-overlay[open]) .app-content > :not(.workspace, .private-read-delay) { display: none !important; }
-:root:has(.checklist-overlay[open]) .workspace > :not(main, .aa-toast-region) { display: none !important; }
+/* Session AK P8c: the shell's other parts (`.app-content > :not(.workspace, .private-read-delay)`, `.workspace > :not(main,
+   .aa-toast-region)`) are hidden by rules the Checklist page renders beside its dialog (checklist-page.tsx, SHELL_HIDDEN),
+   not by `:root:has(…) … > :not(…)` here: that shape restyled the whole document on every change of the page's tree. */
 /* Opening: the overlay fades in once (opacity only: a transform would carry the corner timers with it). */
 .checklist-overlay[open] > .checklist-shell { animation: checklist-arrive 360ms ease-out; }
 @keyframes checklist-arrive { from { opacity: 0; } }

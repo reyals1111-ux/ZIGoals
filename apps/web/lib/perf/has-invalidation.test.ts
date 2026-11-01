@@ -34,14 +34,9 @@ describe('the :has() invalidation guard (Session AK P8b)', () => {
     expect(widensHasInvalidation(':root:has(.l[data-size=l]) .today-rail')).toBe(false);
     expect(widensHasInvalidation(':root .a:has(.b) > :is(.c, .d)')).toBe(false);
   });
-  // Known and reported (Session AK P8b), not changed here: the PROTECTED Checklist's overlay hides the shell with two
-  // `:not()` rules. They apply on /app/checklist only (checklist.css loads with the Checklist page); a fix that keeps the
-  // look needs an attribute set on <html> while the overlay is open (script on a route with ~0 weight headroom), so it is
-  // left to the owner's call. Nothing may join this list.
-  const KNOWN = [
-    'components/checklist/checklist.css: :root:has(.checklist-overlay[open]) .app-content > :not(.workspace, .private-read-delay)',
-    'components/checklist/checklist.css: :root:has(.checklist-overlay[open]) .workspace > :not(main, .aa-toast-region)',
-  ];
+  // Session AK P8c: the Checklist overlay's two rules (reported in P8b) moved out of checklist.css (owner decision 6),
+  // so nothing is excepted. Nothing may join this list.
+  const KNOWN: string[] = [];
   it('no stylesheet of the app widens it (one such rule restyled the whole page on every change of the tree)', () => {
     const offenders: string[] = [];
     for (const dir of ['app', 'components', 'themes']) for (const file of cssFiles(join(WEB, dir)))

@@ -231,3 +231,68 @@ lane M's before median; the served build also carries everything committed since
 not attributed. The remaining cost is the page's own forced layouts (the path engine and the page arrival's metric scan),
 each paying for the many subject `:has()` rechecks of a large page; a further cut would rework those scans (recorded for
 the lead, not done here).
+
+## P8c — the Checklist overlay's two shell-hiding rules (Session AK, owner decision 6)
+
+Owner decision 6: fix them only if the look stays identical (the Checklist's pin tests and the AG Polish specs pass
+unchanged at equal strength); else leave them and record why. **Result: changed; identity shown below.**
+
+### The change
+- `components/checklist/checklist.css`: `:root:has(.checklist-overlay[open]) .app-content > :not(.workspace,
+  .private-read-delay)` and `… .workspace > :not(main, .aa-toast-region)` (`display: none !important`) removed. A `:has()`
+  before a last part with no class makes Blink's shared `:has()` invalidation set "whole subtree": on /app/checklist every
+  change of the page's tree restyled the whole document (P8b).
+- `components/checklist/checklist-page.tsx`: the page renders the same two rules itself, in a `<style>` beside its dialog
+  (`SHELL_HIDDEN`), so they apply exactly while the Checklist is on the page — in the server's HTML (the first paint) and
+  gone with the page — with no `:has()`. Same weight as before, (0,5,0), via `:root:root:root`. When the browser closes
+  the dialog on its own and the page leaves, a state flag drops the rules first, so the shell shows during the leave as it
+  did (the old rules stopped matching the moment the dialog closed). Unchanged: `:root:has(.checklist-overlay[open])
+  { overflow: hidden }` and the keyed `:is(.skip, .phone-topbar, .app-sidebar, .phone-tabbar)` rule.
+- `lib/perf/has-invalidation.test.ts`: no exception left; every stylesheet of the app passes the guard.
+- Weight: /app/checklist 489.4 → 489.9 kB of its 492.0 kB line (the lead's build of `45d5510b`); the shell 414.8 kB.
+
+### Proof of identity
+Method (`scratchpad/p8c/capture.js`, `compare.js`): /app/checklist with the overlay open and Today after leaving it
+(closed), Nebula, Light and Dark, 390 (DPR 2, touch) and 1440; Showcase; fixed clock, seeded `Math.random`, reduced
+motion and Motion Off. Each capture: a viewport screenshot and a computed-style signature of every element (its path,
+`display`, `visibility` and rounded box: 1,039–3,854 elements per capture) plus the shell's display list. Sets: `before1–4`
+(the served build of `e107e6e9`, before the change), `after1–2` (the lead's build of `45d5510b`, with it), `revert2` (the
+same `45d5510b` build with the change undone on the wire: the page's rules emptied in the HTML, RSC payload and script,
+the two old rules appended back to the Checklist's stylesheet), so the change is measured alone on one build.
+
+| Comparison | Computed-style lines that differ (12 captures) | Shell display lists | Screenshots |
+|---|---|---|---|
+| before3 vs before4 (noise floor, same build) | 0 | same | identical except 1440 open: Dark 1,864 px, Nebula 1,337 px |
+| after1 vs after2 (same build) | 0 | same | identical |
+| **after1 vs revert2 (the change alone, same build)** | **0** | **same** | identical except 1440 open: Dark 2,948, Light 1,737, Nebula 1,731 px |
+| revert2 vs before3 (the rest of the build, P6 included) | 0 | same | identical except 1440 open: Dark 2,277, Light 394, Nebula 1,731 px |
+| after1 vs before3 | 0 | same | identical except 1440 open: Dark 687, Light 1,343 px |
+
+Every differing pixel, in every pair including two captures of the unchanged build, lies in one region of the open path at
+1440 (x 520–782, y 286–773; largest channel difference 81, as between before1 and before2): a time-driven part of the path
+that varies between any two captures, not the change. Outside it every screenshot is pixel-identical, and every element's
+computed `display`, `visibility` and box is identical in all 12 states. The hidden shell parts are hidden in every state
+exactly as before (e.g. phone, open: `.skip`, `.phone-topbar`, `.alpha-notice`, `.status-row`, `.site-footer`,
+`.phone-tabbar` `none`; `.workspace`, `main` `block`).
+
+Specs, run against the build with the change (`45d5510b`), files byte-for-byte unchanged (sha256 checked):
+`checklist-overlay-af` (the full-screen overlay's pins), `checklist`, `checklist-themes`, `phone-checklist-button`, and
+AG Polish `checklist-ag-polish`, `checklist-ag-polish-2`, `checklist-phone-ag-polish`, `-2`, `-3`, `checklist-list-ag-polish`,
+`checklist-celebration-ag-polish`: **104 passed, 0 failed, 28 skipped** (the specs' own desktop-only/phone-only skips),
+desktop and mobile projects, 2 workers.
+
+### Cost
+Same build (`45d5510b`), the change undone on the wire vs in place (`p8c/exp-load.js`, `base+revert` vs `base`), variants
+alternating; phone 390, CPU 4×, Showcase, Full motion; /app/checklist: load (6 s settle), 12 wheel steps over the overlay,
+then a tick of a planet ("…: not done yet"); median of 3, ms.
+
+| Figure | Without the change | With it | Runs (without / with) |
+|---|---|---|---|
+| load: long tasks / longest / TBT | 18 / 1998 / 4221 | 13 / 1873 / 3779 | TBT 4221, 3551, 4528 / 3493, 4087, 3779 |
+| scroll: long tasks / longest / TBT | 1 / 75 / 25 | **0 / 0 / 0** | every run without had one 60–104 ms task; none with |
+| tap a planet (INP proxy) | 520 | 520 | 520, 616, 472 / 520, 456, 624 |
+
+Before the change, on `e107e6e9`, the upper bound (both rules simply deleted on the wire, which also shows the shell
+beneath the dialog): load TBT 3674 → 4103, scroll 19 → 0, tick 584 → 472, runs overlapping. So the gain is modest: the
+overlay's scroll loses its last long task and the load a few; the tick is unchanged within its spread. Scripts and raw
+runs: scratchpad `p8c/` (`before1–4`, `after1–2`, `revert2`, `pixel-boxes.txt`, `exp-checklist*.json`, `specs.sha256`).

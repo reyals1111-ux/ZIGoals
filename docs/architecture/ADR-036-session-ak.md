@@ -986,8 +986,8 @@ Verbatim (pre-approved):
 
 | Row | Status | Commits | Evidence |
 |---|---|---|---|
-| D6-CL The Checklist full-screen view's two :has() rules: fixed only if the look is provably identical | Open | — | — |
-| D6-EARN Earn's first load (3.9 s TBT, phone profile, CPU 4×) accepted; recorded under Known limitations with the measurement | Open | — | — |
+| D6-CL The Checklist full-screen view's two :has() rules: fixed only if the look is provably identical | Done: the two rules moved from :has() in checklist.css to a <style> the page renders beside its dialog (same specificity, same first paint). Identity proven: 0 differing computed-style lines in 12 states (3 themes × 390/1440 × open/after leaving) against the build without the change and against e107e6e9; pixels identical but for one time-driven region that also differs between two unchanged captures; the 11 Checklist pin and AG Polish specs unchanged (sha256) and passing 104/104. Effect (phone, CPU 4×): overlay scroll TBT 25 → 0 ms, load 4221 → 3779 ms (runs overlap), tick unchanged; /app/checklist 489.4 → 489.9 of 492 kB | (this commit) | SESSION_AK_MOTION.md "P8c"; scratchpad/p8c captures |
+| D6-EARN Earn's first load (3.9 s TBT, phone profile, CPU 4×) accepted; recorded under Known limitations with the measurement | Done: Help's Known limitations line with the measurement | `5597e3dd` | tests/send-feedback.spec.ts |
 
 ## Owner follow-up 5: Part 13 restored
 Verbatim (1 Nov, pre-approved):

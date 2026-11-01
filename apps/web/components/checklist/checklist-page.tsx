@@ -18,6 +18,15 @@ import {LoadBoundary} from '../load-boundary';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
 
+/**
+ * Session AK P8c (owner decision 6): while the Checklist is open, the shell's other parts are not drawn. These two rules
+ * were `:root:has(.checklist-overlay[open]) … > :not(…)` in checklist.css: a `:has()` before a last part with no class
+ * made every change of the page's tree restyle the whole document (Blink keeps one :has() invalidation set; see
+ * lib/perf/has-invalidation.ts). Rendered by the page beside its dialog, the same rules apply exactly while it is here:
+ * in the server's HTML (the first paint), and gone with the page. Same weight as before, (0,5,0): `:root` three times.
+ */
+const SHELL_HIDDEN = ':root:root:root .app-content>:not(.workspace,.private-read-delay),:root:root:root .workspace>:not(main,.aa-toast-region){display:none!important}';
+
 // Opened on request only: the editor, the options, the history and the day's celebration stay out of the first paint.
 // The ambient sky is decoration (aria-hidden): it loads after the page, so the Checklist's first scripts stay within
 // their weight line (scripts/weight-budgets.json).
@@ -131,6 +140,9 @@ export function ChecklistPage() {
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
   const [menu, setMenu] = useState(false);
+  // Session AK P8c (owner decision 6): the shell's other parts are hidden by the page's own rules (SHELL_HIDDEN) while
+  // the overlay is open; the browser closing it on its own (and the page then leaving) shows the shell, as before.
+  const [shellHidden, setShellHidden] = useState(true);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
   // ZIGi's poses on the path need the frames the launcher's small "alive" chunk publishes; the launcher sits behind the
@@ -142,7 +154,7 @@ export function ChecklistPage() {
     return () => { cancelled = true; if (idle) window.cancelIdleCallback(handle as number); else window.clearTimeout(handle as number); };
   }, []);
 
-  return <dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
+  return <><dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
     onKeyDown={e => { if (e.key !== 'Escape' || e.defaultPrevented) return; e.preventDefault(); escaped.current = true; window.setTimeout(() => { escaped.current = false; }, 0); onEscape(); }}
     onCancel={e => { e.preventDefault(); if (!escaped.current) onEscape(); }}
     onClose={() => {
@@ -150,6 +162,7 @@ export function ChecklistPage() {
       if (leaving.current) return;
       // The browser closed it anyway (Escape twice without a tap between): stay if an inner layer took the Escape.
       const d = dialog.current; if (escaped.current && d) { try { d.showModal(); } catch { /* stays closed */ } return; }
+      setShellHidden(false);
       leave();
     }}>
     <ChecklistSky/>
@@ -226,7 +239,7 @@ export function ChecklistPage() {
     <div ref={setJumpSlot} className="checklist-jump-slot"/>
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
-  </dialog>;
+  </dialog>{shellHidden && <style>{SHELL_HIDDEN}</style>}</>;
 }
 
 /** A sheet over the path (Edit path, Options, About): a panel from the side on a computer, from the foot on a phone; the
