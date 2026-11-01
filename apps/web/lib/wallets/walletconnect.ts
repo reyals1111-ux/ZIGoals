@@ -100,6 +100,13 @@ let live: WalletConnectLive | null = null;
 /** For lane L2a's signer: the live client and approved session of this tab, or null. */
 export const walletConnectSession = () => live;
 /**
+ * Session AK (AFL9 wiring; `TIER 3 (wallet)`): a window event (no detail) each time this tab's session is approved or ends,
+ * so the Staking panel can offer Keplr Mobile, or drop a connection whose pairing ended. It carries nothing; listeners
+ * read walletConnectSession().
+ */
+export const WALLETCONNECT_CHANGE = 'zigoals:walletconnect-change';
+const changed = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event(WALLETCONNECT_CHANGE)); };
+/**
  * Security review I2: a WalletConnect v2 pairing link exactly (topic, version 2, its parameters), checked before it is
  * shown, drawn or put in any wallet's link.
  */
@@ -136,6 +143,7 @@ export async function startWalletConnect({projectId, origin, cosmosMethods, stak
       throw new WalletConnectUnavailable('This pairing was ended before the wallet approved it, so nothing was linked.');
     }
     live = {client, session, staking};
+    changed();
     const name = session.peer?.metadata?.name;
     return {accounts: accountsOf(session.namespaces), wallet: typeof name === 'string' ? name.slice(0, 40) : 'WalletConnect'};
   })};
@@ -144,6 +152,7 @@ export async function startWalletConnect({projectId, origin, cosmosMethods, stak
 export async function stopWalletConnect(): Promise<void> {
   const current = live; live = null;
   if (typeof window !== 'undefined') window.removeEventListener(ACCOUNT_CHANGE, endOnAccountChange);
+  if (current?.session) changed();
   try { if (current?.session) await current.client.disconnect({topic: current.session.topic, reason: {code: 6000, message: 'User disconnected'}}); } catch { /* the in-memory session is gone anyway */ }
 }
 /** Trust Wallet's documented WalletConnect link for a `wc:` pairing link (lib/wallets/links.ts `trust-wc`). */

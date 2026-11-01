@@ -1,8 +1,12 @@
 import {createCipheriv, createDecipheriv, createHash, createPublicKey, diffieHellman, generateKeyPairSync, hkdfSync, randomBytes} from 'node:crypto';
 import {test, type Page, type WebSocketRoute} from '@playwright/test';
-import {toBech32} from '@cosmjs/encoding';
+import {fromBase64, toBase64, toBech32} from '@cosmjs/encoding';
+import {MsgDelegate} from 'cosmjs-types/cosmos/staking/v1beta1/tx';
+import {TxBody, TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {desktopOnly, expect, hydrated, offlineApis, seedRecords, stored} from './journey-helpers';
 import {openStatusSheet} from '../ab-shell';
+import {chooseChain} from '../chain-choice';
+import {ME, V1, ZIG as zigOf, fakeChain, openStaking, relay as stakingRelay} from '../staking-chain';
 
 /**
  * Session AK F2, journey 7: phone wallets over WalletConnect, MOCKED end to end. The WalletConnect relay
@@ -15,6 +19,10 @@ import {openStatusSheet} from '../ab-shell';
  * 2. Keplr Mobile for staking on the testnet: the staking pairing asks for the account read and exactly one signing
  *    method, for ZIGChain mainnet and testnet only; once approved, nothing at all is asked of the wallet: no signature
  *    without a reviewed action and the person's own Sign press.
+ * 7b. Keplr Mobile stakes on the testnet with no Keplr in the browser: paired from Staking, it connects the Staking panel
+ *    (the account read only), a delegation is reviewed, and the person's Sign press sends exactly one cosmos_signDirect of
+ *    the reviewed document; the fictional wallet answers it (a stubbed signature) and the signed transaction goes to the
+ *    testnet double of tests/staking-chain.ts, never to a real chain.
  */
 test.use({actionTimeout: 20_000, timezoneId: 'UTC', viewport: {width: 390, height: 844}});
 desktopOnly();
@@ -25,8 +33,9 @@ const open = (key: Buffer, b64: string) => { const b = Buffer.from(b64, 'base64'
 /** The raw JSON id of a message (WalletConnect's ids exceed a double's precision, so they are echoed as written). */
 const rawId = (text: string) => /"id"\s*:\s*("?[0-9]+"?)/.exec(text)?.[1] ?? '0';
 
-/** The relay, answered here, with a fictional wallet that approves the proposal with `accounts` (CAIP-10). */
-async function walletConnectRelay(page: Page, accounts: string[], walletName: string) {
+/** The relay, answered here, with a fictional wallet that approves the proposal with `accounts` (CAIP-10); with
+ *  `answers`, the wallet also answers each session request (method, params) on the session topic, sealed. */
+async function walletConnectRelay(page: Page, accounts: string[], walletName: string, answers?: (method: string, params: Json) => unknown) {
   const state = {proposals: [] as Json[], sessionRequests: [] as Json[], pairingKey: null as Buffer | null, sessionKey: null as Buffer | null, sessionTopic: '', approved: false};
   const subs = new Map<string, string>();
   const wallet = generateKeyPairSync('x25519'), walletPub = Buffer.from(wallet.publicKey.export({format: 'jwk'}).x!, 'base64url').toString('hex');
@@ -61,8 +70,12 @@ async function walletConnectRelay(page: Page, accounts: string[], walletName: st
         return;
       }
       if (msg.method.endsWith('_publish') && state.sessionKey && p.topic === state.sessionTopic) {
-        const body = JSON.parse(open(state.sessionKey, String(p.message))) as Json;
-        if (body.method === 'wc_sessionRequest') state.sessionRequests.push(body);
+        const text = open(state.sessionKey, String(p.message)), body = JSON.parse(text) as Json;
+        if (body.method === 'wc_sessionRequest') {
+          state.sessionRequests.push(body);
+          const request = (body.params as {request: {method: string; params: Json}}).request;
+          if (answers) { const result = answers(request.method, request.params); setTimeout(() => deliver(state.sessionTopic, seal(state.sessionKey!, `{"id":${rawId(text)},"jsonrpc":"2.0","result":${JSON.stringify(result)}}`), 1109), 50); }
+        }
       }
       reply(true);
     });
@@ -141,14 +154,69 @@ test('@journey 7 wallet: read-only WalletConnect linking, then Keplr Mobile pair
   expect(outside).toEqual([]);
 });
 
-test.fixme('@journey 7b Keplr Mobile signs one reviewed testnet delegation through the review sheet (stubbed signer)', async () => {
-  // Needs the relay double above to answer cosmos_signDirect with a stubbed signature and the testnet chain doubles of
-  // tests/staking-chain.ts on the WalletConnect path (they cover the Keplr-extension path today); not built in F2.
-  // Session AK Q1 (WIRING_AUDIT AFL9): the relay double can answer cosmos_signDirect (decrypt the wc_sessionRequest with the
-  // session key, echo the signDoc, seal the answer), but the person cannot reach a Sign press over WalletConnect: the
-  // Staking panel connects only through window.keplr (components/staking/staking-actions.tsx connect() →
-  // connectStaking(network, window.keplr)); with no extension it shows "Keplr is not installed" (or, on a phone, "Open
-  // ZIGoals in Keplr"), so no review sheet opens, and with the extension stubbed the review sheet signs with window.keplr
-  // first (components/staking/review-sheet.tsx). Nothing saves a staking session from the Keplr Mobile pairing. This turns
-  // into a test once the panel can connect through walletConnectKeplr(walletConnectSession(), chainId) (TIER 3 (wallet)).
+test('@journey 7b Keplr Mobile signs one reviewed testnet delegation through the review sheet (stubbed signer)', async ({page}) => {
+  test.setTimeout(150_000);
+  const outside: string[] = [];
+  page.on('request', r => { const u = new URL(r.url()); if (u.protocol.startsWith('http') && !['127.0.0.1', 'localhost'].includes(u.hostname) && !/verify\.walletconnect/.test(u.hostname)) outside.push(u.hostname); });
+  await chooseChain(page);
+  await offlineApis(page);
+  await seedRecords(page, {});
+  // The testnet's RPC and ZIGoals' relay answered by tests/staking-chain.ts (recorded fixtures; broadcasts kept in the test).
+  const chain = await fakeChain(page, 'practice');
+  await stakingRelay(page, 'practice');
+  // The fictional Keplr Mobile: its account read, and a stubbed signature of exactly the document it is sent.
+  const PUB = toBase64(new Uint8Array([2, ...new Array(32).fill(7)])), SIG = toBase64(new Uint8Array(64).fill(5));
+  const keplr = await walletConnectRelay(page, [`cosmos:zigchain-1:${ME}`, `cosmos:zig-test-2:${ME}`], 'Fictional Keplr', (method, params) =>
+    method === 'cosmos_getAccounts' ? [{address: ME, algo: 'secp256k1', pubkey: PUB}]
+    : method === 'cosmos_signDirect' ? {signed: params.signDoc, signature: {pub_key: {type: 'tendermint/PubKeySecp256k1', value: PUB}, signature: SIG}}
+    : null);
+  const asked = () => keplr.state.sessionRequests.map(b => (b.params as {request: {method: string}}).request.method);
+
+  // No Keplr in this browser: Staking offers no extension connect.
+  const panel = await openStaking(page);
+  await expect(panel.getByRole('button', {name: /^Connect Keplr for/})).toHaveCount(0);
+  // Pair Keplr Mobile for staking from this page (the pairing lives in this tab's memory), then close the sheet.
+  const sheet = await pair(page, /^Stake with Keplr Mobile/, keplr);
+  await expect(sheet.getByRole('status').filter({hasText: 'Fictional Keplr is ready: review a staking action here and press Sign'})).toBeVisible({timeout: 20_000});
+  await sheet.getByRole('button', {name: 'Close Status', exact: true}).click();
+  await expect(sheet).toBeHidden();
+  expect(asked(), 'paired: nothing asked of the wallet yet').toEqual([]);
+
+  // Connect: the account read only.
+  await panel.getByRole('button', {name: 'Connect Keplr Mobile for PRACTICE', exact: true}).click();
+  await expect(panel.getByText(`${ME.slice(0, 10)}…${ME.slice(-6)}`, {exact: true})).toBeVisible({timeout: 20_000});
+  await expect(panel.locator('.staking-wallet-row')).toContainText('Keplr Mobile');
+  expect(asked()).toEqual(['cosmos_getAccounts']);
+
+  // A delegation of 25 ZIG to Fictional Alpha, typed by the person, reviewed.
+  await panel.getByRole('radio', {name: /Fictional Alpha/}).check();
+  await panel.getByLabel('Amount of ZIG').fill('25');
+  await panel.getByRole('button', {name: 'Review', exact: true}).click();
+  const review = page.getByRole('dialog', {name: 'Review before you sign'});
+  await expect(review).toContainText('Stake (delegate)');
+  await expect(review).toContainText('(25000000000000000000 azig)');
+  expect(asked().filter(m => m !== 'cosmos_getAccounts'), 'no signature before the Sign press').toEqual([]);
+  expect(chain.broadcasts).toEqual([]);
+
+  // The person's Sign press: exactly one signature request, of the reviewed document, on the testnet.
+  await review.getByRole('button', {name: 'Sign in Keplr →', exact: true}).click();
+  await expect(page.getByRole('heading', {name: 'Confirmed on the network.'})).toBeVisible({timeout: 30_000});
+  const signs = keplr.state.sessionRequests.filter(b => (b.params as {request: {method: string}}).request.method !== 'cosmos_getAccounts');
+  expect(signs).toHaveLength(1);
+  const sign = signs[0]!.params as {chainId: string; request: {method: string; params: {signerAddress: string; signDoc: {chainId: string; accountNumber: string; bodyBytes: string; authInfoBytes: string}}}};
+  expect(sign.chainId).toBe('cosmos:zig-test-2');
+  expect(sign.request.method).toBe('cosmos_signDirect');
+  expect(sign.request.params.signerAddress).toBe(ME);
+  expect(sign.request.params.signDoc).toMatchObject({chainId: 'zig-test-2', accountNumber: '42'});
+  const messages = TxBody.decode(fromBase64(sign.request.params.signDoc.bodyBytes)).messages;
+  expect(messages.map(m => m.typeUrl)).toEqual(['/cosmos.staking.v1beta1.MsgDelegate']);
+  expect(MsgDelegate.decode(messages[0]!.value)).toMatchObject({delegatorAddress: ME, validatorAddress: V1, amount: {denom: 'azig', amount: zigOf(25)}});
+  // The transaction "broadcast" (to the double only) carries exactly the signed document and the wallet's signature.
+  expect(chain.broadcasts).toHaveLength(1);
+  const raw = TxRaw.decode(chain.broadcasts[0]!.tx);
+  expect(toBase64(raw.bodyBytes)).toBe(sign.request.params.signDoc.bodyBytes);
+  expect(toBase64(raw.authInfoBytes)).toBe(sign.request.params.signDoc.authInfoBytes);
+  expect(raw.signatures.map(s => toBase64(s))).toEqual([SIG]);
+  // Nothing left the test but the doubles: the testnet RPC host (answered by fakeChain) and no other.
+  expect([...new Set(outside)].filter(h => h !== 'testnet-rpc.zigchain.com')).toEqual([]);
 });

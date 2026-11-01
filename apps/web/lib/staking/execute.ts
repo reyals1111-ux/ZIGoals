@@ -160,26 +160,72 @@ type WcLive = {client: unknown; session: {topic: string; namespaces: unknown} | 
 type WcRequester = {request(args: {topic: string; chainId: string; request: {method: string; params: unknown}}): Promise<unknown>};
 const b64 = (bytes: Uint8Array) => { let text = ''; for (const byte of bytes) text += String.fromCharCode(byte); return btoa(text); };
 const unb64 = (text: unknown) => { if (typeof text !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(text) || text.length > 8192) throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.'); let raw: string; try { raw = atob(text); } catch { throw Error('The wallet answered in a form ZIGoals does not read. Nothing was signed.'); } const out = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; };
-export function walletConnectKeplr(live: WcLive, chainId: string): KeplrSigner | null {
+/**
+ * Session AK (AFL9 wiring; `TIER 3 (wallet)`): whether this tab's WalletConnect session may stake on `chainId`, and if not,
+ * why (for the Staking panel's plain words). Pure: it reads the session ZIGoals holds and asks nothing of the wallet. The
+ * one gate for walletConnectKeplr and walletConnectStakingKeys, unchanged from the signer's own checks (security review L1).
+ * - `none`: no approved session in this tab;
+ * - `linking-only`: a read-only linking pairing (not started for staking), whatever the wallet says it approved;
+ * - `no-chain`: the wallet did not offer this ZIGChain network (no account on it, or its chains leave it out);
+ * - `no-signing`: the wallet did not approve the one signing method for it.
+ */
+export type WalletConnectStakingCheck = {ok: true} | {ok: false; reason: 'none' | 'linking-only' | 'no-chain' | 'no-signing'};
+type WcPairing = {client: WcRequester; topic: string; caip: string};
+function stakingPairing(live: WcLive, chainId: string): WcPairing | WalletConnectStakingCheck & {ok: false} {
   const session = live?.session;
+  if (!session || typeof session.topic !== 'string') return {ok: false, reason: 'none'};
   // Security review L1: the wallet writes the session's namespaces, so they cannot decide on their own. Only a pairing
   // ZIGoals itself started for staking (`staking === true`, set by startWalletConnect's stakingMethods path) may sign, and
   // only what that pairing asked for: the session's methods and chains are intersected with WC_STAKING_METHODS and
   // WC_STAKING_CHAINS, so a wallet that adds cosmos_signDirect to a read-only pairing, or another chain, gets nothing.
-  if (!session || live?.staking !== true || typeof session.topic !== 'string' || !(WC_STAKING_CHAINS as readonly string[]).includes(chainId)) return null;
+  if (live?.staking !== true) return {ok: false, reason: 'linking-only'};
+  if (!(WC_STAKING_CHAINS as readonly string[]).includes(chainId)) return {ok: false, reason: 'no-chain'};
   const caip = `cosmos:${chainId}`, cosmos = (session.namespaces as Record<string, {accounts?: unknown; methods?: unknown; chains?: unknown}> | null)?.cosmos;
   const methods = (Array.isArray(cosmos?.methods) ? cosmos.methods : []).filter(m => (WC_STAKING_METHODS as readonly unknown[]).includes(m));
   const accounts = Array.isArray(cosmos?.accounts) ? cosmos.accounts : [];
-  if (cosmos?.chains !== undefined && !(Array.isArray(cosmos.chains) && cosmos.chains.includes(caip))) return null;
-  if (!methods.includes('cosmos_signDirect') || !accounts.some(a => typeof a === 'string' && a.startsWith(`${caip}:`))) return null;
-  const client = live!.client as WcRequester, ask = (method: string, params: unknown) => client.request({topic: session.topic, chainId: caip, request: {method, params}});
-  const read = async () => {
-    const answer = await ask('cosmos_getAccounts', {});
-    const list = Array.isArray(answer) ? answer as {address?: unknown; algo?: unknown; pubkey?: unknown}[] : [];
-    const first = list[0];
-    if (!first || typeof first.address !== 'string' || first.algo !== 'secp256k1') throw Error('The wallet shared no ZIGChain account. Nothing was signed.');
-    return [{address: first.address, algo: 'secp256k1' as const, pubkey: unb64(first.pubkey)}];
+  if (cosmos?.chains !== undefined && !(Array.isArray(cosmos.chains) && cosmos.chains.includes(caip))) return {ok: false, reason: 'no-chain'};
+  if (!accounts.some(a => typeof a === 'string' && a.startsWith(`${caip}:`))) return {ok: false, reason: 'no-chain'};
+  if (!methods.includes('cosmos_signDirect')) return {ok: false, reason: 'no-signing'};
+  return {client: live!.client as WcRequester, topic: session.topic, caip};
+}
+export function walletConnectStakingCheck(live: WcLive, chainId: string): WalletConnectStakingCheck {
+  const pairing = stakingPairing(live, chainId);
+  return 'ok' in pairing ? pairing : {ok: true};
+}
+/** The wallet's one ZIGChain account over the pairing (`cosmos_getAccounts`, the read; no signing method). */
+const wcAccounts = ({client, topic, caip}: WcPairing) => async () => {
+  const answer = await client.request({topic, chainId: caip, request: {method: 'cosmos_getAccounts', params: {}}});
+  const list = Array.isArray(answer) ? answer as {address?: unknown; algo?: unknown; pubkey?: unknown}[] : [];
+  const first = list[0];
+  if (!first || typeof first.address !== 'string' || first.algo !== 'secp256k1') throw Error('The wallet shared no ZIGChain account. Nothing was signed.');
+  return [{address: first.address, algo: 'secp256k1' as const, pubkey: unb64(first.pubkey)}];
+};
+/**
+ * Session AK (AFL9 wiring; `TIER 3 (wallet)`): the Staking panel's connect and review over Keplr Mobile, when the browser
+ * has no Keplr. It reads the account only (the shape of Keplr's `enable` / `getKey` that connectStaking and quoteStaking
+ * use): `enable` accepts this chain only (the pairing was checked for it), there is no chain to suggest over WalletConnect, and `getKey`
+ * asks the wallet for its account (address and public key). It holds no signer and cannot reach one: signing stays with
+ * walletConnectKeplr, made by the review sheet's submit alone. Null exactly when walletConnectKeplr is null.
+ */
+export function walletConnectStakingKeys(live: WcLive, chainId: string) {
+  const pairing = stakingPairing(live, chainId);
+  if ('ok' in pairing) return null;
+  const read = wcAccounts(pairing);
+  return {
+    enable: async (asked: string) => { if (asked !== chainId) throw Error('Keplr Mobile is not paired for this network over WalletConnect. Nothing was connected.'); },
+    experimentalSuggestChain: async () => { throw Error('Keplr Mobile is not paired for this network over WalletConnect. Nothing was connected.'); },
+    getKey: async (asked: string) => {
+      if (asked !== chainId) throw Error('Wrong network. Nothing was signed.');
+      const [account] = await read();
+      return {bech32Address: account!.address, pubKey: account!.pubkey, algo: account!.algo, isNanoLedger: false};
+    },
   };
+}
+export function walletConnectKeplr(live: WcLive, chainId: string): KeplrSigner | null {
+  const pairing = stakingPairing(live, chainId);
+  if ('ok' in pairing) return null;
+  const {client, topic: sessionTopic, caip} = pairing, ask = (method: string, params: unknown) => client.request({topic: sessionTopic, chainId: caip, request: {method, params}});
+  const read = wcAccounts(pairing);
   const signer = {
     getAccounts: read,
     signDirect: async (signerAddress: string, signDoc: {chainId: string; accountNumber: bigint; authInfoBytes: Uint8Array; bodyBytes: Uint8Array}) => {
