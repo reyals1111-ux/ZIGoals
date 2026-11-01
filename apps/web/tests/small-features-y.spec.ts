@@ -5,6 +5,7 @@ import {PLATFORM_KEY, emptyPlatform, privateGoalSchema} from '../lib/positions';
 import {manualSourcePosition} from '../lib/manual-source';
 import {saveAsset} from '../lib/asset-management';
 import {isPhone} from './phone-nav';
+import {openHabitMoreOptions} from './habit-form-helpers';
 
 /**
  * Session Y Part 8 (owner-approved, ADR-018 Y26–Y28): vacation days cleared later, "−" beside "+" on every measured habit,
@@ -20,7 +21,7 @@ const stored = async (page: Page) => JSON.parse((await page.evaluate(key => loca
 async function addHabit(page: Page, title: string, measure?: {kind: string; target: string}) {
   await page.getByRole('button', {name: '+ New habit', exact: true}).click();
   await page.getByLabel('Habit title', {exact: true}).fill(title);
-  if (measure) { await page.getByRole('combobox', {name: 'Measurement', exact: true}).selectOption(measure.kind); await page.getByLabel('Unit', {exact: true}).fill('liters'); await page.getByLabel('Target value').fill(measure.target); }
+  if (measure) { await openHabitMoreOptions(page); /* Session AK D1 (FR-17): how it is counted sits under "More options" */ await page.getByRole('combobox', {name: 'Measurement', exact: true}).selectOption(measure.kind); await page.getByLabel('Unit', {exact: true}).fill('liters'); await page.getByLabel('Target value').fill(measure.target); }
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
   await expect(page.getByRole('article', {name: title, exact: true})).toBeVisible();
 }

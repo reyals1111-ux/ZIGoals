@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {openHabitDetails} from './ab-shell';
+import {openHabitMoreOptions} from './habit-form-helpers';
 import { HABITS_KEY } from "../lib/habits";
 
 // The QA-01 twin (Session F, docs/qa/QA_SWEEP_2026-09-30.md, "Deferred" in the Session E entry): Habits value fields were
@@ -19,6 +20,7 @@ async function createWater(page: Page, target: string) {
   await page.goto("/app/habits");
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();
   await page.getByLabel("Habit title", { exact: true }).fill("Drink water");
+  await openHabitMoreOptions(page); // Session AK D1 (FR-17): how it is counted sits under "More options"
   await page.getByRole("combobox", { name: "Measurement", exact: true }).selectOption("quantity");
   await page.getByLabel("Unit", { exact: true }).fill("liters");
   const field = page.getByLabel("Target value");

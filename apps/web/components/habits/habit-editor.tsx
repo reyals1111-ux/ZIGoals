@@ -1,6 +1,6 @@
 "use client";
 import { MONTH_WEEKDAY_NTH, monthWeekdayLabel, type MonthWeekdayNth } from "../../lib/habit-month-weekday/rule";
-import { lazy, Suspense, useId, useState, type FormEvent } from "react";
+import { lazy, Suspense, useId, useRef, useState, type FormEvent } from "react";
 import {earliestHabitChange,habitEditFingerprint} from "../../lib/habit-actions";
 import { habitInputSchema, latestHabitRule, type Habit, type HabitGoalLink, type HabitInput, type HabitRule } from "../../lib/habits";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
@@ -12,6 +12,7 @@ import type { ExerciseCounter } from "../../lib/health-counters";
 import { useFieldErrors } from "../field-errors";
 import { useChainChoice } from "../chain/use-chain-choice";
 import {plainErrorMessage} from "../../lib/plain-error";
+import { foldHoldsError, habitCountingDiffers } from "../../lib/habit-form-fold";
 import type { PhraseChoice } from "./recurrence-phrase";
 // Session AK (item 21): "Type the schedule in words" loads only when that fold is opened.
 const RecurrencePhrase = lazy(() => import("./recurrence-phrase"));
@@ -86,6 +87,10 @@ export function HabitEditor({ monthWeekday = null, habit, goals, habits,today, r
   const [busy, setBusy] = useState(false);
   // Session Y Part 9: each refusal names its field (aria-invalid, aria-describedby) and the first takes the focus.
   const fe = useFieldErrors(), error = fe.error, setError = (message: string) => { if (message) fe.fail(message); else fe.clear(); };
+  // Session AK D1 (FR-17): "More options" holds how the habit is counted. Closed for a new habit, open on edit, and it
+  // opens by itself when a template fills it or a refusal names a field inside it (opened first, so that field takes the focus).
+  const [moreOpen, setMoreOpen] = useState(!!habit), moreRef = useRef<HTMLDetailsElement>(null);
+  const fail = (message: string, ...fields: string[]) => { if (foldHoldsError(fields)) setMoreOpen(true); fe.fail(message, ...fields); };
   const savedLink = habit?.goalLink;
   const savedGoalIndex = savedLink ? goals.findIndex((option) => JSON.stringify(option.link) === JSON.stringify(savedLink)) : -1;
   const unmatchedLink = !!savedLink && savedGoalIndex < 0;
@@ -96,6 +101,7 @@ export function HabitEditor({ monthWeekday = null, habit, goals, habits,today, r
     const template = templates[key as keyof typeof templates]; if (!template) return;
     setTitle(template.title); setCategory(template.category); setType(template.type); setMeasurement(template.measurement); setUnit(template.unit); setTarget(String(template.target));
     setTargetPeriod(template.targetPeriod); setScheduleKind(template.schedule); setDays([1, 2, 3, 4, 5]); setFrequency("1"); setFrequencyPeriod(template.title === "My ZIG plan" ? "month" : "week");
+    if (habitCountingDiffers(template)) setMoreOpen(true);
   }
   /** Session AK (item 21): the phrase box fills the schedule fields (and the reminder and part of the day it read); nothing is saved until Create habit. */
   function applyPhrase({ schedule, time, partOfDay }: PhraseChoice) {
@@ -122,8 +128,8 @@ export function HabitEditor({ monthWeekday = null, habit, goals, habits,today, r
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget); const goal = String(form.get("goal"));
     const goalLink = goal === "keep" ? savedLink : goal ? goals.find((option) => JSON.stringify(option.link) === goal)?.link : undefined;
-    if (isInvisibleName(title)) { fe.fail(`Habit title: ${INVISIBLE_NAME}`, "title"); return; }
-    if (endKind === "goal" && !goalLink) { fe.fail("Choose a linked Goal before using the Goal target end condition.", "goal"); return; }
+    if (isInvisibleName(title)) { fail(`Habit title: ${INVISIBLE_NAME}`, "title"); return; }
+    if (endKind === "goal" && !goalLink) { fail("Choose a linked Goal before using the Goal target end condition.", "goal"); return; }
     // Typed numbers follow Health's decimal-comma rule; each refusal names its field.
     let targetValue = 0, every = 2, times = 1, count = 30, failed = "";
     try {
@@ -132,10 +138,10 @@ export function HabitEditor({ monthWeekday = null, habit, goals, habits,today, r
       if (scheduleKind === "interval") every = field("Repeat every (days)", () => readFormNumber(interval, { min: 2, max: 365, whole: true }));
       if (scheduleKind === "frequency") times = field("Times per period", () => readFormNumber(frequency, { min: 1, max: frequencyMaximum, whole: true }));
       if (endKind === "completions") count = field("Completion count", () => readFormNumber(endCount, { min: 1, max: 100_000, whole: true }));
-    } catch (e) { fe.fail(plainErrorMessage(e, "Check the numbers in this habit."), ...(failed ? [failed] : [])); return; }
+    } catch (e) { fail(plainErrorMessage(e, "Check the numbers in this habit."), ...(failed ? [failed] : [])); return; }
     const endCondition = endKind === "date" ? { kind: "date" as const, date: endDate } : endKind === "completions" ? { kind: "completions" as const, count } : endKind === "goal" && goalLink ? { kind: "goal" as const, goal: goalLink } : { kind: "none" as const };
     const parsed = habitInputSchema.safeParse({ title, category, description, notes, goalLink, type, measurement: measurementValue(), target: targetValue, targetPeriod: scheduleKind === "frequency" ? "day" : targetPeriod, schedule: scheduleValue(every, times), timeOfDay, endCondition, stackAfterId: stackAfterId || undefined });
-    if (!parsed.success) { setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
+    if (!parsed.success) { setMoreOpen(true); setError("Check the title, target, unit, recurrence, end condition, and selected days."); return; }
     // The Health link is checked after the habit itself, so its message names its own field; a quit or limit habit has none.
     let link: HabitHealthLink | null = null;
     if (type === "build" && !healthLinksUnreadable) { try { link = healthLinkFromDraft(shownLink, waterUnit); } catch (e) { setError(`Done automatically from Health: ${plainErrorMessage(e, "Check the link.")}`); return; } }
@@ -143,7 +149,7 @@ export function HabitEditor({ monthWeekday = null, habit, goals, habits,today, r
   }
   return <section className="panel habit-editor" aria-labelledby={`${formId}-heading`}>
     <div className="habit-section-heading"><div><p className="eyebrow">Set your cadence</p><h2 id={`${formId}-heading`}>{habit ? "Edit habit" : "Create a habit"}</h2></div>{onIdeas ? <button type="button" className="secondary habit-ideas-button" onClick={onIdeas}>Start from an idea</button> : <span aria-hidden="true" className="habit-spark">✦</span>}</div>
-    <form onSubmit={submit}><fieldset disabled={busy} className="habit-form-fields">
+    <form onSubmit={submit} onInvalidCapture={(event) => { /* D1: a required field inside a closed "More options" (a cleared unit, an end date) opens it, so the browser can point at it */ const details = moreRef.current; if (details && !details.open && details.contains(event.target as Node)) { details.open = true; setMoreOpen(true); } }}><fieldset disabled={busy} className="habit-form-fields">
       {habit&&<label className="field">Changes effective from<input type="date" required min={earliestHabitChange(habit,today,{allowToday:true})} value={effectiveFrom} onChange={event=>setEffectiveFrom(event.target.value)}/><small>Rule changes begin on this day: today when nothing is recorded for today yet, else tomorrow or later. Days already recorded keep their units and targets. Names and notes update now.</small></label>}
       {!habit && <label className="field">Start from template<select defaultValue="" onChange={(event) => applyTemplate(event.target.value)}><option value="">Blank habit</option>{Object.entries(templates).filter(([key]) => chain || !CHAIN_TEMPLATES.has(key)).map(([key, template]) => <option key={key} value={key}>{template.title}</option>)}</select></label>}
       <label className="field">Habit title<input {...fe.field("title")} autoFocus data-sheet-focus required maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What would you like to make time for?" /></label>
@@ -157,19 +163,20 @@ export function HabitEditor({ monthWeekday = null, habit, goals, habits,today, r
       {scheduleKind === "interval" && <label className="field">Repeat every (days)<input {...fe.field("interval")} type="text" inputMode="numeric" autoComplete="off" value={interval} onChange={(event) => setInterval(event.target.value)} /></label>}
       {scheduleKind === "frequency" && <div className="habit-form-grid"><label className="field">Times per period<input {...fe.field("frequency")} type="text" inputMode="numeric" autoComplete="off" value={frequency} onChange={(event) => setFrequency(event.target.value)} /></label><label className="field">Frequency period<select value={frequencyPeriod} onChange={(event) => { const next = event.target.value as typeof frequencyPeriod; setFrequencyPeriod(next); setTargetPeriod(next); setFrequency((current) => { const limit = { week: 7, month: 28, year: 365 }[next]; return /^\d+$/.test(current.trim()) && Number(current) > limit ? String(limit) : current; }); }}><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option></select></label></div>}
       {scheduleKind === "month-dates" && <label className="field">Dates in month<input value={monthDates} onChange={(event) => setMonthDates(event.target.value)} placeholder="1, 15, 28" /><small>Comma-separated dates from 1 to 31. Months without that date simply skip it.</small></label>}
-      <div className="habit-form-grid">
+      <label className="field">Category / area<input required maxLength={50} value={category} onChange={(event) => setCategory(event.target.value)} list={`${formId}-categories`} /></label>
+      <datalist id={`${formId}-categories`}>{["Personal", "Movement", "Health", "Learning", "Mindfulness", "Finance", "Creative"].map((value) => <option key={value} value={value} />)}</datalist>
+      <ReminderTimeField value={reminderTime} onChange={setReminderTime} note={/* Session AH (HA16, N-096): the note fits the habit's kind */ `After this time, Today shows a reminder card ${type === "build" ? "until today’s check-in is done" : type === "quit" ? "until you record today (an event, or “Stayed on track”)" : "until you record today (your amount, or “Within limit”)"}. Kept on this device only, never synced; leave empty for none. Quiet hours (Settings → Reminders) hold it back.`} />
+      {type === "build" && <HealthLinkField draft={shownLink} onChange={next => { setLinkTouched(true); setLinkDraft(next); }} counters={counters} waterUnit={waterUnit} unreadable={healthLinksUnreadable} onStartOver={onStartOverHealthLinks} />}
+      {/* Session AH (HA12; D-007, B-028, Denver S-06): the first view asks only what a habit needs; the rest waits here (open when editing). */}
+      <details ref={moreRef} className="habit-more-options" open={moreOpen} onToggle={(event) => setMoreOpen((event.currentTarget as HTMLDetailsElement).open)}><summary>More options <small>how it is counted, description, linked Goal, stack, end, notes</small></summary>
+      {/* Session AK D1 (FR-17, owner decision 5): how it is counted, with a blank habit's defaults (build, count, 1 time a day). */}
+      <div role="group" aria-label="How it is counted" className="habit-form-grid">
         <label className="field">Habit type<select value={type} onChange={(event) => { const next = event.target.value as HabitRule["type"]; setType(next); if (next === "quit") setTarget("0"); else if (target.trim() === "0") setTarget("1"); }}><option value="build">BUILD · reach a target</option><option value="quit">QUIT · avoid an event</option><option value="limit">LIMIT · stay at or below</option></select></label>
-        <label className="field">Category / area<input required maxLength={50} value={category} onChange={(event) => setCategory(event.target.value)} list={`${formId}-categories`} /></label>
-        <datalist id={`${formId}-categories`}>{["Personal", "Movement", "Health", "Learning", "Mindfulness", "Finance", "Creative"].map((value) => <option key={value} value={value} />)}</datalist>
         <label className="field">Measurement<select value={measurement} onChange={(event) => { const next = event.target.value as MeasurementKind; setMeasurement(next); if (next === "boolean") { setUnit(""); setTarget(type === "quit" ? "0" : "1"); } else if (next === "duration") setUnit("minutes"); else if (!unit) setUnit("times"); }}><option value="boolean">Yes / no</option><option value="count">Count</option><option value="duration">Duration</option><option value="quantity">Quantity</option><option value="custom">Custom unit</option></select></label>
         {measurement !== "boolean" && <label className="field">Unit{measurement === "duration" ? <select value={unit} onChange={(event) => setUnit(event.target.value)}><option value="minutes">minutes</option><option value="hours">hours</option></select> : <input required maxLength={24} value={unit} onChange={(event) => setUnit(event.target.value)} />}</label>}
         <label className="field">Target value<input {...fe.field("target")} aria-label="Target value" type="text" inputMode={wholeTarget ? "numeric" : "decimal"} autoComplete="off" disabled={type === "quit" || measurement === "boolean"} value={type === "quit" ? "0" : target} onChange={(event) => setTarget(event.target.value)} /></label>
         <label className="field">Target period<select value={scheduleKind === "frequency" ? "each" : targetPeriod} disabled={scheduleKind === "frequency"} onChange={(event) => setTargetPeriod(event.target.value as HabitRule["targetPeriod"])}>{scheduleKind === "frequency" && <option value="each">Each time</option>}<option value="day">Per day</option><option value="week">Per week</option><option value="month">Per month</option><option value="year">Per year</option></select>{/* Session AH (HA10, L-065): with X times per period the target is for each time, said plainly, never shown as "per week" */}{scheduleKind === "frequency" && <small>The target is for each time: {type === "quit" ? "0" : target || "…"}{measurement !== "boolean" && unit ? ` ${unit}` : ""} each time, {frequency || "…"} {frequency.trim() === "1" ? "time" : "times"} a {frequencyPeriod}.</small>}</label>
       </div>
-      <ReminderTimeField value={reminderTime} onChange={setReminderTime} note={/* Session AH (HA16, N-096): the note fits the habit's kind */ `After this time, Today shows a reminder card ${type === "build" ? "until today’s check-in is done" : type === "quit" ? "until you record today (an event, or “Stayed on track”)" : "until you record today (your amount, or “Within limit”)"}. Kept on this device only, never synced; leave empty for none. Quiet hours (Settings → Reminders) hold it back.`} />
-      {type === "build" && <HealthLinkField draft={shownLink} onChange={next => { setLinkTouched(true); setLinkDraft(next); }} counters={counters} waterUnit={waterUnit} unreadable={healthLinksUnreadable} onStartOver={onStartOverHealthLinks} />}
-      {/* Session AH (HA12; D-007, B-028, Denver S-06): the first view asks only what a habit needs; the rest waits here (open when editing). */}
-      <details className="habit-more-options" open={!!habit || undefined}><summary>More options <small>description, linked Goal, stack, end, notes</small></summary>
       <label className="field">Description (optional)<input maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="A small action, a little more often." /></label>
       <label className="field">Linked Goal (optional)<select {...fe.field("goal")} name="goal" defaultValue={unmatchedLink ? "keep" : savedGoalIndex < 0 ? "" : JSON.stringify(goals[savedGoalIndex]!.link)}><option value="">Standalone habit</option>{unmatchedLink && <option value="keep">Keep existing link · another Goal scope</option>}{goals.map((option) => <option key={JSON.stringify(option.link)} value={JSON.stringify(option.link)}>{option.label}</option>)}</select></label>
       <label className="field">Stack after (optional)<select value={stackAfterId} onChange={(event) => setStackAfterId(event.target.value)}><option value="">No habit stack</option>{habits.filter((item) => item.id !== habit?.id).map((item) => <option value={item.id} key={item.id}>After {item.title}</option>)}</select></label>
