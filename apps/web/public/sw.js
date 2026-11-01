@@ -100,8 +100,8 @@ const MAX_PAGES = 80, MAX_STATIC = 400, NETWORK_MS = 3500;
 const NOTIFY_DB = 'zigoals-notify-v1', ACTIONS_DB = 'zigoals-notify-actions-v1';
 // The notification's art (Session AK Part 12, Studio-4 preparation): ONE slot that every notification below reads. Studio-4's
 // push images replace these two paths (scripts/zigi/import-studio.mjs PUSH_ART; lib/zigi-studio4/push-art.test.ts keeps
-// them equal); today the app icon and the monochrome badge.
-const PUSH_ART = {icon: '/icons/zigoals-192.png', badge: '/icons/zigoals-badge-96.png'};
+// them equal); since Session AK Part 13, Studio-4's ZIGi icon and badge.
+const PUSH_ART = {icon: '/icons/zigi-push-icon-192.png', badge: '/icons/zigi-push-badge-96.png'};
 const ICON = PUSH_ART.icon, BADGE = PUSH_ART.badge;
 
 // Release review R12: the pages the manifest's shortcuts and the bottom bar open are kept at install, with the hashed
