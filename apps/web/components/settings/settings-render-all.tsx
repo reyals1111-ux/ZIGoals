@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useLayoutEffect} from 'react';
+import {hashId} from '../../lib/hash-id';
 
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 /**
@@ -15,7 +16,14 @@ export function SettingsRenderAll() {
     const page = document.querySelector<HTMLElement>('.settings-page');
     if (!page) return;
     const all = () => { page.dataset.jump = ''; };
-    if (window.location.hash.length > 1) { all(); return; }
+    if (window.location.hash.length > 1) {
+      all();
+      // The browser may already have jumped before hydration, onto the groups' estimated sizes; now that they are
+      // measured, land on the target again (instantly) before KeepSettingsJump starts holding it there.
+      const id = hashId(window.location.hash), target = id ? document.getElementById(id) : null;
+      target?.scrollIntoView({block: 'start', behavior: 'instant'});
+      return;
+    }
     const onClick = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest?.('a[href*="#"]') as HTMLAnchorElement | null;
       if (link && new URL(link.href, window.location.href).pathname === window.location.pathname) all();
