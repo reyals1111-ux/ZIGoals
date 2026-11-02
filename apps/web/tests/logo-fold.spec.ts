@@ -1,5 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
-import {FOLD,LOGO_Z,READY_MS} from '../components/logo-intro-decision';
+import {FOLD,FOLD_SOURCES,LOGO_Z,READY_MS} from '../components/logo-intro-decision';
 
 /**
  * Logo fold intro (Session I). Counts every <video> the page creates (even detached ones, such as a format probe), every
@@ -7,23 +7,25 @@ import {FOLD,LOGO_Z,READY_MS} from '../components/logo-intro-decision';
  */
 const RECORDER=()=>{
  type Rect={x:number;y:number;width:number;height:number};
- const seen={created:0,inserted:0,clips:0,states:[] as string[],ending:null as null|{clip:Rect;logo:Rect;crossfade:string},insertedAt:null as null|number,errorAt:null as null|number,removedAt:null as null|number};Object.assign(window,{foldSeen:seen});
+ const seen={created:0,inserted:0,clips:0,states:[] as string[],ending:null as null|{clip:Rect;logo:Rect;crossfade:string},insertedAt:null as null|number,errorAt:null as null|number,removedAt:null as null|number,sourceErrors:[] as {src:string;at:number}[]};Object.assign(window,{foldSeen:seen});
  // The hand-over lasts a few hundred ms: measure it in the page the moment it starts, rather than polling for it.
  new MutationObserver(records=>{for(const r of records){const clip=r.target as HTMLElement;if(!clip.matches('video.logo-intro'))continue;const state=clip.dataset.state??'';if(seen.states.at(-1)!==state)seen.states.push(state);
   if(state==='ending'&&!seen.ending){const logo=document.querySelector('.brand-logo[data-intro]')!,box=(e:Element)=>{const b=e.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height};};seen.ending={clip:box(clip),logo:box(logo),crossfade:getComputedStyle(clip).transitionDuration};}}})
   .observe(document,{subtree:true,attributes:true,attributeFilter:['data-state']});
  const create=Document.prototype.createElement;
  Document.prototype.createElement=function(this:Document,tag:string,options?:ElementCreationOptions){if(String(tag).toLowerCase()==='video')seen.created++;return create.call(this,tag,options);} as typeof create;
- // Page time of the clip's insertion, of the first error its sources report (the 404 route, in the error tests) and of its removal.
+ // Page time of the clip's insertion, of the first error its sources report (the 404 route, in the error tests) and of its removal,
+ // and each source's own error (which source, when), read on the source itself.
  const isClip=(v:Element)=>v.matches('video.logo-intro');
  new MutationObserver(records=>{for(const r of records){
   for(const n of r.addedNodes){if(!(n instanceof Element))continue;const videos=[...(n.matches('video')?[n]:[]),...n.querySelectorAll('video')];seen.inserted+=videos.length;
-   for(const v of videos.filter(isClip)){seen.clips++;seen.insertedAt??=performance.now();v.addEventListener('error',()=>{seen.errorAt??=performance.now();},true);}}
+   for(const v of videos.filter(isClip)){seen.clips++;seen.insertedAt??=performance.now();v.addEventListener('error',()=>{seen.errorAt??=performance.now();},true);
+    for(const s of v.querySelectorAll('source'))s.addEventListener('error',()=>{seen.sourceErrors.push({src:s.getAttribute('src')??'',at:performance.now()});});}}
   for(const n of r.removedNodes){if(n instanceof Element&&(isClip(n)||n.querySelector('video.logo-intro')))seen.removedAt??=performance.now();}
  }}).observe(document,{subtree:true,childList:true});
 };
 type Rect={x:number;y:number;width:number;height:number};
-type Seen={created:number;inserted:number;clips:number;states:string[];ending:null|{clip:Rect;logo:Rect;crossfade:string};insertedAt:null|number;errorAt:null|number;removedAt:null|number};
+type Seen={created:number;inserted:number;clips:number;states:string[];ending:null|{clip:Rect;logo:Rect;crossfade:string};insertedAt:null|number;errorAt:null|number;removedAt:null|number;sourceErrors:{src:string;at:number}[]};
 const seen=(page:Page)=>page.evaluate(()=>(window as unknown as {foldSeen:Seen}).foldSeen);
 const LAYOUTS=[{name:'this project\'s own size',viewport:null},{name:'the narrow-tablet header',viewport:{width:820,height:1180}}] as const;
 
@@ -51,7 +53,7 @@ for(const layout of LAYOUTS)
    await page.goto('/app/habits');const logo=await staticLogo(page);await expect(logo).toBeVisible();
    // A fixed wait, not networkidle: Next's cancelled link prefetches can keep networkidle from ever firing (see #50).
    await page.goto('/app/goals');await expect(page.locator('main h1')).toBeVisible();await page.waitForTimeout(2000);
-   expect(await seen(page)).toEqual({created:0,inserted:0,clips:0,states:[],ending:null,insertedAt:null,errorAt:null,removedAt:null});
+   expect(await seen(page)).toEqual({created:0,inserted:0,clips:0,states:[],ending:null,insertedAt:null,errorAt:null,removedAt:null,sourceErrors:[]});
    expect(requests).toEqual([]);
    expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:logo-intro:v1'))).toBeNull();
    // The shell recorded why it declined (Session P): the setting, not a hidden host or a played session.
@@ -147,7 +149,14 @@ for(const failure of ['error','not ready'] as const)
     // (the route works), and the clip must have left on the fallback before it did; then the scenario is repeated.
     await expect.poll(async()=>(await seen(target)).errorAt,{message:'the routed 404 never reached the browser'}).not.toBeNull();
     const s=await seen(target);
-    expect(s.removedAt,'removed before the late 404').not.toBeNull();expect(s.errorAt!).toBeGreaterThanOrEqual(s.removedAt!);
+    // Session AK (CI fix, spec measured the wrong 404): the clip ends its own way only when the LAST source it can play
+    // has failed (logo-intro.tsx reads NETWORK_NO_SOURCE). This browser plays both the WebM and the MP4, so the WebM's 404
+    // alone (the first error, errorAt) can come in time while the MP4's comes after the fallback; the check is that not
+    // every playable source had failed before the clip left. With one playable source it is the old errorAt >= removedAt.
+    const playable=await target.evaluate(sources=>{const probe=document.createElement('video');return sources.filter(x=>probe.canPlayType(x.type)!=='').map(x=>x.src);},FOLD_SOURCES.map(x=>({src:x.src,type:x.type})));
+    expect(playable.length,'the clip had a source this browser can play').toBeGreaterThan(0);
+    expect(s.removedAt,'removed before the late 404').not.toBeNull();
+    expect(playable.filter(src=>!s.sourceErrors.some(e=>e.src===src&&e.at<s.removedAt!)),'removed before the late 404 (a playable source had not failed yet)').not.toEqual([]);
     lateness.push(Math.round(s.errorAt!-s.insertedAt!));
     if(attempt===3)throw new Error(`runner too slow: the routed 404 reached the browser ${lateness.join(', ')} ms after the clip, past its ${READY_MS} ms fallback, three times`);
     await target.close();
