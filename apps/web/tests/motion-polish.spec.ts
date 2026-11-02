@@ -164,6 +164,9 @@ test('progress fills grow in once when seen and glide to new values while their 
  await page.getByRole('button',{name:'Record contribution',exact:true}).click();await page.getByRole('button',{name:'Record history only',exact:true}).click();
  await page.getByLabel(/^Actual amount in /).fill('500');await page.getByRole('button',{name:'Save history only',exact:true}).click();
  await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution recorded');
+ // Session AK (CI run 41504258964, mobile): the sheet that closed takes its own history entry back out (an async history.back(),
+ // components/use-back-closes.ts); a goto started before that lands is aborted (ERR_ABORTED). Wait until the entry is gone, as copy-polish does.
+ await expect.poll(()=>page.evaluate(()=>(window.history.state as Record<string,unknown>|null)?.__zigoalsLayer??null)).toBeNull();
  await page.goto('/app');
  const share=(locator:Locator)=>locator.evaluate(el=>({value:Number(getComputedStyle(el).getPropertyValue('--glass-value')),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
  // A bar slides in from wholly before its start and settles exactly where its value says.

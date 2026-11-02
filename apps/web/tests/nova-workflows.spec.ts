@@ -152,6 +152,7 @@ test('Briefs: the Showcase\'s morning brief and evening recap are made on the de
   await expect(briefs.getByText(/Evening recap ·/).first()).toBeVisible();
   await expect(briefs.getByText(/\d+ unread/)).toBeVisible();
   await briefs.getByText(/Evening recap ·/).first().click();
-  const stored = JSON.parse((await page.evaluate(k => localStorage.getItem(k), NOVA_BRIEFS_KEY))!);
-  expect(stored.briefs.some((b: {kind: string; readAt?: string}) => b.kind === 'evening' && b.readAt)).toBe(true);
+  // Session AK (CI run 41504258964): opening marks the recap read with a write that follows the click; poll the stored record
+  // until it lands instead of reading it once at once.
+  await expect.poll(async () => { const stored = JSON.parse((await page.evaluate(k => localStorage.getItem(k), NOVA_BRIEFS_KEY))!); return stored.briefs.some((b: {kind: string; readAt?: string}) => b.kind === 'evening' && b.readAt); }).toBe(true);
 });
