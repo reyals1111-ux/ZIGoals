@@ -204,7 +204,9 @@ test('Today\'s wallet card: ZIG only, with why other currencies are not shown (n
   await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
   for (const c of ['USD', 'EUR', 'BTC']) await expect(card.getByRole('button', {name: c, exact: true})).toHaveCount(0);
   await expect(card).not.toContainText(/unavailable|\$|€/);
-  // The chooser keeps its 44 px target.
+  // The chooser keeps its 44 px target, measured at rest: the cards rise in with `zg-rise` (scale .985 → 1; CI run
+  // 41493011171 read 43.99997 px at its tail), so the finite animations on the chooser's ancestors finish first.
+  await card.getByLabel('Wallet shown on this card').evaluate(el => Promise.all(document.getAnimations().filter(a => { const target = (a.effect as KeyframeEffect | null)?.target; return target instanceof Element && target.contains(el) && a.effect?.getComputedTiming().endTime !== Infinity; }).map(a => a.finished.catch(() => undefined))));
   const box = (await card.getByLabel('Wallet shown on this card').boundingBox())!; expect(box.height).toBeGreaterThanOrEqual(44);
   expect((await stored(page))!.display).toBe('BTC');
   // The linked wallet, read-only: shortened, whole in its title, no balance and no currency switch.
