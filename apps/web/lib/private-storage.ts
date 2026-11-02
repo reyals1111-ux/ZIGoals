@@ -29,26 +29,23 @@ export function readPrivateStore<T>(storage: Storage, key: string, schema: z.Zod
  * lock comes after all (back from the back/forward cache), the update is not applied a second time. Outside that moment
  * nothing changes: every update waits for the lock.
  */
-const waitingForLock: (() => void)[] = [];
+const waitingForLock = new Set<() => void>();
 let pageLeft = false;
-function runWaitingPrivateUpdatesNow() { pageLeft = true; for (const run of waitingForLock.splice(0)) run(); }
 if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", runWaitingPrivateUpdatesNow, true);
+  window.addEventListener("pagehide", () => { pageLeft = true; for (const run of waitingForLock) run(); }, true);
   window.addEventListener("pageshow", () => { pageLeft = false; }, true);
 }
 export async function updatePrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): Promise<T> {
   validateKey(key);
-  if (pageLeft) return applyPrivateUpdate(storage, key, schema, createEmpty, update);
-  let applied = false, runNow = () => {};
-  const apply = () => { applied = true; return applyPrivateUpdate(storage, key, schema, createEmpty, update); };
-  const leftEarly = new Promise<T>((resolve, reject) => { runNow = () => { if (applied) return; try { resolve(apply()); } catch (error) { reject(error); } }; });
-  waitingForLock.push(runNow);
-  const locked = withStorageLock(storageLockKey(storage,key), () => applied ? leftEarly : apply());
-  // Settled either way (written, refused, or no Web Locks at all): it leaves the queue and is never applied on pagehide.
-  const forget = () => { applied = true; const at = waitingForLock.indexOf(runNow); if (at >= 0) waitingForLock.splice(at, 1); };
-  const saved = Promise.race([locked, leftEarly]);
-  saved.then(forget, forget);
-  return saved;
+  const apply = () => applyPrivateUpdate(storage, key, schema, createEmpty, update);
+  if (pageLeft) return apply();
+  // Waiting while it is in the set: whichever comes first (pagehide or the lock) takes it out and applies it; the other
+  // then only waits for that outcome. Settled either way (written, refused, or no Web Locks at all), it leaves the set.
+  let run!: () => void;
+  const leftEarly = new Promise<T>((resolve, reject) => { run = () => { waitingForLock.delete(run); try { resolve(apply()); } catch (error) { reject(error); } }; });
+  waitingForLock.add(run);
+  try { return await Promise.race([withStorageLock(storageLockKey(storage,key), () => waitingForLock.delete(run) ? apply() : leftEarly), leftEarly]); }
+  finally { waitingForLock.delete(run); }
 }
 /**
  * Session AK G4 (journey 1 on the phone): the same read, change and write as updatePrivateStore, done at once, for a page
