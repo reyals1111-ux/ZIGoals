@@ -24,6 +24,9 @@ test('a phone: no sideways scroll, 44 px targets, a touch drag moves a habit by 
   await seedChecklist(page);
   await open(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // Session AK CI (the wait only, as timeline-af in 6f1feff0): the targets are measured at rest, after every finite
+  // animation inside the page and on its ancestors (the page entrance slides the rows; networkidle does not wait for it).
+  await page.locator('.timeline-page').evaluate(el => { const all = el.getAnimations({subtree: true}); for (let p = el.parentElement; p; p = p.parentElement) all.push(...p.getAnimations()); return Promise.all(all.filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))); });
   for (const target of await page.locator('.timeline-page button, .timeline-page .timeline-open').all()) {
     if (!(await target.isVisible())) continue;
     const box = (await target.boundingBox())!;

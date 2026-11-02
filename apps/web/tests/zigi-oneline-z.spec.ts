@@ -45,7 +45,13 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page, path = '/app/habits') { await page.goto(path); await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
 async function say(page: Page, text: string) {
   const before = await panel(page).locator('.ai-turn-assistant').count();
-  await panel(page).getByRole('textbox', {name: 'Message to your AI'}).fill(text);
+  // Session AK CI (WebKit phone, the wait only): the panel opens on the records-only box and becomes the connected chat
+  // once the AI settings are read; typed ~50 ms after that switch, WebKit's box once held nothing. The words go in once
+  // the connected chat shows its sign (the context bar) and are read back before Send, so a dropped fill says so here.
+  await expect(panel(page).locator('.ai-context-bar')).toBeVisible();
+  const box = panel(page).getByRole('textbox', {name: 'Message to your AI'});
+  await box.fill(text);
+  await expect(box).toHaveValue(text);
   await panel(page).locator('.ai-composer button[type=submit]').click();
   await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(before + 1);
 }
