@@ -410,8 +410,9 @@ test.describe('Part 4: Health',()=>{
   expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
   await expect(page.getByRole('button',{name:'Decrease Push-ups'})).toBeDisabled();
   // Measure at rest: while the page entrance runs (a 6 px slide, 320 ms) the buttons' boxes read a fraction of a pixel off.
-  await page.locator('.workspace main > div').first().evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>undefined))));
-  for(const b of await page.getByRole('article',{name:'Push-ups',exact:true}).getByRole('button',{name:/^(Increase|Decrease) Push-ups$/}).all()){const box=(await b.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
+  // Session AK CI-4: every finite animation on the button and each of its ancestors, not only the page's first block (CI
+  // read 43.99997 px while another ancestor still moved).
+  for(const b of await page.getByRole('article',{name:'Push-ups',exact:true}).getByRole('button',{name:/^(Increase|Decrease) Push-ups$/}).all()){await b.evaluate(el=>{const all=el.getAnimations({subtree:true});for(let p=el.parentElement;p;p=p.parentElement)all.push(...p.getAnimations());return Promise.all(all.filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>undefined)));});const box=(await b.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   const plus=page.getByRole('button',{name:'Increase Push-ups'});
   await plus.click();await expect(count(page,'Push-ups')).toHaveText('1');await plus.click();await plus.click();await expect(count(page,'Push-ups')).toHaveText('3');
   await page.getByRole('button',{name:'Decrease Push-ups'}).click();await expect(count(page,'Push-ups')).toHaveText('2');

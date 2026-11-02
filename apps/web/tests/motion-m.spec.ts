@@ -14,6 +14,15 @@ const countTransitions = (page: Page) => page.addInitScript(() => {
 });
 const setMotion = (page: Page, value: 'system' | 'calm' | 'off') => page.addInitScript(v => { try { localStorage.setItem('zigoals:motion:v1', v); } catch { /* storage denied */ } }, value);
 const vtCount = (page: Page) => page.evaluate(() => (window as unknown as {vtCount: number}).vtCount);
+/**
+ * Session AK (ADR-036, deliberate): capture budget 8 M — a page whose named element covers more than 8 M device pixels
+ * changes at once (lib/motion/view-transition-gate.ts). Today with the Showcase is over it (about 16 M at 1280×720 1×,
+ * 24 M at 390×844 3×), so the transition is checked leaving Stories (about 0.7 M and 4.7 M), a page that fits on both.
+ */
+async function openStories(page: Page) {
+  await page.goto('/app/stories');
+  await hydrated(page);
+}
 /** Client-side navigation by the app's own link (Habits is in every navigation). */
 async function navigateToHabits(page: Page) {
   await page.locator('a[href="/app/habits"]:visible').first().click();
@@ -46,6 +55,7 @@ test('Full: a page transition runs on navigation, its overlay never takes a tap,
   await countTransitions(page);
   await page.emulateMedia({reducedMotion: 'no-preference'});
   await loadShowcase(page);
+  await openStories(page);
   await expect(page.locator('html')).toHaveAttribute('data-zg-vt', 'on');
   await navigateToHabits(page);
   await expect.poll(() => vtCount(page)).toBeGreaterThanOrEqual(1);
@@ -59,6 +69,7 @@ test('Calm: a crossfade still runs on navigation, and no animation loops', async
   await setMotion(page, 'calm');
   await page.emulateMedia({reducedMotion: 'no-preference'});
   await loadShowcase(page);
+  await openStories(page);
   await navigateToHabits(page);
   await expect.poll(() => vtCount(page)).toBeGreaterThanOrEqual(1);
   await page.waitForTimeout(2500);
@@ -72,6 +83,7 @@ for (const mode of ['Motion Off', 'reduced motion'] as const) {
     if (mode === 'Motion Off') { await setMotion(page, 'off'); await page.emulateMedia({reducedMotion: 'no-preference'}); }
     else await page.emulateMedia({reducedMotion: 'reduce'});
     await loadShowcase(page);
+    await openStories(page); // as Full and Calm: from a page under the budget, so only the Off gate can stop a transition
     await expect(page.locator('html')).not.toHaveAttribute('data-zg-vt', 'on');
     await navigateToHabits(page);
     await page.waitForTimeout(2500);

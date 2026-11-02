@@ -32,6 +32,10 @@ type Stop = {key: string; where: string; visible: boolean; ring: boolean; covere
 const stop = (page: Page) => page.evaluate((): Stop | null => {
   const el = document.activeElement as HTMLElement | null;
   // Past the page's last control focus goes to the browser itself: the page no longer has focus, whatever activeElement says.
+  // Session AK CI-4: headless Chrome hands it straight back to the page's first control (window blur, then focus about 5 ms
+  // later, no script involved); on a slow runner this read came after that, and on NOVA, whose first control is not the
+  // hidden skip link, it read as a cycle. The window's own blur (marked by `watchExit` below) is the page being left.
+  if ((window as unknown as {p6Out?: boolean}).p6Out) return null;
   if (!el || el === document.body || el === document.documentElement || !document.hasFocus()) return null;
   const w = window as unknown as {p6n?: number};
   if (!el.dataset.p6) el.dataset.p6 = String((w.p6n = (w.p6n ?? 0) + 1));
@@ -64,6 +68,12 @@ const stop = (page: Page) => page.evaluate((): Stop | null => {
   return {key: el.dataset.p6, where, visible: r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight, ring, covered, segmented, start: el.matches('a.skip')};
 });
 async function open(page: Page, path: string) { await page.goto(path); await settle(page); }
+/** Marks the page as left once its window loses focus to the browser (not to a frame inside it), before the walk begins. */
+const watchExit = (page: Page) => page.evaluate(() => {
+  const w = window as unknown as {p6Out?: boolean};
+  w.p6Out = false;
+  window.addEventListener('blur', event => { if (event.target === window) setTimeout(() => { if (!(document.activeElement instanceof HTMLIFrameElement)) w.p6Out = true; }, 0); });
+});
 
 const HALVES = [ROUTES.slice(0, Math.ceil(ROUTES.length / 2)), ROUTES.slice(Math.ceil(ROUTES.length / 2))] as const;
 for (const theme of THEMES) for (const [half, routes] of HALVES.entries()) {
@@ -75,6 +85,7 @@ for (const theme of THEMES) for (const [half, routes] of HALVES.entries()) {
     for (const path of routes) {
       await open(page, path);
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+      await watchExit(page);
       // The two full-screen views, NOVA (components/nova/nova-chrome.css) and the Checklist's overlay (a modal dialog;
       // components/checklist/checklist.css), hide the sidebar and bars with the skip link: no repeated block, so no skip
       // link is needed there (2.4.1); their walk starts in the view itself. Anywhere else the skip link must be there.
