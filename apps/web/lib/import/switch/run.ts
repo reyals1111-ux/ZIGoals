@@ -19,10 +19,14 @@ export async function readExport(files: File[], {zone, now}: {zone: string; now:
   }
   const worker = new Worker(new URL('./worker.ts', import.meta.url), {type: 'module', name: 'zigoals-import'});
   return new Promise<ReadOutcome>((resolve, reject) => {
-    const stop = () => { worker.terminate(); reject(Error(STOPPED)); };
+    const stop = () => { clearTimeout(silent); worker.terminate(); reject(Error(STOPPED)); };
     events.signal?.addEventListener('abort', stop, {once: true});
-    const finish = () => { events.signal?.removeEventListener('abort', stop); worker.terminate(); };
+    // Session AK (CI 41401409092): a worker that dies while starting sends no error event in every browser, and the page
+    // waited forever on "Looking at your export…"; if it says nothing within 15 s, the read ends in the same plain words.
+    const silent = setTimeout(() => { finish(); reject(Error('The export could not be read in this browser.')); }, 15_000);
+    const finish = () => { clearTimeout(silent); events.signal?.removeEventListener('abort', stop); worker.terminate(); };
     worker.onmessage = (event: MessageEvent<{type: string; format?: ImportFormat; total?: number; done?: number; outcome?: ReadOutcome; message?: string}>) => {
+      clearTimeout(silent);
       const m = event.data;
       if (m.type === 'detected') events.onDetected?.(m.format!, m.total ?? 0);
       else if (m.type === 'progress') events.onProgress?.(m.done ?? 0);
