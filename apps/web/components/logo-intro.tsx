@@ -77,11 +77,12 @@ function playFold(host:Host,logo:HTMLImageElement,sources:FoldSource[]){
   logo.dataset.introEnd=why;
   timers.forEach(t=>window.clearTimeout(t));listeners.forEach(([target,type,handler,capture])=>target.removeEventListener(type,handler,capture));
   if(handOver&&logo.isConnected){
-   // Session AK (CI, the 820 px rail at start scale .5): when the ease to the exact size has not had its 500 ms (no
-   // timeupdate past SETTLE_AT_S reached a busy page before the end), the clip takes its exact size at once, so the
-   // crossfade starts on the static Z instead of scaling during it. When it settled in time nothing changes.
-   if(settledAt===undefined||performance.now()-settledAt<500){video.style.transition='none';video.dataset.settle='';void video.getBoundingClientRect();video.style.removeProperty('transition');}
-   video.dataset.settle='';logo.dataset.intro='ending';video.dataset.state='ending';
+   // Session AK (CI, the 820 px rail at start scale .5): an ease to the exact size that has not finished (no timeupdate
+   // past SETTLE_AT_S reached a busy page before the end, or a busy page has not yet advanced the transition it started:
+   // CI measured the clip still at .5 well after 500 ms) is finished now, so the crossfade starts on the static Z instead
+   // of scaling during it. Read on the clip's own animations, not a clock. When it settled in time nothing is running.
+   video.dataset.settle='';void video.getBoundingClientRect();video.getAnimations?.().forEach(animation=>animation.finish());
+   logo.dataset.intro='ending';video.dataset.state='ending';
    window.setTimeout(()=>{delete logo.dataset.intro;layer.remove();},CROSSFADE_MS+80);
    return;
   }
