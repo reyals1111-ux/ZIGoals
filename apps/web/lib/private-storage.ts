@@ -31,9 +31,11 @@ export function readPrivateStore<T>(storage: Storage, key: string, schema: z.Zod
  */
 const waitingForLock = new Set<() => void>();
 let pageLeft = false;
-if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", () => { pageLeft = true; for (const run of waitingForLock) run(); }, true);
-  window.addEventListener("pageshow", () => { pageLeft = false; }, true);
+// Only where a page can be left. Not `typeof window`: the build folds it to "object" in every client bundle, the import
+// Web Worker's too (lib/import/switch/apply.ts reads PRIVATE_MAX_BYTES), where `window` does not exist and the worker died.
+if ("onpagehide" in globalThis) {
+  globalThis.addEventListener("pagehide", () => { pageLeft = true; for (const run of waitingForLock) run(); }, true);
+  globalThis.addEventListener("pageshow", () => { pageLeft = false; }, true);
 }
 export async function updatePrivateStore<T>(storage: Storage, key: string, schema: z.ZodType<T>, createEmpty: () => T, update: (latest: T) => T): Promise<T> {
   validateKey(key);
