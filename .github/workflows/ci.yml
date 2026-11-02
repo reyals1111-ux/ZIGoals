@@ -365,6 +365,13 @@ jobs:
             sleep 1
           done
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --shard=${{ matrix.shard }}/3 --reporter=line --output=/tmp/zigoals-webkit-results
+      # Session AK ([TIER 3] (CI), diagnostic only): a WebKit page that hangs ~30 s and then dies ("Target crashed") left no
+      # trace of why. On a failure, the runner's memory and the kernel's kill/crash lines say whether it ran out of memory.
+      - name: Runner memory and kernel lines (failures only)
+        if: failure()
+        run: |
+          free -m
+          sudo dmesg -T 2>/dev/null | grep -iE 'out of memory|oom|killed process|segfault|webkit' | tail -50 || true
       - name: Retain the WebKit traces (failures and timeouts only)
         if: failure() || cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
