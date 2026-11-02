@@ -25,6 +25,8 @@ async function openGoalModule(page: Page, id: string) {
 // the navigation cancelled a Next.js link prefetch of the previous document while a page.route handler held
 // it: Playwright never reports that request as finished or failed, so the frame stays "busy" (local sandbox,
 // 4 of 20 runs; those requests' headers are still readable and recorded).
+// Session AK (CI lane, final run A shard 6): the poll now names what is still open. That named /api/push: the build's 503
+// was never read, so Chrome kept it in flight until its 15 s timeout (fixed in lib/push/client.ts). Same wait, same bound.
 async function requestsSettled(page: Page) {
   const open = new Set<Request>();
   let changed = Date.now();
@@ -32,7 +34,8 @@ async function requestsSettled(page: Page) {
   const ended = (request: Request) => { open.delete(request); changed = Date.now(); };
   page.on("request", started); page.on("requestfinished", ended); page.on("requestfailed", ended);
   try {
-    await expect.poll(() => open.size === 0 && Date.now() - changed >= 500, { timeout: 20_000, intervals: [100] }).toBe(true);
+    // Empty once nothing is in flight and the last start or end is 500 ms old; otherwise it names what is still open.
+    await expect.poll(() => [...[...open].map(request => request.url()), ...(Date.now() - changed < 500 ? ["(a request started or ended under 500 ms ago)"] : [])], { timeout: 20_000, intervals: [100] }).toEqual([]);
   } finally {
     page.off("request", started); page.off("requestfinished", ended); page.off("requestfailed", ended);
   }

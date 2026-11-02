@@ -44,6 +44,10 @@ test('postPush sends the action with the account header and relays status and JS
   await expect(postPush({action: 'delete-all'}, 'x', async () => new Response('<html>', {status: 502}))).rejects.toThrow('could not be read');
   expect(await pushAvailability(async () => Response.json({publicKey: 'A'.repeat(87)}))).toEqual({available: true, publicKey: 'A'.repeat(87)});
   expect(await pushAvailability(async () => Response.json({error: 'PUSH_UNAVAILABLE'}, {status: 503}))).toEqual({available: false});
+  // A refusal's body is read to its end, so the browser does not keep the request open until the timeout.
+  const refusal = Response.json({error: 'PUSH_UNAVAILABLE'}, {status: 503});
+  expect(await pushAvailability(async () => refusal)).toEqual({available: false});
+  expect(refusal.bodyUsed).toBe(true);
   expect(await pushAvailability(async () => Response.json({publicKey: 'short'}))).toEqual({available: false});
 });
 test('refusals get plain words; an unknown code keeps the server message or a generic line', () => {
