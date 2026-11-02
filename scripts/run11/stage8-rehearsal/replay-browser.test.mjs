@@ -69,14 +69,23 @@ async function rehearse(mode){
   const original={contribution:await timeline(pa,'contribution'),reversal:await timeline(pa,'reversal')};
   expect([original.contribution.length,original.reversal.length]).toEqual([1,1]);
   // Back online: the upload is applied by the Worker, but its acknowledgement is lost.
-  await network.setOffline(false);await ua.go('Settings');armed=true;const before=writes;
-  await pa.getByRole('button',{name:'Sync now',exact:true}).click();await reached;
+  let before;
   if(mode==='reload'){
+   await network.setOffline(false);await ua.go('Settings');armed=true;before=writes;
+   await pa.getByRole('button',{name:'Sync now',exact:true}).click();await reached;
    await pa.reload();release();
    await ua.access().getByRole('button',{name:'Check account status',exact:true}).click();
    await pa.getByLabel('Vault recovery secret',{exact:true}).waitFor();await ua.unlock(recovery);
   }else{
-   await ua.syncRegion().getByRole('alert').waitFor();await ua.syncNow();
+   // TIER 3 (auth/sync, test only), Session AK CI-4, as 71a26cd5 in sync-lost-ack: coming back online (and the offline
+   // edits) schedule an automatic sync 1 s later (components/vault-sync-controls.tsx, `online` and `zigoals:private-change`),
+   // and that sync is the upload. Armed after it and sent with "Sync now", a slow runner's automatic sync could take the
+   // drop first; the person's Sync now then ran once after it, cleared the alert and replayed, so no alert was left to
+   // see. The drop is armed before the connection returns and carried by the automatic sync, which pauses on the error.
+   armed=true;before=writes;
+   await network.setOffline(false);await ua.go('Settings');await reached;
+   await ua.syncRegion().getByRole('alert').waitFor().catch(async e=>{const said=await ua.syncRegion().innerText().catch(()=>'(no sync region)');throw Error(`${e.message}\nwrites ${writes} (armed ${armed}); at ${pa.url()}; the sync region said: ${said.slice(0,900)}`);});
+   await ua.syncNow();
   }
   expect(writes).toBeGreaterThan(before+1);
   await ua.syncNow();
