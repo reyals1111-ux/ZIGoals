@@ -1010,3 +1010,17 @@ Verbatim (1 Nov, pre-approved):
 | P13-R5 X030 cheer replaces the presenting pose in the Checklist's completion celebration (only that art; pin tests green) | Done: the orbit-completion cheer (path.tsx, path-zigi.tsx; the borrowed pose per STATUS's AF owner list); its large still under reduced motion / Motion Off; day video, tick cheer, timings, layout unchanged; the 11 Checklist pin and AG Polish specs pass unchanged | `90c8799e` | slots.test; checklist specs on 28437ae6 |
 | P13-R6 Optical centre re-measured in Chromium; brand-assets.test, zigi-assets.test, zigi-alive.spec at equal strength; Meet ZIGi shows every state, reaction, extra and variant; stills under reduced motion and Motion Off; theme parity and weights green | Done: +0.0224/−0.0904 (1×), +0.0225/−0.0904 (2×, large); tests restated at equal strength; Meet ZIGi's 26 moves; theme-parity-af and the ZIGi specs green on 28437ae6 | `7ac1a8dd`, `e19730cd`, `63071aa3` | zigi-alive, zigi-emotions, theme-parity-af |
 | P13-R7 Only imported files committed (never the delivery branch); "to polish later" items in Known limitations; the demo tour gains "Meet the new ZIGi" | Done: imported files only; three Known limitations lines (Help, 37 items); AK_DEMO_TOUR step 6b | `90c8799e`, (this commit) | send-feedback.spec |
+
+## Owner decision 7 (2 Nov, wrap-up)
+Verbatim (pre-approved):
+
+> OWNER DECISION, pre-approved, no reply needed; continue in auto mode (check the mode selector shows Auto). Wrap up now:
+> 1. Finish run B. Then C3 counts as met with ONE full green CI run on the final head, where a WebKit job that fails only from the two diagnosed engine-level causes (the libWPEWebKit compositor segfault "hang then die", and the Playwright navigation-cancel bug) gets its one re-run. Do not investigate engine-level crashes further: record both in STATUS as known intermittents with the evidence and the new diagnostic step.
+> 2. The ZIGi composer text loss (typing during the switch from on-device to connected mode remounts the Composer and drops the text) is a real user-facing bug: fix it if the fix is contained (the typed text survives the switch), with a test; if it isn't contained, list it under Known limitations.
+> 3. Then Z4 immediately, exactly as written: final STATUS entry, PR out of Draft, the PR-review Action once, CI green on the final head, and the report starting with "Open NOVA" and linking AK_DEMO_TOUR.md.
+
+| Row | Status | Commits | Evidence |
+|---|---|---|---|
+| D7-C3 Run B finished; C3 met by one full green CI run on the final head (WebKit engine faults: one re-run) | <<D7-C3>> | <<D7-C3-COMMITS>> | STATUS (Evidence; Known CI intermittents) |
+| D7-ENGINE The two WebKit engine-level causes recorded with evidence and the diagnostic step | Done: STATUS "Known CI intermittents" (class A, the navigation-cancel bug; class B, `ThreadedCompositor segfault … libWPEWebKit-2.0.so`, read by the failure-only step) | `4599b0ff` | CI run 41533409478 (the step's first use) |
+| D7-COMPOSER ZIGi's box losing words typed during the on-device → connected switch | Recorded under Known limitations (Help and STATUS): no contained fix could be proven. A probe in Chromium (6/6) found the box is never rebuilt (one textarea, relabelled in place ~100 ms after it appears) and words typed across the switch stay; the loss was seen once, in CI's WebKit (a Playwright fill ~4 ms after the switch), and WebKit is not installed locally | `27a14ee5` | tests/send-feedback.spec.ts (37 → 38, by its words) |
