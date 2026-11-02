@@ -28,15 +28,24 @@ const LabelScan = lazy(() => import("./label-scan"));
 // Session AK (item 15): the food quality letters and "A and B foods first" in the library, loaded with the library (off by default).
 const FoodQualityLibrary = lazy(() => import("./nutri-score").then((m) => ({ default: m.FoodQualityLibrary })));
 const VitaminRecipeLine = lazy(() => import("./vitamin-recipe-line").then((m) => ({ default: m.VitaminRecipeLine })));
-const WeightTrendCard = lazy(() => import("./weight-trend").then((m) => ({ default: m.WeightTrendCard })));
-const EnergyCard = lazy(() => import("./energy-card").then((m) => ({ default: m.EnergyCard })));
-const CoachCard = lazy(() => import("./coach-card").then((m) => ({ default: m.CoachCard })));
+// Session AK (final run, health-aa N1, 1 in 11): the Weight view's three cards are one lazy part. As three lazy parts in one
+// Suspense boundary each suspended in turn, and each turn waited for React's low-priority retry (or sibling pre-warm),
+// which a busy page puts off: the chunks were asked for about 3 s apart and the cards showed after 5 s, nothing in their
+// place. Now one import fetches the three chunks at once and one retry shows them together.
+const WeightCards = lazy(() => Promise.all([import("./weight-trend"), import("./energy-card"), import("./coach-card")]).then(([{ WeightTrendCard }, { EnergyCard }, { CoachCard }]) => ({
+  default: function WeightCards({ data, date, today, perform }: { data: HealthData; date: string; today: string; perform: Perform }) {
+    const unit = dailyData(data).preferences.weightUnit;
+    return <><WeightTrendCard data={data} today={date} unit={unit} /><EnergyCard data={data} today={today} unit={unit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></>;
+  },
+})));
 const HealthHighlights = lazy(() => import("./health-highlights"));
-const MicroPanel = lazy(() => import("./micro-panel").then((m) => ({ default: m.MicroPanel })));
+// Targets' macro mode and micronutrient panels: one lazy part, as the Weight cards above.
+const TargetPanels = lazy(() => Promise.all([import("./macro-mode-panel"), import("./micro-panel")]).then(([{ MacroModePanel }, { MicroPanel }]) => ({
+  default: function TargetPanels({ data, date }: { data: HealthData; date: string }) { return <><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></>; },
+})));
 const CalorieWeekCard = lazy(() => import("./calorie-week-card").then((m) => ({ default: m.CalorieWeekCard }))); // Session AK (P2 #7): optional, loaded when its fold opens
 const SupplementsCard = lazy(() => import("./supplements")); // Session AK (F5b): loaded when its fold opens
 const MealPhotoPanel = lazy(() => import("./meal-photo-panel").then((m) => ({ default: m.MealPhotoPanel }))); // Session AK (4.2): loaded when its fold opens
-const MacroModePanel = lazy(() => import("./macro-mode-panel").then((m) => ({ default: m.MacroModePanel })));
 const FastingTimeline = lazy(() => import("./fasting-timeline").then((m) => ({ default: m.FastingTimeline })));
 const YourNumbers = lazy(() => import("../health-numbers/your-numbers")); // Session AK (BUILD list 2 #4): loaded when its fold opens
 const CycleEntry = lazy(() => import("../cycle/cycle-entry")); // Session AK (BUILD list 2 #16): nothing until turned on in Settings; the log loads when its fold opens
@@ -304,9 +313,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Foods & recipes" && <><LazyFold summary="A photo of a meal">{() => <MealPhotoPanel data={data} />}</LazyFold><LibraryView data={data} perform={perform} invalid={invalid} /></>}
       {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={date} /></Suspense></LoadBoundary><LazyFold summary="Your numbers: blood pressure and lab values">{() => <YourNumbers today={today} />}</LazyFold></>}
       {/* Session AK RB (R2-8): the weight trend, energy estimate and coach open the Weight view (the tiles at the top link here). */}
-      {view === "Weight" && <><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={date} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary><WeightView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} /></>}
+      {view === "Weight" && <><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightCards data={data} date={date} today={today} perform={perform} /></Suspense></div></LoadBoundary><WeightView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} /></>}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
-      {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></Suspense></LoadBoundary><LazyFold summary="Weekly calorie budget (optional)">{() => <CalorieWeekCard data={data} date={date} today={today} />}</LazyFold></>}
+      {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><TargetPanels data={data} date={date} /></Suspense></LoadBoundary><LazyFold summary="Weekly calorie budget (optional)">{() => <CalorieWeekCard data={data} date={date} today={today} />}</LazyFold></>}
     </fieldset>
     {/* Session AK RB (RELEASE_REVIEW_2 R2-8): the weight trend, energy and coach cards moved into the Weight view; the
         highlight tiles at the top link to them (they showed twice on the page). */}
