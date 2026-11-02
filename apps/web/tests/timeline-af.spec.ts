@@ -70,6 +70,9 @@ test('a move by drag, by keyboard and by the picker: 15-minute steps, kept on th
   const habits = JSON.stringify(await stored(page, HABITS_KEY));
   // Drag: four steps of 15 minutes down.
   const handle = habitRow(page, 'stretch').getByRole('button', {name: /^Move Fictional stretch, now at 8:00 AM/});
+  // Session AK CI (the wait only): measured and grabbed at rest, after every finite animation on the handle and its
+  // ancestors (CI on 183733b3 read 43.99997 px while the page entrance still slid the row).
+  await handle.evaluate(el => { const all = el.getAnimations({subtree: true}); for (let p = el.parentElement; p; p = p.parentElement) all.push(...p.getAnimations()); return Promise.all(all.filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))); });
   const box = (await handle.boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
   const x = box.x + box.width / 2, y = box.y + box.height / 2;

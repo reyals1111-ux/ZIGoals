@@ -259,6 +259,9 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     await open(page, path, heading);
     // The Showcase shows the music button; its panel is what is measured on Today.
     // Session Z-Cloud Part 4.12: on a phone the player opens from the More sheet's row (ZIGi is the one floating button).
+    // Session AK CI (the wait only): NOVA's dashboard mounts after its heading and then plays its one-time opening from
+    // opacity 0; its real end state is `data-opening="done"` (CI on 183733b3 measured every NOVA text at 1.00:1 at t = 0).
+    if (path === '/app/nova') await expect(page.locator('.nova-frame')).toHaveAttribute('data-opening', 'done', {timeout: 15_000});
     if (rootSelector === '.music-panel') { if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); } else await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
     // The settled colours: a switch that takes its saved state after loading fades its colours for a moment, and a page's
     // one-time entrance (motion-page-enter, arrive-card) fades its cards in from 85 % opacity; both are waited out
