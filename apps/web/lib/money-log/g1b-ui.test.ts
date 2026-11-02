@@ -32,6 +32,9 @@ const click = async (name: string | RegExp) => { const b = buttons().find(x => t
 const read = <T>(key: string) => JSON.parse(localStorage.getItem(key) ?? 'null') as T;
 const setValue = async (input: HTMLInputElement, value: string) => { await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, value); input.dispatchEvent(new Event('input', {bubbles: true})); }); await settle(); };
 const key = async (target: Element, k: string) => { await act(async () => { target.dispatchEvent(new KeyboardEvent('keydown', {key: k, bubbles: true})); }); await settle(); };
+// Session AK (CI 41368398645, a Monday): the Spending card's Select lists this week's entries, and the seeded entries span
+// today and the two days before; the clock is pinned to a Thursday so they share a week on any weekday (Date only).
+vi.useFakeTimers({toFake: ['Date'], now: new Date('2026-10-29T12:00:00')});
 const today = localDate();
 const entry = (id: string, offset: number, amount: string, category: string, kind: 'expense' | 'income' = 'expense', note?: string, currency = 'EUR'): MoneyEntry => { const date = addLocalDays(today, offset); return {id, kind, amount, currency, category, date, createdAt: `${date}T10:00:00.000Z`, ...(note ? {note} : {})}; };
 const seed = (entries: MoneyEntry[]) => localStorage.setItem(MONEY_LOG_KEY, JSON.stringify({...emptyMoneyLog(), entries}));
