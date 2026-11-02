@@ -51,7 +51,10 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+// Session AK CI (WebKit phone, :105, the "ZIGi box empty" class): the panel puts the focus in its box as it opens (and
+// the box becomes the connected chat once the AI settings are read); WebKit lost text typed ~50 ms after that. As in
+// zigi-aa and zigi-chat-polish, a person types once the cursor is in the connected box, and so does the test.
+async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); await expect(page.getByLabel('Message to your AI')).toBeFocused(); }
 async function ask(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, unknown>; }, key);
 const meditationMinutes = () => { const habits = JSON.parse(buildShowcase(DAY).records[HABITS_KEY]!) as {habits: {title: string; entries: {date: string; count: number; disposition: string}[]}[]}; return habits.habits.find(h => h.title === 'Meditate')!.entries.filter(e => e.date >= '2026-09-01' && e.date <= DAY && e.disposition === 'logged').reduce((s, e) => s + e.count, 0); };
