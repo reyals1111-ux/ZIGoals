@@ -55,7 +55,7 @@ export async function tickAndCheck(page, expect, title = CHECKLIST_SENTINELS.hab
   await page.getByRole('button', {name: `${title}: not done yet`, exact: true}).click();
   await expect(page.getByRole('button', {name: doneName(title)})).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.checklist-progress-line')).toContainText('1 of 1 planet today');
-  await expect(page.locator('.aa-toast')).toContainText(`${title} logged for today.`);
+  // (The tick's toast, "… logged for today.", is checked in closeCelebration: the celebration this tick opens holds it.)
   await expect.poll(async () => (await habitEntryToday(page, title)).entry?.disposition ?? null).toBe('logged');
   const {entry} = await habitEntryToday(page, title);
   assert(entry && entry.count >= 1, 'the habit record holds today\'s check-in');
@@ -63,13 +63,17 @@ export async function tickAndCheck(page, expect, title = CHECKLIST_SENTINELS.hab
 /** Session AG Polish 2 (ADR-031 K13): the day's only planet completes the day, so its celebration opens (once a day on this
  *  device) and holds the toast while it is open; Escape closes it and the toast comes back with its Undo. Where it does not
  *  open (already played today in this browser), there is nothing to close. */
-export async function closeCelebration(page, expect) {
+export async function closeCelebration(page, expect, title = CHECKLIST_SENTINELS.habit) {
   const party = page.locator('dialog.checklist-celebration');
   const opened = await party.waitFor({state: 'visible', timeout: 10_000}).then(() => true, () => false);
   if (opened) {
     await page.keyboard.press('Escape');
     await expect(party).toHaveCount(0);
   }
+  // Session AK (deliberate, AG Polish 2 / ADR-031 K13): the celebration opens as soon as the habit's record completes the day,
+  // which can come before the tick's toast; held from the start, the toast first shows after Continue. Its words are checked
+  // here, where the app shows them in either order (the same check tickAndCheck made before the celebration).
+  await expect(page.locator('.aa-toast')).toContainText(`${title} logged for today.`);
   await expect(page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
 }
 /** Undo in the toast: the dot waits again and the habit's record is back as it was (no check-in today); Habits agrees. */
