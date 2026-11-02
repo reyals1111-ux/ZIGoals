@@ -20,7 +20,9 @@ import type {MotionLevel} from './level';
 const SHADOW = '__zgViewTransitionsOff';
 const WRAPPED = '__zgViewTransitionsBudget';
 /** Device pixels the named elements may cover when a page transition starts: 32 million (about 128 MB of picture). */
-export const CAPTURE_BUDGET = 32_000_000;
+// Session AK (CI 41363200263, WebKit): 32 M still let a 954×6362 px Habits page (24 M at 2×) hold a navigation ~9 s in
+// WebKit's software capture; 8 M keeps the fade for pages up to a few screens and lets taller ones change at once.
+export const CAPTURE_BUDGET = 8_000_000;
 type Doc = Document & {[SHADOW]?: boolean; [WRAPPED]?: boolean};
 type Start = (this: Document, ...args: unknown[]) => unknown;
 

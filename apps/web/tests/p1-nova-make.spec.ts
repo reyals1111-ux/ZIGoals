@@ -119,6 +119,9 @@ test.describe('Make NOVA yours on a computer', () => {
   });
 
   test('the persona: a name of its own, ZIGi or the orb as its face, and what it calls the person; a blank name is NOVA again', async ({page}) => {
+    // Session AK (CI 41363200263): the greeting is "Still up?" from 23:00 to 04:59 (lib/nova/orb.ts); the evening is pinned,
+    // as the Activity test below does, so the words checked are the evening's at any hour.
+    await page.clock.install({time: EVENING});
     await fresh(page);
     await page.goto('/app/nova');
     let sheet = await customize(page);
