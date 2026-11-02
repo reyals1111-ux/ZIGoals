@@ -109,7 +109,10 @@ function arriveCards(main: HTMLElement, roots: Iterable<Element>) {
     }
     for (const child of el.children) visit(child as HTMLElement);
   };
-  for (const root of roots) if (root instanceof HTMLElement && main.contains(root)) visit(root);
+  // Session AK CI-4: content added inside an element with its own entrance keeps that entrance alone too. NOVA's dashboard
+  // mounts into `section.nova-root[data-entrance]` after the page; its left panel got the card settle, and when the mark
+  // was cleared its own slide-in (nova.css `.nova-left`) started again, an 18 px jump about half a second after arriving.
+  for (const root of roots) if (root instanceof HTMLElement && main.contains(root) && !root.closest(OWN_ENTRANCE)) visit(root);
 }
 
 export function PageArrival() {

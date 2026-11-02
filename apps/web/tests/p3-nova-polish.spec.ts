@@ -38,6 +38,13 @@ async function openNova(page: Page) {
   await expect(page.locator('.nova-orb-button')).toBeVisible();
 }
 type Box = {x: number; y: number; width: number; height: number};
+/** Session AK CI-4: every finite animation on the element, inside it and on its ancestors has finished (the left panel slides
+ * in 18 px on every mount, nova.css `.nova-left`; measured mid-slide its foot read x = -6). */
+const atRest = (page: Page, selector: string) => page.locator(selector).first().evaluate(el => {
+  const all = el.getAnimations({subtree: true});
+  for (let p = el.parentElement; p; p = p.parentElement) all.push(...p.getAnimations());
+  return Promise.all(all.filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined)));
+});
 const box = async (page: Page, selector: string): Promise<Box> => { const b = await page.locator(selector).first().boundingBox(); expect(b, selector).not.toBeNull(); return b!; };
 const inWindow = (page: Page, b: Box, what: string) => {
   const {width, height} = page.viewportSize()!;
@@ -207,6 +214,7 @@ test.describe('NOVA polish on a computer', () => {
     await page.setViewportSize({width: 1440, height: 900});
     await fresh(page, seen());
     await openNova(page);
+    await atRest(page, '.nova-left-foot');
     inWindow(page, await box(page, '.nova-left-foot'), 'the left panel\'s foot');
     await expect(page.locator('.nova-left-count').filter({hasText: /^0$/})).toHaveCount(0);
     await expect(page.getByRole('link', {name: 'Goals, 0 active'})).toBeVisible(); // still in the row's name
