@@ -69,7 +69,7 @@ function playFold(host:Host,logo:HTMLImageElement,sources:FoldSource[]){
   frame.append(video);link.append(frame);
  }
  const layer=frame??video,width=window.innerWidth,timers:number[]=[];
- let finished=false;
+ let finished=false,settledAt:number|undefined;
  const listeners:[EventTarget,string,EventListener,boolean][]=[];
  const on=(target:EventTarget,type:string,handler:EventListener,capture=false)=>{target.addEventListener(type,handler,capture);listeners.push([target,type,handler,capture]);};
  const finish=(handOver:boolean,why:IntroEnd)=>{
@@ -77,6 +77,10 @@ function playFold(host:Host,logo:HTMLImageElement,sources:FoldSource[]){
   logo.dataset.introEnd=why;
   timers.forEach(t=>window.clearTimeout(t));listeners.forEach(([target,type,handler,capture])=>target.removeEventListener(type,handler,capture));
   if(handOver&&logo.isConnected){
+   // Session AK (CI, the 820 px rail at start scale .5): when the ease to the exact size has not had its 500 ms (no
+   // timeupdate past SETTLE_AT_S reached a busy page before the end), the clip takes its exact size at once, so the
+   // crossfade starts on the static Z instead of scaling during it. When it settled in time nothing changes.
+   if(settledAt===undefined||performance.now()-settledAt<500){video.style.transition='none';video.dataset.settle='';void video.getBoundingClientRect();video.style.removeProperty('transition');}
    video.dataset.settle='';logo.dataset.intro='ending';video.dataset.state='ending';
    window.setTimeout(()=>{delete logo.dataset.intro;layer.remove();},CROSSFADE_MS+80);
    return;
@@ -89,8 +93,9 @@ function playFold(host:Host,logo:HTMLImageElement,sources:FoldSource[]){
  };
  const fail=(why:IntroEnd)=>()=>finish(false,why);
  on(video,'playing',()=>{if(finished)return;window.clearTimeout(timers[0]);logo.dataset.intro='playing';video.dataset.state='playing';});
- // The bull has folded back into the Z: ease to the exact size so the last frame sits on the static Z.
- on(video,'timeupdate',()=>{if(!logo.isConnected||!layer.isConnected)finish(false,'detached');else if(video.currentTime>=SETTLE_AT_S)video.dataset.settle='';});
+ // The bull has folded back into the Z: ease to the exact size so the last frame sits on the static Z (the ease starts
+ // now, by the style read, not at the page's next rendering; finish() checks it had its time).
+ on(video,'timeupdate',()=>{if(!logo.isConnected||!layer.isConnected)finish(false,'detached');else if(video.currentTime>=SETTLE_AT_S&&settledAt===undefined){video.dataset.settle='';void video.getBoundingClientRect();settledAt=performance.now();}});
  on(video,'ended',()=>finish(true,'ended'));
  // The clip itself failed (a decode error), or its sources ran out: a <source> that cannot load reports `error` on
  // itself, and once the browser has no candidate left its networkState is NETWORK_NO_SOURCE. Read that way, a last
