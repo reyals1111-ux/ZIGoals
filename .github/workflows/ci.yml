@@ -23,7 +23,10 @@ jobs:
     # Measured 3.7 min on the first split run (36489960661); about 2.5x headroom.
     # Session AF (ADR-028 H127): lint + types + about 5,900 unit tests + the build reached the 10-minute cap on a slow
     # checkout (CI on c224bbe1: cancelled at 10:12 right after a green build); 15 gives the same job its headroom back.
-    timeout-minutes: 15
+    # Session AK ([TIER 3] (CI)): on slow runners every phase runs ~1.5x longer (lint 73→114 s, tsc 45→72 s, vitest
+    # 350→527 s); runs took 14.7–15.3 min and two were cancelled at 15 after every step was green (41384658117,
+    # 41401409092). 22 gives 1.4x headroom on a slow runner; no test timeout changes.
+    timeout-minutes: 22
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
