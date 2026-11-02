@@ -20,11 +20,14 @@ async function watch(page:Page,properties:Record<string,Watched>){
    starts[event.animationName]=(starts[event.animationName]??0)+1;
    if(!property||samples.some(s=>s.name===event.animationName))return;
    const read=()=>getComputedStyle(target).getPropertyValue(property).trim();
-   const sample:Sample={name:event.animationName,start:read(),final:(target as SVGElement).style?.getPropertyValue(property)||undefined};samples.push(sample);
    // Session AD item 9: the mid value is read at the animation's own half-way point, not after a timer (a starved runner
    // read it after the end): the running animation is paused, set to half its duration, read, and put back where it was.
    const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===event.animationName);
-   if(animation?.effect){const timing=animation.effect.getComputedTiming(),was=animation.currentTime,running=animation.playState==='running';
+   // Session AK (final run B): on a starved runner a staggered cell's animationstart can arrive with its animationend, the
+   // animation already gone; that target has nothing left to sample, so the next target of the same animation is sampled.
+   if(!animation?.effect)return;
+   const sample:Sample={name:event.animationName,start:read(),final:(target as SVGElement).style?.getPropertyValue(property)||undefined};samples.push(sample);
+   {const timing=animation.effect.getComputedTiming(),was=animation.currentTime,running=animation.playState==='running';
     // Session AE Gate C: the start value is read the same way, at the animation's own start (an animationstart event that
     // reached a starved runner late read a cell already at 0.992 of its rise: CI run 1008).
     animation.pause();animation.currentTime=Number(timing.delay)||0;sample.start=read();animation.currentTime=(Number(timing.delay)||0)+Number(timing.duration)/2;sample.mid=read();animation.currentTime=was;if(running)animation.play();}
