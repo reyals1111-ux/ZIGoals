@@ -419,6 +419,9 @@ export function HelpPage() {
         <li><strong>A few of ZIGi&rsquo;s new moves aren&rsquo;t used yet:</strong> its glances (at the chat box, at you, at something on the page) and its hello without walking in; Meet ZIGi shows them all.</li>
         {/* Owner decision 6 (ADR-036): Earn's first load is accepted for this release, with its measurement. */}
         <li><strong>Earn takes a few seconds to settle on a slower phone:</strong> on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds before every part answered at once.</li>
+        {/* Owner decision 7 (ADR-036): seen once in CI's WebKit (Safari's engine); not reproduced in Chromium, where the box is never
+            rebuilt and words typed across the switch stay. */}
+        <li><strong>On Safari, words typed into ZIGi&rsquo;s box at the very moment it opens might be lost:</strong> if your own AI is set up, the box switches from answering on this device to your AI as its settings finish loading, in a split second; if what you typed disappears, type it again.</li>
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
       </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>
