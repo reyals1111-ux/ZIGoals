@@ -1,5 +1,7 @@
-# Session AK — "NUMBER ONE" (ADR-036) (2026-10-31…, `feature/session-ak-number-one`; in progress, Draft PR, not merged, not deployed)
-**Base:** `main` `7000807` (Merge #98, Session AJ; live as Alpha #52). **Rules (owner):** the brief (Parts 0–16, D1–D12, MUSIC, RAMP/BANXA), the approved plan and the owner amendments A1–A22 (ADR-036). One plan, one approval; no owner step during the session.
+# Session AK — "NUMBER ONE" (ADR-036) (2026-10-31/11-03, `feature/session-ak-number-one`, [PR #99](https://github.com/reyals1111-ux/ZIGoals/pull/99); complete, not merged, not deployed)
+**Base:** `main` `7000807` (Merge #98, Session AJ; live as Alpha #52). **Rules (owner):** the brief (Parts 0–16, D1–D12, MUSIC, RAMP/BANXA), the approved plan, the owner amendments A1–A22, owner follow-ups 1–5, owner decisions 6 and 7 and "Part 13 restored" (all verbatim in ADR-036). One plan, one approval; no owner step during the session.
+
+**Demo tour (15 minutes, starts "Open NOVA"):** [`docs/handoff/AK_DEMO_TOUR.md`](handoff/AK_DEMO_TOUR.md).
 
 ## Part 0 — records (owner-reported, 31 Oct)
 - **Session AJ** merged into `main` as `7000807` ([PR #98](https://github.com/reyals1111-ux/ZIGoals/pull/98)) and deployed as **Alpha #52**: Manual Alpha deployment run 55 (30 Oct, about 09:25 Brussels); version `226adce0-19b2-4069-8159-4e7711cb5f4c`, rollback `8c844fee-8b60-4ce0-b6f4-8d00bc7543fa` (#51). Answering on every route after 3 reads; live prices VERIFIED; market policy window 2 installed (ends 2026-11-30 16:00 UTC). Rollback floor #32. The next deploy is run 56 = #53.
@@ -7,7 +9,252 @@
 - **Hosted verifier on #52:** not run yet (owner).
 - Frozen readers are #37–#52 from now on (`scripts/frozen-readers.mjs`, #52 = `7000807`).
 
-Decisions: `docs/architecture/ADR-036-session-ak.md` (owner decisions, A1–A22, readings Q1…, the verify-then-do table, the closing table). Research: `docs/research/session-ak/`. Resume file: `docs/handoff/AK_RESUME.md`.
+**Evidence labels:** unit = vitest from the repository root; local = this cloud sandbox (Node 22 against the project's 24), Playwright's Chromium as the Chrome channel, at most 2 workers, one build or browser run at a time (a `flock -o` browser lock), against a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `TZ=UTC next start`, :3101); frozen readers = `scripts/frozen-readers.mjs` over #37–#52; CI = Milestone quality on the PR. No API key was used (D5: no real-model run; the new cases are in `docs/research/session-aj/REAL_MODEL_TODO.md`). No deploy, no dispatch, no new dependency.
+
+Decisions: `docs/architecture/ADR-036-session-ak.md` (D1–D12, A1–A22, readings Q1–Q32, the verify-then-do table, the per-surface quality lines, the closing table, follow-ups 1–5, decision 6, Part 13 restored). Research: `docs/research/session-ak/`. Reviews: `docs/review/session-ak/`. Resume file: `docs/handoff/AK_RESUME.md`. 228 commits from `7000807` to `71a26cd5` before this entry; 68 new browser specs, 295 new unit test files.
+
+## Parts (the brief)
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records (above), ADR-036, the resume file, Draft PR #99, frozen readers #37–#52; research lane R (competitors, next exchanges, food licences, wallets, formats) | 1 | `9c5d7ee6`, `e417ca9b` | — |
+| 1a | WalletConnect on phones with the owner's Reown id: a hand-written QR encoder (v1–20), deep links, wallets listed only for what they do (A7–A9); Keplr Mobile staking over WalletConnect through the one review sheet (AFL9) | 3 (CSP, wallet) | `75ed3a6d`, `249bf461`, `f9ccc351` | unit, CI |
+| 1b–1c | Food: the Alpha binds the food Worker (A10: Worker first); USDA FDC after Open Food Facts (only with the owner's key); the offline EU food library (CIQUAL, CoFID; Fineli never arrived, A11); the runbook | 3 (deploy config, egress, stored format) | `8b0ae98c`, `f3ac1031`, `74902dcd` | unit, check:deploy-configs |
+| 1d | Music for everyone: a generated sound mix, playlist links, your own Spotify app, `/app/music`; focus and wind-down sounds | 3 (stored format) | `95952388`, `9c902707` | unit |
+| 1e | PR review | — | moved to Part 16 (A21) | — |
+| 2 | Device push: the push Worker, notifications in the app (switched off until the owner activates), the runbook, the VAPID script outside the repository, egress and privacy; the new keys in export, catalog and both erases | 3 (Workers, PWA, egress, stored format) | `fa38be77`, `f9e103f7`, `28da0157`, `9277df6e` | unit, push-device Worker tests |
+| 3 | PWA: install anywhere, the update prompt, offline links, the offline queue, manifest screenshots and iOS startup images (A18); storage headroom (A6) | 3 (PWA) | `afce4a4f`, `02ec25f2`, `883d1dcb` | `pwa-ak.spec`, unit |
+| 4 | Health: barcode history and library-first match, meal photos (opt-in), nutrient report, weekly coach card, grocery pantry, recipe matches, weekly calorie budget; workouts depth, FIT and Strava import, Strong/Hevy, wake consistency; Daylio, Habitica, YNAB in Switch to ZIGoals (A15) | 3 (stored format) | `7d435846`, `e7cecde0`, `322096dc`, `c0cdb9c8` | unit, `switch-more-ak.spec` |
+| 5–6 | Habits and Goals: auto-complete rules, habit order and compact list, routine full screen and share; goal bundles from Quick add, what-if and 30-day pace, milestone sets, progress card | 3 (stored format) | `ca810a31`, `a74c33af` | unit |
+| 7 | Wealth: bills, budgets, target mix and drift, purpose flow, contribution rhythm, CSV templates, bank files (CAMT.053, OFX, MT940; A14), exchange auto-refresh | 3 (stored format) | `92b94a8f`, `5074567f` | unit |
+| 8 | Cross-pillar: honest export bridges, test a backup, a monthly backup reminder; the Checklist as an optional encrypted extras section (AFL8; effective at the owner's private-sync redeploy); daily orbit card, review notes, one share-card system, badges off by default, rewards shelf; Point & tell records no visible text (A17) | 3 (stored format, auth/sync) | `3110c81f`, `e7d9951e`, `a56f9d18`, `165b495d`, `14a56be9` | unit, frozen readers |
+| 9 | Lichess games and the daily puzzle on an in-app board | 3 (stored format) | `1f84a28e` | unit, `chess-play-ak.spec` |
+| 10 | The competitor build list (23 items): money rules, review inbox, buffer days, split entries, emergency sheet, fee drag, freedom model; label scan, muscle freshness, Nutri-Score (off by default), diet templates, schedule in words; compare explorer, feeling words, energy curve, year in pixels, report for a visit | 3 (stored format, egress) | `e12ec91b`, `6d0f4f38`, `d3ad9fdf`, `0dd757d1`, `fbfe7e43` | unit, frozen readers |
+| 11 | Visual and layout: the "New in ZIGoals" tour (A19), the 320 px layout audit; the full pass landed in F6, G3 and M7 | 1 | `44a44fe2`, `efdd361e` | layout audit |
+| 12 | ZIGi knows what AK built (confirm cards, read-only tools, mock evals, G6 cases; Today's prompt equal to `main`'s); Studio-4 preparation (reactions, variants, the X030 slot, the push art slot, importer constants) | 1 | `14287040`, `768d383d`, `894d4559`, `82343a53` | unit, evals |
+| 13 | The Studio-4 art swap: moved out by follow-up 1 (F11 dry run), restored by the owner (follow-up 5) and done (below) | 1 | `59d2cfe4`, `d5177683`, `310d3bed`, `7ac1a8dd`, `90c8799e`, `e19730cd`, `522b3647`, `63071aa3`, `01b43f6f` | unit, local, CI |
+| 14 | Hosted verifier stage 11; Help, What's new, Known limitations, the friends guide, Showcase examples; the landing's "New in the Alpha"; PRIVACY lines. A13 (mainnet v6 day) is an owner check after the deploy | 1 / 3 (verifier) | `d80a1d0d`, `a2372238`, `44a44fe2`, `ac6c2d86`, `4948628d` | unit, landing specs |
+| 15 | Security review (RM12): no High; 6 Medium and 14 Low fixed, each with a test; the threat model's AK section | 3 (Workers, PWA, auth/sync, wallet) | `2e27d8c3`, `fd074085`, `bafa240c`, `9401dcbb` | `docs/security/review-2026-10/SESSION_AK_RM12.md` |
+| 16 | Sweeps, the PR out of Draft, the PR review (A21), this entry | 1 | this commit | F12 sweep (Evidence); the PR leaves Draft right after this entry (the final commit), so the PR-review Action runs once, on this head; its findings are handled as data in PR #99 and the final report, and nothing is pushed after it |
+
+Shared upkeep (each named in its commit): registries and frozen-reader fixture `e3f99620`, `215f456e`, `97f46331`; pins that learned deliberate changes `8c718525`, `676fee45`, `ae070477`; theme sheets rebuilt from a clean checkout `987460f9`, `22d82cae`, `60f9e16c`, `24010090`, `773981ab`; resume and ADR rows `75817ac2`, `c119af90`, `fecd93cf`, `9c6fc39c`.
+
+## Owner follow-ups
+| Follow-up | What | Commits | Outcome |
+|---|---|---|---|
+| 1 · record | F0–F12 recorded with closing rows | `388603b9`, `df4f1fd6` | — |
+| F0 | Finish what is open: first-Monday schedules, visible sync status, the progress toast, 7.8, M42, H113, missing tests, four intermittents at their cause; AFL1 and RM4 re-verified | `d2105402`, `a368a715` | Built |
+| F1 | Release-readiness review (RELEASE_REVIEW.md: 1 Blocker, 12 Major, 11 Minor, 7 Polish); Blocker and Majors fixed; consumer first, chain invisible (R2–R5, R8, R14) | `3fe6685b`, `1800da09`, `9ccb860a`, `271420e7`, `58224a69` | Built; R28 (the PROTECTED hero's "Onchain" line) left for the owner |
+| F2 | 11 end-to-end journeys (`tests/journeys`, no real network); 8 app bugs and 1 owner question (JOURNEY_BUGS.md) fixed, their fixmes tests again | `a41ae994`, `1f561a31`, `07058ae3`, `c53dbfaf`, `7a0656e0` | Built |
+| F3 | Competitor research round 2: BUILD list 2 (21 items) | `8c5f2d1a`, `85693255` | Built |
+| F4 | ZIGChain ecosystem, read-only: staking clarity, validator spread, token check, governance summaries and reminders, practice round, status | `920de5bf` | Built; EVM balances not built (no live mainnet RPC) |
+| F5 | Measurement trends, photo compare, supplements log, habit stacks, when/where intentions; debt planner, savings challenges, net-worth milestones, 10 templates; Agenda with .ics, Wrapped, search actions | `c8afc7f1`, `e9b3a8d6`, `d2105402`, `97e86674` | Built |
+| F6 | Pillar illustrations in empty states, one chart look, skeleton sheen, richer cards; page transitions designed (switched on later by M1) | `a2e74f32`, `8b0608f1`, `b1915a9c` | Built |
+| F7 | Landing visual refresh: nebula and orbit hero, "Example data" labels, phone mockups, Private by design, FAQ | `7cadc0e5`, `c9f317ae` | Built (owner deploys) |
+| F8 | Performance and accessibility: Earn's path layouts batched (2.9 s → 0.17 s), ZIGi's path search bounded, Earn sections on view; Governance landmarks unique | `a15ea685`, `46270ec2`, `0e264929`, `fdd126b7` | Built |
+| F9 | ZIGi for everything new: five confirm cards, five read-only tools, on-device answers; Help | `8f6e7629`, `63a371ce` | Built |
+| F10 | Security delta review: no High; 1 Medium fixed, 8 of 11 Low and 3 of 6 Info fixed, the rest recorded; the `/app/agenda` weight line | `6e049943`, `ed1380f3` | Built |
+| F11 | Studio-4 preparation proven: a dry run of the delivery layout through the importer, the swap runbook | `a845d339` | Built |
+| F12 | Finish | — | Moved into Z4 (this entry) |
+| 2 · record | NOVA and finishing deeply (Q, G, N, B, T, M, Z); Q28 one engine, two companions | `05f02b2d` | — |
+| Q1 / Q2 | Wiring audit (WIRING_AUDIT.md: 52 Working, 43 Partly) and Q1F's 31 browser tests on the UI path; the X1 verification's failures fixed at their cause | `eea0e358`, `6c44dc3e`, `7d5d5114`, `18ee388b`, `fd5ae70f` | Done |
+| G1 | BUILD list 2 (all 21 but #1 #2 #3 #5 #8): Your numbers, own scales, journal prompts, Pomodoro bell, cycle log (off by default); recent categories, selection total, review cards, receipt photos, Next 60 days, net-worth share card, spending map, amount calculator; #20 a chat that isn't kept; #21 "Was this useful?" | `cf3cf2e1`, `f014ea65`, `cc5a1eb5`, `21536fe6`, `8726fa0a` | Built |
+| G2 | First review completed; second fresh review (RELEASE_REVIEW_2.md: 1 Blocker, 8 Major, 12 Minor, 4 Polish); NOVA on a phone; the pillar pages halve on a phone; crypto off until chosen | `9415c587`, `54200bff`, `e42444bd`, `52bd5286`, `981f6537`, `0ef32f0d`, `15c1e159`, `fa5643ce`, `2519cf3d`, `1d6902be` | Done |
+| G3 | The visual system on every non-protected page | `21f404ef`, `b552ba14`, `b63d568a` | Done |
+| G4 | Journeys 1–3 and 6 on the phone and in Light and Dark (24 runs); a lost tick on an immediate leave fixed | `8ffd9b1e`, `e4a5b1c9` | Done |
+| G5 / Z2 | Exploratory testing by a fresh agent (EXPLORATORY_BUGS.md: 1 Blocker, 1 Major, 10 Minor, 7 Polish); 18 fixed, EX-17 gone | `09c216e9` | Done |
+| G6 | Every intermittent seen this session at its cause: note-lists-arrive, motion-m's burst, the j07 Verify double | `dee2a817`, `b2fec2e8`, `a9e8615d` | Done |
+| G7 / G8 | F10's recorded Lows; ZIGi and NOVA tools for G1 | `06e86e00`, `2bcb4c8a` | Built |
+| N0 / M0 | NOVA and motion research (NOVA.md, MOTION_2026.md) | `80d7c1af`, `34cb3111` | Built |
+| N1–N12 | NOVA: one engine, two companions; `/app/nova` full screen (opening, orb, dock, widgets, panels), Build your own NOVA (10 planets), context packs within Permissions, confirm cards with Undo, briefs and 8 workflows, long-term memory, ⌘/Ctrl+J, safety; Hermes Agent guide (`/app/nova/hermes`) | `cf3cf2e1`, `fd4b223a`, `233eae8e`, `d492f6d5`, `82fde1c7` | Built; the widget → page morph not built (Known limitations) |
+| B / T | Notes (capture inbox, daily notes, `[[links]]`, graph and list, one search, Markdown ZIP) and Tasks (time and goal links, .ics import, Pomodoro) | `1f9a7f23`, `8161dd3e`, `fc71b242` | Built |
+| M1–M7 | Motion Full / Calm / Off, page transitions, the Wealth ticker, completion moment, the landing's NOVA chapter; Calm for JS loops; theme parity and layout audit on the new routes | `f88b8ab8`, `fcb7b47e`, `0decff1b`, `e249802b`, `00f3a69d` | Done; Today's bento not built (Known limitations) |
+| Z1 | Three fresh security reviews: Z1A (NOVA/AI) 1 High, 4 Medium, 7 Low; Z1B (storage, parsers) 3 Medium, 3 Low; Z1C (wallet, CSP, motion, PWA) 4 Low. Every High and Medium fixed with tests | `e0f6d56a`, `d35acc52`, `3f5554dc`, `a68e23b6` | Done |
+| Z3 | WIRING_AUDIT_2 (57 Working, 25 Partly, 1 Not reachable) and its gaps closed | `bcef9bff`, `8726fa0a`, `c27d0f75` | Done |
+| AFL9 (lane W) | Keplr Mobile paired over WalletConnect reaches the Staking review and Sign (journey 7b) | `4a4cbfc9`, `a9e8615d` | Built; unproven on a real phone |
+| 3 · N11 / N12 | Hermes Agent and the full-screen NOVA with hideable side panels (recorded, then built in `cf3cf2e1`) | `a792b2fb` | Built |
+| 4 · P1–P8 | Recorded verbatim (readings Q30–Q32) | `50b71ba2` | — |
+| P1 | WIRING_AUDIT_2 to zero: NOVA's Running now chips, Make it yours on the UI path (76 Working, 7 Partly with owners, 0 Not reachable) | `82fde1c7` | Done |
+| P2 | RELEASE_REVIEW_2 to zero: a status line under every finding (24 fixed, R2-24 not reproducible) | `53c085e1` | Done |
+| P3 | NOVA design review by a fresh critic (26 findings) and the polish; round 2 | `cf5e77bf`, `a5486a76`, `23adbc80`, `df1d87c4` | Done; ND-24 (the orb finale) left for the owner |
+| P4 | First-run review (23 findings) and the first ten minutes fixed at their cause | `9a13d0ab`, `c8d0a44d`, `ae0fcc18` | Done |
+| P5 | Landing fresh review (12 findings) fixed; first view 258,004 → 246,698 B | `bf617b8d` | Done |
+| P6 | Accessibility sweep: axe WCAG 2.2 A/AA and keyboard-only on every route in three themes | `3cb26b05`, `eb3d6102`, `620d13d7` | Done |
+| P7 | Exploratory round 3 (NOVA, guides with real local servers in four states, Notes, Tasks): 6 bugs fixed | `af155d1d` | Done |
+| P8 | Performance after-measurements; NOVA's opening clock and the two motion regressions fixed at their cause (phone, CPU 4×, median of 3): Today scroll TBT 991 → 23 ms, Earn scroll 260 → 30 ms, Earn load 5001 → 3899 ms | `5ed28b27`, `00f3a69d`, `e123fe36`, `8ce89709` | Done (`docs/performance/SESSION_AK_MOTION.md`) |
+| 5 · decisions and last checks | Recorded verbatim | `68e6f2dc`, `cef1c7d8`, `77af2219` | — |
+| D-FR17 | The habit form's counting fields fold under "More options" (cards unchanged); four specs open it first | `84c00a46`, `e57465e1` | Done |
+| OD-1 / OD-4 / OD-5 | "Jarvis" out of public copy (a guard test keeps it out); "Private by design" right after the NOVA chapter; zigoals-mark-v3.webp re-encoded 54,908 → 51,134 B (PSNR 42.25 dB, SSIM 0.998) | `c8dcaffb` | Done; the 2× file needs a larger original (owner) |
+| OD-2 / OD-3 | No change; the owner list below says "deploy the landing only after Alpha #53 is live" | this entry | Done |
+| C1 / C2 / C4 | Closing table true for every row; WIRING_AUDIT_3 by a fresh agent on `199ac9a8` (Working 149, Partly 10, Not reachable 0, Stub 0, N/A 37); the demo tour and its five gaps fixed | `cef1c7d8`, `e8180b2b`, `894d37dd`, `b63d568a`, `90ce48e9` | Done |
+| C3 | Full browser suite twice on the final head, CI twice green | — | run A on `2b819b29` (local production build, 24 shards, 2 workers, 09:18–16:34 UTC): 3,562 passed, 877 skipped, 5 failed, all sandbox-only (`ui-design-pass:105`, `ui-evidence:50`, `ui-evidence:115`, `wealth-chips-af:13`, `zigi-browser-agents:102`: the sandbox maps system fonts to Inter, 5–8 % wider, and runs 1.2–1.4× slower; each passes in CI at the same SHA and at 1 worker locally). Shard 18's two crashes were the sandbox disk filling up (ENOSPC); after clearing old test output the whole shard re-ran green (160 passed), run B on product `2b819b29` with CI's font setup (no Inter mapping), 24 shards, 2 workers, 17:03–00:25 UTC; from shard 7 on the specs fixed during the run were in use: 3,560 passed, 877 skipped, 7 failed on the first pass, none a product failure — three fixed in their specs at the cause and proven by repeat runs (`a11y-motion-dialogs:57` → `a45e3afa`, `motion-polish:56` → `1048de38`, `polish2-af:337` → `02cda1a7`), `hosted-verifier-order:18` (the browser-aborted script; shard 4 re-ran green, 158 passed), and three sandbox-only (`ui-design-pass:105` and `ui-evidence:115` time limits on this machine, `theme-parity-af:15` on /app/music where the page stopped answering under load). With CI's fonts, `wealth-chips-af:13`, `ui-evidence:50` and `zigi-browser-agents:102` passed, CI: run 41416429775 (`2b819b29`), 41502798026 (`f01b7379`), 41512809823 (`02cda1a7`) green; owner decision 7: one full green CI run on the final head (WebKit engine faults: one re-run) |
+| Decision 6 | The Checklist overlay's two whole-document `:has()` rules replaced, the look proven identical (0 differing computed styles in 12 states; the 11 Checklist pin and AG Polish specs unchanged, 104/104); Earn's first load accepted and in Known limitations | `4c52ee1d`, `5597e3dd` | Done |
+| Part 13 restored | Recorded; the delivery fetched and verified; imported and wired (below) | `68c4215e`, `59d2cfe4` | Done |
+
+## CI-fix lanes (1–2 Nov)
+| Lane | What | Commits |
+|---|---|---|
+| CI-A | A project goal can be created before the chain is chosen (its asset is the person's currency); the remembered-vault fixture's date, the sync scripts' goal-kind names, the packaged Today rows | `d4781513`, `82698b7c` |
+| CI-B | One live region in the check-in; a phone goal page that fits 390 px; no push-status request on every Settings load; voice specs set the mode a person chooses (Strict stays the default; two new Strict tests); ZIGi copy and menu | `21d678a1`, `33f2724d` |
+| CI-C1 | Today on a phone back under 5.8 screens (Morning habits showed twice); first-run lines; Wealth; sidebar | `168db4f5` |
+| CI-C2 | Settings, run10/run11, restore and phone-fold specs; a 320 px phone-fold row that widened over the next toggle | `9d439ce7` |
+| CI-D | Page titles for the 7 new routes, PWA shortcuts, What's new, send-feedback, theme parity on the AK pages | `4977e85d`, `3c94dbc9` |
+| Consumer first | A goal's Goal Vault section only once the chain is chosen | `2914eb77` |
+| CI-P | Account push and device notifications subscribe only once their own worker is active; the push spec reads the notification once shown; the account worker takes over on request (Q19 amended) | `7bba1493`, `0316d817`, `40a652c4`, `199ac9a8` |
+| CI-W | Page transitions capture within a 32 M device-pixel budget (WebKit's 3–4 s stall, `zigi-alive:288`), else no fade; the arrival watch waits for a page's loading frame | `4dfa804c` |
+| C3 shards | Ten main browser shards, the accessibility sweep as its own three-shard suite, three WebKit shards | `a6727680` |
+| Round 2 (run 41336014813) | Portfolio's notes in their own `dd` (WCAG 1.3.1); the sync scripts find the folded Today row (R2-9); the on-view stroke leaves a chart's own `pathLength` alone; a `#link` on Earn lands and stays; three specs wait on their real preconditions; NOVA specs accept "Suggested" | `620d13d7`, `c3d0747c`, `ade202dc`, `4eb78565`, `005ff708`, `41bfdbd9` |
+| Round 3 (run 41350266047) | Earn's jump hold without a `.sign(` call (the staking guard); ZIGi's chat closes before a card navigates (`zigi-no-model-ab:18`, WebKit desktop, three runs); the launcher re-places when content above `main` changes; three races wait on their real end states; sync-lost-ack arms the dropped ack before the second Goal | `ecc36fa2`, `fef4ef63`, `cf705d07`, `71a26cd5` |
+| Earlier | The secret scan (seed and PEM fixtures built at run time); run9-1's Health heading | `a56364cd`, `7a0656e0` |
+
+## Part 13 — the Studio-4 art (owner follow-up 5)
+- **Delivery:** `review/studio4-assets` at `bdd8319b` (orphan; never committed into this branch). Every folder's SHA256SUMS OK (root 371, `app/` 255, `app-2x-anim/` 102); the receipts agree (0 disagreements). Receipt and verify output: `docs/verification/session-ak/STUDIO4_RECEIPT.md`.
+- **Imported** by `scripts/zigi/import-studio.mjs` from a staged copy outside the checkout (exit 0): 255 files into `public/brand/figures/zigi/origami-nebula/` (200 new, 55 changed, 0 refused): 51 stills × 3 sizes, 51 APNG fallbacks (96×126), and the 51 animated WebPs of the 2× set (192×253, largest 2,452,878 B ≤ 2.6 MB, D6). Two push images into `public/icons/` (icon 192×192, 75,138 B; badge 96×96). After the apply, all 257 files hash equal to the studio's receipt. Left out (outside the contract): the 51 192×253 APNGs, the 512 px notification image, the 24 px preview. The repository grows by about 77 MB of art.
+- **Constants, handoff vs Part 12:** `EXTRA_SLOT` variant keys follow the handoff (`speakingB`, `speakingC`, `listeningB`, `thinkingB`, `celebrateSmall`). Budgets kept at Part 12's 400 kB (96×126) and 2.6 MB (2×): the handoff's single 1.2 MB would refuse 19 of the 51 delivered clips and contradicts its own 2.6 MB rule. `PUSH_BUDGET` 40 → 80 kB (the icon is 75,138 B; fetched only when a notification shows). `HOST_FACT_REACTIONS` added for R011–R013. Durations from the WebPs' own frame timings (51/51). Optical offset +0.022 / −0.090, re-measured in Chromium: 1× +0.0224/−0.0904, 2× and large +0.0225/−0.0904; fill 82–83 %, launcher box unchanged.
+- **Wired:** the 25 states' own clips; R001–R010 at Part 12's triggers; R011–R013 as host facts (offline, back online, the knock's Dismiss); X010–X012 in the idle rotation; X050–X054 in the variant pools; the push icon and badge in `sw.js`; Meet ZIGi shows 26 moves, stills under reduced motion and Motion Off. The 2× clips are static files fetched one at a time, never route JS.
+- **X030 (owner decision, AF11):** X030 now plays in the cheer that completes an orbit on the Checklist (`components/path/path.tsx` `ORBIT_CHEER_CLIP`; its still `X030-cheer-large.webp` in `components/path/path-zigi.tsx` under reduced motion, Motion Off and ZIGi's Off). The day celebration keeps the owner's video; a tick's cheer keeps the presenting still; timings and layout unchanged (the orbit cheer shows X030's first 1.5 s of 2.5 s). The 11 Checklist pin and AG Polish specs pass unchanged.
+- **Local:** 194 unit files green (1,494 tests); typecheck and lint clean; browser batches on a local candidate build of the Part 13 tree (`28437ae6`, not on the branch; its content is the Part 13 commits): 73 + 66 + 139 passed, every skip a project condition.
+- **Correction (STATUS, Session AG Polish entry, line ~472):** "ZIGi's arms-up cheer from Studio-4 is a one-line swap in `components/checklist/celebration-zigi.ts`" is out of date: that file was removed in `e30840fe` (AG Polish 2). The X030 slot is `components/zigi/studio4.ts` (`checklistCelebrationArt`), and since Part 13 X030 plays in `components/path/path.tsx` and `components/path/path-zigi.tsx`.
+
+## Tier 3, in plain words (risk → rollback)
+Every `TIER 3` commit in this PR, as its message states it. "Not stated" means the message names no risk (all of those are additive registries or tests).
+
+| Commit | Area | What | Risk | Rollback |
+|---|---|---|---|---|
+| `8b0ae98c` | deploy config | The Alpha binds the food Worker (`FOOD_LOOKUP`) | A binding to a Worker that does not exist can fail the Alpha deploy (deploy the food Worker FIRST) | Revert; two bindings, barcode lookup 503 as on #52 |
+| `fa38be77` | Workers | The device push Worker | None until the owner deploys it and flips the switch | Delete `workers/push-device/` |
+| `f9e103f7` | PWA, egress, stored format | Device notifications in the app (switched off); `/sw.js` registered on idle | A faulty worker could serve stale pages (it answers only `/app` pages and static files, network-first) | Revert; the next build unregisters `/sw.js` |
+| `28da0157` | egress | Push runbook, VAPID script, egress and privacy | Documents and a policy entry only | Revert |
+| `f3ac1031` | egress, stored format | USDA FDC after Open Food Facts; the EU food library | No FDC request without the owner's key; a refused answer shows as unavailable | Revert; Open Food Facts only |
+| `95952388` | stored format | `zigoals:music-mix:v1`, the BYO Spotify database | Not stated | Revert; the key is left unread |
+| `249bf461` | CSP, wallet | WalletConnect with the Reown id | A new websocket and frame host, reached only after a tap | Revert; id null, CSP as before |
+| `f9ccc351` | wallet | Keplr Mobile staking over WalletConnect (review sheet only) | A new way for a person's own wallet to sign a reviewed staking action | Revert; Keplr's in-app browser and read-only linking |
+| `afce4a4f` | PWA | Install, update prompt, offline links, offline queue | Not stated | Revert; Part 2's worker without these entries |
+| `e7cecde0` | stored format | Workouts' optional fields, FIT/Strava, Strong/Hevy | Not stated (loose, additive) | Revert; older builds keep or ignore every field |
+| `92b94a8f` | stored format | Bills, budgets, target mix, CSV templates, bank files | Not stated | Revert; the keys are left unread |
+| `ca810a31` | stored format | Auto-complete rules, habit order, goal bundles | Not stated | Revert; the rules key is left unread |
+| `e3f99620` | stored format | The new keys in export, restore, catalog, erase, fixture | Not stated | Revert (not stated) |
+| `02ec25f2` | PWA | The worker loads no other script; A18 assets; specs | Not stated | Revert (not stated) |
+| `3110c81f` | stored format | Export bridges, test a backup, backup reminder | Not stated | Revert; the key is left unread |
+| `e7d9951e` | auth/sync | The Checklist as an optional encrypted extras section (AFL8) | A sync-protocol addition; effective only after the owner redeploys private-sync | Revert; parts removed by the account erase or ignored by older Workers |
+| `a74c33af` | stored format | Parts 5–6 wiring | Low (additive) | Revert; fields ignored |
+| `7d435846` | stored format | Part 4 health keys and fields | Low (additive) | Revert; older builds ignore them |
+| `1f84a28e` | stored format | Lichess board (new device-only database) | No change to any existing record | Revert |
+| `d80a1d0d` | verifier | Hosted verifier stage 11 | A build without AK's pages fails it (intended) | Revert |
+| `e12ec91b` | stored format | Part 10 compare, words, energy, pixels, visit report | Additive | Revert; older builds keep `words`, ignore the new key |
+| `6d0f4f38` | stored format | A money-log entry may be split | Low (additive, read-tolerant) | Revert; parts ignored |
+| `0dd757d1` | egress | Nutri-Score field from Open Food Facts | One more field, same host and Worker | Revert |
+| `a56f9d18` | stored format | Orbit card, review notes, share cards, badges, rewards shelf | Not stated | Revert (not stated) |
+| `fbfe7e43` | stored format | Part 8 and 10 keys in every registry and the fixture | Not stated | Revert (not stated) |
+| `a2372238` | verifier | Earn and Checklist stage tests learn stage 11 | Not stated (tests only) | Revert (not stated) |
+| `2e27d8c3` | Workers, PWA | Part 15 push and service-worker findings | Notification behaviour at activation (still off) | Revert |
+| `fd074085` | auth/sync | Part 15 parser, erase and emergency-sheet findings | A best-effort call before the account erase's steps | Revert |
+| `bafa240c` | wallet, stored format | Part 15 Lichess and WalletConnect findings | A staking pairing must be redone after a lock or account switch | Revert |
+| `c8afc7f1` | stored format | F5 health and habits | Additive | Revert |
+| `920de5bf` | egress, stored format | F4 ecosystem, read-only (`/api/chain/denom`) | A read-only route on existing hosts; an additive key | Revert |
+| `d2105402` | stored format | F0 leftovers, F5 goals and money, Agenda, Wrapped | Additive; new route `/app/agenda` | Revert |
+| `6e049943` | stored format, egress | F10 security findings | Behaviour narrows (less data in files and wakes) | Revert |
+| `1800da09` | PWA | F1 Blocker and Majors | The install downloads eight pages once | Revert |
+| `271420e7` | verifier | Goal stage switches Earn on first; journeys accept either goal-kind name | One more step | Revert |
+| `07058ae3` | PWA, erase | Erase stops the worker caching before deleting caches (J6-1) | Erase takes up to 2 s longer | Revert |
+| `18ee388b` | verifier | `chooseChainInSettings` waits for the saved state | None beyond that wait | Revert |
+| `1f9a7f23` | stored format | Notes and Tasks | Additive records; two new routes | Revert |
+| `f88b8ab8` | stored format | Motion Full / Calm / Off; the landing's NOVA chapter | A view transition holds the next page up to 500 ms for images | Revert; 'calm' reads as Full |
+| `cf3cf2e1` | stored format, PWA | NOVA (N0–N12), BUILD list 2 (G1a, G1b) | The NOVA send path and the shared registries | Revert; every key additive |
+| `f014ea65` | stored format | "Was this useful?" | Not stated | Revert; older builds ignore the key |
+| `4a4cbfc9` | wallet | Keplr Mobile reaches the Staking review and Sign | Low for the extension path; the new path only for staking pairings on ZIGChain's two chains, `cosmos_signDirect` | Revert |
+| `a68e23b6` | stored format, privacy | Every photo through the privacy mode; no auto-accept of untrusted text | The engine's send path | Revert; the earlier chat guard stays |
+| `8ffd9b1e` | storage | A change saved while the page is left is written at once | Another tab's write could interleave at that moment | Revert; the tick can be lost again |
+| `53c085e1` | public-safety labels | RELEASE_REVIEW_2 to zero | The notice's first line on desktop for unchosen devices | Revert (the hosted check with it) |
+| `c8d0a44d` | stored format | The first ten minutes (P4) | Not stated | Revert; optional fields ignored |
+| `a6727680` | CI | 10 main + 3 accessibility + 3 WebKit shards | More parallel jobs per run (13 + 3 instead of 6 + 2) | Revert (6 and 2 shards) |
+| `82698b7c` | auth/sync, test only | Vault fixture date, sync scripts' goal-kind names, packaged Today rows | Test only | Revert |
+| `7bba1493` | PWA | Account push waits for its own worker | Turn-on may wait up to 10 s when stalled | Revert |
+| `0316d817` | PWA | Device notifications wait for `/sw.js` to be active | Turn-on may wait up to 10 s | Revert |
+| `c3d0747c` | auth/sync, test only | Two sync scripts find the folded Today row | Test only | Revert |
+| `199ac9a8` | PWA | The account reminders' worker takes over on request (Q19 amended) | Small: a waiting account worker activates sooner | Revert |
+| `71a26cd5` | auth/sync, test only | sync-lost-ack arms the dropped ack before the second Goal | Test only (9/9 locally) | Revert |
+
+Stored formats are all additive and loose; every new key and optional field is in Export everything, restore, the data catalog and both erases (or named device-only), and frozen readers #37–#52 PASS with every AK key in the fixture (`97f46331`, `ae0fcc18`). No deploy workflow change; no new dependency.
+
+## Tests and assertions changed (deliberate; none weakened)
+Each change is named in its commit as "Session AK (ADR-036, deliberate)". By group:
+- **Consumer first, chain invisible** (R5, R2-6, X1): goal-kind names in specs and the sync scripts, Wealth's Crypto button, settings-groups, What's new chooses the chain first, the honesty banner's staking line.
+- **Strict privacy by default** (`a68e23b6`): voice specs set the mode a person chooses; two new Strict tests added.
+- **Phone halving and folded rows** (G2 R2-8, R2-9, R11): row names carry their figure; Devices from Health; the Health-only preset and Customize Today; Today's screens ceiling 5.8 unchanged.
+- **New routes and PWA:** page titles for 7 routes; the shortcut list (NOVA, Capture a note); the install-manifest pin; the packaged manifest pin; WalletConnect relay and `FOOD_LOOKUP` pins; verifier stage tests learn stage 11.
+- **Help and What's new:** the AK release pin; Known limitations 34 → 37 (Part 13), each item by its words; send-feedback loads the secret guard's chunk first.
+- **Studio-4 art** (`e19730cd`): brand-assets `-2x` count 28 → 68; zigi-assets, zigi-idle, slots, variants, push-art, the importer tests restated for the delivered art at equal exactness; `zigi-alive`'s seeded random follows the grown idle pool.
+- **Live regions and markup:** wealth-v2, restore-backup, zigi-brief-af see one status region; portfolio-v2 reads the value `dd` (P6 `dd-note`).
+- **Data and sync:** finished-feel-aa 21 → 23 synced rows and the registry test (AFL8: Checklist as extras); the Showcase card chooser 4 → 5.
+- **Forms:** four habit specs open "More options" first (D-FR17); NOVA specs accept the model picker's "Suggested" tag.
+- **Made robust at their cause, every check unchanged:** run10-motion's mid sample, the P6 settle on NOVA, nova-dashboard's 44 px measure, nova-workflows' Undo write, storage-errors' trap, copy-polish's goto, motion-m's burst, note-lists-arrive, the j07 Verify double, pwa-ak's push read.
+- **New:** 68 browser specs (journeys j01–j12, NOVA, notes, tasks, wiring, P1–P6, G1a/G1b, first-run, consumer-first-x1, exploratory) and 295 unit test files.
+- **CI shards (`a6727680`):** 10 main browser shards, the accessibility sweep (`p6-*`, parallel inside each file) as its own 3-shard suite, 3 WebKit shards. Timeouts, steps and the "web" summary unchanged; no test dropped, skipped or loosened.
+
+## Evidence (final head)
+- **Unit:** CI on `2b819b29` (run 41416429775, web checks): 1,066 files passed, 24 skipped; 8,628 tests passed, 47 skipped. Sandbox-only failures, as in earlier sessions: `vault/finance-homes` ×3, `scripts/pre-run11-setup` ×3 (×2 in earlier sessions; a third test since); under load also `coach/guide`, grocery timeouts and `run11/food-search` timing. All pass in CI.
+- **Frozen readers (on `2b819b29`):** #37 `32cb9c5` … #52 `7000807`, all 16 PASS (93 tests each) with every AK key and optional field.
+- **F12 sweep (the final product head `27a14ee5`, a fresh production build):** the layout audit (`tests/audit/layout-audit.mjs`, every route and state it opens, the Showcase and a fresh empty start, 390 and 1440 px, CI's fonts) in Nebula, Light and Dark: 203 states each; **no layout finding in any theme** (no sideways scroll, clip, spill, overlap, wrapped number, ring, small target or covered text). Contrast readings only: gradient words scored by their weakest stop (42 / 76 / 35; the M7 rule recorded for the owner); in Nebula and Dark, primary controls on Earn and Settings at 1440 px read 1.01–1.05:1 (45 each: the scanner found the control's own colour behind its text; the same controls read clean at 390 px, and the axe sweep, every WCAG 2.2 A/AA rule with colour contrast on every route in three themes, passes); in Light five more (two Checklist list rows under the foot bar's fade, the ADR-029 I13 reading; two Earn path labels; one Settings label). Two audit-tool errors per theme: the routine player's own click step timed out (5 s). Reports: `docs/verification/session-ak/f12-layout-audit-{nebula,light,dark}.md`. Help specs on the same build: 46 passed; weights: 30 lines ok.
+- **Alpha gate and audit (CI on `2b819b29`):** `build:alpha` (OpenNext) and `check:alpha` dry run green; `pnpm audit --prod --audit-level high` green.
+- **Full browser suite, run A:** run A on `2b819b29` (local production build, 24 shards, 2 workers, 09:18–16:34 UTC): 3,562 passed, 877 skipped, 5 failed, all sandbox-only (`ui-design-pass:105`, `ui-evidence:50`, `ui-evidence:115`, `wealth-chips-af:13`, `zigi-browser-agents:102`: the sandbox maps system fonts to Inter, 5–8 % wider, and runs 1.2–1.4× slower; each passes in CI at the same SHA and at 1 worker locally). Shard 18's two crashes were the sandbox disk filling up (ENOSPC); after clearing old test output the whole shard re-ran green (160 passed)
+- **Full browser suite, run B:** run B on product `2b819b29` with CI's font setup (no Inter mapping), 24 shards, 2 workers, 17:03–00:25 UTC; from shard 7 on the specs fixed during the run were in use: 3,560 passed, 877 skipped, 7 failed on the first pass, none a product failure — three fixed in their specs at the cause and proven by repeat runs (`a11y-motion-dialogs:57` → `a45e3afa`, `motion-polish:56` → `1048de38`, `polish2-af:337` → `02cda1a7`), `hosted-verifier-order:18` (the browser-aborted script; shard 4 re-ran green, 158 passed), and three sandbox-only (`ui-design-pass:105` and `ui-evidence:115` time limits on this machine, `theme-parity-af:15` on /app/music where the page stopped answering under load). With CI's fonts, `wealth-chips-af:13`, `ui-evidence:50` and `zigi-browser-agents:102` passed
+- **CI:** run 41416429775 on `2b819b29`, all 21 jobs green; CI green on test-only heads over product `2b819b29`: run 41502798026 (`f01b7379`) and run 41512809823 (`02cda1a7`), every job. By owner decision 7, C3 is met with one full green CI run on the final head (this commit), a WebKit job failing only from the two diagnosed engine-level causes getting its one re-run; that run is reported in PR #99 and the final report.
+- **PR review (A21):** the PR leaves Draft right after this entry (the final commit), so the PR-review Action runs once, on this head; its findings are handled as data in PR #99 and the final report, and nothing is pushed after it.
+- **Reviews (fresh agents, read-only):** RELEASE_REVIEW, RELEASE_REVIEW_2, WIRING_AUDIT 1–3, NOVA_DESIGN_REVIEW, FIRST_RUN_REVIEW, LANDING_REVIEW, EXPLORATORY_BUGS, EXPLORATORY_ROUND3, JOURNEY_BUGS, Z1A/Z1B/Z1C security, F10 and RM12 (`docs/security/review-2026-10/`). Every finding has a status line.
+
+## Weights (gzip -6; budgets never raised)
+Measured on `2b819b29` and again on the final product head `27a14ee5` (identical; 30 lines ok, none over): Today 563.5 of 567.0 kB, `/app/checklist` 485.5 of 492.0, the shell 416.8 of 447.0, `/app/nova` 417.6 of 458.0, Settings 521.3 of 531.0, Health 518.0 of 531.0, Earn 482.3 of 496.0; every route within its line. New lines for new routes only, each measured + 10 % (the Session AE rule): `/app/agenda` 485 (`ed1380f3`), `/app/nova`, `/app/nova/setup`, `/app/nova/hermes`, `/app/notes` 458 and `/app/tasks` 468 (`28fb9b43`). When `/app/checklist` reached its line, its ambient sky and corner timers moved to load on demand instead (`28fb9b43`, `73a685c9`). The Studio-4 clips are static files, never route JS.
+
+## Known limitations (also in Help where they concern the app)
+- NOVA's widgets open their pages without a shared-element transition; only a goal card's title moves into its page (Motion Full).
+- Today and the pillar overviews keep their layout; the bento grid is on NOVA and the landing only (Today's widget kinds are a stored format beside the PROTECTED hero).
+- The NOVA journey (j12) covers the guide, on-device answers, a local and a Hermes brain, a card with Undo and Permissions; briefs, workflows, delegation and setup sharing have their own specs, erase is covered by journey 6 and a unit test (no NOVA-only erase spec).
+- AFL4's practice-badge memo is not built: it would add a new signed memo, and AK signs nothing new.
+- The landing's mark has no 2× retina file: the repository's original is 422×480 and the desktop hero shows it at about 940 px.
+- ZIGoals Wrapped's Today card is built and switched off until 1 December; Journey and Search open Wrapped meanwhile.
+- Help shows some chain and wallet answers and Known-limitation lines on a device that never chose the chain; `consumer-first-x1` does not scan Help.
+- The Today hero's "Onchain · ZIGChain vision" line shows on a fresh device; the hero is PROTECTED and the line is the owner's R28 decision.
+- Studio-4 clips X001 and X020–X022 were delivered but are not played anywhere (Meet ZIGi says so).
+- Reaction R011 ("Waiting for a connection") rarely plays: only when the device reports going offline again while ZIGi already shows No connection.
+- Page fades play only when the page being left fits a capture budget of 8 M device pixels (WebKit's full-page capture stalled navigation for seconds; `4dfa804c`, `183733b3`). Measured with the Showcase: on a 1280×720 screen Today, Wealth, Earn, Settings and Help change without the fade (Habits, Health, Goals, NOVA keep it); on a phone (3×) every main page except NOVA, ZIGi, Tasks, Stories and Notes changes without it. Owner's call whether to trade some Safari pause risk for more fades.
+- Earn's first load takes about 3.9 s of blocking time on the phone profile (TBT 3899 ms, CPU 4×, median of 3); accepted for this PR (owner decision 6).
+- Keplr Mobile staking over WalletConnect is unproven on a real phone; live pairing waits on Reown's allowed domains.
+- On Safari, words typed into ZIGi's box at the very moment it opens might be lost: with the person's own AI set up, the box switches from answering on this device to that AI as its settings finish loading. Seen once in CI's WebKit (`zigi-emotions:114`, run 41533409478, a fill ~4 ms after the switch); in Chromium the box is never rebuilt and words typed across the switch stay (a probe, 6/6). WebKit is not installed locally, so no contained fix could be proven; in Help (owner decision 7, `27a14ee5`).
+- Checklist tick plans load after mount (route weight): a device installed and first used offline, before any online visit to Today or the Checklist, sees "This dot cannot be ticked here." until it is online once.
+- Push and the food Worker's FDC search are off until the owner activates them; the Checklist extras section works after the private-sync redeploy.
+
+## Known CI intermittents (this session)
+- **WebKit navigation faults:** `zigi-stress:124` (`page.goto` 60 s) and `zigi-accept-correct:268` ("WebKit encountered an internal error"), once each (runs 41309452842 and 41336014813); the engine-fault class recorded in earlier sessions. The related stall (`zigi-alive:288`, `zigi-no-model-ab:18`) was fixed at its cause (`4dfa804c`, `fef4ef63`).
+- **Aborted navigation (`net::ERR_ABORTED`):** `motion-polish:164` once (41336014813); `copy-polish:25` once (41350266047), fixed at its cause (`cf705d07`).
+- **`nova-dashboard:232`** (1920 px) once: a widget measured mid-entrance; the spec now waits for finite animations (`005ff708`); the cause did not reproduce in 16 runs.
+- **Fixed at their cause after a second sighting:** `storage-errors:16` (twice; `cf705d07`), `scripts/run11/sync-lost-ack-browser:43` (three runs, a different variant each; `71a26cd5`), `run10-motion:98` and `p6-keyboard:70` (`005ff708`), `zigi-phone-rest:34` (WebKit; `fef4ef63`), `pwa-ak:122` and `push-reminders:242` (CI-P).
+- **Time limits:** two main shards cancelled at 60 min and WebKit shard 2 at 45 min on run 41309452842 → the shard change (`a6727680`).
+- **`zigi-part-boundary:41`** (WebKit) once: a `/api/push-device` request cancelled "due to access control checks"; the request is no longer made on every Settings load (`21d678a1`).
+- **`lib/illustrations/pillar-art.test.ts`** once (3,075 > 3,072 bytes); passed since.
+- **Re-checked in the final runs:** `hosted-checklist-stage:10` and `j05-notifications:74` (:148), which a local run on `b63d568a` could not reach under load, passed in final run A.
+- **Final runs and CI on the final head (2 Nov), each fixed at its cause in the spec, every check unchanged, each proven by a repeat run:** `a11y-motion-dialogs:57` (the stand-in clip went in before hydration; React #418 re-rendered the shell; `a45e3afa`, 20/20), `wallet-menu:191` (the chooser measured at 43.99997 px during `zg-rise`; `f01b7379`, 15/15), `motion-polish:56` (a staggered cell's animationstart arrived with its end; `1048de38`, 16/16), `polish2-af:337` (boxes read one at a time while the page moved 418 px; `02cda1a7`, 20/20), `motion-polish:156` (goto aborted by the closing sheet's async history.back(); `nova-workflows:147` read a write once before it landed; `b40c864b`, 24/24).
+- **Browser-aborted script (`hosted-verifier-order:18`, local only, twice):** the page's request for a core chunk ended `net::ERR_ABORTED` in 0.03 ms inside the browser, so the page never hydrated and the shell kept its workspace hidden. Never in CI; the shard re-ran green (158 passed). Owner option: a "this page didn't finish loading · Reload" notice after N s without hydration (new UI).
+- **Chromium renderer stall (three sightings; read by two fresh agents from the traces):** right after an instant programmatic scroll brought new content into view, the new position was never painted and the page's main thread stopped answering for the rest of the test — `ui-evidence:108` on /app/settings (CI 41504258964), `theme-parity-af:15` on /app/music (local run B) and on /app/nova/hermes (CI 41547919447). No page error, no console error, no request in flight, no font request; every scroll handler in the app is requestAnimationFrame-scheduled and bounded; rendering stalled before the main thread, which fits a compositor/raster stall in headless Chromium without a GPU (two of the three at device scale 3) better than page code. Not shown to reach a person. One re-run. Owner option: a scratch run with Chromium's performance tracing (`browser.startTracing`, timeline/cc/gpu/v8 categories) over ~50 parity repeats to name the stuck side; taking `#settings-app` out of Settings' on-view set if Settings recurs.
+- **WebKit, two classes (read by a fresh agent from five CI traces):** (A) a navigation that fails ("internal error", or never finishes) after the previous page's loads were cancelled — `zigi-states:67`, `webkit-smoke:40`, `zigi-stress:124` (the last before Part 13); the Session AC/AH class, WebKit/Playwright. (B) a page that hangs ~30 s on `/app/habits` and then dies (`zigi-accept-correct:265`, twice) — not the Studio-4 animated art, the service worker or worker age; cause not in the logs. A failure-only step now logs the runner's memory and kernel kill lines (`4599b0ff`, TIER 3 CI); on its first use (run 41533409478, `zigi-memory:171`) it read `ThreadedCompositor segfault … in libWPEWebKit-2.0.so` with 9.4 GB free: class B is WebKit's compositor crashing, not memory and not the product. One re-run each. Also once in that run: `zigi-emotions:114` (WebKit phone), the chat box's fill landed ~4 ms after the box switched to its connected label and the value was not kept — the "ZIGi's box empty after a fill in WebKit" class recorded since Session AE (one re-run); in Known limitations by owner decision 7. Once on `27a14ee5` (run 41545141759): `zigi-voice-z:221` (WebKit desktop) did not show the voice hint after a 700 ms hold on the launcher (no segfault in the kernel lines); `tasks-ai:50`'s goto aborted by the closing Quick add dialog's async history.back() (fixed in the spec, `d9f2bdb4`).
+- **Docs-only heads on 3 Nov:** `b0d5fc56` (run 41547919447): the WebKit compositor segfault again (`zigi-chat-polish:266`, the step's kernel line) and the Chromium renderer stall (`theme-parity-af:15`, /app/nova/hermes). `bd11e313` (run 41553336991): `webkit-earn:19` (WebKit reported two cancelled `_rsc` prefetches "due to access control checks" as the page left — the cancelled-fetch class, AF16) and `scripts/ci/install-chrome.test.mjs:100` once (a Session M test that waits on real seconds counted 3 install attempts instead of 2 on a slow runner; unchanged in AK, passed in every other run). One re-run each.
+- **Sandbox-only (local runs; pass in CI at the same SHA):** `ui-design-pass:105` and `ui-evidence:115` (45 s budgets on this 4-vCPU software-GPU machine at 2 workers; pass at 1 worker); `wealth-chips-af:13` and `ui-evidence:50` (this sandbox maps system fonts to Inter, 5–8 % wider; pass in run B with CI's font setup); `zigi-browser-agents:102` (speed; passed in run B).
+
+## Owner list (what the owner does next)
+1. **Deploy the food Worker FIRST** (`docs/run11/FOOD_WORKER_PUBLIC_ALPHA.md`; set `FDC_API_KEY`), **then Alpha #53** (run 56) and the hosted verifier (stage 11 is new).
+2. **Push activation:** the VAPID secrets and the push Worker (`docs/run11/PUSH_PUBLIC_ALPHA.md`); until then the Notifications card says "being switched on".
+3. **Reown allowed domains** for the project id, then one real-phone pairing (Keplr Mobile staking).
+4. **The landing: deploy only after Alpha #53 is live** (OD-2).
+5. **Studio-4 look review before merge** (Meet ZIGi: every state, reaction, extra and variant).
+6. **X030 placement:** it now plays in the orbit-completion cheer; the day celebration keeps your video and a tick's cheer keeps the presenting still. Say if you want X030 in either. (`PUSH_BUDGET` is now 80 kB.)
+7. **A larger original of zigoals-mark-v3** for a 2× retina hero file (the repository's is 422×480).
+8. **Help's chain answers on a fresh device:** should Help follow consumer-first too?
+9. **The Today hero's "Onchain · ZIGChain vision" line** (PROTECTED, R28): keep or change.
+10. **The real-model run** (`REAL_MODEL_TODO.md`, NOVA cases included).
+11. **Merge** PR #99 (the PR-review Action runs once it leaves Draft).
+12. **Review the new page-fade rule on a Retina screen** (tall pages skip the fade).
+13. Recorded, no action needed unless you want one: Earn's first load (3.9 s TBT) accepted; X001 and X020–X022 unused; R011 rare; private-sync redeploy for the Checklist extras section; the mainnet v6 day check (A13).
+14. **Options recorded from the final runs** (none needed for this PR): a "this page didn't finish loading · Reload" notice after N s without hydration (turns the browser-aborted script into a recoverable page); taking `#settings-app` out of Settings' on-view set if the CI renderer stall recurs; the Wealth chip row scrolls with system fonts 5–8 % wider than Liberation Sans (chips stay reachable); a spec-side wait for the app's idle-time loads before each WebKit navigation (WebKit class A); the Checklist's offline first use (above).
+- Not merged, not deployed: the owner merges and deploys.
 
 ---
 
