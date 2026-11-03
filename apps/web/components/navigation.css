@@ -18,6 +18,8 @@
 .app-topbar .wallet { min-width:0; }
 .quick-add-dialog { overflow-y:auto;overscroll-behavior:contain; }
 .quick-add-dialog nav :is(a,.quick-action)>span:nth-child(2) { min-width:0;overflow-wrap:anywhere; }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-13): one alignment for every row, links and buttons alike (the links had centred their words). */
+.quick-add-dialog nav :is(a,.quick-action) { text-align:left; }
 @media(max-width:900px) {
  .brand-logo { width:40px;height:45px;margin-left:-3px; }
  .sidebar-actions { grid-column:1/-1;grid-row:3;padding:12px 0 4px; }
@@ -72,6 +74,12 @@
 /* Navigation groups (Session I): life areas, money tools, then the rest, separated by space (never a divider). On the
    tablet header's eight-column grid the last group starts its own row. */
 @media(min-width:901px) { .app-nav a[data-group-start] { margin-top:23px; } }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-10): 'compact' navigation entries (Tasks, Notes, the Journal) are the tablet rail's and
+   the phone's More sheet's, not the desktop sidebar's, which keeps every destination in a 900 px window (PROTECTED design).
+   Session AK P2 (ADR-036 Q31): they join the sidebar only where the window has room for them with its design unchanged:
+   with the full spacing of windows over 1000 px, the Showcase's fullest list (sixteen plus these three) ends Help at
+   1336 px, so from 1380 px tall Help keeps the 24 px to spare the 900 px check asks for (tests/release-review-2-p2.spec.ts). */
+@media(min-width:901px) and (max-height:1379.98px) { .app-sidebar .app-nav a[data-nav-compact] { display:none; } }
 /* 901–1100 px: the sidebar's side padding is 13 px, so the planet's full-bleed margins match it (they were 18 px, which
    let the sidebar scroll 5 px sideways). */
 @media(min-width:901px) and (max-width:1100px) { .app-sidebar .sidebar-destination { margin-left:-13px;margin-right:-13px; } }
@@ -115,3 +123,8 @@
 @media (min-width: 768px) and (max-width: 900px) and (min-height: 501px), (min-width: 768px) and (max-width: 900px) and (pointer: fine) {
   :root:has(.today-hero .quick-add-trigger) .app-sidebar .sidebar-actions .quick-add-trigger { display: none; }
 }
+/* Session AK F0 (8.9): the sync line's calm dot; the words carry the meaning, the dot only echoes it (never colour alone). */
+.workspace-status [data-sync-tone]::before{content:"";display:inline-block;width:.5rem;height:.5rem;margin-inline-end:.5rem;border-radius:50%;background:var(--muted);vertical-align:.08em}
+.workspace-status [data-sync-tone=synced]::before{background:var(--cyan)}
+.workspace-status :is([data-sync-tone=syncing],[data-sync-tone=waiting])::before{background:var(--violet)}
+.workspace-status [data-sync-tone=attention]::before{background:var(--pink)}

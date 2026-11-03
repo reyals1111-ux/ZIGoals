@@ -52,6 +52,14 @@ export const goalExtraSchema = z.looseObject({
    * do not know (the card's default then); a new version of an art is a new id. Synced in the `goals` extras section.
    */
   cardArt: z.string().regex(CARD_ART_ID).optional(),
+  /**
+   * Session AK (6.4; TIER 3 (stored format)): the habits that work toward each milestone, {milestoneId: habitId[]} (up to
+   * 100 milestones, 20 habits each, each habit once). Additive in this loose record and synced with it in the `goals`
+   * extras section; lib/goals/milestone-templates.ts writes it, and links to a milestone or a habit that is gone are pruned.
+   */
+  milestoneHabits: z.record(z.string().min(1).max(250), z.array(z.string().min(1).max(100)).min(1).max(20))
+    .refine(m => Object.keys(m).length <= 100, 'Up to 100 milestones can have habits.')
+    .refine(m => Object.values(m).every(ids => new Set(ids).size === ids.length), 'A habit is linked once.').optional(),
   updatedAt: z.iso.datetime().optional(),
 });
 export const customAreaSchema = z.looseObject({id: z.string().regex(/^custom-[a-z0-9-]{1,30}$/), label: z.string().trim().min(1).max(30), color: z.string().regex(/^#[0-9a-f]{6}$/i)});

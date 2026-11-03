@@ -80,7 +80,9 @@ test('a habit dot is the habit\'s own check-in, with Undo; the sleep timer start
 test('spoken in Dutch: "euh, vink push-ups af" becomes the same card, on the device', async ({page}) => {
   await voiceFakes(page);
   const bodies = await server(page);
-  await seed(page, {extra: checklistRecords(), time: MORNING, voice: SEEN_VOICE});
+  // Session AK (ADR-036, deliberate; a68e23b6): the Showcase's Strict listens only with on-device recognition; browser
+  // speech is the person's Guarded choice (Strict's refusal: zigi-voice-z.spec.ts).
+  await seed(page, {extra: checklistRecords(), time: MORNING, voice: SEEN_VOICE, privacy: 'guarded'});
   await page.goto('/app');
   await openChat(page);
   const mic = panel(page).getByRole('button', {name: /^(Talk to ZIGi|Stop listening)$/});

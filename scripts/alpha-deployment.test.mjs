@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import {
   alphaDeploymentEnvironment, alphaDeployArgs,
-  assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig,
+  assertDispatch, assertSource, assertBuild, assertEnvironment, assertAlphaConfig, FOOD_DEPLOY_ORDER,
   currentDeployment, deployedVersion, performDeployment,
 } from "./lib/alpha-deployment.mjs";
 import { ALPHA_ROUTES, assertHtml, readHostedBuilds, smokeAlpha } from "./lib/alpha-smoke.mjs";
@@ -143,6 +143,11 @@ test("the reviewed Alpha configuration binds the coordinator's QuoteService in d
   expect(alphaConfig().services[1]).toEqual({ binding: "MARKET_QUOTES", service: "zigoals-acctest-market-coordinator", entrypoint: "QuoteService" });
   expect(alphaConfig().vars).toEqual({ ZIGOALS_MARKET_QUOTES_MODE: "durable-v1" });
 });
+// Session AK Part 1b (ADR-036 Q5, A10; TIER 3 deploy config): the food Worker binding, and the deploy order said plainly.
+test("the reviewed Alpha configuration binds the acceptance stack's food Worker, and says to deploy it first", () => {
+  expect(alphaConfig().services[2]).toEqual({ binding: "FOOD_LOOKUP", service: "zigoals-acctest-food-lookup" });
+  expect(FOOD_DEPLOY_ORDER).toMatch(/^FOOD_LOOKUP binds zigoals-acctest-food-lookup: deploy the food Worker first, then the Alpha/);
+});
 test.each([
   c => { c.name = "zigoals"; }, c => { c.route = "alpha.zigoals.app/*"; },
   c => { c.routes = []; }, c => { c.env = { production: {} }; },
@@ -150,8 +155,9 @@ test.each([
   c => { c.vars = { NEXT_PUBLIC_APP_ENVIRONMENT: "TESTNET_DEPLOYED" }; },
   c => { c.services[0].service = "zigoals"; }, c => { c.limits.cpu_ms = 30000; },
   c => { c.services[1].entrypoint = "default"; }, c => { c.services[1].service = "zigoals-acctest-private-sync"; },
-  c => { delete c.services[1].entrypoint; }, c => { c.services.push({ binding: "FOOD_LOOKUP", service: "zigoals-acctest-food-lookup" }); },
-  c => { c.services.pop(); }, c => { c.vars.ZIGOALS_MARKET_QUOTES_MODE = "direct"; },
+  c => { delete c.services[1].entrypoint; }, c => { c.services.push({ binding: "HEALTH_LINK", service: "zigoals-acctest-health-link" }); },
+  c => { c.services.pop(); }, c => { c.services.splice(1, 1); }, c => { c.services[2].service = "zigoals-food-lookup-local"; },
+  c => { c.services[2].entrypoint = "default"; }, c => { c.vars.ZIGOALS_MARKET_QUOTES_MODE = "direct"; },
   c => { c.vars.COINGECKO_DEMO_API_KEY = "x"; }, c => { delete c.vars; },
   c => { c.durable_objects = { bindings: [] }; }, c => { c.workers_dev = false; },
   c => { c.assets.run_worker_first = true; }, c => { c.observability.enabled = true; },

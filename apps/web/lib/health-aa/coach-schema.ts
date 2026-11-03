@@ -14,3 +14,5 @@ export type HealthCoach = z.infer<typeof healthCoachSchema>;
 export const emptyHealthCoach = (): HealthCoach => ({version: 1});
 export const HEALTH_COACH: DeviceRecordSpec<HealthCoach> = {key: HEALTH_COACH_KEY, schema: healthCoachSchema, empty: emptyHealthCoach};
 export const answerCoach = (c: HealthCoach, weekStart: string, answer: 'keep' | 'adjust', at: string, kcal?: number): HealthCoach => healthCoachSchema.parse({...c, answers: {...(c.answers ?? {}), [weekStart]: {answer, at, ...(kcal ? {kcal} : {})}}});
+/** Session AK (task 4.5): Undo of a week's answer (Keep's toast); the week asks again. */
+export const clearCoachAnswer = (c: HealthCoach, weekStart: string): HealthCoach => { const answers = {...(c.answers ?? {})}; delete answers[weekStart]; return healthCoachSchema.parse({...c, answers}); };

@@ -23,7 +23,10 @@ jobs:
     # Measured 3.7 min on the first split run (36489960661); about 2.5x headroom.
     # Session AF (ADR-028 H127): lint + types + about 5,900 unit tests + the build reached the 10-minute cap on a slow
     # checkout (CI on c224bbe1: cancelled at 10:12 right after a green build); 15 gives the same job its headroom back.
-    timeout-minutes: 15
+    # Session AK ([TIER 3] (CI)): on slow runners every phase runs ~1.5x longer (lint 73→114 s, tsc 45→72 s, vitest
+    # 350→527 s); runs took 14.7–15.3 min and two were cancelled at 15 after every step was green (41384658117,
+    # 41401409092). 22 gives 1.4x headroom on a slow runner; no test timeout changes.
+    timeout-minutes: 22
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -52,7 +55,7 @@ jobs:
         run: pnpm audit --audit-level high || echo "::warning title=pnpm audit (all dependencies)::Advisories in development dependencies; read this step's log (FIX_PLAN F1)."
       - run: node scripts/check-secrets.mjs
   web-browser:
-    name: web browser suite (shard ${{ matrix.shard }}/6)
+    name: web browser suite (${{ matrix.suite }} shard ${{ matrix.shard }})
     runs-on: ubuntu-24.04
     # The whole suite took 15-20 min in one job. Split three ways (2 workers
     # each) the shards measured 7.6-8.4 min including about 1.5 min of setup
@@ -78,11 +81,22 @@ jobs:
     # (39723362781) and 57m14s with this session's Checklist specs (39874356416), then reached the 60 min with 700 of its 701
     # tests done, none failed or retried (39880404307). Six shards instead of five: each does about five sixths of the
     # work; no test is dropped, skipped or loosened.
+    # Session AK ([TIER 3] (CI), ADR-036 C3): shards 1 and 2 reached the 60 min with 628/731 and 703/741 tests started
+    # (run 41309452842; about 298 wall-minutes for 4368 tests, slowest shard 1.35x the mean). Ten main shards: about
+    # 39 min for the slowest, the 40% headroom again. The accessibility sweep (tests/p6-*.spec.ts, about 155
+    # worker-minutes) runs as its own "a11y" suite of three shards: Playwright cuts shards by test count in file order,
+    # so in the main suite each project's sweep would land whole in one shard. A11Y_SWEEP (playwright.config.ts) keeps
+    # the two suites apart; together they run every test exactly once. No test is dropped, skipped or loosened.
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        suite: [main]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        include:
+          - {suite: a11y, shard: 1}
+          - {suite: a11y, shard: 2}
+          - {suite: a11y, shard: 3}
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -120,12 +134,13 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/6 --reporter=line,json --output=/tmp/zigoals-web-results
+          if [ "${{ matrix.suite }}" = a11y ]; then export A11Y_SWEEP=only SHARDS=3; else export A11Y_SWEEP=skip SHARDS=10; fi
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/$SHARDS --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Retain fixture-only browser failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: web-browser-${{ github.sha }}-shard-${{ matrix.shard }}
+          name: web-browser-${{ github.sha }}-${{ matrix.suite }}-shard-${{ matrix.shard }}
           path: |
             /tmp/zigoals-web-results.json
             /tmp/zigoals-web-results/
@@ -272,11 +287,13 @@ jobs:
     # 45 min: the first run (df436a1) needed about 36 min for its 396 tests and stopped at 30.
     # Session AB-Cloud Part 7 ([TIER 3] (CI), ADR-023 C29): the set outgrew one runner (474 tests, cancelled at the cap on
     # every run since Session Z); two shards of about half each, each with its own 45 minutes and its own traces.
-    name: web WebKit (smoke, ZIGi, phone set) (shard ${{ matrix.shard }}/2)
+    # Session AK ([TIER 3] (CI), ADR-036 C3): shard 2 reached the 45 min with 285/287 tests started (run 41309452842) and
+    # shard 1 took 39.7 min; three shards of about a third each, each with its own 45 minutes.
+    name: web WebKit (smoke, ZIGi, phone set) (shard ${{ matrix.shard }}/3)
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     # Session AC ([TIER 3] (CI), ADR-025 E28): promoted after two green runs in a row on PR #87 (ADR-018 Y4's rule); it is
     # part of the "web" check on pull requests. It still runs on pull requests only: pushes to main (whose Milestone
     # quality gates a deploy) and the release candidate's call skip it, and the "web" check accepts that skip there.
@@ -347,7 +364,14 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --shard=${{ matrix.shard }}/2 --reporter=line --output=/tmp/zigoals-webkit-results
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --shard=${{ matrix.shard }}/3 --reporter=line --output=/tmp/zigoals-webkit-results
+      # Session AK ([TIER 3] (CI), diagnostic only): a WebKit page that hangs ~30 s and then dies ("Target crashed") left no
+      # trace of why. On a failure, the runner's memory and the kernel's kill/crash lines say whether it ran out of memory.
+      - name: Runner memory and kernel lines (failures only)
+        if: failure()
+        run: |
+          free -m
+          sudo dmesg -T 2>/dev/null | grep -iE 'out of memory|oom|killed process|segfault|webkit' | tail -50 || true
       - name: Retain the WebKit traces (failures and timeouts only)
         if: failure() || cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

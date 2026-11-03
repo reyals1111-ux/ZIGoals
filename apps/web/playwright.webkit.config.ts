@@ -17,6 +17,8 @@ export default defineConfig({
     locale: 'en-US',
     // CI's runner is UTC and the Chrome runs set TZ=UTC; WebKit follows the system clock unless told.
     timezoneId: 'UTC',
+    // Session AK (ADR-036 Q17): as in the main config, service workers only where a spec opts in.
+    serviceWorkers: 'block',
   },
   // The project names match the main config's ("desktop", "mobile"), which the specs branch on; this file's name is
   // the evidence label (WebKit), never the project's.

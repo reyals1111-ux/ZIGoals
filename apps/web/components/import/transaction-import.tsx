@@ -66,7 +66,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
   </section>;
   return <section className="panel import-panel" aria-label="Import transactions">
     <h2>Import transactions</h2>
-    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
+    {step === 1 && <><StepHeading step={1} title="Choose a file" /><FileStep target="transactions" onFile={f => { try { const next = setupFromText(f.text, OPTIONS); setFile(f); setSetup(next); setChoices({}); setStep(2); return null; } catch (cause) { return plainErrorMessage(cause, 'This file could not be read.'); } }} />
       <RecentImports imports={imports} kind="portfolio" onUndo={onUndo} /><StepActions onBack={onClose} /></>}
     {step === 2 && setup && file && <><StepHeading step={2} title="Match the columns" /><MappingStep setup={setup} options={OPTIONS} text={file.text} onChange={setSetup}>
       <fieldset className="import-target"><legend>Into portfolio</legend>

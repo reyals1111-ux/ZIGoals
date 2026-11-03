@@ -1,0 +1,5 @@
+/* Session AK (F5b): a stack in order on one line; wraps on a phone, never scrolls sideways. */
+.habit-stack-sentence { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; font-size: 15px; overflow-wrap: anywhere; }
+.habit-stack-cue { font-style: italic; color: var(--text-meta); }
+.habit-stack-arrow { color: var(--text-meta); white-space: pre; }
+.habit-stack-step { font-weight: 600; }

@@ -1,0 +1,15 @@
+/* Session AK (F6): `.zg-skeleton`, worn with the app's one placeholder (ui/skeleton.tsx, `.aa-skeleton`). The bars stand
+   still; one soft nebula sheen crosses the card, moved by transform only (no repaint), and only when the device allows
+   motion and ZIGoals' Motion is not Off. Under reduced motion, Motion Off or forced colours it is a calm, still card.
+   Colours are brand tokens mixed with transparent, the same in every theme. */
+:root .aa-skeleton.zg-skeleton { position: relative; overflow: hidden; isolation: isolate; border-color: color-mix(in srgb, var(--brand-violet) 22%, transparent); }
+:root .aa-skeleton.zg-skeleton > :is(i, b) { animation: none; background-size: 100% 100%; background-position: 0 0; }
+:root .aa-skeleton.zg-skeleton::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 22%, color-mix(in srgb, var(--brand-cyan) 10%, transparent) 42%, color-mix(in srgb, var(--brand-violet) 16%, transparent) 50%, color-mix(in srgb, var(--brand-magenta) 9%, transparent) 58%, transparent 78%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]) .aa-skeleton.zg-skeleton::after { opacity: 1; animation: zg-skeleton-sheen 1.7s cubic-bezier(.4, 0, .2, 1) infinite; }
+}
+@keyframes zg-skeleton-sheen { to { transform: translateX(100%); } }
+@media (forced-colors: active) { :root .aa-skeleton.zg-skeleton::after { display: none; } }

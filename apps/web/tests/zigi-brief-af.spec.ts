@@ -18,7 +18,9 @@ test('the morning: the brief card on Today with its sections; Read aloud speaks 
   await voiceFakes(page);
   const bodies = await server(page);
   // 09:00, after ZIGi's default quiet hours (22:00–08:00): inside them "Read aloud" rests and says so.
-  await seed(page, {extra, time: LATE_MORNING});
+  // Session AK (ADR-036, deliberate; a68e23b6): the Showcase's Strict reads only in on-device voices; Read aloud in the
+  // browser's voice is the person's Guarded choice (Strict's refusal: zigi-voice-z.spec.ts).
+  await seed(page, {extra, time: LATE_MORNING, privacy: 'guarded'});
   await page.goto('/app');
   const card = await forYouCard(page, "ZIGi's morning brief");
   const sections = card.locator('.ai-brief-sections');

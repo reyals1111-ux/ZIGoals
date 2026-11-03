@@ -1,0 +1,19 @@
+/* Session AK P3 (NOVA_DESIGN_REVIEW.md ND-19): NOVA's night strip across the top of the planet guides. It wears
+   `.nova-root` (one of Light's dark islands) but none of NOVA's full-window frame: it sits in the page's flow. Night tokens
+   are set here, since nova.css may not be loaded on these pages. Nothing in it moves (the orb is a still frame). */
+.nova-root.nova-guide-band {
+  --nova-a: var(--brand-violet, #9273ff); --nova-b: var(--brand-cyan, #63e7ff); --nova-hi: var(--accent-violet, #cbbfff);
+  --nova-ink: #eef3ff; --nova-ink-2: #cdd8ee; --nova-focus: #63e7ff;
+  position: relative; inset: auto; z-index: auto; isolation: isolate;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; box-sizing: border-box; width: 100%; margin: 0 0 14px; padding: 8px 18px 8px 8px;
+  border-radius: 18px; border: 1px solid color-mix(in oklab, #9273ff 35%, #ffffff12); color: var(--nova-ink); color-scheme: dark;
+  background: radial-gradient(120% 160% at 12% 0%, color-mix(in oklab, #9273ff 26%, transparent), transparent 60%), linear-gradient(100deg, #070b1d, #0b1030 60%, #0a0f26);
+}
+.nova-guide-band-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 10px; border-radius: 14px; background: linear-gradient(120deg, var(--nova-b), var(--nova-a)); color: #0a0f24; font-weight: 700; text-decoration: none; }
+.nova-guide-band-back:hover { filter: brightness(1.08); }
+.nova-guide-band-back:focus-visible { outline: 3px solid var(--nova-focus); outline-offset: 3px; }
+.nova-guide-band-orb { display: inline-grid; place-items: center; width: 36px; height: 36px; }
+.nova-guide-band .nova-orb, .nova-guide-band .nova-orb * { animation: none !important; }
+.nova-guide-band-progress { margin: 0 0 0 auto; font-size: 15px; color: var(--nova-ink-2); }
+.nova-guide-band-progress strong { color: var(--nova-ink); }
+@media (forced-colors: active) { .nova-root.nova-guide-band { border-color: CanvasText; background: Canvas; } .nova-guide-band-back { border: 1px solid CanvasText; } }

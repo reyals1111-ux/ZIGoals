@@ -1,0 +1,20 @@
+/* Session AK (6.2): the what-if panel. Theme colours only; 44 px targets. */
+.what-if { display: grid; gap: 12px; }
+.what-if h3 { margin: 0; }
+.what-if-pace { margin: 0; color: var(--text); }
+.what-if-form { display: grid; gap: 12px; }
+.what-if-form fieldset { border: 1px solid var(--line); border-radius: 14px; margin: 0; padding: 8px 12px 12px; display: grid; gap: 10px; }
+.what-if-form legend { padding: 0 4px; font-weight: 600; color: var(--text-secondary, var(--text)); }
+.what-if-field { display: grid; gap: 4px; }
+.what-if-field > label, .what-if-select { font-size: 14px; color: var(--text-secondary, var(--text)); display: grid; gap: 4px; }
+.what-if-inputs { display: flex; align-items: center; gap: 8px; }
+.what-if-inputs input[type='range'] { flex: 1; min-width: 0; min-height: 44px; accent-color: var(--cyan); }
+.what-if-inputs input[type='number'] { width: 7.5em; min-height: 44px; }
+.what-if-unit { font-size: 13px; color: var(--text-secondary, var(--muted)); }
+.what-if-select select, .what-if-select input { min-height: 44px; }
+.what-if-check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.what-if-check input { width: 22px; height: 22px; }
+.what-if-result { display: grid; gap: 6px; padding: 12px; border-radius: 14px; background: var(--surface-1, var(--panel)); }
+.what-if-result p { margin: 0; }
+.what-if-headline { font-weight: 700; color: var(--text); }
+.what-if-label { font-size: 13px; color: var(--text-secondary, var(--muted)); }

@@ -2,8 +2,13 @@ import {expect, test, type Page} from '@playwright/test';
 import {presetSettings} from '../lib/dashboard-settings';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES} from '../lib/pages/visibility';
 import {isPhone, mainNav, openMore} from './phone-nav';
+import {chooseChain} from './chain-choice';
 
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
+// Session AK X1 (RELEASE_REVIEW R3): the money tools (Earn, Markets, Staking, Portfolio, Ecosystem) are in the navigation
+// once the chain is chosen; this spec tests every switch with them there, so it chooses the chain first, as a person does
+// (tests/chain-choice.ts). A device that never chose is tested in tests/consumer-first-x1.spec.ts.
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 const SETTINGS = 'zigoals:settings:v1', MIRROR = 'zigoals:pages-view:v1', AT = '2026-10-07T09:00:00.000Z';
 // Session AF (ADR-028 H98): Earn follows Wealth's switch, so it is listed only where Wealth is.
 // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until this device's switch shows it.
@@ -15,8 +20,14 @@ const SHOWCASE = EVERY.filter(label => label !== 'Governance');
 /** A list with Governance in its place, after Staking. */
 const withGovernance = (labels: string[]) => { const at = labels.indexOf('Staking') + 1; return [...labels.slice(0, at), 'Governance', ...labels.slice(at)]; };
 const PREFS = 'zigoals:earn-prefs:v1';
-/** Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. */
-const withChecklist = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, 'Checklist'] : [...labels.slice(0, at), 'Checklist', ...labels.slice(at)]; };
+/**
+ * Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. Session
+ * AK (owner follow-up 2, N2): NOVA is one too, before it. Session AK G2 (RELEASE_REVIEW_2 R2-10, deliberate): Tasks, Notes
+ * and the Journal follow as 'compact' entries — the phone's More sheet (and the tablet rail), not the desktop sidebar;
+ * components/nav-extras.ts keeps this order whatever registers first.
+ */
+const SIDEBAR_EXTRAS = ['NOVA', 'Checklist'], MORE_EXTRAS = [...SIDEBAR_EXTRAS, 'Tasks', 'Notes', 'Journal'];
+const withExtras = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, ...SIDEBAR_EXTRAS] : [...labels.slice(0, at), ...SIDEBAR_EXTRAS, ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
 const settingsWith = (p?: object) => ({...presetSettings('balanced'), onboarded: true, ...(p ? {schemaVersion: 3, pages: p} : {})});
 async function seed(page: Page, records: Record<string, unknown>) {
@@ -32,16 +43,16 @@ async function seed(page: Page, records: Record<string, unknown>) {
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
 const navLabels = (page: Page) => mainNav(page).getByRole('link').allTextContents();
 /** The sidebar on a larger screen; on a phone the tabs, then (opened) the More sheet's links after them. */
-async function expectNav(page: Page, visible: string[], journey = false) {
+async function expectNav(page: Page, visible: string[], {journey = false}: {journey?: boolean} = {}) {
   // Help is always shown, last (Session Z-Cloud Part 4.11).
-  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...withChecklist(visible), 'Help']); return; }
+  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...withExtras(visible), 'Help']); return; }
   const pagesOnly = visible.filter(label => label !== 'Settings');
   // Five tabs since Session AB-Design (owner request 10); More, from the top bar, holds the rest, then Settings and Help.
   await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 5));
   await openMore(page);
   // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): while Gamify is on (the Showcase), the
   // Journey is a row of More after the pages, since it is no longer a tab.
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), 'Checklist', ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...MORE_EXTRAS, ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -82,10 +93,12 @@ test('every switch sits on its name\'s row, before the name, at its full size', 
   await seed(page, {[SETTINGS]: settingsWith()});
   await page.goto('/app/settings');
   const rows = section(page).locator('label.pages-switch');
-  // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth,
-  // shown and locked to Wealth's state.)
+  // (Session AG Polish 3: and Governance's switch on this device, after Chess. Session AH (ST9): and Earn's, after Wealth.)
   await expect(rows).toHaveCount(AVAILABLE_PAGES.length + AVAILABLE_BUTTONS.length + 2);
-  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeDisabled();
+  // Assertion changed (Session AK X1, RELEASE_REVIEW R3; deliberate): Earn's switch is its own now, on this device
+  // (`pageShown` in zigoals:earn-prefs:v1), so it is on and usable while Wealth shows (it was locked to Wealth's state).
+  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeEnabled();
+  await expect(section(page).getByRole('switch', {name: 'Earn'})).toBeChecked();
   const placed = await rows.evaluateAll(labels => labels.map(label => {
     const input = label.querySelector('input')!.getBoundingClientRect(), name = label.querySelector('span')!.getBoundingClientRect();
     return {name: label.textContent, beside: input.right <= name.left && Math.abs(input.top + input.height / 2 - (name.top + name.height / 2)) < 6, size: `${Math.round(input.width)}x${Math.round(input.height)}`};
@@ -172,7 +185,8 @@ test('"Show everything again" asks first: Cancel changes nothing; confirming sho
   await confirm.getByRole('button', {name: 'Cancel', exact: true}).click();
   await expect(reset).toBeFocused();
   expect(await page.evaluate(k => localStorage.getItem(k), SETTINGS)).toBe(before);
-  expect(await stored(page, PREFS)).toBeNull();
+  // Session AK X1: this device holds only the chain choice it was given (tests/chain-choice.ts); Cancel wrote nothing more.
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true});
   await reset.click();
   await card.getByRole('button', {name: 'Show everything', exact: true}).click();
   await expect(card.getByRole('status')).toHaveText('Every page and button shows again.');
@@ -180,7 +194,8 @@ test('"Show everything again" asks first: Cancel changes nothing; confirming sho
   for (const id of [...AVAILABLE_PAGES, ...AVAILABLE_BUTTONS]) expect(record.pages.items[id].v).toBe('shown');
   expect(record.pages.start.id).toBe('habits');
   // (Session AG Polish 3: Governance too, by its switch on this device.)
-  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: true});
+  // Session AK X1: Earn's own switch (`pageShown`, on since the chain was chosen) is shown by "Show everything" too.
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true, governanceShown: true});
   await expectNav(page, EVERY);
 });
 
@@ -211,16 +226,16 @@ test('Showcase shows every page but Governance and keeps a choice in the tab, ne
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await expectNav(page, SHOWCASE, true);
+  await expectNav(page, SHOWCASE, {journey: true});
   await page.goto('/app/settings');
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await section(page).getByRole('switch', {name: 'Activity', exact: true}).click();
   await expect(section(page)).toContainText('In Showcase these choices last for this tab only.');
-  await expectNav(page, SHOWCASE.filter(label => label !== 'Activity'), true);
+  await expectNav(page, SHOWCASE.filter(label => label !== 'Activity'), {journey: true});
   // Governance's switch keeps its choice in the tab too.
   await section(page).getByRole('switch', {name: 'Governance', exact: true}).click();
   await expect(section(page).getByRole('status')).toHaveText('Governance shows on this device.');
-  await expectNav(page, withGovernance(SHOWCASE.filter(label => label !== 'Activity')), true);
+  await expectNav(page, withGovernance(SHOWCASE.filter(label => label !== 'Activity')), {journey: true});
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
 });
 
@@ -245,7 +260,8 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await governance.click();
   await expect(card.getByRole('status')).toHaveText('Governance shows on this device.');
   await expect(governance).toBeChecked();
-  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: true});
+  // Session AK X1: beside the chain choice this device was given (`pageShown`, tests/chain-choice.ts).
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true, governanceShown: true});
   // Nothing synced changes, and the device mirror of the synced choice stays as it was.
   expect(await page.evaluate(k => localStorage.getItem(k), SETTINGS)).toBe(synced);
   expect(await page.evaluate(k => localStorage.getItem(k), MIRROR)).toBeNull();
@@ -263,7 +279,7 @@ test('Governance: hidden by default; its switch after Chess shows it on this dev
   await expectNav(page, withGovernance(ALL));
   await section(page).getByRole('switch', {name: 'Governance', exact: true}).click();
   await expect(section(page).getByRole('status')).toHaveText('Governance is hidden. You can show it again here at any time.');
-  expect(await stored(page, PREFS)).toEqual({version: 1, governanceShown: false});
+  expect(await stored(page, PREFS)).toEqual({version: 1, pageShown: true, governanceShown: false});
   await expectNav(page, ALL);
   // Hidden, its page still opens from Earn.
   await page.goto('/app/earn');
@@ -324,8 +340,8 @@ test('while the settings are still opening, the device mirror already shapes the
   await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
   const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withChecklist(expected));
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withExtras(expected));
   await page.evaluate(() => (window as unknown as {__vault: {release(): void}}).__vault.release());
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withChecklist(expected));
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withExtras(expected));
 });

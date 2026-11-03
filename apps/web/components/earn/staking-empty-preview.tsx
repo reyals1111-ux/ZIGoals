@@ -4,6 +4,7 @@ import {bps, pct} from '../../lib/earn/format';
 import {LiveFigure, shown} from './live-figure';
 import {useEarnLive, useMinuteClock} from './use-earn-live';
 import './earn.css';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 
 /**
  * Session AF (L1): the Staking page's empty state while no position is observed, previewing Earn. Three ways to earn,
@@ -15,7 +16,7 @@ export function StakingEmptyPreview() {
   // Two figures, not Valdora's rate: the Staking page reads nothing about Valdora (staking-page.spec, Session I); the
   // stZIG rate lives on Earn, where both sources are shown (H44).
   const now = useMinuteClock(), chain = useEarnLive('chain'), oroswap = useEarnLive('oroswap');
-  return <div className="panel positions-empty earn-preview" data-earn-preview>
+  return <div className="panel positions-empty earn-preview" data-earn-preview data-art="">
     <h3>A clear view of your staked ZIG.</h3>
     <p>Track a public wallet to see liquid funds, stake and rewards together. Allocate existing wealth to your Goals without moving funds.</p>
     <dl className="earn-figures earn-preview-cards">
@@ -23,5 +24,6 @@ export function StakingEmptyPreview() {
       <LiveFigure id="preview-oroswap" label="Liquidity · ZIG / USDC pool fee per swap" now={now} figure={shown(oroswap, d => { const p = d.pools.find(x => x.id === 'zig-usdc'); return p ? bps(p.feeBps) : null; })}/>
     </dl>
     <p className="earn-preview-cta"><Link className="primary" href="/app/earn#start-here">How staking works, on Earn →</Link> <span className="fine">Live figures, the risks of each, and the steps in plain words. Information, not advice.</span></p>
+    <LazyPillarArt pillar="wealth"/>
   </div>;
 }

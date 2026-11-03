@@ -105,6 +105,7 @@ export function AiLauncher() {
     return () => navigator.serviceWorker?.removeEventListener('message', onMessage);
   }, []);
   const hide = () => {
+    zigiSignals.emit('companion_hidden'); // Session AK Part 12: a Studio-4 reaction once its art lands
     setOpen(false); launcher.setLauncherHidden(true); setUndoUntil(Date.now() + HIDE_UNDO_MS);
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => { timer.current = null; setUndoUntil(null); }, HIDE_UNDO_MS);
@@ -147,8 +148,10 @@ export function AiLauncher() {
     schedule(); for (const ms of [300, 1200, 3000]) timers.push(window.setTimeout(schedule, ms));
     window.addEventListener('scroll', schedule, {passive: true}); window.addEventListener('resize', schedule); window.addEventListener('load', schedule);
     // The page's first screen fills in after mount (parts load on demand, images arrive): every change to `main` places again.
-    const main = document.querySelector('main') ?? document.body, mutations = new MutationObserver(schedule), sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
-    mutations.observe(main, {childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open']}); sizes?.observe(main);
+    // Session AK CI-3 (WebKit, 390x844 Health): so does a change above `main` in the content column (the notice, the "still
+    // opening" panel leaving), which moves `main`'s controls without changing `main` itself; the column's size says so.
+    const main = document.querySelector('main') ?? document.body, column = main.closest('.app-content'), mutations = new MutationObserver(schedule), sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
+    mutations.observe(main, {childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open']}); sizes?.observe(main); if (column) sizes?.observe(column);
     return () => { cancelAnimationFrame(frame); for (const t of timers) window.clearTimeout(t); mutations.disconnect(); sizes?.disconnect(); document.removeEventListener('focusin', onFocus); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); window.removeEventListener('load', schedule); el.style.removeProperty('--zigi-rest-lift'); };
   }, [phone, pathname, visible]);
   const edgeTab = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive;

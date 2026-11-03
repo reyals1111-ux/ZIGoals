@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import {GOAL_LIBRARY, searchTemplates} from '../../templates/goal-library';
 import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
-import {MAX_NOTE_CHARS, MEMORY_CATEGORIES} from '../store/records';
+import {MAX_NOTE_CHARS, MEMORY_CATEGORIES, MEMORY_KINDS} from '../store/records';
 import {LINK_ICONS} from '../../links/schema';
 import {WIDGET_KINDS_V1, WIDGET_KINDS_V3_ONLY} from '../../dashboard-settings';
 import {EXERCISE_ICONS} from '../../health-counters';
@@ -10,6 +10,13 @@ import {type DashboardPreset} from '../../dashboard-settings';
 import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
 import {ACCOUNT_KINDS} from '../../accounts/schema';
 import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
+// Session AK (Part 12): this session's card kinds, their composite and their plain names (schema-ak.ts).
+import {AK_ACTION_KINDS, AK_ACTION_SCHEMAS, AK_ALIASES, goalBundleParts, goalBundleSchema} from './schema-ak';
+// Owner follow-up 2 (N5): NOVA's new card kinds (a task, a workout, a note captured, focus), shared with ZIGi (one engine).
+import {NOVA_ACTION_KINDS, NOVA_ACTION_SCHEMAS, NOVA_ALIASES, NOVA_OPEN_PAGES} from './schema-nova';
+// Owner follow-up 2 (G8): BUILD list 2's cards (a blood pressure reading, a scale rated, a task moved or let go).
+import {G1_ACTION_KINDS, G1_ACTION_SCHEMAS, G1_ALIASES} from './schema-g1';
+import {evaluateAmount} from '../../money-calc/expression';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -43,6 +50,13 @@ const named = (example: string) => z.string().trim().min(1).max(100)
 const habitName = named('h1, h2'), goalName = named('g1');
 const text = (max: number) => z.string().trim().min(1).max(max);
 const positive = z.number().finite().positive();
+/**
+ * Owner follow-up 2 (G8, BUILD list 2 #19): a money log amount is a number with at most two decimals, or a sum the money
+ * field's own calculator works out ("12,50+3,20", "3*4.99"; lib/money-calc, a hand-written parser, never eval). The card
+ * shows the sum and its result, and the result is what is saved. Refused with the calculator's own reason.
+ */
+const centsNumber = positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.');
+const moneyAmount = z.union([centsNumber, z.string().trim().min(1).max(80).superRefine((v, ctx) => { const r = evaluateAmount(v); if (!r.ok) ctx.addIssue({code: 'custom', message: r.reason}); })]);
 const grams = z.number().finite().min(0).max(100_000);
 /** A [low, high] range (Session AI, HE17): both at least 0, the low end first. */
 const pair = (max: number) => z.tuple([z.number().finite().min(0).max(max), z.number().finite().min(0).max(max)]).refine(([lo, hi]) => lo <= hi, 'Give the low end of a range first.');
@@ -81,8 +95,8 @@ export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as con
  * ask the app to delete (the card opens the app's own confirmation; nothing is deleted by the card), and the targets a
  * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
  */
-export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share', 'checklist', 'earn'] as const; // review, share: AA-Cloud's pages (ADR-022 B53); checklist, earn: Session AF's (L3, L1), opened by ZIGi (L4)
-export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month', 'start-here', 'academy'] as const; // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
+export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share', 'checklist', 'earn', ...NOVA_OPEN_PAGES] as const; // review, share: AA-Cloud's pages (ADR-022 B53); checklist, earn: Session AF's (L3, L1), opened by ZIGi (L4)
+export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month', 'start-here', 'academy', 'setup'] as const; // setup: NOVA's "Build NOVA's brain" guide (Session AK P4, FR-2) // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
 // Session AA-Local Part 5: the new actions' vocabularies (habits' time of day and moods, the game layer, the Health coach, macro modes, the seven micronutrients the format holds).
@@ -158,7 +172,9 @@ export const actionSchema = z.discriminatedUnion('kind', [
     }),
   z.strictObject({kind: z.literal('review-intention'), intention: text(2000)}),
   // ---- Session V Part 8: "Remember this?", a note for What ZIGi knows about me (the planner refuses Health notes) ----
-  z.strictObject({kind: z.literal('remember'), text: text(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES).default('other')}),
+  // Owner follow-up 2 (N7, lane ND): a memory's kind and where it was proposed (a workflow's name), both optional; without
+  // them (and off NOVA) the card is exactly as before.
+  z.strictObject({kind: z.literal('remember'), text: text(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES).default('other'), memory_kind: z.enum(MEMORY_KINDS).optional(), label: text(120).optional()}),
   // ---- Session W Part 21 (W7): a night, mindful minutes, a milestone, an account's balance (pre-fill only), a challenge ----
   z.strictObject({kind: z.literal('log-sleep'), wake: clock.optional(), bedtime: clock.optional(), hours: z.number().finite().positive().max(24).optional(), minutes: z.number().int().min(1).max(1440).optional(),
     quality: z.number().int().min(1).max(5).optional(), nap: z.boolean().optional(), day: daySchema})
@@ -180,7 +196,8 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('add-link'), label: text(40), url: z.string().trim().min(1).max(500).regex(/^https:\/\//i, 'Only a full https:// address can be added.'), icon: z.enum(LINK_ICONS).optional()}),
   z.strictObject({kind: z.literal('add-widget'), widget: z.enum(WIDGET_KINDS), metric: z.string().trim().min(1).max(40).optional(), habit: habitName.optional(), goal: goalName.optional(), size: z.enum(['compact', 'wide']).default('compact'), title: z.string().trim().max(80).optional()}),
   // ---- Session Z-Local Part 5: navigation, deletions (the app's own confirmation), habit states, vacations, goals' lifecycle ----
-  z.strictObject({kind: z.literal('open-page'), page: z.enum(OPEN_PAGES), view: z.enum(PAGE_VIEWS).optional(), habit: habitName.optional(), goal: goalName.optional(), asset: text(100).optional()}),
+  z.strictObject({kind: z.literal('open-page'), page: z.enum(OPEN_PAGES), view: z.enum(PAGE_VIEWS).optional(), habit: habitName.optional(), goal: goalName.optional(), asset: text(100).optional(),
+    /** Session AK P4 (FR-2): the name a new goal starts with (only with view new-goal); the person fills the rest. */ name: text(100).optional()}),
   z.strictObject({kind: z.literal('delete-record'), what: z.enum(DELETE_TARGETS), habit: habitName.optional(), goal: goalName.optional(), name: text(100).optional(), day: daySchema})
     .superRefine((a, ctx) => {
       if (a.what === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'});
@@ -210,7 +227,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('calculator-scenario'), start: z.number().finite().min(0).max(1e12).optional(), contribution: z.number().finite().min(0).max(1e12).optional(), frequency: z.enum(['weekly', 'monthly', 'yearly']).optional(), ratePercent: z.number().finite().min(-50).max(100).optional(), years: z.number().int().min(1).max(60).optional(), compounding: z.enum(['yearly', 'quarterly', 'monthly', 'daily']).optional(), currency: z.enum(['USD', 'EUR']).optional()})
     .refine(a => Object.keys(a).length > 1, 'Say at least one figure: the start amount, the contribution, the rate or the years.'),
   z.strictObject({kind: z.literal('open-search'), query: text(120)}),
-  z.strictObject({kind: z.literal('open-review'), period: z.enum(['week', 'month'])}),
+  z.strictObject({kind: z.literal('open-review'), period: z.enum(['week', 'month']).default('week')}), // Session AK (Part 12): "open my weekly review" is the week
   z.strictObject({kind: z.literal('vacation'), from: isoDay, to: isoDay, clear: z.boolean().default(false), habits: z.array(habitName).max(20).optional()}).refine(a => a.from <= a.to, 'The vacation ends before it starts.'),
   z.strictObject({kind: z.literal('unskip'), habit: habitName, day: daySchema}),
   z.strictObject({kind: z.literal('remove-reminder'), for: z.enum(['habit', 'water']), habit: habitName.optional()}).superRefine((a, ctx) => { if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'}); }),
@@ -256,12 +273,18 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('prefill-staking'), action: z.enum(STAKING_ACTIONS).default('delegate'), network: z.enum(STAKING_NETWORKS).default('practice'), validator: text(120).optional(), amount: zigAmount.optional()}),
   // Session AI (B3, J10, feature 5; TIER 3 data formats): money spent or received, written to the device's expense log
   // (`zigoals:money-log:v1`) through its registered writer; the person's own words, never converted, never advice.
-  z.strictObject({kind: z.literal('log-expense'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('log-expense'), amount: moneyAmount, currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
   // Session AJ (item 15, D9; TIER 3 stored format via its registered writer): a price alert for a coin the person holds,
   // "above/below a price" or "when it puts a goal at X %"; in the app only; never buys, sells or moves anything.
   z.strictObject({kind: z.literal('create-price-alert'), coin: text(100), direction: z.enum(['above', 'below']).optional(), price: positive.max(1_000_000_000_000).optional(), currency: z.enum(['USD', 'EUR']).default('USD'), goal: text(250).optional(), percent: z.number().int().min(1).max(1000).optional()})
     .refine(a => a.goal ? a.percent !== undefined && a.price === undefined : !!a.direction && a.price !== undefined, 'A price alert needs "direction" and "price"; a goal alert "goal" and "percent".'),
-  z.strictObject({kind: z.literal('log-income'), amount: positive.max(1_000_000_000).refine(v => Math.round(v * 100) === v * 100 || Math.abs(Math.round(v * 100) - v * 100) < 1e-6, 'At most two decimals.'), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  z.strictObject({kind: z.literal('log-income'), amount: moneyAmount, currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), category: text(40).optional(), note: text(200).optional(), day: daySchema}),
+  // Session AK (Part 12): auto-complete rules, bill reminders, the grocery list, the goal wizard filled in, a what-if, a scan, a soundscape.
+  ...AK_ACTION_SCHEMAS,
+  // Owner follow-up 2 (N5): NOVA's cards (schema-nova.ts).
+  ...NOVA_ACTION_SCHEMAS,
+  // Owner follow-up 2 (G8): BUILD list 2's cards (schema-g1.ts).
+  ...G1_ACTION_SCHEMAS,
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -279,7 +302,13 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   // Session AI
   'log-expense', 'log-income',
   // Session AJ
-  'create-price-alert'] as const satisfies readonly ActionKind[];
+  'create-price-alert',
+  // Session AK (Part 12)
+  ...AK_ACTION_KINDS,
+  // Owner follow-up 2 (N5)
+  ...NOVA_ACTION_KINDS,
+  // Owner follow-up 2 (G8)
+  ...G1_ACTION_KINDS] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -307,9 +336,11 @@ export const compositeSchema = z.discriminatedUnion('kind', [
     remember: z.array(part).max(2).default([]),
     earn: z.strictObject({step: z.enum(EARN_STEPS), network: z.enum(STAKING_NETWORKS).optional(), amount: z.union([z.number(), z.string().max(40)]).optional(), validator: z.string().max(120).optional()}).optional(),
   }),
+  // Session AK (Part 12): a goal bundle in the person's own words, read on the device (lib/goals/nl-bundle.ts) into cards.
+  goalBundleSchema,
 ]);
 export type Composite = z.infer<typeof compositeSchema>;
-export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template', 'plan-bundle'] as const;
+export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template', 'plan-bundle', 'goal-bundle'] as const;
 /** The most cards one plan-bundle becomes (the reply's own cap, MAX_PROPOSALS, holds for all of them). */
 export const MAX_BUNDLE_STEPS = 10;
 /** The cards a composite request becomes; `next` numbers the new habits of the reply (new1, new2, …). */
@@ -325,6 +356,8 @@ export function expandComposite(composite: Composite, next: () => string): Recor
     if (t.kind === 'health-weight') return [{kind: 'open-page', page: 'health'}]; // a weight goal is set in Health → Health goals; the card opens Health
     return [{kind: 'create-goal', name: t.title, type: t.kind === 'project' ? 'PROJECT' : 'VALUE', ...(t.milestones?.length ? {milestones: [...t.milestones]} : {}), notes: t.summary}];
   }
+  // Session AK (Part 12): the parser asks for the parts itself (to say why when there are none); an empty list here otherwise.
+  if (composite.kind === 'goal-bundle') { const parts = goalBundleParts(composite.words, next); return typeof parts === 'string' ? [] : parts; }
   if (composite.kind === 'plan-bundle') {
     const parts: Record<string, unknown>[] = [];
     if (composite.goal) { const {kind, ...goal} = composite.goal; void kind; parts.push({...goal, kind: 'create-goal'}); }
@@ -354,7 +387,8 @@ export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-
   'prefill-staking'];
 export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PREFILL_KINDS.includes(k));
 /** Aliases the AI may use; mapped before validation (a partial check-in is a check-in with a value). */
-export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
+// Owner follow-up 2 (N5): NOVA's plain names go first, so a name an older alias already uses keeps its old meaning.
+export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {...NOVA_ALIASES, partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
   'create_food': 'create-food', 'create_recipe': 'create-recipe', recipe: 'create-recipe', 'plan_meal': 'plan-meal', 'meal-plan': 'plan-meal', 'grocery': 'grocery-item', 'grocery_item': 'grocery-item', groceries: 'grocery-item', 'counter-increment': 'counter', 'create_reminder': 'create-reminder', reminder: 'create-reminder', 'review_intention': 'review-intention', intention: 'review-intention', 'plan_goal': 'plan-goal', 'build_habit': 'build-habit',
   'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember',
   // Session AA-Local Part 5: the plain names of this session's kinds.
@@ -400,4 +434,8 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   'checklist_add_custom': 'checklist-add-custom', 'checklist-add': 'checklist-add-custom', 'add-to-checklist': 'checklist-add-custom', 'checklist-item': 'checklist-add-custom', checklist: 'checklist-add-custom',
   'set_brief': 'set-brief', 'brief-settings': 'set-brief', brief: 'set-brief', 'evening-recap': 'set-brief',
   'prefill_staking': 'prefill-staking', 'staking-review': 'prefill-staking', 'start-staking': 'prefill-staking', 'staking-prefill': 'prefill-staking', 'prefill-stake': 'prefill-staking',
-  'plan_bundle': 'plan-bundle', bundle: 'plan-bundle', 'set-up': 'plan-bundle', program: 'plan-bundle', programme: 'plan-bundle', 'plan-week': 'plan-bundle'};
+  'plan_bundle': 'plan-bundle', bundle: 'plan-bundle', 'set-up': 'plan-bundle', program: 'plan-bundle', programme: 'plan-bundle', 'plan-week': 'plan-bundle',
+  // Session AK (Part 12)
+  ...AK_ALIASES,
+  // Owner follow-up 2 (G8): BUILD list 2's cards.
+  ...G1_ALIASES};

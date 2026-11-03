@@ -41,6 +41,8 @@ journey('J502', 'Meet ZIGi from Settings: every state with its code, nothing wri
   await expect(j.page).toHaveURL(/\/app\/zigi$/);
   await expect(j.page.getByRole('heading', {level: 1, name: 'Meet ZIGi.'})).toBeVisible();
   const before = await j.page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the state gallery is under the "Every way ZIGi can look" fold.
+  await j.page.getByText('Every way ZIGi can look', {exact: true}).click();
   const states = Object.values(manifest.states);
   await expect(j.page.locator('.meet-zigi-card')).toHaveCount(states.length);
   for (const state of states) await expect(j.page.getByRole('article', {name: state.label, exact: true})).toContainText(state.code);
@@ -65,7 +67,8 @@ journey('J503', 'ZIGi breathes while it waits (Calm), and holds still with its a
 
 journey('J504', 'in the Showcase ZIGi is the same and Meet ZIGi shows nothing personal', {views: ['D', 'P'], data: ['S'], live: true}, async j => {
   await expect(launcher(j.page)).toBeVisible();
-  await j.page.goto('/app/zigi');
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the gallery opens from its own address (#every-look).
+  await j.page.goto('/app/zigi#every-look');
   await expect(j.page.getByRole('heading', {level: 1, name: 'Meet ZIGi.'})).toBeVisible();
   await expect(j.page.locator('.meet-zigi-card')).toHaveCount(Object.values(manifest.states).length);
   await expect(j.page.locator('main')).not.toContainText('@');

@@ -3,6 +3,10 @@ import {earnRoutes, seedShowcase} from './earn-fixtures';
 import {seedChecklist, settled} from './checklist-fixtures';
 import {addCustom} from '../lib/checklist/store';
 import {emptyChecklist} from '../lib/checklist/schema';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn and Governance.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF, critique round 2 (lane L5c): the design findings fixed at their cause, each measured. Earn: the option
@@ -335,9 +339,15 @@ test.describe('Gate C design review', () => {
     const card = page.locator('.today-universe-card');
     await openForYou(page, card);
     await expect(card.locator('.universe-row svg')).toHaveCount(4);
-    const row = await box(card.locator('.universe-row'));
-    for (const svg of await card.locator('.universe-row svg').all()) { const b = await box(svg); expect(b.height).toBeCloseTo(row.height, 0); expect(b.bottom).toBeLessThanOrEqual(row.bottom + 0.5); }
-    expect((await box(card.locator('.today-universe-names'))).top, 'names at least 8 px under the row').toBeGreaterThanOrEqual(row.bottom + 7.5);
+    // Session AK (final run B): the row, its pictures and the names are read in one layout. Read one at a time, a card that
+    // finished loading above (or a scroll) moved the page between reads and a picture seemed 418 px below its own row.
+    const {row, svgs, names} = await card.evaluate(c => {
+      const r = (e: Element) => { const x = e.getBoundingClientRect(); return {top: x.top, bottom: x.bottom, height: x.height}; };
+      return {row: r(c.querySelector('.universe-row')!), svgs: [...c.querySelectorAll('.universe-row svg')].map(r), names: r(c.querySelector('.today-universe-names')!)};
+    });
+    expect(svgs).toHaveLength(4);
+    for (const b of svgs) { expect(b.height).toBeCloseTo(row.height, 0); expect(b.bottom).toBeLessThanOrEqual(row.bottom + 0.5); }
+    expect(names.top, 'names at least 8 px under the row').toBeGreaterThanOrEqual(row.bottom + 7.5);
   });
 
   test('the Day timeline keeps clear of the right-edge launchers at 1024 px, and stays centred at 1440 px', async ({page}) => {
@@ -382,7 +392,10 @@ test.describe('Gate C design review', () => {
     await expect(forYou).toBeVisible({timeout: 15_000});
     const [area, primary, rail] = await Promise.all([box(forYou), box(page.locator('.today-primary')), box(page.locator('.today-rail'))]);
     expect(area.left).toBeCloseTo(primary.left, 0);
-    expect(area.right, 'under the rail too').toBeCloseTo(rail.right, 0);
+    // Session AK (ADR-036, deliberate): from 1280 px the full-width parts under Today's columns keep the launchers' lane free (G2, RELEASE_REVIEW R20, components/ui/ui.css --launcher-gutter); 0 below 1280 px.
+    const gutter = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--launcher-gutter')) || 0);
+    expect(gutter, 'the launcher lane').toBe(width >= 1280 ? 58 : 0);
+    expect(area.right, 'under the rail too').toBeCloseTo(rail.right - gutter, 0);
     expect(area.top, 'below both columns').toBeGreaterThanOrEqual(Math.max(primary.bottom, rail.bottom));
   });
 });

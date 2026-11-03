@@ -1,7 +1,12 @@
 import {expect, test} from 'vitest';
-import {ACTION_PROTOCOL} from '../context/specialists';
+import {ACTION_PROTOCOL, AK_KINDS_BY_AREA, akKindsNote} from '../context/specialists';
+import {PAGE_AREAS} from '../settings';
 import {hasOpenFence, parseReply, repairJson, REPAIR_MAX_CHARS} from './parse';
 import {ACTION_KINDS, MAX_PROPOSALS, actionSchema} from './schema';
+import {NOVA_ACTION_KINDS} from './schema-nova';
+import {G1_ACTION_KINDS} from './schema-g1';
+import {TOOLS} from '../tools/registry';
+import {novaKindsNote} from '../context-pack/nova-prompt';
 
 // ADR-012, Part 5: only whitelisted, validated proposals become cards; the person's text can never be an instruction.
 const block = (json: string, fence = '```', info = 'zigoals-action') => `${fence}${info}\n${json}\n${fence}`;
@@ -39,7 +44,17 @@ test('an injected instruction inside a record can at most become a whitelisted p
   expect(parsed.rejected).toHaveLength(1);
 });
 test('the protocol the AI reads names every kind the schema accepts, and the schema refuses what the protocol never offers', () => {
-  for (const kind of ACTION_KINDS) expect(ACTION_PROTOCOL, kind).toContain(`"kind":"${kind}"`);
+  // Session AK (Part 12): AK's kinds are offered on the pages where they belong (akKindsNote), every other kind in the
+  // shared protocol; each kind is offered somewhere, and an AK kind is never also repeated in the shared part.
+  const ak = new Set(Object.values(AK_KINDS_BY_AREA).flat());
+  // Owner follow-up 2 (N5): NOVA's own kinds are offered in NOVA's card note (lib/ai/context-pack/nova-prompt.ts), never in the shared part.
+  const nova = new Set<string>(NOVA_ACTION_KINDS);
+  // Owner follow-up 2 (G8): BUILD list 2's kinds are offered by the read tool each one acts on (its description, sent with
+  // the tools to ZIGi and NOVA alike), so no system prompt grows (Today's stays as it was; NOVA's has no room left).
+  const g1 = new Set<string>(G1_ACTION_KINDS);
+  const offered = (kind: string) => g1.has(kind) ? TOOLS.some(t => t.description.includes(`"kind":"${kind}"`)) : nova.has(kind) ? novaKindsNote().includes(`"kind":"${kind}"`) : ak.has(kind) ? PAGE_AREAS.some(area => (akKindsNote(area) ?? '').includes(`"kind":"${kind}"`)) : ACTION_PROTOCOL.includes(`"kind":"${kind}"`);
+  for (const kind of ACTION_KINDS) expect(offered(kind), kind).toBe(true);
+  for (const kind of [...ak, ...nova, ...g1]) expect(ACTION_PROTOCOL, kind).not.toContain(`"kind":"${kind}"`);
   for (const forbidden of ['contribute', 'allocate', 'stake', 'transfer', 'delete-goal', 'export', 'sync', 'settings', 'wallet']) expect(actionSchema.safeParse({kind: forbidden}).success, forbidden).toBe(false);
   expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 24}).success).toBe(false); expect(actionSchema.safeParse({kind: 'start-fast', targetHours: 16}).success).toBe(true);
   expect(actionSchema.safeParse({kind: 'log-water', day: 'today'}).success).toBe(false);
@@ -180,4 +195,18 @@ test('Session AI (A4 photos): a meal estimate\'s "from" and "range" beside the e
   const out = parseReply('```zigoals-action\n{"kind":"log-food","name":"White rice","meal":"Lunch","estimate":{"serving_g":150},"range":{"kcal":[170,230]},"from":"photo"}\n```');
   expect(out.rejected).toEqual([]);
   expect(out.proposals[0]).toMatchObject({kind: 'log-food', estimate: {serving_g: 150, range: {kcal: [170, 230]}, from: 'photo'}});
+});
+test('Session AK (journey bug J8-1): the goal form card keeps its "date"; the log cards still read "date" as "day"', () => {
+  // The protocol's own example (lib/ai/context/specialists.ts) and the shape the journey's model answered.
+  for (const body of ['{"kind":"goal-draft","name":"Fictional new bike","target":900,"currency":"EUR","date":"2027-05-01"}',
+    '{"kind":"goal_draft","name":"Fictional new bike","target":900,"currency":"EUR","day":"2027-05-01"}',
+    '{type:"goal-form",name:"Fictional new bike",target:"900",currency:"EUR",date:"2027-05-01"}']) {
+    const out = parseReply(`\`\`\`zigoals-action\n${body}\n\`\`\``);
+    expect(out.rejected, body).toEqual([]);
+    expect(out.proposals[0], body).toMatchObject({kind: 'goal-draft', name: 'Fictional new bike', target: 900, currency: 'EUR', date: '2027-05-01'});
+    expect(out.proposals[0], body).not.toHaveProperty('day');
+  }
+  const log = parseReply('```zigoals-action\n{"kind":"log-water","glasses":2,"date":"2026-10-04"}\n```');
+  expect(log.rejected).toEqual([]);
+  expect(log.proposals[0]).toMatchObject({kind: 'log-water', day: '2026-10-04'});
 });

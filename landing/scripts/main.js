@@ -3,6 +3,9 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const manualStatic = new URLSearchParams(location.search).get('motion') === 'off';
   if (manualStatic) document.documentElement.classList.add('motion-off');
+  // Session AK F7: the hero's four planets glide once along their orbits into place. Without this (reduced motion,
+  // ?motion=off, no script) they simply sit where the glide ends.
+  if (!reduced.matches && !manualStatic) document.querySelectorAll('.hero-orbits animateMotion').forEach(glide => { try { glide.beginElement(); } catch { /* static */ } });
   const toggle = document.querySelector('.menu-toggle');
   const menu = document.querySelector('#mobile-menu');
   const setMenu = (open, restore = false) => {

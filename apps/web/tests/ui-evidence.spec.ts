@@ -63,6 +63,8 @@ test('forced colours: every main page renders and keyboard focus stays visible',
 // Session AA-Cloud Part 1 (deliberate, as strict): Wealth starts with the pulse everywhere now, so its first card is the pulse.
 for(const [path,region,desktopLabel,phoneLabel] of [['/app/health','health:body','Today’s nourishment','Today’s nourishment'],['/app/wealth','wealth:body','Portfolio pulse','Portfolio pulse']] as const)
  test(`keyboard only: unlock, move, hear it, reset and lock the ${path.split('/').at(-1)} layout`,async({page})=>{
+  // Session AK (ADR-036, deliberate): Wealth's sections gained their own buttons and folds (G2, RELEASE_REVIEW_2 R2-8), so the walk from the moved card to "Reset this page" is about 260 key presses; every check stands, the walk is given the time (it ran out at 45 s, at the last steps).
+  test.slow();
   await showcase(page);await open(page,path);
   const label=await isPhone(page)?phoneLabel:desktopLabel;
   const order=()=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),region);

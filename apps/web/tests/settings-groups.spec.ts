@@ -6,9 +6,13 @@ const GROUPS: [id: string, title: string, sections: string[]][] = [
   ['settings-data', 'Data & privacy', ['privacy', 'private-vault', 'export-everything', 'switch-import']],
   ['settings-app', 'Your app', ['showcase', 'your-pages', 'time-zone', 'wrap-up', 'appearance', 'music', 'links']],
   ['settings-areas', 'Your areas', ['habits-settings', 'health-settings', 'chess', 'guide', 'reminders', 'market-data']],
-  ['settings-account', 'Account & devices', ['encrypted-sync', 'account', 'network', 'contract']],
-  ['settings-zigi', 'ZIGi', ['your-ai']],
-  ['settings-help', 'Help & diagnostics', ['diagnostics', 'send-feedback']], // Session X Part 11: Send feedback
+  // Session AK X1 (RELEASE_REVIEW R4, deliberate): this device never chose the chain, so the account, network and contract
+  // panels wait (asserted absent below); once it is chosen they come back inside #wallet-network (tests/consumer-first-x1.spec.ts).
+  ['settings-account', 'Account & devices', ['encrypted-sync']],
+  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): "Your assistant", ZIGi's settings and NOVA's; the id stays.
+  ['settings-zigi', 'Your assistant', ['your-ai', 'nova-settings']],
+  // Session X Part 11: Send feedback. Session AK G2 (RELEASE_REVIEW_2 R2-16): storage health and the storage upgrade.
+  ['settings-help', 'Help & diagnostics', ['storage-internals', 'diagnostics', 'send-feedback']],
 ];
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
@@ -24,10 +28,11 @@ test('Settings: six labelled groups in order, each holding its sections; the chi
     await expect(group.locator('.settings-group-title')).toHaveText(title);
     for (const section of sections) await expect(group.locator(`#${section}`), `${title} holds #${section}`).toHaveCount(1);
   }
+  await expect(page.locator('#wallet-network, #account, #network, #contract')).toHaveCount(0);
   if (isMobile) return;
   const chips = page.locator('.settings-sections a');
   await expect(chips).toHaveText(GROUPS.map(g => g[1]));
-  await chips.filter({hasText: 'ZIGi'}).click();
+  await chips.filter({hasText: 'Your assistant'}).click();
   await expect(page).toHaveURL(/#settings-zigi$/);
   await expect(page.locator('#settings-zigi-title')).toBeInViewport();
 });

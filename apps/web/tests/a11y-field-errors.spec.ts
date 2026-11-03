@@ -5,6 +5,7 @@ import {manualSourcePosition} from '../lib/manual-source';
 import {saveAsset} from '../lib/asset-management';
 import {audit} from './a11y-audit';
 import {openFold} from './phone-nav';
+import {openHabitMoreOptions} from './habit-form-helpers';
 
 /**
  * Session Y Part 9 (persona row 19, WCAG 3.3.1 and 4.1.2): a refused field says so to assistive technology. It carries
@@ -27,6 +28,7 @@ test('habit editor: a target that does not read marks the target field, which ta
   await page.goto('/app/habits');
   await page.getByRole('button', {name: '+ New habit', exact: true}).click();
   await page.getByLabel('Habit title', {exact: true}).fill('Read');
+  await openHabitMoreOptions(page); // Session AK D1 (FR-17): the target sits under "More options"
   const target = page.getByLabel('Target value');
   await target.fill('two');
   await page.getByRole('button', {name: 'Create habit', exact: true}).click();
@@ -89,7 +91,8 @@ test('accounts: a currency or a balance that does not read marks its own field a
 
 test('goal wizard: a missing name, then a target that does not read, each mark their field and take the focus', async ({page}) => {
   await page.goto('/app/goals/new');
-  await page.getByRole('radio', {name: 'Value', exact: true}).check();
+  // Session AK X1 (RELEASE_REVIEW R5): a money goal's choice reads "Save an amount" until the chain is chosen (it read "Value").
+  await page.getByRole('radio', {name: 'Save an amount', exact: true}).check();
   const name = page.getByLabel('Goal name', {exact: true}), target = page.getByLabel('Target amount', {exact: true});
   await page.getByRole('button', {name: 'Continue →'}).click();
   await invalidWithMessage(name, page, /^Give your Goal a name\.$/);

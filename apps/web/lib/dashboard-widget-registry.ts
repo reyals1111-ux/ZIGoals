@@ -26,7 +26,7 @@ export const WIDGET_DESCRIPTIONS:Record<WidgetKind,string>={
  health:'Meals, water, activity and measurements',wealth:'Known value in one currency',
  asset:'Quantity, value or availability for one asset',staking:'Verified read-only stake or rewards',
  allocation:'Allocated and unallocated amounts for one Position',ecosystem:'Official research directory shortcut',
- milestone:'The nearest saved target date across active Goals',streak:'Your longest current streak across Habits',
+ milestone:'The nearest saved target date across active goals',streak:'Your longest current streak across habits',
  checkins:'Recorded check-ins over the last 7 days','holding-share':'Your largest holding within its own currency',
  exercise:'Today’s quick exercise counters, each in its own count',
  // Session W kinds (settings v3 only); each joins WIDGET_GROUPS in the part that builds its card.

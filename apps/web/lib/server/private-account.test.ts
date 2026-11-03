@@ -106,7 +106,7 @@ test('the Portfolio copy (Session U Part 9, ADR-013): GET and POST go to /v1/por
 });
 test('the extras sections (Session AB-Cloud Part 2, ADR-023 C1): GET (heads or one section) and POST go to /v1/extras for the signed-in account only; an unknown section is refused before any call',async()=>{
  const id='10000000-0000-4000-8000-000000000001',cookie='__Host-zigoals_session=fixture-token';
- for(const [method,query,target] of [['GET','?action=extras','/v1/extras'],['GET','?action=extras&section=health','/v1/extras?section=health'],['POST','','/v1/extras']] as const){
+ for(const [method,query,target] of [['GET','?action=extras','/v1/extras'],['GET','?action=extras&section=health','/v1/extras?section=health'],['GET','?action=extras&with=checklist','/v1/extras?with=checklist'],['GET','?action=extras&section=checklist','/v1/extras?section=checklist'],['POST','','/v1/extras']] as const){
   const operation={protocol:1,action:'delete',vault:crypto.randomUUID(),operation:crypto.randomUUID(),section:'goals',base:1,generation:0};
   const req=(headers:Record<string,string>)=>new Request(`https://app.test/api/private-account${query}`,{method,headers:{origin:'https://app.test','content-type':'application/json',...headers},...(method==='POST'?{body:JSON.stringify({action:'extras',operation})}:{})});
   const calls:[string,RequestInit|undefined][]=[];
@@ -118,6 +118,11 @@ test('the extras sections (Session AB-Cloud Part 2, ADR-023 C1): GET (heads or o
  }
  for(const bad of ['portfolio','../vault','Health','']){
   const fetcher=vi.fn();const res=await privateAccountRequest(new Request(`https://app.test/api/private-account?action=extras&section=${encodeURIComponent(bad)}`,{headers:{cookie,'x-zigoals-account':id}}),config,fetcher);
+  expect(res.status,bad).toBe(400);expect(fetcher).not.toHaveBeenCalled();
+ }
+ // Session AK (AFL8): `with` names only the optional Checklist section; anything else is refused before any call.
+ for(const bad of ['portfolio','health','Checklist','checklist,goals','']){
+  const fetcher=vi.fn();const res=await privateAccountRequest(new Request(`https://app.test/api/private-account?action=extras&with=${encodeURIComponent(bad)}`,{headers:{cookie,'x-zigoals-account':id}}),config,fetcher);
   expect(res.status,bad).toBe(400);expect(fetcher).not.toHaveBeenCalled();
  }
 });

@@ -28,7 +28,8 @@ test('the first Remember card says how notes are kept; Remember records the agre
   expect(kept!.notes).toEqual([expect.objectContaining({text: 'I train in the morning', category: 'schedule', source: 'zigi'})]);
   expect(kept!.consent).toEqual({given: true, at: expect.stringMatching(/^2026-10-19T07:/)});
   // What ZIGi knows: the agreement shown and changeable; the note marked as used in today's brief.
-  await page.goto('/app/help');
+  // Owner follow-up 1 (F0): leave through a blank page (zigi-memory.spec's openNotes), not a second app page loading.
+  await page.goto('about:blank');
   await page.goto('/app/settings#zigi-notes');
   const notes = page.locator('details#zigi-notes');
   await expect(notes).toHaveAttribute('open', '');

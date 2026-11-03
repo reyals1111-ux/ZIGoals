@@ -35,4 +35,10 @@
 /* Phase 2 closing pass (design critique, 390 px): a meal's heading keeps its title, kcal chip and ⋯ on one row — the
    shared 14rem title basis had pushed the ⋯ onto a row of its own. */
 :root .health-section-heading:has(> :is(.card-options, .pin-to-today)):not(:has(> :is(p, h2, h3, h4):not(:first-child))) { flex-wrap: nowrap; align-items: center; }
-:root .health-section-heading:has(> :is(.card-options, .pin-to-today)):not(:has(> :is(p, h2, h3, h4):not(:first-child))) > :first-child { flex: 1 1 0; }
+/* Session AK P8b: the same first child, chosen from its own side (its later siblings), so the heading's :has() is not in
+   the middle of a selector. A middle :has() whose last part is only `:first-child` made every :has() check in the page
+   restyle the whole document (Blink keeps one :has() invalidation set; this rule made it "whole subtree"): on Today each
+   change of the Wealth total's counting digits re-styled ~2,500 elements, 41–190 ms a frame at CPU 4×. Same elements,
+   same specificity (0,5,1): the trailing :not(:first-child) inside keeps the weight; a later sibling is never first. */
+:root .health-section-heading > :first-child:has(~ :is(.card-options, .pin-to-today)):not(:has(~ :is(p, h2, h3, h4):not(:first-child))),
+:root .health-section-heading > :is(.card-options, .pin-to-today):first-child:not(:has(~ :is(p, h2, h3, h4):not(:first-child))) { flex: 1 1 0; }

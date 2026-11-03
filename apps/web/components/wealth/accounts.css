@@ -49,3 +49,4 @@
    stretched them into equal columns, each word centred mid-row). */
 :root .accounts-row > .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 14px; }
 :root .accounts-row > .actions > :is(button, a) { width: auto; flex: none; }
+.accounts-plan-button { min-height: 44px; margin: 10px 0 4px; } /* Session AK (F5a, item 1) */

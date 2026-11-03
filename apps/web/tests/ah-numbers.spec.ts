@@ -16,7 +16,9 @@ test.describe('one currency at a time, never converted', () => {
     const total = page.locator('.wealth-hero-total');
     await expect(total.locator('.wealth-total-headline')).toHaveText(/^(US)?\$501,800\.00$/);
     await expect(total.locator('.wealth-other-chip-button')).toHaveText('+ €8,000.00 held in EUR');
-    await expect(total).toContainText('Currency totals stay separate. No FX assumed. One total in a single currency is coming later.');
+    // Session AK RB (RELEASE_REVIEW_2 R2-20, deliberate): the same fact without the roadmap promise ("coming later").
+    await expect(total).toContainText('Currency totals stay separate; no exchange rate is assumed.');
+    await expect(total).not.toContainText('coming later');
     await expect(page.getByRole('group', {name: 'Show totals in'})).toHaveCount(0);
     await expect(page.locator('.wealth-hero').getByRole('button', {name: 'EUR', exact: true})).toHaveCount(0);
     await expect(page.locator('.wealth-hero')).not.toContainText('Nothing tracked in');
@@ -39,7 +41,8 @@ test('Today, Goals, Habits, Wealth and Markets agree on their counts', async ({p
   const goalsLine = (await life.locator('[data-pillar="goals"] .life-long').innerText()).trim();
   const habitsLine = (await life.locator('[data-pillar="habits"] .life-long').innerText()).trim();
   const todayActive = Number(goalsLine.match(/^(\d+) active/)![1]);
-  const [, todayDone, todayDue] = habitsLine.match(/^(\d+) of (\d+) Habits complete$/)!;
+  // Session AK G2 (RELEASE_REVIEW R31, deliberate): one rule, "goal" and "habit" lowercase mid-sentence (lib/copy/terms.ts).
+  const [, todayDone, todayDue] = habitsLine.match(/^(\d+) of (\d+) habits? complete$/)!;
   await page.goto('/app/goals'); await hydrated(page);
   await expect(page.getByRole('list', {name: 'Your goals at a glance'}).or(page.locator('.goals-figures')).first().locator('div').filter({hasText: 'Active'}).locator('strong')).toHaveText(String(todayActive));
   await page.goto('/app/habits'); await hydrated(page);

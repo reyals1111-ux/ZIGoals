@@ -3,6 +3,10 @@ import { test, expect, type Page } from "@playwright/test";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 import { connectKeplr } from "./phone-nav";
 import { expectAlphaMode } from "./ab-shell";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the local ZIG simulation across tabs and Keplr.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 const ledgerKey = "zigoals:local-ledger:v1";
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 async function seed(page: Page) {

@@ -1,0 +1,9 @@
+/* Session AK (BUILD list 2 #14): the open tasks in the evening wrap-up. Theme tokens only. */
+.wrap-up-tasks { display: grid; gap: 6px; margin-block: 8px; }
+.wrap-up-tasks-title { margin: 0; font-weight: 600; }
+.wrap-up-tasks-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.wrap-up-tasks-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 12px; }
+.wrap-up-tasks-name { min-width: 0; overflow-wrap: anywhere; }
+.wrap-up-tasks-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.wrap-up-tasks-actions button { min-height: 44px; }
+.wrap-up-tasks-teach { margin: 0; }

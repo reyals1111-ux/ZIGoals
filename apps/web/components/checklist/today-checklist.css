@@ -71,4 +71,7 @@
   .today-checklist-open { min-height: 44px; justify-self: start; }
 }
 /* Round 6: on a wide card the next planet's name stays on one line (the panel takes the room it needs). */
-@container today-checklist (min-width: 560px) { .today-checklist-body:has(.today-checklist-next) .today-checklist-next strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; } }
+/* Session AK P8b: the next step's name is named by its attribute (and its parent's class moves into :where(), so the
+   weight stays (0,3,1)): this :has() rule now ends in a feature, not a bare tag — a bare `strong` made every :has() check
+   restyle every <strong> on the page (card-header.css). Blink takes no such feature from inside :where(), hence this shape. */
+@container today-checklist (min-width: 560px) { .today-checklist-body:has(.today-checklist-next) :where(.today-checklist-next) strong[data-next-step] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; } }

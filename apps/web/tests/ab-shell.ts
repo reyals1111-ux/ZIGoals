@@ -9,10 +9,31 @@ import {isPhone,navLink,openMore} from './phone-nav';
  */
 // Session AF (crit1, ADR-028 H124; `TIER 3 (public-safety labels)`): the label changed with real-network staking (it was
 // "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA"); every place that asserted it keeps asserting it, word for word.
-export const ALPHA_LABEL='PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN';
+// Session AK X1 (RELEASE_REVIEW R8; owner: "consumer first, chain invisible"; deliberate): "unless you sign" means nothing to a
+// person who never chose the chain, so a new device reads the neutral Alpha line; once the chain is chosen
+// (tests/chain-choice.ts) the label is the public-safety one, word for word. The sentence below is unchanged everywhere.
+export const ALPHA_LABEL='PUBLIC ALPHA';
+export const ALPHA_LABEL_CHOSEN='PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN';
 // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): the sentence changed with native-staking signing (it was
 // "Simulation + wallet connection only. No blockchain transactions or financial signatures.").
 export const ALPHA_SENTENCE='Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.';
+/**
+ * Session AK P2 (RELEASE_REVIEW_2 R2-7, ADR-036 Q31; deliberate, `TIER 3 (public-safety labels)`): on a device that never
+ * chose the chain the notice's line is this consumer line, and the sentence above is behind its More: Help's "About this
+ * Alpha" quotes it word for word, Settings' facts block carries it (both asserted where they live). Once the chain is
+ * chosen the notice carries the sentence, as before.
+ */
+export const ALPHA_LINE_PLAIN='Your records stay in this browser and are not a backup.';
+/** Where the notice's More leads, and the place there that quotes the sentence. */
+export const ALPHA_MORE_HREF='/app/help#help-z-about';
+/** Checks the notice's line on a computer: the consumer line with the sentence behind More (never chose), or the sentence. */
+export async function expectNoticeLine(page:Page,label:string,path=''){
+ if(label===ALPHA_LABEL){
+  await expect(alphaNotice(page),path).toContainText(ALPHA_LINE_PLAIN);
+  await expect(alphaNotice(page).locator('p').first(),path).not.toContainText(ALPHA_SENTENCE);
+  await expect(alphaNotice(page).getByRole('link',{name:'More',exact:true}),path).toHaveAttribute('href',ALPHA_MORE_HREF);
+ }else await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
+}
 // Session AF (ADR-028 H19, H62): staking signs in the person's own wallet from every mode, so the strip says so.
 export const MODE_LOCAL='LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet';
 /** The compact notice at the top of every page (until closed on this device). */
@@ -46,14 +67,15 @@ export async function inAboutAlpha(page:Page,check:(about:Locator)=>Promise<void
  * Settings' block (label, sentence, mode). The second half is what the footer's disclaimer line asserted on every page;
  * since Session AC the page ends after the link columns, so the facts are asserted where they now live.
  */
-export async function expectAlphaFacts(page:Page,path=''){
- await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);
- if(!await isPhone(page))await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
+export async function expectAlphaFacts(page:Page,path='',label=ALPHA_LABEL){
+ await expect(alphaNotice(page).locator('strong'),path).toHaveText(label);
+ // Session AK P2 (R2-7, deliberate): the line a device that never chose the chain reads, the sentence behind More.
+ if(!await isPhone(page))await expectNoticeLine(page,label,path);
  await expect(page.locator('.site-footer .alpha-disclaimer, .site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
  // Session AC (owner item 8): the notice's essentials line is for a page that cannot show (no scripts, a stalled read).
  await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toHaveCount(0);
  await inAboutAlpha(page,async about=>{
-  await expect(about.locator('.network-banner strong'),path).toHaveText(ALPHA_LABEL);
+  await expect(about.locator('.network-banner strong'),path).toHaveText(label);
   await expect(about.locator('.network-banner'),path).toContainText(ALPHA_SENTENCE);
   await expect(about.locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
  });

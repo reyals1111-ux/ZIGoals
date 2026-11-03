@@ -1,5 +1,9 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {ME, SIGNER_CALLS, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Staking.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (ADR-028 H87; L2 design §16): the staking actions on a phone in WebKit (iPhone 15, 390 × 844): network words

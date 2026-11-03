@@ -1,0 +1,18 @@
+/*
+ * Session AK (A19): the "New in ZIGoals" tour, opened in place under its button (What's new, Help). Part of the page,
+ * never over it; no animation, so reduced motion and Motion Off need nothing. Buttons keep the app's 44 px floor
+ * (components/ui/touch-targets.css); one column on phones, no horizontal scroll at 320 px.
+ */
+.tour-offer { display: grid; gap: 10px; justify-items: start; margin: 0 0 10px; min-width: 0; }
+.tour-offer > button { white-space: normal; }
+.ak-tour { justify-self: stretch; display: grid; gap: 8px; min-width: 0; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); }
+.ak-tour-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.ak-tour-head h3 { margin: 0; font-size: 18px; line-height: 1.35; }
+.ak-tour-stop h4 { margin: 2px 0 4px; font-size: 16px; line-height: 1.4; }
+.ak-tour-stop p { margin: 0; overflow-wrap: anywhere; }
+.ak-tour-count { margin: 0; }
+.ak-tour-show { margin: 0; }
+.ak-tour-show > a { min-height: 44px; display: inline-flex; align-items: center; }
+.ak-tour-nav { display: flex; flex-wrap: wrap; gap: 10px; }
+.ak-tour :is(a, button, h3):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 6px; }
+@media (max-width: 420px) { .ak-tour { padding: 12px; } .ak-tour-nav > button { flex: 1 1 0; } }

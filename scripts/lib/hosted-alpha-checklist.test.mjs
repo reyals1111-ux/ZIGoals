@@ -16,9 +16,11 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(Object.isFrozen(CHECKLIST_STAGE)).toBe(true);
     // Wired by the lead (Session AF): appended last, exactly once, after the Earn stage 9; stages 1–8 keep their numbers and order.
     const numbers = VERIFIER_STAGES.map(s => s.number);
-    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    // Session AK appended stage 11 (AK) after it; 1–10 keep their numbers and order.
+    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
     expect(VERIFIER_STAGES.filter(s => s.key === 'checklist')).toEqual([CHECKLIST_STAGE]);
-    expect(VERIFIER_STAGES.at(-1)).toBe(CHECKLIST_STAGE);
+    expect(VERIFIER_STAGES.at(-2)).toBe(CHECKLIST_STAGE);
+    expect(VERIFIER_STAGES.at(-1)?.key).toBe('ak');
   });
   test('the sentinel is fictional, unique and never a secret-like value', () => {
     expect(CHECKLIST_SENTINELS.habit).toBe('Verifier orbit sip 7f3e');

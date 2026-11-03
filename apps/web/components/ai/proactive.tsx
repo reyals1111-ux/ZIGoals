@@ -21,6 +21,7 @@ import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, SAY_NICER_SYSTEM, shortReply} from '../../lib/ai/on-device-chat';
 import {formatDate} from '../../lib/visual-format';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * ZIGi's proactive side (Session V Part 9), all computed on this device: the morning brief in the greeting, suggestion
@@ -160,7 +161,7 @@ export function InsightsView({context, connected, session, onBack}: {context: Co
   const question = 'Help me understand this pattern in my own records. It is a pattern, not proof of a cause: give no medical or financial advice.';
   return <ViewFrame title="Patterns in your records" onBack={onBack}>
     <p className="ai-note">{INSIGHT_RULES} {PATTERN_NOT_PROOF}</p>
-    {!cards.length ? <p className="ai-note">No pattern has enough days on both sides yet. Keep recording as you do; nothing here changes what you log.</p>
+    {!cards.length ? <ArtNote pillar="orbit"><p className="ai-note">No pattern has enough days on both sides yet. Keep recording as you do; nothing here changes what you log.</p></ArtNote>
       : <ul className="ai-insights">{cards.map(card => {
         const sample = sampleLine(card), outbound = connected && (!usesHealth(card) || context.gates.health);
         return <li key={card.id} className="ai-insight"><p className="ai-insight-sentence">{card.sentence}</p><p className="ai-note">{sample}</p>

@@ -14,6 +14,7 @@ import {GuidedError, activeJourneyFor, activeJourneys, addCalendarDays, endJourn
 import {saveFailureMessage} from '../../lib/storage-error-copy';
 import {formatDate} from '../../lib/visual-format';
 import './guided.css';
+import '../skeleton/zg-skeleton.css';
 
 /**
  * /app/guided (Session AJ, item 34, D13, A7): Guided journeys. The person chooses a short program (nothing here
@@ -34,7 +35,7 @@ export function GuidedView() {
     <PageHeader className="page-heading guided-hero" titleId="guided-title" eyebrow="Guided journeys" title="Small steps, one a day"
       lede="Short programs built from the app’s own templates. Choose one if you like: a step opens each day, with a short note and a link to do it. You tick it done yourself, and nothing is added for you."
       art={<OrbitArt glyph={TemplatesGlyph} spin={-26} />} />
-    {!record.loaded ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
+    {!record.loaded ? <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
       {record.unreadable && <p className="notice" role="status">Your guided journeys on this device could not be read. Starting a journey begins a new list.</p>}
       <section className="guided-section" aria-labelledby="guided-active-title">
         <h2 id="guided-active-title" tabIndex={-1}>Your journeys</h2>

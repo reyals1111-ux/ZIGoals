@@ -38,6 +38,7 @@ import {modelContext} from '../../lib/ai/webmcp';
 import {entitlement as entitlementOf} from '../../lib/entitlements';
 import {useHosted} from './use-hosted';
 import {hostedName} from '../../lib/ai/hosted';
+import {Skeleton} from '../ui/skeleton';
 const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
 
 /**
@@ -78,7 +79,7 @@ function NotesCard() {
   return <details ref={card} id={NOTES_ANCHOR} className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">What ZIGi knows about me</summary>
     <p className="ai-note">Your own notes for ZIGi: goals, preferences, constraints, diet style, schedule. ZIGi keeps only what you write here or confirm on a &ldquo;Remember this?&rdquo; card; it never guesses about you. <Link className="text-link" href="/app/zigi/memory">Open What ZIGi remembers</Link></p>
-    {open && <ZigiPartBoundary label="The notes"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><NotesPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The notes"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><NotesPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /** Session AF (L4, P8.2, P8.4): the brief and recap choices, and ZIGi's plans, each loaded when its card opens (#zigi-your-day, #zigi-plans). */
@@ -88,7 +89,7 @@ function YourDayCard() {
   return <details ref={card} id="zigi-your-day" className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Your day: the morning brief and the evening recap</summary>
     <p className="ai-note">ZIGi&rsquo;s brief and recap are made on this device from your records, with no AI. Choose which show on Today, from when, and what goes in them.</p>
-    {open && <ZigiPartBoundary label="Your day"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><YourDayPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="Your day"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><YourDayPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 function PlansCard() {
@@ -96,7 +97,7 @@ function PlansCard() {
   return <details ref={card} id="zigi-plans" className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">ZIGi&rsquo;s plans</summary>
     <p className="ai-note">The plans ZIGi proposed as one set of cards, and what you did with each step. On this device only, never synced, in Export everything.</p>
-    {open && <ZigiPartBoundary label="The plans"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><PlansPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The plans"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><PlansPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /** Session V Part 12: ZIGi's look and feel (the panel's Customize, here too), loaded only when its card opens. */
@@ -106,7 +107,7 @@ function LookCard() {
   return <details ref={card} id={LOOK_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">ZIGi&rsquo;s look and feel</summary>
     <p className="ai-note">How ZIGi looks and moves, which side it sits on, its size, its greeting, the tab that brings it back, and whether it knocks when a reminder is due. Kept on this device; nothing is sent.</p>
-    {open && <ZigiPartBoundary label="Customize"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><CustomizePanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="Customize"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><CustomizePanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /** Session V Part 15: "Which setup fits me?", loaded when its card opens (a link to #zigi-setup opens it). */
@@ -117,7 +118,7 @@ function SetupChooserCard() {
   return <details ref={card} id={SETUP_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Which setup fits me?</summary>
     <p className="ai-note">Three or four questions, then one suggestion with its honest pros and cons and the exact next steps. Worked out here on this device; nothing is sent.</p>
-    {open && <ZigiPartBoundary label="The setup chooser"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooserPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The setup chooser"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><SetupChooserPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /**
@@ -132,7 +133,7 @@ function OnDeviceCard() {
   return <details ref={card} id={ON_DEVICE_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Chrome&rsquo;s on-device model</summary>
     <p className="ai-note">A small model that runs inside Chrome on this computer. While no AI is connected it gives short answers, rewords ZIGi&rsquo;s brief and helps ZIGi understand questions. Nothing is sent anywhere.</p>
-    {open && <ZigiPartBoundary label="The on-device model"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><OnDevicePanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The on-device model"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><OnDevicePanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /**
@@ -147,7 +148,7 @@ function AgentsCard() {
   return <details ref={card} id={AGENTS_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Browser AI agents</summary>
     <p className="ai-note">An AI agent built into this browser can use ZIGi&rsquo;s lookups and propose changes on the pages you open, only if you allow it. Off by default.</p>
-    {open && <ZigiPartBoundary label="The agents"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><AgentsPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The agents"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><AgentsPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /** Session V Part 17: ZIGoals hosted, only in a hosted build and for an account the relay says is invited today. */
@@ -159,7 +160,7 @@ function HostedCard() {
   return <details ref={card} id={HOSTED_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">{hostedName(entitlement.provider)} <span className="ai-chat-premium">{ENTITLEMENT_LABEL}</span></summary>
     <p className="ai-note">An AI that ZIGoals runs and pays for, for invited accounts: no key or app of your own needed. Read what passes through before you choose it.</p>
-    {open && <ZigiPartBoundary label="The hosted assistant"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><HostedPanel entitlement={entitlement}/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The hosted assistant"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><HostedPanel entitlement={entitlement}/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /** Session V Part 5: the context pack, loaded only when the person opens its card. */
@@ -169,7 +170,7 @@ function ContextPackCard() {
   return <details ref={card} id={PACK_ANCHOR} className="ai-pack" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Context pack for my AI</summary>
     <p className="ai-note">A file of your records to add to your AI&rsquo;s project knowledge (Claude Projects, ChatGPT Projects, Gemini Gems or similar), so it knows your goals, habits and wealth between chats. Made on this device; nothing is sent from here.</p>
-    {open && <ZigiPartBoundary label="The context pack"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ContextPackPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The context pack"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><ContextPackPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /** Session V Part 18: ZIGi's own weekly reminders, listed with Remove, loaded when the card opens (#zigi-reminders). */
@@ -180,7 +181,7 @@ function RemindersCard() {
   return <details ref={card} id={REMINDERS_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">ZIGi&rsquo;s reminders</summary>
     <p className="ai-note">The weekly reminders ZIGi keeps for you (goal check-ins, a look at Wealth, a new context pack), and whether ZIGi knocks when one is due. Kept on this device.</p>
-    {open && <ZigiPartBoundary label="The reminders"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><RemindersPanel/></Suspense></ZigiPartBoundary>}
+    {open && <ZigiPartBoundary label="The reminders"><Suspense fallback={<Skeleton label="Loading…" lines={2}/>}><RemindersPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
 /**

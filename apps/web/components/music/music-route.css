@@ -1,0 +1,4 @@
+/* Session AK G2 (RELEASE_REVIEW R32): the player mounts after the page (its own chunk), and the footer below it moved down
+   when it arrived (CLS 0.094 at 390 px). Its place is kept from the first paint: at least a screen, so the footer starts
+   below the fold and the player only grows into the space kept for it. */
+.music-page-body { min-height: min(1100px, 100svh); }

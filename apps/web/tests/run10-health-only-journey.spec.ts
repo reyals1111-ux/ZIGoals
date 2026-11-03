@@ -9,6 +9,9 @@ test('JRN-01 empty Health-only profile saves meals, water and a pinned metric wi
   const activate = async (locator: Locator) => { if (isMobile) await locator.tap(); else await locator.click(); };
   const nav = page.getByRole('navigation', { name: 'Main navigation', exact: true });
   await page.goto('/app');
+  // Session AK (ADR-036 G2, RELEASE_REVIEW_2 R2-11, 15c1e159, deliberate): on a brand-new device "Make Today yours" waits
+  // until the welcome is answered, so the welcome is answered first ("Not now"), as a person choosing a layout would.
+  await activate(page.getByRole('region', { name: 'Set up your first goal and habit in about a minute.' }).getByRole('button', { name: 'Not now', exact: true }));
   await activate(page.getByRole('button', { name: /^Health-only/ }));
   const preset = page.getByRole('dialog', { name: 'Choose your Today layout' });
   await expect(preset).toBeVisible();

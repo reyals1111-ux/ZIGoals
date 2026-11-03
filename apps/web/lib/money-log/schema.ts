@@ -15,12 +15,28 @@ const id = z.string().regex(/^[A-Za-z0-9_-]{1,80}$/);
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const amountText = z.string().regex(/^\d{1,10}(\.\d{1,2})?$/).refine(v => Number(v) > 0 && Number(v) <= AMOUNT_MAX, 'An amount above zero and at most a billion.');
 export const currencyCode = z.string().regex(/^[A-Z]{3}$/);
+/**
+ * Session AK (lane M, item 22): one part of an entry split by category and/or Goal. OPTIONAL and additive on the loose
+ * entry (older builds keep it untouched, since the entry is a loose object, and count the entry whole). One part links
+ * the whole amount to a Goal; two to five split it. The sum is checked where it is read (lib/money-split): parts whose
+ * sum is not exactly the entry's amount are ignored there and the entry counts whole. A malformed list reads as none,
+ * so it never makes the log unreadable.
+ */
+export const MAX_PARTS = 5;
+export const moneyPartSchema = z.looseObject({
+  amount: amountText,
+  category: z.string().trim().min(1).max(40).optional(),
+  goalId: z.string().regex(/^\d{1,80}$/).optional(),
+});
+export type MoneyPart = z.infer<typeof moneyPartSchema>;
 export const moneyEntrySchema = z.looseObject({
   id, kind: z.enum(['expense', 'income']), amount: amountText, currency: currencyCode,
   category: z.string().trim().min(1).max(40), note: z.string().trim().max(200).optional(), date: day,
   createdAt: z.iso.datetime({offset: true}),
   /** Where it came from: the person's own form, ZIGi's card, or a quick line. */
   source: z.enum(['form', 'zigi', 'quick']).optional(),
+  /** Session AK (lane M, item 22): the entry's parts (see moneyPartSchema); none: the entry counts whole. */
+  parts: z.array(moneyPartSchema).min(1).max(MAX_PARTS).optional().catch(undefined),
 });
 export const moneyLogSchema = z.looseObject({
   version: z.literal(1),

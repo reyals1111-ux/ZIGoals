@@ -40,16 +40,22 @@ function apng(w, h, plays, frames = 2) {
 }
 const CLIPS = [['F001', 'idle', 0], ['F002', 'greeting', 1], ['F003', 'insight', 1], ['F004', 'listening', 0], ['F005', 'speaking', 0], ['F006', 'presenting', 1], ['F007', 'attention', 0], ['F008', 'sleepy', 0], ['F009', 'celebrate', 1], ['T001', 'thinking', 0], ['E001', 'error', 1],
   ['X001', 'greeting-in-place', 1], ['X010', 'idle-glance', 0], ['X011', 'idle-settle', 0], ['X020', 'gaze-chat-input', 0], ['X021', 'gaze-viewer', 0], ['X022', 'gaze-pointed-target', 0],
-  ...Array.from({length: 13}, (_, i) => [`R${String(i + 1).padStart(3, '0')}`, `reaction-${i + 1}`, 1])];
+  // Session AK Part 12: R003, R010 and R011 loop in the Studio-4 contract.
+  ...Array.from({length: 13}, (_, i) => [`R${String(i + 1).padStart(3, '0')}`, `reaction-${i + 1}`, [3, 10, 11].includes(i + 1) ? 0 : 1]),
+  // Session AK Part 12: the fourteen states' own clips (their animated WebP in the 2× set, 192×253), a third idle variant,
+  // the Checklist's cheer and the variant pools.
+  ['F010', 'reading-your-data', 0, 2], ['F011', 'writing-proposal', 0, 2], ['F012', 'success', 1, 2], ['F013', 'proud', 1, 2], ['F014', 'curious', 1, 2], ['F015', 'surprised', 1, 2], ['F016', 'confused', 1, 2],
+  ['F017', 'empathetic', 1, 2], ['F018', 'encouraging', 1, 2], ['F019', 'wave-goodbye', 1, 2], ['F020', 'reminder', 1, 2], ['F021', 'offline', 0, 2], ['F022', 'peek', 0, 2], ['F023', 'loading-model', 0, 2],
+  ['X012', 'idle-look', 0], ['X030', 'cheer', 1], ['X050', 'speaking-nod', 0], ['X051', 'listening-tilt', 0], ['X052', 'thinking-hum', 0], ['X053', 'listening-lean', 0], ['X054', 'celebrate-small-hop', 1]];
 rmSync(out, {recursive: true, force: true}); mkdirSync(out, {recursive: true});
-for (const [code, state, loops] of CLIPS) {
+for (const [code, state, loops, scale = 1] of CLIPS) {
   writeFileSync(join(out, `${code}-${state}.webp`), stillWebp(96, 126));
   writeFileSync(join(out, `${code}-${state}-2x.webp`), stillWebp(192, 253));
   writeFileSync(join(out, `${code}-${state}-large.webp`), stillWebp(480, 632));
-  writeFileSync(join(out, `${code}-${state}.anim.webp`), animWebp(96, 126, loops));
+  writeFileSync(join(out, `${code}-${state}.anim.webp`), scale === 2 ? animWebp(192, 253, loops) : animWebp(96, 126, loops));
   writeFileSync(join(out, `${code}-${state}.anim.png`), apng(96, 126, loops));
 }
-writeFileSync(join(out, 'reactions.json'), JSON.stringify({R001: 'card_accepted', R002: 'goal_milestone'}, null, 2) + '\n');
+writeFileSync(join(out, 'reactions.json'), JSON.stringify({R001: 'card_accepted', R002: 'goal_milestone', R004: 'checkin_milestone'}, null, 2) + '\n');
 const sums = readdirSync(out).filter(n => n !== 'reactions.json').sort().map(n => `${createHash('sha256').update(readFileSync(join(out, n))).digest('hex')}  ${n}`);
 writeFileSync(join(out, 'SHA256SUMS'), sums.join('\n') + '\n');
 console.log(`${CLIPS.length * 5} files written to ${out}`);

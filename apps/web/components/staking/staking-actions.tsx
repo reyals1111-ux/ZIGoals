@@ -1,6 +1,6 @@
 'use client';
 import {useCallback, useEffect, useMemo, useRef, useState, type FormEvent} from 'react';
-import {STAKING_NETWORKS, UNBONDING_SECONDS, type StakingNetwork} from '@zigoals/chain-config/networks';
+import {NETWORK_WORDS, STAKING_NETWORKS, UNBONDING_SECONDS, type StakingNetwork} from '@zigoals/chain-config/networks';
 import {usePlatform} from '../platform/use-platform';
 import {useShowcase} from '../showcase-controls';
 import {usePhoneActive} from '../phone/use-phone-layout';
@@ -15,7 +15,8 @@ import {takeStakingPrefill} from '../../lib/staking/prefill';
 import {STAKING_PREFILL_EVENT} from '../../lib/af-signing-keys';
 import {READ_MODE, readPositionsAfter, withStakingObservation} from '../../lib/staking/refresh';
 import {plainWords} from '../../lib/staking/errors';
-import {StakingFailure, type StakingReceipt} from '../../lib/staking/execute';
+import {StakingFailure, walletConnectStakingCheck, walletConnectStakingKeys, type StakingReceipt, type WalletConnectStakingCheck} from '../../lib/staking/execute';
+import {WALLETCONNECT_CHANGE, walletConnectSession} from '../../lib/wallets/walletconnect';
 import type {StakingQuote} from '../../lib/staking/quote';
 import {daysText, holdingsOf, zigText} from '../../lib/staking/view';
 import {connectStaking, dropStakingSession, keplrMobileLink, onKeystoreChange, readStakingSession, saveStakingSession, type StakingSession} from '../../lib/wallets/keplr-session';
@@ -35,6 +36,7 @@ import type {Grant} from '../../lib/staking/grants';
 import {WhatsThis} from '../earn/whats-this';
 import './staking.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import {tabKeys} from '../ui/tab-keys';
 
 /**
  * Session AF (ADR-028 H46, H47, H60–H63, H87; L2 design §4): stake, unstake, move and claim on the Staking page, a lazy
@@ -49,13 +51,29 @@ import {plainErrorMessage} from '../../lib/plain-error';
 type Action = 'delegate' | 'undelegate' | 'redelegate' | 'claim';
 const TABS: readonly [Action, string][] = [['delegate', 'Stake'], ['undelegate', 'Unstake'], ['redelegate', 'Move stake'], ['claim', 'Claim rewards']];
 const session = () => { try { return window.sessionStorage; } catch { return null; } };
+/**
+ * Session AK (AFL9 wiring; `TIER 3 (wallet)`): with no Keplr in this browser, Keplr Mobile paired over WalletConnect for
+ * staking connects here too. Its connection lives in this tab's memory only, as the pairing itself does (it is not saved
+ * to the tab's staking session, so Governance and a reload never meet a pairing that is gone). Keplr in the browser always
+ * comes first, exactly as before. A pairing that cannot stake on this network stays linked read-only, and says why.
+ */
+type PanelWallet = StakingSession & {via?: 'walletconnect'};
+const WC_PAIR_AGAIN = 'Keplr Mobile is no longer paired with this tab, so it cannot sign here. Pair it again (Status & wallet → Stake with Keplr Mobile), then connect.';
+function readOnlyWords(reason: Exclude<WalletConnectStakingCheck, {ok: true}>['reason'], network: StakingNetwork): string {
+  const words = NETWORK_WORDS[network];
+  if (reason === 'linking-only') return 'Your phone wallet is linked over WalletConnect read-only, so it cannot stake here. To stake with Keplr Mobile, pair it with “Stake with Keplr Mobile” in Status & wallet.';
+  if (reason === 'no-chain') return `Your WalletConnect wallet did not offer ${words.name} (${words.chainId}), so it stays linked read-only and cannot stake on this network here.`;
+  return 'Your WalletConnect wallet did not agree to approve staking actions, so it stays linked read-only and cannot stake here.';
+}
 const storage = () => { try { return getAppStorage(); } catch { return null; } };
 
 /** `onObserved`: the page's own reader follows the network the connected wallet was just read on (Staking's totals). */
 export function StakingActions({onObserved}: {onObserved?: (chainId: string) => void} = {}) {
   const showcase = useShowcase(), phone = usePhoneActive(), store = usePlatform();
   const [network, setNetwork] = useState<StakingNetwork>('practice'), [askReal, setAskReal] = useState(false), [realError, setRealError] = useState('');
-  const [wallet, setWallet] = useState<StakingSession | null>(null), [connecting, setConnecting] = useState(false);
+  const [wallet, setWallet] = useState<PanelWallet | null>(null), [connecting, setConnecting] = useState(false);
+  const [wc, setWc] = useState<WalletConnectStakingCheck>({ok: false, reason: 'none'}), walletNow = useRef(wallet);
+  walletNow.current = wallet;
   const [action, setAction] = useState<Action>('delegate'), [validator, setValidator] = useState(''), [destination, setDestination] = useState(''), [amount, setAmount] = useState(''), [claimAll, setClaimAll] = useState(true);
   const [validators, setValidators] = useState<ValidatorsWire | null>(null), [validatorsError, setValidatorsError] = useState('');
   const [quote, setQuote] = useState<StakingQuote | null>(null), [quoting, setQuoting] = useState(false), [expired, setExpired] = useState(false);
@@ -65,6 +83,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   // reviews' own errors (shown in their own panels); a re-read of the permissions after a revoke confirms.
   const [fromVault, setFromVault] = useState(false), [otherError, setOtherError] = useState<{action: 'revoke' | 'attest'; message: string} | null>(null), [grantsRead, setGrantsRead] = useState(0);
   const revision = useRef(0);
+  const chooseAction = (id: Action) => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); setValidator(''); setDestination(''); revision.current++; };
   // Gate C security review S2 (ADR-028 H133): a pre-fill never switches the network by itself; when ZIGi meant the other
   // network, the form stays where it is and offers the switch (the real network's first-time confirm still applies).
   const [prefillNetwork, setPrefillNetwork] = useState<StakingNetwork | null>(null), networkNow = useRef(network);
@@ -102,6 +121,19 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   }, [showcase]);
   useEffect(() => { setWallet(showcase ? null : readStakingSession(session(), network)); }, [network, showcase]);
   useEffect(() => onKeystoreChange(() => { dropStakingSession(session()); setWallet(null); setQuote(null); setNote('Keplr changed accounts. Connect again to continue.'); }), []);
+  // Session AK (AFL9 wiring): whether this tab's WalletConnect pairing can stake on the chosen network, read now and each
+  // time a pairing is approved or ends; a Keplr Mobile connection whose pairing ended is dropped and says so.
+  useEffect(() => {
+    if (showcase) return;
+    const read = () => {
+      const check = walletConnectStakingCheck(walletConnectSession(), config.chainId);
+      setWc(check);
+      if (!check.ok && walletNow.current?.via === 'walletconnect') { setWallet(null); setQuote(null); setNote('Keplr Mobile’s pairing ended, so it was disconnected here. Pair it again to stake.'); }
+    };
+    read();
+    window.addEventListener(WALLETCONNECT_CHANGE, read);
+    return () => window.removeEventListener(WALLETCONNECT_CHANGE, read);
+  }, [config.chainId, showcase]);
   useEffect(() => {
     if (!wallet) return;
     const remembered = storage() ? lastValidatorOf(readStakingPrefs(storage()!).data, config.chainId) : undefined;
@@ -143,7 +175,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   }, [validators, holdings]);
   const rewards = useMemo(() => new Map((holdings?.rewards ?? []).map(r => [r.validator, r.amount])), [holdings]);
 
-  const readPositions = useCallback(async (connected: StakingSession) => {
+  const readPositions = useCallback(async (connected: PanelWallet) => {
     const positions = await readPublicPositions(READ_MODE[connected.network], connected.address);
     await store.update(s => withStakingObservation(s, connected.chainId, connected.address, positions));
     onObserved?.(connected.chainId);
@@ -161,14 +193,24 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   }
   async function connect() {
     setConnecting(true); setError(''); setNote('');
+    // Keplr in this browser, as before; only without it, Keplr Mobile over this tab's staking pairing (account read only).
+    const mobile = window.keplr ? null : walletConnectStakingKeys(walletConnectSession(), config.chainId), name = mobile ? 'Keplr Mobile' : 'Keplr';
     try {
-      const connected = await connectStaking(network, window.keplr);
-      saveStakingSession(session(), connected); setWallet(connected);
+      const connected: PanelWallet = await connectStaking(network, window.keplr ?? mobile ?? undefined);
+      if (mobile) setWallet({...connected, via: 'walletconnect'});
+      else { saveStakingSession(session(), connected); setWallet(connected); }
       try { await readPositions(connected); } catch { setNote('Connected. Your stake could not be read just now; it will show after the next refresh.'); }
-    } catch (cause) { setError(plainWords(cause, {chainId: config.chainId}).kind === 'rejected' ? 'You stopped this in Keplr. Nothing was connected.' : cause instanceof Error && cause.message.length < 300 ? cause.message : 'Keplr did not connect.'); }
+    } catch (cause) { setError(plainWords(cause, {chainId: config.chainId}).kind === 'rejected' ? `You stopped this in ${name}. Nothing was connected.` : cause instanceof Error && cause.message.length < 300 ? cause.message : `${name} did not connect.`); }
     finally { setConnecting(false); }
   }
   function disconnect() { dropStakingSession(session()); setWallet(null); setQuote(null); setProgress(null); }
+  /** The account reader for a review: Keplr in this browser (as before), or Keplr Mobile over this tab's pairing. */
+  function keysFor(connected: PanelWallet) {
+    if (window.keplr || connected.via !== 'walletconnect') return window.keplr!;
+    const mobile = walletConnectStakingKeys(walletConnectSession(), connected.chainId);
+    if (!mobile) throw Error(WC_PAIR_AGAIN);
+    return mobile;
+  }
   function messagesFor(connected: StakingSession): StakingMessage[] {
     if (action === 'claim') {
       const withRewards = (holdings?.rewards ?? []).filter(r => r.amount !== '0').map(r => r.validator);
@@ -201,7 +243,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       const messages = messagesFor(wallet), asked = revision.current;
       // The signing client loads here, on the first Review press, never with the page.
       const {quoteStaking} = await import('../../lib/staking/quote');
-      const read = await quoteStaking({network: wallet.network, address: wallet.address, action, messages, keplr: window.keplr!, revision: asked});
+      const read = await quoteStaking({network: wallet.network, address: wallet.address, action, messages, keplr: keysFor(wallet), revision: asked});
       // Security review S11: the form changed (a pre-fill, the network) while this review was read: it is not shown.
       if (asked !== revision.current) { setQuote(null); setNote('The form changed while its review was being prepared. Press Review again.'); return; }
       setQuote(read);
@@ -218,7 +260,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     try {
       const messages = [delegate({delegator: wallet.address, validator: target, amount: rewardsAzig})], asked = revision.current;
       const {quoteStaking} = await import('../../lib/staking/quote');
-      const read = await quoteStaking({network: wallet.network, address: wallet.address, action: 'sweep', messages, keplr: window.keplr!, revision: asked});
+      const read = await quoteStaking({network: wallet.network, address: wallet.address, action: 'sweep', messages, keplr: keysFor(wallet), revision: asked});
       if (asked !== revision.current) { setQuote(null); sweep.current = null; setNote('The form changed while its review was being prepared. Press Review again.'); return; }
       setQuote(read);
     } catch (cause) {
@@ -233,7 +275,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     setError(''); setOtherError(null); setProgress(null); setQuoting(true); other.current = next;
     try {
       const {quoteStaking} = await import('../../lib/staking/quote');
-      setQuote(await quoteStaking({network: wallet.network, address: wallet.address, action: next.action, messages: next.messages, keplr: window.keplr!, revision: revision.current, ...(next.memo ? {memo: next.memo} : {}), ...(next.attestation ? {attestation: next.attestation} : {})}));
+      setQuote(await quoteStaking({network: wallet.network, address: wallet.address, action: next.action, messages: next.messages, keplr: keysFor(wallet), revision: revision.current, ...(next.memo ? {memo: next.memo} : {}), ...(next.attestation ? {attestation: next.attestation} : {})}));
     } catch (cause) {
       setQuote(null); other.current = null;
       setOtherError({action: next.action, message: cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign|practice badge|Ledger|Nothing to sign/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message});
@@ -287,21 +329,30 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
         {/* Session AJ: a connection that failed (Keplr refused, the network changed or was upgraded) says so here; the
             message was only rendered inside the connected form before, so nothing showed. */}
         {error && <p role="alert" className="notice">{error}</p>}
-      </> : phone ? <>
-        <p>On a phone, staking works inside the Keplr app&rsquo;s own browser.</p>
-        {origin && <a className="primary staking-open-keplr" href={keplrMobileLink(origin, android)}>Open ZIGoals in Keplr</a>}
-        <p className="fine">Keplr Mobile opens this page in its browser; nothing is sent from here. Other phone wallets cannot sign ZIGChain staking yet.</p>
+      </> : wc.ok ? <>
+        {/* Session AK (AFL9 wiring): Keplr Mobile paired over WalletConnect for staking, with this network in the pairing. */}
+        <p>Keplr Mobile is paired with this tab over WalletConnect. Connect it for the {network === 'real' ? 'real' : 'practice'} network to stake from your own wallet. ZIGoals reads your address only; every action asks you to approve it in Keplr Mobile.</p>
+        <button type="button" className="primary" onClick={connect} disabled={connecting}>{connecting ? 'Waiting for Keplr Mobile…' : `Connect Keplr Mobile for ${network === 'real' ? 'REAL' : 'PRACTICE'}`}</button>
+        {error && <p role="alert" className="notice">{error}</p>}
       </> : <>
-        <p>Keplr is not installed in this browser. Staking signs in Keplr, so install it to continue.</p>
-        <a className="secondary" href={KEPLR_SITE} target="_blank" rel="noopener noreferrer">Get Keplr ↗</a>
+        {wc.reason !== 'none' && <p role="status" className="fine">{readOnlyWords(wc.reason, network)}</p>}
+        {phone ? <>
+          <p>On a phone, staking works inside the Keplr app&rsquo;s own browser.</p>
+          {origin && <a className="primary staking-open-keplr" href={keplrMobileLink(origin, android)}>Open ZIGoals in Keplr</a>}
+          <p className="fine">Keplr Mobile opens this page in its browser; nothing is sent from here. Other phone wallets cannot sign ZIGChain staking yet.</p>
+        </> : <>
+          <p>Keplr is not installed in this browser. Staking signs in Keplr, so install it to continue.</p>
+          <a className="secondary" href={KEPLR_SITE} target="_blank" rel="noopener noreferrer">Get Keplr ↗</a>
+        </>}
       </>}
     </div> : <div className="staking-connected">
-      <p className="staking-wallet-row"><span>Keplr <strong title={wallet.address}>{wallet.address.slice(0, 10)}…{wallet.address.slice(-6)}</strong>{wallet.isLedger && <span className="pill">Ledger</span>}</span>
+      <p className="staking-wallet-row"><span>{wallet.via === 'walletconnect' ? 'Keplr Mobile' : 'Keplr'} <strong title={wallet.address}>{wallet.address.slice(0, 10)}…{wallet.address.slice(-6)}</strong>{wallet.isLedger && <span className="pill">Ledger</span>}</span>
         <span>{holdings?.liquid !== undefined ? `${zigText(holdings.liquid)} available` : 'Balance not read yet'}</span>
         <button type="button" className="text-link" onClick={() => { void readPositions(wallet).catch(() => setNote('Your stake could not be read just now.')); }}>Refresh</button>
         <button type="button" className="text-link" onClick={disconnect}>Disconnect</button></p>
-      <div className="staking-tabs" role="tablist" aria-label="Staking action">
-        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} className={action === id ? 'is-active' : ''} onClick={() => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); setValidator(''); setDestination(''); revision.current++; }}>{label}</button>)}
+      {/* Session AK P6: the arrow keys, Home and End move between the tabs; only the chosen tab is a Tab stop (the ARIA tabs pattern). */}
+      <div className="staking-tabs" role="tablist" aria-label="Staking action" onKeyDown={event => tabKeys(TABS.map(([id]) => id), action, chooseAction)(event)}>
+        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} tabIndex={action === id ? 0 : -1} className={action === id ? 'is-active' : ''} onClick={() => chooseAction(id)}>{label}</button>)}
       </div>
       {action !== 'delegate' && <p className="whats-this-row"><WhatsThis key={action} term={action === 'undelegate' ? 'unbonding' : action === 'redelegate' ? 'redelegate' : 'rewards'}/></p>}
       <form className="staking-form" onSubmit={review} noValidate>

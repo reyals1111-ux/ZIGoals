@@ -1,0 +1,4 @@
+/* Session AK (CI-D, theme parity, ADR-028 H75): NOVA's "Running now" chips keep their violet edge by night. In Nebula
+   components/nova/live/live-chips.css loads after nova.css, so its edge wins over the chip's soft one; the Dark sheet lists
+   the files in path order (live/ before nova.css), so the soft edge won there. One id more of weight restores Nebula's order. */
+:root[data-theme=dark] .nova-live-chip:not(#\-):not(#\-) { border-color: var(--nova-edge, rgba(203, 191, 255, .5)); } /* components/nova/live/live-chips.css */

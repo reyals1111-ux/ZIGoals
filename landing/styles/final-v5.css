@@ -119,3 +119,18 @@
 .brand{min-height:44px}
 .desktop-nav a,.footer-column a{min-width:44px;justify-content:center}
 .menu-toggle{flex-shrink:0;min-width:44px}
+
+/* Session AK (A20): "New in the Alpha", the install and coming cards' look, one list of short lines per card. Labels
+   15 px, lines 16 px (the layout spec's minimums are 14 and 15); "Being switched on" in the planned colour. */
+.new-section{background:#030916}
+.new-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.new-list>li{padding:30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,#0b1730cc,#060d1fcc);min-width:0}
+.new-list .availability{display:block;margin-bottom:14px;font-size:15px;font-weight:600;letter-spacing:.04em;line-height:1.5;color:#c1e7e7}
+.new-list .availability.switching{color:#d6c8e6}
+.new-list h3{font-size:24px;margin-bottom:14px}
+.new-list ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.new-list ul li{font-size:16px;line-height:1.65;color:#dce7f7;overflow-wrap:anywhere}
+.new-list strong{color:#f1f6ff;font-weight:650}
+.new-note{margin-top:28px;font-size:16px;line-height:1.75;color:#dce7f7;max-width:760px}
+.new-note a{color:#a6eaf7;text-decoration:underline;text-decoration-color:#a6eaf766;text-underline-offset:3px}
+@media (max-width:950px){.new-list{grid-template-columns:1fr}.new-list>li{padding:24px}}

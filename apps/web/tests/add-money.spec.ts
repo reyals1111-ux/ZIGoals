@@ -1,5 +1,9 @@
 import {expect, test} from '@playwright/test';
 import {EVM, HUB, SOL, ZIG, addMoneyFixtures, ready} from './add-money-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Add money (linked wallets, ZIGChain networks).
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L2b, Part 4, ADR-028 H18, H34, H35, H83; A2.2–A2.8, P4.2–P4.5): multi-asset Add money. Linked wallets are

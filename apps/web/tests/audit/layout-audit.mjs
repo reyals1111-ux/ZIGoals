@@ -164,6 +164,16 @@ const STATES = [
   {name: 'zigi-page', path: '/app/zigi'},
   {name: 'share', path: '/app/share'},
   {name: 'not-found', path: '/app/no-such-page'},
+  // Session AK (M7): the session's new routes — NOVA (its dashboard, setup and Hermes), Notes, Tasks, Journal, Music and
+  // Agenda — in the Showcase, and on a new, empty device below.
+  {name: 'nova', path: '/app/nova'},
+  {name: 'nova-setup', path: '/app/nova/setup'},
+  {name: 'nova-hermes', path: '/app/nova/hermes'},
+  {name: 'notes', path: '/app/notes'},
+  {name: 'tasks', path: '/app/tasks'},
+  {name: 'journal', path: '/app/journal'},
+  {name: 'music', path: '/app/music'},
+  {name: 'agenda', path: '/app/agenda'},
   // A new, empty device
   {name: 'empty-today', path: '/app', fresh: true},
   {name: 'empty-welcome', path: '/app/welcome', fresh: true},
@@ -180,6 +190,15 @@ const STATES = [
   {name: 'empty-timeline', path: '/app/timeline', fresh: true},
   {name: 'empty-stories', path: '/app/stories', fresh: true},
   {name: 'empty-review', path: '/app/review', fresh: true},
+  // Session AK (M7): the new routes on a new, empty device (their honest empty states).
+  {name: 'empty-nova', path: '/app/nova', fresh: true},
+  {name: 'empty-nova-setup', path: '/app/nova/setup', fresh: true},
+  {name: 'empty-nova-hermes', path: '/app/nova/hermes', fresh: true},
+  {name: 'empty-notes', path: '/app/notes', fresh: true},
+  {name: 'empty-tasks', path: '/app/tasks', fresh: true},
+  {name: 'empty-journal', path: '/app/journal', fresh: true},
+  {name: 'empty-music', path: '/app/music', fresh: true},
+  {name: 'empty-agenda', path: '/app/agenda', fresh: true},
   // Session AG Polish 2 (ADR-031): the day's celebration at rest with its words — a new device with one item, done today and
   // not yet celebrated; a tap skips the film to its last frame. Last, so the day it seeds reaches no other new-device state.
   {name: 'checklist-celebration', path: '/app/checklist', fresh: true, steps: async p => {

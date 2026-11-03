@@ -10,6 +10,7 @@ import {showcasePrices} from '../../lib/portfolio/showcase';
 import {percent} from '../markets/market-format';
 import {FilterChips} from '../markets/filter-chips';
 import './value-chart.css';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 
 const cache = createMarketHistoryCache((request, refresh) => fetchPublicMarketHistory(request, refresh));
 const LABEL: Record<ValueRange, string> = {'24h': '24H', '7d': '7D', '30d': '30D', '90d': '90D', '1y': '1Y', all: 'All'};
@@ -23,7 +24,7 @@ const W = 760, H = 220, TOP = 16, BOTTOM = 196, LEFT = 8, RIGHT = 752;
  * line. A moment with a held coin but no observed price is a gap. The scale fits the values; it does not start at 0.
  */
 export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio; showcase: boolean}) {
-  const id = useId(), [range, setRange] = useRememberedChoice<ValueRange>('portfolio-value-range', '30d', VALUE_RANGES), [now, setNow] = useState(() => Date.now()), [inspect, setInspect] = useState<number | null>(null);
+  const id = useId(), look = useChartLook(), [range, setRange] = useRememberedChoice<ValueRange>('portfolio-value-range', '30d', VALUE_RANGES), [now, setNow] = useState(() => Date.now()), [inspect, setInspect] = useState<number | null>(null);
   const span = useMemo(() => rangeWindow(range, portfolio.transactions, now), [range, portfolio.transactions, now]);
   const coins = useMemo(() => coinsInWindow(portfolio, span.start), [portfolio, span.start]);
   const refs = useMemo(() => new Map(portfolio.coins.map(c => [coinKey(c.ref), c.ref])), [portfolio.coins]);
@@ -75,13 +76,15 @@ export function PortfolioValueChart({portfolio, showcase}: {portfolio: Portfolio
     </header>
     {tooMany ? <p className="fine" role="note">The chart covers portfolios of up to {MAX_CHART_COINS} coins in a range; this one has {coins.length}. Each coin&rsquo;s own chart is on its page.</p> : <>
       {shown && shown.value !== null && <p className="portfolio-chart-quote"><strong>{formatMoney(shown.value, currency)}</strong> <span><time dateTime={new Date(shown.at).toISOString()}>{formatDateTime(shown.at)}</time>{change !== null && inspect === null ? <> · <span data-direction={Number(change) > 0 ? 'up' : Number(change) < 0 ? 'down' : 'flat'}>{formatSignedMoney(change, currency)}{changePct !== null ? ` (${percent(changePct)})` : ''}</span> in this range, buys and sells included</> : null}</span></p>}
-      {segments.length ? <svg className="portfolio-chart-plot" viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`${id}-desc`} tabIndex={0}
+      {segments.length ? <svg className="portfolio-chart-plot zg-chart" data-pillar="wealth" viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`${id}-desc`} tabIndex={0}
         onPointerMove={event => { const rect = event.currentTarget.getBoundingClientRect(), at = span.start + Math.max(0, Math.min(1, ((event.clientX - rect.left) / rect.width * W - LEFT) / (RIGHT - LEFT))) * (span.end - span.start); let best = 0; series.points.forEach((p, i) => { if (p.value !== null && Math.abs(p.at - at) < Math.abs(series.points[best]!.at - at)) best = i; }); setInspect(series.points[best]!.value === null ? null : best); }}
         onPointerLeave={() => setInspect(null)}
         onKeyDown={event => { if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return; event.preventDefault(); const indexes = series.points.flatMap((p, i) => p.value === null ? [] : [i]), at = inspect === null ? indexes.length - 1 : indexes.indexOf(inspect), next = event.key === 'Home' ? 0 : event.key === 'End' ? indexes.length - 1 : Math.max(0, Math.min(indexes.length - 1, at + (event.key === 'ArrowLeft' ? -1 : 1))); setInspect(indexes[next] ?? null); }}>
         <desc id={`${id}-desc`}>{portfolio.name}: value in {currency} from {formatDate(span.start)} to {formatDate(span.end)}, {known.length} moments, from {first ? formatMoney(first.value!, currency) : '—'} to {last ? formatMoney(last.value!, currency) : '—'}. Exact values in the table below. Arrow keys move along the line.</desc>
+        {/* Session AK (G3): the one chart look — the value line in its gradient with one soft glow (none by day). */}
+        <ChartLookDefs id={look.id} width={W} height={H} />
         {[TOP, (TOP + BOTTOM) / 2, BOTTOM].map(gy => <line key={gy} x1={LEFT} x2={RIGHT} y1={gy} y2={gy} className="portfolio-chart-grid" />)}
-        {segments.map((points, i) => <polyline key={i} points={points} className="portfolio-chart-line" fill="none" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />)}
+        {segments.map((points, i) => <polyline key={i} points={points} className="portfolio-chart-line zgc-line" style={{stroke: look.stroke('a')}} filter={look.glow} fill="none" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />)}
         {shown && shown.value !== null && <circle cx={x(shown.at)} cy={y(Number(shown.value))} r="4" className="portfolio-chart-dot" />}
       </svg> : <p className="portfolio-chart-empty" role={loading ? 'status' : undefined}>{loading ? 'Loading observed prices…' : 'No observed prices for this range yet. Earlier values are not assumed.'}</p>}
       <div className="portfolio-chart-axis"><time dateTime={new Date(span.start).toISOString()}>{formatDate(span.start)}</time><time dateTime={new Date(span.end).toISOString()}>{formatDate(span.end)}</time></div>

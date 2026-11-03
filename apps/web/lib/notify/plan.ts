@@ -1,0 +1,153 @@
+import {addDays, inQuiet, toMinutes, wallClock, weekdayBit, weekdayOf, zonedInstant} from './zone';
+import {eveningTime, morningTime, typeOn, type NotifyPrefs} from './prefs';
+
+/**
+ * Session AK Part 2 (ADR-036 Q3, A1, A2): the notification plan of this device, pure. From what the page already knows
+ * it derives (1) the snapshot the service worker composes notifications from — the due items of the next 48 hours,
+ * with time, kind, id, the numbers each text needs and, only when the person opted in to names and the device lock is
+ * off, the item's name — and (2) the registration the push Worker gets: recurring wake minutes on weekday masks,
+ * one-off wake minutes, and minutes to skip. The registration never carries a name, a kind, a count or an amount, and
+ * the snapshot keeps an amount (a contribution or a bill) only where names are allowed.
+ */
+export type ItemKind = 'habit' | 'water' | 'windDown' | 'review' | 'morning' | 'evening' | 'contribution' | 'bill' | 'supplement' | 'vote';
+export type PlanItem = {at: number; kind: ItemKind; id: string; label?: string; detail?: string; href: string; actionable: boolean};
+export type Snapshot = {v: 1; written: number; zone: string; labels: boolean; quiet: {from: string; to: string}; items: PlanItem[]; summary: {date: string; done: number; total: number}; prices: PriceWatch[]};
+export type PriceWatch = {alertId: string; coin: string; currency: 'USD' | 'EUR'; direction: 'above' | 'below'; price: string; label?: string; request: unknown};
+export type Registration = {wakes: {m: number; d: number}[]; once: number[]; skips: number[]};
+export type PlanInput = {
+  now: number; zone: string; prefs: NotifyPrefs; quiet: {from: string; to: string}; labels: boolean;
+  /**
+   * A habit with a reminder time: its weekday mask for the coming week and whether today is already done. `title` only for
+   * a habit not linked to Health (ADR-010's rule, security review F4): a Health-linked habit never shows its name.
+   */
+  habits: {id: string; title?: string; time: string; weekdays: number; doneToday: boolean}[];
+  water?: {time: string; toGo: string | null; done: boolean};
+  windDown?: {time: string; doneToday: boolean};
+  review?: {time: string; weekday: number};
+  /** A contribution reminder per day it is due (today and tomorrow): the date, the formatted amount, and whether it is recorded. */
+  contributions: {goalId: string; title: string; time: string; date: string; amount: string; done: boolean}[];
+  bills: {id: string; title: string; due: string; amount: string}[];
+  /** Session AK (F5): supplement and medication reminders — times and weekdays only; never a name or a dose. */
+  supplements?: {id: string; time: string; weekdays: number; doneToday: boolean}[];
+  /** Owner follow-up 1 (F4): the governance reminders the person set on a proposal (its own opt-in): when to remind, nothing else. */
+  votes?: {id: string; at: number}[];
+  orbit: {done: number; total: number};
+  prices: PriceWatch[];
+};
+export const MAX_WAKES = 48, WINDOW_MS = 48 * 3_600_000, ONCE_AHEAD_DAYS = 30;
+export type Plan = {snapshot: Snapshot; registration: Registration; refused: {kind: ItemKind; time: string}[]; dropped: number};
+
+/** A copy without its `label` (no name may reach the snapshot without the opt-in). */
+function withoutLabel<T extends {label?: string}>(value: T): Omit<T, 'label'> { const copy = {...value}; delete copy.label; return copy; }
+
+export function buildPlan(input: PlanInput): Plan {
+  const {now, zone, prefs, quiet, labels} = input, today = wallClock(now, zone).date, until = now + WINDOW_MS;
+  const items: PlanItem[] = [], recurring: {m: number; d: number; kind: ItemKind; id: string; done: (date: string) => boolean}[] = [], once = new Map<number, ItemKind>(), refused: Plan['refused'] = [];
+  const dates = [today, addDays(today, 1), addDays(today, 2)];
+  const label = (text: string | undefined) => labels && text ? text.slice(0, 60) : undefined;
+  const push = (item: Omit<PlanItem, 'label'> & {label?: string}) => { if (item.at > now - 3_600_000 && item.at <= until) items.push(item.label === undefined ? withoutLabel(item) as PlanItem : item as PlanItem); };
+  /** A recurring reminder: refused inside quiet hours (said on the card), otherwise a wake and its items for 48 h. */
+  const daily = (kind: ItemKind, id: string, time: string, mask: number, make: (date: string, at: number) => Omit<PlanItem, 'at' | 'kind' | 'id'> | null, done: (date: string) => boolean) => {
+    if (!mask) return;
+    if (inQuiet(time, quiet)) { refused.push({kind, time}); return; }
+    recurring.push({m: toMinutes(time), d: mask, kind, id, done});
+    for (const date of dates) {
+      if (!(mask & weekdayBit(weekdayOf(date)))) continue;
+      const at = zonedInstant(date, time, zone), made = done(date) ? null : make(date, at);
+      if (made) push({at, kind, id, ...made});
+    }
+  };
+  const EVERY = 127;
+  if (typeOn(prefs, 'habits')) for (const h of input.habits) daily('habit', h.id, h.time, h.weekdays, () => ({label: label(h.title), href: '/app/habits', actionable: true}), date => date === today && h.doneToday);
+  // Session AK (F5): never labelled, whatever the names switch says (a supplement or medicine's name is health data).
+  if (typeOn(prefs, 'supplements')) for (const s of input.supplements ?? []) daily('supplement', s.id, s.time, s.weekdays, () => ({href: '/app/health', actionable: false}), date => date === today && s.doneToday);
+  if (typeOn(prefs, 'water') && input.water) { const w = input.water; daily('water', 'water', w.time, EVERY, () => ({...(w.toGo ? {detail: `${w.toGo} to go`} : {}), href: '/app/health', actionable: false}), date => date === today && w.done); }
+  if (typeOn(prefs, 'windDown') && input.windDown) { const w = input.windDown; daily('windDown', 'wind-down', w.time, EVERY, () => ({href: '/app/health?view=sleep', actionable: false}), date => date === today && w.doneToday); }
+  if (typeOn(prefs, 'review') && input.review) daily('review', 'review', input.review.time, weekdayBit(input.review.weekday), () => ({href: '/app/review', actionable: false}), () => false);
+  if (typeOn(prefs, 'morning')) daily('morning', 'morning', morningTime(prefs), EVERY, () => ({href: '/app/checklist', actionable: false}), () => false);
+  if (typeOn(prefs, 'evening')) daily('evening', 'evening', eveningTime(prefs), EVERY, () => ({href: '/app/review', actionable: false}), () => false);
+  // One-off wakes: contributions on the days they are due (today, tomorrow), bills on the morning before they are due.
+  if (typeOn(prefs, 'contributions')) for (const c of input.contributions) {
+    if (c.done || inQuiet(c.time, quiet)) continue;
+    const at = zonedInstant(c.date, c.time, zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'contribution');
+    push({at, kind: 'contribution', id: `contribution:${c.goalId}`, label: label(c.title), ...(labels && c.amount ? {detail: `${c.amount} due`} : {}), href: `/app/goals/tracked/${encodeURIComponent(c.goalId)}?contribute=1`, actionable: false});
+  }
+  if (typeOn(prefs, 'bills')) for (const b of input.bills) {
+    const day = addDays(b.due, -1); if (day < today || day > addDays(today, ONCE_AHEAD_DAYS)) continue;
+    const at = zonedInstant(day, morningTime(prefs), zone); if (at < now) continue;
+    once.set(Math.floor(at / 60000), 'bill');
+    push({at, kind: 'bill', id: `bill:${b.id}`, label: label(b.title), ...(labels && b.amount ? {detail: `${b.amount} due tomorrow`} : {}), href: '/app/wealth?view=bills', actionable: false});
+  }
+  // Owner follow-up 1 (F4; security review F10 R3-F1, R3-F2): a vote reminder wakes at the person's morning time on the
+  // day it falls due (a day before voting ends), as bills do — never at a minute derived from the proposal's public end
+  // time, which would tell the push Worker which proposal this device follows. A morning inside quiet hours moves to
+  // their end; a day whose morning has passed wakes now, unless now is quiet (then nothing). Never labelled.
+  for (const v of input.votes ?? []) {
+    const day = wallClock(v.at, zone).date, time = inQuiet(morningTime(prefs), quiet) ? quiet.to : morningTime(prefs);
+    let at = zonedInstant(day, time, zone);
+    if (at > now + ONCE_AHEAD_DAYS * 86_400_000) continue;
+    if (at < now) { if (day !== today || inQuiet(wallClock(now, zone).time, quiet)) continue; at = Math.ceil(now / 60000) * 60000; }
+    once.set(Math.floor(at / 60000), 'vote');
+    push({at, kind: 'vote', id: v.id, href: '/app/governance', actionable: false});
+  }
+  // Wakes: one per minute of the day, its weekday masks joined; skips: today's instants whose items are all done.
+  const byMinute = new Map<number, number>();
+  for (const r of recurring) byMinute.set(r.m, (byMinute.get(r.m) ?? 0) | r.d);
+  const skips: number[] = [];
+  for (const [m, d] of byMinute) for (const date of dates.slice(0, 2)) {
+    if (!(d & weekdayBit(weekdayOf(date)))) continue;
+    const here = recurring.filter(r => r.m === m && r.d & weekdayBit(weekdayOf(date)));
+    const at = zonedInstant(date, `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`, zone);
+    if (at > now && here.every(r => r.done(date))) skips.push(Math.floor(at / 60000));
+  }
+  // A one-off at a skipped minute keeps that minute: the Worker never skips what a one-off still needs.
+  for (let i = skips.length - 1; i >= 0; i--) if (once.has(skips[i]!)) skips.splice(i, 1);
+  let wakes = [...byMinute].map(([m, d]) => ({m, d})).sort((a, b) => a.m - b.m), onceList = [...once.keys()].sort((a, b) => a - b);
+  // The cap: the earliest one-offs first (they are dated), then the earliest recurring wakes.
+  const room = MAX_WAKES - Math.min(onceList.length, MAX_WAKES), dropped = Math.max(0, onceList.length - MAX_WAKES) + Math.max(0, wakes.length - room);
+  onceList = onceList.slice(0, MAX_WAKES); wakes = wakes.slice(0, room);
+  items.sort((a, b) => a.at - b.at || a.kind.localeCompare(b.kind));
+  return {
+    snapshot: {v: 1, written: now, zone, labels, quiet, items: items.slice(0, 200), summary: {date: today, ...input.orbit}, prices: typeOn(prefs, 'prices') ? input.prices.slice(0, 20).map(p => labels ? p : withoutLabel(p)) : []},
+    registration: {wakes, once: onceList, skips: skips.sort((a, b) => a - b).slice(0, 96)},
+    refused, dropped,
+  };
+}
+/** A stable string of the registration, to send it again only when it changed. */
+export const registrationKey = (zone: string, quiet: {from: string; to: string}, r: Registration) => JSON.stringify([zone, quiet.from, quiet.to, r.wakes, r.once, r.skips]);
+/**
+ * Session AK (journey bug J5-2): a "Snooze 1 h" tapped on a notification, as the service worker queues it
+ * (lib/notify/db.ts QueuedAction, type 'snooze': the tap's time and the items it named). The worker moves the items an
+ * hour on in the snapshot and adds that wake minute; the page, which rewrites the snapshot from the records, keeps both.
+ */
+export const SNOOZE_MS = 3_600_000;
+export type Snooze = {at: number; items: {kind: string; id: string; at: number}[]};
+/**
+ * The plan with each live snooze kept: the snoozed item comes back at the tap's time plus an hour (with the text it had
+ * then), and its minute stays in the one-off wakes. An item done since (or switched off) is no longer in the plan built
+ * for the tap's moment from today's records, so it does not come back. A snooze stays live as long as the plan keeps a
+ * passed item (an hour). Pure; `input` is the one the plan was built from.
+ */
+export function withSnoozes(plan: Plan, input: PlanInput, snoozes: readonly Snooze[], now: number): Plan {
+  const live = snoozes.filter(s => Number.isFinite(s.at) && s.at <= now && s.at + SNOOZE_MS > now - SNOOZE_MS && Array.isArray(s.items) && s.items.length);
+  if (!live.length) return plan;
+  const items = [...plan.snapshot.items], once = new Set(plan.registration.once), seen = new Set(items.map(i => `${i.kind}:${i.id}:${i.at}`));
+  const then = new Map<number, Plan>();
+  for (const s of live) {
+    const until = s.at + SNOOZE_MS, earlier = then.get(s.at) ?? buildPlan({...input, now: s.at});
+    then.set(s.at, earlier);
+    for (const wanted of s.items) {
+      const matches = earlier.snapshot.items.filter(i => i.kind === wanted.kind && i.id === wanted.id && Math.abs(i.at - wanted.at) < 40 * 60_000);
+      const item = matches.find(i => i.at === wanted.at) ?? matches[0];
+      if (!item || seen.has(`${item.kind}:${item.id}:${until}`)) continue;
+      seen.add(`${item.kind}:${item.id}:${until}`);
+      items.push({...item, at: until});
+      if (until > now) once.add(Math.floor(until / 60_000));
+    }
+  }
+  items.sort((a, b) => a.at - b.at || a.kind.localeCompare(b.kind));
+  const onceList = [...once].sort((a, b) => a - b).slice(0, MAX_WAKES), room = MAX_WAKES - onceList.length;
+  const dropped = plan.dropped + Math.max(0, plan.registration.wakes.length - room);
+  return {...plan, snapshot: {...plan.snapshot, items: items.slice(0, 200)}, registration: {...plan.registration, once: onceList, wakes: plan.registration.wakes.slice(0, room)}, dropped};
+}

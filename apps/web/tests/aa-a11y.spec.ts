@@ -29,7 +29,9 @@ test('Habits: sections, cards, routines and the year view', async ({page}) => {
 });
 test('Health: the highlight row and the Planner, Insights, Targets, Measurements and Import views', async ({page}) => {
   await seed(page);
-  await page.goto('/app/health'); await page.getByRole('heading', {name: /Weight trend/}).first().waitFor({timeout: 15_000}).catch(() => undefined); await clean(page, 'Health');
+  await page.goto('/app/health'); await page.getByRole('region', {name: 'Daily nutrition summary'}).waitFor({timeout: 15_000}).catch(() => undefined); await clean(page, 'Health');
+  // Session AK RB (R2-8, deliberate): the weight trend, energy and coach cards moved into the Weight view, checked here.
+  await page.goto('/app/health#weight'); await page.getByRole('heading', {name: /Weight trend/}).first().waitFor({timeout: 15_000}).catch(() => undefined); await clean(page, 'Health weight');
   for (const view of ['planner', 'insights', 'targets', 'measurements', 'import']) { await page.goto(`/app/health#${view}`); await page.waitForTimeout(800); await clean(page, `Health ${view}`); }
 });
 test('Journey, the reminders plan and the welcome', async ({page}) => {

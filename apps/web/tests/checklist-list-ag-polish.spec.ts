@@ -89,6 +89,8 @@ test('keyboard: arrows move between rows, Space ticks, the context-menu key open
   // "+": the push-ups habit logs its usual amount in one tap (the real record, with Undo).
   const plus = page.getByRole('button', {name: new RegExp(`^Log \\d+ .* for ${TITLE.push}$`)});
   await expect(plus).toBeVisible();
+  // Session AK CI-4 (the wait only): measured at rest, after every finite animation on it and its ancestors (CI read 43.99997 px mid-animation).
+  await plus.evaluate(el => { const all = el.getAnimations({subtree: true}); for (let p = el.parentElement; p; p = p.parentElement) all.push(...p.getAnimations()); return Promise.all(all.filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))); });
   expect((await plus.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await plus.click();
   await expect(page.locator('.aa-toast')).toContainText(TITLE.push);

@@ -1,4 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests every Today fold, the wallet and Staking included.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session I, Part 9: on a phone, Today and Wealth fold their secondary modules to one row each. Nothing is removed: a
 // row opens its module in place, a #link into it opens it, and desktop shows every module as before.
@@ -45,6 +49,13 @@ test('phone: Wealth folds its secondary modules, a link into one opens it, and a
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   for (const label of WEALTH) await expect(fold(page, label).locator('.phone-fold-toggle'), label).toHaveAttribute('aria-expanded', 'false');
+  // Session AK (ADR-036 G2 R2-8, 15c1e159, deliberate): the composition is a phone row too ("The shape of your wealth"),
+  // closed like the others; it is opened as a reader would, so its ring's total is measured as before.
+  const shape = fold(page, 'The shape of your wealth').locator('.phone-fold-toggle');
+  await expect(shape).toHaveAttribute('aria-expanded', 'false');
+  await shape.click();
+  await expect(shape).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.composition-donut strong').first()).toBeVisible();
   // Each amount in the hero's Goals split, and the composition ring's total, sits on one line.
   for (const amount of await page.locator('.wealth-split dd > span:not(.wealth-other-chip), .composition-donut strong').all()) {
     expect(await amount.evaluate(el => { const range = document.createRange(); range.selectNodeContents(el); return new Set([...range.getClientRects()].map(r => Math.round(r.top))).size; })).toBe(1);

@@ -30,6 +30,18 @@ async function overlaps(page: Page): Promise<{launcher: {l: number; t: number; r
   }, CONTROL_SELECTOR);
 }
 
+/**
+ * Session AK CI-3 (WebKit, 390x844 /app/health): the launcher places itself when it appears, 300 ms, 1.2 s and 3 s later,
+ * and on every change to `main`; one sample at 1.6 s could read a placement the 3 s one corrects. Its final place is
+ * read once that last timed placement has passed (counted from when the launcher was seen) and two samples in a row agree.
+ */
+async function settled(page: Page) {
+  const since = Date.now();
+  let r = await overlaps(page), last = '';
+  await expect.poll(async () => { r = await overlaps(page); const key = JSON.stringify(r), same = key === last; last = key; return same && Date.now() - since > 3_300; }, {intervals: [250], timeout: 10_000}).toBe(true);
+  return r;
+}
+
 for (const [width, height] of SIZES) {
   test(`${width}x${height}: on every app page the launcher rests clear of the first screen's controls and stays on screen`, async ({page}) => {
     test.setTimeout(150_000);
@@ -40,8 +52,7 @@ for (const [width, height] of SIZES) {
     for (const path of PAGES) {
       await page.goto(path);
       await expect(page.locator('.ai-launcher')).toBeVisible();
-      await page.waitForTimeout(1600); // the page's own first-screen parts settle, then the launcher places itself (300 ms and 1.2 s after mount)
-      const r = await overlaps(page);
+      const r = await settled(page); // the page's own first-screen parts settle, and the launcher has made its last timed placement
       expect(r.launcher, path).not.toBeNull();
       const L = r.launcher!;
       expect(L.l, `${path}: on screen`).toBeGreaterThanOrEqual(0); expect(L.t, `${path}: on screen`).toBeGreaterThanOrEqual(0);

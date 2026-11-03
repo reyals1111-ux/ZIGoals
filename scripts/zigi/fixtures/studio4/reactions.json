@@ -1,4 +1,5 @@
 {
   "R001": "card_accepted",
-  "R002": "goal_milestone"
+  "R002": "goal_milestone",
+  "R004": "checkin_milestone"
 }

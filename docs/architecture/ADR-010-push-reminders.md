@@ -240,3 +240,14 @@ All read 2026-10-03. webkit.org, w3.org and developer.mozilla.org are blocked fr
 - **Fixture clock.** The Worker accepts a test-only action (`fixture`: a fixed clock and an immediate alarm run) only when the var `ISOLATED_FIXTURE` is `"true"`; `--push` refuses that var in the template and in the private copy.
 - **The app route** reads the session cookie through `apps/web/lib/server/session-cookie.ts`; the account route keeps its own inline reader, and `session-cookie.test.ts` proves both read the same token from the same request. The route needs `ZIGOALS_SYNC_ORIGIN` as well (the session check), so without accounts configured it answers 503 like everything else.
 - **The device key** `zigoals:push:v1` lives in the account's own storage (through `getAppStorage()`), so a locked account shows "Unlock your account records first." and the schedule refresh runs only while the records are unlocked; the server deletes a subscription not refreshed for 30 days.
+
+## Addendum (Session AK, 31 Oct; ADR-036 Q3, Q4, Q15, owner decision D1)
+- **A second path, without an account.** `workers/push-device/` (a sibling Worker; this ADR's account Worker is unchanged)
+  serves the public Alpha: a device registers a random id and secret, its endpoint, zone, quiet hours and wake minutes;
+  pushes carry **no payload** (VAPID only). Rule 1 holds in a stricter form (no account id either); rule 2 is replaced on
+  that path by text composed on the device from its own snapshot (names only with the ADR-014 opt-in and the device lock
+  off). Activation: `docs/run11/PUSH_PUBLIC_ALPHA.md`.
+- **Rule 6 changes for the new path:** the app's one worker is `/sw.js`, which also caches pages for offline use (ADR-036
+  Q4: navigations network-first, hashed assets cache-first, never `/api/*`, another origin or a non-GET). `/push-sw.js`
+  stays, unchanged, for a device that runs this ADR's account reminders; the shell does not register `/sw.js` there, and
+  turning on the new path removes the account subscription first, so a device never has both (Q15).

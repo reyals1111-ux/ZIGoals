@@ -2,7 +2,7 @@ import {expect, test, type Page, type Route} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
-import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
+import {AI_CHATS_SESSION_KEY, AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
 
 /**
@@ -63,7 +63,7 @@ test('before setup: a lookup is answered on the device with its records, nothing
   // Not a lookup, no AI: examples to tap, each answered here.
   await panel(page).getByLabel('Ask ZIGi about your records').fill('Help me plan a calmer week');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
-  await expect(panel(page).locator('.ai-turn-local').last()).toContainText('I answer questions about your own records right here, on this device, without any AI. For example:');
+  await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Until you give me a brain, I answer from your own records on this device. For example:');
   await panel(page).locator('.ai-turn-local').last().getByRole('button').filter({hasText: /goal\?$/}).first().click();
   await expect(panel(page).locator('.ai-turn-local').last()).toContainText(/% of the target/);
   expect(external.filter(url => PROVIDER_HOSTS.some(host => url.includes(host)))).toEqual([]);
@@ -127,7 +127,12 @@ test('with a MOCK provider: lookups stay local, "Ask my AI for more" sends the q
 });
 
 test('Showcase: the same answers over the fictional records, labelled fictional, kept in the tab', async ({page}) => {
-  await seed(page, null);
+  // Session AK (cf3cf2e1, NOVA N0–N12): the Showcase's records now carry its labelled NOVA chat under the tab-only key
+  // `zigoals:ai-chats:v1`, which loadShowcase writes to sessionStorage only. This seed copies the records into the person's
+  // own localStorage, so it leaves that key out (a real device keeps chats in IndexedDB, never under it); the last check
+  // then still proves that no ai-chats key reaches localStorage from the Showcase.
+  const {[AI_CHATS_SESSION_KEY]: _showcaseChat, ...ownRecords} = buildShowcase(DAY).records; void _showcaseChat;
+  await seed(page, null, ownRecords);
   await page.getByRole('button', {name: /Load Showcase/}).click();
   // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
   await page.waitForURL('**/app');

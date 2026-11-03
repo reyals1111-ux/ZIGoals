@@ -42,7 +42,8 @@ test('accounts and debts: net worth per currency with Wealth\'s valued holding a
     await form.getByLabel(/Balance now|What you owe now/).fill(balance);
     if (rate) await form.getByLabel(/Yearly rate/).fill(rate);
     await form.getByRole('button', {name: 'Add', exact: true}).click();
-    await expect(section.getByRole('status')).toHaveText(`${name} added.`);
+    // Session AK (ADR-036, deliberate): the net-worth milestones (F5a item 3) sit in this section with their own polite live region (p.nwm-status, empty until a milestone change); the section's own status line is its direct child.
+    await expect(section.locator(':scope > [role="status"]')).toHaveText(`${name} added.`);
   };
   await add('Savings', 'Fictional savings', 'EUR', '5200');
   await add('Loan', 'Fictional car loan', 'EUR', '1200', '6');

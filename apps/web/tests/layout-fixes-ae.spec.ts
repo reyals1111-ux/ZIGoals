@@ -1,4 +1,8 @@
 import {expect, test, type Page} from '@playwright/test';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the Staked ZIG card on Today.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session AE (Part 5, ADR-027): the four layout issues Session AD's review found on `main` (ADR-026 F23), each measured
 // in the real layout. Every check here failed on `main`'s CSS: the floating buttons over the rail cards' words, the

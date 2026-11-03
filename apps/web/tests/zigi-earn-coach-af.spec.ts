@@ -3,6 +3,11 @@ import {STAKING_PREFILL_KEY} from '../lib/af-signing-keys';
 import {earnRoutes} from './earn-fixtures';
 import {SIGNER_CALLS, fakeKeplr, relay} from './staking-chain';
 import {block, lastLocal, MORNING, openChat, panel, say, seed, server, stored} from './zigi-af';
+import {chooseChain} from './chain-choice';
+import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests ZIGi's Earn coach.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L4, P8.5; ADR-028 D7, H47, H69): the Earn coach through the real app on a production build. A figure is
@@ -49,7 +54,10 @@ test('every signing request is refused in plain words, with no card and no reque
   expect(bodies).toEqual([]);
 });
 
+// Session AK CI-W (diagnostic only): a failed run attaches the page transitions' timing (tests/vt-timing.ts).
+test.afterEach(async ({page}, testInfo) => { await attachTransitionTiming(page, testInfo); });
 test('a staking card fills in the review on Staking, read once; nothing is signed, and the wallet is never asked', async ({page}) => {
+  await recordTransitionTiming(page);
   const calls = await fakeKeplr(page);
   const bodies = await server(page, () => `I can’t stake for you; here is the staking review, filled in. You review it there and sign it in your own wallet.\n\n${block({kind: 'prefill-staking', action: 'delegate', network: 'practice', amount: '100'})}`);
   await seed(page, {time: MORNING});

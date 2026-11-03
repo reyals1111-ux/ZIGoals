@@ -37,7 +37,8 @@ export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays
   });
   const results = cells.filter(c => c.level !== 'none' && c.level !== 'future');
   return <div className="checklist-history">
-    <div className="checklist-heat">
+    {/* Session AK P6 (axe scrollable-region-focusable, 2.1.1): it scrolls sideways on a narrow screen, so it is a named stop the keyboard can scroll. */}
+    <div className="checklist-heat" role="region" aria-label={`Checklist history, the last ${WEEKS} weeks`} tabIndex={0}>
       <ol className="checklist-heat-days" aria-hidden="true">{Array.from({length: 7}, (_, i) => <li key={i}>{formatWeekday(addDays(start, i))}</li>)}</ol>
       <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with some or all orbits`}>
         {cells.map(c => <span key={c.date} className="checklist-heat-cell" data-level={c.level} data-today={c.date === today || undefined} title={c.label}/>)}

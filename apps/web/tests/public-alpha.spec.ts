@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { navLink, walletArea } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
 import { connectSources } from "../lib/csp-compose.mjs";
+import {chooseChain} from "./chain-choice";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
 
 test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
@@ -210,6 +211,9 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
     Object.assign(window,{keplr:{experimentalSuggestChain:async()=>{},enable:async()=>{},getKey:async()=>({bech32Address:owner}),getOfflineSignerAuto:async()=>{Reflect.set(window,"signerCalls",1);throw Error("No signer allowed");}}});
     Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async()=>{throw Error("Unavailable");}}});
   },{owner:toBech32("zig",new Uint8Array(20).fill(7))});
+  // Session AK X1 (RELEASE_REVIEW R2–R5): the local ZIG simulation and the Keplr connection wait for the chain choice; this
+  // test chooses it first, as a person does (tests/chain-choice.ts).
+  await chooseChain(page);
   await page.goto("/app/goals/new");
   await page.getByText("Personalize artwork and notes (optional)").click();
   await page.getByRole("group",{name:"Category / artwork"}).getByRole("radio",{name:"Travel"}).check();

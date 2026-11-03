@@ -1,6 +1,6 @@
 'use client';
 import {useState} from 'react';
-import {DEFAULT_HIDDEN, PAGE_LABEL, withChoice} from '../../lib/pages/visibility';
+import {PAGE_LABEL, offUntilChosen, withChoice} from '../../lib/pages/visibility';
 import type {PageId} from '../../lib/pages/schema';
 import {plainErrorMessage} from '../../lib/plain-error';
 
@@ -14,8 +14,8 @@ export function HiddenPageBanner({page}: {page: PageId}) {
   // every page; the stamped choice it saves is the same.
   const show = () => { setFailed(''); import('../../lib/w-homes-store').then(({updateSettingsGroup}) => updateSettingsGroup('pages', pages => withChoice(pages, page, true, new Date().toISOString()))).catch((error: unknown) => setFailed(plainErrorMessage(error, 'Could not save.'))); };
   return <div className="hidden-page-banner notice" role="region" aria-label="Hidden page">
-    {/* Session AH (H5, BUG-068): a page that starts hidden (Chess) is "off until you turn it on", not "hidden". */}
-    {DEFAULT_HIDDEN.includes(page) ? <p>{PAGE_LABEL[page]} is off until you turn it on — <button type="button" className="text-link" onClick={show} aria-label={`Show ${PAGE_LABEL[page]} in the sidebar`}>show it in the sidebar</button></p>
+    {/* Session AH (H5, BUG-068): a page that starts hidden (Chess) is "off until you turn it on", not "hidden"; Session AK X1: so are the crypto pages until the chain is chosen. */}
+    {offUntilChosen(page) ? <p>{PAGE_LABEL[page]} is off until you turn it on — <button type="button" className="text-link" onClick={show} aria-label={`Show ${PAGE_LABEL[page]} in the sidebar`}>show it in the sidebar</button></p>
       : <p>This page is hidden — <button type="button" className="text-link" onClick={show} aria-label={`Show it again: ${PAGE_LABEL[page]}`}>show it again</button></p>}
     {failed && <p role="alert">{failed}</p>}
   </div>;

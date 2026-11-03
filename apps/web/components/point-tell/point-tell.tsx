@@ -9,6 +9,8 @@ import {APP_VERSION_LABEL, FEEDBACK_ADDRESS} from '../../lib/feedback';
 import {MAX_NOTE, POINT_TELL, POINT_TELL_KEY, addPin, clearPins, describeTarget, editPin, pinPath, pinsMailto, pinsText, removePin, restorePin, type Pin, type PointTell as Record} from '../../lib/point-tell/store';
 import './point-tell.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+// Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 /**
  * Session AB-Cloud Part 6 (ADR-023 C23): Point & tell. A small button (above the music button; above the tab bar on
@@ -102,6 +104,7 @@ export function PointTell() {
       <p className="fine">{draft.path}</p>
       <label htmlFor={`${id}-text`}>Your note</label>
       <textarea id={`${id}-text`} ref={noteField} value={note} maxLength={MAX_NOTE} rows={4} onChange={e => setNote(e.target.value)} />
+      <SecretGuard text={note} onRemove={() => setNote('')}/>
       <p className="fine">Stays on this device until you copy, download or email it. Please leave out codes, secrets and personal money or health details.</p>
       <div className="pt-actions"><button type="button" className="primary" onClick={save}>Save note</button><button type="button" className="secondary" onClick={() => { setDraft(null); launcher.current?.focus(); }}>Cancel</button></div>
     </div>}
@@ -109,7 +112,7 @@ export function PointTell() {
       <h2 id={`${id}-list`} ref={listHeading} tabIndex={-1}>Your Point &amp; tell notes</h2>
       {pins.length === 0 ? <p>No notes yet. Use the pin button, then tap the part you want to comment on.</p> : <ol className="pt-items">{[...pins].sort((a, b) => a.n - b.n).map(p => <li key={p.id}>
         <p><strong>{p.n}.</strong> {p.target} <small>{p.path}</small></p>
-        {editing === p.id ? <><label htmlFor={`${id}-edit-${p.n}`} className="sr-only">Note {p.n}</label><textarea id={`${id}-edit-${p.n}`} value={editText} maxLength={MAX_NOTE} rows={3} onChange={e => setEditText(e.target.value)} /><div className="pt-actions"><button type="button" className="primary" onClick={() => { if (write(r => editPin(r, p.id, editText))) { setEditing(null); setMessage(`Note ${p.n} saved.`); } }}>Save note {p.n}</button><button type="button" className="secondary" onClick={() => setEditing(null)}>Cancel</button></div></>
+        {editing === p.id ? <><label htmlFor={`${id}-edit-${p.n}`} className="sr-only">Note {p.n}</label><textarea id={`${id}-edit-${p.n}`} value={editText} maxLength={MAX_NOTE} rows={3} onChange={e => setEditText(e.target.value)} /><SecretGuard text={editText} onRemove={() => setEditText('')}/><div className="pt-actions"><button type="button" className="primary" onClick={() => { if (write(r => editPin(r, p.id, editText))) { setEditing(null); setMessage(`Note ${p.n} saved.`); } }}>Save note {p.n}</button><button type="button" className="secondary" onClick={() => setEditing(null)}>Cancel</button></div></>
           : <><p className="pt-note">{p.note || <em>No note written.</em>}</p><div className="pt-actions"><button type="button" className="secondary" onClick={() => { setEditing(p.id); setEditText(p.note); }}>Edit note {p.n}</button><button type="button" className="secondary" onClick={() => remove(p)}>Remove note {p.n}</button></div></>}
       </li>)}</ol>}
       {pins.length > 0 && <div className="pt-actions pt-export">

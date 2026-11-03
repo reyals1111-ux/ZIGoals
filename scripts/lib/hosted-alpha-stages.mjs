@@ -16,6 +16,7 @@ import {appNonceFindings, priceFinding, readLiveBaseFee, reviewReason, reviewedR
 import {BASE_FEE_REST_PATH, TESTNET, checkVersion, formatGazig, parseBaseFee} from '../../packages/chain-config/src/index.ts';
 import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
 import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
+import {AK_STAGE} from './hosted-alpha-ak.mjs';
 import {EARN_STAGE} from './hosted-alpha-earn.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 
@@ -110,10 +111,19 @@ async function identity(page, {base, expect, report}) {
   await page.goto(base + '/app'); await page.waitForLoadState('networkidle');
   // Session AC (owner finding 3 on #41): the page ends after the footer's link columns. The first-visit notice carries
   // the label and the sentence on /app; Settings' facts block carries the sentence, the mode and the build environment.
-  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
+  // Session AK P2 (RELEASE_REVIEW_2 R2-7, ADR-036 Q31; `TIER 3 (public-safety labels)`): this fresh browser never chose the
+  // chain, so the notice reads the consumer line and its More opens Help's "About this Alpha", which quotes the sentence
+  // word for word (it was read in the notice itself). Settings' facts block below still carries it, as before.
+  const notice = page.getByRole('complementary', {name: 'Alpha notice'});
+  await expect(notice).toContainText('Your records stay in this browser and are not a backup.');
+  await expect(notice.getByRole('link', {name: 'More', exact: true})).toHaveAttribute('href', '/app/help#help-z-about');
   await expect(page.locator('footer .network-banner, footer .mode-strip')).toHaveCount(0);
   report.initialPerformance = await page.evaluate(() => ({navigation: performance.getEntriesByType('navigation').map(x => x.toJSON()), resources: performance.getEntriesByType('resource').map(x => x.toJSON())}));
   await recordLayouts(page, report, 'alpha-dashboard');
+  await notice.getByRole('link', {name: 'More', exact: true}).click();
+  await page.waitForURL(url => url.pathname === '/app/help');
+  await expect(page.locator('#help-z-about')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-z-about')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
   await page.goto(base + '/app/settings');
   await expect(page.locator('.about-alpha')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
   await expect(page.locator('.about-alpha .network-banner')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
@@ -247,6 +257,8 @@ export const VERIFIER_STAGES = Object.freeze([
   // Session AF (ADR-028 H57): new stages are appended, never inserted; existing numbers never change.
   EARN_STAGE,
   CHECKLIST_STAGE,
+  // Session AK Part 14 (TIER 3 (verifier)): the AK stage; its off switches are recorded, never a failure.
+  AK_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**

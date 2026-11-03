@@ -1,0 +1,22 @@
+/* NOVA workflows (Session AK, owner follow-up 2 N6): theme tokens only; no motion is needed to follow a run. */
+.nova-workflows,.nova-wf-run,.nova-wf-edit{display:grid;gap:12px;min-width:0}
+.nova-workflows h4,.nova-wf-run h3,.nova-wf-edit h3{margin:4px 0 0}
+.nova-wf-run h3:focus-visible{outline:2px solid var(--focus,var(--brand-magenta,#c86bff));outline-offset:3px}
+.nova-wf-list{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.nova-wf-item{padding:10px 0;border-top:1px solid var(--line,#2a325a);display:grid;gap:6px;min-width:0}
+.nova-wf-title{margin:0;font-weight:650;font-size:16px;overflow-wrap:anywhere}
+.nova-wf-steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.nova-wf-step{border:1px solid var(--line,#2a325a);border-radius:12px;padding:10px 12px;display:grid;gap:6px;min-width:0}
+.nova-wf-step[data-state="waiting"]{opacity:.72}
+.nova-wf-step-head{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;font-size:15px}
+.nova-wf-step-mark{display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;border:1px solid var(--line,#2a325a);font-size:13px;flex:none}
+.nova-wf-step[data-state="done"] .nova-wf-step-mark{border-color:color-mix(in srgb,var(--brand-cyan,#5ee7ff) 60%,var(--line,#2a325a))}
+.nova-wf-step-state{margin-left:auto;color:var(--muted,#aab2d9);font-size:14px}
+.nova-wf-facts{margin:0;padding-left:20px;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.nova-wf-words{border:1px solid color-mix(in srgb,var(--brand-magenta,#c86bff) 35%,var(--line,#2a325a));border-radius:14px;padding:12px 14px;display:grid;gap:6px;min-width:0}
+.nova-wf-words .eyebrow{margin:0}
+.nova-wf-sent summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--muted,#aab2d9)}
+.nova-wf-sent pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;margin:0;max-height:240px;overflow:auto}
+.nova-wf-steps-edit{border:1px solid var(--line,#2a325a);border-radius:12px;padding:10px 12px;display:grid;gap:4px;margin:0}
+.nova-wf-steps-edit .ai-check{min-height:44px;display:flex;align-items:center;gap:8px}
+.nova-wf-instruction { margin: 0; padding: 8px 12px; border-inline-start: 3px solid var(--line); overflow-wrap: anywhere; white-space: pre-wrap; } /* Z1A-5: an imported instruction, word for word */

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useId, useState, type FormEvent} from 'react';
+import {lazy, Suspense, useId, useState, type FormEvent} from 'react';
 import {explorerLinksFor} from '@zigoals/ecosystem-registry/links';
 import {CHOICE_WORDS, STATE_WORDS, deadlineWords, durationWords, percentOf, scaled, tallyView, whatChanges} from '../../lib/governance/plain-words';
 import {VOTE_CHOICES, type GovParams, type ProposalWire, type VoteChoiceWire, type VoteWire} from '../../lib/governance/wire';
@@ -8,6 +8,8 @@ import type {JournalVote} from '../../lib/governance/votes';
 import {zigText} from '../../lib/staking/view';
 import {formatDateTime} from '../../lib/visual-format';
 import {WhatsThis} from '../earn/whats-this';
+// Session AK (F4): the proposer's words in short and an opt-in reminder before voting ends (read-only; never votes).
+const ProposalExtras = lazy(() => import('../zigchain-eco/proposal-extras'));
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 H46; P6.5, P6.6): one proposal in plain words — its number and state, the deadline,
@@ -44,11 +46,12 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
       <h3 id={`${id}-title`}>{proposal.title}</h3>
       <p className="governance-deadline"><strong>{deadlineWords(proposal, now)}</strong>{proposal.votingEndTime ? <> · <time dateTime={proposal.votingEndTime}>{formatDateTime(proposal.votingEndTime)}</time></> : null}</p>
     </header>
-    <section className="governance-changes" aria-label="What it would change">
+    <section className="governance-changes" aria-label={`What it would change, proposal #${proposal.id}`}>{/* F8: unique per card (landmark-unique) */}
       <h4>What it would change</h4>
       <ul>{whatChanges(proposal.messageTypes).map(line => <li key={line}>{line}</li>)}</ul>
     </section>
-    {proposal.tallyKind !== 'none' && <section className="governance-tally" aria-label={live ? 'Votes so far' : 'Final votes'}>
+    <Suspense fallback={null}><ProposalExtras proposal={proposal} chainId={chainId} now={now}/></Suspense>
+    {proposal.tallyKind !== 'none' && <section className="governance-tally" aria-label={`${live ? 'Votes so far' : 'Final votes'}, proposal #${proposal.id}`}>
       <h4>{live ? 'Votes so far' : 'Final votes'}</h4>
       {view.total > 0n ? <>
         <div className="governance-bar" role="img" aria-label={SHARES.map(([k, label]) => `${label} ${view.shares[k]}`).join(', ')}>

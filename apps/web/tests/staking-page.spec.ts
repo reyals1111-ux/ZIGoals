@@ -1,5 +1,9 @@
 import {expect, test} from '@playwright/test';
 import {emptyPlatform, positionSchema} from '../lib/positions';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Staking.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session I, Part 7: Staking keeps its native watch-only tracker and names Valdora liquid staking as not tracked yet.
 test('Valdora liquid staking is named, honestly not tracked, and leads to its research record', async ({page}) => {

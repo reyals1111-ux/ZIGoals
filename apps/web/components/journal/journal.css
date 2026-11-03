@@ -31,3 +31,13 @@
 .journal-week-days li[data-empty] .journal-week-dot { opacity: .6; border-style: dashed; }
 .journal-week-lines { margin: 8px 0; padding-left: 18px; font-size: 16px; }
 .journal-week-legend { margin: 0; }
+.journal-notes-link { margin: 4px 0 0; }
+.journal-notes-link .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Journal: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.journal-page) .panel { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.journal-page) .panel:hover { border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent)); } }
+:root :where(.journal-page) .panel:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.journal-page) .panel { box-shadow: none; } }

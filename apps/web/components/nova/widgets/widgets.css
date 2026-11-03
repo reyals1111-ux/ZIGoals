@@ -1,0 +1,64 @@
+/* Session AK (owner follow-up 2, N2; lane NA): the insides of NOVA's widgets. Figures in the nebula figure blend; every
+   colour is a token, so Nebula, Light (NOVA is a night island) and Dark draw them alike. */
+.nova-widget-body p { margin: 0; }
+.nova-line { font-size: 15px; color: var(--nova-ink-2); }
+.nova-quiet { font-size: 14px; color: var(--nova-ink-3); }
+.nova-big { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; }
+.nova-big small { font-size: 15px; color: var(--nova-ink-2); }
+.nova-figure { font-size: clamp(24px, 2.4vw, 32px); font-weight: 700; line-height: 1.1; letter-spacing: -.01em; background: var(--nebula-figure, linear-gradient(100deg, #f6f5ff, #b8ecfb 55%, #dcb8fb)); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+.nova-figure small { font-size: .55em; }
+.nova-figure-words { font-size: 19px; line-height: 1.3; }
+/* Session AK P3 (ND-2): an empty widget is compact — its planet art beside one line, and where to start under it. */
+.nova-empty { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 0; }
+.nova-empty p { font-size: 15px; color: var(--nova-ink-2); }
+.nova-empty-art { grid-column: 1; grid-row: 1 / span 2; align-self: start; width: 44px; height: 44px; margin: 0; }
+/* The words always take the second column, also before the art's own chunk has loaded (it renders nothing until then). */
+.nova-empty > p, .nova-empty > .nova-link { grid-column: 2; }
+.nova-empty > .nova-link { justify-self: start; }
+.nova-unread { font-size: 15px; color: #ffe2a8; }
+.nova-orbit-widget { display: flex; align-items: center; gap: 14px; }
+.nova-orbit-ring { position: relative; width: 84px; height: 84px; flex: none; display: grid; place-items: center; }
+.nova-orbit-ring .glass-ring-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.nova-orbit-ring .nova-figure { position: relative; font-size: 22px; }
+.nova-next, .nova-goals, .nova-markets { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.nova-next li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; }
+.nova-next li a { display: inline-flex; align-items: center; min-height: 44px; color: var(--nova-ink); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.nova-next li a:hover { text-decoration: underline; }
+.nova-next li small { grid-column: 2; margin-top: -8px; font-size: 14px; color: var(--nova-ink-3); }
+.nova-goals li { display: grid; gap: 4px; }
+.nova-goal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nova-goal-head a { display: inline-flex; align-items: center; min-height: 44px; color: var(--nova-ink); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.nova-goal-pct { font-weight: 700; color: var(--nova-hi); font-variant-numeric: tabular-nums; }
+.nova-goal-pace { font-size: 14px; color: var(--nova-ink-3); }
+.nova-goals li[data-tone=good] .nova-goal-pace { color: var(--accent-teal, #86f0d6); }
+.nova-goals li[data-tone=attention] .nova-goal-pace { color: #ffe2a8; }
+.nova-goals .glass-track { height: 8px; }
+.nova-more a { display: inline-flex; align-items: center; min-height: 44px; color: var(--nova-hi); }
+.nova-water .glass-track { height: 10px; margin: 8px 0 6px; }
+.nova-chip-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; margin-top: 6px; border-radius: 12px; border: 1px solid var(--nova-edge); background: #ffffff0a; color: var(--nova-ink); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.nova-chip-link:hover { background: color-mix(in oklab, var(--nova-a) 18%, transparent); }
+.nova-playing { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: center; }
+.nova-playing-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.nova-disc { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle, #0a1028 18%, transparent 19%), conic-gradient(from 0deg, var(--nova-b), var(--nova-a), var(--nova-c, #f06dff), var(--nova-b)); box-shadow: 0 0 14px color-mix(in oklab, var(--nova-a) 50%, transparent); }
+.nova-playing[data-playing] .nova-disc { animation: nova-disc 6s linear infinite; }
+@keyframes nova-disc { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .nova-playing[data-playing] .nova-disc { animation: none; } }
+:root[data-app-motion=off] .nova-playing .nova-disc { animation: none; }
+.nova-round { display: grid; place-items: center; width: 44px; height: 44px; margin-top: 6px; border-radius: 50%; border: 0; background: linear-gradient(120deg, var(--nova-b), var(--nova-a)); color: #0a0f24; cursor: pointer; }
+.nova-markets li { display: flex; justify-content: space-between; gap: 8px; min-height: 32px; align-items: baseline; }
+.nova-market-name { font-weight: 600; }
+.nova-market-price { font-variant-numeric: tabular-nums; color: var(--nova-ink); }
+.nova-markets small { color: var(--nova-ink-3); font-size: 13px; }
+.nova-count { color: var(--nova-hi); font-weight: 600; }
+.nova-widget .nova-facts dd strong { color: var(--nova-ink); }
+.nova-widget .nova-facts dd a { color: var(--nova-ink); text-decoration: none; display: inline-flex; min-height: 44px; align-items: center; }
+.nova-glance li { color: var(--nova-ink-2); font-size: 15px; }
+.nova-glance li a { color: var(--nova-ink); display: inline-flex; min-height: 44px; align-items: center; }
+/* Session AK WA (T1/T3): the Tasks widget's rows and quick add inside NOVA's night island, and the Focus widget's buttons. */
+.nova-focus-actions { display: flex; flex-wrap: wrap; gap: 0 8px; }
+.nova-widget .tasks-widget { display: grid; gap: 6px; min-width: 0; }
+.nova-widget .tasks-widget .tasks-list { margin: 0; padding: 0; list-style: none; }
+.nova-widget .tasks-widget .task { border-bottom-color: var(--nova-edge-soft); }
+.nova-widget .tasks-widget .task-meta, .nova-widget .tasks-widget .tasks-status { color: var(--nova-ink-2); }
+.nova-widget .tasks-widget .task-goal { color: var(--nova-hi); }
+.nova-widget .tasks-widget .nova-eyebrow { margin-top: 6px; font-size: 12px; }

@@ -57,7 +57,8 @@ body { background: var(--cosmic-dark); }
    pinned to its end, so the stars sit behind the same buttons at every window height (art-src/sidebar-sky.mjs).
    Session AF (L5a, ADR-028 H28): as the sidebar scrolls, the stars layer drifts back by --sky-y (components/shell/
    sidebar-sky.tsx/.css), a parallax at 45 % of the content's speed; 0 at the top, under reduced motion and Motion Off. */
-.app-sidebar { background: url('/art/v24/sidebar-stars.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local, linear-gradient(0deg, #030a1b 0, #030a1b 300px, #060b23 560px, #050a20 700px, #020916 930px) local, #020916; border-right-color: var(--cosmic-edge); }
+/* Session AK: the stars layer never starts higher than 40 px below the sidebar's top. A short list (a device that has not chosen the chain, X1) ends the content near 1,074 px, which had lifted the stars into the clean top quarter; a full list (over ~1,135 px) is placed exactly as before. */
+.app-sidebar { background: url('/art/v24/sidebar-stars.svg') center calc(max(100%, 40px) + var(--sky-y, 0px)) / 240px 1100px no-repeat local, linear-gradient(0deg, #030a1b 0, #030a1b 300px, #060b23 560px, #050a20 700px, #020916 930px) local, #020916; border-right-color: var(--cosmic-edge); }
 .app-sidebar .brand .brand-wordmark, .brand-wordmark { display: inline-block; color: transparent; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; font-size: 37px; font-weight: 750; letter-spacing: -2px; filter: drop-shadow(0 0 10px #4897ff30); }
 .app-sidebar .brand .brand-wordmark > span, .brand-wordmark > span { color: inherit; font-weight: inherit; }
 .product-descriptor { color: #b3cff2; font-size: 14px; padding-top: 12px; letter-spacing: .065em; }

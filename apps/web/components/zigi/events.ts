@@ -1,6 +1,6 @@
 'use client';
 import {useEffect} from 'react';
-import {zigiEvents, zigiState, type ZigiEvent} from './bus';
+import {zigiEvents, zigiSignals, zigiState, type ZigiEvent} from './bus';
 import {oneShotMs, ZIGI_MANIFEST, type ZigiState} from './manifest';
 
 export {zigiEvents, type ZigiEvent} from './bus';
@@ -59,6 +59,8 @@ export function transition(current: ZigiState, event: ZigiEvent, context: ZigiCo
     case 'speaking': return 'speaking';
     case 'idle': return current === 'sleepy' || current === 'listening' || current === 'speaking' || current === 'attention' ? restState(context) : null;
     case 'sleepy': return context.open && current === 'idle' ? 'sleepy' : null;
+    // Session AK Part 12: a reaction's clip plays over the current state (alive.ts); the state stays.
+    case 'reaction': return null;
   }
 }
 /** The state a single event maps to from idle with the panel open and the greeting still due (the manifest test's view). */
@@ -98,11 +100,16 @@ function handle(event: ZigiEvent): void {
  * panel's hook below still does, harmlessly, on the first open). One listener per page whoever starts it: the bus
  * holds listeners in a set, so a second start adds nothing, and the last stop removes it.
  */
-let runners = 0;
+let runners = 0, signalledOnline: boolean | null = null;
 export function startZigiMachine(): () => void {
   runners++;
   const off = zigiEvents.on(handle);
-  const onOffline = () => zigiEvents.emit('offline'), onOnline = () => zigiEvents.emit('online');
+  // Session AK Part 13: the device's own connection change is also the controller's host fact (connection_lost /
+  // connection_restored: Studio-4's R011 / R012), told first so it decides with the state as it was; the machine event
+  // follows as before (a no-op when the controller's own already moved it).
+  // (One signal per change, however many starts listen.)
+  const onOffline = () => { if (signalledOnline !== false) { signalledOnline = false; zigiSignals.emit('connection_lost'); } zigiEvents.emit('offline'); };
+  const onOnline = () => { if (signalledOnline !== true) { signalledOnline = true; zigiSignals.emit('connection_restored'); } zigiEvents.emit('online'); };
   window.addEventListener('offline', onOffline); window.addEventListener('online', onOnline);
   if (navigator.onLine === false && !offline) zigiEvents.emit('offline');
   let stopped = false;

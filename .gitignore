@@ -160,6 +160,8 @@ test-results/
 *.acctest.owner.jsonc
 # The VAPID private key of the push Worker (scripts/push/make-vapid-keys.mjs); never committed.
 *.vapid.owner.json
+# Session AK: the owner's private Worker configs for the public Alpha (docs/run11/PUSH_PUBLIC_ALPHA.md, FOOD_WORKER_PUBLIC_ALPHA.md); never committed.
+*.alpha.owner.jsonc
 # Stage 6 owner plan figures and the generated MARKET_POLICY (scripts/run11/market-policy.mjs); never committed.
 *.market-policy.owner.json
 *.market-policy.private.json

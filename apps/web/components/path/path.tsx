@@ -78,8 +78,11 @@ export type PathProps = {
 /** The orbit look's finale node: where the line ends (Session AG). */
 const FINALE_POINT = 'finale:end';
 const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
-/** Session AG Polish (owner Part 8): ZIGi's greeting clip, played during the cheer that completes an orbit. */
-const ORBIT_CHEER_CLIP = '/brand/figures/zigi/origami-nebula/F002-greeting.anim.webp';
+/** Session AG Polish (owner Part 8): the clip played during the cheer that completes an orbit. Session AK Part 13 (owner
+ *  decision, AF11): Studio-4's X030 cheer replaces the borrowed greeting clip and presenting pose — the manifest's
+ *  `extras.celebrations.cheer` (components/zigi/studio4.ts checklistCelebrationArt; lib/zigi-studio4/slots.test.ts keeps
+ *  this path equal to it), named here so the Checklist's route never carries the manifest. */
+const ORBIT_CHEER_CLIP = '/brand/figures/zigi/origami-nebula/X030-cheer.anim.webp';
 /** After a tick that completes an orbit, the path glides on to the next planet once the orbit's celebration has played. */
 const ORBIT_LAND_AFTER_MS = 1400;
 /** The element that scrolls the path (the full-screen Checklist's own layer), or null for the page. */
@@ -180,9 +183,15 @@ const phoneTabWidth = (label: string, measured?: number) => measured !== undefin
  * in the stage with the tab's own font — on mount, once the web fonts are ready, as each font loads and on a resize. (AG
  * Polish measured on a canvas once, before the font had settled, and cut the tab to exactly that width: "Wa…".)
  */
-/** Each name's width on one line, as the probe draws it (the probe is emptied again after). */
+/** Each name's width on one line, as the probe draws it (the probe is emptied again after).
+ *  Session AK (F8, R9/R10): every name goes into the probe at once, each in its own inline-block (the same font, the
+ *  same max-content width the probe itself took), and all are read after one layout. Writing them one by one forced a
+ *  full page layout per name: 16 names took 2.9 s on Earn at 4× CPU, against 0.16 s now, with identical widths (measured
+ *  in the browser on Earn and on the Showcase Checklist). */
 function measureLabels(probe: HTMLElement, labels: readonly string[]): number[] {
-  const w = labels.map(label => { probe.textContent = label; return Math.round(probe.getBoundingClientRect().width * 10) / 10; });
+  const spans = labels.map(label => { const s = document.createElement('span'); s.style.display = 'inline-block'; s.textContent = label; return s; });
+  probe.replaceChildren(...spans);
+  const w = spans.map(s => Math.round(s.getBoundingClientRect().width * 10) / 10);
   probe.textContent = '';
   return w;
 }

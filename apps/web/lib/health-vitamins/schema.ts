@@ -109,3 +109,15 @@ export function parseVitamin(text: string): number | null {
   return v;
 }
 export const vitaminText = (v: number | undefined) => v === undefined ? '' : String(v / VITAMIN_SCALE);
+/**
+ * Session AK (task 4.4): the vitamins of a food that was just created from a source (the offline library, FoodData
+ * Central), per serving. No entry reads this food yet except the one logged with it, which should read exactly these, so
+ * nothing is frozen; a food that already holds vitamins goes through `setFoodVitamins` instead (it is refused here).
+ */
+export function setNewFoodVitamins(r: HealthVitamins, foodId: string, vitamins: Vitamins): HealthVitamins {
+  id.parse(foodId);
+  const next = clean(vitamins);
+  if (!known(next).length) return r;
+  if (r.foods?.[foodId]) throw Error('This food already has vitamins; edit them on the food.');
+  return healthVitaminsSchema.parse({...r, foods: {...(r.foods ?? {}), [foodId]: next}});
+}

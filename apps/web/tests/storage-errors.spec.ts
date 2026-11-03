@@ -15,8 +15,10 @@ async function oneHabit(page: Page) {
 
 test('QA-03: a check-in over the module limit says so, points to transactional storage, and is not shown as done', async ({page}) => {
   await oneHabit(page);
-  // The next size check reports more than 2 MB: the module limit, exactly as a full module would.
-  await page.evaluate(() => { const encode = TextEncoder.prototype.encode; let armed = true; TextEncoder.prototype.encode = function (text?: string) { const bytes = encode.call(this, text); if (armed && text?.includes('"zigoals-habits"')) { armed = false; return new Uint8Array(2_000_001); } return bytes; }; });
+  // The check-in's own size check reports more than 2 MB: the module limit, exactly as a full module would.
+  // Session AK CI-3: the size check runs on every read of Habits too, so a background re-read used the trap up before the
+  // check-in; it is armed for the check-in's payload only (the habit with an entry; before the check-in it has none).
+  await page.evaluate(() => { const encode = TextEncoder.prototype.encode; let armed = true; TextEncoder.prototype.encode = function (text?: string) { const bytes = encode.call(this, text); if (armed && text?.includes('"zigoals-habits"') && text.includes('"title":"Fictional walk"') && /"entries":\[\{/.test(text)) { armed = false; return new Uint8Array(2_000_001); } return bytes; }; });
   const card = page.getByRole('article', {name: 'Fictional walk', exact: true});
   await card.getByRole('button', {name: 'Complete Fictional walk', exact: true}).click();
   const alert = card.getByRole('alert');

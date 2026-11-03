@@ -4,7 +4,7 @@
  * Nothing here fetches anything: every sound is made on the device.
  */
 type Param = {value?: number; setValueAtTime(v: number, t: number): unknown; linearRampToValueAtTime(v: number, t: number): unknown; exponentialRampToValueAtTime(v: number, t: number): unknown; cancelScheduledValues?(t: number): unknown; setTargetAtTime?(v: number, t: number, c: number): unknown};
-type Node = {connect(to: unknown): unknown; disconnect?(): void};
+type Node = {connect(to: unknown, output?: number, input?: number): unknown; disconnect?(): void};
 type Source = Node & {start(t: number): void; stop(t: number): void};
 export type AudioLike = {
   currentTime: number; destination: unknown; state?: string; sampleRate?: number; resume?: () => Promise<void>;
@@ -13,6 +13,9 @@ export type AudioLike = {
   createBiquadFilter?(): Node & {type: string; frequency: Param; Q: Param};
   createBuffer?(channels: number, length: number, rate: number): {getChannelData(channel: number): Float32Array};
   createBufferSource?(): Source & {buffer: unknown; loop: boolean};
+  /** Session AK: the focus tones put one tone in each ear (a stereo panner, or a channel merger where there is none). */
+  createStereoPanner?(): Node & {pan: Param};
+  createChannelMerger?(inputs: number): Node;
 };
 let shared: AudioLike | null = null;
 export function audioContext(): AudioLike | null {

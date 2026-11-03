@@ -25,8 +25,9 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
     [8, "recipe", "Recipe import refuses http, a private host and an oversized address"],
     [9, "earn", EARN_STAGE.name],
     [10, "checklist", "Checklist: a fictional favourite habit ticks its own record, and Undo restores it"],
+    [11, "ak", "AK: music, bills, chess, the PWA, WalletConnect hosts, and the push and food switches"],
   ]);
-  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7, 9, 10]);
+  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7, 9, 10, 11]);
   expect(VERIFIER_STAGES.filter(stage => stage.reportsItself).map(stage => stage.number)).toEqual([1]);
   expect(Object.isFrozen(VERIFIER_STAGES) && VERIFIER_STAGES.every(Object.isFrozen)).toBe(true);
 });
@@ -35,7 +36,7 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
 // call on the page must be a goto to the page it needs, before anything else touches the page.
 test("every browser stage opens its own page first; stage 3 opens Today", async () => {
   const STOP = Symbol("stop");
-  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex, 9: `${LOCAL}/app/earn`, 10: `${LOCAL}/app/habits` };
+  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex, 9: `${LOCAL}/app/earn`, 10: `${LOCAL}/app/habits`, 11: `${LOCAL}/app/music` };
   for (const stage of VERIFIER_STAGES.filter(s => s.browser)) {
     const calls = [];
     const page = new Proxy({}, { get: (_, name) => (...args) => { calls.push([name, ...args]); throw STOP; } });
@@ -246,4 +247,27 @@ test("stage 1 live: the price probe first, then 3 Alpha, 2 fallback and 2 apex s
   expect(report.review[0]).toMatch(/^live prices: /);
   expect(report.policyWindow.text).toMatch(/not reported/);
   expect(report.freshNonceSamples).toBe(5);
+});
+
+// Session AK P2 (RELEASE_REVIEW_2 R2-7, ADR-036 Q31; `TIER 3 (public-safety labels)`): a device that never chose the chain
+// reads the consumer line in the notice and finds the staking sentence behind its More (Help → About this Alpha). Stage 2
+// reads the sentence where it now lives, in the same words the app shows; Settings' facts block is still read too.
+test("stage 2 reads the Alpha sentence where it lives: behind the notice's More (Help) and in Settings, word for word", () => {
+  const SENTENCE = "Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.";
+  const PLAIN = "Your records stay in this browser and are not a backup.";
+  const web = (path) => readFileSync(new URL(`../../apps/web/${path}`, import.meta.url), "utf8");
+  expect(web("components/shell.tsx")).toContain(`"${SENTENCE}"`);
+  expect(web("components/shell.tsx")).toContain("behindMore={!chain.chosen}");
+  expect(web("components/help/help-page.tsx")).toContain(SENTENCE);
+  expect(web("components/shell/alpha-notice.tsx")).toContain(`'${PLAIN}'`);
+  expect(web("components/shell/alpha-notice.tsx")).toContain('href="/app/help#help-z-about"');
+  const identity = VERIFIER_STAGES.find(stage => stage.key === "identity").run.toString();
+  const at = (text) => { const index = identity.indexOf(text); expect(index, text).toBeGreaterThanOrEqual(0); return index; };
+  // The notice: the consumer line and its More link; then Help's answer, opened, with the sentence; then Settings' block.
+  const plain = at(`toContainText('${PLAIN}')`), more = at("'/app/help#help-z-about'"), help = at("page.locator('#help-z-about')).toContainText('" + SENTENCE + "')");
+  const settings = at("page.locator('.about-alpha .network-banner')).toContainText('" + SENTENCE + "')");
+  expect(plain).toBeLessThan(more); expect(more).toBeLessThan(help); expect(help).toBeLessThan(settings);
+  expect(identity).toContain("toHaveAttribute('open', '')");
+  // The notice itself is no longer asked for the sentence (a device that never chose the chain does not show it there).
+  expect(identity).not.toContain("name: 'Alpha notice'})).toContainText('" + SENTENCE);
 });

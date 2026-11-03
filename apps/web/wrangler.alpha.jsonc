@@ -9,7 +9,8 @@
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS", "run_worker_first": false },
   "services": [
     { "binding": "WORKER_SELF_REFERENCE", "service": "zigoals-alpha" },
-    { "binding": "MARKET_QUOTES", "service": "zigoals-acctest-market-coordinator", "entrypoint": "QuoteService" }
+    { "binding": "MARKET_QUOTES", "service": "zigoals-acctest-market-coordinator", "entrypoint": "QuoteService" },
+    { "binding": "FOOD_LOOKUP", "service": "zigoals-acctest-food-lookup" }
   ],
   "vars": { "ZIGOALS_MARKET_QUOTES_MODE": "durable-v1" },
   "limits": { "cpu_ms": 2000 },

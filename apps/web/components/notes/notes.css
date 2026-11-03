@@ -1,0 +1,169 @@
+/* Session AK (B): Notes — theme tokens only (Nebula, Light with its dark islands, Dark), 44 px targets, phones first, no
+   horizontal scroll at 320 px. The only motion is the graph's orbit dashes drifting, off under reduced motion, Motion Calm
+   (graph-view.tsx sets data-still) and Motion Off. */
+.notes-workspace { display: grid; gap: 16px; min-width: 0; }
+.notes-workspace > * { min-width: 0; }
+.notes-privacy { margin: 0; }
+.note-title { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+.note-status { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; margin: 0; min-height: 44px; font-size: 15px; }
+.note-status .text-link, .note-back .text-link { min-height: 44px; }
+.note-back { margin: 0 0 4px; }
+.note-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.note-actions > button, .note-actions > a { min-height: 44px; }
+
+/* Capture */
+.note-capture { display: grid; gap: 10px; }
+.note-capture-title { margin: 0; font-size: 17px; }
+.note-capture textarea, .note-field textarea { width: 100%; max-width: 100%; box-sizing: border-box; resize: vertical; }
+.note-capture-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.note-capture-actions > button { min-height: 44px; }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-18): the photo and voice buttons are icons, 44 × 44, beside the one primary Save. */
+.note-icon-button { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 10px; }
+.note-capture-photo { display: flex; gap: 12px; align-items: center; }
+.note-capture-photo img, .note-inbox-photo { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; flex: none; }
+.note-capture-status { margin: 0; min-height: 20px; }
+.note-capture-status .text-link { min-height: 44px; }
+.note-voice-ask { flex-basis: 100%; display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); }
+.note-voice-ask p { margin: 0; }
+.note-voice-live { flex-basis: 100%; margin: 0; }
+.note-voice-off { min-height: 44px; }
+
+/* Tabs */
+.note-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.note-tab { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); background: transparent; color: inherit; font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; }
+.note-tab.is-on { border-color: color-mix(in srgb, var(--brand-violet, #826cff) 75%, transparent); background: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent); }
+.note-tab:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-tab-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; font-size: 13px; background: color-mix(in srgb, var(--brand-cyan, #63e7ff) 26%, transparent); }
+
+/* Lists */
+.note-list, .note-results, .note-inbox { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.note-list li, .note-results li { border-bottom: 1px solid var(--line, rgba(140, 160, 220, .18)); padding-bottom: 8px; overflow-wrap: anywhere; }
+.note-list a, .note-results a { display: inline-flex; align-items: center; min-height: 44px; }
+.note-list p, .note-results p { margin: 0; }
+.note-new { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; margin-bottom: 8px; }
+.note-new .field { flex: 1 1 220px; min-width: 0; }
+.note-new button { min-height: 44px; }
+.note-search { display: grid; gap: 6px; margin: 4px 0 12px; }
+
+/* Inbox */
+.note-inbox-item { display: grid; gap: 8px; padding: 12px; border-radius: 14px; border: 1px solid var(--line, rgba(140, 160, 220, .22)); }
+.note-inbox-main { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+.note-inbox-main > div { min-width: 0; }
+.note-inbox-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-inbox-main .fine { margin: 4px 0 0; }
+.note-file { display: grid; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--brand-violet, #826cff) 40%, transparent); min-width: 0; }
+.note-file legend { padding: 0 4px; font-weight: 650; overflow-wrap: anywhere; }
+.note-file-choices { display: flex; flex-wrap: wrap; gap: 0 14px; }
+.note-file-choice { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; cursor: pointer; }
+.note-file select, .note-file input:not([type=radio]) { max-width: 100%; }
+
+/* A day */
+.note-day { display: grid; gap: 12px; }
+.note-day-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.note-day-head button { min-height: 44px; min-width: 44px; }
+.note-this-day { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--brand-violet, #826cff) 8%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); }
+.note-this-day-title { margin: 0; font-size: 14px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--text-meta, inherit); }
+.note-this-day p { margin: 0; }
+.note-this-day-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.note-day-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 4px 14px 4px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+.note-day-chip:hover, .note-day-chip:focus-visible { border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 70%, transparent); }
+.note-day-chip:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-day-chip .pillar-mark-disc { width: 24px; height: 24px; }
+.note-day-chip-title { font-weight: 650; }
+.note-day-chip-detail { font-size: 14px; color: var(--text-secondary, inherit); }
+.note-day-dot { width: 10px; height: 10px; margin: 0 7px; border-radius: 50%; background: var(--brand-cyan, #63e7ff); }
+
+/* A note */
+.note-editor { display: grid; gap: 10px; min-width: 0; }
+.note-field { position: relative; display: grid; gap: 4px; }
+.note-field .fine { margin: 0; }
+.note-field kbd { display: inline-block; padding: 0 5px; border-radius: 6px; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); font: inherit; font-size: 14px; }
+.note-suggest { list-style: none; margin: 0; padding: 6px; display: grid; gap: 2px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 45%, transparent); background: var(--surface-glass, var(--panel, #0d1629)); box-shadow: 0 18px 40px -20px #000c; max-height: 280px; overflow-y: auto; }
+/* Session AK lane EXF (EX-15): `display: grid` above outranked the `hidden` attribute, so an empty bordered strip showed under every note field. */
+.note-suggest[hidden] { display: none; }
+.note-suggest li { display: flex; justify-content: space-between; gap: 12px; align-items: center; min-height: 44px; padding: 4px 12px; border-radius: 10px; cursor: pointer; overflow-wrap: anywhere; }
+.note-suggest li[aria-selected=true] { background: color-mix(in srgb, var(--brand-violet, #826cff) 26%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-cyan, #63e7ff) 50%, transparent); }
+.note-suggest-name { font-weight: 650; }
+.note-suggest-kind { font-size: 14px; color: var(--text-secondary, inherit); flex: none; }
+.note-render { overflow-wrap: anywhere; line-height: 1.55; }
+.note-render > :first-child { margin-top: 0; }
+.note-render pre { overflow-x: auto; max-width: 100%; }
+.note-render blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent); }
+.note-table-wrap { overflow-x: auto; max-width: 100%; }
+.note-link { display: inline; padding: 0 2px; border-radius: 6px; font: inherit; color: inherit; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; background: none; border: 0; cursor: pointer; }
+.note-link.is-note { text-decoration-color: var(--brand-cyan, #63e7ff); }
+.note-link.is-goal { text-decoration-color: var(--brand-violet, #826cff); }
+.note-link.is-habit { text-decoration-color: var(--brand-magenta, #c664ff); }
+.note-link.is-open { text-decoration-style: dashed; text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.note-link:focus-visible { outline: 3px solid var(--cyan, #45d8ef); outline-offset: 2px; }
+.note-embed { font-style: italic; color: var(--text-secondary, inherit); }
+.note-extras { display: grid; gap: 8px; }
+.note-photo { display: block; max-width: min(100%, 420px); height: auto; border-radius: 14px; }
+.note-backlinks { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line, rgba(140, 160, 220, .18)); }
+.note-backlinks-title { margin: 0; font-size: 16px; }
+.note-backlinks ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.note-backlink { display: inline-flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+.note-backlink-line { margin: 0; overflow-wrap: anywhere; }
+.note-backlinks-empty { margin: 0; }
+.note-backlinks-empty .text-link { min-height: 44px; min-width: 44px; justify-content: center; } /* Session AK (M7, layout audit): "Notes" was 43 px wide */
+
+/* Graph */
+.note-graph { display: grid; gap: 10px; min-width: 0; }
+.note-graph-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.note-graph-head p { margin: 0; }
+.note-graph-switch { display: flex; gap: 6px; }
+.note-graph-switch button { min-height: 44px; }
+.note-graph-sky { margin: 0; display: grid; gap: 8px; }
+.note-graph-svg { width: 100%; max-width: 640px; height: auto; margin: 0 auto; display: block; border-radius: 22px; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--brand-violet, #826cff) 22%, transparent), transparent 70%); }
+.note-orbit { fill: none; stroke: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent); stroke-width: 1; stroke-dasharray: 2 7; }
+.note-edge { stroke: color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent); stroke-width: 1.5; }
+.note-edge.is-lit { stroke: var(--brand-cyan, #63e7ff); stroke-width: 2.5; }
+.note-edge.is-dim { opacity: .25; }
+.note-body { cursor: pointer; outline: none; }
+.note-body-hit { fill: transparent; }
+.note-body-dot { stroke: color-mix(in srgb, var(--text-strong, #fff) 70%, transparent); stroke-width: 1.5; fill: var(--brand-cyan, #63e7ff); }
+.note-body.is-goal .note-body-dot { fill: var(--brand-violet, #826cff); }
+.note-body.is-habit .note-body-dot { fill: var(--brand-magenta, #c664ff); }
+.note-body.is-star .note-body-dot { stroke-width: 2; }
+.note-body.is-dim { opacity: .35; }
+.note-body:focus-visible .note-body-hit, .note-body:hover .note-body-hit { stroke: var(--cyan, #45d8ef); stroke-width: 3; }
+.note-body-label { fill: var(--text-strong, currentColor); font-size: 14px; font-weight: 650; paint-order: stroke; stroke: var(--bg, #060b19); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+.note-key { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; }
+.note-key::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--brand-cyan, #63e7ff); }
+.note-key.is-goal::before { background: var(--brand-violet, #826cff); }
+.note-key.is-habit::before { background: var(--brand-magenta, #c664ff); }
+.note-graph-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.note-graph-list li { overflow-wrap: anywhere; border-bottom: 1px solid var(--line, rgba(140, 160, 220, .18)); padding-bottom: 6px; }
+.note-graph-name { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; }
+.note-graph-near { margin: 0; }
+.note-graph-near .text-link { display: inline; }
+.note-graph-empty p { margin: 0 0 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]) .note-graph-sky:not([data-still]) .note-orbit { animation: note-orbit-drift 60s linear infinite; }
+  :root:not([data-app-motion=off]) .note-graph-sky:not([data-still]) .note-orbit[data-ring="2"] { animation-duration: 90s; animation-direction: reverse; }
+}
+@keyframes note-orbit-drift { to { stroke-dashoffset: -180; } }
+
+/* Files */
+.note-files { display: grid; gap: 18px; }
+.note-files section { display: grid; gap: 8px; justify-items: start; }
+.note-files h3 { margin: 0; font-size: 17px; }
+.note-files p { margin: 0; }
+.note-files button { min-height: 44px; }
+.note-import-plan { display: grid; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--line, rgba(140, 160, 220, .3)); max-width: 100%; overflow-wrap: anywhere; }
+.note-import-plan summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+
+/* Quick add's note box (the sheet is a dark island in every theme). Session AK G2 (RELEASE_REVIEW_2 R2-13): the "Note" row
+   itself is one of the sheet's own rows now (components/quick-add.tsx), styled with them, so its copied rules went. */
+.quick-capture-box { display: grid; gap: 8px; padding: 14px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand-cyan, #63e7ff) 35%, transparent); }
+.quick-capture-box > button { justify-self: start; min-height: 44px; }
+/* Session AK WA (B5): "Ask about my notes" below the views. */
+.note-ask { display: grid; gap: 10px; min-width: 0; }
+.note-ask h2 { margin: 0; }
+.note-ask .fine, .note-ask p { margin: 0; overflow-wrap: anywhere; }
+.note-ask-actions a { display: inline-flex; align-items: center; min-height: 44px; }
+.note-ask-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }
+.note-ask-form .field { flex: 1 1 220px; min-width: 0; }
+.note-ask-form input, .note-ask-form button { min-height: 44px; }
+.note-ask-form .note-ask-privacy { flex: 1 0 100%; }
+.note-ask-example { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line, rgba(128, 128, 160, .35)); min-width: 0; }

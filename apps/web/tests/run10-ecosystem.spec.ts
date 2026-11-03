@@ -1,4 +1,8 @@
 import {test,expect} from '@playwright/test';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Ecosystem.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 test('ecosystem filters, clears, opens useful details and keeps external links private',async({page})=>{
  await page.goto('/app/ecosystem');await expect(page.getByRole('heading',{name:'Explore the ZIGChain ecosystem.'})).toBeVisible();
  const search=page.getByRole('searchbox',{name:'Search projects'});await search.fill('oro');await expect(page.locator('.ecosystem-project')).toHaveCount(1);const card=page.locator('.ecosystem-project');await expect(card.getByRole('heading',{name:'OroSwap'})).toBeVisible();

@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {audit} from './a11y-audit';
 import {openMealLog} from './phone-nav';
+import {chooseChain} from './chain-choice';
 
 /**
  * Session V Part 16, the accessibility pass for people using a screen reader and for AI agents that drive a page by
@@ -73,6 +74,9 @@ test('habit check-in on Habits and on Today', async ({page}) => {
 });
 
 test('goal creation, a contribution and the add-asset form', async ({page}) => {
+  // Session AK X1 (RELEASE_REVIEW R5): the Goal asset field leads only the chosen chain's wizard (a new device starts with
+  // money in its currency; tests/consumer-first-x1.spec.ts covers that one); this test chooses it as a person does.
+  await chooseChain(page);
   await seed(page);
   await page.goto('/app/goals/new');
   await clean(page.locator('main'), 'New goal');

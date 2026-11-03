@@ -17,7 +17,7 @@ import {dailyData, healthDay} from '../../lib/health-daily';
 import {latestHabitRule} from '../../lib/habits';
 import {sealDay, todayOf} from '../../lib/checklist/day';
 import {deriveDots, summarise, type DerivedDot, type DeriveSources} from '../../lib/checklist/derive';
-import {TickRefused, fastPlan, focusPlan, meditationTimerPlan, planTick, sleepPlan, type TickContext, type TickPlan, type Write} from '../../lib/checklist/adapters';
+import type {TickContext, TickPlan, Write} from '../../lib/checklist/adapters';
 import {checklistStreak} from '../../lib/checklist/streak';
 import {tickFeedback} from '../../lib/checklist/feedback';
 import {addCustom, addFavourite, newChecklistId, rememberValue, type FavouriteRef} from '../../lib/checklist/store';
@@ -33,7 +33,16 @@ import {useChecklistDays, useChecklistRecord} from './use-checklist-record';
  * that owns it. Nothing the Checklist shows is a copy of a record.
  */
 export type TickOutcome = {ok: true; message: string} | {ok: false; message: string};
-const errorText = (e: unknown, fallback: string) => e instanceof TickRefused ? e.message : storageMessageOr(e, fallback);
+/**
+ * Session AK (route weight, /app/checklist): the tick plans (lib/checklist/adapters.ts) are not part of the first paint.
+ * They load right after the hook mounts, and a tick or timer asked once they are here plans in the same task as before;
+ * only one asked in the moment before they arrive waits for them. Nothing else changes.
+ */
+type Adapters = typeof import('../../lib/checklist/adapters');
+let adapters: Adapters | undefined;
+const loadAdapters = async () => adapters ??= await import('../../lib/checklist/adapters');
+// A TickRefused can only exist once the plans have loaded.
+const errorText = (e: unknown, fallback: string) => adapters && e instanceof adapters.TickRefused ? e.message : storageMessageOr(e, fallback);
 
 export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   const record = useChecklistRecord(), days = useChecklistDays(), {date, zone: dayZone} = useChecklistDay();
@@ -45,6 +54,7 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   const healthTz = health.loaded ? dailyData(health.data).preferences.timezone : null;
   const loaded = !!date && record.loaded && days.loaded && habits.loaded && health.loaded && sleep.loaded && meditation.loaded && fasting.loaded && platform.loaded;
   const hDay = useMemo(() => date ? healthDay(healthTz) : '', [date, healthTz]);
+  useEffect(() => { loadAdapters().catch(() => undefined); }, []);
 
   const sourcesFor = useCallback((day: string): DeriveSources => ({
     habits: habits.data, habitsDay: day === date ? habits.today : day, health: health.data, healthDay: day === date ? hDay : day,
@@ -105,7 +115,7 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   const tick = useCallback(async (dot: DerivedDot, intent: 'tick' | 'value', value?: number): Promise<TickOutcome> => {
     const ctx = ctxFor(value); if (!ctx) return {ok: false, message: 'Still loading.'};
     let plan: TickPlan;
-    try { plan = planTick(dot, ctx, intent); } catch (e) { return {ok: false, message: errorText(e, 'This dot cannot be ticked here.')}; }
+    try { plan = (adapters ?? await loadAdapters()).planTick(dot, ctx, intent); } catch (e) { return {ok: false, message: errorText(e, 'This dot cannot be ticked here.')}; }
     const outcome = await run(plan, dot.id);
     if (outcome.ok && value !== undefined) { try { record.update(r => rememberValue(r, dot.id, value)); } catch { /* the value is logged; only the stepper's memory was not saved */ } }
     return outcome;
@@ -123,6 +133,7 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
     const dotFor = (input: string) => dots.find(d => d.kind === 'health' && d.input === input) ?? null;
     let plan: TickPlan;
     try {
+      const {fastPlan, focusPlan, meditationTimerPlan, sleepPlan} = adapters ?? await loadAdapters();
       plan = kind === 'sleep' ? sleepPlan(dotFor('sleep'), ctx) : kind === 'fast' ? fastPlan(dotFor('fast'), ctx, fasting.data.sessions.at(-1)?.targetHours ?? 16) : kind === 'meditate' ? meditationTimerPlan(ctx, dotFor('meditation')?.item.defaultValue ?? 10) : focusPlan(focusHabit, ctx);
     } catch (e) { return {ok: false, message: errorText(e, 'This timer cannot start here.')}; }
     return run(plan);

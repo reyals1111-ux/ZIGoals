@@ -1,0 +1,5 @@
+/* Session AK security review Z1B-10 (lane ZF): the photo and where it goes, before it is sent. Theme tokens only. */
+.photo-send-confirm { display: grid; gap: 8px; border-inline-start: 3px solid var(--line); padding-inline-start: 10px; margin-block: 6px; max-inline-size: 100%; }
+.photo-send-confirm p { margin: 0; overflow-wrap: anywhere; }
+.photo-send-confirm img { display: block; max-inline-size: min(100%, 320px); max-block-size: 240px; inline-size: auto; block-size: auto; object-fit: contain; border-radius: 10px; border: 1px solid var(--line); }
+.photo-send-confirm .actions button { min-height: 44px; }

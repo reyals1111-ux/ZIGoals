@@ -46,7 +46,7 @@ export function mapHttpError(provider: ProviderId, status: number, bodyText: str
   const parsed = parseErrorBody(bodyText), detail = detailOf(parsed), retry = retryAfterSeconds(headers);
   const code = `${parsed.code ?? ''} ${parsed.type ?? ''} ${parsed.status ?? ''}`.toLowerCase();
   const o = {status, provider, retryAfterSeconds: retry};
-  if (status === 401 || /authentication|invalid_api_key|unauthenticated|invalid credentials/.test(code)) return new AiError('bad-key', 'The key was not accepted. Check it in Settings → ZIGi · Your Personal AI Companion, or create a new one at your provider.', o);
+  if (status === 401 || /authentication|invalid_api_key|unauthenticated|invalid credentials/.test(code)) return new AiError('bad-key', 'The key was not accepted. Check it in Settings → Your assistant → ZIGi · Your Personal AI Companion, or create a new one at your provider.', o);
   if (status === 402 || /insufficient_quota|credit_balance|billing|spend_limit|usage_limit|insufficient credits/.test(code)) return new AiError('no-credit', 'Your provider reports no credit or a spending limit for this key. Top up or raise the limit there; nothing is billed by ZIGoals.', o);
   if (status === 403) {
     if (provider === 'gemini' || /permission/.test(code)) return new AiError('bad-key', 'This key is not allowed to use that model or service. Check the key\'s permissions at your provider.', o);
@@ -72,7 +72,7 @@ export function mapNetworkError(provider: ProviderId, error: unknown, context: {
 /** Fix steps for the interface, as data: provider-specific where the documentation gives a switch to flip. */
 export function errorSteps(error: AiError, context: {providerName: string; local?: {server: 'ollama' | 'openai-compatible' | null; baseUrl: string}; hostedPage: boolean; keysUrl: string | null}): string[] {
   switch (error.kind) {
-    case 'bad-key': return [`Open Settings → ZIGi · Your Personal AI Companion and paste the key again.`, context.keysUrl ? `Or create a new key at ${context.keysUrl}.` : 'Or check the server\'s token setting.'];
+    case 'bad-key': return [`Open Settings → Your assistant → ZIGi · Your Personal AI Companion and paste the key again.`, context.keysUrl ? `Or create a new key at ${context.keysUrl}.` : 'Or check the server\'s token setting.'];
     case 'no-credit': return [`Add credit or raise the limit at ${context.providerName}.`, 'ZIGoals bills nothing; costs are between you and your provider.'];
     case 'rate-limit': return [error.retryAfterSeconds ? `Wait about ${error.retryAfterSeconds} s, then send again.` : 'Wait a moment, then send again.', 'Shorter messages and a smaller context budget help.'];
     case 'model-missing': return ['Choose another model in the header.', 'A local server needs the model pulled or loaded first.'];
@@ -80,7 +80,7 @@ export function errorSteps(error: AiError, context: {providerName: string; local
       const steps = [`Start the server at ${context.local?.baseUrl ?? 'its address'} on this computer.`];
       if (context.local?.server !== 'openai-compatible') steps.push(context.hostedPage ? 'Ollama: allow this site with OLLAMA_ORIGINS=https://alpha.zigoals.app, then restart Ollama.' : 'Ollama allows pages on localhost and 127.0.0.1 by default.');
       if (context.local?.server !== 'ollama') steps.push('LM Studio: Developer → Server Settings → turn "Enable CORS" on.');
-      if (context.hostedPage) steps.push('Chrome 142+ asks once to "connect to devices on your local network": allow it.');
+      if (context.hostedPage) steps.push('Chrome 145+ (and Edge, and Firefox 151+) asks once to let this site reach apps and services on this device: allow it. Safari cannot reach a model on this computer from a web page.'); // docs/research/session-ak/NOVA.md §2
       steps.push('A phone cannot reach a computer\'s localhost: use a cloud provider there.');
       return steps;
     }

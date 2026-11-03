@@ -1,0 +1,125 @@
+/* Session AK (F5d): the agenda — a day, a week or a month of the person's own plans. Theme colours from the app's own
+   variables; 44 px targets; no motion of its own. The month grid turns into a list where seven 44 px days do not fit. */
+.agenda-page { display: grid; gap: 18px; width: min(920px, 100%); margin: 0 auto; }
+.agenda-links { margin: 0; }
+.agenda-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }
+.agenda-skeleton { min-height: 260px; }
+.agenda-showcase, .agenda-fine { margin: 0; }
+.agenda-teach { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.agenda-teach a { display: inline-flex; align-items: center; min-height: 44px; }
+.agenda-panel { display: grid; gap: 12px; min-width: 0; }
+.agenda-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.agenda-views, .agenda-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.agenda-views button, .agenda-nav button { min-height: 44px; min-width: 44px; }
+.agenda-views button[aria-pressed=true] { border-color: var(--brand-cyan, var(--cyan)); box-shadow: inset 0 0 0 1px var(--brand-cyan, var(--cyan)); font-weight: 750; }
+.agenda-range { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; font-size: 20px; }
+.agenda-range small, .agenda-check small { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.agenda-filter summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 650; }
+.agenda-filter fieldset, .agenda-export fieldset { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; border: 0; }
+.agenda-export legend { margin-bottom: 4px; font-weight: 700; }
+.agenda-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; }
+.agenda-check input { width: 22px; height: 22px; margin: 0; }
+
+.agenda-week { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.agenda-day { display: grid; gap: 6px; min-width: 0; }
+.agenda-day-title { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 17px; }
+.agenda-today { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; font-weight: 650; color: var(--brand-cyan, var(--cyan)); }
+.agenda-nothing { margin: 0; font-size: 15px; color: var(--text-secondary); }
+.agenda-items { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.agenda-item { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; align-items: start; padding: 6px 10px; border-radius: 14px; border: 1px solid var(--line, #ffffff1f); box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)); }
+.agenda-item[data-pillar=habits] { --agenda-accent: var(--pillar-habits); }
+.agenda-item[data-pillar=health] { --agenda-accent: var(--pillar-health); }
+.agenda-item[data-pillar=goals] { --agenda-accent: var(--pillar-goals); }
+.agenda-item[data-pillar=wealth] { --agenda-accent: var(--pillar-wealth); }
+.agenda-time { padding-top: 11px; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.agenda-item-main { display: grid; min-width: 0; }
+.agenda-item-title { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+.agenda-item[data-state=done] .agenda-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.agenda-item-meta { margin: 0 0 4px; font-size: 14px; color: var(--text-secondary); overflow-wrap: anywhere; }
+.agenda-badge { font-weight: 700; color: var(--text); }
+.agenda-badge.is-example { color: var(--brand-cyan, var(--cyan)); }
+
+.agenda-month { display: grid; gap: 12px; container-type: inline-size; }
+.agenda-weekdays, .agenda-grid { display: grid; grid-template-columns: repeat(7, minmax(44px, 1fr)); gap: 4px; }
+.agenda-weekdays span { text-align: center; font-size: 14px; font-weight: 650; color: var(--text-secondary); }
+.agenda-grid { margin: 0; padding: 0; list-style: none; }
+.agenda-cell { display: grid; align-content: start; justify-items: center; gap: 2px; width: 100%; min-height: 56px; padding: 6px 2px; border-radius: 12px; border: 1px solid var(--line, #ffffff1f); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.agenda-cell:focus-visible { outline: 2px solid var(--brand-cyan, var(--cyan)); outline-offset: 2px; }
+.agenda-cell[aria-pressed=true] { border-color: var(--brand-cyan, var(--cyan)); box-shadow: inset 0 0 0 1px var(--brand-cyan, var(--cyan)); }
+.agenda-cell[aria-current=date] .agenda-cell-day { color: var(--brand-cyan, var(--cyan)); text-decoration: underline; text-underline-offset: 3px; }
+.agenda-grid li[data-out] .agenda-cell { opacity: .6; }
+.agenda-cell-day { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.agenda-cell-weekday { display: none; }
+.agenda-cell-dots { display: flex; align-items: center; gap: 2px; }
+.agenda-cell-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+.agenda-cell-dots i[data-pillar=habits] { background: var(--pillar-habits); }
+.agenda-cell-dots i[data-pillar=health] { background: var(--pillar-health); }
+.agenda-cell-dots i[data-pillar=goals] { background: var(--pillar-goals); }
+.agenda-cell-dots i[data-pillar=wealth] { background: var(--pillar-wealth); }
+.agenda-cell-dots b { margin-left: 2px; font-size: 12px; font-weight: 650; color: var(--text-secondary); }
+/* Seven 44 px days and their gaps need 332 px; narrower, the month is a list of its own days. */
+@container (max-width: 331.98px) {
+  .agenda-weekdays { display: none; }
+  .agenda-grid { grid-template-columns: minmax(0, 1fr); }
+  .agenda-grid li[data-out] { display: none; }
+  .agenda-cell { grid-template-columns: 3ch 3ch 1fr; justify-items: start; align-items: center; min-height: 44px; padding: 4px 12px; }
+  .agenda-cell-weekday { display: inline; font-size: 14px; color: var(--text-secondary); }
+  .agenda-cell-dots { justify-self: end; }
+}
+
+.agenda-export-panel { display: grid; gap: 10px; }
+.agenda-export-panel h2, .agenda-export-panel p { margin: 0; }
+.agenda-export-panel > button { justify-self: start; min-height: 44px; }
+.agenda-export { display: grid; gap: 12px; }
+.agenda-export-sum { font-weight: 650; }
+.agenda-export-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.agenda-export-actions button { min-height: 44px; }
+@media (max-width: 767.98px) {
+  .agenda-item { grid-template-columns: 64px minmax(0, 1fr); padding: 4px 8px; }
+  .agenda-range { font-size: 18px; }
+}
+
+/* Session AK (F6): richer cards. Each item keeps its pillar's edge, now with a faint wash of the same colour and a soft
+   depth; rows and day cells brighten their rim on hover (liquid glass without pointer tracking: nothing follows the
+   pointer, nothing moves); an item whose link has keyboard focus shows it on the whole row. */
+.agenda-item { background: linear-gradient(90deg, color-mix(in srgb, var(--agenda-accent, var(--line)) 9%, transparent), transparent 55%); box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)), 0 10px 24px -22px color-mix(in srgb, var(--brand-violet) 70%, transparent); transition: border-color 160ms ease, background-color 160ms ease; }
+.agenda-item:has(.agenda-item-title:focus-visible) { border-color: var(--brand-cyan, var(--cyan)); }
+.agenda-item-title:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+.agenda-cell { transition: border-color 160ms ease, background-color 160ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .agenda-item:hover { border-color: color-mix(in srgb, var(--agenda-accent, var(--brand-violet)) 55%, var(--line, transparent)); background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent); }
+  .agenda-cell:hover { border-color: color-mix(in srgb, var(--brand-cyan) 55%, var(--line, transparent)); background-color: color-mix(in srgb, var(--brand-cyan) 6%, transparent); }
+}
+.agenda-filter summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { .agenda-item, .agenda-cell { transition: none; } }
+:root[data-app-motion=off] :is(.agenda-item, .agenda-cell) { transition: none; }
+
+/* Session AK (T1, T2): tasks (ticked here) and imported events (read-only) beside the person's own plans. A task without a
+   goal and an imported event take the nebula cyan as their edge; imported events are dashed, so "someone else's
+   calendar" reads without colour alone. */
+.agenda-item[data-pillar=life] { --agenda-accent: var(--brand-cyan, var(--cyan)); }
+.agenda-cell-dots i[data-pillar=life] { background: var(--brand-cyan, var(--cyan)); }
+.agenda-check[data-pillar=task], .agenda-check[data-pillar=event] { font-size: 16px; }
+.agenda-task-main { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0 6px; }
+.agenda-task-tick { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.agenda-task-tick input { width: 22px; height: 22px; margin: 0; }
+.agenda-task-text { display: grid; min-width: 0; }
+.agenda-task-focus { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+.agenda-task[data-state=done] .agenda-item-title { text-decoration: line-through; text-decoration-thickness: 1px; }
+.agenda-overdue { color: var(--warning, #e8a33d); }
+.agenda-event { border-style: dashed; }
+.agenda-event .agenda-item-title { cursor: default; }
+.agenda-calendars { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.agenda-calendars li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-height: 44px; border-bottom: 1px solid var(--line, #ffffff1f); }
+.agenda-calendars li span { overflow-wrap: anywhere; min-width: 0; }
+.agenda-calendars small { color: var(--text-secondary); font-size: 14px; }
+.agenda-calendars .text-link, .agenda-import-panel > p .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.agenda-import-panel h2:focus { outline: none; }
+.agenda-import { display: grid; gap: 10px; }
+.agenda-import-preview { display: grid; gap: 8px; }
+.agenda-import-file input { min-height: 44px; max-width: 100%; }
+.agenda-panel .tasks-add { margin-top: 4px; }
+@media (max-width: 379.98px) {
+  .agenda-task-main { grid-template-columns: auto minmax(0, 1fr); }
+  .agenda-task-focus { grid-column: 2; justify-self: start; }
+}

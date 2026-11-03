@@ -1,5 +1,6 @@
 'use client';
-import {useEffect, useId, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useId, useRef, useState} from 'react';
+import {LoadBoundary} from '../load-boundary';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {usePlatform} from '../platform/use-platform';
 import {FOCUS_LENGTHS, focusNote, withFocusNote} from '../../lib/focus-session';
@@ -17,11 +18,17 @@ import {formatNumber} from '../../lib/visual-format';
  * The sprout's growth is a size change only, smooth when motion is allowed and stepped with reduced motion or Motion Off.
  */
 const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)} ${n === 1 ? one : many}`;
+// Session AK (T3): Pomodoro mode, its own chunk, loaded when the person picks it (or a run is already going).
+const PomodoroPanel = lazy(() => import('../focus/pomodoro-panel'));
+const pomodoroRunning = () => import('../../lib/focus-sessions/pomodoro-run').then(m => !!m.pomodoroSnapshot().run);
 export function FocusGarden() {
   const record = useDeviceRecord(FOCUS_SESSIONS), platform = usePlatform(), id = useId();
   const [length, setLength] = useState<number>(25), [goalId, setGoalId] = useState(''), [tally, setTally] = useState<Tally | null>(null), [now, setNow] = useState(() => Date.now());
   const [last, setLast] = useState<FocusSessionEntry | null>(null), [status, setStatus] = useState('');
   const tick = useRef<number | null>(null);
+  const [mode, setMode] = useState<'one' | 'pomodoro'>('one');
+  // A run started elsewhere (the Tasks page, NOVA) shows here as it goes.
+  useEffect(() => { let on = true; if (/[?&]focus=pomodoro\b/.test(window.location.search)) queueMicrotask(() => setMode('pomodoro')); else void pomodoroRunning().then(r => { if (on && r) setMode('pomodoro'); }, () => undefined); return () => { on = false; }; }, []);
   useEffect(() => {
     if (!tally) return;
     const visible = () => setTally(t => t ? onVisibility(t, document.visibilityState === 'hidden', Date.now()) : t);
@@ -51,6 +58,11 @@ export function FocusGarden() {
   return <section id="focus" className="panel focus-garden" aria-labelledby={`${id}-t`}>
     <p className="eyebrow">FOCUS SESSIONS</p>
     <h2 id={`${id}-t`}>Grow something while you focus</h2>
+    {!tally && <div className="focus-lengths focus-modes" role="group" aria-label="Kind of session">
+      <button type="button" className="secondary" aria-pressed={mode === 'one'} onClick={() => setMode('one')}>One session</button>
+      <button type="button" className="secondary" aria-pressed={mode === 'pomodoro'} onClick={() => setMode('pomodoro')}>Pomodoro</button>
+    </div>}
+    {mode === 'pomodoro' && !tally ? <LoadBoundary quiet><Suspense fallback={<p className="fine">Opening Pomodoro…</p>}><PomodoroPanel /></Suspense></LoadBoundary> : <>
     <div className="focus-stage" data-state={tally ? 'growing' : last?.outcome ?? 'idle'}>
       <svg className="focus-sprout" viewBox="0 0 60 60" aria-hidden="true" style={{'--grow': tally ? 0.25 + progress * 0.75 : last?.outcome === 'grown' ? 1 : last ? 0.6 : 0.25} as React.CSSProperties}>
         <path d="M30 56 V30" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
@@ -64,6 +76,7 @@ export function FocusGarden() {
       <button type="button" className="primary" onClick={() => { setStatus(''); setLast(null); const t = Date.now(); setTally(startTally(t, length)); setNow(t); }}>Start {length} minutes</button>
       {last?.goalId && last.outcome && focusNote(last.focusedSeconds / 60, last.day) && <button type="button" className="secondary" onClick={addNote}>Add to the goal&rsquo;s notes</button>}
     </div> : <div className="focus-controls"><button type="button" className="secondary" onClick={() => finish(true)}>End early</button></div>}
+    </>}
     {garden && (garden.grown + garden.withered > 0) && <p className="focus-garden-line">Your garden: {plural(garden.grown, 'grown', 'grown')}, {plural(garden.withered, 'withered', 'withered')} (kept). This week: {plural(garden.weekMinutes, 'minute')} of focus in {plural(garden.weekSessions, 'session')}.</p>}
     <p className="fine">Honest note: a web page cannot block other apps or sites. ZIGoals only notices when this page is hidden and counts that time as away. Nothing is saved until a session ends.</p>
   </section>;

@@ -1,0 +1,17 @@
+/* Session AK (item 21): the habit form's phrase box. Theme tokens only; unknown words are marked with a dotted underline
+   and named in text as well, so colour is never the only signal. */
+.recurrence-phrase { display: grid; gap: 6px; margin-block: 4px 10px; }
+.recurrence-phrase-echo { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
+.recurrence-phrase-known { font-weight: 600; }
+.recurrence-phrase-filler { color: var(--muted); }
+.recurrence-phrase-unknown {
+  background: color-mix(in srgb, var(--health-behind) 22%, transparent); color: inherit;
+  text-decoration: underline dotted 2px; text-underline-offset: 3px; border-radius: 4px; padding: 0 2px;
+}
+.recurrence-phrase-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.recurrence-phrase-chips li {
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; min-height: 32px; display: inline-flex; align-items: center;
+  background: color-mix(in srgb, var(--health-ahead) 12%, transparent); max-inline-size: 100%; overflow-wrap: anywhere;
+}
+.recurrence-phrase-problem { margin: 0; font-weight: 600; }
+.recurrence-phrase .actions button { min-height: 44px; }

@@ -1,0 +1,8 @@
+/* Session AK G2 (RELEASE_REVIEW_2 R2-4): NOVA's links in Settings → Your assistant; the Your data door's look (components/ui/ui.css). */
+.settings-assistant-lede { margin: 0 0 14px; max-width: 70ch; }
+.nova-settings-links { margin-top: 18px; }
+.nova-settings-links h2 { margin-top: 0; }
+.nova-settings-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+.nova-settings-link { display: grid; align-content: center; gap: 4px; min-height: 64px; height: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px; color: var(--text-strong); text-decoration: none; }
+.nova-settings-link small { font-size: 15px; color: var(--text-secondary); }
+.nova-settings-link:hover, .nova-settings-link:focus-visible { border-color: var(--brand-cyan); }

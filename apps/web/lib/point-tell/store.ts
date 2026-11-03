@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import {anchorOf, roleOf, safeAnchorValue} from './describe';
 import type {DeviceRecordSpec} from '../device-record';
 import {POINT_TELL_KEY} from '../ab-cloud-device-keys';
 
@@ -64,22 +65,17 @@ export function pinsMailto(address: string, text: string): string {
 }
 
 /** A readable name for a picked element: its region, its label, its heading, else its own text (never a form value). */
+/**
+ * Session AK (ADR-036 A17; hardened from Session AB-Cloud C23): what a pin says about the part of the page it points at —
+ * ONLY the element's role and one stable developer-made name (a `data-region`, `data-layout-item`, `data-testid` or
+ * `id`, with anything that looks like a record id masked as `#`; lib/point-tell/describe.ts). Never visible text, an
+ * input's value, an aria-label, a title or a heading: the person's own words go in the note they type.
+ */
 export function describeTarget(el: Element): {target: string; selector: string} {
-  const region = el.closest('[data-region]');
-  const labelled = el.closest('[aria-label],[aria-labelledby]');
-  const section = el.closest('section,article,aside,nav,form,dialog,[role=region],[role=dialog],main');
-  const heading = section?.querySelector('h1,h2,h3,h4,legend,[role=heading]');
-  const own = el.closest('button,a,label,summary,h1,h2,h3,h4,th,[role=button],[role=tab],[role=link]');
-  const labelOf = (node: Element | null): string => {
-    if (!node) return '';
-    const by = node.getAttribute('aria-labelledby');
-    if (by) { const text = by.split(/\s+/).map(id => node.ownerDocument.getElementById(id)?.textContent ?? '').join(' '); if (text.trim()) return text; }
-    return node.getAttribute('aria-label') ?? '';
-  };
-  const ownText = own && !(own instanceof HTMLInputElement) ? (own.getAttribute('aria-label') || own.textContent || '') : '';
-  const parts = [ownText, region?.getAttribute('data-region') ?? '', labelOf(labelled), heading?.textContent ?? ''].map(t => clip(t, 60)).filter(Boolean);
-  const unique = parts.filter((t, i) => parts.indexOf(t) === i).slice(0, 2);
-  return {target: clip(unique.join(' · ') || el.tagName.toLowerCase(), MAX_TARGET), selector: selectorOf(el)};
+  const own = el.closest('button,a,label,summary,input,select,textarea,h1,h2,h3,h4,th,[role]') ?? el;
+  const region = safeAnchorValue(el.closest('[data-region]')?.getAttribute('data-region') ?? null);
+  const anchor = region ?? anchorOf(el)?.value ?? null;
+  return {target: clip([roleOf(own), anchor].filter(Boolean).join(' · '), MAX_TARGET), selector: selectorOf(el)};
 }
 /** A short selector to find the element again on this device: a data-region, an id, or up to four tag:nth-of-type steps. */
 export function selectorOf(el: Element): string {
@@ -88,7 +84,7 @@ export function selectorOf(el: Element): string {
   const steps: string[] = [];
   let node: Element | null = el;
   while (node && steps.length < 4 && node.tagName !== 'BODY' && node.tagName !== 'HTML') {
-    if (node.id && /^[A-Za-z][\w-]{0,60}$/.test(node.id)) { steps.unshift(`#${node.id}`); break; }
+    if (node.id && /^[A-Za-z][\w-]{0,60}$/.test(node.id) && safeAnchorValue(node.id) === node.id) { steps.unshift(`#${node.id}`); break; }
     const parent: Element | null = node.parentElement, tag = node.tagName.toLowerCase();
     const index = parent ? [...parent.children].filter(c => c.tagName === node!.tagName).indexOf(node) + 1 : 1;
     steps.unshift(`${tag}:nth-of-type(${index})`);

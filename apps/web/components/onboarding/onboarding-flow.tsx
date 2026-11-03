@@ -24,7 +24,7 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
-import { FOCUSES, ONBOARDING_SETUP, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { FOCUSES, LANDING_NOTE, ONBOARDING_SETUP, SAVING_HABIT, focusHabitInput, focusHabitRhythm, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
 import { setHabitState } from "../../lib/habits";
 import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
 import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
@@ -39,7 +39,7 @@ import { setSleepGoal } from "../../lib/sleep/engine";
 import { formatMinutes } from "../../lib/zone-time";
 import { updateHealthGroup } from "../../lib/w-homes-store";
 import { HABIT_GROUP_LABEL, habitTemplateInputOf, hasHabitLike } from "../../lib/templates/habits";
-import { PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits, type Pillar } from "../../lib/templates/pillars";
+import { EXTRA_PILLARS, MAIN_PILLARS, PILLAR_TEXT, pagesForPillars, pagesShownFor, presetForPillars, starterHabits, type Pillar } from "../../lib/templates/pillars";
 import { PAGE_LABEL, startHref, viewOf } from "../../lib/pages/visibility";
 import { settingsGroupIn, withSettingsGroup } from "../../lib/vault/w-homes";
 import { announceModuleChange, updateSettings } from "../../lib/sync-homes-store";
@@ -96,7 +96,9 @@ export function OnboardingFlow() {
   // Session AA-Local S4: two or three focuses, which pre-select starters, a goal and Today's widgets; the setup is recorded for a day so it can be undone.
   const [focuses, setFocuses] = useState<FocusId[]>([]), [setupDone, setSetupDone] = useState(() => { try { return readDeviceRecord(getAppStorage(), ONBOARDING_SETUP).data; } catch { return null; } }), [undoBusy, setUndoBusy] = useState(false);
   const [draft, setDraft] = useState<GoalDraft>(NO_GOAL), [goal, setGoal] = useState<PrivateGoal | null>(null);
+  const [goalError, setGoalError] = useState<{field: 'name' | 'target' | 'date'; text: string} | null>(null);
   const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
+  const [skippedFocusHabits, setSkippedFocusHabits] = useState<string[]>([]);
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null), first = useRef(true), id = useId();
   const index = STEPS.indexOf(step);
@@ -113,16 +115,25 @@ export function OnboardingFlow() {
   const demoAvailable = legacy.loaded && legacy.mode === "local";
   const currentPages = ready && !settings.error ? settingsGroupIn(settings.data, "pages") : undefined;
   const existingTitles = habits.data.habits.map(h => h.title);
-  const starters = starterHabits(pillars), preset = presetForPillars(pillars);
+  const suggested = suggestionsFor(focuses);
+  // Session AK P4 (FR-8): "Put money aside" from the "Save for something" focus is weekly and linked to the setup's goal
+  // (focusHabitInput). The Money starter of the same name (no goal link) hid it whenever "Goals & money" was picked; the
+  // focus's habit now takes that starter's place.
+  const savingFromFocus = suggested.habits.includes(SAVING_HABIT);
+  const starters = starterHabits(pillars).filter(t => !(savingFromFocus && t.title.toLowerCase() === SAVING_HABIT.toLowerCase())), preset = presetForPillars(pillars);
   const focusPillars = new Set(pillars.flatMap(p => p === "goals-money" ? ["goals", "wealth"] : p === "habits" ? ["habits"] : p === "health-food" ? ["health"] : p === "sleep-mind" ? ["health", "habits"] : []));
   const focusChoices = FOCUSES.filter(f => focusPillars.size === 0 || focusPillars.has(f.pillar));
-  const suggested = suggestionsFor(focuses);
   /** Starters the focuses ask for that no template carries: created as plain daily habits. */
-  const extraHabits = suggested.habits.filter(title => !starters.some(t => t.title.toLowerCase() === title.toLowerCase()) && !existingTitles.some(e => e.trim().toLowerCase() === title.toLowerCase()));
+  const focusHabits = suggested.habits.filter(title => !starters.some(t => t.title.toLowerCase() === title.toLowerCase()) && !existingTitles.some(e => e.trim().toLowerCase() === title.toLowerCase()));
+  // Session AK G2 (RELEASE_REVIEW R21): a habit that came from a focus is a normal choice, ticked to start with (it had been
+  // a dimmed, disabled tick that looked unavailable); unticking it leaves it out of the setup.
+  const extraHabits = focusHabits.filter(title => !skippedFocusHabits.includes(title.toLowerCase()));
   // Only the starters on screen, in their order: a pick hidden by a later change of pillars is not saved.
   const pickedHabits = starters.filter(t => habitIds.includes(t.id) && !hasHabitLike(existingTitles, t));
-  const shown = pagesShownFor(pillars, currentPages);
-  const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages) !== null;
+  // Session AK G2 (RELEASE_REVIEW_2 R2-12): a habit this setup creates keeps the Habits page shown, whatever was picked.
+  const also = pickedHabits.length || extraHabits.length ? ["habits" as const] : [];
+  const shown = pagesShownFor(pillars, currentPages, also);
+  const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages, also) !== null;
   const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind");
   // Session AH (TO4, N-094): the targets follow the habits picked above (Walk is 8,000 steps a day, Drink water 2 L)
   // until the person chooses a target themselves.
@@ -133,7 +144,8 @@ export function OnboardingFlow() {
     if (!touched.current.steps) setSteps(titles.includes("walk") ? 8000 : null);
     if (!touched.current.water) setWater(titles.includes("drink water") ? 2000 : null);
   }, [pickedTitles]);
-  function go(next: Step) { setError(""); setStep(next); }
+  // Release review R7: the goal's own problem is said next to its field (aria-invalid, aria-describedby), in plain words.
+  function go(next: Step) { setError(""); setGoalError(null); setStep(next); }
   function leaveFocuses() {
     const wanted = starters.filter(t => suggested.habits.some(h => h.toLowerCase() === t.title.toLowerCase())).map(t => t.id);
     setHabitIds(list => [...new Set([...list, ...wanted])]);
@@ -156,13 +168,18 @@ export function OnboardingFlow() {
 
   /** The goal draft, checked when leaving the starters step: a kind chosen means a name and a target are needed. */
   function checkGoal(): boolean {
+    setGoalError(null);
     if (!showGoal || !draft.category) { setGoal(null); return true; }
+    // Session AK P4 (FR-7): the refused field takes the focus and comes into view (its message is next to it, styled).
+    const fail = (field: 'name' | 'target' | 'date', text: string) => { setGoalError({field, text}); requestAnimationFrame(() => { const el = document.querySelector<HTMLElement>(`[data-goal-field="${field}"]`); el?.focus({preventScroll: true}); el?.scrollIntoView({block: 'center'}); }); return false; };
+    if (!draft.name.trim()) return fail('name', 'Give your goal a name, or choose No goal for now.');
+    if (!hasVisibleText(draft.name)) return fail('name', 'Give your goal a name with at least one visible character.');
+    if (draft.date && draft.date < localDate()) return fail('date', 'Choose today or a future target date.');
+    if (!draft.target.trim()) return fail('target', 'Add a target amount, or choose No goal for now.');
+    let units: bigint;
+    try { units = parseAmountInput(draft.target, 2); } catch { return fail('target', 'Enter a target amount such as 1500 or 1500.50.'); }
+    if (units <= 0n) return fail('target', 'Enter a target above zero.');
     try {
-      if (!draft.name.trim()) throw Error("Give your Goal a name.");
-      if (!hasVisibleText(draft.name)) throw Error("Give your Goal a name with at least one visible character.");
-      if (draft.date && draft.date < localDate()) throw Error("Choose today or a future target date.");
-      const units = parseAmountInput(draft.target, 2);
-      if (units <= 0n) throw Error("Enter a positive target.");
       // One id per draft, so finishing again after a partial save never creates the Goal twice.
       const goalId = goal?.id ?? BigInt("0x" + crypto.randomUUID().replaceAll("-", "")).toString();
       setGoal(privateGoalSchema.parse({ id: goalId, name: draft.name, category: draft.category, network: "zigchain-1", type: "VALUE", status: "active", asset: draft.currency, denom: draft.currency, decimals: 2, target: units.toString(), notes: "", createdAt: goal?.createdAt ?? new Date().toISOString(), targetDate: draft.date || undefined, milestones: [] }));
@@ -178,7 +195,7 @@ export function OnboardingFlow() {
       if (preset || pagesChange) {
         await updateSettings(getAppStorage(), latest => {
           let next = preset ? applyDashboardPreset(latest, preset) : latest;
-          const change = pagesForPillars(pillars, at, settingsGroupIn(next, "pages"));
+          const change = pagesForPillars(pillars, at, settingsGroupIn(next, "pages"), also);
           if (change) next = withSettingsGroup(next, "pages", change, false);
           pagesAfter = settingsGroupIn(next, "pages");
           return next;
@@ -186,7 +203,7 @@ export function OnboardingFlow() {
         announceModuleChange([DASHBOARD_SETTINGS_KEY]);
       }
       const createdHabitIds: string[] = [], createdWidgetIds: string[] = [];
-      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(); acc = createHabit(acc, habitTemplateInputOf(t), new Date(), id); createdHabitIds.push(id); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(); acc = createHabit(acc, {title, category: "Wellbeing", description: "", notes: "", type: "build", measurement: {kind: "boolean"}, schedule: {kind: "daily"}, target: 1, targetPeriod: "day", timeOfDay: "anytime", endCondition: {kind: "none"}}, new Date(), id); createdHabitIds.push(id); } return acc; });
+      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(); acc = createHabit(acc, habitTemplateInputOf(t), new Date(), id); createdHabitIds.push(id); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(); acc = createHabit(acc, focusHabitInput(title, goal?.id) /* Session AK P4 (FR-8) */, new Date(), id); createdHabitIds.push(id); } return acc; });
       if (suggested.widgets.length) { await updateSettings(getAppStorage(), latest => { let acc = latest; for (const kind of suggested.widgets) { if (acc.widgets.some(w => w.kind === kind && !w.hidden)) continue; const id = crypto.randomUUID(); const metric = (WIDGET_CATALOG[kind as WidgetKind].metrics as readonly string[])[0]!; try { acc = saveWidget(acc, {id, kind: kind as WidgetKind, metric, title: "", size: "compact", hidden: false, revision: 1}); createdWidgetIds.push(id); } catch { /* a widget that needs a record waits for Today */ } } return acc; }); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
       if (goal) { const saved = goal; await platform.update(data => data.goals.some(g => g.id === saved.id) ? data : createAllocatedGoal(data, saved, [])); }
       if (showHealth && (steps !== null || water !== null)) await health.update(data => {
@@ -200,6 +217,8 @@ export function OnboardingFlow() {
       // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
       if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ } }
       markOnboardingSeen(window.localStorage);
+      // Session AK P4 (FR-4): Today greets the finished setup with "You're set" and moves the focus to it, once (tab only).
+      if (createdHabitIds.length || goal) { try { window.sessionStorage.setItem(LANDING_NOTE, at); } catch { /* the card still shows; only the focus waits */ } }
       const target = syncNext ? "/app/settings#encrypted-sync" : startHref(viewOf(pagesAfter));
       let accountOpen: boolean;
       try { accountOpen = !isAccountLocked(); } catch { accountOpen = false; }
@@ -259,7 +278,7 @@ export function OnboardingFlow() {
         <ul className="onboarding-points">
           <li><strong>Private by design.</strong> What you add stays on this device. Encrypted sync between your devices is optional and off until you set it up.</li>
           <li><strong>No ads, no trackers.</strong> ZIGoals shows no advertising and runs no app analytics.</li>
-          <li><strong>No crypto needed.</strong> The blockchain stays out of sight; a wallet is optional and can come later.</li>
+          <li><strong>No crypto needed.</strong> Nothing to connect, nothing to buy.</li>{/* Session AK P4 (FR-23) */}
         </ul>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("pillars")}>Let’s begin</button></div>
       </>}
@@ -267,7 +286,12 @@ export function OnboardingFlow() {
       {step === "pillars" && <>
         <p className="onboarding-lede">Pick as many as you like. ZIGoals shows the pages for them; Settings → Your pages & buttons changes this any time.</p>
         <fieldset className="onboarding-choices"><legend className="sr-only">What you want to improve</legend>
-          {PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
+          {MAIN_PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
+        </fieldset>
+        {/* Session AK G2 (RELEASE_REVIEW_2 R2-6, R2-12): Chess, Music and the chain are extras on their own line. "Crypto &
+            ZIGChain" is the welcome's one chain choice (lib/templates/pillars.ts); "Goals & money" never chooses it. */}
+        <fieldset className="onboarding-choices onboarding-extras"><legend>Extras</legend>
+          {EXTRA_PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
         </fieldset>
         <p className="fine onboarding-shown" aria-live="polite">{pagesChange ? `You’ll see: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.` : "Every page stays as it is."}</p>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("focuses")}>{pillars.length ? "Continue" : "Continue without choosing"}</button>{back("welcome")}</div>
@@ -285,7 +309,7 @@ export function OnboardingFlow() {
       {step === "starters" && <>
         <p className="onboarding-lede">Tick what you’d like to begin with. You can change targets and schedules later, or skip this.</p>
         <fieldset className="onboarding-choices"><legend>Habits</legend>
-          {extraHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked disabled onChange={() => undefined} label={title} note="From your focus · daily" />)}
+          {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note={`From your focus · ${focusHabitRhythm(title)}`} />)}
           {starters.map(t => { const exists = hasHabitLike(existingTitles, t); return <Choice key={t.id} name="onboarding-habit" checked={exists || habitIds.includes(t.id)} disabled={exists} onChange={() => setHabitIds(list => toggle(list, t.id))} label={t.title} note={exists ? "Already in your Habits" : `${t.note} · ${HABIT_GROUP_LABEL[t.group]}`} />; })}
         </fieldset>
         {showGoal && <fieldset className="onboarding-goal"><legend>A first goal (optional)</legend>
@@ -293,14 +317,16 @@ export function OnboardingFlow() {
             {GOAL_TEMPLATES.map(t => <Choice key={t.category} type="radio" name="onboarding-goal" checked={draft.category === t.category} onChange={() => setDraft(d => ({...d, category: t.category}))} label={t.label} />)}
           </div>
           <fieldset className="onboarding-fields" disabled={!draft.category}><legend className="sr-only">Goal details</legend>
-            <label className="field">Goal name<input required maxLength={100} value={draft.name} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
+            <label className="field">Goal name<input data-goal-field="name" required maxLength={100} value={draft.name} aria-invalid={goalError?.field === 'name' || undefined} aria-describedby={goalError?.field === 'name' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
             <div className="onboarding-row">
-              <label className="field">Target amount<input required inputMode="decimal" value={draft.target} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
+              <label className="field">Target amount<input data-goal-field="target" required inputMode="decimal" value={draft.target} aria-invalid={goalError?.field === 'target' || undefined} aria-describedby={goalError?.field === 'target' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
               <fieldset className="onboarding-currency"><legend>Currency</legend>{(["USD", "EUR"] as const).map(c => <label key={c}><input type="radio" name="onboarding-currency" value={c} checked={draft.currency === c} onChange={() => setDraft(d => ({...d, currency: c}))} /><span>{c}</span></label>)}</fieldset>
             </div>
-            <label className="field">Target date (optional)<input type="date" min={localDate()} value={draft.date} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
+            <label className="field">Target date (optional)<input data-goal-field="date" type="date" min={localDate()} value={draft.date} aria-invalid={goalError?.field === 'date' || undefined} aria-describedby={goalError?.field === 'date' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
           </fieldset>
-          <p className="fine">A plan, not a promise: nothing is invested or moved.{draft.category && <> <button type="button" className="text-link" onClick={() => { setDraft(NO_GOAL); setGoal(null); }}>No goal for now</button></>}</p>
+          {goalError && <p id="onboarding-goal-error" className="field-error" role="alert">{goalError.text}</p>}
+          <p className="fine">A plan, not a promise: nothing is invested or moved.</p>
+          {draft.category && <button type="button" className="secondary onboarding-no-goal" onClick={() => { setDraft(NO_GOAL); setGoal(null); setGoalError(null); }}>No goal for now</button>}
         </fieldset>}
         {showHealth && <fieldset className="onboarding-targets"><legend>Health targets (optional)</legend>
           <div className="onboarding-choices" role="radiogroup" aria-label="Daily steps">

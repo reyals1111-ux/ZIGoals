@@ -36,6 +36,7 @@ export const EARN_ACADEMY: DeviceRecordSpec<EarnAcademy> = {key: EARN_ACADEMY_KE
 
 export const earnPrefsSchema = z.looseObject({
   version: z.literal(1),
+  /** Session AK X1 (RELEASE_REVIEW R3): Earn in the navigation, on this device (absent: follows the chain choice, lib/chain-choice.ts). */
   pageShown: z.boolean().optional(),
   dockShown: z.boolean().optional(),
   dockFolded: z.boolean().optional(),

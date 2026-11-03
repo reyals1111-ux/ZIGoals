@@ -102,3 +102,23 @@ test('when storage refuses the save, every quick tap it carried is taken back wi
   await expect(card.locator('.habit-count strong')).toHaveText('0');
   expect(await page.evaluate(key => localStorage.getItem(key), HABITS)).toBe(before);
 });
+
+// Session AK G4 (journey 1 on the phone): a check-in that shows, followed at once by a navigation, was lost. The save
+// waits a frame (afterPaint) and a navigation starts it from pagehide, but the save then asked for the cross-tab storage
+// lock (navigator.locks), whose grant comes in a later task the leaving page never runs. Here the frame and the 100 ms
+// fallback never come, so only the pagehide path can save, as when a person ticks and leaves within that frame.
+for (const leave of ['navigation', 'reload'] as const) {
+  test(`a check-in that shows is kept when the page is left at once (${leave})`, async ({page}) => {
+    const card = await oneHabit(page);
+    await page.evaluate(() => {
+      window.requestAnimationFrame = () => 0;
+      const later = window.setTimeout;
+      window.setTimeout = ((run: TimerHandler, ms?: number, ...rest: unknown[]) => ms === 100 ? 0 : later(run, ms, ...rest)) as typeof window.setTimeout;
+    });
+    await card.getByRole('button', {name: 'Complete Fictional review', exact: true}).click();
+    await expect(card.getByRole('button', {name: 'Undo completion for Fictional review', exact: true})).toBeVisible();
+    if (leave === 'reload') await page.reload(); else await page.goto('/app/habits?again=1');
+    await expect(page.getByRole('article', {name: 'Fictional review', exact: true}).getByRole('button', {name: 'Undo completion for Fictional review', exact: true})).toBeVisible();
+    expect(JSON.parse((await page.evaluate(key => localStorage.getItem(key), HABITS))!).habits[0].entries.map((e: {count: number}) => e.count)).toEqual([1]);
+  });
+}

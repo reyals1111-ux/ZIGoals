@@ -1,5 +1,9 @@
 import {expect, test, type Page} from '@playwright/test';
 import {navLink} from './phone-nav';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Portfolio.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session I, Part 11: Portfolio, kept on this device (zigoals:portfolio:v1). Without prices, values stay unknown; it
 // never changes Wealth, Goals or Positions.
@@ -18,6 +22,10 @@ test('create a portfolio and record transactions; without prices values stay unk
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   // Session AB-Design Phase 2 (ADR-024): Wealth's later sections load on their own; both reads wait until none is still loading.
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
+  // Money tools mounts on its own after the rest (its fallback marks itself busy only once it has started), so the first
+  // read waits for its heading too; the comparison below stays exact.
+  await expect(page.locator('main').getByText('Money tools', {exact: true}).first()).toBeAttached({timeout: 15_000});
   await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
   const wealthBefore = await page.locator('main').innerText();
   await (await navLink(page, 'Portfolio')).click();
@@ -63,6 +71,8 @@ test('create a portfolio and record transactions; without prices values stay unk
   // Wealth reads nothing from Portfolio.
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
+  await expect(page.locator('main').getByText('Money tools', {exact: true}).first()).toBeAttached({timeout: 15_000});
   await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
   expect(await page.locator('main').innerText()).toBe(wealthBefore);
   expect(await page.evaluate(() => localStorage.getItem('zigoals:platform:v1'))).toBeNull();

@@ -195,3 +195,30 @@ main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
    than plain grey words under the status row. */
 :root .goal-detail-workspace .platform-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid #8fb6ff33; border-radius: 999px; background: #0a1430a6; color: var(--text-secondary, #dde7f7); font-weight: 600; text-decoration: none; }
 :root .goal-detail-workspace .platform-nav a:is(:hover, :focus-visible) { border-color: #9fe6ff88; color: #fff; }
+/* Session AK G2 (SESSION_AK_F8 proposal 3): while a page shows its loading state, the page keeps a screen's height, so on a cold load the PROTECTED
+   footer starts below the fold and is never pushed down into view when the records arrive (Health's CLS was 0.75 and
+   Wealth's 0.12 on a cold load at 390 px). The footer's look is unchanged; only its first-paint place is. */
+:root .app-content main:has(.route-loading-reserve) { min-height: 100svh; }
+/* Session AK G2 (RELEASE_REVIEW R20): from 1280 px the right-edge launcher column (ZIGi, the Checklist, music, the Earn
+   dock: 56 px circles 20 px from the window's edge) floated over the end of the content's lines ("Fictional reward…",
+   Wealth's counts, Health's counters). The main column keeps a gutter as wide as that lane while the launchers are on the
+   right, so nothing scrolls under them; the launchers keep their look and place. Today's two columns keep their width (the
+   PROTECTED hero lives there, and the rail already keeps its own lane, components/platform/platform.css): only the
+   full-width parts under them keep the gutter. The Checklist is a full-screen sheet of its own and is left as it is.
+   Phones already keep the lane through scroll-padding-bottom (components/phone/phone-shell.css) and the footer's end
+   padding (components/shell/shell-ab.css), so a covered line scrolls clear and a focused control is never under ZIGi. */
+@media (min-width: 1280px) {
+  :root:not([data-zigi-side=left]) { --launcher-gutter: 58px; }
+  :root:not([data-zigi-side=left]):has(.ai-launcher[data-size=l]) { --launcher-gutter: 66px; }
+  :root .app-content main#main:not(:has(.today-page, .checklist-page)) { padding-inline-end: var(--launcher-gutter, 0px); }
+  :root .today-page > :not(.today-layout, .for-you-place), :root .today-page > .for-you-place > *, :root .today-layout > .today-after { padding-inline-end: var(--launcher-gutter, 0px); }
+  /* Earn's two paths kept their own 64 px lane; inside the gutter they need none. */
+  :root:not([data-zigi-side=left]):not(#\#) :is(.earn-start-path, .earn-academy-path) { margin-inline-end: 0; }
+}
+
+/* Session AK P4 (docs/review/session-ak/FIRST_RUN_REVIEW.md, FR-7): an inline error under its field had no style anywhere
+   (grey body text, easy to miss). It reads as an error by its words, its weight and a mark, never by colour alone; the
+   colour is the danger ink (Nebula and Dark: the danger pink on the night; Light: its deeper shade on white, ≥ 4.5:1). */
+.field-error { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0 0; color: var(--danger-ink, #f5a7af); font-size: 15px; font-weight: 600; line-height: 1.45; }
+.field-error::before { content: "!" / ""; flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border: 2px solid currentColor; border-radius: 50%; font-size: 12px; font-weight: 800; line-height: 1; }
+@media (forced-colors: active) { .field-error { color: CanvasText; } .field-error::before { border-color: CanvasText; } }

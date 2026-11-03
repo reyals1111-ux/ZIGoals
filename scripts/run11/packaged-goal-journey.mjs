@@ -11,7 +11,10 @@ const navigate=async(page,name)=>{const more=page.locator('.phone-more-top');if(
 // Session V Part 1b: a row the person opened before stays open on that device, so it is opened only while folded (a
 // remembered state that lands between the read and the click closes it once, and the second pass opens it again).
 // Session AC (ADR-025 E19): the habits widget standing in for Daily Habits shows open on a phone (no row).
-async function todayCard(page,name){const card=page.getByRole('article',{name,exact:true});if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name,exact:true});await row.or(card).first().waitFor();if(await row.count()){for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}else await card.waitFor({state:'visible'});}return card;}
+// Session AK (ADR-036, deliberate): 15c1e159 (RELEASE_REVIEW_2 R2-9) puts the widget's figure under its name in the folded
+// row, as part of the row's name ("Breakfast today 150 kcal"); the row is the one whose name is the card's name, alone or
+// followed by that figure. The card itself is still found by its exact name.
+async function todayCard(page,name){const card=page.getByRole('article',{name,exact:true});if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name:new RegExp('^'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?: .+)?$')});await row.or(card).first().waitFor();if(await row.count()){for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}else await card.waitFor({state:'visible'});}return card;}
 
 async function openModule(page,id){const section=page.locator('#'+id);if(await section.getAttribute('open')===null)await section.locator('summary').first().click();return section;}
 async function sync(page){await navigate(page,'Settings');const synced1=await armPackagedSync(page);await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page,synced1);}
@@ -30,10 +33,13 @@ async function pinGoalAndHabit(page,name,path,habit){
  await habitCard.getByRole('button',{name:`Options for ${habit}`,exact:true}).click();await habitCard.getByRole('button',{name:`Add ${habit} check-in to Today`,exact:true}).click();
  await navigate(page,'Today');await (await todayCard(page,name)).waitFor();await (await todayCard(page,habit)).waitFor();
 }
+/** Session AK X1 (RELEASE_REVIEW R5): until the chain is chosen the kinds of goal read in a person's words; either name is the same choice. */
+const KIND={Value:'Save an amount',Quantity:'Reach a number of something',Project:'Finish a project'};
+const kind=type=>new RegExp(`^(${type}|${KIND[type]})$`);
 async function create(page,type){
  const name=`Packaged ${type} continuity`;
  await navigate(page,'Today');await page.locator('.today-hero').getByRole('button',{name:'+ Quick add',exact:true}).click();await page.getByRole('navigation',{name:'Quick add actions'}).getByRole('link').filter({hasText:'Goal'}).click();
- await typeGoalName(page,name);await page.getByRole('radio',{name:type,exact:true}).check();
+ await typeGoalName(page,name);await page.getByRole('radio',{name:kind(type)}).check();
  if(type==='Project')await page.getByLabel('Milestones, one per line',{exact:true}).fill('Fictional research review\nFictional delivery review');
  else{await page.getByLabel('Target amount',{exact:true}).fill(type==='Value'?'1000':'10');if(type==='Quantity')await page.getByLabel('Goal asset',{exact:true}).fill('BTC');}
  await page.getByRole('button',{name:'Continue →',exact:true}).click();

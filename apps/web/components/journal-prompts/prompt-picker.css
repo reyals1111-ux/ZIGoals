@@ -1,0 +1,9 @@
+/* Session AK (BUILD list 2 #13): "Start from a prompt" in the Journal's Write box. Theme tokens only. */
+.prompt-fold > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.prompt-picker { display: grid; gap: 8px; padding-top: 6px; }
+.prompt-picker-lang { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.prompt-picker-lang button { min-height: 44px; }
+.prompt-picker-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; }
+.prompt-picker-card { width: 100%; min-height: 44px; display: grid; gap: 2px; text-align: start; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: transparent; color: inherit; font: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.prompt-picker-card:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.prompt-picker-note { font-style: italic; }

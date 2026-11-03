@@ -153,6 +153,20 @@ export function consistency(s: Sleep, today: string): Consistency | null {
   const m = mean(beds);
   return {minutes: Math.round(Math.sqrt(mean(beds.map(b => (b - m) ** 2)))), nights: beds.length};
 }
+/**
+ * Session AK (4.9): wake-time consistency, beside the bedtime one — the standard deviation of wake times over the last 14
+ * days' logged nights (at least 4), in minutes. Wake times are measured around their own circular mean, so mornings on
+ * either side of midnight (a night-shift sleeper waking at 23:50 and 00:10) count as 20 minutes apart, not 23 hours.
+ */
+export function wakeConsistency(s: Sleep, today: string): Consistency | null {
+  const wakes = dailySeries(s, today, 14).filter(p => p.wake !== null).map(p => p.wake!);
+  if (wakes.length < 4) return null;
+  const angle = (m: number) => m / 1440 * 2 * Math.PI;
+  const centre = Math.atan2(mean(wakes.map(w => Math.sin(angle(w)))), mean(wakes.map(w => Math.cos(angle(w))))) / (2 * Math.PI) * 1440;
+  const offsets = wakes.map(w => ((w - centre) % 1440 + 2160) % 1440 - 720);
+  const m = mean(offsets);
+  return {minutes: Math.round(Math.sqrt(mean(offsets.map(o => (o - m) ** 2)))), nights: wakes.length};
+}
 /** A gentle word when most recent nights were short: at least 4 logged nights in 7, averaging under 6 hours asleep. */
 export function shortNights(s: Sleep, today: string): boolean {
   const week = summary(dailySeries(s, today, 7));

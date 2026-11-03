@@ -21,6 +21,7 @@ const DATABASES = [...new Set(sources.flatMap(s => [...s.matchAll(/['"`](zigoals
 
 /** Keys that are not personal records, so neither Export everything nor the catalog lists them; each with its reason. */
 const NOT_RECORDS: Record<string, string> = {
+  'zigoals:lichess-pending:v1': 'sessionStorage for one Lichess sign-in round trip (PKCE state and verifier), removed when it ends',
   'zigoals:account-lock:v1': 'a BroadcastChannel name that locks the account in other tabs; nothing is stored',
   'zigoals:private-updates:v1': 'a BroadcastChannel name that tells other tabs a record changed; nothing is stored',
   'zigoals:step-up:v1': 'a key-derivation label (HKDF info), not a storage key',
@@ -43,6 +44,7 @@ const NOT_RECORDS: Record<string, string> = {
   'zigoals:motion:v1': 'the Motion setting of this device (display); not a record',
   'zigoals:onboarding:v1': 'whether the welcome was seen; a display mark',
   'zigoals:whats-new:v1': 'which What\'s new card was dismissed; a display mark',
+  'zigoals:ak-tour:v1': 'when this device opened the New in ZIGoals tour and the stop to continue from; a display mark (Session AK, A19)',
   'zigoals:portfolio-last-visit:v1': 'the Portfolio value at the last visit, for "since your last visit"; recomputed',
   'zigoals:public-market-insights:v1': 'a cache of public market data; nothing personal',
   'zigoals:public-market-quotes:v1': 'a cache of public prices; nothing personal',
@@ -94,5 +96,15 @@ describe('Erase everything', () => {
     const idb = {deleteDatabase: (name: string) => { const r = {} as IDBOpenDBRequest; queueMicrotask(() => (name === 'zigoals-ai-chats-v1' ? r.onblocked as () => void : r.onsuccess as () => void)?.()); return r; }};
     const result = await eraseEverything({localStorage: null, sessionStorage: null, indexedDB: idb as never});
     expect(result.failed).toEqual(['zigoals-ai-chats-v1']);
+  });
+});
+
+// Session AK (ADR-036 A4): the device services leave first, in order, and a failing step never stops the erase.
+describe('Erase everything, the device services (A4)', () => {
+  test('notifications off (the Worker DELETE needs the secret still on the device), then the caches, then the queue', async () => {
+    const {eraseDeviceServices} = await import('./erase-everything');
+    const order: string[] = [];
+    await eraseDeviceServices({turnOffNotifications: async () => { order.push('notifications'); throw Error('offline'); }, forgetOfflineCaches: async () => { order.push('caches'); }, forgetOfflineQueue: async () => { order.push('queue'); }});
+    expect(order).toEqual(['notifications', 'caches', 'queue']);
   });
 });

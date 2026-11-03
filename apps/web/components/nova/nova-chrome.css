@@ -1,0 +1,16 @@
+/*
+ * Session AK (owner follow-up 3, N12; lane NA): while NOVA is open (`<html data-nova-view="on">`, set and removed by
+ * components/nova/nova-page-client.tsx), NOVA takes the whole window: the app's own sidebar or tablet rail, the phone's top
+ * bar, the status row, the first-visit notice and the footer step aside, the page behind NOVA stops scrolling, and the
+ * floating launchers (ZIGi, music, Checklist, Earn) give their corners to NOVA's own quick access (their panels still
+ * open from NOVA: they are siblings of the buttons). The phone's bottom bar is protected and stays. Everything comes back
+ * the moment NOVA closes. The lead may move these rules into the shell's CSS unchanged.
+ */
+:root[data-nova-view="on"], :root[data-nova-view="on"] body { overflow: hidden; overscroll-behavior: none; }
+:root[data-nova-view="on"] :is(.app-sidebar, .phone-topbar, .status-row, .alpha-notice, .site-footer, .skip):not(#\-) { display: none !important; }
+:root[data-nova-view="on"] :is(.ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .music-mini, .checklist-launcher-stack, .checklist-edge-tab, .earn-dock-stack, .earn-dock-edge, .phone-checklist-pill):not(#\-) { visibility: hidden !important; }
+:root[data-nova-view="on"] .app-content:not(#\-) { margin-left: 0; padding-top: 0; }
+/* Session AK lane EXF (EX-5): the logo intro (protected, unchanged) claims the phone top bar's Z when NOVA is the first page
+   of a tab; its clip is fixed on <body> and played over "Exit NOVA". While NOVA has the window the clip stays out of sight
+   (it plays on unseen and hands back to the static Z as usual); the top bar it belongs to is hidden here anyway. */
+:root[data-nova-view="on"] :is(.logo-intro, .logo-intro-frame):not(#\-) { display: none !important; }

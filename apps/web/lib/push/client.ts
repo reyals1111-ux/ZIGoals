@@ -57,7 +57,10 @@ export type Availability = {available: true; publicKey: string} | {available: fa
 /** Whether this build has push configured: GET /api/push answers the public key, or 503 while the flag is off. */
 export async function pushAvailability(fetcher: typeof fetch = fetch): Promise<Availability> {
   const response = await fetcher('/api/push', {cache: 'no-store', signal: AbortSignal.timeout(15000)});
-  if (response.status !== 200) return {available: false};
+  // Session AK (CI lane, product-data:91): a refusal's body is read to its end too. Chrome keeps a fetch whose body is
+  // never read in flight, so the build's 503 held the request (and its connection) open on every page load until the
+  // 15 s timeout cancelled it, and the page never went network-quiet.
+  if (response.status !== 200) { await response.arrayBuffer().catch(() => undefined); return {available: false}; }
   const data = z.object({publicKey: z.string().regex(/^[A-Za-z0-9_-]{87}$/)}).safeParse(await response.json());
   return data.success ? {available: true, publicKey: data.data.publicKey} : {available: false};
 }

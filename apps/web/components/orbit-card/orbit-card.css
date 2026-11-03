@@ -1,0 +1,12 @@
+/* Session AK Part 8.2: the Daily orbit card on Today (a card kept on this device, off the hero). Theme colours; 44 px targets. */
+:root .orbit-card { display: grid; gap: 12px; min-width: 0; }
+:root .orbit-card h2 { margin: 0; font-size: 20px; }
+:root .orbit-card-count { margin: 0; font-size: 15px; color: var(--text-secondary, var(--muted)); }
+:root .orbit-card-bar { height: 10px; }
+:root .orbit-card-next { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+:root .orbit-card-next li { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2, var(--panel)); font-size: 15px; min-width: 0; }
+:root .orbit-card-next a { flex: 1 1 auto; min-width: 0; color: var(--text); font-weight: 650; overflow-wrap: anywhere; min-height: 44px; display: inline-flex; align-items: center; }
+:root .orbit-card-next a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+:root .orbit-card-next small { flex: none; font-size: 14px; color: var(--text-secondary, var(--muted)); }
+:root .orbit-card .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+:root .orbit-card .actions a { min-height: 44px; display: inline-flex; align-items: center; }

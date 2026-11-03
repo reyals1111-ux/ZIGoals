@@ -439,7 +439,8 @@ journey('J234', 'Settings\' ZIGi group: there, reachable, asking nothing of any 
   const asked: string[] = [];
   page.on('request', r => asked.push(r.url()));
   await open(page, '/app/settings');
-  const group = page.getByRole('group', {name: 'ZIGi', exact: true});
+  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the group is "Your assistant" (ZIGi's settings and NOVA's), id unchanged.
+  const group = page.getByRole('group', {name: 'Your assistant', exact: true});
   await group.scrollIntoViewIfNeeded();
   await expect(group).toBeVisible();
   await expect(group.locator('#your-ai')).toHaveCount(1);
@@ -796,7 +797,7 @@ journey('J231', 'Settings with the keyboard only: every group reached from its c
   const {page} = j;
   await open(page, '/app/settings');
   const press = async (target: Locator, key = 'Enter') => { await target.focus(); await page.keyboard.press(key); };
-  const GROUPS = [['settings-data', 'Data & privacy'], ['settings-app', 'Your app'], ['settings-areas', 'Your areas'], ['settings-account', 'Account & devices'], ['settings-zigi', 'ZIGi'], ['settings-help', 'Help & diagnostics']] as const;
+  const GROUPS = [['settings-data', 'Data & privacy'], ['settings-app', 'Your app'], ['settings-areas', 'Your areas'], ['settings-account', 'Account & devices'], ['settings-zigi', 'Your assistant'], ['settings-help', 'Help & diagnostics']] as const; // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant"
   const chips = page.locator('.settings-sections').getByRole('link');
   // ZIGi's settings load once the page is idle; its group then has controls of its own.
   await expect(page.locator('.ai-settings-body')).toBeAttached();

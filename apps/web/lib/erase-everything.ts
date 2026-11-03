@@ -9,6 +9,23 @@ export const KNOWN_DATABASES = [
   'zigoals-account-sync-v1', 'zigoals-ai-chats-v1', 'zigoals-ai-keys-v1', 'zigoals-attestation-v1', 'zigoals-device-unlock-v1',
   'zigoals-exchange-keys-v1', 'zigoals-extras-sync-v1', 'zigoals-link-tokens-v1', 'zigoals-market-catalog-v1', 'zigoals-private-vault-v1',
   'zigoals-progress-photos', 'zigoals-push-labels-v1', 'zigoals-vision-v1', 'zigoals-xpub-v1',
+  // Session AK (ADR-036 A1): the notification snapshot and identity, and the queue of notification taps.
+  'zigoals-notify-v1', 'zigoals-notify-actions-v1',
+  // Session AK (Part 1c): the offline generic food library (public data kept for offline search).
+  'zigoals-food-generic-v1',
+  // Session AK (Part 1d): the person's own Spotify client id, on this device only.
+  'zigoals-music-byo-v1',
+  // Session AK (Part 3): network actions asked for while offline, offered again on reconnect.
+  'zigoals-offline-queue-v1',
+  // Session AK (Part 4.2): meal photos kept on this device, by the person's choice.
+  'zigoals-meal-photos-v1',
+  // Owner follow-up 2 (B1): photos captured into notes, on this device only.
+  'zigoals-notes-photos-v1',
+  // Owner follow-up 2 (G1 #10): receipt photos kept with money entries, on this device only.
+  'zigoals-money-photos-v1',
+  // Session AK (Part 9): the first build's plaintext Lichess store; since Part 15 (M1) the token is sealed per account in
+  // zigoals-link-tokens-v1, and a leftover of this one is revoked and deleted on sight.
+  'zigoals-lichess-v1',
 ] as const;
 export const ERASE_PREFIX = 'zigoals';
 export const ERASE_CONFIRM = 'ERASE';
@@ -40,4 +57,26 @@ export async function eraseEverything(scope: {localStorage?: KeyStore | null; se
     if (ok) databases++; else failed.push(name);
   }
   return {keys, databases, failed};
+}
+
+/**
+ * Session AK (ADR-036 A4): before the records go, what lives outside the key list leaves too — the device's notification
+ * record on the push Worker (a DELETE with the device's own secret, which is in a database about to be deleted, so this
+ * runs first), the browser's push subscription, the offline page caches and the offline queue. Each step is best effort
+ * and never stops the erase. The dependencies are passed in so a test can see the order.
+ */
+export type DeviceServices = {turnOffNotifications: () => Promise<void>; forgetOfflineCaches: () => Promise<void>; forgetOfflineQueue?: () => Promise<void>};
+export async function eraseDeviceServices(deps: DeviceServices & {revokeLichess?: () => Promise<unknown>}): Promise<void> {
+  try { await deps.turnOffNotifications(); } catch { /* the Worker deletes an unused device after 30 days */ }
+  try { await deps.forgetOfflineCaches(); } catch { /* nothing cached */ }
+  try { await deps.forgetOfflineQueue?.(); } catch { /* nothing queued */ }
+  // Security review L4 (lane W): every Lichess token kept on this device is revoked at Lichess before its database goes.
+  try { await deps.revokeLichess?.(); } catch { /* Lichess unreachable: it can be revoked in Lichess's own settings */ }
+}
+/** Erase everything, as the Settings button runs it: the device services first, then every key and database. */
+export async function eraseEverythingOnThisDevice(): Promise<EraseResult> {
+  const [{turnOffNotifications}, {forgetOfflineCaches}, {forgetOfflineQueue}] = await Promise.all([import('./notify/device'), import('./sw/register'), import('./offline-queue/queue')]);
+  const revokeLichess = async () => (await import('./chess/token-store')).revokeEveryLichess(); // Security review L4 (lane W)
+  await eraseDeviceServices({turnOffNotifications, forgetOfflineCaches, forgetOfflineQueue, revokeLichess});
+  return eraseEverything();
 }

@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import {closeMore,isPhone,mainNav,navLink,openMore} from './phone-nav';
-import {ALPHA_LABEL,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openStatusSheet} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_LABEL_CHOSEN,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openStatusSheet} from './ab-shell';
+import {chooseChain} from './chain-choice';
 
 // Session E, Part 2: the phone shell. Phone sizes are set explicitly so both projects run them (the desktop project with a
 // fine pointer, the mobile project with a coarse one); the landscape case needs the coarse pointer.
@@ -9,7 +10,11 @@ const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/hea
 // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More opens from the top bar.
 // Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More before Settings (H68).
 // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown under Your pages & buttons.
-const MORE=['Earn','Markets','Staking','Portfolio','Ecosystem','Activity','Checklist','Settings','Help'];
+// Session AK X1 (RELEASE_REVIEW R3; deliberate): a new device has no money tools until the chain is chosen, so More holds
+// Activity, the Checklist, Settings and Help (it held Earn, Markets, Staking, Portfolio and Ecosystem first).
+// Session AK (owner follow-up 2, N2): NOVA is a row of More before the Checklist. Session AK G2 (RELEASE_REVIEW_2 R2-10,
+// deliberate): Tasks, Notes and the Journal follow it (navigation extras, never tabs); Music waits for its own switch.
+const MORE=['Activity','NOVA','Checklist','Tasks','Notes','Journal','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 
@@ -86,7 +91,7 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
   const box=(await tab.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
   await tab.click();await page.waitForURL(url==='/app'?/\/app$/:`**${url}`);await expect(tab).toHaveAttribute('aria-current','page');
  }
- // More (the top bar's button, Session AB-Design) lists the other nine, in the sidebar's order; each is a real link that closes the sheet and marks More current.
+ // More (the top bar's button, Session AB-Design) lists the others, in the sidebar's order; each is a real link that closes the sheet and marks More current.
  const more=page.getByRole('button',{name:'More',exact:true});
  await expect(more).toHaveAttribute('aria-expanded','false');
  const sheet=await openMore(page);
@@ -94,9 +99,10 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
  expect(await sheet.getByRole('link').allTextContents()).toEqual(MORE);
  for(const link of await sheet.getByRole('link').all()){const b=(await link.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
  await page.keyboard.press('Escape');await expect(sheet).toBeHidden();await expect(more).toBeFocused();
- await (await navLink(page,'Markets')).click();await page.waitForURL('**/app/markets');
+ // Session AK X1: Activity is More's first page on a new device (Markets was, before the money tools waited for the chain).
+ await (await navLink(page,'Activity')).click();await page.waitForURL('**/app/activity');
  await expect(sheet).toBeHidden();await expect(more).toHaveAttribute('data-current','true');
- await openMore(page);await expect(sheet.getByRole('link',{name:'Markets',exact:true})).toHaveAttribute('aria-current','page');await closeMore(page);
+ await openMore(page);await expect(sheet.getByRole('link',{name:'Activity',exact:true})).toHaveAttribute('aria-current','page');await closeMore(page);
  // Settings is one tap away as More's last-but-one row (owner decision D2), as a real link.
  const settings=await navLink(page,'Settings');
  await settings.click();await page.waitForURL('**/app/settings');await expect(more).toHaveAttribute('data-current','true');
@@ -118,16 +124,24 @@ test('More → Status & wallet opens the Status sheet: every notice in full, the
  await expect(sheet).toContainText(ALPHA_LABEL);
  await expect(sheet).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
  await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet');
- await expect(sheet.getByRole('button',{name:'Demo records',exact:true})).toBeVisible();await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toBeVisible();
+ // Session AK X1 (RELEASE_REVIEW R2; deliberate): a device that never chose the chain has no wallet buttons in the sheet.
+ await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toHaveCount(0);await expect(sheet.getByRole('button',{name:'On this device',exact:true})).toHaveCount(0);
  for(const button of await sheet.getByRole('button').all()){const b=(await button.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
  // Gate C (persona round): the storage line the page shortens ("This device o…") is in the sheet in full.
  await expect(sheet.locator('.phone-status-storage')).toContainText('This device only · account sync is off');
  await sheet.getByRole('button',{name:'Close Status',exact:true}).click();
  await expect(sheet).toBeHidden();await expect(page.getByRole('button',{name:'More',exact:true})).toBeFocused();
+ // Once the chain is chosen (as a person does, tests/chain-choice.ts) the sheet carries the wallet buttons, 44 px each; the
+ // default mode's button reads "On this device" (it read "Demo records") and the label is the public-safety one.
+ await chooseChain(page);await page.goto('/app/habits');await expect(page.locator('main h1')).toBeVisible();
+ await openStatusSheet(page);await expect(sheet).toContainText(ALPHA_LABEL_CHOSEN);
+ await expect(sheet.getByRole('button',{name:'On this device',exact:true})).toBeVisible();await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toBeVisible();
+ for(const button of await sheet.getByRole('button').all()){const b=(await button.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
+ await sheet.getByRole('button',{name:'Close Status',exact:true}).click();await expect(sheet).toBeHidden();
  // At 320 px the wallet buttons stack, so no button's words are cut ("Connect Kep").
  await page.setViewportSize({width:320,height:640});
  await openStatusSheet(page);await expect(sheet).toBeVisible();
- for(const name of ['Demo records','Connect Keplr']){const button=sheet.getByRole('button',{name,exact:true});await expect(button).toBeVisible();expect(await button.evaluate(e=>[...e.querySelectorAll('*'),e].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).overflow==='visible')),name).toBe(true);}
+ for(const name of ['On this device','Connect Keplr']){const button=sheet.getByRole('button',{name,exact:true});await expect(button).toBeVisible();expect(await button.evaluate(e=>[...e.querySelectorAll('*'),e].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).overflow==='visible')),name).toBe(true);}
 });
 
 test('without JavaScript a phone still shows the tab bar, the top bar and the honesty labels',async({browser})=>{

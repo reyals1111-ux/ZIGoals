@@ -2,15 +2,20 @@ import {latestHabitRule, measurementUnit} from '../../habits';
 import type {ToolEnv} from '../tools/env';
 import {summaries} from '../tools/goals';
 import {text as clean} from '../tools/format';
+import {novaEnvInfo} from './nova-env';
+import {novaExampleQuestions} from './nova-overview';
 
 /**
  * "I can answer questions like…" (Session V Part 3): examples made from the person's own records, so each one works
  * when tapped. Health examples appear only while the Health gate is open; with no records yet, plain examples remain.
  */
-export const EXAMPLES_INTRO = 'I answer questions about your own records right here, on this device, without any AI. For example:';
+// Session AK P4 (FIRST_RUN_REVIEW FR-2): never "without any AI" under NOVA's "Private intelligence"; what answers now, and until when.
+export const EXAMPLES_INTRO = 'Until you give me a brain, I answer from your own records on this device. For example:';
 const MINUTES = /^(minutes?|mins?|min)$/i;
 export function examplesFor(env: ToolEnv | null, max = 6): string[] {
   const out: string[] = [];
+  // Release review 2 (R2-2): on NOVA's environment, the overview questions NOVA answers on the device come first.
+  if (env && novaEnvInfo(env)) out.push(...novaExampleQuestions(env));
   if (env) {
     const habits = env.habits.habits.filter(h => latestHabitRule(h).state === 'active');
     const timed = habits.find(h => { const r = latestHabitRule(h); return r.measurement.kind === 'duration' || MINUTES.test(measurementUnit(r)); });

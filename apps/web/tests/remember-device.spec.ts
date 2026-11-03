@@ -134,6 +134,7 @@ test('B1: a version 1 record from an earlier build opens once more, then is vers
   const vault = await fixtureAccount(page);
   await page.goto('/app/settings');
   await expect(panel(page).getByLabel('Vault recovery secret', {exact: true})).toBeVisible();
+  // Session AK (CI fix): the record is dated a day ago; a fixed 2026-10-02 aged past the 30 remembered days on 2026-11-01.
   // Write the record an earlier build wrote, and show the finding on it: its key unwraps the root as an extractable key.
   const finding = await page.evaluate(async ({manifest, recovery, account, session}) => {
     const decode = (text: string) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
@@ -144,7 +145,7 @@ test('B1: a version 1 record from an earlier build opens once more, then is vers
     const raw = new Uint8Array(await crypto.subtle.decrypt({name: 'AES-GCM', iv: decode(manifest.wrapped.nonce), additionalData: utf8(`zigoals:root:v1:${manifest.vault}:epoch${manifest.epoch}`), tagLength: 128}, wrapping, decode(manifest.wrapped.ciphertext)));
     const key = await crypto.subtle.generateKey({name: 'AES-GCM', length: 256}, false, ['encrypt', 'unwrapKey']), iv = crypto.getRandomValues(new Uint8Array(12)), aad = utf8(JSON.stringify(['zigoals-device-root', 1, account, digest]));
     const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv, additionalData: aad, tagLength: 128}, key, raw));raw.fill(0);
-    const record = {version: 1, account, vault: manifest.vault, epoch: manifest.epoch, manifest: digest, session, health: false, createdAt: '2026-10-02T10:00:00.000Z', sealed: {iv: encode(iv), ciphertext: encode(ciphertext)}, key};
+    const record = {version: 1, account, vault: manifest.vault, epoch: manifest.epoch, manifest: digest, session, health: false, createdAt: new Date(Date.now() - 86400000).toISOString(), sealed: {iv: encode(iv), ciphertext: encode(ciphertext)}, key};
     await new Promise<void>((resolve, reject) => {
       const open = indexedDB.open('zigoals-device-unlock-v1', 1);
       open.onupgradeneeded = () => { for (const name of ['devices', 'state']) open.result.createObjectStore(name); };

@@ -70,7 +70,7 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
       showToast({message: plainErrorMessage(e, 'Could not log water on this device.')});
     }
   }
-  return <section className="today-focus" aria-labelledby="today-focus-title">
+  return <section className="today-focus" aria-labelledby="today-focus-title" data-habits-widget={habitsWidget ? '' : undefined}>
     <SectionHeading id="today-focus-title" eyebrow="What is due now" title="Today’s focus" />
     {reminders}
     <div className="today-focus-tiles">

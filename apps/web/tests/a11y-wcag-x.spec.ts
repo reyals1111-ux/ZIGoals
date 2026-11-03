@@ -183,6 +183,11 @@ test('target size (2.5.8): every control is at least 24 × 24 px, or has room ar
   const findings: Findings = {};
   for (const [path, heading] of ALL) {
     await open(page, path, heading);
+    // Session AK (CI run 41309452842): Settings' lower groups and Earn's sections skip their layout until they come near the
+    // screen (content-visibility: auto, G2 R11), so a control measured there stood on an estimated 1,400 px box and seemed to
+    // overlap the next group's controls ("Open the Checklist →" over Chess's username field). Every box is measured on the
+    // layout a person meets as they scroll: each skipped part is laid out first. The same checks, on real positions.
+    await page.evaluate(() => new Promise<void>(done => { for (const el of document.querySelectorAll<HTMLElement>('body *')) if (getComputedStyle(el).contentVisibility === 'auto') el.style.contentVisibility = 'visible'; requestAnimationFrame(() => requestAnimationFrame(() => done())); }));
     const shown = await page.evaluate(crowdedTargets, ZIGI);
     add(findings, path, shown);
     // Then with every closed disclosure in the page open, so what each one holds is measured too.
@@ -243,6 +248,8 @@ const CONTRAST_PAGES: [path: string, root?: string, heading?: string][] = [
   ['/app/guided'], ['/app/journey'], ['/app/earn'],
   // Session AJ (item 21, AF15 reopened): Habits, its time-of-day headings included.
   ['/app/habits'],
+  // Session AK (M7): this session's new routes — NOVA (dashboard, setup, Hermes), Notes, Tasks, Journal, Music, Agenda.
+  ['/app/nova'], ['/app/nova/setup'], ['/app/nova/hermes'], ['/app/notes'], ['/app/tasks'], ['/app/journal'], ['/app/music'], ['/app/agenda'],
 ];
 test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and Settings', async ({page}) => {
   test.setTimeout(240_000);
@@ -252,6 +259,9 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     await open(page, path, heading);
     // The Showcase shows the music button; its panel is what is measured on Today.
     // Session Z-Cloud Part 4.12: on a phone the player opens from the More sheet's row (ZIGi is the one floating button).
+    // Session AK CI (the wait only): NOVA's dashboard mounts after its heading and then plays its one-time opening from
+    // opacity 0; its real end state is `data-opening="done"` (CI on 183733b3 measured every NOVA text at 1.00:1 at t = 0).
+    if (path === '/app/nova') await expect(page.locator('.nova-frame')).toHaveAttribute('data-opening', 'done', {timeout: 15_000});
     if (rootSelector === '.music-panel') { if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); } else await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
     // The settled colours: a switch that takes its saved state after loading fades its colours for a moment, and a page's
     // one-time entrance (motion-page-enter, arrive-card) fades its cards in from 85 % opacity; both are waited out

@@ -42,6 +42,13 @@ export async function closeMore(page:Page){
 export async function openFold(page:Page,label:string){
  if(!await isPhone(page))return;
  const toggle=page.locator('.phone-fold-toggle').filter({hasText:label}).first();
+ // Session AK RB (RELEASE_REVIEW_2 R2-8): on a phone, Wealth with fewer than two assets keeps its analytic rows inside one
+ // "More about your wealth" row; a row inside it is reached by opening that row first, as a reader would.
+ const group=page.locator('.phone-fold-toggle').filter({hasText:'More about your wealth'}).first();
+ // Session AK (CI run 41309452842, run10-financial-evidence on mobile): the rows exist only once the phone layout has
+ // taken over after hydration; asked before that, the group looked absent, so a row inside it stayed hidden. Wait for the row.
+ await toggle.waitFor({state:'attached',timeout:15000});
+ if(label!=='More about your wealth'&&await group.count()&&await group.getAttribute('aria-expanded')!=='true'&&!await toggle.isVisible())await group.click();
  await expect(async()=>{if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true',{timeout:1500});}).toPass({timeout:15000});
 }
 /** On a phone, opens the Log a meal sheet from its button (Session I, Part 9); elsewhere the form is already in the page. */

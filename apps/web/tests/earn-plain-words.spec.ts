@@ -4,6 +4,10 @@ import {PLAIN_ASK, PLAIN_TERMS, type PlainTerm} from '../lib/earn/plain-words';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
 import {governanceRelay, openGovernance} from './governance-chain';
 import {SIGNER_CALLS, fakeChain, fakeKeplr, openStaking, relay} from './staking-chain';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L1c, non-negotiable N1; plan section 11.9, proof `earn-plain-words`): every word of the plan's plain-words

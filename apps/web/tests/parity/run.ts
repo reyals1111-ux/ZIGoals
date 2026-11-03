@@ -16,13 +16,23 @@ import {isKnown} from './known';
 // Session AJ (item 32, D5): 'customized' is a page with every Customize choice made (Inter, Large text, Compact, Soft glow),
 // compared across the themes like any other state.
 export type State = 'showcase' | 'empty' | 'quick-add' | 'more' | 'folded' | 'customized';
-export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new', '/app/timeline', '/app/stories'] as const;
-export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded'], ['/app', 'customized'], ['/app/settings', 'customized']];
+export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new', '/app/timeline', '/app/stories',
+  // Session AK (M7): the session's new routes — NOVA (dashboard, setup, Hermes), Notes, Tasks, Journal, Music and Agenda.
+  '/app/nova', '/app/nova/setup', '/app/nova/hermes', '/app/notes', '/app/tasks', '/app/journal', '/app/music', '/app/agenda'] as const;
+export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'],
+  // Session AK (M7): NOVA and the new everyday pages on a new, empty device (their empty states), compared too.
+  ['/app/nova', 'empty'], ['/app/notes', 'empty'], ['/app/tasks', 'empty'], ['/app/journal', 'empty'], ['/app/agenda', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded'], ['/app', 'customized'], ['/app/settings', 'customized']];
 
 async function enter(page: Page, route: string, state: State, theme: Theme) {
   if (state === 'folded') await page.evaluate(() => { const write = (s: Storage, k: string) => { const v = JSON.parse(s.getItem(k) ?? '{"version":1}') as Record<string, unknown>; v.heroCollapsed = true; s.setItem(k, JSON.stringify(v)); }; write(localStorage, 'zigoals:ui-prefs:v1'); for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i)!; if (k.endsWith('zigoals:ui-prefs:v1')) write(sessionStorage, k); } });
   if (state === 'customized') await page.evaluate(() => { const k = 'zigoals:ui-prefs:v1', v = JSON.parse(localStorage.getItem(k) ?? '{"version":1}') as Record<string, unknown>; v.look = {font: 'inter', textSize: 'large', density: 'compact', glow: 'soft'}; localStorage.setItem(k, JSON.stringify(v)); });
   await openIn(page, route, theme);
+  // Session AK (CI-D; WebKit on ae0fcc18, /app/earn): Earn's and Settings' off-screen sections skip their layout
+  // (content-visibility: auto, a placeholder 1100 px tall until drawn once), and whether the sweep above drew each one
+  // before collecting is timing: WebKit kept #valdora's real 4496 px in Nebula and the placeholder in Light. Every such
+  // section is laid out in full before collecting, in every theme, so the whole page is compared rather than placeholders.
+  await page.evaluate(() => { for (const el of document.querySelectorAll<HTMLElement>('body *')) if (getComputedStyle(el).contentVisibility === 'auto') el.style.contentVisibility = 'visible'; });
+  await page.waitForLoadState('networkidle');
   if (state === 'customized') { await expect(page.locator('html')).toHaveAttribute('data-density', 'compact'); await expect(page.locator('html')).not.toHaveAttribute('data-look-loading', /.*/); }
   if (state === 'quick-add') { await page.getByRole('button', {name: '+ Quick add', exact: true}).first().click(); await expect(page.getByRole('dialog').first()).toBeVisible(); await page.waitForTimeout(400); }
   if (state === 'more') await openMore(page);

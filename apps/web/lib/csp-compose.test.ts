@@ -20,7 +20,10 @@ const modes = {'prod-https': [false, true], 'prod-http': [false, false], 'dev-ht
 // Session AF (ADR-028 H16 (c)/(d), `TIER 3 (CSP)`, lane L2b): then the linked wallets' browser-direct balance hosts, on
 // /app documents only (site documents keep main's policy).
 const AF_BALANCES = ' https://cosmos-rest.publicnode.com https://ethereum-rpc.publicnode.com https://arbitrum-one-rpc.publicnode.com https://base-rpc.publicnode.com https://optimism-rpc.publicnode.com https://polygon-bor-rpc.publicnode.com https://bsc-rpc.publicnode.com https://solana-rpc.publicnode.com https://mempool.space';
-const APP_CONNECT = ` https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com${AF_BALANCES}`, CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/';
+// Session AK (Part 1a, TIER 3 (CSP)): WalletConnect's relay socket and Verify API between Spotify and the balance hosts, and
+// Verify's attestation pages after the chess frames, with the owner's Reown project id.
+const WALLETCONNECT = ' wss://relay.walletconnect.org https://verify.walletconnect.org https://verify.walletconnect.com';
+const APP_CONNECT = ` https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com${WALLETCONNECT}${AF_BALANCES}`, CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/ https://verify.walletconnect.org/ https://verify.walletconnect.com/';
 // Session AF (ADR-028 H16 (b), `TIER 3 (CSP)`): every document's shared chain origins gain ZIGChain mainnet's RPC right
 // after the testnet RPC (egress-policy.json chainOrigins), the host the browser signs native staking through. Nothing else
 // changes; the mainnet REST host stays server-only.

@@ -14,6 +14,15 @@ export const SET_KINDS = ['warmup', 'normal', 'drop', 'failure'] as const;
 export const MEASURES = ['weight-reps', 'reps', 'time', 'distance-time'] as const;
 export const WORKOUT_TYPES = ['strength', 'cardio', 'mobility', 'sport', 'other'] as const;
 export const CATEGORIES = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full body', 'Cardio', 'Mobility'] as const;
+/**
+ * Session AK (4.9; TIER 3 (stored format), additive): an exercise may belong to a superset (exercises sharing one
+ * `supersetId` are done back to back) and may keep its own rest time (seconds; 0 = no rest timer for it). Both optional
+ * and tolerant, on loose records, so older builds keep them and never refuse the log.
+ */
+const entryExtras = {
+  supersetId: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional().catch(undefined),
+  restSeconds: z.number().int().min(0).max(900).optional().catch(undefined),
+};
 export const setSchema = z.looseObject({
   id,
   kind: z.enum(SET_KINDS).default('normal'),
@@ -22,12 +31,18 @@ export const setSchema = z.looseObject({
   distanceKm: z.number().finite().min(0).max(1000).optional(),
   seconds: z.number().int().min(0).max(86_400).optional(),
   done: z.boolean().default(false),
+  /**
+   * Session AK (4.9; TIER 3 (stored format), additive): how hard the set felt, RPE 6 to 10 in half steps. Optional and
+   * tolerant: an unreadable value is dropped, never a reason to refuse the record; older builds keep it untouched (loose).
+   */
+  rpe: z.number().min(6).max(10).multipleOf(0.5).optional().catch(undefined),
 });
 export const exerciseEntrySchema = z.looseObject({
   id, exerciseId: z.string().min(1).max(80), name: z.string().trim().min(1).max(80),
   measure: z.enum(MEASURES).default('weight-reps'),
   sets: z.array(setSchema).max(50),
   note: z.string().max(500).optional(),
+  ...entryExtras,
 });
 export const workoutSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(80), date: day, type: z.enum(WORKOUT_TYPES).default('strength'),
@@ -50,11 +65,25 @@ export const workoutSchema = z.looseObject({
     avgHr: z.number().int().min(20).max(250).optional(),
     durationSeconds: z.number().int().min(0).max(172_800),
   }).optional().catch(undefined),
+  /**
+   * Session AK (4.7, A15; TIER 3 (stored format), additive): a workout brought in from a FIT file, a Strava export or
+   * another app (Strong, Hevy). `imported.source` above is an enum older builds check, so a new source there would make
+   * them drop the summary; the new sources live in this NEW optional key instead. The summary only, never points.
+   */
+  fileImport: z.looseObject({
+    source: z.string().regex(/^[a-z0-9-]{1,20}$/),
+    importId: z.string().regex(/^[A-Za-z0-9-]{1,80}$/),
+    sport: z.string().max(40).optional(),
+    distanceKm: z.number().finite().min(0).max(2000).optional(),
+    elevationM: z.number().finite().min(0).max(20_000).optional(),
+    avgHr: z.number().int().min(20).max(250).optional(),
+    durationSeconds: z.number().int().min(0).max(172_800).optional(),
+  }).optional().catch(undefined),
 });
 export const templateSchema = z.looseObject({
   id, name: z.string().trim().min(1).max(80), type: z.enum(WORKOUT_TYPES).default('strength'),
   exercises: z.array(z.looseObject({exerciseId: z.string().min(1).max(80), name: z.string().trim().min(1).max(80), measure: z.enum(MEASURES).default('weight-reps'),
-    sets: z.array(setSchema.omit({id: true, done: true})).max(50)})).max(40),
+    sets: z.array(setSchema.omit({id: true, done: true})).max(50), ...entryExtras})).max(40),
   createdAt: z.iso.datetime({offset: true}),
 });
 export const customExerciseSchema = z.looseObject({id, name: z.string().trim().min(1).max(80), category: z.enum(CATEGORIES), measure: z.enum(MEASURES)});
@@ -65,6 +94,15 @@ export const workoutsSchema = z.looseObject({
   exercises: z.array(customExerciseSchema).max(200),
   /** Seconds of rest after a finished set; 0 turns the rest timer off. */
   restSeconds: z.number().int().min(0).max(900).default(90),
+  /**
+   * Session AK (4.9; TIER 3 (stored format), additive): the plate calculator's bar and plates, in the unit they are
+   * written in (kg or lb). Optional and tolerant; without it the calculator starts from a standard gym set.
+   */
+  plates: z.looseObject({
+    unit: z.enum(['kg', 'lb']),
+    bar: z.number().finite().min(0).max(100),
+    plates: z.array(z.looseObject({size: z.number().finite().min(0.1).max(100), pairs: z.number().int().min(0).max(20)})).max(12),
+  }).optional().catch(undefined),
 });
 export type WorkoutSet = z.infer<typeof setSchema>;
 export type ExerciseEntry = z.infer<typeof exerciseEntrySchema>;
@@ -73,5 +111,6 @@ export type WorkoutTemplate = z.infer<typeof templateSchema>;
 export type CustomExercise = z.infer<typeof customExerciseSchema>;
 export type Workouts = z.infer<typeof workoutsSchema>;
 export type Measure = typeof MEASURES[number];
+export type PlateSetup = NonNullable<Workouts['plates']>;
 export const emptyWorkouts = (): Workouts => ({version: 1, workouts: [], templates: [], exercises: [], restSeconds: 90});
 export const WORKOUTS: DeviceRecordSpec<Workouts> = {key: WORKOUTS_KEY, schema: workoutsSchema, empty: emptyWorkouts};

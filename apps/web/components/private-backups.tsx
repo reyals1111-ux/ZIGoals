@@ -20,7 +20,7 @@ import { useHealth } from "./health/use-health";
 import {plainErrorMessage} from "../lib/plain-error";
 
 type BackupStore = { importLimit:number; loaded: boolean; error: string; exportData: () => Promise<string>; importData: (raw: string) => Promise<void>; refresh: () => void };
-function ModuleBackup<T>({ name, module, schema, store, describe }: { name: string; module: ShowcaseModule; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string }) {
+function ModuleBackup<T>({ name, module, schema, store, describe, slug = name.toLowerCase().replace(/\s+/g, "-") }: { name: string; module: ShowcaseModule; schema: z.ZodType<T>; store: BackupStore; describe: (value: T) => string; /** The file name's part; kept when a name changes, so every copy of one module is named alike. */ slug?: string }) {
   const [raw, setRaw] = useState("");
   const [summary, setSummary] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -36,7 +36,7 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
       const url = URL.createObjectURL(new Blob([await store.exportData()], { type: "application/json" }));
       const anchor = document.createElement("a");
       // One pattern for the three modules (QA-26): zigoals-<module>-backup-<local date>.json, no spaces.
-      anchor.href = url; anchor.download = exportFileName(`zigoals-${name.toLowerCase().replace(/\s+/g, "-")}-backup-${localDate()}.json`, isShowcase());
+      anchor.href = url; anchor.download = exportFileName(`zigoals-${slug}-backup-${localDate()}.json`, isShowcase());
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage("Backup download started. Keep this file private."); setError("");
     } catch (error) { setError(blockedReadMessage(error) ?? "The original data could not be read. Check browser storage access."); }
@@ -87,7 +87,9 @@ function ModuleBackup<T>({ name, module, schema, store, describe }: { name: stri
 export function PrivateBackups() {
   const habits = useHabits(), health = useHealth(), platform = usePlatform();
   return <div className="private-backup-grid">
-    <ModuleBackup name="Positions and Goals" module="platform" schema={platformSchema} store={platform} describe={data => `${count(data.goals.length, "goal")} · ${count(data.positions.length, "position")} · ${count(data.allocations.length, "allocation")} · plans and snapshots included`}/>
+    {/* Session AK G2 (RELEASE_REVIEW_2 R2-16): "Goals and Wealth", the pages' own names (it was "Positions and Goals"); the
+        file keeps its name, so earlier and later copies sort together. */}
+    <ModuleBackup name="Goals and Wealth" slug="positions-and-goals" module="platform" schema={platformSchema} store={platform} describe={data => `${count(data.goals.length, "goal")} · ${count(data.positions.length, "position")} · ${count(data.allocations.length, "allocation")} · plans and snapshots included`}/>
     <ModuleBackup name="Habits" module="habits" schema={habitDataSchema} store={habits} describe={data => `${count(data.habits.length, "habit")} · ${count(data.habits.reduce((sum, habit) => sum + habit.entries.length, 0), "check-in")}`}/>
     <ModuleBackup name="Health" module="health" schema={healthSchema} store={health} describe={data => `${count(data.foods.length, "food")} · ${count(data.recipes.length, "recipe")} · ${count(data.diary.length, "meal")} · ${count(data.weights.length, "weight")} · ${count(data.activity.length, "activity", "activities")}`}/>
   </div>;

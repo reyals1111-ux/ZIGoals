@@ -23,6 +23,9 @@ import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vau
 import {withHealthGroup,withSettingsGroup} from './vault/w-homes';
 import {showcaseSleep} from './sleep/showcase';
 import {showcaseHabitsAa,showcaseHabitExtras} from './habits-extras/showcase';
+import {showcaseHabitIntentions} from './habit-intentions/showcase';
+import {SUPPLEMENTS_KEY} from './supplements/schema';
+import {showcaseSupplements} from './supplements/showcase';
 import {showcaseHealthAa,showcaseHealthAaDevice} from './health-aa/showcase';
 import {showcaseGame} from './game/showcase';
 import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
@@ -49,10 +52,52 @@ import {MONEY_LOG_KEY} from './money-log/schema';
 import {showcaseMoneyLog} from './money-log/showcase';
 import {PRICE_ALERTS_KEY} from './price-alerts/schema';
 import {showcasePriceAlerts} from './price-alerts/showcase';
-import {JOURNAL_KEY} from './journal/schema';
+import {JOURNAL_KEY, journalSchema} from './journal/schema';
 import {showcaseJournal} from './journal/showcase';
+import {showcaseOnThisDayEntries} from './on-this-day/showcase';
+import {EXPERIMENTS_KEY} from './experiments/store';
+import {showcaseExperiments} from './experiments/showcase';
+import {DEBT_PLANNER_KEY} from './debt-planner/store';
+import {showcaseDebtPlanner} from './debt-planner/showcase';
+import {SAVINGS_CHALLENGES_KEY} from './savings-challenges/challenges';
+import {showcaseSavingsChallenges} from './savings-challenges/showcase';
+import {NETWORTH_MILESTONES_KEY} from './networth-milestones/milestones';
+import {showcaseNetworthMilestones} from './networth-milestones/showcase';
+import {FOCUS_SESSIONS_KEY} from './focus-sessions/schema';
+import {showcaseFocusSessions} from './wrapped/showcase';
+import {NOTES_KEY} from './notes/schema';
+import {NOVA_KEY, showcaseNova} from './nova/store';
+import {NOVA_SETUP_KEY, showcaseNovaSetup} from './nova/setup';
+import {SHOWCASE_NOVA_BRIDGE_KEY, showcaseNovaChat} from './nova/bridge-showcase';
+import {AI_CHATS_SESSION_KEY} from './ai/settings';
+import {SHOWCASE_SCOPE} from './ai/keys';
+import {NOVA_WORKFLOWS_KEY} from './nova/workflows/schema';
+import {showcaseNovaWorkflows} from './nova/workflows/showcase';
+import {TASKS_KEY} from './tasks/schema';
+import {showcaseTasks} from './tasks/showcase';
+import {showcaseNotes} from './notes/showcase';
+import {CALENDAR_IMPORT_KEY} from './ics/calendar';
+import {showcaseCalendarImport} from './ics/showcase';
+import {withShowcasePomodoro} from './focus-sessions/showcase';
 import {ENERGY_KEY} from './energy/schema';
 import {showcaseEnergy} from './energy/showcase';
+import {BILLS_KEY} from './bills/schema';
+import {BUDGETS_KEY} from './budgets/schema';
+import {showcaseBills,showcaseBudgets} from './bills/showcase';
+import {MONEY_RULES_KEY} from './money-rules/schema';
+import {showcaseMoneyRules} from './money-rules/showcase';
+import {REWARDS_SHELF_KEY} from './rewards-shelf/store';
+import {HEALTH_NUMBERS_KEY} from './health-numbers/store';
+import {showcaseHealthNumbers} from './health-numbers/showcase';
+import {SCALES_KEY} from './scales/store';
+import {showcaseScales} from './scales/showcase';
+import {CYCLE_KEY} from './cycle/store';
+import {showcaseMoneyReview} from './review-cards/showcase';
+import {MONEY_REVIEW_KEY} from './money-review/review';
+import {showcaseCycle} from './cycle/showcase';
+import {showcaseRewardsShelf} from './rewards-shelf/showcase';
+import {MUSCLE_RECOVERY_KEY} from './muscle-freshness/model';
+import {showcaseMuscleRecovery} from './muscle-freshness/showcase';
 // The part of the day each fictional habit is checked in and each meal is logged (the habits' own time of day).
 const HABIT_PARTS:DayPart[]=['morning','morning','afternoon','evening','evening','afternoon'],MEAL_PARTS:DayPart[]=['morning','afternoon','evening','afternoon'];
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
@@ -103,7 +148,9 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  platform.goalHistory.push({id:'example-plan-change',goalId:'9202',kind:'plan',capturedAt:moment(-14,'example-plan-change','evening'),label:'Monthly contribution plan reviewed · Showcase',provenance:'LOCAL_EDIT'},{id:'example-milestone',goalId:'9205',kind:'milestone',capturedAt:moment(-1,'example-milestone','afternoon'),label:'Portfolio completed · Showcase',provenance:'LOCAL_EDIT'});
  platform=platformSchema.parse(platform);
  let habits=emptyHabitData();const titles=['Read','Exercise','Walk','Meditate','Contribute','Drink water'],targets=[30,30,8000,10,1,8],units=['minutes','minutes','steps','minutes','times','glasses'];
- titles.forEach((title,i)=>{const id=`92000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`;const input:HabitInput={title,category:i===4?'Wealth':i===0?'Learning':'Wellbeing',description:'A small daily step toward tomorrow.',notes:'SHOWCASE DATA · fictional 30-day history',schedule:{kind:'daily'},target:targets[i]!,measurement:units[i]==='minutes'?{kind:'duration',unit:'minutes'}:{kind:'count',unit:units[i]!}};habits=createHabit(habits,input,new Date(at(-29)),id);const h=habits.habits.at(-1)!;h.entries=Array.from({length:30},(_,n)=>({date:date(-29+n),count:n===29?(i%2===0?targets[i]!:Math.floor(targets[i]!/2)):(n+i)%9===0?0:targets[i]!,disposition:(n+i)%9===0&&n!==29?'skipped' as const:'logged' as const,note:'Showcase example',updatedAt:moment(-29+n,`${id}:${date(-29+n)}`,HABIT_PARTS[i])}));if(i===1)h.entries.push({date:date(3),count:0,disposition:'skipped',note:'Planned skip · SHOWCASE DATA · fictional travel day',updatedAt:now});h.updatedAt=now;});habits=habitDataSchema.parse(habits);
+ // Session AK RB (RELEASE_REVIEW_2 R2-21): each Showcase habit has its own short "why" (all six read the same filler line).
+ const whys=['One chapter at a time.','Strength and energy for the years ahead.','Fresh air and a clearer head.','Ten calm minutes before the day starts.','A little set aside for what matters.','Steady energy through the day.'];
+ titles.forEach((title,i)=>{const id=`92000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`;const input:HabitInput={title,category:i===4?'Wealth':i===0?'Learning':'Wellbeing',description:whys[i]!,notes:'SHOWCASE DATA · fictional 30-day history',schedule:{kind:'daily'},target:targets[i]!,measurement:units[i]==='minutes'?{kind:'duration',unit:'minutes'}:{kind:'count',unit:units[i]!}};habits=createHabit(habits,input,new Date(at(-29)),id);const h=habits.habits.at(-1)!;h.entries=Array.from({length:30},(_,n)=>({date:date(-29+n),count:n===29?(i%2===0?targets[i]!:Math.floor(targets[i]!/2)):(n+i)%9===0?0:targets[i]!,disposition:(n+i)%9===0&&n!==29?'skipped' as const:'logged' as const,note:'Showcase example',updatedAt:moment(-29+n,`${id}:${date(-29+n)}`,HABIT_PARTS[i])}));if(i===1)h.entries.push({date:date(3),count:0,disposition:'skipped',note:'Planned skip · SHOWCASE DATA · fictional travel day',updatedAt:now});h.updatedAt=now;});habits=habitDataSchema.parse(habits);
  const health=createEmptyHealth();health.targets={kcal:2200,proteinMg:120000,carbsMg:260000,fatMg:73000,weightGrams:72000,steps:8000};
  const meals=[['Berry overnight oats',420,22000,59000,12000],['Chicken and quinoa bowl',620,44000,70000,18000],['Salmon, rice and greens',690,48000,69000,25000],['Yogurt and almonds',240,17000,19000,10000]] as const;
  meals.forEach(([name,kcal,proteinMg,carbsMg,fatMg],i)=>health.foods.push({id:`health_food-000${i}`,name,brand:'Showcase kitchen',servingGrams:300,nutrients:{kcal,proteinMg,carbsMg,fatMg},createdAt:start,updatedAt:start}));
@@ -153,17 +200,45 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  if(options.aa!==false){ // the vault's size fixtures ask for the lean Showcase (lib/vault/power-user-fixture.ts)
  {const aaHabits=showcaseHabitsAa(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day,zone),aaHealth=showcaseHealthAa(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day),dev=showcaseHealthAaDevice(day);
   records[HABITS_KEY]=JSON.stringify(aaHabits);records[HEALTH_STORAGE_KEY]=JSON.stringify(aaHealth);
-  records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitExtras(aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
+  records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitIntentions(showcaseHabitExtras(aaHabits),aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
   records[HEALTH_COACH_KEY]=JSON.stringify(dev.coach);records[MICRO_TARGETS_KEY]=JSON.stringify(dev.micro);records[MACRO_MODE_KEY]=JSON.stringify(dev.macro);records[MEASUREMENTS_CUSTOM_KEY]=JSON.stringify(dev.measurements);records[REMINDERS_PLAN_KEY]=JSON.stringify(dev.reminders);}
  }
  // Session AH Part 6 (DE8): a fictional training log and two routines (lib/workouts/showcase.ts).
  records[WORKOUTS_KEY]=JSON.stringify(showcaseWorkouts(day));
  // Session AI (B3): five weeks of fictional spending and income with a weekly budget (lib/money-log/showcase.ts).
  records[MONEY_LOG_KEY]=JSON.stringify(showcaseMoneyLog(day));
+ // Owner follow-up 2 (G1 #9): a few of that log's own example entries waiting in To review, for card mode.
+ records[MONEY_REVIEW_KEY]=JSON.stringify(showcaseMoneyReview(showcaseMoneyLog(day)));
+ // Session AK (7.3, 7.7): four fictional bills and three category budgets beside that log (lib/bills/showcase.ts).
+ records[BILLS_KEY]=JSON.stringify(showcaseBills(day));
+ // Owner follow-up 1 (F5): a fictional supplements log (labelled in its own view as example data).
+ records[SUPPLEMENTS_KEY]=JSON.stringify(showcaseSupplements(day));
+ // Owner follow-up 1 (BUILD list 2 #8): one finished, labelled experiment, its result computed honestly from the Showcase habits.
+ // Owner follow-up 1 (F5): the debt planner's figures, a 52-week and a no-spend challenge, net-worth milestones (one already
+ // seen), and fictional focus sessions for Wrapped and the focus garden — all labelled example data.
+ records[DEBT_PLANNER_KEY]=JSON.stringify(showcaseDebtPlanner(day));records[SAVINGS_CHALLENGES_KEY]=JSON.stringify(showcaseSavingsChallenges(day));
+ records[NETWORTH_MILESTONES_KEY]=JSON.stringify(showcaseNetworthMilestones(day));records[FOCUS_SESSIONS_KEY]=JSON.stringify(withShowcasePomodoro(showcaseFocusSessions(day),day));
+ // Owner follow-up 2 (B, T2): labelled example notes (with [[links]] to Showcase goals and habits) and an imported calendar.
+ records[NOTES_KEY]=JSON.stringify(showcaseNotes(day));
+ // Owner follow-up 2 (N2, N3, N6): NOVA's example layout, its setup progress and two saved workflows (labelled).
+ // N1: one labelled NOVA conversation with a Health task handed to ZIGi (two voices), in the tab's Showcase chats.
+ {const duo=showcaseNovaChat(SHOWCASE_SCOPE,new Date(`${day}T08:00:00.000Z`));records[AI_CHATS_SESSION_KEY]=JSON.stringify({version:1,chats:[duo.chat]});records[SHOWCASE_NOVA_BRIDGE_KEY]=JSON.stringify(duo.bridge);}
+ records[NOVA_KEY]=JSON.stringify(showcaseNova(day));records[NOVA_SETUP_KEY]=JSON.stringify(showcaseNovaSetup(day,`${day}T08:00:00.000Z`));records[NOVA_WORKFLOWS_KEY]=JSON.stringify(showcaseNovaWorkflows(day));records[TASKS_KEY]=JSON.stringify(showcaseTasks(day,platform.goals.map(g=>g.id)));records[CALENDAR_IMPORT_KEY]=JSON.stringify(showcaseCalendarImport(day));
+ records[EXPERIMENTS_KEY]=JSON.stringify(showcaseExperiments(day,habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!))));
+ records[BUDGETS_KEY]=JSON.stringify(showcaseBudgets(day));
+ // Session AK (lane M): two fictional money rules that match only that log's own entries (lib/money-rules/showcase.ts).
+ records[MONEY_RULES_KEY]=JSON.stringify(showcaseMoneyRules(day));
+ // Session AK (8.6, item 8): the rewards shelf on with two fictional treats (the game layer is on in the Showcase), and
+ // the Showcase person's own muscle recovery days beside the training log. Additive; no existing figure changes.
+ records[REWARDS_SHELF_KEY]=JSON.stringify(showcaseRewardsShelf(day));
+ // Owner follow-up 2 (G1 #4, #12, #16): labelled example readings, two example scales and an example cycle log (switched on).
+ records[HEALTH_NUMBERS_KEY]=JSON.stringify(showcaseHealthNumbers(day));records[SCALES_KEY]=JSON.stringify(showcaseScales(day));records[CYCLE_KEY]=JSON.stringify(showcaseCycle(day));
+ records[MUSCLE_RECOVERY_KEY]=JSON.stringify(showcaseMuscleRecovery());
  // Session AJ (item 15, D9): a waiting price alert and one that fired and was seen (lib/price-alerts/showcase.ts).
  records[PRICE_ALERTS_KEY]=JSON.stringify(showcasePriceAlerts(day));
  // Session AI (B3, feature 6): a fictional journal with ZIGi's questions answered, and two weeks of energy ratings.
- records[JOURNAL_KEY]=JSON.stringify(showcaseJournal(day));
+ // Owner follow-up 1 (BUILD list 2 #3): two labelled memories from one and two years ago, for "On this day" (oldest first).
+ {const j=showcaseJournal(day);records[JOURNAL_KEY]=JSON.stringify(journalSchema.parse({...j,entries:[...showcaseOnThisDayEntries(day).sort((a,b)=>a.date.localeCompare(b.date)),...j.entries]}));}
  records[ENERGY_KEY]=JSON.stringify(showcaseEnergy(day));
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));

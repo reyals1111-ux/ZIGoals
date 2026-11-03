@@ -4,9 +4,10 @@
  * match somewhere in an item (title, subtitle or keywords); a word at the start of a title word ranks highest. Accents
  * and case never matter ("cafe" finds "Café").
  */
-export const SEARCH_KINDS = ['page', 'goal', 'habit', 'food', 'recipe', 'asset', 'template', 'setting', 'help'] as const;
+// Session AK (B4): 'note' — the person's notes (lib/search/notes.ts), found beside the four pillars.
+export const SEARCH_KINDS = ['page', 'goal', 'habit', 'food', 'recipe', 'asset', 'template', 'setting', 'help', 'note'] as const;
 export type SearchKind = (typeof SEARCH_KINDS)[number];
-export const KIND_LABEL: Record<SearchKind, string> = {page: 'Pages', goal: 'Goals', habit: 'Habits', food: 'Foods', recipe: 'Recipes', asset: 'Assets', template: 'Goal templates', setting: 'Settings', help: 'Help answers'};
+export const KIND_LABEL: Record<SearchKind, string> = {page: 'Pages', goal: 'Goals', habit: 'Habits', food: 'Foods', recipe: 'Recipes', asset: 'Assets', template: 'Goal templates', setting: 'Settings', help: 'Help answers', note: 'Notes'};
 export type SearchItem = {id: string; kind: SearchKind; title: string; subtitle?: string; href: string; keywords?: readonly string[]};
 export type SearchHit = SearchItem & {score: number};
 

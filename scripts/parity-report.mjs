@@ -13,7 +13,7 @@ const args = process.argv.slice(2), flag = name => args.find(a => a.startsWith(`
 const dirs = args.filter(a => !a.startsWith('--'));
 if (!dirs.length) dirs.push(join(ROOT, 'apps', 'web', 'test-results', 'theme-parity'));
 const out = flag('out') ?? join(ROOT, 'docs', 'verification', 'session-af', 'theme-parity.md');
-const CLASSES = ['text', 'neutral', 'art-calm', 'theme-bar', 'gradient-word', 'DISALLOWED'];
+const CLASSES = ['text', 'neutral', 'art-calm', 'theme-bar', 'gradient-word', 'focus-ring', 'DISALLOWED'];
 
 export function fold(files) {
   const rows = [], disallowed = [], mismatches = [];

@@ -1,5 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
-import {ALPHA_LABEL,ALPHA_SENTENCE,alphaNotice,expectAlphaFacts} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_SENTENCE,alphaNotice,expectAlphaFacts,expectNoticeLine} from './ab-shell';
 import {isPhone} from './phone-nav';
 import {ALPHA_ESSENTIALS} from '../components/shell/alpha-notice';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
@@ -66,7 +66,10 @@ async function expectBanners(page:Page){
  // footer's line moved to Settings, which a stalled read keeps hidden like every page; while it stalls the notice carries
  // the facts here, and each test ends by reading Settings' facts block once the page has opened (`expectAlphaFacts`).
  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
- if(!await isPhone(page))await expect(alphaNotice(page)).toContainText(ALPHA_SENTENCE);
+ // Session AK P2 (RELEASE_REVIEW_2 R2-7, deliberate): this device never chose the chain, so the notice's line is the consumer
+ // one and the sentence is behind More; while the read stalls (no Help, no Settings) the notice shows it with the essentials.
+ const stalled=await page.locator('main#main').evaluate(el=>getComputedStyle(el).display==='none');
+ if(!await isPhone(page)){if(stalled)await expect(alphaNotice(page).locator('.alpha-notice-sentence')).toHaveText(ALPHA_SENTENCE);else await expectNoticeLine(page,ALPHA_LABEL);}
  await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip')).toHaveCount(0);
  // Session AC (owner item 8): while the stalled read keeps the page hidden, the notice shows the essentials itself.
  if(await page.locator('main#main').evaluate(el=>getComputedStyle(el).display==='none'))await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toHaveText(ALPHA_ESSENTIALS);

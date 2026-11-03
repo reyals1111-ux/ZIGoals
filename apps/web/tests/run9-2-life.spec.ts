@@ -13,8 +13,10 @@ test('Life dashboards use Showcase records and expose exact history and working 
   await page.goto('/app/health');
   await expect(page.getByRole('region', { name: 'Daily nutrition summary' })).toContainText('1,970');
   await expect(page.getByRole('region', { name: 'Daily nutrition summary' })).toContainText('230 kcal remaining');
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the 30-day nutrition patterns moved from under the summary into the
+  // Insights view ("Your day, meal by meal" repeated the Diary's meals); the same region, the same table, one tap away.
+  await page.getByRole('navigation', { name: 'Health views' }).getByRole('button', { name: 'Insights', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Nutrition patterns' })).toBeVisible();
-  await expect(page.locator('.health-summary + .nutrition-dashboard')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Nutrition history table', exact: true })).not.toBeVisible();
   await expect(page.getByRole('region', { name: 'Nutrition patterns' })).toContainText('Showcase example history');
   await page.getByText('View nutrition history table', { exact: true }).click();
@@ -60,6 +62,8 @@ for (const width of [1440, 1024, 390, 320]) test(`Life pages recompose at ${widt
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (route === 'health') {
+      // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the nutrition module opens Health's Insights view now.
+      await page.getByRole('navigation', { name: 'Health views' }).getByRole('button', { name: 'Insights', exact: true }).click();
       await expect(page.locator('.nutrition-dashboard')).toBeVisible();
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.locator('.nutrition-dashboard').screenshot({ path: `/tmp/zigoals-run92-nutrition-module-${width}.png` });

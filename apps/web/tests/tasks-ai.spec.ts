@@ -63,6 +63,9 @@ test('SE5: a Health entry is removed from the Activity log itself, with Undo', a
   // Session AJ (CI on df6c8c64: the next goto was aborted, net::ERR_ABORTED): the dialog closes and the page settles
   // before leaving it, as before other gotos (Session AE); every check after it is unchanged.
   await expect(dialog).toBeHidden();
+  // Session AK (CI run 41545141759): the dialog that closed takes its own history entry back out (an async history.back(),
+  // components/use-back-closes.ts); a goto started before that lands is aborted. Wait until the entry is gone, as copy-polish does.
+  await expect.poll(() => page.evaluate(() => (window.history.state as Record<string, unknown> | null)?.__zigoalsLayer ?? null)).toBeNull();
   await page.waitForLoadState('networkidle', {timeout: 10_000}).catch(() => undefined);
   await page.goto('/app/activity');
   const remove = page.getByRole('button', {name: /^Remove Water: 500 mL/});

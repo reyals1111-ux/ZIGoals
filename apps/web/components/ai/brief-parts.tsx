@@ -30,5 +30,5 @@ export function ReadAloudButton({brief, intro}: {brief: Brief; intro: string}) {
   const prefs = zigiPrefs(zigi.data), muted = voicePrefs(voice.data).muted, quiet = now ? inQuiet(localClock(now), prefs.knock.quietFrom, prefs.knock.quietTo) : false;
   if (muted || quiet) return <span className="ai-note ai-brief-quiet">{muted ? 'Read aloud: ZIGi is muted.' : 'Read aloud rests in quiet hours.'}</span>;
   return reader.speaking ? <button type="button" className="text-link" onClick={reader.stop}>Stop reading</button>
-    : <button type="button" className="text-link" onClick={() => reader.speak([intro, ...briefLines(brief)].join('\n'))}>Read aloud</button>;
+    : <><button type="button" className="text-link" onClick={() => reader.speak([intro, ...briefLines(brief)].join('\n'))}>Read aloud</button>{reader.notice && <span className="ai-note" role="status">{reader.notice}</span>}</>; // Z1A-3: Strict's reason
 }

@@ -74,7 +74,8 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // Session AE bumped it (ADR-027); AD's links lead "Earlier updates".
   // Session AG Polish (ADR-030, deliberate): AG's link led "Earlier updates".
   // Session AG Polish 2 (ADR-031, deliberate): AG Polish's links led "Earlier updates".
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-aj-big-leap'); // Session AJ (ADR-035, deliberate): AG Polish 2's links lead "Earlier updates"
+  // Session AJ (ADR-035, deliberate): AG Polish 2's links led "Earlier updates".
+  expect(WHATS_NEW_RELEASE).toBe('2026-11-session-ak-number-one'); // Session AK (ADR-036, deliberate): AJ's links lead "Earlier updates"
   await page.goto('/app');
   // Session AA-Cloud Part 1 (deliberate): the card sits in Today's "Updates and summaries"; on a phone that area waits
   // behind its one row, so open it first. Nothing about the card changes.

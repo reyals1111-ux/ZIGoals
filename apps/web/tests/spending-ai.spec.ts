@@ -22,9 +22,12 @@ test('Spending: a budget, an expense and its room to spend; remove with Undo', a
   const section = page.locator('#spending');
   await expect(section.getByRole('heading', {name: 'Room to spend'})).toBeVisible();
   await expect(section).toContainText('No weekly budget');
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): the weekly budget and the entry form open from their buttons.
+  await section.getByRole('button', {name: 'Set a weekly budget', exact: true}).click();
   await section.getByRole('textbox', {name: /^Weekly budget \(/}).fill('150');
   await section.getByRole('button', {name: 'Save budget'}).click();
   await expect(section).toContainText('left of €150.00 this week');
+  await section.getByRole('button', {name: 'Log spending', exact: true}).click();
   await section.getByLabel('Amount').fill('12,50');
   await section.getByRole('radio', {name: 'Food & drink'}).check();
   await section.getByRole('button', {name: 'Save', exact: true}).click();
@@ -38,6 +41,7 @@ test('Spending: a budget, an expense and its room to spend; remove with Undo', a
 test('a wrong amount is refused in plain words and nothing is saved', async ({page}) => {
   await page.goto('/app/wealth');
   const section = page.locator('#spending');
+  await section.getByRole('button', {name: 'Log spending', exact: true}).click(); // Session AK RB (R2-8): the form opens from its button
   await section.getByLabel('Amount').fill('-4');
   await section.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(section.getByRole('alert')).toContainText('above zero');

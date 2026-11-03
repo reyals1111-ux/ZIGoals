@@ -1,0 +1,18 @@
+/* Session AK (BUILD list 2 #8): Experiments, on Compare's own card styles (theme tokens, 44 px targets, no motion). */
+.experiments { display: grid; gap: 14px; min-width: 0; }
+.experiments > p { margin: 0; }
+.experiments-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.experiment-card h3 { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
+.experiment-card .eyebrow { margin: 0; }
+.experiments .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.experiments .actions button { min-height: 44px; }
+.experiments-new { display: grid; gap: 10px; padding: 14px; border: 1px dashed var(--line); border-radius: 16px; min-width: 0; }
+.experiments-new h3 { margin: 0; font-size: 17px; }
+.experiments-new p { margin: 0; }
+.experiment-note > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }
+.experiment-note textarea { width: 100%; max-width: 100%; }
+/* Session AK (F6): richer cards — each experiment gets depth and Health's pink along its left edge; the new-experiment
+   form a faint glass wash; the note fold a ring on keyboard focus. Nothing moves, nothing follows the pointer. */
+:root .experiment-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+.experiments-new { background: radial-gradient(at 100% 0, color-mix(in srgb, var(--pillar-health) 9%, transparent), transparent 60%); }
+.experiment-note > summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }

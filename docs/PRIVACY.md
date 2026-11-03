@@ -86,6 +86,7 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
 - **Prices** come from ZIGoals' market coordinator as before and carry no address or quantity.
 - **Governance and permissions:** your own vote on a proposal and the permissions your address has given (authz grants, fee allowances) are read through the same relay with your address, nothing logged. **Practice badges** (practice network only, off unless you switch them on): checking them asks ZIGoals' server to search the practice network's public record for your practice address's badge transactions at Polkachu's public testnet service (`zigchain-testnet-api.polkachu.com`), only when you press "Check them on the chain"; the badge's note and salt stay on this device.
 - **The Earn page** reads your figures through the same relay: the wallets you linked and, in this tab, the wallet you connected on the Staking page (the relay already reads that address for Staking); it stores nothing new. Its measured staking rate reads one validator's own public account twice, 10,000 blocks apart. Since Session AH it also shows your OroSwap pool shares and USDC vault shares (`/api/earn/shares`, [ADR-033](architecture/ADR-033-session-ah.md) M37): the relay asks the same official ZIGChain service for one public address's balance of eight fixed tokens, on the real network only, with the same limits, and stores or logs nothing. Your share is worked out on this device.
+- **Token checks** (Session AK, owner follow-up 1): "What is this token?" sends only the token's name on the chain (its denom) and the network to ZIGoals' server (`/api/chain/denom`), which reads ZIGChain's official service (`api.zigchain.com` or `testnet-api.zigchain.com`); no address, nothing logged, the answer shared by every visitor for 10 minutes. Governance vote reminders you set are kept on this device only (`zigoals:gov-reminders:v1`: the proposal number, its title and when voting ends), exported, and removed by both erases.
 - **The Earn hub's own numbers** (staking rates, validators, pools, vaults, proposals) and **Ramp Network's public asset list** (assets, minimums and fees for Add money) are fetched by ZIGoals' server from the chain, from DefiLlama and from Ramp's public API, with no personal data; they are cached and shared by every visitor.
 - **Add money and ecosystem apps** are ordinary links that open the provider's or the app's own site in a new tab. For a purchase, the link carries the address you chose to receive into and the asset and network you picked, nothing else; ZIGoals sends no referrer, never sees the payment or the identity check, and the provider's own privacy policy applies from there.
 - **On this device only** (in "Export everything", never synced in this release, never restored from a backup): linked addresses and their last balances, Goal Vault links, your staking and vote journal, the practice/real choice, the Checklist and its days, Earn path and Academy progress, ZIGi's plans and briefing choices, My Universe and Stories marks, Day Timeline times. Two hand-offs live only in the open tab (sessionStorage, never exported, gone when the tab closes): the connection to the wallet you connected for staking, and a staking form ZIGi filled in for you to review (read once, at most ten minutes old). The staking wallet's public address and the positions read for it are kept in your finance record (`zigoals:platform:v1`), as a watch-only wallet's are, so Today, Wealth and your Goals show them; with an account that record syncs end-to-end encrypted, like the rest of your finances (ADR-028 H63).
@@ -154,3 +155,81 @@ The current Alpha returns to Local Demo after reload. A versioned boolean in tab
   - `zigoals-market-catalog-v1` (Session AJ): a copy of the public coin list (names and tickers, from CoinGecko's list through ZIGoals' server), so search works offline. When the copy is old, the app asks ZIGoals' server whether the list changed and downloads it only if it did. It holds nothing about you.
   - `zigoals-xpub-v1` (Session AJ): the Bitcoin public key you watch, as **Earn, staking and wallets** above describes.
 - **Read-only exchanges** (Session AI, Portfolio → Exchanges): Kraken (`api.kraken.com`), Coinbase (`api.coinbase.com`) and Binance (`api.binance.com`). Your browser signs each request on this device; ZIGoals' server (`/api/exchange`) only passes it on, to one listed read-only call: the key's own permissions and your balances, nothing that trades, withdraws or transfers. Besides the request itself, only the key's id and signature headers are passed on, never a cookie or your secret, and the server logs, stores and caches nothing. A key that can trade or withdraw is refused, and nothing is kept. The exchange sees the request and its answer, as it would from its own app.
+
+**Session AK (31 Oct): notifications, offline use, food data, music, wallets on phones.**
+- **Notifications while ZIGoals is closed** (off by default; Settings → Notifications; off on the public Alpha until the owner switches them on). What leaves your device for the device push Worker (`workers/push-device`, Cloudflare): a random id and secret made on your device (the server keeps only the secret's SHA-256), the address your browser's push service hands out (Apple, Google, Mozilla or Microsoft), your time zone, your quiet hours and the minutes of the day your device should wake. **Never** a habit's name, an amount, a kind of reminder or anything you record: every message is empty, and the text is written on your device from your own records after it arrives. Names appear only if you turned on "Show what a reminder is for in notifications", and never while the device lock is on. The push service sees when a message was sent, not what. Nothing is logged; no IP address or user agent is kept. Your record is deleted when you turn notifications off, when you erase everything on this device, after 30 days without a refresh, and when the push service says your browser dropped the subscription. Limits: 24 notifications a day per device, one a minute, a daily budget for the whole service, and a switch that pauses it all.
+- **On this device for notifications** (never synced): your choices (`zigoals:notify:v1`, in "Export everything"), and two browser databases that are never exported — `zigoals-notify-v1` (the next 48 hours of what is due, your device's random push id and secret, the last wake list sent) and `zigoals-notify-actions-v1` ("Done" and "Snooze" taps waiting for the app to apply them). "Erase everything on this device" turns notifications off first, then deletes both.
+- **Offline use:** the app keeps copies of the pages you visit and its own scripts in the browser's cache, so it opens without a connection. The cached pages hold no records of yours (your records live in the browser's storage, as before); nothing from `/api` is ever cached. "Erase everything on this device" clears the cache too.
+- **Food data** (Session AK): a barcode Open Food Facts does not know may be looked up in USDA FoodData Central (`api.nal.usda.gov`), only if the owner configured an FDC key. It receives only the barcode, sent by ZIGoals' food Worker, never your IP address, cookies or identity; answers are kept 24 hours (an unknown barcode 1 hour) and counted per client like other lookups. Your own food library is searched first, on your device, before any lookup. The offline food library (CIQUAL from ANSES, CoFID from the UK) is downloaded from ZIGoals itself when you first search it and kept on this device (`zigoals-food-generic-v1`, a browser database deleted by "Erase everything"); your search words never leave the device, and it holds nothing about you.
+- **Music** (Session AK): every focus and sleep sound is made on your device (nothing is downloaded or sent). Your sound mix, its timer and the "play when the phone is on silent" choice stay on this device (`zigoals:music-mix:v1`, in "Export everything"). "Open in Spotify / Apple Music / YouTube Music" are plain links to those services' own pages. If you use your own Spotify app, its client id stays on this device (`zigoals-music-byo-v1`, never exported or synced) and the sign-in runs between your browser and Spotify as before.
+- **Phone wallets** (Session AK, WalletConnect with the owner's public Reown project id; it works once Reown allows the app's address): pairing and messages between ZIGoals and your phone wallet go through WalletConnect's relay (`wss://relay.walletconnect.org`) and its Verify service (`verify.walletconnect.org`/`.com`), run by Reown, end-to-end encrypted between the two. They see your IP address and when messages pass, not what they say. Your wallet shares only the public addresses you approve and signs only what you approve on ZIGoals' review screen; ZIGoals never holds keys.
+- **Health additions** (Session AK, all on this device, in "Export everything", never synced): barcodes you scanned (`zigoals:food-scans:v1`, up to 100), extra nutrients a food or entry carries (`zigoals:nutrient-extras:v1`), the grocery list's ticks, "Already at home" and items you added (`zigoals:grocery:v1`), and your weekly calorie budget's shifts and rollover (`zigoals:calorie-week:v1`). **Meal photos** are kept only if you turn on "Keep the photo on this device" (off by default): each is shrunk on your device to at most 200 kB and kept in a browser database (`zigoals-meal-photos-v1`), never uploaded or synced; "Export everything" includes them as files (a restore from a backup does not bring them back), and you can delete one, all of them, or erase everything.
+- **Checklist sync** (Session AK, once the owner updates the sync service): with account sync and its extras on, your Checklist's items, orbits and day counts travel end-to-end encrypted like the other extras. Its Health quick inputs and today's tick receipts stay on each device.
+- **Lichess** (Session AK): when you connect Lichess to play on the in-app board, the access token Lichess gives ZIGoals (permission "board:play") is kept only on this device, sealed like the other linked services' sign-ins (in `zigoals-link-tokens-v1`) for the account open on this device, and is sent only to lichess.org. It is not read or used while ZIGoals is locked, or in the Showcase. It is never synced, exported, backed up or sent to ZIGoals. Disconnect deletes it and asks Lichess to revoke it; deleting an account from this device deletes its connection; "Erase everything" asks Lichess to revoke it and deletes it. The daily puzzle is read from lichess.org without an account, and your moves are checked on your device.
+
+**Session AK (1 Nov): NOVA, notes, tasks and calendars.** Nothing here needs a ZIGoals server; there is no NOVA account.
+- **NOVA** (`/app/nova`): your command center runs on this device, on the same engine, keys, memory and history as ZIGi
+  (one conversation history for both, kept on this device). Its layout, widgets, quick access and persona
+  (`zigoals:nova:v1`), which chats started in NOVA and which turns were handed to ZIGi or your Hermes Agent
+  (`zigoals:nova-bridge:v1`: ids and times, never message text), its morning and evening briefs (`zigoals:nova-briefs:v1`,
+  composed on the device from your records), your own workflows (`zigoals:nova-workflows:v1`: names, instructions and
+  steps, never your records) and the setup guide's progress and privacy mode (`zigoals:nova-setup:v1`) stay on this
+  device, are in "Export everything" and are removed by both erases. Without a model NOVA answers on the device only.
+- **Your brain and the privacy modes:** a local model (Ollama, LM Studio, llama.cpp on your own computer, reached at
+  `localhost` / `127.0.0.1` only) keeps everything on your computer. Your own cloud API key, if you add one, is sealed on
+  this device and sent only to that provider, straight from your browser. **Strict** sends nothing to a cloud model
+  (including Ollama models that run in Ollama's cloud); **Guarded** removes or rounds secrets, account and card numbers,
+  IBANs, wallet addresses, e-mails, phone numbers, street addresses, names and exact amounts first, and shows you exactly
+  what will be sent; **Relaxed** sends the areas you allowed as they are. Health is never sent until you allow it.
+  ChatGPT, Claude, Gemini or Grok subscriptions do not sign in here (they don't include API access for other apps).
+- **Hermes Agent** (by Nous Research; no partnership): if you connect your own Hermes, NOVA sends your messages and the
+  areas you allowed to the Hermes gateway on your computer (`127.0.0.1:8642`), with the key you made, kept sealed on this
+  device; your Hermes then handles them by its own settings (it may use a cloud model and keeps its own history on your
+  computer). ZIGoals never sees, stores or relays any of it. A Hermes counts as private (Strict) only after you confirm it
+  uses a local model; until then NOVA treats it as Guarded. The "ZIGoals summary for Hermes" is a file made on this
+  device that you place in Hermes yourself (`zigoals:nova-hermes:v1` keeps only its address, your confirmations and its
+  last check — never the key).
+- **Memory:** NOVA and ZIGi share one memory (`zigoals:ai-memory:v1`): only what you accept, with where it came from and
+  its date; nothing about your health while Health is not shared. Usage counts and an optional daily cap
+  (`zigoals:ai-usage:v1`) are estimates kept on this device.
+- **Notes** (`zigoals:notes:v1`) and the photos you capture into them (IndexedDB `zigoals-notes-photos-v1`, shrunk to at
+  most 200 kB, at most 300) stay on this device, are never synced, are in "Export everything" (photos as files) and are
+  removed by both erases. Speaking a note is off by default; when on, your browser's speech recognition may send the
+  audio to its maker (Chrome uses on-device recognition where it offers it). Markdown export and import run on the device;
+  nothing in an imported file is ever run.
+- **Tasks and calendars:** tasks (`zigoals:tasks:v1`) gain an optional time and a goal link. An imported calendar
+  (`zigoals:calendar-import:v1`) is read on this device from the .ics file you choose; only titles, days, times and
+  repeats are kept (descriptions, locations, people, links and alarms are dropped). Nothing is uploaded or subscribed to.
+- **Your numbers, scales and the cycle log** (owner follow-up 2, BUILD list 2): blood pressure and lab values
+  (`zigoals:health-numbers:v1`), your own 1–5 scales (`zigoals:scales:v1`) and the cycle log (`zigoals:cycle:v1`, off
+  unless you turn it on) stay on this device, are in "Export everything" and removed by both erases; the numbers and the
+  cycle log are Health-describing, so they are restored only with the Health choice and never appear in a notification.
+  A lab-sheet photo goes only to your own AI under the same gates as a label photo, and is not kept.
+- **Receipt photos** (IndexedDB `zigoals-money-photos-v1`, shrunk to at most 200 kB, at most 500): kept with a money entry
+  in this browser only, never uploaded or synced, in "Export everything" as files and removed by Erase everything. A
+  receipt draft uses your own AI only when you ask, under the same gates as a label photo; nothing is saved until you do.
+- **Recovery words in what leaves:** before anything goes to any AI (ZIGi, NOVA or your Hermes Agent), a run that looks
+  like recovery words inside your records, tool results or earlier answers is replaced with "[hidden: looked like recovery
+  words]"; your saved note is not changed. The word lists are the official BIP-39 lists, kept in the app as data.
+- **Motion:** Full, Calm or Off (`zigoals:motion:v1`), on this device only.
+- **"Was this useful?"** under ZIGi's note on the Review page (`zigoals:insight-feedback:v1`, at most 200 taps): on this
+  device only, used only to leave a kind of line out of later notes; in "Export everything", removed by both erases.
+- **Device facts read locally:** NOVA's right panel and the motion layer read what the browser offers about this device
+  (logical cores, approximate memory, battery and online state, Save-Data) to show honest facts and to rest animations;
+  nothing of it is stored or sent.
+- **Security review Z1 (NOVA and AI):** Strict sends nothing to a cloud model, including Ollama models that run in
+  Ollama's cloud (also a renamed copy Ollama marks as remote); it reads answers aloud only with voices on this device,
+  listens only with on-device speech recognition and sends no recording to a cloud transcription model. A Hermes Agent
+  counts as on this computer only after you confirm it uses a local model; until then it gets the redacted copy, as in
+  Guarded. Guarded never sends a photo or a recording to a cloud model. A lab-sheet or receipt photo is shown with where it
+  goes before it is sent; nothing leaves until you press Send. Tasks handed to ZIGi or your Hermes follow NOVA →
+  Permissions too (Health only when it is on there and shared with ZIGi); records go to Hermes marked as data, never
+  instructions, and recovery words are hidden in what is sent and in the summary file.
+- **A chat that isn't kept:** a conversation marked "Don't keep this chat" is held only in the open page's memory and never
+  written to this device's storage; any copy saved before you pressed it is removed at that moment. It still goes to the
+  AI you chose, in your privacy mode.
+- **Memory and notes:** ZIGi's and NOVA's memory is in "Export everything" and can be restored from it; its health and diet
+  notes restore only when you choose Health. Notes reach an AI only through NOVA, with Notes allowed in NOVA →
+  Permissions and your own model.
+- **Running now:** NOVA's live chips read the timers already on this device (Pomodoro, meditation, habit timers, fasting,
+  sleep); nothing is stored or sent.

@@ -1,0 +1,35 @@
+/* Session AK (lane S, item 13): Year in Pixels. Theme tokens only: a violet ramp (lighter or darker per level against the
+   theme's own ground) with a key; a dashed square is a day not rated; a dot marks a journal entry. Squares are 18 px on a
+   24 px pitch (WCAG 2.2 target-size spacing); every action also has a 44 px button. No motion. */
+.year-pixels { display: grid; gap: 12px; min-width: 0; }
+.year-pixels-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+.year-pixels-toggle, .year-pixels-nav, .year-pixels-day-nav, .year-pixels-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+.year-pixels-toggle .secondary, .year-pixels-day-nav .secondary, .year-pixels-actions .secondary { min-height: 44px; }
+.year-pixels-nav .quiet { min-width: 44px; min-height: 44px; }
+.year-pixels-nav strong { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-size: 17px; }
+.year-pixels-summary { margin: 0; font-size: 15px; }
+.year-pixels-scroll { --cell: 18px; --gap: 6px; overflow-x: auto; padding: 4px 4px 8px; max-width: 100%; }
+.year-pixels-months { display: grid; grid-template-columns: repeat(var(--weeks), var(--cell)); column-gap: var(--gap); width: max-content; height: 20px; font-size: 14px; color: var(--muted); }
+.year-pixels-months span { grid-row: 1; white-space: nowrap; }
+.year-pixels-grid { display: grid; row-gap: var(--gap); width: max-content; border-radius: 8px; }
+.year-pixels-grid:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+.year-pixels-row { display: flex; gap: var(--gap); }
+.year-pixels-cell, .year-pixels-legend i { position: relative; display: block; flex: none; width: var(--cell, 18px); height: var(--cell, 18px); border-radius: 4px; background: color-mix(in srgb, var(--violet) var(--share, 0%), transparent); border: 1px solid color-mix(in srgb, var(--violet) 35%, transparent); cursor: pointer; }
+.year-pixels [data-level="1"] { --share: 18%; }
+.year-pixels [data-level="2"] { --share: 38%; }
+.year-pixels [data-level="3"] { --share: 58%; }
+.year-pixels [data-level="4"] { --share: 78%; }
+.year-pixels [data-level="5"] { --share: 100%; }
+:is(.year-pixels-cell, .year-pixels-legend i)[data-level="none"] { background: transparent; border-style: dashed; border-color: color-mix(in srgb, var(--text) 30%, transparent); }
+.year-pixels-cell[data-level="ahead"] { background: transparent; border-color: color-mix(in srgb, var(--text) 10%, transparent); cursor: default; }
+.year-pixels-cell[data-level="out"] { visibility: hidden; cursor: default; }
+:is(.year-pixels-cell, .year-pixels-legend i)[data-entry]::after { content: ""; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 1px var(--bg, transparent); }
+.year-pixels-cell[aria-selected="true"] { outline: 2px solid var(--text); outline-offset: 1px; }
+.year-pixels-grid:focus-visible .year-pixels-cell[data-focus] { outline: 3px solid var(--cyan); outline-offset: 1px; }
+.year-pixels-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.year-pixels-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.year-pixels-legend i { cursor: default; width: 14px; height: 14px; }
+.year-pixels-day { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; }
+.year-pixels-day h3, .year-pixels-day p { margin: 0; overflow-wrap: anywhere; }
+.year-pixels-entries { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.year-pixels-entries p { white-space: pre-wrap; }

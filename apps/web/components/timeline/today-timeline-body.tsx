@@ -3,6 +3,8 @@ import Link from 'next/link';
 import {TIMELINE_ROUTE} from '../../lib/af-extras-keys';
 import {nextBlocks} from '../../lib/timeline/build';
 import {useDayTimeline} from './use-day-timeline';
+// Owner follow-up 1 (F5): the agenda's door from Today, one text link in this card's own chunk (reads no data).
+import {AgendaLink} from '../agenda/today-agenda-link';
 import {clockLabel} from './timeline-block';
 import type {TimelineBlock} from '../../lib/timeline/build';
 import './timeline.css';
@@ -31,5 +33,6 @@ export default function TodayTimelineBody() {
     ]}</ol>
       : <p className="today-timeline-line">{day.quiet ? 'A quiet day: nothing is scheduled yet.' : 'Nothing else is scheduled for today.'}</p>}
     <Link className="today-timeline-open text-link" href={TIMELINE_ROUTE}>Open the day timeline →</Link>
+    <AgendaLink className="today-timeline-open text-link"/>
   </>;
 }

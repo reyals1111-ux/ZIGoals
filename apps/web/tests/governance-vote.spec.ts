@@ -1,6 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
 import {VOTING_ID, VOTING_TITLE, governanceRelay, openGovernance, proposalsWire} from './governance-chain';
 import {ME, SIGNER_CALLS, V1, ZIG, fakeChain, fakeKeplr} from './staking-chain';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Governance votes.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 H4, H46, H61; P6.6, D6): a vote from /app/governance, signed only through the

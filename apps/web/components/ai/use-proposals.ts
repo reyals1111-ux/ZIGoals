@@ -29,6 +29,8 @@ import {readDeviceRecord} from '../../lib/device-record';
 import {CHECKLIST, CHECKLIST_DAYS} from '../../lib/checklist/schema';
 import {checklistDay} from '../../lib/checklist/day';
 import type {ChecklistEnv} from '../../lib/ai/actions/plan';
+import {AK_SOUNDSCAPE_STATUS, akEffect} from '../../lib/ai/actions/ak-effects';
+import {startSoundscape} from '../music/soundscape-start';
 
 /** Session AF (L4): the Checklist as this device holds it now, for a Checklist card; null when the storage cannot be read at all. */
 function checklistEnv(now: Date): ChecklistEnv | null {
@@ -69,11 +71,19 @@ export type ProposalRunner = {
   /**
    * Session Z-Cloud Gate B: a page to open, a record's own delete confirmation to open, or ZIGi's look to change
    * (runner-effects.ts). Resolves with the card's status text and whether a page opens, or null when the plan carries none.
-   * Optional, so a runner made by hand (Z-Local's tests in lib/ai) still type-checks.
+   * Optional, so a runner made by hand (Z-Local's tests in lib/ai) still type-checks. `leave` (Session AK CI-3): called
+   * just before a page opens (never when the card only changes a record), so whatever hosts the card (ZIGi's chat, modal
+   * on a phone) is closed before the navigation starts, not inside it.
    */
-  effect?: (plan: Plan) => {text: string; navigated: boolean} | null;
+  effect?: (plan: Plan, leave?: () => void) => {text: string; navigated: boolean} | null;
 };
-export function useProposals(): ProposalRunner {
+/**
+ * Session AK (owner follow-up 2 N7, lane NE's planner Env): NOVA's chat plans its cards on NOVA's surface, with whether
+ * Health is shared at this moment (a memory is then kept as proposed by NOVA, a health-like one only with Health shared).
+ * ZIGi's panel passes nothing, so its planner Env is exactly as before.
+ */
+export type PlanSurface = {surface: 'nova'; healthShared: boolean};
+export function useProposals(planSurface?: PlanSurface): ProposalRunner {
   const health = useHealth(), habits = useHabits(), fasting = useFasting(), platform = usePlatform(), router = useRouter();
   const reminders = useReminders(), zigiReminders = useDeviceRecord(ZIGI_REMINDERS), weekly = useWeeklyReview(), memory = useDeviceRecord(AI_MEMORY);
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings);
@@ -89,9 +99,9 @@ export function useProposals(): ProposalRunner {
     const now = new Date(), timeZone = habits.data.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone, {day, habitDay} = days(now);
     // Session AF (L4): the Checklist's records as this device holds them, read when a card is planned (its cards only), and
     // the validators the Earn page read in this visit (a staking card may name one by its name).
-    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {}), checklist: checklistEnv(now), earn: {validators: earnSnapshot().validators}};
+    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {}), checklist: checklistEnv(now), earn: {validators: earnSnapshot().validators}, ...(planSurface ? {surface: planSurface.surface, healthShared: planSurface.healthShared} : {})};
     return planAction(action, env);
-  }, [days, stores, habits.data]);
+  }, [days, stores, habits.data, planSurface?.surface, planSurface?.healthShared]); // eslint-disable-line react-hooks/exhaustive-deps -- the surface's two values, not the object
   /** "Actions by ZIGi" (Activity): a confirmed card is noted, an undone one forgotten; the note is a convenience and never blocks. */
   const note = useCallback((p: Plan, done: boolean, auto = false) => {
     if (!p.activity) return;
@@ -156,11 +166,19 @@ export function useProposals(): ProposalRunner {
     return stashed;
   }, [router]);
   const look = useDeviceRecord(ZIGI);
-  const effect = useCallback((p: Plan) => {
+  // Session AK CI-3 (WebKit, zigi-no-model-ab:18): the card's host is closed BEFORE the router push or hash change, so no
+  // page transition starts while ZIGi's chat is still open (the list closed it after the push, inside the navigation).
+  const effect = useCallback((p: Plan, leave?: () => void) => {
+    // Session AK (Part 12): a soundscape starts here, inside the card's own tap (the browser allows sound only then); a
+    // draft for the Goal wizard is kept before its page opens (the wizard reads it once; nothing is saved until it is created).
+    const ak = akEffect(p);
+    if (ak?.soundscape) { void startSoundscape(ak.soundscape); return {text: AK_SOUNDSCAPE_STATUS, navigated: false}; }
+    if (ak?.stash) { try { window.sessionStorage.setItem(ak.stash.key, JSON.stringify(ak.stash.value)); } catch { throw new Error('This browser did not keep the draft; fill in the goal form yourself.'); } }
     // Session AF (ADR-028 D7, H47): the staking review, filled in. Only the plain fields are handed over; the Staking page
     // reads them once, and nothing is signed until the person reviews them there and signs in their own wallet.
     if (p.staking) {
       const stashed = stashStakingPrefill(p.staking), [path, hash] = STAKING_PREFILL_ROUTE.split('#') as [string, string];
+      leave?.();
       if (window.location.pathname === path) window.location.hash = hash; else router.push(STAKING_PREFILL_ROUTE);
       return {text: stashed ? 'The staking review is opening on Staking, filled in. Nothing is signed until you review it and sign in your own wallet.' : 'The values could not be handed over; type them into the staking form.', navigated: true};
     }
@@ -172,6 +190,7 @@ export function useProposals(): ProposalRunner {
     if (e.kind === 'record') { const spec = deviceWriteSpec(e.key); if (!spec) return null; updateDeviceRecord(getAppStorage(), spec, r => applyDeviceWrite(e.key, r, e.patch)); try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: e.key})); } catch { /* no window */ } return {text: effectStatus(e), navigated: false}; }
     const href = e.kind === 'confirm' ? confirmHref(e) : e.href, [path, hash] = href.split('#') as [string, string | undefined];
     // A hash on the page already shown is set directly (a router push changes no hash event), as openForm does.
+    leave?.();
     if (hash !== undefined && window.location.pathname + window.location.search === path) window.location.hash = hash; else router.push(href);
     return {text: effectStatus(e), navigated: true};
   }, [look, router]);

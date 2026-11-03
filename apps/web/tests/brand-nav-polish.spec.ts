@@ -1,5 +1,9 @@
 import {expect,test,type Page} from '@playwright/test';
 import {isPhone,navLink,openMore} from './phone-nav';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the full navigation, money tools included.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
@@ -52,7 +56,9 @@ test('the Z logo leads the sidebar, loads the right density and is named ZIGoals
   // logo is the full one again.
   const main=page.getByRole('navigation',{name:'Main navigation'}),help=main.getByRole('link',{name:'Help',exact:true});
   await page.setViewportSize({width:1440,height:900});
-  await expect.poll(()=>main.getByRole('link').count()).toBe(15); // (Governance hidden until shown since Session AG Polish 3, ADR-032 L19; it had been 16.)
+  // (Governance hidden until shown since Session AG Polish 3, ADR-032 L19; it had been 16, then 15.) Session AK: NOVA (owner
+  // follow-up 2, N2): 16. Session AK G2 (R2-10): Tasks, Notes and the Journal are 'compact', not in the desktop sidebar.
+  await expect.poll(()=>main.getByRole('link').count()).toBe(16);
   await page.locator('.app-sidebar').evaluate(s=>{s.scrollTop=0;});
   await expect.poll(async()=>{const b=(await help.boundingBox())!;return b.y+b.height;}).toBeLessThanOrEqual(900-24);
   const compact=(await logo.boundingBox())!;expect(compact.width).toBeGreaterThanOrEqual(84);expect(compact.height).toBeGreaterThanOrEqual(95);
@@ -72,7 +78,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   // same order (the Showcase shows Chess since Session W Part 14).
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth']);
   await openMore(page);
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Journey','Settings','Help']); // Session AB-Design Phase 2 (deliberate, ADR-024): the Journey row while Gamify is on. Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More (H68). Session AG Polish 3 (deliberate, ADR-032 L19): Governance hidden until shown, in the Showcase too
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Tasks','Notes','Journal','Journey','Settings','Help']); // Session AK: NOVA (N2) and, Session AK G2 (RELEASE_REVIEW_2 R2-10, deliberate), Tasks, Notes and the Journal, navigation extras of More before the Journey. Session AB-Design Phase 2 (deliberate, ADR-024): the Journey row while Gamify is on. Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More (H68). Session AG Polish 3 (deliberate, ADR-032 L19): Governance hidden until shown, in the Showcase too
   await page.keyboard.press('Escape');
   // The active tab's pill glides to the new tab (a running transform transition), then settles.
   const pill=page.locator('.phone-tab-pill'),habits=nav.getByRole('link',{name:'Habits',exact:true});
@@ -97,7 +103,8 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  // The Showcase's visible set (Chess included, Session W Part 14) applies once the page knows it is the Showcase.
  // Session AF (ADR-028): Earn opens the money group; the Checklist sits before Settings.
  // Session AG Polish 3 (deliberate, ADR-032 L19, owner Part 8): Governance is hidden until shown, in the Showcase too.
- await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
+ // Session AK: NOVA (N2). Session AK G2 (R2-10): Tasks, Notes and the Journal are 'compact', not in the desktop sidebar.
+ await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','NOVA','Checklist','Settings','Help']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
  // Session U Part 4: the glide's moving state and the nav's data-gliding are recorded from before the click (a
  // MutationObserver), so a glide that ends before the first check on a loaded runner is still seen.

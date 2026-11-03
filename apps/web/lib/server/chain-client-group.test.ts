@@ -8,7 +8,7 @@ import {marketClientGroup} from './market-client-address';
 // per-client limit by the client's address group (an IPv4 address, an IPv6 /48), as the Earn and Ramp routes do, so one
 // network rotating its IPv6 addresses cannot use up the server's reads for everyone.
 const WEB = join(__dirname, '..', '..');
-const ROUTES = ['app/api/chain/validators/route.ts', 'app/api/chain/proposals/route.ts', 'app/api/chain/proposal/route.ts', 'app/api/chain/vote/route.ts', 'app/api/chain/grants/route.ts', 'app/api/chain/attestations/route.ts', 'app/api/positions/route.ts'];
+const ROUTES = ['app/api/chain/validators/route.ts', 'app/api/chain/proposals/route.ts', 'app/api/chain/proposal/route.ts', 'app/api/chain/vote/route.ts', 'app/api/chain/grants/route.ts', 'app/api/chain/attestations/route.ts', 'app/api/positions/route.ts', 'lib/zigchain-eco/denom-route.ts'];
 
 describe('the chain relays count clients by address group', () => {
   it('every relay route keys its client by marketClientGroup, never the raw connecting address', () => {

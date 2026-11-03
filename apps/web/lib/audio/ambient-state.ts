@@ -1,10 +1,11 @@
-import type {AmbientSound} from '../music/schema';
+import type {SoundLayer} from '../music/mix-store';
 
 /**
  * What the ambient player is doing (Session W Part 6), as a tiny store the shell can read without loading the player:
  * the Stop pill shows while a sound plays anywhere in ZIGoals. The player (lib/audio/ambient.ts) is its only writer.
+ * Session AK: a mix of up to three sounds also lists its `layers` (`sound` is then its first layer); one sound has none.
  */
-export type AmbientState = {playing: false} | {playing: true; sound: AmbientSound; endsAt?: number};
+export type AmbientState = {playing: false} | {playing: true; sound: SoundLayer; layers?: SoundLayer[]; endsAt?: number};
 const SILENT: AmbientState = {playing: false};
 let state: AmbientState = SILENT;
 const listeners = new Set<() => void>();

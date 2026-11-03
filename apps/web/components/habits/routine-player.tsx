@@ -1,5 +1,9 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, lazy, useEffect, useRef, useState} from 'react';
+import {fullscreenSteps} from './routine-fullscreen-timer';
+import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
+import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
+import {LoadBoundary} from '../load-boundary';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassRing} from '../progress/glass-progress';
 import {advanceRun, finishSummary, liveRun, routineOf, routineSteps, runFinished, startRun, stepElapsedMinutes} from '../../lib/routines/engine';
@@ -15,6 +19,8 @@ import type {HabitsStore} from './use-habits';
 import type {HabitExtrasState} from './use-habit-extras';
 import {plainErrorMessage} from '../../lib/plain-error';
 import { plural } from '../../lib/plural';
+// Session AK (5.4): the full-screen player (one step at a time, its own timer), its own chunk, loaded when opened.
+const RoutineFullscreen = lazy(() => import('./routine-fullscreen'));
 
 /** Phase 2, Part 6 (owner request 32): ZIGi guides the routine in a fixed line per moment — plain words, no model call. */
 function Guide({line, state = 'encouraging'}: {line: string; state?: string}) {
@@ -30,32 +36,56 @@ const mmss = (minutes: number) => { const s = Math.max(0, Math.round(minutes * 6
 export function RoutinePlayer({headId, store, extras, onClose}: {headId: string; store: HabitsStore; extras: HabitExtrasState; onClose: () => void}) {
   const record = useDeviceRecord(ROUTINE_RUN), routine = routineOf(store.data, headId);
   const [now, setNow] = useState(() => new Date()), [busy, setBusy] = useState(false), [error, setError] = useState(''), rang = useRef<string | null>(null), closeButton = useRef<HTMLButtonElement>(null);
+  const [full, setFull] = useState(false), prefs = useUiPrefs(), haptics = prefs.loaded && checklistPrefsOf(prefs.data).haptics;
   const run = record.loaded && !record.unreadable ? liveRun(record.data, store.data, store.today) : null;
   const mine = run?.headId === headId ? run : null;
   useEffect(() => { if (record.loaded && !record.unreadable && !mine && routine) { try { record.update(r => ({...r, run: startRun(headId, store.today, new Date())})); } catch { /* the player still shows the steps */ } } }, [record.loaded, record.unreadable, mine, routine, headId, store.today]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const id = window.setInterval(() => setNow(new Date()), 1000); return () => window.clearInterval(id); }, []);
   useEffect(() => { closeButton.current?.focus(); }, []);
+  // The finish screen takes the focus, also when the full-screen player (now gone) logged the last step.
+  const ended = !!(mine && routine && runFinished(routine, mine));
+  useEffect(() => { if (ended) { setFull(false); closeButton.current?.focus(); } }, [ended]);
   if (!routine) return <section className="routine-player" aria-label="Routine"><p>This routine is no longer a stack.</p><button type="button" className="secondary" onClick={onClose}>Close</button></section>;
   const steps = routineSteps(routine, mine, store.today), current = mine ? steps[mine.step] : undefined, finished = mine ? runFinished(routine, mine) : false;
   const elapsed = mine ? stepElapsedMinutes(mine, now) : 0, target = current?.minutes ?? null, share = target ? Math.min(1, elapsed / target) : 0;
   if (mine && current?.duration && target && elapsed >= target && rang.current !== current.habit.id && extras.loaded && habitBell(extras.data, current.habit.id)) { rang.current = current.habit.id; void ringTimerBell(); }
-  async function step(outcome: 'done' | 'skipped') {
-    if (!mine || !current) return; setBusy(true); setError('');
-    try {
-      if (outcome === 'done') {
-        const rule = habitRuleOn(current.habit, store.today);
-        const day = habitDay(current.habit, store.today, store.today);
-        if (rule && day.scheduled && day.status !== 'complete') {
-          // Session AH (HA4, L-084): a timed step is credited the time it took, never its full target after 0:00.
-          const value = current.duration && rule.measurement.kind === 'duration' ? Number((rule.measurement.unit === 'hours' ? elapsed / 60 : elapsed).toFixed(2)) : smartDoneValue(rule);
-          if (value > 0) await store.update(data => logHabitValue(data, current.habit.id, store.today, value, {mode: 'add'}));
-          try { zigiSignals.emitValidated('habit_completed'); } catch { /* decoration */ }
-        }
+  /**
+   * Logs the current step through the journal and moves the run on. `credited` is the full-screen player's own timer
+   * (minutes); otherwise a timed step is credited the time since the step began. Throws when the step was not saved.
+   */
+  async function advance(outcome: 'done' | 'skipped', credited?: number | null) {
+    if (!mine || !current) return;
+    if (outcome === 'done') {
+      const rule = habitRuleOn(current.habit, store.today);
+      const day = habitDay(current.habit, store.today, store.today);
+      if (rule && day.scheduled && day.status !== 'complete') {
+        // Session AH (HA4, L-084): a timed step is credited the time it took, never its full target after 0:00.
+        const took = credited ?? elapsed;
+        const value = current.duration && rule.measurement.kind === 'duration' ? Number((rule.measurement.unit === 'hours' ? took / 60 : took).toFixed(2)) : smartDoneValue(rule);
+        if (value > 0) await store.update(data => logHabitValue(data, current.habit.id, store.today, value, {mode: 'add'}));
+        try { zigiSignals.emitValidated('habit_completed'); } catch { /* decoration */ }
       }
-      const next = advanceRun(mine, current.habit.id, outcome, new Date());
-      record.update(r => ({...r, run: next}));
-      if (runFinished(routine!, next)) { try { zigiSignals.emitValidated('routine_finished'); } catch { /* decoration */ } }
-    } catch (cause) { setError(plainErrorMessage(cause, 'This step was not saved.')); } finally { setBusy(false); }
+    }
+    const next = advanceRun(mine, current.habit.id, outcome, new Date());
+    record.update(r => ({...r, run: next}));
+    if (runFinished(routine!, next)) { try { zigiSignals.emitValidated('routine_finished'); } catch { /* decoration */ } }
+  }
+  async function step(outcome: 'done' | 'skipped') {
+    setBusy(true); setError('');
+    try { await advance(outcome); } catch (cause) { setError(plainErrorMessage(cause, 'This step was not saved.')); } finally { setBusy(false); }
+  }
+  /** Session AK (5.4): "Log all remaining" in full screen: each step left is logged done at its target, then the run ends. */
+  async function logAll() {
+    if (!mine) return;
+    let next = mine;
+    for (const s of steps.filter(s => s.status === 'current' || s.status === 'pending')) {
+      const rule = habitRuleOn(s.habit, store.today), day = habitDay(s.habit, store.today, store.today);
+      if (rule && day.scheduled && day.status !== 'complete') { const value = smartDoneValue(rule); if (value > 0) await store.update(data => logHabitValue(data, s.habit.id, store.today, value)); }
+      next = advanceRun(next, s.habit.id, 'done', new Date());
+    }
+    const done = next;
+    record.update(r => ({...r, run: done}));
+    try { zigiSignals.emitValidated('routine_finished'); } catch { /* decoration */ }
   }
   function leave(clear: boolean) { if (clear) { try { record.update(r => ({...r, run: null})); } catch { /* kept */ } } onClose(); }
   if (!mine) return <section className="routine-player" aria-label={routine.title}><p role="status">Starting {routine.title}…</p></section>;
@@ -64,7 +94,9 @@ export function RoutinePlayer({headId, store, extras, onClose}: {headId: string;
     return <section className="routine-player routine-finish" aria-labelledby="routine-finish-title"><p className="eyebrow">Routine complete</p><h2 id="routine-finish-title"><NebulaFlow identity={`routine-finish:${headId}`}>Well done.</NebulaFlow></h2><p className="routine-finish-line">{f.done} of {f.total} {plural(f.total, 'step')} done{f.skipped ? `, ${f.skipped} skipped` : ''}, in about {f.minutes} {f.minutes === 1 ? 'minute' : 'minutes'}.</p><ol className="routine-finish-steps">{steps.map(s => <li key={s.habit.id} data-status={s.status}><span aria-hidden="true">{s.status === 'done' ? '✓' : '○'}</span>{s.habit.title}</li>)}</ol><div className="actions"><button ref={closeButton} type="button" className="primary" onClick={() => leave(true)}>Close</button></div><Guide line="You showed up for every step you could. That is the whole trick." state="celebrate"/></section>;
   }
   return <section className="routine-player" aria-labelledby="routine-player-title">
-    <div className="routine-player-head"><p className="eyebrow">{routine.title} · step {mine.step + 1} of {steps.length}</p><button ref={closeButton} type="button" className="quiet" onClick={() => leave(false)} aria-label="Pause the routine and close">Close</button></div>
+    <div className="routine-player-head"><p className="eyebrow">{routine.title} · step {mine.step + 1} of {steps.length}</p><div className="actions"><button type="button" className="quiet" onClick={() => setFull(true)}>Full screen</button><button ref={closeButton} type="button" className="quiet" onClick={() => leave(false)} aria-label="Pause the routine and close">Close</button></div></div>
+    {full && <LoadBoundary quiet><Suspense fallback={null}><RoutineFullscreen title={routine.title} steps={fullscreenSteps(steps)} haptics={haptics} bellFor={stepId => extras.loaded && habitBell(extras.data, stepId)}
+      onLogStep={(stepId, minutes) => stepId === current?.habit.id ? advance('done', minutes) : undefined} onSkipStep={stepId => stepId === current?.habit.id ? advance('skipped') : undefined} onLogAll={logAll} onClose={() => setFull(false)}/></Suspense></LoadBoundary>}
     <ol className="routine-dots" aria-label="Steps">{steps.map(s => <li key={s.habit.id} data-status={s.status} aria-label={`${s.habit.title}: ${s.status}`} />)}</ol>
     <h2 id="routine-player-title"><NebulaFlow identity={`routine-step:${current!.habit.id}`}>{current!.habit.title}</NebulaFlow></h2>
     {current!.habit.description && <p className="routine-step-desc">{current!.habit.description}</p>}

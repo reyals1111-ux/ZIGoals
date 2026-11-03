@@ -69,3 +69,16 @@
 .help-search { display: grid; gap: 6px; margin: 0 0 16px; max-width: 640px; }
 .help-search input { min-height: 44px; }
 .help-search p:empty { display: none; }
+/* Session AK G2 (RELEASE_REVIEW R24): "Earlier updates" holds the release notes after What's new; its sections keep the panel look. */
+.help-earlier { margin-top: 14px; scroll-margin-top: 80px; }
+.help-earlier > .help-section { margin: 22px 0 0; }
+.help-earlier > .eyebrow { margin-bottom: 8px; }
+.help-earlier > .help-earlier-lede { max-width: 68ch; margin: 0; color: var(--text-secondary, #c2d0e5); }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Help: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.help-page) .panel { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.help-page) .panel:hover { border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent)); } }
+:root :where(.help-page) .panel:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.help-page) .panel { box-shadow: none; } }

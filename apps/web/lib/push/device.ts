@@ -46,6 +46,29 @@ export function scheduleNote(derived: Derived, quiet: QuietHours): string {
 }
 async function registration(): Promise<ServiceWorkerRegistration | undefined> { return navigator.serviceWorker?.getRegistration(SW_SCOPE); }
 /**
+ * Session AK (CI lane P, ADR-036 Q15/Q19): waits until THIS registration's own /push-sw.js worker is the active one, at
+ * most `ms`. navigator.serviceWorker.ready resolved to the offline worker (/sw.js) the shell had already registered on
+ * the same scope, so the subscription was made before the account worker took over. A worker that never activates in
+ * time is left to take over later: the subscription belongs to the registration, not to a worker.
+ * While it waits, the worker is asked every 1.5 s to take over (ADR-036 Q19, amended): to hand over, Chrome stops the
+ * outgoing /sw.js, and a request of this page arriving meanwhile (the tap scrolls cards into view) starts it again; the
+ * hand-over then waits until it goes idle, 30 s to 5 minutes. Each ask makes /push-sw.js call skipWaiting again, and
+ * Chrome tries the hand-over again at once.
+ */
+export const ACTIVATE_MESSAGE = {type: 'zigoals:push-sw-activate'} as const;
+export function accountWorkerActive(reg: ServiceWorkerRegistration, ms = 10_000, every = 1_500): Promise<void> {
+  const ours = (w: ServiceWorker | null | undefined): w is ServiceWorker => !!w && new URL(w.scriptURL, self.location.href).pathname === SW_URL;
+  return new Promise(resolve => {
+    const worker = [reg.installing, reg.waiting, reg.active].find(ours);
+    if (!worker || worker.state === 'activated' || worker.state === 'redundant') { resolve(); return; }
+    const timer = setTimeout(done, ms), asking = setInterval(ask, every);
+    function ask() { try { worker!.postMessage(ACTIVATE_MESSAGE); } catch { /* it went redundant: check() ends the wait */ } }
+    function done() { clearTimeout(timer); clearInterval(asking); worker!.removeEventListener('statechange', check); resolve(); }
+    function check() { if (worker!.state === 'activated' || worker!.state === 'redundant') done(); }
+    worker.addEventListener('statechange', check);
+  });
+}
+/**
  * Unsubscribes in the browser, unregisters the worker and deletes the opted-in names table (Session V Part 13, loaded
  * only now); never throws.
  */
@@ -64,7 +87,7 @@ export async function turnOnPush({account, publicKey, quiet = DEFAULT_QUIET}: {a
   let reg: ServiceWorkerRegistration, sub: PushSubscription;
   try {
     reg = await navigator.serviceWorker.register(SW_URL, {scope: SW_SCOPE});
-    await navigator.serviceWorker.ready;
+    await accountWorkerActive(reg);
     // A subscription left by an earlier account or key on this browser is replaced, never reused: its old address
     // then answers 404 or 410 and leaves the other account's server data by itself.
     const existing = await reg.pushManager.getSubscription();

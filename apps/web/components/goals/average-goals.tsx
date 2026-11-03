@@ -2,7 +2,7 @@
 import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {useId, useMemo, useState} from 'react';
+import {Suspense, lazy, useId, useMemo, useState} from 'react';
 import {AVERAGE_METRICS, WINDOWS, addAverageGoal, averageKey, editAverageGoal, logAverageValue, removeAverageGoal, removeAverageValue, setAverageStatus, type AverageGoal, type AverageMetric} from '../../lib/average-goals/store';
 import {averageProgress} from '../../lib/average-goals/progress';
 import {setGoalArea, setGoalTemplate} from '../../lib/goal-extras/store';
@@ -20,6 +20,9 @@ import {GoalPlan} from './goal-plan';
 import {useUnifiedGoals} from '../use-unified-goals';
 import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+import '../skeleton/zg-skeleton.css';
+// Session AK (B3, lane B): the notes that link to this goal ([[name]]), their own chunk.
+const NoteBacklinks = lazy(() => import('../notes/note-backlinks'));
 
 const value = (goal: Pick<AverageGoal, 'metric'>, v: number) => formatExactNumber(String(Math.round(v * 10 ** AVERAGE_METRICS[goal.metric].decimals) / 10 ** AVERAGE_METRICS[goal.metric].decimals));
 const verdict = (g: AverageGoal, p: ReturnType<typeof averageProgress>) => p.average === null ? 'No days recorded in this window yet' : `${value(g, p.average)} ${g.unit} on average · ${p.days} of ${p.windowDays} days recorded`;
@@ -86,7 +89,7 @@ export function AverageGoalDetail({id}: {id: string}) {
   const goal = store.data.goals.find(g => g.id === id);
   const [day, setDay] = useState(today), [entry, setEntry] = useState('');
   const p = useMemo(() => goal ? averageProgress(goal, health.loaded && !health.error ? health.data : undefined, today) : null, [goal, health.loaded, health.error, health.data, today]);
-  if (!store.loaded) return <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div>;
+  if (!store.loaded) return <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>;
   if (!goal || !p) return <section className="panel"><h1>Goal unavailable</h1><p>This average goal is not kept on this device.</p><Link className="text-link" href="/app/goals">Back to Goals →</Link></section>;
   const run = (change: Parameters<typeof store.update>[0], message: string, undo?: Parameters<typeof store.update>[0]) => { try { store.update(change); showToast({message, ...(undo ? {undo: () => store.update(undo), undone: 'Change undone.'} : {})}); } catch (e) { showToast({message: plainErrorMessage(e, 'That change could not be saved.')}); } };
   const before = goal.entries.find(e => e.day === day);
@@ -121,5 +124,6 @@ export function AverageGoalDetail({id}: {id: string}) {
       </div>
     </section>
     <GoalPlan goalKey={averageKey(goal.id)} name={goal.name} goals={unified.goals} finished={goal.status === 'completed'} />
+    <Suspense fallback={null}><NoteBacklinks kind="goal" id={`average:${goal.id}`} name={goal.name} panel/></Suspense>
   </div>;
 }

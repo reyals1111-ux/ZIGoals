@@ -46,7 +46,8 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   // Every module 32cb9c5's Today showed with the Showcase is still there, once each (the rail's four included).
   const modules = (await today.locator('[data-module]').evaluateAll(els => els.map(e => e.getAttribute('data-module')!))).sort();
   // Session AC: the two twins are kept, hidden by default; arranging lists each with "Show card" (asserted below).
-  expect(modules).toEqual(['activity', 'attention', 'destination', 'funding', 'goals', 'health', 'needs-attention', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
+  // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the funding agenda is part of "Next money steps" (needs-attention), so 'funding' renders no module of its own while that card shows.
+  expect(modules).toEqual(['activity', 'attention', 'destination', 'goals', 'health', 'needs-attention', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
   await expect(today.locator('.habits-today[aria-labelledby]')).toHaveCount(1);
   // What's new and the weekly review sit with the summaries now, still as For you cards behind the same fold rules.
   const end = page.getByRole('region', {name: 'Updates and summaries', exact: true});
@@ -99,8 +100,8 @@ test('Wealth: the tracker row, then holdings and accounts, then the tools, then 
   expect(order).toEqual(isPhone(page)
     // Session AB-Design (owner request 26): the calculator is the last section on every width.
     // Session AC (the owner's decision of 2026-10-15): the three holdings lists are one item, wealth:holdings.
-    ? ['wealth:pulse', 'wealth:holdings', 'wealth:spending', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']
-    : ['wealth:pulse', 'wealth:holdings', 'wealth:spending', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']);
+    ? ['wealth:pulse', 'wealth:holdings', 'wealth:spending', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:target', 'wealth:purpose', 'wealth:autopilot', 'wealth:bills', 'wealth:budgets', 'wealth:calculator']
+    : ['wealth:pulse', 'wealth:holdings', 'wealth:spending', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:target', 'wealth:purpose', 'wealth:autopilot', 'wealth:bills', 'wealth:budgets', 'wealth:calculator']);
 });
 
 test('Goals: the cards first, Health goals with them, the timeline after', async ({page}) => {
@@ -156,9 +157,16 @@ test('Markets, Health and Help keep their sections; Settings keeps its six group
   await page.goto('/app/health');
   await expect(page.locator('[data-layout-item="health:summary"]')).toBeAttached();
   // Session AH Part 6 (DE8): the Workouts card joins after Meditation (deliberate; the order is otherwise unchanged).
-  expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:nutrition', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:roadmap', 'health:fasting', 'health:trends']);
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): "Nutrition patterns" moved into Health's Insights view (it repeated the
+  // Diary's meals) and "Faster ways to log" is gone (it advertised the page's own features); the rest keep their order.
+  expect(only(await items(page), 'health:')).toEqual(['health:summary', 'health:journal', 'health:sleep', 'health:meditation', 'health:workouts', 'health:fasting', 'health:trends']);
+  await expect(page.locator('[data-layout-item="health:nutrition"], [data-layout-item="health:roadmap"]')).toHaveCount(0);
   await page.goto('/app/settings');
-  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'ZIGi', 'Help & diagnostics']);
+  // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant" (ZIGi's and NOVA's settings).
+  // Session AK X1 (RELEASE_REVIEW R4, deliberate): the Showcase has chosen the chain, so Account & devices holds the advanced
+  // "Wallet & network" group, whose title wears the same group-title style (its own six groups are unchanged).
+  await expect(page.locator('.settings-group-title')).toHaveText(['Data & privacy', 'Your app', 'Your areas', 'Account & devices', 'Wallet & network (advanced)', 'Your assistant', 'Help & diagnostics']);
+  await expect(page.locator('.settings-group')).toHaveCount(6);
 });
 
 test('Settings: the in-page index stays in view while the page scrolls (computers and tablets)', async ({page}) => {
@@ -182,7 +190,9 @@ test('Help: the topic index is two columns on a phone and ZIGi’s section eyebr
   // with this release's topic.
   await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
   await page.getByRole('button', {name: 'All topics', exact: true}).click();
-  await expect(links).toHaveCount(19);
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): eleven task-shaped topics; the release notes are one "Earlier updates" topic.
+  // Session AK follow-up 2 (deliberate): twelve, with "NOVA, notes and tasks" after ZIGi.
+  await expect(links).toHaveCount(12);
   for (const link of await links.all()) await expect(link).toBeVisible();
   const lefts = new Set((await links.evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().left)))));
   expect(lefts.size).toBe(2);

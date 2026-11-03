@@ -60,3 +60,20 @@ describe('the three roles', () => {
     expect(attentionFirst(goals, {focus: null, attention: null, cards: []})).toEqual(goals);
   });
 });
+
+// Session AK G2 (RELEASE_REVIEW R29): the Showcase leads "What matters today" with a currency goal; a goal in an asset that
+// needs review (its ZIG reward reserve) follows further down. Without the option the most urgent goal still leads.
+describe('a currency goal leads (the Showcase)', () => {
+  const active = [summary('1'), summary('2', {fundingHealth: 'AHEAD'}), summary('3', {requiresReview: true, currency: 'ZIG'})];
+  const records = [record('1'), record('2'), record('3', {type: 'REWARD'})];
+  it('picks the most urgent currency goal over a more urgent asset goal', () => {
+    expect(todayGoalRoles(active, records, TODAY, {lead: 'currency'}).attention?.id).toBe('2');
+    expect(todayGoalRoles(active, records, TODAY).attention).toEqual({id: '3', why: 'review'});
+  });
+  it('falls back to the asset goal when no other currency goal is left, and never shows the focus goal', () => {
+    const roles = todayGoalRoles([summary('1'), summary('3', {requiresReview: true})], [record('1'), record('3', {type: 'REWARD'})], TODAY, {lead: 'currency'});
+    expect(roles.focus?.goal.id).toBe('1');
+    expect(roles.attention?.id).toBe('3');
+  });
+});
+

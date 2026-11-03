@@ -11,8 +11,12 @@ import {visionScope} from '../goals/use-goal-extras';
 import {StorageHealth} from '../storage-health';
 import {SectionHeading} from '../ui/section-heading';
 import './data-health.css';
+import '../skeleton/zg-skeleton.css';
 // Session AB-Cloud Part 5 (ADR-023 C22): Restore from a backup, loaded with the page's section, its code with the file.
 const RestoreBackup = lazy(() => import('../restore/restore-backup').then(m => ({default: m.RestoreBackup})));
+// Session AK Part 8.9: test a backup in a sandbox, and the monthly reminder to keep a copy.
+const TestBackup = lazy(() => import('../restore/test-backup'));
+const BackupReminder = lazy(() => import('../restore/backup-reminder'));
 
 /**
  * Data health (Session AA-Cloud Part 6, Settings → Your data): where each part of the person's data lives, how much
@@ -40,7 +44,7 @@ export function DataHealthView() {
     });
     return () => { active = false; };
   }, []);
-  if (!read) return <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div>;
+  if (!read) return <div className="aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div>;
   const total = Object.values(read.sizes).reduce<number>((n, b) => n + (b ?? 0), 0);
   const row = (e: CatalogEntry) => <li key={e.key}><span><strong>{e.label}</strong><small>{e.area}</small></span><span className="dh-size">{read.sizes[e.key] === null ? 'Nothing yet' : kb(read.sizes[e.key]!)}</span></li>;
   const ai = read.ai, areas = ai ? PAGE_AREAS.filter(a => ai.pageShare[a] && (a !== 'health' || ai.includeHealth)) : [];
@@ -74,10 +78,12 @@ export function DataHealthView() {
       </dl>
       <p className="fine">Export everything writes nothing on this device, by design, so it keeps no date; your browser&apos;s downloads list shows when you last exported. Restore from a backup, below, reads that ZIP back.</p>
       <div className="dh-actions"><Link className="primary" href="/app/settings#privacy">Export everything or keep a protected copy</Link></div>
+      <Suspense fallback={null}><BackupReminder/></Suspense>
     </section>
     <section className="panel" aria-labelledby="dh-restore" id="restore">
       <SectionHeading id="dh-restore" eyebrow="From Export everything" title="Restore from a backup" lede="Bring back records from an Export everything ZIP: see what it holds, choose per part, confirm, and undo if you change your mind." level={3} />
       <Suspense fallback={null}><RestoreBackup showcase={read.showcase} /></Suspense>
+      {!read.showcase && <Suspense fallback={null}><TestBackup/></Suspense>}
     </section>
     <section className="panel" aria-labelledby="dh-storage">
       <SectionHeading id="dh-storage" eyebrow="This browser" title="Storage used" level={3} />

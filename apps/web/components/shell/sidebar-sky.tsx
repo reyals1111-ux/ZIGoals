@@ -1,6 +1,7 @@
 'use client';
 import {useEffect} from 'react';
 import {skyAllowed, skyDriver, skyOffset, skyRange} from '../../lib/sidebar-sky';
+import {loopLevel} from '../../lib/motion-loops/loops';
 import './sidebar-sky.css';
 
 /**
@@ -14,8 +15,8 @@ import './sidebar-sky.css';
  * While the sidebar scrolls, a CSS scroll-driven animation drives the drift (sidebar-sky.css) where the engine has
  * `animation-timeline`; once it rests, the same value is kept as a plain custom property and the animation is detached,
  * so no animation keeps running on a still page (the one-time-motion rule, H55, and every "nothing is moving" check).
- * Without `animation-timeline` a passive scroll listener writes the value once per frame. Reduced motion, Motion Off and
- * the tablet header (≤ 900 px): nothing is written and AE's pinned sky shows, still. Renders nothing; mounted once, by
+ * Without `animation-timeline` a passive scroll listener writes the value once per frame. Reduced motion, Motion Off,
+ * Motion Calm (Session AK FU) and the tablet header (≤ 900 px): nothing is written and AE's pinned sky shows, still. Renders nothing; mounted once, by
  * the sidebar's theme bar (its own lazy island, so the shell carries no extra weight).
  */
 export function SidebarSky() {
@@ -28,7 +29,9 @@ export function SidebarSky() {
     const rest = () => { el.style.setProperty('--sky-rest', `${skyOffset(el.scrollTop)}px`); el.dataset.sky = 'rest'; };
     const range = () => { if (on) el.style.setProperty('--sky-range', `${skyRange(el.scrollHeight, el.clientHeight)}px`); };
     const apply = () => {
-      on = skyAllowed({desktop: desktop.matches, reduced: reduced.matches, motionOff: root.dataset.appMotion === 'off'});
+      // Session AK (FU): the app's Motion level (Full / Calm / Off): only Full drifts; Calm and Off show the pinned sky.
+      const level = loopLevel(root.dataset.appMotion, reduced.matches);
+      on = skyAllowed({desktop: desktop.matches, reduced: reduced.matches, motionOff: level === 'off', calm: level === 'calm'});
       window.clearTimeout(settle); if (frame) cancelAnimationFrame(frame); frame = 0;
       if (on) { range(); rest(); return; }
       delete el.dataset.sky; el.style.removeProperty('--sky-rest'); el.style.removeProperty('--sky-range');

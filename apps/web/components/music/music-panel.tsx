@@ -1,8 +1,12 @@
 'use client';
-import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import Link from 'next/link';
+import {usePathname} from 'next/navigation';
+import {Suspense, lazy, useEffect, useRef, useState, useSyncExternalStore, type ReactNode} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
-import {AMBIENT_LABELS, TIMER_CHOICES, playAmbient, setAmbientVolume, stepSound, stopAmbient} from '../../lib/audio/ambient';
+import {AMBIENT_LABELS, TIMER_CHOICES, playAmbient, playMix, setAmbientVolume, stepSound, stopAmbient} from '../../lib/audio/ambient';
+import {LAYER_LABELS, playingLabel} from '../../lib/audio/ambient-labels';
 import {ambientState, serverAmbientState, subscribeAmbient} from '../../lib/audio/ambient-state';
+import {mixIsActive, mixVolume, savedLayers, withMix} from '../../lib/audio/mix';
 import {APPLE_MUSIC_HOME} from '../../lib/music/brand';
 import {MUSIC, MUSIC_SOURCES, type AmbientSound, type MusicPrefs} from '../../lib/music/schema';
 import {isShown} from '../../lib/pages/visibility';
@@ -11,43 +15,82 @@ import {usePagesView} from '../pages/use-pages-view';
 import {formatTime} from '../../lib/visual-format';
 import {Controls, Disc} from './music-ui';
 import {SpotifySource} from './spotify-source';
+import {SilentSwitchChoice} from './silent-switch';
+import {useMusicMix} from './use-music-mix';
 import './music-panel.css';
+import './music-mix.css';
+
+const MixPlayer = lazy(() => import('./mix-player'));
+const PlaylistLinks = lazy(() => import('./playlist-links'));
+/** Session AK: a fold whose body loads the first time it opens (the mix, the playlist links). */
+export function LazyFold({summary, children}: {summary: string; children: ReactNode}) {
+  const [opened, setOpened] = useState(false);
+  return <details className="music-more" onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) setOpened(true); }}>
+    <summary>{summary}</summary>
+    <div className="music-more-body">{opened && <Suspense fallback={<p className="fine">Loading…</p>}>{children}</Suspense>}</div>
+  </details>;
+}
 
 const SOURCE_LABEL: Record<MusicPrefs['source'], string> = {ambient: 'Focus sounds', spotify: 'Spotify', apple: 'Apple Music'};
 const clock = (ms: number) => formatTime(ms);
 const WaveGlyph = () => <svg viewBox="0 0 24 24" width="30" height="30" focusable="false" aria-hidden="true"><path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 
-/** Focus sounds in the panel: the same player as Meditation's (Part 6), with previous and next stepping through the sounds. */
-function AmbientSource({prefs, save}: {prefs: MusicPrefs; save: (change: (m: MusicPrefs) => MusicPrefs) => boolean}) {
-  const state = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState), [error, setError] = useState('');
-  const health = isShown(usePagesView(), 'health'), {sound, timerMin, stopOnHide} = prefs.ambient, current = state.playing ? state.sound : sound;
+/**
+ * Focus sounds in the panel: the same player as Meditation's (Part 6), with previous and next stepping through the sounds.
+ * Session AK (owner decision MUSIC): the mix of up to three sounds folds in under "Mix up to 3 sounds"; once played, the
+ * big button plays the mix until previous or next picks one sound again. `full` (the /app/music page) leaves the mix and
+ * the settings to the page's own sections.
+ */
+export function AmbientSource({prefs, save, full = false}: {prefs: MusicPrefs; save: (change: (m: MusicPrefs) => MusicPrefs) => boolean; full?: boolean}) {
+  const state = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState), [error, setError] = useState(''), mixRecord = useMusicMix();
+  const health = isShown(usePagesView(), 'health'), {sound, timerMin, stopOnHide} = prefs.ambient, playOnSilent = !!mixRecord.data.playOnSilent;
+  const mix = savedLayers(mixRecord.data), mixMode = state.playing ? !!state.layers : mixIsActive(mixRecord.data);
+  // In mix mode, the volume and the timer are the mix's own (`zigoals:music-mix:v1`); otherwise the player's.
+  const volume = mixMode ? mixVolume(mixRecord.data, prefs) : prefs.volume, timer = mixMode ? mixRecord.data.timerMin : timerMin;
+  const current: AmbientSound = state.playing && !state.layers ? state.sound as AmbientSound : sound;
+  const title = state.playing && state.layers ? playingLabel(state) : mixMode ? mix.map(l => LAYER_LABELS[l.sound]).join(' + ') : AMBIENT_LABELS[current];
+  const cannot = () => setError('This browser cannot play sounds made on the device. Nothing else changed.');
   async function play(next: AmbientSound = current) {
     setError('');
-    if (!(await playAmbient({sound: next, volume: prefs.volume, ...(timerMin ? {timerMin} : {}), stopOnHide}))) setError('This browser cannot play sounds made on the device. Nothing else changed.');
+    if (!(await playAmbient({sound: next, volume: prefs.volume, ...(timerMin ? {timerMin} : {}), stopOnHide, playOnSilent}))) cannot();
   }
-  function step(direction: 1 | -1) { const next = stepSound(current, direction); save(m => ({...m, ambient: {...m.ambient, sound: next}})); if (state.playing) void play(next); }
+  async function playTheMix() {
+    setError('');
+    if (!(await playMix({layers: mix, volume, ...(timer ? {timerMin: timer} : {}), stopOnHide, playOnSilent}))) cannot();
+  }
+  function step(direction: 1 | -1) {
+    const next = stepSound(current, direction);
+    save(m => ({...m, ambient: {...m.ambient, sound: next}}));
+    if (mixRecord.data.mix?.active) mixRecord.save(m => withMix(m, savedLayers(m), false));
+    if (state.playing) void play(next);
+  }
+  const setVolume = (v: number) => { if (mixMode ? mixRecord.save(m => ({...m, master: v})) : save(m => ({...m, volume: v}))) setAmbientVolume(v); };
+  const setTimer = (v: number) => mixMode ? mixRecord.save(m => ({...m, timerMin: v || undefined})) : save(m => ({...m, ambient: {sound: m.ambient.sound, stopOnHide: m.ambient.stopOnHide, ...(v ? {timerMin: v} : {})}}));
+  const playLabel = mixMode ? (state.playing ? 'Stop your mix' : 'Play your mix') : state.playing ? `Stop ${AMBIENT_LABELS[current]}` : `Play ${AMBIENT_LABELS[current]}`;
   return <div className="music-source-body">
     <Disc glyph={<WaveGlyph/>} spinning={state.playing}/>
-    <h2 className="music-title">{AMBIENT_LABELS[current]}</h2>
+    <h2 className="music-title">{title}</h2>
     <p className="music-sub" role="status">{state.playing ? `Playing${state.endsAt ? ` · stops at ${clock(state.endsAt)}` : ' · until you stop it'}` : 'Made on this device · nothing is downloaded'}</p>
-    <Controls playing={state.playing} stop playLabel={state.playing ? `Stop ${AMBIENT_LABELS[current]}` : `Play ${AMBIENT_LABELS[current]}`} onPlay={() => state.playing ? stopAmbient() : void play()}
+    <Controls playing={state.playing} stop playLabel={playLabel} onPlay={() => state.playing ? stopAmbient() : void (mixMode ? playTheMix() : play())}
       previousLabel={`Previous sound: ${AMBIENT_LABELS[stepSound(current, -1)]}`} nextLabel={`Next sound: ${AMBIENT_LABELS[stepSound(current, 1)]}`} onPrevious={() => step(-1)} onNext={() => step(1)}/>
     {health && <><a className="music-open" href="/app/health?view=meditation">Breathe in Meditation</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</>}
-    <details className="music-more"><summary>More controls</summary>
+    {!full && <LazyFold summary="Mix up to 3 sounds"><MixPlayer music={prefs} saveMusic={save} mix={mixRecord} compact/></LazyFold>}
+    {!full && <details className="music-more"><summary>More controls</summary>
       <div className="music-more-body">
-        <label className="field">Volume · {prefs.volume}<input type="range" min={0} max={100} step={5} value={prefs.volume} onChange={e => { const v = Number(e.target.value); if (save(m => ({...m, volume: v}))) setAmbientVolume(v); }}/></label>
-        <label className="field">Stop after<select value={timerMin ?? 0} onChange={e => { const v = Number(e.target.value); save(m => ({...m, ambient: {sound: m.ambient.sound, stopOnHide: m.ambient.stopOnHide, ...(v ? {timerMin: v} : {})}})); }}>
+        <label className="field">{mixMode ? 'Mix volume' : 'Volume'} · {volume}<input type="range" min={0} max={100} step={5} value={volume} onChange={e => setVolume(Number(e.target.value))}/></label>
+        <label className="field">Stop after<select value={timer ?? 0} onChange={e => setTimer(Number(e.target.value))}>
           <option value={0}>No timer</option>{TIMER_CHOICES.map(t => <option key={t} value={t}>{t} min</option>)}
         </select></label>
         <label className="checkbox"><input type="checkbox" checked={stopOnHide} onChange={e => save(m => ({...m, ambient: {...m.ambient, stopOnHide: e.target.checked}}))}/><span>Stop when I leave ZIGoals (another tab or app)</span></label>
-        <p className="fine">A change of timer or of “stop when I leave” applies from the next Play.</p>
+        <SilentSwitchChoice mix={mixRecord}/>
+        <p className="fine">A change of timer or of “stop when I leave” applies from the next Play. The timer fades the sound out over its last 30 seconds.</p>
       </div>
-    </details>
+    </details>}
     {error && <p className="music-problem" role="alert">{error}</p>}
   </div>;
 }
 /** Apple Music: a link only (lib/music/brand.ts says why), never a pretend player. */
-function AppleSource() {
+export function AppleSource() {
   return <div className="music-source-body">
     <Disc/>
     <h2 className="music-title">Apple Music</h2>
@@ -62,7 +105,7 @@ function AppleSource() {
  * the rest under More controls. Escape or × closes it; "Mini-bar" folds the player into a small bar instead of the button.
  */
 export default function MusicPanel({open, onClose, phone}: {open: boolean; onClose: () => void; phone: boolean}) {
-  const prefs = useDeviceRecord(MUSIC), [error, setError] = useState(''), panel = useRef<HTMLElement>(null);
+  const prefs = useDeviceRecord(MUSIC), [error, setError] = useState(''), panel = useRef<HTMLElement>(null), onMusicPage = usePathname() === '/app/music';
   const save = (change: (m: MusicPrefs) => MusicPrefs) => { try { prefs.update(change); setError(''); return true; } catch (err) { setError(`Not saved on this device. ${deviceSettingFailureMessage(err)}`); return false; } };
   // Session X (music.spec:75, 1 run in 5): the panel draws only once this device's settings are read, so focus moves
   // in then; an effect keyed on `open` alone could run while nothing was drawn and never run again.
@@ -88,6 +131,8 @@ export default function MusicPanel({open, onClose, phone}: {open: boolean; onClo
       {MUSIC_SOURCES.map(id => <button key={id} type="button" aria-pressed={source === id} onClick={() => save(m => ({...m, source: id}))}>{SOURCE_LABEL[id]}</button>)}
     </div>
     {source === 'ambient' ? <AmbientSource prefs={prefs.data} save={save}/> : source === 'spotify' ? <SpotifySource active={open}/> : <AppleSource/>}
+    <LazyFold summary="Playlists in Spotify, Apple Music or YouTube Music"><PlaylistLinks/></LazyFold>
+    {!onMusicPage && <Link className="music-full-link" href="/app/music" onClick={onClose}>Open the full music page</Link>}
     {prefs.unreadable && <p className="fine">This device’s music choices could not be read, so the defaults show; a change saves new ones.</p>}
     {error && <p className="music-problem" role="alert">{error}</p>}
     <p className="music-footer">{source === 'ambient' ? 'Calm sounds, made right here.' : source === 'spotify' ? 'Spotify plays; ZIGoals only passes on your taps.' : 'Your music, in its own app.'}</p>

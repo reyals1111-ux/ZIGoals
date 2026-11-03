@@ -6,7 +6,8 @@ async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
 }
-const OPTIONS=['Goal','Asset','Contribution','Habit','Health entry'];
+// Session AK G2 (RELEASE_REVIEW_2 R2-13, deliberate): the most frequent first, and Note is one of the sheet's own rows.
+const OPTIONS=['Health entry','Habit','Note','Contribution','Goal','Asset'];
 
 test('the Today hero Quick add is the primary action and opens the same Quick add options',async({page,isMobile})=>{
  await showcase(page);
@@ -32,7 +33,8 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  await expect(title).toBeVisible();await expect(page.getByRole('heading',{name:'Your goals.',exact:true})).toHaveCount(0);
  // Part 18.5: white on the left, the nebula from the middle to the right, through the one shared utility.
  await expect(title.locator('.nebula-flow')).toHaveText('Your Goals');
- expect(await title.locator('.nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage)).toMatch(/linear-gradient.*42%/);
+ // Session AK M1: the heading's colour flows in once (about 1.2 s), so the settled gradient is read, not a frame of it.
+ await expect.poll(()=>title.locator('.nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage),{timeout:5000}).toMatch(/linear-gradient.*42%/);
  await expect(page.getByText('A destination worth building',{exact:true})).toBeVisible();await expect(page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true})).toBeVisible();
  const create=page.getByRole('link',{name:'+ Create a goal',exact:true}),t=(await title.boundingBox())!,c=(await create.boundingBox())!;
  await expect(create).toHaveAttribute('href','/app/goals/new');

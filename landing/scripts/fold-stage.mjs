@@ -4,6 +4,8 @@
 //   with no layout.
 // - Nothing here moves the page: no scrollTo, no preventDefault, no wheel or touch listener.
 // - Frames load only when a stage is within three quarters of a screen, and are released once it is two screens away.
+// - Session AK P5 (LANDING_REVIEW LR-9): and never before the visitor first scrolls. On a tall screen (768 x 1024) the
+//   swan stage sat within that distance of the first screen, so its 20 frames came with the first view.
 // - Reduced motion, ?motion=off, Save-Data, short screens and no script all keep the settled figure, static.
 import { PACE, PHONE, WIDE, filmPosition, frames, pose, progress } from './fold-state.mjs?v=v5-1';
 
@@ -23,7 +25,7 @@ if (stages.length && 'IntersectionObserver' in window) {
     planet: el.querySelector('.fold-planet'), slogan: el.querySelector('.fold-slogan'),
     near: false, set: null, drawn: '',
   }));
-  let pending = false, listening = false, animated = false;
+  let pending = false, listening = false, animated = false, moved = scrollY > 0;
 
   const load = s => {
     if (s.set && s.set.small === phone.matches) return;
@@ -103,7 +105,7 @@ if (stages.length && 'IntersectionObserver' in window) {
       const s = stageOf(entry);
       s.near = entry.isIntersecting;
       s.el.classList.toggle('is-near', s.near && animated);
-      if (animated && s.near) load(s);
+      if (animated && s.near && moved) load(s);
     }
     listen(animated && all.some(s => s.near));
     schedule();
@@ -120,14 +122,15 @@ if (stages.length && 'IntersectionObserver' in window) {
     for (const s of all) {
       s.el.classList.toggle('is-near', s.near && animated);
       if (!animated) { release(s); clear(s); }
-      else if (s.near) load(s);
+      else if (s.near && moved) load(s);
     }
     listen(animated && all.some(s => s.near));
     schedule();
   };
+  if (!moved) addEventListener('scroll', () => { moved = true; for (const s of all) if (s.near && animated) load(s); schedule(); }, { passive: true, once: true });
   setMode();
   for (const s of all) { nearby.observe(s.el); faraway.observe(s.el); }
   motion.addEventListener('change', setMode);
-  phone.addEventListener('change', () => { for (const s of all) if (s.near && animated) load(s); schedule(); });
+  phone.addEventListener('change', () => { for (const s of all) if (s.near && animated && moved) load(s); schedule(); });
   document.addEventListener('visibilitychange', schedule);
 }

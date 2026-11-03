@@ -52,7 +52,9 @@ export type ModelCase = {
   /** Sentinel Health values are planted (privacy cases). */
   sentinels?: boolean;
   /** Session AF (L4): the golden records plus this session's (`af`: a Checklist path, the Earn snapshot, Today's page view; `af-bare`: the Checklist only). */
-  records?: 'af' | 'af-bare';
+  records?: 'af' | 'af-bare' | /** Owner follow-up 2 (G8): the Showcase's BUILD list 2 records too (your numbers, cycle, scales, tasks, budgets, bills; fixtures `withG1`). */ 'g1';
+  /** Owner follow-up 2 (N10): asked on NOVA's surface (its own prompt, pack and scoped tools; nova-harness.ts) instead of a page. */
+  surface?: 'nova';
 };
 type Base = Omit<ModelCase, 'id' | 'ask' | 'expect' | 'kind' | 'lang'> & {lang?: Lang};
 const make = (kind: CorpusKind, base: Base) => (id: string, ask: string, expect: Expect, extra: Partial<ModelCase> = {}): ModelCase => ({id, kind, lang: 'en', ...base, ask, expect, ...extra});

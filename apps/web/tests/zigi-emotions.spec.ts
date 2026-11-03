@@ -8,6 +8,8 @@ import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, type HabitData} 
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {CELEBRATIONS_KEY} from '../lib/w-device-keys';
 import manifest from '../components/zigi/manifest.json';
+import {extraClipsOf, skinOf} from '../components/zigi/manifest';
+import {MOVE_GROUPS, MOVE_TEXT} from '../components/zigi/state-gallery';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
 
 /**
@@ -150,7 +152,8 @@ test('the AI\'s hint moves ZIGi only inside the fixed list, never shows in the t
 });
 test('Meet ZIGi shows the studio\'s art for every state with what it means in plain words', async ({page}) => {
   await seed(page);
-  await page.goto('/app/zigi');
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the cards are under the gallery fold; its address opens it.
+  await page.goto('/app/zigi#every-look');
   await expect(page).toHaveTitle(/Meet ZIGi/); // X-Cloud's H4: the page names itself in the tab (WCAG 2.4.2)
   const cards = page.locator('.meet-zigi-card');
   await expect(cards).toHaveCount(Object.keys(manifest.states).length);
@@ -166,4 +169,30 @@ test('Meet ZIGi shows the studio\'s art for every state with what it means in pl
   const reading = page.getByRole('article', {name: 'Reading your data', exact: true});
   await expect(reading).toContainText('Looking at your records.');
   await expect(reading).not.toContainText('clip');
+});
+test('Meet ZIGi shows every Studio-4 move: the reactions, the rest variations, the variations and the special moves, each with its own art', async ({page}) => {
+  // Session AK Part 13 (the Studio-4 art arrived): every delivered clip has its card, with its words and its own files;
+  // its clip plays while motion is allowed and the card is in view, and reduced motion shows the stills.
+  await seed(page);
+  await page.goto('/app/zigi#every-look');
+  const moves = extraClipsOf(skinOf('origami-nebula'));
+  expect(moves).toHaveLength(26);
+  await expect(page.locator('.meet-zigi-move')).toHaveCount(moves.length);
+  await expect(page.locator('.meet-zigi-card')).toHaveCount(Object.keys(manifest.states).length);
+  for (const group of MOVE_GROUPS) await expect(page.getByRole('heading', {level: 3, name: group.title, exact: true})).toBeVisible();
+  for (const {code, clip} of moves) {
+    const text = MOVE_TEXT[code]!, card = page.getByRole('article', {name: text.label, exact: true});
+    await expect(card, code).toContainText(text.meaning); await expect(card, code).toContainText(`When it appears: ${text.when}`);
+    await expect(card, code).not.toContainText(code);
+    await expect(card.locator('.zigi img'), code).toHaveCount(3);
+    expect(await card.locator('.zigi img').first().evaluate(el => (el as HTMLImageElement).currentSrc), code).toContain(`/brand/figures/zigi/origami-nebula/${clip.name}`);
+  }
+  await expect(page.getByRole('button', {name: /^Play again: /})).toHaveCount(moves.filter(m => m.clip.kind === 'one-shot').length);
+  // In view with motion allowed, a move plays its own clip (the 2× set).
+  const cheer = page.getByRole('article', {name: MOVE_TEXT.X030!.label, exact: true});
+  await cheer.scrollIntoViewIfNeeded();
+  await expect.poll(() => cheer.locator('.zigi img').first().evaluate(el => (el as HTMLImageElement).currentSrc.split('/').pop()), {timeout: 15_000}).toBe('X030-cheer.anim.webp');
+  // Reduced motion: the stills, never a clip.
+  await page.emulateMedia({reducedMotion: 'reduce'});
+  await expect.poll(() => page.locator('.meet-zigi-move .zigi img').evaluateAll(els => els.filter(el => (el as HTMLImageElement).src.includes('.anim.')).length)).toBe(0);
 });

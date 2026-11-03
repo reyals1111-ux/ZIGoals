@@ -58,7 +58,7 @@ test('every kind but aborted has fix steps; local steps name the switches the do
   for (const kind of kinds) expect(errorSteps(new AiError(kind, 'x', {retryAfterSeconds: kind === 'rate-limit' ? 12 : null}), {providerName: 'Mock', hostedPage: true, keysUrl: 'https://example.invalid/keys'}).length, kind).toBeGreaterThan(0);
   expect(errorSteps(new AiError('aborted', 'x'), {providerName: 'Mock', hostedPage: false, keysUrl: null})).toEqual([]);
   const hosted = errorSteps(new AiError('local-unreachable', 'x'), {providerName: 'A local model', hostedPage: true, keysUrl: null, local: {server: null, baseUrl: 'http://127.0.0.1:11434'}}).join(' ');
-  expect(hosted).toContain('OLLAMA_ORIGINS=https://alpha.zigoals.app'); expect(hosted).toContain('Enable CORS'); expect(hosted).toContain('Chrome 142');
+  expect(hosted).toContain('OLLAMA_ORIGINS=https://alpha.zigoals.app'); expect(hosted).toContain('Enable CORS'); expect(hosted).toContain('Chrome 145'); expect(hosted).toContain('Safari'); // the current prompt (NOVA.md §2)
   const preview = errorSteps(new AiError('local-unreachable', 'x'), {providerName: 'A local model', hostedPage: false, keysUrl: null, local: {server: 'ollama', baseUrl: 'http://127.0.0.1:11434'}}).join(' ');
   expect(preview).toContain('by default'); expect(preview).not.toContain('Enable CORS'); expect(preview).not.toContain('Chrome 142');
 });

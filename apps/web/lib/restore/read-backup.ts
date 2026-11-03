@@ -20,7 +20,8 @@ export const RESTORE_ERRORS = {
   encrypted: 'This is an encrypted backup, not an “Export everything” ZIP. Restore it under Settings → Keep a protected copy. Nothing was changed.',
   unzipped: 'This is the everything.json from inside an export. Choose the zigoals-export ZIP itself, as you downloaded it. Nothing was changed.',
 } as const;
-const MODULE_BACKUP_NAMES: Record<string, string> = {'zigoals-platform': 'Positions and Goals', 'zigoals-habits': 'Habits', 'zigoals-health': 'Health'};
+// Session AK G2 (RELEASE_REVIEW_2 R2-16): the names Settings shows ("Goals and Wealth", once "Positions and Goals").
+const MODULE_BACKUP_NAMES: Record<string, string> = {'zigoals-platform': 'Goals and Wealth', 'zigoals-habits': 'Habits', 'zigoals-health': 'Health'};
 /** A single module's backup file (Settings → "… backup") picked here instead of an Export everything ZIP. */
 export const moduleBackupMessage = (name: string) => `This is a single ${name} backup, not an “Export everything” ZIP. Restore it in Settings under “${name} backup”. Nothing was changed.`;
 /**

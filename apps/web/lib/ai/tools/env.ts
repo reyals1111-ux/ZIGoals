@@ -23,6 +23,8 @@ import type {MoneyLog} from '../../money-log/schema';
 import type {Journal} from '../../journal/schema';
 import type {Energy} from '../../energy/schema';
 import type {HealthCoach} from '../../health-aa/coach-schema';
+import type {AkToolSources} from './ak-tools';
+import type {NovaToolSources} from './nova-tools';
 
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
@@ -71,12 +73,22 @@ export type ToolSources = {
   pageView?: PageView | null;
   /** Session AF (L4): the plans ZIGi proposed as bundles and their steps' outcomes (titles only). */
   plans?: ZigiPlans | null;
+  /** Session AK (Part 12): the auto-complete rules (Habits), the bills and the price alerts (Wealth) on this device, for ak-tools.ts. */
+  ak?: AkToolSources | null;
+  /** Owner follow-up 2 (N4): tasks, focus sessions, budgets and (only under NOVA's Notes scope) the notes, for nova-tools.ts. */
+  nova?: NovaToolSources | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;
   areas: Record<PageArea, boolean>;
   handles: Handles;
   limits: {rows: number; chars: number};
+  /**
+   * Release review 2 (lane RA): NOVA with its Today permission off but Notes or the Journal on keeps the Today area open
+   * for those two only: then just these Today-area tools run (lib/ai/context-pack/nova.ts `novaToolEnv`). Absent (ZIGi,
+   * and NOVA with Today on): every tool of an open area runs, as before.
+   */
+  todayTools?: ReadonlySet<string>;
 };
 /** `purpose`: 'provider' when the result may leave the device (the person's AI, a browser agent, the hosted relay), 'local' when it is shown here only. */
 export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' | 'local', handles = new Handles(), limits = {rows: ROWS_DEFAULT, chars: CHARS_DEFAULT}): ToolEnv {
@@ -85,5 +97,7 @@ export function toolEnv(sources: ToolSources, gates: Gates, purpose: 'provider' 
   const notesOpen = purpose === 'provider' ? gates.notes : !gates.paused;
   const notes = notesOpen && sources.notes ? sources.notes.filter(note => health || !HEALTH_NOTE_CATEGORIES.includes(note.category)) : null;
   // Session AI: the daily energy is about how a person feels, so it follows the Health gate like the mood.
-  return {...sources, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
+  // Owner follow-up 2 (G8): your numbers and the cycle log describe health too, so they are not even in the environment with the gate closed.
+  const nova = !health && sources.nova ? {...sources.nova, healthNumbers: undefined, cycle: undefined} : sources.nova;
+  return {...sources, nova, health: health ? sources.health : null, fasting: health ? sources.fasting : null, energy: health ? sources.energy ?? null : null, coach: health ? sources.coach ?? null : null, notes, areas: {...areas, health}, handles, limits};
 }

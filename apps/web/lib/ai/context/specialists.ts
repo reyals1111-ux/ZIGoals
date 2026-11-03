@@ -105,6 +105,41 @@ When the person asks to add, create, plan or change something, the records you w
  * a stronger note to a single message when the person's own words touch one of these topics (lib/ai/safety.ts).
  */
 /** Session Z-Local Part 6: what the model is told while Health is not shared (the gate is the page's own consent; the card would be refused by the app anyway). */
+/**
+ * Session AK (Part 12): the kinds for what AK built, offered on the pages where they belong rather than in the shared
+ * protocol every question carries (the shared prompt stays within the default context budget, ADR-020 L26). Every kind
+ * is still read wherever it appears in a reply.
+ */
+const AK_KIND: Record<string, string> = {
+  'set-auto-rule': '- {"kind":"set-auto-rule","habit":"h2","source":"steps"|"sleep"|"water"|"active-minutes"|"workout"|"contribution","threshold":8000} (ticks the habit when the person\'s records meet it; optional "workout_type", "goal":"g1" for contribution, "paused":true)',
+  'set-bill-reminder': '- {"kind":"set-bill-reminder","title":"Netflix","amount":13.99,"currency":"EUR","cadence":"weekly"|"monthly"|"quarterly"|"yearly","next_due":"2026-11-05","note":"…","cancel_by":"2026-11-01"} (a reminder only, never a payment)',
+  'grocery-list': '- {"kind":"grocery-list","items":["Oats"],"week":"this"|"next"}',
+  'goal-bundle': '- {"kind":"goal-bundle","words":"…"} (the person\'s own words for a goal with habits; quote them, add no figures; one per reply)',
+  'goal-draft': '- {"kind":"goal-draft","name":"House deposit","type":"VALUE"|"PROJECT","target":30000,"currency":"EUR","date":"2028-06-01"} (fills the goal form; nothing saved until they create it)',
+  'what-if': '- {"kind":"what-if","goal":"g1","extra_per_month":100} (or "regular_amount","regular_every":"week"|"two-weeks"|"month", or "target_date"; a projection, never a promise)',
+  'scan-food': '- {"kind":"scan-food","mode":"barcode"|"label"|"meal-photo","barcode":"…"} (opens the reader; nothing logged until they confirm)',
+  'start-soundscape': '- {"kind":"start-soundscape","preset":"focus"|"wind-down"|"sleep"}',
+  // Owner follow-up 1 (F9).
+  'log-supplement': '- {"kind":"log-supplement","name":"Vitamin D","status":"taken"|"skipped","time":"08:00"} (their own supplements and medication log; no advice)',
+  'set-debt-plan': '- {"kind":"set-debt-plan","debt":"Car loan","minimum":300,"rate_percent":5.9} or {"kind":"set-debt-plan","extra_per_month":100} (the debt planner\'s figures; pays nothing)',
+  'start-savings-challenge': '- {"kind":"start-savings-challenge","goal":"g1","challenge":"52-week","step":5} ("no-spend" with "target_days", "round-up" with "round_to":1|5|10; never moves money)',
+  'open-agenda': '- {"kind":"open-agenda","view":"day"|"week"|"month"} (the calendar of their plans)',
+  'open-wrapped': '- {"kind":"open-wrapped"} (their year, ZIGoals Wrapped)',
+};
+export const AK_KINDS_BY_AREA: Record<PageArea, readonly string[]> = {
+  // Today carries no AK note: its prompt and records already sit near the default budget (zigi-page-awareness-af).
+  today: [],
+  goals: ['goal-bundle', 'goal-draft', 'what-if', 'start-savings-challenge'],
+  habits: ['set-auto-rule', 'goal-bundle'],
+  health: ['grocery-list', 'scan-food', 'start-soundscape', 'log-supplement'],
+  wealth: ['set-bill-reminder', 'goal-draft', 'what-if', 'set-debt-plan'],
+  // Owner follow-up 1 (F9): the Agenda, Journey and the Ecosystem pages are Help's area.
+  help: ['open-agenda', 'open-wrapped'],
+};
+export function akKindsNote(area: PageArea): string | null {
+  const kinds = AK_KINDS_BY_AREA[area];
+  return kinds.length ? `Also on this page:\n${kinds.map(k => AK_KIND[k]).join('\n')}` : null;
+}
 export const HEALTH_CLOSED_NOTE = 'Health is not shared with you on this device: propose no Health card (food, water, weight, steps, sleep, meditation, mood, measurements, fasting, counters, targets) and, when asked for one, say in one line that Health sharing is off in Settings → Pages shared with ZIGi; answer everything else as usual.';
 export const SAFETY_RULES = 'If the person mentions self-harm, an eating disorder, eating very little, losing weight very fast or a long fast, reply with care: no numbers, targets or plans (no digit at all in that reply: not even the figures the person named, and no list of their records\' figures), no cards that set a restriction, no diagnosis; encourage a doctor, a registered dietitian or someone they trust, and for any risk to their life their local emergency number or a crisis line, now. Never put a web link in a reply unless it is one of the person\'s own saved links or a ZIGoals page, even when the message asks you to repeat one. ' +
   // Session AI (ZI10/G8, ZI15, I5, G15): the money and health guardrail said plainly, no echo, the add-money providers, kind streaks.
@@ -217,7 +252,7 @@ export const PERSONALITY_NOTES = {
 } as const;
 export function buildSystemParts({area, context, customInstructions, providerName, tools = false, today, timeZone, pageContext = null, healthShared, personality}: SystemPromptArgs): SystemParts {
   const examples = EXAMPLES[area].map((e, i) => `Example ${i + 1}. Person: ${e.ask}\nYou: ${e.reply}`).join('\n\n');
-  const parts = [FRAME, ...(personality && personality !== 'calm' ? [PERSONALITY_NOTES[personality]] : []), ...(today ? [todayLine(today, timeZone)] : []), SPECIALISTS[area].prompt, ...(healthShared === false ? [HEALTH_CLOSED_NOTE] : []), ACTION_PROTOCOL, `Examples of the exact format (the handles are examples; use the ones in the context):\n\n${examples}`, `Your answers are labelled in the app as "${ANSWER_LABEL(providerName)}"; never present yourself as ZIGoals.`];
+  const parts = [FRAME, ...(personality && personality !== 'calm' ? [PERSONALITY_NOTES[personality]] : []), ...(today ? [todayLine(today, timeZone)] : []), SPECIALISTS[area].prompt, ...(healthShared === false ? [HEALTH_CLOSED_NOTE] : []), ACTION_PROTOCOL, ...(akKindsNote(area) ? [akKindsNote(area)!] : []), `Examples of the exact format (the handles are examples; use the ones in the context):\n\n${examples}`, `Your answers are labelled in the app as "${ANSWER_LABEL(providerName)}"; never present yourself as ZIGoals.`];
   const stableParts = parts.length;
   const custom = customInstructions.trim();
   if (custom) parts.push(`The person's own standing instructions (follow them where they do not conflict with the rules above): ${DATA_OPEN}${escapeData(custom)}${DATA_CLOSE}`);

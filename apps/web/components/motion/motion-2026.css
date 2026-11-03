@@ -1,0 +1,144 @@
+/*
+ * Session AK M1–M4 (owner follow-up 2): the app's motion layer, loaded with app/app/template.tsx.
+ * Levels (lib/motion/level.ts): Full (default), Calm (html[data-app-motion=calm]: short fades only — no movement, no loops,
+ * no overshoot), Off (html[data-app-motion=off]) and the device's reduced motion (always Off). Only compositor-friendly
+ * properties move (transform/translate, opacity); a registered custom property animates on headings only, once.
+ * Nothing here follows the pointer, loops on content, or takes pointer events.
+ */
+
+/* ---------- Tokens: spring easing with linear() (damped spring, ζ 0.75 / 0.55), with a plain ease-out fallback ---------- */
+:root {
+  --zg-ease-out: cubic-bezier(.2, .8, .2, 1);
+  --zg-spring: linear(0, .132, .386, .631, .815, .933, .996, 1.023, 1.028, 1.024, 1.017, 1.01, 1.005, 1.002, 1, .999, 1);
+  --zg-spring-bouncy: linear(0, .103, .331, .589, .815, .98, 1.079, 1.122, 1.123, 1.101, 1.069, 1.038, 1.012, .996, .987, .984, .986, .989, .993, .997, 1, 1.001, 1.002, 1.002, 1);
+}
+@supports not (transition-timing-function: linear(0, 1)) { :root { --zg-spring: var(--zg-ease-out); --zg-spring-bouncy: var(--zg-ease-out); } }
+/* Calm: no overshoot anywhere a spring is used. */
+:root[data-app-motion=calm] { --zg-spring: var(--zg-ease-out); --zg-spring-bouncy: var(--zg-ease-out); }
+
+/* ---------- Page transitions (ADR-036 Q26's design, switched on by M1) ---------- */
+/* The overlay never takes a tap: the live page underneath answers at once. */
+::view-transition { pointer-events: none; }
+@keyframes zg-vt-out { to { opacity: 0; } }
+@keyframes zg-vt-in { from { opacity: 0; } }
+@keyframes zg-vt-rise { from { transform: translateY(6px); } }
+::view-transition-old(.zg-page-out) { animation: 120ms var(--zg-ease-out) both zg-vt-out; }
+::view-transition-new(.zg-page-in) { animation: 180ms var(--zg-ease-out) both zg-vt-in, 180ms var(--zg-spring) both zg-vt-rise; }
+/* Calm: a 150 ms crossfade, nothing moves. */
+:root[data-app-motion=calm]::view-transition-old(.zg-page-out) { animation: 150ms ease-out both zg-vt-out; }
+:root[data-app-motion=calm]::view-transition-new(.zg-page-in) { animation: 150ms ease-out both zg-vt-in; }
+/* The root (background, footer) swaps at once during a page transition; its crossfade stays with theme switches
+   (lib/ui-prefs/theme.ts tags those "theme"). Browsers without transition types keep their default crossfade. */
+:root:not(:active-view-transition-type(theme))::view-transition-old(root),
+:root:not(:active-view-transition-type(theme))::view-transition-new(root) { animation: none; }
+/* PROTECTED chrome — desktop sidebar / tablet rail, phone top bar and bottom bar — is pinned: a fixed name only while a
+   page transition runs, no animation, drawn above the arriving page, its old picture hidden. Its look never changes. */
+:root:active-view-transition:not(:active-view-transition-type(theme)) .app-sidebar { view-transition-name: zg-chrome-side; }
+:root:active-view-transition:not(:active-view-transition-type(theme)) .phone-topbar { view-transition-name: zg-chrome-top; }
+:root:active-view-transition:not(:active-view-transition-type(theme)) .phone-tabbar { view-transition-name: zg-chrome-tabs; }
+::view-transition-group(zg-chrome-side), ::view-transition-group(zg-chrome-top), ::view-transition-group(zg-chrome-tabs) { animation: none; z-index: 3; }
+::view-transition-old(zg-chrome-side), ::view-transition-old(zg-chrome-top), ::view-transition-old(zg-chrome-tabs) { display: none; }
+::view-transition-new(zg-chrome-side), ::view-transition-new(zg-chrome-top), ::view-transition-new(zg-chrome-tabs) { animation: none; }
+/* Shared element (M1): a goal card's title morphs into the goal page's heading (components/motion/goal-title-morph.tsx).
+   280 ms on the spring; the words crossfade as they grow. Full only: Calm names no pair, and these rules hold if one starts. */
+::view-transition-group(.zg-morph) { animation-duration: 280ms; animation-timing-function: var(--zg-spring); z-index: 2; }
+::view-transition-old(.zg-morph), ::view-transition-new(.zg-morph) { animation-duration: 280ms; }
+:root[data-app-motion=calm]::view-transition-group(.zg-morph), :root[data-app-motion=calm]::view-transition-new(.zg-morph) { animation: none; }
+:root[data-app-motion=calm]::view-transition-old(.zg-morph) { display: none; }
+/* Off and reduced motion start no transition at all (MotionRuntime's gate); these hold if one ever starts. */
+:root[data-app-motion=off]::view-transition-group(*), :root[data-app-motion=off]::view-transition-old(*), :root[data-app-motion=off]::view-transition-new(*) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
+}
+
+/* ---------- Calm: entrances only. Every CSS loop plays once and rests; nothing travels. ---------- */
+:root[data-app-motion=calm] :not([data-motion-essential]), :root[data-app-motion=calm] :not([data-motion-essential])::before, :root[data-app-motion=calm] :not([data-motion-essential])::after { animation-iteration-count: 1 !important; }
+:root[data-app-motion=calm] .motion-preview-sample { animation: zg-calm-fade 150ms ease-out both; }
+@keyframes zg-calm-fade { from { opacity: 0; } }
+
+/* ---------- Once-only staggered entrances (data-entrance=once from use-entrance; --i is the item's order, max 6) ---------- */
+@keyframes zg-rise { from { opacity: 0; transform: translateY(8px) scale(.985); } }
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) [data-zg-stagger][data-entrance=once] > * { animation: zg-rise 360ms var(--zg-spring) both; animation-delay: calc(min(var(--i, 0), 6) * 40ms); }
+  :root[data-app-motion=calm] [data-zg-stagger][data-entrance=once] > * { animation: zg-calm-fade 150ms ease-out both; }
+  :root [data-zg-stagger] > :nth-child(2) { --i: 1; } :root [data-zg-stagger] > :nth-child(3) { --i: 2; } :root [data-zg-stagger] > :nth-child(4) { --i: 3; }
+  :root [data-zg-stagger] > :nth-child(5) { --i: 4; } :root [data-zg-stagger] > :nth-child(6) { --i: 5; } :root [data-zg-stagger] > :nth-child(n+7) { --i: 6; }
+}
+
+/* ---------- Reveals on long pages (Life review, Help, .zg-reveal): when a block first comes into view it rises
+   14 px into place, once (components/motion/on-view.ts sets data-zg-reveal=play). Translate only, no opacity: readable at
+   every frame and to every checker. Time-based and finite rather than scroll-linked, so it never replays and always ends.
+   Full only. (The landing, a static page, uses true scroll-driven view() timelines.) ---------- */
+@keyframes zg-reveal { from { translate: 0 14px; } }
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) [data-zg-reveal=play] { animation: zg-reveal 520ms var(--zg-spring) both; }
+}
+
+/* ---------- @property: the nebula heading's colour flows in once (white first, then the nebula from the right) ---------- */
+@property --zg-flow-stop { syntax: '<percentage>'; inherits: false; initial-value: 42%; }
+@keyframes zg-flow-in { from { --zg-flow-stop: 74%; } }
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .nebula-flow:not(.is-figure)[data-entrance=once] {
+    --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor var(--zg-flow-stop), #6fe6f6 calc(var(--zg-flow-stop) + 30%), #8fa6ff calc(var(--zg-flow-stop) + 42%), #c790f6 calc(var(--zg-flow-stop) + 51%), #f08bd6 100%);
+    animation: nebula-flow-sweep 1300ms cubic-bezier(.45, 0, .25, 1) 250ms both, zg-flow-in 1100ms var(--zg-ease-out) 120ms both;
+  }
+}
+/* (The turning nebula border utility, zg-nebula-border, was removed in Session AK WC: no surface used it — M2 audit.) */
+
+/* ---------- Number ticker (components/motion/number-ticker.tsx) ---------- */
+.zg-ticker { font-variant-numeric: tabular-nums; }
+.zg-ticker[data-running] { position: relative; display: inline-block; }
+.zg-ticker-size { visibility: hidden; }
+.zg-ticker-run { position: absolute; inset-inline-start: 0; top: 0; white-space: nowrap; }
+
+/* ---------- Completion moment (components/motion/completion.ts): a ring and eight sparks, once ---------- */
+.zg-burst { position: fixed; left: var(--zg-x); top: var(--zg-y); z-index: 80; width: 0; height: 0; pointer-events: none; contain: layout style; }
+.zg-burst-ring, .zg-burst-spark { position: absolute; left: 0; top: 0; border-radius: 50%; pointer-events: none; }
+.zg-burst-ring { width: calc(var(--zg-r) * 2); height: calc(var(--zg-r) * 2); margin: calc(var(--zg-r) * -1) 0 0 calc(var(--zg-r) * -1); border: 2px solid var(--brand-cyan, #23eaff);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--brand-violet, #9273ff) 55%, transparent); opacity: 0; animation: zg-ring-fill 640ms var(--zg-spring-bouncy) both; }
+.zg-burst-spark { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: radial-gradient(circle, #fff 0 30%, var(--brand-magenta, #ff74be) 70%); opacity: 0;
+  animation: zg-spark 620ms var(--zg-ease-out) 60ms both; }
+.zg-burst-spark:nth-child(odd) { background: radial-gradient(circle, #fff 0 30%, var(--brand-cyan, #23eaff) 70%); }
+@keyframes zg-ring-fill { 0% { opacity: .95; transform: scale(.55); } 70% { opacity: .7; } 100% { opacity: 0; transform: scale(1.18); } }
+@keyframes zg-spark { 0% { opacity: 1; transform: rotate(var(--zg-a)) translateY(calc(var(--zg-r) * -.6)) scale(1); } 100% { opacity: 0; transform: rotate(var(--zg-a)) translateY(calc(var(--zg-r) * -1.55)) scale(.4); } }
+.zg-burst[data-level=calm] .zg-burst-ring { animation: zg-ring-calm 420ms ease-out both; }
+@keyframes zg-ring-calm { 0% { opacity: 0; } 35% { opacity: .85; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .zg-burst { display: none; } }
+:root[data-app-motion=off] .zg-burst { display: none; }
+@media (forced-colors: active) { .zg-burst { display: none; } }
+
+/* ---------- Refined liquid glass (M2): a 1 px specular edge and a faint grain — no pointer tracking, no blur animation ---------- */
+/* The control layer's glass: class zg-glass adds the edge, the grain and the sheen to a surface that already has its own
+   tinted, blurred material (NOVA's dock .nova-left and command bar .nova-command; the search palette and Quick add take the
+   edge and grain by name below). It sets no colour of its own, so each surface keeps its tint and contrast in every theme. */
+.zg-glass { position: relative; isolation: isolate; }
+@property --zg-sheen { syntax: '<angle>'; inherits: false; initial-value: 135deg; }
+:is(.zg-glass, .search-palette, .quick-add-dialog)::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
+  background: linear-gradient(var(--zg-sheen), rgb(255 255 255 / .34), transparent 38% 62%, rgb(255 255 255 / .09));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+:is(.zg-glass, .search-palette, .quick-add-dialog)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1; opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* Hover and focus turn the sheen a little, time-based: Full only. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .zg-glass { transition: --zg-sheen 400ms var(--zg-ease-out); }
+  :root:not([data-app-motion=off]):not([data-app-motion=calm]) .zg-glass:is(:hover, :focus-within) { --zg-sheen: 165deg; }
+}
+/* The lift overlay on cards (liquid-glass.tsx) gains the same specular edge. */
+.glass-light[data-kind=card] > i { background-image: linear-gradient(135deg, rgb(255 255 255 / .07), transparent 32%); }
+:root[data-theme=light] .glass-light[data-kind=card] > i { background-image: none; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  :is(.zg-glass, .search-palette, .quick-add-dialog)::after, :is(.zg-glass, .search-palette, .quick-add-dialog)::before { display: none; }
+}
+
+/* ---------- Aurora / mesh backdrop (M2): very slow drift (90 s), only where html[data-zg-ambient=drift] (Full motion, not
+   low-end, not a low battery, tab visible); a still gradient everywhere else. Used on NOVA's sky (.nova-sky, behind the
+   stars). A container that is already positioned keeps its own position (the default below has no weight). ---------- */
+:where(.zg-aurora) { position: relative; }
+.zg-aurora { isolation: isolate; overflow: hidden; }
+.zg-aurora::before { content: ""; position: absolute; inset: -20%; z-index: -1; pointer-events: none; opacity: .55;
+  background: radial-gradient(40% 35% at 25% 30%, #23eaff2e, transparent 70%), radial-gradient(45% 40% at 75% 25%, #9273ff33, transparent 70%), radial-gradient(40% 35% at 55% 80%, #ff74be26, transparent 70%); }
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-zg-ambient=drift]:not([data-app-motion=off]):not([data-app-motion=calm]) .zg-aurora::before { animation: zg-aurora 90s ease-in-out infinite alternate; }
+}
+@keyframes zg-aurora { from { transform: translate3d(-4%, -2%, 0) rotate(0deg); } to { transform: translate3d(4%, 3%, 0) rotate(8deg); } }
+@media (forced-colors: active) { .zg-aurora::before { display: none; } }

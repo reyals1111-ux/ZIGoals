@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SYNTHETIC FIXTURE: three made-up foods in CIQUAL 2025's alim layout. -->
+<TABLE>
+   <ALIM>
+      <alim_code> 990001 </alim_code>
+      <alim_nom_fr> Pomme fictive, crue </alim_nom_fr>
+      <alim_nom_eng> Fixture apple, raw </alim_nom_eng>
+      <alim_nom_sci missing=" " />
+      <alim_grp_code> 02 </alim_grp_code>
+   </ALIM>
+   <ALIM>
+      <alim_code> 990002 </alim_code>
+      <alim_nom_fr> Saumon fictif &amp; aneth </alim_nom_fr>
+      <alim_nom_eng> Fixture salmon &amp; dill </alim_nom_eng>
+   </ALIM>
+   <ALIM>
+      <alim_code> 990003 </alim_code>
+      <alim_nom_fr> Crème brûlée fictive </alim_nom_fr>
+      <alim_nom_eng missing=" " />
+   </ALIM>
+</TABLE>

@@ -9,3 +9,48 @@
 .task-chip { padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 12px; }
 .tasks-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
 .tasks-add .field { min-width: 140px; flex: 1 1 140px; }
+
+/* Session AK (T1): the Tasks page, a goal's next actions, the shared row's actions and editor, and NOVA's widget. */
+.task { grid-template-areas: "done title actions" "done meta actions"; }
+.task .task-actions { grid-area: actions; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 4px; }
+.task .task-actions .text-link, .task > .text-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; justify-content: center; }
+.task[data-done] .task-title { text-decoration: line-through; text-decoration-thickness: 1px; opacity: .8; }
+.task-goal { overflow-wrap: anywhere; }
+/* Session AK (M7, layout audit): "Goal · …" is a standalone link, 20 px tall in the row's meta line; on the touch layout it
+   is a full 44 px target. */
+@media (max-width: 767.98px), (pointer: coarse) { .task-goal { display: inline-flex; align-items: center; min-height: 44px; } }
+.task-editor { grid-column: 1 / -1; padding: 8px 0 4px; }
+.task-editor-actions { display: flex; gap: 8px; align-items: end; }
+.task-editor-actions button { min-height: 44px; }
+.tasks-add .field select, .tasks-add .field input, .tasks-add button { min-height: 44px; }
+.tasks-add .tasks-add-title { flex: 2 1 200px; }
+.tasks-add.is-compact .field { min-width: 110px; }
+/* Session AK lane EXF (EX-7): "Added “…”." names the task as typed; a long word or a pasted address wraps instead of widening the page. */
+.tasks-status { min-height: 1.4em; margin: 6px 0 0; min-width: 0; overflow-wrap: anywhere; }
+.tasks-error { margin: 4px 0 0; color: var(--danger, currentColor); }
+.tasks-page { display: grid; gap: 18px; width: min(920px, 100%); margin: 0 auto; }
+.tasks-links { margin: 0; }
+.tasks-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }
+.tasks-skeleton { min-height: 240px; }
+.tasks-showcase, .tasks-fine { margin: 0; }
+.tasks-add-panel, .tasks-groups { display: grid; gap: 10px; min-width: 0; }
+.tasks-add-panel h2, .tasks-groups h2 { margin: 0; }
+.tasks-groups h2 small, .tasks-group h3 small, .tasks-done summary small { font-size: 14px; font-weight: 500; color: var(--text-secondary, var(--muted)); }
+.tasks-group h3 { margin: 6px 0 2px; font-size: 17px; }
+.tasks-group[data-state=overdue] h3 { color: var(--warning, #e8a33d); }
+.tasks-done summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; font-weight: 650; }
+.tasks-done summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+.tasks-focus { scroll-margin-top: 80px; }
+.tasks-focus .pomodoro { padding: 16px; border-radius: 18px; border: 1px solid var(--line, rgba(128, 128, 160, .25)); }
+.goal-next-actions { display: grid; gap: 10px; }
+.tasks-widget { display: grid; gap: 8px; min-width: 0; }
+.tasks-widget .task { grid-template-areas: "done title" "done meta"; grid-template-columns: auto 1fr; }
+@media (max-width: 479.98px) {
+  .task { grid-template-areas: "done title" "done meta" "done actions"; grid-template-columns: auto minmax(0, 1fr); }
+  .task .task-actions { justify-content: flex-start; }
+}
+/* Session AK G2 (RELEASE_REVIEW_2 R2-17): the Tasks page's add field is one line (the task and Add); priority, day, time and
+   goal open below it from "More options". */
+.tasks-add.is-folded .tasks-add-title { flex: 1 1 180px; }
+.tasks-add.is-folded .tasks-add-toggle { min-height: 44px; }
+.tasks-add-more { flex: 1 0 100%; display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }

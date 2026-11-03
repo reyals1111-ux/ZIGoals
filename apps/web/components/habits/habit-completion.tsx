@@ -2,6 +2,7 @@
 import { showToast } from "../ui/undo-toast";
 import { habitStep } from "../../lib/habit-step";
 import {AutoCheckInBadge} from "./auto-checkin-badge";
+import {celebrateCompletion} from "../motion/completion";
 import {CELEBRATIONS} from '../../lib/celebrations';
 import {useRef, useState, type FormEvent} from 'react';
 import {habitDay, habitRuleOn, habitTargetPeriod, measurementUnit, type Habit, type HabitData} from "../../lib/habits";
@@ -14,6 +15,7 @@ import {formatNumber} from "../../lib/visual-format";
 import {unitFor} from "../../lib/plural";
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useHabitHealthLinks} from "./use-habit-health-links";
+import {useAutoRulesContext} from "./auto-rules-context";
 import {zigiSignals} from '../zigi/bus';
 import {plainErrorMessage} from "../../lib/plain-error";
 
@@ -33,6 +35,8 @@ function afterPaint(run: () => void) {
 export function HabitCompletion({part='both',  habit, store, compact = false }: {/** Session AB-Design (owner request 20): the card shows the counter first and keeps the form behind its expander. */ part?: 'both' | 'controls' | 'quick-log';  habit: Habit; store: HabitCardStore; compact?: boolean }) {
   // H7: this device's automatic check-in for today, if any (lib/habit-health-links); read once per card, written only by Undo.
   const links = useHabitHealthLinks(); const marker = links.loaded ? appliedCheckIn(links.data, habit.id, store.today) : undefined;
+  // Session AK (5.6): a tick an auto-complete rule made today, with its Undo (Habits page only; null elsewhere).
+  const autoRules = useAutoRulesContext();
   // Paint first, then save (Session I, Part 9): a tap shows its result on the next frame, and the save runs after that
   // frame. If the save fails, the card returns to what is saved and says why (Part 5's coded message), so a check-in is
   // never left showing as saved when it was not.
@@ -103,7 +107,7 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
           "−" that takes an automatically ticked day below its target marks that check-in undone, as "Undo completion" does. */}
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={step === 1 ? `Remove one from ${habit.title}` : `Remove ${plain(step)} from ${habit.title}`} disabled={!pending && busy || day.count === 0} aria-busy={!!pending || undefined} onClick={() => { if (day.status === "complete" && rule.type === "build" && marker && !marker.undone && day.count - step < day.target) { links.update(current => markAutoCheckInUndone(current, habit.id, store.today)).catch(() => { /* the change itself still saves; the marker then keeps the day off through the entry */ }); } checkIn(habitCheckIn.adjustCount(habit.id, store.today, -step)); }}>−</button>}
       {rule.measurement.kind !== "boolean" && <button className="quiet" aria-label={rule.type === "quit" ? `Record one event for ${habit.title}` : step === 1 ? `Add one to ${habit.title}` : `Add ${plain(step)} to ${habit.title}`} title={step === 1 ? undefined : `+${plain(step)}`} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => checkIn(habitCheckIn.addValue(habit.id, store.today, rule.type === "quit" ? 1 : step))}>{step === 1 || rule.type === "quit" ? "+" : `+${plain(step)}`}</button>}
-      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={() => { if (day.status === "complete" && rule.type === "build" && marker && !marker.undone) { links.update(current => markAutoCheckInUndone(current, habit.id, store.today)).catch(() => { /* the undo itself still saves; the marker then keeps the day off through the entry */ }); } const undoing = day.status === "complete" && rule.type === "build", before = day.count; checkIn(undoing ? habitCheckIn.setValue(habit.id, store.today, 0) : habitCheckIn.smartDone(habit.id, store.today));
+      <button className={day.status === "complete" ? "secondary habit-done" : "primary"} aria-label={smartLabel} aria-pressed={day.status === "complete"} disabled={!pending && busy} aria-busy={!!pending || undefined} onClick={(event) => { /* Session AK M1: the completion moment, on the Habits page card only (never the PROTECTED Checklist) */ if (day.status !== "complete" && event.currentTarget.closest(".habit-card")) celebrateCompletion(event.currentTarget); if (day.status === "complete" && rule.type === "build" && marker && !marker.undone) { links.update(current => markAutoCheckInUndone(current, habit.id, store.today)).catch(() => { /* the undo itself still saves; the marker then keeps the day off through the entry */ }); } const undoing = day.status === "complete" && rule.type === "build", before = day.count; checkIn(undoing ? habitCheckIn.setValue(habit.id, store.today, 0) : habitCheckIn.smartDone(habit.id, store.today));
         // Session AH (HA13; D-042, N-069, M-036): the tap is said in the app's one toast, with Undo either way.
         if (rule.type === "build") showToast(undoing ? {message: `${habit.title}: today is no longer complete.`, undo: () => store.update(habitCheckIn.setValue(habit.id, store.today, before)), undone: `${habit.title} is complete again.`} : {message: `${habit.title}: done for today.`, undo: () => store.update(habitCheckIn.setValue(habit.id, store.today, before)), undone: `${habit.title}: back to ${before === 0 ? "not done" : `${plain(before)} of ${plain(day.target)}`}.`,
           // Session AH (J3): a habit that supports a private Goal offers to record a contribution there; the person
@@ -112,6 +116,7 @@ export function HabitCompletion({part='both',  habit, store, compact = false }: 
     </div>}
     {!compact && part !== 'controls' && rule.measurement.kind !== "boolean" && <details className="habit-quick-log"><summary aria-label={`${habit.title}: set or add a value`}>Set or add a value</summary><form onSubmit={saveManual}><label className="field">Value for {habit.title}<input type="text" inputMode={rule.measurement.kind === "count" ? "numeric" : "decimal"} autoComplete="off" value={manual} onChange={(event) => setManual(event.target.value)} /></label><div className="actions"><button className="secondary" type="submit">Set value</button><button className="quiet" type="button" onClick={() => void addManual()}>Add value</button></div><p className="fine">Set value replaces today’s total; Add value adds to it.</p></form></details>}
     {part !== 'quick-log' && <AutoCheckInBadge habitId={habit.id} marker={marker} link={links.data.links[habit.id]} />}
+    {part !== 'quick-log' && autoRules?.badge(habit.id, habit.title)}
     {error && <p className="habit-inline-error" role="alert">{error}</p>}
   </div>;
 }

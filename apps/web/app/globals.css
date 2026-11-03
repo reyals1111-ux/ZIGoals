@@ -1383,6 +1383,12 @@ body .metric-note, body .wallet-subtitle {
 /* Session AH (SE7): a feature that cannot be used here looks it. */
 .unavailable-pill { display: inline-block; margin-inline-start: 8px; padding: 2px 10px; border-radius: 999px; border: 1px dashed currentColor; font-size: 12px; font-weight: 600; letter-spacing: .02em; text-transform: none; opacity: .85; vertical-align: middle; }
 .push-panel[data-available="false"] > :not(.eyebrow):not(.push-state) { opacity: .72; }
+/* Session AK P6 (axe definition-list, WCAG 1.3.1): a <div> in a <dl> may hold only <dt> and <dd>, so the note under a
+   value is its own <dd class="dd-note"> holding the <small> it always was. The note looks exactly as before: none of the
+   value's <dd> looks (size, weight, letter spacing, colour, gradient text, margins) reach it, and in the lists whose rows
+   are grids its <small> stands as the grid item it was. Two :not(#\-) outrank the generated theme and look sheets. */
+:root dl > div > dd.dd-note:not(#\-):not(#\-) { display: block; margin: 0; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; word-spacing: inherit; white-space: inherit; overflow-wrap: inherit; text-align: inherit; color: inherit; -webkit-text-fill-color: inherit; }
+:root :is(.portfolio-totals, .workouts-stats, .sleep-stats) > div > dd.dd-note > small { display: block; }
 /* Session AH (D3, LA7, BUG-039): a link or fold on its own line is at least 24 px tall on computers and tablets
    (WCAG 2.5.8; phones already give them 44 px). Links inside a sentence keep the sentence's line. */
 @media (min-width: 768px) {
@@ -1418,3 +1424,6 @@ body .metric-note, body .wallet-subtitle {
    root carries data-zigi-launcher="shown"); ZIGi switched off, hidden or on a private screen leaves no dead link. */
 html:not([data-zigi-launcher="shown"]) .ai-ask-link,
 html:not([data-zigi-launcher="shown"]) .page-ask-zigi { display: none !important; }
+/* Session AK (M7, layout audit): the hidden-page note's one button ("show it in the sidebar") sits in its sentence but is a
+   button, so it is a full 44 px target (33 px at 390 px on Portfolio since X1 keeps the crypto pages off until chosen). */
+.hidden-page-banner button.text-link { min-height: 44px; }

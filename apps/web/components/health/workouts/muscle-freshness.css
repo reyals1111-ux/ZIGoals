@@ -1,0 +1,20 @@
+/* Session AK (item 8): the freshness body diagram. Theme tokens only; every region is also named with its % and a word. */
+.muscle-freshness-body { display: block; inline-size: 100%; max-inline-size: 460px; block-size: auto; margin: 8px auto 12px; }
+.muscle-freshness-body .mf-head { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+.muscle-freshness-body .mf-region { stroke: var(--muted); stroke-width: 1.2; }
+.muscle-freshness-body .mf-fresh { fill: color-mix(in srgb, var(--health-ahead) 75%, transparent); }
+.muscle-freshness-body .mf-recovering { fill: color-mix(in srgb, var(--health-on-track) 45%, transparent); }
+.muscle-freshness-body .mf-tired { fill: color-mix(in srgb, var(--health-behind) 70%, transparent); }
+.muscle-freshness-body .mf-unknown { fill: transparent; stroke-dasharray: 3 3; }
+.muscle-freshness-body .mf-leader { stroke: var(--muted); stroke-width: 0.8; }
+.muscle-freshness-body text { fill: var(--text); font-size: 10px; }
+.muscle-freshness-body .mf-label { font-weight: 700; }
+.muscle-freshness-body .mf-view { fill: var(--muted); font-size: 10px; }
+.muscle-freshness-days summary { min-block-size: 44px; display: flex; align-items: center; cursor: pointer; }
+.muscle-freshness-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.muscle-freshness-grid select { min-block-size: 44px; }
+@media (forced-colors: active) {
+  .muscle-freshness-body .mf-region { stroke: CanvasText; }
+  .muscle-freshness-body .mf-fresh, .muscle-freshness-body .mf-recovering, .muscle-freshness-body .mf-tired { fill: Canvas; }
+  .muscle-freshness-body text { fill: CanvasText; }
+}

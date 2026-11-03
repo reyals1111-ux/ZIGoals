@@ -33,10 +33,19 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   await page.locator('footer.site-footer .site-footer-stage').scrollIntoViewIfNeeded();
   await expect(page.locator('footer.site-footer')).toHaveAttribute('data-intro', /play|done/, {timeout: 15_000});
   await page.waitForLoadState('networkidle');
+  // Session AK (ADR-036, deliberate; BUILD list 2 #1): the details box carries the secret guard, whose code and style
+  // load on first use (lazy, so Help's route weight is unchanged). They are brought in first, as the wordmark and the
+  // finale are; ticking and unticking here stores nothing, and the window below still allows no request at all.
+  const box = section.getByRole('checkbox', {name: 'Add details about this device to the email', exact: true});
+  const untouched = await storage(page);
+  await box.check();
+  await page.waitForLoadState('networkidle');
+  await box.uncheck();
+  expect(await body(page, section)).toBe(plain);
+  expect(await storage(page)).toBe(untouched);
   const before = await storage(page), requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
 
-  const box = section.getByRole('checkbox', {name: 'Add details about this device to the email', exact: true});
   await expect(box).not.toBeChecked();
   await box.check();
   const details = section.getByRole('textbox', {name: 'Device details: edit or delete anything before you send', exact: true});
@@ -95,7 +104,25 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AF (ADR-028, deliberate): two more (was 16), each checked by its words and its link below.
   // Session AF, at the ZIGi and extras merges (deliberate): three more (was 18), each checked by its words and link below.
   // Session AJ (ADR-035, deliberate): five more (was 21), each checked by its words below.
-  await expect(items).toHaveCount(26);
+  // Session AK (ADR-036, deliberate): seven more (was 26), each checked by its words and its link below.
+  // Owner decision 6 (ADR-036, deliberate): Earn's first load, accepted with its measurement (was 33), checked by its words.
+  // Session AK Part 13 (ADR-036, deliberate): Studio-4's three "to polish later" items (was 34), each checked by its words.
+  // Owner decision 7 (ADR-036, deliberate): ZIGi's box on Safari at the moment it opens (was 37), checked by its words.
+  await expect(items).toHaveCount(38);
+  await expect(section).toContainText('On Safari, words typed into ZIGi’s box at the very moment it opens might be lost');
+  for (const words of ['ZIGi’s hide move, when you dismiss its knock, always leaves to the right', 'In a browser that can’t play animated WebP, ZIGi’s moves use a fallback at 12 frames a second', 'A few of ZIGi’s new moves aren’t used yet: its glances (at the chat box, at you, at something on the page) and its hello without walking in']) await expect(section).toContainText(words);
+  await expect(section).toContainText('Earn takes a few seconds to settle on a slower phone: on a mid-range phone profile its first load kept the phone busy for about 3.9 seconds');
+  for (const [words, name, href] of [
+    ['Notifications on this device are being switched on', 'How do notifications on this device work?', '#help-ak-notify'],
+    ['Barcode lookups and US foods need the food service too', 'What changed in food logging?', '#help-ak-food'],
+    ['Reading a label or estimating a meal from a photo needs your own AI', 'Photos and food', '#help-ak-food'],
+    ['Grocery ticks stay on this device', 'The grocery list', '#help-ak-nutrition'],
+    ['staking with Keplr Mobile over WalletConnect hasn’t been tried on a real phone yet', 'Can I link a wallet on my phone?', '#help-ak-wallets'],
+    ['Garmin workouts come in only as FIT files', 'Bring your data', '#help-ak-switch'],
+    ['Lichess games found from ZIGoals are rapid or classical only', 'Can I play Lichess inside ZIGoals?', '#help-ak-chess'],
+  ] as const) { await expect(section).toContainText(words); await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href); }
+  await expect(section).toContainText('the Finnish Fineli table isn’t in it yet');
+  await expect(section).toContainText('It can travel as an optional, encrypted part of your sync once the sync service is updated.');
   for (const words of ['Price alerts check only while ZIGoals is open', 'A watched Bitcoin wallet shows its confirmed balance', 'Focus Sessions can’t block other apps', 'GPX and TCX imports keep only a summary', 'The food search waits for its service']) await expect(section).toContainText(words);
   await expect(section).toContainText('ZIGi never stakes, signs or moves money');
   await expect(section).toContainText('Timeline times stay on this device');
@@ -108,7 +135,8 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await expect(section).toContainText('Safari on iPhone and iPad offers no Home Screen shortcuts and no Share sheet entry for ZIGoals');
   // Session AF Gate C (design critique; deliberate, as strict): Help's two push lines say what the app does (opt-in, a
   // signed-in account), and still that nothing reaches a phone while ZIGoals is closed on this Alpha.
-  await expect(section).toContainText('Push notifications are opt-in and need a signed-in account, so on this Alpha, where accounts aren’t open yet, nothing reaches your phone while ZIGoals is closed');
+  // Session AK (demo-tour check): the account path and the device path (no account; being switched on) are told apart.
+  await expect(section).toContainText('Push notifications through an account are opt-in and need a signed-in account, so on this Alpha, where accounts aren’t open yet, they reach no phone; notifications on this device need no account and are being switched on (below). Until then nothing reaches your phone while ZIGoals is closed');
   await expect(section).toContainText('Reminders when ZIGoals is closed are opt-in, one device at a time (Settings → Reminders when closed), and need a signed-in account');
   await expect(section).toContainText('Your last backup isn’t recorded: Settings → Your data says “Not recorded”');
   await expect(section).toContainText('Goals count in US dollars or euros.');

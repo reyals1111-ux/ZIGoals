@@ -20,11 +20,14 @@ async function watch(page:Page,properties:Record<string,Watched>){
    starts[event.animationName]=(starts[event.animationName]??0)+1;
    if(!property||samples.some(s=>s.name===event.animationName))return;
    const read=()=>getComputedStyle(target).getPropertyValue(property).trim();
-   const sample:Sample={name:event.animationName,start:read(),final:(target as SVGElement).style?.getPropertyValue(property)||undefined};samples.push(sample);
    // Session AD item 9: the mid value is read at the animation's own half-way point, not after a timer (a starved runner
    // read it after the end): the running animation is paused, set to half its duration, read, and put back where it was.
    const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===event.animationName);
-   if(animation?.effect){const timing=animation.effect.getComputedTiming(),was=animation.currentTime,running=animation.playState==='running';
+   // Session AK (final run B): on a starved runner a staggered cell's animationstart can arrive with its animationend, the
+   // animation already gone; that target has nothing left to sample, so the next target of the same animation is sampled.
+   if(!animation?.effect)return;
+   const sample:Sample={name:event.animationName,start:read(),final:(target as SVGElement).style?.getPropertyValue(property)||undefined};samples.push(sample);
+   {const timing=animation.effect.getComputedTiming(),was=animation.currentTime,running=animation.playState==='running';
     // Session AE Gate C: the start value is read the same way, at the animation's own start (an animationstart event that
     // reached a starved runner late read a cell already at 0.992 of its rise: CI run 1008).
     animation.pause();animation.currentTime=Number(timing.delay)||0;sample.start=read();animation.currentTime=(Number(timing.delay)||0)+Number(timing.duration)/2;sample.mid=read();animation.currentTime=was;if(running)animation.play();}
@@ -57,6 +60,8 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform','wealth-history-draw':{property:'stroke-dashoffset',within:'.wealth-history'}});
  await showcase(page);
  await page.goto('/app/wealth');
+ // Session AK (ADR-036, deliberate): on a phone Wealth's sections fold (G2, RELEASE_REVIEW_2 R2-8); the donut is read as a reader reaches it, its row opened first.
+ await openFold(page,'The shape of your wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
  // Each arc draws from empty (dashoffset 100 of 100) and settles exactly on its own share.
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat(sweep.final!),3);
@@ -98,6 +103,8 @@ test('reduced motion and the Off preference leave charts complete and still',asy
  await page.emulateMedia({reducedMotion:'reduce'});
  await showcase(page);
  await page.goto('/app/wealth');
+ // Session AK (ADR-036, deliberate): on a phone Wealth's sections fold (G2, RELEASE_REVIEW_2 R2-8); the donut is read as a reader reaches it, its row opened first.
+ await openFold(page,'The shape of your wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
  await expect(donut).not.toHaveAttribute('data-entrance','once');
  await expect(donut.locator('.glass-ring-arc').first()).toHaveCSS('animation-name','none');
@@ -157,6 +164,9 @@ test('progress fills grow in once when seen and glide to new values while their 
  await page.getByRole('button',{name:'Record contribution',exact:true}).click();await page.getByRole('button',{name:'Record history only',exact:true}).click();
  await page.getByLabel(/^Actual amount in /).fill('500');await page.getByRole('button',{name:'Save history only',exact:true}).click();
  await expect(page.getByRole('region',{name:'Goal timeline'})).toContainText('Contribution recorded');
+ // Session AK (CI run 41504258964, mobile): the sheet that closed takes its own history entry back out (an async history.back(),
+ // components/use-back-closes.ts); a goto started before that lands is aborted (ERR_ABORTED). Wait until the entry is gone, as copy-polish does.
+ await expect.poll(()=>page.evaluate(()=>(window.history.state as Record<string,unknown>|null)?.__zigoalsLayer??null)).toBeNull();
  await page.goto('/app');
  const share=(locator:Locator)=>locator.evaluate(el=>({value:Number(getComputedStyle(el).getPropertyValue('--glass-value')),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
  // A bar slides in from wholly before its start and settles exactly where its value says.

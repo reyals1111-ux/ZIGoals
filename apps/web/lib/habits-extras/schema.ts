@@ -12,8 +12,13 @@ import type {DeviceRecordSpec} from '../device-record';
 const habitId = z.string().min(1).max(100);
 export const TIME_SECTIONS = ['morning', 'afternoon', 'evening', 'anytime'] as const;
 export type TimeSection = (typeof TIME_SECTIONS)[number];
+export const HABIT_LIST_MODES = ['cards', 'compact'] as const;
 export const quitCostSchema = z.looseObject({perDay: z.number().finite().min(0).max(100_000), currency: z.enum(['EUR', 'USD'])});
 export type QuitCost = z.infer<typeof quitCostSchema>;
+/** Session AK (F5b): the when and where of a habit, each a short plain text (control characters are refused). */
+const intentionText = z.string().trim().min(1).max(80).regex(/^[^\u0000-\u001f\u007f]*$/);
+export const habitIntentionSchema = z.looseObject({when: intentionText.optional(), where: intentionText.optional()});
+export type HabitIntention = z.infer<typeof habitIntentionSchema>;
 export const habitExtrasSchema = z.looseObject({
   version: z.literal(1),
   areas: z.record(habitId, z.string().min(1).max(60)).optional(),
@@ -27,7 +32,31 @@ export const habitExtrasSchema = z.looseObject({
    * through a read-modify-write (frozen readers) and simply do not show it.
    */
   times: z.record(habitId, z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/)).optional(),
-}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400, 'Too many habits remembered.');
+  /**
+   * Session AK (5.7; TIER 3 (stored format)): the person's own habit order, {habitId: position 0…10,000}, at most 400
+   * entries (lib/habits-order/extras.ts writes it). Additive in this loose record and synced with it through the encrypted
+   * extras sections, so the order is the same on every device; ids the journal no longer has are pruned on the next write.
+   */
+  order: z.record(habitId, z.number().int().min(0).max(10_000)).optional(),
+  /**
+   * Session AK (5.7): how the Habits page shows the list, "cards" (the default, so absent) or "compact". A display choice
+   * kept on this device (a device field of the extras section, as `folds` is). A mode a later build adds reads as absent.
+   */
+  listMode: z.enum(HABIT_LIST_MODES).optional().catch(undefined),
+  /**
+   * Session AK (F5b; TIER 3 (stored format)): a habit's implementation intention, {habitId: {when?, where?}}, each a short
+   * text the person wrote ("After I pour my coffee", "in the kitchen"), at most 400 entries. Optional and additive in this
+   * loose record, so it syncs with the habit extras section as `times` does; older builds keep it through a
+   * read-modify-write and simply do not show it (lib/habit-intentions writes it).
+   */
+  intentions: z.record(habitId, habitIntentionSchema).optional(),
+  /**
+   * Owner follow-up 1 (F0, 5.1): "first Monday of the month" (lib/habit-month-weekday), {habitId: {weekday, nth, from}}.
+   * Declared here for its bound only (security review F10, R3-F5): at most 400 entries; each entry is checked where it is
+   * read, so one odd entry never makes the whole record unreadable.
+   */
+  monthWeekday: z.record(habitId, z.unknown()).optional(),
+}).refine(r => Object.keys(r.areas ?? {}).length <= 400 && Object.keys(r.quitCost ?? {}).length <= 400 && Object.keys(r.bells ?? {}).length <= 400 && Object.keys(r.times ?? {}).length <= 400 && Object.keys(r.order ?? {}).length <= 400 && Object.keys(r.intentions ?? {}).length <= 400 && Object.keys(r.monthWeekday ?? {}).length <= 400, 'Too many habits remembered.');
 export type HabitExtras = z.infer<typeof habitExtrasSchema>;
 export const emptyHabitExtras = (): HabitExtras => ({version: 1});
 export const HABIT_EXTRAS: DeviceRecordSpec<HabitExtras> = {key: HABIT_EXTRAS_KEY, schema: habitExtrasSchema, empty: emptyHabitExtras};

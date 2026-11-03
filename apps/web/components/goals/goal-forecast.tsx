@@ -1,7 +1,7 @@
 'use client';
-import {useId} from 'react';
 import {useChartWidth} from '../charts/use-chart-width';
-import {ChartDefs, ChartLegend} from '../charts/chart-kit';
+import {ChartLegend} from '../charts/chart-kit';
+import {ChartLookDefs, useChartLook} from '../charts/chart-defs';
 import {forecastWords, type Forecast, type ForecastPoint, addDays, daysBetween} from '../../lib/goal-forecast';
 import {formatDay} from './format';
 import { plural } from '../../lib/plural';
@@ -25,7 +25,7 @@ export function GoalForecastCard({forecast, points, current, target, today, unit
 
 function ForecastChart({forecast, points, current, target, today, unit}: {forecast: Forecast; points: readonly ForecastPoint[]; current: number; target: number; today: string; unit: (value: number) => string}) {
   // Drawn at its measured width, so its 14 px labels stay 14 px on every screen (components/charts/use-chart-width.ts).
-  const [box, width] = useChartWidth(600, 260), id = useId(), W = width, H = 200, padL = 8, padR = 8, padT = 22, padB = 26;
+  const [box, width] = useChartWidth(600, 260), look = useChartLook(), W = width, H = 200, padL = 8, padR = 8, padT = 22, padB = 26;
   const first = points[0]!.day, end = forecast.state === 'estimate' ? (forecast.latest ?? addDays(forecast.date!, Math.max(14, Math.round(daysBetween(today, forecast.date!) * 0.4)))) : today;
   const span = Math.max(1, daysBetween(first, end));
   const maxY = Math.max(target, current, ...points.map(p => p.value)) * 1.06, minY = Math.min(0, ...points.map(p => p.value));
@@ -35,12 +35,13 @@ function ForecastChart({forecast, points, current, target, today, unit}: {foreca
   const band = forecast.state === 'estimate' ? `${x(today)},${y(current)} ${x(forecast.earliest!)},${y(target)} ${x(end)},${y(target)} ${forecast.latest ? `${x(forecast.latest)},${y(target)}` : `${x(end)},${y(current + (target - current) * 0.55)}`}` : '';
   const label = forecast.state === 'estimate' ? `Recorded progress from ${formatDay(first)} to today, ${unit(current)} of ${unit(target)}; at this pace about ${formatDay(forecast.date!)}.` : `Recorded progress from ${formatDay(first)} to today, ${unit(current)} of ${unit(target)}.`;
   return <figure className="goal-forecast-chart" ref={box}>
-    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={label}>
-      <ChartDefs id={id} pillar="goals" />
+    <svg className="zg-chart" data-pillar="goals" viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={label}>
+      {/* Session AK (G3): the one chart look — the recorded line in its gradient with one soft glow (none by day). */}
+      <ChartLookDefs id={look.id} width={W} height={H} />
       <line className="goal-forecast-target" x1={padL} x2={W - padR} y1={y(target)} y2={y(target)} />
       <g className="chart-axis"><text x={W - padR} y={y(target) - 5} textAnchor="end">Target {unit(target)}</text></g>
       {band && <polygon className="goal-forecast-band" points={band} />}
-      <polyline className="goal-forecast-recorded chart-ink" points={recorded} stroke={`url(#${id}-ink)`} />
+      <polyline className="goal-forecast-recorded chart-ink zgc-line" points={recorded} style={{stroke: look.stroke('a')}} filter={look.glow} />
       {forecast.state === 'estimate' && <line className="goal-forecast-projection" x1={x(today)} y1={y(current)} x2={x(forecast.date!)} y2={y(target)} />}
       <circle className="goal-forecast-today" cx={x(today)} cy={y(current)} r="4.5" />
       {forecast.state === 'estimate' && <circle className="goal-forecast-date" cx={x(forecast.date!)} cy={y(target)} r="4.5" />}

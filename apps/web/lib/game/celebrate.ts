@@ -3,7 +3,7 @@ import type {Celebrations} from '../celebrations';
 import {badges} from './badges';
 import {levelOf, levelName} from './levels';
 import {xpEvents, type GameStores} from './xp';
-import type {GameRecord} from './schema';
+import {badgesShown, type GameRecord} from './schema';
 
 /**
  * S10: which celebrations are due, derived from the records and the device's "seen" map (`zigoals:celebrations:v1`,
@@ -20,7 +20,8 @@ export function pendingCelebrations(stores: GameStores, game: GameRecord, seen: 
   const xp = xpEvents(stores, today).reduce((n, e) => n + e.xp, 0), level = levelOf(xp);
   // The first level ever seen is not a celebration: the layer was just switched on. From then on each new level is.
   if (level > game.levelSeen && !seen[celebrationId.level(level)]) out.push({id: celebrationId.level(level), kind: 'level', title: `Level ${level} · ${levelName(level)}`, line: 'Every check-in and log you made brought you here.', symbol: '✦', semantic: 'level_up'});
-  for (const b of badges(stores, today)) if (b.earned && !game.badgesSeen?.[b.id] && !seen[celebrationId.badge(b.id)]) out.push({id: celebrationId.badge(b.id), kind: 'badge', title: `New badge · ${b.title}`, line: b.blurb, symbol: b.symbol, semantic: 'achievement_unlocked'});
+  // Session AK Part 8.6: badges celebrate only while they are shown (off by default from a first switch-on).
+  for (const b of badgesShown(game) ? badges(stores, today) : []) if (b.earned && !game.badgesSeen?.[b.id] && !seen[celebrationId.badge(b.id)]) out.push({id: celebrationId.badge(b.id), kind: 'badge', title: `New badge · ${b.title}`, line: b.blurb, symbol: b.symbol, semantic: 'achievement_unlocked'});
   for (const h of (stores.habits as HabitData).habits) if (habitStats(h, today).bestStreak >= 100 && !seen[celebrationId.streak(h.id)]) out.push({id: celebrationId.streak(h.id), kind: 'streak', title: `100 days · ${h.title}`, line: 'A hundred days in a row. That is a rhythm.', symbol: '✷'});
   for (const f of fasting ?? []) if (f.endedAt === null && f.hours >= f.targetHours && !seen[celebrationId.fast(f.id)]) out.push({id: celebrationId.fast(f.id), kind: 'fast', title: `${f.targetHours} hours fasted`, line: 'You reached the hours you set. How you end it is yours.', symbol: '◌'});
   out.push(...checklistCelebrations(stores, today, seen));

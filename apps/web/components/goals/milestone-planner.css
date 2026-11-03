@@ -1,0 +1,13 @@
+/* Session AK (6.4): suggested milestones and the habits toward each milestone. Theme colours only; 44 px targets. */
+.milestone-planner { display: grid; gap: 16px; margin-top: 12px; }
+.milestone-planner h3 { margin: 0 0 4px; }
+.milestone-suggest-list, .milestone-habits-list, .milestone-habit-chips { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.milestone-suggest-list label { min-height: 44px; display: flex; align-items: center; gap: 8px; }
+.milestone-habits-list > li { display: grid; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+.milestone-habit-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.milestone-habit-chips li { display: inline-flex; align-items: center; gap: 4px; padding: 0 0 0 10px; border: 1px solid var(--line); border-radius: 999px; }
+.milestone-planner button { min-height: 44px; }
+.milestone-habit-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.milestone-habit-add label { display: grid; gap: 4px; }
+.milestone-habit-add select { min-height: 44px; }
+.goal-share-panel { margin-top: 16px; }

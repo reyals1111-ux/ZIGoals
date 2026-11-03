@@ -7,6 +7,7 @@ import {formatDate} from '../../lib/visual-format';
 import {Switch} from './ai-switch';
 import {useDeviceRecord} from './use-device-record';
 import {trackedQuestions, ZIGI_SUGGESTIONS} from '../../lib/zigi-suggestions';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * Settings → ZIGi · your AI → "What ZIGi knows about me" (Session V Part 8): the person's own notes for ZIGi, written
@@ -54,7 +55,7 @@ export default function AiNotes() {
       <small id={hint} className="ai-memory-hint">{draft.trim().length} of {MAX_NOTE_CHARS} characters. Never a key, a password or a recovery phrase.</small>
       <div className="ai-card-actions"><button type="submit" className="primary" disabled={!draft.trim() || notes.length >= MAX_NOTES}>Add note</button><span className="ai-note">{notes.length} of {MAX_NOTES} notes · on this device only, in Export everything, never synced</span></div>
     </form>
-    {notes.length === 0 ? <p className="ai-note">No notes yet. ZIGi can also offer a &ldquo;Remember this?&rdquo; card when you tell it something lasting about yourself; nothing is kept until you confirm it.</p>
+    {notes.length === 0 ? <ArtNote pillar="orbit"><p className="ai-note">No notes yet. ZIGi can also offer a &ldquo;Remember this?&rdquo; card when you tell it something lasting about yourself; nothing is kept until you confirm it.</p></ArtNote>
       : <ul className="ai-memory-list" aria-label="Your notes">{notes.map(note => <li key={note.id} className="ai-memory-note">
         {editing === note.id ? <NoteEdit note={note} onCancel={() => setEditing(null)} onSave={(text, kind) => { if (change(current => editNote(current, note.id, {text, category: kind}, new Date()), 'Note saved.')) setEditing(null); }}/> : <>
           <p className="ai-memory-text">{note.text}</p>

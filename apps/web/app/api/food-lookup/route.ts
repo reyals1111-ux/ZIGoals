@@ -20,11 +20,15 @@ async function callWorker(request:Request,path:string):Promise<Response|{status:
 export async function GET(request:Request){
  const url=new URL(request.url);
  if(url.searchParams.has('q'))return search(request,url);
- let code:string;try{if([...url.searchParams.keys()].some(k=>k!=='code'))throw Error('query');code=normalizeBarcode(url.searchParams.get('code')??'');}catch{return reply({error:'INVALID_BARCODE'},400);}
+ // Session AK (item 15): `grade=1` asks for the Nutri-Score grade too. A tab still running an older build never asks, and
+ // never receives a field its strict reader would refuse.
+ let code:string,grade=false;try{if([...url.searchParams.keys()].some(k=>k!=='code'&&k!=='grade'))throw Error('query');const g=url.searchParams.get('grade');if(g!==null&&g!=='1')throw Error('grade');grade=g==='1';code=normalizeBarcode(url.searchParams.get('code')??'');}catch{return reply({error:'INVALID_BARCODE'},400);}
  try{
   const answer=await callWorker(request,'/lookup?code='+code);if(answer instanceof Response)return answer;
   if(!answer.ok)return reply({error:[404,503].includes(answer.status)?answer.status===404?'NOT_FOUND':'PROVIDER_SETUP_REQUIRED':'PROVIDER_UNAVAILABLE'},answer.status);
-  return reply(parseFoodProduct(answer.data,code));
+  const product=parseFoodProduct(answer.data,code);
+  if(!grade&&'nutriscoreGrade' in product){const {nutriscoreGrade:_omit,...rest}=product as typeof product&{nutriscoreGrade?:string};void _omit;return reply(rest);}
+  return reply(product);
  }catch{return reply({error:'PROVIDER_UNAVAILABLE'},503);}
 }
 /** Session AJ (item 22, TIER 3 egress routes): `?q=<words>&lang=en|de|fr|it` searches the Swiss Food Composition Database

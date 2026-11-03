@@ -197,7 +197,8 @@ test('Part 5: the context pack carries no Health unless the gate is open AND its
   }
   expect(sentinelsIn(buildContextPack({sources: s, gates: gatesFor(true), scope: all}).markdown).length).toBeGreaterThan(3);
 });
-test('Part 6: native tool calls carry no Health with the gate closed: no Health tool offered, every call refused, in every request', async () => {
+// Session AK (lane NE): 65 tools since NOVA's; the same assertions, a longer time under load.
+test('Part 6: native tool calls carry no Health with the gate closed: no Health tool offered, every call refused, in every request', {timeout: 15_000}, async () => {
   // The model's own words go back to it in the conversation, so its arguments name no sentinel: only what the device
   // returns is checked (a broad search finds the sentinel food when Health is readable).
   const argsFor = (name: string): Record<string, unknown> => name === 'habit_stats' || name === 'habit_checkins' ? {habit: 'Walk', range: 'today'} : name === 'search_foods' ? {query: 'SENTINEL'} : name === 'goal_progress' ? {goal: 'Japan'} : {};

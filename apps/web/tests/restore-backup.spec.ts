@@ -1,5 +1,5 @@
 import {formatDate} from '../lib/visual-format';
-import {expect, test, type Page} from '@playwright/test';
+import {expect, test, type Locator, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HABITS_KEY} from '../lib/habits';
@@ -45,6 +45,9 @@ async function exportZip(page: Page): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 const restoreRegion = (page: Page) => page.getByRole('region', {name: 'Restore from a backup'});
+// Session AK (Part 8.9, 3110c81f, deliberate): "Test a backup" sits in the same section with its own always-present live
+// region, so the restore's outcome is read from the restore tool's own status, as strictly.
+const restoreStatus = (region: Locator) => region.locator('.restore-backup').getByRole('status');
 
 test('Export everything → lose records → restore from the ZIP gives them back byte for byte; Undo puts the loss back; a photo returns to this device', async ({page}) => {
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
@@ -77,7 +80,7 @@ test('Export everything → lose records → restore from the ZIP gives them bac
   await expect(go).toBeDisabled();
   await preview.getByLabel(/I checked my choices/).check();
   await go.click();
-  await expect(region.getByRole('status')).toContainText('Restored: Habits, Goal plans, areas and visions. Photos added: 1.');
+  await expect(restoreStatus(region)).toContainText('Restored: Habits, Goal plans, areas and visions. Photos added: 1.');
   expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
   // Goal extras: the export leaves the device-only `dormant` out, so the merge brings back the rest exactly.
   const {dormant: _dormant, ...exportedExtras} = JSON.parse(extras!);
@@ -91,7 +94,7 @@ test('Export everything → lose records → restore from the ZIP gives them bac
   // Undo, from the same session after leaving the page.
   await page.goBack();
   await restoreRegion(page).getByRole('button', {name: 'Undo this restore'}).click();
-  await expect(restoreRegion(page).getByRole('status')).toContainText('The restore is undone');
+  await expect(restoreStatus(restoreRegion(page))).toContainText('The restore is undone');
   expect(await stored(page, HABITS_KEY)).toBeNull(); expect(await stored(page, GOAL_EXTRAS_KEY)).toBeNull(); expect(await stored(page, PROGRESS_PHOTOS_KEY)).toBeNull();
   expect(await photoDb(page, 'get')).toBeNull();
 });
@@ -135,7 +138,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
   await preview.getByLabel(/I checked my choices/).check();
   await preview.getByRole('button', {name: 'Restore the chosen parts'}).click();
   // A photo this device already holds is passed over without a word (it is not "left out": it is here).
-  await expect(region.getByRole('status')).toHaveText('Restored: Habits.');
+  await expect(restoreStatus(region)).toHaveText('Restored: Habits.');
   expect(await photoDb(page, 'get')).toBe(mine.length);
   expect(JSON.parse((await stored(page, PROGRESS_PHOTOS_KEY))!)).toEqual({version: 1, photos: [PHOTO]});
   expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
@@ -148,7 +151,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
   await expect(again).toContainText(`A restore from ${formatDate(DAY)} can still be undone here until ${formatDate('2026-10-21')}, unless you change those records first.`); // Session AD item 8: the medium date
   expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
   await again.getByRole('button', {name: 'Undo this restore'}).click();
-  await expect(again.getByRole('status')).toHaveText('The restore is undone: this device holds exactly what it held before.');
+  await expect(restoreStatus(again)).toHaveText('The restore is undone: this device holds exactly what it held before.');
   expect(await stored(page, HABITS_KEY)).toBeNull();
   expect(await photoDb(page, 'get')).toBe(mine.length);
   // Used once, the Undo is gone, also after another reload.
@@ -174,12 +177,12 @@ test('“Keep the restore” ends the Undo, also after a reload; a part changed 
     await preview.getByRole('combobox', {name: 'Habits: what to do'}).selectOption('replace');
     await preview.getByLabel(/I checked my choices/).check();
     await preview.getByRole('button', {name: 'Restore the chosen parts'}).click();
-    await expect(region.getByRole('status')).toHaveText('Restored: Habits.');
+    await expect(restoreStatus(region)).toHaveText('Restored: Habits.');
     return region;
   };
   const region = await restoreHabits();
   await region.getByRole('button', {name: 'Keep the restore'}).click();
-  await expect(region.getByRole('status')).toHaveText('The restore is kept. Undo is no longer offered for it.');
+  await expect(restoreStatus(region)).toHaveText('The restore is kept. Undo is no longer offered for it.');
   await expect(region.getByRole('button', {name: 'Undo this restore'})).toHaveCount(0);
   await page.reload();
   await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toBeVisible();

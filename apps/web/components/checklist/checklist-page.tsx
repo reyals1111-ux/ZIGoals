@@ -1,4 +1,5 @@
 'use client';
+import {loopRuns, readLoopLevel} from '../../lib/motion-loops/loops';
 import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
@@ -10,16 +11,31 @@ import {pathBefore} from '../../lib/checklist/return-path';
 import {primeCelebrationVideo} from './celebration-clip';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
-import {ListView} from './list-view';
-import {CornerTimers} from './corner-timers';
 import {ChecklistSky} from './checklist-sky';
-import {AmbientSky} from './ambient-sky';
 import {CHECKLIST_UNREADABLE_MESSAGE} from './use-checklist-record';
 import {FlameMark} from './checklist-marks';
+import {LoadBoundary} from '../load-boundary';
 import {escapeTop, useEscapeLayer} from './escape-layers';
 import './checklist.css';
 
+/**
+ * Session AK P8c (owner decision 6): while the Checklist is open, the shell's other parts are not drawn. These two rules
+ * were `:root:has(.checklist-overlay[open]) … > :not(…)` in checklist.css: a `:has()` before a last part with no class
+ * made every change of the page's tree restyle the whole document (Blink keeps one :has() invalidation set; see
+ * lib/perf/has-invalidation.ts). Rendered by the page beside its dialog, the same rules apply exactly while it is here:
+ * in the server's HTML (the first paint), and gone with the page. Same weight as before, (0,5,0): `:root` three times.
+ */
+const SHELL_HIDDEN = ':root:root:root .app-content>:not(.workspace,.private-read-delay),:root:root:root .workspace>:not(main,.aa-toast-region){display:none!important}';
+
 // Opened on request only: the editor, the options, the history and the day's celebration stay out of the first paint.
+// The ambient sky is decoration (aria-hidden): it loads after the page, so the Checklist's first scripts stay within
+// their weight line (scripts/weight-budgets.json).
+// The corner timers (sleep, fasting, meditation, a habit's timer) load after the page; they hold the engines of four
+// stores, kept out of the Checklist's first scripts (its weight line, scripts/weight-budgets.json).
+const CornerTimers = lazy(() => import('./corner-timers').then(m => ({default: m.CornerTimers})));
+// The List view loads only when a person picks it (the Path is the default view).
+const ListView = lazy(() => import('./list-view').then(m => ({default: m.ListView})));
+const AmbientSky = lazy(() => import('./ambient-sky').then(m => ({default: m.AmbientSky})));
 const EditPath = lazy(() => import('./edit-path').then(m => ({default: m.EditPath})));
 const OptionsSheet = lazy(() => import('./options-sheet').then(m => ({default: m.OptionsSheet})));
 const HistoryHeatmap = lazy(() => import('./history-heatmap').then(m => ({default: m.HistoryHeatmap})));
@@ -124,6 +140,9 @@ export function ChecklistPage() {
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'planet' : 'planets'} today` : 'No planets counted today' : 'Loading your path…';
   const day = state.date ? formatDate(state.date, {weekday: true, year: false}) : '';
   const [menu, setMenu] = useState(false);
+  // Session AK P8c (owner decision 6): the shell's other parts are hidden by the page's own rules (SHELL_HIDDEN) while
+  // the overlay is open; the browser closing it on its own (and the page then leaving) shows the shell, as before.
+  const [shellHidden, setShellHidden] = useState(true);
   const open = (name: 'edit' | 'options' | 'about') => { setMenu(false); setSheet(s => s === name ? null : name); };
   useEscapeLayer(menu, () => setMenu(false));
   // ZIGi's poses on the path need the frames the launcher's small "alive" chunk publishes; the launcher sits behind the
@@ -135,7 +154,7 @@ export function ChecklistPage() {
     return () => { cancelled = true; if (idle) window.cancelIdleCallback(handle as number); else window.clearTimeout(handle as number); };
   }, []);
 
-  return <dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
+  return <><dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
     onKeyDown={e => { if (e.key !== 'Escape' || e.defaultPrevented) return; e.preventDefault(); escaped.current = true; window.setTimeout(() => { escaped.current = false; }, 0); onEscape(); }}
     onCancel={e => { e.preventDefault(); if (!escaped.current) onEscape(); }}
     onClose={() => {
@@ -143,11 +162,12 @@ export function ChecklistPage() {
       if (leaving.current) return;
       // The browser closed it anyway (Escape twice without a tap between): stay if an inner layer took the Escape.
       const d = dialog.current; if (escaped.current && d) { try { d.showModal(); } catch { /* stays closed */ } return; }
+      setShellHidden(false);
       leave();
     }}>
     <ChecklistSky/>
     {/* Session AG Polish 2 (owner Part 4): now and then a twinkle, rarely a shooting star — resting while anything is open over the path. */}
-    <AmbientSky paused={celebrate || sheet !== null || menu}/>
+    <LoadBoundary quiet><Suspense fallback={null}><AmbientSky paused={celebrate || sheet !== null || menu}/></Suspense></LoadBoundary>
     {/* The top bar (Session AG, pointer 12): close, the title, today's count and date, the view, the streak, the menu — no XP. */}
     <div className="checklist-topbar checklist-head">
       <div className="checklist-topbar-row">
@@ -189,11 +209,11 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
+          : prefs.view === 'list' ? <LoadBoundary><Suspense fallback={<p className="fine" role="status">Loading the list…</p>}><ListView state={state} onAdd={section => { setAddTo(section); setSheet('edit'); }} arrive={arrive}/></Suspense></LoadBoundary> : <PathView state={state} jumpDock={narrow ? jumpSlot : null} arrive={arrive}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
-        {loaded && !state.unreadable && <CornerTimers state={state}/>}
+        {loaded && !state.unreadable && <LoadBoundary quiet><Suspense fallback={null}><CornerTimers state={state}/></Suspense></LoadBoundary>}
         {/* Round 4: on a computer the twelve weeks stand open under the timers (the column's room); below that, a fold. */}
         {loaded && !empty && !state.unreadable && !narrow && state.date && <section className="checklist-history-open" aria-labelledby="checklist-history-title">
           <h2 id="checklist-history-title" className="checklist-history-title">Orbit consistency · last 12 weeks</h2>
@@ -210,14 +230,16 @@ export function ChecklistPage() {
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} addTo={addTo} onClose={() => { setSheet(null); setAddTo(undefined); }}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
     {sheet === 'quick' && !state.unreadable && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening quick add…</p>}><OrbitQuickAdd state={state} onClose={() => setSheet(null)} onAdded={id => { setSheet(null); setArrive(id); }}/></Suspense></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense>}
+    {/* Session AK (journey bug J4-1): the celebration is a decoration; offline its chunk (or its stylesheet) may never have
+        been cached, and a failed load closes it quietly instead of taking the Checklist down. Nothing else changes. */}
+    {celebrate && state.date && <LoadBoundary quiet onFail={() => { setCelebrate(false); setReplay(false); }}><Suspense fallback={null}><DayCelebration streak={streakDays} grew={!replay} perfect={!!summary?.perfect} total={total} onClose={() => { setCelebrate(false); setReplay(false); }}/></Suspense></LoadBoundary>}
     {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
         place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
     <div className="checklist-dock" aria-hidden="true"/>
     <div ref={setJumpSlot} className="checklist-jump-slot"/>
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
-  </dialog>;
+  </dialog>{shellHidden && <style>{SHELL_HIDDEN}</style>}</>;
 }
 
 /** A sheet over the path (Edit path, Options, About): a panel from the side on a computer, from the foot on a phone; the
@@ -265,7 +287,8 @@ function CountUp({value}: {value: number}) {
   }, [value]);
   return <span className="checklist-count" data-pop={pop % 2 ? 'a' : pop ? 'b' : undefined} aria-hidden="true">{shown}</span>;
 }
-const motionOk = () => { try { return document.documentElement.dataset.appMotion !== 'off' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
+// Motion Full only (Calm rules out count-ups; lane M, M4); Off, reduced motion or an unreadable page: at once.
+const motionOk = () => { try { return loopRuns(readLoopLevel()); } catch { return false; } };
 
 function ToolMark({name}: {name: 'edit' | 'options' | 'about' | 'replay'}) {
   return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{name === 'edit' ? <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/> : name === 'options' ? <path d="M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4"/> : name === 'replay' ? <path d="M12 3.5l1.9 5.3 5.6.2-4.4 3.5 1.6 5.4L12 14.8l-4.7 3.1 1.6-5.4L4.5 9l5.6-.2zM19 3v3M17.5 4.5h3"/> : <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6M12 16.8h.01"/>}</svg>;

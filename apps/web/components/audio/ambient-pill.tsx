@@ -15,5 +15,5 @@ export function AmbientPill() {
   const state = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState), pathname = usePathname(), music = isShown(usePagesView(), 'music');
   if (!state.playing || music) return null;
   if (pathname === '/app/health' && new URLSearchParams(window.location.search).get('view') === 'meditation') return null;
-  return <Suspense fallback={null}><AmbientPillStop sound={state.sound}/></Suspense>;
+  return <Suspense fallback={null}><AmbientPillStop sound={state.sound} layers={state.layers}/></Suspense>;
 }

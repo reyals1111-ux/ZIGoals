@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openFold} from './phone-nav';
 
 /** Session AA-Cloud Part 3: the compound interest calculator on Wealth and its own page. */
 test.beforeEach(async ({page}) => {
@@ -15,6 +16,9 @@ async function plan(page: Page, values: {start: string; contribution: string; ra
 
 test('Wealth opens the calculator; results follow every change, exactly, and always say they are an estimate', async ({page}) => {
   await page.goto('/app/wealth');
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): on a phone the calculator card is a folded row (inside "More about
+  // your wealth" while there are fewer than two assets); openFold opens it as a reader would, and does nothing elsewhere.
+  await openFold(page, 'Compound interest calculator');
   const card = page.getByRole('region', {name: 'Compound interest calculator'});
   await expect(card).toContainText('returns are not guaranteed');
   await card.getByRole('link', {name: 'Open the calculator'}).click();
@@ -106,7 +110,9 @@ test('Scenarios are kept on this device with Undo, and a result becomes a prefil
   await expect(page).toHaveURL(/\/app\/goals\/new\?from=calculator/);
   const from = page.getByRole('region', {name: 'From the calculator'});
   await expect(from).toContainText('not a promise');
-  await expect(page.getByRole('radio', {name: /^Value/})).toBeChecked();
+  // Session AK X1 (RELEASE_REVIEW R5; deliberate): on a device that never chose the chain, Create a goal names the Value kind
+  // in plain words, "Save an amount" (components/unified-goal-wizard.tsx TYPE_CHOICES_PLAIN; tests/consumer-first-x1.spec.ts).
+  await expect(page.getByRole('radio', {name: 'Save an amount', exact: true})).toBeChecked();
   // Assertion changed (Session AH TR14, B-130; stronger): the estimate exactly, cents included (it was cut to 84919).
   await expect(page.getByLabel('Target amount')).toHaveValue('84919.37');
   await expect(page.getByRole('radio', {name: 'USD · US dollar'})).toBeChecked();

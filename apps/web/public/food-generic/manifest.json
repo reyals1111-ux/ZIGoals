@@ -1,0 +1,33 @@
+{
+ "schemaVersion": 1,
+ "sources": [
+  {
+   "source": "ciqual",
+   "name": "Ciqual 2025 (ANSES, France)",
+   "licence": "Licence Ouverte / Open Licence 2.0 (Etalab)",
+   "licenceUrl": "https://spdx.org/licenses/etalab-2.0.html",
+   "attribution": "Anses. 2025. Table de composition nutritionnelle des aliments Ciqual",
+   "notice": "Ciqual 2025, last updated 2025-11-19 (files of 2025-11-03), Licence Ouverte / Etalab 2.0. ZIGoals keeps selected nutrients and converts them to its units; traces and values given as \"less than\" are shown as unknown.",
+   "link": "https://doi.org/10.57745/RDMHWY",
+   "datasetVersion": "2025-11-03",
+   "file": "ciqual-v1.json",
+   "foods": 3484,
+   "bytes": 669429,
+   "sha256": "840243b4220f107d0f1dd95f5406f15012e1407339e6b66fbd994ff83c3d814a"
+  },
+  {
+   "source": "cofid",
+   "name": "McCance and Widdowson's Composition of Foods Integrated Dataset 2021 (CoFID, UK)",
+   "licence": "Open Government Licence v3.0",
+   "licenceUrl": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+   "attribution": "Contains public sector information licensed under the Open Government Licence v3.0.",
+   "notice": "McCance and Widdowson's The Composition of Foods Integrated Dataset 2021, Public Health England, © Crown copyright 2021. ZIGoals keeps selected nutrients and converts them to its units; trace (Tr) and not-known (N) values are shown as unknown; alcoholic drinks (given per 100 ml) are left out.",
+   "link": "https://www.gov.uk/government/publications/composition-of-foods-integrated-dataset-cofid",
+   "datasetVersion": "2021",
+   "file": "cofid-v1.json",
+   "foods": 2855,
+   "bytes": 427097,
+   "sha256": "58cdd6f644b6fcd00cf9d99442b8b86c76976a23ca68fe41f9edd85cc01dc0a0"
+  }
+ ]
+}

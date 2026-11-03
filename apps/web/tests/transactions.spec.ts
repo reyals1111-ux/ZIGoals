@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { toBech32 } from "@cosmjs/encoding";
 import { connectKeplr } from "./phone-nav";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Keplr transactions.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 const alice = toBech32("zig", new Uint8Array(20).fill(1));
 const bob = toBech32("zig", new Uint8Array(20).fill(2));
 const operationId = "1c24a834-76f3-4b56-a152-77bce8f57fc6";

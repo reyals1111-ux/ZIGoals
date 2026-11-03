@@ -1,6 +1,10 @@
 import {test,expect} from '@playwright/test';
 import {closeFormSheet,isPhone} from './phone-nav';
 import {emptyPlatform,positionSchema} from '../lib/positions';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests staking positions.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 test('wealth leads collapsed read-only utilities and APR stays account-scoped',async({page},info)=>{
  const position=positionSchema.parse({id:'layout-stake',providerId:'native-zig',sourceType:'NATIVE_STAKING',network:'zigchain-1',account:'fictional-layout-account',asset:'ZIG',denom:'uzig',decimals:6,quantity:'263000000000',verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt:new Date().toISOString(),liquidity:'BONDED',provenance:'Fictional layout fixture'});

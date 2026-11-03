@@ -1,0 +1,22 @@
+/* Session AK (BUILD list 2 #9): the review inbox "One at a time". Big, calm card; 44 px targets; the drag eases only
+   when motion is welcome, and nothing flings: the next card simply takes the place. */
+.review-cards{display:grid;gap:10px}
+.review-card{display:grid;gap:10px;padding:18px;border-radius:20px;border:1px solid var(--line,#25334f);background:color-mix(in srgb,var(--violet,#a698ff) 9%,var(--panel,#0d1629));touch-action:pan-y;transform:translateX(var(--card-x,0px))}
+.review-card:focus-visible{outline:2px solid var(--text,#f0f5ff);outline-offset:3px}
+.review-card.leaning-accept{border-color:var(--green,#7ee2a8)}
+.review-card.leaning-skip{border-color:var(--amber,#f5b65b)}
+.review-card .eyebrow{margin:0}
+.review-card .review-card-payee{margin:0;font-size:22px;line-height:1.25;overflow-wrap:anywhere}
+.review-card .review-card-amount{margin:0;font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.review-card-chips{display:flex;flex-wrap:wrap;gap:8px;border:0;margin:0;padding:0}
+.review-card-chips legend{font-size:14px;margin-bottom:6px;padding:0}
+.review-card-chip{min-height:48px;padding:0 16px;border-radius:999px;border:1px solid var(--line,#25334f);background:transparent;color:inherit;font:inherit;font-size:16px;cursor:pointer}
+.review-card-chip[aria-pressed="true"]{background:color-mix(in srgb,var(--violet,#a698ff) 30%,transparent);border-color:var(--violet,#a698ff);font-weight:600}
+.review-card-chip:focus-visible{outline:2px solid var(--text,#f0f5ff);outline-offset:2px}
+.review-card-actions{display:flex;flex-wrap:wrap;gap:8px}
+.review-card-actions button{min-height:48px;min-width:96px}
+.review-cards-done{display:flex;flex-wrap:wrap;gap:8px}
+.review-cards-done button,.review-cards-note .text-link{min-height:44px}
+.review-cards-note{margin:0}
+@media (prefers-reduced-motion:no-preference){:root:not([data-app-motion=off]) .review-card{transition:transform 160ms ease-out}}
+.review-card.leaning-accept,.review-card.leaning-skip{transition:none!important} /* while the finger moves, the card follows it exactly */

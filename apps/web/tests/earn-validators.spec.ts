@@ -1,5 +1,9 @@
 import {expect, test} from '@playwright/test';
 import {earnRoutes, seedShowcase, validatorsFixture} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn's validators.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L1): the Earn hub's validators, from GET /api/chain/validators (lane L2a's wire shape; here the recorded

@@ -4,13 +4,14 @@
    centre (the manifest's offset for the original skin: --zigi-ox/--zigi-oy, fractions of the figure's box).
    Session X-Local Part 1: the studio's figure fills 83 % of its frame (feet 2 % above the bottom, room for the hop and the
    raised arms), so the box is 1.18× the placeholder's (52 px for the 56 px circle) and the figure reads the same size. */
-.ai-launcher{--zigi-circle:56px;--zigi-figure:52px;--zigi-ox:.023;--zigi-oy:-.09;position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(4px,env(safe-area-inset-bottom,0px));z-index:46;display:flex;align-items:flex-start;gap:8px}
+.ai-launcher{--zigi-circle:56px;--zigi-figure:52px;--zigi-ox:.022;--zigi-oy:-.09;position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:max(4px,env(safe-area-inset-bottom,0px));z-index:46;display:flex;align-items:flex-start;gap:8px}
 .ai-launcher[data-size=s]{--zigi-circle:48px;--zigi-figure:45px}
 .ai-launcher[data-size=l]{--zigi-circle:64px;--zigi-figure:61px}
 .ai-launcher[data-side=left]{right:auto;left:max(20px,env(safe-area-inset-left,0px));flex-direction:row-reverse}
 /* On a computer the sidebar holds the left edge: a left-side ZIGi sits just past it. */
 @media (min-width:901px){.ai-launcher[data-side=left]:not(.ai-launcher-phone){left:calc(var(--sidebar-width,216px) + 20px)}.ai-edge-tab[data-side=left]:not(.ai-edge-tab-phone){left:var(--sidebar-width,216px)}}
-.ai-launcher-phone{right:calc(var(--safe-right,0px) + 12px);bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 8px)}
+/* Session AK P4 (FR-19): a page with a sticky action row above the tab bar sets --launcher-clearance (its height), as the tab bar sets --phone-tabs. */
+.ai-launcher-phone{right:calc(var(--safe-right,0px) + 12px);bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 8px + var(--launcher-clearance,0px))}
 /* Session X-Local Part 9 (H7, ADR-017 S81): at the top of a page the launcher rests lifted clear of the page's first controls (the variable is set by the launcher), and glides back to its corner on scroll. */
 .ai-launcher-phone{transform:translateY(calc(-1 * var(--zigi-rest-lift,0px)));transition:transform .35s ease}
 @media (prefers-reduced-motion:reduce){.ai-launcher-phone{transition:none}}

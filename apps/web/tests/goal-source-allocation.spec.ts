@@ -3,6 +3,10 @@ import {typeGoalName} from './goal-name';
 import { manualSourcePosition } from "../lib/manual-source";
 import { allocate, emptyPlatform, privateGoalSchema, type Platform } from "../lib/positions";
 import { setup } from "./run9-1-fixture";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests goal sources from staked ZIG.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // QA-15 (Session F, docs/qa/QA_SWEEP_2026-09-30.md): a source already fully allocated to another Goal could be
 // "included" with 0 units, and was then dropped silently on Create. Include is now disabled for such a source, with

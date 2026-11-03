@@ -21,13 +21,14 @@ import {announceSyncedDeviceChanges} from './account-data';
  * the merged snapshot is uploaded only when it differs from the cloud's.
  */
 export const EXTRAS_PART_CHARS = 48_000, EXTRAS_MAX_PARTS = 14, EXTRAS_SEALED_MAX = 1_000_000;
-const SECTION_INDEX: Record<ExtrasSectionName, number> = {goals: 0, life: 1, habits: 2, health: 3};
+const SECTION_INDEX: Record<ExtrasSectionName, number> = {goals: 0, life: 1, habits: 2, health: 3, checklist: 4};
 // Fixed objects, distinct from every vault record (random v4 ids) and from the Portfolio's (0x100 + index).
 const partObject = (section: ExtrasSectionName, index: number) => `00000000-0000-4000-8000-${(0x400 + SECTION_INDEX[section] * 0x20 + index).toString(16).padStart(12, '0')}`;
-const sectionName = z.enum(['goals', 'life', 'habits', 'health']);
+// Session AK (8.10, AFL8): the Checklist section, asked for by name (a private-sync that predates it simply never lists it).
+const sectionName = z.enum(['goals', 'life', 'habits', 'health', 'checklist']);
 const partSchema = z.object({version: z.literal(1), section: sectionName, index: z.number().int().min(0), count: z.number().int().min(1).max(EXTRAS_MAX_PARTS), text: z.string().max(EXTRAS_PART_CHARS)}).strict();
 const headSchema = z.object({revision: z.number().int().min(0), generation: z.number().int().min(0), epoch: z.number().int().min(1).nullable(), parts: z.number().int().min(0).max(16)}).strict();
-export const extrasHeadsSchema = z.object({protocol: z.literal(1), sections: z.object({goals: headSchema, life: headSchema, habits: headSchema, health: headSchema}).strict()}).strict();
+export const extrasHeadsSchema = z.object({protocol: z.literal(1), sections: z.object({goals: headSchema, life: headSchema, habits: headSchema, health: headSchema, checklist: headSchema.optional()}).strict()}).strict();
 export const extrasSectionCloudSchema = z.object({protocol: z.literal(1), section: sectionName, revision: z.number().int().min(0), generation: z.number().int().min(0), epoch: z.number().int().min(1).nullable(), parts: z.array(z.unknown()).max(16)}).strict();
 export type ExtrasHeads = z.infer<typeof extrasHeadsSchema>;
 export type ExtrasSectionCloud = z.infer<typeof extrasSectionCloudSchema>;
@@ -42,7 +43,7 @@ export const extrasBaseSchema = z.object({version: z.literal(1), vault: z.uuid()
   held: z.literal(true).optional()}).strict();
 export type ExtrasBase = z.infer<typeof extrasBaseSchema>;
 export class ExtrasTooLarge extends Error { constructor(section: string) { super(`Your ${SECTION_LABEL[section as ExtrasSectionName] ?? section} are larger than their encrypted copy can hold (about 1 MB). They stay on this device; nothing was uploaded.`); } }
-export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras'};
+export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras', checklist: 'Checklist items'};
 
 /** The canonical text a section is sealed and compared as (sorted keys, so key order never reads as a change). */
 export const sectionText = (records: Records) => canonical({version: 1, records});
@@ -207,17 +208,23 @@ export async function syncSection(input: SyncInput, section: ExtrasSection, head
  * its own outcome and never stops the others or the account sync; a revision conflict (another device wrote between the
  * heads and the upload) retries that section once.
  */
+/** Session AK (AFL8): shown when the sync service does not list an optional section yet. */
+export const SERVICE_UPDATE_NOTE = 'Your Checklist items sync once the sync service is updated. Nothing was changed here.';
 export async function syncExtras(input: SyncInput & {health: boolean}): Promise<ExtrasOutcome[]> {
   const heads = extrasHeadsSchema.parse(await input.transport.heads()); input.fence();
   const outcomes: ExtrasOutcome[] = [];
   for (const section of EXTRAS_SECTIONS) {
     if (section.consent === 'health' && !input.health) { outcomes.push({section: section.name, state: 'skipped'}); continue; }
+    // Session AK (AFL8): a private-sync that predates an optional section never lists it; that section waits, untouched.
+    const first = heads.sections[section.name];
+    if (!first) { outcomes.push({section: section.name, state: 'skipped', message: SERVICE_UPDATE_NOTE}); continue; }
     try {
-      try { outcomes.push(await syncSection(input, section, heads.sections[section.name])); }
+      try { outcomes.push(await syncSection(input, section, first)); }
       catch (error) {
         if (!(error instanceof RevisionConflict)) throw error;
         const again = extrasHeadsSchema.parse(await input.transport.heads()); input.fence();
-        outcomes.push(await syncSection(input, section, again.sections[section.name]));
+        const head = again.sections[section.name]; if (!head) throw Error(SERVICE_UPDATE_NOTE);
+        outcomes.push(await syncSection(input, section, head));
       }
     } catch (error) {
       input.fence();
@@ -233,7 +240,7 @@ export async function deleteExtrasCopies({transport, manifest, storage, bases, f
   const heads = extrasHeadsSchema.parse(await transport.heads()); fence();
   for (const section of EXTRAS_SECTIONS) {
     const head = heads.sections[section.name];
-    if (!head.parts && head.revision === 0) continue;
+    if (!head || (!head.parts && head.revision === 0)) continue;
     await transport.write({protocol: 1, action: 'delete', vault: manifest.vault, operation: crypto.randomUUID(), section: section.name, base: head.revision, generation: head.generation}); fence();
   }
   writeExtrasChoice(storage, {...readExtrasChoice(storage), enabled: false});
@@ -242,9 +249,9 @@ export async function deleteExtrasCopies({transport, manifest, storage, bases, f
 
 /** The relay's extras calls (lib/server/private-account.ts), with the vault transport's errors. */
 export function extrasTransport(account: string, fence: () => void): ExtrasTransport {
-  async function request(query: string | null, operation?: unknown) {
+  async function request(query: string | null, operation?: unknown, also?: 'checklist') {
     fence();
-    const response = await fetch('/api/private-account' + (operation ? '' : `?action=extras${query ? `&section=${query}` : ''}`), {method: operation ? 'POST' : 'GET', headers: {'X-Zigoals-Account': account, ...(operation ? {'Content-Type': 'application/json'} : {})}, ...(operation ? {body: JSON.stringify({action: 'extras', operation})} : {}), cache: 'no-store', signal: AbortSignal.timeout(20000)});
+    const response = await fetch('/api/private-account' + (operation ? '' : `?action=extras${query ? `&section=${query}` : also ? `&with=${also}` : ''}`), {method: operation ? 'POST' : 'GET', headers: {'X-Zigoals-Account': account, ...(operation ? {'Content-Type': 'application/json'} : {})}, ...(operation ? {body: JSON.stringify({action: 'extras', operation})} : {}), cache: 'no-store', signal: AbortSignal.timeout(20000)});
     const text = await response.text(); if (text.length > (operation ? 32768 : 1_100_000)) throw Error('Sync response exceeds capacity.'); fence();
     const data = JSON.parse(text);
     if (!response.ok) {
@@ -253,7 +260,7 @@ export function extrasTransport(account: string, fence: () => void): ExtrasTrans
     }
     return data;
   }
-  return {heads: () => request(null), read: section => request(section), write: operation => request(null, operation)};
+  return {heads: () => request(null, undefined, 'checklist'), read: section => request(section), write: operation => request(null, operation)};
 }
 
 /** This device's bases in IndexedDB (`zigoals-extras-sync-v1`), per account. */

@@ -3,11 +3,22 @@ import {getAppStorage,isShowcase,storageLockKey} from "../lib/showcase-storage";
 import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from "../lib/account-session";
 import { useCallback, useEffect, useState, useRef } from "react";
 import type { z } from "zod";
-import { importPrivateStore, readPrivateStore, updatePrivateStore } from "../lib/private-storage";
+import { importPrivateStore, readPrivateStore, updatePrivateStore, updatePrivateStoreNow } from "../lib/private-storage";
 import {isDurableMarker,readDurableStore,updateDurableStore,restoreDurableStore,exportDurableStore} from "../lib/vault/local";
 import {beginFirstRead,endFirstRead,PRIVATE_READ_RETRY} from "./private-read-delay";
 import {blockedReadMessage,restoreFailureMessage,saveFailureMessage} from "../lib/storage-error-copy";
 const EVENT = "zigoals:private-change";
+/**
+ * Session AK G4 (journey 1 on the phone): whether this page is being left (pagehide, until a pageshow brings it back from
+ * the back/forward cache). A change saved then (a check-in that already shows, components/habits/habit-completion.tsx) is
+ * written at once: the cross-tab lock's grant would come in a later task the leaving page never runs. Set in the capture
+ * phase, before the page's own pagehide listeners save.
+ */
+let leaving = false;
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", () => { leaving = true; }, true);
+  window.addEventListener("pageshow", () => { leaving = false; }, true);
+}
 /**
  * The latest parse of each legacy store's exact text, per storage view (Session G, Part 2). Several instances on one
  * page (Today reads Habits three times) share one parse of the same bytes; parsed records are never changed in place.
@@ -79,7 +90,7 @@ export function usePrivateStore<T>(key: string, schema: z.ZodType<T>, createEmpt
   const update = useCallback(async (updater: (latest: T) => T) => {
     if (!loaded) throw Error("Private data is still loading.");
     let draftError:unknown,durable=false;const apply=(latest:T)=>{try{return updater(latest);}catch(error){draftError=error;throw error;}};
-    try { const storage=getAppStorage();durable=isDurableMarker(storage.getItem(key)); const next=await (durable ? updateDurableStore(storage,key,schema,apply) : updatePrivateStore(storage,key,schema,createEmpty,apply)); if(storage===getAppStorage()){heldRaw.current=durable?null:storage.getItem(key);if(heldRaw.current!==null)sharedParse(storage,key,schema).set(heldRaw.current,next);publish(next);} }
+    try { const storage=getAppStorage();durable=isDurableMarker(storage.getItem(key)); const next=await (durable ? updateDurableStore(storage,key,schema,apply) : leaving ? updatePrivateStoreNow(storage,key,schema,createEmpty,apply) : updatePrivateStore(storage,key,schema,createEmpty,apply)); if(storage===getAppStorage()){heldRaw.current=durable?null:storage.getItem(key);if(heldRaw.current!==null)sharedParse(storage,key,schema).set(heldRaw.current,next);publish(next);} }
     catch (error) {
       // A rejected draft or full storage is not a corrupt store. Preserve forms
       // when the original record still reads; block only an actual read failure.

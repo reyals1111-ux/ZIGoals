@@ -1,5 +1,6 @@
 import type {BuiltInArea} from '../goal-extras/store';
 import type {AverageMetric} from '../average-goals/store';
+import {BUILD_LIST_2_TEMPLATES, MORE_TEMPLATES, SAVINGS_CHALLENGE_TEMPLATES} from './goal-library-more';
 
 /**
  * G6, the template library (Session AA-Cloud Part 2): ready goals across every life area that pre-fill the existing
@@ -21,7 +22,7 @@ export type LibraryTemplate = {
 };
 const h = (title: string, schedule: TemplateHabit['schedule'], why: string): TemplateHabit => ({title, schedule, why});
 
-export const GOAL_LIBRARY: readonly LibraryTemplate[] = [
+const CORE_LIBRARY: readonly LibraryTemplate[] = [
   // Health
   {id: 'run-10k', title: 'Run a 10K', area: 'health', kind: 'project', summary: 'From your first easy run to 10 km.', milestones: ['Run 3 km without stopping', 'Run 5 km', 'Run 8 km', 'Run 10 km'], habits: [h('Easy run', 'three-a-week', 'Three short runs a week build the base.')], keywords: ['running', 'race', 'fitness']},
   {id: 'lose-5kg', title: 'Lose 5 kg', area: 'health', kind: 'health-weight', summary: 'A weight goal from your Health journal; the target is yours.', habits: [h('Log my meals', 'daily', 'What gets noticed gets easier.'), h('Walk after dinner', 'daily', 'A small daily movement.')], keywords: ['weight', 'diet', 'kilos']},
@@ -76,6 +77,12 @@ export const GOAL_LIBRARY: readonly LibraryTemplate[] = [
 ];
 
 export const LIBRARY_AREAS: readonly BuiltInArea[] = ['health', 'mind', 'wealth', 'relationships', 'career', 'learning', 'fun'];
+/**
+ * Session AK (F5a, items 2 and 5): the library with the savings challenges, more templates and the extension point for
+ * BUILD list 2 (lib/templates/goal-library-more.ts), kept in life-area order (each area's own order unchanged).
+ */
+export const GOAL_LIBRARY: readonly LibraryTemplate[] = [...CORE_LIBRARY, ...SAVINGS_CHALLENGE_TEMPLATES, ...MORE_TEMPLATES, ...BUILD_LIST_2_TEMPLATES]
+  .map((t, i) => ({t, i})).sort((a, b) => LIBRARY_AREAS.indexOf(a.t.area) - LIBRARY_AREAS.indexOf(b.t.area) || a.i - b.i).map(x => x.t);
 export const templateById = (id: string) => GOAL_LIBRARY.find(t => t.id === id);
 
 /** Search by words in the title, summary, keywords and milestones; every word must match (case and accents ignored). */

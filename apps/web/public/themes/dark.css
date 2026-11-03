@@ -402,6 +402,13 @@
     .unavailable-pill:not(#\-) {
         border-color: currentColor
     }
+    :scope dl > div > dd.dd-note:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit;
+        -webkit-text-fill-color: inherit
+    }
     .workspace[aria-busy="true"]:not(#\-)::before {
         background-image: linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0), linear-gradient(var(--ah-skeleton) 0 0);
         background-color: transparent
@@ -2072,6 +2079,22 @@
         border-color: #9fe6ff88;
         color: #fff
     }
+    .field-error:not(#\-) {
+        color: var(--danger-ink, #f5a7af)
+    }
+    .field-error:not(#\-)::before {
+        border-color: currentColor
+    }
+    @media (forced-colors: active) {
+        .field-error:not(#\-) {
+            color: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .field-error:not(#\-)::before {
+            border-color: CanvasText
+        }
+    }
 }
 /*  components/ui/touch-targets.css  */
 @scope (:root[data-theme=dark]) {
@@ -2097,6 +2120,28 @@
     }
     :scope :is(.section-heading, .wealth-section-heading, .positions-section-heading) .eyebrow:not(#\-) {
         color: var(--text-meta)
+    }
+}
+/*  app/app/goals/collection.css  */
+@scope (:root[data-theme=dark]) {
+    :scope :where(.goals-page) .panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-goals) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    :scope :where(.goals-page) .goal-card.unified-goal-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-goals) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent), var(--shadow-raised, 0 0 transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.goals-page) .panel:hover:not(#\-), :scope :where(.goals-page) .goal-card.unified-goal-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--pillar-goals) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.goals-page) .panel:has(:focus-visible):not(#\-), :scope :where(.goals-page) .goal-card.unified-goal-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.goals-page) .panel:not(#\-), :scope :where(.goals-page) .goal-card.unified-goal-card:not(#\-) {
+            box-shadow: none
+        }
     }
 }
 /*  components/account-devices.css  */
@@ -2316,6 +2361,146 @@
     }
     .add-money-tile details summary:not(#\-) {
         color: #8bddeb
+    }
+}
+/*  components/agenda/agenda.css  */
+@scope (:root[data-theme=dark]) {
+    .agenda-views button[aria-pressed=true]:not(#\-) {
+        border-color: var(--brand-cyan, var(--cyan));
+        box-shadow: inset 0 0 0 1px var(--brand-cyan, var(--cyan))
+    }
+    .agenda-range small:not(#\-), .agenda-check small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .agenda-filter fieldset:not(#\-), .agenda-export fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .agenda-today:not(#\-) {
+        border-color: currentColor;
+        color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-nothing:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .agenda-item:not(#\-) {
+        border-color: var(--line, #ffffff1f);
+        box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line))
+    }
+    .agenda-item[data-pillar=habits]:not(#\-) {
+        --agenda-accent: var(--pillar-habits)
+    }
+    .agenda-item[data-pillar=health]:not(#\-) {
+        --agenda-accent: var(--pillar-health)
+    }
+    .agenda-item[data-pillar=goals]:not(#\-) {
+        --agenda-accent: var(--pillar-goals)
+    }
+    .agenda-item[data-pillar=wealth]:not(#\-) {
+        --agenda-accent: var(--pillar-wealth)
+    }
+    .agenda-time:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .agenda-item-meta:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .agenda-badge:not(#\-) {
+        color: var(--text)
+    }
+    .agenda-badge.is-example:not(#\-) {
+        color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-weekdays span:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .agenda-cell:not(#\-) {
+        border-color: var(--line, #ffffff1f);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .agenda-cell:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-cell[aria-pressed=true]:not(#\-) {
+        border-color: var(--brand-cyan, var(--cyan));
+        box-shadow: inset 0 0 0 1px var(--brand-cyan, var(--cyan))
+    }
+    .agenda-cell[aria-current=date] .agenda-cell-day:not(#\-) {
+        color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-cell-dots i:not(#\-) {
+        background-image: none;
+        background-color: var(--line)
+    }
+    .agenda-cell-dots i[data-pillar=habits]:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-habits)
+    }
+    .agenda-cell-dots i[data-pillar=health]:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-health)
+    }
+    .agenda-cell-dots i[data-pillar=goals]:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-goals)
+    }
+    .agenda-cell-dots i[data-pillar=wealth]:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-wealth)
+    }
+    .agenda-cell-dots b:not(#\-) {
+        color: var(--text-secondary)
+    }
+    @container (max-width: 331.98px) {
+        .agenda-cell-weekday:not(#\-) {
+            color: var(--text-secondary)
+        }
+    }
+    .agenda-item:not(#\-) {
+        background-image: linear-gradient(90deg, color-mix(in srgb, var(--agenda-accent, var(--line)) 9%, transparent), transparent 55%);
+        background-color: transparent;
+        box-shadow: inset 3px 0 0 var(--agenda-accent, var(--line)), 0 10px 24px -22px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    .agenda-item:has(.agenda-item-title:focus-visible):not(#\-) {
+        border-color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-item-title:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .agenda-item:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--agenda-accent, var(--brand-violet)) 55%, var(--line, transparent));
+            background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent)
+        }
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .agenda-cell:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-cyan) 55%, var(--line, transparent));
+            background-color: color-mix(in srgb, var(--brand-cyan) 6%, transparent)
+        }
+    }
+    .agenda-filter summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .agenda-item[data-pillar=life]:not(#\-) {
+        --agenda-accent: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-cell-dots i[data-pillar=life]:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, var(--cyan))
+    }
+    .agenda-overdue:not(#\-) {
+        color: var(--warning, #e8a33d)
+    }
+    .agenda-calendars li:not(#\-) {
+        border-bottom-color: var(--line, #ffffff1f)
+    }
+    .agenda-calendars small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .agenda-import-panel h2:focus:not(#\-) {
+        outline-color: currentcolor
     }
 }
 /*  components/ai/agent-tools.css  */
@@ -3014,6 +3199,14 @@
         background-color: color-mix(in srgb,var(--bg,#010207) 80%,transparent);
         border-color: var(--line,#2a325a)
     }
+    .ai-stat:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--brand-cyan) 65%,transparent),0 14px 30px -26px color-mix(in srgb,var(--brand-violet) 70%,transparent)
+    }
+    @media (forced-colors:active) {
+        .ai-stat:not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/ai/knock-offer.css  */
 @scope (:root[data-theme=dark]) {
@@ -3339,6 +3532,15 @@
         color: var(--muted,#a1afc8)
     }
 }
+/*  components/ai/photo-send-confirm.css  */
+@scope (:root[data-theme=dark]) {
+    .photo-send-confirm:not(#\-) {
+        border-inline-start-color: var(--line)
+    }
+    .photo-send-confirm img:not(#\-) {
+        border-color: var(--line)
+    }
+}
 /*  components/ai/pip.css  */
 @scope (:root[data-theme=dark]) {
     :scope.zigi-pip-root:not(#\-), :scope.zigi-pip-root body:not(#\-) {
@@ -3390,6 +3592,15 @@
         border-color: color-mix(in srgb,var(--cyan,#6fd3ff) 40%,var(--line,#2a325a));
         background-image: none;
         background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 6%,transparent)
+    }
+}
+/*  components/ai/unkept-chat.css  */
+@scope (:root[data-theme=dark]) {
+    .ai-unkept:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #9273ff) 45%, var(--line, #2a325a));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #9273ff) 9%, transparent);
+        color: var(--text, #eef1ff)
     }
 }
 /*  components/ai/zigi-customize.css  */
@@ -3461,6 +3672,9 @@
     .about-alpha-env:not(#\-) {
         border-color: #8fa6c840;
         color: #c9d6ea
+    }
+    .about-alpha-licences > summary:not(#\-) {
+        color: inherit
     }
 }
 /*  components/audio/ambient.css  */
@@ -3991,6 +4205,113 @@
         background-color: #01030ef2;
         border-color: #7fc8ff2e;
         box-shadow: 0 8px 24px #0008
+    }
+}
+/*  components/cash-forecast/cash-forecast.css  */
+@scope (:root[data-theme=dark]) {
+    .cash-forecast-promise:not(#\-) {
+        border-color: var(--line,#25334f);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#a698ff) 8%,transparent)
+    }
+    .cash-forecast-chart:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#f0f5ff) 4%,transparent)
+    }
+    .cash-forecast-line:not(#\-) {
+        fill: none;
+        stroke: var(--cyan,#45d8ef)
+    }
+    .cash-forecast-band:not(#\-) {
+        fill: color-mix(in srgb,var(--violet,#a698ff) 22%,transparent);
+        stroke: none
+    }
+    .cash-forecast-zero:not(#\-) {
+        stroke: color-mix(in srgb,var(--text,#f0f5ff) 45%,transparent)
+    }
+    .cash-forecast-low:not(#\-) {
+        stroke: var(--pink,#ed79d4)
+    }
+    .cash-forecast-events th:not(#\-), .cash-forecast-events td:not(#\-) {
+        border-bottom-color: var(--line,#25334f)
+    }
+}
+/*  components/charts/chart-look.css  */
+@scope (:root[data-theme=dark]) {
+    :is(.zg-chart, .zg-legend):not(#\-) {
+        --zgc-a0: var(--brand-cyan);
+        --zgc-a1: var(--brand-violet);
+        --zgc-a2: var(--brand-magenta);
+        --zgc-b0: var(--pillar-wealth);
+        --zgc-b1: var(--nebula-pink, var(--brand-magenta));
+        --zgc-band: var(--brand-violet)
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=goals]:not(#\-) {
+        --zgc-a2: var(--pillar-goals)
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=habits]:not(#\-) {
+        --zgc-a2: var(--pillar-habits)
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=health]:not(#\-) {
+        --zgc-a2: var(--pillar-health)
+    }
+    :is(.zg-chart, .zg-legend)[data-pillar=wealth]:not(#\-) {
+        --zgc-a2: var(--pillar-wealth)
+    }
+    .zg-chart .zgc-a0:not(#\-) {
+        stop-color: var(--zgc-a0)
+    }
+    .zg-chart .zgc-a1:not(#\-) {
+        stop-color: var(--zgc-a1)
+    }
+    .zg-chart .zgc-a2:not(#\-) {
+        stop-color: var(--zgc-a2)
+    }
+    .zg-chart .zgc-b0:not(#\-) {
+        stop-color: var(--zgc-b0)
+    }
+    .zg-chart .zgc-b1:not(#\-) {
+        stop-color: var(--zgc-b1)
+    }
+    .zg-chart .zgc-band0:not(#\-) {
+        stop-color: var(--zgc-band)
+    }
+    .zg-chart .zgc-band1:not(#\-) {
+        stop-color: var(--zgc-band)
+    }
+    svg.zg-chart .money-chart-target:not(#\-) {
+        stroke: var(--zgc-b0)
+    }
+    svg.zg-chart text:not(#\-) {
+        fill: var(--text-secondary);
+        stroke: var(--surface-1)
+    }
+    .zg-legend .money-key:not(.money-key-b, .money-key-target, .money-key-band, .debt-key-min):not(#\-) {
+        border-top-color: var(--zgc-a0)
+    }
+    .zg-legend :is(.money-key-b, .money-key-target):not(#\-) {
+        border-top-color: var(--zgc-b0)
+    }
+    .zg-legend .money-key-band:not(#\-) {
+        background-image: linear-gradient(180deg, color-mix(in srgb, var(--zgc-band) 40%, transparent), color-mix(in srgb, var(--zgc-band) 12%, transparent));
+        background-color: transparent
+    }
+    @media (forced-colors: active) {
+        svg.zg-chart .zgc-line:not(#\-) {
+            stroke: CanvasText !important;
+            filter: none
+        }
+    }
+    @media (forced-colors: active) {
+        svg.zg-chart .zgc-band:not(#\-) {
+            fill: none !important
+        }
+    }
+    @media (forced-colors: active) {
+        svg.zg-chart text:not(#\-) {
+            fill: CanvasText;
+            stroke: Canvas
+        }
     }
 }
 /*  components/charts/charts.css  */
@@ -5016,6 +5337,123 @@
         color: var(--muted, #a4b2cd)
     }
 }
+/*  components/chess/board/board.css  */
+@scope (:root[data-theme=dark]) {
+    .chess-play-panel:not(#\-) {
+        --chess-light: #c9d5f2;
+        --chess-dark: #5a6ea8;
+        --chess-coord-on-light: #33467a;
+        --chess-coord-on-dark: #eef2ff;
+        --chess-white-piece: #ffffff;
+        --chess-white-edge: #0b1020;
+        --chess-black-piece: #121a33;
+        --chess-black-edge: #e9eeff;
+        --chess-last: #45d8ef66;
+        --chess-selected: #a698ffaa;
+        --chess-target: #0b1020a6;
+        --chess-check: #ff5c7a;
+        --chess-focus: #ffd166;
+        --chess-good: #6ee6cb;
+        --chess-bad: #ff9fb1
+    }
+    :scope[data-theme=light] .chess-play-panel:not(#\-) {
+        --chess-light: #eef1f8;
+        --chess-dark: #8ea2cf;
+        --chess-coord-on-light: #2f416f;
+        --chess-coord-on-dark: #ffffff;
+        --chess-last: #1aa6cc55;
+        --chess-selected: #6b5cf0aa;
+        --chess-target: #0b1020a6;
+        --chess-check: #d93359;
+        --chess-focus: #7a4d00;
+        --chess-good: #0b7a62;
+        --chess-bad: #a3203f
+    }
+    :scope[data-theme=dark] .chess-play-panel:not(#\-) {
+        --chess-light: #b9c0cf;
+        --chess-dark: #1b212f;
+        --chess-coord-on-light: #2a3346;
+        --chess-coord-on-dark: #f0f3fa;
+        --chess-last: #7fcaff66;
+        --chess-selected: #bba8ffaa
+    }
+    .chess-play-panel .chess-block:not(#\-) {
+        border-top-color: var(--edge-raised, #a7c6ff26)
+    }
+    .chess-play-forms form:not(#\-) {
+        border-color: var(--edge-raised, #a7c6ff26)
+    }
+    .chess-game-list-live li:not(#\-) {
+        border-top-color: var(--edge-soft, #a7c6ff14)
+    }
+    .chess-game-list-live small:not(#\-) {
+        color: var(--muted)
+    }
+    .chess-sq-light:not(#\-) {
+        fill: var(--chess-light)
+    }
+    .chess-sq-dark:not(#\-) {
+        fill: var(--chess-dark)
+    }
+    .chess-sq-last:not(#\-) {
+        fill: var(--chess-last)
+    }
+    .chess-sq-selected:not(#\-) {
+        fill: var(--chess-selected)
+    }
+    .chess-sq-check:not(#\-) {
+        fill: var(--chess-check)
+    }
+    .chess-target-dot:not(#\-) {
+        fill: var(--chess-target)
+    }
+    .chess-target-ring:not(#\-) {
+        fill: none;
+        stroke: var(--chess-target)
+    }
+    .chess-coord-on-light:not(#\-) {
+        fill: var(--chess-coord-on-light)
+    }
+    .chess-coord-on-dark:not(#\-) {
+        fill: var(--chess-coord-on-dark)
+    }
+    .chess-piece-w:not(#\-) {
+        fill: var(--chess-white-piece);
+        stroke: var(--chess-white-edge)
+    }
+    .chess-piece-b:not(#\-) {
+        fill: var(--chess-black-piece);
+        stroke: var(--chess-black-edge)
+    }
+    .chess-cell:not(#\-) {
+        outline-color: currentcolor
+    }
+    .chess-cell:focus-visible:not(#\-) {
+        box-shadow: inset 0 0 0 4px var(--chess-focus), inset 0 0 0 6px #000000a0
+    }
+    .chess-status[data-tone=bad]:not(#\-) {
+        color: var(--chess-bad)
+    }
+    .chess-status[data-tone=good]:not(#\-) {
+        color: var(--chess-good)
+    }
+    .chess-clocks div:not(#\-) {
+        border-color: var(--edge-raised, #a7c6ff26)
+    }
+    .chess-clocks div[data-running]:not(#\-) {
+        border-color: var(--cyan)
+    }
+    .chess-promotion:not(#\-) {
+        border-color: var(--edge-raised, #a7c6ff40);
+        background-image: none;
+        background-color: var(--panel, #010313);
+        color: inherit
+    }
+    .chess-promotion:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #00010699
+    }
+}
 /*  components/chess/chess.css  */
 @scope (:root[data-theme=dark]) {
     .chess-rating:not(#\-) {
@@ -5073,6 +5511,25 @@
         background-image: none;
         background-color: #01020a
     }
+    :scope :where(.chess-page) .panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    :scope :where(.chess-page) .chess-rating:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.chess-page) .panel:hover:not(#\-), :scope :where(.chess-page) .chess-rating:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.chess-page) .panel:has(:focus-visible):not(#\-), :scope :where(.chess-page) .chess-rating:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.chess-page) .panel:not(#\-), :scope :where(.chess-page) .chess-rating:not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/coach/guide.css  */
 @scope (:root[data-theme=dark]) {
@@ -5082,6 +5539,15 @@
     .weekly-review-guide:not(#\-) {
         background-image: none;
         background-color: rgba(255, 255, 255, 0.05)
+    }
+}
+/*  components/cycle/cycle.css  */
+@scope (:root[data-theme=dark]) {
+    .cycle-flow:not(#\-), .cycle-symptoms:not(#\-) {
+        border-color: var(--line)
+    }
+    .cycle-chip:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/dashboard/dashboard.css  */
@@ -5305,6 +5771,22 @@
     }
     .today-line-label:not(#\-) {
         color: var(--text-primary, inherit)
+    }
+    :scope :where(.today-page) .today-earn-card:not(#\-), :scope :where(.today-page) .for-you-card:not(#\-), :scope :where(.today-page) .wrap-up-card:not(#\-), :scope :where(.today-page) .today-game-card:not(#\-), :scope :where(.today-page) .today-journal-card:not(#\-), :scope :where(.today-page) .today-tasks-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.today-page) .today-earn-card:hover:not(#\-), :scope :where(.today-page) .for-you-card:hover:not(#\-), :scope :where(.today-page) .wrap-up-card:hover:not(#\-), :scope :where(.today-page) .today-game-card:hover:not(#\-), :scope :where(.today-page) .today-journal-card:hover:not(#\-), :scope :where(.today-page) .today-tasks-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.today-page) .today-earn-card:has(:focus-visible):not(#\-), :scope :where(.today-page) .for-you-card:has(:focus-visible):not(#\-), :scope :where(.today-page) .wrap-up-card:has(:focus-visible):not(#\-), :scope :where(.today-page) .today-game-card:has(:focus-visible):not(#\-), :scope :where(.today-page) .today-journal-card:has(:focus-visible):not(#\-), :scope :where(.today-page) .today-tasks-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.today-page) .today-earn-card:not(#\-), :scope :where(.today-page) .for-you-card:not(#\-), :scope :where(.today-page) .wrap-up-card:not(#\-), :scope :where(.today-page) .today-game-card:not(#\-), :scope :where(.today-page) .today-journal-card:not(#\-), :scope :where(.today-page) .today-tasks-card:not(#\-) {
+            box-shadow: none
+        }
     }
 }
 /*  components/dashboard/hero-fold.css  */
@@ -6059,6 +6541,22 @@
         color: #23264d;
         box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59
     }
+    :scope :where(.earn-page) .panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.earn-page) .panel:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.earn-page) .panel:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.earn-page) .panel:not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/earn/today-earn-card.css  */
 @scope (:root[data-theme=dark]) {
@@ -6263,6 +6761,63 @@
     }
     .ecosystem-details .fine:not(#\-) {
         color: #b3c3d8
+    }
+}
+/*  components/first-week/first-week.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .first-week-celebrate:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+    :scope .first-week-steps li:not(#\-) {
+        border-color: var(--line)
+    }
+    :scope .first-week-steps a:not(#\-) {
+        color: var(--text)
+    }
+    :scope .first-week-steps a:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    :scope .first-week-steps li[data-done] a:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    :scope .first-week-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 70%, transparent), 0 18px 40px -30px color-mix(in srgb, var(--brand-violet) 75%, transparent)
+    }
+    :scope .first-week-steps li[data-done]:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 40%, var(--line));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan) 6%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope .first-week-steps li:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-violet) 55%, var(--line))
+        }
+    }
+    :scope .first-week-all > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+}
+/*  components/focus/focus.css  */
+@scope (:root[data-theme=dark]) {
+    .pomodoro-title small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .pomodoro-ring circle:not(#\-) {
+        fill: none
+    }
+    .pomodoro-ring-track:not(#\-) {
+        stroke: var(--line, rgba(128, 128, 160, .25))
+    }
+    .pomodoro-ring-fill:not(#\-) {
+        stroke: var(--brand-cyan, var(--cyan))
+    }
+    .pomodoro[data-phase=break] .pomodoro-ring-fill:not(#\-), .pomodoro[data-phase=long-break] .pomodoro-ring-fill:not(#\-) {
+        stroke: var(--brand-violet, var(--cyan))
+    }
+    .pomodoro-block:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/footer/site-footer.css  */
@@ -6903,6 +7458,56 @@
         fill: var(--brand-cyan, #23eaff)
     }
 }
+/*  components/goals/challenge-card.css  */
+@scope (:root[data-theme=dark]) {
+    .challenge-choice:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .challenge-weeks li:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.35))
+    }
+    .challenge-weeks li[data-covered]:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan,#6fd3ff);
+        border-color: transparent
+    }
+    .challenge-weeks li[data-now]:not(#\-) {
+        outline-color: var(--amber,#f5b65b)
+    }
+    .challenge-bar:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 14%,transparent)
+    }
+    .challenge-bar i:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan,#6fd3ff)
+    }
+    .challenge-days button[aria-pressed=true]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 22%,transparent);
+        border-color: var(--cyan,#6fd3ff)
+    }
+    :scope .challenge-card:not(#\-) {
+        background-image: radial-gradient(at 100% 0,color-mix(in srgb,var(--pillar-goals) 12%,transparent),transparent 58%);
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-goals) 70%,transparent),0 18px 40px -30px color-mix(in srgb,var(--brand-violet) 75%,transparent)
+    }
+    .challenge-weeks li[data-covered]:not(#\-) {
+        background-image: linear-gradient(135deg,var(--brand-cyan),var(--pillar-goals));
+        background-color: transparent
+    }
+    .challenge-bar i:not(#\-) {
+        background-image: linear-gradient(90deg,var(--brand-cyan),var(--pillar-goals));
+        background-color: transparent
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .challenge-days button:hover:not(#\-) {
+            border-color: color-mix(in srgb,var(--pillar-goals) 60%,transparent)
+        }
+    }
+    .challenge-days button:focus-visible:not(#\-), .challenge-schedule summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+}
 /*  components/goals/goal-art-picker.css  */
 @scope (:root[data-theme=dark]) {
     .goal-art-dialog:not(#\-) {
@@ -7037,8 +7642,9 @@
         color: var(--text-meta)
     }
     :scope .goals-figures strong:not(#\-) {
-        background-image: var(--nebula-flow-mid);
-        background-color: transparent;
+        background: var(--nebula-flow-mid);
+        -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         color: var(--text-strong)
     }
@@ -7185,8 +7791,9 @@
         border-color: currentcolor
     }
     :scope .goal-forecast h2:not(#\-) {
-        background-image: var(--nebula-flow-mid);
-        background-color: transparent;
+        background: var(--nebula-flow-mid);
+        -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         color: var(--text-strong)
     }
@@ -7326,6 +7933,41 @@
         border-color: color-mix(in srgb, var(--area, #8fa6ff) 45%, transparent)
     }
 }
+/*  components/goals/milestone-planner.css  */
+@scope (:root[data-theme=dark]) {
+    .milestone-habits-list > li:not(#\-) {
+        border-top-color: var(--line)
+    }
+    .milestone-habit-chips li:not(#\-) {
+        border-color: var(--line)
+    }
+}
+/*  components/goals/progress-card.css  */
+@scope (:root[data-theme=dark]) {
+    .progress-card-preview:not(#\-) {
+        background-image: linear-gradient(135deg, var(--bg), var(--surface-2, var(--panel)));
+        background-color: transparent;
+        border-color: var(--line)
+    }
+    .progress-card-eyebrow:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .progress-card-title:not(#\-) {
+        color: var(--text)
+    }
+    .progress-card-line:not(#\-) {
+        color: var(--text)
+    }
+    .progress-card-footer:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .progress-card-options:not(#\-) {
+        border-color: currentcolor
+    }
+    .progress-card-fine:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
 /*  components/goals/vision-board.css  */
 @scope (:root[data-theme=dark]) {
     :scope .vision-tile-open:not(#\-) {
@@ -7405,6 +8047,37 @@
     :scope .vision-tile-options .card-options-trigger:not(#\-) {
         background-image: none;
         background-color: #01030acc
+    }
+}
+/*  components/goals/what-if.css  */
+@scope (:root[data-theme=dark]) {
+    .what-if-pace:not(#\-) {
+        color: var(--text)
+    }
+    .what-if-form fieldset:not(#\-) {
+        border-color: var(--line)
+    }
+    .what-if-form legend:not(#\-) {
+        color: var(--text-secondary, var(--text))
+    }
+    .what-if-field > label:not(#\-), .what-if-select:not(#\-) {
+        color: var(--text-secondary, var(--text))
+    }
+    .what-if-inputs input[type='range']:not(#\-) {
+        accent-color: var(--cyan)
+    }
+    .what-if-unit:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .what-if-result:not(#\-) {
+        background-image: none;
+        background-color: var(--surface-1, var(--panel))
+    }
+    .what-if-headline:not(#\-) {
+        color: var(--text)
+    }
+    .what-if-label:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/governance/governance.css  */
@@ -7514,6 +8187,40 @@
     }
     .guided-done-mark:not(#\-) {
         color: var(--text-secondary)
+    }
+}
+/*  components/habits/auto-rules.css  */
+@scope (:root[data-theme=dark]) {
+    .auto-rules-fine:not(#\-), .auto-rules-empty:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .auto-rules-list li:not(#\-) {
+        border-color: var(--line)
+    }
+    .auto-rules-list li[data-paused] .auto-rules-sentence:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .auto-rules-sentence:not(#\-) {
+        color: var(--text)
+    }
+    .auto-rules-form fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .auto-rules-form label:not(#\-) {
+        color: var(--text-secondary, var(--text))
+    }
+    .auto-rules-preview:not(#\-) {
+        border-color: var(--line);
+        color: var(--text)
+    }
+    .auto-rules-error:not(#\-) {
+        color: var(--pink)
+    }
+    .auto-rules-status:not(#\-) {
+        color: var(--text-secondary, var(--text))
+    }
+    .auto-rules-badge:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/habits/habits-aa.css  */
@@ -7834,6 +8541,28 @@
     :scope dialog.routine-sheet:not(#\-)::backdrop {
         background-image: none;
         background-color: #010105
+    }
+    .habit-routine-share fieldset:not(#\-) {
+        border-color: var(--line)
+    }
+    :scope :where(.habits-workspace) .panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--item-start, var(--pillar-habits)) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    :scope :where(.habits-workspace) .habit-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--item-start, var(--pillar-habits)) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.habits-workspace) .panel:hover:not(#\-), :scope :where(.habits-workspace) .habit-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--item-start, var(--pillar-habits)) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.habits-workspace) .panel:has(:focus-visible):not(#\-), :scope :where(.habits-workspace) .habit-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.habits-workspace) .panel:not(#\-), :scope :where(.habits-workspace) .habit-card:not(#\-) {
+            box-shadow: none
+        }
     }
 }
 /*  components/habits/habits-ab.css  */
@@ -8291,6 +9020,125 @@
         border-color: color-mix(in srgb,#ff8a8a 45%,var(--line,#2a325a))
     }
 }
+/*  components/habits/recurrence-phrase.css  */
+@scope (:root[data-theme=dark]) {
+    .recurrence-phrase-filler:not(#\-) {
+        color: var(--muted)
+    }
+    .recurrence-phrase-unknown:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-behind) 22%, transparent);
+        color: inherit
+    }
+    .recurrence-phrase-chips li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-ahead) 12%, transparent)
+    }
+}
+/*  components/habits/reorder.css  */
+@scope (:root[data-theme=dark]) {
+    .habit-reorder-hint:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .habit-reorder-list li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-1, var(--panel))
+    }
+    .habit-reorder-list li:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .habit-reorder-grip:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .habit-reorder-title:not(#\-) {
+        color: var(--text)
+    }
+    .habit-reorder-error:not(#\-) {
+        color: var(--pink)
+    }
+    .habit-list-mode button[aria-pressed='true']:not(#\-) {
+        color: var(--text);
+        border-color: var(--cyan)
+    }
+    .habit-compact-table thead th:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .habit-compact-title:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text)
+    }
+    .habit-compact-cell:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: transparent;
+        color: var(--text)
+    }
+    .habit-compact-cell[aria-pressed='true']:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan) 28%, transparent);
+        border-color: var(--cyan)
+    }
+    .habit-compact-empty:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/habits/routine-fullscreen.css  */
+@scope (:root[data-theme=dark]) {
+    .routine-fullscreen:not(#\-) {
+        background-image: none;
+        background-color: var(--bg);
+        color: var(--text)
+    }
+    .routine-fullscreen-dots li:not(#\-) {
+        background-image: none;
+        background-color: var(--line)
+    }
+    .routine-fullscreen-dots li[data-status='done']:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan)
+    }
+    .routine-fullscreen-dots li[data-status='current']:not(#\-) {
+        background-image: none;
+        background-color: var(--violet)
+    }
+    .routine-fullscreen-dots li[data-status='skipped']:not(#\-) {
+        background-image: none;
+        background-color: var(--muted)
+    }
+    .routine-fullscreen-body h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .routine-fullscreen-body h2:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .routine-fullscreen-desc:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .routine-fullscreen-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--line)
+    }
+    .routine-fullscreen-bar span:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan)
+    }
+    .routine-fullscreen-error:not(#\-) {
+        color: var(--pink)
+    }
+}
+/*  components/habits/stack-chain.css  */
+@scope (:root[data-theme=dark]) {
+    .habit-stack-cue:not(#\-) {
+        color: var(--text-meta)
+    }
+    .habit-stack-arrow:not(#\-) {
+        color: var(--text-meta)
+    }
+}
 /*  components/header-art/header-art.css  */
 @scope (:root[data-theme=dark]) {
     .orbit-art:not(#\-) {
@@ -8430,6 +9278,33 @@
         color: #aaa0bb
     }
 }
+/*  components/health-numbers/your-numbers.css  */
+@scope (:root[data-theme=dark]) {
+    .your-numbers-lede:not(#\-) {
+        color: var(--text-meta)
+    }
+    .your-numbers-list li:not(#\-) {
+        border-color: var(--line)
+    }
+    .your-numbers-list small:not(#\-) {
+        color: var(--text-meta)
+    }
+    .your-numbers-marker:not(#\-) {
+        border-color: var(--line)
+    }
+    .your-numbers-verdict:not(#\-) {
+        border-color: var(--line)
+    }
+    .your-numbers-verdict.is-inside:not(#\-) {
+        border-color: var(--health-on-track)
+    }
+    .your-numbers-verdict.is-outside:not(#\-) {
+        border-color: var(--health-behind)
+    }
+    .your-numbers-row:not(#\-) {
+        border-color: var(--line)
+    }
+}
 /*  components/health/devices/devices.css  */
 @scope (:root[data-theme=dark]) {
     .devices-card:not(#\-) {
@@ -8449,6 +9324,15 @@
     }
     .meditation-heart span:not(#\-) {
         color: #c45bb0
+    }
+}
+/*  components/health/diet-templates.css  */
+@scope (:root[data-theme=dark]) {
+    .diet-templates-choice:not(#\-) {
+        border-color: currentcolor
+    }
+    .diet-templates-option:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/health/exercise-counters.css  */
@@ -8805,6 +9689,25 @@
     }
     :scope .health-grocery-aisle h3 small:not(#\-) {
         color: var(--text-strong, #f4f8ff)
+    }
+    :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-health) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    :scope :where(.health-page) .health-aa-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.health-page) .panel:not(.health-aa-card):hover:not(#\-), :scope :where(.health-page) .health-aa-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--pillar-health) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.health-page) .panel:not(.health-aa-card):has(:focus-visible):not(#\-), :scope :where(.health-page) .health-aa-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.health-page) .panel:not(.health-aa-card):not(#\-), :scope :where(.health-page) .health-aa-card:not(#\-) {
+            box-shadow: none
+        }
     }
 }
 /*  components/health/health-day.css  */
@@ -9244,6 +10147,27 @@
         color: var(--text-secondary, #c9d6ea)
     }
 }
+/*  components/health/label-scan.css  */
+@scope (:root[data-theme=dark]) {
+    .label-scan:not(#\-) {
+        border-color: var(--line)
+    }
+    .label-scan-done:not(#\-) {
+        border-inline-start-color: var(--health-on-track)
+    }
+    .label-scan-problem:not(#\-) {
+        border-inline-start-color: var(--health-behind)
+    }
+}
+/*  components/health/measurement-trends.css  */
+@scope (:root[data-theme=dark]) {
+    .measure-trend-list li:not(#\-) {
+        border-color: var(--line)
+    }
+    .measure-trend-list small:not(#\-) {
+        color: var(--text-meta)
+    }
+}
 /*  components/health/meditation/meditation.css  */
 @scope (:root[data-theme=dark]) {
     .meditation-segment:not(#\-), .meditation-moods:not(#\-) {
@@ -9323,6 +10247,50 @@
         .meditation-segment > label input:checked + span:not(#\-), .meditation-chip[aria-pressed="true"]:not(#\-) {
             outline-color: currentcolor
         }
+    }
+}
+/*  components/health/nutri-score.css  */
+@scope (:root[data-theme=dark]) {
+    .nutri-score-letter:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-on-track) 18%, transparent)
+    }
+    .nutri-score[data-grade="a"] .nutri-score-letter:not(#\-), .nutri-score[data-grade="b"] .nutri-score-letter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-ahead) 30%, transparent)
+    }
+    .nutri-score[data-grade="d"] .nutri-score-letter:not(#\-), .nutri-score[data-grade="e"] .nutri-score-letter:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--health-behind) 30%, transparent)
+    }
+    @media (forced-colors: active) {
+        .nutri-score-letter:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            border-color: CanvasText
+        }
+    }
+}
+/*  components/health/photo-compare.css  */
+@scope (:root[data-theme=dark]) {
+    .photo-compare-stage:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--panel)
+    }
+    .photo-compare-divider:not(#\-) {
+        background-image: none;
+        background-color: var(--text, #fff);
+        box-shadow: 0 0 0 1px #0008
+    }
+    .photo-compare-tag:not(#\-) {
+        background-image: none;
+        background-color: #000a;
+        color: #fff
+    }
+    .photo-compare figcaption:not(#\-) {
+        color: var(--text-meta)
     }
 }
 /*  components/health/sleep/sleep.css  */
@@ -9470,6 +10438,73 @@
             background-color: transparent
         }
     }
+    .sleep-wind-down-sounds:not(#\-) {
+        border-top-color: var(--line, #7fc8ff1a)
+    }
+}
+/*  components/health/supplements.css  */
+@scope (:root[data-theme=dark]) {
+    .supplements .eyebrow:not(#\-) {
+        color: var(--health-mint)
+    }
+    .supplements-doses li:not(#\-), .supplements-items li:not(#\-) {
+        border-color: var(--line)
+    }
+    .supplements small:not(#\-) {
+        color: var(--text-meta)
+    }
+    .supplements .quiet[aria-pressed="true"]:not(#\-) {
+        border-color: var(--health-mint)
+    }
+    .supplements-form fieldset:not(#\-) {
+        border-color: var(--line)
+    }
+}
+/*  components/health/workouts/muscle-freshness.css  */
+@scope (:root[data-theme=dark]) {
+    .muscle-freshness-body .mf-head:not(#\-) {
+        fill: none;
+        stroke: var(--muted)
+    }
+    .muscle-freshness-body .mf-region:not(#\-) {
+        stroke: var(--muted)
+    }
+    .muscle-freshness-body .mf-fresh:not(#\-) {
+        fill: color-mix(in srgb, var(--health-ahead) 75%, transparent)
+    }
+    .muscle-freshness-body .mf-recovering:not(#\-) {
+        fill: color-mix(in srgb, var(--health-on-track) 45%, transparent)
+    }
+    .muscle-freshness-body .mf-tired:not(#\-) {
+        fill: color-mix(in srgb, var(--health-behind) 70%, transparent)
+    }
+    .muscle-freshness-body .mf-unknown:not(#\-) {
+        fill: transparent
+    }
+    .muscle-freshness-body .mf-leader:not(#\-) {
+        stroke: var(--muted)
+    }
+    .muscle-freshness-body text:not(#\-) {
+        fill: var(--text)
+    }
+    .muscle-freshness-body .mf-view:not(#\-) {
+        fill: var(--muted)
+    }
+    @media (forced-colors: active) {
+        .muscle-freshness-body .mf-region:not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .muscle-freshness-body .mf-fresh:not(#\-), .muscle-freshness-body .mf-recovering:not(#\-), .muscle-freshness-body .mf-tired:not(#\-) {
+            fill: Canvas
+        }
+    }
+    @media (forced-colors: active) {
+        .muscle-freshness-body text:not(#\-) {
+            fill: CanvasText
+        }
+    }
 }
 /*  components/health/workouts/workouts.css  */
 @scope (:root[data-theme=dark]) {
@@ -9541,6 +10576,76 @@
     :scope[data-theme=light] .workouts-import-problem:not(#\-) {
         color: #a3123a
     }
+    .workouts-exercise[data-superset]:not(#\-) {
+        border-inline-start-color: var(--brand-cyan, #6fe6f6)
+    }
+    .workouts-superset-tag:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #6fe6f6) 22%, transparent)
+    }
+    .workouts-tools:not(#\-) {
+        box-shadow: inset 0 0 0 1px var(--line, #8fb6ff33)
+    }
+    .workouts-plates-form fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .workouts-celebrate:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--success, #47d6a1) 16%, transparent)
+    }
+    .workouts-import-lifts span:not(#\-) {
+        color: var(--text-secondary, #c9d6ea)
+    }
+    .workouts-bar:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #6fe6f6)
+    }
+    .workouts-freshness li > span:last-child:not(#\-) {
+        color: var(--text-secondary, #c9d6ea)
+    }
+    .workouts-freshness-track:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--text-secondary, #c9d6ea) 20%, transparent)
+    }
+    .workouts-freshness-fill:not(#\-) {
+        background-image: none;
+        background-color: var(--success, #47d6a1)
+    }
+    :scope[data-theme=light] .workouts-celebrate:not(#\-) {
+        background-image: none;
+        background-color: #e3f6ee;
+        color: #0b4d34
+    }
+    :scope[data-theme=light] .workouts-bar:not(#\-) {
+        background-image: none;
+        background-color: #0b6f84
+    }
+    :scope[data-theme=light] .workouts-freshness-fill:not(#\-) {
+        background-image: none;
+        background-color: #16865c
+    }
+    :scope[data-theme=light] .workouts-superset-tag:not(#\-) {
+        color: #08394a;
+        background-image: none;
+        background-color: #d6f3f8
+    }
+    @media (forced-colors: active) {
+        .workouts-bar:not(#\-), .workouts-freshness-fill:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    @media (forced-colors: active) {
+        .workouts-freshness-track:not(#\-) {
+            outline-color: currentcolor
+        }
+    }
+    @media (forced-colors: active) {
+        .workouts-exercise[data-superset]:not(#\-) {
+            border-inline-start-color: CanvasText
+        }
+    }
 }
 /*  components/help/help.css  */
 @scope (:root[data-theme=dark]) {
@@ -9581,6 +10686,25 @@
     .help-status:not(#\-) {
         color: var(--accent-cyan, #9ee8f8) !important
     }
+    .help-earlier > .help-earlier-lede:not(#\-) {
+        color: var(--text-secondary, #c2d0e5)
+    }
+    :scope :where(.help-page) .panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.help-page) .panel:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.help-page) .panel:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.help-page) .panel:not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/hide-amounts.css  */
 @scope (:root[data-theme=dark]) {
@@ -9592,6 +10716,95 @@
   .wealth-history-readout strong, .wealth-history-change, .wealth-history-why
 ):not(#\-), :scope[data-hide-amounts="on"] :is(.portfolio-value-chart, .wealth-history-chart) svg:not(#\-) {
         filter: blur(7px)
+    }
+}
+/*  components/illustrations/pillar-art.css  */
+@scope (:root[data-theme=dark]) {
+    .pillar-art:not(#\-) {
+        --pa-a: var(--brand-cyan);
+        --pa-ink: var(--brand-cyan);
+        --pa-hi: var(--accent-cyan);
+        --pa-body: var(--brand-violet);
+        --pa-deep: var(--brand-magenta)
+    }
+    .pillar-art[data-pillar=goals]:not(#\-) {
+        --pa-a: var(--pillar-goals);
+        --pa-ink: var(--pillar-goals);
+        --pa-hi: var(--accent-violet);
+        --pa-body: var(--brand-violet);
+        --pa-deep: var(--brand-blue)
+    }
+    .pillar-art[data-pillar=habits]:not(#\-) {
+        --pa-a: var(--pillar-habits);
+        --pa-ink: var(--pillar-habits);
+        --pa-hi: var(--accent-cyan);
+        --pa-body: var(--brand-blue);
+        --pa-deep: var(--brand-violet)
+    }
+    .pillar-art[data-pillar=health]:not(#\-) {
+        --pa-a: var(--pillar-health);
+        --pa-ink: var(--pillar-health);
+        --pa-hi: var(--accent-magenta);
+        --pa-body: var(--brand-magenta);
+        --pa-deep: var(--brand-violet)
+    }
+    .pillar-art[data-pillar=wealth]:not(#\-) {
+        --pa-a: var(--pillar-wealth);
+        --pa-ink: var(--pillar-wealth);
+        --pa-hi: var(--pillar-wealth);
+        --pa-body: var(--brand-violet);
+        --pa-deep: var(--brand-blue)
+    }
+    .pillar-art .pa-s-light:not(#\-) {
+        stop-color: color-mix(in oklab, var(--pa-a) 62%, var(--pa-body))
+    }
+    .pillar-art .pa-s-body:not(#\-) {
+        stop-color: var(--pa-body)
+    }
+    .pillar-art .pa-s-deep:not(#\-) {
+        stop-color: var(--pa-deep)
+    }
+    .pillar-art .pa-s-halo:not(#\-) {
+        stop-color: var(--pa-a)
+    }
+    .pillar-art .pa-s-ring:not(#\-) {
+        stop-color: var(--pa-ink)
+    }
+    .pillar-art .pa-s-ring-mid:not(#\-) {
+        stop-color: var(--pa-hi)
+    }
+    .pillar-art .pa-ring:not(#\-) {
+        fill: none
+    }
+    .pillar-art .pa-rim:not(#\-) {
+        fill: none;
+        stroke: var(--pa-a)
+    }
+    .pillar-art .pa-mark:not(#\-) {
+        fill: none;
+        stroke: var(--pa-hi)
+    }
+    .pillar-art .pa-dot:not(#\-) {
+        fill: var(--pa-hi)
+    }
+    .pillar-art .pa-moon:not(#\-) {
+        fill: var(--pa-hi);
+        stroke: var(--pa-ink)
+    }
+    .pillar-art .pa-spark:not(#\-) {
+        fill: var(--pa-hi)
+    }
+}
+/*  components/import/bankfiles/bankfiles.css  */
+@scope (:root[data-theme=dark]) {
+    .bankfile-table th:not(#\-), .bankfile-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .bankfile-in:not(#\-) {
+        color: var(--green,#7ee2a8)
+    }
+    .csv-templates li:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
     }
 }
 /*  components/import/import.css  */
@@ -9650,6 +10863,52 @@
         color: #ffd9a0
     }
 }
+/*  components/insights/compare/compare.css  */
+@scope (:root[data-theme=dark]) {
+    .ondemand-fold > .ondemand-fold-summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .compare-lag-label:not(#\-) {
+        color: var(--muted)
+    }
+    .compare-card:not(#\-) {
+        border-color: var(--line)
+    }
+    .compare-bar:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--text) 10%, transparent)
+    }
+    .compare-bar i:not(#\-) {
+        background-image: none;
+        background-color: var(--violet)
+    }
+    .compare-bar-row[data-side="without"] .compare-bar i:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 45%, transparent)
+    }
+    .compare-label:not(#\-) {
+        border-color: currentColor
+    }
+    .compare-confounder:not(#\-) {
+        color: var(--muted)
+    }
+}
+/*  components/insights/experiments.css  */
+@scope (:root[data-theme=dark]) {
+    .experiments-new:not(#\-) {
+        border-color: var(--line)
+    }
+    :scope .experiment-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-health) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    .experiments-new:not(#\-) {
+        background-image: radial-gradient(at 100% 0, color-mix(in srgb, var(--pillar-health) 9%, transparent), transparent 60%);
+        background-color: transparent
+    }
+    .experiment-note > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+}
 /*  components/insights/insights.css  */
 @scope (:root[data-theme=dark]) {
     .insights-card .insight:not(#\-) {
@@ -9660,6 +10919,18 @@
     }
     .insight-detail p:not(#\-) {
         color: #cfc6dd
+    }
+}
+/*  components/journal-prompts/prompt-picker.css  */
+@scope (:root[data-theme=dark]) {
+    .prompt-picker-card:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .prompt-picker-card:focus-visible:not(#\-) {
+        outline-color: currentColor
     }
 }
 /*  components/journal/journal.css  */
@@ -9698,6 +10969,77 @@
     }
     .journal-week-dot:not(#\-) {
         border-color: currentColor
+    }
+    :scope :where(.journal-page) .panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.journal-page) .panel:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.journal-page) .panel:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.journal-page) .panel:not(#\-) {
+            box-shadow: none
+        }
+    }
+}
+/*  components/journal/on-this-day.css  */
+@scope (:root[data-theme=dark]) {
+    .on-this-day-list li:not(#\-) {
+        border-bottom-color: var(--line, rgba(140, 160, 220, .18))
+    }
+    :scope .on-this-day:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    .on-this-day > summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .on-this-day-list li:hover:not(#\-) {
+            background-color: color-mix(in srgb, var(--brand-violet) 5%, transparent)
+        }
+    }
+}
+/*  components/journal/year-pixels.css  */
+@scope (:root[data-theme=dark]) {
+    .year-pixels-months:not(#\-) {
+        color: var(--muted)
+    }
+    .year-pixels-grid:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .year-pixels-cell:not(#\-), .year-pixels-legend i:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) var(--share, 0%), transparent);
+        border-color: color-mix(in srgb, var(--violet) 35%, transparent)
+    }
+    :is(.year-pixels-cell, .year-pixels-legend i)[data-level="none"]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--text) 30%, transparent)
+    }
+    .year-pixels-cell[data-level="ahead"]:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in srgb, var(--text) 10%, transparent)
+    }
+    :is(.year-pixels-cell, .year-pixels-legend i)[data-entry]:not(#\-)::after {
+        background-image: none;
+        background-color: var(--text);
+        box-shadow: 0 0 0 1px var(--bg, transparent)
+    }
+    .year-pixels-cell[aria-selected="true"]:not(#\-) {
+        outline-color: var(--text)
+    }
+    .year-pixels-grid:focus-visible .year-pixels-cell[data-focus]:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .year-pixels-day:not(#\-) {
+        border-color: var(--line)
     }
 }
 /*  components/layout-edit.css  */
@@ -9886,6 +11228,22 @@
         background-image: none;
         background-color: transparent
     }
+    :scope :where(.settings-page) section.panel:not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-cyan) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.settings-page) section.panel:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-cyan) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.settings-page) section.panel:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.settings-page) section.panel:not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/life-review/life-review.css  */
 @scope (:root[data-theme=dark]) {
@@ -10023,6 +11381,22 @@
     :scope .cross-label.is-consistent:not(#\-) {
         color: var(--text-primary)
     }
+    :scope :where(.life-review-page) .panel:not(.life-review-hero):not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.life-review-page) .panel:not(.life-review-hero):hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.life-review-page) .panel:not(.life-review-hero):has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.life-review-page) .panel:not(.life-review-hero):not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/links/links.css  */
 @scope (:root[data-theme=dark]) {
@@ -10145,6 +11519,124 @@
         color: #ffabae
     }
 }
+/*  components/money-photos/money-photos.css  */
+@scope (:root[data-theme=dark]) {
+    .money-photos-thumb:focus-visible:not(#\-) {
+        outline-color: var(--text,#f0f5ff)
+    }
+    .money-photos-draft:not(#\-) {
+        border-color: var(--line,#25334f)
+    }
+}
+/*  components/money-select/money-select.css  */
+@scope (:root[data-theme=dark]) {
+    .money-select-actions button[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 24%,transparent);
+        border-color: var(--violet,#8b7cff)
+    }
+    .money-select-check input:not(#\-) {
+        accent-color: var(--violet,#8b7cff)
+    }
+    .money-select-check input:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .money-select-total:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.35));
+        background-image: none;
+        background-color: var(--panel,#02040e)
+    }
+}
+/*  components/mood-words/mood-words.css  */
+@scope (:root[data-theme=dark]) {
+    .mood-words-axis:not(#\-) {
+        color: var(--muted)
+    }
+    .mood-words-quadrant:not(#\-) {
+        --tone: var(--violet);
+        border-color: color-mix(in srgb, var(--tone) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--tone) 18%, transparent);
+        color: var(--text)
+    }
+    .mood-words-quadrant[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--tone) 42%, transparent);
+        box-shadow: inset 0 0 0 2px var(--tone)
+    }
+    .mood-words-quadrant:focus-visible:not(#\-), .mood-words-word:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    [data-quadrant="high-unpleasant"]:not(#\-) {
+        --tone: var(--pink)
+    }
+    [data-quadrant="high-pleasant"]:not(#\-) {
+        --tone: var(--health-behind, var(--violet))
+    }
+    [data-quadrant="low-unpleasant"]:not(#\-) {
+        --tone: var(--brand-blue, var(--violet))
+    }
+    [data-quadrant="low-pleasant"]:not(#\-) {
+        --tone: var(--health-ahead, var(--cyan))
+    }
+    .mood-words-word:not(#\-) {
+        border-color: color-mix(in srgb, var(--tone) 60%, transparent);
+        background-image: none;
+        background-color: transparent;
+        color: var(--text)
+    }
+    .mood-words-word[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--tone) 40%, transparent)
+    }
+}
+/*  components/motion/motion-2026.css  */
+@scope (:root[data-theme=dark]) {
+    @supports not (transition-timing-function: linear(0, 1)) {
+        :scope:not(#\-) {
+            --zg-spring: var(--zg-ease-out);
+            --zg-spring-bouncy: var(--zg-ease-out)
+        }
+    }
+    :scope[data-app-motion=calm]:not(#\-) {
+        --zg-spring: var(--zg-ease-out);
+        --zg-spring-bouncy: var(--zg-ease-out)
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        :scope:not([data-app-motion=off]):not([data-app-motion=calm]) .nebula-flow:not(.is-figure)[data-entrance=once]:not(#\-) {
+            --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor var(--zg-flow-stop), #6fe6f6 calc(var(--zg-flow-stop) + 30%), #8fa6ff calc(var(--zg-flow-stop) + 42%), #c790f6 calc(var(--zg-flow-stop) + 51%), #f08bd6 100%)
+        }
+    }
+    .zg-burst-ring:not(#\-) {
+        border-color: var(--brand-cyan, #23eaff);
+        box-shadow: 0 0 14px color-mix(in srgb, var(--brand-violet, #9273ff) 55%, transparent)
+    }
+    .zg-burst-spark:not(#\-) {
+        background-image: radial-gradient(circle, #fff 0 30%, var(--brand-magenta, #ff74be) 70%);
+        background-color: transparent
+    }
+    .zg-burst-spark:nth-child(odd):not(#\-) {
+        background-image: radial-gradient(circle, #fff 0 30%, var(--brand-cyan, #23eaff) 70%);
+        background-color: transparent
+    }
+    :is(.zg-glass, .search-palette, .quick-add-dialog):not(#\-)::before {
+        background-image: linear-gradient(var(--zg-sheen), rgb(255 255 255 / .34), transparent 38% 62%, rgb(255 255 255 / .09));
+        background-color: transparent
+    }
+    :is(.zg-glass, .search-palette, .quick-add-dialog):not(#\-)::after {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")
+    }
+    .glass-light[data-kind=card] > i:not(#\-) {
+        background-image: linear-gradient(135deg, rgb(255 255 255 / .07), transparent 32%)
+    }
+    :scope[data-theme=light] .glass-light[data-kind=card] > i:not(#\-) {
+        background-image: none
+    }
+    .zg-aurora:not(#\-)::before {
+        background-image: radial-gradient(40% 35% at 25% 30%, #23eaff2e, transparent 70%), radial-gradient(45% 40% at 75% 25%, #9273ff33, transparent 70%), radial-gradient(40% 35% at 55% 80%, #ff74be26, transparent 70%);
+        background-color: transparent
+    }
+}
 /*  components/music/music-launcher.css  */
 @scope (:root[data-theme=dark]) {
     .music-launcher:not(#\-) {
@@ -10232,6 +11724,143 @@
         --launcher-slot-checklist: var(--launcher-first);
         --launcher-slot-music: calc(var(--launcher-first) + var(--launcher-pitch) * var(--launcher-has-checklist));
         --launcher-slot-earn: calc(var(--launcher-first) + var(--launcher-pitch) * (var(--launcher-has-checklist) + var(--launcher-has-music)))
+    }
+}
+/*  components/music/music-mix.css  */
+@scope (:root[data-theme=dark]) {
+    .music-mix:not(#\-) {
+        --mix-accent: var(--pillar-goals,#9273ff)
+    }
+    .music-mix fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .music-mix legend:not(#\-) {
+        color: #dfe6ff
+    }
+    .music-mix-preset:not(#\-) {
+        border-color: #ffffff26;
+        background-image: linear-gradient(135deg,#ffffff12,#ffffff05);
+        background-color: transparent;
+        color: var(--text,#eef1ff)
+    }
+    .music-mix-preset span:not(#\-) {
+        color: #c3cdf0
+    }
+    .music-mix-preset:hover:not(#\-) {
+        border-color: #b9a8ff
+    }
+    .music-mix-chip[data-sound=rain]:not(#\-), .music-mix-chip[data-sound=ocean]:not(#\-), .music-mix-level[data-sound=rain]:not(#\-), .music-mix-level[data-sound=ocean]:not(#\-) {
+        --mix-accent: var(--pillar-habits,#23eaff)
+    }
+    .music-mix-chip[data-sound=tones]:not(#\-), .music-mix-level[data-sound=tones]:not(#\-) {
+        --mix-accent: var(--pillar-health,#ff74be)
+    }
+    .music-mix-chip[data-sound=pad]:not(#\-), .music-mix-chip[data-sound=drone]:not(#\-), .music-mix-level[data-sound=pad]:not(#\-), .music-mix-level[data-sound=drone]:not(#\-) {
+        --mix-accent: var(--pillar-goals,#9273ff)
+    }
+    .music-mix-chip[data-sound=brown]:not(#\-), .music-mix-chip[data-sound=pink]:not(#\-), .music-mix-chip[data-sound=white]:not(#\-), .music-mix-level[data-sound=brown]:not(#\-), .music-mix-level[data-sound=pink]:not(#\-), .music-mix-level[data-sound=white]:not(#\-) {
+        --mix-accent: var(--pillar-wealth,#ffd27a)
+    }
+    .music-mix-chip[aria-pressed=true]:not(#\-) {
+        border-color: var(--mix-accent);
+        box-shadow: 0 0 0 1px var(--mix-accent),0 6px 18px -10px var(--mix-accent)
+    }
+    .music-mix-hint:not(#\-) {
+        color: #c3cdf0
+    }
+    .music-mix-levels:not(#\-) {
+        border-color: #ffffff1a;
+        background-image: none;
+        background-color: #ffffff08
+    }
+    .music-mix input[type=range]:not(#\-) {
+        accent-color: var(--mix-accent)
+    }
+    .music-mix-master input[type=range]:not(#\-) {
+        accent-color: #6f7ff5
+    }
+    .music-mix-meter:not(#\-) {
+        background-image: none;
+        background-color: #ffffff1a
+    }
+    .music-mix-meter>span:not(#\-) {
+        background-image: linear-gradient(90deg,var(--mix-accent),#826cff);
+        background-color: transparent
+    }
+    .music-mix-viz>span:not(#\-) {
+        background-image: linear-gradient(180deg,#63e7ff,#826cff 55%,#c664ff);
+        background-color: transparent
+    }
+    .music-mix-note:not(#\-) {
+        color: #dfe6ff
+    }
+    .music-mix-preset:focus-visible:not(#\-), .music-links a:focus-visible:not(#\-), .music-links button:focus-visible:not(#\-), .music-byo button:focus-visible:not(#\-), .music-byo input:focus-visible:not(#\-), .music-full-link:focus-visible:not(#\-), .music-more>summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .music-links-moods:not(#\-) {
+        border-color: currentcolor
+    }
+    .music-links-moods legend:not(#\-) {
+        color: #dfe6ff
+    }
+    .music-links a:not(#\-) {
+        border-color: #ffffff26;
+        background-image: linear-gradient(135deg,#ffffff12,#ffffff05);
+        background-color: transparent;
+        color: var(--text,#eef1ff)
+    }
+    .music-links a:hover:not(#\-) {
+        border-color: #9fefff
+    }
+    .music-links a span:not(#\-) {
+        color: #c3cdf0
+    }
+    .music-byo ol:not(#\-) {
+        color: #dfe6ff
+    }
+    .music-byo code:not(#\-) {
+        background-image: none;
+        background-color: #ffffff14
+    }
+    .music-byo input[type=text]:not(#\-) {
+        border-color: #ffffff33;
+        background-image: none;
+        background-color: #01020f;
+        color: var(--text,#eef1ff)
+    }
+    .music-full-link:not(#\-) {
+        color: #9fefff
+    }
+    @media (forced-colors:active) {
+        .music-mix-chip[aria-pressed=true]:not(#\-) {
+            outline-color: currentcolor
+        }
+    }
+    @media (forced-colors:active) {
+        .music-mix-viz>span:not(#\-), .music-mix-meter>span:not(#\-) {
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    .music-page-card:not(#\-) {
+        border-color: #ffffff1f;
+        background-image: radial-gradient(140% 80% at 15% 0%,#070d34 0%,#02041e 45%,#01020f 100%);
+        background-color: transparent;
+        color: var(--text,#eef1ff);
+        box-shadow: 0 30px 70px -30px #000e,0 0 0 1px #ffffff08 inset
+    }
+    @media (forced-colors:active) {
+        .music-page-card:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.music-page) .music-page-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.music-page) .music-page-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
     }
 }
 /*  components/music/music-panel.css  */
@@ -10401,6 +12030,1776 @@
             background-color: transparent
         }
     }
+    .workspace-status [data-sync-tone]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--muted)
+    }
+    .workspace-status [data-sync-tone=synced]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--cyan)
+    }
+    .workspace-status :is([data-sync-tone=syncing],[data-sync-tone=waiting]):not(#\-)::before {
+        background-image: none;
+        background-color: var(--violet)
+    }
+    .workspace-status [data-sync-tone=attention]:not(#\-)::before {
+        background-image: none;
+        background-color: var(--pink)
+    }
+}
+/*  components/notes/notes.css  */
+@scope (:root[data-theme=dark]) {
+    .note-voice-ask:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3))
+    }
+    .note-tab:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .note-tab.is-on:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 75%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 18%, transparent)
+    }
+    .note-tab:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-tab-count:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 26%, transparent)
+    }
+    .note-list li:not(#\-), .note-results li:not(#\-) {
+        border-bottom-color: var(--line, rgba(140, 160, 220, .18))
+    }
+    .note-inbox-item:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .22))
+    }
+    .note-file:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet, #826cff) 40%, transparent)
+    }
+    .note-this-day:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 8%, transparent);
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent)
+    }
+    .note-this-day-title:not(#\-) {
+        color: var(--text-meta, inherit)
+    }
+    .note-day-chip:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 22%, transparent);
+        color: inherit
+    }
+    .note-day-chip:hover:not(#\-), .note-day-chip:focus-visible:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 70%, transparent)
+    }
+    .note-day-chip:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-day-chip-detail:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .note-day-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-cyan, #63e7ff)
+    }
+    .note-field kbd:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 35%, transparent)
+    }
+    .note-suggest:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 45%, transparent);
+        background-image: none;
+        background-color: var(--surface-glass, var(--panel, #02040e));
+        box-shadow: 0 18px 40px -20px #000c
+    }
+    .note-suggest li[aria-selected=true]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--brand-violet, #826cff) 26%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-cyan, #63e7ff) 50%, transparent)
+    }
+    .note-suggest-kind:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .note-render blockquote:not(#\-) {
+        border-left-color: color-mix(in srgb, var(--brand-violet, #826cff) 60%, transparent)
+    }
+    .note-link:not(#\-) {
+        color: inherit;
+        background-image: none;
+        background-color: transparent;
+        border-color: currentcolor
+    }
+    .note-link.is-note:not(#\-) {
+        text-decoration-color: var(--brand-cyan, #63e7ff)
+    }
+    .note-link.is-goal:not(#\-) {
+        text-decoration-color: var(--brand-violet, #826cff)
+    }
+    .note-link.is-habit:not(#\-) {
+        text-decoration-color: var(--brand-magenta, #c664ff)
+    }
+    .note-link.is-open:not(#\-) {
+        text-decoration-color: color-mix(in srgb, currentColor 55%, transparent)
+    }
+    .note-link:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #45d8ef)
+    }
+    .note-embed:not(#\-) {
+        color: var(--text-secondary, inherit)
+    }
+    .note-backlinks:not(#\-) {
+        border-top-color: var(--line, rgba(140, 160, 220, .18))
+    }
+    .note-graph-svg:not(#\-) {
+        background-image: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--brand-violet, #826cff) 22%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .note-orbit:not(#\-) {
+        fill: none;
+        stroke: color-mix(in srgb, var(--brand-cyan, #63e7ff) 34%, transparent)
+    }
+    .note-edge:not(#\-) {
+        stroke: color-mix(in srgb, var(--brand-violet, #826cff) 55%, transparent)
+    }
+    .note-edge.is-lit:not(#\-) {
+        stroke: var(--brand-cyan, #63e7ff)
+    }
+    .note-body:not(#\-) {
+        outline-color: currentcolor
+    }
+    .note-body-hit:not(#\-) {
+        fill: transparent
+    }
+    .note-body-dot:not(#\-) {
+        stroke: color-mix(in srgb, var(--text-strong, #fff) 70%, transparent);
+        fill: var(--brand-cyan, #63e7ff)
+    }
+    .note-body.is-goal .note-body-dot:not(#\-) {
+        fill: var(--brand-violet, #826cff)
+    }
+    .note-body.is-habit .note-body-dot:not(#\-) {
+        fill: var(--brand-magenta, #c664ff)
+    }
+    .note-body:focus-visible .note-body-hit:not(#\-), .note-body:hover .note-body-hit:not(#\-) {
+        stroke: var(--cyan, #45d8ef)
+    }
+    .note-body-label:not(#\-) {
+        fill: var(--text-strong, currentColor);
+        stroke: var(--bg, #060b19)
+    }
+    .note-key:not(#\-)::before {
+        background-image: none;
+        background-color: var(--brand-cyan, #63e7ff)
+    }
+    .note-key.is-goal:not(#\-)::before {
+        background-image: none;
+        background-color: var(--brand-violet, #826cff)
+    }
+    .note-key.is-habit:not(#\-)::before {
+        background-image: none;
+        background-color: var(--brand-magenta, #c664ff)
+    }
+    .note-graph-list li:not(#\-) {
+        border-bottom-color: var(--line, rgba(140, 160, 220, .18))
+    }
+    .note-import-plan:not(#\-) {
+        border-color: var(--line, rgba(140, 160, 220, .3))
+    }
+    .quick-capture-box:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan, #63e7ff) 35%, transparent)
+    }
+    .note-ask-example:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .35))
+    }
+}
+/*  components/notify/notifications.css  */
+@scope (:root[data-theme=dark]) {
+    .notify-types:not(#\-) {
+        border-color: currentcolor
+    }
+    .notify-types .ai-switch-copy small:not(#\-) {
+        color: var(--muted,#aab2d9)
+    }
+}
+/*  components/notify/notify-sync.css  */
+@scope (:root[data-theme=dark]) {
+    .sw-update:not(#\-) {
+        background-image: none;
+        background-color: var(--panel-strong,#010313);
+        color: var(--text,#eef2ff);
+        border-color: var(--line,rgba(255,255,255,.14));
+        box-shadow: 0 10px 30px rgba(0,0,0,.35)
+    }
+}
+/*  components/nova/chat/nova-chat.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-chat:not(#\-) {
+        --nova-glass: color-mix(in srgb,var(--panel,#020412) 82%,transparent);
+        --nova-edge: color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));
+        color: var(--text,#f3f6ff);
+        background-image: linear-gradient(165deg,var(--nova-glass),color-mix(in srgb,var(--bg,#010206) 88%,transparent));
+        background-color: transparent;
+        border-color: var(--nova-edge);
+        box-shadow: 0 40px 120px -40px #000000cc,inset 0 1px 0 #ffffff0f
+    }
+    .nova-chat:not(#\-)::before {
+        background-image: radial-gradient(closest-side,color-mix(in srgb,var(--violet,#826cff) 22%,transparent),transparent 72%);
+        background-color: transparent
+    }
+    .nova-chat-sheet:not(#\-) {
+        border-bottom-color: currentcolor
+    }
+    .nova-chat-head:not(#\-) {
+        border-bottom-color: var(--line,#25324a)
+    }
+    .nova-chat-eyebrow:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-chat-status:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--muted,#a4b2cd)
+    }
+    .nova-dot[data-on]:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan,#63e7ff);
+        box-shadow: 0 0 10px color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)
+    }
+    .nova-close:not(#\-) {
+        border-color: var(--line,#25324a);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .nova-close:focus-visible:not(#\-), .nova-chat-tool:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#63e7ff)
+    }
+    .nova-welcome-title:not(#\-) {
+        background-image: var(--nebula,linear-gradient(110deg,#63e7ff,#826cff,#c664ff));
+        background-color: transparent;
+        color: transparent
+    }
+    @media (forced-colors:active) {
+        .nova-welcome-title:not(#\-) {
+            color: CanvasText;
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    .nova-welcome-sub:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-invite:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#826cff) 8%,transparent)
+    }
+    .nova-turn-who:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-turn-user .nova-turn-body:not(#\-) {
+        border-color: var(--line,#25324a);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--panel,#020412) 70%,transparent)
+    }
+    .nova-turn-zigi .nova-turn-body:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)
+    }
+    .nova-turn-body pre:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--bg,#010206) 80%,transparent);
+        border-color: var(--line,#25324a)
+    }
+    .nova-voice:not(#\-) {
+        color: var(--muted,#a4b2cd);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#826cff) 7%,transparent)
+    }
+    .nova-voice strong:not(#\-) {
+        color: var(--text,#f3f6ff)
+    }
+    .nova-looked:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-chat-steps:not(#\-) {
+        border-color: var(--nova-edge);
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-chat-steps li[data-done]:not(#\-) {
+        color: var(--text,#f3f6ff)
+    }
+    .nova-chat-steps li[data-done]:not(#\-)::marker {
+        color: var(--cyan,#63e7ff)
+    }
+    .nova-pending:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-composer:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--panel,#020412) 60%,transparent)
+    }
+    .nova-composer:focus-within:not(#\-) {
+        border-color: color-mix(in srgb,var(--cyan,#63e7ff) 60%,var(--line,#25324a));
+        box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 18%,transparent)
+    }
+    .nova-composer textarea:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .nova-composer textarea:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .nova-mic-on:not(#\-) {
+        color: var(--cyan,#63e7ff);
+        border-color: currentColor
+    }
+    .nova-live-words:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-speech-note:not(#\-) {
+        border-color: var(--nova-edge)
+    }
+    .nova-composer-hint:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-zigi-page select:not(#\-) {
+        border-color: var(--line,#25324a);
+        background-image: none;
+        background-color: var(--panel,#020412);
+        color: var(--text,#f3f6ff)
+    }
+    .nova-chat-foot:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-list-tools input:not(#\-) {
+        border-color: var(--line,#25324a);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--panel,#020412) 70%,transparent);
+        color: inherit
+    }
+    .nova-list-heading:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-list-items li:not(#\-) {
+        border-color: transparent
+    }
+    .nova-list-items li.nova-list-current:not(#\-) {
+        border-color: var(--nova-edge,#3b3f7a)
+    }
+    .nova-list-open:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .nova-list-open:hover:not(#\-), .nova-list-open:focus-visible:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#826cff) 10%,transparent)
+    }
+    .nova-list-open small:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-duo:not(#\-) {
+        border-color: color-mix(in srgb,var(--violet,#826cff) 34%,var(--line,#25324a));
+        background-image: none;
+        background-color: color-mix(in srgb,var(--panel,#020412) 80%,transparent);
+        color: var(--text,#f3f6ff)
+    }
+    .nova-duo-side span:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-duo-steps:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-duo-steps li:not(#\-) {
+        border-color: var(--line,#25324a)
+    }
+    .nova-duo-steps li[data-done]:not(#\-) {
+        color: var(--text,#f3f6ff);
+        border-color: color-mix(in srgb,var(--cyan,#63e7ff) 50%,transparent)
+    }
+    .nova-duo-steps li[aria-current=step]:not(#\-) {
+        color: var(--text,#f3f6ff);
+        border-color: var(--cyan,#63e7ff)
+    }
+    .nova-mark-core-0:not(#\-) {
+        stop-color: #ffffff
+    }
+    .nova-mark-core-1:not(#\-) {
+        stop-color: var(--violet,#826cff)
+    }
+    .nova-mark-core-2:not(#\-) {
+        stop-color: var(--violet,#826cff)
+    }
+    .nova-mark-ring-0:not(#\-) {
+        stop-color: var(--cyan,#63e7ff)
+    }
+    .nova-mark-ring-1:not(#\-) {
+        stop-color: var(--pink,#c664ff)
+    }
+    .nova-mark-star:not(#\-) {
+        fill: #ffffff
+    }
+    .nova-turn-hermes .nova-turn-body:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--pink,#c664ff) 50%,transparent)
+    }
+    .nova-agent:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-chat .ai-reply-icon:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--muted,#a1afc8)
+    }
+    .nova-chat .ai-reply-icon:hover:not(#\-) {
+        color: var(--text,#eef1ff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 16%,transparent)
+    }
+    .nova-chat .ai-reply-icon:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff);
+        color: var(--text,#eef1ff)
+    }
+    .nova-chat .ai-reply-icon:is([aria-pressed=true],[aria-expanded=true]):not(#\-) {
+        color: var(--brand-cyan,#63e7ff);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 14%,transparent)
+    }
+    .nova-chat .ai-reply-icon[data-tip]:not(#\-)::after {
+        background-image: none;
+        background-color: #020313;
+        border-color: var(--line,#2a325a);
+        color: var(--text,#eef1ff)
+    }
+    .nova-chat .ai-reply-more-list:not(#\-) {
+        border-color: color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));
+        background-image: none;
+        background-color: #020313;
+        box-shadow: 0 22px 50px -18px rgba(0,0,0,.9)
+    }
+    .nova-chat .ai-reply-more-info:not(#\-) {
+        color: var(--muted,#a1afc8)
+    }
+    .nova-chat .ai-more-item:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--text,#eef1ff)
+    }
+    .nova-chat .ai-more-item:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent)
+    }
+    .nova-chat .ai-more-item:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .nova-chat .nova-composer textarea:not(#\-):not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        outline-color: currentcolor;
+        color: inherit
+    }
+    .nova-chat .nova-chat-send:not(#\-) {
+        border-color: currentcolor;
+        background-image: linear-gradient(120deg,var(--nova-b,#63e7ff),var(--nova-a,#9273ff));
+        background-color: transparent;
+        color: #0a0f24
+    }
+    .nova-chat-more-list:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: #020313;
+        box-shadow: 0 22px 50px -18px rgba(0,0,0,.9)
+    }
+    .nova-chat .nova-composer:focus-within:not(#\-) {
+        border-color: var(--nova-focus,#63e7ff);
+        box-shadow: 0 0 0 3px color-mix(in srgb,var(--cyan,#63e7ff) 45%,transparent)
+    }
+}
+/*  components/nova/command-bar.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-bar:not(#\-) {
+        border-color: color-mix(in srgb,var(--violet,#826cff) 38%,var(--line,#25324a));
+        color: var(--text,#f3f6ff);
+        background-image: linear-gradient(165deg,color-mix(in srgb,var(--panel,#020412) 86%,transparent),color-mix(in srgb,var(--bg,#010206) 90%,transparent));
+        background-color: transparent;
+        box-shadow: 0 30px 90px -30px #000000d9,inset 0 1px 0 #ffffff10
+    }
+    .nova-bar:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #00010399
+    }
+    .nova-bar-title:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+    .nova-bar-star:not(#\-) {
+        color: var(--cyan,#63e7ff)
+    }
+    .nova-bar-row input:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .nova-bar-row input:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .nova-bar-row:focus-within:not(#\-) {
+        box-shadow: 0 2px 0 color-mix(in srgb,var(--cyan,#63e7ff) 60%,transparent)
+    }
+    .nova-bar-hint:not(#\-) {
+        color: var(--muted,#a4b2cd)
+    }
+}
+/*  components/nova/guide-band.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-root.nova-guide-band:not(#\-) {
+        --nova-a: var(--brand-violet, #9273ff);
+        --nova-b: var(--brand-cyan, #63e7ff);
+        --nova-hi: var(--accent-violet, #cbbfff);
+        --nova-ink: #eef3ff;
+        --nova-ink-2: #cdd8ee;
+        --nova-focus: #63e7ff;
+        border-color: color-mix(in oklab, #9273ff 35%, #ffffff12);
+        color: var(--nova-ink);
+        background-image: radial-gradient(120% 160% at 12% 0%, color-mix(in oklab, #9273ff 26%, transparent), transparent 60%), linear-gradient(100deg, #010208, #020213 60%, #01020d);
+        background-color: transparent
+    }
+    .nova-guide-band-back:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        color: #0a0f24
+    }
+    .nova-guide-band-back:hover:not(#\-) {
+        filter: brightness(1.08)
+    }
+    .nova-guide-band-back:focus-visible:not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-guide-band-progress:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-guide-band-progress strong:not(#\-) {
+        color: var(--nova-ink)
+    }
+    @media (forced-colors: active) {
+        .nova-root.nova-guide-band:not(#\-) {
+            border-color: CanvasText;
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-guide-band-back:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+}
+/*  components/nova/hermes/hermes-example.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-hermes-example-status dd:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .nova-hermes-example-talk li:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .25))
+    }
+    .nova-hermes-example-talk strong:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/nova/live/live-chips.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-live-chip:not(#\-) {
+        border-color: var(--nova-edge, rgba(203, 191, 255, .5));
+        color: var(--nova-ink, #fff)
+    }
+    .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-a, var(--brand-violet, #9273ff));
+        box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 18%, transparent)
+    }
+    .nova-live-chip[data-live=pomodoro] .nova-live-dot:not(#\-), .nova-live-chip[data-live=habit] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-habits, var(--accent-magenta, #f3b0e6))
+    }
+    .nova-live-chip[data-live=meditation] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--accent-teal, #86f0d6)
+    }
+    .nova-live-chip[data-live=fast] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--brand-violet, #9273ff)
+    }
+    .nova-live-chip[data-live=sleep] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--accent-cyan, #9ee8f8)
+    }
+    .nova-live-chip[data-paused] .nova-live-dot:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        box-shadow: inset 0 0 0 2px var(--nova-ink-3, #b9b4d6)
+    }
+}
+/*  components/nova/nova.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-root:not(#\-) {
+        --nova-deep: #010106;
+        --nova-ink: #eef3ff;
+        --nova-ink-2: #cdd8ee;
+        --nova-ink-3: #aebcd8;
+        --nova-glass: color-mix(in oklab, #020313 70%, transparent);
+        --nova-glass-strong: color-mix(in oklab, #0a1028 92%, transparent);
+        --nova-edge: color-mix(in oklab, var(--nova-a, #9273ff) 30%, #ffffff12);
+        --nova-edge-soft: #ffffff14;
+        --nova-focus: #63e7ff;
+        --text: #f0f5ff;
+        --text-strong: #f4f8ff;
+        --text-secondary: #dde7f7;
+        --text-meta: #c2d0e5;
+        --text-muted: #bccadf;
+        --muted: #bccadf;
+        --line: #2a3a5c;
+        --panel: #02040e;
+        --bg: #010207;
+        color: var(--nova-ink)
+    }
+    :scope[data-theme=dark] .nova-root:not(#\-) {
+        --nova-deep: #000001;
+        --nova-glass: color-mix(in oklab, #010109 74%, transparent);
+        --nova-glass-strong: color-mix(in oklab, #040716 94%, transparent)
+    }
+    .nova-frame[data-accent=violet]:not(#\-) {
+        --nova-a: var(--brand-violet, #9273ff);
+        --nova-b: var(--brand-cyan, #63e7ff);
+        --nova-c: var(--brand-magenta, #f06dff);
+        --nova-hi: var(--accent-violet, #cbbfff)
+    }
+    .nova-frame[data-accent=cyan]:not(#\-) {
+        --nova-a: var(--brand-cyan, #23eaff);
+        --nova-b: var(--brand-violet, #9273ff);
+        --nova-c: var(--brand-blue, #459dff);
+        --nova-hi: var(--accent-cyan, #9ee8f8)
+    }
+    .nova-frame[data-accent=magenta]:not(#\-) {
+        --nova-a: var(--brand-magenta, #f06dff);
+        --nova-b: var(--brand-violet, #9273ff);
+        --nova-c: var(--brand-cyan, #63e7ff);
+        --nova-hi: var(--accent-magenta, #f3b0e6)
+    }
+    .nova-frame[data-accent=teal]:not(#\-) {
+        --nova-a: var(--accent-teal, #86f0d6);
+        --nova-b: var(--brand-blue, #459dff);
+        --nova-c: var(--brand-violet, #9273ff);
+        --nova-hi: var(--accent-teal, #86f0d6)
+    }
+    .nova-frame[data-accent=gold]:not(#\-) {
+        --nova-a: var(--pillar-wealth, #ffd27a);
+        --nova-b: var(--brand-magenta, #f06dff);
+        --nova-c: var(--brand-violet, #9273ff);
+        --nova-hi: #ffe2a8
+    }
+    .nova-frame:not(#\-) {
+        background-image: radial-gradient(120% 90% at 50% 45%, color-mix(in oklab, var(--nova-a, #9273ff) 10%, transparent), transparent 60%), none;
+        background-color: var(--nova-deep)
+    }
+    .nova-sky:not(#\-) {
+        background-image: linear-gradient(152deg, transparent 32%, color-mix(in oklab, var(--nova-a, #9273ff) 16%, transparent) 46%, color-mix(in oklab, var(--nova-c, #f06dff) 12%, transparent) 54%, color-mix(in oklab, var(--nova-b, #63e7ff) 8%, transparent) 62%, transparent 74%), radial-gradient(1.2px 1.2px at 12% 18%, #ffffffaa 50%, transparent 51%), radial-gradient(1px 1px at 72% 12%, #ffffff99 50%, transparent 51%), radial-gradient(1.4px 1.4px at 86% 64%, #ffffffaa 50%, transparent 51%), radial-gradient(1px 1px at 30% 80%, #ffffff88 50%, transparent 51%), radial-gradient(1px 1px at 52% 36%, #ffffff77 50%, transparent 51%), radial-gradient(140% 100% at 50% 50%, transparent 55%, #00000099);
+        background-color: transparent
+    }
+    .nova-frame :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-frame .sr-only:not(#\-), .nova-sheet .sr-only:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-reading:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-waiting-star:not(#\-) {
+        background-image: radial-gradient(circle at 38% 32%, #ffffff, var(--accent-violet, #cbbfff) 24%, var(--brand-violet, #9273ff) 60%, #04011a);
+        background-color: transparent;
+        box-shadow: 0 0 60px color-mix(in oklab, var(--brand-violet, #9273ff) 60%, transparent)
+    }
+    .nova-btn:not(#\-), .nova-pill:not(#\-), .nova-exit:not(#\-), .nova-menu-button:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: color-mix(in oklab, #ffffff 6%, transparent);
+        color: var(--nova-ink)
+    }
+    .nova-btn:hover:not(#\-), .nova-pill:hover:not(#\-), .nova-exit:hover:not(#\-), .nova-menu-button:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--nova-a) 18%, transparent);
+        border-color: color-mix(in oklab, var(--nova-a) 55%, transparent)
+    }
+    .nova-btn-primary:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        color: #0a0f24;
+        border-color: transparent
+    }
+    .nova-btn-primary:hover:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        filter: brightness(1.08)
+    }
+    .nova-btn[aria-pressed=true]:not(#\-) {
+        border-color: var(--nova-hi)
+    }
+    .nova-icon-btn:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: color-mix(in oklab, #ffffff 5%, transparent);
+        color: var(--nova-ink)
+    }
+    .nova-icon-btn:hover:not(#\-), .nova-icon-btn[aria-pressed=true]:not(#\-) {
+        border-color: color-mix(in oklab, var(--nova-a) 60%, transparent);
+        background-image: none;
+        background-color: color-mix(in oklab, var(--nova-a) 16%, transparent)
+    }
+    .nova-mini-btn:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: color-mix(in oklab, #ffffff 5%, transparent);
+        color: var(--nova-ink)
+    }
+    .nova-kbd:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff0d;
+        color: var(--nova-ink-2)
+    }
+    .nova-eyebrow:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-fine:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-link:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-chip-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-ink-3);
+        box-shadow: 0 0 8px currentColor
+    }
+    :is(.nova-chip-dot[data-kind=local]:not(#\-), .nova-chip-dot[data-kind=device]:not(#\-), .nova-chip-dot[data-kind=strict]:not(#\-), .nova-chip-dot[data-kind=on]:not(#\-), .nova-chip:is([data-kind=local], [data-kind=device], [data-kind=strict], [data-kind=on]) .nova-chip-dot):not(#\-) {
+        background-image: none;
+        background-color: var(--accent-teal, #86f0d6)
+    }
+    :is(.nova-chip-dot[data-kind=cloud]:not(#\-), .nova-chip-dot[data-kind=hermes]:not(#\-), .nova-chip-dot[data-kind=guarded]:not(#\-), .nova-chip-dot[data-kind=hosted]:not(#\-), .nova-chip-dot[data-kind=app]:not(#\-), .nova-chip:is([data-kind=cloud], [data-kind=hermes], [data-kind=guarded], [data-kind=hosted], [data-kind=app]) .nova-chip-dot):not(#\-) {
+        background-image: none;
+        background-color: var(--accent-cyan, #9ee8f8)
+    }
+    :is(.nova-chip-dot[data-kind=relaxed]:not(#\-), .nova-chip-dot[data-kind=offline]:not(#\-), .nova-chip:is([data-kind=relaxed], [data-kind=offline]) .nova-chip-dot):not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-wealth, #ffd27a)
+    }
+    .nova-chip[data-kind=scopes] .nova-chip-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-hi)
+    }
+    .nova-on-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--accent-teal, #86f0d6);
+        box-shadow: 0 0 10px var(--accent-teal, #86f0d6)
+    }
+    .nova-switch:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent
+    }
+    .nova-switch > span:not(#\-) {
+        background-image: none;
+        background-color: #ffffff1f;
+        border-color: var(--nova-edge)
+    }
+    .nova-switch > span:not(#\-)::after {
+        background-image: none;
+        background-color: var(--nova-ink-2)
+    }
+    .nova-switch[aria-checked=true] > span:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent
+    }
+    .nova-switch[aria-checked=true] > span:not(#\-)::after {
+        background-image: none;
+        background-color: #fff
+    }
+    .nova-status:not(#\-) {
+        background-image: none;
+        background-color: #ffffff14;
+        color: var(--nova-ink-2)
+    }
+    .nova-status[data-on]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--accent-teal, #86f0d6) 22%, transparent);
+        color: var(--accent-teal, #86f0d6)
+    }
+    .nova-root :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-), .nova-sheet :where(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) {
+        background-image: none;
+        background-color: #01020a;
+        color: var(--nova-ink);
+        border-color: var(--nova-edge)
+    }
+    .nova-root label:not(#\-):not(#\-), .nova-root p:not(#\-):not(#\-), .nova-root li:not(#\-):not(#\-) {
+        color: inherit
+    }
+    .nova-root :is(input[type=checkbox], input[type=radio]):not(#\-):not(#\-) {
+        accent-color: var(--nova-a)
+    }
+    .nova-exit:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, #ffffff 8%, transparent)
+    }
+    .nova-clock-label:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-clock-time:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-clock-date:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-tile:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: radial-gradient(120% 120% at 30% 20%, color-mix(in oklab, var(--nova-a) 22%, #010313), #01020b 72%);
+        background-color: transparent;
+        color: var(--nova-ink)
+    }
+    .nova-tile:hover:not(#\-), .nova-tile:focus-within:not(#\-), .nova-tile[aria-pressed=true]:not(#\-) {
+        border-color: color-mix(in oklab, var(--nova-hi) 70%, transparent);
+        box-shadow: 0 0 16px color-mix(in oklab, var(--nova-a) 45%, transparent)
+    }
+    .nova-tile[data-tip]:is(:hover, :focus-visible, :focus-within):not(#\-)::after {
+        background-image: none;
+        background-color: #01030e;
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-tile-quickadd .nova-quickadd:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-ink)
+    }
+    .nova-chip:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background: var(--nova-glass);
+        color: var(--nova-ink-2)
+    }
+    a.nova-chip:hover:not(#\-) {
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-chip-key:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-chip-value:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-chip-sep:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-wake:not(#\-) {
+        color: var(--accent-teal, #86f0d6)
+    }
+    .nova-ring:not(#\-) {
+        fill: none;
+        stroke: color-mix(in oklab, var(--nova-hi) 22%, transparent)
+    }
+    .nova-ring-2:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-b) 24%, transparent)
+    }
+    .nova-ring-3:not(#\-) {
+        stroke: color-mix(in oklab, var(--nova-a) 16%, transparent)
+    }
+    .nova-ring-moon:not(#\-) {
+        fill: var(--nova-hi)
+    }
+    .nova-ring-moon-2:not(#\-) {
+        fill: var(--nova-b)
+    }
+    .nova-name:not(#\-) {
+        color: var(--nova-ink);
+        text-shadow: 0 0 18px color-mix(in oklab, var(--nova-a) 70%, transparent)
+    }
+    .nova-orb-button:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .nova-orb-button:hover .nova-orb:not(#\-) {
+        filter: brightness(1.08)
+    }
+    .nova-persona-zigi:not(#\-) {
+        background-image: radial-gradient(circle, color-mix(in oklab, var(--nova-a) 30%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .nova-orb-state-word:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-orb-state[data-state=listening] .nova-orb-state-word:not(#\-) {
+        color: var(--accent-cyan, #9ee8f8)
+    }
+    .nova-orb-state[data-state=thinking] .nova-orb-state-word:not(#\-) {
+        color: var(--accent-magenta, #f3b0e6)
+    }
+    .nova-orb-state[data-state=speaking] .nova-orb-state-word:not(#\-) {
+        color: var(--accent-teal, #86f0d6)
+    }
+    .nova-orb-state-hint:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-greeting:not(#\-) {
+        background-image: linear-gradient(100deg, #ffffff 0%, #ffffff 45%, var(--nova-hi) 80%, var(--nova-b) 100%);
+        background-color: transparent;
+        color: transparent
+    }
+    .nova-dayline:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-caret:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-hi)
+    }
+    .nova-showcase:not(#\-) {
+        background-image: none;
+        background-color: transparent;
+        border-color: color-mix(in oklab, var(--pillar-wealth, #ffd27a) 60%, transparent);
+        color: #ffe2a8
+    }
+    .nova-showcase .nova-chip-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--pillar-wealth, #ffd27a)
+    }
+    .nova-chips .nova-showcase:not(#\-) {
+        background: var(--nova-glass);
+        border-color: color-mix(in oklab, var(--pillar-wealth, #ffd27a) 60%, transparent)
+    }
+    .nova-setup-banner:not(#\-) {
+        border-color: var(--nova-edge);
+        background: var(--nova-glass)
+    }
+    .nova-setup-banner p:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-bento-hero:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: radial-gradient(circle at 50% 45%, color-mix(in oklab, var(--nova-a) 16%, transparent), transparent 70%);
+        background-color: transparent
+    }
+    .nova-widget:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background: var(--nova-glass);
+        box-shadow: 0 18px 40px -26px #000c, inset 0 1px 0 #ffffff0f;
+        --pillar: var(--nova-a)
+    }
+    .nova-widget[data-pillar=goals]:not(#\-) {
+        --pillar: var(--pillar-goals, #9273ff)
+    }
+    .nova-widget[data-pillar=habits]:not(#\-) {
+        --pillar: var(--pillar-habits, #23eaff)
+    }
+    .nova-widget[data-pillar=health]:not(#\-) {
+        --pillar: var(--pillar-health, #ff74be)
+    }
+    .nova-widget[data-pillar=wealth]:not(#\-) {
+        --pillar: var(--pillar-wealth, #ffd27a)
+    }
+    .nova-widget:hover:not(#\-) {
+        border-color: color-mix(in oklab, var(--pillar) 40%, transparent)
+    }
+    .nova-widget-planet:not(#\-) {
+        background: var(--pillar);
+        box-shadow: 0 0 12px var(--pillar)
+    }
+    .nova-widget-head h3:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-widget-open:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-grip:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: #ffffff0a;
+        color: var(--nova-ink-2)
+    }
+    .nova-size:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff0a;
+        color: var(--nova-ink)
+    }
+    .nova-size[aria-pressed=true]:not(#\-) {
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        color: #0a0f24;
+        border-color: transparent
+    }
+    .nova-frame[data-editing] .nova-widget:not(#\-) {
+        border-color: color-mix(in oklab, var(--nova-hi) 45%, transparent)
+    }
+    .nova-widget[data-dragging]:not(#\-) {
+        box-shadow: 0 30px 60px -20px #000e
+    }
+    .nova-widget[data-drop]:not(#\-) {
+        outline-color: var(--nova-hi)
+    }
+    .nova-editbar p:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-command:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: var(--nova-glass-strong);
+        color: var(--nova-hi);
+        box-shadow: 0 24px 60px -30px #000e, inset 0 1px 0 #ffffff10
+    }
+    .nova-command:focus-within:not(#\-) {
+        border-color: var(--nova-hi);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--nova-focus) 40%, transparent), 0 24px 60px -30px #000e
+    }
+    .nova-root .nova-command input:not(#\-):not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        box-shadow: none;
+        color: var(--nova-ink);
+        outline-color: currentcolor
+    }
+    .nova-command input:not(#\-)::placeholder {
+        color: var(--nova-ink-2)
+    }
+    .nova-command small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-send:not(#\-) {
+        border-color: currentcolor;
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        color: #0a0f24
+    }
+    .nova-menu-button:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-glass-strong)
+    }
+    .nova-menu-panel:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: var(--nova-glass-strong);
+        box-shadow: 0 30px 80px -30px #000e
+    }
+    .nova-fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-fieldset legend:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-seg:not(#\-) {
+        border-color: var(--nova-edge-soft)
+    }
+    .nova-seg:has(input:checked):not(#\-) {
+        background-image: linear-gradient(120deg, color-mix(in oklab, var(--nova-b) 40%, transparent), color-mix(in oklab, var(--nova-a) 50%, transparent));
+        background-color: transparent;
+        border-color: var(--nova-hi)
+    }
+    .nova-seg:has(input:focus-visible):not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-menu-foot:not(#\-) {
+        background-image: none;
+        background-color: var(--nova-glass-strong);
+        border-top-color: var(--nova-edge-soft)
+    }
+    .nova-radio small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-talk:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: var(--nova-glass-strong);
+        box-shadow: 0 40px 90px -40px #000
+    }
+    .nova-left:not(#\-) {
+        border-right-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: color-mix(in oklab, #010208 78%, transparent)
+    }
+    .nova-left-brand:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-left-brand span:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-left-brand small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-left-space:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff08
+    }
+    .nova-left-space small:not(#\-) {
+        color: var(--accent-teal, #86f0d6)
+    }
+    .nova-left-life:not(#\-) {
+        background-image: linear-gradient(120deg, color-mix(in oklab, var(--nova-b) 22%, transparent), color-mix(in oklab, var(--nova-a) 28%, transparent));
+        background-color: transparent;
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-left-life small:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-left-heading:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-left-row:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-ink)
+    }
+    .nova-left-row:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d
+    }
+    .nova-left-dot:not(#\-) {
+        color: var(--dot, var(--nova-hi));
+        background-image: none;
+        background-color: color-mix(in oklab, var(--dot, var(--nova-a)) 16%, transparent)
+    }
+    .nova-left-dot[data-tone=goals]:not(#\-) {
+        --dot: var(--pillar-goals, #9273ff)
+    }
+    .nova-left-dot[data-tone=habits]:not(#\-) {
+        --dot: var(--pillar-habits, #23eaff)
+    }
+    .nova-left-dot[data-tone=health]:not(#\-) {
+        --dot: var(--pillar-health, #ff74be)
+    }
+    .nova-left-dot[data-tone=wealth]:not(#\-) {
+        --dot: var(--pillar-wealth, #ffd27a)
+    }
+    .nova-left-dot[data-tone=violet]:not(#\-) {
+        --dot: var(--accent-violet, #cbbfff)
+    }
+    .nova-left-dot[data-tone=cyan]:not(#\-) {
+        --dot: var(--accent-cyan, #9ee8f8)
+    }
+    .nova-left-dot[data-tone=teal]:not(#\-) {
+        --dot: var(--accent-teal, #86f0d6)
+    }
+    .nova-left-dot[data-tone=magenta]:not(#\-) {
+        --dot: var(--accent-magenta, #f3b0e6)
+    }
+    .nova-left-dot[data-tone=muted]:not(#\-) {
+        --dot: var(--nova-ink-2)
+    }
+    .nova-left-dot[data-status]:not(#\-)::after {
+        border-color: #060b1d;
+        background-image: none;
+        background-color: var(--accent-teal, #86f0d6)
+    }
+    .nova-left-dot[data-status=calm]:not(#\-)::after {
+        background-image: none;
+        background-color: var(--accent-cyan, #9ee8f8)
+    }
+    .nova-left-dot[data-status=off]:not(#\-)::after {
+        background-image: none;
+        background-color: var(--nova-ink-3)
+    }
+    .nova-left-count:not(#\-) {
+        background-image: none;
+        background-color: #ffffff12;
+        color: var(--nova-ink-2)
+    }
+    .nova-left-none:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-left-foot:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff06
+    }
+    .nova-signature:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-signature strong:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-left-brain:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-right:not(#\-) {
+        border-left-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: color-mix(in oklab, #010208 80%, transparent)
+    }
+    .nova-right-section:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff06
+    }
+    .nova-right-section h3 button:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: var(--nova-ink)
+    }
+    .nova-right-section h3 button .nova-icon:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-num:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-right-body:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-right-sub:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-right-sub-title:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-right-foot:not(#\-) {
+        border-top-color: var(--nova-edge-soft);
+        color: var(--nova-ink-3)
+    }
+    .nova-facts dt:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-facts dd:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-facts dd small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-tool:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-tool:hover:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d
+    }
+    .nova-tool strong:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-sheet:not(#\-) {
+        color: var(--nova-ink);
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: color-mix(in oklab, #01020b 96%, transparent);
+        box-shadow: 0 40px 100px -30px #000;
+        --text: #f0f5ff;
+        --text-strong: #f4f8ff;
+        --text-secondary: #dde7f7;
+        --text-meta: #c2d0e5;
+        --text-muted: #bccadf;
+        --muted: #bccadf;
+        --line: #2a3a5c;
+        --panel: #02040e;
+        --bg: #010207;
+        --nova-ink: #eef3ff;
+        --nova-ink-2: #cdd8ee;
+        --nova-ink-3: #aebcd8;
+        --nova-edge: #8f80ff4d;
+        --nova-edge-soft: #ffffff14;
+        --nova-focus: #63e7ff;
+        --nova-a: var(--brand-violet, #9273ff);
+        --nova-b: var(--brand-cyan, #63e7ff);
+        --nova-hi: var(--accent-violet, #cbbfff)
+    }
+    .nova-sheet:not(#\-)::backdrop {
+        background-image: none;
+        background-color: #000103cc
+    }
+    .nova-sheet-head:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, #01020b 96%, transparent)
+    }
+    .nova-sheet :is(button, a, input, select, textarea, summary):focus-visible:not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-sheet label:not(#\-):not(#\-), .nova-sheet p:not(#\-):not(#\-), .nova-sheet li:not(#\-):not(#\-) {
+        color: inherit
+    }
+    .nova-sheet :is(input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea):not(#\-):not(#\-) {
+        background-image: none;
+        background-color: #01020a;
+        color: var(--nova-ink);
+        border-color: var(--nova-edge)
+    }
+    .nova-sheet input[type=file]:not(#\-):not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-yours-part:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff06
+    }
+    .nova-field small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-avatar-choice:not(#\-), .nova-accent:not(#\-) {
+        border-color: var(--nova-edge-soft)
+    }
+    .nova-avatar-choice:has(input:checked):not(#\-), .nova-accent:has(input:checked):not(#\-) {
+        border-color: var(--nova-hi);
+        background-image: none;
+        background-color: #ffffff0d
+    }
+    .nova-avatar-choice:has(input:focus-visible):not(#\-), .nova-accent:has(input:focus-visible):not(#\-) {
+        outline-color: var(--nova-focus)
+    }
+    .nova-swatch:not(#\-) {
+        border-color: #ffffff33
+    }
+    .nova-swatch[data-accent=violet]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--brand-cyan, #63e7ff), var(--brand-violet, #9273ff));
+        background-color: transparent
+    }
+    .nova-swatch[data-accent=cyan]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--brand-violet, #9273ff), var(--brand-cyan, #23eaff));
+        background-color: transparent
+    }
+    .nova-swatch[data-accent=magenta]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--brand-violet, #9273ff), var(--brand-magenta, #f06dff));
+        background-color: transparent
+    }
+    .nova-swatch[data-accent=teal]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--brand-blue, #459dff), var(--accent-teal, #86f0d6));
+        background-color: transparent
+    }
+    .nova-swatch[data-accent=gold]:not(#\-) {
+        background-image: linear-gradient(135deg, var(--brand-magenta, #f06dff), var(--pillar-wealth, #ffd27a));
+        background-color: transparent
+    }
+    .nova-preview:not(#\-) {
+        border-color: var(--nova-edge)
+    }
+    .nova-status-line:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d;
+        color: var(--nova-ink)
+    }
+    :scope[data-glow="soft"] .nova-frame :is(.nova-tile, .nova-widget-planet, .nova-name):not(#\-) {
+        box-shadow: none;
+        text-shadow: none
+    }
+    @media (forced-colors: active) {
+        .nova-widget:not(#\-), .nova-left:not(#\-), .nova-right:not(#\-), .nova-command:not(#\-), .nova-talk:not(#\-), .nova-tile:not(#\-) {
+            border-color: currentcolor
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-greeting:not(#\-) {
+            color: CanvasText;
+            background-image: none;
+            background-color: transparent
+        }
+    }
+    .nova-mini-day:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background: var(--nova-glass)
+    }
+    .nova-icon-btn[data-tip]:is(:hover, :focus-visible):not(#\-)::after {
+        background-image: none;
+        background-color: #01030e;
+        border-color: var(--nova-edge);
+        color: var(--nova-ink)
+    }
+    .nova-tech:not(#\-) {
+        border-top-color: var(--nova-edge-soft)
+    }
+    .nova-tech > summary:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-tech-chevron:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        color: var(--nova-hi)
+    }
+    .nova-fact-tiles > div:not(#\-) {
+        border-color: var(--nova-edge-soft);
+        background-image: none;
+        background-color: #ffffff08
+    }
+    .nova-fact-tiles dt:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-fact-tiles dd:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-fact-tiles dd[data-unknown]:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-status-row strong:not(#\-) {
+        color: var(--nova-ink)
+    }
+}
+/*  components/nova/orb.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-orb:not(#\-) {
+        --orb-a: var(--nova-a, var(--brand-violet, #9273ff));
+        --orb-b: var(--nova-b, var(--brand-cyan, #63e7ff));
+        --orb-hi: var(--nova-hi, var(--accent-violet, #cbbfff));
+        --orb-deep: #04011a
+    }
+    .nova-orb .nova-orb-s-white:not(#\-) {
+        stop-color: #ffffff
+    }
+    .nova-orb .nova-orb-s-hi:not(#\-) {
+        stop-color: var(--orb-hi)
+    }
+    .nova-orb .nova-orb-s-a:not(#\-) {
+        stop-color: var(--orb-a)
+    }
+    .nova-orb .nova-orb-s-b:not(#\-) {
+        stop-color: var(--orb-b)
+    }
+    .nova-orb .nova-orb-s-deep:not(#\-) {
+        stop-color: var(--orb-deep)
+    }
+    .nova-orb .nova-orb-outer:not(#\-) {
+        stroke: color-mix(in oklab, var(--orb-b) 40%, transparent)
+    }
+    .nova-orb .nova-orb-dial:not(#\-) {
+        stroke: color-mix(in oklab, var(--orb-hi) 55%, transparent)
+    }
+    .nova-orb .nova-orb-core:not(#\-) {
+        filter: drop-shadow(0 0 10px color-mix(in oklab, var(--orb-a) 70%, transparent))
+    }
+    .nova-orb .nova-orb-swirl path:not(#\-) {
+        stroke: #ffffff
+    }
+    .nova-orb .nova-orb-rim:not(#\-) {
+        stroke: #ffffff
+    }
+    .nova-orb .nova-orb-star:not(#\-) {
+        fill: #ffffff;
+        filter: drop-shadow(0 0 5px #ffffffcc)
+    }
+    .nova-orb[data-state=listening] .nova-orb-dial:not(#\-) {
+        stroke: color-mix(in oklab, var(--orb-b) 80%, transparent)
+    }
+    .nova-orb[data-state=listening] .nova-orb-ripples:not(#\-) {
+        stroke: var(--orb-b)
+    }
+    .nova-orb[data-state=thinking] .nova-orb-arc:not(#\-) {
+        stroke: var(--nova-c, var(--brand-magenta, #f06dff))
+    }
+    .nova-orb[data-state=speaking] .nova-orb-ripples:not(#\-) {
+        stroke: var(--accent-teal, #86f0d6)
+    }
+    @media (forced-colors: active) {
+        .nova-orb .nova-orb-core:not(#\-) {
+            fill: Canvas;
+            stroke: CanvasText;
+            filter: none
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-orb :is(.nova-orb-dial, .nova-orb-outer, .nova-orb-arc):not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors: active) {
+        .nova-orb .nova-orb-star:not(#\-) {
+            fill: CanvasText;
+            filter: none
+        }
+    }
+}
+/*  components/nova/panels/panels.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-panel-badge:not(#\-) {
+        color: var(--brand-cyan,#5ee7ff)
+    }
+    .nova-panel-empty:not(#\-) {
+        border-color: var(--line,#2a325a)
+    }
+    .nova-brief:not(#\-) {
+        border-color: var(--line,#2a325a)
+    }
+    .nova-brief summary:focus-visible:not(#\-) {
+        outline-color: var(--focus,var(--brand-magenta,#c86bff))
+    }
+    .nova-brief-polished:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--brand-magenta,#c86bff) 55%,var(--line,#2a325a))
+    }
+    .nova-radio-row:not(#\-) {
+        border-color: currentcolor
+    }
+}
+/*  components/nova/setup/setup.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-progress:not(#\-) {
+        color: var(--muted, #aab2d9)
+    }
+    .nova-setup-list > li[data-done] b:not(#\-)::after {
+        color: var(--cyan, #6fd3ff)
+    }
+    :scope[data-theme=light] .path-stage.nova-guide-path[data-variant=orbit] .path-jump:not(#\-) {
+        border-color: #8cc8ff80;
+        background-image: linear-gradient(100deg, #fffffff5, #eef0fbf5);
+        background-color: transparent;
+        color: #23264d;
+        box-shadow: 0 5px 0 #cfd3ea, 0 12px 20px -10px #6b6fa080, 0 0 16px #4f8dff59
+    }
+    .nova-panel:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--bg, #010207) 92%, transparent);
+        border-color: color-mix(in srgb, var(--violet, #8b7cff) 40%, var(--line, #2a325a));
+        color: var(--text, #eef1ff)
+    }
+    .nova-step-n:not(#\-) {
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 60%, transparent);
+        color: var(--cyan, #6fd3ff)
+    }
+    .nova-cmd-shell:not(#\-) {
+        color: var(--muted, #aab2d9)
+    }
+    .nova-cmd pre:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--bg, #010207) 70%, #000);
+        border-color: var(--line, #2a325a);
+        color: var(--text, #eef1ff)
+    }
+    .nova-cmd pre:focus-visible:not(#\-) {
+        outline-color: var(--cyan, #6fd3ff)
+    }
+    .nova-honest:not(#\-), .nova-note:not(#\-), .nova-warn:not(#\-) {
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 35%, var(--line, #2a325a));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan, #6fd3ff) 7%, transparent)
+    }
+    .nova-warn:not(#\-) {
+        border-color: color-mix(in srgb, var(--pink, #ff74be) 45%, var(--line, #2a325a));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--pink, #ff74be) 8%, transparent)
+    }
+    .nova-more summary:not(#\-), .nova-try summary:not(#\-) {
+        color: var(--cyan, #6fd3ff)
+    }
+    .nova-scan li[data-found="true"]:not(#\-) {
+        color: var(--text, #eef1ff)
+    }
+    .nova-scan li[data-found="false"]:not(#\-) {
+        color: var(--muted, #aab2d9)
+    }
+    .nova-modes:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-mode:not(#\-) {
+        border-color: var(--line, #2a325a)
+    }
+    .nova-mode:has(input:checked):not(#\-) {
+        border-color: color-mix(in srgb, var(--violet, #8b7cff) 70%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet, #8b7cff) 12%, transparent)
+    }
+    .nova-tag:not(#\-) {
+        border-color: var(--line, #2a325a);
+        color: var(--muted, #aab2d9)
+    }
+    .nova-scopes:not(#\-) {
+        border-color: currentcolor
+    }
+    .nova-guide-send-text:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--bg, #010207) 80%, transparent);
+        border-color: var(--line, #2a325a)
+    }
+    .nova-guide-send[data-decision="refuse"] .nova-guide-send-line:not(#\-) {
+        color: var(--pink, #ff74be)
+    }
+    .nova-guide-check:not(#\-) {
+        border-top-color: var(--line, #2a325a)
+    }
+    .nova-guide-check[data-ok="true"] .nova-guide-check-result b:not(#\-) {
+        color: var(--cyan, #6fd3ff)
+    }
+    .nova-badge:not(#\-) {
+        color: var(--text, #eef1ff);
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 60%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet, #8b7cff) 18%, transparent)
+    }
+    .nova-badge-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--cyan, #6fd3ff);
+        box-shadow: 0 0 8px var(--cyan, #6fd3ff)
+    }
+    .nova-online:not(#\-) {
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 40%, var(--line, #2a325a))
+    }
+    .nova-guide-card:not(#\-) {
+        border-color: color-mix(in srgb, var(--violet, #8b7cff) 45%, var(--line, #2a325a));
+        background-image: none;
+        background-color: color-mix(in srgb, var(--panel, #020313) 85%, transparent);
+        color: var(--text, #eef1ff)
+    }
+    .nova-guide-card-bar:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--line, #0b0f28) 80%, transparent)
+    }
+    .nova-guide-card-bar > span:not(#\-) {
+        background-image: linear-gradient(90deg, var(--violet, #8b7cff), var(--cyan, #6fd3ff));
+        background-color: transparent
+    }
+    .nova-choice button[aria-pressed=true]:not(#\-):not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet, #8b7cff) 22%, transparent);
+        border-color: color-mix(in srgb, var(--violet, #8b7cff) 75%, transparent);
+        color: var(--text, #eef1ff);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--violet, #8b7cff) 45%, transparent)
+    }
+    .nova-tag-recommended:not(#\-) {
+        border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 55%, transparent);
+        color: var(--text, #eef1ff)
+    }
+}
+/*  components/nova/widgets/widgets.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-line:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-quiet:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-big small:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-figure:not(#\-) {
+        background-image: var(--nebula-figure, linear-gradient(100deg, #f6f5ff, #b8ecfb 55%, #dcb8fb));
+        background-color: transparent;
+        color: transparent
+    }
+    .nova-empty p:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-unread:not(#\-) {
+        color: #ffe2a8
+    }
+    .nova-next li a:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-next li small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-goal-head a:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-goal-pct:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-goal-pace:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-goals li[data-tone=good] .nova-goal-pace:not(#\-) {
+        color: var(--accent-teal, #86f0d6)
+    }
+    .nova-goals li[data-tone=attention] .nova-goal-pace:not(#\-) {
+        color: #ffe2a8
+    }
+    .nova-more a:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-chip-link:not(#\-) {
+        border-color: var(--nova-edge);
+        background-image: none;
+        background-color: #ffffff0a;
+        color: var(--nova-ink)
+    }
+    .nova-chip-link:hover:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in oklab, var(--nova-a) 18%, transparent)
+    }
+    .nova-disc:not(#\-) {
+        background-image: radial-gradient(circle, #01030e 18%, transparent 19%), conic-gradient(from 0deg, var(--nova-b), var(--nova-a), var(--nova-c, #f06dff), var(--nova-b));
+        background-color: transparent;
+        box-shadow: 0 0 14px color-mix(in oklab, var(--nova-a) 50%, transparent)
+    }
+    .nova-round:not(#\-) {
+        border-color: currentcolor;
+        background-image: linear-gradient(120deg, var(--nova-b), var(--nova-a));
+        background-color: transparent;
+        color: #0a0f24
+    }
+    .nova-market-price:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-markets small:not(#\-) {
+        color: var(--nova-ink-3)
+    }
+    .nova-count:not(#\-) {
+        color: var(--nova-hi)
+    }
+    .nova-widget .nova-facts dd strong:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-widget .nova-facts dd a:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-glance li:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-glance li a:not(#\-) {
+        color: var(--nova-ink)
+    }
+    .nova-widget .tasks-widget .task:not(#\-) {
+        border-bottom-color: var(--nova-edge-soft)
+    }
+    .nova-widget .tasks-widget .task-meta:not(#\-), .nova-widget .tasks-widget .tasks-status:not(#\-) {
+        color: var(--nova-ink-2)
+    }
+    .nova-widget .tasks-widget .task-goal:not(#\-) {
+        color: var(--nova-hi)
+    }
+}
+/*  components/nova/workflows/workflows.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-wf-run h3:focus-visible:not(#\-) {
+        outline-color: var(--focus,var(--brand-magenta,#c86bff))
+    }
+    .nova-wf-item:not(#\-) {
+        border-top-color: var(--line,#2a325a)
+    }
+    .nova-wf-step:not(#\-) {
+        border-color: var(--line,#2a325a)
+    }
+    .nova-wf-step-mark:not(#\-) {
+        border-color: var(--line,#2a325a)
+    }
+    .nova-wf-step[data-state="done"] .nova-wf-step-mark:not(#\-) {
+        border-color: color-mix(in srgb,var(--brand-cyan,#5ee7ff) 60%,var(--line,#2a325a))
+    }
+    .nova-wf-step-state:not(#\-) {
+        color: var(--muted,#aab2d9)
+    }
+    .nova-wf-words:not(#\-) {
+        border-color: color-mix(in srgb,var(--brand-magenta,#c86bff) 35%,var(--line,#2a325a))
+    }
+    .nova-wf-sent summary:not(#\-) {
+        color: var(--muted,#aab2d9)
+    }
+    .nova-wf-steps-edit:not(#\-) {
+        border-color: var(--line,#2a325a)
+    }
+    .nova-wf-instruction:not(#\-) {
+        border-inline-start-color: var(--line)
+    }
 }
 /*  components/offline-notice.css  */
 @scope (:root[data-theme=dark]) {
@@ -10532,6 +13931,28 @@
     .onboarding-summary :is(ul, p):not(#\-) {
         color: #d6e2f3
     }
+    @media (max-width: 767.98px) {
+        :scope .onboarding[data-step] .onboarding-actions:not(#\-) {
+            border-color: #7fc8ff2e;
+            background-image: linear-gradient(180deg, #01030ee6, #010209f7);
+            background-color: transparent
+        }
+    }
+    .setup-landing h2:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+    .setup-landing h2:focus-visible:not(#\-) {
+        outline-color: #a9e8ed
+    }
+    .setup-landing-close:not(#\-) {
+        border-color: #7fc8ff40;
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .setup-landing-close:focus-visible:not(#\-) {
+        outline-color: #a9e8ed
+    }
     @media (forced-colors: active) {
         .onboarding-choice > span:not(#\-), .onboarding-currency span:not(#\-), .onboarding-points li:not(#\-) {
             border-color: currentcolor
@@ -10573,6 +13994,51 @@
     }
     .onboarding-pillars small:not(#\-) {
         color: var(--text-secondary, #c9d6ea)
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-bar:not(#\-) {
+            border-color: #7fc8ff40;
+            background-image: linear-gradient(180deg, #01030ee6, #010209f7);
+            background-color: transparent
+        }
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-start:not(#\-) {
+            color: inherit
+        }
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-start:focus-visible:not(#\-), :scope .welcome-phone-close:focus-visible:not(#\-) {
+            outline-color: #a9e8ed
+        }
+    }
+    @media (max-width: 767.98px) {
+        :scope .welcome-phone-close:not(#\-) {
+            border-color: currentcolor;
+            background-image: none;
+            background-color: transparent;
+            color: inherit
+        }
+    }
+}
+/*  components/orbit-card/orbit-card.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .orbit-card-count:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    :scope .orbit-card-next li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+    :scope .orbit-card-next a:not(#\-) {
+        color: var(--text)
+    }
+    :scope .orbit-card-next a:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    :scope .orbit-card-next small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
     }
 }
 /*  components/orbit-path/flow-line.css  */
@@ -12772,6 +16238,25 @@
     :scope .watch-card .watch-change-missing:not(#\-) {
         color: var(--text-secondary, #aac0d9)
     }
+    :scope :where(.wealth-workspace) .panel:not(.wealth-hero):not(#\-) {
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-wealth) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    :scope :where(.wealth-workspace) .owned-asset-card:not(#\-), :scope :where(.wealth-workspace) .watch-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-wealth) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent)
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :scope :where(.wealth-workspace) .panel:not(.wealth-hero):hover:not(#\-), :scope :where(.wealth-workspace) .owned-asset-card:hover:not(#\-), :scope :where(.wealth-workspace) .watch-card:hover:not(#\-) {
+            border-color: color-mix(in srgb, var(--pillar-wealth) 45%, var(--line, transparent))
+        }
+    }
+    :scope :where(.wealth-workspace) .panel:not(.wealth-hero):has(:focus-visible):not(#\-), :scope :where(.wealth-workspace) .owned-asset-card:has(:focus-visible):not(#\-), :scope :where(.wealth-workspace) .watch-card:has(:focus-visible):not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent)
+    }
+    @media (forced-colors: active) {
+        :scope :where(.wealth-workspace) .panel:not(.wealth-hero):not(#\-), :scope :where(.wealth-workspace) .owned-asset-card:not(#\-), :scope :where(.wealth-workspace) .watch-card:not(#\-) {
+            box-shadow: none
+        }
+    }
 }
 /*  components/platform/wealth-total.css  */
 @scope (:root[data-theme=dark]) {
@@ -13525,6 +17010,70 @@
         color: #b7c8de
     }
 }
+/*  components/report/report.css  */
+@scope (:root[data-theme=dark]) {
+    .report-builder fieldset:not(#\-) {
+        border-color: currentcolor
+    }
+    .report-root:not(#\-) {
+        background-image: none;
+        background-color: var(--bg);
+        color: var(--text)
+    }
+    .report-toolbar:not(#\-) {
+        background-image: none;
+        background-color: var(--panel);
+        border-bottom-color: var(--line)
+    }
+    .report-toolbar-title:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .report-sheet h2:not(#\-) {
+        border-bottom-color: currentColor
+    }
+    .report-chart:not(#\-) {
+        color: inherit
+    }
+    .report-chart text:not(#\-) {
+        fill: currentColor
+    }
+    .report-grid line:not(#\-), .report-axis line:not(#\-) {
+        stroke: currentColor
+    }
+    .report-bar:not(#\-) {
+        fill: currentColor
+    }
+    .report-goal:not(#\-) {
+        stroke: currentColor
+    }
+    .report-line:not(#\-) {
+        fill: none;
+        stroke: currentColor
+    }
+    .report-dot:not(#\-) {
+        fill: currentColor
+    }
+    .report-dot.is-open:not(#\-) {
+        fill: none;
+        stroke: currentColor
+    }
+    .report-sheet th:not(#\-), .report-sheet td:not(#\-) {
+        border-bottom-color: color-mix(in srgb, currentColor 25%, transparent)
+    }
+    @media print {
+        :scope.report-open:not(#\-), :scope.report-open body:not(#\-) {
+            background-image: none !important;
+            background-color: transparent !important
+        }
+    }
+    @media print {
+        :scope.report-open .report-root:not(#\-) {
+            background-image: none;
+            background-color: transparent;
+            color: CanvasText
+        }
+    }
+}
 /*  components/restore/restore-backup.css  */
 @scope (:root[data-theme=dark]) {
     :scope .rb-group:not(#\-) {
@@ -13557,6 +17106,86 @@
         border-color: #8ab9ff40;
         background-image: none;
         background-color: #8ab9ff07
+    }
+}
+/*  components/review-cards/review-cards.css  */
+@scope (:root[data-theme=dark]) {
+    .review-card:not(#\-) {
+        border-color: var(--line,#25334f);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#a698ff) 9%,var(--panel,#02040e))
+    }
+    .review-card:focus-visible:not(#\-) {
+        outline-color: var(--text,#f0f5ff)
+    }
+    .review-card.leaning-accept:not(#\-) {
+        border-color: var(--green,#7ee2a8)
+    }
+    .review-card.leaning-skip:not(#\-) {
+        border-color: var(--amber,#f5b65b)
+    }
+    .review-card-chips:not(#\-) {
+        border-color: currentcolor
+    }
+    .review-card-chip:not(#\-) {
+        border-color: var(--line,#25334f);
+        background-image: none;
+        background-color: transparent;
+        color: inherit
+    }
+    .review-card-chip[aria-pressed="true"]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#a698ff) 30%,transparent);
+        border-color: var(--violet,#a698ff)
+    }
+    .review-card-chip:focus-visible:not(#\-) {
+        outline-color: var(--text,#f0f5ff)
+    }
+}
+/*  components/review-unified/review-unified.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .review-glance a:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel));
+        color: var(--text)
+    }
+    :scope .review-glance a:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    :scope .review-glance span.review-glance-line:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    :scope .review-note:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+}
+/*  components/rewards-shelf/rewards-shelf.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .rewards-list > li:not(#\-) {
+        border-color: var(--line);
+        background-image: none;
+        background-color: var(--surface-2, var(--panel))
+    }
+    :scope .rewards-list small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
+/*  components/scales/your-scales.css  */
+@scope (:root[data-theme=dark]) {
+    .your-scales-row:not(#\-) {
+        border-color: var(--line)
+    }
+    .your-scales-ends:not(#\-) {
+        color: var(--text-meta)
+    }
+    .your-scales-list li:not(#\-) {
+        border-color: var(--line)
+    }
+    .your-scales-list small:not(#\-) {
+        color: var(--text-meta)
     }
 }
 /*  components/search/search.css  */
@@ -13598,8 +17227,9 @@
         border-top-color: #6c9cc526
     }
     :scope .search-row.is-ask .search-row-title:not(#\-) {
-        background-image: var(--nebula-flow-mid, linear-gradient(90deg, #9fe9f7, #d9a4ff));
-        background-color: transparent;
+        background: var(--nebula-flow-mid, linear-gradient(90deg, #9fe9f7, #d9a4ff));
+        -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent
     }
     :scope .search-empty:not(#\-) {
@@ -13665,6 +17295,21 @@
             color: var(--text-secondary)
         }
     }
+    :scope .search-field:has(input:focus-visible):not(#\-) {
+        border-bottom-color: #8fe6f4;
+        box-shadow: inset 0 -2px 0 #8fe6f4
+    }
+}
+/*  components/secret-guard/secret-guard.css  */
+@scope (:root[data-theme=dark]) {
+    .secret-guard:not(#\-) {
+        border-color: color-mix(in srgb, currentColor 28%, transparent);
+        background-image: none;
+        background-color: color-mix(in srgb, currentColor 6%, transparent)
+    }
+    .secret-guard p:not(#\-) {
+        color: inherit
+    }
 }
 /*  components/settings/af-signing-section.css  */
 @scope (:root[data-theme=dark]) {
@@ -13679,6 +17324,19 @@
     }
     .customize-note:not(#\-) {
         color: var(--text-muted)
+    }
+}
+/*  components/settings/nova-settings-links.css  */
+@scope (:root[data-theme=dark]) {
+    .nova-settings-link:not(#\-) {
+        border-color: var(--line);
+        color: var(--text-strong)
+    }
+    .nova-settings-link small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .nova-settings-link:hover:not(#\-), .nova-settings-link:focus-visible:not(#\-) {
+        border-color: var(--brand-cyan)
     }
 }
 /*  components/settings/pages-settings.css  */
@@ -13752,6 +17410,26 @@
         background-color: #04020fd9
     }
 }
+/*  components/share-cards/share-cards.css  */
+@scope (:root[data-theme=dark]) {
+    .share-sheet-preview:not(#\-) {
+        background-image: linear-gradient(135deg, var(--bg), var(--surface-2, var(--panel)));
+        background-color: transparent;
+        border-color: var(--line)
+    }
+    .share-sheet-eyebrow:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .share-sheet-title:not(#\-) {
+        color: var(--text)
+    }
+    .share-sheet-line:not(#\-) {
+        color: var(--text)
+    }
+    .share-sheet-footer:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+}
 /*  components/share/share.css  */
 @scope (:root[data-theme=dark]) {
     :scope .share-card:not(#\-) {
@@ -13771,7 +17449,7 @@
     .alpha-notice p:not(#\-) {
         color: var(--text-secondary, #dde7f7)
     }
-    .alpha-notice p.alpha-notice-essentials:not(#\-) {
+    .alpha-notice p:is(.alpha-notice-essentials, .alpha-notice-sentence):not(#\-) {
         color: var(--text-secondary, #dde7f7)
     }
     .alpha-notice strong:not(#\-) {
@@ -13912,6 +17590,97 @@
         --accent-violet-ink: var(--accent-violet);
         --accent-magenta-ink: var(--accent-magenta);
         --danger-ink: var(--danger)
+    }
+}
+/*  components/skeleton/zg-skeleton.css  */
+@scope (:root[data-theme=dark]) {
+    :scope .aa-skeleton.zg-skeleton:not(#\-) {
+        border-color: color-mix(in srgb, var(--brand-violet) 22%, transparent)
+    }
+    :scope .aa-skeleton.zg-skeleton:not(#\-)::after {
+        background-image: linear-gradient(100deg, transparent 22%, color-mix(in srgb, var(--brand-cyan) 10%, transparent) 42%, color-mix(in srgb, var(--brand-violet) 16%, transparent) 50%, color-mix(in srgb, var(--brand-magenta) 9%, transparent) 58%, transparent 78%);
+        background-color: transparent
+    }
+}
+/*  components/sleep/energy-curve.css  */
+@scope (:root[data-theme=dark]) {
+    .energy-curve-meaning:not(#\-) {
+        color: var(--muted)
+    }
+    .energy-curve-key:not(#\-) {
+        color: var(--muted)
+    }
+    .energy-curve-key i.is-focus:not(#\-), .energy-curve-band.is-focus rect:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--cyan) 26%, transparent);
+        fill: color-mix(in srgb, var(--cyan) 22%, transparent)
+    }
+    .energy-curve-key i.is-dip:not(#\-), .energy-curve-band.is-dip rect:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--pink) 26%, transparent);
+        fill: color-mix(in srgb, var(--pink) 20%, transparent)
+    }
+    .energy-curve-key i.is-bed:not(#\-), .energy-curve-band.is-bed rect:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--violet) 30%, transparent);
+        fill: color-mix(in srgb, var(--violet) 24%, transparent)
+    }
+    .energy-curve-key i.is-now:not(#\-) {
+        background-image: none;
+        background-color: var(--text)
+    }
+    .energy-curve-band text:not(#\-), .energy-curve-tick:not(#\-) {
+        fill: var(--muted)
+    }
+    .energy-curve-area:not(#\-) {
+        fill: color-mix(in srgb, var(--violet) 14%, transparent);
+        stroke: none
+    }
+    .energy-curve-line:not(#\-) {
+        fill: none;
+        stroke: var(--violet)
+    }
+    .energy-curve-now:not(#\-) {
+        stroke: var(--text)
+    }
+    .energy-curve-base:not(#\-) {
+        stroke: var(--line)
+    }
+    .energy-curve-list dt:not(#\-) {
+        color: var(--muted)
+    }
+    .energy-curve-list small:not(#\-) {
+        color: var(--muted)
+    }
+}
+/*  components/spending-map/spending-map.css  */
+@scope (:root[data-theme=dark]) {
+    .spending-map-cell:not(#\-) {
+        outline-color: currentcolor
+    }
+    .spending-map-cell rect:not(#\-) {
+        stroke: var(--panel,#0d1629)
+    }
+    .spending-map-cell.tone-violet rect:not(#\-) {
+        fill: color-mix(in srgb,var(--violet,#a698ff) 46%,var(--panel,#0d1629))
+    }
+    .spending-map-cell.tone-cyan rect:not(#\-) {
+        fill: color-mix(in srgb,var(--cyan,#45d8ef) 40%,var(--panel,#0d1629))
+    }
+    .spending-map-cell.tone-pink rect:not(#\-) {
+        fill: color-mix(in srgb,var(--pink,#ed79d4) 40%,var(--panel,#0d1629))
+    }
+    .spending-map-cell text:not(#\-) {
+        fill: var(--text,#f0f5ff)
+    }
+    .spending-map-cell:hover rect:not(#\-) {
+        stroke: color-mix(in srgb,var(--text,#f0f5ff) 50%,transparent)
+    }
+    .spending-map-cell:focus-visible rect:not(#\-), .spending-map-cell.is-chosen rect:not(#\-) {
+        stroke: var(--text,#f0f5ff)
+    }
+    .spending-map-table th:not(#\-), .spending-map-table td:not(#\-) {
+        border-bottom-color: var(--line,#25334f)
     }
 }
 /*  components/staking/staking.css  */
@@ -14094,6 +17863,9 @@
     .staking-choice span span:not(#\-) {
         color: var(--text-secondary,#b7c8de)
     }
+    .staking-validator-hint:not(#\-) {
+        color: var(--text-secondary,#b7c8de)
+    }
 }
 /*  components/stories/stories.css  */
 @scope (:root[data-theme=dark]) {
@@ -14254,6 +18026,21 @@
     .task-chip:not(#\-) {
         border-color: currentColor
     }
+    .tasks-error:not(#\-) {
+        color: var(--danger, currentColor)
+    }
+    .tasks-groups h2 small:not(#\-), .tasks-group h3 small:not(#\-), .tasks-done summary small:not(#\-) {
+        color: var(--text-secondary, var(--muted))
+    }
+    .tasks-group[data-state=overdue] h3:not(#\-) {
+        color: var(--warning, #e8a33d)
+    }
+    .tasks-done summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .tasks-focus .pomodoro:not(#\-) {
+        border-color: var(--line, rgba(128, 128, 160, .25))
+    }
 }
 /*  components/timeline/timeline.css  */
 @scope (:root[data-theme=dark]) {
@@ -14392,6 +18179,15 @@
     .today-timeline-skeleton:not(#\-) {
         background-image: none;
         background-color: #ffffff0d
+    }
+}
+/*  components/tour/tour.css  */
+@scope (:root[data-theme=dark]) {
+    .ak-tour:not(#\-) {
+        border-color: var(--line)
+    }
+    .ak-tour :is(a, button, h3):focus-visible:not(#\-) {
+        outline-color: currentColor
     }
 }
 /*  components/ui/card-header.css  */
@@ -14682,6 +18478,316 @@
         border-top-color: #a6c1fa1f
     }
 }
+/*  components/wealth/allocation/allocation.css  */
+@scope (:root[data-theme=dark]) {
+    .alloc-table th:not(#\-), .alloc-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .alloc-table thead th:not(#\-) {
+        color: var(--muted,inherit)
+    }
+    .alloc-table tr[data-status=above] td:nth-child(4):not(#\-), .alloc-table tr[data-status=below] td:nth-child(4):not(#\-) {
+        color: var(--amber,#f5b65b)
+    }
+    .alloc-bar:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#e8eefc) 10%,transparent)
+    }
+    .alloc-bar-now:not(#\-) {
+        background-image: linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
+        background-color: transparent
+    }
+    .alloc-bar-target:not(#\-) {
+        background-image: none;
+        background-color: var(--text,#e8eefc)
+    }
+    .alloc-edit:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .alloc-chip span:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.35))
+    }
+    .alloc-chip input:checked+span:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);
+        border-color: var(--violet,#8b7cff)
+    }
+    .alloc-chip input:focus-visible+span:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .purpose-figure:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 8%,transparent);
+        border-color: var(--line,rgba(140,160,220,.22))
+    }
+    .purpose-band:not(#\-) {
+        fill: none;
+        stroke: var(--cyan,#6fd3ff)
+    }
+    .purpose-node:not(#\-) {
+        fill: var(--cyan,#6fd3ff)
+    }
+    .purpose-node-goal:not(#\-) {
+        fill: var(--violet,#8b7cff)
+    }
+    .purpose-node-available:not(#\-) {
+        fill: color-mix(in srgb,var(--text,#e8eefc) 45%,transparent)
+    }
+    .purpose-label:not(#\-) {
+        fill: var(--text,#e8eefc)
+    }
+    .purpose-value:not(#\-) {
+        fill: var(--muted,var(--text,#e8eefc))
+    }
+    svg.zg-chart .purpose-label:not(#\-) {
+        fill: var(--text-strong,var(--text))
+    }
+    svg.zg-chart .purpose-value:not(#\-) {
+        fill: var(--text-secondary)
+    }
+    @media (forced-colors:active) {
+        .purpose-band:not(#\-) {
+            stroke: CanvasText
+        }
+    }
+    @media (forced-colors:active) {
+        .purpose-node:not(#\-) {
+            fill: CanvasText
+        }
+    }
+    @media (forced-colors:active) {
+        .purpose-label:not(#\-), .purpose-value:not(#\-) {
+            fill: CanvasText
+        }
+    }
+    .autopilot-row:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.22))
+    }
+}
+/*  components/wealth/bills/bills.css  */
+@scope (:root[data-theme=dark]) {
+    .bills-chip span:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.35))
+    }
+    .bills-chip input:checked+span:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 28%,transparent);
+        border-color: var(--violet,#8b7cff)
+    }
+    .bills-chip input:focus-visible+span:not(#\-) {
+        outline-color: var(--cyan,#6fd3ff)
+    }
+    .bills-totals div:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 10%,transparent);
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .bills-totals dt:not(#\-) {
+        color: var(--muted,inherit)
+    }
+    .bills-row:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .bills-note-form:not(#\-), .bills-form:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .bills-notes:not(#\-) {
+        border-color: color-mix(in srgb,var(--amber,#f5b65b) 50%,transparent)
+    }
+}
+/*  components/wealth/budgets/budgets.css  */
+@scope (:root[data-theme=dark]) {
+    .budgets-table th:not(#\-), .budgets-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .budgets-table thead th:not(#\-) {
+        color: var(--muted,inherit)
+    }
+    .budgets-bar:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--text,#e8eefc) 10%,transparent)
+    }
+    .budgets-bar span:not(#\-) {
+        background-image: linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
+        background-color: transparent
+    }
+    .budgets-over .budgets-bar span:not(#\-) {
+        background-image: none;
+        background-color: var(--amber,#f5b65b)
+    }
+}
+/*  components/wealth/debt-planner.css  */
+@scope (:root[data-theme=dark]) {
+    .debt-planner-empty:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.3))
+    }
+    .debt-planner-row:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .debt-planner-what small:not(#\-) {
+        color: var(--text-meta,var(--muted))
+    }
+    .debt-planner-issue:not(#\-) {
+        border-color: var(--amber,#f5b65b)
+    }
+    .debt-plan-card:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25));
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 6%,transparent)
+    }
+    .debt-chart-min:not(#\-) {
+        fill: none;
+        stroke: var(--text-meta,currentColor)
+    }
+    .debt-key-min:not(#\-) {
+        border-top-color: var(--text-meta,currentColor)
+    }
+    .debt-planner-empty:not(#\-) {
+        background-image: radial-gradient(at 92% 12%,color-mix(in srgb,var(--pillar-wealth) 10%,transparent),transparent 62%);
+        background-color: transparent
+    }
+    .debt-plan-card:not(#\-) {
+        border-color: color-mix(in srgb,var(--pillar-wealth) 22%,var(--line,transparent));
+        background-image: linear-gradient(150deg,color-mix(in srgb,var(--brand-cyan) 7%,transparent),color-mix(in srgb,var(--brand-violet) 7%,transparent));
+        background-color: transparent;
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 75%,transparent),0 16px 34px -28px color-mix(in srgb,var(--brand-violet) 70%,transparent)
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .debt-plan-card:hover:not(#\-) {
+            border-color: color-mix(in srgb,var(--pillar-wealth) 50%,var(--line,transparent));
+            background-color: color-mix(in srgb,var(--brand-violet) 6%,transparent)
+        }
+    }
+    .debt-plan-order summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+}
+/*  components/wealth/money-tools/money-tools.css  */
+@scope (:root[data-theme=dark]) {
+    .money-tools:not(#\-) {
+        border-top-color: var(--line,rgba(140,160,220,.18))
+    }
+    .money-buffer:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .money-review-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--amber,#f5b65b)
+    }
+    .money-list li:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .money-fieldset:not(#\-) {
+        border-color: var(--line,rgba(140,160,220,.25))
+    }
+    .money-table th:not(#\-), .money-table td:not(#\-) {
+        border-bottom-color: var(--line,rgba(140,160,220,.18))
+    }
+    .emergency-refusal:not(#\-) {
+        border-color: var(--amber,#f5b65b)
+    }
+    @media print {
+        :scope.emergency-printing body:not(#\-) {
+            background-image: none !important;
+            background-color: #fff !important
+        }
+    }
+    @media print {
+        :scope.emergency-printing .emergency-print-root:not(#\-) {
+            color: #000;
+            background-image: none;
+            background-color: #fff
+        }
+    }
+    @media print {
+        .emergency-print-root th:not(#\-), .emergency-print-root td:not(#\-) {
+            border-color: #000
+        }
+    }
+    .money-chart-axis:not(#\-) {
+        stroke: var(--line,rgba(140,160,220,.35))
+    }
+    .money-chart-a:not(#\-) {
+        fill: none;
+        stroke: var(--cyan,#6fd3ff)
+    }
+    .money-chart-b:not(#\-) {
+        fill: none;
+        stroke: var(--amber,#f5b65b)
+    }
+    .money-chart-band:not(#\-) {
+        fill: color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent);
+        stroke: none
+    }
+    .money-chart-mid:not(#\-) {
+        fill: none;
+        stroke: var(--cyan,#6fd3ff)
+    }
+    .money-chart-target:not(#\-) {
+        stroke: var(--amber,#f5b65b)
+    }
+    .money-chart text:not(#\-) {
+        fill: currentColor
+    }
+    .money-key:not(#\-) {
+        border-top-color: var(--cyan,#6fd3ff)
+    }
+    .money-key-b:not(#\-), .money-key-target:not(#\-) {
+        border-top-color: var(--amber,#f5b65b)
+    }
+    .money-key-band:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 26%,transparent)
+    }
+    .fi-fields input[aria-invalid=true]:not(#\-) {
+        border-color: var(--amber,#f5b65b);
+        box-shadow: 0 0 0 1px var(--amber,#f5b65b)
+    }
+    .fi-hint:not(#\-) {
+        color: var(--text-meta,var(--muted))
+    }
+}
+/*  components/wealth/networth-milestones.css  */
+@scope (:root[data-theme=dark]) {
+    .nwm-celebration:not(#\-) {
+        border-color: color-mix(in srgb,var(--violet,#8b7cff) 45%,transparent);
+        background-image: none;
+        background-color: color-mix(in srgb,var(--violet,#8b7cff) 12%,transparent)
+    }
+    .nwm-symbol:not(#\-) {
+        color: var(--violet,#8b7cff)
+    }
+    .nwm-settings summary small:not(#\-) {
+        color: var(--text-meta,var(--muted))
+    }
+    .nwm-list li:not(#\-) {
+        border-top-color: var(--line,rgba(140,160,220,.18))
+    }
+    .nwm-list small:not(#\-) {
+        color: var(--text-meta,var(--muted))
+    }
+    .nwm-celebration:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 70%,transparent),0 18px 40px -30px color-mix(in srgb,var(--brand-violet) 80%,transparent);
+        background-image: radial-gradient(at 100% 0,color-mix(in srgb,var(--pillar-wealth) 12%,transparent),transparent 60%)
+    }
+    .nwm-symbol:not(#\-) {
+        color: var(--pillar-wealth-ink,var(--pillar-wealth))
+    }
+    .nwm-settings summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .nwm-list li:hover:not(#\-) {
+            background-color: color-mix(in srgb,var(--brand-violet) 5%,transparent)
+        }
+    }
+    .nws-since:not(#\-) {
+        border-color: currentcolor
+    }
+}
 /*  components/wealth/spending/spending.css  */
 @scope (:root[data-theme=dark]) {
     .spending-room:not(#\-) {
@@ -14728,6 +18834,10 @@
         background-image: linear-gradient(90deg,var(--violet,#8b7cff),var(--cyan,#6fd3ff));
         background-color: transparent
     }
+    .spending-review-dot:not(#\-) {
+        background-image: none;
+        background-color: var(--amber,#f5b65b)
+    }
 }
 /*  components/wealth/wealth-history-chart.css  */
 @scope (:root[data-theme=dark]) {
@@ -14748,9 +18858,6 @@
     }
     .wealth-history-change[data-direction="down"]:not(#\-) {
         color: #ff9ab0
-    }
-    .wealth-history-line:not(#\-) {
-        filter: drop-shadow(0 0 6px #9273ff88)
     }
     .wealth-history-point:not(#\-) {
         outline-color: currentcolor
@@ -14780,6 +18887,82 @@
         color: #aaa0bb
     }
 }
+/*  components/wrap-up-tasks/wrap-up-tasks.css  */
+@scope (:root[data-theme=dark]) {
+    .wrap-up-tasks-list li:not(#\-) {
+        border-color: var(--line)
+    }
+}
+/*  components/wrapped/wrapped.css  */
+@scope (:root[data-theme=dark]) {
+    .wrapped-number:not(#\-) {
+        color: #f4f8ff
+    }
+    .wrapped-reveal:not(#\-) {
+        color: #dde7f7
+    }
+    .wrapped-include:not(#\-) {
+        color: #dde7f7
+    }
+    .wrapped-reveal:focus-visible:not(#\-), .wrapped-include:has(input:focus-visible):not(#\-) {
+        outline-color: var(--cyan)
+    }
+    .story-player.wrapped-player:focus:not(#\-) {
+        outline-color: currentcolor
+    }
+}
+/*  components/zigchain-eco/zigchain-eco.css  */
+@scope (:root[data-theme=dark]) {
+    .zeco-card:not(#\-) {
+        border-color: var(--line,#25334f);
+        background-image: none;
+        background-color: var(--surface-1,#01030d)
+    }
+    .zeco-day:not(#\-) {
+        border-top-color: var(--line,#25334f)
+    }
+    .zeco-day:first-child:not(#\-) {
+        border-top-color: currentcolor
+    }
+    .zeco-practice-tag:not(#\-) {
+        border-color: var(--warning,#e8a33d);
+        color: var(--text,#eef4ff)
+    }
+    .zeco-denom:not(#\-) {
+        color: var(--text-secondary,#dde7f7)
+    }
+    .zeco-warning:not(#\-) {
+        border-left-color: var(--danger,#f5a7af);
+        color: var(--text,#eef4ff)
+    }
+    .zeco-status:not(#\-) {
+        border-color: var(--line,#25334f);
+        color: var(--text,#eef4ff)
+    }
+    .zeco-status[data-kind="live"]:not(#\-), .zeco-status[data-kind="tool"]:not(#\-) {
+        border-color: var(--accent-teal,#86f0d6)
+    }
+    .zeco-status:is([data-kind="closing"],[data-kind="paused"],[data-kind="winding-down"]):not(#\-) {
+        border-color: var(--danger,#f5a7af)
+    }
+    @media (forced-colors: active) {
+        .zeco-status:not(#\-), .zeco-practice-tag:not(#\-), .zeco-warning:not(#\-) {
+            border-color: CanvasText
+        }
+    }
+    .zeco-card:not(#\-) {
+        box-shadow: inset 3px 0 0 color-mix(in srgb,var(--pillar-wealth) 65%,transparent),0 16px 34px -28px color-mix(in srgb,var(--brand-violet) 70%,transparent);
+        background-image: linear-gradient(150deg,color-mix(in srgb,var(--brand-cyan) 5%,transparent),color-mix(in srgb,var(--brand-violet) 6%,transparent))
+    }
+    @media (hover:hover) and (pointer:fine) {
+        .zeco-card:hover:not(#\-) {
+            border-color: color-mix(in srgb,var(--pillar-wealth) 45%,var(--line,transparent))
+        }
+    }
+    .zeco-card :is(a,button):focus-visible:not(#\-) {
+        outline-color: var(--cyan)
+    }
+}
 /*  components/zigi/knock.css  */
 @scope (:root[data-theme=dark]) {
     .zigi-knock:not(#\-) {
@@ -14807,7 +18990,7 @@
 }
 /*  components/zigi/meet-zigi.css  */
 @scope (:root[data-theme=dark]) {
-    .meet-zigi-card:not(#\-) {
+    .meet-zigi-card:not(#\-), .meet-zigi-move:not(#\-) {
         border-color: var(--line,#2a325a);
         background-image: none;
         background-color: color-mix(in srgb,var(--panel,#020412) 70%,transparent)
@@ -14830,6 +19013,16 @@
     }
     .meet-zigi-sizes figcaption:not(#\-) {
         color: var(--muted,#aab2d9)
+    }
+    .meet-zigi-gallery>summary small:not(#\-) {
+        color: var(--muted,#aab2d9)
+    }
+    .meet-zigi-gallery>summary:not(#\-)::after {
+        border-right-color: currentColor;
+        border-bottom-color: currentColor
+    }
+    .meet-zigi-gallery>summary:focus-visible:not(#\-) {
+        outline-color: var(--cyan,#45d8ef)
     }
 }
 /*  components/zigi/zigi.css  */
@@ -14872,6 +19065,11 @@
 /* Session AH (HA15; D-178, D-192): the 30-day heatmap in Dark: dark numbers on the pale "all done" cell, never white. */
 :root[data-theme=dark] .habit-month-grid>span:not(#\-) { border-color: #4a5a7a; }
 :root[data-theme=dark] .habit-month-grid>span[data-level=full]:not(#\-), :root[data-theme=dark] .habit-month-legend i[data-level=full]:not(#\-) { color: #10142a; font-weight: 750; }
+/* apps/web/themes/dark.ak-parity.css */
+/* Session AK (CI-D, theme parity, ADR-028 H75): NOVA's "Running now" chips keep their violet edge by night. In Nebula
+   components/nova/live/live-chips.css loads after nova.css, so its edge wins over the chip's soft one; the Dark sheet lists
+   the files in path order (live/ before nova.css), so the soft edge won there. One id more of weight restores Nebula's order. */
+:root[data-theme=dark] .nova-live-chip:not(#\-):not(#\-) { border-color: var(--nova-edge, rgba(203, 191, 255, .5)); } /* components/nova/live/live-chips.css */
 /* apps/web/themes/dark.headerart.css */
 /* Session AE (Part 4, ADR-027 G5): the page-header art in Dark — the same drawing on the near-black ground, its glows a
    little dimmer (the halo, the glyph's bloom, the planets' light and the nebula disc). */
@@ -14885,7 +19083,7 @@
    and the same vector stars dimmed by a veil of that ground, so they no longer outshine the page's dimmed starfield. */
 :root[data-theme=dark] .app-sidebar:not(#\-) {
   background: linear-gradient(#0508159e, #0508159e) local,
-    url('/art/v24/sidebar-stars.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
+    url('/art/v24/sidebar-stars.svg') center calc(max(100%, 40px) + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
     linear-gradient(0deg, #03050e 0, #03050e 300px, #060718 560px, #070a1d 700px, #080c22 930px) local,
     #080c22;
   /* At 768–900 px the sidebar is the page's header: one clean deep navy, like the page's top. Gate C design review

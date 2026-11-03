@@ -19,10 +19,11 @@ export const sealedTokensSchema = z.strictObject({version: z.literal(1), scope: 
 /** What is sealed: the tokens and when the access token stops working. Nothing else about the person. */
 export const linkTokensSchema = z.strictObject({accessToken: z.string().min(1).max(4000), refreshToken: z.string().min(1).max(4000).optional(), expiresAt: z.iso.datetime().optional(), scope: z.string().max(1000).optional()});
 export type LinkTokens = z.infer<typeof linkTokensSchema>;
-const slot = (scope: string, service: LinkService) => `${scope}:${service}`;
+type SealedService = LinkService | SealedConnectionService;
+const slot = (scope: string, service: SealedService) => `${scope}:${service}`;
 const encode = (bytes: Uint8Array) => { let s = ''; for (const b of bytes) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const decode = (text: string) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-const aad = (scope: string, service: LinkService) => new TextEncoder().encode(JSON.stringify(['zigoals-link-tokens', 1, scope, service]));
+const aad = (scope: string, service: SealedService) => new TextEncoder().encode(JSON.stringify(['zigoals-link-tokens', 1, scope, service]));
 const available = () => typeof indexedDB !== 'undefined' && !!indexedDB;
 function limited<T>(work: Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -70,33 +71,60 @@ async function loadWrapKey(db: IDBDatabase, create: boolean): Promise<CryptoKey 
 /** Seals a service's tokens for this device (a rotated refresh token replaces the old one). Refused for Showcase. */
 export async function sealTokens(scope: string, service: LinkService, tokens: LinkTokens): Promise<void> {
   if (scope === SHOWCASE_LINK_SCOPE) throw Error('Showcase does not link services.');
-  const valid = linkTokensSchema.parse(tokens), db = await writable();
-  try {
-    const wrap = await loadWrapKey(db, true); if (!wrap) throw Error('The sign-in could not be protected on this device.');
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv, additionalData: aad(scope, service), tagLength: 128}, wrap, new TextEncoder().encode(JSON.stringify(valid))));
-    const record = sealedTokensSchema.parse({version: 1, scope, service, iv: encode(iv), ciphertext: encode(ciphertext), createdAt: new Date().toISOString()});
-    const t = db.transaction(TOKENS, 'readwrite'); t.objectStore(TOKENS).put(record, slot(scope, service)); await finished(t);
-  } finally { db.close(); }
+  await sealValue(scope, service, linkTokensSchema.parse(tokens), sealedTokensSchema);
 }
 /** The tokens for one request, decrypted for this call only; null when there are none or they cannot be opened. */
 export async function readTokens(scope: string, service: LinkService): Promise<LinkTokens | null> {
+  const value = await openValue(scope, service, sealedTokensSchema);
+  if (value === null) return null;
+  try { return linkTokensSchema.parse(value); } catch { return null; }
+}
+type SealedRecord = {scope: string; service: string; iv: string; ciphertext: string};
+async function sealValue(scope: string, service: SealedService, value: unknown, recordSchema: z.ZodType<SealedRecord>): Promise<void> {
+  const db = await writable();
+  try {
+    const wrap = await loadWrapKey(db, true); if (!wrap) throw Error('The sign-in could not be protected on this device.');
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv, additionalData: aad(scope, service), tagLength: 128}, wrap, new TextEncoder().encode(JSON.stringify(value))));
+    const record = recordSchema.parse({version: 1, scope, service, iv: encode(iv), ciphertext: encode(ciphertext), createdAt: new Date().toISOString()});
+    const t = db.transaction(TOKENS, 'readwrite'); t.objectStore(TOKENS).put(record, slot(scope, service)); await finished(t);
+  } finally { db.close(); }
+}
+/** The decrypted JSON of one slot, or null (none, another format, another scope or service, or it cannot be opened). */
+async function openValue(scope: string, service: SealedService, recordSchema: z.ZodType<SealedRecord>): Promise<unknown> {
   const db = await existing(); if (!db) return null;
   try {
-    const parsed = sealedTokensSchema.safeParse(await answer(db.transaction(TOKENS, 'readonly').objectStore(TOKENS).get(slot(scope, service))));
+    const parsed = recordSchema.safeParse(await answer(db.transaction(TOKENS, 'readonly').objectStore(TOKENS).get(slot(scope, service))));
     if (!parsed.success || parsed.data.scope !== scope || parsed.data.service !== service) return null;
     const wrap = await loadWrapKey(db, false); if (!wrap) return null;
-    try { return linkTokensSchema.parse(JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name: 'AES-GCM', iv: decode(parsed.data.iv), additionalData: aad(scope, service), tagLength: 128}, wrap, decode(parsed.data.ciphertext))))); }
+    try { return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name: 'AES-GCM', iv: decode(parsed.data.iv), additionalData: aad(scope, service), tagLength: 128}, wrap, decode(parsed.data.ciphertext)))) as unknown; }
     catch { return null; }
   } finally { db.close(); }
+}
+/**
+ * Session AK (security review M1): sealed connections that are not an OAuth token set, today Lichess's (its token and the
+ * account name Lichess gave). Same database, wrap key, additional data (scope and service) and slot (`scope:service`) as
+ * the link tokens above, in a record format of its own, so the frozen sealedTokensSchema stays exactly as it was and a
+ * build that does not know "lichess" simply never opens these slots (Sign-out's forgetLinkTokens still removes them).
+ * The caller checks what it reads with its own schema. Refused for Showcase.
+ */
+export const SEALED_CONNECTION_SERVICES = ['lichess'] as const;
+export type SealedConnectionService = typeof SEALED_CONNECTION_SERVICES[number];
+export const sealedConnectionSchema = z.strictObject({version: z.literal(1), scope: z.string().min(1).max(80), service: z.enum(SEALED_CONNECTION_SERVICES), iv: base64.length(16), ciphertext: base64.min(22).max(16_000), createdAt: z.iso.datetime()});
+export async function sealConnection(scope: string, service: SealedConnectionService, value: unknown): Promise<void> {
+  if (scope === SHOWCASE_LINK_SCOPE) throw Error('Showcase does not link services.');
+  await sealValue(scope, service, value, sealedConnectionSchema);
+}
+export async function readConnection(scope: string, service: SealedConnectionService): Promise<unknown> {
+  return openValue(scope, service, sealedConnectionSchema);
 }
 /** Whether a service is linked for this scope, without decrypting anything. */
 export async function hasTokens(scope: string, service: LinkService): Promise<boolean> {
   const db = await existing(); if (!db) return false;
   try { return sealedTokensSchema.safeParse(await answer(db.transaction(TOKENS, 'readonly').objectStore(TOKENS).get(slot(scope, service)))).success; } finally { db.close(); }
 }
-/** Disconnect: forgets one service's tokens on this device. */
-export async function forgetTokens(scope: string, service: LinkService): Promise<void> {
+/** Disconnect: forgets one service's tokens on this device (a sealed connection's too). */
+export async function forgetTokens(scope: string, service: SealedService): Promise<void> {
   const db = await existing(); if (!db) return;
   try { const t = db.transaction(TOKENS, 'readwrite'); t.objectStore(TOKENS).delete(slot(scope, service)); await finished(t); } finally { db.close(); }
 }

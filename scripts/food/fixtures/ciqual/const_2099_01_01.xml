@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- SYNTHETIC FIXTURE: constituent codes and English names in CIQUAL 2025's layout. -->
+<TABLE>
+<CONST><const_code> 328 </const_code><const_nom_fr> Energie (kcal/100 g) </const_nom_fr><const_nom_eng> Energy, Regulation EU No 1169/2011 (kcal/100g) </const_nom_eng></CONST>
+<CONST><const_code> 25000 </const_code><const_nom_eng> Protein (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 31000 </const_code><const_nom_eng> Carbohydrate (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 40000 </const_code><const_nom_eng> Fat (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 34100 </const_code><const_nom_eng> Fibres (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 32000 </const_code><const_nom_eng> Sugars (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 40302 </const_code><const_nom_eng> FA saturated (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 10110 </const_code><const_nom_eng> Sodium (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 10190 </const_code><const_nom_eng> Potassium (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 10200 </const_code><const_nom_eng> Calcium (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 10260 </const_code><const_nom_eng> Iron (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 10120 </const_code><const_nom_eng> Magnesium (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 10300 </const_code><const_nom_eng> Zinc (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 51104 </const_code><const_nom_eng> Vitamin A activity, retinol equivalent (µg/100mg) </const_nom_eng></CONST>
+<CONST><const_code> 55100 </const_code><const_nom_eng> Vitamin C (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 52100 </const_code><const_nom_eng> Vitamin D (µg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 53100 </const_code><const_nom_eng> Vitamin E (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 71010 </const_code><const_nom_eng> Alpha-tocopherol (vitamine E)(mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 54101 </const_code><const_nom_eng> Vitamin K1 (µg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 56100 </const_code><const_nom_eng> Vitamin B1 or Thiamin (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 56200 </const_code><const_nom_eng> Vitamin B2 or Riboflavin (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 56310 </const_code><const_nom_eng> Vitamin B3 or Niacin (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 56500 </const_code><const_nom_eng> Vitamin B6 (mg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 56600 </const_code><const_nom_eng> Vitamin B12 (µg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 56700 </const_code><const_nom_eng> Vitamin B9 or total folates (µg/100g) </const_nom_eng></CONST>
+<CONST><const_code> 41833 </const_code><const_nom_eng> FA 18:3 c9,c12,c15 (n-3) (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 42053 </const_code><const_nom_eng> FA 20:5 5c,8c,11c,14c,17c (n-3) EPA (g/100g) </const_nom_eng></CONST>
+<CONST><const_code> 42263 </const_code><const_nom_eng> FA 22:6 4c,7c,10c,13c,16c,19c (n-3) DHA (g/100g) </const_nom_eng></CONST>
+</TABLE>

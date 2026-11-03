@@ -250,7 +250,8 @@ test.describe('Part 2: personal layouts',()=>{
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   await page.getByRole('button',{name:'Move Today’s nourishment down',exact:true}).click();
   // Session W added the Sleep (Part 4) and Meditation (Part 5) cards after the journal; Session AH (DE8) Workouts after them.
-  await expect.poll(()=>order(page,'health:body')).toEqual(['health:nutrition','health:summary','health:journal','health:sleep','health:meditation','health:workouts','health:roadmap','health:fasting','health:trends']);
+  // Session AK RB (RELEASE_REVIEW_2 R2-8, deliberate): "Nutrition patterns" moved into the Insights view and "Faster ways to log" is gone, so the summary moves below the journal.
+  await expect.poll(()=>order(page,'health:body')).toEqual(['health:journal','health:summary','health:sleep','health:meditation','health:workouts','health:fasting','health:trends']);
   expect(await page.evaluate(()=>[...document.querySelectorAll('[data-layout-item]')].flatMap(e=>e.getAnimations()).length)).toBe(0);
  });
  test('touch: a long-press on the handle picks a card up and moves it',async({page,isMobile})=>{
@@ -409,8 +410,9 @@ test.describe('Part 4: Health',()=>{
   expect(await page.evaluate(()=>localStorage.getItem('zigoals:health:v1'))).toBeNull();
   await expect(page.getByRole('button',{name:'Decrease Push-ups'})).toBeDisabled();
   // Measure at rest: while the page entrance runs (a 6 px slide, 320 ms) the buttons' boxes read a fraction of a pixel off.
-  await page.locator('.workspace main > div').first().evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>undefined))));
-  for(const b of await page.getByRole('article',{name:'Push-ups',exact:true}).getByRole('button',{name:/^(Increase|Decrease) Push-ups$/}).all()){const box=(await b.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
+  // Session AK CI-4: every finite animation on the button and each of its ancestors, not only the page's first block (CI
+  // read 43.99997 px while another ancestor still moved).
+  for(const b of await page.getByRole('article',{name:'Push-ups',exact:true}).getByRole('button',{name:/^(Increase|Decrease) Push-ups$/}).all()){await b.evaluate(el=>{const all=el.getAnimations({subtree:true});for(let p=el.parentElement;p;p=p.parentElement)all.push(...p.getAnimations());return Promise.all(all.filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>undefined)));});const box=(await b.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   const plus=page.getByRole('button',{name:'Increase Push-ups'});
   await plus.click();await expect(count(page,'Push-ups')).toHaveText('1');await plus.click();await plus.click();await expect(count(page,'Push-ups')).toHaveText('3');
   await page.getByRole('button',{name:'Decrease Push-ups'}).click();await expect(count(page,'Push-ups')).toHaveText('2');
@@ -467,7 +469,7 @@ test.describe('Part 5: Wealth headline',()=>{
   await expect(total.locator('.wealth-other-chip-button')).toHaveText('+ €8,000.00 held in EUR');
   await total.locator('.wealth-other-chip-button').click();
   await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
-  await expect(total).toContainText('Currency totals stay separate. No FX assumed.');
+  await expect(total).toContainText('Currency totals stay separate; no exchange rate is assumed.'); // Session AK RB (R2-20, deliberate): the same fact, plainer words
   await expect(total).toContainText('KNOWN TRACKED WEALTH');await expect(total).toContainText('13 assets');
   // No combined cross-currency figure anywhere on the card.
   await expect(total).not.toContainText('509,800');
@@ -544,7 +546,7 @@ test.describe('Part 8: bottom sections',()=>{
   await showcase(page);
   for(const [path,region,id,text] of [
    ['/app','today:bottom','today:links','Edit'], // Session AB-Design (owner request 11): My links is Today's last card; Your week sits right before it (checked below)
-   ['/app/goals','goals:body','goals:milestones','Target dates saved in your active Goals'],
+   ['/app/goals','goals:body','goals:milestones',/* Session AK G2 (RELEASE_REVIEW R31, deliberate): lowercase mid-sentence */'Target dates saved in your active goals'],
    ['/app/habits','habits:body','habits:rhythm','Best streaks'],
    ['/app/health','health:body','health:trends','A dash means no entry, not zero.'],
    ['/app/wealth','wealth:body','wealth:calculator','Compound interest calculator'], // Session AB-Design (owner request 26)

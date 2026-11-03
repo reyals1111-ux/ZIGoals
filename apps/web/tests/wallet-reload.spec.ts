@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 import {expectAlphaMode} from "./ab-shell";
 import { toBech32 } from "@cosmjs/encoding";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Keplr across a reload.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 const reconnectHintKey = "zigoals:wallet-reconnect-hint:v1";
 const mockOwner = toBech32("zig", new Uint8Array(20).fill(9));

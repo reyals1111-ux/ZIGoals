@@ -97,12 +97,17 @@ test('"⋯" lists History, Customize, Settings, Meet ZIGi and Help; the model is
   const list = panel(page).getByRole('group', {name: 'More'});
   await expect(list).toBeVisible();
   // Panel polish round 2 (assertion changed, ADR-019 C45): the model moved from "⋯" to the status line's switcher.
-  await expect(list.locator('.ai-more-item')).toHaveText(['History', 'Customize', 'Settings', 'Meet ZIGi', 'Help']);
+  // Session AK (ADR-036 Q30, deliberate; 8726fa0a, G1 #20 "A chat that isn't kept"): the switch for this conversation sits
+  // after History, unpressed while the chat is kept. The whole list in order, as before, plus its state.
+  await expect(list.locator('.ai-more-item')).toHaveText(['History', 'Don’t keep this chat', 'Customize', 'Settings', 'Meet ZIGi', 'Help']);
+  await expect(list.getByRole('button', {name: 'Don’t keep this chat'})).toHaveAttribute('aria-pressed', 'false');
   await expect(panel(page).locator('.ai-chat-via summary[aria-label="Model: mock-chat. Change model"]')).toBeVisible();
   await expect(list.getByRole('link', {name: 'ZIGi settings'})).toHaveAttribute('href', '/app/settings#your-ai');
   await expect(list.getByRole('link', {name: 'Meet ZIGi'})).toHaveAttribute('href', '/app/zigi');
   await expect(list.getByRole('link', {name: 'Help about ZIGi'})).toHaveAttribute('href', '/app/help#help-your-ai-what');
   await expect(list.getByRole('button', {name: 'Chat history'})).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(list.getByRole('button', {name: 'Don’t keep this chat'})).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(list.getByRole('button', {name: 'Customize ZIGi'})).toBeFocused();
   await page.keyboard.press('Escape');

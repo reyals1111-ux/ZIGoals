@@ -1,6 +1,10 @@
 import { alphaNotice, inAboutAlpha } from "./ab-shell";
 import { test, expect } from "@playwright/test";
 import { closeMore, navLink, walletArea } from "./phone-nav";
+import {chooseChain} from "./chain-choice";
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the wallet buttons in the status row.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 test("unified shell exposes all eight destinations and preserves Alpha controls", async ({ page }) => {
   await page.goto("/app");
   const nav = page.getByRole("navigation", { name: "Main navigation" });

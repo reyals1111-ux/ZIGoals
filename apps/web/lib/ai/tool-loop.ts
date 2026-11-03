@@ -3,6 +3,7 @@ import type {ToolEnv} from './tools/env';
 import {refuse, text as clean} from './tools/format';
 import {availableTools, runTool, toolByName, toolSpecs, toolText} from './tools/registry';
 import {ANSWER_CHARS, type ToolResult} from './tools/types';
+import {toolsUnsupported} from './tools/model-support';
 import type {ChatEvent, ChatMessage, ChatRequest, ToolCallPart, ToolSpec} from './types';
 
 /**
@@ -44,7 +45,10 @@ const keyOf = (call: ToolCallPart) => { const args = argsOf(call.arguments); ret
 export const EMPTY_NUDGE = 'Reply now, in words, to the message above, with the proposal cards it needs, if any.';
 export async function* runWithTools(request: LoopRequest): AsyncGenerator<LoopEvent> {
   const {env, stream, maxRounds = MAX_TOOL_ROUNDS, answerChars = ANSWER_CHARS, shouldStop, ...chat} = request;
-  const tools = toolsFor(env);
+  // Owner follow-up 2 (NOVA.md §1.7): a model that calls tools only through OpenAI's Responses API gets none, said once.
+  const unsupported = toolsUnsupported(chat.provider, chat.model);
+  const tools = unsupported ? [] : toolsFor(env);
+  if (unsupported) yield {type: 'tool-limit', reason: unsupported};
   let messages: ChatMessage[] = [...chat.messages], used = 0, shown = '', nudged = false;
   const asked = new Set<string>(), total = {input: null as number | null, output: null as number | null, cacheWrite: null as number | null, cacheRead: null as number | null};
   const add = (key: keyof typeof total, value: number | null | undefined) => { if (value !== null && value !== undefined) total[key] = (total[key] ?? 0) + value; };

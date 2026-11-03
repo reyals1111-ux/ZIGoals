@@ -1,0 +1,14 @@
+/* Session AK (item 15): the food quality letter. The letter is always written out beside its tile. Theme tokens only. */
+.nutri-score { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.nutri-score-letter {
+  display: inline-grid; place-items: center; inline-size: 22px; block-size: 22px; border-radius: 6px; font-weight: 800;
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--health-on-track) 18%, transparent);
+}
+.nutri-score[data-grade="a"] .nutri-score-letter, .nutri-score[data-grade="b"] .nutri-score-letter { background: color-mix(in srgb, var(--health-ahead) 30%, transparent); }
+.nutri-score[data-grade="d"] .nutri-score-letter, .nutri-score[data-grade="e"] .nutri-score-letter { background: color-mix(in srgb, var(--health-behind) 30%, transparent); }
+.nutri-score-line { margin: 4px 0; }
+.nutri-score-setting { display: grid; gap: 4px; margin-block: 8px; }
+.nutri-score-setting-title { margin: 0; font-weight: 700; }
+.nutri-score-setting .actions button { min-height: 44px; }
+.nutri-score-first { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; }
+@media (forced-colors: active) { .nutri-score-letter { background: Canvas; border-color: CanvasText; } }

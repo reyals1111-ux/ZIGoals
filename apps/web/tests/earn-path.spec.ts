@@ -1,6 +1,10 @@
 import {expect, test} from '@playwright/test';
 import {verifiedLink} from '../../../packages/ecosystem-registry/src/verified-links';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn's path.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF chunk 2 (P1.7–P1.11): the Start-here path on the shared path engine. Six dots in three orbits, each opening

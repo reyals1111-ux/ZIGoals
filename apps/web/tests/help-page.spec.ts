@@ -5,7 +5,9 @@ import {expect, test} from '@playwright/test';
 // writes on view.
 const SECTIONS: [id: string, title: string][] = [
   ['getting-started', 'Three small first steps'], ['data-and-sync', 'Where your data lives'], ['recovery-secret', 'The one thing to keep safe'],
-  ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'], ['questions', 'Good to know about the Alpha'],
+  ['install', 'Install ZIGoals on your iPhone'], ['backups', 'An extra safety net, never a chore'], ['your-ai', 'Your own AI, page by page'],
+  // Session AK follow-up 2 (deliberate): NOVA, notes and tasks have their own topic after ZIGi.
+  ['nova', 'Your command center, your notes and your day'], ['questions', 'Good to know about the Alpha'],
   // Session W Part 24 (deliberate): the release's own topic, before the earlier "What's new".
   ['whole-life', 'Sleep, mind, music, chess, links and more'],
   // Session AA-Local (deliberate): the release's own topic, before the earlier ones.
@@ -24,20 +26,30 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AF (ADR-028, deliberate): this release's topic, after AE's.
   ['af', 'Earn, stake in your own wallet, and your day as one path'],
   // Session AJ (ADR-035, deliberate): this release's topic, after AF's.
-  ['aj', 'Price alerts, Guided journeys, sleep balance and your own look'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['aj', 'Price alerts, Guided journeys, sleep balance and your own look'],
+  // Session AK (ADR-036, deliberate): this release's topic, after AJ's.
+  ['ak', 'Notifications, offline, food, money and your own days'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): the release sections above and the smaller changes now sit, in this
+  // order, under "Earlier updates" after What's new; each region is still checked by its exact title.
+  ['earlier-changes', 'Smaller changes, and where things moved'], ['earlier-updates', 'Earlier updates'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
+// Session AK G2 (RELEASE_REVIEW R24, deliberate): Help's topic index is task-shaped: the ten "New: …" release topics are one
+// "Earlier updates" topic after What's new (their sections keep their ids, so every link and Search result still lands).
+const TOPIC_IDS = ['getting-started', 'data-and-sync', 'recovery-secret', 'install', 'backups', 'your-ai', 'nova', 'questions', 'whats-new-alpha', 'earlier-updates', 'known-limitations', 'feedback'];
 // Session AF Gate C (design critique; deliberate, as strict): the five release names that read like codenames are topic
 // names now ("New: one 4-in-1 look", "New: polish", "New: the final look", "New: stunning, finished", "New: wealth,
 // unlocked"); every label is still checked exactly, in order, with its link.
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one look for every page', 'New: calmer pages', 'New: Light, Nebula and Dark', 'New: Today’s scene, the sidebar and wallets', 'New: Earn, staking and the Checklist', 'New: alerts, journeys and your own look', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'NOVA, notes and tasks', 'Questions', 'What\'s new', 'Earlier updates', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
 // Session AF (ADR-028, deliberate): eighteen topics, AF's after AE's.
 // Session AJ (ADR-035, deliberate): nineteen topics, AJ's after AF's.
-test('Help has one title and nineteen topics, listed before them, each linking to its section', async ({page}) => {
+// Session AK (ADR-036, deliberate): twenty topics, AK's after AJ's.
+// Session AK G2 (RELEASE_REVIEW R24, deliberate): eleven task-shaped topics; the release notes under "Earlier updates".
+test('Help has one title and twelve topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -57,14 +69,18 @@ test('Help has one title and nineteen topics, listed before them, each linking t
     await expect(topics.nth(6)).toBeFocused();
   } else await expect(all).toBeHidden();
   await expect(topics).toHaveText(TOPICS);
-  for (const [index, [id, title]] of SECTIONS.entries()) {
-    await expect(page.getByRole('region', {name: title, exact: true})).toBeVisible();
-    await expect(topics.nth(index)).toHaveAttribute('href', `#${id}`);
-  }
+  for (const [, title] of SECTIONS) await expect(page.getByRole('region', {name: title, exact: true})).toBeVisible();
+  for (const [index, id] of TOPIC_IDS.entries()) await expect(topics.nth(index)).toHaveAttribute('href', `#${id}`);
+  // The release sections and the smaller changes sit inside "Earlier updates", after What's new.
+  const earlier = page.getByRole('region', {name: 'Earlier updates', exact: true});
+  for (const [id] of SECTIONS.filter(([id]) => ['earlier-changes', 'whole-life', 'aa', 'ab', 'abd', 'ac', 'ad', 'ae', 'af', 'aj', 'ak'].includes(id))) await expect(earlier.locator(`#${id}`), id).toHaveCount(1);
   // The topic list stays above the first section at every size.
   const firstSection = page.getByRole('region', {name: 'Three small first steps', exact: true});
   expect((await nav.boundingBox())!.y).toBeLessThan((await firstSection.boundingBox())!.y);
+  // Owner follow-up 2 (deliberate): "NOVA, notes and tasks" is the seventh topic, so Questions is the eighth.
   await topics.nth(6).click();
+  await expect(page).toHaveURL(/#nova$/);
+  await topics.nth(7).click();
   await expect(page).toHaveURL(/#questions$/);
 });
 
@@ -204,7 +220,10 @@ for (const width of [320, 390]) test(`Help fits a ${width} px phone, with links,
   // standalone link placed after a label cannot slip out of the 44 px rule unnoticed (a new in-sentence link moves this).
   // Session AI (MO4, 12f444dd): the data answer's "Privacy" and "Terms" links are two new in-sentence links (37 → 39).
   // Session AJ (ADR-035, Part 10): Known limitations links four of its new lines to their answers (39 → 43).
-  expect(inline).toBe(43);
+  // Session AK (ADR-036): Known limitations links its seven new lines to their answers (43 → 50).
+  // Owner follow-up 2: the NOVA, notes and tasks answers link NOVA, its two guides, Hermes Agent's docs, Notes and Tasks
+  // inside their sentences (50 → 57).
+  expect(inline).toBe(57);
   expect(stranded).toEqual([]);
   expect(tall).toEqual([]);
 });
@@ -265,7 +284,10 @@ test('Session Y: four linkable answers; a hash opens each and nothing is written
 // read-aloud is off by default, and nothing is written on view.
 test('Session Z-Cloud: the new answers open from a hash, the voice answer follows Part 3, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
-  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true}), ai = page.getByRole('region', {name: 'Your own AI, page by page', exact: true});
+  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true});
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): the "what changed / where now" answers (z-status, z-more, z-panel) moved
+  // from Questions and ZIGi's section to "Smaller changes, and where things moved" under Earlier updates; same ids, same text.
+  const changes = page.getByRole('region', {name: 'Smaller changes, and where things moved', exact: true});
   const answers: [string, string][] = [
     ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
     ['z-status', 'Status & wallet'], // Session AB-Design: the answer follows the notice and the sheet
@@ -275,8 +297,8 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
     ['z-units', 'your records stay in kilograms and millilitres'],
     ['z-more', 'Today is one centred column when nothing sits beside it'],
   ];
-  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
-  await expect(ai.locator('#help-z-panel > summary')).toHaveText('What changed in ZIGi’s panel?');
+  for (const [id] of answers) await expect((['z-status', 'z-more'].includes(id) ? changes : questions).locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(changes.locator('#help-z-panel > summary')).toHaveText('What changed in ZIGi’s panel?');
   await expect(page.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
   for (const [id, text] of [...answers, ['z-panel', 'Nothing in the panel wraps onto a second line'], ['your-ai-voice', 'in English or Dutch, wherever your browser offers speech recognition, with or without an AI connected']] as [string, string][]) {
@@ -306,7 +328,9 @@ test('Session AA-Cloud: the new answers open from a hash, say what stays on this
     ['aa-home-screen', 'Safari on iPhone and iPad offers neither the shortcuts nor the share sheet entry for web apps'],
     ['aa-more', 'kept on this device'],
   ];
-  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
+  // Session AK G2 (RELEASE_REVIEW R24, deliberate): aa-more ("What else is new…") moved under Earlier updates; same id and text.
+  const changes = page.getByRole('region', {name: 'Smaller changes, and where things moved', exact: true});
+  for (const [id] of answers) await expect((id === 'aa-more' ? changes : questions).locator(`#help-${id} > summary`), id).toBeVisible();
   await expect(page.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
   for (const [id, text] of answers) {
@@ -444,4 +468,55 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
   await expect(limits.getByRole('link', {name: 'What is the Checklist?', exact: true})).toHaveAttribute('href', '#help-af-checklist');
   await expect(limits.getByRole('link', {name: 'What is the Earn page?', exact: true})).toHaveAttribute('href', '#help-af-earn');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session AK (ADR-036): one answer per feature group, each opening from its hash; the tour opens in place from its button
+// (no dialog, the page stays usable), and nothing is written until the person opens it.
+test('Session AK: the answers open from a hash, the tour opens in place, and nothing is written on view', async ({page}) => {
+  await page.goto('/app/help');
+  const section = page.getByRole('region', {name: 'Notifications, offline, food, money and your own days', exact: true});
+  // Owner follow-ups 1 and 2 (deliberate): the section gained answers for the new features since; the list is the page's.
+  const ids = ['ak-notify', 'ak-offline', 'ak-wallets', 'ak-food', 'ak-nutrition', 'ak-music', 'ak-habits', 'ak-goals', 'ak-wealth', 'ak-money-tools', 'ak-plan', 'ak-review', 'ak-days', 'ak-chess', 'ak-switch', 'ak-data', 'ak-agenda', 'ak-money-more', 'ak-health-more', 'ak-journal-more', 'ak-safety-more', 'ak-zigi-more', 'ak-sleep-wake', 'ak-warmup', 'ak-storage-full', 'ak-progress-toast', 'ak-staking-clarity', 'ak-your-numbers', 'ak-scales', 'ak-journal-prompts', 'ak-wrap-up-tasks', 'ak-focus-bell', 'ak-cycle', 'ak-motion-calm', 'ak-money-quicker', 'ak-receipt-photos', 'ak-cash-forecast', 'ak-spending-map', 'ak-note-useful', 'ak-journal-music'];
+  await expect(section.locator('details.help-question')).toHaveCount(ids.length);
+  for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, words] of [
+    ['ak-notify', 'never what a reminder is for, and every message it sends is empty'],
+    ['ak-offline', 'The offline copies hold the app’s pages, never your records'],
+    ['ak-wallets', 'ZIGoals never holds keys and never moves anything on its own'],
+    ['ak-food', 'Every number read from a photo is an estimate'],
+    ['ak-nutrition', 'A nutrient with no value is left out, never counted as zero'],
+    ['ak-habits', 'your own tap or Undo always wins'],
+    ['ak-goals', 'a projection from your own data, never a guarantee'],
+    ['ak-wealth', 'ZIGoals never pays or cancels anything'],
+    ['ak-money-tools', 'it refuses to print anything that looks like a key or recovery words'],
+    ['ak-plan', 'no result is a guarantee'],
+    ['ak-days', 'it is a pairing, not a cause'],
+    ['ak-chess', 'goes only to lichess.org'],
+    ['ak-data', 'nothing on this device is read or changed'],
+  ] as const) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(words);
+  }
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+  // The tour: a button, then the first stop in place, with no dialog; Next and Back move; Escape closes back to the button.
+  await page.goto('/app/help#ak');
+  await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
+  const open = section.getByRole('button', {name: 'Take the 1-minute tour', exact: true});
+  expect((await open.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await open.click();
+  const tour = section.getByRole('region', {name: 'New in ZIGoals', exact: true});
+  await expect(tour).toContainText('Stop 1 of 7');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(tour.getByRole('link', {name: 'Show me in Settings', exact: true})).toHaveAttribute('href', '/app/settings#install');
+  await tour.getByRole('button', {name: 'Next', exact: true}).click();
+  await expect(tour).toContainText('Stop 2 of 7');
+  expect(JSON.parse((await page.evaluate(() => localStorage.getItem('zigoals:ak-tour:v1')))!)).toMatchObject({version: 1, step: 1});
+  await tour.getByRole('button', {name: 'Back', exact: true}).click();
+  await expect(tour).toContainText('Stop 1 of 7');
+  await page.keyboard.press('Escape');
+  await expect(tour).toHaveCount(0);
+  await expect(open).toBeFocused();
 });

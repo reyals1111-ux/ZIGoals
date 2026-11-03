@@ -5,6 +5,49 @@ import {MEAL_ESTIMATES_KEY} from '../meal-estimates/schema';
 import {TASKS_KEY} from '../tasks/schema';
 import {READING_SOURCES_KEY} from '../wealth-sources/schema';
 import {PRICE_ALERTS_KEY} from '../price-alerts/schema';
+import {NOTIFY_KEY} from '../notify/prefs';
+import {MUSIC_MIX_KEY} from '../music/mix-store';
+import {BILLS_KEY} from '../bills/schema';
+import {BUDGETS_KEY} from '../budgets/schema';
+import {TARGET_ALLOCATION_KEY} from '../allocation/target';
+import {CSV_MAPPINGS_KEY} from '../csv/templates/saved';
+import {AUTO_RULES_KEY} from '../auto-rules/schema';
+import {BACKUP_REMINDER_KEY} from '../backup-reminder';
+import {FOOD_SCANS_KEY} from '../food-scans/schema';
+import {NUTRIENT_EXTRAS_KEY} from '../health-vitamins/extras';
+import {GROCERY_KEY} from '../grocery/schema';
+import {CALORIE_WEEK_KEY} from '../health-aa/calorie-week';
+import {COMPARE_PAIR_KEY} from '../compare/schema';
+import {SUPPLEMENTS_KEY} from '../supplements/schema';
+import {GOV_REMINDERS_KEY} from '../zigchain-eco/governance';
+import {INSIGHT_FEEDBACK_KEY} from '../insight-feedback/store';
+import {FOCUS_ROUNDS_KEY} from '../focus-rounds/store';
+import {CYCLE_KEY} from '../cycle/store';
+import {SCALES_KEY} from '../scales/store';
+import {HEALTH_NUMBERS_KEY} from '../health-numbers/store';
+import {NOVA_HERMES_KEY} from '../nova/hermes-record';
+import {NOVA_SETUP_KEY} from '../nova/setup';
+import {NOVA_WORKFLOWS_KEY} from '../nova/workflows/schema';
+import {NOVA_BRIEFS_KEY} from '../nova/briefs';
+import {NOVA_BRIDGE_KEY} from '../nova/bridge';
+import {NOVA_KEY} from '../nova/store';
+import {CALENDAR_IMPORT_KEY} from '../ics/calendar';
+import {NOTES_KEY} from '../notes/schema';
+import {NETWORTH_MILESTONES_KEY} from '../networth-milestones/milestones';
+import {SAVINGS_CHALLENGES_KEY} from '../savings-challenges/challenges';
+import {DEBT_PLANNER_KEY} from '../debt-planner/store';
+import {WRAPPED_KEY} from '../wrapped/store';
+import {AGENDA_KEY} from '../agenda/store';
+import {JOURNAL_DISPLAY_KEY} from '../on-this-day/store';
+import {FIRST_WEEK_KEY} from '../first-week/store';
+import {EXPERIMENTS_KEY} from '../experiments/store';
+import {MONEY_RULES_KEY} from '../money-rules/schema';
+import {MONEY_REVIEW_KEY} from '../money-review/review';
+import {FI_MODEL_KEY} from '../fi-model/store';
+import {EMERGENCY_SHEET_KEY} from '../emergency-sheet/schema';
+import {MUSCLE_RECOVERY_KEY} from '../muscle-freshness/model';
+import {FOOD_DISPLAY_KEY} from '../food-display/schema';
+import {REWARDS_SHELF_KEY} from '../rewards-shelf/store';
 import {FOCUS_SESSIONS_KEY} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS_KEY} from '../guided/schema';
 import {RECEIPTS_KEY} from '../portfolio/receipts';
@@ -101,6 +144,55 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AJ (CO6, D7): where each wealth reading came from.
   readingSources: READING_SOURCES_KEY,
   priceAlerts: PRICE_ALERTS_KEY,
+  // Session AK Part 2: which notifications this device wants (never the device's push identity, which stays in IndexedDB).
+  notify: NOTIFY_KEY,
+  // Session AK Part 1d: the sound mix, its own volume and timer, and the play-on-silent choice.
+  musicMix: MUSIC_MIX_KEY,
+  // Session AK Parts 5 and 7: habit rules, bills, budgets, the target mix and saved CSV column matches.
+  autoRules: AUTO_RULES_KEY,
+  bills: BILLS_KEY,
+  budgets: BUDGETS_KEY,
+  targetAllocation: TARGET_ALLOCATION_KEY,
+  csvMappings: CSV_MAPPINGS_KEY,
+  // Session AK Part 8.9: the person's own 'I saved a copy' mark and the monthly reminder's switch.
+  backupReminder: BACKUP_REMINDER_KEY,
+  // Session AK Part 4: scan history, extra nutrients, grocery ticks and pantry, the weekly calorie budget.
+  foodScans: FOOD_SCANS_KEY,
+  nutrientExtras: NUTRIENT_EXTRAS_KEY,
+  grocery: GROCERY_KEY,
+  calorieWeek: CALORIE_WEEK_KEY,
+  comparePair: COMPARE_PAIR_KEY,
+  supplements: SUPPLEMENTS_KEY,
+  // Owner follow-up 1 (F4): governance vote reminders.
+  govReminders: GOV_REMINDERS_KEY,
+  insightFeedback: INSIGHT_FEEDBACK_KEY,
+  focusRounds: FOCUS_ROUNDS_KEY,
+  cycle: CYCLE_KEY,
+  scales: SCALES_KEY,
+  healthNumbers: HEALTH_NUMBERS_KEY,
+  novaHermes: NOVA_HERMES_KEY,
+  novaSetup: NOVA_SETUP_KEY,
+  novaWorkflows: NOVA_WORKFLOWS_KEY,
+  novaBriefs: NOVA_BRIEFS_KEY,
+  novaBridge: NOVA_BRIDGE_KEY,
+  nova: NOVA_KEY,
+  calendarImport: CALENDAR_IMPORT_KEY,
+  notes: NOTES_KEY,
+  networthMilestones: NETWORTH_MILESTONES_KEY,
+  savingsChallenges: SAVINGS_CHALLENGES_KEY,
+  debtPlanner: DEBT_PLANNER_KEY,
+  wrapped: WRAPPED_KEY,
+  agenda: AGENDA_KEY,
+  journalDisplay: JOURNAL_DISPLAY_KEY,
+  firstWeek: FIRST_WEEK_KEY,
+  experiments: EXPERIMENTS_KEY,
+  moneyRules: MONEY_RULES_KEY,
+  moneyReview: MONEY_REVIEW_KEY,
+  fiModel: FI_MODEL_KEY,
+  emergencySheet: EMERGENCY_SHEET_KEY,
+  muscleRecovery: MUSCLE_RECOVERY_KEY,
+  foodDisplay: FOOD_DISPLAY_KEY,
+  rewardsShelf: REWARDS_SHELF_KEY,
   focusSessions: FOCUS_SESSIONS_KEY,
   guidedJourneys: GUIDED_JOURNEYS_KEY,
   // Session AI (J14): the exchanges connected and what they last reported (never a key: those stay sealed in IndexedDB).

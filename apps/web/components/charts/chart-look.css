@@ -1,0 +1,37 @@
+/* Session AK (F6): the upgraded chart language (chart-defs.tsx), opt-in with `.zg-chart` on the new charts. Line colours
+   are brand and pillar tokens, the same in every theme: the ink twins are for words only (components/shell/theme-switch.css,
+   ADR-028 H13 and H75: a line, fill or glow keeps Nebula's colour in Light and Dark; Session AK CI-D, theme parity). Labels are drawn at their real size (the charts measure their width), 14 px, in the secondary text colour
+   (at least 4.5:1 on every theme's panel) with a halo of the panel colour where a line runs behind them. */
+:is(.zg-chart, .zg-legend) {
+  --zgc-a0: var(--brand-cyan);
+  --zgc-a1: var(--brand-violet);
+  --zgc-a2: var(--brand-magenta);
+  --zgc-b0: var(--pillar-wealth);
+  --zgc-b1: var(--nebula-pink, var(--brand-magenta));
+  --zgc-band: var(--brand-violet);
+}
+:is(.zg-chart, .zg-legend)[data-pillar=goals] { --zgc-a2: var(--pillar-goals); }
+:is(.zg-chart, .zg-legend)[data-pillar=habits] { --zgc-a2: var(--pillar-habits); }
+:is(.zg-chart, .zg-legend)[data-pillar=health] { --zgc-a2: var(--pillar-health); }
+:is(.zg-chart, .zg-legend)[data-pillar=wealth] { --zgc-a2: var(--pillar-wealth); }
+.zg-chart .zgc-a0 { stop-color: var(--zgc-a0); }
+.zg-chart .zgc-a1 { stop-color: var(--zgc-a1); }
+.zg-chart .zgc-a2 { stop-color: var(--zgc-a2); }
+.zg-chart .zgc-b0 { stop-color: var(--zgc-b0); }
+.zg-chart .zgc-b1 { stop-color: var(--zgc-b1); }
+.zg-chart .zgc-band0 { stop-color: var(--zgc-band); stop-opacity: .34; }
+.zg-chart .zgc-band1 { stop-color: var(--zgc-band); stop-opacity: .08; }
+/* The charts draw at their measured width, so the money charts' 640 px cap would shrink their labels. */
+svg.zg-chart { display: block; width: 100%; max-width: none; height: auto; overflow: visible; }
+svg.zg-chart .zgc-line { stroke-linecap: round; stroke-linejoin: round; }
+svg.zg-chart .money-chart-target { stroke: var(--zgc-b0); }
+svg.zg-chart text { fill: var(--text-secondary); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface-1); stroke-width: 3px; stroke-linejoin: round; }
+/* Legends under these charts: the swatches match the lines (the same tokens, the same dash patterns). */
+.zg-legend .money-key:not(.money-key-b, .money-key-target, .money-key-band, .debt-key-min) { border-top-color: var(--zgc-a0); }
+.zg-legend :is(.money-key-b, .money-key-target) { border-top-color: var(--zgc-b0); }
+.zg-legend .money-key-band { background: linear-gradient(180deg, color-mix(in srgb, var(--zgc-band) 40%, transparent), color-mix(in srgb, var(--zgc-band) 12%, transparent)); }
+@media (forced-colors: active) {
+  svg.zg-chart .zgc-line { stroke: CanvasText !important; filter: none; }
+  svg.zg-chart .zgc-band { fill: none !important; }
+  svg.zg-chart text { fill: CanvasText; stroke: Canvas; }
+}

@@ -50,7 +50,7 @@ function WalletIcon({icon}: {icon: string | null}) {
 
 export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 'sheet'; id?: string; onClose?: (focusTrigger: boolean) => void}) {
   const s = useGoals(), linked = useLinkedWallets(), own = useId(), menuId = id ?? own, router = useRouter();
-  const [evm, setEvm] = useState<EvmWallet[]>([]), [sol, setSol] = useState<SolanaWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState(''), [wcOpen, setWcOpen] = useState(false);
+  const [evm, setEvm] = useState<EvmWallet[]>([]), [sol, setSol] = useState<SolanaWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState(''), [wcOpen, setWcOpen] = useState<false | 'link' | 'stake'>(false);
   const menu = useRef<HTMLDivElement>(null), focusNext = useRef<string | null>(null);
   // EIP-6963: the page's EVM wallets announce themselves when asked, each time the choices open.
   useEffect(() => discoverEvmWallets(setEvm), []);
@@ -139,7 +139,7 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       : <button {...common} type="button" aria-busy={item.busy || undefined} onClick={item.onSelect}>{body}</button>;
   };
   // Phones: the wallets' own in-app browsers and the honest WalletConnect line (the sheet only).
-  if (sheet) groups.push(phoneWalletPaths(undefined, () => { if (blocked) { setStatus(blocked); return; } setWcOpen(true); }));
+  if (sheet) groups.push(phoneWalletPaths(undefined, () => { if (blocked) { setStatus(blocked); return; } setWcOpen('link'); }, undefined, () => { if (blocked) { setStatus(blocked); return; } setWcOpen('stake'); }));
   const notes = groups.filter(g => g.note).map(g => g.note!);
   const bitcoinForm = <form className="wallet-btc-form" aria-label="Watch a Bitcoin address" onSubmit={e => void addBitcoin(e)}>
     <label htmlFor={`${menuId}-btc`}>Bitcoin address</label>
@@ -155,7 +155,7 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       <h4>{g.title}</h4>
       {g.items.length > 0 && <ul>{g.items.map(item => <li key={item.key}>{control(item)}</li>)}</ul>}
       {g.key === 'btc' && btcOpen && bitcoinForm}
-      {g.key === 'phone' && wcOpen && <LoadBoundary label="WalletConnect"><Suspense fallback={<p className="wallet-choices-note">Loading WalletConnect…</p>}><WalletConnectPanel onDone={message => { setWcOpen(false); setStatus(message); }}/></Suspense></LoadBoundary>}
+      {g.key === 'phone' && wcOpen && <LoadBoundary label="WalletConnect"><Suspense fallback={<p className="wallet-choices-note">Loading WalletConnect…</p>}><WalletConnectPanel key={wcOpen} staking={wcOpen === 'stake'} onDone={message => { setWcOpen(false); setStatus(message); }}/></Suspense></LoadBoundary>}
       {g.note && <p className="wallet-choices-note">{g.note}</p>}
     </div>)}
     {statusLine}

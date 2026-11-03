@@ -15,6 +15,8 @@ import {useLocalToday} from '../use-local-today';
 import {GRADIENT_CSS, VisionArt} from './vision-art';
 import './goals.css';
 import {plainErrorMessage} from '../../lib/plain-error';
+// Session AK (BUILD list 2 #1): a calm line while a note looks like recovery words or a key.
+import {SecretGuard} from '../secret-guard/secret-guard';
 
 const now = () => new Date().toISOString();
 const AREA_COLORS = ['#7fd8c9', '#a3b5ff', '#f5c97a', '#f39ccf', '#8fdcf4', '#d2a6f6', '#ffb09e', '#b9e88f'];
@@ -94,6 +96,7 @@ function Reasons({goalKey, extras}: {goalKey: string; extras: Extras}) {
         <label className="field"><span>Why it matters to you</span><textarea value={why} maxLength={1000} onChange={e => setWhy(e.target.value)} placeholder="So I can sleep without money worries" /></label>
         <label className="field"><span>What could get in the way</span><textarea value={obstacle} maxLength={1000} onChange={e => setObstacle(e.target.value)} placeholder="Weekend spending" /></label>
         <label className="field"><span>Your if-then plan</span><textarea value={ifThen} maxLength={1000} onChange={e => setIfThen(e.target.value)} placeholder="If I want to buy something big, then I wait one day" /></label>
+        <SecretGuard text={why} onRemove={() => setWhy('')}/><SecretGuard text={obstacle} onRemove={() => setObstacle('')}/><SecretGuard text={ifThen} onRemove={() => setIfThen('')}/>
         <button className="secondary" disabled={!dirty}>Save the plan</button>
       </fieldset>
     </form>
@@ -119,7 +122,8 @@ function SubGoals({goalKey, summary, goals, extras}: {goalKey: string; summary?:
     </label>
     {parentGoal && <p className="fine">Part of <Link href={parentGoal.href}>{parentGoal.name}</Link>.</p>}
     {kids.length > 0 ? <>
-      <p className="goal-rollup"><strong>{rollUpWords(r!, (v, c) => formatGoalAmount(v, c))}</strong></p>
+      {/* Release review R1 (Blocker): a goal with no summary of its own (an average goal) shows the count, never a crash. */}
+      <p className="goal-rollup"><strong>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : `${kids.filter(k => k.status === 'completed').length} of ${kids.length} smaller goals done`}</strong></p>
       <ul className="goal-tree" aria-label="Sub-goals">{kids.map(k => <li key={k.key}><Link href={k.href}>{k.name}</Link><span className="goal-tree-meta">{k.status === 'completed' ? 'Done' : k.progressBound === 'unavailable' ? 'Progress unknown' : `${Math.floor(Number(k.progressPct))}%`}</span>{childrenOf(x, k.key).length > 0 && <ul>{childrenOf(x, k.key).map(c => byKey.get(c)).filter((g): g is GoalSummary => !!g).map(c => <li key={c.key}><Link href={c.href}>{c.name}</Link><span className="goal-tree-meta">{c.status === 'completed' ? 'Done' : `${Math.floor(Number(c.progressPct))}%`}</span></li>)}</ul>}</li>)}</ul>
     </> : <p className="fine">No smaller goals yet. On another goal, choose this one under “Part of a bigger goal” (year → quarter → month, three levels at most).</p>}
   </article>;
@@ -131,6 +135,7 @@ function Story({goalKey, extras}: {goalKey: string; extras: Extras}) {
     <h3 id={`${id}-title`}>Your story</h3>
     <form onSubmit={e => { e.preventDefault(); extras.change(goalKey, x => setGoalStory(x, goalKey, story, now()), 'Your story is on the Hall of achievements.'); }}>
       <label className="field"><span>A few words for the Hall of achievements</span><textarea value={story} maxLength={2000} onChange={e => setStory(e.target.value)} /></label>
+      <SecretGuard text={story} onRemove={() => setStory('')}/>
       <button className="secondary" disabled={!extras.writable || story === (extras.data.goals[goalKey]?.story ?? '')}>Save the story</button>
     </form>
   </article>;

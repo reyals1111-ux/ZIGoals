@@ -56,6 +56,11 @@ const MORE_NOTES: Record<string, string> = {
   "/app/journey": "Your XP, quests and badges",
   "/app/checklist": "Today's path of starred dots",
   "/app/governance": "Proposals in plain words, and your vote",
+  // Session AK G2 (RELEASE_REVIEW_2 R2-10): the navigation extras of More, each with its one line too.
+  "/app/nova": "ZIGi's full-screen command center",
+  "/app/tasks": "Things to do, with a day or a goal",
+  "/app/notes": "Capture now, file later",
+  "/app/journal": "How your days felt, in your words",
 };
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };
@@ -84,6 +89,11 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/checklist") return { title: "Checklist", back: { href: "/app", label: "Today" } };
   // Session AF (crit1): the Day timeline and Stories are reached from Today's cards, so they lead back there too.
   if (path === "/app/timeline") return { title: "Day timeline", back: { href: "/app", label: "Today" } };
+  // Owner follow-up 1 (F5): the agenda is reached from Today's timeline card and Search, so it leads back to Today.
+  if (path === "/app/agenda") return { title: "Agenda", back: { href: "/app", label: "Today" } };
+  // Owner follow-up 2 (B, T1): Notes and Tasks are reached from Today, the Journal, the Agenda and search, so they lead back to Today.
+  if (path === "/app/notes") return { title: "Notes", back: { href: "/app", label: "Today" } };
+  if (path === "/app/tasks") return { title: "Tasks", back: { href: "/app", label: "Today" } };
   if (path === "/app/stories") return { title: "Stories", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : OFF_NAV_TITLES[path] ?? "ZIGoals" };

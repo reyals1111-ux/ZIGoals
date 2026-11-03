@@ -37,7 +37,18 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: origin ? { canonical: new URL("/app", origin).href } : undefined,
     icons: { icon: { url: "/icon.svg", type: "image/svg+xml", sizes: "any" }, apple: { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" } },
     // The name under the Home Screen icon (otherwise the page title); title only, no capability meta (Session L).
-    appleWebApp: { title: "ZIGoals", capable: false },
+    // Session AK Part 3 (A18): the screen an installed ZIGoals shows while it opens on iPhone and iPad (art-src/pwa-startup.mjs).
+    appleWebApp: { title: "ZIGoals", capable: false, startupImage: [
+      { url: "/startup/startup-1320x2868.jpg", media: "(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      { url: "/startup/startup-1206x2622.jpg", media: "(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      { url: "/startup/startup-1290x2796.jpg", media: "(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      { url: "/startup/startup-1179x2556.jpg", media: "(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      { url: "/startup/startup-1170x2532.jpg", media: "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" },
+      { url: "/startup/startup-828x1792.jpg", media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      { url: "/startup/startup-750x1334.jpg", media: "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      { url: "/startup/startup-2048x2732.jpg", media: "(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+      { url: "/startup/startup-1640x2360.jpg", media: "(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" },
+    ] },
     // The installed app's manifest (Session L) is a static file since Session X Part 5a, public/manifest.webmanifest, at
     // the same address with byte-identical JSON (name, icons, colours, id, start page, scope, standalone display; no
     // service worker or offline cache), so the asset layer answers it without a Worker call and saved Home Screen apps
@@ -46,17 +57,24 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.webmanifest",
     robots: { index: false, follow: false, nocache: true },
     openGraph: {
-      title: "ZIGoals Alpha",
-      description: "Local first. Staking signs in your own wallet; nothing else moves, and ZIGoals never holds keys.",
+      title: RELEASE_NAME,
+      description: APP_DESCRIPTION,
       ...(origin ? { images: [{ url: "/social-card.png", width: 1200, height: 630 }] } : {}),
     },
     // Session X Part 12 (WCAG 2.4.2): every page names itself ("Goals · ZIGoals Alpha"); a page without its own title
     // keeps this default.
-    title: { default: "ZIGoals Alpha — Your goals. Onchain.", template: "%s · ZIGoals Alpha" },
-    description:
-      "Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.",
+    title: { default: RELEASE_NAME, template: `%s · ${RELEASE_NAME}` },
+    description: APP_DESCRIPTION,
   };
 }
+/**
+ * Session AK X1 (RELEASE_REVIEW R8; owner: "consumer first, chain invisible"): the release name and the app's description
+ * in one place, for every tab title, the share card and search; public/manifest.webmanifest carries the same description
+ * (a static file, kept in step by tests/install-manifest.spec.ts). The release is still the Alpha ("Premium · free during
+ * the Alpha" stays as the owner decided).
+ */
+const RELEASE_NAME = "ZIGoals Alpha";
+const APP_DESCRIPTION = "Goals, habits, health and wealth in one private app. Your records stay on your device.";
 export default async function RootLayout({
   children,
 }: {

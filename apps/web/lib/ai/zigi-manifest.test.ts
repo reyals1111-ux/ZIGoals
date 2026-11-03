@@ -26,7 +26,8 @@ test('every size file of every skin exists, is a WebP under its budget, and keep
     for (const [state, files] of Object.entries(skin.states)) {
       expect(Object.keys(manifest.states), `${skinName}: ${state}`).toContain(state);
       for (const name of SIZE_NAMES) { const f = files?.[name]; if (f) { expect(f.endsWith('.webp')).toBe(true); expect(statSync(join(PUBLIC, f)).size).toBeLessThanOrEqual(manifest.budgetBytes[name]); } }
-      if (files?.animated) { expect(files.animated.endsWith('.anim.webp')).toBe(true); expect(statSync(join(PUBLIC, files.animated)).size).toBeLessThanOrEqual(manifest.budgetBytes.animated); }
+      // Session AK Part 13 (ADR-036 D6, the art arrived): a 192×253 clip (the 2× set, by its VP8X canvas) is within budgetBytes.animated2x; any other within budgetBytes.animated.
+      if (files?.animated) { expect(files.animated.endsWith('.anim.webp')).toBe(true); const b = readFileSync(join(PUBLIC, files.animated)), twoX = b.toString('latin1', 12, 16) === 'VP8X' && 1 + b.readUIntLE(24, 3) === 192 && 1 + b.readUIntLE(27, 3) === 253; expect(b.length, files.animated).toBeLessThanOrEqual(twoX ? (manifest.budgetBytes as {animated2x: number}).animated2x : manifest.budgetBytes.animated); }
       if (files?.animatedFallback) { expect(files.animatedFallback.endsWith('.anim.png')).toBe(true); expect(statSync(join(PUBLIC, files.animatedFallback)).size).toBeLessThanOrEqual(manifest.budgetBytes.animated); }
     }
     expect(Math.abs(skin.opticalOffset.x), `${skinName} offset x`).toBeLessThan(0.25); expect(Math.abs(skin.opticalOffset.y), `${skinName} offset y`).toBeLessThan(0.25);

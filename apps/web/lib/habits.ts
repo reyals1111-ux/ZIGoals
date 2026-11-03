@@ -186,10 +186,19 @@ export function editHabit(data: HabitData, id: string, raw: HabitInput, now = ne
 export function setHabitState(data: HabitData, id: string, state: HabitState, now = new Date()): HabitData { return replaceHabit(data, id, (habit) => changeRule(habit, { state }, now,habitCalendarDay(data,now))); }
 
 function daysBetween(from: string, to: string): number { return Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000); }
-function recurrenceMatches(rule: HabitRule, date: string): boolean {
+/**
+ * Session AK F0 (5.1, TIER 3 (stored format), additive): a schedule refinement kept OUTSIDE the strict habit record — "the
+ * first Monday of the month" is stored as `weekdays: [1]` here plus an overlay in the loose habit extras record
+ * (lib/habit-month-weekday). The browser installs it (lib/habit-month-weekday/install.ts); with none installed (the
+ * server, tests, older builds) a weekdays rule is read exactly as stored. It can only narrow a weekdays rule, never add a day.
+ */
+export type HabitScheduleOverlay = {allows: (habitId: string, schedule: HabitRule["schedule"], date: string) => boolean; label?: (habitId: string, schedule: HabitRule["schedule"]) => string | null; /** Changes whenever the overlay does, so remembered results are worked out again. */ version?: () => number};
+let scheduleOverlay: HabitScheduleOverlay | null = null;
+export function setHabitScheduleOverlay(next: HabitScheduleOverlay | null): void { scheduleOverlay = next; }
+function recurrenceMatches(rule: HabitRule, date: string, habitId?: string): boolean {
   const schedule = rule.schedule;
   if (schedule.kind === "daily" || schedule.kind === "frequency") return true;
-  if (schedule.kind === "weekdays") return schedule.days.includes(localWeekday(date));
+  if (schedule.kind === "weekdays") return schedule.days.includes(localWeekday(date)) && (!habitId || !scheduleOverlay || scheduleOverlay.allows(habitId, schedule, date));
   if (schedule.kind === "interval") return date >= schedule.anchor && daysBetween(schedule.anchor, date) % schedule.every === 0;
   return schedule.days.includes(Number(date.slice(-2)));
 }
@@ -215,12 +224,12 @@ type AggregateOutcome = {
  * schema parse or a spread), so a result can be kept for the habit object it was computed from. The stamp guards
  * against an in-place push or a replaced array anyway, which then recomputes. Keys hold the arguments.
  */
-type HabitMemo = { entries: Habit["entries"]; rules: Habit["rules"]; entryCount: number; ruleCount: number; values: Map<string, unknown> };
+type HabitMemo = { entries: Habit["entries"]; rules: Habit["rules"]; entryCount: number; ruleCount: number; overlay: number; values: Map<string, unknown> };
 const habitMemo = new WeakMap<Habit, HabitMemo>();
 function memoized<T>(habit: Habit, key: string, compute: () => T): T {
-  let memo = habitMemo.get(habit);
-  if (!memo || memo.entries !== habit.entries || memo.rules !== habit.rules || memo.entryCount !== habit.entries.length || memo.ruleCount !== habit.rules.length) {
-    memo = { entries: habit.entries, rules: habit.rules, entryCount: habit.entries.length, ruleCount: habit.rules.length, values: new Map() };
+  let memo = habitMemo.get(habit); const overlay = scheduleOverlay?.version?.() ?? 0;
+  if (!memo || memo.entries !== habit.entries || memo.rules !== habit.rules || memo.entryCount !== habit.entries.length || memo.ruleCount !== habit.rules.length || memo.overlay !== overlay) {
+    memo = { entries: habit.entries, rules: habit.rules, entryCount: habit.entries.length, ruleCount: habit.rules.length, overlay, values: new Map() };
     habitMemo.set(habit, memo);
   }
   if (memo.values.has(key)) return memo.values.get(key) as T;
@@ -235,7 +244,7 @@ function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome
   const groups = new Map<string, Group>();
   for (let date = habit.startDate; date <= today; date = addLocalDays(date, 1)) {
     const rule = habitRuleOn(habit, date); const period = rule ? aggregatePeriod(rule) : undefined;
-    if (!rule || !period || rule.state !== "active" || !baseEndAllows(rule, date) || !recurrenceMatches(rule, date)) continue;
+    if (!rule || !period || rule.state !== "active" || !baseEndAllows(rule, date) || !recurrenceMatches(rule, date, habit.id)) continue;
     const bounds = periodBounds(date, period); const key = `${period}:${bounds.start}`; const existing = groups.get(key);
     if (existing) { existing.latestRule = rule; existing.signatures.add(ruleOutcomeKey(rule)); existing.scheduledDates.push(date); }
     else groups.set(key, { ...bounds, period, latestRule: rule, signatures: new Set([ruleOutcomeKey(rule)]), scheduledDates: [date] });
@@ -244,7 +253,7 @@ function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome
     const entries = habit.entries.filter((entry) => {
       if (entry.date < group.start || entry.date > group.end || entry.date > today) return false;
       const rule = habitRuleOn(habit, entry.date);
-      return !!rule && rule.state === "active" && baseEndAllows(rule, entry.date) && recurrenceMatches(rule, entry.date) && aggregatePeriod(rule) === group.period;
+      return !!rule && rule.state === "active" && baseEndAllows(rule, entry.date) && recurrenceMatches(rule, entry.date, habit.id) && aggregatePeriod(rule) === group.period;
     });
     const logged = entries.filter((entry) => entry.disposition === "logged");
     const explicitFailure = entries.some((entry) => entry.disposition === "failed");
@@ -270,7 +279,7 @@ function countCompletedOutcomesBefore(habit: Habit, date: string): number {
   const dayCompletions = habit.entries.filter((entry) => {
     if (entry.date > cutoff || entry.disposition !== "logged") return false;
     const rule = habitRuleOn(habit, entry.date);
-    return !!rule && !aggregatePeriod(rule) && rule.state === "active" && baseEndAllows(rule, entry.date) && recurrenceMatches(rule, entry.date) && individualSuccess(rule, entry.count);
+    return !!rule && !aggregatePeriod(rule) && rule.state === "active" && baseEndAllows(rule, entry.date) && recurrenceMatches(rule, entry.date, habit.id) && individualSuccess(rule, entry.count);
   }).length;
   return dayCompletions + rawAggregateOutcomes(habit, cutoff).filter((outcome) => outcome.complete).length;
 }
@@ -280,7 +289,7 @@ function endAllows(habit: Habit, rule: HabitRule, date: string): boolean {
   if (end.kind === "completions") return completedOutcomesBefore(habit, date) < end.count;
   return true;
 }
-function scheduledOn(habit: Habit, rule: HabitRule | undefined, date: string): boolean { return !!rule && rule.state === "active" && endAllows(habit, rule, date) && recurrenceMatches(rule, date); }
+function scheduledOn(habit: Habit, rule: HabitRule | undefined, date: string): boolean { return !!rule && rule.state === "active" && endAllows(habit, rule, date) && recurrenceMatches(rule, date, habit.id); }
 function periodResult(habit: Habit, rule: HabitRule, date: string, today: string) {
   const period = aggregatePeriod(rule)!; const bounds = periodBounds(date, period);
   return rawAggregateOutcomes(habit, today).find((outcome) => outcome.period === period && outcome.start === bounds.start)
@@ -483,7 +492,10 @@ function computeHabitTrends(habit: Habit, today: string) {
     return { period: key, success, total, percentage: total ? Math.round(success / total * 100) : 0 };
   });
 }
-export function scheduleLabel(schedule: HabitRule["schedule"]): string {
+/** `habitId` (Session AK F0, 5.1): a habit's own label, so "First Monday of the month" reads as such where its overlay is installed. */
+export function scheduleLabel(schedule: HabitRule["schedule"], habitId?: string): string {
+  const own = habitId && scheduleOverlay?.label ? scheduleOverlay.label(habitId, schedule) : null;
+  if (own) return own;
   if (schedule.kind === "daily") return "Every day";
   if (schedule.kind === "weekdays") return schedule.days.map((day) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day]).join(" · ");
   if (schedule.kind === "interval") return `Every ${schedule.every} days`;

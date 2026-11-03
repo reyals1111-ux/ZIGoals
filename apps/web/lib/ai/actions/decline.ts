@@ -88,9 +88,21 @@ const EXPLAIN_ASK = new RegExp(`^${FILLERS}(?:explain|tell me|show me|summari[sz
 const QUESTION_LEAD = new RegExp(`^${FILLERS}(?:how|what(?:'s)?|which|when|where|why|who|whose|average|avg|total|list|show|hoe|hoeveel|wat|welke?|wanneer|waar|waarom|wie|did (?:i|my)|do i|does my|have i|has my|am i|is (?:my|there|it)|are (?:my|there|we)|was (?:my|it)|were my|can i|should i|heb ik|ben ik|is mijn|zijn mijn|was mijn|kan ik|moet ik)\\b`, 'i');
 const WRITE_VERB = '(?:log|record|track|add|set|make|create|mark|tick|put|use|move|rename|call|pause|resume|stack|switch|turn|remember|remind|start|stop|skip|save|plan|note|change|hide|unhide|noteer|voeg|zet|maak|vink|markeer|herinner|onthoud|pauzeer|hernoem|plan|sla|stel|gebruik|verplaats|begin)';
 const COMMAND = new RegExp(`^${FILLERS}${WRITE_VERB}\\b|\\b(?:and|then|en|dan|also|ook)\\s+(?:also\\s+|ook\\s+)?${WRITE_VERB}\\b|\\blog (?:it|that|this)\\b|\\bput (?:it|that|this) (?:in|down|on)\\b|\\bzet (?:dat|het|dit) er\\b|\\bshow\\b.{0,60}\\b(?:view|mode|on today|keto|net carbs|again)\\b|\\blaat\\b.{0,60}\\b(?:weergave|pagina|netto|keto|weer zien|op vandaag)\\b`, 'i');
-const READ_ONLY_BLOCK = /"kind"\s*:\s*"(?:open-page|open-search|open-review|calculator-scenario)"/i;
+// Session AK (Part 12): a what-if (a projection card) and a scan (opens a page) write nothing either.
+// Owner follow-up 1 (F9): opening the agenda or Wrapped writes nothing either (the agenda's chosen view is a display choice).
+// Owner follow-up 2 (N5): opening Focus sessions writes nothing either (the session starts on the person's tap there).
+const READ_ONLY_BLOCK = /"kind"\s*:\s*"(?:open-page|open-search|open-review|calculator-scenario|what-if|scan-food|open-agenda|open-wrapped|start-focus)"/i;
 const clausesOf = (message: string): string[] => normalizeSpoken(message).split(/(?<=[.!?])\s+|\n+|;\s*|:\s+|,\s*(?=(?:and|then|en|dan)\s)/i).map(s => s.replace(/^(?:and|then|en|dan)\s+/i, '').trim()).filter(Boolean);
+/**
+ * Owner follow-up 2 (N9): a polite ask to read, sum up or explain ("can you summarise the file I imported?", "kun je mijn
+ * notities samenvatten?") is a question too, when no write verb follows anywhere: a card that the material asked for (a
+ * note, a pasted email, an imported file) is then dropped like any card in a reply to a question.
+ */
+const POLITE_READ = new RegExp(`^${FILLERS}(?:can|could|would|will|kun|kan|zou)\\s+(?:you|u|je|jij)\\s+(?:please\\s+|even\\s+)?(?:summari[sz]e|explain|describe|tell me|show me|read|list|compare|go through|vat|lees|leg|beschrijf|vertel)\\b`, 'i');
+const WRITE_ANYWHERE = new RegExp(`\\b${WRITE_VERB}\\b`, 'i');
+const politeRead = (clause: string) => POLITE_READ.test(clause) && !COMMAND.test(clause) && !WRITE_ANYWHERE.test(clause.replace(POLITE_READ, ''));
 const asksOnly = (clause: string): boolean => {
+  if (politeRead(clause)) { const intent = detectIntent(clause); return !(intent.log || intent.plan || intent.refuse); }
   if (POLITE_REQUEST.test(clause) || COMMAND.test(clause)) return false;
   const intent = detectIntent(clause);
   if (intent.log || intent.plan || intent.refuse) return false;
@@ -98,8 +110,8 @@ const asksOnly = (clause: string): boolean => {
 };
 /** Whether the message only asks (every clause a question or an explain ask; no command, no polite request). */
 export function isPureQuestion(message: string): boolean {
-  if (POLITE_REQUEST.test(normalizeSpoken(message))) return false;
   const clauses = clausesOf(message);
+  if (POLITE_REQUEST.test(normalizeSpoken(message)) && !clauses.filter(c => POLITE_REQUEST.test(c)).every(politeRead)) return false;
   return clauses.length > 0 && clauses.every(asksOnly);
 }
 /**

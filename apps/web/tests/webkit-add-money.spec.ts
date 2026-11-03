@@ -1,5 +1,9 @@
 import {expect, test} from '@playwright/test';
 import {SOL, addMoneyFixtures, ready} from './add-money-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Add money.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L2b, Part 4; A2.2–A2.5): Add money at phone width (390 × 844), run in WebKit by playwright.webkit.config.ts

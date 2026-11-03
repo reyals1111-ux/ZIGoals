@@ -65,7 +65,10 @@ the chain to the skin's base frame. Every chain ends at idle; the manifest test 
 | peek | F022 | loop | 4 s | idle | the "Show ZIGi" edge tab while ZIGi is hidden; the knock (Part 13) |
 | loading-model | F023 | loop | 1.6 s | thinking | Chrome's on-device model loads (Part 15) |
 
-### The art each state wears (Studio-2, Session X-Local Part 1)
+### The art each state wears (Studio-2, Session X-Local Part 1; history since Session AK Part 13)
+
+**Session AK Part 13 (2026-11-01):** Studio-4 delivered all 25 states with their own five files (LOOK v-final); no state
+wears another any more, and `wears` is gone from the manifest. The table below is kept as the record of Studio-2's choices.
 
 Studio-2 delivered clips for eleven states. The other fourteen wear a delivered clip (the manifest's `wears`), chosen after
 watching every clip on the studio's review page, and keep their own small CSS move (`zigi.css`) on top. Studio-4 slots
@@ -101,7 +104,7 @@ Three rules are never broken:
 
 | Skin | Label | Status |
 |---|---|---|
-| `origami-nebula` | Original | the default; Studio-2 art (eleven clips, the other states wear one of them) |
+| `origami-nebula` | Original | the default; Studio-4 art since Session AK Part 13 (2026-11-01, `review/studio4-assets` @ `bdd8319b`): all 25 states with their own clips, and 26 extras — reactions R001–R013, the in-place greeting X001, idle variants X010–X012, the gaze set X020–X022, the Checklist's cheer X030, the variants X050–X054 (Studio-2 art before) |
 
 Customize also shows `comingSoon` (3) "Coming soon" silhouette tiles. They are not selectable: they are honest
 placeholders for looks being drawn. Unknown skin names, such as a skin chosen in a later build, show the default.
@@ -126,27 +129,48 @@ To add a skin:
   | 1× | 96 × 126 | every size up to 96 px wide | 40 KB |
   | 2× | 192 × 253 | high-density screens | 100 KB |
   | large | 480 × 632 | above 192 px | 200 KB |
-  | animated | 192 × 253 | one file per state, every size up to 192 px | 400 KB |
+  | animated (the 2× set, ADR-036 D6) | 192 × 253 | one clip per state or extra, every size up to 192 px; loaded lazily, one clip at a time, never in route JS | 2.6 MB (`budgetBytes.animated2x`) |
+  | animated app set / APNG fallback | 96 × 126 | the APNG where a browser cannot play animated WebP (an app-set WebP would also be accepted) | 400 KB (`budgetBytes.animated`) |
 
-  The manifest test enforces these against the files on disk.
+  The manifest test enforces these against the files on disk. Session AK Part 13: Studio-4 ships the 2× set for every
+  clip (largest F008 sleepy, 2,452,878 B; median about 1.0 MB) and the 96 × 126 APNGs; its 96 × 126 animated WebPs were
+  verified and left out (superseded by the 2× clip of the same name, the manifest has one animated slot).
+  Every clip lasts exactly its contract length (INTEGRATION-HANDOFF.md §3): the WebP at 24 fps, the APNG at 12 fps.
 - **Naming (the studio's names, kept exactly so that a later delivery is a pure file swap, ADR-017 S2):**
   - `<code>-<state>.webp`, `<code>-<state>-2x.webp`, `<code>-<state>-large.webp`;
   - an animated state adds `<code>-<state>.anim.webp` and its APNG fallback `<code>-<state>.anim.png` (96 × 126,
     12 fps, a 255-colour palette with binary alpha: shown only where a browser cannot play animated WebP);
   - Studio-4 extras follow the same shape with their own codes: `X001-greeting-in-place…`, `X010-idle-glance…`,
     `X020-gaze-chat-input…`, `R001-…` to `R013-…`.
-- **Brand inventory test:** `lib/brand-assets.test.ts` pins the number of `-2x` files (28) and exempts `-large` frames
-  and `.anim.webp` clips. `lib/ai/zigi-assets.test.ts` checks every delivered file mechanically: the format from its bytes,
-  the pixel size, the byte budget, the loop count (loops loop, one-shots play once), every state resolvable, every
-  fallback chain ending in an existing file, and the Studio-4 slots present and empty.
+- **Brand inventory test:** `lib/brand-assets.test.ts` pins the number of `-2x` files (68 since Session AK Part 13: 51
+  ZIGi stills and 17 marks, words and figures; it was 28) and exempts `-large` frames and `.anim.webp` clips.
+  `lib/ai/zigi-assets.test.ts` checks every delivered file mechanically: the format from its bytes, the pixel size (an
+  animated WebP by its header: the 2× set or the app set), the byte budget, the frame count and the exact length, the
+  loop count (loops loop, one-shots play once), every state resolvable to its own files, every fallback chain ending at
+  idle, every filled Studio-4 slot passing the same checks, the triggers, and no file in the skin's folder that the
+  manifest does not name.
 - **Per-state entries:** `skins.<skin>.states.<state>` = `{"1x": …, "2x": …, "large": …, "animated": …,
   "animatedFallback": …, "wears"?: <state>}`. Any field may be missing; a missing one falls back as above.
-- **The Studio-4 slots** (`skins.<skin>.extras`, data only, `null` until the files land): `reactions` R001–R013,
-  `idleVariants` (X010, X011), `transitions` (`greetingInPlace` X001, `chain`), `gaze` (`chatInput` X020, `viewer` X021,
-  `target` X022). `reactionTriggers` at the top level names the semantic event each reaction answers; it stays `null`
-  until Studio-4 or the owner names it (ADR-017 S11). The importer fills the slots; no code changes for a swap.
-- **The receipt:** every delivered file's SHA-256 is in `docs/verification/x-local/STUDIO2_RECEIPT.md`; the importer
-  verifies a new delivery against a receipt of that shape (or a `SHA256SUMS`) and refuses anything unlisted.
+- **The Studio-4 slots** (`skins.<skin>.extras`, data only, `null` until the files land; filled since Session AK Part 13):
+  `reactions` R001–R013, `idleVariants` (X010, X011, X012), `transitions` (`greetingInPlace` X001, `chain` — empty: the
+  conversation's order is the machine's own), `gaze` (`chatInput` X020, `viewer` X021, `target` X022), `celebrations`
+  (`cheer` X030), `variants` (`speakingB` X050, `speakingC` X051, `listeningB` X052, `thinkingB` X053, `celebrateSmall`
+  X054 — the names of Studio-4's IMPORTER-PATCH.md; the pools are read from the clips' names). Each clip carries its
+  `name`, `files`, `kind` and `durationMs` (the handoff's table, equal to the WebP's own frame durations); the fourteen
+  new states also carry their own `durationMs`. `reactionTriggers` at the top level names the semantic event each reaction
+  answers (Studio-4's `reactions.json`): R001–R010 the ten reaction events of the same names; R011 `connection_lost`,
+  R012 `connection_restored`, R013 `user_dismissed` — three host facts that keep their own meaning and play the clip as
+  well (`HOST_FACT_REACTIONS`, semantic.ts). `journey_step` and `companion_hidden` have no clip and are only noted.
+  Where they play: the reactions over the current state (alive.ts); the idle variants in the rest rotation (idle.ts);
+  the variants in the speaking/listening/thinking/small-success pools (variants.ts); X030 in the Checklist's orbit
+  cheer (path.tsx, path-zigi.tsx); X001 and the gaze set are not played anywhere yet. Meet ZIGi shows every one.
+- **The receipt:** every delivered file's SHA-256 is in `docs/verification/x-local/STUDIO2_RECEIPT.md` (Studio-2) and
+  `docs/verification/session-ak/STUDIO4_RECEIPT.md` (Studio-4); the importer verifies a new delivery against a receipt
+  of that shape (or a `SHA256SUMS`) and refuses anything unlisted.
+- **Push art** (Session AK Part 13): `public/icons/zigi-push-icon-192.png` (192 × 192, 75,138 B) and
+  `zigi-push-badge-96.png` (96 × 96, monochrome), Studio-4's `push/zigi-notification-192.png` and `zigi-badge-96.png`
+  copied under these names (the bytes untouched); `public/sw.js` `PUSH_ART` names them; the app icon `zigoals-192.png`
+  is unchanged. The importer's push budget is 80 KB (was 40 KB). Stills only: notifications cannot animate.
 - **Animated files:**
   - The first frame is the still pose (NEUTRAL).
   - Loops loop seamlessly; one-shots end on the still pose within the state's duration and hold it until ZIGi rests.
@@ -155,7 +179,8 @@ To add a skin:
   - The poster shows first; the clip is fetched only when its state shows and ZIGi is on screen, decoded off screen,
     then swapped in (`zigi-image.tsx`). Nothing preloads every clip.
 - **Pose:** the figure stands on the baseline of its box (`object-fit: contain`) and fills 83 % of the frame's height
-  (feet 2 % above the bottom: room for the hop and the raised arms). The drop shadow is CSS, not part of the file.
+  (feet 2 % above the bottom: room for the hop and the raised arms). Studio-4's idle measures the same (82–83 %, its
+  1× bounding box identical to Studio-2's), so the launcher's box is unchanged. The drop shadow is CSS, not part of the file.
 
 ## Optical centre
 
@@ -163,7 +188,10 @@ ZIGi is not symmetric, so centring its box in the launcher's circle leaves the f
 carries `opticalOffset {x, y}`. This is how far to move the figure so that its **alpha-weighted centre** (each pixel
 weighted by its opacity) lands on the circle's centre. The values are fractions of the figure's box width and height.
 
-- **The original skin:** x +0.023, y −0.090, measured from `F001-idle.webp` (1×, 2× and large agree to 0.002) in
+- **The original skin, Studio-4 (Session AK Part 13):** x +0.022, y −0.090, the studio's measurement (INTEGRATION-HANDOFF.md
+  §5), re-measured from Studio-4's `F001-idle.webp`, `-2x` and `-large` in Chromium (HeadlessChrome 153, the runbook's canvas measurement on the production build) on 2026-11-01: 1× +0.0224 / −0.0904, 2× +0.0225 / −0.0904, large +0.0225 / −0.0904 (they agree within 0.002; the figure's visual centre at 0.478 / 0.590 of its box); the
+  manifest's `opticalOffset` and `ai-launcher.css` `--zigi-ox` / `--zigi-oy` carry it.
+- **Studio-2 (before):** x +0.023, y −0.090, measured from `F001-idle.webp` (1×, 2× and large agree to 0.002) in
   Chrome on 2026-10-07. The figure's visual centre sits at 0.477 / 0.589 of its box, low because the figure keeps
   headroom; the offset lifts it onto the circle's centre. (The placeholder measured x −0.041, y +0.001.)
 - **The box:** the launcher's figure box is 1.18× the placeholder's (52 px in the 56 px circle; 45 px for S, 61 px for
@@ -225,5 +253,9 @@ weighted by its opacity) lands on the circle's centre. The values are fractions 
 - **Meet ZIGi** (`/app/zigi`):
   - shows every state of every skin at the launcher's, the panel's and a large size, with its code, kind and fallback;
   - one-shots play again on request, and the animation choice sits at the top;
+  - Session AK Part 13: under the states, every Studio-4 move (`MOVE_TEXT`, state-gallery.ts) in four groups —
+    Reactions, While resting, Variations, Special moves — at the same three sizes with its meaning and when it appears
+    ("Not used yet." for X001 and the gaze set); its clip plays while motion is allowed and the card is in view, the
+    stills under reduced motion, Motion Off and ZIGi's Off;
   - it is linked from Customize, not in the navigation; the phone's top bar reads "Meet ZIGi", with Back to Settings;
   - it reads no records and writes nothing on view.

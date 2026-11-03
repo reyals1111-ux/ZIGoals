@@ -1,0 +1,12 @@
+/* Session AK (item 20): the planner's template fold. Theme tokens only. */
+.diet-templates { display: grid; gap: 8px; }
+.diet-templates h3 { margin: 0; }
+.diet-templates-choice { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+.diet-templates-option { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.diet-templates-option input { inline-size: 20px; block-size: 20px; margin-block-start: 2px; flex: none; }
+.diet-templates-option span { overflow-wrap: anywhere; }
+.diet-templates-review summary { min-block-size: 44px; display: flex; align-items: center; cursor: pointer; }
+.diet-templates-days { margin: 0; padding-inline-start: 0; list-style: none; display: grid; gap: 8px; }
+.diet-templates-days ul { margin: 2px 0 0; padding-inline-start: 16px; }
+.diet-templates-days li { overflow-wrap: anywhere; }
+.diet-templates .actions button { min-height: 44px; }

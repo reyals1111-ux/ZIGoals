@@ -8,6 +8,7 @@ import type {Platform} from '../../lib/positions';
 import {SectionHeading} from '../ui/section-heading';
 import {formatDay} from './format';
 import './goals.css';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 
 const ORDER: Record<Forecast['state'], number> = {estimate: 0, reached: 1, 'no-pace': 2, 'not-enough': 3};
 
@@ -29,7 +30,7 @@ export function PaceForecastsCard({platform, quotes, now, today}: {platform: Pla
       <Link href={r.href}>{r.name}</Link>
       <strong>{r.words.headline}</strong>
       {r.forecast.state === 'estimate' && r.forecast.earliest && r.forecast.latest && r.forecast.earliest !== r.forecast.latest && <small>Between {formatDay(r.forecast.earliest)} and {formatDay(r.forecast.latest)}</small>}
-    </li>)}</ul> : <div className="aa-empty"><h4>No forecasts yet.</h4><p>A goal with a target and a few recorded steps gets an estimated date here.</p><Link className="secondary" href="/app/goals/new">Create a goal</Link></div>}
+    </li>)}</ul> : <div className="aa-empty" data-art=""><h4>No forecasts yet.</h4><p>A goal with a target and a few recorded steps gets an estimated date here.</p><Link className="secondary" href="/app/goals/new">Create a goal</Link><LazyPillarArt pillar="goals" /></div>}
     <p className="fine">Estimates from your pace so far, not promises.</p>
   </section>;
 }

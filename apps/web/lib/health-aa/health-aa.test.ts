@@ -129,3 +129,14 @@ test('the weekly rate is the readings\' own slope, the same for the card, the co
   expect(weightTrend(h, TODAY).latestReading).toEqual({date: TODAY, grams: 80_000 - 40 * 27});
   expect(weeklyRateOf(weights.slice(-3), TODAY)).toBeNull(); // under a week of span
 });
+describe('Session AK (task 4.5): the weekly coach card', () => {
+  test('after two weeks of weight and intake: the estimated maintenance, the trend and a small step within the rails', () => {
+    const h = withWeights(withDiary(createEmptyHealth(), 28), 27, 2, 74000, -40); h.targets.weightGrams = 70000; h.targets.kcal = 2200;
+    const c = coachCheckIn(h, emptyHealthCoach(), TODAY), e = energyEstimate(h, TODAY);
+    expect(c.maintenance).toEqual({kcal: e.expenditure, low: e.low, high: e.high});
+    expect(c.changeKcal).toBe(c.suggestion!.kcal - 2200);
+    expect(Math.abs(c.changeKcal!)).toBeLessThanOrEqual(2200 * 0.15 + 10);
+    expect(c.suggestion!.kcal).toBeGreaterThanOrEqual(1200);
+    expect(c.progress).toMatchObject({loggedDays: 28, weights: 14, implausible: false});
+  });
+});

@@ -44,5 +44,20 @@
     document.querySelectorAll('.chapter-opening').forEach(el => entrances.observe(el));
 
   }
+  // Session AK M6: NOVA's opening plays once when it comes into view, and again from its button; without motion the
+  // finished dashboard simply shows. Slow drifts rest on low-end devices, Save-Data and a low battery.
+  // Session AK P5 (LANDING_REVIEW LR-2): `nv-armed` keeps the dashboard dark until its opening starts, so the finished
+  // screen no longer shows first and then blinks out (final-v7.css; only inside its no-preference block).
+  const stage = document.querySelector('#nova-stage');
+  if (stage && 'IntersectionObserver' in window && motionAllowed()) {
+    const replay = stage.querySelector('.nv-replay');
+    stage.classList.add('nv-armed');
+    const play = () => { stage.classList.remove('is-online'); void stage.offsetWidth; stage.classList.add('is-online'); };
+    const seen = new IntersectionObserver(e => { if (e.some(x => x.isIntersecting)) { seen.disconnect(); play(); } }, { threshold: .35 });
+    seen.observe(stage); replay.hidden = false; replay.addEventListener('click', play);
+  }
+  const n = navigator, still = () => root.classList.add('lv7-still');
+  if ((n.hardwareConcurrency || 8) <= 4 || (n.deviceMemory || 8) <= 4 || (n.connection && n.connection.saveData)) still();
+  if (n.getBattery) n.getBattery().then(b => { if (!b.charging && b.level < .2) still(); }, () => {});
   update();
 })();

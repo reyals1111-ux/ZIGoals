@@ -30,12 +30,13 @@ import {StakingPlaceholder} from './staking-placeholder';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {LoadBoundary} from '../load-boundary';
+import {LazyPillarArt} from '../illustrations/lazy-pillar-art';
 // Session AF (L1, P1.2): while no position is observed, the empty state previews Earn with live figures; its own chunk, so
 // the Staking page's first load is unchanged, and the plain panel shows until it arrives (or if it cannot load).
 const StakingEmptyPreview=lazy(()=>import('../earn/staking-empty-preview').then(m=>({default:m.StakingEmptyPreview})));
 /** If the preview's chunk cannot load (offline, an old cached page), the plain panel stays: the sentence is never lost. */
 class KeepPanel extends Component<{children:ReactNode},{failed:boolean}>{state={failed:false};static getDerivedStateFromError(){return {failed:true};}render(){return this.state.failed?EMPTY_PANEL:this.props.children;}}
-const EMPTY_PANEL=<div className="panel positions-empty"><h3>A clear view of your wealth</h3><p>Track a public wallet to see liquid funds, stake and rewards together. Allocate existing wealth to your Goals without moving funds.</p></div>;
+const EMPTY_PANEL=<div className="panel positions-empty" data-art=""><h3>A clear view of your wealth</h3><p>Track a public wallet to see liquid funds, stake and rewards together. Allocate existing wealth to your Goals without moving funds.</p><LazyPillarArt pillar="wealth"/></div>;
 // Session AF (ADR-028 H46, L2 design §4): stake, unstake, move and claim, signed in the person's own wallet. A lazy chunk:
 // its code (and, on the first Review press, the signing client) loads only on this page.
 const StakingActions=lazy(()=>import('../staking/staking-actions').then(m=>({default:m.StakingActions})));

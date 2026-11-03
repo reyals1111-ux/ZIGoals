@@ -10,6 +10,7 @@ import {STORY_MIN_DAYS} from '../../lib/stories/days';
 import {STORY_PERIODS, rangeLabel, useStories} from './use-stories';
 import {StoryPlayer} from './story-player';
 import './stories.css';
+import '../skeleton/zg-skeleton.css';
 
 /**
  * /app/stories (Session AF, L5b; P9.3, ADR-028 H78): the week, the month and the year as tap-through stories, built on
@@ -35,7 +36,7 @@ export function StoriesPage() {
       lede="A few cards from your own records: streaks, your best day, goals that moved, Health beside the time before, money working. Tap through, and share any card as an image made on this device."
       actions={<p className="stories-links"><Link className="text-link" href="/app/review">The Life review →</Link></p>}
       art={<OrbitArt glyph={ReviewGlyph} spin={22} />} />
-    {!loaded ? <div className="stories-skeleton aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : failed || !stories ? <p role="status">Some of your records could not be read on this device, so your stories wait until they can.</p> : <>
+    {!loaded ? <div className="stories-skeleton aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /><i /></div> : failed || !stories ? <p role="status">Some of your records could not be read on this device, so your stories wait until they can.</p> : <>
       <ul className="stories-covers" aria-label="Your stories">{STORY_PERIODS.map(period => {
         const s = stories[period], when = seen[s.key];
         return <li key={period} className="panel stories-cover" data-period={period} data-ready={s.enough || undefined} data-pillar={s.style?.pillar ?? undefined}>

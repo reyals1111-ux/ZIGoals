@@ -1,0 +1,19 @@
+/* Session AK (5.6): the auto-complete rules editor. Colours come from the theme's variables. */
+.auto-rules { display: grid; gap: 12px; }
+.auto-rules h3 { margin: 0; }
+.auto-rules-fine, .auto-rules-empty { margin: 0; color: var(--text-secondary, var(--muted)); font-size: 14px; }
+.auto-rules-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.auto-rules-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 14px; }
+.auto-rules-list li[data-paused] .auto-rules-sentence { color: var(--text-secondary, var(--muted)); }
+.auto-rules-sentence { font-weight: 600; color: var(--text); }
+.auto-rules-actions { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.auto-rules button, .auto-rules select, .auto-rules input { min-height: 44px; }
+.auto-rules button { min-width: 44px; }
+.auto-rules-form fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+.auto-rules-form legend { font-weight: 700; margin-bottom: 4px; }
+.auto-rules-form label { display: grid; gap: 4px; font-size: 14px; color: var(--text-secondary, var(--text)); }
+.auto-rules-preview { margin: 0; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line); color: var(--text); }
+.auto-rules-error { color: var(--pink); margin: 0; }
+.auto-rules-status { margin: 0; color: var(--text-secondary, var(--text)); }
+.auto-rules-badge { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--text-secondary, var(--muted)); }
+.auto-rules-badge button { min-height: 44px; min-width: 44px; }

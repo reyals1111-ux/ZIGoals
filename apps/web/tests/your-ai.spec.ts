@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_KEYS_DATABASE} from '../lib/ai/keys';
 import {FAKE_KEY} from '../lib/ai/fixtures/mock-streams';
 import {HABITS_KEY} from '../lib/habits';
+import {NOVA_SETUP_KEY, setPrivacyMode} from '../lib/nova/setup';
 
 /**
  * ZIGi · your AI (ADR-012), end to end with MOCK providers: every provider call is answered by page.route, nothing
@@ -44,6 +45,8 @@ async function seed(page: Page, settings: AiSettings | null, records = buildShow
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...(settings ? {[AI_SETTINGS_KEY]: JSON.stringify(settings)} : {})});
 }
+/** The Showcase records with the privacy mode the person chose set to Relaxed, as the guide sets it (setPrivacyMode). */
+function relaxedShowcase() { const records = buildShowcase('2026-09-20').records; records[NOVA_SETUP_KEY] = JSON.stringify(setPrivacyMode(JSON.parse(records[NOVA_SETUP_KEY]!), 'relaxed', '2026-09-20')); return records; }
 const launcher = (page: Page) => page.getByTestId('ai-launcher');
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
@@ -75,7 +78,9 @@ test('setup with an API key (MOCK OpenAI): test, pick a model, connect, chat; th
     if (request.url().endsWith('/v1/models')) return route.fulfill({status: 200, contentType: 'application/json', body: MODELS});
     return route.fulfill({status: 200, contentType: 'text/event-stream', body: stream('You logged nothing yet today. Shall I add something?')});
   });
-  await seed(page, null);
+  // Session AK (ADR-036, deliberate; NOVA privacy mode): the Showcase's Strict refuses a cloud model, so a chat with OpenAI
+  // is the person's Relaxed choice, set as the guide sets it (Strict's refusal: nova-setup.spec.ts "Check the mode holds").
+  await seed(page, null, relaxedShowcase());
   await page.goto('/app/settings#your-ai');
   const section = page.locator('#your-ai');
   await section.getByRole('button', {name: /I have an API key/}).click();
@@ -87,7 +92,7 @@ test('setup with an API key (MOCK OpenAI): test, pick a model, connect, chat; th
   await section.getByRole('button', {name: 'Test connection'}).click();
   await expect(section.getByRole('option', {name: /mock-chat-mini/})).toBeVisible();
   await expect(section.getByRole('option', {name: /text-embedding-mock/})).toHaveCount(0);
-  await section.getByRole('option', {name: /^mock-chat$/}).click();
+  await section.getByRole('option', {name: /^mock-chat( Suggested)?$/} /* Session AK P4 (FR-11, deliberate): the suggested model carries a "Suggested" tag */).click();
   await section.getByRole('button', {name: 'Connect', exact: true}).click();
   await expect(section.locator('.ai-connection')).toContainText('OpenAI · mock-chat');
   await expect(section.locator('.ai-connection')).toContainText('Key kept in this page’s memory only');
@@ -132,7 +137,7 @@ test('"Remember on this device" seals the key in the encrypted store without pla
   await section.getByLabel('API key').fill(FAKE_KEY);
   await section.getByRole('checkbox', {name: /Remember on this device/}).check();
   await section.getByRole('button', {name: 'Test connection'}).click();
-  await section.getByRole('option', {name: /^mock-chat$/}).click();
+  await section.getByRole('option', {name: /^mock-chat( Suggested)?$/} /* Session AK P4 (FR-11, deliberate): the suggested model carries a "Suggested" tag */).click();
   await section.getByRole('button', {name: 'Connect', exact: true}).click();
   await expect(section.locator('.ai-connection')).toContainText('Key sealed on this device');
   const sealed = await page.evaluate(async name => {
@@ -169,7 +174,7 @@ test('Disconnect removes every key this account remembered on the device, an ear
     await section.getByRole('button', {name: 'Connect', exact: true}).click();
     await expect(section.locator('.ai-connection')).toContainText('Key sealed on this device');
   };
-  await connect('openai', FAKE_KEY, /^mock-chat$/);
+  await connect('openai', FAKE_KEY, /^mock-chat( Suggested)?$/ /* Session AK P4 (FR-11, deliberate): the "Suggested" tag */);
   // The setup record is reset (unreadable, restored from an older copy): the sealed OpenAI key stays behind it.
   await page.evaluate(k => localStorage.removeItem(k), AI_SETTINGS_KEY);
   await page.reload();
@@ -449,7 +454,7 @@ test('no key anywhere: the rendered DOM, every attribute, both storages, the key
   await section.getByLabel('API key').fill(FAKE_KEY);
   await section.getByRole('checkbox', {name: /Remember on this device/}).check();
   await section.getByRole('button', {name: 'Test connection'}).click();
-  await section.getByRole('option', {name: /^mock-chat$/}).click();
+  await section.getByRole('option', {name: /^mock-chat( Suggested)?$/} /* Session AK P4 (FR-11, deliberate): the suggested model carries a "Suggested" tag */).click();
   await section.getByRole('button', {name: 'Connect', exact: true}).click();
   await expect(section.locator('.ai-connection')).toContainText('Key sealed on this device');
   const scan = await page.evaluate(async ({key, db}) => {
@@ -508,7 +513,9 @@ test('phone: a denied microphone shows the steps for this browser and the compos
     Object.defineProperty(window, 'visualViewport', {value: fake, configurable: true});
   });
   await mockLocal(page, () => stream('Hello.'));
-  await seed(page, connectedLocal({voice: {transcription: 'provider', transcriptionModel: 'gpt-4o-mini-transcribe', language: null, readAloud: false}, provider: 'openai', mode: 'api', model: 'mock-chat', localServer: null, baseUrl: null}));
+  // Session AK (ADR-036, deliberate; a68e23b6, Z1A-12): Strict (the Showcase's mode) and Guarded never send a recording to a
+  // cloud transcription model; the provider's transcription is the person's Relaxed choice, set as the guide sets it.
+  await seed(page, connectedLocal({voice: {transcription: 'provider', transcriptionModel: 'gpt-4o-mini-transcribe', language: null, readAloud: false}, provider: 'openai', mode: 'api', model: 'mock-chat', localServer: null, baseUrl: null}), relaxedShowcase());
   await page.route(`${OPENAI}/**`, route => route.fulfill({status: 200, contentType: 'text/event-stream', body: stream('Hello.')}));
   await page.goto('/app');
   await openChat(page);

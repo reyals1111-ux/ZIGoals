@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {buildStoredZip} from '../lib/export/zip';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {APPLE_XML, GARMIN, LOOP} from '../lib/import/switch/test-fixtures';
+import {isPhone, openFold} from './phone-nav';
 
 // Session W Part 7: Settings → Switch to ZIGoals with fictional exports (lib/import/switch/test-fixtures.ts). The file is
 // read in the bundled Web Worker on this device; the preview says what would come in; nothing is written before the
@@ -49,6 +50,9 @@ test('Apple Health: read in the worker, checked in the preview, imported with th
   expect((await stored(page, 'zigoals:import-batches:v1')).batches).toHaveLength(1);
   // The week on Health shows the imported vitals.
   await page.goto('/app/health');
+  // Session AK (ADR-036 G2 R2-8, 15c1e159, deliberate): "Seven days of care" is folded until two days have entries (a
+  // phone row on a phone); it is opened as a reader would, then read as before.
+  if (await isPhone(page)) await openFold(page, 'Seven days of care'); else await page.locator('summary').filter({hasText: /^Seven days of care/}).click();
   await expect(page.getByRole('group', {name: 'Resting heart rate · bpm, last 7 days'})).toContainText('58');
   await page.goto('/app/settings');
   const recent = card(page).getByRole('region', {name: 'Your imports'});

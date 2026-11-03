@@ -72,6 +72,8 @@ describe('Session AF staking guard', () => {
     const issuers = callers('issueSignTicket').filter(f => f !== 'lib/staking/sign-gate.ts'), executors = callers('executeSigned').filter(f => f !== 'lib/staking/execute.ts');
     expect(issuers).toEqual([sheet]);
     expect(executors).toEqual([sheet]);
+    // Security review I5: Keplr Mobile's WalletConnect signer is made only by the review sheet, for executeSigned.
+    expect(callers('walletConnectKeplr').filter(f => f !== 'lib/staking/execute.ts')).toEqual([sheet]);
     {
       const text = read(sheet);
       const handler = /<form[^>]*\sonSubmit=\{(\w+)\}/.exec(text)?.[1];

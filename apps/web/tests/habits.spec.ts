@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import {openHabitDetails} from './ab-shell';
+import {chooseChain} from './chain-choice';
+import {openHabitMoreOptions} from './habit-form-helpers';
 import { createHabit, emptyHabitData, logHabitCount, HABITS_KEY } from "../lib/habits";
 
 test.use({ timezoneId: "Europe/Brussels" });
@@ -11,6 +13,7 @@ test.beforeEach(async ({ page }) => {
 async function addHabit(page: Page, title: string, target = "1") {
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();
   await page.getByLabel("Habit title", { exact: true }).fill(title);
+  await openHabitMoreOptions(page); // Session AK D1 (FR-17): the target sits under "More options"
   await page.getByLabel("Target value").fill(target);
   await page.getByRole("button", { name: "Create habit", exact: true }).click();
   await expect(page.getByRole("article", { name: title, exact: true })).toBeVisible();
@@ -191,6 +194,8 @@ test("templates, distinct habit types, measurement and reflection controls work 
 });
 
 test("frequency templates display the period that actually governs completion", async ({ page }) => {
+  // Session AK P4 (FIRST_RUN_REVIEW FR-17): "My ZIG plan" is offered once the chain is chosen.
+  await chooseChain(page);
   await page.goto("/app/habits");
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();
   await page.getByLabel("Start from template").selectOption("buyzig");

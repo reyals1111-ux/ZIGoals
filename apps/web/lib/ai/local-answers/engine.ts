@@ -14,6 +14,12 @@ import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
 import {afLocalAnswer} from './af';
 import {aiLocalAnswer, isEnergyRatingAsk} from './ai-session';
+import {f9LocalAnswer} from './f9';
+import {novaLocalAnswer} from './nova';
+import {g1LocalAnswer} from './g1';
+import {novaEnvInfo, novaWording} from './nova-env';
+import {novaOverviewAnswer} from './nova-overview';
+import {questionLanguage} from './no-model';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -161,8 +167,23 @@ export function detectSubjects(question: string, env: ToolEnv): Subjects {
 }
 /** The answer to a question, or `none` when it is not a lookup ZIGi answers on the device. */
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  // Release review 2 (R2-2): on NOVA's environment only (lib/nova/local-env.ts), the natural overview questions after
+  // Session AF's commands, and every reply in NOVA's words (NOVA → Permissions). Any other environment: exactly as before.
+  const nova = novaEnvInfo(env);
+  if (!nova) return engineAnswer(question, env, subject);
+  const lang = questionLanguage(question) === 'nl' ? 'nl' : 'en', words = (reply: LocalReply) => novaWording(reply, nova, lang);
+  if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return words(af); const own = novaOverviewAnswer(normalizeSpoken(question), env, nova); if (own) return words('text' in own ? {...own, text: groupUnits(own.text)} : own); }
+  return words(engineAnswer(question, env, subject));
+}
+function engineAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   // Session AF (L4): the Checklist commands, the Earn coach, the page and the brief, each with its own stop rule, first.
   if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return af; }
+  // Owner follow-up 1 (F9): the F4–F5 questions (debt-free month, agenda, supplements, validators) and two navigation asks.
+  if (!subject) { const f9 = f9LocalAnswer(normalizeSpoken(question), env); if (f9) return f9; }
+  // Owner follow-up 2 (N4): tasks, focus, workouts and budgets (NOVA's tools), answered here before any model is connected.
+  if (!subject) { const nova = novaLocalAnswer(normalizeSpoken(question), env); if (nova) return nova; }
+  // Owner follow-up 2 (G8): the last blood pressure reading, today's own scales and cash ahead (BUILD list 2's tools).
+  if (!subject) { const g1 = g1LocalAnswer(normalizeSpoken(question), env); if (g1) return g1; }
   // Session AI: a question about the daily energy rating is answered as one, before "energy" can be read as food kcal.
   if (!subject && isEnergyRatingAsk(normalizeSpoken(question))) { const own = aiLocalAnswer(normalizeSpoken(question), env); if (own) return own; }
   let reply = answer(normalizeSpoken(question), env, subject); // Session Z-Local Part 4: the spoken form

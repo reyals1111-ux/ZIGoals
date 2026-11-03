@@ -1,0 +1,17 @@
+/* Session AK (BUILD list 2 #11): the cash forecast. Theme tokens, strokes that never scale, no animation. */
+.cash-forecast-promise{margin:0;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#25334f);background:color-mix(in srgb,var(--violet,#a698ff) 8%,transparent)}
+.cash-forecast-row{display:grid;gap:8px;padding-top:6px;min-width:0}
+.cash-forecast-row h5{margin:0;font-size:15px}
+.cash-forecast-lowest{margin:0;font-size:17px}
+.cash-forecast-chart{display:block;width:100%;height:180px;border-radius:12px;background:color-mix(in srgb,var(--text,#f0f5ff) 4%,transparent)}
+.cash-forecast-line{fill:none;stroke:var(--cyan,#45d8ef);stroke-width:2.5;vector-effect:non-scaling-stroke}
+.cash-forecast-band{fill:color-mix(in srgb,var(--violet,#a698ff) 22%,transparent);stroke:none}
+.cash-forecast-zero{stroke:color-mix(in srgb,var(--text,#f0f5ff) 45%,transparent);stroke-width:1;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
+.cash-forecast-low{stroke:var(--pink,#ed79d4);stroke-width:2;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+.cash-forecast-notes{margin:0;padding-left:18px;display:grid;gap:4px}
+.cash-forecast-events summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.cash-forecast-events table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.cash-forecast-events caption{text-align:left;font-size:13px;opacity:.85;padding-bottom:4px}
+.cash-forecast-events th,.cash-forecast-events td{padding:4px 6px;border-bottom:1px solid var(--line,#25334f);text-align:left;overflow-wrap:anywhere}
+.cash-forecast-events td:last-child{text-align:right;white-space:nowrap}
+.cash-forecast-empty p{margin:0 0 6px}

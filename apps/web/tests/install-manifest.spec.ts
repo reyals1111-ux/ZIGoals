@@ -11,12 +11,27 @@ const ICONS = [
 // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): four Home Screen shortcuts, each with a 96 px icon.
 const shortcut = (name: string, short_name: string, description: string, url: string, icon: string) => ({name, short_name, description, url, icons: [{src: `/icons/shortcut-${icon}-96.png`, sizes: '96x96', type: 'image/png'}]});
 const SHORTCUTS = [
+  // Owner follow-up 2 (N8, [TIER 3] (PWA), deliberate): NOVA first, reusing the Ask icon.
+  shortcut('NOVA', 'NOVA', 'Your private command center: your day, your AI and every page', '/app/nova', 'ask'),
   shortcut('Quick add', 'Quick add', 'Add a goal, an asset, a habit or a Health entry', '/app?shortcut=quick-add', 'quick-add'),
   shortcut('Log water', 'Water', 'Today\'s one-tap water, ready to log', '/app?shortcut=water', 'water'),
   shortcut('Check in a habit', 'Habits', 'Today\'s habits, ready to check in', '/app/habits', 'habit'),
   shortcut('Ask ZIGi', 'ZIGi', 'Open ZIGi with an empty question', '/app?shortcut=ask', 'ask'),
   // Session AF (L3; P7.20): the Checklist, today's path, a fifth shortcut with its own 96 px icon.
   shortcut('Checklist', 'Checklist', 'Today\'s path of starred dots', '/app/checklist', 'checklist'),
+  // Session AK Part 3 ([TIER 3] (PWA), deliberate): Today and Log weight, each with its own 96 px icon (art-src/pwa-icons.mjs).
+  shortcut('Today', 'Today', 'Your day: the hero, the orbit and what is next', '/app/today', 'today'),
+  shortcut('Log weight', 'Weight', 'Today\'s weight, ready to type', '/app/health?shortcut=weight#weight', 'weight'),
+  // Owner follow-up 2 (B1, deliberate): Capture a note last, reusing the Quick add icon.
+  shortcut('Capture a note', 'Note', 'A thought for your notes inbox, filed later', '/app/notes?capture=1', 'quick-add'),
+];
+// Session AK Part 3 (A18, deliberate): screenshots for the richer install sheet, taken from the labelled Showcase.
+const shot = (name: string, sizes: string, form_factor: string, label: string) => ({src: `/screenshots/${name}.jpg`, sizes, type: 'image/jpeg', form_factor, label});
+const SCREENSHOTS = [
+  shot('today-narrow', '780x1688', 'narrow', 'Today: goals, habits and health in one orbit (Showcase, fictional)'),
+  shot('habits-narrow', '780x1688', 'narrow', 'Habits with streaks and strength (Showcase, fictional)'),
+  shot('today-wide', '2560x1600', 'wide', 'Today on a computer (Showcase, fictional)'),
+  shot('wealth-wide', '2560x1600', 'wide', 'Wealth with every source in view (Showcase, fictional)'),
 ];
 /** The exact bytes main 72ad872's metadata route served (Session X Part 5a); every later manifest begins with them. */
 const MANIFEST_72AD872_SHA256 = '0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92';
@@ -40,11 +55,14 @@ test('the manifest describes the installed ZIGoals app', async ({request}) => {
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(await response.json()).toEqual({
     id: '/app', name: 'ZIGoals', short_name: 'ZIGoals',
-    description: 'Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.',
+    // Session AK X1 (RELEASE_REVIEW R8, TIER 3 (PWA/manifest), deliberate): consumer words for the install sheet and search;
+    // the chain is no longer the first thing a new person reads. The identity fields are unchanged (the next test).
+    description: 'Goals, habits, health and wealth in one private app. Your records stay on your device.',
     start_url: '/app', scope: '/', display: 'standalone', background_color: '#020918', theme_color: '#020918', icons: ICONS,
     shortcuts: SHORTCUTS,
     // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): a GET share target; files and images are not accepted.
     share_target: {action: '/app/share', method: 'GET', params: {title: 'title', text: 'text', url: 'url'}},
+    screenshots: SCREENSHOTS,
   });
 });
 
@@ -58,9 +76,18 @@ test('the static manifest keeps 72ad872\'s bytes first, at the same address, and
   const response = await request.get('/manifest.webmanifest');
   expect(response.status()).toBe(200);
   const body = await response.body(), text = body.toString('utf8'), prefix = text.slice(0, text.indexOf(',"shortcuts":'));
-  expect(createHash('sha256').update(`${prefix}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
+  // Session AK X1 (RELEASE_REVIEW R8): the description is the one field of 72ad872's that changed, to consumer words; with
+  // 72ad872's own description put back in its place, every other byte it served (id, name, start page, scope, display,
+  // colours, icons) still hashes to the pin, so saved Home Screen apps keep their identity.
+  const NEW_DESCRIPTION = '"description":"Goals, habits, health and wealth in one private app. Your records stay on your device."';
+  expect(prefix).toContain(NEW_DESCRIPTION);
+  const prefix72ad872 = prefix.replace(NEW_DESCRIPTION, '"description":"Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha."');
+  expect(createHash('sha256').update(`${prefix72ad872}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
   // Session AF (L3): the whole file re-pinned after the Checklist shortcut was appended (72ad872's prefix is unchanged).
-  expect(createHash('sha256').update(body).digest('hex')).toBe('db76a85f0cf583c8dc990c011d8dc34876df2bfaa71e699795614abf203f8733');
+  // Session AK Part 3: re-pinned after two shortcuts and the screenshots were appended (the prefix is unchanged).
+  // Session AK X1: re-pinned after the description changed (R8).
+  // Owner follow-up 2: re-pinned after the NOVA (first) and Capture a note (last) shortcuts were added (the prefix is unchanged).
+  expect(createHash('sha256').update(body).digest('hex')).toBe('9ab51f5e3c6ec9198ba8555cad07cb499124410c908d0caed0513d1c8ef5f38e');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');

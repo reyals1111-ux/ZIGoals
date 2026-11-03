@@ -139,9 +139,12 @@
     :root:has(.app-topbar .phone-status-line) .status-row > .mode-strip { display: none; }
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row::before { display: none; }
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row { padding: 0; }
+    /* Session AK P8b: the status line's span is named by its role, and its parent's class moves into :where() so the weight
+       stays (0,5,1). A :has() rule whose last part is a bare tag makes every :has() check in the page restyle every element
+       of that tag (see card-header.css); Blink takes no such feature from inside :where(), hence this shape. */
     /* Gate B: the layout lock alone in that row keeps its 8 px gap above the page (Part 18.4's "clear of main"). */
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row:is(:has(.layout-lock), :has(.gamify), :has(.wallet-balance)) { padding-bottom: 8px; }
-    :root:has(.app-topbar .phone-status-line) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    :root:has(.app-topbar .phone-status-line) .workspace > :where(.workspace-status) > span[role="status"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }
   :root .phone-status-sheet { display: grid; gap: 14px; }
   :root .phone-status-sheet p { display: grid; gap: 4px; margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }

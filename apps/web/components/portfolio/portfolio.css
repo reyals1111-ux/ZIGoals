@@ -231,3 +231,7 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
 .trader-leverage form { display: grid; gap: 12px; margin-top: 12px; }
 .trader-leverage-result { margin-top: 12px; }
 .trader-leverage-result p { margin: 0 0 6px; }
+/* Session AK (M7, layout audit): a transaction with both Edit and Remove put both buttons in the same cell (column 2), so
+   Remove covered Edit at 390 px. With two buttons the row gains a column and Remove takes it. */
+.portfolio-transactions li:has(> button + button) { grid-template-columns: minmax(0, 1fr) auto auto; }
+.portfolio-transactions li > button + button { grid-column: 3; }

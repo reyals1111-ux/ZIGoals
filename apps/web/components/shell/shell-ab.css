@@ -4,7 +4,7 @@
 /* Session AC (owner item 8): the essentials line, only without scripts or while a private read stalls; under the notice's
    first line, on phones too (where the first line keeps only the label). */
 .alpha-notice:has(.alpha-notice-essentials) { flex-wrap: wrap; }
-.alpha-notice p.alpha-notice-essentials { display: block; flex-basis: 100%; margin: 2px 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--text-secondary, #dde7f7); }
+.alpha-notice p:is(.alpha-notice-essentials, .alpha-notice-sentence) { display: block; flex-basis: 100%; margin: 2px 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--text-secondary, #dde7f7); }
 .alpha-notice strong { color: var(--brand-cyan, #23eaff); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-right: 6px; }
 .alpha-notice .text-link { display: inline-flex; align-items: center; min-height: 44px; margin-left: 6px; padding: 0 6px; white-space: nowrap; }
 .alpha-notice-dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--brand-cyan, #23eaff); box-shadow: 0 0 10px #23eaff99; }

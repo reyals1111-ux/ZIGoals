@@ -1,0 +1,27 @@
+/* Session AK (lane S, item 6): feeling words (theme tokens only, 44 px targets, no motion). Each corner has its own
+   tint AND its words in a label, so colour is never the only cue. */
+.mood-words-fold { margin-top: 4px; }
+.mood-words-trigger { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; }
+.mood-words-trigger .secondary, .mood-words-trigger .text-link { min-height: 44px; }
+.mood-words { display: grid; gap: 10px; min-width: 0; }
+.mood-words-title { margin: 0; font-size: 16px; }
+.mood-words-axes { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; gap: 4px 6px; align-items: center; }
+.mood-words-axis { font-size: 14px; color: var(--muted); }
+.mood-words-axis.is-y { writing-mode: vertical-rl; transform: rotate(180deg); justify-self: center; }
+.mood-words-axis.is-x { grid-column: 2; justify-self: end; }
+.mood-words-quadrants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.mood-words-quadrant { --tone: var(--violet); min-height: 64px; padding: 10px; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--tone) 70%, transparent); background: color-mix(in srgb, var(--tone) 18%, transparent); color: var(--text); font-size: 15px; font-weight: 600; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.mood-words-quadrant[aria-pressed="true"] { background: color-mix(in srgb, var(--tone) 42%, transparent); box-shadow: inset 0 0 0 2px var(--tone); }
+.mood-words-quadrant:focus-visible, .mood-words-word:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[data-quadrant="high-unpleasant"] { --tone: var(--pink); }
+[data-quadrant="high-pleasant"] { --tone: var(--health-behind, var(--violet)); }
+[data-quadrant="low-unpleasant"] { --tone: var(--brand-blue, var(--violet)); }
+[data-quadrant="low-pleasant"] { --tone: var(--health-ahead, var(--cyan)); }
+.mood-words-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.mood-words-word { min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--tone) 60%, transparent); background: transparent; color: var(--text); font-size: 15px; cursor: pointer; }
+.mood-words-word[aria-pressed="true"] { background: color-mix(in srgb, var(--tone) 40%, transparent); font-weight: 650; }
+.mood-words-step { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.mood-words-step .secondary { min-height: 44px; display: inline-flex; align-items: center; }
+.mood-words-actions { margin: 0; display: flex; flex-wrap: wrap; gap: 16px; }
+.mood-words-actions .text-link { min-height: 44px; }
+.mood-words .fine[role="status"]:empty { display: none; }

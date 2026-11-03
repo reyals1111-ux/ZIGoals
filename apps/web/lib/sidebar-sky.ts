@@ -12,5 +12,6 @@ export const skyOffset = (scrollTop: number) => Math.round(SKY_LAG * Math.max(0,
 /** How the drift is driven: a CSS scroll-driven animation while the sidebar scrolls where the engine has one, else a
  *  scroll listener coalesced to one write per frame. */
 export const skyDriver = (supportsTimeline: boolean): 'timeline' | 'listener' => supportsTimeline ? 'timeline' : 'listener';
-/** The drift runs only on the computer's sidebar (wider than 900 px), with motion welcome and Motion Off not chosen. */
-export const skyAllowed = ({desktop, reduced, motionOff}: {desktop: boolean; reduced: boolean; motionOff: boolean}) => desktop && !reduced && !motionOff;
+/** The drift runs only on the computer's sidebar (wider than 900 px), with motion welcome and Motion Off not chosen.
+ *  Session AK (FU): nor under Motion Calm (no parallax, no loops): the pinned sky shows, still, as under Off. */
+export const skyAllowed = ({desktop, reduced, motionOff, calm = false}: {desktop: boolean; reduced: boolean; motionOff: boolean; calm?: boolean}) => desktop && !reduced && !motionOff && !calm;

@@ -69,7 +69,7 @@ function habitsSection(input: BuilderInput, handles: Handles, onlyDue: boolean):
     // A check-in filled in from Health carries a Health value (steps, minutes…): it goes only with the Health gate open.
     const fromHealth = habit.entries.find(e => e.date === input.habitDay)?.source === 'health';
     const logged = !day.count ? '' : fromHealth && !input.consent.health ? ' (value from Health, not shared)' : ` (${day.count}${unit ? ' ' + unit : ''} logged)`;
-    lines.push(`${handle}: ${clean(habit.title)} · ${rule.type} · ${scheduleLabel(rule.schedule)} · target ${rule.target}${unit ? ' ' + unit : ''} per ${rule.targetPeriod} · today: ${day.status}${logged} · streak ${stats.currentStreak} ${stats.streakUnit} · ${habit.timeOfDay}`);
+    lines.push(`${handle}: ${clean(habit.title)} · ${rule.type} · ${scheduleLabel(rule.schedule, habit.id)} · target ${rule.target}${unit ? ' ' + unit : ''} per ${rule.targetPeriod} · today: ${day.status}${logged} · streak ${stats.currentStreak} ${stats.streakUnit} · ${habit.timeOfDay}`);
   }
   if (active.length > LIMITS.habits) lines.push(`(${active.length - LIMITS.habits} more habits not listed)`);
   if (!lines.length) lines.push(onlyDue ? 'No habit is open right now.' : 'No active habits yet.');

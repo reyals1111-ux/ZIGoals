@@ -12,6 +12,8 @@ export const MAX_TASKS = 500, DONE_KEEP_DAYS = 30;
 export const TASK_PRIORITIES = ['high', 'normal', 'low'] as const;
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** Session AK (T1; TIER 3 (stored format), additive): an optional wall-clock time on the due day ("HH:MM"). */
+export const TASK_CLOCK = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 export const taskSchema = z.looseObject({
   id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
   title: z.string().trim().min(1).max(140),
@@ -19,6 +21,12 @@ export const taskSchema = z.looseObject({
   due: day.optional(),
   /** The goal it serves, by the goal's key (shown by name; a goal removed later is simply not named). */
   goal: z.string().max(120).optional(),
+  /**
+   * Session AK (T1; TIER 3 (stored format), additive and optional): a time on the due day, so the task sits among the
+   * day's habits on the Agenda. A value this build cannot read is dropped on read (never fails the whole list); older
+   * builds keep it untouched (the object is loose).
+   */
+  time: z.string().regex(TASK_CLOCK).optional().catch(undefined),
   createdAt: z.iso.datetime({offset: true}),
   doneAt: z.iso.datetime({offset: true}).optional(),
 });

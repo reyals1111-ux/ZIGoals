@@ -50,3 +50,12 @@
 :root[data-theme=light] .ecosystem-initials:not(#\-) { color: #1c2333; }
 /* Session AH (WE15, D-157, B-122): official site icons are mostly light marks; in Light their tile keeps the dark ground so none is blank. */
 :root[data-theme=light] .ecosystem-logo:not(#\-) { background-color: #101a2c; border-color: #27334973; }
+/* Session AK P6 (axe color-contrast, WCAG 1.4.3): the skip links ("Skip to content", the goal wizard's "Skip to this step's
+   buttons") kept Nebula's dark chip by day but took the day's black ink: black on #242424 (1.35:1). The chip stays dark
+   (it stands out on the white page) with white words (15.9:1). */
+:root[data-theme=light] .skip:not(#\-) { background-color: #242424; color: #ffffff; }
+/* Session AK P6 (axe color-contrast): Activity's filter counts were dimmed to 80 % on the pressed filter's day tint
+   (3.9:1); by day they keep the button's full ink (about 5.8:1). */
+:root[data-theme=light] .activity-filter-count:not(#\-) { opacity: 1; }
+/* Session AK P6 (axe color-contrast): a badge not earned yet was dimmed to 55 %, which on the day ground left its words at
+   4.1:1; it dims to 70 % now (about 6:1 by day), in every theme (components/game/game.css), so no Light rule is needed. */

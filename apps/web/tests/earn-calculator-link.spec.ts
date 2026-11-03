@@ -1,5 +1,9 @@
 import {expect, test} from '@playwright/test';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Earn.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (L1, ADR-028 H17): the Earn calculator link. From the Earn page, the compound interest calculator opens with
@@ -15,9 +19,14 @@ test.beforeEach(async ({page}) => { await seedShowcase(page); await earnRoutes(p
 test('the Earn page opens the calculator at the live rate, labelled an illustration, until a field is touched', async ({page}) => {
   await page.goto('/app/earn#calculator');
   const link = page.locator('#calculator').getByRole('link', {name: /^Open the calculator at \d+\.\d{2}\s%$/});
-  const rate = await link.getAttribute('data-rate');
+  // Session AK (final run A): the live rate can arrive between two reads (5.33 then 5.06); the link is read once it has
+  // settled (the same value on two reads half a second apart), and its rate and address in one snapshot.
+  const read = () => link.evaluate(a => JSON.stringify([a.getAttribute('data-rate'), a.getAttribute('href')]));
+  let last = '';
+  await expect.poll(async () => { const now = await read(), same = now === last; last = now; return same; }, {intervals: [500]}).toBe(true);
+  const [rate, href] = JSON.parse(last) as [string, string];
   expect(rate).toMatch(/^\d+\.\d{2}$/);
-  expect(await link.getAttribute('href')).toBe(`/app/wealth/calculator?from=earn&rate=${rate}&label=illustration`);
+  expect(href).toBe(`/app/wealth/calculator?from=earn&rate=${rate}&label=illustration`);
   const before = await remembered(page);
   await link.click();
   await expect(page).toHaveURL(new RegExp(`/app/wealth/calculator\\?from=earn&rate=${rate!.replace('.', '\\.')}&label=illustration$`));

@@ -1,0 +1,85 @@
+/* Session AK (ADR-036 Q8, lane C): the in-app board and Play. Loaded with the Play chunk only. Colours are tokens,
+   redefined for Light and Dark; Nebula is the default. Squares stay at least 44 px (8 × 44 = 352 px board); pieces never
+   animate, so reduced motion and Motion Off need nothing more. */
+.chess-play-panel {
+  --chess-light: #c9d5f2;
+  --chess-dark: #5a6ea8;
+  --chess-coord-on-light: #33467a;
+  --chess-coord-on-dark: #eef2ff;
+  --chess-white-piece: #ffffff;
+  --chess-white-edge: #0b1020;
+  --chess-black-piece: #121a33;
+  --chess-black-edge: #e9eeff;
+  --chess-last: #45d8ef66;
+  --chess-selected: #a698ffaa;
+  --chess-target: #0b1020a6;
+  --chess-check: #ff5c7a;
+  --chess-focus: #ffd166;
+  --chess-good: #6ee6cb;
+  --chess-bad: #ff9fb1;
+  display: grid; gap: 18px; min-width: 0;
+}
+:root[data-theme=light] .chess-play-panel {
+  --chess-light: #eef1f8; --chess-dark: #8ea2cf; --chess-coord-on-light: #2f416f; --chess-coord-on-dark: #ffffff;
+  --chess-last: #1aa6cc55; --chess-selected: #6b5cf0aa; --chess-target: #0b1020a6; --chess-check: #d93359; --chess-focus: #7a4d00;
+  --chess-good: #0b7a62; --chess-bad: #a3203f;
+}
+:root[data-theme=dark] .chess-play-panel {
+  --chess-light: #b9c0cf; --chess-dark: #4b566c; --chess-coord-on-light: #2a3346; --chess-coord-on-dark: #f0f3fa; --chess-last: #7fcaff66; --chess-selected: #bba8ffaa;
+}
+.chess-play-panel h3 { margin: 0 0 6px; font-size: 1.0625rem; }
+.chess-play-panel .chess-block { display: grid; gap: 10px; padding: 14px 0 0; border-top: 1px solid var(--edge-raised, #a7c6ff26); min-width: 0; }
+.chess-play-panel button, .chess-play-panel select, .chess-play-panel input:not([type=checkbox]), .chess-play-panel a.chess-cta { min-height: 44px; }
+.chess-play-panel label.chess-check-label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.chess-play-panel label.chess-check-label input { width: 22px; height: 22px; }
+.chess-play-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.chess-play-forms form { display: grid; gap: 8px; align-content: start; padding: 12px; border: 1px solid var(--edge-raised, #a7c6ff26); border-radius: 14px; min-width: 0; }
+.chess-play-forms .fine { margin: 0; }
+.chess-game-list-live { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.chess-game-list-live li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 0; border-top: 1px solid var(--edge-soft, #a7c6ff14); }
+.chess-game-list-live li > div { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.chess-game-list-live small { color: var(--muted); }
+.chess-game-area { display: grid; grid-template-columns: minmax(352px, 560px) minmax(220px, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .chess-game-area { grid-template-columns: minmax(0, 1fr); } }
+.chess-board-wrap { width: min(100%, 560px); min-width: min(352px, 100%); }
+.chess-board { position: relative; width: 100%; aspect-ratio: 1; border-radius: 6px; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.chess-board svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.chess-sq-light { fill: var(--chess-light); }
+.chess-sq-dark { fill: var(--chess-dark); }
+.chess-sq-last { fill: var(--chess-last); }
+.chess-sq-selected { fill: var(--chess-selected); }
+.chess-sq-check { fill: var(--chess-check); opacity: .75; }
+.chess-target-dot { fill: var(--chess-target); }
+.chess-target-ring { fill: none; stroke: var(--chess-target); stroke-width: 7; }
+.chess-coord { font: 600 15px system-ui, sans-serif; pointer-events: none; }
+.chess-coord-on-light { fill: var(--chess-coord-on-light); }
+.chess-coord-on-dark { fill: var(--chess-coord-on-dark); }
+.chess-piece { font-size: 76px; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "DejaVu Sans", "Apple Symbols", serif; pointer-events: none; paint-order: stroke; stroke-linejoin: round; }
+.chess-piece-w { fill: var(--chess-white-piece); stroke: var(--chess-white-edge); stroke-width: 3.5px; }
+.chess-piece-b { fill: var(--chess-black-piece); stroke: var(--chess-black-edge); stroke-width: 1.5px; }
+.chess-grid { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.chess-grid-row { display: flex; flex: 1 1 0; }
+.chess-cell { flex: 1 1 0; min-width: 0; cursor: pointer; outline: none; }
+.chess-cell:focus-visible { box-shadow: inset 0 0 0 4px var(--chess-focus), inset 0 0 0 6px #000000a0; }
+.chess-board[data-readonly] .chess-cell { cursor: default; }
+.chess-side { display: grid; gap: 12px; min-width: 0; }
+.chess-status { margin: 0; font-weight: 650; font-size: 1.0625rem; }
+.chess-status[data-tone=bad] { color: var(--chess-bad); }
+.chess-status[data-tone=good] { color: var(--chess-good); }
+.chess-clocks { display: grid; gap: 6px; margin: 0; }
+.chess-clocks div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border: 1px solid var(--edge-raised, #a7c6ff26); border-radius: 12px; }
+.chess-clocks div[data-running] { border-color: var(--cyan); }
+.chess-clocks dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 650; }
+.chess-clocks dt { overflow-wrap: anywhere; }
+.chess-moves { margin: 0; padding-left: 2.6em; max-height: 260px; overflow: auto; font-variant-numeric: tabular-nums; }
+.chess-moves li { padding: 2px 0; }
+.chess-moves li span + span { margin-left: 1em; }
+.chess-move-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.chess-move-form .field { flex: 1 1 160px; margin: 0; }
+.chess-promotion { padding: 16px; border: 1px solid var(--edge-raised, #a7c6ff40); border-radius: 18px; background: var(--panel, #0b1431); color: inherit; }
+.chess-promotion::backdrop { background: #02061799; }
+.chess-promotion .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.chess-promotion button { min-width: 88px; min-height: 48px; }
+.chess-promotion-glyph { font-size: 1.5rem; margin-right: 6px; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", "Apple Symbols", serif; }
+.chess-actions-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chess-play-message { margin: 0; }

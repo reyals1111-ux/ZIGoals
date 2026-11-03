@@ -26,3 +26,8 @@ test('the everything export, the Health diary and body measurements all use it',
   // Saving trims a label, so the full-width trigger (which the old rule let through) is what reaches this writer.
   expect(exportMeasurementsCsv(measured)).toContain(`"'＝1+1"`);
 });
+
+// Session AK Part 15 (security review): an invisible zero-width character before a formula sign is still a formula.
+test('a formula behind a zero-width space, joiner or byte-order mark is neutralised', () => {
+  for (const v of ['​=1+1', '‍@SUM(A1)', '﻿+1', '⁠-2']) expect(csvSafeCell(v).startsWith(`"'`)).toBe(true);
+});

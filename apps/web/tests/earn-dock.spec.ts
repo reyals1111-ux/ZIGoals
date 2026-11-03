@@ -1,5 +1,9 @@
 import {expect, test, type Page} from '@playwright/test';
 import {earnRoutes, seedShowcase} from './earn-fixtures';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the Earn dock.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF chunk 2 (Part 5: P5.1–P5.5; ADR-028 H12, H65, H68): the Earn dock. On a computer it is ZIGi's launcher's

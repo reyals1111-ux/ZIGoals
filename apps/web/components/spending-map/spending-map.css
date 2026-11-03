@@ -1,0 +1,23 @@
+/* Session AK (BUILD list 2 #18): the spending map. Theme tokens mixed with the panel colour, so labels keep their contrast
+   in Nebula, Light and Dark; the focus ring is the text colour; no motion. */
+.spending-map{display:grid;gap:14px;min-width:0}
+.spending-map-currency{display:grid;gap:8px;min-width:0}
+.spending-map-currency h4,.spending-map-entries h4{margin:0;font-size:15px}
+.spending-map-svg{display:block;max-width:100%;height:auto;overflow:visible}
+.spending-map-cell{cursor:pointer;outline:none}
+.spending-map-cell rect{stroke:var(--panel,#0d1629);stroke-width:2}
+.spending-map-cell.tone-violet rect{fill:color-mix(in srgb,var(--violet,#a698ff) 46%,var(--panel,#0d1629))}
+.spending-map-cell.tone-cyan rect{fill:color-mix(in srgb,var(--cyan,#45d8ef) 40%,var(--panel,#0d1629))}
+.spending-map-cell.tone-pink rect{fill:color-mix(in srgb,var(--pink,#ed79d4) 40%,var(--panel,#0d1629))}
+.spending-map-cell text{fill:var(--text,#f0f5ff);font-size:14px;pointer-events:none}
+.spending-map-name{font-weight:600}
+.spending-map-cell:hover rect{stroke:color-mix(in srgb,var(--text,#f0f5ff) 50%,transparent)}
+.spending-map-cell:focus-visible rect,.spending-map-cell.is-chosen rect{stroke:var(--text,#f0f5ff);stroke-width:3}
+.spending-map-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.spending-map-table caption{text-align:left;font-size:13px;opacity:.85;padding-bottom:4px}
+.spending-map-table th,.spending-map-table td{padding:4px 6px;border-bottom:1px solid var(--line,#25334f);text-align:left}
+.spending-map-table td{text-align:right;white-space:nowrap}
+.spending-map-table th[scope=col]:not(:first-child){text-align:right}
+.spending-map-table .text-link{min-height:44px;text-align:left}
+.spending-map-entries{display:grid;gap:8px}
+.spending-map-entries > button{min-height:44px;justify-self:start}

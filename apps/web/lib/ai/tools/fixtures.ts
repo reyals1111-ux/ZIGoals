@@ -31,6 +31,8 @@ import {linksOf} from '../../links/engine';
 import {MONEY_LOG_KEY, moneyLogSchema} from '../../money-log/schema';
 import {JOURNAL_KEY, journalSchema} from '../../journal/schema';
 import {ENERGY_KEY, energySchema} from '../../energy/schema';
+import {readAkToolSources} from './ak-sources';
+import {readNovaToolSources} from './nova-sources';
 
 /**
  * Fixtures for ZIGi's tools and for every path that reads them (Session V; used by unit tests only, nothing in the app
@@ -157,4 +159,13 @@ export function settingsWith(health: boolean, overrides: Partial<AiSettings> = {
 }
 export function gatesFor(health: boolean, area: PageArea = 'today', pathname = '/app', extra: {sensitive?: boolean; settings?: AiSettings; layoutHasHealth?: boolean} = {}): Gates {
   return aiGates({settings: extra.settings ?? settingsWith(health), area, pathname, layoutHasHealth: extra.layoutHasHealth ?? true, accountActive: false, accountHealthPermitted: null, sensitive: extra.sensitive ?? false});
+}
+/**
+ * Owner follow-up 2 (G8): the Showcase's device records for the newer tools on the sources' own day — the AK and F9
+ * records (bills, workouts…) and NOVA's (tasks, budgets, calendars) with BUILD list 2's (your numbers, the cycle log,
+ * your own scales). Fictional, like the rest of the Showcase.
+ */
+export function withG1(sources: ToolSources): ToolSources {
+  const {records} = showcaseRecords(sources.habitDay), get = {getItem: (k: string) => records[k] ?? null};
+  return {...sources, ak: readAkToolSources(get), nova: {...readNovaToolSources(get), ...sources.nova}};
 }

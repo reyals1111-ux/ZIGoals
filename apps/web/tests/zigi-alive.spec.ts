@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
 import manifest from '../components/zigi/manifest.json';
+import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
 
 /**
  * Session V Part 12, "ZIGi alive", end to end: the launcher as one control (circle, a "Hide ZIGi" chevron centred below
@@ -199,8 +200,11 @@ test('idle that feels alive: under Full a variation plays now and then (never tw
   // Session X-Local Part 3. A fixed random number (a test-only session key) makes the picks exact: the first variation
   // is the accent (insight), the next a glance; the gap is the upper bound (60 s). The mocked clock is advanced in
   // steps and the figure watched at each, since the alive chunk's own start is not in step with this test.
+  // Session AK Part 13 (the Studio-4 art arrived; the seed moved, the rules did not): Studio-4's idle variants X010–X012
+  // joined the pool (zigi-idle.test), so 0.68 is the number that picks the accent first (0.999 now picks X012); the gap is
+  // 48.8 s, and the next pick, never the accent so soon, is X010's glance around.
   await seed(page, {[ZIGI_KEY]: {version: 1, animation: 'full'}});
-  await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.999'));
+  await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.68'));
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
   const zigi = page.locator('.ai-launcher-button .zigi');
@@ -222,7 +226,7 @@ test('idle that feels alive: under Full a variation plays now and then (never tw
   expect(await advanceUntil(false, 5000)).toMatch(/^F001-idle/);
   // The next is a glance, never the accent again so soon.
   const second = await advanceUntil(true, 65_000);
-  expect(second).toMatch(/^(T001-thinking|F004-listening)/);
+  expect(second).toMatch(/^X010-idle-glance/);
   await advanceUntil(false, 6000);
   // Typing in a text field stops it at once and keeps it away.
   await openChat(page);
@@ -285,7 +289,10 @@ test('ZIGi sits on its optical centre at every size, at 1× and 2× pixel densit
   }
 });
 
+// Session AK CI-W (diagnostic only): a failed run attaches the page transitions' timing (tests/vt-timing.ts).
+test.afterEach(async ({page}, testInfo) => { await attachTransitionTiming(page, testInfo); });
 test('Meet ZIGi: every state with its code, reached from Customize and not from the navigation; nothing written on view', async ({page, isMobile}) => {
+  await recordTransitionTiming(page);
   await seed(page);
   // A new page load (seed leaves the browser on Settings, where a jump to the hash before the app has started can
   // lose the hash to the router's first write of the address).
@@ -294,7 +301,12 @@ test('Meet ZIGi: every state with its code, reached from Customize and not from 
   await page.locator('#zigi-look').getByRole('link', {name: /Meet ZIGi/}).click();
   await expect(page).toHaveURL(/\/app\/zigi$/);
   await expect(page.getByRole('heading', {level: 1, name: 'Meet ZIGi.'})).toBeVisible();
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the page leads with what ZIGi does and the privacy line; the state
+  // gallery is under the "Every way ZIGi can look" fold and mounts when opened. Every check below is as strict as before.
+  await expect(page.getByRole('region', {name: 'What ZIGi can do', exact: true})).toContainText('Private by design.');
+  await expect(page.locator('.meet-zigi-card')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+  await page.getByText('Every way ZIGi can look', {exact: true}).click();
   const states = Object.values(manifest.states);
   await expect(page.locator('.meet-zigi-card')).toHaveCount(states.length);
   /* Assertion changed (Session AH TO9, D-249/M-030, equal strength): the page no longer shows frame codes (owner: the
@@ -319,7 +331,8 @@ test('Meet ZIGi in Showcase: the same page, nothing personal on it', async ({pag
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await page.goto('/app/zigi');
+  // Session AK G2 (RELEASE_REVIEW R26, deliberate): the gallery opens from its own address (#every-look) as from its fold.
+  await page.goto('/app/zigi#every-look');
   await expect(page.getByRole('heading', {level: 1, name: 'Meet ZIGi.'})).toBeVisible();
   await expect(page.locator('.meet-zigi-card')).toHaveCount(Object.keys(manifest.states).length);
   await page.getByRole('radio', {name: /^Off/}).check();

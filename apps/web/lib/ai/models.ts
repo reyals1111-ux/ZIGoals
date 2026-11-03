@@ -67,7 +67,12 @@ export async function listModels(request: ListRequest): Promise<ModelInfo[]> {
       if (server === 'ollama') {
         const value = await getJson(request, `${request.baseUrl}/api/tags`, {}, true) as {models?: unknown};
         if (!Array.isArray(value.models)) throw new AiError('unreadable', 'The model list could not be read.', {provider: 'local'});
-        return dedupe(value.models.flatMap(entry => { const e = (entry ?? {}) as Record<string, unknown>, id = str(e.name) ?? str(e.model); return id ? [{id, label: id, kind: kindOf(id)}] : []; }));
+        // Security review Z1A-7: Ollama marks the models it runs in its own cloud (`remote_host`/`remote_model`); each listing
+        // keeps those names for the privacy mode (lib/nova/cloud-models.ts, loaded only here), so a renamed copy counts as a cloud.
+        // A listing with an injected fetcher (tests, a preview) keeps nothing.
+        const listed = dedupe(value.models.flatMap(entry => { const e = (entry ?? {}) as Record<string, unknown>, id = str(e.name) ?? str(e.model); return id ? [{id, label: id, kind: kindOf(id), ...(e.remote_host || e.remote_model ? {cloud: true as const} : {})}] : []; }));
+        if (!request.fetcher) void import('../nova/cloud-models').then(m => m.rememberOllamaCloud(listed.filter(m => m.cloud).map(m => m.id), listed.filter(m => !m.cloud).map(m => m.id))).catch(() => undefined);
+        return listed;
       }
       return fromOpenAiList(await getJson(request, `${request.baseUrl}/v1/models`, request.key ? {authorization: `Bearer ${request.key}`} : {}, true), id => kindOf(id));
     }

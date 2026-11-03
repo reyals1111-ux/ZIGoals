@@ -2,6 +2,7 @@
 import {useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {removeSuggestion, setPinned, shownSuggestions, ZIGI_SUGGESTIONS} from '../../lib/zigi-suggestions';
 import {useDeviceRecord} from './use-device-record';
+import {ArtNote} from '../illustrations/art-note';
 
 /**
  * The Suggestions sheet (Session Z-Cloud Part 2, ADR-019): what used to fill a new chat now waits behind one chip by the
@@ -42,7 +43,7 @@ function YoursList({healthShared, onAsk}: {healthShared: boolean; onAsk: (text: 
   const record = useDeviceRecord(ZIGI_SUGGESTIONS), [note, setNote] = useState('');
   const shown = record.loaded ? shownSuggestions(record.data, {healthShared}) : [];
   const change = (apply: () => void, done: string) => { try { apply(); setNote(done); } catch { setNote('This could not be saved on this device.'); } };
-  if (!shown.length) return <p className="ai-note ai-suggest-empty">Questions you ask three times within a month appear here, marked “Yours”. They stay on this device and go to your AI only when you send one.{note && <span className="ai-sr-only" role="status">{note}</span>}</p>;
+  if (!shown.length) return <ArtNote pillar="orbit"><p className="ai-note ai-suggest-empty">Questions you ask three times within a month appear here, marked “Yours”. They stay on this device and go to your AI only when you send one.{note && <span className="ai-sr-only" role="status">{note}</span>}</p></ArtNote>;
   return <>
     <ul className="ai-yours" aria-label="Your own suggestions">
       {shown.map(s => <li key={s.key} className="ai-yours-item">

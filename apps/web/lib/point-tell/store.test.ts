@@ -45,22 +45,29 @@ describe('the record', () => {
   });
 });
 
-describe('naming what was picked', () => {
-  test('a button in a labelled region reads as the button and the region; a region\'s data-region wins the selector', () => {
+describe('naming what was picked (A17: a role and a developer-made name, never visible text)', () => {
+  test('a button in a region reads as its role and the region\'s name; a region\'s data-region wins the selector', () => {
     document.body.innerHTML = '<main><section aria-labelledby="h"><h2 id="h">Your goals</h2><div data-region="goal-list"><button><span>Create a goal</span></button></div></section></main>';
     const span = document.querySelector('span')!;
-    expect(describeTarget(span)).toEqual({target: 'Create a goal · goal-list', selector: '[data-region="goal-list"]'});
+    expect(describeTarget(span)).toEqual({target: 'button · goal-list', selector: '[data-region="goal-list"]'});
   });
-  test('without a region: the label or heading names it; the selector is an id or a short tag path that finds it again', () => {
+  test('without a region: the role and the nearest safe anchor; the selector still finds it again', () => {
     document.body.innerHTML = '<main id="main"><section><h2>Water</h2><p>Today <b>1.2 L</b></p></section></main>';
     const b = document.querySelector('b')!;
     const d = describeTarget(b);
-    expect(d.target).toBe('Water');
+    expect(d.target).toBe('generic · main');
     expect(document.querySelector(d.selector)).toBe(b);
     expect(selectorOf(b).startsWith('#main')).toBe(true);
-    // A form field's typed value is never read as its name.
-    document.body.innerHTML = '<form aria-label="Log a meal"><input value="secret value" /></form>';
-    expect(describeTarget(document.querySelector('input')!).target).toBe('Log a meal');
+    // A form field: its kind only; never its typed value, its placeholder or the form's label.
+    document.body.innerHTML = '<form aria-label="Log a meal"><input value="secret value" placeholder="Ann\'s lunch" /></form>';
+    expect(describeTarget(document.querySelector('input')!).target).toBe('textbox');
+  });
+  test('no visible text, label, title or record id ever reaches a pin\'s name', () => {
+    document.body.innerHTML = '<main><article data-layout-item="today:goals" aria-label="Walk with Mia"><h3 title="House deposit">House deposit</h3><a href="/app/goals/12345" id="goal-8f3a9c21-5b7d-4e1a-9c3b-2d4e6f8a0b1c"><span>Ann Smith 1,250</span></a></article></main>';
+    const d = describeTarget(document.querySelector('span')!);
+    for (const personal of ['Walk with Mia', 'House deposit', 'Ann', 'Smith', '1,250', '12345', '8f3a9c21']) expect(d.target).not.toContain(personal);
+    expect(d.target).toBe('link · goal-#');
+    expect(d.selector).not.toContain('8f3a9c21');
   });
 });
 

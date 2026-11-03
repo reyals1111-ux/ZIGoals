@@ -82,7 +82,7 @@ for (const viewport of VIEWPORTS) {
       await page.route('https://api.openai.com/**', route => route.fulfill({status: 200, contentType: 'application/json', body: MODELS}));
       await section.getByLabel('API key').fill(FAKE_KEY);
       await section.getByRole('button', {name: 'Test connection'}).click();
-      await expect(section.getByRole('option', {name: /^mock-chat$/})).toBeVisible();
+      await expect(section.getByRole('option', {name: /^mock-chat( Suggested)?$/}) /* Session AK P4 (FR, deliberate): the suggested model carries a "Suggested" tag */).toBeVisible();
       await shot(page, '07-setup-api-key-models');
       await freshSetup(page);
       await section.getByRole('button', {name: /I run a model on this computer/}).click();

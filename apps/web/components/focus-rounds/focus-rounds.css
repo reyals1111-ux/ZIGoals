@@ -1,0 +1,6 @@
+/* Session AK (BUILD list 2 #15): Focus intervals' bell and breaks, inside the Pomodoro panel. Theme tokens only; no motion. */
+.focus-rounds > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; overflow-wrap: anywhere; }
+.focus-rounds-body { display: grid; gap: 8px; padding-top: 6px; }
+.focus-rounds-body select, .focus-rounds-body button, .focus-rounds-body input[type="range"] { min-height: 44px; }
+.focus-rounds-body input[type="range"] { width: 100%; }
+.focus-rounds-body .fine { margin: 0; }

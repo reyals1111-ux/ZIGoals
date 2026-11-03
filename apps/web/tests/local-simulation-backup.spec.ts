@@ -1,5 +1,9 @@
 import {test,expect} from '@playwright/test';
 import {seed} from './coherence-fixture';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the local ZIG simulation.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Legacy "Local simulation" Goals (simulated ledger + their saved plans) must survive
 // Settings → encrypted backup → wipe the browser → restore, exactly like the four modules.

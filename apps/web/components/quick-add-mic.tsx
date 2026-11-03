@@ -30,7 +30,9 @@ export function QuickAddMic({onText, disabled}: {onText: (text: string) => void;
   return <div className="quick-add-mic">
     <button type="button" className="secondary" aria-pressed={listening} disabled={disabled} onClick={() => listening ? recognition.current?.stop() : start()}>{listening ? 'Stop' : 'Speak a line'}</button>
     {listening && <p className="fine" role="status">Listening{heard ? `: “${heard}”` : '…'} Say several things at once, like “two glasses of water and a banana”.</p>}
-    {!listening && <p className="fine">{browserSpeechDisclosure(browser, false)}</p>}
+    {/* Session AK G2 (RELEASE_REVIEW_2 R2-13): one line, with the browser's own words one tap away, so Quick add's options
+        start higher on a phone. The full disclosure is unchanged and stays in the page. */}
+    {!listening && <details className="quick-add-mic-how"><summary>Speech is handled by your browser, not by ZIGoals. <span className="text-link">How speech works</span></summary><p className="fine">{browserSpeechDisclosure(browser, false)}</p></details>}
     {error && <p role="alert">{error}</p>}
   </div>;
 }

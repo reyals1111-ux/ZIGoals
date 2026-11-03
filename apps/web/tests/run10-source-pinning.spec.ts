@@ -7,6 +7,10 @@ test.beforeEach(async({page})=>{await page.route('**/api/market-**',route=>route
 
 test('visual library hides ineligible staking and card menu returns focus on Escape',async({page},info)=>{
  await page.setViewportSize({width:320,height:800});
+ // Session AK RB (RELEASE_REVIEW_2 R2-11, deliberate): a brand-new device's Today is the welcome and one card per area
+ // (R14), with no "Customize Today"; this person said "Not now" to the welcome (its device-only seen flag), as the other
+ // R14 specs do, so the widgets and their options are the ones checked here.
+ await page.addInitScript(()=>localStorage.setItem('zigoals:onboarding:v1',JSON.stringify({version:1,seen:true})));
  await page.goto('/app');
  await openTodayWidgets(page);
  await page.locator('.dashboard-widget').first().screenshot({path:info.outputPath('today-widget-normal-320.png'),animations:'disabled'});
@@ -53,17 +57,19 @@ test('source-card pinning keeps Goal, Habit, asset and research bindings distinc
  await project.getByRole('button',{name:/research shortcut to Today/}).click();
  await expect(project.getByRole('status')).toContainText('added to Today');
  await page.goto('/app');
- const summary=page.getByRole('region',{name:'Your selected widgets'});
- await expect(summary.locator('.dashboard-summary-item')).toHaveCount(8);
- await expect(summary.locator('a.dashboard-summary-item[href^="/app/ecosystem#project-"]')).toHaveCount(1);
+ // Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the overview no longer repeats the widgets that are cards on Today;
+ // the eight are counted as cards, and the research shortcut's card links to its project.
+ const summary=page.getByRole('region',{name:'Your Today widgets'}).locator('article.dashboard-widget:not([data-hidden])');
+ await expect(summary).toHaveCount(8);
+ await expect(summary.locator('a.text-link[href^="/app/ecosystem#project-"]')).toHaveCount(1);
  await page.reload();
- await expect(summary.locator('.dashboard-summary-item')).toHaveCount(8);
+ await expect(summary).toHaveCount(8);
  await page.goto('/app/goals');
  await goal.getByRole('button',{name:/Options for/}).click();
  await goal.getByRole('button',{name:/Add .* progress to Today/}).click();
  await expect(goal.getByRole('status')).toContainText('already on Today');
  await page.goto('/app');
- await expect(summary.locator('.dashboard-summary-item')).toHaveCount(8);
+ await expect(summary).toHaveCount(8);
 });
 
 test('a bound Habit updates its Today summary and card after the source changes',async({page})=>{
@@ -74,8 +80,9 @@ test('a bound Habit updates its Today summary and card after the source changes'
  await page.addInitScript(({habitsKey,habitsValue,settingsKey,settingsValue})=>{if(!sessionStorage.getItem('fixture-bound-habit-seeded')){localStorage.setItem(habitsKey,habitsValue);localStorage.setItem(settingsKey,settingsValue);sessionStorage.setItem('fixture-bound-habit-seeded','true');}},{habitsKey:HABITS_KEY,habitsValue:JSON.stringify(habit),settingsKey:DASHBOARD_SETTINGS_KEY,settingsValue:JSON.stringify(settings)});
  await page.goto('/app');
  await openTodayWidgets(page);
- const summary=page.getByRole('region',{name:'Your selected widgets'});
- const item=summary.locator('.dashboard-summary-item').filter({hasText:'Reading today'});
+ // Session AK RB (R2-9, deliberate): the card is the one place for the figure (the overview's copy is gone); `item` is
+ // the card's own figure, so each check below still reads the bound habit's value.
+ const item=page.getByRole('article',{name:'Reading today',exact:true}).locator('.dashboard-metric-value');
  const card=page.getByRole('article',{name:'Reading today',exact:true});
  await expect(item).toContainText('0 pages');
  await expect(card).toContainText('0 pages');

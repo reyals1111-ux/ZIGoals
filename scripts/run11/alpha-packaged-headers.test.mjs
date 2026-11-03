@@ -145,6 +145,10 @@ test.runIf(enabled)('the packaged Alpha serves the web app manifest from the ass
   // that 72ad872's bytes still come first. The packaged asset is pinned as a whole.
   // Session AF (L3, deliberate, as strict): the manifest gained the Checklist shortcut (install-manifest.spec.ts moved to the
   // same hash in L3's commit); the packaged asset is still pinned as a whole.
-  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('db76a85f0cf583c8dc990c011d8dc34876df2bfaa71e699795614abf203f8733');
+  // Session AK (Part 3, A18; deliberate, as strict): the manifest gained the Today and Log weight shortcuts and its
+  // screenshots (install-manifest.spec.ts moved to the same hash in 02ec25f2); the packaged asset is still pinned as a whole.
+  // Session AK X1 (RELEASE_REVIEW R8; deliberate, as strict): the description became consumer words (install-manifest.spec.ts
+  // moved to the same hash and still checks 72ad872's other bytes); the packaged asset is still pinned as a whole.
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('9ab51f5e3c6ec9198ba8555cad07cb499124410c908d0caed0513d1c8ef5f38e');
  }finally{await mf.dispose();}
 },60000);

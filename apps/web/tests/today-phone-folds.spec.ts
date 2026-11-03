@@ -14,26 +14,34 @@ async function showcase(page: Page) {
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  // Session AK RB (deliberate): since R11 (Session AK G2) a phone mounts Today's widget area when it comes near the screen or
+  // the browser is first idle, so the widgets are counted once they are in the page (the count read 0 before).
+  await expect(widgetModules(page).first()).toBeAttached();
+  await expect.poll(async () => { const a = await widgetModules(page).count(); await page.waitForTimeout(300); return a === await widgetModules(page).count() ? 'settled' : 'changing'; }).toBe('settled');
 }
 // Session AC (deliberate, the owner's "each thing once"): the habits widget stands in for the hidden Daily Habits by default
 // and shows open as Daily Habits did on a phone (asserted below); every other widget folds to a row as before.
-const widgetModules = (page: Page) => page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"]:not([data-stands-in])');
+function widgetModules(page: Page) { return page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"]:not([data-stands-in])'); }
 
+// Session AK RB (RELEASE_REVIEW_2 R2-9, deliberate): the overview no longer repeats every widget (each showed twice on
+// Today); each row carries its card's figure under its name instead, so every value stays in view on the folded page.
 test('every widget card is a row named by it; the overview still shows every value', async ({page}) => {
   await showcase(page);
   const modules = widgetModules(page), count = await modules.count();
   expect(count).toBeGreaterThan(1);
   const overview = page.getByRole('region', {name: 'Your selected widgets'});
   await expect(overview).toBeVisible();
+  await expect(overview.locator('.dashboard-summary-item')).toHaveCount(0);
   const standIn = page.locator('.placed-module[data-stands-in="habits"]');
   await expect(standIn).toHaveCount(1); await expect(standIn.locator('.phone-fold-toggle')).toHaveCount(0);
   await expect(standIn.locator('.habits-today')).toBeVisible();
-  await expect(overview.getByRole('link')).toHaveCount(count + 1);
   for (let i = 0; i < count; i++) {
     const placed = modules.nth(i), card = placed.locator('article.dashboard-widget'), title = (await card.getAttribute('aria-label'))!;
     const row = placed.locator('.phone-fold-toggle');
-    // The row is named by the card's own title (its Show/Hide hint is hidden from assistive technology).
-    await expect(row).toHaveAccessibleName(title);
+    // The row is named by the card's own title, then its figure (its Show/Hide hint is hidden from assistive technology).
+    const figure = (await card.locator('.dashboard-metric-value strong').first().textContent())?.trim() ?? '';
+    await expect(row).toHaveAccessibleName(figure ? `${title} ${figure}` : title);
+    if (figure) await expect(row.locator('.phone-fold-detail')).toHaveText(figure);
     await expect(row).toHaveAttribute('aria-expanded', 'false');
     await expect(card).toBeHidden();
     expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);

@@ -1,0 +1,17 @@
+/* Session AK (BUILD list 2 #12): your own 1–5 scales, in the check-in and on the Journal. Theme tokens only. */
+.your-scales { display: grid; gap: 10px; min-width: 0; }
+.your-scales-row { border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; margin: 0; min-width: 0; display: grid; gap: 6px; }
+.your-scales-row legend { font-weight: 700; padding: 0 4px; }
+.your-scales-ends { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--text-meta); overflow-wrap: anywhere; }
+.your-scales-dots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.your-scales-dots button, .your-scales-manage button { min-height: 44px; }
+.your-scales-empty, .your-scales-invite { margin: 0; }
+.your-scales-status { margin: 0; min-height: 1.2em; }
+.your-scales-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.your-scales-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 12px; }
+.your-scales-list small { color: var(--text-meta); }
+.your-scales-actions { display: flex; gap: 4px; }
+.your-scales-form { display: grid; gap: 8px; }
+.your-scales-suggest { display: flex; flex-wrap: wrap; gap: 6px; }
+.your-scales-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.your-scales-fields input { min-height: 44px; min-width: 0; }

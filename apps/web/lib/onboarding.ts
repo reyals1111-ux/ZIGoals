@@ -78,7 +78,7 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as
  * Session L's follow-up asked: on its own it no longer keeps the welcome away from a device with nothing on it.
  */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DESIGN_DISPLAY_KEYS, ...EARN_DISPLAY_KEYS, STAKING_PREFS_KEY, ...AF_ZIGI_DISPLAY_KEYS, ...AF_EXTRAS_DISPLAY_KEYS, ...AH_DISPLAY_KEYS];
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:ak-tour:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DESIGN_DISPLAY_KEYS, ...EARN_DISPLAY_KEYS, STAKING_PREFS_KEY, ...AF_ZIGI_DISPLAY_KEYS, ...AF_EXTRAS_DISPLAY_KEYS, ...AH_DISPLAY_KEYS];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are

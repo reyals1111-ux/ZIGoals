@@ -7,6 +7,11 @@ import {zigiSignals} from '../zigi/bus';
 import {unlockSpeech, voiceEngine, type EngineSnapshot, type Origin, type VoiceEngine} from './voice-engine';
 import {useDeviceRecord} from './use-device-record';
 import {TALK_EVENT, TALK_PENDING, TALK_STOP_EVENT, type TalkRequest} from './talk-events';
+// Security review Z1A-12: in Strict privacy only the browser's on-device recognition listens.
+import {readPrivacyMode} from '../../lib/nova/setup';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {speechInputAllowed} from '../../lib/ai/voice-privacy';
+const strictNow = () => { try { return readPrivacyMode(getAppStorage()) === 'strict'; } catch { return true; } };
 
 /**
  * Talk to ZIGi from the composer (Session Z-Cloud Part 3, ADR-019). The microphone shows wherever the browser offers
@@ -26,7 +31,7 @@ export function useTalk({language, onDevicePreferred, enabled, onWords}: {langua
   const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent);
   const lang = resolveVoiceLanguage(language, typeof navigator === 'undefined' ? undefined : navigator.language);
   const [snapshot, setSnapshot] = useState<EngineSnapshot | null>(null), [onDevice, setOnDevice] = useState(false);
-  const [disclosing, setDisclosing] = useState(false), [highlight, setHighlight] = useState(false), [unavailable, setUnavailable] = useState(false);
+  const [disclosing, setDisclosing] = useState(false), [highlight, setHighlight] = useState(false), [unavailable, setUnavailable] = useState(false), [strictReason, setStrictReason] = useState<string | null>(null);
   const words = useRef(onWords); useEffect(() => { words.current = onWords; });
   const phase = useRef<Phase>(null);
   const supported = !!engine?.supported, disclosed = !!record.data.disclosed?.[browser];
@@ -46,7 +51,8 @@ export function useTalk({language, onDevicePreferred, enabled, onWords}: {langua
   /** Starts inside the caller's own gesture. False when it cannot (then the reason is on screen). */
   const begin = useCallback((origin: Origin): boolean => {
     if (!engine || !enabled) return false;
-    if (!supported) { setUnavailable(true); return false; }
+    if (!supported) { setStrictReason(null); setUnavailable(true); return false; }
+    const allowed = speechInputAllowed(strictNow(), onDevice); if (!allowed.allowed) { setStrictReason(allowed.reason); setUnavailable(true); return false; }
     if (!disclosed) { setDisclosing(true); return false; }
     unlockSpeech();
     try { window.speechSynthesis?.cancel(); } catch { /* nothing reading */ }
@@ -59,6 +65,7 @@ export function useTalk({language, onDevicePreferred, enabled, onWords}: {langua
   const acceptDisclosure = useCallback(() => {
     markDisclosed(); setDisclosing(false);
     if (!engine) return;
+    const allowed = speechInputAllowed(strictNow(), onDevice); if (!allowed.allowed) { setStrictReason(allowed.reason); setUnavailable(true); return; }
     unlockSpeech();
     engine.start({lang, origin: 'composer', onDevice});
   }, [engine, lang, markDisclosed, onDevice]);
@@ -104,7 +111,7 @@ export function useTalk({language, onDevicePreferred, enabled, onWords}: {langua
   // Leaving the panel ends listening; nothing keeps the microphone.
   useEffect(() => () => { if (engine?.current.state === 'listening' && engine.current.origin === 'composer') engine.cancel(); }, [engine]);
   const disclosure = browserSpeechDisclosure(browser, onDevice);
-  const reason = browser === 'firefox' ? 'Firefox has no speech recognition yet.' : 'This browser doesn’t offer speech recognition here.';
+  const reason = strictReason ?? (browser === 'firefox' ? 'Firefox has no speech recognition yet.' : 'This browser doesn’t offer speech recognition here.');
   return {engine, prefs, record, browser, lang, supported, listening, snapshot, disclosing, disclosure, highlight, unavailable, reason,
     begin, stop, cancel, acceptDisclosure, dismissDisclosure: () => setDisclosing(false), dismissHighlight: () => setHighlight(false), dismissUnavailable: () => setUnavailable(false),
     onPointerDown, onPointerUp, onPointerCancel, onKeyActivate};

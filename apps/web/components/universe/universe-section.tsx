@@ -15,6 +15,7 @@ import {useUniverse} from './use-universe';
 import {LifeScorePanel} from './life-score';
 import {GuidedJourneysLink} from '../guided/guided-link';
 import './universe.css';
+import '../skeleton/zg-skeleton.css';
 
 /**
  * My Universe, the full view (Session AF, L5b; P9.1, ADR-028 H77): on /app/journey above the game sections, with Gamify on
@@ -47,7 +48,7 @@ export function UniverseSection() {
       <h2 id="universe-title"><NebulaFlow identity="universe-title">{title}</NebulaFlow></h2>
       <p className="universe-lede">{universe?.empty ? 'Check in a habit, log a day or set a goal: each planet grows from what you already do.' : 'One planet for each part of your life. Rings, moons and light grow from your own records, and nothing is ever taken away: a missed day leaves a faint ring.'}</p>
     </div>
-    {!loaded ? <div className="universe-skeleton aa-skeleton" aria-hidden="true"><i /><i /></div> : failed ? <p role="status" className="universe-note">Some of your records could not be read on this device, so your universe waits until they can.</p> : universe && <>
+    {!loaded ? <div className="universe-skeleton aa-skeleton zg-skeleton" aria-hidden="true"><i /><i /></div> : failed ? <p role="status" className="universe-note">Some of your records could not be read on this device, so your universe waits until they can.</p> : universe && <>
       <UniverseCelebration milestones={state.pending} onCelebrate={state.celebrate} />
       <div className="universe-stage" data-layout={layout} style={{aspectRatio: `${scene.width} / ${scene.height}`}}>
         <UniverseScene planets={universe.planets} layout={layout} />

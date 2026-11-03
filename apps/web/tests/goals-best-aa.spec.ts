@@ -48,7 +48,9 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   // G7: the Hall of achievements.
   const hall = page.getByRole('region', {name: 'Hall of achievements'});
   await expect(hall.locator('.hall-title')).toHaveText(['Drink 2 litres a day', '8,000 steps a day, all summer', 'My first 0.1 BTC']);
-  await expect(hall).toContainText('Finish day not recorded');
+  // Session AK RB (RELEASE_REVIEW_2 R2-23, deliberate): a finish day the records do not hold reads "Finished" alone.
+  await expect(hall).not.toContainText('Finish day not recorded');
+  await expect(hall.locator('.hall-when').filter({hasText: /^Finished$/})).not.toHaveCount(0);
   // A goal's page lists its sub-goals of every kind, an average goal included, as the tree does.
   await page.goto('/app/goals/tracked/9205');
   await expect(page.getByRole('list', {name: 'Sub-goals'})).toContainText('Create 2 hours a day');
@@ -77,7 +79,7 @@ test('a goal’s pace forecast is labelled an estimate; its plan saves with Undo
 test('a template fills in the goal wizard and offers its habits', async ({page}) => {
   await page.goto('/app/goals/templates');
   await expect(page.getByRole('heading', {name: 'Goal templates', level: 1})).toBeVisible();
-  await expect(page.locator('.template-card')).toHaveCount(43); // Session AH (DE5): + "Keep spending under a cap"
+  await expect(page.locator('.template-card')).toHaveCount(53); // Session AH (DE5): + "Keep spending under a cap"; owner follow-up 1 (F5): + 3 savings challenges and 7 more
   await page.getByLabel('Search templates').fill('10k');
   await expect(page.locator('.template-card')).toHaveCount(1);
   await page.getByRole('link', {name: 'Use the template: Run a 10K'}).click();
@@ -129,4 +131,14 @@ test('the Hall’s share image is made on the device (a download, nothing upload
   await card.getByRole('button', {name: 'Share image'}).click();
   expect((await download).suggestedFilename()).toBe('Drink-2-litres-a-day.png');
   expect(requests).toEqual([]);
+});
+
+// Release review R1 (Blocker): the Showcase's average goal with a smaller goal under it opens (it crashed: an average goal
+// has no money summary to roll up), and says how many smaller goals are done instead.
+test('an average goal with a smaller goal under it opens and counts its smaller goals', async ({page}) => {
+  await showcase(page);
+  await page.goto('/app/goals/average/showcase-create');
+  await expect(page.getByRole('heading', {name: 'Bigger and smaller goals'})).toBeVisible({timeout: 15_000});
+  await expect(page.getByText('This page could not be shown.')).toHaveCount(0);
+  await expect(page.locator('.goal-rollup')).toContainText(/\d+ of \d+ smaller goals? done/);
 });

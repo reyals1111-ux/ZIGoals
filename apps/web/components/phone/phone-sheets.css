@@ -88,3 +88,6 @@
 }
 .quick-add-mic { display: grid; gap: 6px; justify-items: start; }
 .quick-add-mic button[aria-pressed="true"] { border-color: currentColor; }
+/* Session AK G2 (RELEASE_REVIEW_2 R2-13): the speech disclosure as one line; "How speech works" opens the browser's own words. */
+.quick-add-mic-how summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; min-height: 44px; cursor: pointer; font-size: 14px; line-height: 1.4; }
+.quick-add-mic-how p { margin: 4px 0 0; }

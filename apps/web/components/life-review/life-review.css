@@ -91,3 +91,11 @@
 /* Session AJ (item 10): a pairing's confidence label, readable in every theme (text, not colour alone). */
 :root .cross-label { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 650; line-height: 1.4; border: 1px solid var(--border-strong, currentColor); color: var(--text-secondary); vertical-align: middle; }
 :root .cross-label.is-consistent { color: var(--text-primary); }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Review and its insights: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.life-review-page) .panel:not(.life-review-hero) { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-violet) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.life-review-page) .panel:not(.life-review-hero):hover { border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent)); } }
+:root :where(.life-review-page) .panel:not(.life-review-hero):has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.life-review-page) .panel:not(.life-review-hero) { box-shadow: none; } }

@@ -7,6 +7,7 @@ import {MODULE_KEYS} from '../export/everything';
 import {SYNCED} from '../data-health/catalog';
 import {DEVICE_PARTS} from '../restore/plan';
 import {EXTRAS_DEVICE_KEYS} from '../vault/extras-keys';
+import {EXTRAS_SECTIONS} from '../vault/extras-sections';
 import {UI_PREFS, checklistPrefsOf, uiPrefsSchema} from '../ui-prefs/schema';
 import {CHECKLIST, CHECKLIST_DAYS, checklistSchema} from './schema';
 import {orderedItems} from './store';
@@ -22,23 +23,27 @@ describe('Session AF Checklist keys (TIER 3 storage, ADR-028 H10): versioned, lo
     expect(TODAY_CHECKLIST_LAYOUT_ID).toBe('today:checklist');
     expect(CHECKLIST.key).toBe(CHECKLIST_KEY); expect(CHECKLIST_DAYS.key).toBe(CHECKLIST_DAYS_KEY);
   });
-  test('never synced or restored: no module record, extras-sync key, synced catalog entry or restore part', () => {
+  test('never a module record or a restore part; synced only as the extras Checklist section (AK 8.10, AFL8), listed so in the catalog', () => {
     for (const key of AF_CHECKLIST_PERSONAL_KEYS) {
       expect(Object.values(MODULE_KEYS)).not.toContain(key);
-      expect(EXTRAS_DEVICE_KEYS).not.toContain(key);
-      expect(SYNCED.some(e => e.key === key)).toBe(false);
+      expect(EXTRAS_DEVICE_KEYS).toContain(key);
+      expect(SYNCED.find(e => e.key === key)?.home).toBe('sync');
       expect(DEVICE_PARTS.some(p => p.key === key)).toBe(false);
     }
   });
-  test('no sync module or Worker names the keys', () => {
+  test('only the extras Checklist section names the keys (AK 8.10, AFL8), and it keeps Health quick inputs and today\'s ticks on the device', () => {
     const lib = join(__dirname, '..');
     const files = (dir: string): string[] => readdirSync(dir).flatMap(name => { const path = join(dir, name); return statSync(path).isDirectory() ? (name === 'node_modules' ? [] : files(path)) : /\.(ts|tsx|mjs|js)$/.test(name) ? [path] : []; });
     const sync = [...files(join(lib, 'vault')), ...files(join(lib, 'sync-offer')), join(lib, 'sync-homes-store.ts'), ...files(join(lib, '..', '..', '..', 'workers'))];
     expect(sync.length).toBeGreaterThan(20);
-    // The frozen-reader proof (vault/frozen-fixtures.test.ts) may name them once the lead registers the records there: it
-    // writes fictional records to show that older builds ignore them. Nothing that ships may.
-    const naming = sync.filter(file => /checklist|CHECKLIST/.test(readFileSync(file, 'utf8'))).map(file => relative(lib, file));
-    expect(naming.filter(f => f !== join('vault', 'frozen-fixtures.test.ts'))).toEqual([]);
+    // Session AK (AFL8, TIER 3 (auth/sync)): the Checklist travels only as the extras section `checklist` (its records in
+    // vault/extras-sections.ts, the section's name in vault/extras-sync.ts and in the private-sync Worker's extras store).
+    // Tests may name them too. Nothing else that ships may: no module home, no sync offer, no other Worker.
+    const naming = sync.filter(file => !/\.test\.(ts|mjs)$/.test(file) && /checklist|CHECKLIST/.test(readFileSync(file, 'utf8'))).map(file => relative(lib, file)).sort();
+    expect(naming).toEqual([join('..', '..', '..', 'workers', 'private-sync', 'extras.mjs'), join('vault', 'extras-keys.ts'), join('vault', 'extras-sections.ts'), join('vault', 'extras-sync.ts')].sort());
+    const section = EXTRAS_SECTIONS.find(s => s.name === 'checklist')!;
+    expect(section.consent).toBe('account');
+    expect(section.records.map(r => [r.spec.key, r.deviceFields])).toEqual([[CHECKLIST_KEY, ['healthItems']], [CHECKLIST_DAYS_KEY, ['today']]]);
   });
   test('an older build’s bare record reads; unknown fields and kinds survive a write and are left off the path', () => {
     const {m, storage} = memory();

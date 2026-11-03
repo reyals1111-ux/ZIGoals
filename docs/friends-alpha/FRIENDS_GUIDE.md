@@ -1,8 +1,9 @@
 <!--
 For the owner: a one-page welcome to send to friends as it is, or adapt. It matches the in-app Help (/app/help) as of
 Session L (2026-10-02), updated with Sessions T–W, Session X (2026-10-08: parts 7–9 below) and Session Z-Cloud
-(2026-10-10: parts 3, 8 and 9 below), Session AH (part 8c) and Session AJ (2026-10-30: part 8d and the
-last seven lines of part 9), and follows the owner
+(2026-10-10: parts 3, 8 and 9 below), Session AH (part 8c), Session AJ (2026-10-30: part 8d and the
+last seven lines of part 9 before Session AK's) and Session AK (2026-10-31: part 8e and the last eight lines of part 9),
+and follows the owner
 principle: sync is switched on once, backups are optional, and the one thing to keep safe is the recovery secret.
 Accounts and encrypted sync are only available after Stage 7/8 activation; until then, part 2 "Before accounts open"
 applies, and so does the first line of part 8.
@@ -136,6 +137,24 @@ All optional. Help explains each one.
 - **Erase everything on this device** at the end of Settings → Backup & restore. Type ERASE and every ZIGoals record leaves this browser. Make Export everything first if you want a copy.
 - **The Guide** has two new notes: a habit that is back after a few missed days, and a goal close to its target. With your own AI connected, "Ask ZIGi about this" opens ZIGi with a question about the note. Nothing is sent until you send it.
 
+## 8e. New in this release (Session AK, "Number One")
+
+All optional. Help explains each one, and **Take the 1-minute tour** (in the What's new card on Today, and in Help) shows seven of them, one stop at a time.
+
+- **Install anywhere, and use it offline.** Settings → Install ZIGoals. Once installed, the pages you have visited open without a connection; what you record is saved on your device as always.
+- **Notifications on your device** (Settings → Notifications), with no account: a switch per kind, your morning and evening times and quiet hours. The words are written on your device; the notification service only knows when to wake it, never why. They are being switched on for the Alpha.
+- **Phone wallets by WalletConnect** from the wallet menu: MetaMask, Trust, OKX and Ledger Live link read-only; Keplr Mobile can sign staking through the same review screen.
+- **Food:** recent scans on your device, a food library from the French and British tables that works offline, US foods from FoodData Central, an optional Nutri-Score letter, a nutrient report with your top sources, diet templates for the planner, "I have this" on the grocery list, and a weekly calorie budget. With your own AI connected to ZIGi: read a label or estimate a meal from a photo (always an estimate you check).
+- **Music:** mix up to three sounds made on your device, with a sleep timer, or open a focus, sleep or workout playlist in Spotify, Apple Music or YouTube Music.
+- **Habits:** your own order, a compact list, rules that tick a habit off ("When steps ≥ 8,000 → Walk is done"), routines full screen and shared as a file, and a schedule typed in words.
+- **Goals:** "What if" for each goal (a projection, never a guarantee), a progress image to share, suggested milestones with habits linked to them, and goal sentences in Quick add that you confirm part by part.
+- **Wealth:** upcoming bills, monthly budgets, your target mix, what each asset is for, your contribution rhythm, and exchanges that refresh themselves while the app is open. In Spending → Money tools: buffer days, rules, "To review", split an entry and an emergency sheet to print. Bank files (CAMT.053, OFX, MT940) and CSV templates are read on your device. Beside the calculator: fee drag and a financial freedom model. Information, never advice; nothing moves money.
+- **Your days:** a feeling word after your energy or mood, Compare in Health → Insights, an estimated energy curve in Health → Sleep, a year in pixels in the Journal, and a printable report for a visit in Settings → Your data.
+- **Review and Journey:** short notes in the Life review, a Daily orbit card for Today, share cards with numbers off until you tick them, badges as their own choice, and an optional rewards shelf for treats you earn with your points.
+- **Chess:** play Lichess games and the daily puzzle on a board inside ZIGoals.
+- **Switch to ZIGoals:** Daylio, Habitica and YNAB; Strong and Hevy, FIT files and Strava's export in Workouts.
+- **Your data:** Test a backup (nothing changes), a monthly backup reminder, and honest notes on which apps can read what you export.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
@@ -156,6 +175,14 @@ All optional. Help explains each one.
 - **The Swiss food search** waits until we switch on its service.
 - **Foods from the Swiss database** show their source in the brand line; there is no separate source record yet.
 - **The Inter font** is downloaded, from ZIGoals itself, only when you choose it in Customize.
+- **Notifications on your device are being switched on.** You can set them up now; nothing reaches your phone until they are on.
+- **The Checklist syncs** as an optional, encrypted part of your sync only once our sync service is updated; until then it stays on the device.
+- **Barcode lookups and US foods** wait for the food service too. The food library from the French and British tables works offline; the Finnish Fineli table isn't in it yet.
+- **Reading a label or estimating a meal from a photo** needs your own AI connected to ZIGi.
+- **Grocery ticks** stay on the device where you tick them.
+- **Phone wallets by WalletConnect** are being switched on, and staking with Keplr Mobile over WalletConnect hasn't been tried on a real phone yet; Keplr in the browser is the tested way.
+- **Garmin** workouts come in only as FIT files you export from Garmin.
+- **Lichess games** found from ZIGoals are rapid or classical only; Lichess doesn't let other apps look for bullet or blitz games.
 
 The full list, kept up to date, is in **Help → Known limitations**.
 

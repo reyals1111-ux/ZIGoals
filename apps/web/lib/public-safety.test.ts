@@ -1,5 +1,6 @@
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { existsSync, readFileSync } from "node:fs";
+import vm from "node:vm";
 import { NextRequest } from "next/server";
 import { config, middleware } from "../middleware";
 import { expect, test } from "vitest";
@@ -13,11 +14,12 @@ test("production policy has per-request unpredictable nonces and exact connectio
   expect(a.nonce).toMatch(/^[A-Za-z0-9+/]{43}=$/);
   expect(a.csp).toContain(`script-src 'self' 'nonce-${a.nonce}' 'strict-dynamic'`);
   expect(a.csp.split(";").find(s=>s.includes("script-src"))).not.toMatch(/unsafe-inline|unsafe-eval/);
-  // No scheme source, no bare wildcard and no websocket anywhere in production. The one wildcard shape allowed is the
+  // No scheme source, no bare wildcard and no websocket in production but WalletConnect's relay (Session AK). The one wildcard shape allowed is the
   // port of the two loopback names (http://localhost:*, http://127.0.0.1:*) for a local model (ADR-012).
   for (const directive of a.csp.split(";")) {
     const sources = directive.trim().split(/\s+/).slice(1);
-    expect(sources, directive).not.toContain("*"); expect(sources, directive).not.toContain("https:"); expect(sources.some(s => /^wss?:/.test(s)), directive).toBe(false);
+    expect(sources, directive).not.toContain("*"); expect(sources, directive).not.toContain("https:"); // Session AK (Part 1a, TIER 3 (CSP)): the one websocket is WalletConnect's relay, on connect-src, with the owner's project id.
+    expect(sources.filter(s => /^wss?:/.test(s)), directive).toEqual(directive.trim().startsWith('connect-src') ? ['wss://relay.walletconnect.org'] : []);
     for (const source of sources.filter(s => s.includes("*"))) expect(egress.localModelSources, directive).toContain(source);
   }
   // connect-src comes from one data file: self, the two Testnet endpoints, the AI providers a person may connect (their
@@ -32,7 +34,7 @@ test("production policy has per-request unpredictable nonces and exact connectio
   // of linked wallets — PublicNode's Cosmos REST, its six EVM JSON-RPC hosts and its Solana RPC, and mempool.space — in
   // the order of lib/wallets/balances/chains.ts; still exactly these and nothing else (no ZIGChain mainnet REST host).
   expect(CONNECT_SOURCES).not.toContain("https://api.zigchain.com");
-  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com", "https://cosmos-rest.publicnode.com", "https://ethereum-rpc.publicnode.com", "https://arbitrum-one-rpc.publicnode.com", "https://base-rpc.publicnode.com", "https://optimism-rpc.publicnode.com", "https://polygon-bor-rpc.publicnode.com", "https://bsc-rpc.publicnode.com", "https://solana-rpc.publicnode.com", "https://mempool.space"]);
+  expect(CONNECT_SOURCES).toEqual(["'self'", "https://testnet-api.zigchain.com", "https://testnet-rpc.zigchain.com", "https://rpc.zigchain.com", "https://api.openai.com", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://api.x.ai", "https://openrouter.ai", "http://localhost:*", "http://127.0.0.1:*", "https://api.chess.com", "https://lichess.org", "https://accounts.spotify.com", "https://api.spotify.com", "wss://relay.walletconnect.org", "https://verify.walletconnect.org", "https://verify.walletconnect.com", "https://cosmos-rest.publicnode.com", "https://ethereum-rpc.publicnode.com", "https://arbitrum-one-rpc.publicnode.com", "https://base-rpc.publicnode.com", "https://optimism-rpc.publicnode.com", "https://polygon-bor-rpc.publicnode.com", "https://bsc-rpc.publicnode.com", "https://solana-rpc.publicnode.com", "https://mempool.space"]);
   for (const origin of Object.values(egress.aiProviderOrigins)) expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+$/);
   expect(a.csp).toContain("frame-ancestors 'none'");
   expect(a.csp).toContain("worker-src 'self'");
@@ -63,6 +65,35 @@ test("the push service worker is push-only: no fetch handler, no cache, no write
   expect(worker).toContain("'readonly'");
   expect(worker).not.toMatch(/readwrite|createObjectStore|deleteObjectStore|deleteDatabase|\.put\(|\.add\(|\.delete\(|\.clear\(/);
   expect(worker).toContain("'A reminder from ZIGoals'");
+});
+// Session AK (CI lane P; ADR-036 Q19, amended): the push worker gains one message, from the page that turned reminders on,
+// asking it to take over now. Nothing else: only that type, only from a window of this origin, only skipWaiting.
+test("the push service worker's one message: skipWaiting for 'zigoals:push-sw-activate' from a window of this origin, nothing else", async () => {
+  const worker = readFileSync(new URL("../public/push-sw.js", import.meta.url), "utf8");
+  const handlers: Record<string, (event: unknown) => void> = {}, calls: string[] = [];
+  const self = {
+    location: { origin: "https://app.test" },
+    addEventListener: (type: string, handler: (event: unknown) => void) => { handlers[type] = handler; },
+    skipWaiting: async () => { calls.push("skipWaiting"); },
+    clients: { claim: async () => { calls.push("claim"); }, matchAll: async () => { calls.push("matchAll"); return []; }, openWindow: async () => { calls.push("openWindow"); return null; } },
+    registration: { showNotification: async () => { calls.push("showNotification"); } },
+  };
+  vm.runInContext(worker, vm.createContext({ self, indexedDB: undefined, Intl, Date, Promise, setTimeout, clearTimeout, Number, Array, JSON }));
+  const send = async (data: unknown, origin = "https://app.test", source: unknown = { type: "window" }) => {
+    const waits: Promise<unknown>[] = [];
+    handlers.message!({ data, origin, source, waitUntil: (p: Promise<unknown>) => waits.push(p) });
+    await Promise.all(waits);
+  };
+  await send(null);
+  await send({ type: "zigoals:sw-reload" });
+  await send({ type: "zigoals:push-sw-activate" }, "https://attacker.invalid");
+  await send({ type: "zigoals:push-sw-activate" }, "https://app.test", { type: "worker" });
+  await send({ type: "zigoals:push-sw-activate" }, "https://app.test", null);
+  expect(calls).toEqual([]);
+  await send({ type: "zigoals:push-sw-activate" });
+  expect(calls).toEqual(["skipWaiting"]);
+  const handler = worker.slice(worker.indexOf("addEventListener('message'"), worker.indexOf("// The same rule as labelText"));
+  expect(handler.match(/self\.\w+(?:\.\w+)?\(/g)).toEqual(["self.skipWaiting("]);
 });
 test("safe diagnostics whitelist enums and identities, ignoring adversarial and private values", () => {
   const text = diagnosticSummary({ environment: "PUBLIC_ALPHA_UNDEPLOYED", version:"0.1.0", commit:"a".repeat(40), scope:"local", rpc:"healthy", rest:"unavailable", checkedAt:"2026-09-13T12:00:00.000Z", owner:"PRIVATE_ACCOUNT", error:"RAW_ERROR", metadata:"PRIVATE_PLAN" } as Parameters<typeof diagnosticSummary>[0]);

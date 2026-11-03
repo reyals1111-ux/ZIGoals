@@ -12,3 +12,6 @@
 .about-alpha-status p { margin: 0; }
 .about-alpha-build { margin: 0; font-size: 15px; color: #c2d0e5; }
 .about-alpha-env { display: inline-block; margin-left: 6px; padding: 1px 8px; border: 1px solid #8fa6c840; border-radius: 999px; font-size: 14px; letter-spacing: .04em; color: #c9d6ea; overflow-wrap: anywhere; }
+/* Session AK X1 (RELEASE_REVIEW R4): third-party notices behind "Licences"; the summary is a 44 px target. */
+.about-alpha-licences > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: 15px; color: inherit; }
+.about-alpha-licences > .about-alpha-notices { margin: 4px 0 0; }

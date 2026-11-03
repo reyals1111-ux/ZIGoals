@@ -1,0 +1,26 @@
+/* Session AK (lane S, item 9): the estimated energy curve (theme tokens only; no motion; labels 14 px). */
+.energy-curve { display: grid; gap: 8px; min-width: 0; }
+.energy-curve-empty { margin: 0; }
+.energy-curve-lead { margin: 0; display: grid; gap: 2px; }
+.energy-curve-lead strong { font-size: 28px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.energy-curve-meaning { margin: 0; font-size: 15px; color: var(--muted); }
+.energy-curve-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+.energy-curve-key li { display: inline-flex; align-items: center; gap: 6px; }
+.energy-curve-key i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; }
+.energy-curve-key i.is-focus, .energy-curve-band.is-focus rect { background: color-mix(in srgb, var(--cyan) 26%, transparent); fill: color-mix(in srgb, var(--cyan) 22%, transparent); }
+.energy-curve-key i.is-dip, .energy-curve-band.is-dip rect { background: color-mix(in srgb, var(--pink) 26%, transparent); fill: color-mix(in srgb, var(--pink) 20%, transparent); }
+.energy-curve-key i.is-bed, .energy-curve-band.is-bed rect { background: color-mix(in srgb, var(--violet) 30%, transparent); fill: color-mix(in srgb, var(--violet) 24%, transparent); }
+.energy-curve-key i.is-now { width: 2px; height: 14px; background: var(--text); }
+.energy-curve-plot { min-width: 0; }
+.energy-curve svg { display: block; overflow: visible; max-width: 100%; }
+.energy-curve-band text, .energy-curve-tick { font-size: 14px; fill: var(--muted); }
+.energy-curve-area { fill: color-mix(in srgb, var(--violet) 14%, transparent); stroke: none; }
+.energy-curve-line { fill: none; stroke: var(--violet); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.energy-curve-now { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.energy-curve-base { stroke: var(--line); stroke-width: 1; }
+.energy-curve-list { display: grid; gap: 8px; margin: 0; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .energy-curve-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.energy-curve-list dt { font-size: 14px; color: var(--muted); }
+.energy-curve-list dd { margin: 0; font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.energy-curve-list small { font-size: 14px; color: var(--muted); }
+.energy-curve-why summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; }

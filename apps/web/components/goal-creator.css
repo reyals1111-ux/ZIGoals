@@ -19,3 +19,7 @@
 .goal-idea { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid #a6c1fa26; border-radius: 14px; text-decoration: none; }
 .goal-idea small { opacity: .85; }
 .unified-wizard .wizard-cancel-row{display:flex;justify-content:flex-end;margin:16px 0 0}.unified-wizard .wizard-cancel-row .wizard-cancel{min-height:44px}
+/* Session AK (M7, layout audit): the wizard's skip link sat inside a positioned card, so the global .skip's "top: -80px"
+   left it on the page at 390 px (a 25 px target over the card). Off the page until focused, then a full 44 px target. */
+.wizard-skip:not(:focus) { left: -10000px; }
+.wizard-skip:focus { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; }

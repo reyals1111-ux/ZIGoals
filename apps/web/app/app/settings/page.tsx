@@ -11,6 +11,7 @@ import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
 import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
+import {StorageInternals} from "../../../components/settings/storage-internals";
 import {MotionPreference} from "../../../components/motion-preference";
 import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {LazyCustomizeSettings} from "../../../components/settings/customize-settings-lazy";
@@ -21,9 +22,12 @@ import { EraseEverything } from "../../../components/settings/erase-everything";
 import { SwitchImport } from "../../../components/import/switch-import";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
+import {NotificationsCard} from "../../../components/notify/notifications-card";
+import {InstallCard} from "../../../components/install/install-card";
 import { Slot } from "../../../components/progress/slot";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
+import { NovaSettingsLinks } from "../../../components/settings/nova-settings-links";
 import {LoadBoundary} from '../../../components/load-boundary';
 import { deployment } from "../../../lib/deployment-config";
 import { useEffect, useState, type ReactNode } from "react";
@@ -37,6 +41,7 @@ import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
+import { SettingsRenderAll } from "../../../components/settings/settings-render-all";
 import { WrapUpSettings } from "../../../components/settings/wrap-up-settings";
 import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
@@ -46,11 +51,14 @@ import { AfChecklistSection } from "../../../components/settings/af-checklist-se
 import { AfEarnSection } from "../../../components/settings/af-earn-section";
 import { AfSigningSection } from "../../../components/settings/af-signing-section";
 import { AfExtrasSection } from "../../../components/settings/af-extras-section";
+import { useChainChoice } from "../../../components/chain/use-chain-choice";
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
+ * Session AK G2 (RELEASE_REVIEW_2 R2-4): the ZIGi group is "Your assistant", ZIGi's settings and NOVA's together, one name
+ * for one engine; its id (#settings-zigi) and every anchor in it (#your-ai and ZIGi's own) stay as they were.
  */
-const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "ZIGi"], ["settings-help", "Help & diagnostics"]];
+const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "Your assistant"], ["settings-help", "Help & diagnostics"]];
 /** Session AB-Design (owner request 36): one small line icon per Settings group, before its title. */
 const GROUP_ICON: Record<string, ReactNode> = {
   'settings-data': <path d="M4 7h16M4 12h16M4 17h10"/>,
@@ -82,6 +90,8 @@ function SettingsSectionsNav() {
 }
 export default function Settings() {
   const s = useGoals();
+  // Session AK X1 (RELEASE_REVIEW R4): wallet, network and contract only once the chain is chosen (lib/chain-choice.ts).
+  const chain = useChainChoice().chosen;
   const [backup, setBackup] = useState("");
   const [legacyPlans, setLegacyPlans] = useState(false);
   useEffect(() => { try { setLegacyPlans(s.loaded && !!s.owner && Object.keys(loadMetadata(getAppStorage(), s.chain, s.owner).goals ?? {}).length > 0); } catch { setLegacyPlans(false); } }, [s.loaded, s.owner, s.chain]);
@@ -108,24 +118,26 @@ export default function Settings() {
           <p className="eyebrow page-eyebrow"><NebulaFlow identity="settings-eyebrow">Keep your plans with you</NebulaFlow></p>
           <h1><NebulaFlow identity="settings-title">Your data. Your control.</NebulaFlow></h1>
           <p className="page-lede">
-            Goal plans stay on this device. Your wallet controls onchain funds.
+            {chain ? "Goal plans stay on this device. Your wallet controls onchain funds." : "Everything you add stays on this device."}
           </p>
           <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help: install on iPhone, keep your data safe, send feedback →</Link></p>
         </div>
         <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
-      <PhoneSettingsList/>
+      <PhoneSettingsList chain={chain}/>
       <KeepSettingsJump/>
+      {/* Session AK G2 (RELEASE_REVIEW R11): the lower groups lay out when near; a jump renders them all first. */}
+      <SettingsRenderAll/>
       <SettingsSectionsNav/>
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
-        <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
+        <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p>{/* Session AK G2 (RELEASE_REVIEW_2 R2-16, re-opening part of R4): the format sentence was for developers; it went. */}<p className="fine">Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
         {/* Session AA-Cloud Part 6: the Data health page (where each part lives, what this device holds, what ZIGi sees). */}
         <Link className="panel data-health-door" href="/app/settings/data"><span><strong>Your data</strong><small>Where each part lives, what this device holds and what ZIGi can see.</small></span><span aria-hidden="true">→</span></Link>
         {/* Session AI (SE3): one "Backup & restore" card; its four parts keep their own anchors and headings (the specs pin them). */}
         <section className="panel backup-restore" id="backup-restore" aria-labelledby="backup-restore-title">
           <p className="eyebrow">BACKUP &amp; RESTORE</p><h2 id="backup-restore-title">Backup &amp; restore</h2>
-          <p className="fine">Four ways to keep or bring back your records: a protected copy, backups per module, one file with everything, and your history from another app.</p>
+          {/* Session AK P2 (RELEASE_REVIEW_2 R2-16): one recommended path leads; the other ways follow it, named once. */}<p className="fine"><strong>Recommended:</strong> a protected copy, the first card below, encrypted with a recovery secret only you keep. More ways to back up follow it: backups per module, one readable file with everything, and your history from another app.</p>
           <PrivateVaultTools/>
           <PrivateBackups/>
           <ExportEverything/>
@@ -148,8 +160,8 @@ export default function Settings() {
               Local demo and testnet backups are separate.
             </p>
             <p className="fine">
-              This older format holds local simulation Goal plans only. Tracked Goals and Wealth are in the Positions and
-              Goals backup above, and Today preferences only in the encrypted backup.
+              This older format holds local simulation Goal plans only. Tracked Goals and Wealth are in the Goals and
+              Wealth backup above, and Today preferences only in the encrypted backup.
             </p>
             <button
               className="primary"
@@ -159,7 +171,7 @@ export default function Settings() {
               Export Goal Data
             </button>
           </section>}
-          <section className="panel">
+          {(chain || legacyPlans) && <section className="panel">
             <h2>Import Goal Data</h2>
             <p>
               Imports must match the current network and wallet. Matching goal IDs
@@ -197,15 +209,16 @@ export default function Settings() {
             >
               Import backup
             </button>
-          </section>
+          </section>}
         </div>
       </SettingsGroup>
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
         <PagesSettings/>
         <AfChecklistSection/>
-        <AfEarnSection/>
-        <AfSigningSection/>
+        {/* Session AK X1 (RELEASE_REVIEW R4): Earn's, Staking's and Governance's own choices once the chain is chosen. */}
+        {chain && <AfEarnSection/>}
+        {chain && <AfSigningSection/>}
         <AfExtrasSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
@@ -219,24 +232,35 @@ export default function Settings() {
         <div className="settings-module-links"><section id="habits-settings"><p className="eyebrow">HABITS</p><h2>Your rhythm.</h2><p>Schedules and targets are chosen per Habit. A reminder time is optional and kept on this device only: after it, Today shows a reminder card in the app. Review streaks and your saved check-in history.</p><Link href="/app/habits" className="text-link">Manage habits →</Link><WeeklyReviewDay /></section><section id="health-settings"><p className="eyebrow">HEALTH</p><h2>Your own targets.</h2><p>Optional nutrition, weight and step targets. You choose every value.</p><Link href="/app/health" className="text-link">Open Health →</Link></section></div>
         <ChessSettings/>
         <GuideSettings/>
+        <InstallCard/>
+        <NotificationsCard/>
         <PushRemindersPanel/>
         {/* Session AA-Cloud: a named place for Session AA-Local's reminders plan link. */}
         <Slot place="settings:reminders"/>
-        <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div><Link className="text-link" href="/app/markets">Explore market references →</Link></section>
+        <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div>{chain && <Link className="text-link" href="/app/markets">Explore market references →</Link>}</section>
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">
         <VaultSyncControls/>
         <DeviceLockSettings/>
+        {/* Session AK X1 (RELEASE_REVIEW R4): the wallet, network and contract panels as one advanced group, once the chain is chosen. */}
+        {chain && <section className="settings-wallet-network" id="wallet-network" aria-labelledby="wallet-network-title">
+        <h2 className="settings-group-title" id="wallet-network-title">Wallet &amp; network (advanced)</h2>
         <div className="settings-overview">
           <section className="panel" id="account"><p className="eyebrow">ACCOUNT</p><h2>Your space.</h2><p>{s.mode === "local" ? "Local Demo · no account needed" : "Keplr · explicitly connected for this session"}</p><code>{shortAccount(s.owner)}</code><p className="fine">Habits and Health belong to this browser, independently of the active wallet. Switching wallets does not hide or move them.</p></section>
           <section className="panel" id="network"><p className="eyebrow">NETWORK</p><h2>ZIGChain networks.</h2>{/* Session AH (DE1, ST1, AF4; the owner's 18 Oct decision): practice on zig-test-2, real on zigchain-1 after a one-time confirm, signed in Keplr. */}<p>Goals and the wallet control above: the practice network, zig-test-2 · ZIG (18 decimals), no real value. <WhatsThis term="practice-network"/></p><p>Staking: the practice network, or the real network (zigchain-1, real ZIG) after a one-time confirmation. You sign every step in Keplr.</p><p>Wealth, Earn and Staking read the real network&rsquo;s public figures, read-only.</p><span className="badge">Practice network · real staking opt-in</span><p className="fine">Connect or reconnect explicitly with the wallet control above. Reload returns to Local Demo.</p></section>
           <section className="panel" id="contract"><p className="eyebrow">GOALS / CONTRACT</p><h2>The financial layer.</h2><p>Goal Manager: {deployment.success && deployment.data.status === "DEPLOYED" ? "See deployment diagnostics" : "NOT DEPLOYED"}</p><p>Code ID: {deployment.success ? deployment.data.codeId ?? "NOT DEPLOYED" : "Configuration invalid"}</p><p className="fine">Idle strategy. Contract execution is disabled in the public Alpha.</p></section>
         </div>
+        </section>}
       </SettingsGroup>
-      <SettingsGroup id="settings-zigi" title="ZIGi">
+      <SettingsGroup id="settings-zigi" title="Your assistant">
+        <p className="fine settings-assistant-lede">ZIGi is your companion; NOVA is ZIGi&rsquo;s full-screen command center. One assistant with one history: the connection, keys, voice and privacy mode below serve both.</p>
         <LoadBoundary label="ZIGi’s settings"><AiSettingsSection/></LoadBoundary>
+        <NovaSettingsLinks/>
       </SettingsGroup>
       <SettingsGroup id="settings-help" title="Help & diagnostics">
+        {/* Session AK G2 (RELEASE_REVIEW_2 R2-16): how this browser keeps the records (storage health and the per-module
+            storage upgrade) is a diagnostic, so it lives here, out of Backup & restore. */}
+        <StorageInternals/>
         <details className="advanced-diagnostics" id="diagnostics"><summary>Advanced Diagnostics</summary>
         <ConnectionDiagnostics
           key={`${s.chain}:${s.owner}`}
@@ -256,14 +280,14 @@ export default function Settings() {
         <section className="panel" id="about-this-alpha" aria-labelledby="about-this-alpha-title">
           <h2 id="about-this-alpha-title">About this alpha</h2>
           <dl className="metrics">
-            <div>
+            {chain && <><div>
               <dt>Selected environment</dt>
               <dd>{s.chain}</dd>
             </div>
             <div>
               <dt>Wallet / demo identity</dt>
               <dd>{shortAccount(s.owner)}</dd>
-            </div>
+            </div></>}
             <div>
               <dt>Goal metadata</dt>
               <dd>Device-local · kept in this browser</dd>
@@ -273,13 +297,16 @@ export default function Settings() {
               <dd>Idle: nothing is invested, and no outside service is switched on.</dd>
             </div>
           </dl>
-          <p>
+          {chain ? <p>
             Funding Wealth assumes 0% future investment return. Scenario
             projections are illustrative. Practice money (testnet ZIG) has no
             monetary value; ZIG on the real network is real money. This alpha is
             unaudited: staking and votes sign in your own wallet, on the practice
             or the real network as you choose, and nothing else moves.
-          </p>
+          </p> : <p>
+            Funding Wealth assumes 0% future investment return. Scenario
+            projections are illustrative. This alpha is unaudited.
+          </p>}
           {/* Session AC (owner finding 3): the facts the footer used to carry, live, with the build environment. */}
           <AboutThisAlpha />
         </section>

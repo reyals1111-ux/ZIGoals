@@ -111,7 +111,10 @@ const fastingOf = (snap: Snap) => snap[HEALTH_KEY]?.fasting ?? snap[FASTING_KEY]
 /** The calendar day of the test's moment in a zone, and the day before it. */
 const dayIn = (zone: string, shift = 0) => { const d = new Date(Date.parse(EVENING) + shift * 86_400_000); return new Intl.DateTimeFormat('en-CA', {timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit'}).format(d); };
 const clockIn = (iso: string, zone: string) => new Intl.DateTimeFormat('en-GB', {timeZone: zone, hour: '2-digit', minute: '2-digit', hour12: false}).format(new Date(iso));
-const near = (iso: string) => { const ms = Date.parse(iso) - Date.parse(EVENING); expect(ms, `${iso} is within a minute of the test's moment`).toBeGreaterThanOrEqual(0); expect(ms).toBeLessThan(60_000); };
+/** Owner follow-up 1 (F0, the Asia/Tokyo intermittent): the page's own clock, read right after the action. The installed
+ * clock keeps ticking, so a slow run could pass a fixed minute; a stamp must lie between the test's moment and this. */
+let pageNow = Date.parse(EVENING) + 60_000;
+const near = (iso: string) => { const at = Date.parse(iso), ms = at - Date.parse(EVENING); expect(ms, `${iso} is at or after the test's moment`).toBeGreaterThanOrEqual(0); expect(at, `${iso} is no later than the page's clock after the action`).toBeLessThanOrEqual(pageNow); };
 const habitOf = (snap: Snap, title: string) => snap[HABITS_KEY].habits.find((h: any) => h.title === title);
 const goalOf = (snap: Snap, name: string) => snap[PLATFORM_KEY].goals.find((g: any) => g.name === name);
 const rule = (h: any) => h.rules[h.rules.length - 1];
@@ -272,6 +275,7 @@ for (const zone of ZONES) {
         await card.getByRole('button', {name: /^(Add|Remember)$/}).click();
         await expect(card).toHaveClass(/ai-card-added/);
         const after = await snapshot(page);
+        pageNow = await page.evaluate(() => Date.now());
         // Session AH Part 2 (AF16, Asia/Tokyo): the zone's day is read right after the action, not at the test's start, so a
         // run that crosses midnight in the zone checks the day the app logged to.
         const ctx: Ctx = {zone, today: dayIn(zone), yesterday: dayIn(zone, -1)};

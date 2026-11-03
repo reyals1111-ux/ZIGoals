@@ -4,8 +4,14 @@ import {AppIcon} from '../app-icon';
 import {WIDGET_CATALOG,type DashboardWidget} from '../../lib/dashboard-settings';
 import {widgetMetric,type DashboardSources} from '../../lib/dashboard-metrics';
 
-export function WidgetOverview({widgets,sources,loaded,error,ready,domainError,onCustomize,customizing}:{
+/**
+ * Today's widget overview. Session AK RB (RELEASE_REVIEW_2 R2-9): `widgets` are only those with no card on Today (each
+ * card shows its own figure, and on a phone its folded row does), so nothing is listed twice; `cards` counts the cards,
+ * so an empty list after them says nothing more. The heading and Customize Today stay.
+ */
+export function WidgetOverview({widgets,cards=0,sources,loaded,error,ready,domainError,onCustomize,customizing}:{
  widgets:DashboardWidget[];
+ cards?:number;
  sources:DashboardSources;
  loaded:boolean;
  error:string;
@@ -25,6 +31,6 @@ export function WidgetOverview({widgets,sources,loaded,error,ready,domainError,o
     <span className="dashboard-summary-glyph"><AppIcon name={domain==='wealth'?'wallet':domain} size={26} luminous/></span>
     <span className="dashboard-summary-copy"><small>{metric.title}</small><strong className={!unavailable&&/\d/.test(metric.value)&&!/[a-z]{4,}/.test(metric.value)?'is-figure':undefined} style={{'--chars':metric.value.length} as import('react').CSSProperties}>{unavailable?ready(domain)?'Needs attention':'Loading…':metric.value}</strong><span>{unavailable?'Review this private record in Settings.':metric.detail}</span>{!unavailable&&metric.warning&&<small className="dashboard-warning">{metric.warning}</small>}</span>
    </Link>;
-  })}</div>:<p>No visible widgets yet. Choose a preset or add one to your daily space.</p>}
+  })}</div>:cards?null:<p>No visible widgets yet. Choose a preset or add one to your daily space.</p>}
  </section>;
 }

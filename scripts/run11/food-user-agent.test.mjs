@@ -8,9 +8,9 @@ const {Miniflare,convertV4MiniflareOptions}=require('miniflare');
 // The contact below is fictional; the owner supplies the real one privately.
 const filled='ZIGoals/0.1.0 (alpha-contact@example.invalid)';
 const script=await readFile(new URL('../../workers/food-lookup/worker.mjs',import.meta.url),'utf8');
-async function lookup(userAgent){
+async function lookup(userAgent,product={code:'0034000470693',product_name:'Fictional food',nutriments:{}}){
  const requests=[];
- const outboundService=async req=>{requests.push({url:new URL(req.url),userAgent:req.headers.get('User-Agent')});return Response.json({status:'success',product:{code:'0034000470693',product_name:'Fictional food',nutriments:{}}});};
+ const outboundService=async req=>{requests.push({url:new URL(req.url),userAgent:req.headers.get('User-Agent')});return Response.json({status:'success',product});};
  const mf=new Miniflare(convertV4MiniflareOptions({modules:true,script,compatibilityDate:'2026-09-13',durableObjects:{FOOD_BUDGET:{className:'FoodBudget',useSQLite:true}},bindings:userAgent===undefined?{}:{FOOD_USER_AGENT:userAgent},outboundService}));
  try{const res=await mf.dispatchFetch('https://food.test/lookup?code=0034000470693');return {status:res.status,body:await res.json(),requests};}finally{await mf.dispose();}
 }
@@ -22,7 +22,8 @@ test('a filled FOOD_USER_AGENT template is sent unchanged with only the pinned v
  expect(userAgent).toBe(filled);
  expect(url.origin+url.pathname).toBe('https://world.openfoodfacts.org/api/v3.4/product/0034000470693');
  expect([...url.searchParams.keys()]).toEqual(['fields']);
- expect(url.searchParams.get('fields')).toBe('code,product_name,brands_tags,nutrition_data_per,nutriments');
+ // Session AK (item 15): nutriscore_grade joined the pinned list; the list is still exact.
+ expect(url.searchParams.get('fields')).toBe('code,product_name,brands_tags,nutrition_data_per,nutriments,nutriscore_grade');
 },30000);
 
 test.each([
@@ -34,4 +35,11 @@ test.each([
 ])('an unusable FOOD_USER_AGENT (%s) fails closed before any provider call',async(_,userAgent)=>{
  const {status,body,requests}=await lookup(userAgent);
  expect(status).toBe(503);expect(body).toEqual({error:'PROVIDER_SETUP_REQUIRED'});expect(requests).toHaveLength(0);
+},30000);
+
+// Session AK (item 15): Open Food Facts' Nutri-Score grade travels in its own answer, unchanged; the app validates a–e.
+test('a nutriscore_grade from the provider is passed on unchanged inside its product',async()=>{
+ const {status,body,requests}=await lookup(filled,{code:'0034000470693',product_name:'Fictional food',nutriments:{},nutriscore_grade:'b'});
+ expect(status).toBe(200);expect(requests).toHaveLength(1);
+ expect(body.product.nutriscore_grade).toBe('b');expect(body.source).toBe('Open Food Facts');
 },30000);

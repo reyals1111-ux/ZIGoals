@@ -1,5 +1,9 @@
 import {expect, test, type Page} from '@playwright/test';
 import {goalsPositionsLink} from './ab-shell';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests Staking.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 // Session M, Part A3 (QA2-06): Staking no longer shows the Goal workspace tabs ("Goals · Positions") under its title.
 // Since #57 "Positions" pointed to /app/staking#positions, the page itself, and neither tab ever showed as current there.

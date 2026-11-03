@@ -64,13 +64,17 @@ export function urgency(goal: GoalSummary | undefined, record: Goals[number], to
  * The three roles. `active` are the active goals in the Goals page's order (the cards' order); `goals` the private goal
  * records (the funding pulse's own list: "What matters today" shows only a goal that is not closed and not a project).
  */
-export function todayGoalRoles(active: readonly GoalSummary[], goals: Goals, today: string): GoalRoles {
+export function todayGoalRoles(active: readonly GoalSummary[], goals: Goals, today: string, options: {lead?: 'currency'} = {}): GoalRoles {
   const byId = new Map(goals.map(g => [g.id, g])), summaryOf = new Map(active.flatMap(g => { const id = privateId(g.key); return id ? [[id, g] as const] : []; }));
   const top = active[0];
   const focus = top ? {goal: top, step: nextStep(top, byId.get(privateId(top.key) ?? ''), today)} : null;
   const candidates = goals.filter(g => g.status !== 'closed' && g.type !== 'PROJECT' && (g.status !== 'completed' || summaryOf.has(g.id)));
   const focusId = top ? privateId(top.key) : null, order = (id: string) => { const i = active.findIndex(g => privateId(g.key) === id); return i < 0 ? Number.MAX_SAFE_INTEGER : i; };
-  const others = candidates.filter(g => g.id !== focusId && g.status === 'active').map(g => ({g, ...urgency(summaryOf.get(g.id), g, today)})).sort((a, b) => b.score - a.score || order(a.g.id) - order(b.g.id));
+  // Session AK G2 (RELEASE_REVIEW R29): with `lead: 'currency'` (the Showcase) a money goal in a currency leads "What matters
+  // today" (by urgency among them); a goal in an asset (the ZIG reward reserve) follows further down, unless no currency
+  // goal is left. Without it, the most urgent goal leads, whatever it holds.
+  const tier = (g: Goals[number]) => options.lead === 'currency' && g.type !== 'VALUE' ? 1 : 0;
+  const others = candidates.filter(g => g.id !== focusId && g.status === 'active').map(g => ({g, ...urgency(summaryOf.get(g.id), g, today)})).sort((a, b) => tier(a.g) - tier(b.g) || b.score - a.score || order(a.g.id) - order(b.g.id));
   if (others[0]) return {focus, attention: {id: others[0].g.id, why: others[0].why}, cards: active};
   const only = candidates.find(g => g.id === focusId);
   return {focus, attention: only ? {id: only.id, why: 'only'} : null, cards: active};
@@ -80,3 +84,15 @@ export function todayGoalRoles(active: readonly GoalSummary[], goals: Goals, tod
  *  pinned ones first): the chosen goal first and the only one marked first. A view for that panel only: nothing is
  *  written, and every other place reads the records as they are. */
 export const attentionFirst = <G extends {id: string; pinned?: boolean}>(goals: readonly G[], roles: GoalRoles): G[] => { const id = roles.attention?.id; const first = id ? goals.find(g => g.id === id) : undefined; if (!first) return [...goals]; return [{...first, pinned: true}, ...goals.filter(g => g !== first).map(g => g.pinned ? {...g, pinned: false} : g)]; };
+
+/**
+ * Session AK F0 (H113, ADR-028): the goal Today's intelligence panel shows. "What matters today" passes the chosen goal's
+ * id (`roles.attention.id`) instead of a reordered view of the records; without an id, or when that goal is closed, a
+ * project or gone, the panel's own rule applies as before: pinned first, a completed goal after the others, then the
+ * records' order. Pure; the records are read as they are.
+ */
+export function intelligenceGoal<G extends {id: string; status: string; type: string; pinned?: boolean}>(goals: readonly G[], goalId?: string | null): G | undefined {
+  const shown = goals.filter(g => g.status !== 'closed' && g.type !== 'PROJECT');
+  const chosen = goalId ? shown.find(g => g.id === goalId) : undefined;
+  return chosen ?? [...shown].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || Number(a.status === 'completed') - Number(b.status === 'completed'))[0];
+}

@@ -58,8 +58,12 @@ test('Settings on a phone: a grouped list under the title goes to every section;
  // 13 rows before Session P; PR 3 adds "Export everything" and "Weekly review day"; PR 4 "Reminders when closed" and "Guide on this device"; Session T "ZIGi · your AI".
  // Session W Part 24 (deliberate): six groups like the page's, and seven rows for its new sections (import, pages, time zone, wrap-up, music, links, chess).
  // Session X Part 11 (deliberate): one row for Send feedback under Help & diagnostics.
- const rows=list.getByRole('link');expect(await rows.count()).toBe(26);
- expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Data & privacy','Your app','Your areas','Account & devices','ZIGi','Help & diagnostics']);
+ // Session AK X1 (RELEASE_REVIEW R4, deliberate): the wallet, network and contract rows became one "Wallet & network
+ // (advanced)" row, shown once the chain is chosen (lib/chain-choice.ts); a new device has none of them, so 23.
+ // Session AK G2 (RELEASE_REVIEW_2 R2-4, deliberate): the ZIGi group is "Your assistant", with a row for NOVA's settings: 24.
+ const rows=list.getByRole('link');expect(await rows.count()).toBe(24);
+ await expect(list.getByRole('link',{name:'Wallet & network (advanced)',exact:true})).toHaveCount(0);
+ expect(await list.getByRole('heading',{level:2}).allTextContents()).toEqual(['Data & privacy','Your app','Your areas','Account & devices','Your assistant','Help & diagnostics']);
  await expect(list.getByRole('link',{name:'Show the welcome again',exact:true})).toHaveAttribute('href','/app/welcome');
  for(const link of await rows.all()){
   const href=(await link.getAttribute('href'))!;if(href==='/app/welcome')continue;expect(href).toMatch(/^#[a-z-]+$/);

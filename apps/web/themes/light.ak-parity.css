@@ -1,0 +1,7 @@
+/* Session AK (CI-D, theme parity, ADR-028 H75): two lines that mix a coloured token with the night's line colour. In
+   Nebula the mix is a coloured line (violet into #25324a, the app's --line; NOVA's own --line is #2a3a5c); Light's sheet
+   mixed the violet into its day line instead, so the border paled. Each rule restates the Nebula mix with the night line
+   written out, one id more of weight than the sheet; nothing else of the element changes. */
+:root[data-theme=light] .ai-path:not(#\-):not(#\-) { border-color: color-mix(in srgb, var(--violet, #8b7cff) 40%, #25324a); } /* components/ai/ai.css (Settings → Your AI) */
+:root[data-theme=light] .nova-guide-card:not(#\-):not(#\-) { border-color: color-mix(in srgb, var(--violet, #8b7cff) 45%, #25324a); } /* components/nova/setup/setup.css (the Hermes page's example) */
+:root[data-theme=light] .nova-root .nova-guide-card:not(#\-):not(#\-) { border-color: color-mix(in srgb, var(--violet, #8b7cff) 45%, #2a3a5c); } /* the same card on NOVA's dark island */

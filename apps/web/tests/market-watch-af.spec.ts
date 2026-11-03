@@ -1,6 +1,10 @@
 import {expect, test, type Page} from '@playwright/test';
 import {openDevice, openIn, THEMES} from './parity/session';
 import {nativeZigIdentity} from '../lib/market-quotes';
+import {chooseChain} from './chain-choice';
+// Session AK X1 (RELEASE_REVIEW R2–R5): this spec tests the market watch.
+// A person chooses that module, so the spec chooses the chain first, as a person does (tests/chain-choice.ts).
+test.beforeEach(async ({page}) => { await chooseChain(page); });
 
 /**
  * Session AF (the owner's decision of 19 Oct, ADR-028 H131): Today's market watch never breaks a word, never runs out of a

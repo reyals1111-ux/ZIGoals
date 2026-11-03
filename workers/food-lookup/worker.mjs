@@ -1,11 +1,17 @@
-/** @typedef {{FOOD_BUDGET:DurableObjectNamespace,FOOD_USER_AGENT?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string}} Env */
+/** @typedef {{FOOD_BUDGET:DurableObjectNamespace,FOOD_USER_AGENT?:string,FDC_API_KEY?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string}} Env */
 /** @typedef {{body:unknown,status:number,until:number}} Cached */
 /** @typedef {{buckets:Record<string,{n:number,recent:number[]}>}} FoodDay */
 /** @typedef {{kcal:number|null,proteinMg:number|null,carbsMg:number|null,fatMg:number|null,fiberMg:number|null,sugarMg:number|null,saltMg:number|null}} GenericNutrients */
 /** @typedef {{id:string,name:string,basis:'per-100g',nutrients:GenericNutrients,source:'Swiss Food Composition Database',datasetVersion:'V 7.1',attribution:string,link:string}} GenericFood */
+/** @typedef {'kcal'|'proteinMg'|'carbsMg'|'fatMg'|'fiberMg'|'sugarMg'|'saturatedFatMg'|'sodiumMg'|'potassiumMg'|'calciumMg'|'ironMg'|'magnesiumMg'|'zincMg'|'vitaminAUg'|'vitaminCMg'|'vitaminDUg'|'vitaminEMg'|'vitaminKUg'|'vitaminB12Ug'|'folateUg'} BrandedField */
 /** @param {unknown} body @param {number} [status] */
 const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const barcode=/^(?:\d{8}|\d{13}|\d{14})$/;
+// Session AK (Part 1b): every /lookup success names its source. Open Food Facts' own answer is passed on unchanged with
+// these three fields added beside it (the app's parseFoodProduct reads only `status` and `product`, so it parses as before).
+const OFF_SOURCE='Open Food Facts',OFF_ATTRIBUTION='Source: Open Food Facts (openfoodfacts.org), Open Database Licence 1.0 / Database Contents Licence 1.0',OFF_LINK='https://world.openfoodfacts.org/';
+/** Open Food Facts' answer with its source named. @param {unknown} body */
+const offAnswer=body=>({.../** @type {object} */(body),source:OFF_SOURCE,attribution:OFF_ATTRIBUTION,link:OFF_LINK});
 // The provider User-Agent template (docs/run11/FOOD_READINESS.md); anything else fails closed before any provider call.
 const USER_AGENT=/^ZIGoals\/[^\r\n]{1,160}$/;
 // One provider request per 12 s for the whole deployment (at most 5/min, a third of Open Food Facts' 15/min per IP).
@@ -35,6 +41,27 @@ const FSVO_ATTRIBUTION='Source: Swiss Food Composition Database V 7.1, Federal F
 // 1 h), at most 512 rows; a detail is about 42 kB, so the body cap is 128 kB.
 const FSVO_BUDGET='fsvo-search-budget-v1',FSVO_SPACING=2000,FSVO_MAX_WAIT=10000,FSVO_HITS=5,FSVO_MAX_CACHED=512,FSVO_BODY_CAP=128000;
 const FSVO_LANGS=['en','de','fr','it'];
+// Session AK (Part 1b, TIER 3 egress routes): a barcode Open Food Facts does not know is looked up in USDA FoodData Central
+// Branded Foods (api.nal.usda.gov), only when the owner set the FDC_API_KEY secret; without it the step is skipped and
+// nothing is sent. The key travels in the X-Api-Key header (api.data.gov's developer manual; the FDC API guide's examples
+// use `api_key`, which would put the key in URLs and logs). Only the barcode, the User-Agent and the key are sent.
+// FDC data are public domain (CC0 1.0); FDC asks for the citation below (https://fdc.nal.usda.gov/api-guide/).
+const FDC_ORIGIN='https://api.nal.usda.gov',FDC_PATH='/fdc/v1/foods/search',FDC_KEY=/^[A-Za-z0-9]{20,64}$/;
+const FDC_SOURCE='USDA FoodData Central',FDC_ATTRIBUTION='U.S. Department of Agriculture, Agricultural Research Service. FoodData Central, 2019. fdc.nal.usda.gov.',FDC_LINK='https://fdc.nal.usda.gov/';
+// Its own Durable Object (same class), like FSVO's: one FDC request per 4 s for the whole deployment (900 an hour at most,
+// under FDC's 1,000 per hour per key; going over blocks the key for an hour), no lookup waits more than 10 s for its slot,
+// the barcode client share (3 a minute, 120 a UTC day), found answers kept 24 h and unknown ones 1 h. A 429 or 503
+// pauses FDC for its Retry-After, at least 60 s and at most the hour FDC blocks a key. Five hits at most per answer.
+const FDC_BUDGET='fdc-lookup-budget-v1',FDC_SPACING=4000,FDC_MAX_WAIT=10000,FDC_PAGE=5,FDC_BODY_CAP=160000,FDC_MAX_CACHED=512,FDC_MAX_BACKOFF=3600000;
+// FDC nutrient (by nutrient id, or the older nutrient number) → field, unit, scale to the field's unit, the most 100 g can
+// hold. Branded Foods values are per 100 g (or 100 mL) as FDC standardises them from the label; IU of vitamin D is µg × 40.
+/** @type {Record<string,[BrandedField,string,number,number]>} */
+const FDC_NUTRIENTS={};
+for(const [ids,field,unit,scale,max] of /** @type {[string[],BrandedField,string,number,number][]} */([[['1008','208'],'kcal','kcal',1,1000],[['1003','203'],'proteinMg','g',1000,100],[['1005','205'],'carbsMg','g',1000,100],[['1004','204'],'fatMg','g',1000,100],[['1079','291'],'fiberMg','g',1000,100],[['2000','269'],'sugarMg','g',1000,100],[['1258','606'],'saturatedFatMg','g',1000,100],[['1093','307'],'sodiumMg','mg',1,100000],[['1092','306'],'potassiumMg','mg',1,100000],[['1087','301'],'calciumMg','mg',1,100000],[['1089','303'],'ironMg','mg',1,100000],[['1090','304'],'magnesiumMg','mg',1,100000],[['1095','309'],'zincMg','mg',1,100000],[['1106','320'],'vitaminAUg','ug',1,100000000],[['1162','401'],'vitaminCMg','mg',1,100000],[['1114','328'],'vitaminDUg','ug',1,100000000],[['1110','324'],'vitaminDUg','iu',1/40,4000000000],[['1109','323'],'vitaminEMg','mg',1,100000],[['1185','430'],'vitaminKUg','ug',1,100000000],[['1178','418'],'vitaminB12Ug','ug',1,100000000],[['1177','417'],'folateUg','ug',1,100000000]]))for(const id of ids)FDC_NUTRIENTS[id]=[field,unit,scale,max];
+/** The 14-digit GTIN form of 8 to 14 digits: UPC-A 041303020937, EAN-13 0041303020937 and 00041303020937 are one product. @param {string} code */
+const gtin14=code=>code.padStart(14,'0');
+/** The form FDC most likely stores: UPC-A (12 digits) for a US code, EAN-13 or GTIN-14 otherwise, EAN-8 as it is. @param {string} code */
+const fdcQuery=code=>{if(code.length===8)return code;const s=code.replace(/^0+/,'');return s.length<=12?s.padStart(12,'0'):s.length===13?s:code;};
 // 2 to 60 letters, digits, spaces or basic punctuation, starting with a letter or digit (apps/web/lib/food-search.ts).
 const SEARCH_TEXT=/^[\p{L}\p{M}\d][\p{L}\p{M}\d ,.'’()&/-]{1,59}$/u;
 /** @param {string|null} raw */
@@ -56,7 +83,16 @@ const worker={async fetch(request,env){
   const client=request.headers.get('x-food-client');
   return env.FOOD_BUDGET.get(env.FOOD_BUDGET.idFromName(FSVO_BUDGET)).fetch(new Request('https://food.internal/search?'+new URLSearchParams({q,lang}),{headers:client===null?{}:{'x-food-client':client}}));
  }
- if(request.method!=='GET'||url.pathname!=='/lookup'||[...url.searchParams.keys()].some(k=>k!=='code')||!barcode.test(url.searchParams.get('code')??''))return reply({error:'INVALID_BARCODE'},400);return env.FOOD_BUDGET.get(env.FOOD_BUDGET.idFromName('shared-provider-budget-v1')).fetch(request);}};
+ if(request.method!=='GET'||url.pathname!=='/lookup'||[...url.searchParams.keys()].some(k=>k!=='code')||!barcode.test(url.searchParams.get('code')??''))return reply({error:'INVALID_BARCODE'},400);
+ const off=await env.FOOD_BUDGET.get(env.FOOD_BUDGET.idFromName('shared-provider-budget-v1')).fetch(request);
+ // Open Food Facts first. Only its "not found" goes on to FoodData Central, and only with a usable key; anything FDC
+ // cannot answer (no match, busy, throttled, unavailable) leaves the answer "not found", so the person can add the food.
+ if(off.status!==404||!FDC_KEY.test(env.FDC_API_KEY??''))return off;
+ await off.body?.cancel();
+ const client=request.headers.get('x-food-client'),code=/** @type {string} tested above */(url.searchParams.get('code'));
+ const fdc=await env.FOOD_BUDGET.get(env.FOOD_BUDGET.idFromName(FDC_BUDGET)).fetch(new Request('https://food.internal/fdc?'+new URLSearchParams({code}),{headers:client===null?{}:{'x-food-client':client}}));
+ if(fdc.status===200)return fdc;
+ await fdc.body?.cancel();return reply({error:'NOT_FOUND'},404);}};
 export default worker;
 /** A client is one of 4,096 buckets: the first 12 bits of an HMAC-SHA256 of its address group under a random key that is
  * replaced every UTC day. Neither the address nor the group is stored, and once the day's key is replaced no stored
@@ -89,13 +125,14 @@ async function clientShare(s,group,now){
   await s.put(DAY_INDEX,[...new Set([...days.filter(d=>!old.includes(d)),day])].sort());
  }};
 }
-/** The next FSVO slot, reserved inside a transaction: refused during a back-off or when it is more than 10 s away.
- * @param {DurableObjectTransaction} s @param {number} now @returns {Promise<{refuse:number}|{at:number}>} */
-async function fsvoSlot(s,now){
+/** The next slot of a second-source budget object (FSVO, FDC), reserved inside a transaction: refused during a back-off or
+ * when it is more than `wait` ms away. @param {DurableObjectTransaction} s @param {number} now @param {number} [spacing] @param {number} [wait]
+ * @returns {Promise<{refuse:number}|{at:number}>} */
+async function fsvoSlot(s,now,spacing=FSVO_SPACING,wait=FSVO_MAX_WAIT){
  const next=/** @type {number|undefined} */(await s.get('next'))??0,backoff=/** @type {number|undefined} */(await s.get('backoffUntil'))??0;
  if(backoff>now)return {refuse:backoff-now};
- const at=Math.max(now,next);if(at-now>FSVO_MAX_WAIT)return {refuse:at-now};
- await s.put('next',at+FSVO_SPACING);return {at};
+ const at=Math.max(now,next);if(at-now>wait)return {refuse:at-now};
+ await s.put('next',at+spacing);return {at};
 }
 /** Reads a JSON body of at most `limit` bytes as strict UTF-8, or throws. @param {Response} res @param {number} limit */
 async function readJson(res,limit){
@@ -127,6 +164,39 @@ function fsvoFood(id,raw){
  }
  return {id:String(id),name,basis:'per-100g',nutrients,source:'Swiss Food Composition Database',datasetVersion:'V 7.1',attribution:FSVO_ATTRIBUTION,link:FSVO_LINK};
 }
+/** The FDC search hit whose gtinUpc is the requested product (leading zeros aside), in the normalised /lookup shape, or null.
+ * Names and brands are cleaned and cut; a missing, mis-unitised or implausible nutrient stays null (unknown), never 0.
+ * @param {string} code @param {unknown} raw */
+function fdcProduct(code,raw){
+ const list=raw&&typeof raw==='object'?/** @type {{foods?:unknown}} */(raw).foods:undefined,foods=Array.isArray(list)?list.slice(0,FDC_PAGE):[];
+ const text=/** @param {unknown} v @param {number} max */(v,max)=>typeof v==='string'?v.normalize('NFC').replace(/\p{Cc}/gu,'').replace(/\s+/g,' ').trim().slice(0,max):'';
+ for(const item of foods){
+  if(!item||typeof item!=='object')continue;
+  const food=/** @type {{fdcId?:unknown,dataType?:unknown,description?:unknown,gtinUpc?:unknown,brandName?:unknown,brandOwner?:unknown,servingSizeUnit?:unknown,foodNutrients?:unknown}} */(item);
+  if(typeof food.gtinUpc!=='string'||!/^\d{8,14}$/.test(food.gtinUpc)||gtin14(food.gtinUpc)!==gtin14(code))continue;
+  if(food.dataType!==undefined&&food.dataType!=='Branded')continue;
+  const name=text(food.description,120),fdcId=food.fdcId;
+  if(!name||typeof fdcId!=='number'||!Number.isSafeInteger(fdcId)||fdcId<1)continue;
+  /** @type {Record<BrandedField,number|null>} */
+  const nutrients=/** @type {Record<BrandedField,number|null>} */(Object.fromEntries([...new Set(Object.values(FDC_NUTRIENTS).map(([f])=>f))].map(f=>[f,null])));
+  for(const entry of Array.isArray(food.foodNutrients)?food.foodNutrients:[]){
+   // The search shape (nutrientId, nutrientNumber, unitName, value), the API spec's (number, unitName, amount) and the
+   // food-detail shape (nutrient.{id,number,unitName}, amount) are all read; the unit must be the nutrient's own.
+   const n=/** @type {{nutrientId?:unknown,nutrientNumber?:unknown,number?:unknown,unitName?:unknown,value?:unknown,amount?:unknown,nutrient?:{id?:unknown,number?:unknown,unitName?:unknown}}|null} */(entry&&typeof entry==='object'?entry:null);if(!n)continue;
+   const ids=[n.nutrientId??n.nutrient?.id,n.nutrientNumber??n.number??n.nutrient?.number].filter(v=>typeof v==='number'||typeof v==='string').map(String);
+   const key=ids.find(id=>Object.hasOwn(FDC_NUTRIENTS,id));if(!key)continue;
+   const [field,unit,scale,max]=/** @type {[BrandedField,string,number,number]} */(FDC_NUTRIENTS[key]);
+   const unitName=n.unitName??n.nutrient?.unitName,amount=n.value??n.amount;
+   if(typeof unitName!=='string'||unitName.toLowerCase().replace('µ','u')!==unit)continue;
+   if(typeof amount!=='number'||!Number.isFinite(amount)||amount<0||amount>max||nutrients[field]!==null)continue;
+   // kcal and grams-as-mg are whole numbers; the other units keep three decimals.
+   const value=amount*scale;nutrients[field]=scale===1000||field==='kcal'?Math.round(value):Math.round(value*1000)/1000;
+  }
+  const unitText=typeof food.servingSizeUnit==='string'?food.servingSizeUnit.toLowerCase():'';
+  return {source:FDC_SOURCE,attribution:FDC_ATTRIBUTION,link:FDC_LINK,licence:'CC0-1.0',product:{code,gtinUpc:food.gtinUpc,fdcId,name,brand:text(food.brandName,80)||text(food.brandOwner,80),basis:'per-100g-or-100ml',labelUnit:['g','grm'].includes(unitText)?'g':['ml','mlt'].includes(unitText)?'ml':null,nutrients}};
+ }
+ return null;
+}
 export class FoodBudget{
  /** @param {DurableObjectState} state @param {Env} env */
  constructor(state,env){this.state=state;this.env=env;}
@@ -135,12 +205,13 @@ export class FoodBudget{
  /** @param {Request} request */
  async fetch(request){
   if(new URL(request.url).pathname==='/search')return this.search(request);
+  if(new URL(request.url).pathname==='/fdc')return this.fdc(request);
   const code=new URL(request.url).searchParams.get('code');if(!barcode.test(code??''))return reply({error:'INVALID_BARCODE'},400);
   if(!USER_AGENT.test(this.env.FOOD_USER_AGENT??''))return reply({error:'PROVIDER_SETUP_REQUIRED'},503);
   const group=request.headers.get('x-food-client');if(group!==null&&!CLIENT_GROUP.test(group))return reply({error:'INVALID_CLIENT'},400);
   const cached=async()=>{
    const cache=/** @type {Cached|undefined} */(await this.state.storage.get('cache:'+code));if(!cache)return null;
-   if(cache.until>this.now())return reply(cache.body,cache.status);
+   if(cache.until>this.now())return reply(cache.status===200?offAnswer(cache.body):cache.body,cache.status);
    await this.state.storage.delete('cache:'+code);return null;
   };
   const hit=await cached();if(hit)return hit;
@@ -167,17 +238,20 @@ export class FoodBudget{
    const backoff=/** @type {number|undefined} */(await this.state.storage.get('backoffUntil'))??0;if(backoff>this.now())return reply({error:'PROVIDER_THROTTLED',retryAfter:Math.ceil((backoff-this.now())/1000)},429);
   }
   try{
-   const res=await fetch('https://world.openfoodfacts.org/api/v3.4/product/'+code+'?fields=code,product_name,brands_tags,nutrition_data_per,nutriments',{headers:{'User-Agent':/** @type {string} checked above */(this.env.FOOD_USER_AGENT),accept:'application/json'},redirect:'manual',signal:AbortSignal.timeout(8000)});
+   const res=await fetch('https://world.openfoodfacts.org/api/v3.4/product/'+code+'?fields=code,product_name,brands_tags,nutrition_data_per,nutriments,nutriscore_grade',{headers:{'User-Agent':/** @type {string} checked above */(this.env.FOOD_USER_AGENT),accept:'application/json'},redirect:'manual',signal:AbortSignal.timeout(8000)});
    if(res.status===429||res.status===503){await res.body?.cancel();await this.backOff();return reply({error:'PROVIDER_THROTTLED',retryAfter:BACKOFF/1000},429);}
    if(res.status===404){await res.body?.cancel();const body={error:'NOT_FOUND'};await this.remember(code,body,404,NOT_FOUND_MS);return reply(body,404);}
    if(!res.ok||!res.headers.get('content-type')?.includes('application/json')){await res.body?.cancel();return reply({error:'PROVIDER_UNAVAILABLE'},502);}
    const body=await readJson(res,128000);if(!body||typeof body!=='object'||Array.isArray(body))throw Error('invalid');
+   // A "not found" in a 200 answer (status 0 in the older API, or a failure without a product) is a not found too.
+   const said=/** @type {{status?:unknown,product?:unknown}} */(body);
+   if(said.status===0||said.status==='0'||(said.status==='failure'&&!said.product)){const missing={error:'NOT_FOUND'};await this.remember(code,missing,404,NOT_FOUND_MS);return reply(missing,404);}
    await this.remember(code,body,200,FOUND_MS);
-   return reply(body);
+   return reply(offAnswer(body));
   }catch{return reply({error:'PROVIDER_UNAVAILABLE'},502);}
  }
- /** A 429 or 503 from the provider pauses every request to it for 60 s. */
- async backOff(){await this.state.storage.transaction(async s=>{const until=this.now()+BACKOFF;await s.put('backoffUntil',until);if((/** @type {number|undefined} */(await s.get('next'))??0)<until)await s.put('next',until);});}
+ /** A 429 or 503 from the provider pauses every request to it for 60 s (FDC: its Retry-After, see FDC_MAX_BACKOFF). */
+ async backOff(ms=BACKOFF){await this.state.storage.transaction(async s=>{const until=this.now()+ms;await s.put('backoffUntil',until);if((/** @type {number|undefined} */(await s.get('next'))??0)<until)await s.put('next',until);});}
  /** Seconds left of a back-off, or 0. */
  async backedOff(){const until=/** @type {number|undefined} */(await this.state.storage.get('backoffUntil'))??0;return until>this.now()?Math.ceil((until-this.now())/1000):0;}
  /** A cached body that has not expired, or undefined; an expired one is deleted when read. @param {string} key */
@@ -253,6 +327,44 @@ export class FoodBudget{
   // Fewer results than hits is still an answer; none at all says why.
   if(!results.length&&short)return short==='throttled'?throttled():short==='busy'?later(FSVO_SPACING):reply({error:'PROVIDER_UNAVAILABLE'},502);
   return reply({results});
+ }
+ /** FoodData Central Branded Foods by barcode (GET /fdc?code=, in the FDC budget object; reached only from /lookup after
+  * Open Food Facts said "not found" and only with a usable key). 200 with the normalised product, or 404 NOT_FOUND;
+  * anything else (429, 502, 503) the caller turns into "not found". @param {Request} request */
+ async fdc(request){
+  const code=new URL(request.url).searchParams.get('code')??'';if(!barcode.test(code))return reply({error:'INVALID_BARCODE'},400);
+  const agent=this.env.FOOD_USER_AGENT??'',key=this.env.FDC_API_KEY??'';
+  if(!USER_AGENT.test(agent)||!FDC_KEY.test(key))return reply({error:'PROVIDER_SETUP_REQUIRED'},503);
+  const group=request.headers.get('x-food-client');if(group!==null&&!CLIENT_GROUP.test(group))return reply({error:'INVALID_CLIENT'},400);
+  // One cache row per product, whichever of its 8- to 14-digit forms was asked.
+  const cacheKey='fdc:'+gtin14(code);
+  const cached=async()=>{const row=/** @type {Cached|undefined} */(await this.state.storage.get('cache:'+cacheKey));if(!row)return null;if(row.until>this.now())return reply(row.body,row.status);await this.state.storage.delete('cache:'+cacheKey);return null;};
+  const hit=await cached();if(hit)return hit;
+  const now=this.now();
+  const admitted=await this.state.storage.transaction(async s=>{
+   const share=await clientShare(s,group,now);if('refuse' in share)return {refuse:share.refuse};
+   const slot=await fsvoSlot(s,now,FDC_SPACING,FDC_MAX_WAIT);if('at' in slot)await share.count();return slot;
+  });
+  if('refuse' in admitted)return later(admitted.refuse);
+  await this.armSweep();
+  if(admitted.at>this.now()){
+   await new Promise(resolve=>setTimeout(resolve,admitted.at-this.now()));
+   const late=await cached();if(late)return late;
+   const wait=await this.backedOff();if(wait)return reply({error:'PROVIDER_THROTTLED',retryAfter:wait},429);
+  }
+  const target=new URL(FDC_PATH+'?'+new URLSearchParams({query:fdcQuery(code),dataType:'Branded',pageSize:String(FDC_PAGE)}),FDC_ORIGIN);
+  try{
+   const res=await fetch(target,{headers:{'User-Agent':agent,Accept:'application/json','X-Api-Key':key},redirect:'manual',signal:AbortSignal.timeout(8000)});
+   if(res.status===429||res.status===503){
+    // Retry-After in seconds, kept between 60 s and the hour FDC blocks an over-limit key.
+    const after=Number(res.headers.get('retry-after')),ms=Number.isFinite(after)&&after>0?Math.min(FDC_MAX_BACKOFF,Math.max(BACKOFF,after*1000)):FDC_MAX_BACKOFF;
+    await res.body?.cancel();await this.backOff(ms);return reply({error:'PROVIDER_THROTTLED',retryAfter:Math.ceil(ms/1000)},429);
+   }
+   if(!res.ok||!res.headers.get('content-type')?.includes('application/json')){await res.body?.cancel();return reply({error:'PROVIDER_UNAVAILABLE'},502);}
+   const found=fdcProduct(code,await readJson(res,FDC_BODY_CAP));
+   if(!found){const missing={error:'NOT_FOUND'};await this.remember(cacheKey,missing,404,NOT_FOUND_MS,FDC_MAX_CACHED);return reply(missing,404);}
+   await this.remember(cacheKey,found,200,FOUND_MS,FDC_MAX_CACHED);return reply(found);
+  }catch{return reply({error:'PROVIDER_UNAVAILABLE'},502);}
  }
  /** Alarm spacing on the real clock; only an isolated test may shorten it. */
  sweepMs(){const local=Number(this.env.LOCAL_SWEEP_MS);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?local:SWEEP_MS;}

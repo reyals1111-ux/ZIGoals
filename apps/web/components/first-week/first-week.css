@@ -1,0 +1,28 @@
+/* Session AK (BUILD list 2 #5): "Your first week" on Today (a card kept on this device). Theme colours; 44 px targets; no motion. */
+:root .first-week-card { display: grid; gap: 10px; min-width: 0; }
+:root .first-week-card h2 { margin: 0; font-size: 20px; }
+:root .first-week-card p { margin: 0; }
+:root .first-week-card .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+:root .first-week-card .actions a, :root .first-week-card .actions button { min-height: 44px; display: inline-flex; align-items: center; }
+:root .first-week-step-title { font-size: 17px; font-weight: 650; }
+:root .first-week-today { display: grid; gap: 6px; }
+:root .first-week-celebrate { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2, var(--panel)); }
+:root .first-week-celebrate p { flex: 1 1 160px; font-weight: 650; }
+:root .first-week-celebrate button { min-height: 44px; }
+:root .first-week-all > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+:root .first-week-steps { display: grid; gap: 6px; margin: 6px 0 8px; padding: 0; list-style: none; }
+:root .first-week-steps li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 4px 4px 4px 12px; border-radius: 12px; border: 1px solid var(--line); min-width: 0; }
+:root .first-week-steps a { flex: 1 1 auto; min-width: 0; min-height: 44px; display: inline-flex; align-items: center; color: var(--text); overflow-wrap: anywhere; }
+:root .first-week-steps a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+:root .first-week-steps button { flex: none; min-height: 44px; min-width: 88px; }
+:root .first-week-steps li[data-done] a { color: var(--text-secondary, var(--muted)); }
+/* Session AK (F6): richer card — depth, the nebula's cyan along the left edge, the start row beside its illustration,
+   the steps brightening their rim on hover (nothing follows the pointer, nothing moves), a ring on keyboard focus. */
+:root .first-week-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--brand-cyan) 70%, transparent), 0 18px 40px -30px color-mix(in srgb, var(--brand-violet) 75%, transparent); }
+:root .first-week-start > div { display: grid; gap: 10px; }
+:root .first-week-steps li { transition: border-color 160ms ease, background-color 160ms ease; }
+:root .first-week-steps li[data-done] { border-color: color-mix(in srgb, var(--brand-cyan) 40%, var(--line)); background: color-mix(in srgb, var(--brand-cyan) 6%, transparent); }
+@media (hover: hover) and (pointer: fine) { :root .first-week-steps li:hover { border-color: color-mix(in srgb, var(--brand-violet) 55%, var(--line)); } }
+:root .first-week-all > summary:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { :root .first-week-steps li { transition: none; } }
+:root[data-app-motion=off] .first-week-steps li { transition: none; }

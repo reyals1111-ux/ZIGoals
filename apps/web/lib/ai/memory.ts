@@ -1,4 +1,4 @@
-import {aiMemorySchema, HEALTH_NOTE_CATEGORIES, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, type AiMemory, type AiOptions, type MemoryNoteRecord} from './store/records';
+import {aiMemorySchema, HEALTH_NOTE_CATEGORIES, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, MEMORY_KINDS, type AiMemory, type AiOptions, type MemoryNoteRecord} from './store/records';
 import type {MemoryNote} from './tools/env';
 
 /**
@@ -75,7 +75,8 @@ export const usingNotes = (options: AiOptions, memory: AiMemory) => (memory.note
 /** The notes ZIGi's paths may read (the gates filter Health-tagged ones per path), or null when none are in use. */
 export function notesForAi(options: AiOptions, memory: AiMemory): MemoryNote[] | null {
   // Session AI (feature 3): a note the person paused stays here and goes to no AI.
-  return usingNotes(options, memory) ? newestFirst(memory.notes ?? []).filter(n => n.paused !== true).map(n => ({text: n.text, category: n.category})) : null;
+  // Session AK (N7): pinned notes first (identical to newest first while nothing is pinned), so a cut keeps them.
+  return usingNotes(options, memory) ? pinnedFirst(memory.notes ?? []).filter(n => n.paused !== true).map(n => ({text: n.text, category: n.category})) : null;
 }
 /**
  * Session AI (feature 3, TIER 3 (stored format): an optional `paused` on a note; the record is loose, so older builds keep
@@ -87,4 +88,79 @@ export function setNotePaused(memory: AiMemory, id: string, paused: boolean, now
 /** The notes as a file the person saves (JSON, their own words only). */
 export function notesExport(memory: AiMemory, now: Date): string {
   return JSON.stringify({format: 'zigoals-zigi-notes', version: 1, exportedAt: now.toISOString(), notes: newestFirst(memory.notes ?? []).map(n => ({text: n.text, category: n.category, source: n.source, paused: n.paused === true, createdAt: n.createdAt, updatedAt: n.updatedAt}))}, null, 2);
+}
+
+/**
+ * Session AK (NOVA long-term memory, owner follow-up 2 N7): one memory for ZIGi and NOVA, the same `zigoals:ai-memory:v1`
+ * notes with optional fields (records.ts): a kind (preference, decision, person, context), a pin, who proposed it and
+ * where, and the day it is about. Nothing is kept until the person accepts it (their own note, or a card they confirm);
+ * nothing about their health is kept while Health is not shared with ZIGi and NOVA; a pinned note is kept first and sent
+ * first. Every function returns a new record and leaves notes from older builds exactly as they were.
+ */
+export type MemoryKind = (typeof MEMORY_KINDS)[number];
+export const MEMORY_KIND_LABELS: Record<MemoryKind, string> = {preference: 'Preferences', decision: 'Decisions', person: 'People', context: 'Context'};
+/** The category a kind is filed under, so a build without kinds still shows and gates the note the right way. */
+export const KIND_CATEGORY: Record<MemoryKind, MemoryCategory> = {preference: 'preferences', decision: 'goals', person: 'other', context: 'other'};
+/** A note's kind: its own, or read from its category (a preference stays a preference; anything else is context). */
+export const memoryKind = (note: Pick<MemoryNoteRecord, 'kind' | 'category'>): MemoryKind => note.kind ?? (note.category === 'preferences' || note.category === 'diet' ? 'preference' : note.category === 'goals' ? 'decision' : 'context');
+/**
+ * Words that describe a health condition, a treatment, a body measure or sleep. A note proposed while Health is not shared
+ * is refused when it reads like this, whatever kind it was proposed as; the person's own note is kept as Health instead.
+ */
+const HEALTH_WORDS = /\b(?:diagnos\w*|medication|medicine|prescri\w*|doctor|therap\w*|symptom\w*|illness|disease|allerg\w*|blood (?:pressure|sugar)|cholesterol|diabet\w*|asthma|migraine|pregnan\w*|menstrua\w*|weight|weigh|kg|calorie\w*|kcal|diet|sleep\w*|insomnia|anxiety|depress\w*|mental health|injur\w*|surgery|hospital|pills?|dose|vitamin\w*|supplement\w*)\b/i;
+export const looksHealth = (text: string) => HEALTH_WORDS.test(text);
+export const HEALTH_HELD = 'This reads like something about your health. While Health is not shared with ZIGi and NOVA, nothing about it is kept.';
+export type MemoryInput = {text: string; kind: MemoryKind; source: 'person' | 'zigi'; by: 'person' | 'zigi' | 'nova'; label?: string; about?: string; category?: MemoryCategory};
+/** Why a proposed memory cannot be kept (the note rules first, then Health), or null. */
+export function memoryProblem(input: Pick<MemoryInput, 'text' | 'by' | 'category'>, memory: AiMemory, healthShared: boolean): string | null {
+  const problem = noteProblem(input.text, memory); if (problem) return problem;
+  if (!healthShared && input.by !== 'person' && (looksHealth(input.text) || (input.category !== undefined && isHealthNote(input.category)))) return HEALTH_HELD;
+  return null;
+}
+/**
+ * Keeps one accepted memory: the person's own, or a proposal by ZIGi or NOVA they accepted. A person's note that reads
+ * like health is filed under Health (so it travels only through the Health gate); a proposal like it is refused while
+ * Health is not shared.
+ */
+export function addMemory(memory: AiMemory, input: MemoryInput, now: Date, healthShared: boolean, id = newNoteId()): AiMemory {
+  const problem = memoryProblem(input, memory, healthShared); if (problem) throw Error(problem);
+  const category: MemoryCategory = input.category ?? (looksHealth(input.text) ? 'health' : KIND_CATEGORY[input.kind]);
+  const at = now.toISOString(), label = input.label?.trim().slice(0, 120);
+  const note = {id, text: input.text.trim(), category, source: input.source, createdAt: at, updatedAt: at, kind: input.kind, from: {by: input.by, ...(label ? {label} : {})}, ...(input.about && /^\d{4}-\d{2}-\d{2}$/.test(input.about) ? {about: input.about} : {})};
+  return aiMemorySchema.parse({...memory, notes: [...(memory.notes ?? []), note]});
+}
+/** Edits the words and the kind (the category follows the kind unless the note is filed under Health or Diet). */
+export function editMemory(memory: AiMemory, id: string, change: {text: string; kind: MemoryKind; about?: string | null}, now: Date): AiMemory {
+  const note = memory.notes?.find(n => n.id === id); if (!note) throw Error('This note is no longer here.');
+  const category = isHealthNote(note.category) ? note.category : KIND_CATEGORY[change.kind];
+  const edited = editNote(memory, id, {text: change.text, category}, now);
+  return aiMemorySchema.parse({...edited, notes: (edited.notes ?? []).map(n => {
+    if (n.id !== id) return n;
+    const next = {...n, kind: change.kind};
+    if (change.about === null) delete next.about; else if (change.about && /^\d{4}-\d{2}-\d{2}$/.test(change.about)) next.about = change.about;
+    return next;
+  })});
+}
+export function setPinned(memory: AiMemory, id: string, pinned: boolean, now: Date): AiMemory {
+  if (!memory.notes?.some(n => n.id === id)) throw Error('This note is no longer here.');
+  return aiMemorySchema.parse({...memory, notes: memory.notes.map(n => n.id === id ? {...n, pinned, updatedAt: now.toISOString()} : n)});
+}
+/** Pinned first, then newest change first: the panel's order. */
+export const pinnedFirst = (notes: readonly MemoryNoteRecord[]) => { const sorted = newestFirst(notes); return [...sorted.filter(n => n.pinned === true), ...sorted.filter(n => n.pinned !== true)]; };
+/** Where a note came from, in words: "Written by you", "From a ZIGi card you accepted", "Proposed by NOVA in Workflow: …". */
+export function memorySource(note: Pick<MemoryNoteRecord, 'source' | 'from'>): string {
+  const by = note.from?.by ?? (note.source === 'zigi' ? 'zigi' : 'person');
+  const where = note.from?.label ? ` · ${note.from.label}` : '';
+  return by === 'person' ? `Written by you${where}` : `${by === 'nova' ? 'Proposed by NOVA' : 'Proposed by ZIGi'}, accepted by you${where}`;
+}
+/** The notes grouped by kind for the panel (pinned ones in their own group first); empty groups are left out. */
+export function memoryGroups(notes: readonly MemoryNoteRecord[]): {id: 'pinned' | MemoryKind; label: string; notes: MemoryNoteRecord[]}[] {
+  const ordered = pinnedFirst(notes), pinned = ordered.filter(n => n.pinned === true);
+  const groups: {id: 'pinned' | MemoryKind; label: string; notes: MemoryNoteRecord[]}[] = pinned.length ? [{id: 'pinned', label: 'Pinned', notes: pinned}] : [];
+  for (const kind of MEMORY_KINDS) { const of = ordered.filter(n => n.pinned !== true && memoryKind(n) === kind); if (of.length) groups.push({id: kind, label: MEMORY_KIND_LABELS[kind], notes: of}); }
+  return groups;
+}
+/** The whole memory as a file the person saves: their words with kind, pin, source and dates; never a key or a record. */
+export function memoryExport(memory: AiMemory, now: Date): string {
+  return JSON.stringify({format: 'zigoals-memory', version: 1, exportedAt: now.toISOString(), notes: pinnedFirst(memory.notes ?? []).map(n => ({text: n.text, kind: memoryKind(n), category: n.category, pinned: n.pinned === true, paused: n.paused === true, source: memorySource(n), ...(n.about ? {about: n.about} : {}), createdAt: n.createdAt, updatedAt: n.updatedAt}))}, null, 2);
 }

@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-location-assign-relative-destination */
 import "./onboarding.css";
 import Link from "next/link";
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
 
@@ -12,8 +12,17 @@ import { markOnboardingSeen } from "../../lib/onboarding";
  * no Showcase; "Not now" and "Explore the demo" write only the device-only seen flag.
  */
 export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boolean; onDismiss: () => void }) {
-  const id = useId();
-  return <section className="onboarding-welcome panel" aria-labelledby={`${id}-title`}>
+  const id = useId(), card = useRef<HTMLElement>(null);
+  // Session AK P4 (FIRST_RUN_REVIEW FR-16): on a phone the PROTECTED hero fills the first screen and this card starts below
+  // it, so a slim bar above the tab bar offers the setup until the card itself is in view or the bar is closed (phones only,
+  // by CSS; no new motion). The hero is unchanged.
+  const [inView, setInView] = useState(false), [barClosed, setBarClosed] = useState(false);
+  useEffect(() => {
+    const el = card.current; if (!el || typeof IntersectionObserver === "undefined") return;
+    const seen = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { setInView(true); seen.disconnect(); } }, { threshold: 0.6 });
+    seen.observe(el); return () => seen.disconnect();
+  }, []);
+  return <><section ref={card} className="onboarding-welcome panel" aria-labelledby={`${id}-title`}>
     <p className="eyebrow">Welcome to ZIGoals</p>
     <h2 id={`${id}-title`}>Set up your first goal and habit in about a minute.</h2>
     <p>No wallet or account needed. What you add stays in this browser.</p>
@@ -22,5 +31,9 @@ export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boole
       <button type="button" className="secondary" disabled={!demoAvailable} onClick={() => { markOnboardingSeen(window.localStorage); void loadShowcase().then(() => window.location.assign("/app"), () => undefined); }}>Explore the demo</button>
       <button type="button" className="text-link" onClick={() => { markOnboardingSeen(window.localStorage); onDismiss(); }}>Not now</button>
     </div>
-  </section>;
+  </section>
+  {!inView && !barClosed && <div className="welcome-phone-bar" role="region" aria-label="Set up ZIGoals">
+    <Link className="welcome-phone-start" href="/app/welcome">Set up in a minute · Start <span aria-hidden="true">›</span></Link>
+    <button type="button" className="welcome-phone-close" aria-label="Hide this bar" onClick={() => setBarClosed(true)}>×</button>
+  </div>}</>;
 }

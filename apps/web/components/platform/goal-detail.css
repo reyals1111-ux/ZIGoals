@@ -41,3 +41,5 @@
   .goal-detail-progress > div { width: 100%; flex: none; }
   .goal-detail-workspace .goal-detail-current { font-size: clamp(20px, calc(100cqi / (var(--chars, 11) * .62)), 36px); }
 }
+/* Session AK M1: the heading is as wide as its words, so the goal card's title morphs into the words themselves (no change in how it looks). */
+.goal-detail-heading h1{width:fit-content;max-width:100%}

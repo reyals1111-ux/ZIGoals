@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode} from 'react';
+import {lazy, Suspense, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode} from 'react';
 import type {LiveState} from '../../lib/earn/client';
 import {bps, duration} from '../../lib/earn/format';
 import type {ChainData, OroswapData} from '../../lib/earn/live/types';
@@ -19,6 +19,8 @@ import {WhatsThis} from './whats-this';
 // Earn changes; the Academy keeps the default look.
 import '../path/path-orbit.css';
 import '../habits/habits-aa.css';
+// Session AK (F4): the practice round's six steps, ticked from this device's own staking journal; loads with the step.
+const PracticeJourney = lazy(() => import('../zigchain-eco/practice-journey'));
 
 /**
  * Session AF chunk 2 (P1.7–P1.11): the Start-here path itself, its own chunk (loaded after the page's first paint): six dots
@@ -83,6 +85,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
         {text: 'The review screen shows when it is confirmed. Come back here: this dot lights by itself.'},
       ]}/>
       <p className="fine">About 10 minutes; the faucet can take a minute or two.</p>
+      <Suspense fallback={null}><PracticeJourney faucetLink={false}/></Suspense>
       <p><Link className="primary" href="/app/staking">Practise on Staking</Link></p>
     </>;
     case 'add-money': return <>

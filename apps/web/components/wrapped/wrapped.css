@@ -1,0 +1,23 @@
+/* Session AK (F5d): ZIGoals Wrapped on Stories' player (stories.css), plus its numbers toggle and the doors. */
+.wrapped-player .story-frame { grid-template-rows: auto minmax(0, 1fr) auto auto auto; }
+.wrapped-fallback { align-content: center; justify-items: center; height: auto; }
+.wrapped-number { font-weight: 650; color: #f4f8ff; }
+.wrapped-reveal { justify-self: start; min-height: 44px; color: #dde7f7; }
+.wrapped-share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.wrapped-include { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; color: #dde7f7; }
+.wrapped-include input { width: 22px; height: 22px; margin: 0; }
+.wrapped-player .story-card { overflow-y: auto; }
+.today-wrapped-card { display: grid; gap: 6px; }
+.today-wrapped-card h2, .today-wrapped-card p { margin: 0; }
+.today-wrapped-card button, .wrapped-link { justify-self: start; min-height: 44px; }
+/* Session AK (F6): the loading card while the year is gathered (zg-skeleton.css), and the full-screen player clear of a
+   phone's notch, home bar and rounded corners (safe areas); with no inset the padding is as before. */
+.wrapped-skeleton { width: min(420px, 100%); }
+.story-player.wrapped-player { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+@media (max-width: 767.98px) {
+  .story-player.wrapped-player { padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+}
+.wrapped-reveal:focus-visible, .wrapped-include:has(input:focus-visible) { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 8px; }
+/* Session AK (F8): the dialog itself takes focus for a moment while the year is gathered (so Escape works); it is not a
+   control, so it draws no ring — the card, then each control, shows the usual one. */
+.story-player.wrapped-player:focus { outline: none; }

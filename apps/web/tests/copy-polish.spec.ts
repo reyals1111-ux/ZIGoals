@@ -39,6 +39,9 @@ test("a Goal's next and latest contributions use one date format (QA-27)", async
   await page.getByLabel(/^Actual amount in /).fill("25");
   await page.getByRole("button", { name: "Save history only", exact: true }).click();
   await expect(page.getByRole("region", { name: "Goal timeline" })).toContainText("Contribution recorded");
+  // Session AK CI-3: the sheet that closed takes its own history entry back out (components/use-back-closes.ts, an async
+  // history.back()); a goto started before that traversal lands is aborted (ERR_ABORTED). Wait until the entry is gone.
+  await expect.poll(() => page.evaluate(() => (window.history.state as Record<string, unknown> | null)?.__zigoalsLayer ?? null)).toBeNull();
   await page.goto("/app");
   await expect(dates).toContainText(/Next contribution\s*[A-Z][a-z]{2} \d{1,2}, \d{4}/);
   await expect(dates).toContainText(/Latest contribution\s*.* · [A-Z][a-z]{2} \d{1,2}, \d{4}$/);
@@ -48,7 +51,8 @@ test("a Goal's next and latest contributions use one date format (QA-27)", async
 test("plaintext backups share one file-name pattern without spaces (QA-26)", async ({ page }) => {
   await page.goto("/app/settings");
   const names: string[] = [];
-  for (const name of ["Positions and Goals", "Habits", "Health"]) {
+  // Session AK G2 (RELEASE_REVIEW_2 R2-16, deliberate): "Goals and Wealth" (it was "Positions and Goals"); its file name is kept.
+  for (const name of ["Goals and Wealth", "Habits", "Health"]) {
     const download = page.waitForEvent("download");
     await page.getByRole("button", { name: `Export ${name}`, exact: true }).click();
     const file = await download;

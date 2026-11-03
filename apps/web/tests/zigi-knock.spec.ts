@@ -143,7 +143,8 @@ test('ZIGi\'s weekly reminders: a goal check-in shows on Today with "Open goal" 
   await seed(page, {[REMINDERS_KEY]: {version: 1, habits: {}, dismissed: {}}, [ZIGI_REMINDERS_KEY]: {version: 1, goalCheckIns: {[`private:${goal.id}`]: {weekday: 0, time: '18:00'}}}});
   await page.goto('/app');
   const card = page.getByRole('article', {name: `Reminder: ${goal.name}`});
-  await expect(card).toContainText(`Weekly check-in: ${goal.name}`);
+  // Owner follow-up 1 (F0): a first appearance after a goto waits FIRST, as the spec's other first appearances do.
+  await expect(card).toContainText(`Weekly check-in: ${goal.name}`, FIRST);
   await expect(card.getByRole('link', {name: 'Open goal'})).toHaveAttribute('href', `/app/goals/tracked/${goal.id}`);
   await card.getByRole('button', {name: 'Dismiss for today'}).click();
   await expect(card).toHaveCount(0);

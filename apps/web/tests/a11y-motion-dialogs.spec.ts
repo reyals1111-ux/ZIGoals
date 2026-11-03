@@ -57,6 +57,9 @@ test('reduced motion: the page settle animation is off by its own rule',async({p
 test('keyboard focus on the logo link is never covered by the intro clip',async({page,isMobile})=>{
  test.skip(isMobile,'Phones have no sidebar logo; tests/logo-fold.spec.ts covers focus on the top bar Z.');
  await page.goto('/app/goals');
+ // The stand-in goes in after hydration: put in earlier, React's hydration meets a node it did not render (error #418),
+ // renders the shell again on the client and drops it (run B, 2 Nov).
+ await expect(page.locator('html')).toHaveAttribute('data-app-hydrated','');
  // Stand in for the clip while it plays (this Chromium build may not decode it), then focus the link by keyboard.
  await page.evaluate(()=>{const brand=document.querySelector('.app-sidebar .brand')!,clip=document.createElement('video');clip.className='logo-intro';clip.dataset.state='playing';clip.setAttribute('aria-hidden','true');brand.append(clip);brand.querySelector('.brand-logo')?.setAttribute('data-intro','playing');});
  const brand=page.locator('.app-sidebar .brand');

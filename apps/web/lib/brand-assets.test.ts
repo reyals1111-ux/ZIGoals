@@ -22,7 +22,8 @@ test('every 1x mark, word and figure has its -2x twin, and the sidebar marks exi
  // ZIGi's frames (components/zigi/manifest.json, docs/product/ZIGI_ASSET_SPEC.md) come as 1x, -2x and a documented -large size; a large frame has no 2x twin by design,
  // and neither has an animated clip (`.anim.webp`, Session X-Local Part 1: eleven delivered states, each with its own five files).
  const ones=webp.filter(f=>!f.endsWith('-2x.webp')&&!f.endsWith('-large.webp')&&!f.endsWith('.anim.webp')),twos=webp.filter(f=>f.endsWith('-2x.webp'));
- expect(twos.length).toBe(28);
+ // Session AK Part 13 (assertion changed, the Studio-4 art arrived): 28 → 68: the 25 states' and the 26 extras' -2x stills (51) beside the 17 marks, words and figures; the twin rule unchanged.
+ expect(twos.length).toBe(68);
  expect(ones.map(f=>f.replace(/\.webp$/,'-2x.webp')).sort()).toEqual(twos.sort());
  for(const mark of PAGE_MARKS)for(const dir of ['marks','words','figures'])expect(ones,`${dir}/${mark.name}`).toContain(`${dir}/${mark.name}.webp`);
 });

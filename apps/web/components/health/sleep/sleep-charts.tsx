@@ -1,6 +1,7 @@
 'use client';
 import {useState, type ReactNode} from 'react';
 import {useChartWidth} from '../../charts/use-chart-width';
+import {ChartLookDefs, useChartLook} from '../../charts/chart-defs';
 import type {DayPoint} from '../../../lib/sleep/engine';
 import {clockFromNoon, clockFromMidnight} from '../../../lib/sleep/engine';
 import {formatMinutes} from '../../../lib/zone-time';
@@ -28,7 +29,7 @@ function Frame({title, summary, children, table, tip, plot, width, keys = []}: {
     <figcaption>{title}</figcaption>
     {keys.length > 0 && <ul className="sleep-key">{keys.map(k => <li key={k.kind}><i className={`sleep-key-${k.kind}`} aria-hidden="true"/>{k.label}</li>)}</ul>}
     <div className="sleep-chart-plot" ref={plot}>
-      <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary}>{children}</svg>
+      <svg className="zg-chart" data-pillar="health" viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={summary}>{children}</svg>
       {/* A visual aid for pointer readers; the table holds the same details for everyone. */}
       {tip && <p className="sleep-chart-tip" aria-hidden="true">{tip}</p>}
     </div>
@@ -83,7 +84,7 @@ export function SleepTimesChart({points, window}: {points: DayPoint[]; window: {
 
 /** Your own quality ratings (1–5); a night without a rating breaks the line. */
 export function SleepQualityChart({points}: {points: DayPoint[]}) {
-  const [hover, setHover] = useState<number | null>(null), [plot, W] = useChartWidth(), plotW = W - PAD.left - PAD.right;
+  const [hover, setHover] = useState<number | null>(null), [plot, W] = useChartWidth(), look = useChartLook(), plotW = W - PAD.left - PAD.right;
   const rated = points.map((p, i) => ({p, i})).filter(({p}) => p.quality !== null);
   const y = (q: number) => PAD.top + plotH - (q - 1) / 4 * plotH, step = plotW / points.length, x = (i: number) => PAD.left + i * step + step / 2;
   const segments: string[] = [];
@@ -91,7 +92,9 @@ export function SleepQualityChart({points}: {points: DayPoint[]}) {
   const summary = rated.length ? `Your sleep quality ratings, ${points.length} days: ${rated.length} nights rated, from ${Math.min(...rated.map(r => r.p.quality!))} to ${Math.max(...rated.map(r => r.p.quality!))} of 5.` : 'Sleep quality: no nights rated yet.';
   return <Frame title={`Your quality ratings · last ${points.length} days`} summary={summary} tip={hover === null ? null : tipFor(points[hover]!)} table={<Table points={points}/>} plot={plot} width={W}>
     {[1, 2, 3, 4, 5].map(q => <g key={q} className="sleep-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(q)} y2={y(q)}/><text x={PAD.left - 4} y={y(q) + 5} textAnchor="end">{q}</text></g>)}
-    {segments.length > 0 && <path className="sleep-line" d={segments.join('')}/>}
+    {/* Session AK (G3): the one chart look — the ratings' line in its gradient with one soft glow (none by day). */}
+    <ChartLookDefs id={look.id} width={W} height={H}/>
+    {segments.length > 0 && <path className="sleep-line zgc-line" d={segments.join('')} style={{stroke: look.stroke('a')}} filter={look.glow}/>}
     {rated.map(({p, i}) => <circle key={p.date} className="sleep-dot" cx={x(i)} cy={y(p.quality!)} r="4"/>)}
     {points.map((p, i) => <g key={p.date}><text className="sleep-axis" x={x(i)} y={H - 6} textAnchor="middle">{dayLabel(p.date, points.length, i)}</text><rect className="sleep-hit" x={PAD.left + i * step} y={PAD.top} width={step} height={plotH} onPointerEnter={() => setHover(i)} onPointerLeave={() => setHover(h => h === i ? null : h)}/></g>)}
   </Frame>;

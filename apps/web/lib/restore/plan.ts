@@ -36,6 +36,47 @@ import {MEAL_ESTIMATES} from '../meal-estimates/schema';
 import {TASKS} from '../tasks/schema';
 import {READING_SOURCES} from '../wealth-sources/schema';
 import {PRICE_ALERTS} from '../price-alerts/schema';
+import {MUSIC_MIX} from '../music/mix-store';
+import {BILLS} from '../bills/schema';
+import {BUDGETS} from '../budgets/schema';
+import {TARGET_ALLOCATION} from '../allocation/target';
+import {CSV_MAPPINGS} from '../csv/templates/saved';
+import {AUTO_RULES} from '../auto-rules/schema';
+import {FOOD_SCANS} from '../food-scans/schema';
+import {NUTRIENT_EXTRAS_RECORD} from '../health-vitamins/extras';
+import {GROCERY_RECORD} from '../grocery/schema';
+import {CALORIE_WEEK} from '../health-aa/calorie-week';
+import {COMPARE_PAIR} from '../compare/schema';
+import {SUPPLEMENTS} from '../supplements/schema';
+import {GOV_REMINDERS} from '../zigchain-eco/governance';
+import {INSIGHT_FEEDBACK} from '../insight-feedback/store';
+import {FOCUS_ROUNDS} from '../focus-rounds/store';
+import {CYCLE} from '../cycle/store';
+import {SCALES} from '../scales/store';
+import {HEALTH_NUMBERS} from '../health-numbers/store';
+import {NOVA_HERMES} from '../nova/hermes-record';
+import {NOVA_SETUP} from '../nova/setup';
+import {NOVA_WORKFLOWS} from '../nova/workflows/schema';
+import {NOVA_BRIEFS} from '../nova/briefs';
+import {NOVA_BRIDGE} from '../nova/bridge';
+import {NOVA_STORE} from '../nova/store';
+import {CALENDAR_IMPORT} from '../ics/calendar';
+import {NOTES} from '../notes/schema';
+import {NETWORTH_MILESTONES} from '../networth-milestones/milestones';
+import {SAVINGS_CHALLENGES} from '../savings-challenges/challenges';
+import {DEBT_PLANNER} from '../debt-planner/store';
+import {WRAPPED} from '../wrapped/store';
+import {AGENDA} from '../agenda/store';
+import {JOURNAL_DISPLAY} from '../on-this-day/store';
+import {FIRST_WEEK} from '../first-week/store';
+import {EXPERIMENTS} from '../experiments/store';
+import {MONEY_RULES} from '../money-rules/schema';
+import {MONEY_REVIEW} from '../money-review/review';
+import {FI_MODEL} from '../fi-model/store';
+import {EMERGENCY_SHEET} from '../emergency-sheet/schema';
+import {MUSCLE_RECOVERY} from '../muscle-freshness/model';
+import {FOOD_DISPLAY} from '../food-display/schema';
+import {REWARDS_SHELF} from '../rewards-shelf/store';
 import {FOCUS_SESSIONS} from '../focus-sessions/schema';
 import {GUIDED_JOURNEYS} from '../guided/schema';
 import {RECEIPTS} from '../portfolio/receipts';
@@ -43,6 +84,7 @@ import {IMPORTS} from '../portfolio/wallet-import';
 import {EXCHANGES_RECORD} from '../exchanges/record';
 import {JOURNAL} from '../journal/schema';
 import {ENERGY} from '../energy/schema';
+import {AI_MEMORY, HEALTH_NOTE_CATEGORIES} from '../ai/store/records';
 
 /**
  * Session AB-Cloud Part 5 ([TIER 3] (data formats), ADR-023 C22): what "Restore from a backup" can bring back from an
@@ -51,7 +93,7 @@ import {ENERGY} from '../energy/schema';
  *
  * - Each part is a module (the four synced records, validated by their own strict schemas, a newer version refused) or a
  *   device record with a schema; photos come back to this device only. Everything else in the file is never restored:
- *   keys and secrets are never in it, and push, ZIGi's settings, notes, usage and conversations, an import's undo, a run
+ *   keys and secrets are never in it, and push, ZIGi's settings, usage and conversations, an import's undo, a run
  *   in progress, the welcome's setup, display choices and recent searches belong to the device they were made on.
  * - **Merge** adds what the backup has and this device does not, and changes nothing this device holds: a record with the
  *   same id (or day, date, week or key) keeps this device's copy whole; a field this device has keeps its value. The
@@ -65,10 +107,33 @@ export type RestoreMode = 'leave' | 'merge' | 'replace';
 export type ModuleName = 'finance' | 'habits' | 'health' | 'settings';
 type Part = {id: string; label: string; group: RestoreGroup; key: string; schema: z.ZodType<unknown>; empty: () => unknown; health: boolean};
 export type ModulePart = Part & {kind: 'module'; name: ModuleName};
-export type DevicePart = Part & {kind: 'device'; name: string};
+/**
+ * Session AK WA (owner follow-up 2 N7): one record restored as two parts. `pick` is the part's share of a value (the
+ * backup's, or this device's for the preview), `has` whether a value holds any of it, and `replace` what a Replace writes:
+ * the backup's share with the rest of this device's record left exactly as it is. A Merge is the usual one (only what this
+ * device lacks is added) on the part's share. Both parts write the same key; Undo goes back newest first, so it holds.
+ */
+export type PartSlice = {pick: (value: unknown) => unknown; has: (value: unknown) => boolean; replace: (current: unknown, backup: unknown) => unknown};
+export type DevicePart = Part & {kind: 'device'; name: string; slice?: PartSlice};
 const mod = (name: ModuleName, label: string, group: RestoreGroup, key: string, schema: z.ZodType<unknown>): ModulePart => ({kind: 'module', id: `module:${name}`, name, label, group, key, schema, empty: () => undefined, health: name === 'health'});
 const dev = <T,>(name: string, label: string, group: RestoreGroup, spec: DeviceRecordSpec<T>, health = false): DevicePart => ({kind: 'device', id: `device:${name}`, name, label, group, key: spec.key, schema: spec.schema as z.ZodType<unknown>, empty: spec.empty as () => unknown, health});
 const spec = <T,>(key: string, schema: z.ZodType<T>, empty: () => T): DeviceRecordSpec<T> => ({key, schema, empty});
+/**
+ * N7: the shared memory of ZIGi and NOVA (`zigoals:ai-memory:v1`, lib/ai/memory.ts). A note filed under Health or Diet
+ * (HEALTH_NOTE_CATEGORIES: the notes ZIGi's and NOVA's Health gate holds back) restores only with the Health choice; every
+ * other note, and the "notes from ZIGi's cards" choice, with Today and Life.
+ */
+const notesIn = (v: unknown): unknown[] => isObject(v) && Array.isArray(v.notes) ? v.notes : [];
+const healthNote = (n: unknown) => isObject(n) && typeof n.category === 'string' && HEALTH_NOTE_CATEGORIES.includes(n.category);
+function memorySlice(health: boolean): PartSlice {
+  const mine = (n: unknown) => healthNote(n) === health;
+  return {
+    pick: v => health ? {version: 1, notes: notesIn(v).filter(mine)} : {...(isObject(v) ? v : {version: 1}), notes: notesIn(v).filter(mine)},
+    has: v => notesIn(v).some(mine) || (!health && isObject(v) && v.consent !== undefined),
+    replace: (current, backup) => ({...(health ? (isObject(current) ? current : {version: 1}) : isObject(backup) ? backup : {version: 1}), notes: [...notesIn(current).filter(n => !mine(n)), ...notesIn(backup).filter(mine)]}),
+  };
+}
+const memoryPart = (health: boolean): DevicePart => ({...dev(health ? 'aiMemoryHealth' : 'aiMemory', health ? 'Memory notes about health and diet (ZIGi and NOVA)' : 'Memory for ZIGi and NOVA', health ? 'Health' : 'Today and Life', AI_MEMORY, health), name: 'aiMemory', slice: memorySlice(health)});
 
 export const MODULE_PARTS: readonly ModulePart[] = [
   mod('finance', 'Goals and Wealth', 'Goals and Wealth', PLATFORM_KEY, platformSchema as z.ZodType<unknown>),
@@ -93,6 +158,52 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('portfolioImports', 'Portfolio rows from wallets', 'Goals and Wealth', IMPORTS),
   dev('readingSources', 'Where wealth readings came from', 'Goals and Wealth', READING_SOURCES),
   dev('priceAlerts', 'Price alerts', 'Goals and Wealth', PRICE_ALERTS),
+  // Session AK: the sound mix, bills, budgets, the target mix, saved CSV matches, habit rules.
+  dev('musicMix', 'Sound mix and timer', 'Today and Life', MUSIC_MIX),
+  dev('bills', 'Bills', 'Goals and Wealth', BILLS),
+  dev('budgets', 'Budgets', 'Goals and Wealth', BUDGETS),
+  dev('targetAllocation', 'Target mix', 'Goals and Wealth', TARGET_ALLOCATION),
+  dev('csvMappings', 'Saved CSV column matches', 'Goals and Wealth', CSV_MAPPINGS),
+  dev('autoRules', 'Habit rules', 'Habits', AUTO_RULES),
+  // Session AK Part 4: Health-describing, so restored only with the Health choice.
+  dev('foodScans', 'Barcodes you scanned', 'Health', FOOD_SCANS, true),
+  dev('nutrientExtras', 'Extra nutrients', 'Health', NUTRIENT_EXTRAS_RECORD, true),
+  dev('grocery', 'Grocery ticks and pantry', 'Health', GROCERY_RECORD, true),
+  dev('calorieWeek', 'Weekly calorie budget', 'Health', CALORIE_WEEK, true),
+  dev('comparePair', 'Your last comparison', 'Health', COMPARE_PAIR, true),
+  dev('supplements', 'Supplements and medication', 'Health', SUPPLEMENTS, true),
+  dev('govReminders', 'Governance vote reminders', 'Goals and Wealth', GOV_REMINDERS),
+  dev('insightFeedback', 'Was this useful? on ZIGi notes', 'Today and Life', INSIGHT_FEEDBACK),
+  dev('focusRounds', 'Focus bell and breaks', 'Today and Life', FOCUS_ROUNDS),
+  dev('cycle', 'Cycle log', 'Health', CYCLE, true),
+  dev('scales', 'Your own scales', 'Today and Life', SCALES),
+  dev('healthNumbers', 'Your numbers (blood pressure and lab values)', 'Health', HEALTH_NUMBERS, true),
+  dev('novaHermes', 'Hermes Agent connection', 'Today and Life', NOVA_HERMES),
+  dev('novaSetup', 'NOVA setup and privacy mode', 'Today and Life', NOVA_SETUP),
+  dev('novaWorkflows', 'NOVA workflows', 'Today and Life', NOVA_WORKFLOWS),
+  // Security review Z1B-2: briefs can hold Health lines (sleep, water, steps, foods), so they restore only with the Health choice.
+  dev('novaBriefs', 'NOVA briefs', 'Health', NOVA_BRIEFS, true),
+  dev('novaBridge', 'NOVA chat origins', 'Today and Life', NOVA_BRIDGE),
+  dev('nova', 'NOVA layout and persona', 'Today and Life', NOVA_STORE),
+  dev('calendarImport', 'Imported calendars', 'Today and Life', CALENDAR_IMPORT),
+  dev('notes', 'Notes', 'Today and Life', NOTES),
+  // Session AK WA (N7): ZIGi's and NOVA's one memory; its health and diet notes only with the Health choice.
+  memoryPart(false), memoryPart(true),
+  dev('networthMilestones', 'Net-worth milestones', 'Goals and Wealth', NETWORTH_MILESTONES),
+  dev('savingsChallenges', 'Savings challenges', 'Goals and Wealth', SAVINGS_CHALLENGES),
+  dev('debtPlanner', 'Debt payoff planner', 'Goals and Wealth', DEBT_PLANNER),
+  dev('wrapped', 'ZIGoals Wrapped', 'Today and Life', WRAPPED),
+  dev('agenda', 'Agenda view and filters', 'Today and Life', AGENDA),
+  dev('journalDisplay', 'On this day choices', 'Today and Life', JOURNAL_DISPLAY),
+  dev('firstWeek', 'Your first week', 'Today and Life', FIRST_WEEK),
+  dev('experiments', 'Experiments', 'Health', EXPERIMENTS, true),
+  dev('moneyRules', 'Money log rules', 'Goals and Wealth', MONEY_RULES),
+  dev('moneyReview', 'Imported entries to review', 'Goals and Wealth', MONEY_REVIEW),
+  dev('fiModel', 'Financial freedom inputs', 'Goals and Wealth', FI_MODEL),
+  dev('emergencySheet', 'Emergency sheet', 'Goals and Wealth', EMERGENCY_SHEET),
+  dev('muscleRecovery', 'Recovery days per muscle group', 'Health', MUSCLE_RECOVERY, true),
+  dev('foodDisplay', 'Food quality letter choices', 'Health', FOOD_DISPLAY, true),
+  dev('rewardsShelf', 'Rewards shelf', 'Today and Life', REWARDS_SHELF),
   dev('focusSessions', 'Focus sessions', 'Today and Life', FOCUS_SESSIONS),
   dev('guidedJourneys', 'Guided journeys', 'Today and Life', GUIDED_JOURNEYS),
   dev('exchanges', 'Exchanges read (balances only)', 'Goals and Wealth', EXCHANGES_RECORD),
@@ -116,9 +227,12 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('measurementsCustom', 'Custom measurements', 'Health', MEASUREMENTS_CUSTOM, true),
 ];
 /** What a file may hold and this never restores, said in the preview. */
-export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, notes, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, Checklist favourites and day history, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
+export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, Checklist favourites and day history, the staking journal and the practice/real choice, linked wallet balances, Goal Vault links, validator health alerts, ZIGi\'s plans, My universe milestones, Day timeline times and the Stories you opened and legacy simulation Goals (use an encrypted copy for those).';
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
+export const MAX_DEVICE_PART_CHARS = 5_000_000;
+export const TOO_LARGE_PART_MESSAGE = 'This part is larger than this device can keep for it (about 5 MB), so it is left out.';
+const serializedLength = (value: unknown): number => { try { return JSON.stringify(value)?.length ?? 0; } catch { return Number.POSITIVE_INFINITY; } };
 export const MERGE_REFUSED_MESSAGE = 'These records cannot be merged safely. Choose Replace, or leave them as they are.';
 /**
  * Session AD item 11 (ADR-026), backups older than this build. Every section's version 1 and later is still read (each
@@ -178,7 +292,9 @@ export function summarizeValue(value: unknown): PartSummary {
   return {counts: records ? `${records} ${records === 1 ? 'record' : 'records'}` : 'Settings only', from, through};
 }
 /** A part's summary: a module's own counts (the encrypted backup's preview labels), or the generic one. */
-export const summarizePart = (part: ModulePart | DevicePart, value: unknown): PartSummary => part.kind === 'module' ? moduleSummary(part, value) : summarizeValue(value);
+export const summarizePart = (part: ModulePart | DevicePart, value: unknown): PartSummary => part.kind === 'module' ? moduleSummary(part, value) : part.slice ? sliceSummary(part.slice, value) : summarizeValue(value);
+const NO_NOTES: PartSummary = {counts: 'No notes', from: null, through: null};
+const sliceSummary = (slice: PartSlice, value: unknown): PartSummary => { const mine = slice.pick(value); return notesIn(mine).length ? summarizeValue(mine) : slice.has(mine) ? {counts: 'Settings only', from: null, through: null} : NO_NOTES; };
 function moduleSummary(part: ModulePart, value: unknown): PartSummary {
   try {
     const [s] = summarizeBackupModules({[part.name]: JSON.stringify(value)} as Partial<Record<ModuleName, string>>);
@@ -205,8 +321,13 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     const value = part.name === 'portfolio' ? json.portfolio : json.device?.[part.name];
     if (value === undefined) continue;
     const version = isObject(value) ? value.version : undefined;
+    // Session AK Part 15 (F8): a device record lives in this browser's storage, which holds about five million
+    // characters for the whole site; a part larger than that (a loose record keeps unknown fields) is left out unread.
+    if (serializedLength(value) > MAX_DEVICE_PART_CHARS) { out.push({...part, problem: TOO_LARGE_PART_MESSAGE, summary: null}); continue; }
     const parsed = part.schema.safeParse(value);
-    if (parsed.success) out.push({...part, value: parsed.data, summary: summarizeValue(parsed.data)});
+    // N7: a part that is a share of its record is offered only when the file holds some of that share.
+    if (parsed.success && part.slice) { const mine = part.slice.pick(parsed.data); if (part.slice.has(mine)) out.push({...part, value: mine, summary: sliceSummary(part.slice, mine)}); }
+    else if (parsed.success) out.push({...part, value: parsed.data, summary: summarizeValue(parsed.data)});
     else out.push({...part, problem: typeof version === 'number' && version > 1 ? NEWER_PART_MESSAGE : typeof version === 'number' && version < 1 ? OLDER_PART_MESSAGE : INVALID_PART_MESSAGE, summary: null});
   }
   return out;
@@ -239,7 +360,7 @@ export function nextValue(part: PlannedPart, mode: Exclude<RestoreMode, 'leave'>
   if (mode === 'replace' && replaceRefused(part, current)) return {error: OLDER_THAN_DEVICE_MESSAGE};
   let next: unknown;
   if (mode === 'merge') next = mergeKeep(current, part.value);
-  else next = part.name === 'habits' ? keepDeletedHabits(current, part.value) : part.name === 'goalExtras' ? keepDormant(current, part.value) : part.value;
+  else next = part.name === 'habits' ? keepDeletedHabits(current, part.value) : part.name === 'goalExtras' ? keepDormant(current, part.value) : part.kind === 'device' && part.slice ? part.slice.replace(current, part.value) : part.value;
   const parsed = part.schema.safeParse(next);
   if (!parsed.success) return {error: mode === 'merge' ? MERGE_REFUSED_MESSAGE : INVALID_PART_MESSAGE};
   return {value: parsed.data};

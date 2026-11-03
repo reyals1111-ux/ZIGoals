@@ -43,3 +43,46 @@ export const STATE_TEXT: Readonly<Record<ZigiState, StateText>> = {
   proud: {group: 'moments', meaning: 'Proud of your streak.', when: 'A habit check-in, on Habits or from a ZIGi card, reaches a streak milestone the app counted.'},
   reminder: {group: 'moments', meaning: 'A knock: something is due.', when: 'With knocking on, a reminder is due on a page other than Today; at most one knock a visit, never between 22:00 and 08:00 or while you type.'},
 };
+/**
+ * Session AK Part 13 (Studio-4): Meet ZIGi also shows every extra move the studio delivered — the thirteen reactions, the
+ * rest variations, the variations of a state and the special moves — each with its meaning and when it appears, read from
+ * the code that plays it (semantic.ts reactions and host facts, idle.ts, variants.ts, the Checklist's orbit cheer). A move
+ * nothing plays yet says "Not used yet." The unit test (lib/zigi-studio4/meet-moves.test.ts) keeps this table to exactly
+ * the manifest's delivered clips, by code.
+ */
+export type MoveGroup = 'reactions' | 'rest' | 'variations' | 'special';
+export const MOVE_GROUPS: readonly {id: MoveGroup; title: string; line: string}[] = [
+  {id: 'reactions', title: 'Reactions', line: 'A short move over whatever ZIGi is doing, for something that just happened.'},
+  {id: 'rest', title: 'While resting', line: 'Under Full animation, now and then, while ZIGi rests.'},
+  {id: 'variations', title: 'Variations', line: 'Under Full animation, now and then in place of the usual move; the usual one plays at least half the time.'},
+  {id: 'special', title: 'Special moves', line: 'Moves for one place in the app.'},
+];
+export type MoveText = {group: MoveGroup; label: string; meaning: string; when: string};
+export const MOVE_TEXT: Readonly<Record<string, MoveText>> = {
+  R001: {group: 'reactions', label: 'A quick nod', meaning: 'Got your message.', when: 'You send ZIGi a message.'},
+  R002: {group: 'reactions', label: 'Not quite sure', meaning: 'Hmm, which one?', when: 'ZIGi asks which one you mean or cannot answer a question here, or your AI marks its answer as curious or confused.'},
+  R003: {group: 'reactions', label: 'Working on it', meaning: 'Busy with your records.', when: 'Your connected AI reads the records you shared with that message.'},
+  R004: {group: 'reactions', label: 'A pattern holds', meaning: 'Oh, look at that!', when: 'A cross-insight on your records has held, the first time you see it that day.'},
+  R005: {group: 'reactions', label: 'Here for you', meaning: 'A gentle, supportive look.', when: 'You check in with low energy or a low mood.'},
+  R006: {group: 'reactions', label: 'Keep it up', meaning: 'Cheering your check-ins on.', when: 'Your check-ins reach a milestone the app counted.'},
+  R007: {group: 'reactions', label: 'Oops', meaning: 'Taken back.', when: 'You undo something with Undo.'},
+  R008: {group: 'reactions', label: 'Day wrapped up', meaning: 'A wave for the end of the day.', when: 'You save your day’s wrap-up.'},
+  R009: {group: 'reactions', label: 'Thanks', meaning: 'Thanks for the note.', when: 'You mark one of your AI’s answers with a thumbs up or down.'},
+  R010: {group: 'reactions', label: 'Reading along', meaning: 'Thinking about what you wrote.', when: 'ZIGi asks its one question after you save a journal entry.'},
+  R011: {group: 'reactions', label: 'Waiting for a connection', meaning: 'Still offline, waiting.', when: 'Your device reports it went offline again while ZIGi already shows No connection.'},
+  R012: {group: 'reactions', label: 'Back online', meaning: 'Connected again.', when: 'Your device is back online.'},
+  R013: {group: 'reactions', label: 'Hide', meaning: 'Off it goes.', when: 'You dismiss ZIGi’s knock.'},
+  X010: {group: 'rest', label: 'A glance around', meaning: 'Looking about.', when: 'Now and then while ZIGi rests, under Full animation.'},
+  X011: {group: 'rest', label: 'Settling in', meaning: 'Getting comfortable.', when: 'Now and then while ZIGi rests, under Full animation.'},
+  X012: {group: 'rest', label: 'The logo', meaning: 'Showing off the ZIGoals mark.', when: 'Now and then while ZIGi rests, under Full animation.'},
+  X050: {group: 'variations', label: 'Answering, a second way', meaning: 'Another way of answering you.', when: 'Now and then in place of Speaking, under Full animation.'},
+  X051: {group: 'variations', label: 'Answering, a third way', meaning: 'A longer way of answering you.', when: 'Now and then in place of Speaking, under Full animation.'},
+  X052: {group: 'variations', label: 'Listening, a second way', meaning: 'Another way of listening.', when: 'Now and then in place of Listening, under Full animation.'},
+  X053: {group: 'variations', label: 'Thinking, a second way', meaning: 'Another way of thinking it over.', when: 'Now and then in place of Thinking, under Full animation.'},
+  X054: {group: 'variations', label: 'A small celebration', meaning: 'A little hop for a small success.', when: 'Now and then in place of Success, under Full animation.'},
+  X030: {group: 'special', label: 'Cheer', meaning: 'Arms up: well done!', when: 'On the Checklist’s path, when a tick completes an orbit.'},
+  X001: {group: 'special', label: 'Hello, in place', meaning: 'Hello, without walking in.', when: 'Not used yet.'},
+  X020: {group: 'special', label: 'A look at the chat box', meaning: 'Looking down at where you type.', when: 'Not used yet.'},
+  X021: {group: 'special', label: 'A look at you', meaning: 'Looking out at you.', when: 'Not used yet.'},
+  X022: {group: 'special', label: 'A look at something', meaning: 'Looking at something on the page.', when: 'Not used yet.'},
+};

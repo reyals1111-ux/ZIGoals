@@ -28,7 +28,7 @@ export function collectInPage({selectors, cap, art, ground, props}: {selectors: 
     const cs = getComputedStyle(el), r = el.getBoundingClientRect();
     const out: Record<string, string> = {}; for (const p of props) out[p] = cs.getPropertyValue(p);
     const own = [...el.childNodes].some(n => n.nodeType === 3 && (n.textContent ?? '').trim());
-    return {path: pathOf(el), desc: descOf(el), text: own, clip: /text/.test(cs.getPropertyValue('background-clip') + cs.getPropertyValue('-webkit-background-clip')), art: el.matches(art), ground: el.matches(ground), bar: !!el.closest('.theme-switch-wrap'), svgText: el.tagName.toLowerCase() === 'text' || el.tagName.toLowerCase() === 'tspan', props: out,
+    return {path: pathOf(el), desc: descOf(el), text: own, clip: /text/.test(cs.getPropertyValue('background-clip') + cs.getPropertyValue('-webkit-background-clip')), art: el.matches(art), ground: el.matches(ground), bar: !!el.closest('.theme-switch-wrap'), svgText: el.tagName.toLowerCase() === 'text' || el.tagName.toLowerCase() === 'tspan', focus: el.matches(':focus-visible'), props: out,
       box: [Math.round((r.x + scrollX) * 10) / 10, Math.round((r.y + scrollY) * 10) / 10, Math.round(r.width * 10) / 10, Math.round(r.height * 10) / 10]};
   });
 }

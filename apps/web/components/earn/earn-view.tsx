@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useMemo} from 'react';
+import {lazy, Suspense, useMemo} from 'react';
 import {aprAtCommission} from '../../lib/earn/apr';
 import {fixed, rounded} from '../../lib/earn/decimal';
 import {pct, pctShort} from '../../lib/earn/format';
@@ -14,6 +14,7 @@ import {DefaSection, NawaSection, PermapodSection, ZignalySection} from './apps-
 import {EarnAppsStrip} from './earn-apps-strip';
 import {EarnChips} from './earn-chips';
 import {EarnGlyph} from './earn-glyph';
+import {EarnJump} from './earn-jump';
 import {GuideProvider} from './guide-panel';
 import {LiveSummary} from './live-summary';
 import {NativeSection, commissionChoices} from './native-section';
@@ -30,6 +31,10 @@ import {GoalVaultsSection, GovernanceSection, StablecoinsSection} from './wider-
 import {SourceLine, Unavailable} from './live-figure';
 import {SectionBoundary} from './section-boundary';
 import './earn.css';
+
+// Session AK (F4): staking clarity (claimable rewards, the unbonding calendar, rewards claimed here, the CSV) loads only
+// when a wallet is linked or connected, from the reads this page already makes.
+const StakingClarity = lazy(() => import('../zigchain-eco/staking-clarity'));
 
 /**
  * Session AF (L1, ADR-028 H5, H16, H17, H84): the Earn hub, /app/earn. Every way to earn on ZIGChain that is live today,
@@ -65,7 +70,9 @@ export function EarnView() {
       <EarnAppsStrip/>
       <EarnChips chips={chips}/>
       <div className="earn-sections">
+        <EarnJump/>
         <SectionBoundary id="summary" title="Your Earn summary"><LiveSummary wallets={wallets} reads={reads}/></SectionBoundary>
+        {wallets.length > 0 && <SectionBoundary id="staking-clarity" title="Rewards, unstaking and history"><Suspense fallback={null}><StakingClarity now={now} reads={reads.flatMap(r => r.state.phase === 'ok' ? [{address: r.address, label: r.label, positions: r.state.positions}] : [])}/></Suspense></SectionBoundary>}
         <SectionBoundary id="start-here" title="Start here"><StartHereSection facts={facts} live={live}/></SectionBoundary>
         <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><NativeSection chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><ValdoraSection valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>

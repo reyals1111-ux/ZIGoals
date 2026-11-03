@@ -1,10 +1,27 @@
 'use client';
 import Link from 'next/link';
 import {useState} from 'react';
+import {TourOffer} from '../tour/tour-offer';
+import {useChainChoice} from '../chain/use-chain-choice';
+import {consumerLines} from '../../lib/whats-new-chain/filter';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AJ (release `2026-10-session-aj-big-leap`, ADR-035): the big leap. Each link opens its Help answer. */
+/** Session AK (release `2026-11-session-ak-number-one`, ADR-036): number one. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-nova-what', label: 'NOVA: your private command center, with your own local model or Hermes Agent'},
+  {href: '/app/help#help-notes-what', label: 'Notes that link to your goals, habits and days'},
+  {href: '/app/help#help-tasks-what', label: 'Tasks with a calendar import and a Pomodoro timer'},
+  {href: '/app/help#help-ak-notify', label: 'Notifications on this device, and ZIGoals offline once installed'},
+  {href: '/app/help#help-ak-food', label: 'Food: recent scans, a food library that works offline, a nutrient report'},
+  {href: '/app/help#help-ak-habits', label: 'Habits in your own order, a compact list and rules that tick a habit off'},
+  {href: '/app/help#help-ak-goals', label: 'A what-if for each goal, a progress card and milestone plans'},
+  {href: '/app/help#help-ak-wealth', label: 'Bills, budgets, your target mix and money rules on Wealth'},
+  {href: '/app/help#help-ak-music', label: 'Music: mix up to three sounds, or open a playlist'},
+  {href: '/app/help#help-ak-days', label: 'Feeling words, a year in pixels and a report for a visit'},
+  {href: '/app/help#help-ak-data', label: 'Test a backup, a monthly reminder, and honest ways to take your data elsewhere'},
+];
+/** Session AJ (release `2026-10-session-aj-big-leap`, ADR-035): the big leap; Session AK followed it, so these lead "Earlier updates". */
+const SESSION_AJ_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-aj-alerts', label: 'Price alerts on your device, and net worth by where it came from'},
   {href: '/app/help#help-aj-guided', label: 'Guided journeys, Focus Sessions and an optional Life Score'},
   {href: '/app/help#help-aj-health', label: 'Sleep balance, your best focus window and GPX or TCX workouts'},
@@ -12,7 +29,7 @@ export const WHATS_NEW_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-aj-look', label: 'Customize the app’s look, and erase everything on this device'},
   {href: '/app/help#help-aj-v6', label: 'Staking on ZIGChain v6: the review shows the network fee you sign'},
 ];
-/** Session AG Polish 2 (release `2026-10-session-ag-polish-2-checklist`, ADR-031); Session AJ followed it, so these lead "Earlier updates". */
+/** Session AG Polish 2 (release `2026-10-session-ag-polish-2-checklist`, ADR-031); Session AJ followed it, so these led "Earlier updates" (now after AJ's). */
 const SESSION_AG_POLISH_2_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ag2-quick-add', label: 'Quick add: “+” puts a new habit on your Checklist in one step'},
   {href: '/app/help#help-ag2-planets', label: 'Each orbit’s planet lights up the moment you reach it'},
@@ -162,6 +179,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AJ_LINKS,
   ...SESSION_AG_POLISH_2_LINKS,
   ...SESSION_AG_POLISH_LINKS,
   ...SESSION_AG_LINKS,
@@ -194,14 +212,18 @@ export const EARLIER_LINKS: WhatsNewLink[] = [
 ];
 /**
  * The one-time "What's new" card (Session P): links to the Help entries of the new features, the previous release's under
- * "Earlier updates"; "Got it" writes the device flag.
+ * "Earlier updates"; "Got it" writes the device flag. Session AK (A19): "Take the 1-minute tour" sits under the links.
  */
-export function WhatsNewCard({links = WHATS_NEW_LINKS, earlier = EARLIER_LINKS, onDismiss}: {links?: WhatsNewLink[]; earlier?: WhatsNewLink[]; onDismiss: () => boolean}) {
+export function WhatsNewCard({links: allLinks = WHATS_NEW_LINKS, earlier: allEarlier = EARLIER_LINKS, onDismiss}: {links?: WhatsNewLink[]; earlier?: WhatsNewLink[]; onDismiss: () => boolean}) {
   const [error, setError] = useState('');
+  // Session AK RB (RELEASE_REVIEW_2 R2-6): lines that name the chain wait until the chain is chosen (Earlier updates too).
+  const chosen = useChainChoice().chosen, links = consumerLines(allLinks, chosen), earlier = consumerLines(allEarlier, chosen);
   return <section className="panel for-you-card whats-new-card" aria-labelledby="whats-new-title">
     <p className="eyebrow">What’s new</p><h2 id="whats-new-title">A few new things.</h2>
     <p className="fine">Each one is optional, and nothing changes until you use it.</p>
     <ul className="whats-new-links">{links.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href}>{link.label}</Link></li>)}</ul>
+    {/* Session AK (A19): the "New in ZIGoals" tour opens in place under its button; its code loads on the tap. */}
+    <TourOffer/>
     {earlier.length > 0 && <details className="whats-new-earlier"><summary>Earlier updates</summary><ul className="whats-new-links">{earlier.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href}>{link.label}</Link></li>)}</ul></details>}
     <button type="button" className="primary" onClick={() => { if (!onDismiss()) setError('This card could not be hidden on this device; it may show once more.'); }}>Got it</button>
     {error && <p role="alert">{error}</p>}

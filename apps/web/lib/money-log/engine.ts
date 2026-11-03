@@ -1,5 +1,6 @@
 import {addLocalDays} from '../local-date';
 import type {MoneyEntry, MoneyLog} from './schema';
+import {entryParts} from '../money-split/parts';
 
 /**
  * Session AI: the expense log's figures, in cents (integers), per currency, never converted. The week runs from the
@@ -28,8 +29,11 @@ export function byCategory(entries: readonly MoneyEntry[], from: string, to: str
   const by = new Map<string, {category: string; currency: string; total: number; count: number}>();
   for (const e of entries) {
     if (e.kind !== kind || e.date < from || e.date > to) continue;
-    const k = `${e.currency}\u0000${e.category}`, row = by.get(k) ?? {category: e.category, currency: e.currency, total: 0, count: 0};
-    row.total += cents(e.amount); row.count++; by.set(k, row);
+    // Session AK (lane M, item 22): a split entry counts in each of its parts' categories (the whole entry otherwise).
+    for (const part of entryParts(e)) {
+      const k = `${e.currency}\u0000${part.category}`, row = by.get(k) ?? {category: part.category, currency: e.currency, total: 0, count: 0};
+      row.total += part.cents; row.count++; by.set(k, row);
+    }
   }
   return [...by.values()].sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
 }

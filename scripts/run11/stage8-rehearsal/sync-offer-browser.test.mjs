@@ -34,7 +34,7 @@ test.runIf(BROWSER)('the offer turns sync on through the existing controls; Goal
   expect(await pa.getByRole('button',{name:TURN_ON}).count()).toBe(0);
 
   // Records in every section, Health without consent.
-  await ua.go('Goals');await pa.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();await typeGoalName(pa,GOAL);await pa.getByRole('radio',{name:'Project',exact:true}).check();await pa.getByLabel('Milestones, one per line').fill('Start');for(let i=0;i<3;i++)await pa.getByRole('button',{name:'Continue →'}).click();await pa.getByRole('button',{name:'Create goal',exact:true}).click();await pa.getByTestId('tracked-progress').waitFor();
+  await ua.go('Goals');await pa.locator('.page-heading').getByRole('link',{name:'+ Create a goal',exact:true}).click();await typeGoalName(pa,GOAL);await pa.getByRole('radio',{name:'Finish a project',exact:true}).check()/* Session AK (ADR-036, deliberate): R5 9ccb860a names the kinds in plain words until the chain is chosen */;await pa.getByLabel('Milestones, one per line').fill('Start');for(let i=0;i<3;i++)await pa.getByRole('button',{name:'Continue →'}).click();await pa.getByRole('button',{name:'Create goal',exact:true}).click();await pa.getByTestId('tracked-progress').waitFor();
   await ua.go('Habits');await pa.getByRole('button',{name:'+ New habit',exact:true}).click();await pa.getByLabel('Start from template').selectOption('read');await pa.getByLabel('Habit title',{exact:true}).fill(HABIT);await pa.getByRole('button',{name:'Create habit',exact:true}).click();await pa.getByRole('article',{name:HABIT,exact:true}).waitFor();
   await ua.go('Today');await pa.getByRole('button',{name:'Customize Today',exact:true}).click();await pa.getByRole('button',{name:'Add widget',exact:true}).click();const editor=pa.getByRole('dialog',{name:'Add a widget'});await editor.getByRole('group',{name:'Choose a metric'}).getByRole('button',{name:'Water today',exact:true}).click();await editor.getByText('Title and display size').click();await editor.getByLabel('Card title (optional)').fill(WIDGET);await editor.getByRole('button',{name:'Save widget'}).click();await pa.getByRole('article',{name:WIDGET,exact:true}).waitFor();
   await ua.go('Health');await pa.getByRole('button',{name:'Add 250 mL',exact:true}).click();await water(pa).getByText('250 mL recorded',{exact:false}).waitFor();
@@ -55,7 +55,7 @@ test.runIf(BROWSER)('the offer turns sync on through the existing controls; Goal
   await ub.go('Goals');await pb.getByRole('heading',{name:GOAL,exact:true}).waitFor();
   await ub.go('Habits');await pb.getByRole('article',{name:HABIT,exact:true}).waitFor();
   // Session U follow-up F3: on this phone the widget card is a row named by it; open it first.
-  await ub.go('Today');await pb.getByRole('button',{name:WIDGET,exact:true}).click();await pb.getByRole('article',{name:WIDGET,exact:true}).waitFor();
+  await ub.go('Today');/* Session AK (R2-9, deliberate): a folded row's name carries its figure */await pb.getByRole('button',{name:new RegExp('^'+WIDGET.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?: .+)?$')}).click();await pb.getByRole('article',{name:WIDGET,exact:true}).waitFor();
   await ub.go('Health');await water(pb).waitFor();expect(await water(pb).innerText()).not.toContain('250 mL recorded');
 
   // B's own Health entry is uploaded under B's consent; A, still without consent, does not receive it.

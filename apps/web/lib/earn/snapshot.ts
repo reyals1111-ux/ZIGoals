@@ -20,7 +20,8 @@ export type SnapshotFigure = {id: string; option: string; label: string; value: 
 export type SnapshotFamily =
   | {family: EarnFamily; status: 'ok'; source: string; asOf: string; stale: boolean; height?: string}
   | {family: EarnFamily; status: 'unavailable'; reason: string; words: string; at: string; source?: string};
-export type SnapshotValidator = {operator: string; moniker: string; commission: string; jailed: boolean; status: string};
+/** `tokens` (azig) and `tombstoned`: Owner follow-up 1 (F9), public figures ZIGi reads for the validators in plain words (lib/zigchain-eco/validators.ts). */
+export type SnapshotValidator = {operator: string; moniker: string; commission: string; jailed: boolean; status: string; tokens?: string; tombstoned?: boolean | null};
 export type EarnSnapshot = {families: Partial<Record<EarnFamily, SnapshotFamily>>; figures: readonly SnapshotFigure[]; validators: readonly SnapshotValidator[]; disagree: boolean; updatedAt: string | null};
 const EMPTY: EarnSnapshot = Object.freeze({families: {}, figures: [], validators: [], disagree: false, updatedAt: null});
 const answers: Partial<{[F in EarnFamily]: LiveState<FamilyData[F]>}> = {};
@@ -79,7 +80,7 @@ function figuresOf(): {figures: SnapshotFigure[]; validators: SnapshotValidator[
     for (const [slug, p] of Object.entries(llama.data.protocols)) if (p.status === 'ok' && p.tvlUsd !== null) push({id: `defillama-tvl-${slug}`, option: slug, label: `Value locked in ${p.name}, as DefiLlama reads it`, value: safe(() => usd(p.tvlUsd!)), source, asOf});
     if (llama.data.pools.status === 'ok') for (const row of llama.data.pools.rows.slice(0, 8)) if (row.apy !== null) push({id: `defillama-apy-${row.pool}`, option: row.project, label: `Yearly yield DefiLlama reads for the ${row.label ?? row.symbol} pool (APY, a third party’s reading)`, value: `${decimal(String(row.apy), 2)} %`, source, asOf});
   }
-  const validators = answers.validators?.phase === 'ok' ? answers.validators.answer.data.validators.map(v => ({operator: v.operator, moniker: v.moniker.slice(0, 120), commission: safe(() => pctShort(String(v.commission.rate))) ?? '', jailed: v.jailed, status: v.status})) : [];
+  const validators = answers.validators?.phase === 'ok' ? answers.validators.answer.data.validators.map(v => ({operator: v.operator, moniker: v.moniker.slice(0, 120), commission: safe(() => pctShort(String(v.commission.rate))) ?? '', jailed: v.jailed, status: v.status, tokens: v.tokens, tombstoned: v.tombstoned})) : [];
   return {figures: out, validators, disagree};
 }
 function rebuild(at: string) {

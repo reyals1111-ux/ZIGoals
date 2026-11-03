@@ -24,3 +24,12 @@
 
 /* Session AB-Design (owner request 39): wide screens show four goal cards per row. */
 @media (min-width: 1600px) { :root .goal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } :root .goal-grid > .goals-figures { grid-column: 1 / -1; } }
+/* Session AK (G3): richer cards, as the new surfaces (F6). Goals: Depth from a soft violet shadow; the pillar's colour
+   as a faint top light on each section and along the left edge of each item card; the rim brightens on hover with a
+   fine pointer (liquid glass: nothing follows the pointer, nothing moves); the rim turns cyan while a control inside has
+   keyboard focus. Theme tokens only; no motion of its own. */
+:root :where(.goals-page) .panel { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--pillar-goals) 26%, transparent), 0 18px 40px -32px color-mix(in srgb, var(--brand-violet) 70%, transparent); }
+:root :where(.goals-page) .goal-card.unified-goal-card { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--pillar-goals) 65%, transparent), 0 16px 34px -28px color-mix(in srgb, var(--brand-violet) 70%, transparent), var(--shadow-raised, 0 0 transparent); }
+@media (hover: hover) and (pointer: fine) { :root :where(.goals-page) .panel:hover, :root :where(.goals-page) .goal-card.unified-goal-card:hover { border-color: color-mix(in srgb, var(--pillar-goals) 45%, var(--line, transparent)); } }
+:root :where(.goals-page) .panel:has(:focus-visible), :root :where(.goals-page) .goal-card.unified-goal-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
+@media (forced-colors: active) { :root :where(.goals-page) .panel, :root :where(.goals-page) .goal-card.unified-goal-card { box-shadow: none; } }

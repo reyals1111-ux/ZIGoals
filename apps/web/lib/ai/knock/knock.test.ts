@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, test} from 'vitest';
 import {INFLATION, LOUD, SHAME, toneProblem} from '../proactive/calm';
 import {ZIGI_DEFAULTS, zigiKnockSchema, type ZigiKnock} from '../store/records';
 import {dismissZigiReminder, goalRefs, zigiDue, PACK_REFRESH, WEALTH_LOOK} from './due';
@@ -104,4 +104,15 @@ describe('the knock offer, once', () => {
     expect(offerDue({record: {version: 1}, ...base})).toBe(true);
     expect(offerDue({record: {version: 1, knock: {offeredOn: '2026-10-10'}}, ...base})).toBe(false);
   });
+});
+// Session AK F0 (M4): ZIGi's weekly reminders follow the journal's zone (the device's when none), day, weekday and clock together.
+test('a weekly reminder is due by the journal zone\'s weekday and clock, and dismissed for that zone\'s day', () => {
+  const reminders = {version: 1 as const, goalCheckIns: {'private:g1': {weekday: 0, time: '18:00'}}, dismissed: {}};
+  const goal = () => ({title: 'Japan', href: '/app/goals/tracked/g1'});
+  // Sunday 20 Sep 2026, 19:00 UTC: Sunday 21:00 in Brussels, already Monday 04:00 in Tokyo, Sunday 12:00 in Los Angeles.
+  const at = new Date('2026-09-20T19:00:00Z');
+  expect(zigiDue({reminders, goal, now: at, zone: 'Europe/Brussels'})).toEqual([expect.objectContaining({id: 'goal:private:g1', day: '2026-09-20'})]);
+  expect(zigiDue({reminders, goal, now: at, zone: 'Asia/Tokyo'})).toEqual([]);
+  expect(zigiDue({reminders, goal, now: at, zone: 'America/Los_Angeles'})).toEqual([]);
+  expect(zigiDue({reminders: {...reminders, dismissed: {'2026-09-20': ['goal:private:g1']}}, goal, now: at, zone: 'Europe/Brussels'})).toEqual([]);
 });
