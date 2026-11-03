@@ -75,6 +75,15 @@ typecheck what is committed (a lane's edit once slipped into another lane's comm
   CI-D routes/PWA/push/parity), P8c (Checklist overlay rules, identical-look proof), CI shards (a6727680, TIER 3 CI).
 - Pushed head: 82698b7c.
 
+### Wrap-up (2–3 Nov): C3, owner decision 7, Z4 — the session is complete
+- Part 13 done; C1, C2 (WIRING_AUDIT_3), C4 (AK_DEMO_TOUR.md) done. Final full runs A and B on product `2b819b29`
+  (run B with CI's fonts): every failure fixed at its cause in its spec (`a45e3afa`, `1048de38`, `02cda1a7`; CI's
+  `f01b7379`, `b40c864b`, `d9f2bdb4`) or recorded with evidence (sandbox-only, the browser-aborted script, the CI renderer
+  stall, the two WebKit engine classes; a failure-only diagnostic step, `4599b0ff`).
+- Owner decision 7 (ADR-036): C3 by one full green CI run on the final head; ZIGi's box on Safari in Known limitations
+  (`27a14ee5`). Z4: the STATUS entry is the final commit; then the PR leaves Draft (the PR-review Action once); no push
+  after it. Not merged, not deployed: the owner merges and deploys (STATUS "Owner list").
+
 ## Notes
 - Typecheck needs `NODE_OPTIONS=--max-old-space-size=6144` in this sandbox.
 - Sandbox-only unit failures (as earlier sessions): vault/finance-homes ×3, scripts/pre-run11-setup ×2.

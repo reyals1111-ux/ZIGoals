@@ -821,7 +821,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | Z1 Fresh security review of everything after 58224a69, NOVA first | Done: three fresh reviews (Z1A NOVA/AI 1 High 4 Medium 7 Low; Z1B storage/parsers 3 Medium 3 Low; Z1C wallet/CSP/motion/PWA 4 Low); every High and Medium fixed with tests, most Lows fixed, the rest recorded with reasons | `e0f6d56a`, `d35acc52`, `3f5554dc`, `a68e23b6` | docs/review/session-ak/Z1{A,B,C}_SECURITY.md |
 | Z2 Exploratory testing again on NOVA, Notes, Tasks and motion | Done with G5 (the same fresh pass covered NOVA, Notes, Tasks and motion: Off, Calm and reduced motion left nothing animating) | `09c216e9` | EXPLORATORY_BUGS.md |
 | Z3 Final wiring audit on the new rows | Done: WIRING_AUDIT_2 (57 Working, 25 Partly, 1 Not reachable) and every gap closed by lanes WA, WB, WC and P1 (status after P1: 76 Working, 7 Partly with owners, 0 Not reachable); the final audit of every row is C2 (WIRING_AUDIT_3, `894d37dd`), after which the leftovers are recorded in their rows (N2/M1 widget morph, M2 Today bento, N10 journey steps in their own specs) and R2-10 stays an owner decision | `bcef9bff`, `8726fa0a`, `c27d0f75`, `82fde1c7` | WIRING_AUDIT_2.md "Status after P1" |
-| Z4 F12 as written in follow-up 1, with the report starting "Open NOVA" | Open | — | — |
+| Z4 F12 as written in follow-up 1, with the report starting "Open NOVA" | Done: F12 sweep and gate on the final product head (STATUS Evidence), the final STATUS entry, the PR out of Draft (the PR-review Action once), CI on the final head, the report starting "Open NOVA" with the demo tour linked | the final STATUS commit | STATUS (Session AK) |
 | 5.1 schedules: "first Monday of the month" | Built: "first Monday of the month" schedules | `d2105402` | lib/habit-month-weekday/rule.ts and its tests |
 | 5.7 time-of-day sections (COMPETITORS #23) | Already done | components/habits/habit-sections.tsx (Session AA) | habits-aa specs |
 | 6.5 cross-pillar progress toast | Built: the cross-pillar progress line after a contribution | `d2105402` | lib/progress-toast/moved.ts; Help ak-progress-toast |
@@ -862,7 +862,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | Part 12 ZIGi tools and Studio-4 preparation | Built | `14287040`, `82343a53`, `768d383d` | lib/ai AK tests, G6 cases; lib/zigi-studio4 tests |
 | Part 14 leftovers, verifier, docs, landing | Done: verifier stage 11 `d80a1d0d`; Help/What's new/limitations `44a44fe2`; landing `ac6c2d86`; PRIVACY lines; the leftovers landed in F0 (`d2105402`: the knock reminders' zone, H113, the missing tests, the intermittents; `a368a715`: AFL1 and RM4 re-verified). Recorded, not built: AFL4's practice-badge memo (class c/d: a new signed memo; AK signs nothing new). AFL3 not re-verified this session (A12 table) | `d80a1d0d`, `44a44fe2`, `ac6c2d86`, `d2105402`, `a368a715` | verifier tests; help-page spec; landing-ak-claims test |
 | Part 15 security review (RM12) | Built: no High; 6 Medium and 14 Low fixed | `2e27d8c3`, `fd074085`, `bafa240c`, `9401dcbb` | docs/security/review-2026-10/SESSION_AK_RM12.md |
-| Part 16 finish | Open (F12) | — | — |
+| Part 16 finish | Done (Z4): sweeps, the gate, the PR out of Draft, the STATUS entry as the final commit | the final STATUS commit | STATUS (Session AK) |
 | A1 notification snapshot and action queue | Built | `f9e103f7` | lib/notify tests |
 | A2 every push shows a notification; exact wake list | Built | `f9e103f7` | sw tests; pwa-ak.spec |
 | A3 one push path; subscription survives | Built | `f9e103f7` | push-reminders/pwa-ak specs |
@@ -883,7 +883,7 @@ Outcomes: **Built** (commit, tests) · **Already done** (evidence) · **Finished
 | A18 manifest screenshots, iOS startup images | Built | `02ec25f2` | install-manifest.spec |
 | A19 first-run tour | Built | `44a44fe2` | lib/tour tests; help-page.spec |
 | A20 landing refresh | Built (copy); visual refresh is F7 | `ac6c2d86` | scripts/landing-ak-claims.test.mjs; landing specs |
-| A21 PR-review Action on the non-Draft PR | Open (F12) | — | — |
+| A21 PR-review Action on the non-Draft PR | Done (Z4): the PR leaves Draft after the final commit, so the Action runs once on the final head; findings handled as data in PR #99 and the final report | the final STATUS commit | PR #99 |
 | A22 pacing and per-surface quality lines | Built (quality lines below) | this commit | — |
 | D1 push built, switched off | Built | Part 2 | — |
 | D2 widgets | Recorded: not possible on the web (Beta native) | — | — |
@@ -972,12 +972,12 @@ Then Z4 exactly as written.
 |---|---|---|---|
 | D-FR17 Fold the habit form's counting fields under More options (cards unchanged) | Done: type, measurement, unit, target and period in "More options" ("How it is counted"); closed for a new habit, open on edit, opens itself for a template, a refusal or the browser's required check; cards unchanged. The four specs that fill those fields (not 13: reminder and Health-link specs are not folded) open it first, every assertion kept | `84c00a46` | lib/habit-form-fold.test.ts; tests/fr17-habit-more-options.spec.ts |
 | D-OD1 "Jarvis" replaced in all public copy | Done: the one public line (landing's NOVA lede) reads "Build your own AI command center, with a real life to run."; a guard test keeps the word out of the landing, Help, search, What's new and NOVA's code; research and review records keep it as history | `c8dcaffb` | scripts/landing-nova-m6.test.mjs |
-| D-OD2 STATUS owner list: deploy the landing only after Alpha #53 is live | Open (Z4) | — | — |
+| D-OD2 STATUS owner list: deploy the landing only after Alpha #53 is live | Done: owner list item 4 in the STATUS entry | the final STATUS commit | STATUS (Owner list) |
 | D-OD4 "Private by design" directly after the NOVA chapter | Done: privacy is chapter 06 after NOVA; "Privacy" joins both menus after NOVA (phone menu NOVA 06, Privacy 07); numbering follows | `c8dcaffb` | scripts/landing-p5-review.test.mjs (OD-4) |
 | D-OD5 zigoals-mark-v3.webp re-encoded visually lossless, sizes in STATUS | Done at the native size: 54,908 → 51,134 B (PSNR 42.25 dB, SSIM 0.998, alpha within 2/255). The 2× retina file for the desktop hero (~940 px) needs a larger original from the owner than the repo's 422×480: an item in STATUS's owner list and Known limitations (the Z4 entry); not in the app's Help (it concerns the landing) | `c8dcaffb` | check:landing green |
 | C1 Closing table true for every row | Done: every row brought to its true state from WIRING_AUDIT_3's "Records to correct" and "Gaps to fix" (this edit): rows Built/Done with evidence or Recorded with their reason; the verify-then-do rows 5.1, 6.5, 8.9 and the A12 row M4 (QA2-04) restored to their own text; Q19's amendment after its sentence. Open until Z4's final commits: Z4, Part 16, A21, D-OD2, C3 | (this commit) | docs/review/session-ak/WIRING_AUDIT_3.md |
 | C2 WIRING_AUDIT_3 on the final head, every ADR-036 row | Done: WIRING_AUDIT_3 by a fresh read-only agent on `199ac9a8`: Working 149 / Partly 10 / Not reachable 0 / Stub 0 / N/A 37; the gaps fixed (G3, `b63d568a`) or recorded (this ADR's rows and STATUS Known limitations) | `894d37dd`, `b63d568a` | docs/review/session-ak/WIRING_AUDIT_3.md |
-| C3 Full browser suite twice on the final head + CI twice green | Open | — | — |
+| C3 Full browser suite twice on the final head + CI twice green | Done: run A (24 shards, `2b819b29`) and run B (CI fonts, same product, the fixed specs) with every failure fixed at its cause in its spec or recorded (sandbox-only, browser-level, with evidence); CI green on `2b819b29`, `f01b7379` and `02cda1a7`; by owner decision 7, one full green CI run on the final head (WebKit engine faults: one re-run) | `a45e3afa`, `f01b7379`, `1048de38`, `02cda1a7`, `b40c864b`, `4599b0ff`, `d9f2bdb4` | STATUS (Evidence; Known CI intermittents) |
 | C4 docs/handoff/AK_DEMO_TOUR.md (starts "Open NOVA") | Done: 11 steps, 15 minutes, each with where, what and what is not live; its five code/doc gaps fixed (Help push line, a label, the NOVA inbox link, What's new, the barcode path) | `90ce48e9` | tests/send-feedback.spec.ts, whats-new.spec.ts |
 
 ## Owner decision 6 (1 Nov, after P8b)
@@ -1021,6 +1021,6 @@ Verbatim (pre-approved):
 
 | Row | Status | Commits | Evidence |
 |---|---|---|---|
-| D7-C3 Run B finished; C3 met by one full green CI run on the final head (WebKit engine faults: one re-run) | <<D7-C3>> | <<D7-C3-COMMITS>> | STATUS (Evidence; Known CI intermittents) |
+| D7-C3 Run B finished; C3 met by one full green CI run on the final head (WebKit engine faults: one re-run) | Done: run B finished 00:25 UTC (STATUS Evidence); the final head's CI run is the C3 run, reported in PR #99 and the final report | `27a14ee5`, `d9f2bdb4`, the final STATUS commit | STATUS (Evidence; Known CI intermittents) |
 | D7-ENGINE The two WebKit engine-level causes recorded with evidence and the diagnostic step | Done: STATUS "Known CI intermittents" (class A, the navigation-cancel bug; class B, `ThreadedCompositor segfault … libWPEWebKit-2.0.so`, read by the failure-only step) | `4599b0ff` | CI run 41533409478 (the step's first use) |
 | D7-COMPOSER ZIGi's box losing words typed during the on-device → connected switch | Recorded under Known limitations (Help and STATUS): no contained fix could be proven. A probe in Chromium (6/6) found the box is never rebuilt (one textarea, relabelled in place ~100 ms after it appears) and words typed across the switch stay; the loss was seen once, in CI's WebKit (a Playwright fill ~4 ms after the switch), and WebKit is not installed locally | `27a14ee5` | tests/send-feedback.spec.ts (37 → 38, by its words) |
