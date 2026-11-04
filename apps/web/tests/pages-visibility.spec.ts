@@ -3,6 +3,7 @@ import {presetSettings} from '../lib/dashboard-settings';
 import {AVAILABLE_BUTTONS, AVAILABLE_PAGES} from '../lib/pages/visibility';
 import {isPhone, mainNav, openMore} from './phone-nav';
 import {chooseChain} from './chain-choice';
+import {pressZigi} from './zigi-open';
 
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 // Session AK X1 (RELEASE_REVIEW R3): the money tools (Earn, Markets, Staking, Portfolio, Ecosystem) are in the navigation
@@ -220,7 +221,12 @@ test('buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide eve
   await expect(page.locator('.quick-add-trigger').first()).toBeAttached();
   // Settings is one of ZIGi's sensitive screens (no button there by design); the next page shows it again.
   await page.goto('/app/goals');
-  await expect(page.getByTestId('ai-launcher')).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; switched on, it is back in "Apps &
+  // extras" and opens from there. Was: the floating launcher visible at every width. On a computer, as before.
+  if (page.viewportSize()!.width < 901) {
+    await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+    await pressZigi(page); await expect(page.locator('dialog.ai-chat[open]')).toBeVisible();
+  } else await expect(page.getByTestId('ai-launcher')).toBeVisible();
 });
 
 test('Showcase shows every page but Governance and keeps a choice in the tab, never in this device\'s storage', async ({page}) => {
@@ -339,7 +345,9 @@ test('while the settings are still opening, the device mirror already shapes the
   }, VAULT);
   await page.goto('/app/habits');
   // Hydrated (the ZIGi button mounts on the client, inside the still hidden workspace), the settings still unopened.
-  await expect(page.getByTestId('ai-launcher')).toBeAttached();
+  // Session AL (owner decision O3): below 901 px there is no floating ZIGi button to wait for; the shell's own hydration mark is.
+  if (page.viewportSize()!.width < 901) await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
+  else await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
   const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
   if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withExtras(expected));

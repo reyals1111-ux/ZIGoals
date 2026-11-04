@@ -3,6 +3,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session AB-Cloud Part 9 (ADR-023 C30): ZIGi with no AI at all. A Dutch question gets the introduction in Dutch and
@@ -27,7 +28,7 @@ test('no AI: a Dutch question is introduced in Dutch with working examples; "cre
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]})});
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(panel(page)).toBeVisible();
   const dutch = await ask(page, 'Hoeveel minuten heb ik deze maand gemediteerd?');
   // Session AK (ADR-036, deliberate; c8d0a44d, FIRST_RUN_REVIEW FR-2): "without any AI" contradicted NOVA's "Private

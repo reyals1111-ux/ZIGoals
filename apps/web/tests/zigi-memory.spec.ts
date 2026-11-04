@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {SECRET_REFUSAL} from '../lib/ai/memory';
 import {readStoredZip} from '../lib/export/zip-reader';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 8, "What ZIGi knows about me": the person's notes in Settings (add, edit, delete with Undo, delete
@@ -42,7 +43,7 @@ async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Rec
 }
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 async function openNotes(page: Page) {
   // A full load (not a same-page hash change), so every store reads what the test seeded.

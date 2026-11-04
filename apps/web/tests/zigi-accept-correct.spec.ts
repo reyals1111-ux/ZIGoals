@@ -9,6 +9,7 @@ import {FASTING_KEY} from '../lib/fasting/schema';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
 import {WEEKLY_REVIEW_KEY} from '../lib/weekly-review/schema';
 import {PLATFORM_KEY} from '../lib/positions';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 5a, owner addition 4, "accepted means correct": for every writing kind, a MOCK reply becomes a
@@ -49,7 +50,7 @@ async function seed(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) {
   const box = page.getByLabel('Message to your AI'), sendButton = page.getByRole('button', {name: 'Send', exact: true});
   await box.fill(text);

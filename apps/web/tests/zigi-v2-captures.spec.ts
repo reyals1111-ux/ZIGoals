@@ -8,6 +8,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
 import {REMINDERS_KEY} from '../lib/reminders/schema';
+import {pressZigi} from './zigi-open';
 
 /**
  * ZIGi v2: the owner's screenshot gallery (Session V Part 18, pushed to `review/session-v-screens`). Opt-in:
@@ -60,8 +61,8 @@ async function seed(page: Page, {ai = false, zigi}: {ai?: boolean; zigi?: Record
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});
-async function openChat(page: Page) { await openButton(page).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (O3): below 901 px through the "Apps & extras" sheet (tests/zigi-open.ts).
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function askLocal(page: Page, text: string) { await panel(page).getByLabel('Ask ZIGi about your records').fill(text); await panel(page).getByRole('button', {name: 'Send', exact: true}).click(); }
 async function ask(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 async function settingsAt(page: Page, anchor: string) { await page.goto('/app'); await page.goto(`/app/settings#${anchor}`); }
@@ -77,20 +78,32 @@ for (const viewport of VIEWPORTS) {
     const shot = async (page: Page, name: string, full = false) => { mkdirSync(dir, {recursive: true}); await page.waitForTimeout(400); await page.screenshot({path: join(dir, `${name}.png`), fullPage: full, animations: 'disabled', caret: 'hide'}); };
 
     test('launcher sizes, hidden with the edge tab, Customize and Meet ZIGi', async ({page}) => {
-      for (const size of ['s', 'm', 'l'] as const) {
-        await seed(page, {zigi: {size}});
+      // Session AL (owner decision O3, deliberate): below 901 px there is no floating launcher, size or edge tab to picture;
+      // the phone's gallery pictures "Apps & extras" and its sheet instead.
+      if (viewport.width < 901) {
+        await seed(page);
         await page.goto('/app');
-        await expect(page.getByTestId('ai-launcher')).toBeVisible();
-        await shot(page, `01-launcher-size-${size}`);
+        await expect(page.getByTestId('apps-extras-button')).toBeVisible();
+        await page.getByTestId('apps-extras-button').click();
+        await expect(page.getByRole('dialog', {name: 'Apps & extras'})).toBeVisible();
+        await shot(page, '01-apps-extras-sheet');
+        await page.keyboard.press('Escape');
+      } else {
+        for (const size of ['s', 'm', 'l'] as const) {
+          await seed(page, {zigi: {size}});
+          await page.goto('/app');
+          await expect(page.getByTestId('ai-launcher')).toBeVisible();
+          await shot(page, `01-launcher-size-${size}`);
+        }
+        await seed(page);
+        await page.goto('/app');
+        await page.getByRole('button', {name: /Hide ZIGi/}).click();
+        await shot(page, '02-launcher-hidden-undo');
+        await page.clock.fastForward(11_000);
+        await expect(page.getByRole('button', {name: /Show ZIGi/})).toBeVisible();
+        await shot(page, '03-edge-tab');
+        await page.getByRole('button', {name: /Show ZIGi/}).click();
       }
-      await seed(page);
-      await page.goto('/app');
-      await page.getByRole('button', {name: /Hide ZIGi/}).click();
-      await shot(page, '02-launcher-hidden-undo');
-      await page.clock.fastForward(11_000);
-      await expect(page.getByRole('button', {name: /Show ZIGi/})).toBeVisible();
-      await shot(page, '03-edge-tab');
-      await page.getByRole('button', {name: /Show ZIGi/}).click();
       await openChat(page);
       await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
       await shot(page, '04-customize');

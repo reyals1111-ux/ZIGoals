@@ -2,6 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session AB-Cloud Part 8 (ADR-023 C26, persona #10): ZIGi's History. Delete and "Delete all chats" hide at once with an
@@ -36,7 +37,7 @@ test.beforeEach(async ({page}) => {
 });
 async function history(page: Page) {
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   const panel = page.locator('dialog.ai-chat[open]');
   await panel.getByRole('button', {name: 'More: history, customize, settings and help'}).click();
   await panel.getByRole('button', {name: 'Chat history'}).click();

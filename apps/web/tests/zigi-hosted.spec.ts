@@ -1,6 +1,7 @@
 import {expect, test, type Page, type Request} from '@playwright/test';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {closeMore, navLink} from './phone-nav';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 17: ZIGoals hosted in the app. In every build without NEXT_PUBLIC_ZIGI_HOSTED=on (today: all of them),
@@ -81,7 +82,7 @@ test('a build without ZIGoals hosted never asks /api/zigi and shows no hosted ch
   await page.goto('/app/settings');
   await signIn(page);
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(panel(page)).toBeVisible();
   await page.goto('/app/settings#your-ai');
   await expect(page.locator('details#zigi-setup')).toBeAttached();
@@ -113,7 +114,7 @@ test('an invited account: the disclosure first, then ZIGi answers through /api/z
   const options = await page.evaluate(k => { for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i)!; if (key.endsWith(k)) return JSON.parse(localStorage.getItem(key)!); } return null; }, AI_OPTIONS_KEY);
   expect(options).toMatchObject({version: 1, route: 'hosted', hostedConsent: {health: false}});
   await go(page, 'Habits', '/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(panel(page)).toContainText('OpenAI · gpt-6-luna via ZIGoals hosted');
   await panel(page).getByLabel('Message to your AI').fill('How did my habits go this month?');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
@@ -133,7 +134,7 @@ test('an invited account: the disclosure first, then ZIGi answers through /api/z
   await expect(page.locator('details#zigi-hosted')).toContainText('ZIGoals hosted is off.');
   // Settings' open vault is a private screen (ZIGi's button hides there); back on Habits.
   await go(page, 'Habits', '/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   // The header says so; the reply already given keeps its hosted label.
   await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('answers on this device');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('via ZIGoals hosted');
@@ -158,7 +159,7 @@ test('on Claude: "ZIGoals AI · powered by Claude", the person\'s own allowance 
   await card.getByRole('button', {name: 'I agree, use ZIGoals AI · powered by Claude', exact: true}).click();
   await expect(card).toContainText('In use, without Health.');
   await go(page, 'Habits', '/app/habits');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   // Panel polish round 2 (assertion changed, ADR-019 C45): the status is one short line; the full name is its tooltip.
   await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('via ZIGoals AI · Sonnet 5.5');
   await expect(panel(page).locator('.ai-chat-via-text')).toHaveAttribute('title', 'ZIGoals AI · powered by Claude · claude-sonnet-5-5');

@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session AC (item 16, WebKit): on a phone ZIGi's chat is a modal sheet that a tap on its backdrop closes. WebKit sends
@@ -13,7 +14,7 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) {
   await page.goto('/app/habits');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   await expect(panel(page)).toBeVisible();
 }
 

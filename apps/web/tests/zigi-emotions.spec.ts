@@ -11,6 +11,7 @@ import manifest from '../components/zigi/manifest.json';
 import {extraClipsOf, skinOf} from '../components/zigi/manifest';
 import {MOVE_GROUPS, MOVE_TEXT} from '../components/zigi/state-gallery';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 4: ZIGi's emotions match what happens, on real pages, with the panel closed. The facts come
@@ -46,7 +47,14 @@ const launcher = (page: Page) => page.locator('.ai-launcher-button');
 const state = (page: Page) => launcher(page).getAttribute('data-state');
 const stored = async (page: Page, key: string) => JSON.parse((await page.evaluate(k => localStorage.getItem(k), key)) ?? 'null') as Record<string, unknown> | null;
 /** The alive chunk has started once the launcher plays its clip (the frames come from the chunk; Calm plays the idle clip). */
-async function alive(page: Page) { await expect(launcher(page)).toBeVisible(); await expect.poll(() => launcher(page).locator('img').evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 15_000}).toBe(true); }
+async function alive(page: Page) {
+  // Session AL (owner decision O3, deliberate): below 901 px there is no floating figure to watch (was: the launcher's clip at
+  // every width); "Apps & extras" holds ZIGi there.
+  if (compact(page)) { await expect(page.getByTestId('apps-extras-button')).toBeVisible(); await expect(launcher(page)).toHaveCount(0); return; }
+  await expect(launcher(page)).toBeVisible(); await expect.poll(() => launcher(page).locator('img').evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 15_000}).toBe(true);
+}
+/** Session AL (O3): the compact shell, below 901 px: ZIGi's moods with the panel closed show on a computer's floating figure only. */
+const compact = (page: Page) => page.viewportSize()!.width < 901;
 const complete = (page: Page, title: string) => page.getByRole('button', {name: `Complete ${title}`, exact: true}).first().click();
 test.use({timezoneId: 'UTC'});
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
@@ -55,6 +63,17 @@ test('on Habits with the panel closed: a completed habit is a small success, the
   await seed(page, {[HABITS_KEY]: habits()});
   await page.goto('/app/habits');
   await alive(page);
+  // Session AL (owner decision O3, deliberate): below 901 px no floating figure shows the mood with the panel closed (was: its
+  // states read on the phone too); the engine still counts the day's celebration once, and the sheet opens ZIGi.
+  if (compact(page)) {
+    await complete(page, 'Stretch evening');
+    await page.clock.runFor(9000);
+    await complete(page, 'Read ten pages');
+    await expect.poll(async () => (await stored(page, CELEBRATIONS_KEY))?.seen).toMatchObject({[`all-done:${DAY}`]: DAY});
+    await expect(launcher(page)).toHaveCount(0);
+    await pressZigi(page); await expect(page.locator('dialog.ai-chat[open]')).toBeVisible();
+    return;
+  }
   expect(await state(page)).toBe('idle');
   await complete(page, 'Stretch evening');
   await expect(launcher(page)).toHaveAttribute('data-state', 'success');
@@ -77,6 +96,8 @@ test('a streak milestone the engine counted makes ZIGi proud; the AI never decid
   await page.goto('/app/habits');
   await alive(page);
   await complete(page, 'Stretch evening');
+  // Session AL (owner decision O3, deliberate): below 901 px no floating figure shows it (was: 'proud' read on the phone too).
+  if (compact(page)) { await expect(launcher(page)).toHaveCount(0); await pressZigi(page); await expect(page.locator('dialog.ai-chat[open]')).toBeVisible(); return; }
   await expect(launcher(page)).toHaveAttribute('data-state', 'proud');
   await expect(launcher(page)).toHaveAttribute('data-state', 'idle', {timeout: 6000});
 });
@@ -86,6 +107,9 @@ test('the knock obeys the controller: one nudge per session, none after a dismis
   await page.goto('/app/markets');
   await alive(page);
   const knock = page.locator('.zigi-knock');
+  // Session AL (owner decision O3, deliberate): the knock is the floating ZIGi's bubble; below 901 px nothing floats, so no
+  // knock comes, even once a reminder is due (was: the controller's nudge shown on the phone too).
+  if (compact(page)) { await page.clock.runFor(3 * 60_000); await page.waitForTimeout(1500); await expect(knock).toHaveCount(0); await expect(launcher(page)).toHaveCount(0); return; }
   await page.waitForTimeout(1500);
   await expect(knock).toHaveCount(0);
   // Typing in a text field across the minute the reminder falls due (the knock looks every 30 s; the fake clock also
@@ -122,7 +146,7 @@ test('the AI\'s hint moves ZIGi only inside the fixed list, never shows in the t
   await seed(page, {[AI_SETTINGS_KEY]: {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE}, [AI_OPTIONS_KEY]: {version: 1, toolMode: 'attach'}});
   await page.goto('/app/goals');
   await alive(page);
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const ask = async (text: string, reply: string) => { replies.push(reply); await panel.getByLabel('Message to your AI').fill(text); await panel.getByRole('button', {name: 'Send', exact: true}).click(); await expect(panel.locator('.ai-turn-assistant').last()).toBeVisible({timeout: 10_000}); };

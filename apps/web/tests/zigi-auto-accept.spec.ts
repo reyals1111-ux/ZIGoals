@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_ACTIONS_KEY, AI_OPTIONS_KEY} from '../lib/ai/store/keys';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 5b ([TIER 3] storage: ai options): auto-accept through the real panel against a MOCK local
@@ -36,7 +37,7 @@ async function seed(page: Page, options: Record<string, unknown>, settings: Part
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); await expect(panel(page).locator('.ai-card').first()).toBeVisible(); }
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const WATER_AND_WEIGHT = () => block([{kind: 'log-water', millilitres: 300}, {kind: 'log-weight', value: 72.5, unit: 'kg'}]);

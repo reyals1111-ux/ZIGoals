@@ -80,7 +80,10 @@ test('off by default: the card explains it, nothing is offered until the person 
   const use = card.getByRole('switch', {name: 'Let browser AI agents use ZIGoals tools'});
   await expect(use).toHaveAttribute('aria-checked', 'false');
   await page.goto('/app/habits');
-  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; it is ready once the root says it
+  // shows (and opens from "Apps & extras"). Desktop: the launcher, as before.
+  if (page.viewportSize()!.width < 901) await expect(page.locator('html[data-zigi-launcher="shown"]')).toBeAttached();
+  else await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
   expect(await names(page)).toEqual([]);
   await settingsAt(page, 'zigi-agents');
   await use.click();

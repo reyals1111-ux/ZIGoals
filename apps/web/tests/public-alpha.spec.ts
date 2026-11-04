@@ -7,6 +7,7 @@ import { navLink, walletArea } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
 import { connectSources } from "../lib/csp-compose.mjs";
 import {chooseChain} from "./chain-choice";
+import {pressZigi} from "./zigi-open";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
 
 test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
@@ -141,7 +142,7 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
 // each page: every <script in the server's HTML carries that response's nonce, and a script without one is a chunk of
 // this origin the runtime appended (not in the server's HTML). Any CSP violation fails the gate.
 // Every app page without a record id in its address (app/app/**/page.tsx); Music opens in a player, not a page.
-const APP_ROUTES = ["/app", "/app/goals", "/app/goals/new", "/app/goals/positions", "/app/goals/tracked", "/app/habits", "/app/health", "/app/wealth", "/app/markets", "/app/staking", "/app/portfolio", "/app/ecosystem", "/app/chess", "/app/activity", "/app/settings", "/app/help", "/app/welcome", "/app/zigi"];
+const APP_ROUTES = ["/app", "/app/goals", "/app/goals/new", "/app/goals/positions", "/app/goals/tracked", "/app/habits", "/app/health", "/app/wealth", "/app/markets", "/app/staking", "/app/portfolio", "/app/ecosystem", "/app/chess", "/app/activity", "/app/settings", "/app/help", "/app/welcome", "/app/zigi", "/app/plans"]; // Session AL (O2): /app/plans
 type SeenScript = {src: string; nonced: boolean};
 async function watchScripts(page: Page) {
   await page.addInitScript(() => {
@@ -186,7 +187,7 @@ test("F15: on every app page and after opening ZIGi, every added script is the s
   const response = await page.goto("/app/habits");
   await page.waitForLoadState("networkidle");
   const before = await page.evaluate(() => (Reflect.get(window, "__gateScripts") as unknown[]).length);
-  await page.getByRole("button", {name: /^Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   await expect(page.locator("dialog.ai-chat[open]")).toBeVisible();
   await page.waitForLoadState("networkidle");
   expect(await page.evaluate(() => (Reflect.get(window, "__gateScripts") as unknown[]).length), "opening ZIGi loaded its chunk").toBeGreaterThan(before);

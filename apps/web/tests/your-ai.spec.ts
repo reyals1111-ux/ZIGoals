@@ -63,7 +63,9 @@ test('off until connected: the launcher opens a setup pointer, and no provider i
   await page.route(/^https?:\/\/(?!127\.0\.0\.1:3\d{3})/, route => { external.push(route.request().url()); return route.abort(); });
   await seed(page, null);
   await page.goto('/app');
-  await expect(launcher(page)).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px no floating launcher; "Apps & extras" opens ZIGi (was: launcher visible).
+  if (page.viewportSize()!.width < 901) { await expect(launcher(page)).toHaveCount(0); await expect(page.getByTestId('apps-extras-button')).toBeVisible(); }
+  else await expect(launcher(page)).toBeVisible();
   await openChat(page);
   await expect(panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'})).toContainText('Not connected to an AI yet');
   await expect(panel(page).getByRole('link', {name: 'Set up', exact: true})).toHaveAttribute('href', '/app/settings#your-ai');
@@ -394,7 +396,10 @@ test('motion: the pending indicator and ZIGi hold still under reduced motion and
   const dot = panel(page).locator('.ai-pending-dots i').first();
   await expect(dot).toBeVisible();
   expect(await dot.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
-  expect(await page.locator('.ai-launcher-button .zigi img').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  // Session AL (owner decision O3, deliberate): below 901 px there is no floating ZIGi figure to hold still (was: its animation
+  // read at every width); on a computer, as before.
+  if (page.viewportSize()!.width < 901) await expect(page.locator('.ai-launcher-button')).toHaveCount(0);
+  else expect(await page.locator('.ai-launcher-button .zigi img').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
   await expect(panel(page).locator('.ai-turn-assistant')).toContainText('Still here.');
 });
 
@@ -535,7 +540,8 @@ test('phone: a denied microphone shows the steps for this browser and the compos
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe('hidden');
   await page.keyboard.press('Escape');
   await expect(panel(page)).toHaveCount(0);
-  await expect(openButton(page)).toBeFocused();
+  // Session AL (owner decision O3, deliberate): on a phone the focus returns to "Apps & extras", which opened ZIGi (was: ZIGi's launcher).
+  await expect(page.getByTestId('apps-extras-button')).toBeFocused();
 });
 
 test('"Ask ZIGi about this" on a habit card and on a goal detail opens the chat with the item named, and sends nothing until Send', async ({page}) => {

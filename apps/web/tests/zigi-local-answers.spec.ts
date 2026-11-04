@@ -4,6 +4,7 @@ import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings'
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_CHATS_SESSION_KEY, AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {createHabit, habitDataSchema, HABITS_KEY, type HabitData} from '../lib/habits';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 3: local answers, "Answered on your device · no AI used". Lookups are answered from the records on
@@ -29,7 +30,7 @@ async function seed(page: Page, settings: AiSettings | null, records: Record<str
 // Sun, Sep 20"); east of UTC+5 that instant is already 21 Sep. The page runs in UTC, so the days are the fixture's own.
 test.use({timezoneId: 'UTC'});
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('before setup: a lookup is answered on the device with its records, nothing is sent and nothing of ZIGi\'s settings is written', async ({page}) => {

@@ -6,6 +6,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Phase 2 (P2.4), stress and edge through the real panel against MOCK servers: a 50-turn chat; Stop
@@ -55,8 +56,10 @@ async function seed(page: Page, {baseUrl = BASE, options = {} as Record<string, 
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-const launcher = (page: Page) => page.locator('.ai-launcher-button');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (owner decision O3, deliberate): below 901 px there is no floating figure; while the panel is open its own figure
+// carries the same state (one bus), so that is what is read there. On a computer, the launcher as before.
+const launcher = (page: Page) => page.locator(page.viewportSize()!.width < 901 ? 'dialog.ai-chat[open] .ai-chat-head .zigi' : '.ai-launcher-button');
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); }
 async function settled(page: Page) { await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: 30_000}); await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0); }
 const systemOf = (body: Body) => String(body.messages[0]!.content);

@@ -141,10 +141,18 @@ for (const theme of THEMES) for (const [half, routes] of HALVES.entries()) {
 }
 
 /** Opens with the keyboard (focus, then Enter), checks focus is inside, Tab stays inside, Esc closes and focus returns. */
-async function roundTrip(page: Page, findings: Findings, label: string, trigger: Locator, dialog: Locator, {modal = true} = {}) {
+/** Session AL (O3): below 901 px, ZIGi from the keyboard: "Apps & extras" with Enter, then its ZIGi row with Enter. */
+async function zigiByKeyboard(page: Page) {
+  await page.getByTestId('apps-extras-button').focus(); await page.keyboard.press('Enter');
+  const sheet = page.getByRole('dialog', {name: 'Apps & extras'});
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole('button', {name: /^ZIGi\b/}).focus(); await page.keyboard.press('Enter');
+}
+async function roundTrip(page: Page, findings: Findings, label: string, trigger: Locator, dialog: Locator, {modal = true, press}: {modal?: boolean; press?: () => Promise<void>} = {}) {
   await expect(trigger).toBeVisible();
-  await trigger.focus();
-  await page.keyboard.press('Enter');
+  // Session AL (O3): a dialog reached in two steps (ZIGi through "Apps & extras" below 901 px) brings its own keyboard press.
+  if (press) await press();
+  else { await trigger.focus(); await page.keyboard.press('Enter'); }
   await expect(dialog).toBeVisible({timeout: 10_000});
   await dialog.evaluate(el => Promise.all(el.getAnimations({subtree: true}).filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))));
   await expect.poll(() => dialog.evaluate(el => el.contains(document.activeElement)), {timeout: 3_000}).toBe(true).catch(() => note(findings, label, ['focus did not move into it when it opened']));
@@ -166,7 +174,10 @@ for (const theme of THEMES) {
     await open(page, '/app');
     const quick = page.locator(isMobile ? '.phone-topbar .quick-add-trigger' : '.today-hero .quick-add-trigger').first();
     await roundTrip(page, findings, 'Quick add', quick, page.getByRole('dialog', {name: 'What would you like to add?'}));
-    await roundTrip(page, findings, 'ZIGi', page.getByRole('button', {name: /^Open ZIGi/}).first(), page.locator('dialog.ai-chat[open]'));
+    // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; the keyboard opens "Apps & extras",
+    // then its ZIGi row, and Esc gives the focus back to "Apps & extras". On a computer, as before.
+    if (page.viewportSize()!.width < 901) await roundTrip(page, findings, 'ZIGi', page.getByTestId('apps-extras-button'), page.locator('dialog.ai-chat[open]'), {press: () => zigiByKeyboard(page)});
+    else await roundTrip(page, findings, 'ZIGi', page.getByRole('button', {name: /^Open ZIGi/}).first(), page.locator('dialog.ai-chat[open]'));
     const chip = page.locator('.showcase-chip-button').first();
     if (await chip.isVisible()) await roundTrip(page, findings, 'The Showcase chip', chip, page.locator('.showcase-chip [role=dialog], .showcase-chip dialog, [role=dialog]').filter({hasText: /Showcase/}).first(), {modal: false});
     if (isMobile) await roundTrip(page, findings, 'More', page.getByRole('button', {name: 'More', exact: true}), page.getByRole('navigation', {name: 'Main navigation'}).getByRole('dialog', {name: 'More'}));
@@ -259,8 +270,11 @@ test('keyboard: a confirm card is reached with Tab, added with Enter and undone 
   await mockModel(page, [`Two fictional cards.\n\n${fence([{kind: 'log-water', glasses: 2}, {kind: 'create-habit', title: 'Evening stretch', type: 'build', measurement: 'minutes', target: 10, schedule: 'daily', timeOfDay: 'evening'}])}`]);
   await seedDevice(page);
   await open(page, '/app/habits');
-  const launcher = page.getByRole('button', {name: /^Open ZIGi/}).first();
-  await launcher.focus(); await page.keyboard.press('Enter');
+  // Session AL (owner decision O3, deliberate): below 901 px the keyboard opens ZIGi through "Apps & extras", and the focus
+  // returns there; on a computer, the launcher as before.
+  const compact = page.viewportSize()!.width < 901;
+  const launcher = compact ? page.getByTestId('apps-extras-button') : page.getByRole('button', {name: /^Open ZIGi/}).first();
+  if (compact) await zigiByKeyboard(page); else { await launcher.focus(); await page.keyboard.press('Enter'); }
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const box = panel.getByLabel('Message to your AI');

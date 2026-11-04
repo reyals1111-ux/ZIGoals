@@ -161,6 +161,7 @@ const STATES = [
   {name: 'settings-data', path: '/app/settings/data'},
   {name: 'settings-reminders', path: '/app/settings/reminders'},
   {name: 'help', path: '/app/help'},
+  {name: 'plans', path: '/app/plans'}, // Session AL (owner decision O2)
   {name: 'zigi-page', path: '/app/zigi'},
   {name: 'share', path: '/app/share'},
   {name: 'not-found', path: '/app/no-such-page'},

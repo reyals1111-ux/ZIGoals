@@ -37,7 +37,10 @@ test('the share target: what another app shared waits on its own page, nothing s
   await expect(card.getByRole('link', {name: 'https://example.com/lisbon'})).toHaveAttribute('rel', /noopener/);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
   // Gate C: the share arrives as a fresh page, before ZIGi's launcher; the button follows it once it shows.
-  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px there is no floating ZIGi button to wait for; ZIGi is ready once
+  // the root says so (the mark the page's "Ask ZIGi" reads), and it opens from "Apps & extras". Desktop: the launcher, as before.
+  if (page.viewportSize()!.width < 901) { await expect(page.getByTestId('ai-launcher')).toHaveCount(0); await expect(page.locator('html[data-zigi-launcher="shown"]')).toBeAttached(); }
+  else await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
   await expect(card.getByRole('button', {name: 'Ask ZIGi about it'})).toBeEnabled();
   await card.getByRole('link', {name: 'Make it a goal'}).click();
   await expect(page).toHaveURL(/\/app\/goals\/new\?from=share/);

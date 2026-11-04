@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY} from '../lib/ai/settings';
 import {ZIGI_KEY} from '../lib/ai/store/keys';
 import manifest from '../components/zigi/manifest.json';
 import {attachTransitionTiming, recordTransitionTiming} from './vt-timing';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 12, "ZIGi alive", end to end: the launcher as one control (circle, a "Hide ZIGi" chevron centred below
@@ -32,13 +33,28 @@ const edgeTab = (page: Page) => page.getByRole('button', {name: 'Show ZIGi', exa
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 const figure = (page: Page) => page.locator('.ai-launcher-button .zigi img');
 const stored = async (page: Page, key: string) => JSON.parse((await page.evaluate(k => localStorage.getItem(k), key)) ?? 'null') as Record<string, unknown> | null;
-async function openChat(page: Page) { await openButton(page).click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (O3): below 901 px through the "Apps & extras" sheet (tests/zigi-open.ts).
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function closeChat(page: Page) { await panel(page).getByRole('button', {name: 'Close ZIGi', exact: true}).click(); await expect(panel(page)).toHaveCount(0); }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
+/**
+ * Session AL (owner decision O3, deliberate): below 901 px (the phone project) ZIGi has no floating button, so no chevron,
+ * edge tab, launcher figure or launcher look; "Apps & extras" opens the same panel. The tests of the floating launcher
+ * below assert that there instead of its look, and keep every computer assertion as it was.
+ */
+const compact = (page: Page) => page.viewportSize()!.width < 901;
+async function expectNoFloatingZigi(page: Page) {
+  await expect(page.getByTestId('apps-extras-button')).toBeVisible();
+  await expect(launcher(page)).toHaveCount(0); await expect(chevron(page)).toHaveCount(0); await expect(edgeTab(page)).toHaveCount(0);
+  await openChat(page); await closeChat(page);
+  await expect(launcher(page)).toHaveCount(0);
+}
 
 test('one control: the chevron sits centred below the circle in a 44 px target; it hides ZIGi, and the edge tab brings it back', async ({page, isMobile}) => {
   await seed(page);
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): below 901 px no floating launcher, chevron or edge tab; the sheet opens ZIGi.
+  if (compact(page)) { await expectNoFloatingZigi(page); return; }
   await expect(launcher(page)).toBeVisible();
   await expect(launcher(page).getByRole('button', {name: 'Hide ZIGi', exact: true})).toHaveCount(1);
   const [c, v] = await Promise.all([openButton(page).boundingBox(), chevron(page).boundingBox()]);
@@ -90,6 +106,19 @@ test('keyboard and pointer: the chevron says what it does, and the edge tab work
 test('with the edge tab off, a hidden ZIGi leaves nothing at the edge; a sensitive screen hides the tab as it hides ZIGi', async ({page}) => {
   await seed(page, {[ZIGI_KEY]: {version: 1, edgeTab: false}});
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): below 901 px there is no chevron to hide ZIGi and never an edge tab, on a
+  // sensitive screen or not (was: the chevron's hide and the tab measured on the phone too).
+  if (compact(page)) {
+    await expectNoFloatingZigi(page);
+    await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, edgeTab: true})), ZIGI_KEY);
+    await page.goto('/app/wealth?add=asset');
+    await expect(page.locator('dialog.wealth-sheet[open]')).toBeVisible();
+    await expect(edgeTab(page)).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('dialog.wealth-sheet[open]')).toHaveCount(0);
+    await expect(edgeTab(page)).toHaveCount(0);
+    return;
+  }
   await chevron(page).click();
   await expect(launcher(page)).toHaveCount(0);
   await expect(page.getByRole('status').filter({hasText: 'ZIGi is hidden'})).toContainText('Show it again from Settings');
@@ -122,6 +151,9 @@ test('Customize in the panel: side, size and animation apply at once and stay af
   await expect(page.locator('html')).toHaveAttribute('data-zigi-motion', 'full');
   await closeChat(page);
   const check = async () => {
+    // Session AL (owner decision O3, deliberate): below 901 px the side and size are the computer's floating button's; there
+    // is none there (was: the launcher's data-side and size read on the phone too). The choices are stored as above.
+    if (compact(page)) { await expect(launcher(page)).toHaveCount(0); return; }
     await expect(launcher(page)).toHaveAttribute('data-side', 'left');
     await expect(launcher(page)).toHaveAttribute('data-size', 'l');
     const box = (await openButton(page).boundingBox())!;
@@ -144,6 +176,8 @@ test('Customize in the panel: side, size and animation apply at once and stay af
   expect((await stored(page, ZIGI_KEY))?.size).toBe('s');
   // Settings keeps ZIGi away while its sign-in form shows; on Today the launcher is small at once.
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): no floating launcher below 901 px; "Apps & extras" opens ZIGi there.
+  if (compact(page)) { await expectNoFloatingZigi(page); return; }
   await expect(launcher(page)).toHaveAttribute('data-size', 's');
   expect((await openButton(page).boundingBox())!.width).toBe(48);
 });
@@ -151,6 +185,9 @@ test('Customize in the panel: side, size and animation apply at once and stay af
 test('motion: the idle clip plays while ZIGi waits (Calm by default, the CSS breath until it can), Full too, and the poster holds still with Off, Motion Off or reduced motion', async ({page}) => {
   await seed(page);
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): the launcher's figure is a computer's (901 px and up); below that no floating
+  // figure plays or holds still, and "Apps & extras" opens ZIGi (was: the launcher's clip and poster read on the phone too).
+  if (compact(page)) { await expectNoFloatingZigi(page); return; }
   await expect(launcher(page)).toBeVisible();
   // Session X-Local Part 1 (assertion changed, listed in ADR-017): the Studio-2 idle clip breathes by itself. Until it
   // has decoded, the CSS breath runs on the poster; once it plays, the CSS move rests so nothing is animated twice.
@@ -206,6 +243,9 @@ test('idle that feels alive: under Full a variation plays now and then (never tw
   await seed(page, {[ZIGI_KEY]: {version: 1, animation: 'full'}});
   await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.68'));
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): the idle variations play on the computer's floating figure; below 901 px there
+  // is none, and "Apps & extras" opens ZIGi (was: the variations read on the phone's launcher too).
+  if (compact(page)) { await expectNoFloatingZigi(page); return; }
   await expect(launcher(page)).toBeVisible();
   const zigi = page.locator('.ai-launcher-button .zigi');
   const variant = () => zigi.evaluate(el => el.hasAttribute('data-variant'));

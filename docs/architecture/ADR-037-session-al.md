@@ -76,6 +76,8 @@ Bots re-tested #53 after Sessions AH–AK. In their conditions, many rows those 
 - **Q5, Premium label.** "Premium · free during Alpha" is aligned to "Premium · free during the Alpha" (O2), and the badge links to `/app/plans`.
 - **Q6, ZIGi on Settings (O3 vs the sensitive-screen rule).** O3 says the Apps & extras sheet, ZIGi included, works on every page, Settings too. Before this, ZIGi stayed off on all of Settings because the page holds a sign-in email field. ZIGi now opens on Settings. The sensitive rule applies only while a sensitive field (email, PIN, password, key, seed or recovery) has focus, or a sensitive section is open. During that time ZIGi reads nothing from the screen and says why.
 - **Q7, old ids without new evidence.** 238 old ids that the bots marked NOT RETESTED or out of their area have no 4 Nov evidence. They are not AL defect rows. They are replay-checked with the AH/AI scope rows in Part 14, and whatever fails there becomes a row.
+- **Q8, ZIGi's knock and moods below 901 px.** Nothing floats below 901 px (O3), so ZIGi's reminder knock and its closed-panel moods don't show there and nothing is counted for them. Its states still show in the open panel's own figure.
+- **Q9, "Hide ZIGi" below 901 px.** The launcher's device hide only applies where a launcher floats. Below 901 px, ZIGi is switched off through Settings → Your pages & buttons. "Ask ZIGi" stays offered until that switch is off.
 
 ## The ledger (R1), in numbers
 - **In:** 4,033 item lines from the eight bot files:

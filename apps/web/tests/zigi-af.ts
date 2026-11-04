@@ -1,4 +1,5 @@
 import {expect, type Page, type Route} from '@playwright/test';
+import {pressZigiFirst} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -83,7 +84,8 @@ export async function voiceFakes(page: Page) {
 export const spoken = (page: Page) => page.evaluate(() => (window as unknown as {__spoken: string[]}).__spoken);
 export const speak = (page: Page, words: string) => page.evaluate(t => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd(t), words);
 export const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).first().click(); await expect(panel(page)).toBeVisible(); }
+// Session AL (O3): below 901 px through the "Apps & extras" sheet (tests/zigi-open.ts).
+export async function openChat(page: Page) { await pressZigiFirst(page); await expect(panel(page)).toBeVisible(); }
 export const box = (page: Page) => panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
 /**
  * Session AH Part 2 (AF16, WebKit "ZIGi box empty after a fill"): a fill that lands while the composer re-renders can be

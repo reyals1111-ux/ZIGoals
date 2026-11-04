@@ -86,7 +86,9 @@ test.describe('under reduced motion', () => {
 test('phones: no third floating button; the Checklist is in More', async ({page}, info) => {
   test.skip(info.project.name !== 'mobile', 'the phone layout');
   await showcase(page);
-  await expect(page.locator('.ai-launcher')).toBeVisible();
+  // Session AL (owner decision O3, deliberate): nothing floats below 901 px; ZIGi opens from "Apps & extras" (was: ZIGi's launcher visible).
+  await expect(page.locator('.ai-launcher')).toHaveCount(0);
+  await expect(page.getByTestId('apps-extras-button')).toBeVisible();
   await expect(page.locator('.checklist-launcher, .checklist-edge-tab')).toHaveCount(0);
   await (await navLink(page, 'Checklist')).click();
   await expect(page).toHaveURL(/\/app\/checklist$/);

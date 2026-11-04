@@ -116,7 +116,11 @@ test('nothing in Point & tell moves (reduced motion and Motion Off alike); every
 test('a button with its own action is picked, not pressed, by pointer and by keyboard (Gate C test audit)', async ({page}) => {
   await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, enabled: true})), POINT_TELL_KEY);
   await page.goto('/app/habits');
-  const zigi = page.getByRole('button', {name: /Open ZIGi/}).first(), chat = page.locator('dialog.ai-chat[open]');
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; the button with its own action is
+  // "Apps & extras" there (its action: the sheet). Was: ZIGi's launcher and its panel at every width. On a computer, as before.
+  const compact = page.viewportSize()!.width < 901;
+  const zigi = compact ? page.getByTestId('apps-extras-button') : page.getByRole('button', {name: /Open ZIGi/}).first();
+  const chat = compact ? page.getByRole('dialog', {name: 'Apps & extras'}) : page.locator('dialog.ai-chat[open]');
   await expect(zigi).toBeVisible();
   await launcher(page).click();
   await zigi.click();

@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY} from '../lib/z-device-keys';
 import {HEALTH_STORAGE_KEY} from '../lib/health';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session Z-Cloud Part 2 (ADR-019): ZIGi's panel, premium and clean, through the real panel on a production build, both
@@ -40,7 +41,7 @@ async function seed(page: Page, ai: Partial<AiSettings> | null, showcase = true)
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page, path = '/app') { await page.goto(path); await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page, path = '/app') { await page.goto(path); await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const box = (page: Page) => panel(page).getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
 async function say(page: Page, text: string) { await box(page).fill(text); await panel(page).locator('.ai-composer button[type=submit]').click(); }
 /** Every visible control's box, the header's rows, the composer's centre line, anything outside the panel. */
@@ -288,7 +289,7 @@ test('a chat reopened from History, or after a reload, shows its added and dismi
   await receipts();
   // And after a reload.
   await page.reload();
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await pressZigi(page); await expect(panel(page)).toBeVisible();
   await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   await panel(page).locator('.ai-history-open', {hasText: 'Two waters for today'}).click();
   await receipts();
@@ -299,7 +300,7 @@ test('a chat reopened from History, or after a reload, shows its added and dismi
   // changed (as a later build reading the reply differently would see it), that card waits for the person again.
   await page.evaluate(k => { const r = JSON.parse(localStorage.getItem(k)!); for (const reply of Object.values(r.replies) as {cards: Record<string, {sig?: string}>}[]) if (reply.cards.p1) reply.cards.p1.sig = '00000000'; localStorage.setItem(k, JSON.stringify(r)); }, ZIGI_CARDS_KEY);
   await page.reload();
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await pressZigi(page); await expect(panel(page)).toBeVisible();
   await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   await panel(page).locator('.ai-history-open', {hasText: 'Two waters for today'}).click();
   await expect(panel(page).locator('.ai-card').nth(0).getByRole('button', {name: 'Add', exact: true})).toBeVisible();

@@ -114,7 +114,10 @@ test('on a phone, search is a full-screen sheet from the top bar', async ({page,
 // and hands the words over once ZIGi is back; nothing is sent.
 test('"Ask ZIGi" in search works while ZIGi shows: the words wait in ZIGi\'s message box, unsent', async ({page}) => {
   await page.goto('/app');
-  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px ZIGi has no floating button; it "shows" once the root says so
+  // (the mark search reads) and opens from "Apps & extras". Desktop: the launcher, as before.
+  if (page.viewportSize()!.width < 901) { await expect(page.getByTestId('ai-launcher')).toHaveCount(0); await expect(page.locator('html[data-zigi-launcher="shown"]')).toBeAttached(); }
+  else await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
   await page.locator('body').press('/');
   await field(page).fill('how is my sleep');
   const ask = palette(page).getByRole('option', {name: /Ask ZIGi: “how is my sleep”/});

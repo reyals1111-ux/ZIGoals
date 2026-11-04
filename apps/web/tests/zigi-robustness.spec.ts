@@ -7,6 +7,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {REPAIR_NOTE, REPAIR_PROMPT} from '../lib/ai/actions/repair';
 import {AI_CHATS_DATABASE} from '../lib/ai/chats';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 5c, robustness on the wire, through the real panel: a reply whose only block is almost-JSON
@@ -40,7 +41,7 @@ async function seed(page: Page, baseUrl = BASE) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const systemOf = (body: Body) => String(body.messages[0]!.content);
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 

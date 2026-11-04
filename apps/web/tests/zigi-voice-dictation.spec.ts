@@ -3,6 +3,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session X-Local Part 6e, voice: dictation through the browser's own speech recognition with a synthesised WAV as
@@ -21,7 +22,7 @@ test('dictation: the microphone listens, and the composer gets the words or the 
   const ai = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234', voice: {transcription: 'browser', transcriptionModel: null, language: 'en-US', readAloud: false}};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase('2026-09-20').records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai)});
   await page.goto('/app');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page);
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const available = await page.evaluate(() => typeof (window as unknown as {SpeechRecognition?: unknown}).SpeechRecognition !== 'undefined' || typeof (window as unknown as {webkitSpeechRecognition?: unknown}).webkitSpeechRecognition !== 'undefined');

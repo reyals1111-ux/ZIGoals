@@ -1,5 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
-import {typeInZigi} from './zigi-open';
+import {pressZigi, typeInZigi} from './zigi-open';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
@@ -41,7 +41,7 @@ async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Rec
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) {
-  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await pressZigi(page); await expect(panel(page)).toBeVisible();
   // Session AF Gate C: the panel puts the focus in its box as it opens (ai-chat.tsx, the open effect). CI's WebKit run on c9d97eef
   // typed 120 ms after the panel opened, while that focus was still moving: the trace shows the fill's text never reached
   // the box and Send stayed disabled. A person types once the cursor is there; the test waits for it too.
@@ -326,7 +326,9 @@ test('Session AI, ZI6: Enter sends on phones as on desktops (the key reads "Send
   // M-073: closing the panel puts the focus back on the launcher (the close button, then Escape on a desktop).
   await panel(page).getByRole('button', {name: 'Close ZIGi'}).click();
   await expect(panel(page)).toHaveCount(0);
-  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
+  // Session AL (owner decision O3, deliberate): below 901 px the focus goes back to "Apps & extras", which opened ZIGi (was: the launcher).
+  if (page.viewportSize()!.width < 901) await expect(page.getByTestId('apps-extras-button')).toBeFocused();
+  else await expect(page.getByRole('button', {name: /^Open ZIGi/})).toBeFocused();
   if (testInfo.project.name !== 'desktop') return;
   await openChat(page);
   await page.keyboard.press('Escape');

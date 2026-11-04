@@ -5,6 +5,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
 import {HABITS_KEY} from '../lib/habits';
 import {QUESTION_HEADING} from '../lib/ai/context/question';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session V Part 4, the owner's finding: on the Health page, "How many minutes did I meditate this month?" must carry
@@ -32,7 +33,7 @@ async function seed(page: Page, settings: AiSettings) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page) { await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 const meditationMinutes = () => { const habits = JSON.parse(buildShowcase(DAY).records[HABITS_KEY]!) as {habits: {title: string; entries: {date: string; count: number; disposition: string}[]}[]}; return habits.habits.find(h => h.title === 'Meditate')!.entries.filter(e => e.date >= '2026-09-01' && e.date <= DAY && e.disposition === 'logged').reduce((s, e) => s + e.count, 0); };
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 

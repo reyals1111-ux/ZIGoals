@@ -6,6 +6,7 @@ import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/set
 import {ZIGI_VOICE_KEY} from '../lib/z-device-keys';
 import {NOVA_SETUP_KEY, setPrivacyMode, type PrivacyMode} from '../lib/nova/setup';
 import {STRICT_NO_LOCAL_SPEECH, STRICT_NO_LOCAL_VOICE} from '../lib/ai/voice-privacy';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session Z-Cloud Part 3 (ADR-019): talk to ZIGi, through the real panel on a production build, both projects. The
@@ -77,7 +78,7 @@ const SEEN = {disclosed: {chrome: '2026-09-01T00:00:00.000Z', safari: '2026-09-0
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 const mic = (page: Page) => panel(page).getByRole('button', {name: /^(Talk to ZIGi|Stop listening)$/});
 const launcherButton = (page: Page) => page.getByTestId('ai-launcher').getByRole('button', {name: /ZIGi, your personal AI companion/});
-async function openChat(page: Page, path = '/app') { await page.goto(path); await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page, path = '/app') { await page.goto(path); await pressZigi(page); await expect(panel(page)).toBeVisible(); } // Session AL (O3): the sheet below 901 px
 /** A real press on a control: down, a pause of `ms`, up (the launcher's own timings, where a slow runner only lengthens it). */
 async function press(page: Page, target: ReturnType<Page['locator']>, ms = 60) { const b = (await target.boundingBox())!; await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.waitForTimeout(ms); await page.mouse.up(); }
 /** The microphone's tap and hold with exact timings: pointer events dispatched in the page (a slow runner cannot turn a tap into a hold). */
@@ -222,6 +223,21 @@ test('ZIGi\'s launcher: before the chat exists a hold lights the mic; then a hol
   await fakes(page);
   await seed(page, {voice: SEEN});
   await page.goto('/app');
+  // Session AL (owner decision O3, deliberate): below 901 px there is no launcher to hold or tap (was: the hold, the tap and
+  // "Tap ZIGi to talk" on the phone's launcher too). ZIGi opens from "Apps & extras" without listening, and the shortcut still
+  // starts listening inside the key. On a computer, as before.
+  if (page.viewportSize()!.width < 901) {
+    await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+    await pressZigi(page);
+    await expect(panel(page)).toBeVisible();
+    await expect(mic(page)).toBeVisible();
+    expect((await log(page)).starts).toEqual([]);
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Control+Shift+Space');
+    await expect.poll(async () => (await log(page)).starts.at(-1)).toEqual({lang: 'en-US', event: 'keydown'});
+    await expect(mic(page)).toHaveAttribute('aria-pressed', 'true');
+    return;
+  }
   await press(page, launcherButton(page), 700);
   await expect(panel(page)).toBeVisible();
   await expect(panel(page).locator('.ai-voice-hint')).toContainText('Tap the mic to talk');
@@ -253,6 +269,15 @@ test('long presses: no text selection, callout or menu on the launcher and the m
   await seed(page, {voice: SEEN});
   await page.goto('/app');
   const box = page.getByTestId('ai-launcher');
+  // Session AL (owner decision O3, deliberate): below 901 px there is no launcher to press or move (was: its resting and corner
+  // places held still under a long press on the phone too); the mic keeps the same no-selection, no-callout, no-menu rule.
+  if (page.viewportSize()!.width < 901) {
+    await expect(box).toHaveCount(0);
+    await pressZigi(page);
+    const phoneMic = await mic(page).evaluate(el => { const cs = getComputedStyle(el); const menu = new MouseEvent('contextmenu', {bubbles: true, cancelable: true}); el.dispatchEvent(menu); return {select: cs.userSelect, touch: cs.touchAction, menu: menu.defaultPrevented}; });
+    expect(phoneMic).toEqual({select: 'none', touch: 'none', menu: true});
+    return;
+  }
   for (const scrolled of [false, true]) {
     // A script scroll: mobile WebKit has no mouse wheel.
     if (scrolled) { await page.evaluate(() => scrollBy(0, 900)); await page.waitForTimeout(700); }

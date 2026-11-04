@@ -8,6 +8,7 @@ import {addWater, dailyData, saveHealthPreferences} from '../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY, presetSettings, WIDGET_CATALOG, type DashboardSettings} from '../lib/dashboard-settings';
 import {localDate} from '../lib/local-date';
 import {isPhone,mainNav,openMore,openFold} from './phone-nav';
+import {pressZigi} from './zigi-open';
 
 // Session Z-Cloud Part 4: the owner's persona decisions (docs/product/PERSONA_DECISIONS_Y.md items 1–3 and 5–12; item 4
 // skipped), built. Fictional records; every /api request is answered by a fixture.
@@ -372,9 +373,12 @@ test('12. phones: ZIGi is the one floating button; the music player opens from Z
   await showcase(page);
   await page.goto('/app/habits');
   await expect(page.locator('main h1').first()).toBeVisible();
-  await expect(page.getByTestId('ai-launcher')).toBeVisible();
+  // Session AL (owner decision O3, deliberate): below 901 px nothing floats, ZIGi included; it opens from "Apps & extras".
+  // Was: ZIGi's floating launcher visible, pressed directly.
+  await expect(page.getByTestId('ai-launcher')).toHaveCount(0);
+  await expect(page.getByTestId('apps-extras-button')).toBeVisible();
   await expect(page.getByRole('button', {name: 'Open the music player', exact: true})).toHaveCount(0);
-  await page.getByRole('button', {name: /^Open ZIGi/}).click();
+  await pressZigi(page);
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   await panel.getByRole('button', {name: 'More: history, customize, settings and help'}).click();
@@ -410,7 +414,7 @@ test('persona round: Meet ZIGi and Help\'s local-model answer never scroll sidew
 test('persona round: an earlier on-device answer keeps its examples as words; the latest keeps them as buttons', async ({page}) => {
   await seed(page, {});
   await page.goto('/app');
-  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await pressZigi(page); // Session AL (O3): the Apps & extras sheet below 901 px
   const panel = page.locator('dialog.ai-chat[open]');
   await expect(panel).toBeVisible();
   const box = panel.getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});

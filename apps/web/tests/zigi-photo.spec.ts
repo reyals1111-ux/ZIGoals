@@ -15,7 +15,9 @@ import {parseReply} from '../lib/ai/actions/parse';
 const PHOTOS_DIR = process.env.ZIGI_PHOTOS ?? '';
 test.skip(!REAL || !MODEL || !PHOTOS_DIR, 'Only with ZIGI_REAL_MODEL=1, ZIGI_MODEL and ZIGI_PHOTOS set, on the owner\'s machines.');
 test.describe.configure({timeout: 20 * 60_000});
-const launcher = (page: Page) => page.locator('.ai-launcher-button');
+// Session AL (owner decision O3, deliberate): below 901 px there is no floating figure; the open panel's own figure carries
+// the same state (one bus), so that is what is read there. On a computer, the launcher as before.
+const launcher = (page: Page) => page.locator(page.viewportSize()!.width < 901 ? 'dialog.ai-chat[open] .ai-chat-head .zigi' : '.ai-launcher-button');
 type Item = {name: string; match: RegExp};
 type PhotoCase = {file: string; source: string; meal: string; present: Item[]; absent: Item[]};
 /** What a person sees in each photo (read by eye before the run), and what is plainly not there. */

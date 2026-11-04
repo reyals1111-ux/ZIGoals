@@ -21,6 +21,14 @@ export async function pressZigi(page: Page) {
   await page.getByTestId('apps-extras-button').click();
   await page.getByRole('dialog', {name: 'Apps & extras'}).getByRole('button', {name: /^ZIGi\b/}).click();
 }
+/**
+ * Session AL (O3): for the specs that pressed the first button named "Open ZIGi…" (on a computer a page's own "Open ZIGi",
+ * such as the brief's, can come before the launcher): that same press at ≥ 901 px; the "Apps & extras" sheet below.
+ */
+export async function pressZigiFirst(page: Page) {
+  if ((page.viewportSize()?.width ?? 1440) >= 901) { await page.getByRole('button', {name: /Open ZIGi/}).first().click(); return; }
+  await pressZigi(page);
+}
 export async function openZigi(page: Page) {
   await pressZigi(page);
   await expect(zigiPanel(page)).toBeVisible(COLD);

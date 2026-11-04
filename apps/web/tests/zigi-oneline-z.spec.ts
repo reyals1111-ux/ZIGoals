@@ -5,6 +5,7 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
+import {pressZigi} from './zigi-open';
 
 /**
  * Session Z-Cloud, ZIGi panel polish round 2 (the owner's rule, ADR-019): in ZIGi's panel no chrome wraps onto a second
@@ -42,7 +43,7 @@ async function seed(page: Page, ai: Partial<AiSettings> | null) {
   await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
-async function openChat(page: Page, path = '/app/habits') { await page.goto(path); await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
+async function openChat(page: Page, path = '/app/habits') { await page.goto(path); await pressZigi(page); await expect(panel(page)).toBeVisible(); }
 async function say(page: Page, text: string) {
   const before = await panel(page).locator('.ai-turn-assistant').count();
   // Session AK CI (WebKit phone, the wait only): the panel opens on the records-only box and becomes the connected chat
