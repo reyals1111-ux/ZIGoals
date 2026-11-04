@@ -74,7 +74,7 @@ import {wealthMarketRequests} from '../../lib/wealth';
 import {unifiedGoalSummaries} from '../../lib/goal-summary';
 import {todayGoalRoles} from '../../lib/today/goal-roles';
 import {dailyData,healthDay} from '../../lib/health-daily';
-import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,TODAY_GROUPS,todayGroup,twinOf,type TodayGroup,emptyDashboardSettings,saveWidget,removeWidget,visibleDomains,WIDGET_CATALOG,DASHBOARD_BUILTINS,reconcileDashboardPlacement,moveDashboardItem,setDashboardBuiltinHidden,applyDashboardPreset,resetDashboardPlacement,type DashboardPreset,type DashboardWidget,type DashboardSettings,type WidgetKind,type DashboardBuiltinId,type DashboardItemRef,type DashboardRegion} from '../../lib/dashboard-settings';
+import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,TODAY_GROUPS,todayGroup,twinOf,type TodayGroup,emptyDashboardSettings,saveWidget,removeWidget,visibleDomains,WIDGET_CATALOG,DASHBOARD_BUILTINS,reconcileDashboardPlacement,withDestinationsOnceGoals,moveDashboardItem,setDashboardBuiltinHidden,applyDashboardPreset,resetDashboardPlacement,type DashboardPreset,type DashboardWidget,type DashboardSettings,type WidgetKind,type DashboardBuiltinId,type DashboardItemRef,type DashboardRegion} from '../../lib/dashboard-settings';
 import {dashboardIntegrityWarning,widgetMetric,widgetMetricLabel,type DashboardSources,type WidgetMetric} from '../../lib/dashboard-metrics';
 import {widgetNeedsSource} from '../../lib/dashboard-widget-registry';
 import './dashboard.css';
@@ -153,8 +153,11 @@ export function TodayDashboard(){
  const averageGoals=useAverageGoals();
  const todayCards=useDeviceRecord(TODAY_CARDS),deviceCards=todayCards.loaded&&!todayCards.unreadable?shownCards(todayCards.data):[];
  const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(averageGoals.loaded&&!averageGoals.unreadable?{averages:averageGoals.data.goals}:{}),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
- const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ // Session AL (NB-166, P-NB-53): once a goal exists, an un-arranged Today shows "Your destinations" (display only; while
+ // arranging, the stored record is shown and edited as it is).
+ const view=customize?settings.data:withDestinationsOnceGoals(settings.data,goals.length);
+ const placement=reconcileDashboardPlacement(view);
  const [insertAt,setInsertAt]=useState<{region:DashboardRegion;anchor:DashboardItemRef}|null>(null);
  // Session V Part 1b: the widget rows a person left open on a phone stay open (zigoals:today-folds:v1), written only when
  // the person opens or closes a row. Read on the client's first render, so a remembered row is open the first time it
@@ -181,7 +184,7 @@ export function TodayDashboard(){
  // Session AK RB (RELEASE_REVIEW_2 R2-9): a goal shows once below the hero — in "What matters today" when that panel
  // picked it (from other goals), otherwise as its card under "Your goals"; "Next money steps" leaves out both, and the
  // destinations widget lists no goal names while the goal cards are on Today.
- const placedWidgets=new Set([...placement.main,...placement.rail].flatMap(r=>r.kind==='widget'&&settings.data.widgets.some(w=>w.id===r.id&&!w.hidden)?[r.id]:[]));
+ const placedWidgets=new Set([...placement.main,...placement.rail].flatMap(r=>r.kind==='widget'&&view.widgets.some(w=>w.id===r.id&&!w.hidden)?[r.id]:[]));
  const builtinOnToday=(id:DashboardBuiltinId)=>!placement.hiddenBuiltins.includes(id)&&todayItemShown(pagesView,{builtin:id});
  const panelGoalId=financial&&platform.loaded&&!platform.error&&hasFundingGoal&&builtinOnToday('attention')&&roles.attention&&roles.attention.why!=='only'?roles.attention.id:null;
  const goalCardsOnToday=financial&&builtinOnToday('goals');
@@ -204,7 +207,7 @@ export function TodayDashboard(){
   void change(s=>moveDashboardItem(s,ref,{region:target},placement.revision),`${label} moved to ${target==='rail'?'the rail':'the main column'}.`).then(()=>requestAnimationFrame(()=>document.getElementById(itemId(ref))?.focus())).catch(()=>{});
  }
  const layoutId=(ref:DashboardItemRef)=>`${ref.kind}:${ref.id}`;
- const refLabel=(ref:DashboardItemRef)=>{if(ref.kind==='widget'){const w=settings.data.widgets.find(x=>x.id===ref.id);if(!w)return 'Widget';const base=(x:DashboardWidget)=>x.title||WIDGET_CATALOG[x.kind].label;/* Session AL (DV-155, P-DV-70): two cards with one name are told apart by what they show */const twins=settings.data.widgets.filter(x=>!x.hidden&&base(x)===base(w));if(twins.length<2)return base(w);const same=twins.filter(x=>x.metric===w.metric);return `${base(w)} · ${widgetMetricLabel(w.metric,w.kind)}${same.length>1?` ${same.indexOf(w)+1}`:''}`;}return meta(ref.id as DashboardBuiltinId).label;};
+ const refLabel=(ref:DashboardItemRef)=>{if(ref.kind==='widget'){const w=view.widgets.find(x=>x.id===ref.id);if(!w)return 'Widget';const base=(x:DashboardWidget)=>x.title||WIDGET_CATALOG[x.kind].label;/* Session AL (DV-155, P-DV-70): two cards with one name are told apart by what they show */const twins=view.widgets.filter(x=>!x.hidden&&base(x)===base(w));if(twins.length<2)return base(w);const same=twins.filter(x=>x.metric===w.metric);return `${base(w)} · ${widgetMetricLabel(w.metric,w.kind)}${same.length>1?` ${same.indexOf(w)+1}`:''}`;}return meta(ref.id as DashboardBuiltinId).label;};
  /** Drag or arrow moves on Today go through the existing synced placement: the card is placed before (or after) its new visible neighbour. */
  async function placeAt(region:DashboardRegion,id:string,to:number,order:string[]){
   const ref=placement[region].find(r=>layoutId(r)===id);if(!ref)return;
@@ -213,7 +216,7 @@ export function TodayDashboard(){
   await change(s=>moveDashboardItem(s,ref,{region,anchor,position:after?'before':'after'},placement.revision),`${refLabel(ref)} moved. Layout saved on this device.`);
  }
  const regionItems=(region:DashboardRegion):LayoutEntry[]=>{
-  const entries=placement[region].flatMap((ref,index):(LayoutEntry&{group:TodayGroup})[]=>{const node=renderPlaced(ref,region,index);return node?[{id:layoutId(ref),label:refLabel(ref),node,group:todayGroup(ref,settings.data.widgets)}]:[];});
+  const entries=placement[region].flatMap((ref,index):(LayoutEntry&{group:TodayGroup})[]=>{const node=renderPlaced(ref,region,index);return node?[{id:layoutId(ref),label:refLabel(ref),node,group:todayGroup(ref,view.widgets)}]:[];});
   // Session AA-Cloud Part 1: small group headings while Today keeps its default order and is not being arranged; a
   // person's own arrangement is shown exactly as saved, without headings.
   // The heading opens its group's first card (it is never a movable item of its own).
@@ -250,7 +253,7 @@ export function TodayDashboard(){
    case 'next-action':return financial&&nextGoal?<div className="next-step"><span className="eyebrow">Your next goal action</span><Link href={nextGoal.href} className="text-link">Review {nextGoal.name} →</Link></div>:null;
    // Session AK RB (RELEASE_REVIEW_2 R2-9): the overview no longer repeats the widgets that are cards on Today ("Your
    // destinations · 7 active goals" showed twice); it keeps Customize Today and lists only a widget that has no card here.
-   case 'summary':return <WidgetOverview cards={placedWidgets.size} widgets={settings.data.widgets.filter(w=>todayItemShown(pagesView,{widgetDomain:WIDGET_CATALOG[w.kind].domain})&&!placedWidgets.has(w.id))} sources={sources} loaded={settings.loaded} error={settings.error} ready={loaded} domainError={domainError} customizing={customize} onCustomize={()=>{setCustomize(x=>!x);requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('[data-customize-today]')?.focus());}}/>;
+   case 'summary':return <WidgetOverview cards={placedWidgets.size} widgets={view.widgets.filter(w=>todayItemShown(pagesView,{widgetDomain:WIDGET_CATALOG[w.kind].domain})&&!placedWidgets.has(w.id))} sources={sources} loaded={settings.loaded} error={settings.error} ready={loaded} domainError={domainError} customizing={customize} onCustomize={()=>{setCustomize(x=>!x);requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('[data-customize-today]')?.focus());}}/>;
    // Session AE (Part 6, ADR-027): the same card, with the wallet chooser and the display currency (components/wallet/wallet-card.tsx).
    case 'wallet':return financial&&chainChosen?<WalletCard plainWords={plainWords}/>:null;
    case 'staking':return financial&&chainChosen?<StakingCard/>:null;
@@ -263,7 +266,7 @@ export function TodayDashboard(){
  // figure under its name, as every widget is there).
  const brandNewWidgets=new Set(brandNew?[...settings.data.widgets.filter(w=>!w.hidden&&twinOf(w)==='habits'&&placement.hiddenBuiltins.includes('habits')).slice(0,1),...(financial?settings.data.widgets.filter(w=>!w.hidden&&w.kind==='wealth').slice(0,1):[])].map(w=>w.id):[]);
  function renderPlaced(ref:DashboardItemRef,region:DashboardRegion,index:number){
-  const widget=ref.kind==='widget'?settings.data.widgets.find(w=>w.id===ref.id):undefined;
+  const widget=ref.kind==='widget'?view.widgets.find(w=>w.id===ref.id):undefined;
   if(ref.kind==='widget'&&!widget)return null;
   // Session AK X1 (RELEASE_REVIEW R14): a brand-new device keeps the widget grid, the funding agenda and the overviews
   // back until its first record; the welcome card leads, with one empty card for Goals, Habits and Health.
