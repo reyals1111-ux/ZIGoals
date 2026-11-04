@@ -32,7 +32,7 @@ Prompt ids `Z-0nn` and `N-0nn` in this file are this run's ZIGi/NOVA prompt numb
   - Passing: 25, on the keep-list.
   - Unconfirmed/environment: 1 line (N-066…N-068).
   - Screenshot name only: N-000.
-- Competitor-gap items: **22**. 15 cite denver-competitor-gaps; those are owned by the other helper.
+- Competitor-gap items: **22**. 18 cite denver-competitor-gaps; those are owned by the other helper.
 - Proposed rows: **131** ids (P-DV-01 … P-DV-131). P-DV-14 was merged into P-DV-113, so **130 are active**.
 
 ## Findings
@@ -903,6 +903,7 @@ Notes that describe a defect but have no finding id of their own.
 - **Prompt ids:** Z-001…Z-039 (39) are all in the prompts table. N-000…N-065 plus N-066/N-068 (N-067 is implied by "N-066..N-068") are all in the prompts table.
   - "Z-0" is an artefact of "Z-0xx".
   - N-073, N-143, N-155 and N-157 are old ids and sit in the Old ids table.
+  - N-011, N-037 and N-040 are both old ids (Old ids table) and this run's NOVA prompt numbers (prompts table). The table each sits in tells them apart.
 - **Old ids:** every id in the §1 table (31 rows, grouped ids expanded), the Oct-26 ZIGi re-check line, inline BUG-013/016/017/010/019, D-092/D-242, and the "(Oct 21, not re-verified)" ids D-004, D-017, D-179, D-140–D-144, D-172, D-173, D-174, D-178 and D-132 are in the Old ids table.
   - D-136/D-167 are covered from both DV-048 and the §1 table.
   - Old Z ids are prefixed "old".
