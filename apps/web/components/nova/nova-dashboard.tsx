@@ -18,6 +18,7 @@ import {loopRuns} from '../../lib/motion-loops/loops'; // Session AK (FU): Full 
 import {accentOf, addWidget, foldSection, layoutOf, markOpeningSeen, nextLeft, nudgeWidget, panelsOf, personaOf, placeWidget, removeWidget, resizeWidget, restoreWidgets, routingOf, setLayout, setLeftPanel, setRightPanel, setRouting, setWake, shortcutsOn, wakeOn, widgetsFor, yourNameOf, type NovaRecord, type WidgetSize} from '../../lib/nova/store';
 import {gallery, widgetAvailable, widgetSpec, type WidgetContext} from '../../lib/nova/widgets/catalog';
 import {HUD_PRESET_LABEL, HUD_PRESET_PLAN, presetShown, presetWidgets, setHudLook, setHudPreset, type HudLook, type HudPreset} from '../../lib/nova/layout';
+import {BURST_MS, isTextEntry, shortcutKind, typedLetter} from '../../lib/nova/holo/keys';
 import {useHudRecord} from './holo/hud-record';
 import {useHudMotion} from './holo/use-hud-motion';
 import {PresetPicker} from './holo/presets';
@@ -55,10 +56,12 @@ const NovaLive = lazy(() => import('./live/live-chips'));
 /** Session AL Part 11 (lane L8): the Holo core around the orb and a panel's quick actions, each its own chunk. */
 const HoloCore = lazy(() => import('./holo/holo-core'));
 const QuickActions = lazy(() => import('./holo/quick-actions'));
+const ShortcutList = lazy(() => import('./holo/shortcut-list'));
 
-type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'} | {kind: 'actions'; id: string};
+type Sheet = {kind: 'day'} | {kind: 'panels'; id: NovaPanelId} | {kind: 'yours'} | {kind: 'quick'} | {kind: 'actions'; id: string} | {kind: 'keys'};
 const PANEL_HASH = /^#nova-(memory|permissions|activity|workflows|cost|models)$/;
-const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+// Session AL second pass (lane L8; P-TK-41): any field, anything editable, or an element with a text-box role (lib/nova/holo/keys.ts).
+const typing = (t: EventTarget | null) => t instanceof HTMLElement && isTextEntry({tagName: t.tagName, isContentEditable: t.isContentEditable, role: t.getAttribute('role')});
 /** Session AK lane EXF (EX-2): a key from inside the conversation (its composer, its buttons, its sheet) is never a shortcut. */
 const inChat = (t: EventTarget | null) => t instanceof Element && !!t.closest('.nova-talk, .nova-chat, .nova-sheet');
 function useWidth(): number {
@@ -86,6 +89,9 @@ export default function NovaDashboard() {
   const [editing, setEditing] = useState(false), [status, setStatus] = useState(''), [fullscreen, setFullscreen] = useState(false), [fullscreenOk, setFullscreenOk] = useState(false);
   const [pip, setPip] = useState<Window | null>(null), [pipOk, setPipOk] = useState(false);
   const root = useRef<HTMLDivElement>(null), command = useRef<HTMLInputElement>(null), fsLeftAt = useRef(0);
+  // Session AL second pass (lane L8; DV-070, TK-074): the command field's words (they outlast the field while the
+  // conversation is open) and a dock key waiting to see whether it is a shortcut or the start of typed words.
+  const [draft, setDraft] = useState(''), pendingKey = useRef<{text: string; timer: number} | null>(null);
   // Session AK WA (N1): the duo state NOVA's chat writes while it hands a task to ZIGi or Hermes (lib/nova/bridge.ts).
   const duo = useSyncExternalStore(subscribeDuo, duoState, () => DUO_IDLE);
   // Session AL Part 11 (lane L8): the look (Holo by default, Classic on choice) and the HUD's motion state (O5).
@@ -172,7 +178,8 @@ export default function NovaDashboard() {
       if (e.defaultPrevented) return;
       // Session AK lane EXF (EX-6): a key pressed while the opening plays skips it, and a letter does nothing else (the
       // opening's own listener does that first; this covers a key that arrives before that listener is in place).
-      if (root.current?.dataset.opening === 'play') { finishOpening(); if (e.key.length === 1) { e.preventDefault(); return; } }
+      // Session AL (DV-070): a letter typed into a field while the opening plays is a word: it stays in the field.
+      if (root.current?.dataset.opening === 'play') { finishOpening(); if (e.key.length === 1 && !typing(e.target)) { e.preventDefault(); return; } }
       if (e.key === 'Escape') {
         if (document.fullscreenElement) { e.preventDefault(); void document.exitFullscreen().catch(() => undefined); return; }
         if (Date.now() - fsLeftAt.current < 600 || document.querySelector('dialog[open]')) return;
@@ -184,11 +191,26 @@ export default function NovaDashboard() {
         exit(); return;
       }
       // Lane EXF (EX-2): never while the conversation is open or the key comes from a text field or the chat.
-      if (!shortcuts || chatOpen || typing(e.target) || inChat(e.target) || document.querySelector('dialog[open]') || e.altKey || e.ctrlKey || e.metaKey) return;
-      if (!phone && e.key === '[') { e.preventDefault(); cycleLeft(); return; }
-      if (!phone && e.key === ']') { e.preventDefault(); toggleRight(); return; }
+      // Session AL second pass (P-TK-41): nor with any modifier, Shift on a letter, an input method composing, a held key.
+      if (!shortcuts || chatOpen || typing(e.target) || inChat(e.target) || document.querySelector('dialog[open]')) return;
+      const kind = shortcutKind(e), waiting = pendingKey.current;
+      // A second letter soon after a first: the person is typing words, not choosing a shortcut. Both go to the command field.
+      if (waiting && typedLetter(e)) {
+        window.clearTimeout(waiting.timer); pendingKey.current = null; e.preventDefault();
+        setDraft(d => `${d}${waiting.text}${e.key}`);
+        command.current?.focus({preventScroll: true});
+        requestAnimationFrame(() => { const f = command.current; if (f) f.setSelectionRange(f.value.length, f.value.length); });
+        return;
+      }
+      if (kind === 'none') return;
+      if (kind === 'help') { e.preventDefault(); setSheet({kind: 'keys'}); return; }
+      if (kind === 'panel') { if (phone) return; e.preventDefault(); if (e.key === '[') cycleLeft(); else toggleRight(); return; }
       const entry = dockForKey(entries, e);
-      if (entry) { e.preventDefault(); act(entry); }
+      if (!entry && !typedLetter(e)) return;
+      if (entry) e.preventDefault();
+      // A dock key opens its entry after a short wait, unless another letter follows (then it was a word).
+      const text = e.key;
+      pendingKey.current = {text, timer: window.setTimeout(() => { pendingKey.current = null; if (entry) act(entry); }, BURST_MS)};
     };
     // ⌘/Ctrl + K is ZIGi's everywhere else; on NOVA it goes to NOVA's own field first (ZIGi's launcher skips a handled key).
     const commandKey = (e: KeyboardEvent) => {
@@ -197,7 +219,7 @@ export default function NovaDashboard() {
       if (chatOpen) root.current?.querySelector<HTMLTextAreaElement>('.nova-talk textarea')?.focus(); else command.current?.focus();
     };
     window.addEventListener('keydown', key); window.addEventListener('keydown', commandKey, true);
-    return () => { window.removeEventListener('keydown', key); window.removeEventListener('keydown', commandKey, true); };
+    return () => { window.removeEventListener('keydown', key); window.removeEventListener('keydown', commandKey, true); if (pendingKey.current) { window.clearTimeout(pendingKey.current.timer); pendingKey.current = null; } };
   }, [editing, chatOpen, shortcuts, phone, entries, act, exit, closeChat, cycleLeft, toggleRight, finishOpening]);
 
   const wake = useWakePhrase({on: wakeOn(r) && !phone, persona: persona.name, paused: chatOpen, onWake: () => { setChatOpen(true); setStatus(`${persona.name} heard you.`); }});
@@ -224,14 +246,18 @@ export default function NovaDashboard() {
   const shownPreset = presetShown(layout, widgets, canShow);
   const toggleWidget = (id: string, on: boolean) => { if (on) save(rr => addWidget(rr, id, widgetSpec(id)?.size ?? 'M'), `${title(id)} is on the stage.`); else actions.remove(id); };
 
+  // Session AL second pass (lane L8; BN-051): while a model on this computer (or the Hermes Agent) is working on a reply, the
+  // HUD holds its ornaments still and the sky draws no motes, so the page leaves the computer's power to the model.
+  const modelBusy = (orb === 'thinking' || orb === 'speaking') && (brain.kind === 'local' || brain.kind === 'hermes' || brain.kind === 'device');
+  const hudState = holo ? (modelBusy && (hudMove.state === 'full' || hudMove.state === 'calm') ? 'paused' : hudMove.state) : undefined;
   if (!nova.loaded) return <div className="nova-frame" data-accent="violet" data-opening="waiting"><Reading label={`${persona.name} is starting…`}/></div>;
   const core = holo ? {rings: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="rings"/></Suspense></LoadBoundary>, readout: <LoadBoundary quiet><Suspense fallback={null}><HoloCore part="readout"/></Suspense></LoadBoundary>} : undefined;
   const stage = <NovaStage persona={persona} orb={orb} greeting={greeting} typingFrom={opening.phase === 'play' ? opening.startedAt : null} counts={counts} showcase={showcase && phone} onTalk={openChat} talkOpen={chatOpen} core={core}/>;
   const duoView = duo.active ? <LoadBoundary quiet><Suspense fallback={null}><NovaDuo persona={persona}/></Suspense></LoadBoundary> : null;
   const chat = <LoadBoundary label="The conversation"><Suspense fallback={<Reading label="Opening the conversation…"/>}><NovaChat layout={phone ? 'sheet' : 'panel'} onOrbState={setOrb} onClose={closeChat} focusOnOpen/></Suspense></LoadBoundary>;
-  return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={holo ? hudMove.state : undefined}
+  return <div ref={root} className="nova-frame" data-accent={accent} data-layout={layout} data-opening={opening.phase} data-phone={phone || undefined} data-look={look} data-hud-motion={hudState}
     data-left={left} data-right={right} data-chat={chatOpen || undefined} data-editing={editing || undefined} data-fullscreen={fullscreen || undefined}>
-    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent} motes={holo && hudMove.motes}/></Suspense></LoadBoundary></div>
+    <div className="nova-sky zg-aurora" aria-hidden="true"><LoadBoundary quiet><Suspense fallback={null}><Starfield motion={motion} accent={accent} motes={holo && hudMove.motes && !modelBusy}/></Suspense></LoadBoundary></div>
     {/* Session AL Part 11 (lane L8): the HUD's depth layers — a far grid plane and a near glow at the edges (decoration). */}
     {holo && <div className="holo-depth" aria-hidden="true"><div className="holo-plane"/><div className="holo-glow"/></div>}
     {left !== 'hidden' && <NovaLeft state={left} onCycle={cycleLeft} you={you} brain={brain} counts={counts} pages={p => isShown(pagesView, p)} earn={chain.earnShown} chess={isShown(pagesView, 'chess')}
@@ -254,7 +280,8 @@ export default function NovaDashboard() {
         {!chatOpen && <div className="nova-foot-row">
           {!phone && <ViewControls layout={layout} widgets={widgets} available={available} editing={editing} onLayout={l => save(rr => setLayout(rr, l), `${l[0]!.toUpperCase()}${l.slice(1)} layout.`)} onToggle={toggleWidget}
             onSize={actions.resize} onArrange={() => setEditing(v => !v)} extra={<PresetPicker compact shown={shownPreset} onApply={applyPreset}/>}/>}
-          <CommandField you={you} persona={persona.name} inputRef={command} onOpen={openChat}/>
+          {/* Session AL second pass (P-TK-41): the shortcuts are discoverable — the field's "?" button and the "?" key open their list. */}
+          <CommandField you={you} persona={persona.name} inputRef={command} onOpen={openChat} value={draft} onValue={setDraft} onKeys={phone ? undefined : () => setSheet({kind: 'keys'})} keysOn={shortcuts}/>
           {/* Release review 2 (R2-3): model routing appears once a brain is connected (with none, there is nothing to route). */}
           {!phone && brain.kind !== 'none' && <RoutingMenu brain={brain} routing={routingOf(r)} onRouting={rt => save(rr => setRouting(rr, rt), rt === 'auto' ? 'Automatic: your connected brain answers.' : undefined)} openModels={() => setSheet({kind: 'panels', id: 'models'})}/>}
         </div>}
@@ -270,7 +297,7 @@ export default function NovaDashboard() {
     {sheet?.kind === 'yours' && <NovaSheet title={`Make ${persona.name} yours`} eyebrow="On this device" place="right" wide onClose={closeSheet}><LoadBoundary label="Make it yours"><Suspense fallback={<Reading label="Opening…"/>}>
       <MakeItYours record={r} save={save} entries={entries} status={status} hud={{look, onLook: setLook, preset: shownPreset, onPreset: applyPreset}} onReplay={() => { closeSheet(); requestAnimationFrame(() => { if (!opening.replay()) setStatus(openingSkippedNote(motionLevel)); }); }}/>
     </Suspense></LoadBoundary></NovaSheet>}
-    {sheet?.kind === 'quick' && <NovaSheet title="Quick access" place="bottom" onClose={closeSheet}><nav aria-label="Quick access"><ul className="nova-quick-sheet">
+    {sheet?.kind === 'quick' && <NovaSheet title="Quick access" place="bottom" onClose={closeSheet}>{/* Session AL (P-LA-29, landmark-unique): its own name, apart from the top bar's grid. */}<nav aria-label="Every entry"><ul className="nova-quick-sheet">
       {entries.filter(e => !e.hidden).map(e => <li key={e.id}><QuickTile entry={e} shortcuts={false} labelled act={entry => { closeSheet(); act(entry); }}/></li>)}
       <li><button type="button" className="nova-tile nova-tile-labelled" onClick={() => setSheet({kind: 'yours'})}><span className="nova-tile-planet" aria-hidden="true"><NovaIcon name="yours" size={20}/></span><span className="nova-tile-label">Customize</span></button></li>
     </ul></nav></NovaSheet>}
@@ -278,6 +305,9 @@ export default function NovaDashboard() {
       <LoadBoundary label="Quick actions"><Suspense fallback={<Reading label="Opening…"/>}><QuickActions widget={sheet.id}/></Suspense></LoadBoundary>
       {widgetSpec(sheet.id) && <p className="nova-row-actions"><a className="nova-btn" href={widgetSpec(sheet.id)!.href} onClick={e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); const href = widgetSpec(sheet.id)!.href; closeSheet(); router.push(href); }}>{widgetSpec(sheet.id)!.open}</a></p>}
     </NovaSheet>}
+    {sheet?.kind === 'keys' && <NovaSheet title="Keyboard shortcuts" eyebrow={`While ${persona.name} is open`} place="right" onClose={closeSheet}><LoadBoundary label="Keyboard shortcuts"><Suspense fallback={<Reading label="Opening…"/>}>
+      <ShortcutList entries={entries} on={shortcuts} panels={!phone} persona={persona.name} onCustomize={() => setSheet({kind: 'yours'})}/>
+    </Suspense></LoadBoundary></NovaSheet>}
     {pip && <LoadBoundary quiet><Suspense fallback={null}><NovaMiniWindow win={pip} persona={persona.name} orb={orb} accent={accent}/></Suspense></LoadBoundary>}
     <p className="sr-only" role="status" aria-live="polite">{status}</p>
   </div>;

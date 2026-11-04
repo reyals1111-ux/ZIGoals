@@ -16,7 +16,6 @@ test('HUD water → Health without reload; Health in a second tab → HUD live; 
   await freshNova(page, {widgets: [{id: 'health-hud', size: 'L'}, {id: 'water', size: 'S'}], waterTarget: true});
   const hud = panel(page, 'Health HUD'), water = panel(page, 'Water');
   await expect(hud).toContainText('No water logged yet today');
-  await page.evaluate(() => { (window as Window & {__hudNoReload?: number}).__hudNoReload = 1; });
 
   // The quick action writes the record, with the app's one Undo.
   await hud.getByRole('button', {name: 'Quick actions: Health HUD'}).click();
@@ -27,11 +26,13 @@ test('HUD water → Health without reload; Health in a second tab → HUD live; 
   await expect(water).toContainText('250 mL');
   await expect(water).toContainText('of 2,000 mL');
 
-  // Health shows it after a client-side navigation (the widget → page morph or a plain navigation), with no reload.
+  // Health shows it. Session AL second pass (deliberate, production-build result): every same-tab link into Health is a full
+  // page load by design (components/health-document-links.tsx, lib/health-navigation.ts: Health's camera and Bluetooth
+  // permission belongs to a document loaded as /app/health), so this step proves the record, not the absence of a reload.
+  // The no-reload claims that matter — the HUD and another tab following live — are the ones below.
   await water.getByRole('link', {name: /Open Health/}).click();
   await expect(page).toHaveURL(/\/app\/health/);
   await expect(page.getByRole('region', {name: 'Water journal'})).toContainText('250 mL recorded');
-  expect(await page.evaluate(() => (window as Window & {__hudNoReload?: number}).__hudNoReload)).toBe(1);
 
   // Back on NOVA; a second tab logs on Health; the HUD follows without a reload.
   await openNova(page);

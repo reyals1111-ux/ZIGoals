@@ -16,7 +16,7 @@ import {useLocalToday} from '../../use-local-today';
 import {useOrbitDay} from '../widgets/use-orbit-day';
 import {NovaEmpty} from '../widgets/empty';
 import TasksWidget from '../widgets/tasks';
-import {HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, NotShared, SegMeter} from './parts';
+import {HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread, NotShared, Orn, SegMeter} from './parts';
 import {useHealthHud, useHealthShared, usePillarShown} from './use-hud-data';
 import {useAgendaToday} from './use-agenda-today';
 import './holo-parts.css';
@@ -63,10 +63,10 @@ export function HoloOrbit({size}: {size: WidgetSize}) {
   return <div className="holo-orbit" data-size={size}>
     <div className="holo-ring" style={{'--ring': `${dial}px`} as CSSProperties}>
       <svg viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
-        <g data-motion-essential="" className="holo-spin"><circle className="holo-orn-dash" r="56"/></g>
         <circle className="holo-track" r="42"/>
         {Array.from({length: n}, (_, i) => { const p = polar(0, 0, 42, i / n * 360); return <circle key={i} className="holo-planet" data-lit={i < summary.done || undefined} cx={p.x} cy={p.y} r={n > 12 ? 3.4 : 5}/>; })}
       </svg>
+      <Orn><circle className="holo-orn-dash" r="56"/></Orn>
       <div className="holo-ring-centre"><HoloFigure text={`${summary.done}/${summary.total}`} className="holo-num-ring"/></div>
     </div>
     {size !== 'S' && <p className="holo-note-line">{summary.line}</p>}

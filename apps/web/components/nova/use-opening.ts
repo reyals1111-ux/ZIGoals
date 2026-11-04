@@ -33,7 +33,13 @@ export function useOpening({ready, seen, motion, markSeen}: {ready: boolean; see
   // (Session AK lane EXF, EX-6): the listener is in place when `data-opening="play"` is, so a key pressed at once is caught.
   useLayoutEffect(() => {
     if (phase !== 'play') return;
-    const skip = (event: Event) => { if (event instanceof KeyboardEvent && event.key.length === 1) event.preventDefault(); finish(); };
+    // Session AL (DV-070): a letter typed into a field (the command field, the composer) is a word and stays there; only a
+    // letter pressed on the page itself is swallowed (it would otherwise be a shortcut).
+    const skip = (event: Event) => {
+      const t = event.target as HTMLElement | null, field = !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName ?? ''));
+      if (event instanceof KeyboardEvent && event.key.length === 1 && !field) event.preventDefault();
+      finish();
+    };
     window.addEventListener('keydown', skip, true); window.addEventListener('pointerdown', skip, true);
     return () => { window.removeEventListener('keydown', skip, true); window.removeEventListener('pointerdown', skip, true); };
   }, [phase, finish]);

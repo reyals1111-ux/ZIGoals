@@ -1,17 +1,19 @@
 'use client';
 import {GlassBar} from '../../progress/glass-progress';
 import {useHealth} from '../../health/use-health';
-import {dailyData, healthDay, waterSummary} from '../../../lib/health-daily';
+import {waterToday, type WaterDay} from '../../../lib/health-daily';
 import {shareOf, waterAmount} from '../../../lib/nova/widgets/words';
 import {NovaEmpty, NovaReading, NovaUnread} from './empty';
 
-/** "Water": today's water against the person's own target, in their unit (Health's own day and zone). */
+/** "Water": today's water against the person's own target, in their unit (Health's own day and zone). Session AL (L2's one
+ *  source, P-NB-28): the same `waterToday` every other water figure reads (ZIGi's answers, the briefs, Today). */
 export default function WaterWidget() {
   const health = useHealth();
   if (!health.loaded) return <NovaReading/>;
   if (health.error) return <NovaUnread what="Your Health journal"/>;
-  let sum: ReturnType<typeof waterSummary>, unit: 'ml' | 'fl-oz-us';
-  try { const daily = dailyData(health.data); unit = daily.preferences.waterUnit; sum = waterSummary(health.data, healthDay(daily.preferences.timezone)); } catch { return <NovaUnread what="Today’s water"/>; }
+  let sum: WaterDay;
+  try { sum = waterToday(health.data); } catch { return <NovaUnread what="Today’s water"/>; }
+  const unit = sum.unit;
   const share = shareOf(sum.millilitres, sum.targetMl);
   if (!sum.entries && !sum.targetMl) return <NovaEmpty pillar="health" href="/app/health#water" action="Log a glass">No water logged today yet. One tap on Health adds a glass.</NovaEmpty>;
   return <div className="nova-water">

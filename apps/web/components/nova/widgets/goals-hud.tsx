@@ -6,7 +6,7 @@ import {MILESTONES, type PaceChart} from '../../../lib/nova/holo/goals';
 import {arcPath, polar} from '../../../lib/nova/holo/geometry';
 import {forecastWords} from '../../../lib/goal-forecast';
 import {formatDay} from '../../goals/format';
-import {HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
+import {DotSlider, HoloFigure, HoloHidden, HoloReading, HoloTable, HoloUnread} from '../holo/parts';
 import {useGoalsHud, usePillarShown} from '../holo/use-hud-data';
 import {NovaEmpty} from './empty';
 import '../holo/holo-parts.css';
@@ -15,7 +15,8 @@ import '../holo/holo-parts.css';
  * Session AL Part 11 (lane L8): "Goals HUD" in violet — each active goal's progress on an arc with milestone ticks at a
  * quarter, a half and three quarters (ornaments), and the lead goal's pace: its recorded progress as a line toward the
  * target, with the projection band from today to the forecast's earliest and latest dates, labelled "Estimate" in the
- * forecast's own words (lib/goal-forecast.ts). Nothing here is a promise or advice.
+ * forecast's own words (lib/goal-forecast.ts). Nothing here is a promise or advice. Second pass: the chart names its own
+ * parts in place (Target, Today, Estimate), and a large panel lists the next goals as dot sliders with milestone ticks.
  */
 const SWEEP = 270, START = -135;
 function GoalArc({pct}: {pct: number | null}) {
@@ -31,7 +32,9 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
   const x = (t: number) => P + t / Math.max(1, chart.span) * (W - 2 * P), y = (v: number) => H - P - Math.max(0, Math.min(1, v / top)) * (H - 2 * P);
   const line = chart.line.map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)} ${y(p.v).toFixed(1)}`).join('') + `L${x(chart.now.t).toFixed(1)} ${y(chart.now.v).toFixed(1)}`;
   const b = chart.band, ty = y(chart.target), nx = x(chart.now.t), ny = y(chart.now.v);
-  return <svg className="holo-pace" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  const pct = (n: number, of: number) => `${Math.max(0, Math.min(100, n / of * 100)).toFixed(1)}%`;
+  return <div className="holo-pace-chart">
+  <svg className="holo-pace" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
     <defs><linearGradient id={`${id}b`} x1="0" x2="1"><stop offset="0" className="holo-stop-a"/><stop offset="1" className="holo-stop-b"/></linearGradient></defs>
     <path className="holo-grid-lines" d={[0.25, 0.5, 0.75].map(f => `M0 ${H * f}H${W}`).join('')}/>
     <path className="holo-target-line" d={`M${P} ${ty.toFixed(1)}H${W - P}`}/>
@@ -40,22 +43,32 @@ function PaceLine({chart, label}: {chart: PaceChart; label: string}) {
     <path className="holo-spark-line" d={line}/>
     <circle className="holo-arc-end" cx={nx} cy={ny} r="3"/>
     <title>{label}</title>
-  </svg>;
+  </svg>
+  {/* The chart's own names, in place (decoration over the words below, which say the same). */}
+  <span className="holo-chart-tag" data-at="target" style={{top: pct(ty, H)}} aria-hidden="true">Target</span>
+  <span className="holo-chart-tag" data-at="today" style={{left: pct(nx, W)}} aria-hidden="true">Today</span>
+  {b && <span className="holo-chart-tag holo-chart-estimate" style={{left: pct(x(b.mid), W), top: pct(ty, H)}} aria-hidden="true">Estimate</span>}
+  </div>;
 }
 export default function GoalsHudWidget({size}: {size: WidgetSize}) {
   const shown = usePillarShown('goals'), data = useGoalsHud();
   if (!shown) return <HoloHidden pillar="Goals"/>;
   if (!data.loaded) return <HoloReading/>;
   if (data.error || !data.arcs) return <HoloUnread what="Your goals"/>;
-  const {arcs, more} = data.arcs;
+  const {arcs, active} = data.arcs;
   if (!arcs.length) return <NovaEmpty pillar="goals" href="/app/goals/new" action="Set a goal">No active goals yet. Their progress and pace light up here.</NovaEmpty>;
-  const shownArcs = arcs.slice(0, size === 'S' ? 1 : 3), pace = size === 'S' ? null : data.pace, words = pace ? forecastWords(pace.forecast, formatDay) : null;
+  const shownArcs = arcs.slice(0, size === 'S' ? 1 : 3), sliders = size === 'L' ? arcs.slice(3, 7) : [], more = Math.max(0, active - shownArcs.length - sliders.length), pace = size === 'S' ? null : data.pace, words = pace ? forecastWords(pace.forecast, formatDay) : null;
   return <div className="holo-goals" data-size={size}>
     <ul className="holo-arcs" data-count={shownArcs.length}>{shownArcs.map(a => <li key={a.key} data-tone={a.pace.tone}>
       <div className="holo-arc-box"><GoalArc pct={a.pct}/><HoloFigure text={a.text} className="holo-num-arc"/></div>
       <Link href={a.href} prefetch={false} className="holo-arc-name">{a.name}</Link>
       <small className="holo-pace-words">{a.pace.words}</small>
     </li>)}</ul>
+    {sliders.length > 0 && <ul className="holo-sliders" aria-label="More active goals">{sliders.map(a => <li key={a.key} data-tone={a.pace.tone}>
+      <Link href={a.href} prefetch={false} className="holo-slider-name">{a.name}</Link>
+      <DotSlider share={a.pct === null ? null : a.pct / 100}/>
+      <b className="holo-num">{a.text}</b>
+    </li>)}</ul>}
     {more > 0 && <p className="holo-more"><Link href="/app/goals" prefetch={false}>+{more} more {more === 1 ? 'goal' : 'goals'}</Link></p>}
     {pace && words && <div className="holo-pace-box" data-state={pace.chart.state}>
       <p className="holo-label">Pace · {pace.name}</p>

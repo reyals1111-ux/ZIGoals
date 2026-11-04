@@ -70,7 +70,7 @@ export function useGoalsHud() {
       const chart = paceChart(points, current, target, today, forecast);
       if (chart) { pace = {name: goal.name, href: summary.href, chart, forecast, current, target}; break; }
     }
-    return {loaded: legacy.loaded, error: false, arcs: goalArcs(goals), pace, goals};
+    return {loaded: legacy.loaded, error: false, arcs: goalArcs(goals, 7), pace, goals};
   }, [platform.loaded, platform.error, platform.data, legacy.loaded, legacy.goals, legacy.metadata, legacy.mode, legacy.chain, legacy.owner, market.quotes, now]);
 }
 

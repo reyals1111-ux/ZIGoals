@@ -22,7 +22,9 @@ async function islandColours(page: Page) {
 }
 
 test.describe('computer', () => {
-  test.skip(({isMobile}) => isMobile, 'computer layout');
+  // The mobile project emulates a phone; these check the computer layout (arranging is offered on computers only, owner
+  // rule: NOVA stays simplified on phones), which the desktop project runs. The phone column is checked below, in both.
+  test.skip(({isMobile}) => isMobile, 'computer layout: runs in the desktop project');
   test.use({viewport: {width: 1440, height: 900}});
 
   test('(d) Light keeps the HUD a dark island, alike in Nebula and Dark; figures read ≥ 4.5:1 without their glow', async ({page}) => {
@@ -62,11 +64,16 @@ test.describe('computer', () => {
     await expect(panel(page, 'Health HUD')).toBeVisible();
     expect((await storedJson(page, NOVA_HUD_KEY))?.preset).toBe('health');
     await page.locator('.aa-toast').getByRole('button', {name: /^Undo/}).focus();
+    // Session AL second pass (production-build result; app fix in nova-command.tsx): the menu closes when the keyboard's
+    // focus leaves it, so it never stays open over the toast the focus moved to.
+    const view = page.getByRole('button', {name: /View controls/});
+    await expect(view).toHaveAttribute('aria-expanded', 'false');
     await page.keyboard.press('Enter');
     await expect.poll(order).toEqual(DEFAULT_WIDGETS.map(w => w.id));
     // Arrange with the keyboard: the grip's arrow keys move a panel one place.
-    await page.getByRole('button', {name: /View controls/}).focus();
+    await view.focus();
     await page.keyboard.press('Enter');
+    await expect(view).toHaveAttribute('aria-expanded', 'true');
     await page.getByRole('button', {name: 'Arrange on the orbits'}).focus();
     await page.keyboard.press('Enter');
     const before = await order();

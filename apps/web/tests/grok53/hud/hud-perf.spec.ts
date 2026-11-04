@@ -9,7 +9,9 @@ import {frame, freshNova, runningInNova, skyFrames} from './hud-helpers';
  * (CDP Performance metrics). The numbers go to test-results/hud-perf.json for the integrator's record (and the test's own
  * output folder). The bounds below are guards, not the target: the target is 60 fps at 4× and near-zero idle when hidden.
  */
-test.skip(({browserName, isMobile}) => browserName !== 'chromium' || isMobile, 'CDP throttling: Chromium, computer layout');
+// A true capability skip: CPU throttling and the Performance metrics exist only over Chromium's DevTools protocol; and the
+// target (AL_SCOPE B) is a mid laptop profile, so the phone-emulating project does not run it.
+test.skip(({browserName, isMobile}) => browserName !== 'chromium' || isMobile, 'CDP CPU throttling needs Chromium; the target is a laptop profile');
 test.use({viewport: {width: 1440, height: 900}, timezoneId: 'Europe/Brussels'});
 
 const MEDIAN_FRAME_GUARD_MS = 20, HIDDEN_CPU_SHARE_GUARD = 0.2;

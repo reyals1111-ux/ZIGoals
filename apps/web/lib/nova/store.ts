@@ -223,12 +223,16 @@ export function showcaseNova(day: string): NovaRecord {
   void day;
   return novaRecordSchema.parse({
     version: 1, layout: 'orbit', accent: 'violet',
+    // Session AL Part 11, second pass (lane L8): the Showcase shows the holographic HUD whole — the five HUD instruments
+    // beside the star (Health and Wealth large, so the week's calories, the framed wealth wave and the purpose flow show),
+    // then the day's panels; the earlier widgets keep their places after them.
     widgets: [
-      {id: 'orbit', size: 'M', slot: 0}, {id: 'next', size: 'M', slot: 1}, {id: 'glance', size: 'L', slot: 2}, {id: 'water', size: 'S', slot: 3},
-      {id: 'goal-pace', size: 'M', slot: 4}, {id: 'money', size: 'M', slot: 5}, {id: 'sleep', size: 'S', slot: 6}, {id: 'briefs', size: 'S', slot: 7},
-      {id: 'notes', size: 'S', slot: 8}, {id: 'now-playing', size: 'S', slot: 9},
+      {id: 'health-hud', size: 'L', slot: 0}, {id: 'wealth-hud', size: 'L', slot: 1}, {id: 'habits-hud', size: 'M', slot: 2}, {id: 'goals-hud', size: 'M', slot: 3},
+      {id: 'agenda-clock', size: 'M', slot: 4}, {id: 'orbit', size: 'M', slot: 5},
       // Session AK WA (T1/T3): the Showcase's labelled example tasks ("Example · …") and its fictional Pomodoro history.
-      {id: 'tasks', size: 'M', slot: 10}, {id: 'focus', size: 'S', slot: 11},
+      {id: 'tasks', size: 'M', slot: 6}, {id: 'focus', size: 'S', slot: 7},
+      {id: 'next', size: 'M', slot: 8}, {id: 'water', size: 'S', slot: 9}, {id: 'notes', size: 'S', slot: 10}, {id: 'briefs', size: 'S', slot: 11},
+      {id: 'goal-pace', size: 'M', slot: 12}, {id: 'money', size: 'M', slot: 13}, {id: 'sleep', size: 'S', slot: 14}, {id: 'glance', size: 'M', slot: 15}, {id: 'now-playing', size: 'S', slot: 16},
     ],
     panels: {left: 'open', right: 'open'},
   });

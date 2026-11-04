@@ -24,7 +24,7 @@ export default function HabitsHudWidget({size}: {size: WidgetSize}) {
   return <div className="holo-habits" data-size={size}>
     <div className="holo-split">
       <div className="holo-ring" style={{'--ring': `${size === 'S' ? 64 : 112}px`} as CSSProperties}>
-        <RingStack rings={hud.rings.map(r => ({key: r.id, share: r.share}))} size={size === 'S' ? 64 : 112}/>
+        <RingStack rings={hud.rings.map(r => ({key: r.id, share: r.share}))} size={size === 'S' ? 64 : 112} segments={size === 'S' ? 0 : 30}/>
         <div className="holo-ring-centre"><HoloFigure text={`${hud.done}/${hud.due}`} className="holo-num-ring"/><small>today</small></div>
       </div>
       {size !== 'S' && <div className="holo-stack-list">

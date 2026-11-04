@@ -1,5 +1,5 @@
 import {dailyHealthSummary, formatHealthGrams, formatNutrient, nutritionSummaryText, type HealthData} from '../../health';
-import {dailyData, waterSummary} from '../../health-daily';
+import {dailyData, waterOn} from '../../health-daily';
 import {waterText} from '../../health-units';
 import {addLocalDays} from '../../local-date';
 import {dailySeries} from '../../sleep/engine';
@@ -49,7 +49,7 @@ export function healthHud(data: HealthData, day: string): HealthHud {
     return meter(key, label, value, target, `${formatHealthGrams(value)} g`, target ? `${formatHealthGrams(target)} g` : null,
       noMeals ?? (value === null ? nutritionSummaryText(summary, field, 'g', 1000) : null));
   });
-  const w = waterSummary(data, day);
+  const w = waterOn(data, day); // L2's one water source (the same as waterToday, on the Health journal's day)
   const water = meter('water', 'Water', w.millilitres, w.targetMl, waterText(w.millilitres, unit), w.targetMl ? waterText(w.targetMl, unit) : null, w.entries ? null : 'No water logged yet today');
   const sleep = data.sleep, slept = sleep ? dailySeries(sleep, day, 1)[0]?.asleep ?? null : null, goal = sleep?.goal?.minutes ?? null;
   const sleepMeter = meter('sleep', 'Sleep', slept, goal, durationWords(slept ?? 0), goal ? durationWords(goal) : null, slept === null ? 'No night logged for last night' : null);
@@ -72,4 +72,20 @@ export function heartLine(data: HealthData, day: string, days = 14): HeartLine |
     if (byDay.size >= 2) { const points = [...byDay].map(([date, bpm]) => ({date, bpm})); return {kind, points, latest: points.at(-1)!.bpm}; }
   }
   return null;
+}
+
+/**
+ * Session AL Part 11, second pass (lane L8): the week's calories for the Health HUD's histogram — each of the `days` days
+ * to `day` with the Health page's own diary total (dailyHealthSummary), null when no meal was logged that day or a meal
+ * lacks its calories (unknown, never 0), and the person's calorie target as the line through it (null without one).
+ */
+export type KcalDay = {date: string; kcal: number | null; text: string};
+export function kcalWeek(data: HealthData, day: string, days = 7): {days: KcalDay[]; target: number | null; targetText: string | null; known: number} {
+  const out: KcalDay[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = addLocalDays(day, -i), s = dailyHealthSummary(data, date), kcal = s.entries ? s.nutrients.kcal : null;
+    out.push({date, kcal, text: kcal === null ? (s.entries ? nutritionSummaryText(s, 'kcal', 'kcal') : 'No meals logged') : `${formatNutrient(kcal)} kcal`});
+  }
+  const target = data.targets.kcal ?? null;
+  return {days: out, target, targetText: target ? `${formatNumber(target)} kcal` : null, known: out.filter(d => d.kcal !== null).length};
 }

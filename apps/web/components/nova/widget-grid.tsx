@@ -130,7 +130,7 @@ function WidgetFrame({widget, index, count, style, side, editing, opening, dragg
   const tap = holo && !editing && actions.quick ? (e: MouseEvent<HTMLDivElement>) => { if (!(e.target as Element).closest('a, button, input, textarea, select, label, summary')) actions.quick!(widget.id); } : undefined;
   return <article ref={panel} className="nova-widget" data-widget={widget.id} data-size={widget.size} data-pillar={spec.pillar} data-side={side} data-holo={holo ? '' : undefined} data-dragging={dragging ? '' : undefined} data-drop={dropTarget ? '' : undefined} data-cut={cut && !editing ? '' : undefined} style={css} aria-labelledby={`${id}-t`}>
     <span className="nova-widget-planet" aria-hidden="true"/>
-    {holo && <><span className="holo-brackets" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}
+    {holo && <><span className="holo-brackets" aria-hidden="true"/><span className="holo-ruler" aria-hidden="true"/><span className="holo-sheen" aria-hidden="true"/></>}
     <header className="nova-widget-head">
       <h3 id={`${id}-t`}>{spec.title}</h3>
       {editing ? <button type="button" className="nova-grip" aria-label={`Move ${spec.title}: drag, or use the arrow keys`} {...grip}><NovaIcon name="grip" size={18}/></button>

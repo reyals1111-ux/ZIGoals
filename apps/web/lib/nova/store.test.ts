@@ -137,5 +137,9 @@ describe('the Showcase’s NOVA (proposed for the lead)', () => {
     expect(widgetsFor(r).map(w => w.id)).toContain('briefs');
     // Session AK WA (T1/T3): the tasks and the running-focus widgets read the Showcase's own labelled records.
     expect(widgetsFor(r).map(w => w.id)).toEqual(expect.arrayContaining(['tasks', 'focus']));
+    // Session AL Part 11, second pass (lane L8): the HUD's five instruments first, Health and Wealth large; nothing lost.
+    expect(widgetsFor(r).slice(0, 5).map(w => w.id)).toEqual(['health-hud', 'wealth-hud', 'habits-hud', 'goals-hud', 'agenda-clock']);
+    expect(widgetsFor(r).filter(w => w.size === 'L').map(w => w.id)).toEqual(['health-hud', 'wealth-hud']);
+    expect(widgetsFor(r).map(w => w.id)).toEqual(expect.arrayContaining(['orbit', 'next', 'glance', 'water', 'goal-pace', 'money', 'sleep', 'briefs', 'notes', 'now-playing']));
   });
 });

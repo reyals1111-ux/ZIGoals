@@ -7,7 +7,7 @@ import {useHealth} from '../health/use-health';
 import {useLocalToday} from '../use-local-today';
 import {useNovaBriefsUnread} from './panels/use-briefs-unread';
 import {habitDay} from '../../lib/habits';
-import {dailyData, healthDay, waterSummary} from '../../lib/health-daily';
+import {waterToday} from '../../lib/health-daily';
 import {BILLS} from '../../lib/bills/schema';
 import {upcomingBills} from '../../lib/bills/store';
 import {NOTES} from '../../lib/notes/schema';
@@ -33,8 +33,8 @@ export function useNovaCounts(): NovaCounts {
   return useMemo(() => {
     let waterToGoMl: number | null = null, waterUnit: 'ml' | 'fl-oz-us' = 'ml';
     if (health.loaded && !health.error) try {
-      const daily = dailyData(health.data), sum = waterSummary(health.data, healthDay(daily.preferences.timezone));
-      waterUnit = daily.preferences.waterUnit;
+      const sum = waterToday(health.data); // Session AL: L2's one water source
+      waterUnit = sum.unit;
       if (sum.targetMl) waterToGoMl = Math.max(0, sum.targetMl - sum.millilitres);
     } catch { waterToGoMl = null; }
     const habitsLeft = habits.loaded && !habits.error ? habits.data.habits.filter(h => { const s = habitDay(h, habits.today, habits.today).status; return s === 'due' || s === 'partial'; }).length : null;

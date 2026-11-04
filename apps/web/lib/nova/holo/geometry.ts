@@ -58,3 +58,86 @@ export function clockAngle(clock: string | null): number | null {
 }
 /** A heart (unit box 0–24) as a path, for the health HUD's target hearts. */
 export const HEART_PATH = 'M12 21.2 3.9 13.4A5.2 5.2 0 0 1 11.3 6l.7.7.7-.7a5.2 5.2 0 0 1 7.4 7.4Z';
+
+/* ---- Session AL Part 11, second pass (lane L8): the reference image's instruments ---- */
+
+/**
+ * A smooth line through points sorted by x (the flowing wave), as monotone cubic segments (Fritsch–Carlson): it never
+ * rises above or dips below its neighbouring points, so the curve shows no value the records do not hold. Fewer than three
+ * points: straight segments.
+ */
+export function smoothPath(pts: readonly {x: number; y: number}[]): string {
+  const n = pts.length;
+  if (n < 3) return linePath(pts);
+  const dx: number[] = [], m: number[] = [];
+  for (let i = 0; i < n - 1; i++) { dx.push(pts[i + 1]!.x - pts[i]!.x); m.push(dx[i]! ? (pts[i + 1]!.y - pts[i]!.y) / dx[i]! : 0); }
+  const t = pts.map((_, i) => i === 0 ? m[0]! : i === n - 1 ? m[n - 2]! : m[i - 1]! * m[i]! <= 0 ? 0 : (m[i - 1]! + m[i]!) / 2);
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = t[i]! / m[i]!, b = t[i + 1]! / m[i]!, s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]!; t[i + 1] = k * b * m[i]!; }
+  }
+  let d = `M${r2(pts[0]!.x)} ${r2(pts[0]!.y)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const p = pts[i]!, q = pts[i + 1]!, h = dx[i]! / 3;
+    d += `C${r2(p.x + h)} ${r2(p.y + t[i]! * h)} ${r2(q.x - h)} ${r2(q.y - t[i + 1]! * h)} ${r2(q.x)} ${r2(q.y)}`;
+  }
+  return d;
+}
+
+/**
+ * Points placed by time (ISO instants or YYYY-MM-DD days) across a w × h box, top = the highest value: a recorded history
+ * whose gaps stay gaps in width (an index axis would squeeze a quiet month into one step). Unparseable times are left out.
+ */
+export function timePoints(values: readonly {at: string; value: number}[], w: number, h: number, pad = 3): {x: number; y: number; v: number; at: string}[] {
+  const known = values.map(p => ({...p, t: Date.parse(p.at)})).filter(p => Number.isFinite(p.t) && Number.isFinite(p.value)).sort((a, b) => a.t - b.t);
+  if (!known.length) return [];
+  const t0 = known[0]!.t, t1 = known.at(-1)!.t, span = t1 - t0;
+  const min = Math.min(...known.map(p => p.value)), max = Math.max(...known.map(p => p.value)), range = max - min || 1;
+  return known.map(p => ({x: r2(pad + (span ? (p.t - t0) / span : 0.5) * (w - 2 * pad)), y: r2(h - pad - (max === min ? 0.5 : (p.value - min) / range) * (h - 2 * pad)), v: p.value, at: p.at}));
+}
+
+/**
+ * A histogram's bars in a w × h box: one slot per value, the bar's top at the value (null: no bar, the slot stays empty),
+ * against `max` (the highest of the values and any reference line, such as a target, so the line fits too).
+ */
+export type Bar = {x: number; y: number; width: number; height: number; v: number};
+export function histogramBars(values: readonly (number | null)[], w: number, h: number, {max, gap = 0.34}: {max?: number; gap?: number} = {}): (Bar | null)[] {
+  const n = values.length;
+  if (!n) return [];
+  const top = Math.max(max ?? 0, ...values.filter((v): v is number => v !== null && Number.isFinite(v)), 0) || 1;
+  const slot = w / n, width = slot * (1 - Math.max(0, Math.min(0.9, gap)));
+  return values.map((v, i) => {
+    if (v === null || !Number.isFinite(v)) return null;
+    const height = Math.max(0, Math.min(1, v / top)) * h;
+    return {x: r2(i * slot + (slot - width) / 2), y: r2(h - height), width: r2(width), height: r2(height), v};
+  });
+}
+/** Where a value sits on a histogram's height (for its reference line), with the same top as histogramBars. */
+export function histogramY(value: number, values: readonly (number | null)[], h: number, max?: number): number {
+  const top = Math.max(max ?? 0, ...values.filter((v): v is number => v !== null && Number.isFinite(v)), 0) || 1;
+  return r2(h - Math.max(0, Math.min(1, value / top)) * h);
+}
+
+/**
+ * A small flow (the purpose flow): one source bar on the left, the parts (shares 0–1 of the source, in order) stacked on
+ * the right with a gap between them, and a ribbon from each part's slice of the source to its own bar. Parts that add up
+ * past 1 are scaled down to fit; a zero part draws nothing.
+ */
+export type Ribbon = {from: [number, number]; to: [number, number]; path: string};
+export function flowRibbons(shares: readonly number[], w: number, h: number, {bar = 6, gap = 4}: {bar?: number; gap?: number} = {}): Ribbon[] {
+  const parts = shares.map(s => Number.isFinite(s) ? Math.max(0, s) : 0), sum = parts.reduce((a, b) => a + b, 0);
+  if (!(sum > 0)) return [];
+  const scale = sum > 1 ? 1 / sum : 1, shown = parts.filter(p => p > 0).length;
+  const room = Math.max(0, h - gap * Math.max(0, shown - 1)), x0 = bar, x1 = w - bar, mid = (x0 + x1) / 2;
+  const out: Ribbon[] = [];
+  let left = 0, right = 0;
+  for (const p of parts) {
+    if (!(p > 0)) continue;
+    const a = p * scale * h, b = p * scale * room;
+    const l0 = left, l1 = left + a, q0 = right, q1 = right + b;
+    out.push({from: [r2(l0), r2(l1)], to: [r2(q0), r2(q1)], path: `M${r2(x0)} ${r2(l0)}C${r2(mid)} ${r2(l0)} ${r2(mid)} ${r2(q0)} ${r2(x1)} ${r2(q0)}L${r2(x1)} ${r2(q1)}C${r2(mid)} ${r2(q1)} ${r2(mid)} ${r2(l1)} ${r2(x0)} ${r2(l1)}Z`});
+    left = l1; right = q1 + gap;
+  }
+  return out;
+}

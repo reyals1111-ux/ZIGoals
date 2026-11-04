@@ -5,7 +5,7 @@ import type {WidgetSize} from '../../../lib/nova/store';
 import {clockAngle, polar, tickPath} from '../../../lib/nova/holo/geometry';
 import {clockItems, dayCounts, nextItems} from '../../../lib/nova/holo/agenda';
 import {formatClock} from '../../../lib/visual-format';
-import {HoloFigure, HoloReading, HoloTable} from '../holo/parts';
+import {HoloFigure, HoloReading, HoloTable, LensRing, Orn} from '../holo/parts';
 import {useAgendaToday} from '../holo/use-agenda-today';
 import {NovaEmpty} from './empty';
 import '../holo/holo-parts.css';
@@ -25,7 +25,6 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
   return <div className="holo-agenda" data-size={size}>
     <div className="holo-ring" style={{'--ring': `${dial}px`} as CSSProperties}>
       <svg viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
-        <g data-motion-essential="" className="holo-spin"><circle className="holo-orn-dash" r="57"/></g>
         <path className="holo-orn-ticks" d={tickPath(0, 0, 50, 53, 96)}/>
         <path className="holo-orn-ticks holo-orn-major" d={tickPath(0, 0, 47, 54, 24)}/>
         {size !== 'S' && ([['0', 0], ['6', 90], ['12', 180], ['18', 270]] as const).map(([t, a]) => { const p = polar(0, 0, 33, a); return <text key={t} className="holo-dial-label" x={p.x} y={p.y + 3}>{t}</text>; })}
@@ -34,6 +33,8 @@ export default function AgendaClockWidget({size}: {size: WidgetSize}) {
         {marks.map(m => { const p = polar(0, 0, 42, m.angle!); return <circle key={m.id} className="holo-mark" data-state={m.state} data-pillar={m.pillar} cx={p.x} cy={p.y} r="3.4"/>; })}
         <circle className="holo-hub" r="2.4"/>
       </svg>
+      <Orn><circle className="holo-orn-dash" r="57"/></Orn>
+      {size !== 'S' && <LensRing/>}
       {size === 'S' && <div className="holo-ring-centre"><HoloFigure text={`${counts.done}/${counts.total}`} className="holo-num-ring"/></div>}
     </div>
     {size !== 'S' && <div className="holo-agenda-side">
