@@ -2,7 +2,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {zigiSignals} from '../zigi/bus';
-import {firstSight, goalCelebration, pendingCelebrations, type Celebration} from '../../lib/game/celebrate';
+import {firstSight, goalCelebration, goalFinishedToday, pendingCelebrations, type Celebration} from '../../lib/game/celebrate';
 import {markBadgeSeen, markLevelSeen} from '../../lib/game/schema';
 import {motionAllowed} from '../zigi/motion';
 import type {GameState} from './use-game';
@@ -15,43 +15,59 @@ import './game.css';
  * Motion Off get a still card. ZIGi joins in through its own validated events (the daily cap stays the controller's).
  */
 const PARTICLES = 22;
+/**
+ * Session AL (P-NB-02; NB-050): every host on a page (the Journey page and a page's progress card) shares one claimed
+ * set, so one tap never opens two stacked cards; what is due at the same moment shows together on ONE card.
+ */
+const CLAIMED = new Set<string>();
+const GOAL_SIGNALS = new Set(['goal_milestone_reached', 'goal_funded', 'goal_finished', 'achievement_unlocked']);
 export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Parameters<typeof pendingCelebrations>[4]}) {
-  const [queue, setQueue] = useState<Celebration[]>([]), shown = useRef(new Set<string>());
+  const [queue, setQueue] = useState<Celebration[]>([]);
   const {celebrations, derived, enabled, today} = game;
   const seenReady = celebrations.loaded && !celebrations.unreadable;
+  const claim = (list: Celebration[]) => { const mine = list.filter(c => !CLAIMED.has(c.id)); for (const c of mine) CLAIMED.add(c.id); if (mine.length) setQueue(q => [...q, ...mine]); };
   useEffect(() => {
     if (!enabled || !derived || !seenReady || !game.game.loaded) return;
-    const due = pendingCelebrations(game.stores, game.game.data, celebrations.data.seen, today, fasting).filter(c => !shown.current.has(c.id));
+    const due = pendingCelebrations(game.stores, game.game.data, celebrations.data.seen, today, fasting);
     // What the layer sees first is remembered (the level and every badge already earned), so only what comes after celebrates.
     if (game.game.data.levelSeen === undefined) { const sight = firstSight(game.stores, today); try { game.game.update(g => { let next = markLevelSeen(g, sight.level); for (const id of sight.badgeIds) next = markBadgeSeen(next, id, today); return next; }); } catch { /* next time */ } return; }
-    if (due.length) { for (const c of due) shown.current.add(c.id); setQueue(q => [...q, ...due]); }
+    claim(due);
   }, [enabled, derived, seenReady, today, fasting]); // eslint-disable-line react-hooks/exhaustive-deps
+  const storesRef = useRef(game.stores); storesRef.current = game.stores;
   useEffect(() => {
     if (!enabled || !seenReady) return;
     return zigiSignals.on(signal => {
-      if (!signal.validated || (signal.type !== 'goal_milestone_reached' && signal.type !== 'goal_funded' && signal.type !== 'achievement_unlocked')) return; // achievement_unlocked: a finished goal (AA-Cloud's lane emits it at the merge, ADR-022 B52)
-      const c = goalCelebration(signal.type, celebrations.data.seen, today);
-      if (c && !shown.current.has(c.id)) { shown.current.add(c.id); setQueue(q => [...q, c]); }
+      if (!signal.validated || !GOAL_SIGNALS.has(signal.type)) return;
+      // Session AL (P-NB-02): `achievement_unlocked` is also what a badge card, a first check-in and a mood check-in send;
+      // it means "A goal finished" only when the records show a goal reached today. Goals sends `goal_finished` itself.
+      const type = signal.type === 'achievement_unlocked' || signal.type === 'goal_finished' ? (goalFinishedToday(storesRef.current, today) || signal.type === 'goal_finished' ? 'goal_finished' : null) : signal.type as 'goal_milestone_reached' | 'goal_funded';
+      if (!type) return;
+      const c = goalCelebration(type, celebrations.data.seen, today);
+      if (c) claim([c]);
     });
   }, [enabled, seenReady, celebrations.data.seen, today]);
-  const current = queue[0];
+  const ids = queue.map(c => c.id).join('|');
   useEffect(() => {
-    if (!current) return;
-    try { celebrations.update(n => ({...n, seen: {...n.seen, [current.id]: today}})); } catch { /* shown once in this session anyway */ }
-    try { if (current.kind === 'level') game.game.update(g => markLevelSeen(g, Number(current.id.split(':')[1]))); if (current.kind === 'badge') game.game.update(g => markBadgeSeen(g, current.id.split(':')[1]!, today)); } catch { /* the seen map above holds it */ }
-    if (current.semantic) { try { zigiSignals.emitValidated(current.semantic); } catch { /* decoration */ } }
+    if (!queue.length) return;
+    try { celebrations.update(n => { const seen = {...n.seen}; for (const c of queue) seen[c.id] ??= today; return {...n, seen}; }); } catch { /* shown once in this session anyway */ }
+    try { for (const c of queue) { if (c.kind === 'level') game.game.update(g => markLevelSeen(g, Math.max(g.levelSeen ?? 0, Number(c.id.split(':')[1])))); if (c.kind === 'badge') game.game.update(g => markBadgeSeen(g, c.id.split(':')[1]!, today)); } } catch { /* the seen map above holds it */ }
+    // ZIGi joins once for the card. A badge's semantic is `achievement_unlocked`; the listener above no longer reads it as a goal.
+    const lead = queue[0]!;
+    if (lead.semantic) { try { zigiSignals.emitValidated(lead.semantic); } catch { /* decoration */ } }
     else { try { zigiSignals.emitValidated('journey_step'); } catch { /* decoration */ } } // Session AK Part 12: a Journey step (streak, fast, Checklist orbit), a Studio-4 reaction once its art lands
-  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  const current = queue[0];
   if (!current) return null;
-  const still = !motionAllowed();
-  return <div className="celebration-backdrop" role="dialog" aria-modal="true" aria-labelledby="celebration-title" data-still={still || undefined}>
+  const still = !motionAllowed(), rest = queue.slice(1), close = () => setQueue([]);
+  return <div className="celebration-backdrop" role="dialog" aria-modal="true" aria-labelledby="celebration-title" data-still={still || undefined} onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }}>
     <section className="celebration-card">
       {!still && <div className="celebration-particles" aria-hidden="true">{Array.from({length: PARTICLES}, (_, i) => <i key={i} style={{'--i': i, '--a': `${(i * 137) % 360}deg`, '--d': `${70 + (i * 53) % 90}px`, '--t': `${900 + (i * 97) % 500}ms`} as React.CSSProperties} />)}</div>}
       <span className="celebration-symbol" aria-hidden="true">{current.symbol}</span>
       <p className="eyebrow">{current.kind === 'level' ? 'Level up' : current.kind === 'badge' ? 'A new badge' : current.kind === 'streak' ? 'A streak' : current.kind === 'fast' ? 'Fasting' : current.kind === 'checklist' ? 'Your orbit' : 'A goal'}</p>
       <h2 id="celebration-title"><NebulaFlow identity={`celebration:${current.id}`}>{current.title}</NebulaFlow></h2>
       <p className="celebration-line">{current.line}</p>
-      <button type="button" className="primary" autoFocus onClick={() => setQueue(q => q.slice(1))}>{queue.length > 1 ? 'Next' : 'Lovely'}</button>
+      {rest.length > 0 && <ul className="celebration-also" aria-label="Also today">{rest.map(c => <li key={c.id}><span aria-hidden="true">{c.symbol} </span>{c.title}</li>)}</ul>}
+      <button type="button" className="primary" autoFocus onClick={close}>Lovely</button>
     </section>
   </div>;
 }

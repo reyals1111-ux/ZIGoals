@@ -295,6 +295,18 @@ function periodResult(habit: Habit, rule: HabitRule, date: string, today: string
   return rawAggregateOutcomes(habit, today).find((outcome) => outcome.period === period && outcome.start === bounds.start)
     ?? { complete: false, partial: false, failed: false, status: "open" as const, start: bounds.start, end: bounds.end, period, unit: `${period}s` as const, scheduledDates: [] };
 }
+/**
+ * Session AL (P-NB-23; NB-076, NB-158, H-008): an "X times per week/month/year" habit's progress in its current period,
+ * as its card says it ("1 of 3 this week"): the days in the period, up to today, whose check-in met the day's target.
+ * Null for any other schedule.
+ */
+export function frequencyProgress(habit: Habit, today: string): { done: number; times: number; period: "week" | "month" | "year" } | null {
+  const rule = habitRuleOn(habit, today);
+  if (!rule || rule.schedule.kind !== "frequency") return null;
+  const bounds = periodBounds(today, rule.schedule.period);
+  const done = habit.entries.filter((entry) => entry.date >= bounds.start && entry.date <= today && entry.date <= bounds.end && entry.disposition === "logged" && individualSuccess(rule, entry.count)).length;
+  return { done, times: rule.schedule.times, period: rule.schedule.period };
+}
 export function habitDay(habit: Habit, date: string, today = localDate()) { return memoized(habit, `day:${date}:${today}`, () => computeHabitDay(habit, date, today)); }
 function computeHabitDay(habit: Habit, date: string, today: string) {
   const rule = habitRuleOn(habit, date); const entry = entryOn(habit, date); const count = entry?.count ?? 0; const target = rule?.target ?? 1;
@@ -338,6 +350,18 @@ export function logHabitValue(data: HabitData, id: string, rawDate: string, rawV
   });
 }
 export function logHabitCount(data: HabitData, id: string, date: string, count: number, note = "", now = new Date()): HabitData { return logHabitValue(data, id, date, count, { note }, now); }
+/**
+ * Session AL (P-NB-26; PR-044, NB-068, NB-131): Undo a skip (or a "failed" mark): the day goes back to the entry it held
+ * before, stamped now so it wins over the skip everywhere; a day that held nothing goes back to nothing logged (a 0, as
+ * an undone check-in leaves it). The previous entry is what the caller read before the change.
+ */
+export function restoreHabitEntry(data: HabitData, id: string, rawDate: string, previous: Habit["entries"][number] | undefined, now = new Date()): HabitData {
+  const date = dateSchema.parse(rawDate);
+  return replaceHabit(data, id, (habit) => {
+    const entry = entrySchema.parse(previous ? { ...previous, date, updatedAt: now.toISOString() } : { date, count: 0, disposition: "logged", note: "", updatedAt: now.toISOString() });
+    return { ...habit, updatedAt: now.toISOString(), entries: [...habit.entries.filter((item) => item.date !== date), entry].sort((a, b) => a.date.localeCompare(b.date)) };
+  });
+}
 export function setHabitEntryStatus(data: HabitData, id: string, rawDate: string, disposition: "skipped" | "failed", note = "", now = new Date()): HabitData {
   const date = dateSchema.parse(rawDate); const today = habitCalendarDay(data,now);
   return replaceHabit(data, id, (habit) => {

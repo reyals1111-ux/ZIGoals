@@ -4,6 +4,8 @@ import {formNumberText, readFormNumber} from '../../lib/decimal-input';
 import {healthLinkV4Issue, type HabitHealthLinkV4 as HabitHealthLink, type HealthMeasureV4 as HealthMeasure} from '../../lib/habit-health-links/schema';
 import type {ExerciseCounter} from '../../lib/health-counters';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
+import {waterTargetFromLitres} from '../../lib/habit-health-links/suggest';
+export {ideaHealthLink, waterTargetFromLitres} from '../../lib/habit-health-links/suggest';
 
 const FL_OZ = 29.5735295625;
 /** The editor's view of a link: a measure (or none), a counter for the exercise measure, a rule and a typed target in the Health water unit. */
@@ -25,6 +27,10 @@ export function suggestedHealthLink(input: {title: string; unit: string; target:
   const unit = input.unit.trim().toLowerCase(), target = input.target.trim();
   if (unit === 'steps') return {measure: 'steps', exerciseId: '', rule: 'at-least', target};
   if (waterUnit === 'ml' ? unit === 'ml' : unit === 'fl oz') return {measure: 'water', exerciseId: '', rule: 'at-least', target};
+  // Session AL (P-NB-28; NB-199, NB-200): a habit in litres (the "Drink water" template: 2 liters) links to Water too, its
+  // target said in the Health water unit (2 L → 2000 mL), so the habit ticks itself off from the water already logged.
+  const litres = waterTargetFromLitres(unit, target, waterUnit);
+  if (litres !== null) return {measure: 'water', exerciseId: '', rule: 'at-least', target: litres};
   if (input.measurement === 'duration' && unit === 'minutes' && /meditat|mindful/i.test(input.title)) return {measure: 'meditationMinutes', exerciseId: '', rule: 'at-least', target};
   return null;
 }
@@ -55,12 +61,12 @@ const UNITS: Record<Exclude<HealthMeasure, 'weight' | 'bedtimeBy'>, (waterUnit: 
  * "Done automatically from Health" (H7): the editor section for a build habit. The link is this device's own
  * (lib/habit-health-links) and is saved apart from the habit, like the reminder time.
  */
-export function HealthLinkField({draft, onChange, counters, waterUnit, unreadable, onStartOver}: {draft: HealthLinkDraft; onChange: (draft: HealthLinkDraft) => void; counters: readonly ExerciseCounter[]; waterUnit: 'ml' | 'fl-oz-us'; unreadable?: boolean; onStartOver?: () => void}) {
+export function HealthLinkField({draft, onChange, counters, waterUnit, unreadable, onStartOver, defaultTarget}: {draft: HealthLinkDraft; onChange: (draft: HealthLinkDraft) => void; counters: readonly ExerciseCounter[]; waterUnit: 'ml' | 'fl-oz-us'; unreadable?: boolean; onStartOver?: () => void; /** Session AL (P-NB-28): the habit's own target for a measure, filled in when that measure is chosen with no target typed. */ defaultTarget?: (measure: HealthMeasure) => string | null}) {
   const [confirming, setConfirming] = useState(false);
   const selected = draft.measure === 'exercise' ? `exercise:${draft.exerciseId}` : draft.measure;
   const choose = (value: string) => {
     if (value.startsWith('exercise:')) onChange({...draft, measure: 'exercise', exerciseId: value.slice('exercise:'.length)});
-    else onChange({...draft, measure: value as HealthMeasure | '', exerciseId: '', rule: value === 'weight' ? 'recorded' : value === 'bedtimeBy' ? 'by' : draft.rule === 'by' ? 'at-least' : draft.rule, ...(value === 'bedtimeBy' || draft.measure === 'bedtimeBy' ? {target: value === 'bedtimeBy' ? '23:00' : ''} : {})});
+    else { const filled = value && value !== 'bedtimeBy' && !draft.target.trim() ? defaultTarget?.(value as HealthMeasure) ?? null : null; onChange({...draft, measure: value as HealthMeasure | '', exerciseId: '', rule: value === 'weight' ? 'recorded' : value === 'bedtimeBy' ? 'by' : draft.rule === 'by' ? 'at-least' : draft.rule, ...(value === 'bedtimeBy' || draft.measure === 'bedtimeBy' ? {target: value === 'bedtimeBy' ? '23:00' : ''} : filled ? {target: filled} : {})}); }
   };
   return <fieldset className="habit-health-link" aria-label="Done automatically from Health">
     <legend><span className="eyebrow">From your Health journal</span></legend>
@@ -80,7 +86,7 @@ export function HealthLinkField({draft, onChange, counters, waterUnit, unreadabl
           <input type="text" inputMode="decimal" autoComplete="off" aria-label="Target" disabled={draft.rule !== 'at-least'} value={draft.target} onChange={event => onChange({...draft, target: event.target.value})} /><span>{UNITS[draft.measure](waterUnit)}</span></label>
         <label><input type="radio" name="health-link-rule" value="recorded" checked={draft.rule === 'recorded'} onChange={() => onChange({...draft, rule: 'recorded'})} /><span>{draft.measure === 'sleepMinutes' ? 'a night is logged' : draft.measure === 'meditationMinutes' ? 'a session is logged' : 'anything is recorded'}</span></label>
       </div>}
-      {draft.measure && <p className="fine">ZIGoals checks your Health journal when you open Today, Habits or Health, and ticks this habit off once per day. A tap always wins; Undo keeps it off for that day. {SYNC_WRITES ? 'Kept with your Health records.' : 'Kept on this device.'}</p>}
+      {draft.measure && <p className="fine">ZIGoals checks your Health journal when you open Today, Habits or Health, entries logged earlier today included, and ticks this habit off once per day; if that entry is removed, the habit opens again. A tap always wins; Undo keeps it off for that day. This is the habit’s one automatic setting: you don’t also need an auto-complete rule. {SYNC_WRITES ? 'Kept with your Health records.' : 'Kept on this device.'}</p>}
     </>}
   </fieldset>;
 }

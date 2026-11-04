@@ -101,6 +101,8 @@
 .celebration-symbol { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; font-size: 40px; color: #0b1020; background: linear-gradient(135deg, #6fe6f6, #c790f6, #f08bd6); box-shadow: 0 0 40px #c790f688; }
 .celebration-card h2 { margin: 0; font-size: clamp(24px, 4vw, 32px); letter-spacing: -.03em; }
 .celebration-line { margin: 0; font-size: 16px; color: var(--text-secondary); max-width: 340px; }
+/* Session AL (P-NB-02): what else came due at the same moment, on the same card. */
+.celebration-also { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 15px; color: var(--text-primary); }
 .celebration-card .primary { margin-top: 8px; min-height: 48px; min-width: 140px; }
 .celebration-particles { position: absolute; inset: 0; pointer-events: none; }
 .celebration-particles i { position: absolute; left: 50%; top: 34%; width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #6fe6f6, #c790f6, #f08bd6); opacity: 0; transform: translate(-50%, -50%); animation: celebration-burst var(--t) cubic-bezier(.2, .7, .3, 1) forwards; animation-delay: calc(var(--i) * 18ms); }
@@ -159,3 +161,11 @@
 /* Session AB-Design Phase 2 closing pass (design critique): a level not reached yet is the one neutral "locked" marker —
    desaturating each planet's own hue had turned levels 9 and 10 a muddy olive outside the palette. */
 .journey-path li:not([data-reached]) .journey-path-node { filter: none; background: #1a142a; border: 2px solid #a184e255; color: #d8ccf5; box-shadow: none; }
+/* Session AL (P-NB-03): the XP table and the latest XP on Journey. */
+.journey-xp-explained details { margin-top: 8px; }
+.journey-xp-explained summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+.journey-xp-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.journey-xp-table caption { caption-side: bottom; text-align: left; padding-top: 6px; }
+.journey-xp-table th, .journey-xp-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, .12)); }
+.journey-xp-history { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 15px; }
+.journey-xp-history li { display: flex; justify-content: space-between; gap: 12px; }

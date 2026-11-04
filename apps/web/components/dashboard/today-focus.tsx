@@ -10,21 +10,20 @@ import type {GoalSummary} from '../../lib/goal-summary';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import type {GoalStep} from '../../lib/today/goal-roles';
 import {formatUnits} from '@zigoals/chain-config';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatProgressPercent} from '../../lib/visual-format';
+import {waterText} from '../../lib/health-units';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useFasting} from '../health/use-fasting';
 import {AppIcon} from '../app-icon';
 import {Slot} from '../progress/slot';
 import {SectionHeading} from '../ui/section-heading';
-import {showToast} from '../ui/undo-toast';
+import {showStatus, showUndo} from '../ui/undo-toast';
 import {plainErrorMessage} from '../../lib/plain-error';
 import {newHealthId} from '../../lib/health';
 
-const ozText = (ml: number) => `${Math.round(ml / 29.5735295625 * 10) / 10} US fl oz`;
-const waterText = (ml: number, unit: 'ml' | 'fl-oz-us') => unit === 'ml' ? (ml >= 1000 ? `${Math.round(ml / 100) / 10} L` : `${Math.round(ml)} mL`) : ozText(ml);
-/** A goal's share as the cards show it: whole percent, rounded down ("45%", never "45.00%"). */
-const pct = (value: string) => { const n = Number(value); return Number.isFinite(n) ? `${Math.floor(n)}%` : value; };
+/** A goal's share as the cards show it: the one percent rule (half up, 100 % only when complete; Session AL, PR-023 / NB-252). */
+const pct = (value: string) => formatProgressPercent(value);
 const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(Math.round(minutes % 60)).padStart(2, '0')} min`;
 /** Session AF (L5a, Part 10.10): the top goal's next step in plain words (its progress is on its card). */
 export function stepText(step: GoalStep): string {
@@ -65,9 +64,15 @@ export function TodayFocus({reminders, nextGoal, step, financial, showHabits, sh
     const id = newHealthId(), at = new Date().toISOString();
     try {
       await health.update(latest => addWater(latest, {id, date: healthDate, amountMilli: firstWater.amountMilli, unit: firstWater.unit}, at));
-      showToast({message: `Water logged: ${firstWater.label.replace(/^Add /, '')}.`, undo: () => health.update(latest => removeWater(latest, id)), undone: 'Water entry removed.'});
+      // Session AL (P-NB-27; NB-081, NB-089): Undo removes THIS entry from the Health store (the latest record), and says
+      // so only once it is gone; a removal that finds nothing to remove says that instead of "removed".
+      showUndo({message: `Water logged: ${firstWater.label.replace(/^Add /, '')}.`, undoLabel: `Undo the water entry: ${firstWater.label.replace(/^Add /, '')}`, restore: async () => {
+        let found = false;
+        await health.update(latest => { found = dailyData(latest).water.some(w => w.id === id); return found ? removeWater(latest, id) : latest; });
+        return {undone: found ? 'Water entry removed.' : 'That water entry was already removed.'};
+      }});
     } catch (e) {
-      showToast({message: plainErrorMessage(e, 'Could not log water on this device.')});
+      showStatus(plainErrorMessage(e, 'Could not log water on this device.'), {tone: 'error'});
     }
   }
   return <section className="today-focus" aria-labelledby="today-focus-title" data-habits-widget={habitsWidget ? '' : undefined}>

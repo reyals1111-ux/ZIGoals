@@ -135,3 +135,8 @@
 @media (hover: hover) and (pointer: fine) { :root :where(.today-page) .today-earn-card:hover, :root :where(.today-page) .for-you-card:hover, :root :where(.today-page) .wrap-up-card:hover, :root :where(.today-page) .today-game-card:hover, :root :where(.today-page) .today-journal-card:hover, :root :where(.today-page) .today-tasks-card:hover { border-color: color-mix(in srgb, var(--brand-violet) 45%, var(--line, transparent)); } }
 :root :where(.today-page) .today-earn-card:has(:focus-visible), :root :where(.today-page) .for-you-card:has(:focus-visible), :root :where(.today-page) .wrap-up-card:has(:focus-visible), :root :where(.today-page) .today-game-card:has(:focus-visible), :root :where(.today-page) .today-journal-card:has(:focus-visible), :root :where(.today-page) .today-tasks-card:has(:focus-visible) { border-color: color-mix(in srgb, var(--brand-cyan) 70%, transparent); }
 @media (forced-colors: active) { :root :where(.today-page) .today-earn-card, :root :where(.today-page) .for-you-card, :root :where(.today-page) .wrap-up-card, :root :where(.today-page) .today-game-card, :root :where(.today-page) .today-journal-card, :root :where(.today-page) .today-tasks-card { box-shadow: none; } }
+/* Session AL (P-NB-73; N-NB-12): in the phone's two-column focus row, a tile left alone on its row (the goal's "Next step"
+   at ~300 px) takes the whole row instead of half of it. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .today-focus-tiles > .focus-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}

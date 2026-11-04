@@ -120,3 +120,8 @@
   :root:has(.welcome-phone-bar) { --launcher-clearance: 60px; }
   :root[data-keyboard] .welcome-phone-bar { display: none; }
 }
+/* Session AL (P-NB-11, P-NB-14): the "N of 3 chosen" and "N selected" counts; the tour card keeps one height so Next does not jump. */
+.onboarding-count { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+legend .onboarding-count { display: inline; margin-left: 8px; }
+.onboarding-tour-card { min-height: 168px; }
+.onboarding-skip-note { margin: 0 0 4px; }

@@ -21,7 +21,7 @@ export function pendingCelebrations(stores: GameStores, game: GameRecord, seen: 
   // The first level ever seen is not a celebration: the layer was just switched on. From then on each new level is.
   if (level > game.levelSeen && !seen[celebrationId.level(level)]) out.push({id: celebrationId.level(level), kind: 'level', title: `Level ${level} · ${levelName(level)}`, line: 'Every check-in and log you made brought you here.', symbol: '✦', semantic: 'level_up'});
   // Session AK Part 8.6: badges celebrate only while they are shown (off by default from a first switch-on).
-  for (const b of badgesShown(game) ? badges(stores, today) : []) if (b.earned && !game.badgesSeen?.[b.id] && !seen[celebrationId.badge(b.id)]) out.push({id: celebrationId.badge(b.id), kind: 'badge', title: `New badge · ${b.title}`, line: b.blurb, symbol: b.symbol, semantic: 'achievement_unlocked'});
+  for (const b of badgesShown(game) ? badges(stores, today, game.badgesSeen) : []) if (b.earned && !game.badgesSeen?.[b.id] && !seen[celebrationId.badge(b.id)]) out.push({id: celebrationId.badge(b.id), kind: 'badge', title: `New badge · ${b.title}`, line: b.blurb, symbol: b.symbol, semantic: 'achievement_unlocked'});
   for (const h of (stores.habits as HabitData).habits) if (habitStats(h, today).bestStreak >= 100 && !seen[celebrationId.streak(h.id)]) out.push({id: celebrationId.streak(h.id), kind: 'streak', title: `100 days · ${h.title}`, line: 'A hundred days in a row. That is a rhythm.', symbol: '✷'});
   for (const f of fasting ?? []) if (f.endedAt === null && f.hours >= f.targetHours && !seen[celebrationId.fast(f.id)]) out.push({id: celebrationId.fast(f.id), kind: 'fast', title: `${f.targetHours} hours fasted`, line: 'You reached the hours you set. How you end it is yours.', symbol: '◌'});
   out.push(...checklistCelebrations(stores, today, seen));
@@ -43,9 +43,19 @@ export function firstSight(stores: GameStores, today: string): {level: number; b
   const level = levelOf(xpEvents(stores, today).reduce((n, e) => n + e.xp, 0));
   return {level, badgeIds: badges(stores, today).filter(b => b.earned).map(b => b.id)};
 }
-/** A goal reached on Goals: AA-Cloud emits `goal_milestone_reached` or `goal_funded` through ZIGi's bus; the renderer makes one celebration per kind per day. */
-export function goalCelebration(type: 'goal_milestone_reached' | 'goal_funded' | 'achievement_unlocked', seen: Celebrations['seen'], today: string): Celebration | null {
+/**
+ * A goal reached on Goals: Goals emits `goal_milestone_reached`, `goal_funded` or `goal_finished` through ZIGi's bus; the
+ * renderer makes one celebration per kind per day. Session AL (P-NB-02; NB-049, NB-168, NB-197, NB-251): "A goal
+ * finished" comes only from `goal_finished` — never from `achievement_unlocked`, which a badge, a first check-in or a
+ * mood check-in also sends (the renderer's own badge card fed it back as "A goal finished" at a habit tick).
+ */
+export function goalCelebration(type: 'goal_milestone_reached' | 'goal_funded' | 'goal_finished', seen: Celebrations['seen'], today: string): Celebration | null {
   const id = celebrationId.goal(type, today);
   if (seen[id]) return null;
-  return {id, kind: 'goal', title: type === 'achievement_unlocked' ? 'Achievement unlocked' : type === 'goal_funded' ? 'Goal funded' : 'Milestone reached', line: type === 'achievement_unlocked' ? 'A goal finished. It is on the Hall of achievements.' : type === 'goal_funded' ? 'Your plan did what you asked of it.' : 'One step of the way, done.', symbol: '◆'};
+  return {id, kind: 'goal', title: type === 'goal_finished' ? 'A goal finished' : type === 'goal_funded' ? 'Goal funded' : 'Milestone reached', line: type === 'goal_finished' ? 'It is on the Hall of achievements.' : type === 'goal_funded' ? 'Your plan did what you asked of it.' : 'One step of the way, done.', symbol: '◆'};
+}
+/** Session AL (P-NB-02): whether the records show a goal reached today (its target met now, the completion dated today). */
+export function goalFinishedToday(stores: Pick<GameStores, 'platform'>, today: string): boolean {
+  const p = stores.platform; if (!p) return false;
+  return p.goals.some(g => g.status === 'completed' && (p.goalHistory.some(h => h.goalId === g.id && h.kind === 'status' && h.label === 'Goal completed' && h.capturedAt.slice(0, 10) === today) || (g.lifecycle ?? []).some(e => e.kind === 'completed' && e.at.slice(0, 10) === today)));
 }

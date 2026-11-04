@@ -47,7 +47,7 @@ export function FocusGarden() {
   };
   const progress = tally ? Math.min(1, tallyAt(tally, now).elapsed / (tally.plannedMinutes * 60)) : 0;
   useEffect(() => { if (tally && progress >= 1) finish(false); });
-  const goals = platform.loaded && !platform.error ? platform.data.goals.filter(g => g.status !== 'closed' && !g.locked) : [];
+  const goals = platform.loaded && !platform.error ? platform.data.goals.filter(g => g.status === 'active' && !g.locked) : []; // Session AL (P-NB-69; NB-206): active goals only, never a finished one
   const addNote = () => {
     if (!last?.goalId) return;
     const line = focusNote(last.focusedSeconds / 60, last.day); if (!line) return;

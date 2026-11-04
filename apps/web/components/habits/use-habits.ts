@@ -83,7 +83,7 @@ export function useHabits() {
     clearVacation: (range: VacationRange) => update((data) => clearHabitVacation(data, range)),
     // Session Z-Cloud Part 4.6: "Delete for good" an archived habit, and its Undo while nothing changed since.
     // The writes load on use (lib/habit-delete-write.ts), so a Habits page without a deletion carries none of them.
-    deleteForGood: async (id: string): Promise<DeletedHabit> => { const { deleteHabitForGood } = await import("../../lib/habit-delete-write"); let deleted: DeletedHabit | null = null; await update((data) => { const result = deleteHabitForGood(data, id); deleted = result.deleted; return result.data; }); return deleted!; },
+    deleteForGood: async (id: string): Promise<DeletedHabit> => { const { deleteHabitForGoodNow } = await import("../../lib/habit-delete-write"); let deleted: DeletedHabit | null = null; await update((data) => { const result = deleteHabitForGoodNow(data, id); /* Session AL (P-NB-24): the same day too, from any state */ deleted = result.deleted; return result.data; }); return deleted!; },
     undoDelete: async (deleted: DeletedHabit) => { const { undoDeleteHabit } = await import("../../lib/habit-delete-write"); return update((data) => undoDeleteHabit(data, deleted)); },
     toggle: (id: string, date: string) => update((data) => {
       const habit = data.habits.find((item) => item.id === id);

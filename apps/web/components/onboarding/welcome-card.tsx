@@ -37,3 +37,20 @@ export function WelcomeCard({ demoAvailable, onDismiss }: { demoAvailable: boole
     <button type="button" className="welcome-phone-close" aria-label="Hide this bar" onClick={() => setBarClosed(true)}>×</button>
   </div>}</>;
 }
+
+/**
+ * Session AL (P-NB-08; NB-002, NB-033): after "Not now", an empty device (nothing recorded, no setup made) still has one
+ * clear way into the setup on Today. It goes once the first record or the setup exists; the welcome card shows only once.
+ */
+export function FirstRunEntry({ demoAvailable }: { demoAvailable: boolean }) {
+  const id = useId();
+  return <section className="onboarding-welcome onboarding-entry panel" aria-labelledby={`${id}-title`}>
+    <p className="eyebrow">Your first minute</p>
+    <h2 id={`${id}-title`}>Set up ZIGoals in about a minute.</h2>
+    <p>Pick what matters to you; ZIGoals adds a first habit or goal and arranges Today. Nothing is sent anywhere.</p>
+    <div className="onboarding-actions">
+      <Link className="primary" href="/app/welcome">Start setup</Link>
+      {demoAvailable && <button type="button" className="secondary" onClick={() => { markOnboardingSeen(window.localStorage); void loadShowcase().then(() => window.location.assign("/app"), () => undefined); }}>Explore the demo</button>}
+    </div>
+  </section>;
+}

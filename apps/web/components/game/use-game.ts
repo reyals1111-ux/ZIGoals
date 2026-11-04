@@ -26,11 +26,13 @@ export function useGame() {
   // Session AF (L3): the Checklist's sealed days feed its XP, badges and celebrations (lib/game reads `checklist`).
   const stores = useMemo(() => ({habits: habits.data, health: health.data, platform: platform.data, weekly: weekly.data, ...(checklistDays.loaded && !checklistDays.unreadable ? {checklist: checklistDays.data} : {}), ...(earnAcademy.loaded && !earnAcademy.unreadable ? {earnAcademy: earnAcademy.data} : {})}), [habits.data, health.data, platform.data, weekly.data, checklistDays.loaded, checklistDays.unreadable, checklistDays.data, earnAcademy.loaded, earnAcademy.unreadable, earnAcademy.data]);
   const pages = useMemo(() => ['habits', 'health', 'goals', 'wealth', 'today'].filter(p => !view.hidden.includes(p as never)), [view.hidden]);
+  const kept = game.loaded && !game.unreadable ? game.data.badgesSeen : undefined;
   const derived = useMemo(() => {
     if (!loaded) return null;
     const xp = xpSummary(stores, today);
-    return {xp, quests: dailyQuests(stores, today, pages), challenges: weeklyChallenges(stores, today), badges: badges(stores, today), path: journeyPath(stores, today, xp.level.level, xp.total), freezes: freezesAvailable(stores.habits, today), repairable: repairableDays(stores.habits, today)};
-  }, [loaded, stores, today, pages]);
+    // Session AL (P-NB-02): a badge already shown on this device stays earned (badgesSeen), as the Journey promises.
+    return {xp, quests: dailyQuests(stores, today, pages), challenges: weeklyChallenges(stores, today), badges: badges(stores, today, kept), path: journeyPath(stores, today, xp.level.level, xp.total, kept), freezes: freezesAvailable(stores.habits, today), repairable: repairableDays(stores.habits, today)};
+  }, [loaded, stores, today, pages, kept]);
   return {game, celebrations, enabled, loaded, today, stores, pages, derived, habits};
 }
 export type GameState = ReturnType<typeof useGame>;

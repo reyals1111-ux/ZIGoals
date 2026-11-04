@@ -50,6 +50,7 @@ import { currentInstallContext } from "../../lib/install/platform";
 import { GlassBar } from "../progress/glass-progress";
 import { BullGlyph, ButterflyGlyph, HeartGlyph, LotusGlyph } from "../footer/pillar-glyphs";
 import {plainErrorMessage} from "../../lib/plain-error";
+import { showStatus } from "../ui/undo-toast";
 
 /**
  * The first-run welcome v2 (Session W Part 3; Session E's flow before it): ZIGi says hello, the person picks what they
@@ -77,9 +78,34 @@ const TOUR: {title: string; text: string}[] = [
 ];
 type GoalDraft = {category: NonNullable<PrivateGoal["category"]> | ""; name: string; target: string; currency: "USD" | "EUR"; date: string};
 const NO_GOAL: GoalDraft = {category: "", name: "", target: "", currency: "USD", date: ""};
+/** Session AL (P-NB-09): the wizard draft in this tab (`zigoals:welcome-draft:v1`, session storage only; tolerant reads). */
+const WELCOME_DRAFT_KEY = "zigoals:welcome-draft:v1";
+type WelcomeDraft = {step?: string; pillars?: string[]; focuses?: string[]; habitIds?: string[]; skipped?: string[]; goal?: Partial<GoalDraft>; steps?: number | null; water?: number | null; sleep?: number | null};
+function readWelcomeDraft(): WelcomeDraft | null {
+  try {
+    const raw = window.sessionStorage.getItem(WELCOME_DRAFT_KEY); if (!raw) return null;
+    const d = JSON.parse(raw) as Record<string, unknown>; if (!d || typeof d !== "object") return null;
+    const strings = (v: unknown) => Array.isArray(v) && v.length <= 60 && v.every(x => typeof x === "string" && x.length <= 100) ? v as string[] : undefined;
+    const num = (v: unknown) => v === null || (typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 1_000_000) ? v as number | null : undefined;
+    const g = d.goal && typeof d.goal === "object" ? d.goal as Record<string, unknown> : null;
+    const goal: Partial<GoalDraft> | undefined = g ? {...(typeof g.category === "string" && (g.category === "" || GOAL_TEMPLATES.some(t => t.category === g.category)) ? {category: g.category as GoalDraft["category"]} : {}), ...(typeof g.name === "string" && g.name.length <= 100 ? {name: g.name} : {}), ...(typeof g.target === "string" && g.target.length <= 40 ? {target: g.target} : {}), ...(g.currency === "USD" || g.currency === "EUR" ? {currency: g.currency as GoalDraft["currency"]} : {}), ...(typeof g.date === "string" && /^(\d{4}-\d{2}-\d{2})?$/.test(g.date) ? {date: g.date} : {})} : undefined;
+    return {step: typeof d.step === "string" ? d.step : undefined, pillars: strings(d.pillars), focuses: strings(d.focuses), habitIds: strings(d.habitIds), skipped: strings(d.skipped), goal, steps: num(d.steps), water: num(d.water), sleep: num(d.sleep)};
+  } catch { return null; }
+}
+function writeWelcomeDraft(draft: WelcomeDraft | null) {
+  try { if (draft === null) window.sessionStorage.removeItem(WELCOME_DRAFT_KEY); else window.sessionStorage.setItem(WELCOME_DRAFT_KEY, JSON.stringify(draft)); } catch { /* the draft is a convenience */ }
+}
+/** Session AL (P-NB-15; NB-017): a first goal's currency starts in euros where the device's time zone is in Europe. */
+function homeCurrency(): "USD" | "EUR" { try { return Intl.DateTimeFormat().resolvedOptions().timeZone.startsWith("Europe/") ? "EUR" : "USD"; } catch { return "USD"; } }
 const litres = (ml: number) => `${formatNumber(ml / 1000, {maximumFractionDigits: 1})} L`;
 
+/** Session AL (N-NB-09): "2 habits, a goal and 3 widgets", never "2 habits, a goal can be…". */
+function setupLine(s: {habitIds: readonly string[]; goalId?: string; widgetIds: readonly string[]}): string {
+  const parts = [s.habitIds.length ? `${s.habitIds.length} ${s.habitIds.length === 1 ? "habit" : "habits"}` : "", s.goalId ? "a goal" : "", s.widgetIds.length ? `${s.widgetIds.length} ${s.widgetIds.length === 1 ? "widget" : "widgets"}` : ""].filter(Boolean);
+  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts[0] ?? "Nothing";
+}
 function exploreDemo() {
+  writeWelcomeDraft(null);
   markOnboardingSeen(window.localStorage);
   void loadShowcase().then(() => window.location.assign("/app"), () => undefined);
 }
@@ -96,6 +122,7 @@ export function OnboardingFlow() {
   // Session AA-Local S4: two or three focuses, which pre-select starters, a goal and Today's widgets; the setup is recorded for a day so it can be undone.
   const [focuses, setFocuses] = useState<FocusId[]>([]), [setupDone, setSetupDone] = useState(() => { try { return readDeviceRecord(getAppStorage(), ONBOARDING_SETUP).data; } catch { return null; } }), [undoBusy, setUndoBusy] = useState(false);
   const [draft, setDraft] = useState<GoalDraft>(NO_GOAL), [goal, setGoal] = useState<PrivateGoal | null>(null);
+  useEffect(() => { const home = homeCurrency(); if (home !== NO_GOAL.currency) setDraft(d => d.currency === NO_GOAL.currency && !d.target ? {...d, currency: home} : d); }, []);
   const [goalError, setGoalError] = useState<{field: 'name' | 'target' | 'date'; text: string} | null>(null);
   const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
   const [skippedFocusHabits, setSkippedFocusHabits] = useState<string[]>([]);
@@ -144,6 +171,16 @@ export function OnboardingFlow() {
     if (!touched.current.steps) setSteps(titles.includes("walk") ? 8000 : null);
     if (!touched.current.water) setWater(titles.includes("drink water") ? 2000 : null);
   }, [pickedTitles]);
+  // Session AL (P-NB-09; NB-011): the wizard's step and picks survive a reload in this tab (session storage, cleared on
+  // Finish, Skip setup and Explore the demo); read after mount, so the server's first render and the client's agree.
+  const restored = useRef(false);
+  useEffect(() => {
+    const d = readWelcomeDraft(); restored.current = true; if (!d) return;
+    if (d.pillars) setPillars(d.pillars as Pillar[]); if (d.focuses) setFocuses(d.focuses as FocusId[]); if (d.habitIds) setHabitIds(d.habitIds); if (d.skipped) setSkippedFocusHabits(d.skipped);
+    if (d.goal) setDraft(g => ({...g, ...d.goal})); if (d.steps !== undefined) { touched.current.steps = true; setSteps(d.steps); } if (d.water !== undefined) { touched.current.water = true; setWater(d.water); } if (d.sleep !== undefined) setSleepGoalChoice(d.sleep);
+    if (d.step && STEPS.includes(d.step as Step)) setStep(d.step as Step);
+  }, []);
+  useEffect(() => { if (restored.current) writeWelcomeDraft({step, pillars, focuses, habitIds, skipped: skippedFocusHabits, goal: draft, ...(touched.current.steps ? {steps} : {}), ...(touched.current.water ? {water} : {}), sleep: sleepGoal}); }, [step, pillars, focuses, habitIds, skippedFocusHabits, draft, steps, water, sleepGoal]);
   // Release review R7: the goal's own problem is said next to its field (aria-invalid, aria-describedby), in plain words.
   function go(next: Step) { setError(""); setGoalError(null); setStep(next); }
   function leaveFocuses() {
@@ -161,9 +198,11 @@ export function OnboardingFlow() {
       if (done.goalId) { const goalId = done.goalId; await platform.update(data => data.goals.some(g => g.id === goalId) ? deletePrivateGoal(data, goalId) : data); }
       if (done.widgetIds.length) { await updateSettings(getAppStorage(), latest => done.widgetIds.reduce((acc, id) => acc.widgets.some(w => w.id === id) ? removeWidget(acc, id) : acc, latest)); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
       const next = updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, r => ({...r, undone: true})); setSetupDone(next);
+      // Session AL (P-NB-09; NB-241): Undo setup says what it took back, and what it leaves (the page choices are yours to change).
+      showStatus(`Setup undone: ${setupLine(done)} removed. Your page choices stay; change them in Settings → Your pages & buttons.`);
     } catch (e) { setError(plainErrorMessage(e, "The setup was not undone.")); } finally { setUndoBusy(false); }
   }
-  function skip() { markOnboardingSeen(window.localStorage); router.push("/app"); }
+  function skip() { writeWelcomeDraft(null); markOnboardingSeen(window.localStorage); router.push("/app"); }
   const toggle = <T,>(list: T[], value: T) => list.includes(value) ? list.filter(v => v !== value) : [...list, value];
 
   /** The goal draft, checked when leaving the starters step: a kind chosen means a name and a target are needed. */
@@ -216,7 +255,7 @@ export function OnboardingFlow() {
       if (showSleep && sleepGoal !== null) { const minutes = sleepGoal; await updateHealthGroup("sleep", current => setSleepGoal(current, {minutes, ...(current.goal?.bedFrom && current.goal.bedTo ? {bedFrom: current.goal.bedFrom, bedTo: current.goal.bedTo} : {})}, new Date())); }
       // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
       if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ } }
-      markOnboardingSeen(window.localStorage);
+      markOnboardingSeen(window.localStorage); writeWelcomeDraft(null);
       // Session AK P4 (FR-4): Today greets the finished setup with "You're set" and moves the focus to it, once (tab only).
       if (createdHabitIds.length || goal) { try { window.sessionStorage.setItem(LANDING_NOTE, at); } catch { /* the card still shows; only the focus waits */ } }
       const target = syncNext ? "/app/settings#encrypted-sync" : startHref(viewOf(pagesAfter));
@@ -236,7 +275,10 @@ export function OnboardingFlow() {
     <p className="fine">Your own records start empty. The demo stays one tap away in Settings → Load Showcase Demo.</p>
   </section>;
 
+  const picked = pillars.length + focuses.length + habitIds.length > 0 || !!draft.category;
   const escape = <div className="onboarding-escape">
+    {/* Session AL (P-NB-09; NB-246): skipping after picks says they are not kept. */}
+    {picked && <p className="fine onboarding-skip-note">Skip setup leaves without saving what you picked.</p>}
     <button type="button" className="text-link" onClick={skip}>Skip setup</button>
     <button type="button" className="text-link" disabled={!demoAvailable} onClick={exploreDemo}>Explore the demo</button>
   </div>;
@@ -244,10 +286,10 @@ export function OnboardingFlow() {
   const summary = [
     focuses.length > 0 && `Your focuses: ${focuses.map(f => FOCUSES.find(x => x.id === f)!.title).join(", ")}.`,
     preset && `Today starts with ${PRESETS.find(p => p.id === preset)?.label ?? preset}.`,
-    extraHabits.length > 0 && `${extraHabits.length === 1 ? "A habit from your focus" : `${extraHabits.length} habits from your focuses`}: ${extraHabits.join(", ")}.`,
+    // Session AL (P-NB-13; NB-040): every habit the setup adds, on one line, as Today counts them.
+    (extraHabits.length + pickedHabits.length) > 0 && `${extraHabits.length + pickedHabits.length === 1 ? "A habit" : `${extraHabits.length + pickedHabits.length} habits`}: ${[...extraHabits, ...pickedHabits.map(t => t.title)].join(", ")}.`,
     suggested.widgets.length > 0 && `Widgets on Today: ${suggested.widgets.join(", ")}.`,
     pagesChange && `Your pages: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.`,
-    pickedHabits.length > 0 && `${pickedHabits.length === 1 ? "A habit" : `${pickedHabits.length} habits`}: ${pickedHabits.map(t => t.title).join(", ")}.`,
     goal && `Your goal “${goal.name}”.`,
     showHealth && steps !== null && `A daily step target of ${steps.toLocaleString("en")}.`,
     showHealth && water !== null && `A daily water target of ${litres(water)}.`,
@@ -256,7 +298,7 @@ export function OnboardingFlow() {
 
   const undoable = setupDone && setupUndoable(setupDone, new Date());
   return <section className="onboarding panel" aria-labelledby={`${id}-title`} data-step={step}>
-    {undoable && <section className="onboarding-undo" aria-label="Undo the last setup"><p><strong>Your last setup is still fresh.</strong> {setupDone.habitIds.length} {setupDone.habitIds.length === 1 ? "habit" : "habits"}{setupDone.goalId ? ", a goal" : ""}{setupDone.widgetIds.length ? ` and ${setupDone.widgetIds.length} widgets` : ""} can be taken back for a day.</p><button type="button" className="secondary" disabled={undoBusy} onClick={() => void undoSetup()}>{undoBusy ? "Undoing…" : "Undo setup"}</button></section>}
+    {undoable && <section className="onboarding-undo" aria-label="Undo the last setup"><p><strong>Your last setup is still fresh.</strong> {setupLine(setupDone)} can be taken back for a day.</p><button type="button" className="secondary" disabled={undoBusy} onClick={() => void undoSetup()}>{undoBusy ? "Undoing…" : "Undo setup"}</button></section>}
     <div className="onboarding-progress">
       <p className="eyebrow">Step {index + 1} of {STEPS.length}</p>
       <GlassBar identity="onboarding-steps" className="onboarding-track" aria-hidden="true" value={(index + 1) / STEPS.length} />
@@ -302,13 +344,15 @@ export function OnboardingFlow() {
         <fieldset className="onboarding-choices"><legend className="sr-only">Your focuses</legend>
           {focusChoices.map(f => <Choice key={f.id} name="onboarding-focus" checked={focuses.includes(f.id)} disabled={!focuses.includes(f.id) && focuses.length >= 3} onChange={() => setFocuses(list => toggle(list, f.id))} label={f.title} note={f.blurb} />)}
         </fieldset>
+        {/* Session AL (P-NB-11; NB-007, NB-035): the count, and the cap said, not a silent fourth tap. */}
+        <p className="onboarding-count" aria-live="polite">{focuses.length} of 3 chosen{focuses.length >= 3 ? " · that’s the most for now: untick one to pick another" : ""}</p>
         <p className="fine onboarding-shown" aria-live="polite">{focuses.length ? `Suggested: ${[...suggested.habits, ...(suggested.goal ? [`the goal “${suggested.goal.name}”`] : [])].join(", ") || "widgets on Today"}.` : "Skip this and choose by hand on the next step."}</p>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={leaveFocuses}>{focuses.length ? "Continue" : "Continue without choosing"}</button>{back("pillars")}</div>
       </>}
 
       {step === "starters" && <>
         <p className="onboarding-lede">Tick what you’d like to begin with. You can change targets and schedules later, or skip this.</p>
-        <fieldset className="onboarding-choices"><legend>Habits</legend>
+        <fieldset className="onboarding-choices"><legend>Habits <small className="onboarding-count" aria-live="polite">{pickedHabits.length + extraHabits.length} selected</small></legend>
           {focusHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked={!skippedFocusHabits.includes(title.toLowerCase())} onChange={() => setSkippedFocusHabits(list => toggle(list, title.toLowerCase()))} label={title} note={`From your focus · ${focusHabitRhythm(title)}`} />)}
           {starters.map(t => { const exists = hasHabitLike(existingTitles, t); return <Choice key={t.id} name="onboarding-habit" checked={exists || habitIds.includes(t.id)} disabled={exists} onChange={() => setHabitIds(list => toggle(list, t.id))} label={t.title} note={exists ? "Already in your Habits" : `${t.note} · ${HABIT_GROUP_LABEL[t.group]}`} />; })}
         </fieldset>
@@ -317,16 +361,16 @@ export function OnboardingFlow() {
             {GOAL_TEMPLATES.map(t => <Choice key={t.category} type="radio" name="onboarding-goal" checked={draft.category === t.category} onChange={() => setDraft(d => ({...d, category: t.category}))} label={t.label} />)}
           </div>
           <fieldset className="onboarding-fields" disabled={!draft.category}><legend className="sr-only">Goal details</legend>
-            <label className="field">Goal name<input data-goal-field="name" required maxLength={100} value={draft.name} aria-invalid={goalError?.field === 'name' || undefined} aria-describedby={goalError?.field === 'name' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, name: e.target.value}))} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
+            <label className="field">Goal name<input data-goal-field="name" required maxLength={100} value={draft.name} aria-invalid={goalError?.field === 'name' || undefined} aria-describedby={goalError?.field === 'name' ? 'onboarding-goal-error' : undefined} onChange={e => { setDraft(d => ({...d, name: e.target.value})); if (goalError?.field === 'name') setGoalError(null); /* Session AL (NB-016): fixed fields clear their message */ }} placeholder={GOAL_TEMPLATES.find(t => t.category === draft.category)?.placeholder ?? "Name your goal"} autoComplete="off" /></label>
             <div className="onboarding-row">
-              <label className="field">Target amount<input data-goal-field="target" required inputMode="decimal" value={draft.target} aria-invalid={goalError?.field === 'target' || undefined} aria-describedby={goalError?.field === 'target' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, target: e.target.value}))} placeholder="0.00" autoComplete="off" /></label>
+              <label className="field">Target amount<input data-goal-field="target" required inputMode="decimal" value={draft.target} aria-invalid={goalError?.field === 'target' || undefined} aria-describedby={goalError?.field === 'target' ? 'onboarding-goal-error' : undefined} onChange={e => { setDraft(d => ({...d, target: e.target.value})); if (goalError?.field === 'target') setGoalError(null); }} placeholder="0.00" autoComplete="off" /></label>
               <fieldset className="onboarding-currency"><legend>Currency</legend>{(["USD", "EUR"] as const).map(c => <label key={c}><input type="radio" name="onboarding-currency" value={c} checked={draft.currency === c} onChange={() => setDraft(d => ({...d, currency: c}))} /><span>{c}</span></label>)}</fieldset>
             </div>
-            <label className="field">Target date (optional)<input data-goal-field="date" type="date" min={localDate()} value={draft.date} aria-invalid={goalError?.field === 'date' || undefined} aria-describedby={goalError?.field === 'date' ? 'onboarding-goal-error' : undefined} onChange={e => setDraft(d => ({...d, date: e.target.value}))} /></label>
+            <label className="field">Target date (optional)<input data-goal-field="date" type="date" min={localDate()} value={draft.date} aria-invalid={goalError?.field === 'date' || undefined} aria-describedby={goalError?.field === 'date' ? 'onboarding-goal-error' : undefined} onChange={e => { setDraft(d => ({...d, date: e.target.value})); if (goalError?.field === 'date') setGoalError(null); }} /></label>
           </fieldset>
           {goalError && <p id="onboarding-goal-error" className="field-error" role="alert">{goalError.text}</p>}
           <p className="fine">A plan, not a promise: nothing is invested or moved.</p>
-          {draft.category && <button type="button" className="secondary onboarding-no-goal" onClick={() => { setDraft(NO_GOAL); setGoal(null); setGoalError(null); }}>No goal for now</button>}
+          {draft.category && <button type="button" className="secondary onboarding-no-goal" onClick={() => { setDraft(d => ({...NO_GOAL, currency: d.currency})); setGoal(null); setGoalError(null); }}>No goal for now</button>}
         </fieldset>}
         {showHealth && <fieldset className="onboarding-targets"><legend>Health targets (optional)</legend>
           <div className="onboarding-choices" role="radiogroup" aria-label="Daily steps">
@@ -360,6 +404,8 @@ export function OnboardingFlow() {
           <p>{TOUR[tour]!.text}</p>
         </section>
         <div className="onboarding-actions">
+          {/* Session AL (P-NB-14; NB-019): Back inside the tour, and the buttons stay put (the card keeps one height, onboarding.css). */}
+          {tour > 0 && <button type="button" className="secondary" onClick={() => setTour(tour - 1)}>Back</button>}
           {tour < TOUR.length - 1 ? <button type="button" className="primary" onClick={() => setTour(tour + 1)}>Next</button> : <button type="button" className="primary" onClick={() => { setTour(null); go("install"); }}>Done</button>}
           <button type="button" className="secondary" onClick={() => { setTour(null); go("install"); }}>End the tour</button>
         </div>
@@ -380,6 +426,8 @@ export function OnboardingFlow() {
         <ul className="onboarding-points">
           <li><strong>Your own AI, later.</strong> Connect the AI you already use in Settings → ZIGi · Your Personal AI Companion. Until you do, nothing is sent anywhere.</li>
           <li><strong>You stay in charge.</strong> I only suggest; anything I propose waits for your confirmation.</li>
+          {/* Session AL (P-NB-13; NB-022): NOVA, in the sidebar from the start, named here so it is not a stranger. */}
+          <li><strong>NOVA is my full-page view.</strong> NOVA in the sidebar shows your whole day on one screen and answers the same way I do: from your own records, and asking before it changes anything.</li>
           <li><strong>Out of the way when you like.</strong> Hide my button with the chevron below it, or in Settings → Your pages & buttons.</li>
         </ul>
         <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("data")}>Continue</button>{back("install")}</div>

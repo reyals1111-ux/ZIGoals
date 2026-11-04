@@ -1,5 +1,5 @@
 import {habitDay, habitRuleOn, type HabitData} from '../habits';
-import type {GameStores} from './xp';
+import {goalXpEvents, type GameStores} from './xp';
 
 /**
  * Daily quests: three a day, picked deterministically from the day and the pages the person shows, each provable from
@@ -20,7 +20,8 @@ export const QUESTS: readonly QuestDef[] = [
   {id: 'sleep-log', page: 'health', title: 'Log last night', target: 1, unit: 'night', progress: (s, t) => (s.health.sleep?.nights ?? []).some(n => n.end?.slice(0, 10) === t) ? 1 : 0},
   {id: 'meditate', page: 'health', title: 'Take a mindful minute', target: 1, unit: 'session', progress: (s, t) => (s.health.meditation?.sessions ?? []).some(x => x.startedAt.slice(0, 10) === t) ? 1 : 0},
   {id: 'move', page: 'health', title: 'Log some movement', target: 1, unit: 'entry', progress: (s, t) => s.health.activity.some(a => a.date === t) ? 1 : 0},
-  {id: 'goal-step', page: 'goals', title: 'Take a step on a goal', target: 1, unit: 'step', progress: (s, t) => (s.platform?.goalHistory ?? []).some(g => g.capturedAt.slice(0, 10) === t && (g.kind === 'milestone' || g.kind === 'status')) || (s.platform?.contributions ?? []).some(c => c.occurredAt.slice(0, 10) === t && c.direction === 'IN') ? 1 : 0},
+  // Session AL (P-NB-01): a step is what earns goal XP today (a milestone ticked, a target reached, a contribution kept), not a close or a reopen.
+  {id: 'goal-step', page: 'goals', title: 'Take a step on a goal', target: 1, unit: 'step', progress: (s, t) => s.platform && goalXpEvents(s.platform, t).some(e => e.day === t) ? 1 : 0},
   {id: 'review', page: 'today', title: 'Complete your weekly review', target: 1, unit: 'review', progress: (s, t) => (s.weekly?.reviews ?? []).some(r => r.completedAt?.slice(0, 10) === t) ? 1 : 0},
 ];
 /** A small deterministic hash so the same day always picks the same quests on every device. */
@@ -30,6 +31,9 @@ export type Quest = QuestDef & {done: number; complete: boolean};
 export function dailyQuests(stores: GameStores, today: string, pages: readonly string[] = ['habits', 'health', 'goals', 'wealth', 'today'], count = 3): Quest[] {
   const pool = QUESTS.filter(q => pages.includes(q.page) && (q.page !== 'habits' || dueHabits(stores.habits, today).length > 0) && (q.id !== 'habits-morning' || dueHabits(stores.habits, today).some(x => x.timeOfDay === 'morning')));
   const picked: QuestDef[] = [], seen = new Set<string>();
+  // Session AL (P-NB-05; NB-248): while a habit is due today, "Complete every habit due today" is always one of the three.
+  const all = pool.find(q => q.id === 'habits-all');
+  if (all && count > 0) { picked.push(all); seen.add(all.id); }
   let i = 0;
   while (picked.length < Math.min(count, pool.length) && i < 50) { const q = pool[dayHash(today, i) % pool.length]!; i++; if (seen.has(q.id)) continue; seen.add(q.id); picked.push(q); }
   return picked.map(q => { const done = q.progress(stores, today); return {...q, done, complete: done >= q.target}; });

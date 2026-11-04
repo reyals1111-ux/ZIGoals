@@ -5,7 +5,7 @@ import {formatNumber} from '../../lib/visual-format';
 import {saveFailureMessage, storageUiCode} from '../../lib/storage-error-copy';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {ConfirmInline} from '../ui/confirm-inline';
-import {showToast} from '../ui/undo-toast';
+import {showUndo} from '../ui/undo-toast';
 import './rewards-shelf.css';
 
 /** The shelf's own words for a refused entry (a price out of range, too few points); storage's coded reason otherwise. */
@@ -26,12 +26,12 @@ export default function RewardsShelf({xpTotal}: {xpTotal: number}) {
   const add = () => { if (save(c => addReward(c, {id: newId(), name, price: Number(price), at: new Date().toISOString()}), `${name.trim()} is on your shelf.`)) { setName(''); setPrice(''); } };
   const claim = (rewardId: string, title: string) => {
     const id = newId();
-    if (save(c => claimReward(c, rewardId, xpTotal, {id, at: new Date().toISOString()}), `Enjoy it: ${title}.`)) showToast({message: `Claimed: ${title}. Enjoy it.`, undo: () => shelf.update(c => undoClaim(c, id)), undone: 'Claim taken back; the points are yours again.'});
+    if (save(c => claimReward(c, rewardId, xpTotal, {id, at: new Date().toISOString()}), `Enjoy it: ${title}.`)) showUndo({message: `Claimed: ${title}. Enjoy it.`, restore: () => shelf.update(c => undoClaim(c, id)), undone: 'Claim taken back; the points are yours again.'});
   };
   return <section className="panel rewards-shelf" aria-labelledby="rewards-shelf-title">
     <p className="eyebrow">Optional · your own treats</p>
     <h2 id="rewards-shelf-title">Rewards shelf</h2>
-    <label className="game-setting-row"><input type="checkbox" role="switch" aria-checked={on} checked={on} disabled={shelf.unreadable} onChange={e => save(c => setShelfOn(c, e.target.checked), e.target.checked ? 'The shelf is on.' : 'The shelf is off; your treats stay saved.')} /><span><strong>Rewards shelf</strong><small>List treats with a point price. Your points are the XP you already earn; claiming a treat marks it enjoyed. No penalties, no negative points.</small></span></label>
+    <label className="game-setting-row"><input type="checkbox" role="switch" aria-label="Rewards shelf" aria-checked={on} checked={on} disabled={shelf.unreadable} onChange={e => save(c => setShelfOn(c, e.target.checked), e.target.checked ? 'The shelf is on.' : 'The shelf is off; your treats stay saved.')} /><span><strong>Rewards shelf</strong><small>List treats with a point price. Your points are the XP you already earn; claiming a treat marks it enjoyed. No penalties, no negative points.</small></span></label>
     {on && <>
       <p className="rewards-points">Points to spend: <strong>{formatNumber(left)}</strong> <span className="fine">· {formatNumber(Math.max(0, Math.floor(xpTotal)))} XP earned, {formatNumber(pointsSpent(s))} claimed</span></p>
       {rewards.length ? <ul className="rewards-list" aria-label="Your treats">{rewards.map(r => {
